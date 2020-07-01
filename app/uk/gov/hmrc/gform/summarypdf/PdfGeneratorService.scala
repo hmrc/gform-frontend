@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.summarypdf
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
 import play.mvc.Http.{ HeaderNames, MimeTypes }
@@ -47,32 +48,25 @@ class PdfGeneratorService(
   }
 
   def generateSummaryPDF(
-    formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    summaryPagePurpose: SummaryPagePurpose)(
+    summaryPagePurpose: SummaryPagePurpose
+  )(
     implicit
     request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    lise: SmartStringEvaluator): Future[Source[ByteString, _]] =
+    lise: SmartStringEvaluator
+  ): Future[Source[ByteString, _]] =
     for {
       summaryHtml <- summaryRenderingService
-                      .getSummaryHTML(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser)
-      htmlForPDF = HtmlSanitiser.sanitiseHtmlForPDF(summaryHtml, submitted = false)
-      withPDFHeader = pdfHeader(htmlForPDF, cache.formTemplate)
-      pdfStream <- generatePDF(PdfHtml(withPDFHeader))
+                      .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForUser)
+      htmlForPDF = HtmlSanitiser
+        .sanitiseHtmlForPDF(summaryHtml, document => HtmlSanitiser.summaryPagePdf(document, cache.formTemplate))
+      pdfStream <- generatePDF(PdfHtml(htmlForPDF))
     } yield pdfStream
 
-  private def pdfHeader(
-    summaryHtml: String,
-    formTemplate: FormTemplate)(implicit ec: ExecutionContext, l: LangADT, messages: Messages): String = {
-    val headerHtml = pdf_header(formTemplate).toString()
-    val doc = Jsoup.parse(summaryHtml)
-    doc.select("article[class*=content__body]").prepend(headerHtml)
-    doc.html
-  }
 }
 
 object PdfGeneratorService {

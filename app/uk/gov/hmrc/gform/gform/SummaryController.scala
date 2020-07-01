@@ -64,7 +64,7 @@ class SummaryController(
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewSummary) {
       implicit request => implicit l => cache => implicit sse =>
         summaryRenderingService
-          .getSummaryHTML(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser)
+          .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForUser)
           .map(Ok(_))
     }
 
@@ -144,12 +144,11 @@ class SummaryController(
   def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadSummaryPdf) {
       implicit request => implicit l => cache => implicit sse =>
-        pdfService.generateSummaryPDF(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser) map {
-          pdfStream =>
-            Result(
-              header = ResponseHeader(200, Map.empty),
-              body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
-            )
+        pdfService.generateSummaryPDF(maybeAccessCode, cache, SummaryPagePurpose.ForUser) map { pdfStream =>
+          Result(
+            header = ResponseHeader(200, Map.empty),
+            body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+          )
         }
     }
 }

@@ -22,6 +22,7 @@ import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.future._
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
 import play.twirl.api.{ Html, HtmlFormat }
@@ -47,7 +48,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfN
 import uk.gov.hmrc.gform.summary.SummaryRenderingService.validate
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
-import uk.gov.hmrc.gform.views.html.form.snippets.print_pdf_header
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper._
@@ -86,41 +86,40 @@ class SummaryRenderingService(
   ): Future[PdfHtml] = {
     import i18nSupport._
 
-    // ToDo: Why do we sanitise just the summaryHtml and not the whole thing after adding the extra data?
     for {
-      summaryHtml <- getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache, summaryPagePurpose)
-    } yield
+      summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose)
+    } yield {
+      val (extraData, declarationExtraData) = addExtraDataToDocument(submissionDetails, cache)
       PdfHtml(
-        addExtraDataToHTML(
-          // ToDo: I'm bothered by this. Why is submitted always true? Why is it not submissionDetails.isDefined?
-          // Would it matter if sanitiseHtmlForPDF always did what it does when submitted = true?
-          HtmlSanitiser.sanitiseHtmlForPDF(summaryHtml, submitted = true),
-          submissionDetails,
-          cache
-        ))
+        HtmlSanitiser
+          .sanitiseHtmlForPDF(
+            summaryHtml,
+            document =>
+              HtmlSanitiser.acknowledgementPdf(document, extraData, declarationExtraData, cache.formTemplate)))
+    }
   }
 
   def createHtmlForPrintPdf(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
-    pdf: PrintSection.Pdf)(
-    implicit request: Request[_],
+    pdf: PrintSection.Pdf
+  )(
+    implicit
+    request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    lise: SmartStringEvaluator): Future[PdfHtml] = {
+    lise: SmartStringEvaluator
+  ): Future[PdfHtml] = {
     import i18nSupport._
     for {
-      summaryHtml <- getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache, summaryPagePurpose)
+      summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose)
     } yield {
+      val (headerStr, footerStr) = addDataToPrintPdfHTML(pdf.header, pdf.footer)
       PdfHtml(
-        addDataToPrintPdfHTML(
-          HtmlSanitiser.sanitiseHtmlForPDF(summaryHtml, submitted = true),
-          cache,
-          pdf.header,
-          pdf.footer
-        ))
+        HtmlSanitiser
+          .sanitiseHtmlForPDF(summaryHtml, document => HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)))
     }
   }
 
@@ -128,12 +127,14 @@ class SummaryRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
-    pdfNotification: PdfNotification)(
+    pdfNotification: PdfNotification
+  )(
     implicit request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    lise: SmartStringEvaluator): Future[PdfHtml] = {
+    lise: SmartStringEvaluator
+  ): Future[PdfHtml] = {
     import i18nSupport._
 
     val pdfFieldIds = pdfNotification.fieldIds
@@ -148,15 +149,22 @@ class SummaryRenderingService(
                   summaryPagePurpose,
                   pdfFieldIds)
     } yield {
-      PdfHtml(addDataToPrintPdfHTML(HtmlSanitiser.sanitiseHtmlForPDF(pdfHtml, true, true), cache, pdfHeader, pdfFooter))
+      val (headerStr, footerStr) = addDataToPrintPdfHTML(pdfHeader, pdfFooter)
+      PdfHtml(
+        HtmlSanitiser
+          .sanitiseHtmlForPDF(pdfHtml, document => HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)))
     }
   }
 
-  private def addExtraDataToHTML(html: String, submissionDetails: Option[SubmissionDetails], cache: AuthCacheWithForm)(
+  private def addExtraDataToDocument(
+    submissionDetails: Option[SubmissionDetails],
+    cache: AuthCacheWithForm
+  )(
     implicit hc: HeaderCarrier,
     messages: Messages,
     curLang: LangADT,
-    lise: SmartStringEvaluator): String = {
+    lise: SmartStringEvaluator
+  ): (String, String) = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val formattedTime = submissionDetails.map(sd =>
@@ -188,37 +196,27 @@ class SummaryRenderingService(
       })
     ).toString()
 
-    val headerHtml = pdf_header(cache.formTemplate).toString()
+    (extraData, declarationExtraData)
 
-    val doc = Jsoup.parse(html)
-    doc.select("article[class*=content__body]").prepend(headerHtml)
-    doc.select("article[class*=content__body]").append(extraData)
-    doc.select("article[class*=content__body]").append(declarationExtraData)
-    doc.html.replace("£", "&pound;")
   }
 
   private def addDataToPrintPdfHTML(
-    html: String,
-    cache: AuthCacheWithForm,
     pdfHeader: SmartString,
-    pdfFooter: SmartString)(
-    implicit hc: HeaderCarrier,
-    messages: Messages,
+    pdfFooter: SmartString
+  )(
+    implicit
     curLang: LangADT,
-    lise: SmartStringEvaluator) = {
-    val doc = Jsoup.parse(html)
+    lise: SmartStringEvaluator
+  ): (String, String) = {
 
-    val headerHtml = print_pdf_header(cache.formTemplate, markDownParser(pdfHeader)).toString
-
+    val headerHtml = markDownParser(pdfHeader).toString
     val footerHtml = markDownParser(pdfFooter).toString
 
-    doc.prepend(headerHtml)
-    doc.append(footerHtml)
-    doc.html.replace("£", "&pound;")
+    (headerHtml, footerHtml)
+
   }
 
   def getSummaryHTML(
-    formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose

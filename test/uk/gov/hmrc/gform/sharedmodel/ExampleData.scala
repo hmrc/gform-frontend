@@ -410,7 +410,8 @@ trait ExampleFormTemplate {
       Nil
     )
 
-  def summarySection = SummarySection(toSmartString("Title"), toSmartString("Header"), toSmartString("Footer"))
+  def summarySection =
+    SummarySection(toSmartString("Summary Title"), toSmartString("Summary Header"), toSmartString("Summary Footer"))
 
   def formTemplate = FormTemplate(
     formTemplateId,

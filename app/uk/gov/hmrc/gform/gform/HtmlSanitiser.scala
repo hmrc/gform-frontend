@@ -15,45 +15,79 @@
  */
 
 package uk.gov.hmrc.gform.gform
+
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{ Document, Node }
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
+import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 
 object HtmlSanitiser {
-  def sanitiseHtmlForPDF(html: Html, submitted: Boolean, isNotificationPdf: Boolean = false): String = {
+  def sanitiseHtmlForPDF(html: Html, modify: Document => Unit): String = {
     val doc: Document = Jsoup.parse(html.body)
-    val formName = doc.select(".govuk-header__link--service-name").first().text()
-    val hmrcLogoText = doc.select(".govuk-body-s").first().text()
-    val headerName = doc.select(".govuk-heading-l").first().text()
-    val message = doc.select(".govuk-body").first().text()
-    if (!isNotificationPdf) {
-      doc.prepend(s"<p>$message</p>")
-      doc.prepend(s"<h2>$headerName</h2>")
-      doc.prepend(s"<h2>$formName</h2>")
-      doc.prepend(s"<p>$hmrcLogoText</p>")
-    }
     removeComments(doc)
+
+    val body = doc.select(".govuk-template__body").first()
+    val logo = doc.select(".hmrc-organisation-logo").first()
+    val form = doc.getElementsByTag("form").first()
+
+    form.getElementsByClass("govuk-body").remove()
+    form.getElementsByTag("input").remove()
+    form.clearAttributes()
+
+    doc.select(".hmrc-banner").remove()
     doc.getElementsByTag("link").remove()
     doc.getElementsByTag("meta").remove()
+    doc.getElementsByTag("noscript").remove()
     doc.getElementsByTag("script").remove()
     doc.getElementsByTag("a").remove()
     doc.getElementsByTag("header").remove()
     doc.getElementsByTag("button").remove()
-    doc.getElementsByClass("govuk-heading-l").remove()
     doc.getElementsByClass("govuk-phase-banner").remove()
     doc.getElementsByClass("hmrc-language-select").remove()
-    doc.getElementsByClass("govuk-body-s").remove()
-    doc.getElementsByClass("govuk-body").remove()
     doc.getElementsByClass("govuk-footer").remove()
     doc
       .getElementsByTag("head")
       .append(s"<style>${PdfGeneratorService.css}</style>")
-    if (submitted) {
-      doc.getElementsByClass("govuk-heading-l").remove()
-    }
+
+    doc.select(".govuk-width-container").remove()
+
+    body.append(logo.toString)
+    body.append(form.toString)
+
+    modify(doc) // doc is mutable data structure
     doc.html.replace("£", "&pound;")
   }
+
+  def summaryPagePdf(doc: Document, formTemplate: FormTemplate)(
+    implicit l: LangADT,
+    sse: SmartStringEvaluator): Unit = {
+    val headerHtml = markDownParser(formTemplate.summarySection.header).toString
+
+    val form = doc.getElementsByTag("form")
+    form.prepend(
+      h1(formTemplate.formName.value) +
+        h1(formTemplate.summarySection.title.value) +
+        headerHtml)
+  }
+
+  def acknowledgementPdf(doc: Document, extraData: String, declarationExtraData: String, formTemplate: FormTemplate)(
+    implicit l: LangADT): Unit = {
+    val form = doc.getElementsByTag("form").first()
+    form.prepend(h1(formTemplate.formName.value))
+    form.append(extraData + declarationExtraData)
+  }
+
+  def printSectionPdf(doc: Document, headerHtml: String, footerHtml: String): Unit = {
+    val form = doc.getElementsByTag("form").first()
+    form.prepend(headerHtml)
+    form.append(footerHtml)
+  }
+
+  private def h1(content: String): String = s"""<h1 class="govuk-heading-l">$content</h1>"""
 
   private def removeComments(node: Node): Unit = {
     var i = 0
