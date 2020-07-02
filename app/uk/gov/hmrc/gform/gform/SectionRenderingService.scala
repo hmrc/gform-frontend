@@ -75,7 +75,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.input.Input
 import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.InputItem
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.{ Textarea => govukTextArea }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.html.components.hmrcCurrencyInput
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
@@ -1110,6 +1110,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
       val govukTextarea = new components.govukTextarea(govukErrorMessage, govukHint, govukLabel)
 
+      val attributes =
+        if (formComponent.editable)
+          Map.empty[String, String]
+        else
+          Map("readonly" -> "")
+
       characterMaxLength match {
         case Some(maxLength) =>
           val characterCount = CharacterCount(
@@ -1120,20 +1126,22 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             value = maybeCurrentValue,
             maxLength = Some(maxLength),
             errorMessage = errorMessage,
-            classes = sizeClasses
+            classes = sizeClasses,
+            attributes = attributes
           )
 
           new components.govukCharacterCount(govukTextarea, govukHint)(characterCount)
 
         case _ =>
-          val textArea = govukTextArea(
+          val textArea = Textarea(
             id = formComponent.id.value,
             name = formComponent.id.value,
             label = label,
             hint = hint,
             value = maybeCurrentValue,
             errorMessage = errorMessage,
-            classes = sizeClasses
+            classes = sizeClasses,
+            attributes = attributes
           )
 
           govukTextarea(textArea)
@@ -1203,6 +1211,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             content = labelContent
           )
 
+          val attributes =
+            if (formComponent.editable)
+              Map.empty[String, String]
+            else
+              Map("readonly" -> "")
+
           if (formComponent.isSterling) {
             val currencyInput = CurrencyInput(
               id = formComponent.id.value,
@@ -1211,7 +1225,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               hint = hint,
               value = maybeCurrentValue,
               errorMessage = errorMessage,
-              classes = sizeClasses
+              classes = sizeClasses,
+              attributes = attributes
             )
 
             new hmrcCurrencyInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
@@ -1224,7 +1239,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               hint = hint,
               value = maybeCurrentValue,
               errorMessage = errorMessage,
-              classes = sizeClasses
+              classes = sizeClasses,
+              attributes = attributes
             )
             val govukInput: Html = new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
 

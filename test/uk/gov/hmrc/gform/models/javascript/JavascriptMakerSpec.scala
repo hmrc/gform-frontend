@@ -101,13 +101,13 @@ class JavascriptMakerSpec extends Spec with GraphSpec {
          |  element.addEventListener("change",computetotalAmount);
          |});""",
       """|var isHiddenamount22 = function () {
-         |  return document.getElementById("fields-lossesChoice1").classList.contains("js-hidden");
+         |  return document.getElementById("amount22").parentNode.parentNode.parentNode.classList.contains("govuk-checkboxes__conditional--hidden");
          |};""",
       """|var isHiddenamount12 = function () {
-         |  return document.getElementById("fields-lossesChoice1").classList.contains("js-hidden");
+         |  return document.getElementById("amount12").parentNode.parentNode.parentNode.classList.contains("govuk-checkboxes__conditional--hidden");
          |};""",
       """|var isHiddenlossAmount = function () {
-         |  return document.getElementById("fields-lossesChoice0").classList.contains("js-hidden");
+         |  return document.getElementById("lossAmount").parentNode.parentNode.parentNode.classList.contains("govuk-checkboxes__conditional--hidden");
          |};""",
       """|var isHiddentotalAmount = function () {
          |  return false;

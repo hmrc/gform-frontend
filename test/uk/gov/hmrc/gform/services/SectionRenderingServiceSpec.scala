@@ -177,11 +177,10 @@ class SectionRenderingServiceSpec extends Spec {
         retrievals,
         NotChecked
       )
-
     val doc: Document = Jsoup.parse(generatedHtml.body)
-    val progressIndicator = doc.getElementById("progress-indicator")
+    val progressIndicator = doc.getElementsByClass("hmrc-caption-xl").first()
     progressIndicator.toString should be(
-      "<span id=\"progress-indicator\" class=\"heading-caption\">Progress Indicator</span>")
+      """<p class="govuk-caption-xl hmrc-caption-xl"><span class="govuk-visually-hidden">This section is </span>Progress Indicator</p>""")
   }
 
   it should "generate second page" in {
@@ -303,7 +302,7 @@ class SectionRenderingServiceSpec extends Spec {
 
     val doc = Jsoup.parse(generatedHtml.body)
 
-    val infoFieldDiv = doc.getElementsByClass("subsection").first
+    val infoFieldDiv = doc.getElementsByClass("govuk-inset-text").first
 
     infoFieldDiv.getElementsByTag("H1").last.text shouldBe "This is an H1"
     infoFieldDiv.getElementsByTag("H2").first.text shouldBe "This is an H2"
@@ -429,7 +428,7 @@ class SectionRenderingServiceSpec extends Spec {
 
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
-    val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
+    val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml().trim())
 
     hiddenFieldNames should be(List("csrfToken", "save"))
     visibleFields should be(List("fieldInDeclarationSections"))
@@ -453,7 +452,7 @@ class SectionRenderingServiceSpec extends Spec {
 
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
-    val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
+    val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml().trim())
 
     hiddenFieldNames should be(List("csrfToken", "save"))
     visibleFields should be(List("fieldInDeclarationSections"))
@@ -477,7 +476,7 @@ class SectionRenderingServiceSpec extends Spec {
 
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
-    val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
+    val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml().trim())
 
     hiddenFieldNames should be(List("csrfToken", "save"))
     visibleFields should be(List("fieldInDeclarationSections"))

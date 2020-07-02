@@ -392,7 +392,7 @@ trait ExampleFormTemplate {
       NonEmptyList
         .of(EmailParameter("fullNameVariable", FormCtx("fullName")), EmailParameter("emailVariable", FormCtx("email"))))
 
-  def webChat = Some(WebChat(ChatRoomId("test"), TemplateName("hmrc7")))
+  def webChat = None
 
   def acknowledgementSection =
     AcknowledgementSection(
