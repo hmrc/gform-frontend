@@ -50,6 +50,11 @@ class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBa
     wSHttpModule.auditableWSHttp
   )
 
+  lazy val selfEmployedIncomeSupportEligibilityConnector = new SelfEmployedIncomeSupportEligibilityConnector(
+    configModule.serviceConfig.baseUrl("seiss"),
+    wSHttpModule.auditableWSHttp
+  )
+
   val enrolmentService: EnrolmentService = new EnrolmentService(
     configModule.typesafeConfig.getBoolean("enrolment-service.use-tax-enrolments"),
     configModule.serviceConfig.getConfString("gg.enrol.portalId", "")

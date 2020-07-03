@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform
 
 import cats.Monad
 import cats.syntax.applicative._
+import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -35,8 +36,17 @@ trait GraphSpec {
     formTemplate: FormTemplate,
     hc: HeaderCarrier): F[String] = "data-returned-from-eeitt".pure[F]
 
+  private def eligibilityStatusTrue[F[_]: Monad](request: UtrEligibilityRequest, hc: HeaderCarrier): F[Boolean] =
+    true.pure[F]
+
+  private def eligibilityStatusFalse[F[_]: Monad](request: UtrEligibilityRequest, hc: HeaderCarrier): F[Boolean] =
+    false.pure[F]
+
   def evaluator[F[_]: Monad]: Evaluator[F] = new Evaluator[F](eeittPrepop[F])
-  def booleanExprEval[F[_]: Monad]: BooleanExprEval[F] = new BooleanExprEval[F](evaluator)
+
+  def booleanExprEval[F[_]: Monad]: BooleanExprEval[F] = new BooleanExprEval[F](evaluator, eligibilityStatusTrue[F])
+
+  def booleanExprEval2[F[_]: Monad]: BooleanExprEval[F] = new BooleanExprEval[F](evaluator, eligibilityStatusFalse[F])
 
   protected def mkFormDataRecalculated(data: VariadicFormData): FormDataRecalculated =
     FormDataRecalculated.empty.copy(recData = RecData.fromData(data))
