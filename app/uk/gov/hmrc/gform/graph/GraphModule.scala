@@ -41,7 +41,10 @@ class GraphModule(
   private val prepopService = new PrepopService(authModule.eeittService)
 
   private val evaluator: Evaluator[Future] = new Evaluator[Future](prepopService.eeittPrepop)
-  val booleanExprEval: BooleanExprEval[Future] = new BooleanExprEval(evaluator)
+
+  val booleanExprEval: BooleanExprEval[Future] =
+    new BooleanExprEval(evaluator, authModule.selfEmployedIncomeSupportEligibilityConnector.eligibilityStatus)
+
   val recalculation: Recalculation[Future, Throwable] =
     new Recalculation(booleanExprEval, (s: GraphException) => new IllegalArgumentException(s.reportProblem))
 

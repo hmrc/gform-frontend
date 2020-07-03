@@ -21,7 +21,8 @@ import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Contains, Equals, FormComponent, FormComponentId, FormCtx, GreaterThan, GreaterThanOrEquals, LessThan, LessThanOrEquals, NotEquals, Number, Text }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.SeissEligible
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Contains, Equals, FormComponent, FormComponentId, FormCtx, GreaterThan, GreaterThanOrEquals, In, LessThan, LessThanOrEquals, NotEquals, Number, Text }
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -208,6 +209,28 @@ class BooleanExprEvalSpec extends Spec with GraphSpec {
         .isTrue(
           Contains(FormCtx(left), Constant(right)),
           VariadicFormData.manys(FormComponentId(left) -> ctxValue),
+          authContext,
+          Set.empty,
+          ThirdPartyData.empty,
+          EnvelopeId(""),
+          ExampleData.formTemplate
+        ) shouldBe result
+    }
+  }
+
+  val inCombinations = Table(
+    ("booleanExprEval", "Ctx value", "field value", "expected result"),
+    (booleanExprEval, "1234567890", "utr", true),
+    (booleanExprEval2, "1234567890", "utr", false)
+  )
+
+  forAll(inCombinations) { (booleanExprEval, ctxValue, fId, result) =>
+    new Test {
+      override val value = ""
+      booleanExprEval
+        .isTrue(
+          In(FormCtx(fId), SeissEligible),
+          VariadicFormData.one(FormComponentId(fId), ctxValue),
           authContext,
           Set.empty,
           ThirdPartyData.empty,
