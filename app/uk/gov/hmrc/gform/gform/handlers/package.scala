@@ -50,7 +50,7 @@ package object handlers {
   type UpdateObligations[F[_]] = (FormId, UserData, Form, Form) => F[Unit]
 
   type RecalculateDataAndSections[F[_]] =
-    (VariadicFormData, AuthCacheWithForm) => F[(FormDataRecalculated, List[Section])]
+    (VariadicFormData, AuthCacheWithForm, Option[AccessCode]) => F[(FormDataRecalculated, List[Section])]
 
   type ValidateForm[F[_]] = (
     FormDataRecalculated,
@@ -70,7 +70,8 @@ package object handlers {
     ThirdPartyData,
     FormTemplate,
     FormDataRecalculated,
-    GetEmailCodeFieldMatcher) => F[ValidatedType[ValidationResult]]
+    GetEmailCodeFieldMatcher,
+    Option[AccessCode]) => F[ValidatedType[ValidationResult]]
 
   type EvaluateValidation =
     (

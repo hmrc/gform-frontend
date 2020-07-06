@@ -57,16 +57,18 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     dataRaw: VariadicFormData,
     maybeAccessCode: Option[AccessCode])(implicit messages: Messages, hc: HeaderCarrier, l: LangADT): Future[Result] =
-    processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, ForceReload).flatMap {
-      processData =>
+    processDataService
+      .getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, ForceReload, maybeAccessCode)
+      .flatMap { processData =>
         implicit val sse = smartStringEvaluatorFactory(
           processData.data,
           cache.retrievals,
           cache.form.thirdPartyData,
+          maybeAccessCode,
           cache.form.envelopeId,
           cache.formTemplate)
         updateUserData(cache, processData, maybeAccessCode)(redirectResult(cache, maybeAccessCode, processData, _))
-    }
+      }
 
   private def redirectResult(
     cache: AuthCacheWithForm,
@@ -105,7 +107,8 @@ class FastForwardService(
                   envelope,
                   FormService.extractedValidateFormHelper,
                   validationService.validateFormComponents,
-                  validationService.evaluateValidation
+                  validationService.evaluateValidation,
+                  maybeAccessCode
                 )
       userData = UserData(
         cache.form.formData,

@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
 import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, EmailVerifierService }
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
@@ -65,7 +65,8 @@ class ValidationService(
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
-    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher,
+    maybeAccessCode: Option[AccessCode]
   )(
     implicit hc: HeaderCarrier,
     messages: Messages,
@@ -80,7 +81,8 @@ class ValidationService(
       booleanExpr,
       thirdPartyData,
       formTemplate,
-      lookupRegistry
+      lookupRegistry,
+      maybeAccessCode
     ).validate(fieldValue, fieldValues, getEmailCodeFieldMatcher)
 
   def validateComponents(
@@ -91,7 +93,8 @@ class ValidationService(
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
-    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher,
+    maybeAccessCode: Option[AccessCode]
   )(
     implicit hc: HeaderCarrier,
     messages: Messages,
@@ -109,10 +112,15 @@ class ValidationService(
             retrievals,
             thirdPartyData,
             formTemplate,
-            getEmailCodeFieldMatcher))
+            getEmailCodeFieldMatcher,
+            maybeAccessCode))
       .map(Monoid[ValidatedType[Unit]].combineAll)
 
-  def validateComponentsWithCache(cache: AuthCacheWithForm, declarationData: FormDataRecalculated, envelope: Envelope)(
+  def validateComponentsWithCache(
+    cache: AuthCacheWithForm,
+    declarationData: FormDataRecalculated,
+    envelope: Envelope,
+    maybeAccessCode: Option[AccessCode])(
     implicit hc: HeaderCarrier,
     messages: Messages,
     l: LangADT,
@@ -133,7 +141,8 @@ class ValidationService(
             cache.retrievals,
             cache.form.thirdPartyData,
             cache.formTemplate,
-            GetEmailCodeFieldMatcher.noop
+            GetEmailCodeFieldMatcher.noop,
+            maybeAccessCode
         ))
       .map(Monoid[ValidatedType[Unit]].combineAll)
   }
@@ -192,7 +201,8 @@ class ValidationService(
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
     data: FormDataRecalculated,
-    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher,
+    maybeAccessCode: Option[AccessCode]
   )(
     implicit hc: HeaderCarrier,
     messages: Messages,
@@ -210,7 +220,8 @@ class ValidationService(
               retrievals,
               thirdPartyData,
               formTemplate,
-              getEmailCodeFieldMatcher))
+              getEmailCodeFieldMatcher,
+              maybeAccessCode))
       valRes                <- lift(validateUsingValidators(section, data))
       emailsForVerification <- lift(sendVerificationEmails(sectionFields, data, thirdPartyData))
     } yield {
@@ -276,7 +287,11 @@ class ValidationService(
     }
   }
 
-  def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: MaterialisedRetrievals)(
+  def validateForm(
+    cache: AuthCacheWithForm,
+    envelope: Envelope,
+    retrievals: MaterialisedRetrievals,
+    maybeAccessCode: Option[AccessCode])(
     implicit
     hc: HeaderCarrier,
     messages: Messages,
@@ -295,6 +310,7 @@ class ValidationService(
                cache.formTemplate,
                retrievals,
                cache.form.thirdPartyData,
+               maybeAccessCode,
                cache.form.envelopeId
              )
       allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
@@ -315,7 +331,8 @@ class ValidationService(
                    cache.form.thirdPartyData,
                    cache.formTemplate,
                    data,
-                   GetEmailCodeFieldMatcher(allSections)
+                   GetEmailCodeFieldMatcher(allSections),
+                   maybeAccessCode
                ))
              .map(Monoid[ValidatedType[ValidationResult]].combineAll)
       v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFieldsToValidate, envelope))

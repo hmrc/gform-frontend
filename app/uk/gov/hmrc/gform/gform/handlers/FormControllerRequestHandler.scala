@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.ProcessData
 import uk.gov.hmrc.gform.models.gform.{ FormComponentValidation, FormValidationOutcome }
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, SeNo, SeYes, Section, SectionNumber, SuppressErrors }
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
@@ -41,7 +42,8 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     data: FormDataRecalculated,
     sections: List[Section],
     validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation
+    evaluateValidation: EvaluateValidation,
+    maybeAccessCode: Option[AccessCode]
   )(implicit hc: HeaderCarrier)
     : Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] =
     suppressErrors match {
@@ -58,7 +60,8 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
           cache.form.thirdPartyData,
           cache.formTemplate,
           validateFormComponents,
-          evaluateValidation
+          evaluateValidation,
+          maybeAccessCode
         )
     }
 
@@ -69,12 +72,13 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     envelope: Envelope,
     recalculateDataAndSections: RecalculateDataAndSections[Future],
     validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation
+    evaluateValidation: EvaluateValidation,
+    maybeAccessCode: Option[AccessCode]
   )(implicit hc: HeaderCarrier): Future[FormHandlerResult] = {
     val retrievals = cache.retrievals
 
     for {
-      (data, sections) <- recalculateDataAndSections(cache.variadicFormData, cache)
+      (data, sections) <- recalculateDataAndSections(cache.variadicFormData, cache, maybeAccessCode)
       (errors, validate, envelope) <- handleSuppressErrors(
                                        sectionNumber,
                                        suppressErrors,
@@ -84,7 +88,8 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
                                        data,
                                        sections,
                                        validateFormComponents,
-                                       evaluateValidation
+                                       evaluateValidation,
+                                       maybeAccessCode
                                      )
     } yield FormHandlerResult(data, errors, envelope, validate, sections)
   }
@@ -99,7 +104,8 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
       List[FormComponentValidation],
       ValidatedType[ValidationResult]) => FormValidationOutcome,
     validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation
+    evaluateValidation: EvaluateValidation,
+    maybeAccessCode: Option[AccessCode]
   )(
     implicit hc: HeaderCarrier
   ): Future[FormValidationOutcome] =
@@ -111,7 +117,8 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
       envelope,
       extractedValidateFormHelper,
       validateFormComponents,
-      evaluateValidation)
+      evaluateValidation,
+      maybeAccessCode)
 
   def handleFastForwardValidate(
     processData: ProcessData,
@@ -121,7 +128,8 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
       List[FormComponentValidation],
       ValidatedType[ValidationResult]) => FormValidationOutcome,
     validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation)(
+    evaluateValidation: EvaluateValidation,
+    maybeAccessCode: Option[AccessCode])(
     implicit hc: HeaderCarrier
   ): Future[Option[SectionNumber]] =
     formValidator.fastForwardValidate(
@@ -130,7 +138,8 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
       envelope,
       extractedValidateFormHelper,
       validateFormComponents,
-      evaluateValidation)
+      evaluateValidation,
+      maybeAccessCode)
 
   def handleValidate(
     formDataRecalculated: FormDataRecalculated,
@@ -142,7 +151,8 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
     validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation)(
+    evaluateValidation: EvaluateValidation,
+    maybeAccessCode: Option[AccessCode])(
     implicit hc: HeaderCarrier
   ): Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] =
     formValidator.validate(
@@ -155,7 +165,9 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
       thirdPartyData,
       formTemplate,
       validateFormComponents,
-      evaluateValidation)
+      evaluateValidation,
+      maybeAccessCode
+    )
 }
 
 case class FormHandlerResult(

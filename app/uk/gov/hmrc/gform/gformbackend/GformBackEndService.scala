@@ -119,7 +119,7 @@ class GformBackEndService(
     for {
       htmlForPDF <- summaryRenderingService
                      .createHtmlForPdf(maybeAccessCode, cache, submissionDetails, SummaryPagePurpose.ForDms)
-      emailParameter     <- EmailParameterRecalculation(cache).recalculateEmailParameters(recalculation)
+      emailParameter     <- EmailParameterRecalculation(cache, maybeAccessCode).recalculateEmailParameters(recalculation)
       structuredFormData <- StructuredFormDataBuilder(cache.form, cache.formTemplate, lookupRegistry)
       response <- handleSubmission(
                    cache.retrievals,

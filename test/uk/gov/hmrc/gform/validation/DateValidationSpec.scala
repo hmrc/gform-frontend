@@ -60,7 +60,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate,
-      lookupRegistry)
+      lookupRegistry,
+      None)
 
   private def mkFormComponent(date: Date) =
     FormComponent(

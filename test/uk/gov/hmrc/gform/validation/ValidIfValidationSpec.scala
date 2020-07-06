@@ -96,7 +96,8 @@ class ValidIfValidationSpec(implicit messages: Messages, l: LangADT) extends Spe
         booleanExprEval,
         ThirdPartyData.empty,
         ExampleData.formTemplate,
-        lookupRegistry
+        lookupRegistry,
+        None
       ).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop)
 
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()

@@ -30,7 +30,7 @@ class EmailParameterRecalculationSpec(implicit ec: ExecutionContext) extends Fla
     AuthCacheWithoutForm(ExampleData.materialisedRetrievals, ExampleData.formTemplate, Role.Customer)
       .toAuthCacheWithForm(ExampleData.form)
 
-  val emailParameterRecalculation: EmailParameterRecalculation = EmailParameterRecalculation(cache)
+  val emailParameterRecalculation: EmailParameterRecalculation = EmailParameterRecalculation(cache, None)
 
   "parameter format with list of email parameters" should "convert it to a Map[EmailTemplateVariable, EmailParameterValue]" in {
 

@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.ExpandUtils.{ nonSubmittedFCsOfNonGroup, submittedFCs }
 import uk.gov.hmrc.gform.models.ProcessData
 import uk.gov.hmrc.gform.models.gform.{ FormComponentValidation, FormValidationOutcome }
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ EmailCodeFieldMatcher, FormFieldValidationResult, GetEmailCodeFieldMatcher }
@@ -42,7 +43,8 @@ class FormValidator(implicit ec: ExecutionContext) {
       List[FormComponentValidation],
       ValidatedType[ValidationResult]) => FormValidationOutcome,
     validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation
+    evaluateValidation: EvaluateValidation,
+    maybeAccessCode: Option[AccessCode]
   )(
     implicit hc: HeaderCarrier
   ): Future[FormValidationOutcome] =
@@ -56,7 +58,8 @@ class FormValidator(implicit ec: ExecutionContext) {
       cache.form.thirdPartyData,
       cache.formTemplate,
       validateFormComponents,
-      evaluateValidation
+      evaluateValidation,
+      maybeAccessCode
     ).map {
       case (validationResult, validatedType, _) =>
         val fcvs: List[FormComponentValidation] = validationResult.map {
@@ -76,7 +79,8 @@ class FormValidator(implicit ec: ExecutionContext) {
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
     validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation
+    evaluateValidation: EvaluateValidation,
+    maybeAccessCode: Option[AccessCode]
   )(
     implicit hc: HeaderCarrier
   ): Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] = {
@@ -95,7 +99,9 @@ class FormValidator(implicit ec: ExecutionContext) {
             thirdPartyData,
             formTemplate,
             formDataRecalculated,
-            GetEmailCodeFieldMatcher(sections))
+            GetEmailCodeFieldMatcher(sections),
+            maybeAccessCode
+          )
     } yield (evaluateValidation(v, allFC, formDataRecalculated, envelope), v, envelope)
   }
 
@@ -107,7 +113,8 @@ class FormValidator(implicit ec: ExecutionContext) {
       List[FormComponentValidation],
       ValidatedType[ValidationResult]) => FormValidationOutcome,
     validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation)(
+    evaluateValidation: EvaluateValidation,
+    maybeAccessCode: Option[AccessCode])(
     implicit hc: HeaderCarrier
   ): Future[Option[SectionNumber]] = {
 
@@ -127,7 +134,8 @@ class FormValidator(implicit ec: ExecutionContext) {
               envelope,
               extractedValidateFormHelper,
               validateFormComponents,
-              evaluateValidation)
+              evaluateValidation,
+              maybeAccessCode)
               .map {
                 case FormValidationOutcome(isValid, _, _) =>
                   val section = sections(currentSn.value)

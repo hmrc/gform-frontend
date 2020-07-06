@@ -73,15 +73,16 @@ class ProcessDataService[F[_]: Monad, E](
     dataRaw: VariadicFormData,
     cache: AuthCacheWithForm,
     getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[ServiceCallResponse[TaxResponse]]],
-    obligationsAction: ObligationsAction
+    obligationsAction: ObligationsAction,
+    maybeAccessCode: Option[AccessCode]
   )(
     implicit hc: HeaderCarrier,
     me: MonadError[F, E],
     l: LangADT
   ): F[ProcessData] =
     for {
-      browserRecalculated <- recalculateDataAndSections(dataRaw, cache)
-      mongoRecalculated   <- recalculateDataAndSections(cache.variadicFormData, cache)
+      browserRecalculated <- recalculateDataAndSections(dataRaw, cache, maybeAccessCode)
+      mongoRecalculated   <- recalculateDataAndSections(cache.variadicFormData, cache, maybeAccessCode)
       (data, sections) = browserRecalculated
       (oldData, mongoSections) = mongoRecalculated
       obligations <- taxPeriodStateChecker.callDesIfNeeded(
@@ -106,7 +107,7 @@ class ProcessDataService[F[_]: Monad, E](
       ProcessData(dataUpd, sections, VisitIndex(newVisitIndex), obligations)
     }
 
-  def recalculateDataAndSections(data: VariadicFormData, cache: AuthCacheWithForm)(
+  def recalculateDataAndSections(data: VariadicFormData, cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode])(
     implicit hc: HeaderCarrier,
     me: MonadError[F, E]
   ): F[(FormDataRecalculated, List[Section])] =
@@ -117,6 +118,7 @@ class ProcessDataService[F[_]: Monad, E](
                                  cache.formTemplate,
                                  cache.retrievals,
                                  cache.form.thirdPartyData,
+                                 maybeAccessCode,
                                  cache.form.envelopeId)
     } yield {
       val sections = RepeatingComponentService.getAllSections(cache.formTemplate, formDataRecalculated)

@@ -268,8 +268,10 @@ class AuthenticatedRequestActions(
                            formTemplate,
                            cache.retrievals,
                            form.thirdPartyData,
+                           maybeAccessCode,
                            form.envelopeId)
-      smartStringEvaluator = smartStringEvaluatorFactory.apply(recalculatedData, retrievals, form, formTemplate)
+      smartStringEvaluator = smartStringEvaluatorFactory
+        .apply(recalculatedData, retrievals, maybeAccessCode, form, formTemplate)
       result <- f(cache)(smartStringEvaluator)
     } yield result
 

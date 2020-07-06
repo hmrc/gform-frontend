@@ -17,14 +17,15 @@
 package uk.gov.hmrc.gform.graph
 import cats.MonadError
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: ExecutionContext) {
+case class EmailParameterRecalculation(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode])(
+  implicit ex: ExecutionContext) {
 
   def recalculateEmailParameters(
     recalculation: Recalculation[Future, Throwable]
@@ -35,6 +36,7 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
         formTemplateWithParametersAsComponents,
         cache.retrievals,
         cache.form.thirdPartyData,
+        maybeAccessCode,
         cache.form.envelopeId)
       .map(mapToParameterTemplateVariables)
 

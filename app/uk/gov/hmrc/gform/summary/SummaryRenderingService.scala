@@ -239,9 +239,10 @@ class SummaryRenderingService(
                  cache.formTemplate,
                  cache.retrievals,
                  cache.form.thirdPartyData,
+                 maybeAccessCode,
                  cache.form.envelopeId)
       envelope <- envelopeF
-      (v, _)   <- validationService.validateForm(cache, envelope, cache.retrievals)
+      (v, _)   <- validationService.validateForm(cache, envelope, cache.retrievals, maybeAccessCode)
     } yield
       SummaryRenderingService.renderSummary(
         cache.formTemplate,
@@ -284,9 +285,10 @@ class SummaryRenderingService(
                  cache.formTemplate,
                  cache.retrievals,
                  cache.form.thirdPartyData,
+                 maybeAccessCode,
                  cache.form.envelopeId)
       envelope <- envelopeF
-      (v, _)   <- validationService.validateForm(cache, envelope, cache.retrievals)
+      (v, _)   <- validationService.validateForm(cache, envelope, cache.retrievals, maybeAccessCode)
     } yield
       SummaryRenderingService.renderNotificationPdfSummary(
         cache.formTemplate,

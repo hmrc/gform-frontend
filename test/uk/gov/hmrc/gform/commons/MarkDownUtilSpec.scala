@@ -37,7 +37,10 @@ class MarkDownUtilSpec extends Spec with GeneratorDrivenPropertyChecks {
         """<p>link <a href="/some/relative/path" target="_blank" class="govuk-link">making a claim</a></p>"""),
       (
         "link [making a claim](https://www.gov.uk/government)",
-        """<p>link <a href="https://www.gov.uk/government" target="_blank" class="govuk-link">making a claim</a></p>""")
+        """<p>link <a href="https://www.gov.uk/government" target="_blank" class="govuk-link">making a claim</a></p>"""),
+      (
+        "link [print pdf](/submissions/acknowledgement/pdf/test-form)",
+        """<p>link <a href="/submissions/acknowledgement/pdf/test-form" target="_blank" class="govuk-link print-link">print pdf</a></p>""")
     )
 
     forAll(dataAndExpectations) { (input, expected) =>

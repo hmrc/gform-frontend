@@ -252,9 +252,6 @@ summary.view=Bwrw golwg
 # Acknowledgement
 ack.title=Cyflwynwyd eich {0}
 ack.submissionReference=Cyfeirnod eich cyflwyniad yw
-ack.sentEmail=Rydym wedi anfon e-bost cadarnhau atoch
-ack.pdfLink=Argraffu neu gadw copi PDF o’ch {0}
-ack.whatHappensNext=Yr hyn sy’n digwydd nesaf
 ack.beforeYouGo=Cyn i chi fynd
 ack.feedbackText1=Rydym yn defnyddio adborth i wella ein gwasanaethau. Cwblhewch yr
 ack.feedbackLink=arolwg adborth

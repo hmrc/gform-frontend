@@ -139,6 +139,7 @@ class EnrolmentController(
       recalculatedFormData,
       retrievals,
       ThirdPartyData.empty,
+      None,
       EnvelopeId("empty"),
       formTemplate)
 
@@ -163,7 +164,13 @@ class EnrolmentController(
           case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev)) =>
             def handleContinueWithData(data: FormDataRecalculated) = {
               implicit val sse =
-                smartStringEvaluatorFactory(data, cache.retrievals, ThirdPartyData.empty, EnvelopeId(""), formTemplate)
+                smartStringEvaluatorFactory(
+                  data,
+                  cache.retrievals,
+                  ThirdPartyData.empty,
+                  None,
+                  EnvelopeId(""),
+                  formTemplate)
 
               implicit val EC = enrolmentConnect
               implicit val GGC = ggConnect
@@ -180,7 +187,8 @@ class EnrolmentController(
                                        retrievals,
                                        ThirdPartyData.empty,
                                        formTemplate,
-                                       GetEmailCodeFieldMatcher.noop)(hc, request2Messages, l, sse)
+                                       GetEmailCodeFieldMatcher.noop,
+                                       None)(hc, request2Messages, l, sse)
                 enrolmentResultProcessor = new EnrolmentResultProcessor(
                   renderEnrolmentSection,
                   formTemplate,
@@ -212,6 +220,7 @@ class EnrolmentController(
                            formTemplate,
                            retrievals,
                            ThirdPartyData.empty,
+                           None,
                            EnvelopeId(""),
                            enrolmentSection.fields
                              .map(fc => fc.id -> fc)
@@ -326,6 +335,7 @@ class EnrolmentController(
                     env.retrievals,
                     env.formTemplate,
                     ThirdPartyData.empty,
+                    None,
                     EnvelopeId(""))
                 Convertible
                   .asString(convertible, env.formTemplate)

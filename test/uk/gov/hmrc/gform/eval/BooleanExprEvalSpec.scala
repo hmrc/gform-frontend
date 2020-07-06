@@ -54,6 +54,7 @@ class BooleanExprEvalSpec extends Spec with GraphSpec {
           authContext,
           Set.empty,
           ThirdPartyData.empty,
+          None,
           EnvelopeId(""),
           ExampleData.formTemplate) shouldBe result
     }
@@ -82,6 +83,7 @@ class BooleanExprEvalSpec extends Spec with GraphSpec {
           authContext,
           Set.empty,
           ThirdPartyData.empty,
+          None,
           EnvelopeId(""),
           ExampleData.formTemplate) shouldBe result
     }
@@ -108,6 +110,7 @@ class BooleanExprEvalSpec extends Spec with GraphSpec {
           authContext,
           Set.empty,
           ThirdPartyData.empty,
+          None,
           EnvelopeId(""),
           ExampleData.formTemplate) shouldBe result
     }
@@ -134,6 +137,7 @@ class BooleanExprEvalSpec extends Spec with GraphSpec {
           authContext,
           Set.empty,
           ThirdPartyData.empty,
+          None,
           EnvelopeId(""),
           ExampleData.formTemplate
         ) shouldBe result
@@ -161,6 +165,7 @@ class BooleanExprEvalSpec extends Spec with GraphSpec {
           authContext,
           Set.empty,
           ThirdPartyData.empty,
+          None,
           EnvelopeId(""),
           ExampleData.formTemplate) shouldBe result
     }
@@ -187,8 +192,10 @@ class BooleanExprEvalSpec extends Spec with GraphSpec {
           authContext,
           Set.empty,
           ThirdPartyData.empty,
+          None,
           EnvelopeId(""),
-          ExampleData.formTemplate) shouldBe result
+          ExampleData.formTemplate
+        ) shouldBe result
     }
   }
 
@@ -212,6 +219,7 @@ class BooleanExprEvalSpec extends Spec with GraphSpec {
           authContext,
           Set.empty,
           ThirdPartyData.empty,
+          None,
           EnvelopeId(""),
           ExampleData.formTemplate
         ) shouldBe result
@@ -234,6 +242,7 @@ class BooleanExprEvalSpec extends Spec with GraphSpec {
           authContext,
           Set.empty,
           ThirdPartyData.empty,
+          None,
           EnvelopeId(""),
           ExampleData.formTemplate
         ) shouldBe result

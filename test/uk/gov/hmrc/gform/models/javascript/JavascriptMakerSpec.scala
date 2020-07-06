@@ -53,7 +53,7 @@ class JavascriptMakerSpec extends Spec with GraphSpec {
     val cache: AuthCacheWithForm =
       AuthCacheWithForm(ExampleData.materialisedRetrievals, ExampleData.form, formTemplate, Role.Customer)
     val result: EitherEffect[(FormDataRecalculated, List[Section])] =
-      processDataService.recalculateDataAndSections(data, cache)
+      processDataService.recalculateDataAndSections(data, cache, None)
 
     val dynamicSections
       : List[Section] = result.right.get._2 // What a shame to do this unsafe '.get', but it is ok, since this code is not under the test.

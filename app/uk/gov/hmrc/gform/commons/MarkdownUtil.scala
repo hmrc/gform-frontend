@@ -34,6 +34,7 @@ object MarkDownUtil {
     links.attr("class", "govuk-link")
     doc.getElementsByAttributeValueStarting("href", "/submissions/new-form/").removeAttr("target")
     doc.getElementsByAttributeValueStarting("href", "/submissions/form/").removeAttr("target")
+    doc.getElementsByAttributeValueStarting("href", "/submissions/acknowledgement/pdf/").addClass("print-link")
     doc.body().html()
   }
 

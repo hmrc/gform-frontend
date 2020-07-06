@@ -134,11 +134,15 @@ class DeclarationController(
 
     val declarationData = FormDataRecalculated(Set.empty, RecData.fromData(dataRaw))
     for {
-      tuple <- removeHiddenSectionDataAndCalculateAttachments(cache, envelope)
+      tuple <- removeHiddenSectionDataAndCalculateAttachments(cache, maybeAccessCode, envelope)
       (cacheWithHiddenSectionDataRemoved, attachments) = tuple
       _ <- cleanseEnvelope(envelopeId, envelope, attachments)
       valRes <- validationService
-                 .validateComponentsWithCache(cacheWithHiddenSectionDataRemoved, declarationData, Envelope.empty)
+                 .validateComponentsWithCache(
+                   cacheWithHiddenSectionDataRemoved,
+                   declarationData,
+                   Envelope.empty,
+                   maybeAccessCode)
       response <- processValidation(
                    valRes,
                    maybeAccessCode,
@@ -163,20 +167,24 @@ class DeclarationController(
     }
   }
 
-  private def removeHiddenSectionDataAndCalculateAttachments(cache: AuthCacheWithForm, envelope: Envelope)(
-    implicit hc: HeaderCarrier) =
-    recalculateFormData(cache).map { data =>
+  private def removeHiddenSectionDataAndCalculateAttachments(
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode],
+    envelope: Envelope)(implicit hc: HeaderCarrier) =
+    recalculateFormData(cache, maybeAccessCode).map { data =>
       val (visibleFields, attachments) = VisibleFieldCalculator(cache.formTemplate, cache.form.formData, data, envelope)
       val updatedForm = cache.form.copy(formData = cache.form.formData.copy(fields = visibleFields))
       (cache.copy(form = updatedForm), attachments)
     }
 
-  private def recalculateFormData(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
+  private def recalculateFormData(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode])(
+    implicit hc: HeaderCarrier) =
     recalculation.recalculateFormData(
       extractFormDataFields(cache),
       cache.formTemplate,
       cache.retrievals,
       cache.form.thirdPartyData,
+      maybeAccessCode,
       cache.form.envelopeId)
 
   private def extractFormDataFields(cache: AuthCacheWithForm) = cache.variadicFormData

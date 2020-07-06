@@ -258,9 +258,6 @@ summary.view=View
 # Acknowledgement
 ack.title=Your {0} has been submitted
 ack.submissionReference=Your submission reference is
-ack.sentEmail=We have sent you a confirmation email
-ack.pdfLink=Print or save a PDF copy of your {0}
-ack.whatHappensNext=What happens next
 ack.beforeYouGo=Before you go
 ack.feedbackText1=We use feedback to make our services better. Please take the
 ack.feedbackLink=feedback survey

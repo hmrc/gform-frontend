@@ -68,6 +68,7 @@ class NavitagionSpec extends Spec with GraphSpec {
       mkFormTemplate(sectionsData),
       ExampleData.authContext,
       ThirdPartyData.empty,
+      None,
       EnvelopeId("")
     )
     new Navigation {

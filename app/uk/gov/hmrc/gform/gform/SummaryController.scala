@@ -75,7 +75,7 @@ class SummaryController(
           val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
           val formFieldValidationResultsF = for {
             envelope <- envelopeF
-            errors   <- validationService.validateForm(cache, envelope, cache.retrievals)
+            errors   <- validationService.validateForm(cache, envelope, cache.retrievals, maybeAccessCode)
           } yield errors
 
           val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
@@ -120,6 +120,7 @@ class SummaryController(
               cache.formTemplate,
               cache.retrievals,
               cache.form.thirdPartyData,
+              maybeAccessCode,
               cache.form.envelopeId)
             .map { _ =>
               maybeAccessCode match {

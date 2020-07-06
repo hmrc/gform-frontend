@@ -90,7 +90,8 @@ class FormController(
                 envelope,
                 processDataService.recalculateDataAndSections,
                 validationService.validateFormComponents,
-                validationService.evaluateValidation
+                validationService.evaluateValidation,
+                maybeAccessCode
               )
           }
           .map(handlerResult =>
@@ -137,7 +138,8 @@ class FormController(
                                                       envelope,
                                                       FormService.extractedValidateFormHelper,
                                                       validationService.validateFormComponents,
-                                                      validationService.evaluateValidation
+                                                      validationService.evaluateValidation,
+                                                      maybeAccessCode
                                                     )
             res <- {
               val before: ThirdPartyData = cache.form.thirdPartyData
@@ -164,7 +166,8 @@ class FormController(
                                        newDataRaw,
                                        cacheUpd,
                                        gformConnector.getAllTaxPeriods,
-                                       NoSpecificAction)
+                                       NoSpecificAction,
+                                       maybeAccessCode)
                   result <- validateAndUpdateData(cacheUpd, newProcessData)(toResult) // recursive call
                 } yield result
               } else {
@@ -244,7 +247,12 @@ class FormController(
 
         for {
           processData <- processDataService
-                          .getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, NoSpecificAction)
+                          .getProcessData(
+                            dataRaw,
+                            cache,
+                            gformConnector.getAllTaxPeriods,
+                            NoSpecificAction,
+                            maybeAccessCode)
           nav = Navigator(sectionNumber, processData.sections, processData.data).navigate
           res <- nav match {
                   case SaveAndContinue           => processSaveAndContinue(processData)

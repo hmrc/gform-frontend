@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue }
-import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.SeissEligible
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -43,11 +43,12 @@ class BooleanExprEval[F[_]: Monad](
     retrievals: MaterialisedRetrievals,
     visSet: Set[GraphNode],
     thirdPartyData: ThirdPartyData,
+    maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
     formTemplate: FormTemplate)(implicit hc: HeaderCarrier): F[Boolean] = {
 
     def loop(expr: BooleanExpr): F[Boolean] =
-      isTrue(expr, data, retrievals, visSet, thirdPartyData, envelopeId, formTemplate)
+      isTrue(expr, data, retrievals, visSet, thirdPartyData, maybeAccessCode, envelopeId, formTemplate)
 
     def compare(
       leftField: Expr,
@@ -84,6 +85,7 @@ class BooleanExprEval[F[_]: Monad](
           formTemplate,
           doComparison,
           thirdPartyData,
+          maybeAccessCode,
           envelopeId)
     }
 
@@ -102,6 +104,7 @@ class BooleanExprEval[F[_]: Monad](
               retrievals,
               formTemplate,
               thirdPartyData,
+              maybeAccessCode,
               envelopeId),
             formTemplate)
           .map(_.flatMap(_.cast[NewValue].map(_.value)))

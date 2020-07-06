@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.commons.ExprFormat
 import uk.gov.hmrc.gform.commons.FormatType
 import uk.gov.hmrc.gform.commons.FormatType.{ Default, FromText }
 import uk.gov.hmrc.gform.graph.Evaluator
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
@@ -35,6 +36,7 @@ trait SmartStringEvaluatorFactory {
   def apply(
     recalculatedFormData: FormDataRecalculated,
     retrievals: MaterialisedRetrievals,
+    maybeAccessCode: Option[AccessCode],
     form: Form,
     formTemplate: FormTemplate)(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
 
@@ -42,6 +44,7 @@ trait SmartStringEvaluatorFactory {
     recalculatedFormData: FormDataRecalculated,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
+    maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
     formTemplate: FormTemplate)(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
 }
@@ -54,14 +57,16 @@ class RealSmartStringEvaluatorFactory(evaluator: Evaluator[Id]) extends SmartStr
   def apply(
     recalculatedFormData: FormDataRecalculated,
     retrievals: MaterialisedRetrievals,
+    maybeAccessCode: Option[AccessCode],
     form: Form,
     formTemplate: FormTemplate)(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator =
-    apply(recalculatedFormData, retrievals, form.thirdPartyData, form.envelopeId, formTemplate)
+    apply(recalculatedFormData, retrievals, form.thirdPartyData, maybeAccessCode, form.envelopeId, formTemplate)
 
   def apply(
     recalculatedFormData: FormDataRecalculated,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
+    maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
     formTemplate: FormTemplate)(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator =
     new SmartStringEvaluator {
@@ -103,6 +108,7 @@ class RealSmartStringEvaluatorFactory(evaluator: Evaluator[Id]) extends SmartStr
             retrievals,
             formTemplate,
             thirdPartyData,
+            maybeAccessCode,
             envelopeId)
           .getOrElse("")
 

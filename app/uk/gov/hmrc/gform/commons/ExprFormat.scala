@@ -51,5 +51,6 @@ object ExprFormat {
     case Add(f1, f2)                         => formatForExpr(f1, componentLookup)
     case Subtraction(f1, f2)                 => formatForExpr(f1, componentLookup)
     case Multiply(f1, f2)                    => formatForExpr(f1, componentLookup)
+    case LinkCtx(_)                          => FormatType.Default
   }
 }

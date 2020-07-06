@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Infected }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, verificationCodeFieldId }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SubmissionRef }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
@@ -69,7 +69,8 @@ class ComponentsValidator(
   booleanExpr: BooleanExprEval[Future],
   thirdPartyData: ThirdPartyData,
   formTemplate: FormTemplate,
-  lookupRegistry: LookupRegistry
+  lookupRegistry: LookupRegistry,
+  maybeAccessCode: Option[AccessCode]
 )(
   implicit
   ec: ExecutionContext,
@@ -110,7 +111,15 @@ class ComponentsValidator(
     hc: HeaderCarrier): Future[List[(Boolean, SmartString)]] =
     formComponent.validators.traverse { v =>
       booleanExpr
-        .isTrue(v.validIf.expr, data.data, retrievals, data.invisible, thirdPartyData, envelopeId, formTemplate)
+        .isTrue(
+          v.validIf.expr,
+          data.data,
+          retrievals,
+          data.invisible,
+          thirdPartyData,
+          maybeAccessCode,
+          envelopeId,
+          formTemplate)
         .map(b => (b, v.errorMessage))
     }
 
@@ -125,7 +134,15 @@ class ComponentsValidator(
     formComponent.validIf match {
       case Some(vi) =>
         booleanExpr
-          .isTrue(vi.expr, data.data, retrievals, data.invisible, thirdPartyData, envelopeId, formTemplate)
+          .isTrue(
+            vi.expr,
+            data.data,
+            retrievals,
+            data.invisible,
+            thirdPartyData,
+            maybeAccessCode,
+            envelopeId,
+            formTemplate)
           .map {
             case false => validationFailure(formComponent, "generic.error.required", None)
             case true  => validationResult

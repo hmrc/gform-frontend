@@ -75,7 +75,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate,
-      lookupRegistry)
+      lookupRegistry,
+      None)
 
   "non-international" should "accept uk, street1, street3, streep 3, street4 and postcode" in {
     val address = Address(international = false)
@@ -239,7 +240,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate,
-      lookupRegistry).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
+      lookupRegistry,
+      None).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode must be entered")))
   }

@@ -168,6 +168,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         mkFormTemplate(sections),
         ExampleData.authContext,
         ThirdPartyData.empty,
+        None,
         EnvelopeId(""))
 
     res match {
@@ -192,6 +193,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         enrolments =
           Enrolments(Set(Enrolment("NINO").copy(identifiers = List(EnrolmentIdentifier("NINO", "AA111111A")))))),
       ThirdPartyData.empty,
+      None,
       EnvelopeId("")
     )
 
@@ -217,6 +219,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         mkFormTemplate(sections),
         ExampleData.authContext,
         ThirdPartyData.empty,
+        None,
         EnvelopeId(""))
 
     res match {
@@ -242,6 +245,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         affinityGroup = uk.gov.hmrc.auth.core.AffinityGroup.Individual
       ),
       ThirdPartyData.empty,
+      None,
       EnvelopeId("")
     )
 
@@ -323,6 +327,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         mkFormTemplate(sections),
         ExampleData.authContext,
         ThirdPartyData.empty,
+        None,
         EnvelopeId(""))
 
     res match {
@@ -736,6 +741,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         mkFormTemplate(sections),
         ExampleData.authContext,
         ThirdPartyData.empty,
+        None,
         EnvelopeId(""))
     Right(expectedOutput) shouldBe output.map(_.data)
   }
@@ -748,6 +754,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         mkFormTemplate(sections),
         ExampleData.authContext,
         ThirdPartyData.empty,
+        None,
         EnvelopeId(""))
     Right(expectedRecData) shouldBe output.map(_.recData)
 

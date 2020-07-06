@@ -53,22 +53,6 @@
     content = HtmlContent(submission_reference(SubmissionRef(supportContents.envelopeId)))
   ))
 
-  <p class="govuk-body">
-    @messages("ack.sentEmail").
-  </p>
-
-  <p class="govuk-body">
-    <a
-      href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.maybeAccessCode, formTemplate._id).url"
-      class="print-hidden govuk-link print-link">
-        @messages("ack.pdfLink", formCat)
-    </a>
-  </p>
-
-  <h2 class="govuk-heading-l">
-    @messages("ack.whatHappensNext")
-  </h2>
-
   @{supportContents.snippets}
 
   @if(formCategory.isHmrc) {
