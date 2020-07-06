@@ -21,18 +21,21 @@ import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.applicative._
 import shapeless.syntax.typeable._
+import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue }
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, Equals, Expr, FormComponentId, FormCtx, FormTemplate, GreaterThan, GreaterThanOrEquals, IsFalse, IsTrue, LessThan, LessThanOrEquals, Not, NotEquals, Or }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.SeissEligible
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 import uk.gov.hmrc.http.HeaderCarrier
 
 class BooleanExprEval[F[_]: Monad](
-  val evaluator: Evaluator[F]
+  val evaluator: Evaluator[F],
+  val seissConnectorEligibilityStatus: (UtrEligibilityRequest, HeaderCarrier) => F[Boolean]
 ) {
   def isTrue(
     expr: BooleanExpr,
@@ -112,6 +115,14 @@ class BooleanExprEval[F[_]: Monad](
         }
     }
 
+    def exists(field: FormCtx, dataSource: DataSource): F[Boolean] =
+      evaluator.evalVariadicFormCtx(visSet, field, data).toSeq.flatMap((_: VariadicValue).toSeq).headOption match {
+        case Some(utr) if dataSource == SeissEligible =>
+          seissConnectorEligibilityStatus(UtrEligibilityRequest(utr), hc)
+        case _ =>
+          false.pure[F]
+      }
+
     expr match {
       case Equals(field1, field2)              => compare(field1, field2, _ == _, _ == _, formTemplate)
       case NotEquals(field1, field2)           => compare(field1, field2, _ != _, _ != _, formTemplate)
@@ -125,6 +136,7 @@ class BooleanExprEval[F[_]: Monad](
       case IsTrue                              => true.pure[F]
       case IsFalse                             => false.pure[F]
       case Contains(ctx, value)                => includes(ctx, value)
+      case In(ctx, dataSource)                 => exists(ctx, dataSource)
     }
   }
 }
