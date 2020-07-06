@@ -1340,6 +1340,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
       val inputClasses = if (hasErrors) "govuk-input--error" else ""
 
+      val attributes =
+        if (formComponent.editable)
+          Map.empty[String, String]
+        else
+          Map("readonly" -> "")
+
       val items = Seq(
         InputItem(
           id = s"${formComponent.id.value}-day",
@@ -1348,7 +1354,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           value = validatedValue
             .flatMap(_.getOptionalCurrentValue(safeId("day")))
             .orElse(prepopValues.map(_.day.toString)),
-          classes = s"$inputClasses govuk-input--width-2"
+          classes = s"$inputClasses govuk-input--width-2",
+          attributes = attributes
         ),
         InputItem(
           id = s"${formComponent.id.value}-month",
@@ -1359,7 +1366,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               .flatMap(_.getOptionalCurrentValue(safeId("month")))
               .orElse(prepopValues.map(_.month.toString))
               .getOrElse("")),
-          classes = s"$inputClasses govuk-input--width-2"
+          classes = s"$inputClasses govuk-input--width-2",
+          attributes = attributes
         ),
         InputItem(
           id = s"${formComponent.id.value}-year",
@@ -1370,7 +1378,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               .flatMap(_.getOptionalCurrentValue(safeId("year")))
               .orElse(prepopValues.map(_.year.toString))
               .getOrElse("")),
-          classes = s"$inputClasses govuk-input--width-4"
+          classes = s"$inputClasses govuk-input--width-4",
+          attributes = attributes
         )
       )
 

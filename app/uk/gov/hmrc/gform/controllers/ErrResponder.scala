@@ -46,6 +46,8 @@ class ErrResponder(
 
   import i18nSupport._
 
+  private val restricted = "We're sorry, but this page is restricted."
+
   def internalServerError(requestHeader: RequestHeader, e: Throwable) = {
     Logger.logger.error(s"Experienced internal server error", e)
     httpAuditingService.auditServerError(requestHeader)
@@ -58,10 +60,16 @@ class ErrResponder(
     Future.successful(InternalServerError.apply(renderInternalServerError(requestHeader)))
   }
 
-  def forbidden(requestHeader: RequestHeader, message: String): Future[Result] = {
+  def forbidden(requestHeader: RequestHeader, message: String): Future[Result] =
+    forbiddenReason(requestHeader, message, restricted)
+
+  def forbiddenWithReason(requestHeader: RequestHeader, reason: String): Future[Result] =
+    forbiddenReason(requestHeader, reason, reason)
+
+  private def forbiddenReason(requestHeader: RequestHeader, message: String, reason: String): Future[Result] = {
     Logger.logger.info(s"Trying to access forbidden resource: $message")
     httpAuditingService.auditForbidden(requestHeader)
-    Future.successful(Forbidden(renderForbidden(requestHeader)))
+    Future.successful(Forbidden(renderForbidden(reason)(requestHeader)))
   }
 
   def badRequest(requestHeader: RequestHeader, message: String): Future[Result] = {
@@ -82,10 +90,10 @@ class ErrResponder(
     message = Messages("global.error.InternalServerError500.message")
   )
 
-  private def renderForbidden(implicit request: RequestHeader) = renderErrorPage(
+  private def renderForbidden(reason: String)(implicit request: RequestHeader) = renderErrorPage(
     "Access forbidden",
-    "We're sorry, but this page is restricted.",
-    "We're sorry, but this page is restricted."
+    restricted,
+    reason
   )
 
   private def renderNotFound(implicit request: RequestHeader) = renderErrorPage(

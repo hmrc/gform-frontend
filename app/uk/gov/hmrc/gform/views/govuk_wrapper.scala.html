@@ -131,17 +131,18 @@
 @govukLayout = @{new govukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink)}
 @hmrcReportTechnicalIssue = @{new components.hmrcReportTechnicalIssue()}
 
-@serviceName = @{
-    if(serviceTitle.nonEmpty)
-        Some(serviceTitle)
-    else
-        None
-}
-
 @language = @{l.toLanguage}
 
 @headerBlock = {
-  @hmrcHeader(components.Header(homepageUrl = "https://www.gov.uk/", language = language, signOutHref = timeoutDialog.flatMap(_.signOutUrl), serviceName = serviceName))
+  @hmrcHeader(
+    components.Header(
+      homepageUrl = "https://www.gov.uk/",
+      language = language,
+      signOutHref = timeoutDialog.flatMap(_.signOutUrl),
+      serviceName = Some(serviceTitle),
+      serviceUrl = "#"
+    )
+  )
 }
 
 @languageSwitch = @{

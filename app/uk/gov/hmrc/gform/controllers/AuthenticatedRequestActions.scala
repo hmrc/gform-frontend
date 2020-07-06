@@ -296,7 +296,7 @@ class AuthenticatedRequestActions(
       case AuthRedirectFlashingFormName(loginUrl) =>
         Redirect(loginUrl).flashing("formTitle" -> formTemplate.formName.value).pure[Future]
       case AuthBlocked(message) =>
-        errResponder.forbidden(request, "Access denied")
+        errResponder.forbiddenWithReason(request, message)
       case AuthForbidden(message) =>
         errResponder.forbidden(request, message)
     }
