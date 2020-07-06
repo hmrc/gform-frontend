@@ -59,7 +59,7 @@ trait ExampleAuthConfig {
   val formComponent = List(buildFormComponent("fieldInAcknowledgementSections", Value))
 
   val ackSection =
-    AcknowledgementSection(toSmartString("ack section with email param field"), None, None, formComponent)
+    AcknowledgementSection(toSmartString("ack section with email param field"), None, None, formComponent, true)
 
   val decFormComponent = List(buildFormComponent("fieldInDeclarationSections", Value))
 
@@ -399,7 +399,8 @@ trait ExampleFormTemplate {
       toSmartString("Acknowledgement Page"),
       Some(toSmartString("this page is to acknowledge submission")),
       Some(toSmartString("shortName for acknowledgement")),
-      List(`fieldValue - info`)
+      List(`fieldValue - info`),
+      true
     )
 
   def declarationSection =

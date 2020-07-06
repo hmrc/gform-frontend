@@ -65,6 +65,7 @@ import uk.gov.hmrc.govukfrontend.views.html.components.govukInput
 import uk.gov.hmrc.govukfrontend.views.viewmodels.charactercount.CharacterCount
 import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ Content, Empty, HtmlContent }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.DateInput
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
@@ -399,6 +400,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       formLevelHeading = false
     )
 
+    val htmlContent: Content =
+      if (destinationList.acknowledgementSection.showReference) {
+        HtmlContent(
+          uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.submission_reference(SubmissionRef(envelopeId)))
+      } else {
+        Empty
+      }
+
     val formCategory = formTemplate.formCategory
     val now = ZonedDateTime.now(ZoneId.of("Europe/London"))
     for {
@@ -432,7 +441,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       )
     } yield
       uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
-        .acknowledgement(renderingInfo, formCategory, formTemplate, frontendAppConfig)
+        .acknowledgement(renderingInfo, htmlContent, formCategory, formTemplate, frontendAppConfig)
   }
 
   def renderEnrolmentSection(

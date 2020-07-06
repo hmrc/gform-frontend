@@ -143,7 +143,8 @@ case class AcknowledgementSection(
   title: SmartString,
   description: Option[SmartString],
   shortName: Option[SmartString],
-  fields: List[FormComponent]
+  fields: List[FormComponent],
+  showReference: Boolean
 ) extends BaseSection
 
 object AcknowledgementSection {

@@ -22,6 +22,7 @@
 
 @(
   supportContents: SectionRenderingInformation,
+  htmlContent: Content,
   formCategory: FormCategory,
   formTemplate: FormTemplate,
   frontendAppConfig: FrontendAppConfig
@@ -50,7 +51,7 @@
 
   @govukPanel(Panel(
     title = Text(heading),
-    content = HtmlContent(submission_reference(SubmissionRef(supportContents.envelopeId)))
+    content = htmlContent
   ))
 
   @{supportContents.snippets}
