@@ -193,10 +193,14 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
   private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice)(
     implicit l: LangADT): F[Option[Field]] =
     formValuesByUnindexedId.get(id).map(_.head).flatTraverse { selectionStr =>
-      if (revealingChoice.multiValue)
-        buildMultiValueRevealingChoiceFields(id, revealingChoice, selectionStr.split(",").map(_.toInt).toList)
-      else
-        buildSingleValueRevealingChoiceFields(id, revealingChoice, selectionStr.toInt)
+      if (selectionStr.isEmpty) {
+        Option.empty[Field].pure[F]
+      } else {
+        if (revealingChoice.multiValue)
+          buildMultiValueRevealingChoiceFields(id, revealingChoice, selectionStr.split(",").map(_.toInt).toList)
+        else
+          buildSingleValueRevealingChoiceFields(id, revealingChoice, selectionStr.toInt)
+      }
     }
 
   private def buildMultiValueRevealingChoiceFields(
