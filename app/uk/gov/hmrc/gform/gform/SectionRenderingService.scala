@@ -1555,8 +1555,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 object IsNilOrInfoOnly {
   def unapply(xs: List[FormComponent]): Boolean =
     xs match {
-      case Nil                             => true
-      case IsInformationMessage(_) :: tail => unapply(tail)
-      case _                               => false
+      case Nil                                    => true
+      case IsInformationMessage(_) :: tail        => unapply(tail)
+      case head :: tail if head.onlyShowOnSummary => unapply(tail)
+      case _                                      => false
     }
 }
