@@ -29,7 +29,7 @@ object SummaryListRowHelper {
     keyClasses: String,
     valueClasses: String,
     actionClasses: String,
-    actions: (Call, String)*): SummaryListRow =
+    actions: List[(Call, String)]): SummaryListRow =
     SummaryListRow(
       key = Key(
         content = Text(label),

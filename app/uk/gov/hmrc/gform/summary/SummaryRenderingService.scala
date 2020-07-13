@@ -745,10 +745,14 @@ object SummaryRenderingService {
         keyClasses,
         "",
         "",
-        (
-          uk.gov.hmrc.gform.gform.routes.FormController
-            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
       ))
 
   }
@@ -798,10 +802,14 @@ object SummaryRenderingService {
         keyClasses,
         "",
         "",
-        (
-          uk.gov.hmrc.gform.gform.routes.FormController
-            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
       ))
   }
 
@@ -850,10 +858,14 @@ object SummaryRenderingService {
         keyClasses,
         "",
         "",
-        (
-          uk.gov.hmrc.gform.gform.routes.FormController
-            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
       ))
   }
 
@@ -905,10 +917,14 @@ object SummaryRenderingService {
         keyClasses,
         "",
         "",
-        (
-          uk.gov.hmrc.gform.gform.routes.FormController
-            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
       ))
   }
 
@@ -964,10 +980,14 @@ object SummaryRenderingService {
         keyClasses,
         "",
         "",
-        (
-          uk.gov.hmrc.gform.gform.routes.FormController
-            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
       ))
   }
 
@@ -1008,10 +1028,14 @@ object SummaryRenderingService {
         keyClasses,
         "",
         "",
-        (
-          uk.gov.hmrc.gform.gform.routes.FormController
-            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
       ))
   }
 
@@ -1066,10 +1090,14 @@ object SummaryRenderingService {
         keyClasses,
         "",
         "",
-        (
-          uk.gov.hmrc.gform.gform.routes.FormController
-            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
       ))
   }
 
@@ -1124,10 +1152,14 @@ object SummaryRenderingService {
         keyClasses,
         "",
         "",
-        (
-          uk.gov.hmrc.gform.gform.routes.FormController
-            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
       ))
   }
 
@@ -1195,10 +1227,14 @@ object SummaryRenderingService {
                 keyClasses,
                 "",
                 "",
-                (
-                  uk.gov.hmrc.gform.gform.routes.FormController
-                    .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-                  if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+                if (fieldValue.onlyShowOnSummary)
+                  Nil
+                else
+                  List(
+                    (
+                      uk.gov.hmrc.gform.gform.routes.FormController
+                        .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+                      if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
               ) +: revealingFields
             }
       }
@@ -1264,10 +1300,14 @@ object SummaryRenderingService {
               keyClasses,
               "",
               "",
-              (
-                uk.gov.hmrc.gform.gform.routes.FormController
-                  .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-                if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+              if (fieldValue.onlyShowOnSummary)
+                Nil
+              else
+                List(
+                  (
+                    uk.gov.hmrc.gform.gform.routes.FormController
+                      .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+                    if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
             )
         }
 
@@ -1296,10 +1336,14 @@ object SummaryRenderingService {
               keyClasses,
               "",
               "",
-              (
-                uk.gov.hmrc.gform.gform.routes.FormController
-                  .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-                if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+              if (fieldValue.onlyShowOnSummary)
+                Nil
+              else
+                List(
+                  (
+                    uk.gov.hmrc.gform.gform.routes.FormController
+                      .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+                    if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
             ))
 
         } else List(SummaryListRow())
@@ -1329,7 +1373,7 @@ object SummaryRenderingService {
           val customKeyClasses = "summary-group-label"
 
           List(
-            summaryListRow(label, "", None, customKeyClasses, "", "")
+            summaryListRow(label, "", None, customKeyClasses, "", "", Nil)
           )
         } else Nil
 
