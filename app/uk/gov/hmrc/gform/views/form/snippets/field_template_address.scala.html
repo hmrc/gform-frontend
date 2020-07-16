@@ -46,20 +46,20 @@
 }
 
 
-@label = {
-  @LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
+@label = @{
+  LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
 }
 
 <fieldset class="govuk-fieldset" id="@{fieldValue.id.value}-fieldset" role="group" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
 
     @if(formLevelHeading) {
-        <legend class="govuk-fieldset__legend govuk-label--xl">
+        <legend class="govuk-fieldset__legend govuk-label--l">
             <h1 class="govuk-fieldset__heading">
                 @label
             </h1>
         </legend>
     } else {
-        <legend class="govuk-fieldset__legend">
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
             @label
         </legend>
     }
