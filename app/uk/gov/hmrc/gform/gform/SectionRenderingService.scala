@@ -1109,21 +1109,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         case DisplayWidth.DEFAULT => "govuk-input--width-30"
       }
 
-      val rows = {
-
-        def countRows(n: Int) = 200 / n + 1
-
-        text.displayWidth match {
-          case DisplayWidth.XS      => countRows(3)
-          case DisplayWidth.S       => countRows(10)
-          case DisplayWidth.M       => countRows(20)
-          case DisplayWidth.L       => countRows(30)
-          case DisplayWidth.XL      => countRows(40)
-          case DisplayWidth.XXL     => countRows(50)
-          case DisplayWidth.DEFAULT => countRows(30)
-        }
-      }
-
       val isPageHeading = ei.formLevelHeading
 
       val label = Label(
@@ -1145,7 +1130,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           val characterCount = CharacterCount(
             id = formComponent.id.value,
             name = formComponent.id.value,
-            rows = rows,
             label = label,
             hint = hint,
             value = maybeCurrentValue,
@@ -1161,7 +1145,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           val textArea = Textarea(
             id = formComponent.id.value,
             name = formComponent.id.value,
-            rows = rows,
             label = label,
             hint = hint,
             value = maybeCurrentValue,
