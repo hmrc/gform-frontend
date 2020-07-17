@@ -92,7 +92,7 @@
     } else {
       @* This is here to support caption in case of isPageHading case *@
       @page.progressIndicator.fold(HtmlFormat.empty){ caption =>
-        <p class="govuk-!-margin-bottom-0 govuk-caption-m hmrc-caption-xl"><span class="govuk-visually-hidden">This section is </span>@caption</p>
+        <p class="govuk-!-margin-bottom-0 govuk-caption-m hmrc-caption-xl"><span class="govuk-visually-hidden">@messages("this.section.is")</span>@caption</p>
       }
     }
 
