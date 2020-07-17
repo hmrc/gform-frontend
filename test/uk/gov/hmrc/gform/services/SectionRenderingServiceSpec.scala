@@ -180,7 +180,7 @@ class SectionRenderingServiceSpec extends Spec {
     val doc: Document = Jsoup.parse(generatedHtml.body)
     val progressIndicator = doc.getElementsByClass("hmrc-caption-xl").first()
     progressIndicator.toString should be(
-      """<p class="govuk-caption-xl hmrc-caption-xl"><span class="govuk-visually-hidden">This section is </span>Progress Indicator</p>""")
+      """<p class="govuk-!-margin-bottom-0 govuk-caption-m hmrc-caption-xl"><span class="govuk-visually-hidden">this.section.is_value</span>Progress Indicator</p>""")
   }
 
   it should "generate second page" in {
