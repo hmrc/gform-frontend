@@ -387,3 +387,6 @@ accessibility.content.block8.p1=Adeiladwyd y gwasanaeth hwn gan ddefnyddio rhann
 accessibility.content.block8.p2=Paratowyd y dudalen hon ar 23 Medi 2019. Cafodd ei diweddaru ddiwethaf ar 26 Mawrth 2019.
 
 identity.verification=Identity verification
+
+# Page Heading
+span.key=This section is
