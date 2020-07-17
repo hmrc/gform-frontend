@@ -66,7 +66,6 @@
 
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
-@hmrcPageHeading = @{new hmrcPageHeading}
 
 @main_template(
   title = heading,
@@ -85,7 +84,7 @@
     @pageLevelError.render
 
     @if(shouldDisplayHeading) {
-      @hmrcPageHeading(PageHeading(text = heading, section = page.progressIndicator))
+      @pageHeading(heading, page.progressIndicator)
 
       @if(page.sectionDescription.exists(_.trim.nonEmpty)){
         <p class="govuk-body">@{page.sectionDescription.get}</p>
@@ -93,7 +92,7 @@
     } else {
       @* This is here to support caption in case of isPageHading case *@
       @page.progressIndicator.fold(HtmlFormat.empty){ caption =>
-        <span class="govuk-caption-xl">@caption</span>
+        <p class="govuk-!-margin-bottom-0 govuk-caption-m hmrc-caption-xl"><span class="govuk-visually-hidden">@messages("this.section.is")</span>@caption</p>
       }
     }
 

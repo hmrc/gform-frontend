@@ -44,15 +44,15 @@
 @label = @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
 
 @if(formLevelHeading) {
-    <legend class="govuk-fieldset__legend govuk-label--xl">
-        <h1 class="govuk-fieldset__heading">
+    <h1 class="govuk-label-wrapper">
+        <label class="govuk-label--l" for="@UkSortCode.fields(fieldValue.id).toList.head">
             @label
-        </h1>
-    </legend>
+        </label>
+    </h1>
 } else {
-    <legend class="govuk-fieldset__legend">
+    <label class="govuk-label" for="@UkSortCode.fields(fieldValue.id).toList.head">
         @label
-    </legend>
+    </label>
 }
 
 @if(fieldValue.helpText.map(ls=>ls.value).nonEmpty) {

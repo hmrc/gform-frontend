@@ -603,7 +603,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           Legend(
             content = content.Text(label),
             isPageHeading = isPageHeading,
-            classes = if (isPageHeading) "govuk-label--xl" else ""
+            classes = if (isPageHeading) "govuk-label--l" else ""
           ))
       ))
 
@@ -643,7 +643,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val labelContent =
       if (isPageHeading) {
-        content.HtmlContent(s"""<h1 class="govuk-label--xl">$label</h1>""")
+        content.HtmlContent(s"""<h1 class="govuk-label--l">$label</h1>""")
       } else {
         content.HtmlContent(s"""<p class="govuk-body">$label</p>""")
       }
@@ -704,7 +704,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val label = Label(
       isPageHeading = isPageHeading,
-      classes = if (isPageHeading) "govuk-label--xl" else "",
+      classes = if (isPageHeading) "govuk-label--l" else "",
       content = labelContent
     )
 
@@ -780,7 +780,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           Legend(
             content = content.Text(formComponent.label.value),
             isPageHeading = isPageHeading,
-            classes = if (isPageHeading) "govuk-label--xl" else ""
+            classes = if (isPageHeading) "govuk-label--l" else ""
           ))
       ))
 
@@ -903,7 +903,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           Legend(
             content = content.Text(formComponent.label.value),
             isPageHeading = isPageHeading,
-            classes = if (isPageHeading) "govuk-label--xl" else ""
+            classes = if (isPageHeading) "govuk-label--l" else ""
           ))
       ))
 
@@ -989,7 +989,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val label = Label(
       forAttr = Some(fieldValue.id.value),
       isPageHeading = isPageHeading,
-      classes = if (isPageHeading) "govuk-label--xl" else "",
+      classes = if (isPageHeading) "govuk-label--l" else "",
       content = content.Text(labelString)
     )
 
@@ -1025,7 +1025,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
                 Legend(
                   content = content.Text(fieldValue.label.value),
                   isPageHeading = isPageHeading,
-                  classes = if (isPageHeading) "govuk-label--xl" else ""
+                  classes = if (isPageHeading) "govuk-label--l" else ""
                 ))
             ))
 
@@ -1113,7 +1113,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
       val label = Label(
         isPageHeading = isPageHeading,
-        classes = if (isPageHeading) "govuk-label--xl" else "",
+        classes = if (isPageHeading) "govuk-label--l" else "",
         content = labelContent
       )
 
@@ -1216,7 +1216,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           val isPageHeading = ei.formLevelHeading
           val label = Label(
             isPageHeading = isPageHeading,
-            classes = if (isPageHeading) "govuk-label--xl" else "",
+            classes = if (isPageHeading) "govuk-label--l" else "",
             content = labelContent
           )
 
@@ -1398,7 +1398,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         legend = Some(
           Legend(
             content = content.Text(formComponent.label.value),
-            classes = if (isPageHeading) "govuk-label--xl" else "",
+            classes = if (isPageHeading) "govuk-label--l" else "",
             isPageHeading = isPageHeading
           ))
       )
