@@ -389,4 +389,4 @@ accessibility.content.block8.p2=Paratowyd y dudalen hon ar 23 Medi 2019. Cafodd 
 identity.verification=Identity verification
 
 # Page Heading
-this.section.is=This section is
+this.section.is=Teitl yr adran hon yw

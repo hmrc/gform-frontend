@@ -1203,15 +1203,17 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           html.form.snippets.field_template_text_total(totalText)
 
         case _ =>
-          val sizeClasses = text.displayWidth match {
-            case DisplayWidth.XS      => "govuk-input--width-2"
-            case DisplayWidth.S       => "govuk-input--width-3"
-            case DisplayWidth.M       => "govuk-input--width-4"
-            case DisplayWidth.L       => "govuk-input--width-10"
-            case DisplayWidth.XL      => "govuk-input--width-20"
-            case DisplayWidth.XXL     => "govuk-input--width-30"
-            case DisplayWidth.DEFAULT => "govuk-input--width-10"
-          }
+          val sizeClasses =
+            TextConstraint.getSize(text.constraint, text.displayWidth) match {
+              case n if n <= 2            => "govuk-input--width-2"
+              case 3                      => "govuk-input--width-3"
+              case 4                      => "govuk-input--width-4"
+              case 5                      => "govuk-input--width-5"
+              case n if n > 5 && n <= 10  => "govuk-input--width-10"
+              case n if n > 10 && n <= 20 => "govuk-input--width-20"
+              case n if n > 20 && n <= 30 => "govuk-input--width-30"
+              case n if n > 30            => "govuk-input--width-40"
+            }
 
           val isPageHeading = ei.formLevelHeading
           val label = Label(

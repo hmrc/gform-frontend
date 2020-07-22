@@ -160,58 +160,192 @@ object RoundingMode {
   )
 }
 
-sealed trait TextConstraint
+sealed trait TextConstraint {
+  val defaultSize: Int
+}
 
 final case class Number(
   maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
   maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits,
   roundingMode: RoundingMode = RoundingMode.defaultRoundingMode,
   unit: Option[LocalisedString] = None)
-    extends TextConstraint
+    extends TextConstraint {
+  val size: Int =
+    if (maxFractionalDigits > 0)
+      maxWholeDigits + maxFractionalDigits + 1
+    else
+      maxWholeDigits
+
+  override val defaultSize =
+    if (size <= TextConstraint.defaultSizeNumber)
+      size
+    else
+      TextConstraint.defaultSizeNumber
+}
 
 final case class PositiveNumber(
   maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
   maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits,
   roundingMode: RoundingMode = RoundingMode.defaultRoundingMode,
   unit: Option[LocalisedString] = None)
-    extends TextConstraint
+    extends TextConstraint {
+  val size: Int =
+    if (maxFractionalDigits > 0)
+      maxWholeDigits + maxFractionalDigits + 1
+    else
+      maxWholeDigits
 
-case object BasicText extends TextConstraint
-case class ShortText(min: Int, max: Int) extends TextConstraint
+  override val defaultSize =
+    if (size <= TextConstraint.defaultSizePositiveNumber)
+      size
+    else
+      TextConstraint.defaultSizePositiveNumber
+}
+
+case object BasicText extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeBasicText
+}
+
+case class ShortText(min: Int, max: Int) extends TextConstraint {
+  override val defaultSize = max
+}
+
 object ShortText { val default = ShortText(0, 1000) }
-case class Lookup(register: Register) extends TextConstraint
-case class TextWithRestrictions(min: Int, max: Int) extends TextConstraint
-case class Sterling(roundingMode: RoundingMode, positiveOnly: Boolean) extends TextConstraint
-case object UkBankAccountNumber extends TextConstraint
-case object UkSortCodeFormat extends TextConstraint
-case object SubmissionRefFormat extends TextConstraint
+
+case class Lookup(register: Register) extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeLookup
+}
+
+case class TextWithRestrictions(min: Int, max: Int) extends TextConstraint {
+  override val defaultSize = max
+}
+
+case class Sterling(roundingMode: RoundingMode, positiveOnly: Boolean) extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeSterling
+}
+
+case object UkBankAccountNumber extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeUkBankAccountNumber
+}
+
+case object UkSortCodeFormat extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeUkSortCodeFormat
+}
+
+case object SubmissionRefFormat extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeSubmissionRefFormat
+}
 
 case object TelephoneNumber extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeTelephoneNumber
   val minimumLength = 7
   val maximumLength = 25
   val phoneNumberValidation = """^[\+A-Z0-9 )/(*#-]+$""".r
 }
 
-case object Email extends TextConstraint
+case object Email extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeEmail
+}
+
 case class EmailVerifiedBy(formComponentId: FormComponentId, emailVerifierService: EmailVerifierService)
-    extends TextConstraint
-case object UTR extends TextConstraint
-case object NINO extends TextConstraint
-case object UkVrn extends TextConstraint
-case object CountryCode extends TextConstraint
-case object NonUkCountryCode extends TextConstraint
-case object CompanyRegistrationNumber extends TextConstraint
-case object EORI extends TextConstraint
-case object UkEORI extends TextConstraint
-case object ChildBenefitNumber extends TextConstraint
+    extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeEmailVerifiedBy
+}
+
+case object UTR extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeUTR
+}
+
+case object NINO extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeNINO
+}
+
+case object UkVrn extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeUkVrn
+}
+
+case object CountryCode extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeCountryCode
+}
+
+case object NonUkCountryCode extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeNonUkCountryCode
+}
+
+case object CompanyRegistrationNumber extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeCompanyRegistrationNumber
+}
+
+case object EORI extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeEORI
+}
+
+case object UkEORI extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeUkEORI
+}
+
+case object ChildBenefitNumber extends TextConstraint {
+  override val defaultSize = TextConstraint.defaultSizeChildBenefitNumber
+}
 
 object TextConstraint {
   val defaultWholeDigits = 11
   val defaultFactionalDigits = 2
+  val defaultDisplayWidthSize = 20
+  val defaultDisplayWidthXsSize = 4
+  val defaultDisplayWidthSSize = 5
+  val defaultDisplayWidthMSize = 10
+  val defaultDisplayWidthLSize = 20
+  val defaultDisplayWidthXlSize = 30
+  val defaultDisplayWidthXxlSize = 40
+  val defaultSizeNumber = 10
+  val defaultSizePositiveNumber = 10
+  val defaultSizeBasicText = 20
+  val defaultSizeShortText = 20
+  val defaultSizeLookup = 20
+  val defaultSizeTextWithRestrictions = 20
+  val defaultSizeSterling = 10
+  val defaultSizeUkBankAccountNumber = 10
+  val defaultSizeUkSortCodeFormat = 2
+  val defaultSizeSubmissionRefFormat = 20
+  val defaultSizeTelephoneNumber = 20
+  val defaultSizeEmail = 30
+  val defaultSizeEmailVerifiedBy = 10
+  val defaultSizeUTR = 10
+  val defaultSizeNINO = 20
+  val defaultSizeUkVrn = 10
+  val defaultSizeCountryCode = 5
+  val defaultSizeNonUkCountryCode = 5
+  val defaultSizeCompanyRegistrationNumber = 20
+  val defaultSizeEORI = 20
+  val defaultSizeUkEORI = 20
+  val defaultSizeChildBenefitNumber = 20
 
   implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]
 
   def filterNumberValue(s: String): String = s.filterNot(c => (c == '£'))
+
+  def getSizeForDisplayWidth(displayWidth: DisplayWidth.DisplayWidth): Int = displayWidth match {
+    case DisplayWidth.XS      => TextConstraint.defaultDisplayWidthXsSize
+    case DisplayWidth.S       => TextConstraint.defaultDisplayWidthSSize
+    case DisplayWidth.M       => TextConstraint.defaultDisplayWidthMSize
+    case DisplayWidth.L       => TextConstraint.defaultDisplayWidthLSize
+    case DisplayWidth.XL      => TextConstraint.defaultDisplayWidthXlSize
+    case DisplayWidth.XXL     => TextConstraint.defaultDisplayWidthXxlSize
+    case DisplayWidth.DEFAULT => TextConstraint.defaultDisplayWidthSize
+  }
+
+  def getSize(constraint: TextConstraint, displayWidth: DisplayWidth.DisplayWidth): Int =
+    (constraint, displayWidth) match {
+      case (Number(_, _, _, _) | PositiveNumber(_, _, _, _) | ShortText(_, _) | TextWithRestrictions(_, _), _) =>
+        constraint.defaultSize
+
+      case (_, displayWidth) if displayWidth != DisplayWidth.DEFAULT =>
+        getSizeForDisplayWidth(displayWidth)
+
+      case (_, DisplayWidth.DEFAULT) =>
+        constraint.defaultSize
+    }
 }
 
 sealed trait Register {
