@@ -201,24 +201,24 @@ sealed trait TextConstraint {
   }
 
   def deriveCssClassNameForText(n: Int): String = n match {
-    case n if n <= 2            => "govuk-input--width-2"
-    case 3                      => "govuk-input--width-3"
-    case 4                      => "govuk-input--width-4"
-    case 5                      => "govuk-input--width-5"
-    case n if n > 5 && n <= 10  => "govuk-input--width-10"
-    case n if n > 10 && n <= 20 => "govuk-input--width-20"
-    case n if n > 20 && n <= 30 => "govuk-input--width-30"
-    case n if n > 30            => "govuk-input--width-40"
+    case n if n <= 2            => CssClassSize._2
+    case 3                      => CssClassSize._3
+    case 4                      => CssClassSize._4
+    case 5                      => CssClassSize._5
+    case n if n > 5 && n <= 10  => CssClassSize._10
+    case n if n > 10 && n <= 20 => CssClassSize._20
+    case n if n > 20 && n <= 30 => CssClassSize._30
+    case n if n > 30            => CssClassSize._40
   }
 
   def deriveCssClassNameForNumber(n: Int): String = n match {
-    case n if n <= 2            => "govuk-input--width-2"
-    case 3                      => "govuk-input--width-3"
-    case 4                      => "govuk-input--width-4"
-    case 5                      => "govuk-input--width-5"
-    case n if n > 5 && n <= 15  => "govuk-input--width-10"
-    case n if n > 15 && n <= 25 => "govuk-input--width-20"
-    case n if n > 25            => "govuk-input--width-30"
+    case n if n <= 2            => CssClassSize._2
+    case 3                      => CssClassSize._3
+    case 4                      => CssClassSize._4
+    case 5                      => CssClassSize._5
+    case n if n > 5 && n <= 15  => CssClassSize._10
+    case n if n > 15 && n <= 25 => CssClassSize._20
+    case n if n > 25            => CssClassSize._30
   }
 }
 
@@ -274,21 +274,21 @@ object TextConstraint {
   def filterNumberValue(s: String): String = s.filterNot(c => (c == '£'))
 
   def getSizeForDisplayWidthForText(displayWidth: DisplayWidth.DisplayWidth): String = displayWidth match {
-    case DisplayWidth.XS  => "govuk-input--width-4"
-    case DisplayWidth.S   => "govuk-input--width-5"
-    case DisplayWidth.M   => "govuk-input--width-10"
-    case DisplayWidth.L   => "govuk-input--width-20"
-    case DisplayWidth.XL  => "govuk-input--width-30"
-    case DisplayWidth.XXL => "govuk-input--width-40"
+    case DisplayWidth.XS  => CssClassSize._4
+    case DisplayWidth.S   => CssClassSize._5
+    case DisplayWidth.M   => CssClassSize._10
+    case DisplayWidth.L   => CssClassSize._20
+    case DisplayWidth.XL  => CssClassSize._30
+    case DisplayWidth.XXL => CssClassSize._40
   }
 
   def getSizeForDisplayWidthForNumber(displayWidth: DisplayWidth.DisplayWidth): String = displayWidth match {
-    case DisplayWidth.XS  => "govuk-input--width-2"
-    case DisplayWidth.S   => "govuk-input--width-3"
-    case DisplayWidth.M   => "govuk-input--width-4"
-    case DisplayWidth.L   => "govuk-input--width-5"
-    case DisplayWidth.XL  => "govuk-input--width-10"
-    case DisplayWidth.XXL => "govuk-input--width-20"
+    case DisplayWidth.XS  => CssClassSize._2
+    case DisplayWidth.S   => CssClassSize._3
+    case DisplayWidth.M   => CssClassSize._4
+    case DisplayWidth.L   => CssClassSize._5
+    case DisplayWidth.XL  => CssClassSize._10
+    case DisplayWidth.XXL => CssClassSize._20
   }
 
   def getSizeClass(constraint: TextConstraint, displayWidth: DisplayWidth.DisplayWidth): String =
