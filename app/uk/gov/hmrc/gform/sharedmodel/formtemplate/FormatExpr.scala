@@ -161,78 +161,64 @@ object RoundingMode {
 }
 
 sealed trait TextConstraint {
-  val defaultSize: Int = this match {
+  val defaultCssClassName: String = this match {
     case Number(maxWholeDigits, maxFractionalDigits, _, _) =>
-      if (maxFractionalDigits > 0)
-        maxWholeDigits + maxFractionalDigits + 1
-      else
-        maxWholeDigits
+      val size =
+        if (maxFractionalDigits > 0)
+          maxWholeDigits + maxFractionalDigits + 1
+        else
+          maxWholeDigits
 
+      deriveCssClassNameForNumber(size)
     case PositiveNumber(maxWholeDigits, maxFractionalDigits, _, _) =>
-      if (maxFractionalDigits > 0)
-        maxWholeDigits + maxFractionalDigits + 1
-      else
-        maxWholeDigits
+      val size =
+        if (maxFractionalDigits > 0)
+          maxWholeDigits + maxFractionalDigits + 1
+        else
+          maxWholeDigits
 
-    case BasicText =>
-      TextConstraint.defaultSizeBasicText
+      deriveCssClassNameForNumber(size)
+    case BasicText                    => CssClassSize._20
+    case ShortText(_, max)            => deriveCssClassNameForText(max)
+    case Lookup(_)                    => CssClassSize._20
+    case TextWithRestrictions(_, max) => deriveCssClassNameForText(max)
+    case Sterling(_, _)               => CssClassSize._10
+    case UkBankAccountNumber          => CssClassSize._10
+    case UkSortCodeFormat             => CssClassSize._2
+    case SubmissionRefFormat          => CssClassSize._20
+    case TelephoneNumber              => CssClassSize._20
+    case Email                        => CssClassSize._30
+    case EmailVerifiedBy(_, _)        => CssClassSize._10
+    case UTR                          => CssClassSize._10
+    case NINO                         => CssClassSize._20
+    case UkVrn                        => CssClassSize._10
+    case CountryCode                  => CssClassSize._5
+    case NonUkCountryCode             => CssClassSize._5
+    case CompanyRegistrationNumber    => CssClassSize._20
+    case EORI                         => CssClassSize._20
+    case UkEORI                       => CssClassSize._20
+    case ChildBenefitNumber           => CssClassSize._20
+  }
 
-    case ShortText(_, max) =>
-      max
+  def deriveCssClassNameForText(n: Int): String = n match {
+    case n if n <= 2            => "govuk-input--width-2"
+    case 3                      => "govuk-input--width-3"
+    case 4                      => "govuk-input--width-4"
+    case 5                      => "govuk-input--width-5"
+    case n if n > 5 && n <= 10  => "govuk-input--width-10"
+    case n if n > 10 && n <= 20 => "govuk-input--width-20"
+    case n if n > 20 && n <= 30 => "govuk-input--width-30"
+    case n if n > 30            => "govuk-input--width-40"
+  }
 
-    case Lookup(_) =>
-      TextConstraint.defaultSizeLookup
-
-    case TextWithRestrictions(_, max) =>
-      max
-
-    case Sterling(_, _) =>
-      TextConstraint.defaultSizeSterling
-
-    case UkBankAccountNumber =>
-      TextConstraint.defaultSizeUkBankAccountNumber
-
-    case UkSortCodeFormat =>
-      TextConstraint.defaultSizeUkSortCodeFormat
-
-    case SubmissionRefFormat =>
-      TextConstraint.defaultSizeSubmissionRefFormat
-
-    case TelephoneNumber =>
-      TextConstraint.defaultSizeTelephoneNumber
-
-    case Email =>
-      TextConstraint.defaultSizeEmail
-
-    case EmailVerifiedBy(_, _) =>
-      TextConstraint.defaultSizeEmailVerifiedBy
-
-    case UTR =>
-      TextConstraint.defaultSizeUTR
-
-    case NINO =>
-      TextConstraint.defaultSizeNINO
-
-    case UkVrn =>
-      TextConstraint.defaultSizeUkVrn
-
-    case CountryCode =>
-      TextConstraint.defaultSizeCountryCode
-
-    case NonUkCountryCode =>
-      TextConstraint.defaultSizeNonUkCountryCode
-
-    case CompanyRegistrationNumber =>
-      TextConstraint.defaultSizeCompanyRegistrationNumber
-
-    case EORI =>
-      TextConstraint.defaultSizeEORI
-
-    case UkEORI =>
-      TextConstraint.defaultSizeUkEORI
-
-    case ChildBenefitNumber =>
-      TextConstraint.defaultSizeChildBenefitNumber
+  def deriveCssClassNameForNumber(n: Int): String = n match {
+    case n if n <= 2            => "govuk-input--width-2"
+    case 3                      => "govuk-input--width-3"
+    case 4                      => "govuk-input--width-4"
+    case 5                      => "govuk-input--width-5"
+    case n if n > 5 && n <= 15  => "govuk-input--width-10"
+    case n if n > 15 && n <= 25 => "govuk-input--width-20"
+    case n if n > 25            => "govuk-input--width-30"
   }
 }
 
@@ -282,114 +268,53 @@ case object ChildBenefitNumber extends TextConstraint
 object TextConstraint {
   val defaultWholeDigits = 11
   val defaultFactionalDigits = 2
-  val defaultDisplayWidthSize = 20
-  val defaultDisplayWidthXsSizeForText = 4
-  val defaultDisplayWidthSSizeForText = 5
-  val defaultDisplayWidthMSizeForText = 10
-  val defaultDisplayWidthLSizeForText = 20
-  val defaultDisplayWidthXlSizeForText = 30
-  val defaultDisplayWidthXxlSizeForText = 40
-  val defaultDisplayWidthXsSizeForNumber = 2
-  val defaultDisplayWidthSSizeForNumber = 3
-  val defaultDisplayWidthMSizeForNumber = 4
-  val defaultDisplayWidthLSizeForNumber = 5
-  val defaultDisplayWidthXlSizeForNumber = 10
-  val defaultDisplayWidthXxlSizeForNumber = 20
-  val defaultSizeNumber = 10
-  val defaultSizePositiveNumber = 10
-  val defaultSizeBasicText = 20
-  val defaultSizeShortText = 20
-  val defaultSizeLookup = 20
-  val defaultSizeTextWithRestrictions = 20
-  val defaultSizeSterling = 10
-  val defaultSizeUkBankAccountNumber = 10
-  val defaultSizeUkSortCodeFormat = 2
-  val defaultSizeSubmissionRefFormat = 20
-  val defaultSizeTelephoneNumber = 20
-  val defaultSizeEmail = 30
-  val defaultSizeEmailVerifiedBy = 10
-  val defaultSizeUTR = 10
-  val defaultSizeNINO = 20
-  val defaultSizeUkVrn = 10
-  val defaultSizeCountryCode = 5
-  val defaultSizeNonUkCountryCode = 5
-  val defaultSizeCompanyRegistrationNumber = 20
-  val defaultSizeEORI = 20
-  val defaultSizeUkEORI = 20
-  val defaultSizeChildBenefitNumber = 20
 
   implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]
 
   def filterNumberValue(s: String): String = s.filterNot(c => (c == '£'))
 
-  def getSizeForDisplayWidthForText(displayWidth: DisplayWidth.DisplayWidth): Int = displayWidth match {
-    case DisplayWidth.XS  => TextConstraint.defaultDisplayWidthXsSizeForText
-    case DisplayWidth.S   => TextConstraint.defaultDisplayWidthSSizeForText
-    case DisplayWidth.M   => TextConstraint.defaultDisplayWidthMSizeForText
-    case DisplayWidth.L   => TextConstraint.defaultDisplayWidthLSizeForText
-    case DisplayWidth.XL  => TextConstraint.defaultDisplayWidthXlSizeForText
-    case DisplayWidth.XXL => TextConstraint.defaultDisplayWidthXxlSizeForText
+  def getSizeForDisplayWidthForText(displayWidth: DisplayWidth.DisplayWidth): String = displayWidth match {
+    case DisplayWidth.XS  => "govuk-input--width-4"
+    case DisplayWidth.S   => "govuk-input--width-5"
+    case DisplayWidth.M   => "govuk-input--width-10"
+    case DisplayWidth.L   => "govuk-input--width-20"
+    case DisplayWidth.XL  => "govuk-input--width-30"
+    case DisplayWidth.XXL => "govuk-input--width-40"
   }
 
-  def getSizeForDisplayWidthForNumber(displayWidth: DisplayWidth.DisplayWidth): Int = displayWidth match {
-    case DisplayWidth.XS  => TextConstraint.defaultDisplayWidthXsSizeForNumber
-    case DisplayWidth.S   => TextConstraint.defaultDisplayWidthSSizeForNumber
-    case DisplayWidth.M   => TextConstraint.defaultDisplayWidthMSizeForNumber
-    case DisplayWidth.L   => TextConstraint.defaultDisplayWidthLSizeForNumber
-    case DisplayWidth.XL  => TextConstraint.defaultDisplayWidthXlSizeForNumber
-    case DisplayWidth.XXL => TextConstraint.defaultDisplayWidthXxlSizeForNumber
+  def getSizeForDisplayWidthForNumber(displayWidth: DisplayWidth.DisplayWidth): String = displayWidth match {
+    case DisplayWidth.XS  => "govuk-input--width-2"
+    case DisplayWidth.S   => "govuk-input--width-3"
+    case DisplayWidth.M   => "govuk-input--width-4"
+    case DisplayWidth.L   => "govuk-input--width-5"
+    case DisplayWidth.XL  => "govuk-input--width-10"
+    case DisplayWidth.XXL => "govuk-input--width-20"
   }
 
   def getSizeClass(constraint: TextConstraint, displayWidth: DisplayWidth.DisplayWidth): String =
-    constraint match {
-      case Number(_, _, _, _) | PositiveNumber(_, _, _, _) | Sterling(_, _) | UkBankAccountNumber | UkSortCodeFormat =>
-        getSizeClassForNumbers(constraint, displayWidth)
-
-      case _ =>
-        getSizeClassForText(constraint, displayWidth)
-    }
-
-  private def getSizeClassForText(constraint: TextConstraint, displayWidth: DisplayWidth.DisplayWidth): String = {
-    val size = (constraint, displayWidth) match {
-      case (_, displayWidth) if displayWidth != DisplayWidth.DEFAULT =>
-        getSizeForDisplayWidthForText(displayWidth)
-
+    (constraint, displayWidth) match {
       case (_, DisplayWidth.DEFAULT) =>
-        constraint.defaultSize
-    }
+        constraint.defaultCssClassName
 
-    size match {
-      case n if n <= 2            => "govuk-input--width-2"
-      case 3                      => "govuk-input--width-3"
-      case 4                      => "govuk-input--width-4"
-      case 5                      => "govuk-input--width-5"
-      case n if n > 5 && n <= 10  => "govuk-input--width-10"
-      case n if n > 10 && n <= 20 => "govuk-input--width-20"
-      case n if n > 20 && n <= 30 => "govuk-input--width-30"
-      case n if n > 30            => "govuk-input--width-40"
-    }
-  }
-
-  private def getSizeClassForNumbers(constraint: TextConstraint, displayWidth: DisplayWidth.DisplayWidth): String = {
-    val size = (constraint, displayWidth) match {
-      case (_, displayWidth) if displayWidth != DisplayWidth.DEFAULT =>
+      case (
+          Number(_, _, _, _) | PositiveNumber(_, _, _, _) | Sterling(_, _) | UkBankAccountNumber | UkSortCodeFormat,
+          displayWidth) =>
         getSizeForDisplayWidthForNumber(displayWidth)
 
-      case (_, DisplayWidth.DEFAULT) =>
-        constraint.defaultSize
+      case (_, displayWidth) =>
+        getSizeForDisplayWidthForText(displayWidth)
     }
+}
 
-    size match {
-      case n if n <= 2            => "govuk-input--width-2"
-      case 3                      => "govuk-input--width-3"
-      case 4                      => "govuk-input--width-4"
-      case 5                      => "govuk-input--width-5"
-      case n if n > 5 && n <= 15  => "govuk-input--width-10"
-      case n if n > 15 && n <= 25 => "govuk-input--width-20"
-      case n if n > 25            => "govuk-input--width-30"
-    }
-  }
-
+object CssClassSize {
+  val _2 = "govuk-input--width-2"
+  val _3 = "govuk-input--width-3"
+  val _4 = "govuk-input--width-4"
+  val _5 = "govuk-input--width-5"
+  val _10 = "govuk-input--width-10"
+  val _20 = "govuk-input--width-20"
+  val _30 = "govuk-input--width-30"
+  val _40 = "govuk-input--width-40"
 }
 
 sealed trait Register {
