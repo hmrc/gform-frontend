@@ -163,21 +163,9 @@ object RoundingMode {
 sealed trait TextConstraint {
   val defaultCssClassName: String = this match {
     case Number(maxWholeDigits, maxFractionalDigits, _, _) =>
-      val size =
-        if (maxFractionalDigits > 0)
-          maxWholeDigits + maxFractionalDigits + 1
-        else
-          maxWholeDigits
-
-      deriveCssClassNameForNumber(size)
+      deriveCssClassNameForNumber(maxWholeDigits, maxFractionalDigits)
     case PositiveNumber(maxWholeDigits, maxFractionalDigits, _, _) =>
-      val size =
-        if (maxFractionalDigits > 0)
-          maxWholeDigits + maxFractionalDigits + 1
-        else
-          maxWholeDigits
-
-      deriveCssClassNameForNumber(size)
+      deriveCssClassNameForNumber(maxWholeDigits, maxFractionalDigits)
     case BasicText                    => CssClassSize._20
     case ShortText(_, max)            => deriveCssClassNameForText(max)
     case Lookup(_)                    => CssClassSize._20
@@ -200,7 +188,7 @@ sealed trait TextConstraint {
     case ChildBenefitNumber           => CssClassSize._20
   }
 
-  def deriveCssClassNameForText(n: Int): String = n match {
+  private def deriveCssClassNameForText(n: Int): String = n match {
     case n if n <= 2            => CssClassSize._2
     case 3                      => CssClassSize._3
     case 4                      => CssClassSize._4
@@ -211,14 +199,22 @@ sealed trait TextConstraint {
     case n if n > 30            => CssClassSize._40
   }
 
-  def deriveCssClassNameForNumber(n: Int): String = n match {
-    case n if n <= 2            => CssClassSize._2
-    case 3                      => CssClassSize._3
-    case 4                      => CssClassSize._4
-    case 5                      => CssClassSize._5
-    case n if n > 5 && n <= 15  => CssClassSize._10
-    case n if n > 15 && n <= 25 => CssClassSize._20
-    case n if n > 25            => CssClassSize._30
+  private def deriveCssClassNameForNumber(maxWholeDigits: Int, maxFractionalDigits: Int): String = {
+    val size =
+      if (maxFractionalDigits > 0)
+        maxWholeDigits + maxFractionalDigits + 1
+      else
+        maxWholeDigits
+
+    size match {
+      case n if n <= 2            => CssClassSize._2
+      case 3                      => CssClassSize._3
+      case 4                      => CssClassSize._4
+      case 5                      => CssClassSize._5
+      case n if n > 5 && n <= 15  => CssClassSize._10
+      case n if n > 15 && n <= 25 => CssClassSize._20
+      case n if n > 25            => CssClassSize._30
+    }
   }
 }
 
@@ -273,7 +269,7 @@ object TextConstraint {
 
   def filterNumberValue(s: String): String = s.filterNot(c => (c == '£'))
 
-  def getSizeForDisplayWidthForText(displayWidth: DisplayWidth.DisplayWidth): String = displayWidth match {
+  private def getSizeClassForDisplayWidthForText(displayWidth: DisplayWidth.DisplayWidth): String = displayWidth match {
     case DisplayWidth.XS  => CssClassSize._4
     case DisplayWidth.S   => CssClassSize._5
     case DisplayWidth.M   => CssClassSize._10
@@ -282,14 +278,15 @@ object TextConstraint {
     case DisplayWidth.XXL => CssClassSize._40
   }
 
-  def getSizeForDisplayWidthForNumber(displayWidth: DisplayWidth.DisplayWidth): String = displayWidth match {
-    case DisplayWidth.XS  => CssClassSize._2
-    case DisplayWidth.S   => CssClassSize._3
-    case DisplayWidth.M   => CssClassSize._4
-    case DisplayWidth.L   => CssClassSize._5
-    case DisplayWidth.XL  => CssClassSize._10
-    case DisplayWidth.XXL => CssClassSize._20
-  }
+  private def getSizeClassForDisplayWidthForNumber(displayWidth: DisplayWidth.DisplayWidth): String =
+    displayWidth match {
+      case DisplayWidth.XS  => CssClassSize._2
+      case DisplayWidth.S   => CssClassSize._3
+      case DisplayWidth.M   => CssClassSize._4
+      case DisplayWidth.L   => CssClassSize._5
+      case DisplayWidth.XL  => CssClassSize._10
+      case DisplayWidth.XXL => CssClassSize._20
+    }
 
   def getSizeClass(constraint: TextConstraint, displayWidth: DisplayWidth.DisplayWidth): String =
     (constraint, displayWidth) match {
@@ -299,10 +296,10 @@ object TextConstraint {
       case (
           Number(_, _, _, _) | PositiveNumber(_, _, _, _) | Sterling(_, _) | UkBankAccountNumber | UkSortCodeFormat,
           displayWidth) =>
-        getSizeForDisplayWidthForNumber(displayWidth)
+        getSizeClassForDisplayWidthForNumber(displayWidth)
 
       case (_, displayWidth) =>
-        getSizeForDisplayWidthForText(displayWidth)
+        getSizeClassForDisplayWidthForText(displayWidth)
     }
 }
 
