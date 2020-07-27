@@ -278,14 +278,17 @@ object TextConstraint {
     case DisplayWidth.XXL => CssClassSize._40
   }
 
-  private def getSizeClassForDisplayWidthForNumber(displayWidth: DisplayWidth.DisplayWidth): String =
-    displayWidth match {
-      case DisplayWidth.XS  => CssClassSize._2
-      case DisplayWidth.S   => CssClassSize._3
-      case DisplayWidth.M   => CssClassSize._4
-      case DisplayWidth.L   => CssClassSize._5
-      case DisplayWidth.XL  => CssClassSize._10
-      case DisplayWidth.XXL => CssClassSize._20
+  private def getSizeClassForDisplayWidthForNumber(
+    constraint: TextConstraint,
+    displayWidth: DisplayWidth.DisplayWidth): String =
+    (constraint, displayWidth) match {
+      case (Sterling(_, _), DisplayWidth.XS) => CssClassSize._3
+      case (_, DisplayWidth.XS)              => CssClassSize._2
+      case (_, DisplayWidth.S)               => CssClassSize._3
+      case (_, DisplayWidth.M)               => CssClassSize._4
+      case (_, DisplayWidth.L)               => CssClassSize._5
+      case (_, DisplayWidth.XL)              => CssClassSize._10
+      case (_, DisplayWidth.XXL)             => CssClassSize._20
     }
 
   def getSizeClass(constraint: TextConstraint, displayWidth: DisplayWidth.DisplayWidth): String =
@@ -296,7 +299,7 @@ object TextConstraint {
       case (
           Number(_, _, _, _) | PositiveNumber(_, _, _, _) | Sterling(_, _) | UkBankAccountNumber | UkSortCodeFormat,
           displayWidth) =>
-        getSizeClassForDisplayWidthForNumber(displayWidth)
+        getSizeClassForDisplayWidthForNumber(constraint, displayWidth)
 
       case (_, displayWidth) =>
         getSizeClassForDisplayWidthForText(displayWidth)
