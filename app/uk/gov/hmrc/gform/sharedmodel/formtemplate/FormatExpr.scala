@@ -168,24 +168,24 @@ sealed trait TextConstraint {
       deriveCssClassNameForNumber(maxWholeDigits, maxFractionalDigits)
     case BasicText                    => CssClassSize._20
     case ShortText(_, max)            => deriveCssClassNameForText(max)
-    case Lookup(_)                    => CssClassSize._20
+    case Lookup(_)                    => CssClassSize._30
     case TextWithRestrictions(_, max) => deriveCssClassNameForText(max)
     case Sterling(_, _)               => CssClassSize._10
     case UkBankAccountNumber          => CssClassSize._10
     case UkSortCodeFormat             => CssClassSize._2
     case SubmissionRefFormat          => CssClassSize._20
-    case TelephoneNumber              => CssClassSize._20
+    case TelephoneNumber              => CssClassSize._10
     case Email                        => CssClassSize._30
     case EmailVerifiedBy(_, _)        => CssClassSize._10
     case UTR                          => CssClassSize._10
-    case NINO                         => CssClassSize._20
+    case NINO                         => CssClassSize._10
     case UkVrn                        => CssClassSize._10
     case CountryCode                  => CssClassSize._5
     case NonUkCountryCode             => CssClassSize._5
     case CompanyRegistrationNumber    => CssClassSize._20
     case EORI                         => CssClassSize._20
     case UkEORI                       => CssClassSize._20
-    case ChildBenefitNumber           => CssClassSize._20
+    case ChildBenefitNumber           => CssClassSize._10
   }
 
   private def deriveCssClassNameForText(n: Int): String = n match {
