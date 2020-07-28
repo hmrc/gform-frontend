@@ -617,16 +617,16 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       messages("generic.From") + " " + TaxPeriodHelper.formatDate(optionParams.fromDate) + " " + messages("generic.to") + " " + TaxPeriodHelper
         .formatDate(optionParams.toDate)
 
-    def renderOptions(optionParams: NonEmptyList[OptionParams]) = {
+    def renderOption(optionParams: OptionParams, index: Int) = RadioItem(
+      id = Some(formComponent.id.value + index),
+      value = Some(optionParams.value),
+      content = content.Text(dateRangeLabel(optionParams)),
+      checked = optionParams.value === setValue
+    )
 
+    def renderOptions(optionParams: NonEmptyList[OptionParams]) = {
       val items = optionParams.zipWithIndex.map {
-        case (optionParams, index) =>
-          RadioItem(
-            id = Some(formComponent.id.value + index),
-            value = Some(optionParams.value),
-            content = content.Text(dateRangeLabel(optionParams)),
-            checked = optionParams.value === setValue
-          )
+        case (optionParams, index) => renderOption(optionParams, index)
       }
 
       val radios = Radios(
@@ -1040,16 +1040,17 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
           val selectedValue = prepopValue.orElse(currentValue).getOrElse("")
 
+          def renderOption(lookupLabel: LookupLabel, index: Int) = RadioItem(
+            id = Some(fieldValue.id.value + index),
+            value = Some(lookupLabel.label),
+            content = content.Text(lookupLabel.label),
+            checked = lookupLabel.label === selectedValue
+          )
+
           val lookupLabels: List[LookupLabel] = options.process(_.sorted)
 
           val items = lookupLabels.zipWithIndex.map {
-            case (lookupLabel, index) =>
-              RadioItem(
-                id = Some(fieldValue.id.value + index),
-                value = Some(lookupLabel.label),
-                content = content.Text(lookupLabel.label),
-                checked = lookupLabel.label === selectedValue
-              )
+            case (lookupLabel, index) => renderOption(lookupLabel, index)
           }
 
           val radios = Radios(
