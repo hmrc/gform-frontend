@@ -289,6 +289,7 @@ object TextConstraint {
       case (_, DisplayWidth.L)               => CssClassSize._5
       case (_, DisplayWidth.XL)              => CssClassSize._10
       case (_, DisplayWidth.XXL)             => CssClassSize._20
+      case _                                 => CssClassSize._10
     }
 
   def getSizeClass(constraint: TextConstraint, displayWidth: DisplayWidth.DisplayWidth): String =

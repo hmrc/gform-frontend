@@ -617,14 +617,17 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       messages("generic.From") + " " + TaxPeriodHelper.formatDate(optionParams.fromDate) + " " + messages("generic.to") + " " + TaxPeriodHelper
         .formatDate(optionParams.toDate)
 
-    def renderOption(optionParams: OptionParams) = RadioItem(
+    def renderOption(optionParams: OptionParams, index: Int) = RadioItem(
+      id = Some(formComponent.id.value + index),
       value = Some(optionParams.value),
       content = content.Text(dateRangeLabel(optionParams)),
       checked = optionParams.value === setValue
     )
 
     def renderOptions(optionParams: NonEmptyList[OptionParams]) = {
-      val items = optionParams.toList.map(renderOption)
+      val items = optionParams.zipWithIndex.map {
+        case (optionParams, index) => renderOption(optionParams, index)
+      }
 
       val radios = Radios(
         idPrefix = Some(formComponent.id.value),
@@ -798,6 +801,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         val items = optionsWithHelpText.zipWithIndex.map {
           case ((option, maybeHelpText), index) =>
             RadioItem(
+              id = Some(formComponent.id.value + index),
               value = Some(index.toString),
               content = content.Text(option.value),
               checked = isChecked(index),
@@ -821,6 +825,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         val items = optionsWithHelpText.zipWithIndex.map {
           case ((option, maybeHelpText), index) =>
             CheckboxItem(
+              id = Some(formComponent.id.value + index),
               value = index.toString,
               content = content.Text(option.value),
               checked = isChecked(index),
@@ -914,6 +919,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       val items = revealingChoicesList.zipWithIndex.map {
         case ((option, isChecked, maybeRevealingFieldsHtml), index) =>
           CheckboxItem(
+            id = Some(formComponent.id.value + index),
             value = index.toString,
             content = content.Text(option.value),
             checked = isChecked(index),
@@ -936,6 +942,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       val items = revealingChoicesList.zipWithIndex.map {
         case ((option, isChecked, maybeRevealingFieldsHtml), index) =>
           RadioItem(
+            id = Some(formComponent.id.value + index),
             value = Some(index.toString),
             content = content.Text(option.value),
             checked = isChecked(index),
@@ -1033,7 +1040,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
           val selectedValue = prepopValue.orElse(currentValue).getOrElse("")
 
-          def renderOption(lookupLabel: LookupLabel) = RadioItem(
+          def renderOption(lookupLabel: LookupLabel, index: Int) = RadioItem(
+            id = Some(fieldValue.id.value + index),
             value = Some(lookupLabel.label),
             content = content.Text(lookupLabel.label),
             checked = lookupLabel.label === selectedValue
@@ -1041,7 +1049,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
           val lookupLabels: List[LookupLabel] = options.process(_.sorted)
 
-          val items = lookupLabels.map(renderOption)
+          val items = lookupLabels.zipWithIndex.map {
+            case (lookupLabel, index) => renderOption(lookupLabel, index)
+          }
 
           val radios = Radios(
             idPrefix = Some(fieldValue.id.value),
