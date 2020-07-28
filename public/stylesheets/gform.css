@@ -50,7 +50,7 @@ input:focus, textarea:focus, select:focus, #global-header input:focus {
     margin-bottom: 25px;
   }
   .lookup {
-    width: 50%;
+    width: 75%;
   }
 }
 
