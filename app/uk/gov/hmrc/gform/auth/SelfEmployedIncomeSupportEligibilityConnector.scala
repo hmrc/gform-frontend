@@ -38,25 +38,33 @@ class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHtt
   def eligibilityStatus(request: UtrEligibilityRequest, hc: HeaderCarrier)(
     implicit ec: ExecutionContext): Future[Boolean] = {
     implicit val hc_ = hc
-    getUtrEligibility(request)
-      .flatMap { response =>
-        response.status match {
-          case 200 =>
-            Logger.info(s"The person with the given UTR, ${request.utr} is eligible to use the SEISS service")
-            Future.successful(true)
-          case 404 =>
-            Logger.info(s"The person with the given UTR, ${request.utr} is not eligible to use the SEISS service")
-            Future.successful(false)
-          case 400 =>
-            Future.failed(new BadRequestException(
-              s"SEISS response description : The UTR, ${request.utr} could not be read from the request body, or was not a valid UTR"))
-          case 500 =>
-            Future.failed(
-              new InternalServerException(
-                s"SEISS response description : Something went wrong processing your request - it was our fault"))
-          case _ =>
-            Future.failed(new Exception(s"Unexpected SEISS response"))
-        }
-      }
+
+    request match {
+      case r if r.utr.trim.nonEmpty =>
+        getUtrEligibility(r)
+          .flatMap { response =>
+            response.status match {
+              case 200 =>
+                Logger.info(s"The person with the given UTR, ${request.utr} is eligible to use the SEISS service")
+                Future.successful(true)
+              case 404 =>
+                Logger.info(s"The person with the given UTR, ${request.utr} is not eligible to use the SEISS service")
+                Future.successful(false)
+              case 400 =>
+                Future.failed(new BadRequestException(
+                  s"SEISS response description : The UTR, ${request.utr} could not be read from the request body, or was not a valid UTR"))
+              case 500 =>
+                Future.failed(
+                  new InternalServerException(
+                    s"SEISS response description : Something went wrong processing your request - it was our fault"))
+              case _ =>
+                Future.failed(new Exception(s"Unexpected SEISS response"))
+            }
+          }
+
+      case _ =>
+        Logger.error(s"An empty UTR is invalid.")
+        Future.successful(false)
+    }
   }
 }
