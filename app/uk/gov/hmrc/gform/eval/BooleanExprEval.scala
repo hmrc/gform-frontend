@@ -115,13 +115,29 @@ class BooleanExprEval[F[_]: Monad](
         }
     }
 
-    def exists(field: FormCtx, dataSource: DataSource): F[Boolean] =
-      evaluator.evalVariadicFormCtx(visSet, field, data).toSeq.flatMap((_: VariadicValue).toSeq).headOption match {
-        case Some(utr) if dataSource == SeissEligible =>
-          seissConnectorEligibilityStatus(UtrEligibilityRequest(utr), hc)
-        case _ =>
-          false.pure[F]
-      }
+    def exists(value: Expr, dataSource: DataSource): F[Boolean] = {
+      val expValue: F[Option[String]] =
+        Convertible
+          .asString(
+            evaluator.eval(
+              visSet,
+              FormComponentId("dummy"),
+              value,
+              data,
+              retrievals,
+              formTemplate,
+              thirdPartyData,
+              envelopeId),
+            formTemplate)
+          .map(_.flatMap(_.cast[NewValue].map(_.value)))
+
+      for {
+        ev <- expValue
+        b <- ev.fold(false.pure[F]) { v =>
+              seissConnectorEligibilityStatus(UtrEligibilityRequest(v), hc)
+            }
+      } yield b
+    }
 
     expr match {
       case Equals(field1, field2)              => compare(field1, field2, _ == _, _ == _, formTemplate)
@@ -136,7 +152,7 @@ class BooleanExprEval[F[_]: Monad](
       case IsTrue                              => true.pure[F]
       case IsFalse                             => false.pure[F]
       case Contains(ctx, value)                => includes(ctx, value)
-      case In(ctx, dataSource)                 => exists(ctx, dataSource)
+      case In(value, dataSource)               => exists(value, dataSource)
     }
   }
 }
