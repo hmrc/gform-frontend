@@ -295,11 +295,18 @@ object ComponentValidator {
 
   private def checkUtr(
     fieldValue: FormComponent,
-    value: String)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) =
+    value: String)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
+    val UTRFormat = "[0-9]{10}".r
+
     value match {
-      case x if CorporationTaxReferenceChecker.isValid(x) => validationSuccess
-      case _                                              => validationFailure(fieldValue, "generic.governmentId.error.pattern", None)
+      case UTRFormat() if CorporationTaxReferenceChecker.isValid(value) =>
+        validationSuccess
+      case UTRFormat() if !CorporationTaxReferenceChecker.isValid(value) =>
+        validationFailure(fieldValue, "generic.governmentId.not.exist", None)
+      case _ =>
+        validationFailure(fieldValue, "generic.governmentId.error.pattern", None)
     }
+  }
 
   private def checkNino(
     fieldValue: FormComponent,

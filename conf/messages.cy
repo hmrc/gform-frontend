@@ -71,6 +71,7 @@ generic.crn.error.invalid=Rhaid i {0} fod naill ai’n rhif 8 digid neu’n rhif
 generic.nonUKCountryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
 generic.countryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
 generic.governmentId.error.pattern=Rhaid nodi {0} yn y fformat cywir
+generic.governmentId.not.exist=Rhaid nodi {0} yn y fformat cywir
 generic.error.sortcode=Rhaid nodi {0} fel 3 set o rifau 2 ddigid, er enghraifft 07 00 00
 generic.error.exactNumbers=Rhaid i {0} fod yn rhif {1} digid
 generic.error.lookup=Rhaid i {0} gyd-fynd ag un o’r awgrymiadau o’r rhestr
