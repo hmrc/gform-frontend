@@ -45,14 +45,14 @@ class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHtt
           .flatMap { response =>
             response.status match {
               case 200 =>
-                Logger.info(s"The person with the given UTR, ${request.utr} is eligible to use the SEISS service")
+                Logger.info(s"The person with the given UTR is eligible to use the SEISS service")
                 Future.successful(true)
               case 404 =>
-                Logger.info(s"The person with the given UTR, ${request.utr} is not eligible to use the SEISS service")
+                Logger.info(s"The person with the given UTR is not eligible to use the SEISS service")
                 Future.successful(false)
               case 400 =>
                 Future.failed(new BadRequestException(
-                  s"SEISS response description : The UTR, ${request.utr} could not be read from the request body, or was not a valid UTR"))
+                  s"SEISS response description : The UTR could not be read from the request body, or was not a valid UTR"))
               case 500 =>
                 Future.failed(
                   new InternalServerException(
