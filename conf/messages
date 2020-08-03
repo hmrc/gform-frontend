@@ -82,6 +82,7 @@ generic.crn.error.invalid={0} must be either 8 numbers or 6 numbers with 2 lette
 generic.nonUKCountryCode.error.pattern={0} must be entered in the correct format, for example FR
 generic.countryCode.error.pattern={0} must be entered in the correct format, for example FR
 generic.governmentId.error.pattern={0} must be entered in the correct format
+generic.governmentId.not.exist=The {0} you entered does not exist
 generic.error.sortcode={0} must be entered as 3 sets of 2 numbers, for example 07 00 00
 generic.error.exactNumbers={0} must be {1} numbers
 generic.error.lookup={0} must match one of the suggestions from the list
