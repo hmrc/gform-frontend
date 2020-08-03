@@ -21,6 +21,7 @@ import cats.data.Validated
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.referencechecker.CorporationTaxReferenceChecker
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.lookup.LookupOptions
 import uk.gov.hmrc.gform.models.email.EmailFieldId
@@ -96,8 +97,8 @@ object ComponentValidator {
         validateBankAccountFormat(fieldValue, value)
       case (_, value :: Nil, SubmissionRefFormat) =>
         validateSubmissionRefFormat(fieldValue, value)
-      case (_, value :: Nil, UTR)                       => checkId(fieldValue, value)
-      case (_, value :: Nil, NINO)                      => checkId(fieldValue, value)
+      case (_, value :: Nil, UTR)                       => checkUtr(fieldValue, value)
+      case (_, value :: Nil, NINO)                      => checkNino(fieldValue, value)
       case (_, value :: Nil, UkVrn)                     => checkVrn(fieldValue, value)
       case (_, value :: Nil, CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
       case (_, value :: Nil, EORI)                      => checkEORI(fieldValue, value)
@@ -292,16 +293,28 @@ object ComponentValidator {
     sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, messageKey)
   }
 
-  private def checkId(
+  private def checkUtr(
     fieldValue: FormComponent,
     value: String)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
-    val ValidUTR = "[0-9]{10}".r
+    val UTRFormat = "[0-9]{10}".r
+
     value match {
-      case ValidUTR()           => validationSuccess
+      case UTRFormat() if CorporationTaxReferenceChecker.isValid(value) =>
+        validationSuccess
+      case UTRFormat() if !CorporationTaxReferenceChecker.isValid(value) =>
+        validationFailure(fieldValue, "generic.governmentId.not.exist", None)
+      case _ =>
+        validationFailure(fieldValue, "generic.governmentId.error.pattern", None)
+    }
+  }
+
+  private def checkNino(
+    fieldValue: FormComponent,
+    value: String)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) =
+    value match {
       case x if Nino.isValid(x) => validationSuccess
       case _                    => validationFailure(fieldValue, "generic.governmentId.error.pattern", None)
     }
-  }
 
   def validatePhoneNumber(fieldValue: FormComponent, value: String)(
     implicit messages: Messages,

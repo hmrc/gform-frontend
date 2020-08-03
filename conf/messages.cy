@@ -76,12 +76,12 @@ generic.error.invalid=Nid yw {0} yn ddilys
 generic.vrn.error.pattern=Rhaid i {0} fod yn rhif 9 digid gyda ‘GB’ ar y dechrau, er enghraifft GB123456789
 generic.eori.error.pattern=Rhaid i {0} fod rhwng 7 a 15 rhif, a rhaid iddo ddechrau gyda chod eich gwlad, er enghraifft GC164538549000
 generic.ukEori.error.pattern=Rhaid i {0} fod yn rhif 12 digid gyda ‘GB’ ar y dechrau, er enghraifft GB123456789012
-# TODO Add welsch
-generic.childBenefitNumber.error.pattern={0} must start with ‘CHB’, followed by 8 numbers and 2 letters, like CHB 12345678 AB
+generic.childBenefitNumber.error.pattern=Mae’n rhaid i rif Budd-dal Plant ddechrau gyda ‘CHB’, wedi’i ddilyn gan 8 digid a 2 lythyren, megis CHB 12345678 AB
 generic.crn.error.invalid=Rhaid i {0} fod naill ai’n rhif 8 digid neu’n rhif 6 digid gyda 2 lythyren ar y dechrau, er enghraifft 01234567 neu SC123456
 generic.nonUKCountryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
 generic.countryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
 generic.governmentId.error.pattern=Rhaid nodi {0} yn y fformat cywir
+generic.governmentId.not.exist=Nid yw’r {0} a nodoch yn bodoli
 generic.error.sortcode=Rhaid nodi {0} fel 3 set o rifau 2 ddigid, er enghraifft 07 00 00
 generic.error.exactNumbers=Rhaid i {0} fod yn rhif {1} digid
 generic.error.lookup=Rhaid i {0} gyd-fynd ag un o’r awgrymiadau o’r rhestr
