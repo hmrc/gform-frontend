@@ -171,7 +171,9 @@ object Fields {
     val submitted = submittedFCs(data, sectionAtomicFields)
     val alwaysEmptyHiddenGroup = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
     val alwaysEmptyHidden = getAlwaysEmptyHidden(section, lookupExtractors)
-    val hiddenFUs = hiddenFileUploads(section)
+    val hiddenFUs: Seq[FormComponent] = hiddenFileUploads(section).map { h =>
+      h.copy(id = FormComponentId("hidden" + h.id.value))
+    }
 
     val idsToRenderAsEmptyHidden = (alwaysEmptyHiddenGroup ++ alwaysEmptyHidden).map(_.id)
     val variadicFormComponentIds = VariadicFormData.listVariadicFormComponentIds(section.fields)

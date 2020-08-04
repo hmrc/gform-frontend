@@ -109,7 +109,7 @@ class SectionRenderingServiceSpec extends Spec {
         "startDate-month",
         "startDate-year",
         "iptRegNum",
-        "facePhoto",
+        "hiddenfacePhoto",
         "save"))
     visibleFields should be(List("firstName", "surname"))
   }
@@ -155,7 +155,7 @@ class SectionRenderingServiceSpec extends Spec {
         "startDate-month",
         "startDate-year",
         "iptRegNum",
-        "facePhoto",
+        "hiddenfacePhoto",
         "save"))
     visibleFields should be(List())
   }
