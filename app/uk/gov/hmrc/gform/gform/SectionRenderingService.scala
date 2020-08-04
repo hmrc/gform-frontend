@@ -712,7 +712,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     )
 
     val fileUpload: fileupload.FileUpload = fileupload.FileUpload(
-      id = formComponent.id.value,
+      id = formComponent.id.value + "0",
       name = formComponent.id.value,
       value = currentValue,
       label = label,
