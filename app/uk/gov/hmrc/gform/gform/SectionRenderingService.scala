@@ -988,7 +988,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     }
 
     val hiddenClass =
-      if (fieldValue.derived)
+      if (fieldValue.derived && !fieldValue.presentationHint.exists(_.contains(TotalValue)))
         "govuk-visually-hidden"
       else
         ""
