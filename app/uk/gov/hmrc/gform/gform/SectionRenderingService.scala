@@ -987,16 +987,23 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       ValidationUtil.printErrors(lookup).headOption
     }
 
+    val hiddenClass =
+      if (fieldValue.derived)
+        "govuk-visually-hidden"
+      else
+        ""
+
     val errorMessage = errors.map(
       error =>
         ErrorMessage(
-          content = content.Text(error)
+          content = content.Text(error),
+          classes = hiddenClass
       ))
 
     val label = Label(
       forAttr = Some(fieldValue.id.value),
       isPageHeading = isPageHeading,
-      classes = if (isPageHeading) "govuk-label--l" else "",
+      classes = if (isPageHeading) s"govuk-label--l $hiddenClass" else hiddenClass,
       content = content.Text(labelString)
     )
 
@@ -1032,7 +1039,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
                 Legend(
                   content = content.Text(fieldValue.label.value),
                   isPageHeading = isPageHeading,
-                  classes = if (isPageHeading) "govuk-label--l" else ""
+                  classes = if (isPageHeading) s"govuk-label--l $hiddenClass" else hiddenClass
                 ))
             ))
 
@@ -1058,6 +1065,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             fieldset = fieldset,
             hint = hint,
             errorMessage = errorMessage,
+            classes = hiddenClass,
             name = fieldValue.id.value,
             items = items.toList
           )
@@ -1215,10 +1223,18 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         case _ =>
           val sizeClasses = TextConstraint.getSizeClass(text.constraint, text.displayWidth)
 
+          val hiddenClass =
+            if (formComponent.derived)
+              "govuk-visually-hidden"
+            else
+              ""
+
+          val hiddenErrorMessage = errorMessage.map(e => e.copy(classes = e.classes + hiddenClass))
+
           val isPageHeading = ei.formLevelHeading
           val label = Label(
             isPageHeading = isPageHeading,
-            classes = if (isPageHeading) "govuk-label--l" else "",
+            classes = if (isPageHeading) s"govuk-label--l $hiddenClass" else hiddenClass,
             content = labelContent
           )
 
@@ -1235,8 +1251,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               label = label,
               hint = hint,
               value = maybeCurrentValue,
-              errorMessage = errorMessage,
-              classes = sizeClasses,
+              errorMessage = hiddenErrorMessage,
+              classes = s"$hiddenClass $sizeClasses",
               attributes = attributes
             )
 
@@ -1249,8 +1265,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               label = label,
               hint = hint,
               value = maybeCurrentValue,
-              errorMessage = errorMessage,
-              classes = sizeClasses,
+              errorMessage = hiddenErrorMessage,
+              classes = s"$hiddenClass $sizeClasses",
               attributes = attributes
             )
             val govukInput: Html = new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
