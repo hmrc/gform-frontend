@@ -160,7 +160,7 @@
     'oxt': 'OXT'
   }
 
-  var submitButton = $('input[type=submit], button[type=submit]')
+  var submitButton = $('button.govuk-button')
 
   function disableSubmitButton() {
     submitButton.attr('disabled', true)
