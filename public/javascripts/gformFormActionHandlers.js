@@ -7,6 +7,12 @@
     function GformFormActionHandlers () {
       var self = this;
 
+      var submitButton = $('button.govuk-button')
+
+      function disableSubmitButton() {
+        submitButton.attr('disabled', true)
+      }
+
       function findAction ($el) {
         return $el.is("button") ?
           $el.val() : $el.is("a") ?
@@ -18,6 +24,7 @@
         $('#gform-action').val(action);
         if (submit) {
           e.preventDefault();
+          disableSubmitButton();
           $('#gf-form').submit();
         }
       }
