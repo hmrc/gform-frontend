@@ -158,7 +158,7 @@
 }
 
 @phaseBanner = @{
-  developmentPhase.fold(HtmlFormat.empty){ dp =>
+  developmentPhase.fold(govukPhaseBanner(SiteBanner(ResearchBanner.banner))){ dp =>
     dp match {
       case AlphaBanner | BetaBanner =>
         govukPhaseBanner(SiteBanner(dp.banner, HtmlContent(feedbackContent)))
