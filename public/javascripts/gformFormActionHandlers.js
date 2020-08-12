@@ -24,8 +24,8 @@
         $('#gform-action').val(action);
         if (submit) {
           e.preventDefault();
-          disableSubmitButton();
           $('#gf-form').submit();
+          disableSubmitButton();
         }
       }
 
@@ -46,7 +46,7 @@
 
 	$("#main-content")
           .parent()
-          .on('click', '[type="submit"]', setAction)
+          .on('click', 'button.govuk-button', handleFormSubmit(null, true))
           .on('click', '.removeRepeatingSection, #addRepeatingGroup', handleFormSubmit(null, true))
           .on('click', '#backButton', handleFormSubmit('Back', true))
           .on('click', '#saveComeBackLater', handleFormSubmit('Save', true))
