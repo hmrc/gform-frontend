@@ -1557,13 +1557,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   )
 
   private def shouldDisplayHeading(section: Section)(implicit l: LangADT, sse: SmartStringEvaluator): Boolean =
-    section.fields
-      .filter {
-        case IsGroup(g)     => false
-        case IsFileUpload() => false
-        case _              => true
-      }
-      .count(field => field.editable && field.label == section.title) == 1
+    section.fields match {
+      case IsGroup(g) :: _              => false
+      case IsInformationMessage(_) :: _ => false
+      case formComponent :: IsNilOrInfoOnly() =>
+        formComponent.editable && formComponent.label.value() === section.title.value()
+      case _ => false
+    }
 
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
   private val govukFieldset: components.govukFieldset = new components.govukFieldset()
@@ -1576,9 +1576,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 object IsNilOrInfoOnly {
   def unapply(xs: List[FormComponent]): Boolean =
     xs match {
-      case Nil                                    => true
-      case IsInformationMessage(_) :: tail        => unapply(tail)
-      case head :: tail if head.onlyShowOnSummary => unapply(tail)
-      case _                                      => false
+      case Nil                                                      => true
+      case IsInformationMessage(_) :: tail                          => unapply(tail)
+      case head :: tail if head.onlyShowOnSummary || !head.editable => unapply(tail)
+      case _                                                        => false
     }
 }
