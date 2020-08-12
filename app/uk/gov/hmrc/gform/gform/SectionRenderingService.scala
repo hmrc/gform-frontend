@@ -40,7 +40,7 @@ import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
+import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.GroupHelper
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
@@ -214,16 +214,20 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       case others                         => List(others)
     }
 
+    def isRadioLookup(register: Option[LookupType]): Boolean = register match {
+      case Some(RadioLookup(_)) => true
+      case _                    => false
+    }
+
     val errorsHtml: List[ErrorLink] = globalErrors ++ allValidationResults
       .filter(_.isNotOk)
       .flatMap { validationResult =>
-        val fieldId = validationResult match {
-          case _: FieldGlobalError =>
-            validationResult.fieldValue.`type` match {
-              case _: UkSortCode => UkSortCode.fields(validationResult.fieldValue.id).toList.head.value
-              case _: Date       => Date.fields(validationResult.fieldValue.id).toList.head.value
-              case _             => validationResult.fieldValue.id.value
-            }
+        val fieldId = validationResult.fieldValue.`type` match {
+          case _: UkSortCode => UkSortCode.fields(validationResult.fieldValue.id).toList.head.value
+          case HmrcTaxPeriod(_, _, _) | Choice(_, _, _, _, _) | RevealingChoice(_, _) =>
+            validationResult.fieldValue.id.value + "0"
+          case Text(Lookup(register), _, _, _) if isRadioLookup(lookupRegistry.get(register)) =>
+            validationResult.fieldValue.id.value + "0"
           case _ => validationResult.fieldValue.id.value
         }
 
@@ -240,8 +244,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
                 content = content.Text(errorMessage),
                 attributes = Map(
                   "data-context" -> dataContext,
-                  "class"        -> "js-hidden",
-                  "data-focuses" -> fieldId
+                  "class"        -> "js-hidden"
                 )
             ))
       }
