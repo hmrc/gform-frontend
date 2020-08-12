@@ -1557,13 +1557,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   )
 
   private def shouldDisplayHeading(section: Section)(implicit l: LangADT, sse: SmartStringEvaluator): Boolean =
-    section.fields match {
-      case IsGroup(g) :: _              => false
-      case IsInformationMessage(_) :: _ => false
-      case formComponent :: IsNilOrInfoOnly() =>
-        formComponent.editable && formComponent.label.value() === section.title.value()
-      case _ => false
-    }
+    section.fields
+      .filter {
+        case IsGroup(g)     => false
+        case IsFileUpload() => false
+        case _              => true
+      }
+      .count(field => field.editable && field.label == section.title) == 1
 
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
   private val govukFieldset: components.govukFieldset = new components.govukFieldset()
