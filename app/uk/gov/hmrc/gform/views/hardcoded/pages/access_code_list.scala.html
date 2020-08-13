@@ -55,7 +55,7 @@
     @heading
   </h1>
 
-  @formWithCSRF(action = NewFormController.newSubmissionReference(accessCodeList.formTemplate._id)) {
+  @formWithCSRF(action = NewFormController.newSubmissionReference(accessCodeList.formTemplate._id), args = 'id -> "gf-form") {
     @govukButton(Button(content = Text(button), value = Some(button)))
   }
 
