@@ -222,12 +222,23 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val errorsHtml: List[ErrorLink] = globalErrors ++ allValidationResults
       .filter(_.isNotOk)
       .flatMap { validationResult =>
-        val fieldId = validationResult.fieldValue.`type` match {
-          case _: UkSortCode => UkSortCode.fields(validationResult.fieldValue.id).toList.head.value
-          case HmrcTaxPeriod(_, _, _) | Choice(_, _, _, _, _) | RevealingChoice(_, _) =>
-            validationResult.fieldValue.id.value + "0"
-          case Text(Lookup(register), _, _, _) if isRadioLookup(lookupRegistry.get(register)) =>
-            validationResult.fieldValue.id.value + "0"
+        val fieldId = validationResult match {
+          case _: FieldGlobalError =>
+            validationResult.fieldValue.`type` match {
+              case _: UkSortCode => UkSortCode.fields(validationResult.fieldValue.id).toList.head.value
+              case _: Date       => Date.fields(validationResult.fieldValue.id).toList.head.value
+              case _             => validationResult.fieldValue.id.value
+            }
+
+          case _: FieldError =>
+            validationResult.fieldValue.`type` match {
+              case HmrcTaxPeriod(_, _, _) | Choice(_, _, _, _, _) | RevealingChoice(_, _) =>
+                validationResult.fieldValue.id.value + "0"
+              case Text(Lookup(register), _, _, _) if isRadioLookup(lookupRegistry.get(register)) =>
+                validationResult.fieldValue.id.value + "0"
+              case _ => validationResult.fieldValue.id.value
+            }
+
           case _ => validationResult.fieldValue.id.value
         }
 

@@ -52,7 +52,7 @@
      @govukErrorSummary(continueFormPage.errorSummary)
   }
 
-  @formWithCSRF(action = withQueryParams(uk.gov.hmrc.gform.gform.routes.NewFormController.decision(continueFormPage.formTemplate._id))) {
+  @formWithCSRF(action = withQueryParams(uk.gov.hmrc.gform.gform.routes.NewFormController.decision(continueFormPage.formTemplate._id)), args = 'id -> "gf-form") {
 
     @continueFormPage.render
 

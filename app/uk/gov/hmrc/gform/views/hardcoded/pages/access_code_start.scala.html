@@ -65,7 +65,7 @@
     @messages("accessCode.p2", accessCodeStart.formCat, accessCodeStart.accessCodeName)
   </p>
 
-  @formWithCSRF(action = NewFormController.newFormPost(accessCodeStart.formTemplate._id)) {
+  @formWithCSRF(action = NewFormController.newFormPost(accessCodeStart.formTemplate._id), args = 'id -> "gf-form") {
 
     @accessCodeStart.render
 

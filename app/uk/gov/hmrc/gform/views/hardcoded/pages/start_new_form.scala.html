@@ -62,7 +62,7 @@
     @messages("accessCode.new.willExpire", displayAccessCode.formCat, displayAccessCode.accessCodeName).
   </p>
 
-  @formWithCSRF(action = NewFormController.newFormPost(displayAccessCode.formTemplate._id)) {
+  @formWithCSRF(action = NewFormController.newFormPost(displayAccessCode.formTemplate._id), args = 'id -> "gf-form") {
     <input type="hidden" name="@{AccessCodePage.key}" value="@{displayAccessCode.accessCode.value}">
     <input type="hidden" name="@{AccessCodePage.optionKey}" value="@{AccessCodePage.optionAccess}">
     @govukButton(Button(content = Text(button), value = Some(button)))
