@@ -31,7 +31,7 @@ object HtmlSanitiser {
     removeComments(doc)
 
     val body = doc.select(".govuk-template__body").first()
-    val logo = doc.select(".hmrc-organisation-logo").first()
+    val maybeLogo = Option(doc.select(".hmrc-organisation-logo").first())
     val form = doc.getElementsByTag("form").first()
 
     form.getElementsByClass("govuk-body").remove()
@@ -55,7 +55,7 @@ object HtmlSanitiser {
 
     doc.select(".govuk-width-container").remove()
 
-    body.append(logo.toString)
+    maybeLogo.foreach(logo => body.append(logo.toString))
     body.append(form.toString)
 
     modify(doc) // doc is mutable data structure
