@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.MonadError
 import cats.data.NonEmptyList
+import cats.instances.string._
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.flatMap._
@@ -47,11 +48,16 @@ trait TaxPeriodStateChecker[F[_], E] {
       case (None, _)        => obligations.pure[F]
       case (Some(_), false) => obligations.pure[F]
       case (Some(hmrcTaxPeriodWithEvaluatedIds), true) =>
-        getAllTaxPeriods(hmrcTaxPeriodWithEvaluatedIds).flatMap { nel =>
-          nel.sequence match {
-            case CannotRetrieveResponse => me.raiseError[Obligations](error)
-            case NotFound               => me.raiseError[Obligations](error) // NotFound case is handled on backend.
-            case ServiceResponse(a)     => (RetrievedObligations(a): Obligations).pure[F]
+        val agentWorkaround: Boolean = hmrcTaxPeriodWithEvaluatedIds.exists(_.idNumberValue.value === "0")
+        if (agentWorkaround) {
+          (NotChecked: Obligations).pure[F]
+        } else {
+          getAllTaxPeriods(hmrcTaxPeriodWithEvaluatedIds).flatMap { nel =>
+            nel.sequence match {
+              case CannotRetrieveResponse => me.raiseError[Obligations](error)
+              case NotFound               => me.raiseError[Obligations](error) // NotFound case is handled on backend.
+              case ServiceResponse(a)     => (RetrievedObligations(a): Obligations).pure[F]
+            }
           }
         }
     }
