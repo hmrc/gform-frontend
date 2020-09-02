@@ -34,3 +34,4 @@ test-result
 tmp
 .idea_modules
 bin
+project/metals.sbt

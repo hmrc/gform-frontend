@@ -64,7 +64,7 @@ package object destinations {
           |  ${optionalField("failOnError", Option(submissionConsolidator.failOnError), true)}
           |  ${optionalField("convertSingleQuotes", Option(false))}
           |  "${Destination.typeDiscriminatorFieldName}": "${Destination.submissionConsolidator}",
-          |  "projectId": "${submissionConsolidator.projectId}",
+          |  "projectId": "${submissionConsolidator.projectId.id}",
           |  "customerId": ${TextExpression.format.writes(submissionConsolidator.customerId)}
           |}""".stripMargin
 
