@@ -65,8 +65,6 @@ package object destinations {
           |  ${optionalField("convertSingleQuotes", Option(false))}
           |  "${Destination.typeDiscriminatorFieldName}": "${Destination.submissionConsolidator}",
           |  "projectId": "${submissionConsolidator.projectId}",
-          |  "submissionRef": ${TextExpression.format.writes(submissionConsolidator.submissionRef)},
-          |  "templateId": ${TextExpression.format.writes(submissionConsolidator.templateId)},
           |  "customerId": ${TextExpression.format.writes(submissionConsolidator.customerId)}
           |}""".stripMargin
 

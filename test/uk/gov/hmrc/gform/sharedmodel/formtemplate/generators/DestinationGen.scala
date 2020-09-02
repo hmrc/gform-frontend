@@ -33,8 +33,6 @@ trait DestinationGen {
   def customerIdGen: Gen[TextExpression] = FormatExprGen.textExpressionGen
   def businessAreaGen: Gen[String] = PrimitiveGen.nonEmptyAlphaNumStrGen
   def projectIdGen: Gen[ProjectId] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(ProjectId(_))
-  def submissionRefExprGen: Gen[TextExpression] = FormatExprGen.textExpressionGen
-  def templateIdExprGen: Gen[TextExpression] = FormatExprGen.textExpressionGen
 
   def hmrcDmsGen: Gen[Destination.HmrcDms] =
     for {
@@ -51,15 +49,12 @@ trait DestinationGen {
 
   def submissionConsolidatorGen: Gen[Destination.SubmissionConsolidator] =
     for {
-      id            <- destinationIdGen
-      projectId     <- projectIdGen
-      customerId    <- customerIdGen
-      submissionRef <- submissionRefExprGen
-      templateId    <- templateIdExprGen
-      includeIf     <- includeIfGen()
-      failOnError   <- PrimitiveGen.booleanGen
-    } yield
-      Destination.SubmissionConsolidator(id, projectId, submissionRef, templateId, customerId, includeIf, failOnError)
+      id          <- destinationIdGen
+      projectId   <- projectIdGen
+      customerId  <- customerIdGen
+      includeIf   <- includeIfGen()
+      failOnError <- PrimitiveGen.booleanGen
+    } yield Destination.SubmissionConsolidator(id, projectId, customerId, includeIf, failOnError)
 
   def hmrcDmsGen(includeIf: Option[String] = None, failOnError: Option[Boolean] = None): Gen[Destination.HmrcDms] =
     hmrcDmsGen.map { g =>

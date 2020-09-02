@@ -53,8 +53,6 @@ object Destination {
   case class SubmissionConsolidator(
     id: DestinationId,
     projectId: ProjectId,
-    submissionRef: TextExpression,
-    templateId: TextExpression,
     customerId: TextExpression,
     includeIf: String,
     failOnError: Boolean)
@@ -161,8 +159,6 @@ object UploadableHmrcDmsDestination {
 case class UploadableSubmissionConsolidator(
   id: DestinationId,
   projectId: ProjectId,
-  submissionRef: TextExpression,
-  templateId: TextExpression,
   customerId: TextExpression,
   convertSingleQuotes: Option[Boolean],
   includeIf: Option[String],
@@ -171,15 +167,7 @@ case class UploadableSubmissionConsolidator(
   def toSubmissionConsolidatorDestination: Either[String, Destination.SubmissionConsolidator] =
     for {
       cii <- addErrorInfo(id, "includeIf")(condition(convertSingleQuotes, includeIf))
-    } yield
-      SubmissionConsolidator(
-        id,
-        projectId,
-        submissionRef,
-        templateId,
-        customerId,
-        cii.getOrElse(true.toString),
-        failOnError.getOrElse(true))
+    } yield SubmissionConsolidator(id, projectId, customerId, cii.getOrElse(true.toString), failOnError.getOrElse(true))
 }
 
 object UploadableSubmissionConsolidator {
