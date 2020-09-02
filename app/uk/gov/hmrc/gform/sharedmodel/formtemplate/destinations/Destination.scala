@@ -25,6 +25,7 @@ import UploadableConditioning._
 import cats.data.NonEmptyList
 import JsonUtils.nelFormat
 import uk.gov.hmrc.gform.sharedmodel.form.FormStatus
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.{ SubmissionConsolidator, submissionConsolidator }
 import uk.gov.hmrc.gform.sharedmodel.notifier.{ NotifierPersonalisationFieldId, NotifierTemplateId }
 
 sealed trait DestinationWithCustomerId {
@@ -47,6 +48,14 @@ object Destination {
     includeIf: String,
     failOnError: Boolean,
     roboticsXml: Boolean)
+      extends Destination with DestinationWithCustomerId
+
+  case class SubmissionConsolidator(
+    id: DestinationId,
+    projectId: ProjectId,
+    customerId: TextExpression,
+    includeIf: String,
+    failOnError: Boolean)
       extends Destination with DestinationWithCustomerId
 
   case class HandlebarsHttpApi(
@@ -84,6 +93,7 @@ object Destination {
 
   val typeDiscriminatorFieldName: String = "type"
   val hmrcDms: String = "hmrcDms"
+  val submissionConsolidator: String = "submissionConsolidator"
   val handlebarsHttpApi: String = "handlebarsHttpApi"
   val composite: String = "composite"
   val stateTransition: String = "stateTransition"
@@ -102,12 +112,13 @@ object Destination {
     OFormatWithTemplateReadFallback(
       ADTFormat.adtRead[Destination](
         typeDiscriminatorFieldName,
-        hmrcDms           -> UploadableHmrcDmsDestination.reads,
-        handlebarsHttpApi -> UploadableHandlebarsHttpApiDestination.reads,
-        composite         -> UploadableCompositeDestination.reads,
-        stateTransition   -> UploadableStateTransitionDestination.reads,
-        log               -> UploadableLogDestination.reads,
-        email             -> UploadableEmailDestination.reads
+        hmrcDms                -> UploadableHmrcDmsDestination.reads,
+        submissionConsolidator -> UploadableSubmissionConsolidator.reads,
+        handlebarsHttpApi      -> UploadableHandlebarsHttpApiDestination.reads,
+        composite              -> UploadableCompositeDestination.reads,
+        stateTransition        -> UploadableStateTransitionDestination.reads,
+        log                    -> UploadableLogDestination.reads,
+        email                  -> UploadableEmailDestination.reads
       ))
   }
 }
@@ -142,6 +153,28 @@ object UploadableHmrcDmsDestination {
     private val d: Reads[UploadableHmrcDmsDestination] = derived.reads[UploadableHmrcDmsDestination]
     override def reads(json: JsValue): JsResult[Destination.HmrcDms] =
       d.reads(json).flatMap(_.toHmrcDmsDestination.fold(JsError(_), JsSuccess(_)))
+  }
+}
+
+case class UploadableSubmissionConsolidator(
+  id: DestinationId,
+  projectId: ProjectId,
+  customerId: TextExpression,
+  convertSingleQuotes: Option[Boolean],
+  includeIf: Option[String],
+  failOnError: Option[Boolean]
+) {
+  def toSubmissionConsolidatorDestination: Either[String, Destination.SubmissionConsolidator] =
+    for {
+      cii <- addErrorInfo(id, "includeIf")(condition(convertSingleQuotes, includeIf))
+    } yield SubmissionConsolidator(id, projectId, customerId, cii.getOrElse(true.toString), failOnError.getOrElse(true))
+}
+
+object UploadableSubmissionConsolidator {
+  implicit val reads: Reads[Destination.SubmissionConsolidator] = new Reads[Destination.SubmissionConsolidator] {
+    private val d: Reads[UploadableSubmissionConsolidator] = derived.reads[UploadableSubmissionConsolidator]
+    override def reads(json: JsValue): JsResult[Destination.SubmissionConsolidator] =
+      d.reads(json).flatMap(_.toSubmissionConsolidatorDestination.fold(JsError(_), JsSuccess(_)))
   }
 }
 

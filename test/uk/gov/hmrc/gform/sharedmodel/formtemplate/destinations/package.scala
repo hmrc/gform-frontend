@@ -57,6 +57,17 @@ package object destinations {
           |  "businessArea": "$businessArea"
           |}""".stripMargin
 
+    case submissionConsolidator: Destination.SubmissionConsolidator =>
+      s"""|{
+          |  "id": "${submissionConsolidator.id.id}",
+          |  ${optionalField("includeIf", Option(submissionConsolidator.includeIf), "true")}
+          |  ${optionalField("failOnError", Option(submissionConsolidator.failOnError), true)}
+          |  ${optionalField("convertSingleQuotes", Option(false))}
+          |  "${Destination.typeDiscriminatorFieldName}": "${Destination.submissionConsolidator}",
+          |  "projectId": "${submissionConsolidator.projectId}",
+          |  "customerId": ${TextExpression.format.writes(submissionConsolidator.customerId)}
+          |}""".stripMargin
+
     case handlebars: Destination.HandlebarsHttpApi =>
       import handlebars._
       s"""|{
