@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import java.time.LocalDateTime
+import java.time.{ LocalDateTime, LocalTime }
 
 import cats.data.NonEmptyList
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
@@ -100,6 +100,7 @@ trait ExampleFieldId {
   def `fieldId - facePhoto` = FormComponentId("facePhoto")
   def `fieldId - surname` = FormComponentId("surname")
   def `fieldId - firstName` = FormComponentId("firstName")
+  def `fieldId - timeOfCall` = FormComponentId("timeOfCall")
   def `fieldId - iptRegNum` = FormComponentId("iptRegNum")
   def `fieldId - businessName` = FormComponentId("nameOfBusiness")
   def `fieldId - startDate` = FormComponentId("startDate")
@@ -156,6 +157,22 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     `fieldId - surname`,
     Text(BasicText, Constant("any text")),
     toSmartString("Last Name"),
+    None,
+    None,
+    None,
+    mandatory = true,
+    editable = true,
+    submissible = true,
+    derived = true,
+    false,
+    None,
+    None
+  )
+
+  def `fieldValue - timeOfCall` = FormComponent(
+    `fieldId - timeOfCall`,
+    Time(List(Range(StartTime(LocalTime.parse("00:00")), EndTime(LocalTime.parse("23:59")))), IntervalMins(15)),
+    toSmartString("Time of call"),
     None,
     None,
     None,
@@ -321,7 +338,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 
   def `section - about you`: Section =
     nonRepeatingPageSection(
-      fields = List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`),
+      fields =
+        List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`, `fieldValue - timeOfCall`),
       validators = None)
 
   def `section - businessDetails` =

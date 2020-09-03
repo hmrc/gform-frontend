@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+
 import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.foldable._
@@ -26,6 +29,8 @@ import scala.util.Try
 import uk.gov.hmrc.gform.sharedmodel.{ SmartString, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
+
+import scala.collection.immutable.List
 
 sealed trait MultiField {
 
@@ -200,6 +205,39 @@ case class Group(
 case class InformationMessage(infoType: InfoType, infoText: SmartString) extends ComponentType
 
 case class FileUpload() extends ComponentType
+
+case class StartTime(time: LocalTime) extends AnyVal
+
+object StartTime {
+  implicit val format: OFormat[StartTime] = derived.oformat
+}
+
+case class EndTime(time: LocalTime) extends AnyVal
+
+object EndTime {
+  implicit val format: OFormat[EndTime] = derived.oformat
+}
+
+case class Range(startTime: StartTime, endTime: EndTime)
+
+object Range {
+  implicit val format: OFormat[Range] = derived.oformat
+
+  def stringToLocalTime(formatter: DateTimeFormatter, time: String): LocalTime =
+    LocalTime.parse(time, formatter)
+}
+
+case class IntervalMins(intervalMins: Int) extends AnyVal
+
+object IntervalMins {
+  implicit val format: OFormat[IntervalMins] = derived.oformat
+}
+
+case class Time(ranges: List[Range], intervalMins: IntervalMins) extends ComponentType
+
+object Time {
+  implicit val format: OFormat[Time] = derived.oformat
+}
 
 object ComponentType {
 

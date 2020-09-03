@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.gform.gform
 
-import java.time.{ LocalDate, ZoneId }
-import java.time.ZonedDateTime
+import java.time.{ LocalDate, LocalTime, ZoneId, ZonedDateTime }
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit.MINUTES
 
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
@@ -76,6 +76,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.input.Input
 import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.InputItem
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.html.components.hmrcCurrencyInput
@@ -83,6 +84,8 @@ import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.annotation.tailrec
 
 sealed trait HasErrors {
 
@@ -567,6 +570,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         htmlForInformationMessage(formComponent, infoType, infoText, index, ei)
       case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>
         htmlForHmrcTaxPeriod(formComponent, index, ei, maybeValidated, data, obligations, htp)
+      case t @ Time(_, _) =>
+        renderTime(t, formComponent, index, maybeValidated, ei, data, isHidden)
     }
 
   private def htmlForHmrcTaxPeriod(
@@ -1467,6 +1472,110 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       getGroupForRendering(formComponent, formTemplateId, groupField, validatedType, ei, data, obligations)
 
     html.form.snippets.group(formComponent, maybeHint, groupField, lhtml, limitReached, index)
+  }
+
+  private def renderTime(
+    time: Time,
+    formComponent: FormComponent,
+    index: Int,
+    validatedType: ValidatedType[ValidationResult],
+    ei: ExtraInfo,
+    data: FormDataRecalculated,
+    isHidden: Boolean
+  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
+    val prepopValue = ei.fieldData.data.one(formComponent.id)
+    val validatedValue = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
+    if (isHidden)
+      html.form.snippets
+        .hidden_field_populated(
+          List(FormRender(formComponent.id.value, formComponent.id.value, prepopValue.getOrElse(""))))
+    else {
+
+      val labelContent = content.Text(LabelHelper.buildRepeatingLabel(formComponent.label, index).value)
+
+      val map: Map[String, Set[String]] =
+        validatedValue.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+
+      val errors: Option[String] = ValidationUtil.printErrors(map).headOption
+
+      val errorMessage: Option[ErrorMessage] = errors.map(
+        error =>
+          ErrorMessage(
+            content = content.Text(error)
+        ))
+
+      val hint: Option[Hint] = formComponent.helpText.map { ls =>
+        Hint(
+          content = content.Text(ls.value)
+        )
+      }
+
+      val hiddenClass =
+        if (formComponent.derived)
+          "govuk-visually-hidden"
+        else
+          ""
+
+      val hiddenErrorMessage = errorMessage.map(e => e.copy(classes = e.classes + hiddenClass))
+
+      val isPageHeading = ei.formLevelHeading
+      val label = Label(
+        isPageHeading = isPageHeading,
+        classes = if (isPageHeading) s"govuk-label--l $hiddenClass" else hiddenClass,
+        content = labelContent
+      )
+
+      val attributes =
+        if (formComponent.editable)
+          Map.empty[String, String]
+        else
+          Map("readonly" -> "")
+
+      @tailrec
+      def getTimeSlots(sTime: LocalTime, eTime: LocalTime, iMins: Int, acc: List[LocalTime]): List[LocalTime] = {
+        val t = sTime.plusMinutes(iMins)
+        if (t.isAfter(eTime) || (0 until iMins contains MINUTES
+              .between(LocalTime.parse("00:00"), t)))
+          acc
+        else
+          getTimeSlots(t, eTime, iMins, acc :+ t)
+      }
+
+      val twelveHoursFormat = DateTimeFormatter.ofPattern("hh:mm a")
+
+      val maybeCurrentValue = prepopValue.orElse(validatedValue.flatMap(_.getCurrentValue)).getOrElse("")
+
+      val items = time.ranges
+        .flatMap(t =>
+          getTimeSlots(t.startTime.time, t.endTime.time, time.intervalMins.intervalMins, List(t.startTime.time)))
+        .distinct
+        .map(_.format(twelveHoursFormat))
+
+      val selectItems = items map { t =>
+        SelectItem(
+          value = Some(t),
+          text = t,
+          selected =
+            if (t == maybeCurrentValue)
+              true
+            else
+              false
+        )
+      }
+
+      val select = Select(
+        id = formComponent.id.value,
+        name = formComponent.id.value,
+        items = selectItems,
+        label = label,
+        hint = hint,
+        errorMessage = hiddenErrorMessage,
+        classes = s"$hiddenClass",
+        attributes = attributes
+      )
+
+      new components.govukSelect(govukErrorMessage, govukHint, govukLabel)(select)
+    }
   }
 
   private def getRepeatingGroupsForRendering(

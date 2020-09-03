@@ -197,6 +197,15 @@ object ValidationUtil {
             }
             ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
         }
+
+      case _: Time =>
+        val data = dataGetter(fieldValue.id).headOption.getOrElse("")
+
+        gFormErrors
+          .get(fieldValue.id)
+          .fold[FormFieldValidationResult](
+            FieldOk(fieldValue, data)
+          )(errors => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors))
     }
 
     val resultErrors: List[FormFieldValidationResult] = atomicFields.map { fieldValue =>

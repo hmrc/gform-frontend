@@ -16,6 +16,10 @@
 
 package uk.gov.hmrc.gform.validation
 
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit.MINUTES
+
 import cats.Monoid
 import cats.data.Validated
 import cats.implicits._
@@ -34,6 +38,7 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 
+import scala.annotation.tailrec
 import scala.util.matching.Regex
 
 object ComponentValidator {
@@ -398,6 +403,39 @@ object ComponentValidator {
     val emailError = validationFailure(formComponent, "generic.error.email", None)
 
     if (maybeCode === expectedCode.map(_.code)) validationSuccess else emailError
+
+  }
+
+  def validateTime(fieldValue: FormComponent, time: Time)(data: FormDataRecalculated)(
+    implicit messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator): ValidatedType[Unit] = {
+    val timeValue = data.data.get(fieldValue.id).toSeq.flatMap(_.toSeq).filterNot(_.isEmpty).headOption
+
+    val twelveHoursFormat = DateTimeFormatter.ofPattern("hh:mm a")
+
+    @tailrec
+    def getTimeSlots(sTime: LocalTime, eTime: LocalTime, iMins: Int, acc: List[LocalTime]): List[LocalTime] = {
+      val t = sTime.plusMinutes(iMins)
+      if (t.isAfter(eTime) || (0 until iMins contains MINUTES
+            .between(LocalTime.parse("00:00"), t)))
+        acc
+      else
+        getTimeSlots(t, eTime, iMins, acc :+ t)
+    }
+
+    lazy val timeSlots = time.ranges
+      .flatMap(t =>
+        getTimeSlots(t.startTime.time, t.endTime.time, time.intervalMins.intervalMins, List(t.startTime.time)))
+      .distinct
+      .map(_.format(twelveHoursFormat))
+
+    (fieldValue.mandatory, timeValue) match {
+      case (true | false, Some(time)) if !(timeSlots contains time) =>
+        validationFailure(fieldValue, s"${fieldValue.label.localised.value} is incorrect", None)
+      case (true, None) => validationFailure(fieldValue, s"${fieldValue.label.localised.value} must be entered", None)
+      case _            => validationSuccess
+    }
 
   }
 }
