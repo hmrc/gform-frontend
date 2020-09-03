@@ -1531,27 +1531,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         else
           Map("readonly" -> "")
 
-      @tailrec
-      def getTimeSlots(sTime: LocalTime, eTime: LocalTime, iMins: Int, acc: List[LocalTime]): List[LocalTime] = {
-        val t = sTime.plusMinutes(iMins)
-        if (t.isAfter(eTime) || (0 until iMins contains MINUTES
-              .between(LocalTime.parse("00:00"), t)))
-          acc
-        else
-          getTimeSlots(t, eTime, iMins, acc :+ t)
-      }
-
-      val twelveHoursFormat = DateTimeFormatter.ofPattern("hh:mm a")
-
       val maybeCurrentValue = prepopValue.orElse(validatedValue.flatMap(_.getCurrentValue)).getOrElse("")
 
-      val items = time.ranges
-        .flatMap(t =>
-          getTimeSlots(t.startTime.time, t.endTime.time, time.intervalMins.intervalMins, List(t.startTime.time)))
-        .distinct
-        .map(_.format(twelveHoursFormat))
-
-      val selectItems = items map { t =>
+      val selectItems = Range.timeSlots(time) map { t =>
         SelectItem(
           value = Some(t),
           text = t,

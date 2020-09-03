@@ -214,11 +214,6 @@ class SectionRenderingServiceSpec extends Spec {
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
-
-    println(s"==============================")
-    println(s"${doc.html()}")
-    println(s"==============================")
-
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
 

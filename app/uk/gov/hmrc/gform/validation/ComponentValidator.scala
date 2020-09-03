@@ -412,26 +412,8 @@ object ComponentValidator {
     sse: SmartStringEvaluator): ValidatedType[Unit] = {
     val timeValue = data.data.get(fieldValue.id).toSeq.flatMap(_.toSeq).filterNot(_.isEmpty).headOption
 
-    val twelveHoursFormat = DateTimeFormatter.ofPattern("hh:mm a")
-
-    @tailrec
-    def getTimeSlots(sTime: LocalTime, eTime: LocalTime, iMins: Int, acc: List[LocalTime]): List[LocalTime] = {
-      val t = sTime.plusMinutes(iMins)
-      if (t.isAfter(eTime) || (0 until iMins contains MINUTES
-            .between(LocalTime.parse("00:00"), t)))
-        acc
-      else
-        getTimeSlots(t, eTime, iMins, acc :+ t)
-    }
-
-    lazy val timeSlots = time.ranges
-      .flatMap(t =>
-        getTimeSlots(t.startTime.time, t.endTime.time, time.intervalMins.intervalMins, List(t.startTime.time)))
-      .distinct
-      .map(_.format(twelveHoursFormat))
-
     (fieldValue.mandatory, timeValue) match {
-      case (true | false, Some(time)) if !(timeSlots contains time) =>
+      case (true | false, Some(vTime)) if !(Range.timeSlots(time) contains vTime) =>
         validationFailure(fieldValue, s"${fieldValue.label.localised.value} is incorrect", None)
       case (true, None) => validationFailure(fieldValue, s"${fieldValue.label.localised.value} must be entered", None)
       case _            => validationSuccess

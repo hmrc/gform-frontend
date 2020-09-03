@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit.MINUTES
 
 import cats.Eq
 import cats.data.NonEmptyList
@@ -30,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ SmartString, ValueClassFormat, VariadicFo
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 
+import scala.annotation.tailrec
 import scala.collection.immutable.List
 
 sealed trait MultiField {
@@ -225,6 +227,25 @@ object Range {
 
   def stringToLocalTime(formatter: DateTimeFormatter, time: String): LocalTime =
     LocalTime.parse(time, formatter)
+
+  val twelveHoursFormat = DateTimeFormatter.ofPattern("hh:mm a")
+
+  @tailrec
+  def getTimeSlots(sTime: LocalTime, eTime: LocalTime, iMins: Int, acc: List[LocalTime]): List[LocalTime] = {
+    val t = sTime.plusMinutes(iMins)
+    if (t.isAfter(eTime) || (0 until iMins contains MINUTES
+          .between(LocalTime.parse("00:00"), t)))
+      acc
+    else
+      getTimeSlots(t, eTime, iMins, acc :+ t)
+  }
+
+  def timeSlots(time: Time): List[String] =
+    time.ranges
+      .flatMap(t =>
+        getTimeSlots(t.startTime.time, t.endTime.time, time.intervalMins.intervalMins, List(t.startTime.time)))
+      .distinct
+      .map(_.format(twelveHoursFormat))
 }
 
 case class IntervalMins(intervalMins: Int) extends AnyVal
