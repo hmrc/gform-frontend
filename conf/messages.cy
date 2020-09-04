@@ -55,6 +55,7 @@ field.error.number=Rhaid i {0} fod yn rhif
 field.error.exactDigits=Rhaid i {0} fod yn rhif {1} digid
 field.error.notGreaterThan=Rhaid i {0} beidio â bod yn fwy na {1}
 choice.error.required=Rhaid dewis {0}
+time.error.required=Rhaid dewis {0}
 
 # Generic error suffixes
 generic.error.required=Rhaid nodi {0}

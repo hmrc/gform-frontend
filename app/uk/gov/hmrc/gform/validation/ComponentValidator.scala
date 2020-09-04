@@ -414,10 +414,10 @@ object ComponentValidator {
 
     (fieldValue.mandatory, timeValue) match {
       case (true | false, Some(vTime)) if !(Range.timeSlots(time) contains vTime) =>
-        validationFailure(fieldValue, s"${fieldValue.label.localised.value} is incorrect", None)
-      case (true, None) => validationFailure(fieldValue, s"${fieldValue.label.localised.value} must be entered", None)
-      case _            => validationSuccess
+        validationFailure(fieldValue, messages("generic.error.invalid", fieldValue.label.localised.value), None)
+      case (true, None) =>
+        validationFailure(fieldValue, messages("time.error.required", fieldValue.label.localised.value), None)
+      case _ => validationSuccess
     }
-
   }
 }
