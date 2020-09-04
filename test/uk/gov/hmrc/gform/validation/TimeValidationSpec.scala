@@ -120,4 +120,28 @@ class TimeValidationSpec extends Spec with GraphSpec {
 
     result.toEither should beRight(())
   }
+
+  it should "accepts an empty value when mandatory is false" in {
+
+    val time = Time(
+      List(
+        Range(StartTime(LocalTime.parse("10:00")), EndTime(LocalTime.parse("13:00"))),
+        Range(StartTime(LocalTime.parse("16:00")), EndTime(LocalTime.parse("20:00")))
+      ),
+      IntervalMins(15)
+    )
+
+    val iTime = mkFormComponent(time).copy(mandatory = false)
+    val lstTime = List(iTime)
+
+    val data = mkFormDataRecalculated(
+      VariadicFormData.ones(
+        FormComponentId("timeOfCall") -> ""
+      ))
+
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(iTime, lstTime, GetEmailCodeFieldMatcher.noop).futureValue
+
+    result.toEither should beRight(())
+  }
 }

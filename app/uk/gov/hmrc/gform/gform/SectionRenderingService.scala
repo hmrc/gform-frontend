@@ -1533,22 +1533,24 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
       val maybeCurrentValue = prepopValue.orElse(validatedValue.flatMap(_.getCurrentValue)).getOrElse("")
 
+      val emptySelectItem = SelectItem(
+        value = Some(""),
+        text = "",
+        selected = "" === maybeCurrentValue
+      )
+
       val selectItems = Range.timeSlots(time) map { t =>
         SelectItem(
           value = Some(t),
           text = t,
-          selected =
-            if (t == maybeCurrentValue)
-              true
-            else
-              false
+          selected = t === maybeCurrentValue
         )
       }
 
       val select = Select(
         id = formComponent.id.value,
         name = formComponent.id.value,
-        items = selectItems,
+        items = emptySelectItem +: selectItems,
         label = label,
         hint = hint,
         errorMessage = hiddenErrorMessage,
