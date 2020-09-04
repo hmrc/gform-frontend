@@ -1536,22 +1536,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       val emptySelectItem = SelectItem(
         value = Some(""),
         text = "",
-        selected =
-          if ("" == maybeCurrentValue)
-            true
-          else
-            false
+        selected = "" === maybeCurrentValue
       )
 
       val selectItems = Range.timeSlots(time) map { t =>
         SelectItem(
           value = Some(t),
           text = t,
-          selected =
-            if (t == maybeCurrentValue)
-              true
-            else
-              false
+          selected = t === maybeCurrentValue
         )
       }
 
