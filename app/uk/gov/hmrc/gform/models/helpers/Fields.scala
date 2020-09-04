@@ -53,7 +53,7 @@ object Fields {
           }
         }
       case FileUpload() | Group(_, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _, _) | TextArea(_, _, _) |
-          Choice(_, _, _, _, _) | RevealingChoice(_, _) | HmrcTaxPeriod(_, _, _) =>
+          Choice(_, _, _, _, _) | RevealingChoice(_, _) | HmrcTaxPeriod(_, _, _) | Time(_, _) =>
         List[(FormComponentId, FormFieldValidationResult)]()
     }
   }
@@ -94,7 +94,7 @@ object Fields {
       case Address(_)    => componentField(Address.fields(fieldValue.id).toList)
       case Date(_, _, _) => componentField(Date.fields(fieldValue.id).toList)
       case UkSortCode(_) => componentField(UkSortCode.fields(fieldValue.id).toList)
-      case Text(_, _, _, _) | TextArea(_, _, _) | Group(_, _, _, _, _) =>
+      case Text(_, _, _, _) | TextArea(_, _, _) | Group(_, _, _, _, _) | Time(_, _) =>
         formFields.get(fieldValue.id).map { formField =>
           gformErrors
             .get(fieldValue.id)
@@ -154,6 +154,7 @@ object Fields {
         case _: Text | _: TextArea | _: Choice | _: HmrcTaxPeriod | _: RevealingChoice => List(getFieldData(fv.id))
         case FileUpload()                                                              => List(getFieldData(fv.id))
         case InformationMessage(_, _)                                                  => List(getFieldData(fv.id))
+        case Time(_, _)                                                                => List(getFieldData(fv.id))
       }
     }
 

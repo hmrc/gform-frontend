@@ -631,6 +631,18 @@ object SummaryRenderingService {
           validatedType,
           envelope)
 
+      case t @ Time(_, _) =>
+        getTimeSummaryListRows(
+          fieldValue,
+          formTemplateId,
+          data,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          fields,
+          validatedType,
+          envelope)
+
       case h @ HmrcTaxPeriod(_, _, _) =>
         getHmrcTaxPeriodSummaryListRows(
           fieldValue,
@@ -992,6 +1004,54 @@ object SummaryRenderingService {
   }
 
   private def getFileUploadSummaryListRows(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator): List[SummaryListRow] = {
+
+    val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
+
+    val hasErrors = validationResult.exists(_.isNotOk)
+
+    val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
+      errorInline("summary", e, Seq("error-message"))
+    }
+
+    val label = getLabel(fieldValue)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    val value = if (hasErrors) errors.mkString(" ") else validationResult.flatMap(_.getCurrentValue).getOrElse("")
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        None,
+        keyClasses,
+        "",
+        "",
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
+      ))
+  }
+
+  private def getTimeSummaryListRows(
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     data: FormDataRecalculated,

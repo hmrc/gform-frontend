@@ -197,6 +197,7 @@ class ComponentsValidator(
       case InformationMessage(_, _) => cvh.validF
       case HmrcTaxPeriod(_, _, _) =>
         validIf(formComponent, ComponentValidator.validateChoice(formComponent)(data))
+      case t @ Time(_, _) => validIf(formComponent, ComponentValidator.validateTime(formComponent, t)(data))
     }
   }
 

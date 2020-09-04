@@ -16,6 +16,10 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit.MINUTES
+
 import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.foldable._
@@ -26,6 +30,9 @@ import scala.util.Try
 import uk.gov.hmrc.gform.sharedmodel.{ SmartString, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
+
+import scala.annotation.tailrec
+import scala.collection.immutable.List
 
 sealed trait MultiField {
 
@@ -200,6 +207,58 @@ case class Group(
 case class InformationMessage(infoType: InfoType, infoText: SmartString) extends ComponentType
 
 case class FileUpload() extends ComponentType
+
+case class StartTime(time: LocalTime) extends AnyVal
+
+object StartTime {
+  implicit val format: OFormat[StartTime] = derived.oformat
+}
+
+case class EndTime(time: LocalTime) extends AnyVal
+
+object EndTime {
+  implicit val format: OFormat[EndTime] = derived.oformat
+}
+
+case class Range(startTime: StartTime, endTime: EndTime)
+
+object Range {
+  implicit val format: OFormat[Range] = derived.oformat
+
+  def stringToLocalTime(formatter: DateTimeFormatter, time: String): LocalTime =
+    LocalTime.parse(time, formatter)
+
+  val twelveHoursFormat = DateTimeFormatter.ofPattern("hh:mm a")
+
+  @tailrec
+  def getTimeSlots(sTime: LocalTime, eTime: LocalTime, iMins: Int, acc: List[LocalTime]): List[LocalTime] = {
+    val t = sTime.plusMinutes(iMins)
+    if (t.isAfter(eTime) || (0 until iMins contains MINUTES
+          .between(LocalTime.parse("00:00"), t)))
+      acc
+    else
+      getTimeSlots(t, eTime, iMins, acc :+ t)
+  }
+
+  def timeSlots(time: Time): List[String] =
+    time.ranges
+      .flatMap(t =>
+        getTimeSlots(t.startTime.time, t.endTime.time, time.intervalMins.intervalMins, List(t.startTime.time)))
+      .distinct
+      .map(_.format(twelveHoursFormat))
+}
+
+case class IntervalMins(intervalMins: Int) extends AnyVal
+
+object IntervalMins {
+  implicit val format: OFormat[IntervalMins] = derived.oformat
+}
+
+case class Time(ranges: List[Range], intervalMins: IntervalMins) extends ComponentType
+
+object Time {
+  implicit val format: OFormat[Time] = derived.oformat
+}
 
 object ComponentType {
 

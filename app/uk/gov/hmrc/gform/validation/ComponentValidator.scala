@@ -16,6 +16,10 @@
 
 package uk.gov.hmrc.gform.validation
 
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit.MINUTES
+
 import cats.Monoid
 import cats.data.Validated
 import cats.implicits._
@@ -33,7 +37,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
+import scala.annotation.tailrec
 import scala.util.matching.Regex
 
 object ComponentValidator {
@@ -399,5 +405,20 @@ object ComponentValidator {
 
     if (maybeCode === expectedCode.map(_.code)) validationSuccess else emailError
 
+  }
+
+  def validateTime(fieldValue: FormComponent, time: Time)(data: FormDataRecalculated)(
+    implicit messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator): ValidatedType[Unit] = {
+    val timeValue = data.data.get(fieldValue.id).toSeq.flatMap(_.toSeq).filterNot(_.isEmpty).headOption
+
+    (fieldValue.mandatory, timeValue) match {
+      case (true | false, Some(vTime)) if !(Range.timeSlots(time) contains vTime) =>
+        validationFailure(fieldValue, messages("generic.error.invalid", fieldValue.label.value), None)
+      case (true, None) =>
+        validationFailure(fieldValue, messages("time.error.required", fieldValue.label.value), None)
+      case _ => validationSuccess
+    }
   }
 }

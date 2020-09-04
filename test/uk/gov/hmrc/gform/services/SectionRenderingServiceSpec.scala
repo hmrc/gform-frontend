@@ -100,6 +100,8 @@ class SectionRenderingServiceSpec extends Spec {
 
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
+    val fileUploadField = toList(doc.getElementsByClass("govuk-file-upload")).map(_.attr("name"))
+    val timeField = toList(doc.getElementsByClass("govuk-select")).map(_.attr("name"))
 
     hiddenFieldNames should be(
       List(
@@ -112,6 +114,8 @@ class SectionRenderingServiceSpec extends Spec {
         "hiddenfacePhoto",
         "save"))
     visibleFields should be(List("firstName", "surname"))
+    fileUploadField should be(List("facePhoto"))
+    timeField should be(List("timeOfCall"))
   }
 
   "SectionRenderingService" should "set a field to hidden if is onlyShowOnSummary is set to true" in {
@@ -150,13 +154,15 @@ class SectionRenderingServiceSpec extends Spec {
         "csrfToken",
         "firstName",
         "surname",
+        "timeOfCall",
         "nameOfBusiness",
         "startDate-day",
         "startDate-month",
         "startDate-year",
         "iptRegNum",
         "hiddenfacePhoto",
-        "save"))
+        "save"
+      ))
     visibleFields should be(List())
   }
   "SectionRenderingService" should "add in progress indicator if it is defined" in {
@@ -208,7 +214,6 @@ class SectionRenderingServiceSpec extends Spec {
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
-
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
 
