@@ -82,7 +82,7 @@ object ValidationUtil {
           }
         }
       case _: Choice | _: RevealingChoice | _: FileUpload | _: Group | _: InformationMessage | _: Text | _: TextArea |
-          _: HmrcTaxPeriod =>
+          _: HmrcTaxPeriod | _: Time =>
         List.empty[(FormComponentId, FormFieldValidationResult)]
     }
 

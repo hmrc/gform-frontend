@@ -37,6 +37,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.annotation.tailrec
 import scala.util.matching.Regex
@@ -414,9 +415,9 @@ object ComponentValidator {
 
     (fieldValue.mandatory, timeValue) match {
       case (true | false, Some(vTime)) if !(Range.timeSlots(time) contains vTime) =>
-        validationFailure(fieldValue, messages("generic.error.invalid", fieldValue.label.localised.value), None)
+        validationFailure(fieldValue, messages("generic.error.invalid", fieldValue.label.value), None)
       case (true, None) =>
-        validationFailure(fieldValue, messages("time.error.required", fieldValue.label.localised.value), None)
+        validationFailure(fieldValue, messages("time.error.required", fieldValue.label.value), None)
       case _ => validationSuccess
     }
   }

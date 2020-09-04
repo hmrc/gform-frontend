@@ -53,7 +53,7 @@ object Fields {
           }
         }
       case FileUpload() | Group(_, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _, _) | TextArea(_, _, _) |
-          Choice(_, _, _, _, _) | RevealingChoice(_, _) | HmrcTaxPeriod(_, _, _) =>
+          Choice(_, _, _, _, _) | RevealingChoice(_, _) | HmrcTaxPeriod(_, _, _) | Time(_, _) =>
         List[(FormComponentId, FormFieldValidationResult)]()
     }
   }
