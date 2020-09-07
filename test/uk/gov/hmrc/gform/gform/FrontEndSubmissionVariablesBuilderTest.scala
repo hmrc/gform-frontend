@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel.FrontEndSubmissionVariables
 class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
   forAll(formTemplateGen) { template =>
     it should s"Build a data structure with valid key value pair for ${template._id}" in new IdentifierExtractor {
-      val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.EnrolledIdentifier)
+      val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserField.EnrolledIdentifier)
       val enrolledIdType: ComponentType = Text(BasicText, userCtx)
       val retrievals: AuthenticatedRetrievals =
         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
@@ -58,7 +58,7 @@ class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
 
   forAll(formTemplateGen, formComponentGen(), formComponentGen()) { (template, cmp1, cmp2) =>
     it should s"Build a data structure with valid key value pair for ${template._id} with multiple fields type" in new IdentifierExtractor {
-      val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.EnrolledIdentifier)
+      val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserField.EnrolledIdentifier)
       val enrolledId: ComponentType = Text(BasicText, userCtx)
       val valueComponentType: ComponentType = Text(BasicText, Value)
       val retrievals: AuthenticatedRetrievals =

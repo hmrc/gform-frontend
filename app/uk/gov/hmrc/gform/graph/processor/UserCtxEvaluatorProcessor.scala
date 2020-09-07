@@ -35,11 +35,11 @@ class UserCtxEvaluatorProcessor[F[_]: Monad] extends IdentifierExtractor {
   ): Convertible[F] = {
     val result =
       (retrievals, userCtx) match {
-        case (AuthenticatedRetrievals(_, enrolments, _, _, _), UserCtx(EnrolledIdentifier)) =>
+        case (AuthenticatedRetrievals(_, enrolments, _, _, _), UserCtx(UserField.EnrolledIdentifier)) =>
           RecalculationOp.newValue(authorizedEnrolmentValue(enrolments, authConfig))
-        case (AuthenticatedRetrievals(_, enrolments, _, _, _), UserCtx(Enrolment(sn, in))) =>
+        case (AuthenticatedRetrievals(_, enrolments, _, _, _), UserCtx(UserField.Enrolment(sn, in))) =>
           RecalculationOp.newValue(extractIdentifier(enrolments, sn, in))
-        case (_, UserCtx(AffinityGroup)) =>
+        case (_, UserCtx(UserField.AffinityGroup)) =>
           RecalculationOp.newValue(affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals)))
         case (AnonymousRetrievals(_), _) => RecalculationOp.noChange
         case (VerifyRetrievals(_, _), _) => RecalculationOp.noChange
