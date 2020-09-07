@@ -235,7 +235,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
     val sections =
       mkSection(
-        mkFormComponent("a", UserCtx(AffinityGroup)) :: Nil
+        mkFormComponent("a", UserCtx(UserField.AffinityGroup)) :: Nil
       ) :: Nil
 
     val res = recalculation.recalculateFormData(

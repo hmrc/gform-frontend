@@ -32,7 +32,7 @@ object FrontEndSubmissionVariablesBuilder extends IdentifierExtractor {
     val identifierValue = formTemplate.sections
       .flatMap(_.fields)
       .collectFirst {
-        case HasExpr(SingleExpr(UserCtx(EnrolledIdentifier))) =>
+        case HasExpr(SingleExpr(UserCtx(UserField.EnrolledIdentifier))) =>
           processContext(retrievals, formTemplate.authConfig)
       }
       .getOrElse("")

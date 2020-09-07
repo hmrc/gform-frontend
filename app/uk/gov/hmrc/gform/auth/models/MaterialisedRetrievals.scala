@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import uk.gov.hmrc.auth.core.retrieve.GGCredId
-import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
-import uk.gov.hmrc.auth.core.retrieve.LegacyCredentials
+import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
+import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials }
 import uk.gov.hmrc.gform.models.mappings._
 import uk.gov.hmrc.gform.models.userdetails.Nino
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IdentifierName, ServiceName }
 import uk.gov.hmrc.http.logging.SessionId
 
 sealed trait MaterialisedRetrievals extends Product with Serializable {
@@ -67,6 +67,18 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
         case None              => ""
       }
   }
+
+  def enrolmentExists(serviceName: ServiceName, identifierName: IdentifierName, identifierValue: String): Boolean =
+    this match {
+      case AnonymousRetrievals(_) => false
+      case VerifyRetrievals(_, _) => false
+      case AuthenticatedRetrievals(_, enrolments, _, _, _) =>
+        val maybeEnrolment: Option[Enrolment] = enrolments.getEnrolment(serviceName.value)
+        maybeEnrolment.fold(false) { enrolment =>
+          val enrolmentIdentifier = EnrolmentIdentifier(identifierName.value, identifierValue)
+          enrolment.identifiers.contains(enrolmentIdentifier)
+        }
+    }
 
   private def valueById(enrolments: Enrolments, id: String) =
     enrolments.enrolments.flatMap(_.identifiers).find(_.key.equalsIgnoreCase(id))

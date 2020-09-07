@@ -43,7 +43,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
         List(
           mkFormComponent("a", AuthCtx(GG)),
           mkFormComponent("b", EeittCtx(BusinessUser)),
-          mkFormComponent("c", UserCtx(AffinityGroup))))
+          mkFormComponent("c", UserCtx(UserField.AffinityGroup))))
     )
     layers(sections) shouldBe List(
       (0, List("a", "b", "c"))

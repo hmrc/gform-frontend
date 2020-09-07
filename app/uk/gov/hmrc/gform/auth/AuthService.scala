@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.models.mappings.IRSA
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }

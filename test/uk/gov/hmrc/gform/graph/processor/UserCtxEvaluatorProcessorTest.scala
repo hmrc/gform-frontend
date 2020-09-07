@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.graph.{ NonConvertible, RecalculationOp }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, Always, AuthConfig, DoCheck, EnrolledIdentifier, EnrolmentAuth, EnrolmentSection, FormCtx, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, IdentifierRecipe, Never, NoAction, RegimeId, RegimeIdCheck, RequireEnrolment, ServiceId, UserCtx, AffinityGroup => FTAffinityGroup }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, Always, AuthConfig, DoCheck, EnrolmentAuth, EnrolmentSection, FormCtx, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, IdentifierRecipe, Never, NoAction, RegimeId, RegimeIdCheck, RequireEnrolment, ServiceId, UserCtx, UserField }
 import uk.gov.hmrc.http.logging.SessionId
 
 class UserCtxEvaluatorProcessorTest extends Spec {
@@ -40,7 +40,7 @@ class UserCtxEvaluatorProcessorTest extends Spec {
   }
 
   it should "return an empty string when authModule in authConfig is set anonymous" in new UserCtxEvaluatorProcessor[Id] {
-    processEvaluation(AnonymousRetrievals(SessionId("id")), UserCtx(EnrolledIdentifier), authConfig) should be(
+    processEvaluation(AnonymousRetrievals(SessionId("id")), UserCtx(UserField.EnrolledIdentifier), authConfig) should be(
       NonConvertible(RecalculationOp.noChange.pure[Id]))
   }
 
@@ -53,18 +53,23 @@ class UserCtxEvaluatorProcessorTest extends Spec {
         ServiceId("IR-CT"),
         DoCheck(Always, RequireEnrolment(enrSec, NoAction), RegimeIdCheck(RegimeId("XX")))))
 
-    processEvaluation(retrievals, UserCtx(EnrolledIdentifier), auth) should be(
+    processEvaluation(retrievals, UserCtx(UserField.EnrolledIdentifier), auth) should be(
       NonConvertible(RecalculationOp.newValue("12XX567890").pure[Id]))
   }
 
   // format:off
   lazy val userCtxTable = Table(
     ("enr", "userField", "serviceId", "authConfig", "NoncovertibleResult"),
-    (irctEnrolment, EnrolledIdentifier, ServiceId("IR-CT"), hmrcModule("IR-CT"), nonConvertible("CT value")),
-    (irsaEnrolment, EnrolledIdentifier, ServiceId("IR-SA"), hmrcModule("IR-SA"), nonConvertible("SA value")),
-    (irsaEnrolment, EnrolledIdentifier, ServiceId("IR-SA"), hmrcAgentWithEnrolmentModule, nonConvertible("SA value")),
-    (irctEnrolment, EnrolledIdentifier, ServiceId(""), hmrcModule(""), nonConvertible("")),
-    (irctEnrolment, FTAffinityGroup, ServiceId(""), HmrcSimpleModule, nonConvertible("agent"))
+    (irctEnrolment, UserField.EnrolledIdentifier, ServiceId("IR-CT"), hmrcModule("IR-CT"), nonConvertible("CT value")),
+    (irsaEnrolment, UserField.EnrolledIdentifier, ServiceId("IR-SA"), hmrcModule("IR-SA"), nonConvertible("SA value")),
+    (
+      irsaEnrolment,
+      UserField.EnrolledIdentifier,
+      ServiceId("IR-SA"),
+      hmrcAgentWithEnrolmentModule,
+      nonConvertible("SA value")),
+    (irctEnrolment, UserField.EnrolledIdentifier, ServiceId(""), hmrcModule(""), nonConvertible("")),
+    (irctEnrolment, UserField.AffinityGroup, ServiceId(""), HmrcSimpleModule, nonConvertible("agent"))
   )
   // format:on
 

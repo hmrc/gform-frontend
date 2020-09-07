@@ -138,7 +138,12 @@ class BooleanExprEval[F[_]: Monad](
       for {
         ev <- expValue
         b <- ev.fold(false.pure[F]) { v =>
-              seissConnectorEligibilityStatus(UtrEligibilityRequest(v), hc)
+              dataSource match {
+                case DataSource.SeissEligible     => seissConnectorEligibilityStatus(UtrEligibilityRequest(v), hc)
+                case DataSource.Mongo(collection) => ???
+                case DataSource.Enrolment(serviceName, identifierName) =>
+                  retrievals.enrolmentExists(serviceName, identifierName, v).pure[F]
+              }
             }
       } yield b
     }
