@@ -415,9 +415,15 @@ object ComponentValidator {
 
     (fieldValue.mandatory, timeValue) match {
       case (true | false, Some(vTime)) if !(Range.timeSlots(time) contains vTime) =>
-        validationFailure(fieldValue, messages("generic.error.invalid", fieldValue.label.value), None)
+        validationFailure(
+          fieldValue,
+          messages("generic.error.invalid", fieldValue.shortName.getOrElse(fieldValue.label).value),
+          None)
       case (true, None) =>
-        validationFailure(fieldValue, messages("time.error.required", fieldValue.label.value), None)
+        validationFailure(
+          fieldValue,
+          messages("time.error.required", fieldValue.shortName.getOrElse(fieldValue.label).value),
+          None)
       case _ => validationSuccess
     }
   }
