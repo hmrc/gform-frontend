@@ -120,7 +120,8 @@ class ApplicationModule(context: Context)
   }
 
   private val graphModule = new GraphModule(
-    authModule
+    authModule,
+    gformBackendModule
   )
 
   private val controllersModule = new ControllersModule(

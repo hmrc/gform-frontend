@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
+import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse }
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
@@ -97,12 +98,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Unit] =
     ws.PUT[String, HttpResponse](s"$baseUrl/formBundles/${urlFragment(formId)}/$status/forceStatus", "").void
-
-  //TODO: now returns string, but it should return list of validations
-  def validateSection(formId: FormId, sectionNumber: SectionNumber)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[String] =
-    ws.GET[String](s"$baseUrl/forms/${formId.value}/validate-section/${sectionNumber.value}")
 
   def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").void
@@ -227,6 +222,20 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
         notifierConfirmationCode,
         Seq("Content-Type" -> ContentType.`application/json`.value))
       .void
+
+  def dbLookup(id: String, collectionName: CollectionName, hc: HeaderCarrier)(
+    implicit ec: ExecutionContext): Future[Boolean] = {
+    implicit val hc_ = hc
+
+    val url = s"$baseUrl/dblookup/$id/${collectionName.name}"
+
+    ws.doGet(url, hc.extraHeaders) map { response =>
+      response.status match {
+        case 200 => true
+        case _   => false
+      }
+    }
+  }
 
   private def urlFragment(formIdData: FormIdData): String =
     formIdData match {
