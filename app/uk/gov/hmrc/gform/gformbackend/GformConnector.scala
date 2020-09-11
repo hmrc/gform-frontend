@@ -99,12 +99,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ec: ExecutionContext): Future[Unit] =
     ws.PUT[String, HttpResponse](s"$baseUrl/formBundles/${urlFragment(formId)}/$status/forceStatus", "").void
 
-  //TODO: now returns string, but it should return list of validations
-  def validateSection(formId: FormId, sectionNumber: SectionNumber)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[String] =
-    ws.GET[String](s"$baseUrl/forms/${formId.value}//${sectionNumber.value}")
-
   def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").void
 
@@ -238,7 +232,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.doGet(url, hc.extraHeaders) map { response =>
       response.status match {
         case 200 => true
-        case 404 => false
+        case _   => false
       }
     }
   }

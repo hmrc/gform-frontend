@@ -43,7 +43,7 @@ trait GraphSpec {
   private def eligibilityStatusFalse[F[_]: Monad](request: UtrEligibilityRequest, hc: HeaderCarrier): F[Boolean] =
     false.pure[F]
 
-  private def dbLookupStausTrue[F[_]: Monad](
+  private def dbLookupStatusTrue[F[_]: Monad](
     id: String,
     collectionName: CollectionName,
     hc: HeaderCarrier): F[Boolean] =
@@ -52,10 +52,10 @@ trait GraphSpec {
   def evaluator[F[_]: Monad]: Evaluator[F] = new Evaluator[F](eeittPrepop[F])
 
   def booleanExprEval[F[_]: Monad]: BooleanExprEval[F] =
-    new BooleanExprEval[F](evaluator, eligibilityStatusTrue[F], dbLookupStausTrue[F])
+    new BooleanExprEval[F](evaluator, eligibilityStatusTrue[F], dbLookupStatusTrue[F])
 
   def booleanExprEval2[F[_]: Monad]: BooleanExprEval[F] =
-    new BooleanExprEval[F](evaluator, eligibilityStatusFalse[F], dbLookupStausTrue[F])
+    new BooleanExprEval[F](evaluator, eligibilityStatusFalse[F], dbLookupStatusTrue[F])
 
   protected def mkFormDataRecalculated(data: VariadicFormData): FormDataRecalculated =
     FormDataRecalculated.empty.copy(recData = RecData.fromData(data))
