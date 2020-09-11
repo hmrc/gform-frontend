@@ -29,11 +29,13 @@ import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.gform.PrepopService
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Eeitt, FormTemplate }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluatorFactory }
+import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 
 class GraphModule(
-  authModule: AuthModule
+  authModule: AuthModule,
+  gformBackendModule: GformBackendModule
 )(
   implicit ec: ExecutionContext
 ) {
@@ -43,7 +45,10 @@ class GraphModule(
   private val evaluator: Evaluator[Future] = new Evaluator[Future](prepopService.eeittPrepop)
 
   val booleanExprEval: BooleanExprEval[Future] =
-    new BooleanExprEval(evaluator, authModule.selfEmployedIncomeSupportEligibilityConnector.eligibilityStatus)
+    new BooleanExprEval(
+      evaluator,
+      authModule.selfEmployedIncomeSupportEligibilityConnector.eligibilityStatus,
+      gformBackendModule.gformConnector.dbLookup)
 
   val recalculation: Recalculation[Future, Throwable] =
     new Recalculation(booleanExprEval, (s: GraphException) => new IllegalArgumentException(s.reportProblem))
