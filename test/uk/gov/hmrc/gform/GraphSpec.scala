@@ -21,12 +21,13 @@ import cats.syntax.applicative._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 
 import scala.language.higherKinds
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.auth.models.{ GovernmentGatewayId, IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.graph.{ Evaluator, RecData }
 import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.DelegatedEnrolment
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Eeitt, FormTemplate }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -49,13 +50,27 @@ trait GraphSpec {
     hc: HeaderCarrier): F[Boolean] =
     true.pure[F]
 
+  private def delegatedEnrolmentCheckStatusTrue[F[_]: Monad](
+    governmentGatewayId: GovernmentGatewayId,
+    delegatedEnrolment: DelegatedEnrolment,
+    identifierValue: IdentifierValue,
+    hc: HeaderCarrier): F[Boolean] = true.pure[F]
+
   def evaluator[F[_]: Monad]: Evaluator[F] = new Evaluator[F](eeittPrepop[F])
 
   def booleanExprEval[F[_]: Monad]: BooleanExprEval[F] =
-    new BooleanExprEval[F](evaluator, eligibilityStatusTrue[F], dbLookupStatusTrue[F])
+    new BooleanExprEval[F](
+      evaluator,
+      eligibilityStatusTrue[F],
+      dbLookupStatusTrue[F],
+      delegatedEnrolmentCheckStatusTrue[F])
 
   def booleanExprEval2[F[_]: Monad]: BooleanExprEval[F] =
-    new BooleanExprEval[F](evaluator, eligibilityStatusFalse[F], dbLookupStatusTrue[F])
+    new BooleanExprEval[F](
+      evaluator,
+      eligibilityStatusFalse[F],
+      dbLookupStatusTrue[F],
+      delegatedEnrolmentCheckStatusTrue[F])
 
   protected def mkFormDataRecalculated(data: VariadicFormData): FormDataRecalculated =
     FormDataRecalculated.empty.copy(recData = RecData.fromData(data))

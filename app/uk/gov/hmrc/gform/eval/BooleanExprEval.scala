@@ -24,9 +24,10 @@ import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 
 import scala.language.higherKinds
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.auth.models.{ GovernmentGatewayId, IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue }
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.DelegatedEnrolment
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.SeissEligible
@@ -37,7 +38,12 @@ import uk.gov.hmrc.http.HeaderCarrier
 class BooleanExprEval[F[_]: Monad](
   val evaluator: Evaluator[F],
   val seissConnectorEligibilityStatus: (UtrEligibilityRequest, HeaderCarrier) => F[Boolean],
-  val dbLookupStaus: (String, CollectionName, HeaderCarrier) => F[Boolean]
+  val dbLookupStaus: (String, CollectionName, HeaderCarrier) => F[Boolean],
+  val delegatedEnrolmentCheckStatus: (
+    GovernmentGatewayId,
+    DelegatedEnrolment,
+    IdentifierValue,
+    HeaderCarrier) => F[Boolean]
 ) {
   def isTrue(
     expr: BooleanExpr,
@@ -145,6 +151,10 @@ class BooleanExprEval[F[_]: Monad](
                 case DataSource.Mongo(collectionName) => dbLookupStaus(v, collectionName, hc)
                 case DataSource.Enrolment(serviceName, identifierName) =>
                   retrievals.enrolmentExists(serviceName, identifierName, v).pure[F]
+                case dd @ DataSource.DelegatedEnrolment(_, _) =>
+                  retrievals.maybeGovermentGatewayId.fold(false.pure[F]) { governmentGatewayId =>
+                    delegatedEnrolmentCheckStatus(governmentGatewayId, dd, IdentifierValue(v), hc)
+                  }
               }
             }
       } yield b

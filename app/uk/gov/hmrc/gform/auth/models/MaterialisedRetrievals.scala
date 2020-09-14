@@ -36,6 +36,11 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
     case _                                                              => ""
   }
 
+  def maybeGovermentGatewayId = this match {
+    case AuthenticatedRetrievals(gg, _, _, _, _) => Some(gg)
+    case _                                       => None
+  }
+
   def renderSaveAndComeBackLater = this match {
     case AnonymousRetrievals(_) => false
     case _                      => true
