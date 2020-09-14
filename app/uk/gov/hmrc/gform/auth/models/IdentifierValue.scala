@@ -14,19 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate
+package uk.gov.hmrc.gform.auth.models
 
-import julienrf.json.derived
-import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
-
-sealed trait DataSource
-
-object DataSource {
-  case object SeissEligible extends DataSource
-  case class Mongo(collectionName: CollectionName) extends DataSource
-  case class Enrolment(serviceName: ServiceName, identifierName: IdentifierName) extends DataSource
-  case class DelegatedEnrolment(serviceName: ServiceName, identifierName: IdentifierName) extends DataSource
-
-  implicit val format: OFormat[DataSource] = derived.oformat
-}
+case class IdentifierValue(value: String) extends AnyVal

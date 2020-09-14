@@ -48,7 +48,9 @@ class GraphModule(
     new BooleanExprEval(
       evaluator,
       authModule.selfEmployedIncomeSupportEligibilityConnector.eligibilityStatus,
-      gformBackendModule.gformConnector.dbLookup)
+      gformBackendModule.gformConnector.dbLookup,
+      authModule.delegatedEnrolmentService.checkDelegatedEnrolment
+    )
 
   val recalculation: Recalculation[Future, Throwable] =
     new Recalculation(booleanExprEval, (s: GraphException) => new IllegalArgumentException(s.reportProblem))

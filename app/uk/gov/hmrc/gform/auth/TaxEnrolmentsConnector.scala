@@ -52,8 +52,7 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
     http
       .doPost(
         s"$baseUrl/tax-enrolments/groups/$groupId/enrolments/$enrolmentKey",
-        TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId, "gform-enrolment"),
-        List.empty[(String, String)]
+        TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId, "gform-enrolment")
       )
       .map { httpResponse =>
         val status = httpResponse.status

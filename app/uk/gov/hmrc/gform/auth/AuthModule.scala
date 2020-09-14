@@ -55,6 +55,15 @@ class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBa
     wSHttpModule.auditableWSHttp
   )
 
+  lazy val enrolmentStoreProxyConnector = new EnrolmentStoreProxyConnector(
+    configModule.serviceConfig.baseUrl("enrolment-store-proxy"),
+    wSHttpModule.auditableWSHttp
+  )
+
+  lazy val delegatedEnrolmentService = new DelegatedEnrolmentService(
+    enrolmentStoreProxyConnector
+  )
+
   val enrolmentService: EnrolmentService = new EnrolmentService(
     configModule.typesafeConfig.getBoolean("enrolment-service.use-tax-enrolments"),
     configModule.serviceConfig.getConfString("gg.enrol.portalId", "")
