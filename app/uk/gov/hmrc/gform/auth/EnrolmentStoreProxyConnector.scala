@@ -51,7 +51,7 @@ class EnrolmentStoreProxyConnector(baseUrl: String, http: WSHttp) {
           case 200 =>
             Logger.info(s"Calling enrolment store proxy returned $status: Success.")
             ServiceResponse(httpResponse.json.asOpt[DelegatedUserIds].getOrElse(DelegatedUserIds.empty))
-          case 201 =>
+          case 204 =>
             ServiceResponse(DelegatedUserIds.empty)
           case 400 =>
             Logger.info(s"Calling enrolment store proxy returned $status. Response: ${httpResponse.body}")
