@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.summarypdf
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import play.api.Logger
 import uk.gov.hmrc.gform.sharedmodel.PdfHtml
 
 import scala.concurrent.ExecutionContext
@@ -34,11 +35,15 @@ class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp)(
   def generatePDF(payload: Map[String, Seq[PdfHtml]], headers: Seq[(String, String)])(
     implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {
     val url = s"$baseURL/pdf-generator-service/generate"
+
+    val payloadMap: Map[String, Seq[String]] = payload.mapValues(_.map(_.html))
+    val payloadSize = payloadMap.foldLeft(0) { case (acc, (key, value)) => acc + key.size + value.map(_.size).sum }
+    Logger.info(s"Generate pdf. Html payload size is: $payloadSize bytes.")
     wSHttp
       .buildRequest(url)
       .withMethod("POST")
       .withHttpHeaders(headers: _*)
-      .withBody(payload.mapValues(_.map(_.html)))
+      .withBody(payloadMap)
       .stream()
       .flatMap { response =>
         val status = response.status

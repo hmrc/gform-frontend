@@ -181,7 +181,7 @@ class HtmlSanitiserSpec extends Spec {
 
   val expected = """
 <!doctype html>
-<html lang="en" class="govuk-template ">
+<html>
  <head>
   <title>Check your answers - Minimal declaration - GOV.UK</title>
   <style>body{font-family:Arial,sans-serif;font-size: 19px;}
@@ -190,34 +190,34 @@ dt{font-weight: bold;}
 dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;}
     </style>
  </head>
- <body class="govuk-template__body ">
-  <div class="hmrc-organisation-logo">
-   <p class="govuk-body-s"> HM Revenue &amp; Customs </p>
+ <body>
+  <div>
+   <p> HM Revenue &amp; Customs </p>
   </div>
   <form>
-   <h3 class="govuk-heading-m"> Page A : </h3>
-   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
-    <div class="govuk-summary-list__row">
-     <dt class="govuk-summary-list__key">
+   <h3> Page A : </h3>
+   <dl>
+    <div>
+     <dt>
        Page A :
      </dt>
-     <dd class="govuk-summary-list__value">
+     <dd>
        &pound;12.00
      </dd>
-     <dd class="govuk-summary-list__actions">
+     <dd>
      </dd>
     </div>
    </dl>
-   <h3 class="govuk-heading-m"> Page B : </h3>
-   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
-    <div class="govuk-summary-list__row">
-     <dt class="govuk-summary-list__key">
+   <h3> Page B : </h3>
+   <dl>
+    <div>
+     <dt>
        Page B :
      </dt>
-     <dd class="govuk-summary-list__value">
+     <dd>
        &pound;34.00
      </dd>
-     <dd class="govuk-summary-list__actions">
+     <dd>
      </dd>
     </div>
    </dl>
@@ -236,7 +236,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
   val expectedSummaryPagePdf =
     """
 <!doctype html>
-<html lang="en" class="govuk-template ">
+<html>
  <head>
   <title>Check your answers - Minimal declaration - GOV.UK</title>
   <style>body{font-family:Arial,sans-serif;font-size: 19px;}
@@ -245,37 +245,37 @@ dt{font-weight: bold;}
 dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;}
     </style>
  </head>
- <body class="govuk-template__body ">
-  <div class="hmrc-organisation-logo">
-   <p class="govuk-body-s"> HM Revenue &amp; Customs </p>
+ <body>
+  <div>
+   <p> HM Revenue &amp; Customs </p>
   </div>
   <form>
-   <h1 class="govuk-heading-l">AAA999 dev test template</h1>
-   <h1 class="govuk-heading-l">Summary Title</h1>
+   <h1>AAA999 dev test template</h1>
+   <h1>Summary Title</h1>
    <p>Summary Header</p>
-   <h3 class="govuk-heading-m"> Page A : </h3>
-   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
-    <div class="govuk-summary-list__row">
-     <dt class="govuk-summary-list__key">
+   <h3> Page A : </h3>
+   <dl>
+    <div>
+     <dt>
        Page A :
      </dt>
-     <dd class="govuk-summary-list__value">
+     <dd>
        &pound;12.00
      </dd>
-     <dd class="govuk-summary-list__actions">
+     <dd>
      </dd>
     </div>
    </dl>
-   <h3 class="govuk-heading-m"> Page B : </h3>
-   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
-    <div class="govuk-summary-list__row">
-     <dt class="govuk-summary-list__key">
+   <h3> Page B : </h3>
+   <dl>
+    <div>
+     <dt>
        Page B :
      </dt>
-     <dd class="govuk-summary-list__value">
+     <dd>
        &pound;34.00
      </dd>
-     <dd class="govuk-summary-list__actions">
+     <dd>
      </dd>
     </div>
    </dl>
@@ -295,7 +295,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
   val expectedAcknowledgementPdf =
     """
 <!doctype html>
-<html lang="en" class="govuk-template ">
+<html>
  <head>
   <title>Check your answers - Minimal declaration - GOV.UK</title>
   <style>body{font-family:Arial,sans-serif;font-size: 19px;}
@@ -304,35 +304,35 @@ dt{font-weight: bold;}
 dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;}
     </style>
  </head>
- <body class="govuk-template__body ">
-  <div class="hmrc-organisation-logo">
-   <p class="govuk-body-s"> HM Revenue &amp; Customs </p>
+ <body>
+  <div>
+   <p> HM Revenue &amp; Customs </p>
   </div>
   <form>
-   <h1 class="govuk-heading-l">AAA999 dev test template</h1>
-   <h3 class="govuk-heading-m"> Page A : </h3>
-   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
-    <div class="govuk-summary-list__row">
-     <dt class="govuk-summary-list__key">
+   <h1>AAA999 dev test template</h1>
+   <h3> Page A : </h3>
+   <dl>
+    <div>
+     <dt>
        Page A :
      </dt>
-     <dd class="govuk-summary-list__value">
+     <dd>
        &pound;12.00
      </dd>
-     <dd class="govuk-summary-list__actions">
+     <dd>
      </dd>
     </div>
    </dl>
-   <h3 class="govuk-heading-m"> Page B : </h3>
-   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
-    <div class="govuk-summary-list__row">
-     <dt class="govuk-summary-list__key">
+   <h3> Page B : </h3>
+   <dl>
+    <div>
+     <dt>
        Page B :
      </dt>
-     <dd class="govuk-summary-list__value">
+     <dd>
        &pound;34.00
      </dd>
-     <dd class="govuk-summary-list__actions">
+     <dd>
      </dd>
     </div>
    </dl>
@@ -359,7 +359,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
   val expectedPrintSectionPdf =
     """
 <!doctype html>
-<html lang="en" class="govuk-template ">
+<html>
  <head>
   <title>Check your answers - Minimal declaration - GOV.UK</title>
   <style>body{font-family:Arial,sans-serif;font-size: 19px;}
@@ -368,35 +368,35 @@ dt{font-weight: bold;}
 dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;}
     </style>
  </head>
- <body class="govuk-template__body ">
-  <div class="hmrc-organisation-logo">
-   <p class="govuk-body-s"> HM Revenue &amp; Customs </p>
+ <body>
+  <div>
+   <p> HM Revenue &amp; Customs </p>
   </div>
   <form>
    <h2>Header Html &pound;</h2>
-   <h3 class="govuk-heading-m"> Page A : </h3>
-   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
-    <div class="govuk-summary-list__row">
-     <dt class="govuk-summary-list__key">
+   <h3> Page A : </h3>
+   <dl>
+    <div>
+     <dt>
        Page A :
      </dt>
-     <dd class="govuk-summary-list__value">
+     <dd>
        &pound;12.00
      </dd>
-     <dd class="govuk-summary-list__actions">
+     <dd>
      </dd>
     </div>
    </dl>
-   <h3 class="govuk-heading-m"> Page B : </h3>
-   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
-    <div class="govuk-summary-list__row">
-     <dt class="govuk-summary-list__key">
+   <h3> Page B : </h3>
+   <dl>
+    <div>
+     <dt>
        Page B :
      </dt>
-     <dd class="govuk-summary-list__value">
+     <dd>
        &pound;34.00
      </dd>
-     <dd class="govuk-summary-list__actions">
+     <dd>
      </dd>
     </div>
    </dl>

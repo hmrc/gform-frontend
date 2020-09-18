@@ -17,8 +17,9 @@
 package uk.gov.hmrc.gform.gform
 
 import org.jsoup.Jsoup
-import org.jsoup.nodes.{ Document, Node }
+import org.jsoup.nodes.{ Document, Element, Node }
 import play.twirl.api.Html
+import scala.collection.JavaConverters._
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
@@ -59,7 +60,19 @@ object HtmlSanitiser {
     body.append(form.toString)
 
     modify(doc) // doc is mutable data structure
-    doc.html.replace("£", "&pound;")
+
+    val iter: Iterator[Element] = doc.select("*").iterator().asScala
+
+    iter.foreach { el =>
+      el.clearAttributes()
+    }
+
+    doc
+      .outerHtml()
+      .replaceAll(">\\s+<", "><")
+      .replaceAll("\\s{2,}", " ")
+      .replace("£", "&pound;")
+
   }
 
   def summaryPagePdf(doc: Document, formTemplate: FormTemplate)(
