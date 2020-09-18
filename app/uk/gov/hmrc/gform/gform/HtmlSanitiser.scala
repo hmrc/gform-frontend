@@ -21,8 +21,9 @@ import org.jsoup.nodes.{ Document, Node }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 
 object HtmlSanitiser {
@@ -75,10 +76,22 @@ object HtmlSanitiser {
   }
 
   def acknowledgementPdf(doc: Document, extraData: String, declarationExtraData: String, formTemplate: FormTemplate)(
-    implicit l: LangADT): Unit = {
+    implicit l: LangADT,
+    sse: SmartStringEvaluator): Unit = {
+
+    val pdf = formTemplate.destinations match {
+      case d: DestinationList => d.acknowledgementSection.pdf.map(p => (p.header, p.footer))
+      case _                  => None
+    }
+
+    val headerHtml = pdf.flatMap(_._1.map(markDownParser(_).toString))
+    val footerHtml = pdf.flatMap(_._2.map(markDownParser(_).toString))
+
     val form = doc.getElementsByTag("form").first()
+    headerHtml.map(header => form.prepend(header))
     form.prepend(h1(formTemplate.formName.value))
     form.append(extraData + declarationExtraData)
+    footerHtml.map(footer => form.append(footer))
   }
 
   def printSectionPdf(doc: Document, headerHtml: String, footerHtml: String): Unit = {

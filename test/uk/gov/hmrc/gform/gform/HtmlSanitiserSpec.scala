@@ -18,8 +18,10 @@ package uk.gov.hmrc.gform.gform
 
 import org.scalatest.{ FlatSpec, Matchers }
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSectionPdf, ContinueOrDeletePage, Default, FormTemplate, OnePerUser, ResearchBanner }
+import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, ExampleData, LangADT }
 
 class HtmlSanitiserSpec extends Spec {
 
@@ -310,6 +312,59 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
   </div>
   <form>
    <h1 class="govuk-heading-l">AAA999 dev test template</h1>
+   <p>It's a Acknowledgement Section Pdf header.</p>
+   <h3 class="govuk-heading-m"> Page A : </h3>
+   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
+    <div class="govuk-summary-list__row">
+     <dt class="govuk-summary-list__key">
+       Page A :
+     </dt>
+     <dd class="govuk-summary-list__value">
+       &pound;12.00
+     </dd>
+     <dd class="govuk-summary-list__actions">
+     </dd>
+    </div>
+   </dl>
+   <h3 class="govuk-heading-m"> Page B : </h3>
+   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
+    <div class="govuk-summary-list__row">
+     <dt class="govuk-summary-list__key">
+       Page B :
+     </dt>
+     <dd class="govuk-summary-list__value">
+       &pound;34.00
+     </dd>
+     <dd class="govuk-summary-list__actions">
+     </dd>
+    </div>
+   </dl>
+   <h2>Extra Data &pound;</h2>
+   <h2>Declaration Extra Data &pound;</h2>
+   <p>It's a Acknowledgement Section Pdf footer.</p>
+  </form>
+ </body>
+</html>
+"""
+
+  val expectedAcknowledgementPdfWithNoHeaderAndFooter =
+    """
+<!doctype html>
+<html lang="en" class="govuk-template ">
+ <head>
+  <title>Check your answers - Minimal declaration - GOV.UK</title>
+  <style>body{font-family:Arial,sans-serif;font-size: 19px;}
+dl{border-bottom: 1px solid #bfc1c3;}
+dt{font-weight: bold;}
+dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;}
+    </style>
+ </head>
+ <body class="govuk-template__body ">
+  <div class="hmrc-organisation-logo">
+   <p class="govuk-body-s"> HM Revenue &amp; Customs </p>
+  </div>
+  <form>
+   <h1 class="govuk-heading-l">AAA999 dev test template</h1>
    <h3 class="govuk-heading-m"> Page A : </h3>
    <dl class="govuk-summary-list govuk-!-margin-bottom-9">
     <div class="govuk-summary-list__row">
@@ -343,6 +398,110 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
 </html>
 """
 
+  val expectedAcknowledgementPdfWithNoFooter =
+    """
+<!doctype html>
+<html lang="en" class="govuk-template ">
+ <head>
+  <title>Check your answers - Minimal declaration - GOV.UK</title>
+  <style>body{font-family:Arial,sans-serif;font-size: 19px;}
+dl{border-bottom: 1px solid #bfc1c3;}
+dt{font-weight: bold;}
+dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;}
+    </style>
+ </head>
+ <body class="govuk-template__body ">
+  <div class="hmrc-organisation-logo">
+   <p class="govuk-body-s"> HM Revenue &amp; Customs </p>
+  </div>
+  <form>
+   <h1 class="govuk-heading-l">AAA999 dev test template</h1>
+   <p>It's a Acknowledgement Section Pdf header.</p>
+   <h3 class="govuk-heading-m"> Page A : </h3>
+   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
+    <div class="govuk-summary-list__row">
+     <dt class="govuk-summary-list__key">
+       Page A :
+     </dt>
+     <dd class="govuk-summary-list__value">
+       &pound;12.00
+     </dd>
+     <dd class="govuk-summary-list__actions">
+     </dd>
+    </div>
+   </dl>
+   <h3 class="govuk-heading-m"> Page B : </h3>
+   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
+    <div class="govuk-summary-list__row">
+     <dt class="govuk-summary-list__key">
+       Page B :
+     </dt>
+     <dd class="govuk-summary-list__value">
+       &pound;34.00
+     </dd>
+     <dd class="govuk-summary-list__actions">
+     </dd>
+    </div>
+   </dl>
+   <h2>Extra Data &pound;</h2>
+   <h2>Declaration Extra Data &pound;</h2>
+  </form>
+ </body>
+</html>
+"""
+
+  val expectedAcknowledgementPdfWithNoHeader =
+    """
+<!doctype html>
+<html lang="en" class="govuk-template ">
+ <head>
+  <title>Check your answers - Minimal declaration - GOV.UK</title>
+  <style>body{font-family:Arial,sans-serif;font-size: 19px;}
+dl{border-bottom: 1px solid #bfc1c3;}
+dt{font-weight: bold;}
+dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;}
+    </style>
+ </head>
+ <body class="govuk-template__body ">
+  <div class="hmrc-organisation-logo">
+   <p class="govuk-body-s"> HM Revenue &amp; Customs </p>
+  </div>
+  <form>
+   <h1 class="govuk-heading-l">AAA999 dev test template</h1>
+   <h3 class="govuk-heading-m"> Page A : </h3>
+   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
+    <div class="govuk-summary-list__row">
+     <dt class="govuk-summary-list__key">
+       Page A :
+     </dt>
+     <dd class="govuk-summary-list__value">
+       &pound;12.00
+     </dd>
+     <dd class="govuk-summary-list__actions">
+     </dd>
+    </div>
+   </dl>
+   <h3 class="govuk-heading-m"> Page B : </h3>
+   <dl class="govuk-summary-list govuk-!-margin-bottom-9">
+    <div class="govuk-summary-list__row">
+     <dt class="govuk-summary-list__key">
+       Page B :
+     </dt>
+     <dd class="govuk-summary-list__value">
+       &pound;34.00
+     </dd>
+     <dd class="govuk-summary-list__actions">
+     </dd>
+    </div>
+   </dl>
+   <h2>Extra Data &pound;</h2>
+   <h2>Declaration Extra Data &pound;</h2>
+   <p>It's a Acknowledgement Section Pdf footer.</p>
+  </form>
+ </body>
+</html>
+"""
+
   "HtmlSanitiser.acknowledgementPdf" should "embellish pdf with summary section data" in {
 
     val extraData = "<h2>Extra Data £</h2>"
@@ -354,6 +513,77 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdf)
 
+  }
+
+  it should "embellish pdf with summary section data having AcknowledgementSection with no Header and Footer" in {
+    val extraData = "<h2>Extra Data £</h2>"
+    val declarationExtraData = "<h2>Declaration Extra Data £</h2>"
+
+    val ackSectionWithNoHeaderAndFooter = ackSection.copy(pdf = None)
+
+    val destinationListWithNoAckSectionHeaderAndFooter =
+      destinationList.copy(acknowledgementSection = ackSectionWithNoHeaderAndFooter)
+
+    val res =
+      HtmlSanitiser.sanitiseHtmlForPDF(
+        Html(input),
+        doc =>
+          HtmlSanitiser.acknowledgementPdf(
+            doc,
+            extraData,
+            declarationExtraData,
+            formTemplate.copy(destinations = destinationListWithNoAckSectionHeaderAndFooter))
+      )
+
+    noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdfWithNoHeaderAndFooter)
+  }
+
+  it should "embellish pdf with summary section data having AcknowledgementSection with no Footer" in {
+    val extraData = "<h2>Extra Data £</h2>"
+    val declarationExtraData = "<h2>Declaration Extra Data £</h2>"
+
+    val ackSectionWithNoFooter = ackSection.copy(
+      pdf = Some(AcknowledgementSectionPdf(Some(toSmartString("It's a Acknowledgement Section Pdf header.")), None)))
+
+    val destinationListWithNoAckSectionFooter =
+      destinationList.copy(acknowledgementSection = ackSectionWithNoFooter)
+
+    val res =
+      HtmlSanitiser.sanitiseHtmlForPDF(
+        Html(input),
+        doc =>
+          HtmlSanitiser.acknowledgementPdf(
+            doc,
+            extraData,
+            declarationExtraData,
+            formTemplate.copy(destinations = destinationListWithNoAckSectionFooter))
+      )
+
+    noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdfWithNoFooter)
+  }
+
+  it should "embellish pdf with summary section data having AcknowledgementSection with no Header" in {
+    val extraData = "<h2>Extra Data £</h2>"
+    val declarationExtraData = "<h2>Declaration Extra Data £</h2>"
+
+    val ackSectionWithNoHeader = ackSection.copy(
+      pdf = Some(AcknowledgementSectionPdf(None, Some(toSmartString("It's a Acknowledgement Section Pdf footer.")))))
+
+    val destinationListWithNoAckSectionHeader =
+      destinationList.copy(acknowledgementSection = ackSectionWithNoHeader)
+
+    val res =
+      HtmlSanitiser.sanitiseHtmlForPDF(
+        Html(input),
+        doc =>
+          HtmlSanitiser.acknowledgementPdf(
+            doc,
+            extraData,
+            declarationExtraData,
+            formTemplate.copy(destinations = destinationListWithNoAckSectionHeader))
+      )
+
+    noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdfWithNoHeader)
   }
 
   val expectedPrintSectionPdf =

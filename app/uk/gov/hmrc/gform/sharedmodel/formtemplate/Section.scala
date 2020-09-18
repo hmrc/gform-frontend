@@ -144,11 +144,18 @@ case class AcknowledgementSection(
   description: Option[SmartString],
   shortName: Option[SmartString],
   fields: List[FormComponent],
-  showReference: Boolean
+  showReference: Boolean,
+  pdf: Option[AcknowledgementSectionPdf]
 ) extends BaseSection
 
 object AcknowledgementSection {
   implicit val format: OFormat[AcknowledgementSection] = Json.format[AcknowledgementSection]
+}
+
+case class AcknowledgementSectionPdf(header: Option[SmartString], footer: Option[SmartString])
+
+object AcknowledgementSectionPdf {
+  implicit val format: OFormat[AcknowledgementSectionPdf] = Json.format[AcknowledgementSectionPdf]
 }
 
 case class EnrolmentSection(
