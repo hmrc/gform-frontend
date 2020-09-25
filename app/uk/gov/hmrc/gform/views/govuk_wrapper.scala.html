@@ -111,14 +111,6 @@
 
 @formSupportsLanguages = @{size > 1 && formLanguageSet.subsetOf(appLanguageSet)}
 
-@accessibilityFooterHref = @{uk.gov.hmrc.gform.gform.routes.StaticPagesController.accessibilityPage(templateId)}
-
-@accessibilityFooterLink = @{
-    FooterItem(text = Some(messages("footer.links.accessibility.text")),
-        href = Some(accessibilityFooterHref.url),
-        attributes = Map("target" -> "_blank", "data-sso" -> "false", "data-journey-click" -> "footer:Click:Accessibility") )
-}
-
 @govukHeader = @{new govukHeader()}
 @govukFooter = @{new govukFooter()}
 @govukBackLink = @{new govukBackLink()}
@@ -197,5 +189,5 @@
   beforeContentBlock = Some(beforeContentBlock),
   bodyEndBlock = None,
   scriptsBlock = Some(scripts),
-  footerBlock = Some(govukFooter(Footer(meta = Some(Meta(items = Some(FooterLinks.items(appConfig) :+ accessibilityFooterLink))))))
+  footerBlock = Some(govukFooter(Footer(meta = Some(Meta(items = Some(FooterLinks.items(appConfig, templateId)))))))
 )(contentBlock)

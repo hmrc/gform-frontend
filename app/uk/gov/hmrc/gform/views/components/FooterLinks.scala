@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.views.components
 
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.govukfrontend.views.viewmodels.footer.FooterItem
 
 object FooterLinks {
@@ -42,11 +43,24 @@ object FooterLinks {
     Some(appConfig.footerHelpUrl)
   )
 
-  def items(appConfig: FrontendAppConfig)(implicit messages: Messages) = Seq(
+  def accessibilityStatementLink(appConfig: FrontendAppConfig, templateId: FormTemplateId)(
+    implicit messages: Messages) =
+    FooterItem(
+      Some(messages("footer.links.accessibility.text")),
+      Some(s"${appConfig.footerAccessibilityStatementUrl}/${templateId.value.toLowerCase}"),
+      Map(
+        "target"             -> "_blank",
+        "data-sso"           -> "false",
+        "data-journey-click" -> "footer:Click:Accessibility"
+      )
+    )
+
+  def items(appConfig: FrontendAppConfig, templateId: FormTemplateId)(implicit messages: Messages) = Seq(
     cookieLink(appConfig),
     privacyLink(appConfig),
     termsConditionsLink(appConfig),
-    helpLink(appConfig)
+    helpLink(appConfig),
+    accessibilityStatementLink(appConfig, templateId)
   )
 
 }
