@@ -36,6 +36,7 @@ case class FrontendAppConfig(
   footerPrivacyPolicyUrl: String,
   footerTermsConditionsUrl: String,
   footerHelpUrl: String,
+  footerAccessibilityStatementUrl: String,
   whitelistEnabled: Boolean,
   googleTagManagerIdAvailable: Boolean,
   googleTagManagerId: String,

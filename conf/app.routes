@@ -53,7 +53,6 @@ GET           /lookup/:formTemplateId/:register/:query                          
 
 GET           /sign-out/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.SignOutController.signOut(formTemplateId: FormTemplateId)
 GET           /signed-out                                                                                        uk.gov.hmrc.gform.gform.SignOutController.showSignedOutPage(signBackInUrl: String)
-GET           /accessibility/:formTemplateId                                                                     uk.gov.hmrc.gform.gform.StaticPagesController.accessibilityPage(formTemplateId: FormTemplateId)
 GET           /help-with-registration/:formTemplateId                                                            uk.gov.hmrc.gform.gform.StaticPagesController.helpWithRegistrationPage(formTemplateId: FormTemplateId)
 
 GET           /printSection/:formTemplateId                                                                      uk.gov.hmrc.gform.gform.PrintSectionController.showPrintSection(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])

@@ -90,6 +90,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       footerPrivacyPolicyUrl = typesafeConfig.getString("footer-privacy-policy-url"),
       footerTermsConditionsUrl = typesafeConfig.getString("footer-terms-conditions-url"),
       footerHelpUrl = typesafeConfig.getString("footer-help-url"),
+      footerAccessibilityStatementUrl = typesafeConfig.getString("footer-accessibility-statement-url"),
       betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier",
       whitelistEnabled = typesafeConfig.getString("whitelisting-enabled").toBoolean,
       googleTagManagerIdAvailable = typesafeConfig.getString("google-tag-manager.id-available").toBoolean,

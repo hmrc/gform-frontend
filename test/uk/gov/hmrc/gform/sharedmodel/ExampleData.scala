@@ -588,6 +588,7 @@ trait ExampleFrontendAppConfig {
     footerPrivacyPolicyUrl = "",
     footerTermsConditionsUrl = "",
     footerHelpUrl = "",
+    footerAccessibilityStatementUrl = "",
     whitelistEnabled = true,
     googleTagManagerIdAvailable = false,
     googleTagManagerId = "",
