@@ -101,7 +101,9 @@ class UploadableDestinationSpec extends Spec {
       businessArea,
       convertSingleQuotes,
       Some(includeIf),
-      Some(failOnError)
+      Some(failOnError),
+      Some(roboticsXml),
+      Some(backscan)
     )
   }
 
