@@ -124,6 +124,7 @@ object FormTemplateBuilder {
           "TestHmrcDmsBusinessArea",
           "",
           true,
+          true,
           true
         )),
       ackSection,

@@ -53,6 +53,7 @@ trait ExampleAuthConfig {
     "TestHmrcDmsBusinessArea",
     "",
     true,
+    true,
     true
   )
 
