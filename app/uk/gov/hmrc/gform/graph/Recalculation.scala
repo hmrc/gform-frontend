@@ -396,6 +396,14 @@ class Evaluator[F[_]: Monad](
         NonConvertible(RecalculationOp.newValue(AuthContextPrepop.values(value, retrievals)).pure[F])
       case LinkCtx(internalLink) =>
         internalLink match {
+          case InternalLink.PrintSummaryPdf =>
+            NonConvertible(
+              RecalculationOp
+                .newValue(
+                  uk.gov.hmrc.gform.gform.routes.SummaryController
+                    .downloadPDF(formTemplate._id, maybeAccessCode)
+                    .url)
+                .pure[F])
           case InternalLink.PrintAcknowledgementPdf =>
             NonConvertible(
               RecalculationOp
