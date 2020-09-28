@@ -23,7 +23,6 @@ import cats.data.EitherT
 import cats.instances.future._
 import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
 import play.api.libs.json.JsValue
-import play.api.{ Configuration, Mode }
 import play.api.libs.json.Json
 import play.api.mvc._
 
@@ -44,8 +43,8 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
-import uk.gov.hmrc.play.config.ServicesConfig
 
 class TestOnlyController(
   proxy: ProxyActions,
@@ -53,11 +52,9 @@ class TestOnlyController(
   lookupRegistry: LookupRegistry,
   auth: AuthenticatedRequestActions,
   customerIdRecalculation: CustomerIdRecalculation[Future],
-  controllerComponents: MessagesControllerComponents,
-  override protected val mode: Mode,
-  override protected val runModeConfiguration: Configuration
-)(implicit ec: ExecutionContext)
-    extends FrontendController(controllerComponents: MessagesControllerComponents) with ServicesConfig {
+  servicesConfig: ServicesConfig,
+  controllerComponents: MessagesControllerComponents)(implicit ec: ExecutionContext)
+    extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
 
@@ -82,9 +79,9 @@ class TestOnlyController(
     gformConnector.getForm(formId).map(form => Ok(form.envelopeId.value))
   }
 
-  private lazy val gformBaseUrl = baseUrl("gform")
-  private lazy val fileUploadBaseUrl = baseUrl("file-upload")
-  private lazy val save4Later = baseUrl("save4later")
+  private lazy val gformBaseUrl = servicesConfig.baseUrl("gform")
+  private lazy val fileUploadBaseUrl = servicesConfig.baseUrl("file-upload")
+  private lazy val save4Later = servicesConfig.baseUrl("save4later")
 
   private def recov[A](f: Future[A])(errorMsg: String)(implicit ec: ExecutionContext): FOpt[A] =
     fromFutureOptA(f.map(Right.apply).recover { case e => Left(UnexpectedState(errorMsg + "\n" + e.getMessage)) })

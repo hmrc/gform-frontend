@@ -31,6 +31,6 @@ object EmailVerifierService {
   case class Notify(emailTemplateId: NotifierTemplateId) extends EmailVerifierService
   case class DigitalContact(emailTemplateId: EmailTemplateId) extends EmailVerifierService
 
-  implicit val format: OFormat[EmailVerifierService] = derived.oformat
+  implicit val format: OFormat[EmailVerifierService] = derived.oformat()
 
 }

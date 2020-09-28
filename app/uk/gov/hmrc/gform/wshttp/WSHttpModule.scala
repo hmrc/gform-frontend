@@ -28,8 +28,8 @@ class WSHttpModule(
   akkaModule: AkkaModule,
   ahcWSComponents: AhcWSComponents) {
   lazy val auditableWSHttp: WSHttp = new WSHttpImpl(
+    configModule.appConfig.appName,
     auditingModule.auditConnector,
-    configModule.playConfiguration,
     Some(configModule.typesafeConfig),
     akkaModule.actorSystem,
     wsClient

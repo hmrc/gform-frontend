@@ -18,23 +18,21 @@ package uk.gov.hmrc.gform.wshttp
 
 import akka.actor.ActorSystem
 import com.typesafe.config.Config
-import play.api.Configuration
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.http.hooks.HttpHooks
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.play.config.AppName
 
 trait WSHttp extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpDelete with WSDelete
 
 class WSHttpImpl(
-  override val auditConnector: AuditConnector,
-  override val appNameConfiguration: Configuration,
-  override val configuration: Option[Config],
-  override val actorSystem: ActorSystem,
-  override val wsClient: WSClient
-) extends WSHttp with HttpHooks with HttpAuditing with AppName {
+  val appName: String,
+  val auditConnector: AuditConnector,
+  val configuration: Option[Config],
+  val actorSystem: ActorSystem,
+  val wsClient: WSClient
+) extends WSHttp with HttpHooks with HttpAuditing {
   override val hooks = Seq(AuditingHook)
 }

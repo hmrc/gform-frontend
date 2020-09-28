@@ -39,12 +39,12 @@ object Destinations {
     pdfNotification: Option[PrintSection.PdfNotification])
       extends Destinations
 
-  implicit val destinationListFormat: OFormat[DestinationList] = derived.oformat
+  implicit val destinationListFormat: OFormat[DestinationList] = derived.oformat()
 
   implicit val destinationPrintFormat: OFormat[DestinationPrint] = Json.format[DestinationPrint]
 
   implicit val format: OFormat[Destinations] = {
-    implicit val destinationsFormat: OFormat[Destinations] = derived.oformat
+    implicit val destinationsFormat: OFormat[Destinations] = derived.oformat()
 
     OFormatWithTemplateReadFallback(
       safeCast[DestinationList, Destinations](destinationListFormat) orElse

@@ -125,7 +125,7 @@ object Section {
     override lazy val expandedFormComponents: List[FormComponent] = pages.toList.flatMap(_.expandedFormComponents)
   }
 
-  implicit val format: OFormat[Section] = derived.oformat[Section]
+  implicit val format: OFormat[Section] = derived.oformat()
 }
 
 case class DeclarationSection(

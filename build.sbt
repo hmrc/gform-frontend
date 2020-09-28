@@ -1,6 +1,5 @@
 import Dependencies.appDependencies
 import play.sbt.routes.RoutesKeys.routesImport
-import sbt.Tests.{ Group, SubProcess }
 import sbt.inConfig
 import uk.gov.hmrc.DefaultBuildSettings._
 import uk.gov.hmrc.SbtAutoBuildPlugin
@@ -23,7 +22,7 @@ lazy val microservice = (project in file("."))
     publishingSettings,
     defaultSettings(),
     scalafmtOnCompile := true,
-    scalaVersion := "2.11.12",
+    scalaVersion := "2.12.11",
     libraryDependencies ++= appDependencies,
     evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
     routesImport ++= Seq(
@@ -40,7 +39,7 @@ lazy val microservice = (project in file("."))
       "play.twirl.api.HtmlFormat",
       "uk.gov.hmrc.gform.sharedmodel._",
       "uk.gov.hmrc.gform.eval.smartstring._",
-      "uk.gov.hmrc.csp.WebchatClient",
+      //"uk.gov.hmrc.csp.WebchatClient",
       "uk.gov.hmrc.govukfrontend.views.html.components._",
       "uk.gov.hmrc.govukfrontend.views.html.helpers._"
     )
@@ -65,7 +64,6 @@ lazy val microservice = (project in file("."))
     Keys.fork in IntegrationTest := false,
     unmanagedSourceDirectories in IntegrationTest := { (baseDirectory in IntegrationTest)(base => Seq(base / "it")) }.value,
     addTestReportOption(IntegrationTest, "int-test-reports"),
-    testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
     parallelExecution in IntegrationTest := false
   )
   .settings(resolvers ++= Seq(
@@ -75,8 +73,3 @@ lazy val microservice = (project in file("."))
     "hmrc-releases" at "https://artefacts.tax.service.gov.uk/artifactory/hmrc-releases/",
     "bintray" at "https://dl.bintray.com/webjars/maven"
   ))
-
-def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =
-  tests map { test =>
-    Group(test.name, Seq(test), SubProcess(ForkOptions(runJVMOptions = Seq("-Dtest.name=" + test.name))))
-  }

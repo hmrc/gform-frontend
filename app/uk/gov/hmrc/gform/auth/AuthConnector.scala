@@ -16,20 +16,13 @@
 
 package uk.gov.hmrc.gform.auth
 
-import play.api.{ Configuration, Mode }
+import play.api.Configuration
 import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.play.bootstrap.config.{ RunMode, ServicesConfig }
 
-import scala.concurrent.{ ExecutionContext, Future }
-
-class AuthConnector(
-  baseUrl: String,
-  wsHttp: WSHttp,
-  override protected val mode: Mode,
-  override protected val runModeConfiguration: Configuration)
-    extends PlayAuthConnector with ServicesConfig {
+class AuthConnector(baseUrl: String, wsHttp: WSHttp, runMode: RunMode, configuration: Configuration)
+    extends ServicesConfig(configuration, runMode) with PlayAuthConnector {
   val serviceUrl = baseUrl
   lazy val http = wsHttp
 }

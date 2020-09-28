@@ -17,12 +17,10 @@
 package uk.gov.hmrc.gform.config
 
 import play.api.i18n.{ Lang, Messages }
-import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EeittModule, FormTemplateId }
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
 case class FrontendAppConfig(
-  webchatClient: WebchatClient,
   albAdminIssuerUrl: String,
   analyticsToken: String,
   analyticsHost: String,

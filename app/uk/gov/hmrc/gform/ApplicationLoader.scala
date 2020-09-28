@@ -30,12 +30,9 @@ import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import controllers.{ CSRFErrorHandler, ControllersModule, ErrResponder, ErrorHandler }
+import uk.gov.hmrc.gform.controllers.{ CSRFErrorHandler, ControllersModule, ErrResponder, ErrorHandler }
 import _root_.controllers.AssetsComponents
-import play.api.libs.crypto.{ CookieSigner, DefaultCookieSigner }
 import play.filters.csrf.{ CSRF, CSRFComponents }
-import uk.gov.hmrc.csp.{ CachedStaticHtmlPartialProvider, WebchatClient }
-import uk.gov.hmrc.csp.config.ApplicationConfig
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
@@ -169,7 +166,6 @@ class ApplicationModule(context: Context)
 
   private val testOnlyModule = new TestOnlyModule(
     configModule,
-    playBuiltInsModule,
     gformBackendModule,
     controllersModule,
     graphModule,

@@ -19,10 +19,8 @@ package auth
 
 import play.api.i18n.I18nSupport
 import play.api.mvc.MessagesControllerComponents
-import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActionsAlgebra
-import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.Future

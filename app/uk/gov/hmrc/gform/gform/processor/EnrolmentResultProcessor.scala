@@ -20,9 +20,7 @@ import cats.data.Validated.Invalid
 import cats.syntax.validated._
 import play.api.i18n.Messages
 import play.api.mvc.{ AnyContent, Request, Result }
-import play.twirl.api.Html
 import play.api.mvc.Results.{ Ok, Redirect }
-import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope

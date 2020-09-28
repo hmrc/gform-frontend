@@ -25,11 +25,9 @@ import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
 class TestOnlyModule(
   configModule: ConfigModule,
-  playBuiltInsModule: PlayBuiltInsModule,
   gformBackendModule: GformBackendModule,
   controllersModule: ControllersModule,
   graphModule: GraphModule,
@@ -47,8 +45,7 @@ class TestOnlyModule(
     lookupRegistry,
     controllersModule.authenticatedRequestActions,
     graphModule.customerIdRecalculation,
-    controllersModule.messagesControllerComponents,
-    configModule.mode,
-    configModule.playConfiguration
+    configModule.serviceConfig,
+    controllersModule.messagesControllerComponents
   )
 }

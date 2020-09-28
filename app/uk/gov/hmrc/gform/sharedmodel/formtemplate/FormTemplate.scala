@@ -78,5 +78,5 @@ object FormTemplate {
     Json.reads[FormTemplate].reads(json)
   }
 
-  implicit val format: OFormat[FormTemplate] = OFormat(reads, derived.owrites[FormTemplate])
+  implicit val format: OFormat[FormTemplate] = OFormat(reads, derived.owrites[FormTemplate]())
 }

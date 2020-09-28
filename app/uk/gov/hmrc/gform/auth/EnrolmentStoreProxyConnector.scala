@@ -31,7 +31,7 @@ case class DelegatedUserIds(delegatedUserIds: List[String])
 object DelegatedUserIds {
 
   val empty = DelegatedUserIds(Nil)
-  implicit val format: Format[DelegatedUserIds] = derived.oformat
+  implicit val format: Format[DelegatedUserIds] = derived.oformat()
 }
 
 class EnrolmentStoreProxyConnector(baseUrl: String, http: WSHttp) {

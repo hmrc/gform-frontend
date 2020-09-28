@@ -57,7 +57,7 @@ case object IsUpperCase extends UpperCaseBoolean
 case object IsNotUpperCase extends UpperCaseBoolean
 
 object UpperCaseBoolean {
-  implicit val format: OFormat[UpperCaseBoolean] = derived.oformat
+  implicit val format: OFormat[UpperCaseBoolean] = derived.oformat()
 }
 
 case class TextArea(
@@ -127,19 +127,19 @@ final case object Checkbox extends ChoiceType
 final case object YesNo extends ChoiceType
 
 object ChoiceType {
-  implicit val format: OFormat[ChoiceType] = derived.oformat
+  implicit val format: OFormat[ChoiceType] = derived.oformat()
   implicit val equal: Eq[ChoiceType] = Eq.fromUniversalEquals
 }
 
 case class RevealingChoiceElement(choice: SmartString, revealingFields: List[FormComponent], selected: Boolean)
 object RevealingChoiceElement {
-  implicit val format: OFormat[RevealingChoiceElement] = derived.oformat
+  implicit val format: OFormat[RevealingChoiceElement] = derived.oformat()
 }
 case class RevealingChoice(options: NonEmptyList[RevealingChoiceElement], multiValue: Boolean) extends ComponentType
 object RevealingChoice {
   implicit val format: OFormat[RevealingChoice] = {
     import JsonUtils._
-    derived.oformat
+    derived.oformat()
   }
 
   val slice: FormComponentId => VariadicFormData => RevealingChoice => List[FormComponent] = fcId =>
@@ -168,7 +168,7 @@ case class HmrcTaxPeriod(idType: IdType, idNumber: Expr, regimeType: RegimeType)
 
 object HmrcTaxPeriod {
   implicit val catsEq: Eq[HmrcTaxPeriod] = Eq.fromUniversalEquals
-  implicit val format: OFormat[HmrcTaxPeriod] = derived.oformat
+  implicit val format: OFormat[HmrcTaxPeriod] = derived.oformat()
 }
 
 sealed trait Orientation
@@ -176,7 +176,7 @@ case object Vertical extends Orientation
 case object Horizontal extends Orientation
 object Orientation {
   implicit val catsEq: Eq[Orientation] = Eq.fromUniversalEquals
-  implicit val format: OFormat[Orientation] = derived.oformat
+  implicit val format: OFormat[Orientation] = derived.oformat()
 }
 
 sealed trait InfoType
@@ -191,7 +191,7 @@ case object BannerInfo extends InfoType
 case object NoFormat extends InfoType
 
 object InfoType {
-  implicit val format: OFormat[InfoType] = derived.oformat
+  implicit val format: OFormat[InfoType] = derived.oformat()
 }
 
 case class Group(
@@ -211,19 +211,19 @@ case class FileUpload() extends ComponentType
 case class StartTime(time: LocalTime) extends AnyVal
 
 object StartTime {
-  implicit val format: OFormat[StartTime] = derived.oformat
+  implicit val format: OFormat[StartTime] = derived.oformat()
 }
 
 case class EndTime(time: LocalTime) extends AnyVal
 
 object EndTime {
-  implicit val format: OFormat[EndTime] = derived.oformat
+  implicit val format: OFormat[EndTime] = derived.oformat()
 }
 
 case class Range(startTime: StartTime, endTime: EndTime)
 
 object Range {
-  implicit val format: OFormat[Range] = derived.oformat
+  implicit val format: OFormat[Range] = derived.oformat()
 
   def stringToLocalTime(formatter: DateTimeFormatter, time: String): LocalTime =
     LocalTime.parse(time, formatter)
@@ -251,13 +251,13 @@ object Range {
 case class IntervalMins(intervalMins: Int) extends AnyVal
 
 object IntervalMins {
-  implicit val format: OFormat[IntervalMins] = derived.oformat
+  implicit val format: OFormat[IntervalMins] = derived.oformat()
 }
 
 case class Time(ranges: List[Range], intervalMins: IntervalMins) extends ComponentType
 
 object Time {
-  implicit val format: OFormat[Time] = derived.oformat
+  implicit val format: OFormat[Time] = derived.oformat()
 }
 
 object ComponentType {
@@ -273,5 +273,5 @@ object ComponentType {
     JsArray((v.head :: v.tail).map(Json.toJson(_)))
   }
 
-  implicit val format: OFormat[ComponentType] = derived.oformat
+  implicit val format: OFormat[ComponentType] = derived.oformat()
 }
