@@ -125,7 +125,7 @@ object FormTemplateBuilder {
           "",
           true,
           true,
-          true
+          Some(true)
         )),
       ackSection,
       DeclarationSection(toSmartString("Declaration"), None, None, Nil)

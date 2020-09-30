@@ -54,7 +54,7 @@ trait ExampleAuthConfig {
     "",
     true,
     true,
-    true
+    Some(true)
   )
 
   val formComponent = List(buildFormComponent("fieldInAcknowledgementSections", Value))
