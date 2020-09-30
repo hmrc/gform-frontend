@@ -103,6 +103,7 @@ enrolment.error.failed.step1=check your details and try again
 enrolment.error.failed.step2=get help with signing in to this service (opens in a new window or tab)
 enrolment.error.regimeId=The registration number you have entered is for a different tax service
 enrolment.error.missingIdentifier=A registration number must be entered
+enrolment.error.conflict=You need to request access to use this service
 
 enrolment.help.title=Get help with your registration details
 enrolment.help.description=Contact HMRC to get help with your registration details so that you can sign in to the service that you are registered for.
@@ -114,6 +115,7 @@ enrolment.help.opening.times=Opening times:
 enrolment.help.open.days=Monday to Friday: 8am to 6pm
 enrolment.help.closed.days=Closed weekends and bank holidays.
 enrolment.help.call.charges=Find out about call charges
+enrolment.insufficient=Insufficient Enrolments
 
 # Access code form field errors
 accessOption.error.required=Select whether you would like to access an existing {0} or start a new one
