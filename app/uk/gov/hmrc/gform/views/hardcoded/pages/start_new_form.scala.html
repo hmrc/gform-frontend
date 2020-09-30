@@ -33,7 +33,7 @@
 @govukButton = @{new govukButton()}
 @button = @{messages("button.continue")}
 
-@heading = @{messages("accessCode.new.title")}
+@heading = @{messages("accessCode.new.title", displayAccessCode.accessCodeName)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,

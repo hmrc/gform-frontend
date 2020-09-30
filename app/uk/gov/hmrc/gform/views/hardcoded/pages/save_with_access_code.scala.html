@@ -24,7 +24,7 @@
 )(implicit request: Request[_], messages: Messages, l: LangADT)
 
 @uk.gov.hmrc.gform.views.html.main_template(
-  title = "",
+  title = saveWithAccessCode.heading,
   serviceName = saveWithAccessCode.formTemplate.formName.value,
   developmentPhase = saveWithAccessCode.formTemplate.developmentPhase,
   frontendAppConfig = frontendAppConfig,
