@@ -103,7 +103,7 @@ class UploadableDestinationSpec extends Spec {
       Some(includeIf),
       Some(failOnError),
       Some(roboticsXml),
-      Some(backscan)
+      backscan
     )
   }
 
