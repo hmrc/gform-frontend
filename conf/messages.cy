@@ -98,6 +98,7 @@ enrolment.error.failed.step1=gwirio’ch manylion a rhoi cynnig arall arni
 enrolment.error.failed.step2=cael help gyda mewngofnodi i’r gwasanaeth hwn (yn agor ffenestr neu dab newydd)
 enrolment.error.regimeId=Mae’r rhif cofrestru a nodwyd gennych ar gyfer gwasanaeth dreth wahanol
 enrolment.error.missingIdentifier=Rhaid nodi rhif cofrestru
+enrolment.error.conflict=Mae angen i chi ofyn am fynediad i ddefnyddio'r gwasanaeth hwn
 
 enrolment.help.title=Help gyda’ch manylion cofrestru
 enrolment.help.description=Cysylltwch â CThEM am help gyda’ch manylion cofrestru er mwyn i chi allu mewngofnodi i’r gwasanaeth rydych wedi cofrestru ar ei gyfer.
@@ -109,6 +110,7 @@ enrolment.help.opening.times=Oriau agor:
 enrolment.help.open.days=Dydd Llun i Ddydd Gwener, 08:00 i 18:00
 enrolment.help.closed.days=Ar gau ar benwythnosau a gwyliau’r banc.
 enrolment.help.call.charges=Gwybodaeth am gostau galwadau
+enrolment.insufficient=Cofrestriadau Annigonol
 
 # Access code form field errors
 accessOption.error.required=Dewiswch p’un a hoffech gyrchu {0} sydd ohoni, neu ddechrau un newydd

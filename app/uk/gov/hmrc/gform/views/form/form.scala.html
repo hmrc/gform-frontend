@@ -68,7 +68,7 @@
 @govukButton = @{new govukButton()}
 
 @main_template(
-  title = heading,
+  title = if(isDeclaration) heading else "",
   serviceName = formTemplate.formName.value,
   containsErrors = pageLevelError.hasErrors,
   developmentPhase = formTemplate.developmentPhase,
