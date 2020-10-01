@@ -25,8 +25,7 @@
 @(fieldValue: FormComponent,
   text: uk.gov.hmrc.gform.sharedmodel.formtemplate.Text,
   prepop: Option[String],
-  validationResult: Option[FormFieldValidationResult],
-  index: Int,
+  validationResult: FormFieldValidationResult,
   formLevelHeading: Boolean)(
   implicit
     messages: Messages,
@@ -35,7 +34,7 @@
 )
 
 @hasErrors = @{
-  validationResult.exists(_.isNotOk)
+  validationResult.isNotOk
 }
 @inputBoxSize = @{
     fieldValue.`type` match {
@@ -66,7 +65,7 @@
 
 @label = {
   <label class="@{if(!formLevelHeading){"h1-heading"} else {"form-label"}}@if(fieldValue.derived){ js-hidden}" for="@{fieldValue.id}">
-    @LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
+    @fieldValue.label.value
     @sterlingHelp
   </label>
   }
@@ -89,7 +88,7 @@
         name="@fieldValue.id"
         @if(!fieldValue.editable) { readonly="" }
         id="@fieldValue.id"
-        value="@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")"
+        value="@prepop.orElse(validationResult.getCurrentValue).getOrElse("")"
         class="@inputClasses @sizeClasses @inputBoxSize@if(fieldValue.derived){ js-hidden}"
         @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>  @TextFormatter.appendUnit(text.constraint)
     } else {
@@ -99,7 +98,7 @@
             name="@fieldValue.id"
             @if(!fieldValue.editable) { readonly="" }
             id="@fieldValue.id"
-            value="@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")"
+            value="@prepop.orElse(validationResult.getCurrentValue).getOrElse("")"
             class="@inputClasses @sizeClasses @inputBoxSize input--left-padding"
             @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
     </span>

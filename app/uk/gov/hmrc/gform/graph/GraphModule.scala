@@ -25,9 +25,9 @@ import cats.syntax.show._
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.eval.BooleanExprEval
-import uk.gov.hmrc.gform.gform.PrepopService
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Eeitt, FormTemplate }
+import uk.gov.hmrc.gform.eval.{ BooleanExprEval, DbLookupChecker, DelegatedEnrolmentChecker }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.eval.SeissEligibilityChecker
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.http.HeaderCarrier
@@ -40,29 +40,23 @@ class GraphModule(
   implicit ec: ExecutionContext
 ) {
 
-  private val prepopService = new PrepopService(authModule.eeittService)
+  val seissEligibilityChecker = new SeissEligibilityChecker(
+    authModule.selfEmployedIncomeSupportEligibilityConnector.eligibilityStatus)
 
-  private val evaluator: Evaluator[Future] = new Evaluator[Future](prepopService.eeittPrepop)
+  val delegatedEnrolmentCheckStatus =
+    new DelegatedEnrolmentChecker(authModule.delegatedEnrolmentService.checkDelegatedEnrolment)
 
-  val booleanExprEval: BooleanExprEval[Future] =
-    new BooleanExprEval(
-      evaluator,
-      authModule.selfEmployedIncomeSupportEligibilityConnector.eligibilityStatus,
-      gformBackendModule.gformConnector.dbLookup,
-      authModule.delegatedEnrolmentService.checkDelegatedEnrolment
-    )
+  val dbLookupCheckStatus = new DbLookupChecker(gformBackendModule.gformConnector.dbLookup)
+
+  private val graphErrorHandler = (s: GraphException) => new IllegalArgumentException(s.reportProblem)
 
   val recalculation: Recalculation[Future, Throwable] =
-    new Recalculation(booleanExprEval, (s: GraphException) => new IllegalArgumentException(s.reportProblem))
-
-  val eeittId: (Eeitt, MaterialisedRetrievals, FormTemplate, HeaderCarrier) => Future[String] =
-    (e, mr, ft, hc) => authModule.eeittService.getValue(e, mr, ft)(hc)
-
-  val customerIdRecalculation = new CustomerIdRecalculation(eeittId)
-
-  private val idEvaluator: Evaluator[Id] = new Evaluator[Id]((_, _, template, _) =>
-    throw new Exception(show"Cannot do eeitt prepop here! FormTemplate is ${template._id}"))
+    new Recalculation(seissEligibilityChecker, delegatedEnrolmentCheckStatus, dbLookupCheckStatus, graphErrorHandler)
 
   val smartStringEvaluatorFactory: SmartStringEvaluatorFactory =
-    new RealSmartStringEvaluatorFactory(idEvaluator)
+    new RealSmartStringEvaluatorFactory()
+
+  val booleanExprEval: BooleanExprEval[Future] =
+    new BooleanExprEval(seissEligibilityChecker)
+
 }

@@ -52,10 +52,10 @@ package object destinations {
           |  ${optionalField("failOnError", Option(destination.failOnError), true)}
           |  "${Destination.typeDiscriminatorFieldName}": "${Destination.hmrcDms}",
           |  "dmsFormId": "$dmsFormId",
-          |  "customerId": ${TextExpression.format.writes(customerId)},
+          |  "customerId": ${Expr.format.writes(customerId)},
           |  "classificationType": "$classificationType",
           |  ${optionalField("roboticsXml", Option(roboticsXml), false)}
-          |  ${optionalField("closedStatus", Option(backscan), false)}
+          |  ${optionalField("closedStatus", Option(backscan), None)}
           |  "businessArea": "$businessArea"
           |}""".stripMargin
 
@@ -67,7 +67,7 @@ package object destinations {
           |  ${optionalField("convertSingleQuotes", Option(false))}
           |  "${Destination.typeDiscriminatorFieldName}": "${Destination.submissionConsolidator}",
           |  "projectId": "${submissionConsolidator.projectId.id}",
-          |  "customerId": ${TextExpression.format.writes(submissionConsolidator.customerId)}
+          |  "customerId": ${Expr.format.writes(submissionConsolidator.customerId)}
           |}""".stripMargin
 
     case handlebars: Destination.HandlebarsHttpApi =>

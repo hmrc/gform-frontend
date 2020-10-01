@@ -15,6 +15,12 @@ linkText.addRepeatingGroup=Add another
 linkText.signOut=Sign out
 linkText.signBackIn=Sign back in
 
+addToList.change=Change
+addToList.change.visually.hidden=Change {0}
+addToList.remove=Remove
+addToList.remove.visually.hidden=Remove {0} from the list
+addToList.addOrRemove=Add or remove
+
 button.continue=Continue
 button.saveAndContinue=Save and continue
 button.acceptAndSubmit=Accept and submit
@@ -103,6 +109,7 @@ enrolment.error.failed.step1=check your details and try again
 enrolment.error.failed.step2=get help with signing in to this service (opens in a new window or tab)
 enrolment.error.regimeId=The registration number you have entered is for a different tax service
 enrolment.error.missingIdentifier=A registration number must be entered
+enrolment.error.conflict=You need to request access to use this service
 
 enrolment.help.title=Get help with your registration details
 enrolment.help.description=Contact HMRC to get help with your registration details so that you can sign in to the service that you are registered for.
@@ -114,6 +121,7 @@ enrolment.help.opening.times=Opening times:
 enrolment.help.open.days=Monday to Friday: 8am to 6pm
 enrolment.help.closed.days=Closed weekends and bank holidays.
 enrolment.help.call.charges=Find out about call charges
+enrolment.insufficient=Insufficient Enrolments
 
 # Access code form field errors
 accessOption.error.required=Select whether you would like to access an existing {0} or start a new one
@@ -158,6 +166,7 @@ internationalAddress.line2.label=line 2
 internationalAddress.line3.label=line 3
 internationalAddress.line4.label=line 4
 internationalAddress.country.label=country
+internationalAddress.country.error.maxLength={0} country must be no more than {1} characters
 
 # Generic address
 address.isUK=Is this a UK address?
@@ -181,7 +190,7 @@ date.inMonth=in {0}
 date.ofMonth=of {0}
 date.before={0} must be before {1}
 date.after={0} must be after {1}
-date.exactDate={0} must be {1}
+date.precisely={0} must be {1}
 date.isMissing={0} is missing
 date.invalid={0} must be a valid date
 
@@ -321,7 +330,6 @@ submission.date=Submission date
 submission.reference=Submission reference
 submission.mark=Submission mark
 submission.details=Submission details
-submission.declaration.details=Declaration details
 
 # Save4later
 save4later.saved.title=Your {0} has been saved

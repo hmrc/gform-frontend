@@ -24,9 +24,7 @@ import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
-import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT }
-import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.models.mappings.{ NINO => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
@@ -58,20 +56,6 @@ class AuthServiceSpec extends ExampleData with Spec {
     albAdminIssuerUrl = "",
     `case-worker-assumed-identity-cookie` = "caseworker-assumed-identity"
   )
-
-  lazy val wSHttp = new StubbedWSHttp(
-    HttpResponse(responseStatus = 200, responseJson = Some(JsObject(Map("isAllowed" -> JsBoolean(true))))))
-  val mockEeittConnector = new EeittConnector("", wSHttp)
-  val mockEeittDelegate = new EeittAuthorisationDelegate(mockEeittConnector, "/eeitt-frontend-base")
-  val mockEeittService = new EeittService(mockEeittConnector)
-  val authService = new AuthService(appConfig, mockEeittDelegate, mockEeittService)
-
-  lazy val wSHttpNotAllowed = new StubbedWSHttp(
-    HttpResponse(responseStatus = 200, responseJson = Some(JsObject(Map("isAllowed" -> JsBoolean(false))))))
-  val mockEeittConnectorNotAllowed = new EeittConnector("", wSHttpNotAllowed)
-  val mockEeittDelegateNotAllowed = new EeittAuthorisationDelegate(mockEeittConnectorNotAllowed, "/eeitt-frontend-base")
-  val mockEeittServiceNotAllowed = new EeittService(mockEeittConnectorNotAllowed)
-  val authServiceNotAllowed = new AuthService(appConfig, mockEeittDelegateNotAllowed, mockEeittServiceNotAllowed)
 
   implicit val request: Request[AnyContent] = null
 
@@ -113,7 +97,7 @@ class AuthServiceSpec extends ExampleData with Spec {
           identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890")))))
     )
 
-  val requestUri = "/submissions/test"
+  //val requestUri = "/submissions/test"
 
   private def factory[A](a: A): PartialFunction[Throwable, AuthResult] => Predicate => Future[A] =
     const(const(Future.successful(a)))
@@ -142,67 +126,46 @@ class AuthServiceSpec extends ExampleData with Spec {
   val authConfigEnrolment = HmrcAgentWithEnrolmentModule(RequireMTDAgentEnrolment, enrolmentAuthCheck)
   val formTemplateEnrolment = formTemplate.copy(authConfig = authConfigEnrolment)
 
-  val authEeitt: AuthConfig = EeittModule(RegimeId("TT"))
-  val formTemplateEeitt = formTemplate.copy(authConfig = authEeitt)
-
   val authAWSALB: AuthConfig = AWSALBAuth
   val formTemplateAWSALB = formTemplate.copy(authConfig = authAWSALB)
 
+  val authService = new AuthService(appConfig)
+
   it should "authorise a gg authentication only user when no agentAccess config" in {
     val result =
-      authService.authenticateAndAuthorise(formTemplate, requestUri, getAffinityGroup, ggAuthorisedSuccessful, None)
+      authService.authenticateAndAuthorise(formTemplate, getAffinityGroup, ggAuthorisedSuccessful, None)
     result.futureValue should be(AuthSuccessful(materialisedRetrievals, Role.Customer))
   }
 
   it should "authorise a gg authentication only non-agent when agent access is configured to agent denied" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateAgentDenied, requestUri, getAffinityGroup, ggAuthorisedSuccessful, None)
+        .authenticateAndAuthorise(formTemplateAgentDenied, getAffinityGroup, ggAuthorisedSuccessful, None)
     result.futureValue should be(AuthSuccessful(materialisedRetrievals, Role.Customer))
   }
 
   it should "authorise a gg authentication only individual when agent access is configured to agent denied" in {
     val result = authService
-      .authenticateAndAuthorise(
-        formTemplateAgentDenied,
-        requestUri,
-        getAffinityGroup,
-        ggAuthorisedSuccessfulIndividual,
-        None)
+      .authenticateAndAuthorise(formTemplateAgentDenied, getAffinityGroup, ggAuthorisedSuccessfulIndividual, None)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsIndividual, Role.Customer))
   }
 
   it should "authorise a gg authentication only organisation when agent access is configured to agent denied" in {
     val result = authService
-      .authenticateAndAuthorise(
-        formTemplateAgentDenied,
-        requestUri,
-        getAffinityGroup,
-        ggAuthorisedSuccessfulOrganisation,
-        None)
+      .authenticateAndAuthorise(formTemplateAgentDenied, getAffinityGroup, ggAuthorisedSuccessfulOrganisation, None)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsOrganisation, Role.Customer))
   }
 
   it should "block a gg authentication only agent when agent access is configured to agent denied" in {
     val result =
       authService
-        .authenticateAndAuthorise(
-          formTemplateAgentDenied,
-          requestUri,
-          getAffinityGroup,
-          ggAuthorisedSuccessfulAgent,
-          None)
+        .authenticateAndAuthorise(formTemplateAgentDenied, getAffinityGroup, ggAuthorisedSuccessfulAgent, None)
     result.futureValue should be(AuthBlocked("Agents cannot access this form"))
   }
 
   it should "authorise a gg authentication only agent when agent access is configured to allow any agent" in {
     val result = authService
-      .authenticateAndAuthorise(
-        formTemplateAnyAgentAllowed,
-        requestUri,
-        getAffinityGroup,
-        ggAuthorisedSuccessfulAgent,
-        None)
+      .authenticateAndAuthorise(formTemplateAnyAgentAllowed, getAffinityGroup, ggAuthorisedSuccessfulAgent, None)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsAgent, Role.Customer))
   }
 
@@ -211,7 +174,6 @@ class AuthServiceSpec extends ExampleData with Spec {
       authService
         .authenticateAndAuthorise(
           formTemplateRequireMTDAgentEnrolment,
-          requestUri,
           getAffinityGroup,
           ggAuthorisedSuccessfulEnrolledAgent,
           None)
@@ -221,54 +183,21 @@ class AuthServiceSpec extends ExampleData with Spec {
   it should "authorise a gg authentication with enrolment" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateEnrolment, requestUri, getAffinityGroup, ggAuthorisedEnrolment, None)
+        .authenticateAndAuthorise(formTemplateEnrolment, getAffinityGroup, ggAuthorisedEnrolment, None)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolment, Role.Customer))
   }
 
   it should "redirect a gg authentication only agent with enrolment when agent access is configured to allow agent with enrolment" in {
     val result =
       authService
-        .authenticateAndAuthorise(
-          formTemplateRequireMTDAgentEnrolment,
-          requestUri,
-          getAffinityGroup,
-          ggAuthorisedRedirect,
-          None)
-    result.futureValue should be(AuthRedirect(""))
-  }
-
-  it should "redirect a gg authentication only user when no agentAccess config" in {
-    val result =
-      authService.authenticateAndAuthorise(formTemplateEeitt, requestUri, getAffinityGroup, ggAuthorisedRedirect, None)
-    result.futureValue should be(AuthRedirect(""))
-  }
-
-  it should "authorise an eeitt authorised user when user is eeitt enrolled" in {
-    val result =
-      authService
-        .authenticateAndAuthorise(formTemplateEeitt, requestUri, getAffinityGroup, ggAuthorisedSuccessful, None)
-    result.futureValue should be(AuthSuccessful(materialisedRetrievals, Role.Customer))
-  }
-
-  it should "redirect an eeitt authorised user when user is not eeitt enrolled" in {
-    val result =
-      authServiceNotAllowed
-        .authenticateAndAuthorise(formTemplateEeitt, requestUri, getAffinityGroup, ggAuthorisedSuccessful, None)
-    result.futureValue should be(
-      AuthRedirectFlashingFormName(
-        "/eeitt-frontend-base/eeitt-auth/enrollment-verification?callbackUrl=%2Fsubmissions%2Ftest"))
-  }
-
-  it should "redirect an eeitt authorised user when gg authentication fails" in {
-    val result =
-      authService.authenticateAndAuthorise(formTemplateEeitt, requestUri, getAffinityGroup, ggAuthorisedRedirect, None)
+        .authenticateAndAuthorise(formTemplateRequireMTDAgentEnrolment, getAffinityGroup, ggAuthorisedRedirect, None)
     result.futureValue should be(AuthRedirect(""))
   }
 
   it should "not authorise an Ofsted user when they have not been successfully authenticated by the AWS ALB" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateAWSALB, requestUri, getAffinityGroup, ggAuthorisedSuccessful, None)
+        .authenticateAndAuthorise(formTemplateAWSALB, getAffinityGroup, ggAuthorisedSuccessful, None)
     result.futureValue should be(AuthBlocked("You are not authorized to access this service"))
   }
 
@@ -278,7 +207,7 @@ class AuthServiceSpec extends ExampleData with Spec {
     implicit val hc: HeaderCarrier = HeaderCarrier(otherHeaders = Seq(("X-Amzn-Oidc-Data" -> jwt)))
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateAWSALB, requestUri, getAffinityGroup, ggAuthorisedSuccessful, None)
+        .authenticateAndAuthorise(formTemplateAWSALB, getAffinityGroup, ggAuthorisedSuccessful, None)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsOfsted, Role.Customer))
   }
 

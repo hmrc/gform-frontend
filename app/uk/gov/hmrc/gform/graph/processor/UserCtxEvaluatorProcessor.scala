@@ -16,35 +16,38 @@
 
 package uk.gov.hmrc.gform.graph.processor
 
-import cats.Monad
-import cats.syntax.applicative._
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals, VerifyRetrievals }
-import uk.gov.hmrc.gform.graph.{ Convertible, NonConvertible, RecalculationOp }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil.affinityGroupNameO
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-import scala.language.higherKinds
-
-class UserCtxEvaluatorProcessor[F[_]: Monad] extends IdentifierExtractor {
+object UserCtxEvaluatorProcessor extends IdentifierExtractor {
 
   def processEvaluation(
     retrievals: MaterialisedRetrievals,
-    userCtx: UserCtx,
+    userField: UserField,
     authConfig: AuthConfig
-  ): Convertible[F] = {
-    val result =
-      (retrievals, userCtx) match {
-        case (AuthenticatedRetrievals(_, enrolments, _, _, _), UserCtx(UserField.EnrolledIdentifier)) =>
-          RecalculationOp.newValue(authorizedEnrolmentValue(enrolments, authConfig))
-        case (AuthenticatedRetrievals(_, enrolments, _, _, _), UserCtx(UserField.Enrolment(sn, in))) =>
-          RecalculationOp.newValue(extractIdentifier(enrolments, sn, in))
-        case (_, UserCtx(UserField.AffinityGroup)) =>
-          RecalculationOp.newValue(affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals)))
-        case (AnonymousRetrievals(_), _) => RecalculationOp.noChange
-        case (VerifyRetrievals(_, _), _) => RecalculationOp.noChange
+  ): String =
+    (retrievals, userField) match {
+      case (AuthenticatedRetrievals(_, enrolments, _, _, _), UserField.EnrolledIdentifier) =>
+        authorizedEnrolmentValue(enrolments, authConfig)
+      case (AuthenticatedRetrievals(_, enrolments, _, _, _), UserField.Enrolment(sn, in)) =>
+        extractIdentifier(enrolments, sn, in)
+      case (_, UserField.AffinityGroup) =>
+        affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals))
+      case (AnonymousRetrievals(_), _) => ""
+      case (VerifyRetrievals(_, _), _) => ""
+    }
 
-      }
-    NonConvertible(result.pure[F])
+  def evalRosm(thirdPartyData: ThirdPartyData, rosmProp: RosmProp): String = {
+    val f = thirdPartyData.desRegistrationResponse.fold("") _
+    rosmProp match {
+      case RosmSafeId           => f(_.safeId)
+      case RosmOrganisationName => f(_.orgOrInd.getOrganisationName)
+      case RosmOrganisationType => f(_.orgOrInd.getOrganisationType)
+      case RosmIsAGroup         => f(_.orgOrInd.getIsAGroup)
+    }
   }
+
 }

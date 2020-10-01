@@ -18,33 +18,24 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.{ Eq, Show }
 import play.api.libs.json._
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.{ Atom, ExpandUtils }
 import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 
 import scala.util.matching.Regex
 
-case class FormComponentId(value: String) extends AnyVal {
+case class FormComponentId(value: String) {
+
   override def toString: String = value
 
-  def withSuffix(suffix: String): FormComponentId = FormComponentId(value + "-" + suffix)
+  val modelComponentId: ModelComponentId = ExpandUtils.modelComponentIdFromFormComponentId(this)
 
-  def extendForRepeatingSection(repetitionIndex: Int) = FormComponentId(s"${repetitionIndex}_$value")
-  def extendForRepeatingGroup(repetitionIndex: Int) = FormComponentId(s"${value}_$repetitionIndex")
+  val baseComponentId: BaseComponentId = modelComponentId.baseComponentId
 
-  def appendIndex(i: Int): FormComponentId = FormComponentId(value + i.toString)
+  //val firstAtomModelComponentId: ModelComponentId.Atomic = modelComponentId.toMultiValueId.firstAtomModelComponentId
 
-  def stripBase(baseFieldId: FormComponentId): FormComponentId =
-    FormComponentId(value.substring(baseFieldId.value.length + 1))
+  def toAtomicFormComponentId(atom: Atom): ModelComponentId.Atomic = modelComponentId.toAtomicFormComponentId(atom)
 
-  def reduceToTemplateFieldId: FormComponentId = {
-    val repeatingSectionFieldId = """^\d+_(.+)$""".r
-    val repeatingGroupFieldId = """^(.+)_\d+$""".r
-
-    value match {
-      case repeatingSectionFieldId(extractedFieldId) => FormComponentId(extractedFieldId)
-      case repeatingGroupFieldId(extractedFieldId)   => FormComponentId(extractedFieldId)
-      case _                                         => this
-    }
-  }
 }
 
 object FormComponentId {

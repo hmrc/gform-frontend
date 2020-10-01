@@ -17,13 +17,13 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 
 @(
-  validationResult: Option[FormFieldValidationResult]
+  validationResult: FormFieldValidationResult
 )(
   content: Boolean => Html
 )
 
 @hasErrors = @{
-  validationResult.exists(_.isNotOk)
+  validationResult.isNotOk
 }
 
 @formGroupClass = @{

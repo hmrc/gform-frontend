@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.models.javascript.{ FormComponentSimple, FormComponentWithCtx, FormComponentWithGroup }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, IsUpperCase, Number, PositiveNumber, Sterling, Text, TextArea }
 
 package object ops {
@@ -41,26 +40,6 @@ package object ops {
     def isUpperCase = formComponent.`type` match {
       case Text(_, _, _, IsUpperCase) => true
       case _                          => false
-    }
-  }
-
-  implicit class FormComponentWithCtxOps(formComponent: FormComponentWithCtx) {
-    def isSterling = formComponent match {
-      case FormComponentWithGroup(fc, _) => fc.isSterling
-      case FormComponentSimple(fc)       => fc.isSterling
-    }
-    def isNumber = formComponent match {
-      case FormComponentWithGroup(fc, _) => fc.isNumber
-      case FormComponentSimple(fc)       => fc.isNumber
-    }
-    def isPositiveNumber = formComponent match {
-      case FormComponentWithGroup(fc, _) => fc.isPositiveNumber
-      case FormComponentSimple(fc)       => fc.isPositiveNumber
-    }
-
-    def isUpperCase = formComponent match {
-      case FormComponentWithGroup(fc, _) => fc.isUpperCase
-      case FormComponentSimple(fc)       => fc.isUpperCase
     }
   }
 }

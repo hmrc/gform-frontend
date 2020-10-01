@@ -20,6 +20,7 @@ import play.api.libs.json._
 
 case class SectionNumber(value: Int) extends Ordered[SectionNumber] {
   override def compare(that: SectionNumber): Int = value.compare(that.value)
+  def +(i: Int): SectionNumber = SectionNumber(value + i)
 }
 
 object SectionNumber {

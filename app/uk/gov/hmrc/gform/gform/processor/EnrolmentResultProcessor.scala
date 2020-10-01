@@ -27,10 +27,13 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.{ EnrolmentFormNotValid, NoIdentifierProvided, SubmitEnrolmentError }
 import uk.gov.hmrc.gform.gform.RegimeIdNotMatch
 import uk.gov.hmrc.gform.models.helpers.Fields
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, ValidatorsResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormComponent, FormTemplate }
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationUtil }
+import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationResult, ValidationUtil }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
@@ -41,61 +44,43 @@ class EnrolmentResultProcessor(
   formTemplate: FormTemplate,
   retrievals: MaterialisedRetrievals,
   enrolmentSection: EnrolmentSection,
-  data: FormDataRecalculated,
+  formModelOptics: FormModelOptics[DataOrigin.Mongo],
   frontendAppConfig: FrontendAppConfig
 ) {
 
-  private def getErrorMap(
-    validationResult: ValidatedType[ValidationResult]
-  ): List[(FormComponent, FormFieldValidationResult)] = {
-    val enrolmentFields = Fields.flattenGroups(enrolmentSection.fields)
-    evaluateValidation(validationResult, enrolmentFields, data, Envelope.empty)
-  }
-
-  private def evaluateValidation(
-    v: ValidatedType[ValidationResult],
-    fields: List[FormComponent],
-    data: FormDataRecalculated,
-    envelope: Envelope): List[(FormComponent, FormFieldValidationResult)] =
-    // We need to keep the formComponent order as they appear on the form for page-level-error rendering, do not convert to map
-    ValidationUtil
-      .evaluateValidationResult(fields, v, data, envelope)
-      .map(ffvr => ffvr.fieldValue -> ffvr)
-
-  private def getResult(validationResult: ValidatedType[ValidationResult], globalErrors: List[ErrorLink]): Result = {
-    val errorMap = getErrorMap(validationResult)
+  private def getResult(validationResult: ValidationResult, globalErrors: List[ErrorLink]): Result =
     Ok(
       renderEnrolmentSection(
         formTemplate,
         retrievals,
         enrolmentSection,
-        data,
-        errorMap,
+        formModelOptics,
         globalErrors,
         validationResult
       )
     )
-  }
 
-  def recoverEnrolmentError(implicit request: Request[AnyContent], messages: Messages): SubmitEnrolmentError => Result =
+  def recoverEnrolmentError(validationResult: ValidationResult)(
+    implicit request: Request[AnyContent],
+    messages: Messages): SubmitEnrolmentError => Result =
     enrolmentError => {
 
-      def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType[ValidationResult], List[ErrorLink]) =
+      def convertEnrolmentError(see: SubmitEnrolmentError): (ValidationResult, List[ErrorLink]) =
         see match {
           case RegimeIdNotMatch(identifierRecipe) =>
-            val regimeIdError = Map(identifierRecipe.value.toFieldId -> Set(messages("enrolment.error.regimeId")))
-            (Invalid(regimeIdError), List.empty)
+            val regimeIdError = messages("enrolment.error.regimeId")
+            val validationResultUpd = validationResult.toError(identifierRecipe.value.formComponentId, regimeIdError)
+            (validationResultUpd, List.empty)
           case NoIdentifierProvided =>
             val globalError = ErrorLink(
               content = content.Text(messages("enrolment.error.missingIdentifier"))
             )
-            (ValidationResult.empty.valid, globalError :: Nil)
-          case EnrolmentFormNotValid(invalid) => (Invalid(invalid), List.empty)
+            (ValidationResult.empty, globalError :: Nil)
+          case EnrolmentFormNotValid =>
+            (validationResult, List.empty)
         }
-
-      val (validationResult, globalErrors) = convertEnrolmentError(enrolmentError)
-      getResult(validationResult, globalErrors)
-
+      val (validationResultFinal, globalErrors) = convertEnrolmentError(enrolmentError)
+      getResult(validationResultFinal, globalErrors)
     }
 
   def processEnrolmentResult(
@@ -111,7 +96,7 @@ class EnrolmentResultProcessor(
           content = content.HtmlContent(html.form.errors.error_global_enrolment(formTemplate._id)))
 
         val globalErrors = globalError :: Nil
-        val validationResult = ValidationResult.empty.valid
+        val validationResult = ValidationResult.empty
         getResult(validationResult, globalErrors)
       case CheckEnrolmentsResult.Failed =>
         // Nothing we can do here, so technical difficulties it is.

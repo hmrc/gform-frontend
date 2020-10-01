@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.Helpers.toSmartString
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation._
 
@@ -38,11 +39,15 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
     errorMessage = None
   )
 
+  def mkHtmlFieldId(value: String): HtmlFieldId =
+    HtmlFieldId.pure(
+      ModelComponentId.atomic(IndexedComponentId.pure(BaseComponentId(mockDateFieldValue.id.value)), Atom(value)))
+
   "getOptionalCurrentValue" should "return current value when validation returns FieldError" in {
     val testFieldComponent = ComponentField(
-      fieldValue = mockDateFieldValue,
+      formComponent = mockDateFieldValue,
       data = Map(
-        "day" -> FieldOk(
+        mkHtmlFieldId("day") -> FieldOk(
           FormComponent(
             FormComponentId("day"),
             Text(BasicText, Value),
@@ -58,7 +63,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             None),
           "1"
         ),
-        "month" -> FieldOk(
+        mkHtmlFieldId("month") -> FieldOk(
           FormComponent(
             FormComponentId("month"),
             Text(BasicText, Value),
@@ -74,7 +79,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             None),
           "1"
         ),
-        "year" -> FieldError(
+        mkHtmlFieldId("year") -> FieldError(
           FormComponent(
             FormComponentId("year"),
             Text(BasicText, Value),
@@ -94,15 +99,15 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
       )
     )
 
-    testFieldComponent.getOptionalCurrentValue("year").get.equalsIgnoreCase("NOT_RIGHT") shouldBe true
+    testFieldComponent.getOptionalCurrentValue(mkHtmlFieldId("year")).get.equalsIgnoreCase("NOT_RIGHT") shouldBe true
 
   }
 
   it should "return current value when validation returns other than FieldError" in {
     val testFieldComponent = ComponentField(
-      fieldValue = mockDateFieldValue,
+      formComponent = mockDateFieldValue,
       data = Map(
-        "day" -> FieldOk(
+        mkHtmlFieldId("day") -> FieldOk(
           FormComponent(
             FormComponentId("day"),
             Text(BasicText, Value),
@@ -117,7 +122,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             false,
             None),
           "1"),
-        "month" -> FieldOk(
+        mkHtmlFieldId("month") -> FieldOk(
           FormComponent(
             FormComponentId("month"),
             Text(BasicText, Value),
@@ -133,7 +138,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             None),
           "1"
         ),
-        "year" -> FieldOk(
+        mkHtmlFieldId("year") -> FieldOk(
           FormComponent(
             FormComponentId("year"),
             Text(BasicText, Value),
@@ -152,7 +157,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
       )
     )
 
-    testFieldComponent.getOptionalCurrentValue("year").get.equalsIgnoreCase("2017") shouldBe true
+    testFieldComponent.getOptionalCurrentValue(mkHtmlFieldId("year")).get.equalsIgnoreCase("2017") shouldBe true
   }
 
 }

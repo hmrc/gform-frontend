@@ -17,6 +17,9 @@
 package uk.gov.hmrc.gform.models.helpers
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import play.api.i18n.Messages
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.fileupload.Envelope
 
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult }
@@ -24,10 +27,13 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 object TaxPeriodHelper {
 
-  def formatTaxPeriodOutput(valResult: Option[FormFieldValidationResult])(implicit l: LangADT) =
+  def formatTaxPeriodOutput(
+    valResult: FormFieldValidationResult,
+    envelope: Envelope
+  )(implicit l: LangADT, messages: Messages, evaluator: SmartStringEvaluator) =
     valResult match {
-      case Some(ComponentField(a, b)) => TextFormatter.formatText(b.values.headOption)
-      case _                          => ""
+      case ComponentField(a, b) => b.values.headOption.fold("")(ffvr => TextFormatter.formatText(ffvr, envelope))
+      case _                    => ""
     }
 
   private val dtfUser = DateTimeFormatter.ofPattern("dd MMMM yyyy")

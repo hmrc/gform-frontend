@@ -16,27 +16,16 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-import cats.Eq
+import cats.{ Eq, Monoid }
 import cats.instances.string._
 import cats.syntax.eq._
 import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
+import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
-
-import scala.util.Try
-
-case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {
-  def visit(sectionNumber: SectionNumber): VisitIndex = VisitIndex(visitsIndex + sectionNumber.value)
-  def contains(index: Int): Boolean = visitsIndex.contains(index)
-}
-
-object VisitIndex {
-
-  implicit val format: OFormat[VisitIndex] = Json.format
-
-}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 case class Form(
   _id: FormId,

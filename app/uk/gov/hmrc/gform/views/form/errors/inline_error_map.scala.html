@@ -19,10 +19,10 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FormComponent, validationResult: FormFieldValidationResult)
 
 @{
-  val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+val map: Set[String]= ValidationUtil.renderErrors(validationResult)
   val errors: Set[String] = ValidationUtil.printErrors(map)
 
   errors.map{e =>

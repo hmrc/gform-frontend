@@ -19,11 +19,11 @@ package uk.gov.hmrc.gform.binders
 import cats.implicits._
 import play.api.libs.json._
 import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
-import uk.gov.hmrc.gform.models.LookupQuery
+import uk.gov.hmrc.gform.models.{ FastForward, LookupQuery }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId, FormStatus }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Register, SeNo, SeYes, SectionNumber, SectionTitle4Ga, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Register, SectionNumber, SectionTitle4Ga, SuppressErrors }
 
 import scala.util.Try
 object ValueClassBinder {
@@ -96,14 +96,32 @@ object ValueClassBinder {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, SuppressErrors]] =
         params.get(key).flatMap(_.headOption).map { value =>
           value match {
-            case SuppressErrors.seYes => SeYes.asRight
-            case SuppressErrors.seNo  => SeNo.asRight
+            case SuppressErrors.seYes => SuppressErrors.Yes.asRight
+            case SuppressErrors.seNo  => SuppressErrors.No.asRight
             case _                    => s"No valid value in path $key: $value".asLeft
           }
         }
 
       override def unbind(key: String, suppressErrors: SuppressErrors): String =
         s"""$key=${suppressErrors.asString}"""
+    }
+
+  implicit val faseForwardQueryBinder: QueryStringBindable[FastForward] =
+    new QueryStringBindable[FastForward] {
+
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, FastForward]] =
+        params.get(key).flatMap(_.headOption).map { value =>
+          value match {
+            case FastForward.ffYes => FastForward.Yes.asRight
+            case maybeSectionNumber =>
+              Try(maybeSectionNumber.toInt).toOption
+                .fold[Either[String, FastForward]](s"No valid value in path $key: $value".asLeft)(sn =>
+                  FastForward.StopAt(SectionNumber(sn)).asRight)
+          }
+        }
+
+      override def unbind(key: String, fastForward: FastForward): String =
+        s"""$key=${fastForward.asString}"""
     }
 
   implicit val optionAccessCodeBinder: QueryStringBindable[Option[AccessCode]] =

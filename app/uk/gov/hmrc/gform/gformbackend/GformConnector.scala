@@ -129,6 +129,15 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     mkPost(customerId, submissionData, affinityGroup)(
       s"$baseUrl/test-only/${formTemplateId.value}/${formId.value}/${destinationId.id}")
 
+  def renderHandlebarModel(
+    formTemplateId: FormTemplateId,
+    formId: FormId,
+    customerId: CustomerId,
+    submissionData: SubmissionData,
+    affinityGroup: Option[AffinityGroup])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
+    mkPost(customerId, submissionData, affinityGroup)(
+      s"$baseUrl/test-only/handlebars-model/${formTemplateId.value}/${formId.value}")
+
   private def mkPost(customerId: CustomerId, submissionData: SubmissionData, affinityGroup: Option[AffinityGroup])(
     url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
     ws.POST[SubmissionData, HttpResponse](

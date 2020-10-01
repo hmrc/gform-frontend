@@ -68,7 +68,6 @@ case class GoogleTagManager(
 )
 
 case class AuthModule(
-  legacyEEITTAuth: JSConfig,
   hmrc: JSConfig,
   anonymous: JSConfig,
   awsAlbAuth: JSConfig

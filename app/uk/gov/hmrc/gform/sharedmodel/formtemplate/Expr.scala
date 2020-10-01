@@ -21,18 +21,49 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.core.parsers.ExprParsers
 
-sealed trait Expr
+sealed trait Expr extends Product with Serializable {
+  def leafs: List[Expr] = this match {
+    case Add(field1: Expr, field2: Expr)            => field1.leafs ++ field2.leafs
+    case Multiply(field1: Expr, field2: Expr)       => field1.leafs ++ field2.leafs
+    case Subtraction(field1: Expr, field2: Expr)    => field1.leafs ++ field2.leafs
+    case Else(field1: Expr, field2: Expr)           => field1.leafs ++ field2.leafs
+    case FormCtx(formComponentId: FormComponentId)  => this :: Nil
+    case Sum(field1: Expr)                          => field1.leafs
+    case AuthCtx(value: AuthInfo)                   => this :: Nil
+    case UserCtx(value: UserField)                  => this :: Nil
+    case Constant(value: String)                    => this :: Nil
+    case HmrcRosmRegistrationCheck(value: RosmProp) => this :: Nil
+    case Value                                      => this :: Nil
+    case FormTemplateCtx(value: FormTemplateProp)   => this :: Nil
+    case ParamCtx(_)                                => this :: Nil
+    case LinkCtx(_)                                 => this :: Nil
+  }
+
+  def sums: List[Sum] = this match {
+    case Add(field1: Expr, field2: Expr)            => field1.sums ++ field2.sums
+    case Multiply(field1: Expr, field2: Expr)       => field1.sums ++ field2.sums
+    case Subtraction(field1: Expr, field2: Expr)    => field1.sums ++ field2.sums
+    case Else(field1: Expr, field2: Expr)           => field1.sums ++ field2.sums
+    case FormCtx(formComponentId: FormComponentId)  => Nil
+    case sum @ Sum(field1: Expr)                    => sum :: Nil
+    case AuthCtx(value: AuthInfo)                   => Nil
+    case UserCtx(value: UserField)                  => Nil
+    case Constant(value: String)                    => Nil
+    case HmrcRosmRegistrationCheck(value: RosmProp) => Nil
+    case Value                                      => Nil
+    case FormTemplateCtx(value: FormTemplateProp)   => Nil
+    case ParamCtx(_)                                => Nil
+    case LinkCtx(_)                                 => Nil
+  }
+}
 final case class Add(field1: Expr, field2: Expr) extends Expr
 final case class Multiply(field1: Expr, field2: Expr) extends Expr
 final case class Subtraction(field1: Expr, field2: Expr) extends Expr
 final case class Else(field1: Expr, field2: Expr) extends Expr
-final case class FormCtx(value: String) extends Expr {
-  def toFieldId = FormComponentId(value)
-}
+final case class FormCtx(formComponentId: FormComponentId) extends Expr
 final case class Sum(field1: Expr) extends Expr
 final case class ParamCtx(queryParam: QueryParam) extends Expr
 final case class AuthCtx(value: AuthInfo) extends Expr
-final case class EeittCtx(value: Eeitt) extends Expr
 final case class UserCtx(value: UserField) extends Expr
 final case class Constant(value: String) extends Expr
 final case class LinkCtx(link: InternalLink) extends Expr
@@ -41,18 +72,11 @@ final case object Value extends Expr
 final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
 
 object FormCtx {
-  lazy val readsForTemplateJson: Reads[FormCtx] = Reads {
-    case JsString(exprAsStr) =>
-      ExprParsers.validateFormCtx(exprAsStr).fold(error => JsError(error.toString), JsSuccess(_))
-    case otherwise => JsError(s"Invalid expression. Expected String, got $otherwise")
-  }
-
-  implicit val format: OFormat[FormCtx] = OFormatWithTemplateReadFallback(readsForTemplateJson)
+  implicit val format: OFormat[FormCtx] = derived.oformat()
 }
 
 object Expr {
-  val additionIdentity = 0
-  val additionIdentityExpr: Expr = Constant(additionIdentity.toString)
+  val additionIdentity: Expr = Constant("0")
   implicit val format: OFormat[Expr] = derived.oformat()
   implicit val equal: Eq[Expr] = Eq.fromUniversalEquals
 }
@@ -65,15 +89,6 @@ case object RosmIsAGroup extends RosmProp
 
 object RosmProp {
   implicit val format: OFormat[RosmProp] = derived.oformat()
-}
-
-sealed trait Eeitt
-final case object BusinessUser extends Eeitt
-final case object Agent extends Eeitt
-final case object UserId extends Eeitt
-
-object Eeitt {
-  implicit val format: OFormat[Eeitt] = derived.oformat()
 }
 
 sealed trait UserField

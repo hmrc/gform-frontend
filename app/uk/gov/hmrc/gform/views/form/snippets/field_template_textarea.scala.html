@@ -25,14 +25,13 @@
 @(fieldValue: FormComponent,
   textArea: TextArea,
   prepop: Option[String],
-  validationResult: Option[FormFieldValidationResult],
-  index: Int,
+  validationResult: FormFieldValidationResult,
   formLevelHeading: Boolean)(
   implicit
     l: LangADT,
     sse: SmartStringEvaluator)
 @hasErrors = @{
-  validationResult.exists(_.isNotOk)
+  validationResult.isNotOk
 }
 
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
@@ -60,7 +59,7 @@
 
 @label = {
   <label class="@{if(!formLevelHeading){"h1-heading"} else {"form-label"}}@if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
-    @LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
+    @fieldValue.label.value
   </label>
 }
 
@@ -84,7 +83,7 @@
             @if(!fieldValue.editable) { readonly="" }
             @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }
             class="@textareaClasses"
-            id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea>@TextFormatter.appendUnit(textArea.constraint)
+            id="@fieldValue.id">@prepop.orElse(validationResult.getCurrentValue).getOrElse("")</textarea>@TextFormatter.appendUnit(textArea.constraint)
      </div>
 
 </div>

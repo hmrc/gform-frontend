@@ -19,9 +19,27 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import julienrf.json.derived
 import play.api.libs.json._
 
-import scala.language.higherKinds
+import uk.gov.hmrc.gform.eval.BooleanExprEval
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 
-sealed trait BooleanExpr
+sealed trait BooleanExpr {
+  def allExpressions: List[Expr] = this match {
+    case Equals(left, right)              => left :: right :: Nil
+    case NotEquals(left, right)           => left :: right :: Nil
+    case GreaterThan(left, right)         => left :: right :: Nil
+    case GreaterThanOrEquals(left, right) => left :: right :: Nil
+    case LessThan(left, right)            => left :: right :: Nil
+    case LessThanOrEquals(left, right)    => left :: right :: Nil
+    case Not(e)                           => e.allExpressions
+    case Or(left, right)                  => left.allExpressions ++ right.allExpressions
+    case And(left, right)                 => left.allExpressions ++ right.allExpressions
+    case IsTrue                           => Nil
+    case IsFalse                          => Nil
+    case Contains(multiValueField, value) => multiValueField :: value :: Nil
+    case In(formCtx, dataSource)          => formCtx :: Nil
+  }
+}
+
 final case class Equals(left: Expr, right: Expr) extends BooleanExpr
 final case class NotEquals(left: Expr, right: Expr) extends BooleanExpr
 final case class GreaterThan(left: Expr, right: Expr) extends BooleanExpr

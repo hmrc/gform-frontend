@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.BooleanExprGen
-import uk.gov.hmrc.gform.{ GraphSpec, Spec }
-
-class BooleanExprSpec extends Spec with GraphSpec {
-  "BooleanExpr" should "round trip derived JSON" in {
-    forAll(BooleanExprGen.booleanExprGen()) { obj =>
-      BooleanExpr.format.reads(BooleanExpr.format.writes(obj)) should beJsSuccess(obj)
-    }
-  }
-}
+/* import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.BooleanExprGen
+ * import uk.gov.hmrc.gform.{ GraphSpec, Spec }
+ *
+ * class BooleanExprSpec extends Spec with GraphSpec {
+ *   "BooleanExpr" should "round trip derived JSON" in {
+ *     forAll(BooleanExprGen.booleanExprGen()) { obj =>
+ *       BooleanExpr.format.reads(BooleanExpr.format.writes(obj)) should beJsSuccess(obj)
+ *     }
+ *   }
+ * } */

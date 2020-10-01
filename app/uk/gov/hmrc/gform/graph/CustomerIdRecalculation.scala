@@ -16,61 +16,36 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats.Monad
-import cats.syntax.functor._
-import cats.syntax.applicative._
-import cats.syntax.traverse._
-import cats.instances.list._
+/* import cats.syntax.functor._
+ * import cats.syntax.applicative._
+ * import cats.syntax.traverse._
+ * import cats.instances.list._ */
 
-import scala.concurrent.ExecutionContext
-import scala.language.higherKinds
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, CustomerId }
-import uk.gov.hmrc.gform.sharedmodel.{ SubmissionRef, VariadicFormData }
+import uk.gov.hmrc.gform.gform.CustomerId
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationWithCustomerId, Destinations }
-import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.http.HeaderCarrier
 
-class CustomerIdRecalculation[F[_]: Monad](
-  eeittId: (Eeitt, MaterialisedRetrievals, FormTemplate, HeaderCarrier) => F[String])(
-  implicit ec: ExecutionContext
-) {
+object CustomerIdRecalculation {
 
-  def evaluateCustomerId(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier): F[CustomerId] =
+  def evaluateCustomerId[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
+    cache: AuthCacheWithForm,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  ): CustomerId =
     customerIdExpressions(cache.formTemplate.destinations)
-      .traverse { cid =>
-        recalculateCustomerId(cid, cache.retrievals, cache.formTemplate, cache.variadicFormData, cache.form.envelopeId)
+      .map { expr =>
+        CustomerId(formModelVisibilityOptics.eval(expr).take(32))
       }
-      .map(_.filter(!_.isEmpty).headOption.getOrElse(CustomerId.empty))
+      .filter(!_.isEmpty)
+      .headOption
+      .getOrElse(CustomerId.empty)
 
-  private def customerIdExpressions(destinations: Destinations) = destinations match {
+  private def customerIdExpressions(destinations: Destinations): List[Expr] = destinations match {
     case ds: Destinations.DestinationList =>
       ds.destinations.collect { case d: DestinationWithCustomerId => d.customerId }
-
     case _ =>
       Nil
   }
-
-  private def recalculateCustomerId(
-    expression: TextExpression,
-    retrievals: MaterialisedRetrievals,
-    formTemplate: FormTemplate,
-    data: VariadicFormData,
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[CustomerId] =
-    (expression.expr match {
-      case AuthCtx(value) => AuthContextPrepop.values(value, retrievals).pure[F]
-
-      case EeittCtx(eeitt) => eeittId(eeitt, retrievals, formTemplate, hc)
-
-      case id: FormCtx => data.oneOrElse(id.toFieldId, "").pure[F]
-
-      case FormTemplateCtx(FormTemplateProp.SubmissionReference) => SubmissionRef(envelopeId).toString.pure[F]
-
-      case Constant(value) => value.pure[F]
-
-      case _ => "".pure[F] //TODO change this to AuthExpr.
-    }).map(customerId => CustomerId(customerId.take(32)))
-
 }

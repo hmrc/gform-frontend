@@ -35,8 +35,8 @@ class ValidationModule(
 
   val validationService = new ValidationService(
     fileUploadModule.fileUploadService,
-    gformBackendModule.gformConnector,
     graphModule.booleanExprEval,
+    gformBackendModule.gformConnector,
     lookupRegistry,
     graphModule.recalculation,
     playBuiltInsModule.i18nSupport

@@ -163,7 +163,6 @@ class HtmlSanitiserSpec extends Spec {
   <script src="/submissions/assets/javascripts/gformGAEvents.js"></script>
   <script src="/submissions/assets/javascripts/gformFileUpload.js"></script>
   <script src="/submissions/assets/javascripts/gformRepeatingGroups.js"></script>
-  <script src="/submissions/assets/javascripts/gformErrorSummary.js"></script>
   <script src="/submissions/assets/javascripts/gformToggleAddressDivsAndLabels.js"></script>
   <script src="/submissions/assets/javascripts/gformFormActionHandlers.js"></script>
   <script src="/submissions/assets/javascripts/gformSummaryLayout.js"></script>
@@ -339,7 +338,6 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
     </div>
    </dl>
    <h2>Extra Data &pound;</h2>
-   <h2>Declaration Extra Data &pound;</h2>
    <p>It's a Acknowledgement Section Pdf footer.</p>
   </form>
  </body>
@@ -391,7 +389,6 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
     </div>
    </dl>
    <h2>Extra Data &pound;</h2>
-   <h2>Declaration Extra Data &pound;</h2>
   </form>
  </body>
 </html>
@@ -443,7 +440,6 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
     </div>
    </dl>
    <h2>Extra Data &pound;</h2>
-   <h2>Declaration Extra Data &pound;</h2>
   </form>
  </body>
 </html>
@@ -494,7 +490,6 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
     </div>
    </dl>
    <h2>Extra Data &pound;</h2>
-   <h2>Declaration Extra Data &pound;</h2>
    <p>It's a Acknowledgement Section Pdf footer.</p>
   </form>
  </body>
@@ -503,20 +498,17 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
 
   "HtmlSanitiser.acknowledgementPdf" should "embellish pdf with summary section data" in {
 
-    val extraData = "<h2>Extra Data £</h2>"
-    val declarationExtraData = "<h2>Declaration Extra Data £</h2>"
+    val submissionDetails = "<h2>Extra Data £</h2>"
     val res =
-      HtmlSanitiser.sanitiseHtmlForPDF(
-        Html(input),
-        doc => HtmlSanitiser.acknowledgementPdf(doc, extraData, declarationExtraData, formTemplate))
+      HtmlSanitiser
+        .sanitiseHtmlForPDF(Html(input), doc => HtmlSanitiser.acknowledgementPdf(doc, submissionDetails, formTemplate))
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdf)
 
   }
 
   it should "embellish pdf with summary section data having AcknowledgementSection with no Header and Footer" in {
-    val extraData = "<h2>Extra Data £</h2>"
-    val declarationExtraData = "<h2>Declaration Extra Data £</h2>"
+    val submissionDetails = "<h2>Extra Data £</h2>"
 
     val ackSectionWithNoHeaderAndFooter = ackSection.copy(pdf = None)
 
@@ -529,8 +521,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
         doc =>
           HtmlSanitiser.acknowledgementPdf(
             doc,
-            extraData,
-            declarationExtraData,
+            submissionDetails,
             formTemplate.copy(destinations = destinationListWithNoAckSectionHeaderAndFooter))
       )
 
@@ -538,8 +529,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
   }
 
   it should "embellish pdf with summary section data having AcknowledgementSection with no Footer" in {
-    val extraData = "<h2>Extra Data £</h2>"
-    val declarationExtraData = "<h2>Declaration Extra Data £</h2>"
+    val submissionDetails = "<h2>Extra Data £</h2>"
 
     val ackSectionWithNoFooter = ackSection.copy(
       pdf = Some(AcknowledgementSectionPdf(Some(toSmartString("It's a Acknowledgement Section Pdf header.")), None)))
@@ -551,19 +541,18 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
       HtmlSanitiser.sanitiseHtmlForPDF(
         Html(input),
         doc =>
-          HtmlSanitiser.acknowledgementPdf(
-            doc,
-            extraData,
-            declarationExtraData,
-            formTemplate.copy(destinations = destinationListWithNoAckSectionFooter))
+          HtmlSanitiser
+            .acknowledgementPdf(
+              doc,
+              submissionDetails,
+              formTemplate.copy(destinations = destinationListWithNoAckSectionFooter))
       )
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdfWithNoFooter)
   }
 
   it should "embellish pdf with summary section data having AcknowledgementSection with no Header" in {
-    val extraData = "<h2>Extra Data £</h2>"
-    val declarationExtraData = "<h2>Declaration Extra Data £</h2>"
+    val submissionDetails = "<h2>Extra Data £</h2>"
 
     val ackSectionWithNoHeader = ackSection.copy(
       pdf = Some(AcknowledgementSectionPdf(None, Some(toSmartString("It's a Acknowledgement Section Pdf footer.")))))
@@ -575,11 +564,11 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
       HtmlSanitiser.sanitiseHtmlForPDF(
         Html(input),
         doc =>
-          HtmlSanitiser.acknowledgementPdf(
-            doc,
-            extraData,
-            declarationExtraData,
-            formTemplate.copy(destinations = destinationListWithNoAckSectionHeader))
+          HtmlSanitiser
+            .acknowledgementPdf(
+              doc,
+              submissionDetails,
+              formTemplate.copy(destinations = destinationListWithNoAckSectionHeader))
       )
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdfWithNoHeader)

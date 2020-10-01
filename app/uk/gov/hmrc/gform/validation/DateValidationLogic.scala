@@ -43,41 +43,16 @@ object DateValidationLogic {
     messages(s"date.$monthKey")
   }
 
-  def exactParameterListToString(parameters: List[ExactParameter])(implicit messages: Messages): String =
-    parameters
-      .map {
-        case ExactYear(year)   => year.toString
-        case ExactMonth(month) => getMonthName(month)
-        case ExactDay(day)     => day + messages(s"date.ordinal.$day")
-      }
-      .mkString(" ")
-
-  def getDay(year: Int, month: Int, day: Day): Int = day match {
-    case ExactDay(d) => d
-    case FirstDay    => 1
-    case LastDay     => getLastDayOfMonth(year, month)
-  }
-
-  def getYear(year: Year): Int = year match {
-    case ExactYear(y) => y
-    case Next         => getNextYear
-    case Previous     => getPreviousYear
-  }
-
-  def isExactDay(day: Day): Boolean = day match {
-    case _: ExactDay => true
-    case _           => false
-  }
-
-  def exactConcreteDateToLocalDate(concreteDate: ConcreteDate): LocalDate = concreteDate match {
-
-    case date @ ConcreteDate(exactYear: Year, exactMonth: ExactMonth, exactDay: Day) if date.isExact =>
-      LocalDate.of(getYear(exactYear), exactMonth.month, getDay(getYear(exactYear), exactMonth.month, exactDay))
-
+  def exactConcreteDateToLocalDate(concreteDate: ConcreteDate): Option[LocalDate] = concreteDate match {
+    case ConcreteDate(HasYear(year), HasMonth(month), HasDay(day)) => day(year)(month).some
+    case _                                                         => none
   }
 
   def localDateToConcreteDate(localDate: LocalDate): ConcreteDate =
-    ConcreteDate(localDate.getYear, localDate.getMonthValue, localDate.getDayOfMonth)
+    ConcreteDate(
+      Year.Exact(localDate.getYear),
+      Month.Exact(localDate.getMonthValue),
+      Day.Exact(localDate.getDayOfMonth))
 
   def incorrectDateMessage(
     beforeAfterPrecisely: BeforeAfterPrecisely,
@@ -88,42 +63,43 @@ object DateValidationLogic {
     val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) =>
       localisedDateString(localDate.plusDays(offset.value.toLong).format(govDateFormat))
 
+    // format: off
     val yearString = concreteDate.year match {
-      case ExactYear(year) if concreteDate.month == AnyMonth => messages("date.inYear", year.toString)
-      case ExactYear(year) if concreteDate.month != AnyMonth => s"$year "
-      case Next                                              => messages("date.inYear", getNextYear.toString)
-      case Previous                                          => messages("date.inYear", getPreviousYear.toString)
-      case _                                                 => ""
+      case Year.Exact(year) if concreteDate.month.isAny && concreteDate.day.isAny => messages("date.inYear", year.toString)
+      case Year.Exact(year) if concreteDate.month.isAny                           => messages("date.inYear", year.toString)
+      case Year.Exact(year) if !concreteDate.month.isAny                          => s"$year "
+      case Year.Next if concreteDate.month.isAny && concreteDate.day.isAny        => messages("date.inYear", messages("date.year") + " " + getNextYear.toString)
+      case Year.Next                                                              => messages("date.inYear", getNextYear.toString)
+      case Year.Previous if concreteDate.month.isAny && concreteDate.day.isAny    => messages("date.inYear", messages("date.year") + " " + getPreviousYear.toString)
+      case Year.Previous                                                          => messages("date.inYear", getPreviousYear.toString)
+      case _                                                                      => ""
     }
+    // format: on
 
+    // format: off
     val monthString = concreteDate.month match {
-      case ExactMonth(month) if !isExactDay(concreteDate.day) =>
-        messages("date.inMonth", getMonthName(month))
-      case ExactMonth(month) if isExactDay(concreteDate.day) =>
-        messages("date.ofMonth", getMonthName(month))
-      case _ if isExactDay(concreteDate.day)                                => messages("date.ofAnyMonth")
-      case _ if concreteDate.day == FirstDay || concreteDate.day == LastDay => messages("date.ofTheMonth")
-      case _                                                                => ""
+      case Month.Exact(month) if concreteDate.day.isAny             => messages("date.inMonth", getMonthName(month))
+      case Month.Exact(month) if concreteDate.day.isExact           => messages("date.ofMonth", getMonthName(month))
+      case _ if concreteDate.day.isExact                            => messages("date.ofAnyMonth")
+      case _ if concreteDate.day.isFirst || concreteDate.day.isLast => messages("date.ofTheMonth")
+      case _                                                        => ""
     }
+    // format: on
 
     val dayString = concreteDate.day match {
-      case ExactDay(day) => messages("date.exactDay", s"$day${messages(s"date.ordinal.$day")}")
-      case FirstDay      => messages("date.firstDay")
-      case LastDay       => messages("date.lastDay")
-      case _             => ""
+      case Day.Exact(day) => messages("date.exactDay", s"$day${messages(s"date.ordinal.$day")}")
+      case Day.First      => messages("date.firstDay")
+      case Day.Last       => messages("date.lastDay")
+      case _              => ""
     }
 
-    val vars: List[String] = concreteDate match {
-      case date if date.isExact => dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate) :: Nil
-      case _                    => s"$dayString $monthString $yearString" :: Nil
+    val vars: List[String] = exactConcreteDateToLocalDate(concreteDate) match {
+      case Some(localDate) => dateWithOffset(localDate, offsetDate) :: Nil
+      case _               => s"$dayString $monthString $yearString" :: Nil
     }
 
-    val result = concreteDate match {
-      case date if date.isExact =>
-        s"date.${beforeAfterPrecisely.mkString}"
-      case _ => "date.exactDate"
+    val result = s"date.${beforeAfterPrecisely.mkString}"
 
-    }
     MessageKeyWithVars(result.trim, Some(vars))
   }
 
@@ -153,10 +129,37 @@ object DateValidationLogic {
 
   def hasValidNumberOfDigits(number: Int, digits: Int, label: String)(implicit messages: Messages): ValidatedNumeric =
     number.toString.length match {
-      case x if x == digits => Valid(number)
-      case y if y != digits => Invalid(messages("field.error.exactDigits", label, digits))
+      case x if x === digits => Valid(number)
+      case y if y =!= digits => Invalid(messages("field.error.exactDigits", label, digits))
     }
 
-  def parallelWithApplicative[E: Semigroup](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(
-    f: (Int, Int, Int) => ConcreteDate): Validated[E, ConcreteDate] = (v3, v2, v1).mapN(f)
+  def parallelWithApplicative[E: Semigroup, A](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(
+    f: (Int, Int, Int) => A): Validated[E, A] = (v3, v2, v1).mapN(f)
+}
+
+object HasYear {
+  def unapply(year: Year): Option[Int] = year match {
+    case Year.Exact(y) => y.some
+    case Year.Next     => DateValidationLogic.getNextYear.some
+    case Year.Previous => DateValidationLogic.getPreviousYear.some
+    case Year.Any      => none
+  }
+}
+
+object HasMonth {
+  def unapply(month: Month): Option[Int] = month match {
+    case Month.Exact(y) => y.some
+    case Month.Any      => none
+  }
+}
+
+object HasDay {
+  private def toLocalDate(day: Int) = (year: Int) => (month: Int) => LocalDate.of(year, month, day)
+  def unapply(day: Day): Option[Int => Int => LocalDate] = day match {
+    case Day.Exact(y) => toLocalDate(y).some
+    case Day.First    => toLocalDate(1).some
+    case Day.Last =>
+      ((year: Int) => (month: Int) => LocalDate.of(year, month, DateValidationLogic.getLastDayOfMonth(year, month))).some
+    case Day.Any => none
+  }
 }

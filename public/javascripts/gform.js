@@ -6,9 +6,6 @@
   var formActionHandlers = new GOVUK.GformFormActionHandlers();
   formActionHandlers.init();
 
-  var errorSummary = new GOVUK.GformErrorSummary();
-  errorSummary.init();
-
   var toggleAddressLabels = new GOVUK.GformToggleAddressLabels();
   toggleAddressLabels.init();
 

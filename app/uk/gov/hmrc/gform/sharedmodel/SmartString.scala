@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json.{ Format, Json }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
+import uk.gov.hmrc.gform.models.ExpandUtils
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId }
 
 case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
   def replace(toReplace: String, replaceWith: String): SmartString =
@@ -26,6 +27,8 @@ case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
   def rawValue(implicit l: LangADT): String = localised.value(l)
 
   def isEmpty(implicit l: LangADT): Boolean = rawValue.isEmpty
+
+  def expand(index: Int, baseIds: List[FormComponentId]) = ExpandUtils.expandSmartString(this, index, baseIds)
 }
 
 object SmartString {

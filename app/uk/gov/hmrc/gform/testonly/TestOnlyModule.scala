@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
+import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -32,7 +33,8 @@ class TestOnlyModule(
   controllersModule: ControllersModule,
   graphModule: GraphModule,
   lookupRegistry: LookupRegistry,
-  ahcWSComponents: AhcWSComponents
+  ahcWSComponents: AhcWSComponents,
+  fileUploadModule: FileUploadModule
 )(
   implicit ec: ExecutionContext
 ) {
@@ -44,8 +46,13 @@ class TestOnlyModule(
     gformBackendModule.gformConnector,
     lookupRegistry,
     controllersModule.authenticatedRequestActions,
-    graphModule.customerIdRecalculation,
     configModule.serviceConfig,
+    controllersModule.messagesControllerComponents
+  )
+
+  val debugController = new DebugController(
+    controllersModule.authenticatedRequestActions,
+    fileUploadModule.fileUploadService,
     controllersModule.messagesControllerComponents
   )
 }

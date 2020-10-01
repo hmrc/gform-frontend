@@ -22,8 +22,10 @@ import cats.data.Validated._
 import cats.data._
 import cats.implicits._
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.Atom
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.typeclasses.Now
@@ -35,291 +37,272 @@ import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
 import scala.util.{ Failure, Success, Try }
 
-class DateValidation(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) {
+case class SomeDate(year: Int, month: Int, day: Int)
 
-  val cvh = new ComponentsValidatorHelper()
+class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D])(
+  implicit messages: Messages,
+  l: LangADT,
+  sse: SmartStringEvaluator
+) {
 
   def validateDate(
     fieldValue: FormComponent,
-    date: Date,
-    otherFieldValue: Option[FormComponent],
-    data: FormDataRecalculated): ValidatedType[Unit] =
+    date: Date
+  ): ValidatedType[Unit] =
     Monoid[ValidatedType[Unit]].combineAll(
-      List(validateDateRequiredField(fieldValue, data), validateDateImpl(fieldValue, date, otherFieldValue)(data)))
+      List(
+        validateDateRequiredField(fieldValue),
+        validateDateImpl(fieldValue, date)
+      )
+    )
 
-  private val dataGetter: (FormComponent, FormDataRecalculated) => String => Seq[String] = (fv, data) =>
-    suffix => data.data.one(fv.id.withSuffix(suffix)).toList
+  private def validationFailed[T](
+    formComponent: FormComponent,
+    messageKey: String,
+    vars: Option[List[String]]
+  ): ValidatedType[T] =
+    Map[ModelComponentId, Set[String]](
+      formComponent.firstAtomModelComponentId -> errors(formComponent, messageKey, vars)).invalid
 
-  private def validateDateRequiredField(fieldValue: FormComponent, data: FormDataRecalculated): ValidatedType[Unit] = {
-    val dateValueOf: String => Seq[String] = dataGetter(fieldValue, data)
+  private def requiredError(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] =
+    Map[ModelComponentId, Set[String]](modelComponentId -> errors(formComponent, "field.error.required", None, "")).invalid
+
+  private def validateDateRequiredField(
+    fieldValue: FormComponent
+  ): ValidatedType[Unit] = {
 
     val validatedResult =
-      if (fieldValue.mandatory)
-        List(
-          cvh.validateRF(fieldValue, "day")(dateValueOf("day")),
-          cvh.validateRF(fieldValue, "month")(dateValueOf("month")),
-          cvh.validateRF(fieldValue, "year")(dateValueOf("year"))
-        )
-      else List(().valid)
+      if (fieldValue.mandatory) {
+        fieldValue.multiValueId.atomsModelComponentIds.map { modelComponentId =>
+          val answer = formModelVisibilityOptics.data.one(modelComponentId)
+          answer.filterNot(_.isEmpty()).fold(requiredError(fieldValue, modelComponentId))(_ => validationSuccess)
+        }
+      } else List(validationSuccess)
 
     Monoid[ValidatedType[Unit]].combineAll(validatedResult)
   }
 
-  private def validateDateImpl(fieldValue: FormComponent, date: Date, otherFieldValue: Option[FormComponent])(
-    data: FormDataRecalculated)(
-    implicit messages: Messages,
+  private def validateDateImpl(
+    fieldValue: FormComponent,
+    date: Date
+  )(
+    implicit
+    messages: Messages,
     l: LangADT,
-    sse: SmartStringEvaluator): ValidatedType[Unit] =
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] =
     date.constraintType match {
 
       case AnyDate =>
-        validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage.map(ls => ls.value), data, otherFieldValue)
-          .andThen(lDate => validationSuccess)
+        validateInputDate(
+          fieldValue
+        ).andThen(lDate => validationSuccess)
 
       case DateConstraints(dateConstraintList) =>
         val result = dateConstraintList.map {
 
-          case DateConstraint(beforeOrAfterOrPrecisely, dateConstrInfo, offsetDate) =>
-            (beforeOrAfterOrPrecisely, dateConstrInfo, offsetDate) match {
-
-              case (beforeAfterPrecisely: BeforeAfterPrecisely, concreteDate: ConcreteDate, offset) =>
-                validateConcreteDateWithMessages(fieldValue, beforeAfterPrecisely, concreteDate, offset, data)
-
-              case (beforeAfterPrecisely: BeforeAfterPrecisely, Today, offset) =>
-                validateTodayWithMessages(fieldValue, beforeAfterPrecisely, offset, data)
-
-              case (beforeAfterPrecisely @ _, dateField: DateField, offset) =>
+          case DateConstraint(beforeOrAfterOrPrecisely, dateConstrInfo, offset) =>
+            dateConstrInfo match {
+              case _: Today.type =>
+                validateTodayWithMessages(fieldValue, beforeOrAfterOrPrecisely, offset)
+              case concreteDate: ConcreteDate =>
+                validateConcreteDateWithMessages(
+                  fieldValue,
+                  beforeOrAfterOrPrecisely,
+                  concreteDate,
+                  offset
+                )
+              case dateField: DateField =>
                 validateDateFieldWithMessages(
                   fieldValue,
-                  beforeAfterPrecisely,
+                  beforeOrAfterOrPrecisely,
                   dateField,
-                  offset,
-                  data,
-                  otherFieldValue)
+                  offset
+                )
             }
         }
         Monoid[ValidatedType[Unit]].combineAll(result)
     }
+
   private def validateConcreteDateWithMessages(
-    fieldValue: FormComponent,
+    formComponent: FormComponent,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     concreteDate: ConcreteDate,
-    offset: OffsetDate,
-    data: FormDataRecalculated): Validated[GformError, Unit] = {
-    val messageKeyWithVars: MessageKeyWithVars = incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset)
-    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage.map(ls => ls.value), data).andThen(
-      inputDate =>
-        validateConcreteDate(
-          fieldValue,
-          inputDate,
-          concreteDate,
-          offset,
-          Map(fieldValue.id -> errors(fieldValue, messageKeyWithVars.messageKey, messageKeyWithVars.vars)))(
-          concreteDateFunctionMatch(beforeAfterPrecisely)))
-  }
+    offset: OffsetDate
+  ): ValidatedType[Unit] =
+    validateInputDate(formComponent)
+      .andThen { inputDate =>
+        if (validateConcreteDate(concreteDate, beforeAfterPrecisely, inputDate, offset)) validationSuccess
+        else {
+          val messageKeyWithVars: MessageKeyWithVars = incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset)
+          validationFailed(formComponent, messageKeyWithVars.messageKey, messageKeyWithVars.vars)
+        }
+      }
 
   private def validateTodayWithMessages(
     fieldValue: FormComponent,
     beforeAfterPrecisely: BeforeAfterPrecisely,
-    offset: OffsetDate,
-    data: FormDataRecalculated): Validated[GformError, Unit] =
-    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage.map(ls => ls.value), data)
-      .andThen(
-        inputDate =>
-          validateToday(
-            fieldValue,
-            inputDate,
-            offset,
-            Map(fieldValue.id -> errors(fieldValue, s"date.${beforeAfterPrecisely.mkString}", Some("today" :: Nil))))(
-            todayFunctionMatch(beforeAfterPrecisely)))
+    offset: OffsetDate
+  ): ValidatedType[Unit] =
+    validateInputDate(fieldValue)
+      .andThen(validateToday(fieldValue, beforeAfterPrecisely, offset))
 
   private def validateDateFieldWithMessages(
     fieldValue: FormComponent,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     dateField: DateField,
-    offset: OffsetDate,
-    data: FormDataRecalculated,
-    otherFieldValue: Option[FormComponent]): Validated[GformError, Unit] = {
+    offset: OffsetDate
+  ): ValidatedType[Unit] = {
 
-    val validateOtherDate = validateInputDate(fieldValue, dateField.value, None, data, otherFieldValue)
+    val otherFieldValue = formModelVisibilityOptics.fcLookup.getOrElse(
+      dateField.value,
+      throw new IllegalArgumentException(s"Cannot find ${dateField.value} in visibility model."))
 
-    val validatedThisDate =
-      validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage.map(ls => ls.value), data)
+    val validateOtherDate = validateInputDate(otherFieldValue)
+    val validatedThisDate = validateInputDate(fieldValue)
 
     validateOtherDate.andThen { otherLocalDate =>
-      val messageKeyWithVars: MessageKeyWithVars =
-        incorrectDateMessage(beforeAfterPrecisely, localDateToConcreteDate(otherLocalDate), offset)
       validatedThisDate.andThen { thisLocalDate =>
-        validateConcreteDate(
-          fieldValue,
-          thisLocalDate,
-          localDateToConcreteDate(otherLocalDate),
-          offset,
-          Map(
-            fieldValue.id ->
-              errors(fieldValue, messageKeyWithVars.messageKey, messageKeyWithVars.vars))
-        )(concreteDateFunctionMatch(beforeAfterPrecisely))
+        if (beforeAfterPrecisely.datePredicate(thisLocalDate, otherLocalDate.plusDays(offset.value))) validationSuccess
+        else {
+          val messageKeyWithVars: MessageKeyWithVars =
+            incorrectDateMessage(beforeAfterPrecisely, localDateToConcreteDate(otherLocalDate), offset)
+          validationFailed(fieldValue, messageKeyWithVars.messageKey, messageKeyWithVars.vars)
+        }
       }
     }
   }
-
-  private def validateToday(fieldValue: FormComponent, localDate: LocalDate, offset: OffsetDate, dateError: GformError)(
-    func: (LocalDate, OffsetDate) => Boolean): ValidatedType[Unit] =
-    func(localDate, offset) match {
-      case true  => validationSuccess
-      case false => dateError.invalid
-    }
 
   private def validateConcreteDate(
-    fieldValue: FormComponent,
-    localDate: LocalDate,
     concreteDate: ConcreteDate,
-    offset: OffsetDate = OffsetDate(0),
-    dateError: GformError)(func: (LocalDate, ConcreteDate, OffsetDate) => Boolean): ValidatedType[Unit] =
-    func(localDate, concreteDate, offset) match {
-      case true  => validationSuccess
-      case false => dateError.invalid
-    }
-
-  private def concreteDateFunctionMatch(beforeAfterPrecisely: BeforeAfterPrecisely)(
+    beforeAfterPrecisely: BeforeAfterPrecisely,
     date: LocalDate,
-    concreteDate: ConcreteDate,
-    offset: OffsetDate): Boolean =
-    beforeAfterPrecisely match {
-      case Before if concreteDate.isExact => isBeforeExactConcreteDate(date, concreteDate, offset)
+    offset: OffsetDate
+  ): Boolean = {
+    val maybeLocalDate = exactConcreteDateToLocalDate(concreteDate)
 
-      case After if concreteDate.isExact => isAfterExactConcreteDate(date, concreteDate, offset)
+    def op1: (Int, Int) => Boolean = beforeAfterPrecisely.intPredicate
+    def op2: (LocalDate, LocalDate) => Boolean = beforeAfterPrecisely.datePredicate
 
-      case Precisely => preciselyFunctionMatch(date, concreteDate, offset)
+    def preciselyFalse(boolean: Boolean) = if (beforeAfterPrecisely === Precisely) false else boolean
 
-    }
+    // format: off
+    def a1(day: Int): Boolean                        = op1(date.getDayOfMonth, day)
+    def a2(month: Int): Boolean                      = op1(date.getMonthValue, month)
+    def a3(month: Int, day: Int): Boolean            = preciselyFalse(op1(date.getMonthValue, month)) || (date.getMonthValue === month && op1(date.getDayOfMonth, day))
+    def a4(year: Int): Boolean                       = op1(date.getYear, year)
+    def a5(year: Int, day: Int): Boolean             = preciselyFalse(op1(date.getYear, year)) || (date.getYear === year && op1(date.getDayOfMonth, day))
+    def a6(year: Int, month: Int): Boolean           = preciselyFalse(op1(date.getYear, year)) || (date.getYear === year && op1(date.getMonthValue, month))
+    def a7(year: Int, month: Int, day: Int): Boolean = op2(date, LocalDate.of(year, month, day).plusDays(offset.value))
+    // format: on
 
-  import cats.instances.int._
-  import cats.syntax.eq._
+    val nextYear: Int = DateValidationLogic.getNextYear
+    val previousYear: Int = DateValidationLogic.getPreviousYear
 
-  private def preciselyFunctionMatch(date: LocalDate, concreteDate: ConcreteDate, offset: OffsetDate): Boolean = {
-    val parametersLength = concreteDate.getNumericParameters.length
-    if (concreteDate.isExact) {
-      isPreciselyExactConcreteDate(date, concreteDate, offset)
-    } else {
-      concreteDate match {
-        case concreteDate: ConcreteDate if concreteDate.day === FirstDay || concreteDate.day === LastDay =>
-          isFirstOrLastDay(date, concreteDate)
-        case concreteDate: ConcreteDate if concreteDate.year === Next || concreteDate.year === Previous =>
-          isNextOrPreviousYear(date, concreteDate)
-        case concreteDate: ConcreteDate if parametersLength === 1 || parametersLength === 2 =>
-          isSameAbstractDate(date, concreteDate)
-        case _ => true
-      }
-    }
-  }
+    val y = new CachedHasDay(date)
+    val x = new CachedHasYear(previousYear, nextYear)
 
-  private def todayFunctionMatch(
-    beforeAfterPrecisely: BeforeAfterPrecisely)(date: LocalDate, offset: OffsetDate): Boolean =
-    beforeAfterPrecisely match {
-      case Before    => isBeforeToday(date, offset)
-      case After     => isAfterToday(date, offset)
-      case Precisely => isPreciselyToday(date, offset)
-    }
-
-  private def isAfterToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
-    date.isAfter(now.apply().plusDays(offset.value.toLong))
-
-  private def isAfterExactConcreteDate(date: LocalDate, concreteDay: ConcreteDate, offset: OffsetDate): Boolean =
-    date.isAfter(exactConcreteDateToLocalDate(concreteDay).plusDays(offset.value.toLong))
-
-  private def isBeforeToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
-    date.isBefore(now.apply().plusDays(offset.value.toLong))
-
-  private def isBeforeExactConcreteDate(date: LocalDate, concreteDay: ConcreteDate, offset: OffsetDate): Boolean =
-    date.isBefore(exactConcreteDateToLocalDate(concreteDay).plusDays(offset.value.toLong))
-
-  private def isPreciselyToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
-    date.isEqual(now.apply().plusDays(offset.value.toLong))
-
-  private def isPreciselyExactConcreteDate(date: LocalDate, concreteDay: ConcreteDate, offset: OffsetDate): Boolean =
-    date.isEqual(exactConcreteDateToLocalDate(concreteDay).plusDays(offset.value.toLong))
-
-  private def isSameAbstractDate(date: LocalDate, concreteDay: ConcreteDate): Boolean =
-    concreteDay.getNumericParameters
-      .map {
-        case ExactYear(year)   => date.getYear === year
-        case ExactMonth(month) => date.getMonthValue === month
-        case ExactDay(day)     => date.getDayOfMonth === day
-      }
-      .forall(identity)
-
-  private def isFirstOrLastDay(date: LocalDate, concreteDay: ConcreteDate): Boolean = concreteDay.day match {
-    case FirstDay => date.getDayOfMonth === 1
-    case LastDay =>
-      LocalDate.of(date.getYear, date.getMonthValue, date.getDayOfMonth).lengthOfMonth() === date.getDayOfMonth
-  }
-
-  private def isNextOrPreviousYear(date: LocalDate, concreteDay: ConcreteDate): Boolean = {
-    val areMonthAndDayEqual = isSameAbstractDate(date: LocalDate, concreteDay: ConcreteDate)
-    concreteDay.year match {
-      case Next     => date.getYear === getNextYear && areMonthAndDayEqual
-      case Previous => date.getYear === getPreviousYear && areMonthAndDayEqual
-    }
-  }
-
-  private def tryConcreteDateAsLocalDate(concreteDate: ConcreteDate): Try[LocalDate] =
     concreteDate match {
-      case ConcreteDate(year: ExactParameter, ExactMonth(month), day: ExactParameter) =>
-        Try(LocalDate.of(getYear(year), month, getDay(getYear(year), month, day)))
+      // format: off
+      case ConcreteDate(Year.Any,         Month.Any,          Day.Any)       => true
+      case ConcreteDate(Year.Any,         Month.Any,          y.HasDay(day)) => a1(day + offset.value)
+      case ConcreteDate(Year.Any,         Month.Exact(month), Day.Any)       => a2(month)
+      case ConcreteDate(Year.Any,         Month.Exact(month), y.HasDay(day)) => a3(month, day + offset.value)
+      case ConcreteDate(x.HasYear(year),  Month.Any,          Day.Any)       => a4(year)
+      case ConcreteDate(x.HasYear(year),  Month.Any,          y.HasDay(day)) => a5(year, day + offset.value)
+      case ConcreteDate(x.HasYear(year),  Month.Exact(month), Day.Any)       => a6(year, month)
+      case ConcreteDate(x.HasYear(year),  Month.Exact(month), y.HasDay(day)) => a7(year, month, day)
+      // format: on
     }
+  }
 
-  def validateInputDate(
+  private def validateToday(
     formComponent: FormComponent,
-    formComponentId: FormComponentId,
-    errorMsg: Option[String],
-    data: FormDataRecalculated,
-    otherFormComponent: Option[FormComponent] = None): ValidatedLocalDate = {
-    val fieldIdList = Date.fields(formComponentId).map(fId => data.data.one(fId)).toList
+    beforeAfterPrecisely: BeforeAfterPrecisely,
+    offset: OffsetDate
+  )(
+    date: LocalDate
+  )(
+    implicit
+    now: Now[LocalDate]
+  ): ValidatedType[Unit] = {
+    val nowWithOffset = now.apply().plusDays(offset.value)
+    if (beforeAfterPrecisely.datePredicate(date, nowWithOffset)) validationSuccess
+    else validationFailed(formComponent, s"date.${beforeAfterPrecisely.mkString}", Some("today" :: Nil))
+  }
+
+  private def validateInputDate(
+    formComponent: FormComponent
+  ): ValidatedType[LocalDate] = {
+
+    val fieldIdList = formComponent.multiValueId.atomsModelComponentIds.map(formModelVisibilityOptics.data.one).toList
 
     fieldIdList match {
       case Some(day) :: Some(month) :: Some(year) :: Nil =>
-        validateLocalDate(formComponent, formComponentId, otherFormComponent, errorMsg, day, month, year) match {
-          case Valid(ConcreteDate(ExactYear(concYear), ExactMonth(concMonth), ExactDay(concDay))) =>
+        validateLocalDate(formComponent, day, month, year).andThen {
+          case SomeDate(concYear, concMonth, concDay) =>
             Try(LocalDate.of(concYear, concMonth, concDay)) match {
               case Success(date) => Valid(date)
-              case Failure(ex)   => Map(formComponentId -> errors(formComponent, "date.invalid", None)).invalid
+              case Failure(ex)   => validationFailed(formComponent, "date.invalid", None)
             }
-          case Invalid(nonEmptyList) =>
-            Invalid(nonEmptyList)
         }
 
       case _ =>
-        validationFailure(formComponent, "date.isMissing", None)
+        validationFailure(formComponent.firstAtomModelComponentId, formComponent, "date.isMissing", None)
     }
   }
 
   private def validateLocalDate(
     formComponent: FormComponent,
-    formComponentId: FormComponentId,
-    otherFormComponent: Option[FormComponent],
-    errorMessage: Option[String],
     day: String,
     month: String,
-    year: String): ValidatedConcreteDate = {
+    year: String
+  ): ValidatedType[SomeDate] = {
 
-    val label = fieldDescriptor(formComponent, formComponentId, otherFormComponent, "")
+    val errorMessage = formComponent.errorMessage.map(_.value)
+
+    def errorGranularity(suffix: Atom): ModelComponentId =
+      formComponent.atomicFormComponentId(suffix)
+
+    val label = fieldDescriptor(formComponent, "")
     val dayLabel = label + " " + messages("date.day")
     val monthLabel = label + " " + messages("date.month")
     val yearLabel = label + " " + messages("date.year")
     val d = hasMaximumLength(day, 2, dayLabel)
       .andThen(_ => isNumeric(day, dayLabel, label))
       .andThen(y => isWithinBounds(y, 31, dayLabel))
-      .leftMap(er => Map(formComponentId.withSuffix("day") -> Set(errorMessage.getOrElse(er))))
+      .leftMap(er => Map(errorGranularity(Date.day) -> Set(errorMessage.getOrElse(er))))
     val m = hasMaximumLength(month, 2, monthLabel)
       .andThen(_ => isNumeric(month, monthLabel, label))
       .andThen(y => isWithinBounds(y, 12, monthLabel))
-      .leftMap(er => Map(formComponentId.withSuffix("month") -> Set(errorMessage.getOrElse(er))))
+      .leftMap(er => Map(errorGranularity(Date.month) -> Set(errorMessage.getOrElse(er))))
     val y = hasMaximumLength(year, 4, yearLabel)
       .andThen(_ => isNumeric(year, yearLabel, label))
       .andThen(y => hasValidNumberOfDigits(y, 4, yearLabel))
-      .leftMap(er => Map(formComponentId.withSuffix("year") -> Set(errorMessage.getOrElse(er))))
+      .leftMap(er => Map(errorGranularity(Date.year) -> Set(errorMessage.getOrElse(er))))
 
-    parallelWithApplicative(d, m, y)(ConcreteDate.apply)
+    parallelWithApplicative(d, m, y)(SomeDate.apply)
+  }
+}
+
+class CachedHasDay(date: LocalDate) {
+  object HasDay {
+    def unapply(day: Day): Option[Int] = day match {
+      case Day.Any        => None
+      case Day.Last       => Some(date.lengthOfMonth)
+      case Day.First      => Some(1)
+      case Day.Exact(day) => Some(day)
+    }
+  }
+}
+
+class CachedHasYear(previous: Int, next: Int) {
+  object HasYear {
+    def unapply(year: Year): Option[Int] = year match {
+      case Year.Any         => None
+      case Year.Previous    => Some(previous)
+      case Year.Next        => Some(next)
+      case Year.Exact(year) => Some(year)
+    }
   }
 }

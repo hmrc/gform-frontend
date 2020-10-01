@@ -20,8 +20,8 @@
 
 @(fieldValue: FormComponent,
   infoType: InfoType,
-  text: Html,
-  index: Int)(
+  text: Html
+)(
   implicit
     messages: Messages,
     l: LangADT,
@@ -38,7 +38,7 @@
       <details class="gform-details govuk-details" data-module="govuk-details">
         <summary class="govuk-details__summary">
             <span class="govuk-details__summary-text">
-              @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
+              @{fieldValue.label.value}
             </span>
         </summary>
         <div class="govuk-details__text">
@@ -58,13 +58,11 @@
     }
 
     case BannerInfo => {
-      <div class="govuk-panel govuk-panel--confirmation">
-        <h1 class="govuk-panel__title">
-            @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
-        </h1>
-        <div class="govuk-panel__body">
-            @text
-        </div>
+      <div class="transaction-banner--complete panel-info">
+        <p>
+          <strong class="text--bold">@{fieldValue.label.value}</strong><br />
+          @text
+        </p>
       </div>
     }
 

@@ -46,6 +46,8 @@ case class EmailParametersRecalculated(emailParametersMap: Map[EmailTemplateVari
 
 object EmailParametersRecalculated {
 
+  val empty: EmailParametersRecalculated = EmailParametersRecalculated(Map.empty)
+
   implicit val formatMap: Format[Map[EmailTemplateVariable, EmailParameterValue]] =
     JsonUtils.formatMap(EmailTemplateVariable.apply, _.emailTemplateVariableId)
 

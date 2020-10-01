@@ -16,21 +16,33 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
+import uk.gov.hmrc.gform.validation.ValidationResult
+
 sealed trait SuppressErrors extends Product with Serializable {
   def asString: String = this match {
-    case SeYes => SuppressErrors.seYes
-    case SeNo  => SuppressErrors.seNo
+    case SuppressErrors.Yes => SuppressErrors.seYes
+    case SuppressErrors.No  => SuppressErrors.seNo
   }
+
+  def apply(formHandlerResult: FormHandlerResult): FormHandlerResult =
+    formHandlerResult.copy(validationResult = apply(formHandlerResult.validationResult))
+
+  def apply(validationResult: ValidationResult): ValidationResult = this match {
+    case SuppressErrors.Yes => validationResult.forgetErrors
+    case SuppressErrors.No  => validationResult
+  }
+
 }
 
-case object SeYes extends SuppressErrors
-case object SeNo extends SuppressErrors
-
 object SuppressErrors {
+
+  case object Yes extends SuppressErrors
+  case object No extends SuppressErrors
 
   val seYes = "t"
   val seNo = "f"
 
-  def apply(b: Boolean) = if (b) SeYes else SeNo
+  def apply(b: Boolean) = if (b) Yes else No
 
 }

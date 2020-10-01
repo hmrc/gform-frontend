@@ -1,0 +1,57 @@
+@*
+ * Copyright 2020 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.models.{FormModel, PageMode}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+
+@(modelName: String, formModel: FormModel[_ <: PageMode], totalColumns: Int)
+
+<thead>
+    <tr>
+	<td colspan="@totalColumns">
+	    <h2>@modelName</h2>
+	</td>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+	@for(columnNumber <- 0 until totalColumns) {
+	    @defining(SectionNumber(columnNumber)) { sectionNumber =>
+		@if(formModel.availableSectionNumbers.contains(sectionNumber)) {
+		    @defining(formModel(sectionNumber)) { pageModel =>
+			@pageModelHeader(pageModel)
+		    }
+		} else {
+		    <td> - hidden - </td>
+		}
+	    }
+	}
+    </tr>
+
+    <tr>
+	@for(columnNumber <- 0 until totalColumns) {
+	    @defining(SectionNumber(columnNumber)) { sectionNumber =>
+		@if(formModel.availableSectionNumbers.contains(sectionNumber)) {
+		    @defining(formModel(sectionNumber)) { pageModel =>
+			@pageModelBody(pageModel)
+		    }
+		} else {
+		    <td></td>
+		}
+	    }
+	}
+    </tr>
+</tbody>

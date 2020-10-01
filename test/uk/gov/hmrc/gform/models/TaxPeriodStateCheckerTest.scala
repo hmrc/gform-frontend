@@ -16,10 +16,9 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.Id
 import cats.data.NonEmptyList
 import cats.implicits._
-import org.scalatest.Assertion
+import java.time.LocalDate
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.models.gform.{ ForceReload, NoSpecificAction }
 import uk.gov.hmrc.gform.sharedmodel._
@@ -31,114 +30,71 @@ class TaxPeriodStateCheckerTest extends Spec {
 
   val obligationError = new Exception("Obligation retrieval failed")
 
-  it should "trigger a call to DES if tax period can be evaluated and needs to be refreshed" in
-    new TaxPeriodStateChecker[EitherEffect, Exception] {
+  val taxPeriod = HmrcTaxPeriod(IdType("id"), FormCtx(FormComponentId("ctx")), RegimeType("AAA"))
+  val localDate = LocalDate.of(2011, 1, 1)
+  val obligationDetailA = ObligationDetail("O", localDate, localDate, localDate, "A")
+  val obligationDetailB = ObligationDetail("O", localDate, localDate, localDate, "B")
 
-      def error = obligationError
+  val idNumber1 = IdNumberValue("111")
+  val idNumber2 = IdNumberValue("222")
 
-      override val needRefresh
-        : (Map[RecalculatedTaxPeriodKey, IdNumberValue], Map[RecalculatedTaxPeriodKey, IdNumberValue]) => Boolean =
-        (_, _) => true
+  val recalculatedTaxPeriod: RecalculatedTaxPeriodKey =
+    RecalculatedTaxPeriodKey(FormComponentId("123"), taxPeriod)
 
-      withFixture { (state, evaluatedTaxPeriod, desResponse, desData, obligations) =>
-        val getAllTaxPeriods
-          : NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => EitherEffect[NonEmptyList[ServiceCallResponse[TaxResponse]]] =
-          _ => desResponse.pure[EitherEffect]
+  val mongo = HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriod, idNumber1)
+  val browser = HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriod, idNumber2)
 
-        callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), obligations, state, Map.empty, NoSpecificAction) should be(
-          Right(RetrievedObligations(desData))
-        )
-      }
+  val mongoDesResponse =
+    NonEmptyList.one(TaxResponse(mongo, Obligation(List(ObligationDetails(List(obligationDetailA))))))
+  val desData = NonEmptyList.one(TaxResponse(browser, Obligation(List(ObligationDetails(List(obligationDetailB))))))
+
+  val mongoTaxPeriod: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] =
+    NonEmptyList.one(mongo)
+  val browserTaxPeriod: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] =
+    NonEmptyList.one(browser)
+
+  val getAllTaxPeriods
+    : NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => EitherEffect[NonEmptyList[ServiceCallResponse[TaxResponse]]] =
+    _ => {
+      val desResponse: NonEmptyList[ServiceCallResponse[TaxResponse]] = desData.map(ServiceResponse(_))
+      desResponse.pure[EitherEffect]
     }
 
-  it should "trigger a call to DES if obligations are NotChecked" in
-    new TaxPeriodStateChecker[EitherEffect, Exception] {
-      def error = obligationError
-      override val needRefresh
-        : (Map[RecalculatedTaxPeriodKey, IdNumberValue], Map[RecalculatedTaxPeriodKey, IdNumberValue]) => Boolean =
-        (_, _) => false
+  val desObligations = RetrievedObligations(desData)
+  val mongoObligations = RetrievedObligations(mongoDesResponse)
 
-      withFixture { (state, evaluatedTaxPeriod, desResponse, desData, _) =>
-        val getAllTaxPeriods
-          : NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => EitherEffect[NonEmptyList[ServiceCallResponse[TaxResponse]]] =
-          _ => desResponse.pure[EitherEffect]
+  new TaxPeriodStateChecker[EitherEffect, Exception] {
 
-        callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), NotChecked, state, Map.empty, NoSpecificAction) should be(
-          Right(RetrievedObligations(desData))
-        )
-      }
-    }
-
-  it should "do not trigger a call to DES if tax period can be evaluated but do not need to be refreshed" in
-    new TaxPeriodStateChecker[EitherEffect, Exception] {
-      def error = obligationError
-      override val needRefresh
-        : (Map[RecalculatedTaxPeriodKey, IdNumberValue], Map[RecalculatedTaxPeriodKey, IdNumberValue]) => Boolean =
-        (_, _) => false
-
-      withFixture { (state, evaluatedTaxPeriod, desResponse, _, obligations) =>
-        val getAllTaxPeriods
-          : NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => EitherEffect[NonEmptyList[ServiceCallResponse[TaxResponse]]] =
-          _ => desResponse.pure[EitherEffect]
-
-        callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), obligations, state, Map.empty, NoSpecificAction) should be(
-          Right(obligations)
-        )
-      }
-    }
-
-  it should "do not call DES if tax period can not be evaluated" in new TaxPeriodStateChecker[EitherEffect, Exception] {
     def error = obligationError
-    override val needRefresh
-      : (Map[RecalculatedTaxPeriodKey, IdNumberValue], Map[RecalculatedTaxPeriodKey, IdNumberValue]) => Boolean =
-      (_, _) => true
 
-    withFixture { (state, _, desResponse, _, obligations) =>
-      val getAllTaxPeriods
-        : NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => EitherEffect[NonEmptyList[ServiceCallResponse[TaxResponse]]] =
-        _ => desResponse.pure[EitherEffect]
+    it should "trigger a call to DES if IdNumberValue changes" in {
+      callDesIfNeeded(getAllTaxPeriods, Some(browserTaxPeriod), mongoObligations, NoSpecificAction) should be(
+        Right(desObligations)
+      )
 
-      callDesIfNeeded(getAllTaxPeriods, None, obligations, state, Map.empty, ForceReload) should be(Right(obligations))
+      callDesIfNeeded(getAllTaxPeriods, Some(browserTaxPeriod), NotChecked, NoSpecificAction) should be(
+        Right(desObligations)
+      )
     }
-  }
 
-  it should "check if new state differ from old state" in new TaxPeriodStateChecker[EitherEffect, Exception] {
-    def error = obligationError
-    withFixture { (state, _, _, _, _) =>
-      needRefresh(state, state) should be(false)
-      needRefresh(state, state.map { case (periodKey, _) => periodKey -> IdNumberValue("666") }) should be(true)
-      needRefresh(state, Map.empty) should be(true)
+    it should "return cached obligations if evaluatedTaxPeriod doesn't exists (is None)" in {
+      callDesIfNeeded(getAllTaxPeriods, None, NotChecked, NoSpecificAction) should be(
+        Right(NotChecked)
+      )
+
+      callDesIfNeeded(getAllTaxPeriods, None, mongoObligations, NoSpecificAction) should be(
+        Right(mongoObligations)
+      )
     }
-  }
 
-  private def withFixture(
-    fn: (
-      Map[RecalculatedTaxPeriodKey, IdNumberValue],
-      NonEmptyList[HmrcTaxPeriodWithEvaluatedId],
-      NonEmptyList[ServiceCallResponse[TaxResponse]],
-      NonEmptyList[TaxResponse],
-      RetrievedObligations) => Assertion): Unit = {
-    val taxPeriod = HmrcTaxPeriod(IdType("id"), FormCtx("ctx"), RegimeType("AAA"))
-    val periodKey = RecalculatedTaxPeriodKey(FormComponentId("idOne"), taxPeriod)
-    val idNumber1 = IdNumberValue("111")
-    val idNumber2 = IdNumberValue("222")
+    it should "trigger a call to DES if ForceReload is specified" in {
+      callDesIfNeeded(getAllTaxPeriods, Some(mongoTaxPeriod), mongoObligations, NoSpecificAction) should be(
+        Right(mongoObligations)
+      )
 
-    val recalculatedTaxPeriod: RecalculatedTaxPeriodKey =
-      RecalculatedTaxPeriodKey(FormComponentId("123"), taxPeriod)
-
-    val desData =
-      NonEmptyList.one(TaxResponse(HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriod, idNumber1), Obligation(Nil)))
-
-    val desResponse = desData.map(ServiceResponse(_))
-
-    val desResponse2 =
-      NonEmptyList.one(TaxResponse(HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriod, idNumber2), Obligation(Nil)))
-
-    val state: Map[RecalculatedTaxPeriodKey, IdNumberValue] = Map(periodKey -> idNumber1)
-
-    val evaluatedTaxPeriod: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] =
-      NonEmptyList.one(HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriod, idNumber1))
-
-    fn(state, evaluatedTaxPeriod, desResponse, desData, RetrievedObligations(desResponse2))
+      callDesIfNeeded(getAllTaxPeriods, Some(mongoTaxPeriod), mongoObligations, ForceReload) should be(
+        Right(desObligations)
+      )
+    }
   }
 }

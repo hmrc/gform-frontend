@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.commons
 
+import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
+import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 trait FormatType extends Product with Serializable
@@ -27,30 +29,33 @@ object FormatType {
 
 object ExprFormat {
 
+  private def findComponentForFcId(fcId: FormComponentId, formModel: FormModel[Visibility]): Option[FormComponent] = {
+    val lookup = formModel.fcLookup
+    lookup.get(fcId)
+  }
+
   private def formatFor(formComponent: FormComponent): FormatType = formComponent match {
     case IsText(text) => FormatType.FromText(text)
     case _            => FormatType.Default
   }
 
-  private def formatForFormCtx(fc: FormCtx, componentLookup: Map[FormComponentId, FormComponent]): FormatType =
-    componentLookup.get(fc.toFieldId).fold[FormatType](FormatType.Default)(formatFor)
+  private def formatForFormCtx(fc: FormCtx, formModel: FormModel[Visibility]): FormatType =
+    findComponentForFcId(fc.formComponentId, formModel).map(formatFor).getOrElse(FormatType.Default)
 
-  def formatForExpr(expr: Expr, componentLookup: Map[FormComponentId, FormComponent]): FormatType = expr match {
+  def formatForExpr(expr: Expr, formModel: FormModel[Visibility]): FormatType = expr match {
     case Value                               => FormatType.Default
     case HmrcRosmRegistrationCheck(rosmProp) => FormatType.Default
     case ParamCtx(_)                         => FormatType.Default
     case UserCtx(_)                          => FormatType.Default
     case AuthCtx(_)                          => FormatType.Default
-    case EeittCtx(_)                         => FormatType.Default
     case FormTemplateCtx(_)                  => FormatType.Default
     case Constant(_)                         => FormatType.Default
-    case fc: FormCtx                         => formatForFormCtx(fc, componentLookup)
-    case Sum(fc: FormCtx)                    => formatForFormCtx(fc, componentLookup)
-    case Sum(_)                              => FormatType.Default
-    case Else(f1, f2)                        => formatForExpr(f1, componentLookup)
-    case Add(f1, f2)                         => formatForExpr(f1, componentLookup)
-    case Subtraction(f1, f2)                 => formatForExpr(f1, componentLookup)
-    case Multiply(f1, f2)                    => formatForExpr(f1, componentLookup)
+    case fc: FormCtx                         => formatForFormCtx(fc, formModel)
+    case Sum(f1)                             => formatForExpr(f1, formModel)
+    case Else(f1, f2)                        => formatForExpr(f1, formModel)
+    case Add(f1, f2)                         => formatForExpr(f1, formModel)
+    case Subtraction(f1, f2)                 => formatForExpr(f1, formModel)
+    case Multiply(f1, f2)                    => formatForExpr(f1, formModel)
     case LinkCtx(_)                          => FormatType.Default
   }
 }

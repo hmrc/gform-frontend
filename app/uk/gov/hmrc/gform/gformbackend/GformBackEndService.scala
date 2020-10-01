@@ -23,13 +23,16 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder, SummaryPagePurpose }
-import uk.gov.hmrc.gform.graph.{ CustomerIdRecalculation, EmailParameterRecalculation, Recalculation }
+import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormStatus, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormComponentId, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.BundledFormSubmissionData
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, FormStatus, UserData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfHtml, SubmissionData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
@@ -43,16 +46,20 @@ trait GformBackEndAlgebra[F[_]] {
 
   def submissionDetails(formIdData: FormIdData)(implicit hc: HeaderCarrier): F[Submission]
 
-  def submitWithUpdatedFormStatus(
+  def submitWithUpdatedFormStatus[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     formStatus: FormStatus,
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     submissionDetails: Option[SubmissionDetails],
-    attachments: Attachments)(
-    implicit request: Request[_],
+    attachments: Attachments,
+    formModelOptics: FormModelOptics[D]
+  )(
+    implicit
+    request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
-    lise: SmartStringEvaluator): F[(HttpResponse, CustomerId)]
+    lise: SmartStringEvaluator
+  ): F[(HttpResponse, CustomerId)]
 
   def updateUserData(updatedForm: Form, maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): F[Unit]
 
@@ -67,8 +74,6 @@ trait GformBackEndAlgebra[F[_]] {
 class GformBackEndService(
   gformConnector: GformConnector,
   summaryRenderingService: SummaryRenderingService,
-  recalculation: Recalculation[Future, Throwable],
-  customerIdRecalculation: CustomerIdRecalculation[Future],
   lookupRegistry: LookupRegistry)(implicit ec: ExecutionContext)
     extends GformBackEndAlgebra[Future] {
 
@@ -87,51 +92,81 @@ class GformBackEndService(
   def submissionDetails(formIdData: FormIdData)(implicit hc: HeaderCarrier): Future[Submission] =
     gformConnector.submissionDetails(formIdData)
 
-  def submitWithUpdatedFormStatus(
+  def submitWithUpdatedFormStatus[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     formStatus: FormStatus,
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     submissionDetails: Option[SubmissionDetails],
-    attachments: Attachments)(
-    implicit request: Request[_],
+    attachments: Attachments,
+    formModelOptics: FormModelOptics[D]
+  )(
+    implicit
+    request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
-    lise: SmartStringEvaluator): Future[(HttpResponse, CustomerId)] =
+    lise: SmartStringEvaluator
+  ): Future[(HttpResponse, CustomerId)] =
     for {
-      _          <- updateUserData(cache.form.copy(status = formStatus), maybeAccessCode)
-      customerId <- customerIdRecalculation.evaluateCustomerId(cache)
-      response   <- handleSubmission(maybeAccessCode, cache, customerId, submissionDetails, attachments)
+      _ <- updateUserData(cache.form.copy(status = formStatus), maybeAccessCode)
+      customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
+      response <- handleSubmission(maybeAccessCode, cache, customerId, submissionDetails, attachments, formModelOptics)
     } yield (response, customerId)
 
   def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(implicit hc: HeaderCarrier): Future[Unit] =
     gformConnector.forceUpdateFormStatus(formId, status)
 
-  private def handleSubmission(
+  private def handleSubmission[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     customerId: CustomerId,
     submissionDetails: Option[SubmissionDetails],
-    attachments: Attachments)(
-    implicit request: Request[_],
+    attachments: Attachments,
+    formModelOptics: FormModelOptics[D]
+  )(
+    implicit
+    request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
     lise: SmartStringEvaluator): Future[HttpResponse] =
     for {
       htmlForPDF <- summaryRenderingService
-                     .createHtmlForPdf(maybeAccessCode, cache, submissionDetails, SummaryPagePurpose.ForDms)
-      emailParameter     <- EmailParameterRecalculation(cache, maybeAccessCode).recalculateEmailParameters(recalculation)
-      structuredFormData <- StructuredFormDataBuilder(cache.form, cache.formTemplate, lookupRegistry)
+                     .createHtmlForPdf(
+                       maybeAccessCode,
+                       cache,
+                       submissionDetails,
+                       SummaryPagePurpose.ForDms,
+                       formModelOptics)
+      structuredFormData <- StructuredFormDataBuilder(
+                             formModelOptics.formModelVisibilityOptics,
+                             cache.formTemplate.destinations,
+                             lookupRegistry)
       response <- handleSubmission(
                    cache.retrievals,
                    cache.formTemplate,
-                   emailParameter,
+                   emailParameter(cache.formTemplate, formModelOptics.formModelVisibilityOptics),
                    maybeAccessCode,
                    customerId,
                    htmlForPDF,
                    structuredFormData,
-                   attachments
+                   attachments,
+                   formModelOptics.formModelVisibilityOptics
                  )
     } yield response
+
+  def emailParameter[D <: DataOrigin](
+    formTemplate: FormTemplate,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]): EmailParametersRecalculated =
+    formTemplate.emailParameters.fold(EmailParametersRecalculated.empty) { emailParameters =>
+      val emailParametersRecalculated: Map[EmailTemplateVariable, EmailParameterValue] = emailParameters
+        .map {
+          case EmailParameter(emailTemplateVariable, expr) =>
+            val emailParameterValue = formModelVisibilityOptics.eval(expr)
+            EmailTemplateVariable(emailTemplateVariable) -> EmailParameterValue(emailParameterValue)
+        }
+        .toList
+        .toMap
+      EmailParametersRecalculated(emailParametersRecalculated)
+    }
 
   def updateUserData(updatedForm: Form, maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[Unit] =
     gformConnector
@@ -145,7 +180,7 @@ class GformBackEndService(
         )
       )
 
-  private def handleSubmission(
+  private def handleSubmission[D <: DataOrigin](
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     emailParameters: EmailParametersRecalculated,
@@ -153,7 +188,8 @@ class GformBackEndService(
     customerId: CustomerId,
     htmlForPDF: PdfHtml,
     structuredFormData: StructuredFormValue.ObjectStructure,
-    attachments: Attachments
+    attachments: Attachments,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit hc: HeaderCarrier): Future[HttpResponse] =
     gformConnector.submitForm(
       FormIdData(retrievals, formTemplate._id, maybeAccessCode),
@@ -165,22 +201,26 @@ class GformBackEndService(
         formTemplate,
         emailParameters,
         structuredFormData,
-        attachments),
+        attachments,
+        formModelVisibilityOptics),
       AffinityGroupUtil.fromRetrievals(retrievals)
     )
 
-  private def buildSubmissionData(
+  private def buildSubmissionData[D <: DataOrigin](
     htmlForPDF: PdfHtml,
     customerId: CustomerId,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     emailParameters: EmailParametersRecalculated,
     structuredFormData: StructuredFormValue.ObjectStructure,
-    attachments: Attachments): SubmissionData =
+    attachments: Attachments,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  ): SubmissionData =
     SubmissionData(
       htmlForPDF,
-      FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, customerId),
+      FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, formModelVisibilityOptics, customerId),
       structuredFormData,
       emailParameters,
-      attachments)
+      attachments
+    )
 }

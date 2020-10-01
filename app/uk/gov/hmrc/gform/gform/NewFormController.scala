@@ -27,10 +27,12 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.AccessCodePage
+import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, QueryParams, Submitted }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, QueryParams, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode }
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
@@ -47,6 +49,7 @@ class NewFormController(
   fileUploadService: FileUploadService,
   gformConnector: GformConnector,
   fastForwardService: FastForwardService,
+  recalculation: Recalculation[Future, Throwable],
   messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
@@ -147,8 +150,8 @@ class NewFormController(
     ))
 
   def decision(formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, noAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => implicit sse =>
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
+      implicit request => implicit l => cache => implicit sse => formModelOptics =>
         val queryParams = QueryParams.fromRequest(request)
         choice.bindFromRequest
           .fold(
@@ -156,15 +159,12 @@ class NewFormController(
 
               val continueFormPage = new ContinueFormPage(cache.formTemplate, errorForm)
 
-              BadRequest(
-                continue_form_page(
-                  frontendAppConfig,
-                  continueFormPage
-                )).pure[Future]
+              BadRequest(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
             }, {
-              case "continue" => fastForwardService.redirectContinue(cache, noAccessCode)
-              case "delete"   => fastForwardService.deleteForm(cache, queryParams)
-              case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+              case "continue" =>
+                fastForwardService.redirectContinue2[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics)
+              case "delete" => fastForwardService.deleteForm(cache, queryParams)
+              case _        => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
             }
           )
     }
@@ -184,7 +184,7 @@ class NewFormController(
         handleForm(formIdData)(newForm(formTemplateId, cache, queryParams)) { form =>
           cache.formTemplate.draftRetrievalMethod match {
             case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
-              redirectContinue(cache, form, noAccessCode)
+              redirectContinue[SectionSelectorType.Normal](cache, form, noAccessCode)
             case _ =>
               val continueFormPage = new ContinueFormPage(cache.formTemplate, choice)
               Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
@@ -203,7 +203,7 @@ class NewFormController(
     for {
       formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
       res <- handleForm(formIdData)(notFound(formIdData)) { form =>
-              redirectContinue(cache, form, formIdData.maybeAccessCode)
+              redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode)
             }
     } yield res
   }
@@ -235,7 +235,7 @@ class NewFormController(
       maybeAccessCode.fold(noAccessCodeProvided) { accessCode =>
         val formIdData = FormIdData.WithAccessCode(UserId(cache.retrievals), formTemplateId, accessCode)
         handleForm(formIdData)(notFound(cache.formTemplate).pure[Future]) { form =>
-          redirectContinue(cache, form, maybeAccessCode)
+          redirectContinue[SectionSelectorType.Normal](cache, form, maybeAccessCode)
         }
       }
     }
@@ -300,7 +300,7 @@ class NewFormController(
         val accessCode = AccessCode.fromSubmissionRef(submissionRef)
         val formIdData = FormIdData.WithAccessCode(userId, formTemplateId, accessCode)
         handleForm(formIdData)(notFound) { form =>
-          redirectContinue(cache, form, Some(accessCode))
+          redirectContinue[SectionSelectorType.Normal](cache, form, Some(accessCode))
         }
     }
 
@@ -338,12 +338,26 @@ class NewFormController(
       result    <- maybeForm.fold(notFound)(found)
     } yield result
 
-  def redirectContinue(cache: AuthCacheWithoutForm, form: Form, accessCode: Option[AccessCode])(
-    implicit hc: HeaderCarrier,
+  def redirectContinue[U <: SectionSelectorType: SectionSelector](
+    cache: AuthCacheWithoutForm,
+    form: Form,
+    accessCode: Option[AccessCode]
+  )(
+    implicit
+    hc: HeaderCarrier,
     l: LangADT,
-    messages: Messages) = {
-    val acwf = cache.toAuthCacheWithForm(form)
-    fastForwardService.redirectContinue(acwf, accessCode)
+    messages: Messages
+  ): Future[Result] = {
+    val cacheWithForm = cache.toAuthCacheWithForm(form, accessCode)
+
+    for {
+      formModelOptics <- FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Future, U](
+                          cacheWithForm.variadicFormData[SectionSelectorType.Normal],
+                          cacheWithForm,
+                          recalculation)
+      res <- fastForwardService.redirectContinue2(cacheWithForm, accessCode, formModelOptics)
+    } yield res
+
   }
 
 }

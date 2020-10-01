@@ -14,20 +14,18 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+@import uk.gov.hmrc.gform.models.ids.ModelComponentId
 
 @(
-    formComponentId: FormComponentId,
     label: String,
-    instance: Int,
-    disableRemoveButton: Boolean
+    removeButton: Option[ModelComponentId]
 )(
     implicit
     messages: Messages
 )
 
-@if(!disableRemoveButton) {
-    <a class="removeRepeatingSection govuk-link" href="RemoveGroup-@{instance}_@{formComponentId}">
-	@messages("linkText.removeRepeatedGroup", label)
-    </a>
+@removeButton.fold(HtmlFormat.empty){ modelComponentId =>
+  <a class="removeRepeatingSection govuk-link" href="RemoveGroup-@modelComponentId.toMongoIdentifier">
+    @messages("linkText.removeRepeatedGroup", label)
+  </a>
 }

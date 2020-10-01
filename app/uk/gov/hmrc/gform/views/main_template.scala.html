@@ -55,8 +55,12 @@
   @scriptElem
 }
 
+@errorPrefix = @{if (containsErrors) "Error: " else ""}
+
+@titlePrefix = @{if(title.nonEmpty) title + " - " else ""}
+
 @headTitle = @{
-    (if (containsErrors) "Error: " else "") + serviceName + " - GOV.UK"
+    errorPrefix + titlePrefix + serviceName + " - GOV.UK"
 }
 @webchatSidebar = {
   @if(webChat.nonEmpty) {

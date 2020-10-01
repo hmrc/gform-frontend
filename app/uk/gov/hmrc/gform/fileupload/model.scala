@@ -16,10 +16,13 @@
 
 package uk.gov.hmrc.gform.fileupload
 
+import cats.instances.string._
 import cats.syntax.eq._
 import play.api.libs.json._
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
+import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 
 case class Attachments(files: List[FormComponentId])
 
@@ -31,18 +34,26 @@ object Attachments {
 case class Envelope(
   files: List[File]
 ) {
-  def contains(formComponentId: FormComponentId): Boolean =
-    files.exists(file => file.fileId.toFieldId === formComponentId)
+  def find(modelComponentId: ModelComponentId): Option[File] =
+    files.find(_.fileId.value === modelComponentId.toMongoIdentifier)
+
+  def contains(modelComponentId: ModelComponentId): Boolean =
+    find(modelComponentId).isDefined
 
   def withUserFileNames: Envelope = Envelope(
     files.map(file => file.copy(fileName = file.fileName.replace(file.fileId.value + "_", "")))
   )
+
+  def userFileName(formComponent: FormComponent): String =
+    find(formComponent.modelComponentId).fold("")(_.fileName)
+
 }
 
 object Envelope {
   val empty = Envelope(Nil)
   implicit val reads: Reads[Envelope] = envelopeRawReads.map(er => Envelope(er.files.getOrElse(Nil)))
   private lazy val envelopeRawReads = Json.reads[EnvelopeRaw]
+
 }
 
 case class EnvelopeRaw(files: Option[List[File]])

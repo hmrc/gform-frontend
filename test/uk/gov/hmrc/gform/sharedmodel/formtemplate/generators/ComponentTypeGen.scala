@@ -74,7 +74,7 @@ trait ComponentTypeGen {
 
   def revealingChoiceGen: Gen[RevealingChoice] =
     for {
-      revealingChoiceElements <- PrimitiveGen.oneOrMoreGen(revealingChoiceElementGen)
+      revealingChoiceElements <- PrimitiveGen.zeroOrMoreGen(revealingChoiceElementGen)
       multivalue              <- PrimitiveGen.booleanGen
     } yield RevealingChoice(revealingChoiceElements, multivalue)
 

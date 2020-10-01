@@ -63,17 +63,16 @@ object DateHelperFunctions {
     m.charAt(0) + "" + restValue.toLowerCase
   }
 
-  val renderMonth: (Option[String]) => Option[String] = (str: Option[String]) =>
-    Try(str.getOrElse("").toInt) match {
-      case Success(month) => Some(month.toString)
-      case Failure(_)     => None
+  val renderMonth: String => String = (str: String) =>
+    Try(str.toInt) match {
+      case Success(month) => month.toString
+      case Failure(_)     => ""
   }
 
-  val getMonthValue: Option[String] => Option[String] = (str: Option[String]) =>
-    Try(str.getOrElse("").toInt) match {
-      case Success(month) =>
-        Some(toCamelCase(Month.values().apply(month - 1).toString))
-      case Failure(_) => None
+  val getMonthValue: String => String = (str: String) =>
+    Try(str.toInt) match {
+      case Success(month) => toCamelCase(Month.values().apply(month - 1).toString)
+      case Failure(_)     => ""
   }
 
 }

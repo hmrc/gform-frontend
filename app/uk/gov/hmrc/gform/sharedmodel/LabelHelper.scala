@@ -17,9 +17,9 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 object LabelHelper {
-  def buildRepeatingLabel(shortName: Option[SmartString], index: Int): Option[SmartString] =
-    shortName.map(buildRepeatingLabel(_, index))
-
-  def buildRepeatingLabel(ls: SmartString, index: Int): SmartString =
-    ls.replace("$n", index.toString)
+  /* def buildRepeatingLabel(shortName: Option[SmartString], index: Int): Option[SmartString] =
+ *   shortName.map(buildRepeatingLabel(_, index))
+ *
+ * def buildRepeatingLabel(ls: SmartString, index: Int): SmartString =
+ *   ls.replace("$n", index.toString) */
 }

@@ -26,6 +26,8 @@ import play.mvc.Http.{ HeaderNames, MimeTypes }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
@@ -50,7 +52,8 @@ class PdfGeneratorService(
   def generateSummaryPDF(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    summaryPagePurpose: SummaryPagePurpose
+    summaryPagePurpose: SummaryPagePurpose,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(
     implicit
     request: Request[_],
@@ -61,7 +64,7 @@ class PdfGeneratorService(
   ): Future[Source[ByteString, _]] =
     for {
       summaryHtml <- summaryRenderingService
-                      .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForUser)
+                      .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForUser, formModelOptics)
       htmlForPDF = HtmlSanitiser
         .sanitiseHtmlForPDF(summaryHtml, document => HtmlSanitiser.summaryPagePdf(document, cache.formTemplate))
       pdfStream <- generatePDF(PdfHtml(htmlForPDF))

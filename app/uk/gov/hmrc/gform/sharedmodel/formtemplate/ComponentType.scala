@@ -27,22 +27,42 @@ import julienrf.json.derived
 import play.api.libs.json._
 
 import scala.util.Try
-import uk.gov.hmrc.gform.sharedmodel.{ SmartString, ValueClassFormat, VariadicFormData }
+import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.models.Atom
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 
 import scala.annotation.tailrec
 import scala.collection.immutable.List
 
 sealed trait MultiField {
 
-  def fields(formComponentId: FormComponentId): NonEmptyList[FormComponentId]
+  def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic]
 
-  def alternateNamesFor(fcId: FormComponentId): Map[StructuredFormDataFieldNamePurpose, FieldName] = Map.empty
+  def alternateNamesFor(atom: Atom): Map[StructuredFormDataFieldNamePurpose, FieldName] = Map.empty
 
 }
 
-sealed trait ComponentType
+sealed trait ComponentType {
+  def showType: String = this match {
+    case _: Text               => "text"
+    case _: TextArea           => "textArea"
+    case _: UkSortCode         => "ukSortCode"
+    case _: Date               => "date"
+    case _: Time               => "time"
+    case _: Address            => "address"
+    case _: Choice             => "choice"
+    case _: RevealingChoice    => "revealingChoice"
+    case _: HmrcTaxPeriod      => "hmrcTaxPeriod"
+    case _: Group              => "group"
+    case _: InformationMessage => "informationMessage"
+    case _: FileUpload         => "fileUpload"
+  }
+}
 
 case class Text(
   constraint: TextConstraint,
@@ -67,12 +87,16 @@ case class TextArea(
 ) extends ComponentType
 
 case class UkSortCode(value: Expr) extends ComponentType with MultiField {
-  override def fields(id: FormComponentId): NonEmptyList[FormComponentId] = UkSortCode.fields(id)
+  override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
+    UkSortCode.fields(indexedComponentId)
 }
 
 object UkSortCode {
-  val fields: FormComponentId => NonEmptyList[FormComponentId] = (id: FormComponentId) =>
-    NonEmptyList.of("1", "2", "3").map(id.withSuffix)
+  val _1: Atom = Atom("1")
+  val _2: Atom = Atom("2")
+  val _3: Atom = Atom("3")
+  val fields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = (indexedComponentId: IndexedComponentId) =>
+    NonEmptyList.of(_1, _2, _3).map(ModelComponentId.atomicCurry(indexedComponentId))
 }
 
 case class Date(
@@ -80,29 +104,53 @@ case class Date(
   offset: Offset,
   value: Option[DateValue]
 ) extends ComponentType with MultiField {
-  override def fields(id: FormComponentId): NonEmptyList[FormComponentId] = Date.fields(id)
+  override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
+    Date.fields(indexedComponentId)
 }
 
 case object Date {
-  val fields: FormComponentId => NonEmptyList[FormComponentId] = (id: FormComponentId) =>
-    NonEmptyList.of("day", "month", "year").map(id.withSuffix)
+  val day: Atom = Atom("day")
+  val month: Atom = Atom("month")
+  val year: Atom = Atom("year")
+  val fields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = (indexedComponentId: IndexedComponentId) =>
+    NonEmptyList.of(day, month, year).map(ModelComponentId.atomicCurry(indexedComponentId))
 }
 
 case class Address(international: Boolean) extends ComponentType with MultiField {
-  override def fields(id: FormComponentId): NonEmptyList[FormComponentId] = Address.fields(id)
+  override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
+    Address.fields(indexedComponentId)
 
-  override def alternateNamesFor(fcId: FormComponentId): Map[StructuredFormDataFieldNamePurpose, FieldName] =
-    Map(RoboticsXml -> FieldName(fcId.value.replace("street", "line")))
+  override def alternateNamesFor(atom: Atom): Map[StructuredFormDataFieldNamePurpose, FieldName] =
+    Map(RoboticsXml -> FieldName(atom.value.replace("street", "line")))
 
 }
 
 case object Address {
-  val mandatoryFields: FormComponentId => List[FormComponentId] = id => List("street1").map(id.withSuffix)
-  val optionalFields: FormComponentId => List[FormComponentId] = id =>
-    List("street2", "street3", "street4", "uk", "postcode", "country").map(id.withSuffix)
-  val fields: FormComponentId => NonEmptyList[FormComponentId] = id =>
-    NonEmptyList.fromListUnsafe(mandatoryFields(id) ++ optionalFields(id))
+  val street1: Atom = Atom("street1")
+  val street2: Atom = Atom("street2")
+  val street3: Atom = Atom("street3")
+  val street4: Atom = Atom("street4")
+  val uk: Atom = Atom("uk")
+  val postcode: Atom = Atom("postcode")
+  val country: Atom = Atom("country")
+  val mandatoryFields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
+    NonEmptyList.one(street1).map(ModelComponentId.atomicCurry(indexedComponentId))
+  val optionalFields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
+    NonEmptyList
+      .of(street2, street3, street4, uk, postcode, country)
+      .map(ModelComponentId.atomicCurry(indexedComponentId))
+  val fields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
+    mandatoryFields(indexedComponentId).concatNel(optionalFields(indexedComponentId))
 
+  private val summaryPageFields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
+    NonEmptyList
+      .of(street1, street2, street3, street4, postcode, country)
+      .map(ModelComponentId.atomicCurry(indexedComponentId))
+
+  def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult): List[String] =
+    summaryPageFields(formComponent.modelComponentId.indexedComponentId)
+      .map(modelComponentId => formFieldValidationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
+      .filter(_.trim.nonEmpty)
 }
 
 object DisplayWidth extends Enumeration {
@@ -119,7 +167,19 @@ case class Choice(
   orientation: Orientation,
   selections: List[Int],
   optionHelpText: Option[NonEmptyList[SmartString]]
-) extends ComponentType
+) extends ComponentType {
+  def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult)(
+    implicit l: LangADT,
+    evaluator: SmartStringEvaluator): List[String] =
+    options.toList.zipWithIndex
+      .map {
+        case (option, index) =>
+          formFieldValidationResult
+            .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
+            .map(_ => option.value)
+      }
+      .collect { case Some(selection) => selection }
+}
 
 sealed trait ChoiceType
 final case object Radio extends ChoiceType
@@ -129,29 +189,34 @@ final case object YesNo extends ChoiceType
 object ChoiceType {
   implicit val format: OFormat[ChoiceType] = derived.oformat()
   implicit val equal: Eq[ChoiceType] = Eq.fromUniversalEquals
+
 }
 
 case class RevealingChoiceElement(choice: SmartString, revealingFields: List[FormComponent], selected: Boolean)
 object RevealingChoiceElement {
   implicit val format: OFormat[RevealingChoiceElement] = derived.oformat()
 }
-case class RevealingChoice(options: NonEmptyList[RevealingChoiceElement], multiValue: Boolean) extends ComponentType
+// options is NonEmptyList on the backend, but it needs to support 'emptiness' here due to need of Visibility model
+// ie. it needs to be able to represent that no option has been selected by a user
+case class RevealingChoice(options: List[RevealingChoiceElement], multiValue: Boolean) extends ComponentType
 object RevealingChoice {
   implicit val format: OFormat[RevealingChoice] = {
     import JsonUtils._
     derived.oformat()
   }
 
-  val slice: FormComponentId => VariadicFormData => RevealingChoice => List[FormComponent] = fcId =>
+  def slice[S <: SourceOrigin](fcId: FormComponentId): VariadicFormData[S] => RevealingChoice => RevealingChoice =
     data =>
       revealingChoice => {
-        for {
-          index          <- data.get(fcId).toList.flatMap(_.toSeq)
-          i              <- Try(index.toLong).toOption.toList
-          rc             <- revealingChoice.options.get(i).toList
-          revealingField <- rc.revealingFields
-        } yield revealingField
-  }
+        val rcElements: List[RevealingChoiceElement] =
+          for {
+            index <- data.get(fcId.modelComponentId).toList.flatMap(_.toSeq)
+            i     <- Try(index.toInt).toOption.toList
+          } yield revealingChoice.options(i)
+
+        revealingChoice.copy(options = rcElements)
+
+    }
 }
 
 case class IdType(value: String) extends AnyVal
@@ -200,9 +265,7 @@ case class Group(
   repeatsMin: Option[Int] = None,
   repeatLabel: Option[SmartString] = None,
   repeatAddAnotherText: Option[SmartString] = None
-) extends ComponentType {
-  val baseGroupList = GroupList(fields)
-}
+) extends ComponentType
 
 case class InformationMessage(infoType: InfoType, infoText: SmartString) extends ComponentType
 

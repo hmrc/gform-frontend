@@ -25,11 +25,11 @@ import UploadableConditioning._
 import cats.data.NonEmptyList
 import JsonUtils.nelFormat
 import uk.gov.hmrc.gform.sharedmodel.form.FormStatus
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.{ SubmissionConsolidator, submissionConsolidator }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.SubmissionConsolidator
 import uk.gov.hmrc.gform.sharedmodel.notifier.{ NotifierPersonalisationFieldId, NotifierTemplateId }
 
 sealed trait DestinationWithCustomerId {
-  def customerId(): TextExpression
+  def customerId(): Expr
 }
 
 sealed trait Destination extends Product with Serializable {
@@ -42,19 +42,19 @@ object Destination {
   case class HmrcDms(
     id: DestinationId,
     dmsFormId: String,
-    customerId: TextExpression,
+    customerId: Expr,
     classificationType: String,
     businessArea: String,
     includeIf: String,
     failOnError: Boolean,
     roboticsXml: Boolean,
-    backscan: Boolean)
+    backscan: Option[Boolean])
       extends Destination with DestinationWithCustomerId
 
   case class SubmissionConsolidator(
     id: DestinationId,
     projectId: ProjectId,
-    customerId: TextExpression,
+    customerId: Expr,
     includeIf: String,
     failOnError: Boolean)
       extends Destination with DestinationWithCustomerId
@@ -127,7 +127,7 @@ object Destination {
 case class UploadableHmrcDmsDestination(
   id: DestinationId,
   dmsFormId: String,
-  customerId: TextExpression,
+  customerId: Expr,
   classificationType: String,
   businessArea: String,
   convertSingleQuotes: Option[Boolean],
@@ -149,7 +149,7 @@ case class UploadableHmrcDmsDestination(
         cii.getOrElse(true.toString),
         failOnError.getOrElse(true),
         roboticsXml.getOrElse(false),
-        closedStatus.getOrElse(false)
+        closedStatus
       )
 }
 
@@ -164,7 +164,7 @@ object UploadableHmrcDmsDestination {
 case class UploadableSubmissionConsolidator(
   id: DestinationId,
   projectId: ProjectId,
-  customerId: TextExpression,
+  customerId: Expr,
   convertSingleQuotes: Option[Boolean],
   includeIf: Option[String],
   failOnError: Option[Boolean]

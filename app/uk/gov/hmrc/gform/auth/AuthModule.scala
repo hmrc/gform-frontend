@@ -18,8 +18,6 @@ package uk.gov.hmrc.gform.auth
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.connectors.EeittConnector
-import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
@@ -33,11 +31,6 @@ class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBa
     wSHttpModule.auditableWSHttp,
     configModule.runMode,
     configModule.playConfiguration
-  )
-
-  private lazy val eeittConnector = new EeittConnector(
-    s"${configModule.serviceConfig.baseUrl("eeitt")}/eeitt",
-    wSHttpModule.auditableWSHttp
   )
 
   lazy val ggConnector = new GovernmentGatewayConnector(
@@ -69,15 +62,8 @@ class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBa
     configModule.serviceConfig.getConfString("gg.enrol.portalId", "")
   )
 
-  lazy val eeittAuthorisationDelegate =
-    new EeittAuthorisationDelegate(eeittConnector, configModule.serviceConfig.baseUrl("eeitt-frontend"))
-
-  lazy val eeittService: EeittService = new EeittService(eeittConnector)
-
   lazy val authService: AuthService = new AuthService(
-    configModule.appConfig,
-    eeittAuthorisationDelegate,
-    eeittService
+    configModule.appConfig
   )
 
 }

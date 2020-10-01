@@ -20,160 +20,91 @@ import cats.Monad
 import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.applicative._
-import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
-
-import scala.language.higherKinds
-import uk.gov.hmrc.gform.auth.models.{ GovernmentGatewayId, IdentifierValue, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue }
-import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.DelegatedEnrolment
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, VariadicFormData, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.SeissEligible
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, Equals, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, Not, NotEquals, Or }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.http.HeaderCarrier
 
+/**
+  * Evaluates Boolean expressions in context where they do not participate to overall FormModel.
+  * For example Boolean expressions from validIf expressions.
+  */
 class BooleanExprEval[F[_]: Monad](
-  val evaluator: Evaluator[F],
-  val seissConnectorEligibilityStatus: (UtrEligibilityRequest, HeaderCarrier) => F[Boolean],
-  val dbLookupStaus: (String, CollectionName, HeaderCarrier) => F[Boolean],
-  val delegatedEnrolmentCheckStatus: (
-    GovernmentGatewayId,
-    DelegatedEnrolment,
-    IdentifierValue,
-    HeaderCarrier) => F[Boolean]
+  val seissEligibilityChecker: SeissEligibilityChecker[F]
 ) {
-  def isTrue(
-    expr: BooleanExpr,
-    data: VariadicFormData,
-    retrievals: MaterialisedRetrievals,
-    visSet: Set[GraphNode],
-    thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId,
-    formTemplate: FormTemplate)(implicit hc: HeaderCarrier): F[Boolean] = {
+  def eval[D <: DataOrigin](
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  )(
+    booleanExpr: BooleanExpr
+  )(
+    implicit
+    hc: HeaderCarrier
+  ): F[Boolean] = {
+    def loop(booleanExpr: BooleanExpr): F[Boolean] = booleanExpr match {
+      case Equals(left, right) =>
+        val res = for {
+          l <- formModelVisibilityOptics.evalO(left)
+          r <- formModelVisibilityOptics.evalO(right)
+        } yield l.identical(r)
 
-    def loop(expr: BooleanExpr): F[Boolean] =
-      isTrue(expr, data, retrievals, visSet, thirdPartyData, maybeAccessCode, envelopeId, formTemplate)
+        res.getOrElse(false).pure[F]
 
-    def compare(
-      leftField: Expr,
-      rightField: Expr,
-      bigDecimalRelation: (BigDecimal, BigDecimal) => Boolean,
-      stringRelation: (String, String) => Boolean,
-      formTemplate: FormTemplate)(implicit hc: HeaderCarrier): F[Boolean] = {
+      case NotEquals(left, right) =>
+        val res = for {
+          l <- formModelVisibilityOptics.evalO(left)
+          r <- formModelVisibilityOptics.evalO(right)
+        } yield !l.identical(r)
 
-      def doComparison(left: Convertible[F], right: Convertible[F])(
-        maybeBigDecimalA: Option[BigDecimal],
-        maybeBigDecimalB: Option[BigDecimal]): F[Boolean] =
-        (maybeBigDecimalA, maybeBigDecimalB) match {
-          case (Some(bdA), Some(bdB)) => bigDecimalRelation(bdA, bdB).pure[F]
-          case (_, _) =>
-            for {
-              maybeStringA <- Convertible.asString(left, formTemplate)
-              maybeStringB <- Convertible.asString(right, formTemplate)
-            } yield
-              (maybeStringA, maybeStringB) match {
-                case (Some(NewValue(strA)), Some(NewValue(strB))) => stringRelation(strA, strB)
-                case (_, _)                                       => false
-              }
-        }
+        res.getOrElse(false).pure[F] // NotEquals is strictly comparing different values of same type
 
-      val fcId = FormComponentId("dummy")
-      evaluator
-        .makeCalc(
-          visSet,
-          fcId,
-          data,
-          leftField,
-          rightField,
-          retrievals,
-          formTemplate,
-          doComparison,
-          thirdPartyData,
-          maybeAccessCode,
-          envelopeId)
+      case GreaterThan(left, right) =>
+        val res = for {
+          l <- formModelVisibilityOptics.evalO(left)
+          r <- formModelVisibilityOptics.evalO(right)
+        } yield l > r
+
+        res.getOrElse(false).pure[F]
+      case GreaterThanOrEquals(left, right) =>
+        val res = for {
+          l <- formModelVisibilityOptics.evalO(left)
+          r <- formModelVisibilityOptics.evalO(right)
+        } yield l >= r
+
+        res.getOrElse(false).pure[F]
+      case LessThan(left, right) =>
+        val res = for {
+          l <- formModelVisibilityOptics.evalO(left)
+          r <- formModelVisibilityOptics.evalO(right)
+        } yield l < r
+
+        res.getOrElse(false).pure[F]
+      case LessThanOrEquals(left, right) =>
+        val res = for {
+          l <- formModelVisibilityOptics.evalO(left)
+          r <- formModelVisibilityOptics.evalO(right)
+        } yield l <= r
+
+        res.getOrElse(false).pure[F]
+      case Not(booleanExpr)                => loop(booleanExpr).map(b => !b)
+      case Or(booleanExpr1, booleanExpr2)  => for { e1 <- loop(booleanExpr1); e2 <- loop(booleanExpr2) } yield e1 | e2
+      case And(booleanExpr1, booleanExpr2) => for { e1 <- loop(booleanExpr1); e2 <- loop(booleanExpr2) } yield e1 & e2
+      case IsTrue                          => true.pure[F]
+      case IsFalse                         => false.pure[F]
+      case Contains(ctx, expr) =>
+        val res = for {
+          l <- formModelVisibilityOptics.evalO(ctx)
+          r <- formModelVisibilityOptics.evalO(expr)
+        } yield l.contains(r)
+
+        res.getOrElse(false).pure[F]
+
+      case In(expr, dataSource) =>
+        val v = formModelVisibilityOptics.eval(expr)
+
+        seissEligibilityChecker(UtrEligibilityRequest(v), hc)
+
     }
 
-    def includes(field: FormCtx, value: Expr): F[Boolean] = {
-      val options: F[Set[String]] =
-        evaluator.evalVariadicFormCtx(visSet, field, data).toSet.flatMap((_: VariadicValue).toSet).pure[F]
-
-      val testValue: F[Option[String]] =
-        Convertible
-          .asString(
-            evaluator.eval(
-              visSet,
-              FormComponentId("dummy"),
-              value,
-              data,
-              retrievals,
-              formTemplate,
-              thirdPartyData,
-              maybeAccessCode,
-              envelopeId),
-            formTemplate)
-          .map(_.flatMap(_.cast[NewValue].map(_.value)))
-
-      for {
-        os <- options
-        tv <- testValue
-      } yield
-        tv.fold(false) { v =>
-          os.contains(v)
-        }
-    }
-
-    def exists(value: Expr, dataSource: DataSource): F[Boolean] = {
-      val expValue: F[Option[String]] =
-        Convertible
-          .asString(
-            evaluator.eval(
-              visSet,
-              FormComponentId("dummy"),
-              value,
-              data,
-              retrievals,
-              formTemplate,
-              thirdPartyData,
-              maybeAccessCode,
-              envelopeId),
-            formTemplate)
-          .map(_.flatMap(_.cast[NewValue].map(_.value)))
-
-      for {
-        ev <- expValue
-        b <- ev.fold(false.pure[F]) { v =>
-              dataSource match {
-                case DataSource.SeissEligible         => seissConnectorEligibilityStatus(UtrEligibilityRequest(v), hc)
-                case DataSource.Mongo(collectionName) => dbLookupStaus(v, collectionName, hc)
-                case DataSource.Enrolment(serviceName, identifierName) =>
-                  retrievals.enrolmentExists(serviceName, identifierName, v).pure[F]
-                case dd @ DataSource.DelegatedEnrolment(_, _) =>
-                  retrievals.maybeGovermentGatewayId.fold(false.pure[F]) { governmentGatewayId =>
-                    delegatedEnrolmentCheckStatus(governmentGatewayId, dd, IdentifierValue(v), hc)
-                  }
-              }
-            }
-      } yield b
-    }
-
-    expr match {
-      case Equals(field1, field2)              => compare(field1, field2, _ == _, _ == _, formTemplate)
-      case NotEquals(field1, field2)           => compare(field1, field2, _ != _, _ != _, formTemplate)
-      case GreaterThan(field1, field2)         => compare(field1, field2, _ > _, _ > _, formTemplate)
-      case GreaterThanOrEquals(field1, field2) => compare(field1, field2, _ >= _, _ >= _, formTemplate)
-      case LessThan(field1, field2)            => compare(field1, field2, _ < _, _ < _, formTemplate)
-      case LessThanOrEquals(field1, field2)    => compare(field1, field2, _ <= _, _ <= _, formTemplate)
-      case Not(invertedExpr)                   => loop(invertedExpr).map(!_)
-      case Or(expr1, expr2)                    => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 | e2
-      case And(expr1, expr2)                   => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 & e2
-      case IsTrue                              => true.pure[F]
-      case IsFalse                             => false.pure[F]
-      case Contains(ctx, value)                => includes(ctx, value)
-      case In(value, dataSource)               => exists(value, dataSource)
-    }
+    loop(booleanExpr)
   }
 }

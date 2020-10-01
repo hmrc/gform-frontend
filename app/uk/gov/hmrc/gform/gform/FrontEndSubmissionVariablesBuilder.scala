@@ -18,21 +18,23 @@ package uk.gov.hmrc.gform.gform
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
-import uk.gov.hmrc.gform.sharedmodel.FrontEndSubmissionVariables
+import uk.gov.hmrc.gform.models.FormModel
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.{ FrontEndSubmissionVariables, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object FrontEndSubmissionVariablesBuilder extends IdentifierExtractor {
 
-  def apply(
+  def apply[D <: DataOrigin](
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
     customerId: CustomerId
   ): FrontEndSubmissionVariables = {
 
-    val identifierValue = formTemplate.sections
-      .flatMap(_.fields)
+    val identifierValue = formModelVisibilityOptics.formModel.allFormComponents
       .collectFirst {
-        case HasExpr(SingleExpr(UserCtx(UserField.EnrolledIdentifier))) =>
+        case HasExpr(UserCtx(UserField.EnrolledIdentifier)) =>
           processContext(retrievals, formTemplate.authConfig)
       }
       .getOrElse("")

@@ -31,6 +31,7 @@ package object email {
   type EmailFieldId = FormComponentId @@ EmailFieldIdTag
   type VerificationCodeFieldId = FormComponentId @@ VerificationCodeFieldIdTag
 
-  def emailFieldId(fcId: FormComponentId) = tag[EmailFieldIdTag][FormComponentId](fcId)
-  def verificationCodeFieldId(fcId: FormComponentId) = tag[VerificationCodeFieldIdTag][FormComponentId](fcId)
+  def emailFieldId(atomicFcId: FormComponentId) = tag[EmailFieldIdTag][FormComponentId](atomicFcId)
+  def verificationCodeFieldId(atomicFcId: FormComponentId) =
+    tag[VerificationCodeFieldIdTag][FormComponentId](atomicFcId)
 }

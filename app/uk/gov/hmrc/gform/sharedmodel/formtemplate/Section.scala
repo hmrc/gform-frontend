@@ -19,110 +19,85 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.data.NonEmptyList
 import cats.instances.list._
 import cats.syntax.foldable._
+import cats.syntax.eq._
 import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.models.javascript.JsFormComponentModel
+import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.{ SmartString, VariadicFormData }
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.nelFormat
 
-sealed trait BaseSection {
-  def title: SmartString
-  def shortName: Option[SmartString]
-  def fields: List[FormComponent]
-}
+sealed trait Section extends Product with Serializable {
+  def getTitle: SmartString = this match {
+    case s: Section.NonRepeatingPage => s.page.title
+    case s: Section.RepeatingPage    => s.page.title
+    case s: Section.AddToList        => s.title
+  }
 
-case class ExpandedSection(expandedFormComponents: List[ExpandedFormComponent], includeIf: Option[IncludeIf]) {
-  def toExpandedFormTemplate: ExpandedFormTemplate = ExpandedFormTemplate(this :: Nil)
-  def allFCs: List[FormComponent] = toExpandedFormTemplate.allFormComponents
-}
+  def validators: Option[Validator] = this match {
+    case s: Section.NonRepeatingPage => s.page.validators
+    case s: Section.RepeatingPage    => s.page.validators
+    case s: Section.AddToList        => None
+  }
 
-sealed trait TemporarySectionOpsForGforms364 extends BaseSection {
-  def description: Option[SmartString]
-  def progressIndicator: Option[SmartString]
-  def includeIf: Option[IncludeIf]
-  def repeatsMin: Option[TextExpression]
-  def repeatsMax: Option[TextExpression]
-  def validators: Option[Validator]
-  def continueLabel: Option[SmartString]
-  def continueIf: Option[ContinueIf]
-  def isRepeating: Boolean
+  def progressIndicator: Option[SmartString] = this match {
+    case s: Section.NonRepeatingPage => s.page.progressIndicator
+    case s: Section.RepeatingPage    => s.page.progressIndicator
+    case s: Section.AddToList        => None
+  }
 
-  def expandSection(data: VariadicFormData): ExpandedSection =
-    ExpandedSection(fields.map(_.expandFormComponent(data)), includeIf) // TODO expand sections
+  def continueLabel: Option[SmartString] = this match {
+    case s: Section.NonRepeatingPage => s.page.continueLabel
+    case s: Section.RepeatingPage    => s.page.continueLabel
+    case s: Section.AddToList        => None
+  }
 
-  def expandSectionRc(data: VariadicFormData): ExpandedSection =
-    ExpandedSection(fields.map(_.expandFormComponentRc(data)), includeIf) // TODO expand sections
+  def isRepeating: Boolean = this match {
+    case s: Section.NonRepeatingPage => false
+    case s: Section.RepeatingPage    => true
+    case s: Section.AddToList        => false
+  }
 
-  val jsFormComponentModels: List[JsFormComponentModel] = fields.flatMap(_.jsFormComponentModels)
-}
+  def isTerminationPage: Boolean = this match {
+    case s: Section.NonRepeatingPage => s.page.continueIf.contains(Stop)
+    case s: Section.RepeatingPage    => s.page.continueIf.contains(Stop)
+    case s: Section.AddToList        => false
+  }
 
-sealed trait Section extends BaseSection with TemporarySectionOpsForGforms364 with Product with Serializable {
-  def title: SmartString
-  def expandSectionFull(): ExpandedSection
-  def expandedFormComponents(): List[FormComponent]
+  def addToList: Option[Section.AddToList] =
+    fold[Option[Section.AddToList]](_ => None)(_ => None)(addToList => Some(addToList))
+
+  def byAddToListId(addToListId: AddToListId): Boolean = fold(_ => false)(_ => false)(_.id === addToListId)
+
+  def fold[B](f: Section.NonRepeatingPage => B)(g: Section.RepeatingPage => B)(h: Section.AddToList => B): B =
+    this match {
+      case n: Section.NonRepeatingPage => f(n)
+      case r: Section.RepeatingPage    => g(r)
+      case a: Section.AddToList        => h(a)
+    }
+
 }
 
 object Section {
-  case class NonRepeatingPage(page: Page) extends Section {
-    override def title: SmartString = page.title
-    override def description: Option[SmartString] = page.description
-    override def shortName: Option[SmartString] = page.shortName
-    override def fields: List[FormComponent] = page.fields
-    override def progressIndicator: Option[SmartString] = page.progressIndicator
-    override def includeIf: Option[IncludeIf] = page.includeIf
-    override def repeatsMin: Option[TextExpression] = None
-    override def repeatsMax: Option[TextExpression] = None
-    override def validators: Option[Validator] = page.validators
-    override def continueLabel: Option[SmartString] = page.continueLabel
-    override def continueIf: Option[ContinueIf] = page.continueIf
-    override def isRepeating: Boolean = false
+  case class NonRepeatingPage(page: Page[Basic]) extends Section
 
-    override def expandSectionFull(): ExpandedSection =
-      ExpandedSection(page.fields.map(_.expandFormComponentFull), page.includeIf)
-    override def expandedFormComponents(): List[FormComponent] = page.expandedFormComponents
-  }
-
-  case class RepeatingPage(page: Page, repeats: TextExpression) extends Section {
-    override def title: SmartString = page.title
-    override def description: Option[SmartString] = page.description
-    override def shortName: Option[SmartString] = page.shortName
-    override def fields: List[FormComponent] = page.fields
-    override def progressIndicator: Option[SmartString] = page.progressIndicator
-    override def includeIf: Option[IncludeIf] = page.includeIf
-    override def repeatsMin: Option[TextExpression] = Some(repeats)
-    override def repeatsMax: Option[TextExpression] = Some(repeats)
-    override def validators: Option[Validator] = page.validators
-    override def continueLabel: Option[SmartString] = page.continueLabel
-    override def continueIf: Option[ContinueIf] = page.continueIf
-    override def isRepeating: Boolean = true
-
-    override def expandSectionFull(): ExpandedSection =
-      ExpandedSection(page.fields.map(_.expandFormComponentFull), page.includeIf) // TODO expand repeats
-    override def expandedFormComponents(): List[FormComponent] = page.expandedFormComponents
+  case class RepeatingPage(page: Page[Basic], repeats: Expr) extends Section {
+    val allIds: List[FormComponentId] = page.allIds
   }
 
   case class AddToList(
     title: SmartString,
-    description: Option[SmartString],
-    shortName: Option[SmartString],
+    description: SmartString,
+    shortName: SmartString,
     includeIf: Option[IncludeIf],
-    repeatsMax: Option[TextExpression],
-    pages: NonEmptyList[Page])
-      extends Section {
-
-    // ToDo Lance - Some of these need to be implemented and some need to be removed
-    override def expandSectionFull(): ExpandedSection = ???
-    override def fields: List[FormComponent] = ???
-
-    override def progressIndicator: Option[SmartString] = ???
-    override def repeatsMin: Option[TextExpression] = ???
-    override def validators: Option[Validator] = ???
-    override def continueLabel: Option[SmartString] = ???
-    override def continueIf: Option[ContinueIf] = ???
-    override def isRepeating: Boolean = ???
-
-    override lazy val expandedFormComponents: List[FormComponent] = pages.toList.flatMap(_.expandedFormComponents)
+    repeatsMax: Option[Expr],
+    pages: NonEmptyList[Page[Basic]],
+    addAnotherQuestion: FormComponent
+  ) extends Section {
+    val id: AddToListId = AddToListId(addAnotherQuestion.id)
+    val allIds: List[FormComponentId] = {
+      addAnotherQuestion.id :: pages.toList.flatMap(_.allIds)
+    }
   }
 
   implicit val format: OFormat[Section] = derived.oformat()
@@ -133,7 +108,22 @@ case class DeclarationSection(
   description: Option[SmartString],
   shortName: Option[SmartString],
   fields: List[FormComponent]
-) extends BaseSection
+) {
+  def toSection = Section.NonRepeatingPage(toPage)
+
+  def toPage: Page[Basic] =
+    Page(
+      title = title,
+      description = description,
+      shortName = shortName,
+      progressIndicator = None,
+      includeIf = None,
+      validators = None,
+      fields = fields,
+      continueLabel = None,
+      continueIf = None
+    )
+}
 
 object DeclarationSection {
   implicit val format: OFormat[DeclarationSection] = Json.format[DeclarationSection]
@@ -146,7 +136,23 @@ case class AcknowledgementSection(
   fields: List[FormComponent],
   showReference: Boolean,
   pdf: Option[AcknowledgementSectionPdf]
-) extends BaseSection
+) {
+
+  def toSection = Section.NonRepeatingPage(toPage)
+
+  def toPage: Page[Basic] =
+    Page(
+      title = title,
+      description = description,
+      shortName = shortName,
+      progressIndicator = None,
+      includeIf = None,
+      validators = None,
+      fields = fields,
+      continueLabel = None,
+      continueIf = None
+    )
+}
 
 object AcknowledgementSection {
   implicit val format: OFormat[AcknowledgementSection] = Json.format[AcknowledgementSection]
@@ -164,7 +170,22 @@ case class EnrolmentSection(
   fields: List[FormComponent],
   identifiers: NonEmptyList[IdentifierRecipe],
   verifiers: List[VerifierRecipe]
-) extends BaseSection
+) {
+  def toSection = Section.NonRepeatingPage(toPage)
+
+  def toPage: Page[Basic] =
+    Page(
+      title = title,
+      description = None,
+      shortName = shortName,
+      progressIndicator = None,
+      includeIf = None,
+      validators = None,
+      fields = fields,
+      continueLabel = None,
+      continueIf = None
+    )
+}
 
 object EnrolmentSection {
   import JsonUtils._

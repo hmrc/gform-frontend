@@ -22,7 +22,10 @@ import cats.syntax.show._
 import com.softwaremill.quicklens._
 import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Request, Result }
-import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.controllers.RequestRelatedData
+import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormId, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplate, Group }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -31,19 +34,16 @@ import scala.concurrent.Future
 
 object FormDataHelpers {
 
-  //TODO: fix the bug:
-  //for choice component, in mongo we have '1,2,3' but in request from browser we have List(1,2,2)
-  //however we can't split formField.value by comma because other data could have it in it
-  def formDataMap(formData: FormData): Map[FormComponentId, Seq[String]] =
-    formData.fields.map(formField => formField.id -> List(formField.value)).toMap
-
-  def processResponseDataFromBody(request: Request[AnyContent], template: FormTemplate)(
-    continuation: VariadicFormData => Future[Result])(implicit hc: HeaderCarrier): Future[Result] =
+  def processResponseDataFromBody(request: Request[AnyContent], formModel: FormModel[DataExpanded])(
+    continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => Future[Result])(
+    implicit hc: HeaderCarrier): Future[Result] =
     request.body.asFormUrlEncoded
-      .map(_.map { case (a, b) => (FormComponentId(a), b.map(_.trim)) }) match {
-      case Some(data) => continuation(buildVariadicFormDataFromBrowserPostData(template, data))
+      .map(_.map { case (a, b) => (a, b.map(_.trim)) }) match {
+      case Some(requestData) =>
+        val (variadicFormData, requestRelatedData) = buildVariadicFormDataFromBrowserPostData(formModel, requestData)
+        continuation(requestRelatedData)(variadicFormData)
       case None =>
-        Future.successful(BadRequest("Cannot parse body as FormUrlEncoded")) // Thank you play-authorised-frontend for forcing me to do this check
+        Future.successful(BadRequest("Cannot parse body as FormUrlEncoded"))
     }
 
   def get(data: Map[FormComponentId, Seq[String]], id: FormComponentId): List[String] =
@@ -52,35 +52,52 @@ object FormDataHelpers {
   def anyFormId(data: Map[FormComponentId, Seq[String]]): Option[FormId] =
     data.get(FormComponentId("formId")).flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
 
+  def dataEnteredInGroup[S <: SourceOrigin](group: Group, fieldData: VariadicFormData[S]): Boolean =
+    group.fields
+      .flatMap(_.multiValueId.toModelComponentIds)
+      .exists(id => fieldData.get(id).exists(_.exists(!_.isEmpty)))
+
   def updateFormField(form: Form, updatedFormField: FormField): Form = {
     val updated: Seq[FormField] = form.formData.fields.filterNot(_.id === updatedFormField.id).+:(updatedFormField)
     form.modify(_.formData.fields).setTo(updated)
   }
 
-  // The VariadicFormData instance returned contains ALL fields in the data map, even if
-  // there is no corresponding FormComponentId in the given template.
-  // The only use of formTemplate is to determine which branch of VariadicValue each FormComponentId should use,
-  // with the assumption that a value of any FormComponentId found in the data map that is not
-  // in the formTemplate should be represented by a VariadicValue.One value.
   private def buildVariadicFormDataFromBrowserPostData(
-    template: FormTemplate,
-    data: Map[FormComponentId, Seq[String]]): VariadicFormData = {
-    val variadicFormComponentIds = VariadicFormData.listVariadicFormComponentIds(template)
+    formModel: FormModel[DataExpanded],
+    requestData: Map[String, Seq[String]]
+  ): (VariadicFormData[SourceOrigin.OutOfDate], RequestRelatedData) = {
 
-    VariadicFormData(
-      data
-        .map {
-          case (id, s) => (id, variadicFormComponentIds(id.reduceToTemplateFieldId), s.toList)
+    val variadicFormComponentIds: Set[ModelComponentId] = formModel.allModelComponentIds
+    val multiValueIds: Set[ModelComponentId] = formModel.allMultiSelectionIds
+
+    val xs: List[(Option[(ModelComponentId, VariadicValue)], Option[RequestRelatedData])] = requestData.toList.map {
+      case (id, s) =>
+        val modelComponentId = ExpandUtils.toModelComponentId(id)
+
+        (variadicFormComponentIds(modelComponentId), multiValueIds(modelComponentId)) match {
+          case (true, true) =>
+            (
+              Some(
+                modelComponentId -> VariadicValue.Many(
+                  s.toList.mkString(",").split(",").map(_.trim).filterNot(_.isEmpty))),
+              None)
+          case (true, false) =>
+            s.toList match {
+              case first :: _ =>
+                (Some(modelComponentId -> VariadicValue.One(first)), None)
+              case _ =>
+                throw new IllegalArgumentException(
+                  show"""Got a single value form component ID "$id", with an empty list of values""")
+            }
+          case (false, _) => (None, Some(RequestRelatedData(Map(id -> s))))
         }
-        .map {
-          case (id, true, values) =>
-            (id, VariadicValue.Many(values.mkString(",").split(",").map(_.trim).filterNot(_.isEmpty)))
-          case (id, false, first :: _) => (id, VariadicValue.One(first))
-          case (id, false, _) =>
-            throw new IllegalArgumentException(
-              show"""Got a single value form component ID "$id", with an empty list of values""")
-        }
-        .toMap
-    )
+    }
+
+    xs.foldLeft((VariadicFormData.empty[SourceOrigin.OutOfDate], RequestRelatedData.empty)) {
+      case ((variadicFormDataAcc, requestRelatedDataAcc), (maybeVar, maybeReq)) =>
+        (
+          maybeVar.fold(variadicFormDataAcc)(variadicFormDataAcc addValue _),
+          maybeReq.fold(requestRelatedDataAcc)(requestRelatedDataAcc + _))
+    }
   }
 }

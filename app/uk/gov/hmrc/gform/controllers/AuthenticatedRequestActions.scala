@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform
 package controllers
 
+import cats.Id
 import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
@@ -33,9 +34,13 @@ import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.graph.GraphException
+import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.userdetails.Nino
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormIdData, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.auth.core.retrieve.Credentials
@@ -56,11 +61,12 @@ trait AuthenticatedRequestActionsAlgebra[F[_]] {
   def authWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => F[Result]): Action[AnyContent]
 
-  def authAndRetrieveForm(
+  def authAndRetrieveForm[U <: SectionSelectorType: SectionSelector](
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     operation: OperationWithForm)(
-    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => F[Result]): Action[AnyContent]
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
+      DataOrigin.Mongo] => F[Result]): Action[AnyContent]
 }
 
 class AuthenticatedRequestActions(
@@ -180,17 +186,14 @@ class AuthenticatedRequestActions(
         authResult <- authService
                        .authenticateAndAuthorise(
                          formTemplate,
-                         request.uri,
                          getAffinityGroup,
                          ggAuthorised(request),
                          getCaseWorkerIdentity(request))
-        newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess =
-                     retrievals => role => f(newRequest)(l)(AuthCacheWithoutForm(retrievals, formTemplate, role))
+                   onSuccess = retrievals => role => f(request)(l)(AuthCacheWithoutForm(retrievals, formTemplate, role))
                  )
       } yield result
     }
@@ -211,15 +214,17 @@ class AuthenticatedRequestActions(
       } yield result
     }
 
-  def authAndRetrieveForm(
+  def authAndRetrieveForm[U <: SectionSelectorType: SectionSelector](
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    operation: OperationWithForm)(
-    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => Future[Result])
-    : Action[AnyContent] =
-    async(formTemplateId, maybeAccessCode) { request => lang => cache => smartStringEvaluator =>
+    operation: OperationWithForm
+  )(
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
+      DataOrigin.Mongo] => Future[Result]
+  ): Action[AnyContent] =
+    async(formTemplateId, maybeAccessCode) { request => lang => cache => smartStringEvaluator => formModelOptics =>
       Permissions.apply(operation, cache.role, cache.form.status) match {
-        case PermissionResult.Permitted    => f(request)(lang)(cache)(smartStringEvaluator)
+        case PermissionResult.Permitted    => f(request)(lang)(cache)(smartStringEvaluator)(formModelOptics)
         case PermissionResult.NotPermitted => errResponder.forbidden(request, "Access denied")
         case PermissionResult.FormSubmitted =>
           Redirect(
@@ -228,9 +233,13 @@ class AuthenticatedRequestActions(
       }
     }
 
-  def async(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])(
-    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => Future[Result])
-    : Action[AnyContent] =
+  def async[U <: SectionSelectorType: SectionSelector](
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  )(
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
+      DataOrigin.Mongo] => Future[Result]
+  ): Action[AnyContent] =
     actionBuilder.async { implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
 
@@ -241,38 +250,43 @@ class AuthenticatedRequestActions(
         authResult <- authService
                        .authenticateAndAuthorise(
                          formTemplate,
-                         request.uri,
                          getAffinityGroup,
                          ggAuthorised(request),
                          getCaseWorkerIdentity(request))
-        newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = withForm(f(newRequest)(l))(maybeAccessCode, formTemplate)
+                   onSuccess = withForm[U](f(request)(l))(maybeAccessCode, formTemplate)
                  )
       } yield result
     }
 
-  private def withForm(f: AuthCacheWithForm => SmartStringEvaluator => Future[Result])(
+  private def withForm[U <: SectionSelectorType: SectionSelector](
+    f: AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[Result]
+  )(
     maybeAccessCode: Option[AccessCode],
-    formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(
-    role: Role)(implicit hc: HeaderCarrier, l: LangADT): Future[Result] =
+    formTemplate: FormTemplate
+  )(
+    retrievals: MaterialisedRetrievals
+  )(
+    role: Role
+  )(
+    implicit
+    hc: HeaderCarrier,
+    l: LangADT
+  ): Future[Result] =
     for {
       form <- gformConnector.getForm(FormIdData(retrievals, formTemplate._id, maybeAccessCode))
       _    <- MDCHelpers.addFormIdToMdc(form._id)
-      cache = AuthCacheWithForm(retrievals, form, formTemplate, role)
-      recalculatedData <- recalculation.recalculateFormData(
-                           cache.variadicFormData,
-                           formTemplate,
-                           cache.retrievals,
-                           form.thirdPartyData,
-                           maybeAccessCode,
-                           form.envelopeId)
+      cache = AuthCacheWithForm(retrievals, form, formTemplate, role, maybeAccessCode)
+
+      formModelOptics <- FormModelOptics
+                          .mkFormModelOptics[DataOrigin.Mongo, Future, U](cache.variadicFormData, cache, recalculation)
+
       smartStringEvaluator = smartStringEvaluatorFactory
-        .apply(recalculatedData, retrievals, maybeAccessCode, form, formTemplate)
-      result <- f(cache)(smartStringEvaluator)
+        .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
+      result <- f(cache)(smartStringEvaluator)(formModelOptics)
     } yield result
 
   private def handleAuthResults(
@@ -280,14 +294,18 @@ class AuthenticatedRequestActions(
     formTemplate: FormTemplate,
     request: Request[_],
     onSuccess: MaterialisedRetrievals => Role => Future[Result]
-  )(implicit l: LangADT, hc: HeaderCarrier): Future[Result] =
+  )(
+    implicit
+    l: LangADT,
+    hc: HeaderCarrier
+  ): Future[Result] =
     result match {
       case AuthSuccessful(retrievals: AnonymousRetrievals, role) =>
         onSuccess(retrievals)(role)
       case AuthSuccessful(retrievals: VerifyRetrievals, role) =>
         onSuccess(retrievals)(role)
       case AuthSuccessful(retrievals: AuthenticatedRetrievals, role) =>
-        onSuccess(updateEnrolments(formTemplate.authConfig, retrievals, request))(role)
+        onSuccess(retrievals)(role)
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
       case AuthAnonymousSession(redirectUrl) =>
         Redirect(redirectUrl.url, request.queryString)
@@ -300,47 +318,6 @@ class AuthenticatedRequestActions(
       case AuthForbidden(message) =>
         errResponder.forbidden(request, message)
     }
-
-  private def updateEnrolments(
-    authConfig: AuthConfig,
-    retrievals: AuthenticatedRetrievals,
-    request: Request[_]): AuthenticatedRetrievals = {
-    // the registrationNumber will be stored in the session by eeittAuth
-    // is this needed for new form and existing form?
-    def updateFor(authBy: String): Option[AuthenticatedRetrievals] =
-      request.session.get(authBy).map { regNum =>
-        val newEnrolment = Enrolment(EEITTAuthConfig.eeittAuth).withIdentifier(authBy, regNum)
-        val newEnrolments = Enrolments(retrievals.enrolments.enrolments + newEnrolment)
-        retrievals.copy(enrolments = newEnrolments)
-      }
-
-    authConfig match {
-      case EeittModule(_) =>
-        updateFor(EEITTAuthConfig.nonAgentIdName)
-          .orElse(updateFor(EEITTAuthConfig.agentIdName))
-          .getOrElse(retrievals)
-      case _ => retrievals
-    }
-  }
-
-  private def removeEeittAuthIdFromSession(
-    request: Request[AnyContent],
-    authConfig: AuthConfig
-  ): Request[AnyContent] = authConfig match {
-
-    // a bit of session clean up due to the session's size restrictions.
-    // The registrationNumber/arn passed by eeitt-auth in the session is saved in the user's enrolments field after
-    // successful authentication, in which case there is no need to keep it in the session anymore
-    case EeittModule(_) =>
-      val sessionCookie =
-        Session.encodeAsCookie(request.session - EEITTAuthConfig.nonAgentIdName - EEITTAuthConfig.agentIdName)
-      val updatedCookies = request.cookies
-        .filterNot(cookie => cookie.name.equals(sessionCookieBaker.COOKIE_NAME))
-        .toSeq :+ sessionCookie
-      val updatedHeaders = request.headers.replace(HeaderNames.COOKIE -> Cookies.encodeCookieHeader(updatedCookies))
-      Request[AnyContent](request.withHeaders(updatedHeaders), request.body)
-    case _ => request
-  }
 
   val defaultRetrievals = Retrievals.credentials and
     Retrievals.allEnrolments and
@@ -423,15 +400,46 @@ sealed trait AuthCache {
   def retrievals: MaterialisedRetrievals
   def formTemplate: FormTemplate
   def role: Role
+  def accessCode: Option[AccessCode]
 }
 
 case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
   formTemplate: FormTemplate,
-  role: Role
+  role: Role,
+  accessCode: Option[AccessCode]
 ) extends AuthCache {
-  lazy val variadicFormData: VariadicFormData = VariadicFormData.buildFromMongoData(formTemplate, form.formData.toData)
+  def formModel[U <: SectionSelectorType: SectionSelector](
+    implicit
+    hc: HeaderCarrier
+  ): FormModel[DependencyGraphVerification] = {
+    import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
+    FormModelBuilder
+      .fromCache(
+        this,
+        toCacheData,
+        new Recalculation[Id, Throwable](
+          SeissEligibilityChecker.alwaysEligible,
+          DelegatedEnrolmentChecker.alwaysDelegated,
+          DbLookupChecker.alwaysPresent,
+          (s: GraphException) => new IllegalArgumentException(s.reportProblem)
+        )
+      )
+      .dependencyGraphValidation
+  }
+
+  def toCacheData: CacheData = new CacheData(
+    form.envelopeId,
+    form.thirdPartyData,
+    formTemplate
+  )
+  def variadicFormData[U <: SectionSelectorType: SectionSelector](
+    implicit
+    hc: HeaderCarrier
+  ): VariadicFormData[SourceOrigin.OutOfDate] =
+    VariadicFormData.buildFromMongoData(formModel, form.formData.toData)
+
 }
 
 case class AuthCacheWithoutForm(
@@ -439,6 +447,18 @@ case class AuthCacheWithoutForm(
   formTemplate: FormTemplate,
   role: Role
 ) extends AuthCache {
-  def toAuthCacheWithForm(form: Form) =
-    AuthCacheWithForm(retrievals, form, formTemplate, role)
+  override val accessCode: Option[AccessCode] = None
+  def toCacheData: CacheData = new CacheData(
+    EnvelopeId(""),
+    ThirdPartyData.empty,
+    formTemplate
+  )
+  def toAuthCacheWithForm(form: Form, accessCode: Option[AccessCode]) =
+    AuthCacheWithForm(retrievals, form, formTemplate, role, accessCode)
 }
+
+class CacheData(
+  val envelopeId: EnvelopeId,
+  val thirdPartyData: ThirdPartyData,
+  val formTemplate: FormTemplate
+)

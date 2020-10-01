@@ -15,10 +15,15 @@
  */
 
 package uk.gov.hmrc.gform.sharedmodel.graph
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IncludeIf }
 
-sealed trait GraphNode {
-  def formComponentId: FormComponentId
+import cats.Eq
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+
+sealed trait GraphNode extends Product with Serializable
+
+object GraphNode {
+  implicit val equal: Eq[GraphNode] = Eq.fromUniversalEquals
+  implicit val equalExpr: Eq[GraphNode.Expr] = Eq.fromUniversalEquals
+  case class Simple(formComponentId: FormComponentId) extends GraphNode
+  case class Expr(expr: uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr) extends GraphNode
 }
-case class SimpleGN(formComponentId: FormComponentId) extends GraphNode
-case class IncludeIfGN(formComponentId: FormComponentId, includeIf: IncludeIf) extends GraphNode

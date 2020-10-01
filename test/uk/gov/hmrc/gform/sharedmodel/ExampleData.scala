@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewa
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.graph.RecData
+import uk.gov.hmrc.gform.models.FormModel
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
@@ -48,13 +49,13 @@ trait ExampleAuthConfig {
   val hmrcDms = HmrcDms(
     DestinationId("TestHmrcDmsId"),
     "TestHmrcDmsFormId",
-    TextExpression(Constant("TestHmrcDmsCustomerId")),
+    Constant("TestHmrcDmsCustomerId"),
     "TestHmrcDmsClassificationType",
     "TestHmrcDmsBusinessArea",
     "",
     true,
     true,
-    true
+    Some(true)
   )
 
   val formComponent = List(buildFormComponent("fieldInAcknowledgementSections", Value))
@@ -372,7 +373,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None
       ),
-      repeats = TextExpression(FormCtx(`fieldId - firstName`.value))
+      repeats = FormCtx(`fieldId - firstName`)
     )
 
   def `section - group` =
@@ -381,6 +382,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     )
 
   def allSections = List(`section - about you`, `section - businessDetails`)
+
 }
 
 trait ExampleSectionNumber {
@@ -397,13 +399,14 @@ trait ExampleValidator {
     HmrcRosmRegistrationCheckValidator(
       toSmartString("The UTR could not be foundor the postcode did not match. | <Welsh...>"),
       "ITSA",
-      FormCtx("utrToCheck"),
-      FormCtx("postcodeToCheck"))
-  def bankAccoutnModulusCheckValidator =
-    BankAccoutnModulusCheck(
+      FormCtx(FormComponentId("utrToCheck")),
+      FormCtx(FormComponentId("postcodeToCheck"))
+    )
+  def bankAccountModulusCheckValidator =
+    BankAccountModulusCheck(
       toSmartString("This is an error message for Bank"),
-      FormCtx("accountNumber"),
-      FormCtx("sortCode"))
+      FormCtx(FormComponentId("accountNumber")),
+      FormCtx(FormComponentId("sortCode")))
   //todo other example validators
 }
 
@@ -419,7 +422,9 @@ trait ExampleFormTemplate {
   def emailParameters =
     Some(
       NonEmptyList
-        .of(EmailParameter("fullNameVariable", FormCtx("fullName")), EmailParameter("emailVariable", FormCtx("email"))))
+        .of(
+          EmailParameter("fullNameVariable", FormCtx(FormComponentId("fullName"))),
+          EmailParameter("emailVariable", FormCtx(FormComponentId("email")))))
 
   def webChat = None
 
@@ -465,24 +470,29 @@ trait ExampleFormTemplate {
 
 trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
 
-  def `formField - facePhoto` = FormField(`fieldId - facePhoto`, "face-photo.jpg")
-  def `formField - firstName` = FormField(`fieldId - firstName`, "James")
-  def `formField - surname` = FormField(`fieldId - surname`, "Bond")
-  def `formField - iptRegNum` = FormField(`fieldId - iptRegNum`, "666CasinoRoyale")
-  def `formField - businessName` = FormField(`fieldId - businessName`, "Quantum of Solace")
-  def `formField - startDateDay` = FormField(`fieldId - startDate-day`, "11")
-  def `formField - startDateMonth` = FormField(`fieldId - startDate-month`, "10")
-  def `formField - startDateYear` = FormField(`fieldId - startDate-year`, "2008")
-  def `formField - number` = FormField(`fieldId - number`, "1,234")
-  def `formField - choice` = FormField(`fieldId - choice`, "u")
+  private def mkFormField(formComponentId: FormComponentId, value: String): FormField = FormField(
+    formComponentId.modelComponentId,
+    value
+  )
+
+  def `formField - facePhoto` = mkFormField(`fieldId - facePhoto`, "face-photo.jpg")
+  def `formField - firstName` = mkFormField(`fieldId - firstName`, "James")
+  def `formField - surname` = mkFormField(`fieldId - surname`, "Bond")
+  def `formField - iptRegNum` = mkFormField(`fieldId - iptRegNum`, "666CasinoRoyale")
+  def `formField - businessName` = mkFormField(`fieldId - businessName`, "Quantum of Solace")
+  def `formField - startDateDay` = mkFormField(`fieldId - startDate-day`, "11")
+  def `formField - startDateMonth` = mkFormField(`fieldId - startDate-month`, "10")
+  def `formField - startDateYear` = mkFormField(`fieldId - startDate-year`, "2008")
+  def `formField - number` = mkFormField(`fieldId - number`, "1,234")
+  def `formField - choice` = mkFormField(`fieldId - choice`, "u")
 
   //actions:
 
-  def `formField - Save` = FormField(`fieldId - save`, "Save")
-  def `formField - Continue` = FormField(`fieldId - save`, "Continue")
-  def `formField - Back` = FormField(`fieldId - save`, "Back")
-  def `formField - AddGroup` = FormField(`fieldId - save`, "AddGroup")
-  def `formField - RemoveGroup` = FormField(`fieldId - save`, "RemoveGroup")
+  def `formField - Save` = mkFormField(`fieldId - save`, "Save")
+  def `formField - Continue` = mkFormField(`fieldId - save`, "Continue")
+  def `formField - Back` = mkFormField(`fieldId - save`, "Back")
+  def `formField - AddGroup` = mkFormField(`fieldId - save`, "AddGroup")
+  def `formField - RemoveGroup` = mkFormField(`fieldId - save`, "RemoveGroup")
 
   def data: Map[FormComponentId, FormField] = Map(
     `fieldId - save`            -> `formField - Save`,
@@ -499,9 +509,9 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
   )
 
 //  def rawDataFromBrowser: Map[FormComponentId, Seq[String]] = data.mapValues(x => Seq(x.value))
-  def rawDataFromBrowser: VariadicFormData = VariadicFormData(data.mapValues(x => VariadicValue.One(x.value)))
-  def formDataRecalculated: FormDataRecalculated =
-    FormDataRecalculated.empty.copy(recData = RecData.fromData(rawDataFromBrowser))
+  //def rawDataFromBrowser: VariadicFormData = VariadicFormData(data.mapValues(x => VariadicValue.One(x.value)))
+  /* def formDataRecalculated: FormDataRecalculated =
+ *   FormDataRecalculated.empty.copy(recData = RecData.fromData(rawDataFromBrowser)) */
 }
 
 trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
@@ -537,6 +547,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     VisitIndex(Set.empty),
     ThirdPartyData.empty,
     envelopeExpiryDate
+//    EvaluationResults.empty
   )
 
 }
@@ -591,11 +602,7 @@ trait ExampleFrontendAppConfig {
     whitelistEnabled = true,
     googleTagManagerIdAvailable = false,
     googleTagManagerId = "",
-    authModule = AuthModule(
-      JSConfig(false, 0, 0, "", ""),
-      JSConfig(false, 0, 0, "", ""),
-      JSConfig(false, 0, 0, "", ""),
-      JSConfig(false, 0, 0, "", "")),
+    authModule = AuthModule(JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", "")),
     availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy")),
     routeToSwitchLanguage = uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage,
     contactFormServiceIdentifier = "",

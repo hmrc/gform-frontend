@@ -14,14 +14,11 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.sharedmodel.form.FormField
 
 @(formField: FormField)
 
 <input
-  type="hidden"
-  id="@formField.id"
-  name="@formField.id"
-  value="@formField.value" />
+    type="hidden"
+    name="@formField.id.toMongoIdentifier"
+    value="@formField.value" />
