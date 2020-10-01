@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.validation
 
 import java.time.LocalTime
 
-import cats.instances.future._
+import cats.implicits._
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.i18n.{ Lang, Messages, MessagesApi, MessagesImpl }
 import uk.gov.hmrc.gform.Helpers.toSmartString
@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class TimeValidationSpec extends Spec with GraphSpec {
 

@@ -40,7 +40,7 @@ final case object AnyDate extends DateConstraintType
 final case class DateConstraints(constraints: List[DateConstraint]) extends DateConstraintType
 
 object DateConstraintType {
-  implicit val format: OFormat[DateConstraintType] = derived.oformat[DateConstraintType]
+  implicit val format: OFormat[DateConstraintType] = derived.oformat()
 }
 
 final case class DateConstraint(
@@ -50,7 +50,7 @@ final case class DateConstraint(
 )
 
 object DateConstraint {
-  implicit val format: OFormat[DateConstraint] = derived.oformat[DateConstraint]
+  implicit val format: OFormat[DateConstraint] = derived.oformat()
 }
 
 sealed trait BeforeAfterPrecisely {
@@ -78,7 +78,7 @@ case object Precisely extends BeforeAfterPrecisely
 
 object BeforeAfterPrecisely {
   implicit val catsEq: Eq[BeforeAfterPrecisely] = Eq.fromUniversalEquals
-  implicit val format: OFormat[BeforeAfterPrecisely] = derived.oformat[BeforeAfterPrecisely]
+  implicit val format: OFormat[BeforeAfterPrecisely] = derived.oformat[BeforeAfterPrecisely]()
 }
 
 sealed trait Year extends Product with Serializable
@@ -91,7 +91,7 @@ object Year {
   case class Exact(year: Int) extends Year
 
   implicit val catsEq: Eq[Year] = Eq.fromUniversalEquals
-  implicit val format: OFormat[Year] = derived.oformat[Year]
+  implicit val format: OFormat[Year] = derived.oformat[Year]()
 }
 
 sealed trait Month extends Product with Serializable {
@@ -104,7 +104,7 @@ object Month {
   case class Exact(month: Int) extends Month
 
   implicit val catsEq: Eq[Month] = Eq.fromUniversalEquals
-  implicit val format: OFormat[Month] = derived.oformat[Month]
+  implicit val format: OFormat[Month] = derived.oformat[Month]()
 }
 
 sealed trait Day extends Product with Serializable {
@@ -133,7 +133,7 @@ object Day {
   case object Last extends Day
 
   implicit val catsEq: Eq[Day] = Eq.fromUniversalEquals
-  implicit val format: OFormat[Day] = derived.oformat[Day]
+  implicit val format: OFormat[Day] = derived.oformat[Day]()
 }
 
 sealed trait DateConstraintInfo
@@ -142,7 +142,7 @@ case class ConcreteDate(year: Year, month: Month, day: Day) extends DateConstrai
 case class DateField(value: FormComponentId) extends DateConstraintInfo
 
 object DateConstraintInfo {
-  implicit val format: OFormat[DateConstraintInfo] = derived.oformat
+  implicit val format: OFormat[DateConstraintInfo] = derived.oformat()
 }
 
 case class OffsetDate(value: Int) extends AnyVal
@@ -280,7 +280,7 @@ object TextConstraint {
   val defaultWholeDigits = 11
   val defaultFactionalDigits = 2
 
-  implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]
+  implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]()
 
   def filterNumberValue(s: String): String = s.filterNot(c => (c == '£'))
 
@@ -374,7 +374,7 @@ object Register {
   case object IntentOther extends Register
   case object IntentLivingCostsAndFees extends Register
 
-  implicit val format: OFormat[Register] = derived.oformat
+  implicit val format: OFormat[Register] = derived.oformat()
 
   def fromString(str: String): Option[Register] = str match {
     case "cashType"                 => Some(Register.CashType)

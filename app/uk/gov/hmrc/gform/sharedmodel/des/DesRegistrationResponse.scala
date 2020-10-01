@@ -23,7 +23,7 @@ import play.api.libs.json._
 sealed trait Address extends Product with Serializable
 
 object Address {
-  implicit val format: OFormat[Address] = derived.oformat
+  implicit val format: OFormat[Address] = derived.oformat()
 }
 
 case class UkAddress(
@@ -78,7 +78,7 @@ sealed trait DesEntity {
 }
 
 object DesEntity {
-  implicit val format: OFormat[DesEntity] = derived.oformat
+  implicit val format: OFormat[DesEntity] = derived.oformat()
 }
 
 case class Organisation(

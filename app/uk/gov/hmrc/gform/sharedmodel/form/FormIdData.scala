@@ -68,5 +68,5 @@ object FormIdData {
       FormIdData.WithAccessCode(userId, formTemplateId, accessCode)
     }
 
-  implicit val format: OFormat[FormIdData] = derived.oformat
+  implicit val format: OFormat[FormIdData] = derived.oformat()
 }

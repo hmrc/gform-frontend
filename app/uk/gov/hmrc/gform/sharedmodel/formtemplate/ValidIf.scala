@@ -22,5 +22,5 @@ import play.api.libs.json.OFormat
 case class ValidIf(booleanExpr: BooleanExpr) extends AnyVal
 
 object ValidIf {
-  implicit val format: OFormat[ValidIf] = derived.oformat
+  implicit val format: OFormat[ValidIf] = derived.oformat()
 }

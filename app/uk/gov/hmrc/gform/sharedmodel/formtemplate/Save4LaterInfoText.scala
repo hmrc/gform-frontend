@@ -28,6 +28,6 @@ case class Save4LaterInfoText(value: LocalisedString) extends AnyVal {
 
 object Save4LaterInfoText {
 
-  implicit val format: OFormat[Save4LaterInfoText] = derived.oformat
+  implicit val format: OFormat[Save4LaterInfoText] = derived.oformat()
 
 }

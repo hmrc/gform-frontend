@@ -53,9 +53,6 @@
 
 @mainScripts = {
   @scriptElem
-  @if(webChat.nonEmpty) {
-    @frontendAppConfig.webchatClient.webchatClickToChatScriptPartial(webChatRoomId, webChatTemplateName)
-  }
 }
 
 @errorPrefix = @{if (containsErrors) "Error: " else ""}

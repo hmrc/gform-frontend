@@ -100,7 +100,7 @@ object Section {
     }
   }
 
-  implicit val format: OFormat[Section] = derived.oformat[Section]
+  implicit val format: OFormat[Section] = derived.oformat()
 }
 
 case class DeclarationSection(

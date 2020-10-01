@@ -25,5 +25,5 @@ object ContinueOrDeletePage {
   case object Skip extends ContinueOrDeletePage
   case object Show extends ContinueOrDeletePage
 
-  implicit val format: OFormat[ContinueOrDeletePage] = derived.oformat
+  implicit val format: OFormat[ContinueOrDeletePage] = derived.oformat()
 }

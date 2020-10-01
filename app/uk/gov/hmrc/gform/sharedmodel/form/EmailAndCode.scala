@@ -52,5 +52,5 @@ object EmailAndCode {
   def emailVerificationCode(email: String): EmailAndCode =
     EmailAndCode(email, EmailConfirmationCode(random))
 
-  implicit val format: OFormat[EmailAndCode] = derived.oformat
+  implicit val format: OFormat[EmailAndCode] = derived.oformat()
 }

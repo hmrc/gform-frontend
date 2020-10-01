@@ -77,19 +77,19 @@ final case class RetrievedObligations(obligation: NonEmptyList[TaxResponse]) ext
 object Obligations {
   implicit val catsEq: Eq[Obligations] = Eq.fromUniversalEquals
   import JsonUtils._
-  implicit val format: OFormat[Obligations] = derived.oformat[Obligations]
+  implicit val format: OFormat[Obligations] = derived.oformat()
 }
 
 case class IdNumberValue(value: String) extends AnyVal
 
 object IdNumberValue {
   implicit val catsEq: Eq[IdNumberValue] = Eq.fromUniversalEquals
-  implicit val format: OFormat[IdNumberValue] = derived.oformat
+  implicit val format: OFormat[IdNumberValue] = derived.oformat()
 }
 
 case class RecalculatedTaxPeriodKey(fcId: FormComponentId, hmrcTaxPeriod: HmrcTaxPeriod)
 object RecalculatedTaxPeriodKey {
-  implicit val format: OFormat[RecalculatedTaxPeriodKey] = derived.oformat
+  implicit val format: OFormat[RecalculatedTaxPeriodKey] = derived.oformat()
 }
 
 case class HmrcTaxPeriodWithEvaluatedId(
@@ -97,5 +97,5 @@ case class HmrcTaxPeriodWithEvaluatedId(
   idNumberValue: IdNumberValue)
 
 object HmrcTaxPeriodWithEvaluatedId {
-  implicit val format: OFormat[HmrcTaxPeriodWithEvaluatedId] = derived.oformat
+  implicit val format: OFormat[HmrcTaxPeriodWithEvaluatedId] = derived.oformat()
 }

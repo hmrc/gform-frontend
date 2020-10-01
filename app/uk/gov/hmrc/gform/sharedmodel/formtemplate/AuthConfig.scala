@@ -27,7 +27,7 @@ case class EnrolmentAuth(
   enrolmentCheck: EnrolmentCheck
 )
 object EnrolmentAuth {
-  implicit val format: OFormat[EnrolmentAuth] = derived.oformat
+  implicit val format: OFormat[EnrolmentAuth] = derived.oformat()
 }
 
 sealed trait EnrolmentCheck extends Product with Serializable
@@ -38,28 +38,28 @@ case class DoCheck(
 ) extends EnrolmentCheck
 case object Never extends EnrolmentCheck
 object EnrolmentCheck {
-  implicit val format: OFormat[EnrolmentCheck] = derived.oformat
+  implicit val format: OFormat[EnrolmentCheck] = derived.oformat()
 }
 
 sealed trait EnrolmentCheckPredicate extends Product with Serializable
 case object Always extends EnrolmentCheckPredicate
 case object ForNonAgents extends EnrolmentCheckPredicate
 object EnrolmentCheckPredicate {
-  implicit val format: OFormat[EnrolmentCheckPredicate] = derived.oformat
+  implicit val format: OFormat[EnrolmentCheckPredicate] = derived.oformat()
 }
 
 sealed trait NeedEnrolment extends Product with Serializable
 case class RequireEnrolment(enrolmentSection: EnrolmentSection, enrolmentAction: EnrolmentAction) extends NeedEnrolment
 case object RejectAccess extends NeedEnrolment
 object NeedEnrolment {
-  implicit val format: OFormat[NeedEnrolment] = derived.oformat
+  implicit val format: OFormat[NeedEnrolment] = derived.oformat()
 }
 
 sealed trait EnrolmentPostCheck extends Product with Serializable
 case object NoCheck extends EnrolmentPostCheck
 case class RegimeIdCheck(regimeId: RegimeId) extends EnrolmentPostCheck
 object EnrolmentPostCheck {
-  implicit val format: OFormat[EnrolmentPostCheck] = derived.oformat
+  implicit val format: OFormat[EnrolmentPostCheck] = derived.oformat()
 }
 
 sealed trait EnrolmentCheckVerb extends Product with Serializable
@@ -142,7 +142,7 @@ object AuthConfig {
       case (Some(NeverVerb) | None, _) => EnrolmentAuth(serviceId, Never)
     }
 
-  implicit val format: OFormat[AuthConfig] = derived.oformat
+  implicit val format: OFormat[AuthConfig] = derived.oformat()
 
 }
 
@@ -161,7 +161,7 @@ case class LegacyFcEnrolmentVerifier(value: String) extends EnrolmentAction
 case object NoAction extends EnrolmentAction
 
 object EnrolmentAction {
-  implicit val format: Format[EnrolmentAction] = derived.oformat[EnrolmentAction]
+  implicit val format: Format[EnrolmentAction] = derived.oformat[EnrolmentAction]()
 }
 
 object LegacyFcEnrolmentVerifier {

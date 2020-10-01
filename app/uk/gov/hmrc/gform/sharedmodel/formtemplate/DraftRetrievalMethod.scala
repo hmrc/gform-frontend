@@ -26,5 +26,5 @@ case class FormAccessCodeForAgents(continueOrDeletePage: ContinueOrDeletePage) e
 case object BySubmissionReference extends DraftRetrievalMethod
 
 object DraftRetrievalMethod {
-  implicit val format: OFormat[DraftRetrievalMethod] = derived.oformat
+  implicit val format: OFormat[DraftRetrievalMethod] = derived.oformat()
 }

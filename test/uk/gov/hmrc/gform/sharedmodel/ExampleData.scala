@@ -585,7 +585,6 @@ import play.api.i18n.Lang
 
 trait ExampleFrontendAppConfig {
   val frontendAppConfig = FrontendAppConfig(
-    webchatClient = null,
     albAdminIssuerUrl = "",
     analyticsToken = "analyticsToken",
     analyticsHost = "analyticsHost",

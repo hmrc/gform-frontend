@@ -25,7 +25,7 @@ sealed trait Validator {
 }
 
 case object Validator {
-  implicit val format: OFormat[Validator] = derived.oformat
+  implicit val format: OFormat[Validator] = derived.oformat()
 }
 
 case class HmrcRosmRegistrationCheckValidator(
@@ -39,7 +39,7 @@ case class HmrcRosmRegistrationCheckValidator(
 }
 
 object HmrcRosmRegistrationCheckValidator {
-  implicit val format: OFormat[HmrcRosmRegistrationCheckValidator] = derived.oformat
+  implicit val format: OFormat[HmrcRosmRegistrationCheckValidator] = derived.oformat()
 }
 
 case class BankAccountModulusCheck(
@@ -53,5 +53,5 @@ case class BankAccountModulusCheck(
 }
 
 object BankAccountModulusCheck {
-  implicit val format: OFormat[BankAccountModulusCheck] = derived.oformat
+  implicit val format: OFormat[BankAccountModulusCheck] = derived.oformat()
 }

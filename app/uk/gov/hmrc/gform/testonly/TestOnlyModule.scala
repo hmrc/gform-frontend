@@ -26,11 +26,9 @@ import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
 class TestOnlyModule(
   configModule: ConfigModule,
-  playBuiltInsModule: PlayBuiltInsModule,
   gformBackendModule: GformBackendModule,
   controllersModule: ControllersModule,
   graphModule: GraphModule,
@@ -48,9 +46,8 @@ class TestOnlyModule(
     gformBackendModule.gformConnector,
     lookupRegistry,
     controllersModule.authenticatedRequestActions,
-    controllersModule.messagesControllerComponents,
-    configModule.mode,
-    configModule.playConfiguration
+    configModule.serviceConfig,
+    controllersModule.messagesControllerComponents
   )
 
   val debugController = new DebugController(

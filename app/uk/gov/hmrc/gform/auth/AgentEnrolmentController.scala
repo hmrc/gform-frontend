@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.auth
 
 import play.api.i18n.I18nSupport
 import play.api.mvc.MessagesControllerComponents
-import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId

@@ -25,6 +25,6 @@ case class FormComponentValidator(validIf: ValidIf, errorMessage: SmartString)
 object FormComponentValidator {
 
   implicit val format: OFormat[FormComponentValidator] =
-    OFormat(derived.reads[FormComponentValidator], derived.owrites[FormComponentValidator])
+    OFormat(derived.reads[FormComponentValidator](), derived.owrites[FormComponentValidator]())
 
 }

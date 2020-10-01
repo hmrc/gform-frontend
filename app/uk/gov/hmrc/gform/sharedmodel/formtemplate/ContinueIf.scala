@@ -24,5 +24,5 @@ case object Continue extends ContinueIf
 case object Stop extends ContinueIf
 
 object ContinueIf {
-  implicit val format: OFormat[ContinueIf] = derived.oformat
+  implicit val format: OFormat[ContinueIf] = derived.oformat()
 }
