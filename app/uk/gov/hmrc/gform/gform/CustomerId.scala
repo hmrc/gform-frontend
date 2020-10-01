@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
-case class CustomerId(id: String) {
+case class CustomerId(id: String) extends AnyVal {
   def isEmpty(): Boolean = id.isEmpty
 }
 

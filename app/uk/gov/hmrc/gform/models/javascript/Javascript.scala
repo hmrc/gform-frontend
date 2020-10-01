@@ -16,104 +16,75 @@
 
 package uk.gov.hmrc.gform.models.javascript
 
+import cats.syntax.eq._
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.extractMaxFractionalDigits
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.ops._
 
 private case class JsFunction(name: String) extends AnyVal {
   override def toString = name
 }
 
-case class RepeatFormComponentIds(op: FormComponentId => List[FormComponentId]) extends AnyVal
-
 object Javascript {
 
   def fieldJavascript(
-    jsFormComponentModels: List[JsFormComponentModel],
-    allFields: List[FormComponent],
-    repeatFormComponentIds: RepeatFormComponentIds,
-    dependencies: Dependencies): String = {
+    pageModel: PageModel[DataExpanded],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  ): String = {
 
-    val (jsRevealingChoiceModels, sectionFields) =
-      jsFormComponentModels.foldLeft((List.empty[JsRevealingChoiceModel], List.empty[FormComponentWithCtx])) {
-        case ((rcModel, fcWithCtx), next) =>
-          next match {
-            case x: JsRevealingChoiceModel => (x :: rcModel, fcWithCtx)
-            case x: JsFormComponentWithCtx => (rcModel, x.fcWithCtx :: fcWithCtx)
-          }
+    val graph = formModelOptics.formModelVisibilityOptics.graphData.graph
+
+    val fcWithSuccessors: List[(FormComponent, Set[ModelComponentId])] = pageModel.allFormComponents
+      .map { formComponent =>
+        val formComponentId = formComponent.id
+
+        val nodeT: Option[graph.NodeT] = graph.find(GraphNode.Simple(formComponentId))
+
+        val successors: Set[FormComponentId] =
+          nodeT.fold(Set.empty[FormComponentId])(_.diSuccessors.map(_.toOuter).collect {
+            case GraphNode.Expr(FormCtx(fcId)) => fcId
+          })
+
+        val baseComponentIds: Set[BaseComponentId] = successors.map(_.baseComponentId)
+
+        val modelComponentIds =
+          pageModel.allModelComponentIds.filter(modelComponentId => baseComponentIds(modelComponentId.baseComponentId))
+
+        formComponent -> modelComponentIds
       }
+      .filter { case (fc, set) => set.nonEmpty } // Ignore if there are no successors (for example ${form.submissionReference})
 
-    val sectionFieldIds = sectionFields.map(_.id).toSet
-    val dynamicFcIds = sectionFieldIds ++ jsRevealingChoiceModels.map(_.fc.id).toSet
+    val successorLookup
+      : Map[FormComponentId, Set[ModelComponentId]] = fcWithSuccessors.map { case (k, v) => k.id -> v }.toMap
 
-    def isDynamic(expr: Expr): Boolean = expr match {
-      case f @ FormCtx(_)              => dynamicFcIds.contains(f.toFieldId)
-      case Sum(f)                      => isDynamic(f)
-      case Add(field1, field2)         => isDynamic(field1) || isDynamic(field2)
-      case Subtraction(field1, field2) => isDynamic(field1) || isDynamic(field2)
-      case Multiply(field1, field2)    => isDynamic(field1) || isDynamic(field2)
-      case otherwise                   => false
+    val fcWithExprs: List[(FormComponent, Expr)] = fcWithSuccessors.map(_._1).collect {
+      case fc @ HasExpr(expr) => fc -> expr
     }
 
-    val previousSectionIds: List[FormComponentId] = dependencies.all.filterNot(sectionFieldIds.contains)
-
-    val isHiddenScripts = jsRevealingChoiceModels.map {
-      case JsRevealingChoiceModel(_, fc) =>
-        val id = fc.id.value
-        s"""|var isHidden$id = function () {
-            |  return document.getElementById("$id").parentNode.parentNode.parentNode.classList.contains("govuk-checkboxes__conditional--hidden");
-            |};""".stripMargin
-    }
-    val isHiddenScripts2 = (previousSectionIds ++ sectionFields.map(_.id)).map { fcId =>
-      s"""|var isHidden${fcId.value} = function () {
-          |  return false;
-          |};""".stripMargin
-    }
-
-    val radiosAndCheckboxes = jsRevealingChoiceModels.map(_.fcId)
-
-    val mkEvents: JsFunction => List[String] = functionName =>
-      radiosAndCheckboxes.distinct.map { fcId =>
-        s"""|document.getElementsByName("${fcId.value}").forEach(function(element, index) {
-            |  element.addEventListener("change",$functionName);
-            |});
-            |""".stripMargin
-    }
-
-    val fieldIdWithExpr: List[(FormComponentWithCtx, Expr)] =
-      sectionFields.collect {
-        case formComponent @ HasExprCtx(SingleExpr(expr)) if isDynamic(expr) =>
-          (formComponent, expr)
-      }
-
-    fieldIdWithExpr
+    fcWithExprs
       .map {
-        case (formComponentWithCtx, expr) =>
-          toJavascriptFn(
-            formComponentWithCtx,
-            expr,
-            repeatFormComponentIds,
-            dependencies.toLookup,
-            mkEvents,
-            jsRevealingChoiceModels)
+        case (formComponent, expr) =>
+          toJavascriptFn(formComponent, expr, successorLookup, formModelOptics)
       }
       .mkString("\n") +
-      isHiddenScripts2.mkString("\n") +
-      isHiddenScripts.mkString("\n") +
-      """|function getValue(elementId, identity, isHidden) {
+      """|function getValue(elementId, isHidden) {
          |   var el = document.getElementById(elementId);
          |   var isVisible = !isHidden();
          |   if (el && isVisible) {
-         |     return getNumber(el.value.replace(/[£,]/g,''), identity);
+         |     return getNumber(el.value.replace(/[£,]/g,''));
          |   } else {
-         |     return identity;
+         |     return 0;
          |   };
          |};
          |
-         |function getNumber(value, identity) {
+         |function getNumber(value) {
          |  if (value == ""){
-         |    return identity;
+         |    return 0;
          |  } else {
          |    return value.replace(",", "");
          |  }
@@ -134,17 +105,24 @@ object Javascript {
          |  var r = BigNumber(result).toFormat(precision, rounding);
          |  return result < 0 ? r.replace("-", "-£") : '£' + r;
          |};
+         |function isElementHidden(elementId) {
+         |  var classList = document.getElementById(elementId).parentNode.parentNode.parentNode.parentNode.classList;
+         |  return classList.contains("govuk-radios__conditional--hidden") || classList.contains("govuk-checkboxes__conditional--hidden");
+         |}
          |""".stripMargin
   }
 
   private def toJavascriptFn(
-    field: FormComponentWithCtx,
+    field: FormComponent,
     expr: Expr,
-    repeatFormComponentIds: RepeatFormComponentIds,
-    dependenciesLookup: Map[FormComponentId, List[FormComponentId]],
-    radioAndCheckboxes: JsFunction => List[String],
-    jsRevealingChoiceModel: List[JsRevealingChoiceModel]
+    successorLookup: Map[FormComponentId, Set[ModelComponentId]],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   ): String = {
+
+    val elementId = field.id
+    val functionName = JsFunction("compute" + elementId)
+
+    val isDependent: Set[ModelComponentId] = successorLookup.get(field.id).getOrElse(Set.empty)
 
     def getRoundingMode(fc: FormComponent) =
       fc.`type` match {
@@ -157,30 +135,35 @@ object Javascript {
         case _                                           => None
       }
 
-    val roundingMode = field match {
-      case FormComponentWithGroup(fc, _) => getRoundingMode(fc)
-      case FormComponentSimple(fc)       => getRoundingMode(fc)
-    }
+    val roundingMode = getRoundingMode(field)
 
     import Expr._
 
-    def computeExpr(expr: Expr, opIdentity: Int): String = {
+    def computeExpr(expr: Expr): String = {
 
-      def sum(id: String) = {
-        val groupFcIds: List[FormComponentId] = repeatFormComponentIds.op(FormComponentId(id))
-        val sumExpr = groupFcIds.map(x => FormCtx(x.value)).foldLeft(additionIdentityExpr)(Add)
-        computeExpr(sumExpr, additionIdentity)
+      def sum(id: FormComponentId) = {
+        val sumFcIds: Set[ModelComponentId] = successorLookup.values.flatten.toList
+          .filter(_.baseComponentId === id.baseComponentId)
+          .toSet // Remove duplicates
+        val sumExpr = sumFcIds.map(x => FormCtx(x.toFormComponentId)).foldLeft(Expr.additionIdentity)(Add)
+        computeExpr(sumExpr)
       }
 
-      def compute(operation: String, left: Expr, right: Expr, id: Int) =
-        s"$operation(${computeExpr(left, id)}, ${computeExpr(right, id)})"
+      def compute(operation: String, left: Expr, right: Expr) =
+        s"$operation(${computeExpr(left)}, ${computeExpr(right)})"
 
       expr match {
-        case FormCtx(id)       => s"""getValue("$id", $opIdentity, isHidden$id)"""
+        case FormCtx(id) =>
+          val modelComponentId = id.modelComponentId
+          if (isDependent(modelComponentId)) {
+            s"""getValue("$id", isHidden$id)"""
+          } else {
+            formModelOptics.formModelVisibilityOptics.data.one(modelComponentId).getOrElse("")
+          }
         case Constant(amount)  => amount
-        case Add(a, b)         => compute("add", a, b, additionIdentity)
-        case Subtraction(a, b) => compute("subtract", a, b, additionIdentity)
-        case Multiply(a, b)    => compute("multiply", a, b, additionIdentity)
+        case Add(a, b)         => compute("add", a, b)
+        case Subtraction(a, b) => compute("subtract", a, b)
+        case Multiply(a, b)    => compute("multiply", a, b)
         case Sum(FormCtx(id))  => sum(id)
         case otherwise         => ""
       }
@@ -188,15 +171,39 @@ object Javascript {
 
     def listeners(functionName: JsFunction) = {
 
-      val components = dependenciesLookup.get(field.id).getOrElse(Nil) ++ jsRevealingChoiceModel.map(_.fc.id)
+      val componentEls = isDependent.map { modelComponentId =>
+        val id = modelComponentId.toMongoIdentifier
 
-      val componentEls = components.map { fcId =>
-        val id = fcId.value
+        val isChild =
+          formModelOptics.formModelRenderPageOptics.rcLookup.isRevealingChoiceChild(modelComponentId.toFormComponentId)
+
+        val isHidden =
+          if (isChild) {
+            s"""|var isHidden$id = function () {
+                |  return isElementHidden("$id");
+                |};
+                |
+                |var check = document.getElementById("$id").dataset.checkbox;
+                |if(check) {
+                |  var checkbox = document.getElementById(check);
+                |  if (checkbox) {
+                |    checkbox.addEventListener("change",$functionName);
+                |  }
+                |}
+                |""".stripMargin
+          } else {
+            s"""|var isHidden$id = function () {
+                |  return false;
+                |};""".stripMargin
+          }
+
         s"""|var element$id = document.getElementById("$id");
             |if (element$id) {
             |  element$id.addEventListener("change",$functionName);
             |  element$id.addEventListener("keyup",$functionName);
-            |}""".stripMargin
+            |}
+            |$isHidden
+            |""".stripMargin
       }
 
       s"""|window.addEventListener("load", $functionName);
@@ -214,14 +221,12 @@ object Javascript {
       case Some(RoundingMode.HalfEven) => "ROUND_HALF_EVEN"
       case _                           => "ROUND_DOWN"
     }
-    val elementId = field.id
-    val functionName = JsFunction("compute" + elementId)
 
     // format: off
     s"""|function $functionName() {
      |  var numberOfDecimalPlaces = ${roundToCtx(field)};
      |  var roundingMode = BigNumber.$elementRoundingMode;
-     |  var result = BigNumber(${computeExpr(expr, additionIdentity)}).decimalPlaces(numberOfDecimalPlaces, roundingMode);
+     |  var result = BigNumber(${computeExpr(expr)}).decimalPlaces(numberOfDecimalPlaces, roundingMode);
      |  var element = document.getElementById("$elementId")
      |  if(element) {
      |    element.value = result;
@@ -232,15 +237,10 @@ object Javascript {
      |  }
      |}
      |${listeners(functionName)}
-     |${radioAndCheckboxes(functionName).mkString("\n")}
      |""".stripMargin
     // format: on
-
   }
 
-  def roundToCtx(fc: FormComponentWithCtx): Int = fc match {
-    case FormComponentWithGroup(fc, _) => extractMaxFractionalDigits(fc).maxDigits
-    case FormComponentSimple(fc)       => extractMaxFractionalDigits(fc).maxDigits
-  }
+  def roundToCtx(fc: FormComponent): Int = extractMaxFractionalDigits(fc).maxDigits
 
 }

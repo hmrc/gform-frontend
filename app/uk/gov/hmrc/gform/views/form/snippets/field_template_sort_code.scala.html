@@ -19,14 +19,11 @@
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.UkSortCode
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
+@import uk.gov.hmrc.gform.validation.{HtmlFieldId, FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
 @(fieldValue: FormComponent,
-  sC: UkSortCode,
-  prepop: String,
-  validationResult: Option[FormFieldValidationResult],
-  index: Int,
+  validationResult: FormFieldValidationResult,
   formLevelHeading: Boolean)(
   implicit
     messages: Messages,
@@ -34,23 +31,25 @@
     sse: SmartStringEvaluator)
 
 @hasErrors = @{
-  validationResult.exists(_.isNotOk)
+  validationResult.isNotOk
 }
 
 @inputClasses = @{if(hasErrors) "govuk-input--error" else ""}
 
 @divClasses = @{if(hasErrors) "govuk-form-group--error" else ""}
 
-@label = @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
+@label = @{fieldValue.label.value}
+
+@labelFor = @{UkSortCode.fields(fieldValue.modelComponentId.indexedComponentId).head.toMongoIdentifier}
 
 @if(formLevelHeading) {
     <h1 class="govuk-label-wrapper">
-        <label class="govuk-label--l" for="@UkSortCode.fields(fieldValue.id).toList.head">
+        <label class="govuk-label--l" for="@labelFor">
             @label
         </label>
     </h1>
 } else {
-    <label class="govuk-label" for="@UkSortCode.fields(fieldValue.id).toList.head">
+    <label class="govuk-label" for="@labelFor">
         @label
     </label>
 }
@@ -64,20 +63,22 @@
 
     @inline_error_map(fieldValue, validationResult)
 
-    @UkSortCode.fields(fieldValue.id).toList.zipWithIndex.map{ case (fieldId, index) =>
-      @defining(index + 1){ fieldNumber =>
-        <div class="govuk-date-input__item gform-date-input__item">
-              <label
-                for="@fieldId"
-                class="govuk-visually-hidden">@messages("sortcode.part", fieldNumber)</label>
-              <input
-                type="number"
-                name="@fieldId"
-                @if(!fieldValue.editable) { readonly="" }
-                id="@fieldId"
-                value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldId.toString)).getOrElse("")"
-                class="@inputClasses govuk-input govuk-input--width-2">
-        </div>
+    @defining(fieldValue.modelComponentId.indexedComponentId) { indexedComponentId => @*// TODO JoVl, this is weird, let's use MultiValueId instead*@
+      @UkSortCode.fields(indexedComponentId).toList.zipWithIndex.map { case (atomicFieldId, index) =>
+        @defining(index + 1, atomicFieldId) { case (fieldNumber, fieldId) =>
+          <div class="govuk-date-input__item gform-date-input__item">
+            <label
+              for="@fieldId"
+              class="govuk-visually-hidden">@messages("sortcode.part", fieldNumber)</label>
+            <input
+              type="number"
+              name="@fieldId.toMongoIdentifier"
+              @if(!fieldValue.editable) { readonly="" }
+              id="@fieldId.toMongoIdentifier"
+              value="@validationResult.getCurrentValue(HtmlFieldId.pure(atomicFieldId))"
+              class="@inputClasses govuk-input govuk-input--width-2">
+          </div>
+        }
       }
     }
   </fieldset>

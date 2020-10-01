@@ -16,68 +16,23 @@
 
 package uk.gov.hmrc.gform.gform
 
-import play.twirl.api.Html
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.sharedmodel.config.ContentType
-import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, Section, SectionNumber }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Obligations, VariadicFormData }
-import uk.gov.hmrc.gform.validation.{ EmailCodeFieldMatcher, FormFieldValidationResult, GetEmailCodeFieldMatcher }
+import uk.gov.hmrc.gform.models.{ PageModel, Visibility }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import uk.gov.hmrc.gform.validation.{ GetEmailCodeFieldMatcher, ValidationResult }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 package object handlers {
 
-  type HtmlGenerator = (
-    Option[AccessCode],
-    Form,
-    SectionNumber,
-    FormDataRecalculated,
-    FormTemplate,
-    List[(FormComponent, FormFieldValidationResult)],
+  type ValidatePageModel[F[_], D <: DataOrigin] = (
+    PageModel[Visibility],
+    CacheData,
     Envelope,
-    EnvelopeId,
-    ValidatedType[ValidationResult],
-    List[Section],
-    Int,
-    List[ContentType],
-    MaterialisedRetrievals,
-    VisitIndex,
-    Option[String],
-    Obligations) => Html
-
-  type UpdateObligations[F[_]] = (FormId, UserData, Form, Form) => F[Unit]
-
-  type RecalculateDataAndSections[F[_]] =
-    (VariadicFormData, AuthCacheWithForm, Option[AccessCode]) => F[(FormDataRecalculated, List[Section])]
-
-  type ValidateForm[F[_]] = (
-    FormDataRecalculated,
-    List[Section],
-    SectionNumber,
-    EnvelopeId,
-    MaterialisedRetrievals,
-    ThirdPartyData,
-    FormTemplate) => F[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)]
-
-  type ValidateFormComponents[F[_]] = (
-    List[FormComponent],
-    Section,
-    EnvelopeId,
-    Envelope,
-    MaterialisedRetrievals,
-    ThirdPartyData,
-    FormTemplate,
-    FormDataRecalculated,
-    GetEmailCodeFieldMatcher,
-    Option[AccessCode]) => F[ValidatedType[ValidationResult]]
-
-  type EvaluateValidation =
-    (
-      ValidatedType[ValidationResult],
-      List[FormComponent],
-      FormDataRecalculated,
-      Envelope) => List[(FormComponent, FormFieldValidationResult)]
+    FormModelVisibilityOptics[D],
+    GetEmailCodeFieldMatcher
+  ) => F[ValidatedType[ValidatorsResult]]
 
 }

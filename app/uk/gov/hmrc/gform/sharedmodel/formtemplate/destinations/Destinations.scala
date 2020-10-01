@@ -23,21 +23,26 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import JsonUtils._
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 
-sealed trait Destinations extends Product with Serializable
+sealed trait Destinations extends Product with Serializable {
+  def fold[A](f: Destinations.DestinationList => A)(g: Destinations.DestinationPrint => A): A = this match {
+    case d: Destinations.DestinationList  => f(d)
+    case d: Destinations.DestinationPrint => g(d)
+  }
+}
 
 object Destinations {
 
   case class DestinationList(
     destinations: NonEmptyList[Destination],
     acknowledgementSection: AcknowledgementSection,
-    declarationSection: DeclarationSection)
-      extends Destinations
+    declarationSection: DeclarationSection
+  ) extends Destinations
 
   case class DestinationPrint(
     page: PrintSection.Page,
     pdf: PrintSection.Pdf,
-    pdfNotification: Option[PrintSection.PdfNotification])
-      extends Destinations
+    pdfNotification: Option[PrintSection.PdfNotification]
+  ) extends Destinations
 
   implicit val destinationListFormat: OFormat[DestinationList] = derived.oformat
 

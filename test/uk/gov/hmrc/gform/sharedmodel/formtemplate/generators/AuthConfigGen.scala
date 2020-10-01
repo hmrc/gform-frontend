@@ -60,8 +60,6 @@ trait AuthConfigGen {
       enrolmentCheck <- enrolmentCheckGen
     } yield EnrolmentAuth(serviceId, enrolmentCheck)
 
-  def eeittModuleGen: Gen[EeittModule] = regimeIdGen.map(EeittModule)
-
   def hmrcEnrolmentModuleGen: Gen[HmrcEnrolmentModule] = enrolmentAuthGen.map(HmrcEnrolmentModule)
 
   def agentAccessGen: Gen[AgentAccess] =
@@ -76,12 +74,7 @@ trait AuthConfigGen {
     } yield HmrcAgentWithEnrolmentModule(agentAccess, enrolmentAuth)
 
   def authConfigGen: Gen[AuthConfig] =
-    Gen.oneOf(
-      eeittModuleGen,
-      Gen.const(HmrcSimpleModule),
-      hmrcEnrolmentModuleGen,
-      hmrcAgentModuleGen,
-      hmrcAgentWithEnrolmentModuleGen)
+    Gen.oneOf(Gen.const(HmrcSimpleModule), hmrcEnrolmentModuleGen, hmrcAgentModuleGen, hmrcAgentWithEnrolmentModuleGen)
 }
 
 object AuthConfigGen extends AuthConfigGen

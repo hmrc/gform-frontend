@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.MonadError
+import cats.{ Monad, MonadError }
 import cats.data.NonEmptyList
 import cats.instances.list._
 import cats.syntax.flatMap._
@@ -26,8 +26,12 @@ import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
+import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.form.FormIdData
+import uk.gov.hmrc.gform.models.{ FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BundledFormSubmissionData, LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Accepting, Form, FormStatus, Returning }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
@@ -35,38 +39,69 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
-class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: LookupRegistry)(
-  implicit me: MonadError[F, Throwable]) {
+class ReviewService[F[_]: Monad](
+  gformBackEnd: GformBackEndAlgebra[F],
+  lookupRegistry: LookupRegistry,
+  recalculation: Recalculation[F, Throwable]
+)(
+  implicit
+  me: MonadError[F, Throwable]
+) {
   def forceUpdateFormStatus(
     cache: AuthCacheWithForm,
     status: FormStatus,
     reviewData: Map[String, String],
-    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): F[Unit] =
+    maybeAccessCode: Option[AccessCode]
+  )(
+    implicit
+    hc: HeaderCarrier
+  ): F[Unit] =
     gformBackEnd.updateUserData(updateWithReviewData(cache, reviewData).form, maybeAccessCode) >>
       gformBackEnd.forceUpdateFormStatus(FormIdData.fromForm(cache.form, maybeAccessCode), status)
 
-  def acceptForm(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode], reviewData: Map[String, String])(
-    implicit request: Request[AnyContent],
+  def acceptForm[U <: SectionSelectorType: SectionSelector](
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode],
+    reviewData: Map[String, String],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(
+    implicit
+    request: Request[AnyContent],
     headerCarrier: HeaderCarrier,
     l: LangADT,
-    sse: SmartStringEvaluator): F[HttpResponse] =
-    submitReviewResults(updateWithReviewData(cache, reviewData), maybeAccessCode, Accepting)
+    sse: SmartStringEvaluator
+  ): F[HttpResponse] =
+    submitReviewResults(updateWithReviewData(cache, reviewData), maybeAccessCode, Accepting, formModelOptics)
 
-  def returnForm(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode], reviewData: Map[String, String])(
-    implicit request: Request[AnyContent],
+  def returnForm[U <: SectionSelectorType: SectionSelector](
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode],
+    reviewData: Map[String, String],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(
+    implicit
+    request: Request[AnyContent],
     headerCarrier: HeaderCarrier,
     l: LangADT,
-    sse: SmartStringEvaluator): F[HttpResponse] =
+    sse: SmartStringEvaluator
+  ): F[HttpResponse] =
     submitReviewResults(
       updateWithReviewData(cache, reviewData),
       maybeAccessCode,
-      Returning
+      Returning,
+      formModelOptics
     )
 
-  def submitFormBundle(cache: AuthCacheWithForm, reviewData: Map[String, String], maybeAccessCode: Option[AccessCode])(
-    implicit request: Request[AnyContent],
+  def submitFormBundle(
+    cache: AuthCacheWithForm,
+    reviewData: Map[String, String],
+    maybeAccessCode: Option[AccessCode]
+  )(
+    implicit
+    request: Request[AnyContent],
     headerCarrier: HeaderCarrier,
-    l: LangADT): F[Unit] =
+    l: LangADT
+  ): F[Unit] =
     for {
       bundle           <- gformBackEnd.getFormBundle(FormIdData.fromForm(cache.form, maybeAccessCode))
       formDataToSubmit <- buildFormDataToSubmit(bundle)
@@ -77,14 +112,17 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
   private def updateWithReviewData(cache: AuthCacheWithForm, reviewData: Map[String, String]) =
     cache.copy(form = cache.form.copy(thirdPartyData = cache.form.thirdPartyData.copy(reviewData = Some(reviewData))))
 
-  private def submitReviewResults(
+  private def submitReviewResults[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    formStatus: FormStatus)(
+    formStatus: FormStatus,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(
     implicit request: Request[AnyContent],
     headerCarrier: HeaderCarrier,
     l: LangADT,
-    sse: SmartStringEvaluator): F[HttpResponse] =
+    sse: SmartStringEvaluator
+  ): F[HttpResponse] =
     for {
       submission <- gformBackEnd.submissionDetails(FormIdData.fromForm(cache.form, maybeAccessCode))
       result <- gformBackEnd.submitWithUpdatedFormStatus(
@@ -92,23 +130,37 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
                  cache,
                  maybeAccessCode,
                  Some(SubmissionDetails(submission, "")),
-                 Attachments.empty)
+                 Attachments.empty,
+                 formModelOptics
+               )
     } yield result._1
 
-  private def buildFormDataToSubmit(formIds: NonEmptyList[FormIdData])(
-    implicit hc: HeaderCarrier,
-    l: LangADT): F[NonEmptyList[BundledFormSubmissionData]] =
+  private def buildFormDataToSubmit(
+    formIds: NonEmptyList[FormIdData]
+  )(
+    implicit
+    hc: HeaderCarrier,
+    l: LangADT
+  ): F[NonEmptyList[BundledFormSubmissionData]] =
     for {
       forms         <- getForms(formIds)
       formTemplates <- getFormTemplates(forms)
       bundle        <- buildBundledFormSubmissionData(forms, formTemplates)
     } yield bundle
 
-  private def buildBundledFormSubmissionData(
+  private def buildBundledFormSubmissionData[D <: DataOrigin](
     forms: NonEmptyList[Form],
-    formTemplates: Map[FormTemplateId, FormTemplate])(implicit l: LangADT): F[NonEmptyList[BundledFormSubmissionData]] =
+    formTemplates: Map[FormTemplateId, FormTemplate]
+  )(
+    implicit
+    l: LangADT
+  ): F[NonEmptyList[BundledFormSubmissionData]] =
     forms.traverse { form =>
-      StructuredFormDataBuilder(form, formTemplates(form.formTemplateId), lookupRegistry)
+      val formModelVisibilityOptics: FormModelVisibilityOptics[D] = ???
+      StructuredFormDataBuilder[D, F](
+        formModelVisibilityOptics,
+        formTemplates(form.formTemplateId).destinations,
+        lookupRegistry)
         .map { sfd =>
           BundledFormSubmissionData(
             FormIdData.fromForm(form, Some(AccessCode.fromSubmissionRef(SubmissionRef(form.envelopeId)))),

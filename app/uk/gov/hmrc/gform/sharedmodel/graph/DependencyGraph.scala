@@ -18,75 +18,108 @@ package uk.gov.hmrc.gform.sharedmodel.graph
 
 import cats.instances.either._
 import cats.syntax.functor._
+import cats.syntax.eq._
+import cats.syntax.option._
 import scalax.collection.Graph
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
+import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, ExprOnlyProjection, InferrableExpr, IsSelfReferring, SelfReferenceProjection }
+import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, Interim, PageMode, Repeater, Singleton }
+import uk.gov.hmrc.gform.sharedmodel.{ SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object DependencyGraph {
 
   val emptyGraph: Graph[GraphNode, DiEdge] = Graph.empty
 
-  def toGraph(formTemplate: FormTemplate, data: VariadicFormData): Graph[GraphNode, DiEdge] =
-    graphFrom(formTemplate.expandFormTemplate(data))
+  def toGraph(formModel: FormModel[Interim], formTemplateExprs: List[ExprMetadata]): Graph[GraphNode, DiEdge] =
+    graphFrom(formModel, formTemplateExprs)
 
-  def toGraphFull(formTemplate: FormTemplate): Graph[GraphNode, DiEdge] =
-    graphFrom(formTemplate.expandFormTemplateFull)
-
-  private def graphFrom(expandedFT: ExpandedFormTemplate): Graph[GraphNode, DiEdge] = {
-
-    val allFcIds = expandedFT.allFormComponentIds
+  private def graphFrom[T <: PageMode](
+    formModel: FormModel[T],
+    formTemplateExprs: List[ExprMetadata]
+  ): Graph[GraphNode, DiEdge] = {
 
     def edges(fc: FormComponent): List[DiEdge[GraphNode]] = {
-      def fcIds(fc: FormComponent): List[FormComponentId] = fc match {
-        case HasExpr(
-            SingleExpr(AuthCtx(_) | EeittCtx(_) | UserCtx(_) | FormTemplateCtx(_) | HmrcRosmRegistrationCheck(_))) =>
-          fc.id :: Nil
-        case HasExpr(SingleExpr(expr)) => eval(expr)
-        case _                         => List.empty
+      def fcIds(fc: FormComponent): List[DiEdge[GraphNode]] = fc match {
+        case AllFormComponentExpressions(exprsMetadata) =>
+          exprsMetadata.flatMap {
+            case SelfReferenceProjection(
+                IsSelfReferring.No(AuthCtx(_) | UserCtx(_) | FormTemplateCtx(_) | HmrcRosmRegistrationCheck(_))) =>
+              (fc.id :: Nil).map(fcId => GraphNode.Simple(fc.id) ~> GraphNode.Simple(fcId))
+            case SelfReferenceProjection(IsSelfReferring.No(expr)) =>
+              toDiEdge(fc, expr, _ => false)
+            case SelfReferenceProjection(IsSelfReferring.Yes(expr, selfReference)) =>
+              toDiEdge(fc, expr, _ === selfReference)
+          }
+        case _ => Nil
       }
-      fcIds(fc).map(fcId => SimpleGN(fc.id) ~> SimpleGN(fcId))
+      fcIds(fc)
     }
 
-    def eval(expr: Expr): List[FormComponentId] =
+    def toFormComponentId(expr: Expr): List[FormComponentId] =
       expr match {
-        case fc @ FormCtx(_)             => fc.toFieldId :: Nil
-        case Sum(FormCtx(fc))            => allFcIds.filter(_.value.endsWith(fc))
-        case Add(field1, field2)         => eval(field1) ++ eval(field2)
-        case Subtraction(field1, field2) => eval(field1) ++ eval(field2)
-        case Multiply(field1, field2)    => eval(field1) ++ eval(field2)
-        case Else(field1, field2)        => eval(field1) ++ eval(field2)
-        case otherwise                   => List.empty
+        case FormCtx(formComponentId) => formComponentId :: Nil
+        case otherwise                => List.empty
       }
 
-    def evalBooleanExpr(expr: BooleanExpr): List[FormComponentId] =
-      expr match {
-        case Equals(left, right)              => eval(left) ++ eval(right)
-        case NotEquals(left, right)           => eval(left) ++ eval(right)
-        case GreaterThan(left, right)         => eval(left) ++ eval(right)
-        case GreaterThanOrEquals(left, right) => eval(left) ++ eval(right)
-        case LessThan(left, right)            => eval(left) ++ eval(right)
-        case LessThanOrEquals(left, right)    => eval(left) ++ eval(right)
-        case Not(bExpr)                       => evalBooleanExpr(bExpr)
-        case Or(left, right)                  => evalBooleanExpr(left) ++ evalBooleanExpr(right)
-        case And(left, right)                 => evalBooleanExpr(left) ++ evalBooleanExpr(right)
-        case otherwise                        => List.empty
-      }
+    def toDiEdge(fc: FormComponent, expr: Expr, cycleBreaker: FormComponentId => Boolean): List[DiEdge[GraphNode]] =
+      expr.leafs
+        .flatMap { e =>
+          val fcNodes = toFormComponentId(e).map(fcId => GraphNode.Expr(e) ~> GraphNode.Simple(fcId))
+          if (cycleBreaker(fc.id) && e === FormCtx(fc.id)) fcNodes
+          else GraphNode.Simple(fc.id) ~> GraphNode.Expr(e) :: fcNodes
+        }
 
-    val includeIfs: List[DiEdge[GraphNode]] = expandedFT.allIncludeIfs.flatMap {
-      case (expandedFCs, includeIf, index) =>
-        val includeIfFcId = FormComponentId("includeIf_" + index)
+    def fromOption(maybeSmartString: Option[SmartString]): List[Expr] =
+      maybeSmartString.fold(List.empty[Expr])(_.interpolations)
 
-        val iign = IncludeIfGN(includeIfFcId, includeIf)
-        val deps = evalBooleanExpr(includeIf.expr)
+    def boolenExprDeps(
+      booleanExpr: BooleanExpr,
+      fcs: List[FormComponent],
+      cycleBreaker: GraphNode.Expr => Boolean): List[DiEdge[GraphNode]] = {
 
-        expandedFCs.flatMap(_.allIds).map(a => SimpleGN(a) ~> iign) ++
-          deps.map(a => iign ~> SimpleGN(a))
+      val allExprGNs: List[GraphNode.Expr] =
+        booleanExpr.allExpressions.flatMap(_.leafs).map(GraphNode.Expr.apply)
 
+      val fcIds = fcs.map(_.id)
+
+      val deps1: List[DiEdge[GraphNode]] =
+        for {
+          exprGN <- allExprGNs.filterNot(cycleBreaker)
+          fcId   <- fcIds
+        } yield GraphNode.Simple(fcId) ~> exprGN
+
+      val deps2: List[DiEdge[GraphNode]] =
+        allExprGNs.flatMap(exprGN => toFormComponentId(exprGN.expr).map(fcId => exprGN ~> GraphNode.Simple(fcId)))
+
+      deps1 ++ deps2
     }
 
-    expandedFT.allFormComponents.flatMap(edges).foldLeft(emptyGraph)(_ + _) ++ includeIfs
+    val validIfs: List[DiEdge[GraphNode]] = formModel.allValidIfs.flatMap {
+      case (validIfs, fc) =>
+        validIfs.flatMap(validIf =>
+          boolenExprDeps(validIf.booleanExpr, fc :: Nil, _ === GraphNode.Expr(FormCtx(fc.id))))
+    }
+
+    val includeIfs: List[DiEdge[GraphNode]] = formModel.allIncludeIfsWithDependingFormComponents.flatMap {
+      case (includeIf, dependingFCs) =>
+        boolenExprDeps(includeIf.booleanExpr, dependingFCs, _ => false)
+    }
+
+    val sections = {
+
+      val exprs = (formTemplateExprs ++ formModel.exprsMetadata).collect { case ExprOnlyProjection(expr) => expr }
+
+      val allExprGNs: List[GraphNode.Expr] = exprs.flatMap(_.leafs).map(GraphNode.Expr.apply)
+
+      val deps: List[DiEdge[GraphNode]] =
+        allExprGNs.flatMap(exprGN => toFormComponentId(exprGN.expr).map(fcId => exprGN ~> GraphNode.Simple(fcId)))
+
+      deps
+    }
+
+    formModel.allFormComponents.flatMap(edges).foldLeft(emptyGraph)(_ + _) ++ includeIfs ++ validIfs ++ sections
   }
 
   def constructDependencyGraph(
@@ -94,7 +127,6 @@ object DependencyGraph {
     def sortedOuterNodes(items: Iterable[graph.NodeT]) =
       items.toList
         .map(_.toOuter)
-        .sortBy(_.formComponentId.value)
 
     graph.topologicalSort
       .map(_.toLayered.map {

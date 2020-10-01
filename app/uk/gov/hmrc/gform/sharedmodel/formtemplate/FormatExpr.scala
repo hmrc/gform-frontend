@@ -17,6 +17,9 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.Eq
+import cats.instances.int._
+import cats.syntax.eq._
+import java.time.LocalDate
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LocalisedString }
@@ -54,7 +57,19 @@ sealed trait BeforeAfterPrecisely {
   def mkString: String = this match {
     case Before    => "before"
     case After     => "after"
-    case Precisely => "exactDate"
+    case Precisely => "precisely"
+  }
+
+  val intPredicate: (Int, Int) => Boolean = this match {
+    case Before    => _ < _
+    case After     => _ > _
+    case Precisely => _ === _
+  }
+
+  val datePredicate: (LocalDate, LocalDate) => Boolean = this match {
+    case Before    => _ isBefore _
+    case After     => _ isAfter _
+    case Precisely => _ isEqual _
   }
 }
 case object After extends BeforeAfterPrecisely
@@ -62,68 +77,68 @@ case object Before extends BeforeAfterPrecisely
 case object Precisely extends BeforeAfterPrecisely
 
 object BeforeAfterPrecisely {
-
+  implicit val catsEq: Eq[BeforeAfterPrecisely] = Eq.fromUniversalEquals
   implicit val format: OFormat[BeforeAfterPrecisely] = derived.oformat[BeforeAfterPrecisely]
 }
 
-sealed trait ExactParameter
-sealed trait DateParameter
-
-sealed trait Year extends DateParameter
-case object Next extends Year with ExactParameter
-case object Previous extends Year with ExactParameter
-case object AnyYear extends Year
-case class ExactYear(year: Int) extends Year with ExactParameter
+sealed trait Year extends Product with Serializable
 
 object Year {
-  implicit val catsEq: Eq[Year] = Eq.fromUniversalEquals
 
+  case object Next extends Year
+  case object Previous extends Year
+  case object Any extends Year
+  case class Exact(year: Int) extends Year
+
+  implicit val catsEq: Eq[Year] = Eq.fromUniversalEquals
   implicit val format: OFormat[Year] = derived.oformat[Year]
 }
 
-sealed trait Month extends DateParameter
-case object AnyMonth extends Month
-case class ExactMonth(month: Int) extends Month with ExactParameter
+sealed trait Month extends Product with Serializable {
+  def isAny: Boolean = this === Month.Any
+}
 
 object Month {
+
+  case object Any extends Month
+  case class Exact(month: Int) extends Month
+
+  implicit val catsEq: Eq[Month] = Eq.fromUniversalEquals
   implicit val format: OFormat[Month] = derived.oformat[Month]
 }
 
-sealed trait Day extends DateParameter
-case object AnyDay extends Day
-case class ExactDay(day: Int) extends Day with ExactParameter
-case object FirstDay extends Day with ExactParameter
-case object LastDay extends Day with ExactParameter
+sealed trait Day extends Product with Serializable {
+  // format: off
+  def isAny: Boolean   = fold0(true)(false)(false)(false)
+  def isExact: Boolean = fold0(false)(true)(false)(false)
+  def isFirst: Boolean = fold0(false)(false)(true)(false)
+  def isLast: Boolean =  fold0(false)(false)(false)(true)
+  // format: on
+
+  private def fold0[B](f: B)(g: B)(h: B)(i: => B): B = fold(_ => f)(_ => g)(_ => h)(_ => i)
+
+  def fold[B](f: Day.Any.type => B)(g: Day.Exact => B)(h: Day.First.type => B)(i: Day.Last.type => B): B = this match {
+    case x: Day.Any.type   => f(x)
+    case x: Day.Exact      => g(x)
+    case x: Day.First.type => h(x)
+    case x: Day.Last.type  => i(x)
+  }
+}
 
 object Day {
-  implicit val catsEq: Eq[Day] = Eq.fromUniversalEquals
 
+  case object Any extends Day
+  case class Exact(day: Int) extends Day
+  case object First extends Day
+  case object Last extends Day
+
+  implicit val catsEq: Eq[Day] = Eq.fromUniversalEquals
   implicit val format: OFormat[Day] = derived.oformat[Day]
 }
 
 sealed trait DateConstraintInfo
 case object Today extends DateConstraintInfo
-
-case class ConcreteDate(year: Year, month: Month, day: Day) extends DateConstraintInfo {
-
-  val isExact: Boolean = (year, month, day) match {
-    case (_: ExactParameter, _: ExactParameter, _: ExactParameter) => true
-    case _                                                         => false
-  }
-
-  def getNumericParameters: List[ExactParameter] = (day :: month :: year :: Nil).collect {
-    case parameter: ExactYear  => parameter
-    case parameter: ExactMonth => parameter
-    case parameter: ExactDay   => parameter
-  }
-
-}
-
-object ConcreteDate {
-  def apply(year: Int, month: Int, day: Int): ConcreteDate =
-    ConcreteDate(ExactYear(year), ExactMonth(month), ExactDay(day))
-}
-
+case class ConcreteDate(year: Year, month: Month, day: Day) extends DateConstraintInfo
 case class DateField(value: FormComponentId) extends DateConstraintInfo
 
 object DateConstraintInfo {

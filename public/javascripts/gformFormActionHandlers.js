@@ -14,9 +14,15 @@
       }
 
       function findAction ($el) {
-        return $el.is("button") ?
-          $el.val() : $el.is("a") ?
-            $el.attr('href') : ''
+        return $el.is("button")
+          ? $el.val()
+          : $el.is("a")
+          ? $el.attr("href")
+          : $el.is("span") &&
+            $el.attr("aria-hidden") == "true" &&
+            $el.parent().is("a")
+          ? $el.parent().attr("href")
+          : "";
       }
 
       function setAction (e, action, submit) {
@@ -48,6 +54,8 @@
           .parent()
           .on('click', 'button.govuk-button', handleFormSubmit(null, true))
           .on('click', '.removeRepeatingSection, #addRepeatingGroup', handleFormSubmit(null, true))
+	  .on("click", "#editAddToList", handleFormSubmit(null, true))
+	  .on('click', '#removeAddToList', handleFormSubmit(null, true))
           .on('click', '#backButton', handleFormSubmit('Back', true))
           .on('click', '#saveComeBackLater', handleFormSubmit('Save', true))
           .on('click', '#saveComeBackLaterExit', handleFormSubmit('Exit', true));

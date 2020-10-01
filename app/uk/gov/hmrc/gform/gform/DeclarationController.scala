@@ -16,26 +16,23 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.future._
-import cats.syntax.validated._
 import play.api.Logger
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
-import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.fileupload.{ Attachments, Envelope, FileUploadService }
-import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
-import uk.gov.hmrc.gform.models.helpers.Fields
+import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.models.{ ProcessData, ProcessDataService, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.gform.NoSpecificAction
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, VariadicFormData }
-import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
-import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
+import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.http.{ BadRequestException, HeaderCarrier }
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
@@ -48,108 +45,129 @@ class DeclarationController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
   auditService: AuditService,
-  pdfService: PdfGeneratorService,
-  renderer: SectionRenderingService,
+  fileUploadService: FileUploadService,
   validationService: ValidationService,
-  authService: AuthService,
-  recalculation: Recalculation[Future, Throwable],
+  renderer: SectionRenderingService,
+  gformConnector: GformConnector,
+  processDataService: ProcessDataService[Future],
   gformBackEnd: GformBackEndAlgebra[Future],
-  messagesControllerComponents: MessagesControllerComponents,
-  fileUploadService: FileUploadService
+  messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
-  def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewDeclaration) {
-      implicit request => implicit l => cache => implicit sse =>
-        cache.formTemplate.destinations match {
-          case destinationList: DestinationList =>
-            Future.successful(Ok(renderDeclarationSection(cache, maybeAccessCode, destinationList.declarationSection)))
-
-          case _ =>
-            Future.failed(new BadRequestException(s"Declaration Section is not defined for $formTemplateId"))
-        }
-    }
-
-  private def renderDeclarationSection(
-    cache: AuthCacheWithForm,
+  def showDeclaration(
     maybeAccessCode: Option[AccessCode],
-    declarationSectionValue: DeclarationSection)(
-    implicit request: Request[_],
-    l: LangADT,
-    sse: SmartStringEvaluator) = {
-    import i18nSupport._
+    formTemplateId: FormTemplateId,
+    suppressErrors: SuppressErrors
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.WithDeclaration](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.ViewDeclaration) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      cache.formTemplate.destinations match {
+        case DestinationList(_, _, declarationSection) =>
+          import i18nSupport._
+          for {
+            validationResult <- validationService
+                                 .validateDeclarationSection(
+                                   declarationSection,
+                                   cache.toCacheData,
+                                   formModelOptics.formModelVisibilityOptics,
+                                   Envelope.empty
+                                 )
+          } yield {
+            val validationResultUpd = suppressErrors(validationResult)
+            Ok(
+              renderer
+                .renderDeclarationSection(
+                  maybeAccessCode,
+                  cache.form,
+                  cache.formTemplate,
+                  declarationSection,
+                  cache.retrievals,
+                  validationResultUpd,
+                  formModelOptics))
+          }
 
-    renderer
-      .renderDeclarationSection(
-        maybeAccessCode,
-        cache.form,
-        cache.formTemplate,
-        declarationSectionValue,
-        cache.retrievals,
-        ValidationResult.empty.valid,
-        FormDataRecalculated.empty,
-        Nil)
-  }
+        case _ =>
+          Future.failed(new BadRequestException(s"Declaration Section is not defined for $formTemplateId"))
+      }
+    }
 
   def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.SubmitDeclaration) {
-      implicit request => implicit l => cacheOrig => implicit sse =>
-        val envelopeId = cacheOrig.form.envelopeId
-        fileUploadService.getEnvelope(envelopeId).flatMap { envelope =>
-          processResponseDataFromBody(request, cacheOrig.formTemplate) { dataRaw =>
-            (dataRaw.one(FormComponentId("save")), cacheOrig.formTemplate.destinations) match {
-              case (Some("Continue"), destinationList: DestinationList) =>
-                continueToSubmitDeclaration(
-                  cacheOrig,
-                  dataRaw,
-                  maybeAccessCode,
-                  envelopeId,
-                  envelope,
-                  destinationList.declarationSection)
+    auth.authAndRetrieveForm[SectionSelectorType.WithDeclaration](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.SubmitDeclaration) {
+      implicit request => implicit l => cache => implicit sse => formModelOptics =>
+        processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics.formModel) {
+          requestRelatedData => declarationOnlyVariadicFormData =>
+            val sectionsData = formModelOptics.formModelRenderPageOptics.recData.variadicFormData
+              .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]]
+            val variadicFormData = sectionsData ++ declarationOnlyVariadicFormData
 
-              case (Some("Continue"), _) =>
-                Future.failed(new BadRequestException(s"Declaration Section is not defined for $formTemplateId"))
+            val envelopeId = cache.form.envelopeId
 
-              case _ =>
-                Future.successful(BadRequest("Cannot determine action"))
-            }
-          }
+            def processDeclaration(processData: ProcessData, envelope: Envelope): Future[Result] =
+              (requestRelatedData.get("save"), cache.formTemplate.destinations) match {
+                case ("Continue", destinationList: DestinationList) =>
+                  continueToSubmitDeclaration[SectionSelectorType.WithDeclaration](
+                    cache,
+                    maybeAccessCode,
+                    envelopeId,
+                    envelope,
+                    destinationList.declarationSection,
+                    processData)
+
+                case ("Continue", _) =>
+                  Future.failed(new BadRequestException(s"Declaration Section is not defined for $formTemplateId"))
+
+                case _ =>
+                  Future.successful(BadRequest("Cannot determine action"))
+              }
+
+            val processDataF: Future[ProcessData] = processDataService
+              .getProcessData[SectionSelectorType.WithDeclaration](
+                variadicFormData,
+                cache,
+                formModelOptics,
+                gformConnector.getAllTaxPeriods,
+                NoSpecificAction)
+
+            val envelopeF: Future[Envelope] = fileUploadService.getEnvelope(envelopeId)
+
+            for {
+              processData <- processDataF
+              envelope    <- envelopeF
+              res         <- processDeclaration(processData, envelope)
+            } yield res
+
         }
     }
 
-  private def continueToSubmitDeclaration(
+  private def continueToSubmitDeclaration[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
-    dataRaw: VariadicFormData,
     maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
     envelope: Envelope,
-    declarationSectionValue: DeclarationSection)(
+    declarationSection: DeclarationSection,
+    processData: ProcessData
+  )(
     implicit
     request: Request[_],
     l: LangADT,
-    lise: SmartStringEvaluator) = {
+    lise: SmartStringEvaluator
+  ): Future[Result] = {
 
     import i18nSupport._
 
-    val declarationData = FormDataRecalculated(Set.empty, RecData.fromData(dataRaw))
+    val cacheData = cache.toCacheData
+    val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
+
     for {
-      tuple <- removeHiddenSectionDataAndCalculateAttachments(cache, maybeAccessCode, envelope)
-      (cacheWithHiddenSectionDataRemoved, attachments) = tuple
-      _ <- cleanseEnvelope(envelopeId, envelope, attachments)
       valRes <- validationService
-                 .validateComponentsWithCache(
-                   cacheWithHiddenSectionDataRemoved,
-                   declarationData,
-                   Envelope.empty,
-                   maybeAccessCode)
-      response <- processValidation(
-                   valRes,
-                   maybeAccessCode,
-                   cacheWithHiddenSectionDataRemoved,
-                   declarationData,
-                   attachments,
-                   declarationSectionValue)
+                 .validateDeclarationSection(declarationSection, cacheData, formModelVisibilityOptics, envelope)
+      response <- processValidation(valRes, maybeAccessCode, cache, envelopeId, envelope, processData)
     } yield response
   }
 
@@ -167,159 +185,108 @@ class DeclarationController(
     }
   }
 
-  private def removeHiddenSectionDataAndCalculateAttachments(
-    cache: AuthCacheWithForm,
+  private def processValidation[U <: SectionSelectorType: SectionSelector](
+    validationResult: ValidationResult,
     maybeAccessCode: Option[AccessCode],
-    envelope: Envelope)(implicit hc: HeaderCarrier) =
-    recalculateFormData(cache, maybeAccessCode).map { data =>
-      val (visibleFields, attachments) = VisibleFieldCalculator(cache.formTemplate, cache.form.formData, data, envelope)
-      val updatedForm = cache.form.copy(formData = cache.form.formData.copy(fields = visibleFields))
-      (cache.copy(form = updatedForm), attachments)
+    cache: AuthCacheWithForm,
+    envelopeId: EnvelopeId,
+    envelope: Envelope,
+    processData: ProcessData
+  )(
+    implicit
+    request: Request[_],
+    l: LangADT,
+    lise: SmartStringEvaluator
+  ): Future[Result] =
+    if (validationResult.isFormValid) {
+      processValid(cache, maybeAccessCode, envelopeId, envelope, processData)
+    } else {
+      processInvalid(maybeAccessCode, cache, validationResult, processData)
     }
-
-  private def recalculateFormData(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode])(
-    implicit hc: HeaderCarrier) =
-    recalculation.recalculateFormData(
-      extractFormDataFields(cache),
-      cache.formTemplate,
-      cache.retrievals,
-      cache.form.thirdPartyData,
-      maybeAccessCode,
-      cache.form.envelopeId)
-
-  private def extractFormDataFields(cache: AuthCacheWithForm) = cache.variadicFormData
-
-  private def processValidation(
-    valType: ValidatedType[Unit],
-    maybeAccessCode: Option[AccessCode],
-    cache: AuthCacheWithForm,
-    data: FormDataRecalculated,
-    attachments: Attachments,
-    declarationSectionValue: DeclarationSection
-  )(implicit request: Request[_], l: LangADT, lise: SmartStringEvaluator) = valType match {
-    case Valid(()) => processValid(cache, data, maybeAccessCode, attachments)
-    case validationResult @ Invalid(_) =>
-      processInvalid(maybeAccessCode, cache, data, validationResult, declarationSectionValue)
-  }
 
   private def processInvalid(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    data: FormDataRecalculated,
-    validationResult: Invalid[GformError],
-    declarationSectionValue: DeclarationSection)(
-    implicit request: Request[_],
-    l: LangADT,
-    sse: SmartStringEvaluator): Future[Result] =
-    Future.successful(
-      Ok(createHtmlForInvalidSubmission(maybeAccessCode, cache, declarationSectionValue, data, validationResult)))
+    validationResult: ValidationResult,
+    processData: ProcessData
+  )(
+    implicit
+    request: Request[_]
+  ): Future[Result] = {
+    val variadicFormData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
 
-  private def processValid(
+    val form: Form = cache.form.copy(
+      formData = variadicFormData.toFormData
+    )
+    for {
+      _ <- gformBackEnd.updateUserData(form, maybeAccessCode)
+    } yield
+      Redirect(routes.DeclarationController.showDeclaration(maybeAccessCode, cache.formTemplate._id, SuppressErrors.No))
+  }
+
+  private def processValid[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
-    data: FormDataRecalculated,
     maybeAccessCode: Option[AccessCode],
-    attachments: Attachments)(
+    envelopeId: EnvelopeId,
+    envelope: Envelope,
+    processData: ProcessData
+  )(
     implicit
     request: Request[_],
     l: LangADT,
-    lise: SmartStringEvaluator): Future[Result] = {
+    lise: SmartStringEvaluator
+  ): Future[Result] = {
     import i18nSupport._
 
-    cache.formTemplate.destinations match {
-      case _: DestinationList => {
-        val updatedCache = cache.copy(form = updateFormWithDeclaration(cache.form, cache.formTemplate, data))
-        gformBackEnd
-          .submitWithUpdatedFormStatus(Signed, updatedCache, maybeAccessCode, None, attachments)
-          .map {
-            case (_, customerId) => showAcknowledgement(updatedCache, maybeAccessCode, customerId)
-          }
-      }
+    val formModelOptics = processData.formModelOptics
 
-      case _: DestinationPrint =>
-        Future.successful(
-          Redirect(
-            uk.gov.hmrc.gform.gform.routes.PrintSectionController
-              .showPrintSection(cache.form.formTemplateId, maybeAccessCode)))
+    val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
+
+    val attachments: Attachments = {
+      val notVisibleFc: Set[FormComponent] =
+        formModelOptics.formModelRenderPageOptics.allFormComponents.toSet --
+          formModelVisibilityOptics.allFormComponents.toSet
+      val res: Set[FormComponentId] = notVisibleFc.collect {
+        case fc @ IsFileUpload() if envelope.contains(fc.modelComponentId) => fc.id
+      }
+      Attachments(res.toList)
+    }
+
+    val variadicFormData: VariadicFormData[SourceOrigin.Current] = formModelOptics.pageOpticsData
+
+    val cacheUpd = cache.copy(form = cache.form.copy(formData = variadicFormData.toFormData))
+
+    for {
+      _ <- cleanseEnvelope(envelopeId, envelope, attachments)
+      result <- gformBackEnd
+                 .submitWithUpdatedFormStatus(Signed, cacheUpd, maybeAccessCode, None, attachments, formModelOptics)
+
+    } yield {
+      val (_, customerId) = result
+      showAcknowledgement(cacheUpd, maybeAccessCode, customerId, formModelVisibilityOptics)
     }
   }
 
   private def showAcknowledgement(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    customerId: CustomerId)(implicit request: Request[_]) = {
+    customerId: CustomerId,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
+  )(implicit request: Request[_]) = {
     if (customerId.isEmpty)
       Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
 
-    val submissionEventId = auditSubmissionEvent(cache, customerId)
+    val submissionEventId = auditSubmissionEvent(cache, customerId, formModelVisibilityOptics)
 
     Redirect(
       uk.gov.hmrc.gform.gform.routes.AcknowledgementController
         .showAcknowledgement(maybeAccessCode, cache.form.formTemplateId))
   }
 
-  private def auditSubmissionEvent(cache: AuthCacheWithForm, customerId: CustomerId)(implicit request: Request[_]) =
-    cache.formTemplate.destinations match {
-      case destinationList: DestinationList =>
-        auditService.sendSubmissionEvent(
-          cache.form,
-          cache.formTemplate.sections :+ destinationList.declarationSection,
-          cache.retrievals,
-          customerId)
-
-      case _ =>
-        auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections, cache.retrievals, customerId)
-    }
-
-  private def createHtmlForInvalidSubmission(
-    maybeAccessCode: Option[AccessCode],
+  private def auditSubmissionEvent(
     cache: AuthCacheWithForm,
-    declarationSectionValue: DeclarationSection,
-    data: FormDataRecalculated,
-    validationResult: Invalid[GformError])(implicit request: Request[_], l: LangADT, sse: SmartStringEvaluator) = {
-    import i18nSupport._
+    customerId: CustomerId,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser])(implicit request: Request[_]) =
+    auditService.sendSubmissionEvent(cache.form, formModelVisibilityOptics, cache.retrievals, customerId)
 
-    renderer.renderDeclarationSection(
-      maybeAccessCode,
-      cache.form,
-      cache.formTemplate,
-      declarationSectionValue,
-      cache.retrievals,
-      validationResult,
-      data,
-      getErrorMap(validationResult, data, cache.formTemplate)
-    )
-  }
-
-  private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: FormDataRecalculated) = {
-    val fieldNames = data.data.keySet.map(_.value)
-
-    val allDeclarationFields = formTemplate.destinations match {
-      case destinationList: DestinationList => Fields.flattenGroups(destinationList.declarationSection.fields)
-      case _                                => Nil
-    }
-
-    val submissibleFormFields = allDeclarationFields.flatMap { fieldValue =>
-      fieldNames
-        .filter(_.startsWith(fieldValue.id.value))
-        .map(name => FormComponentId(name))
-        .map(formComponentId =>
-          FormField(formComponentId, data.data.get(formComponentId).toList.flatMap(_.toSeq).mkString(",")))
-    }
-    val updatedFields = form.formData.fields ++ submissibleFormFields
-
-    form.copy(formData = form.formData.copy(fields = updatedFields))
-  }
-
-  private def getErrorMap(
-    validationResult: ValidatedType[ValidationResult],
-    data: FormDataRecalculated,
-    formTemplate: FormTemplate): List[(FormComponent, FormFieldValidationResult)] = {
-
-    val declarationFields = formTemplate.destinations match {
-      case destinationList: DestinationList => Fields.flattenGroups(destinationList.declarationSection.fields)
-      case _                                => Nil
-    }
-
-    validationService.evaluateValidation(validationResult, declarationFields, data, Envelope.empty)
-  }
 }

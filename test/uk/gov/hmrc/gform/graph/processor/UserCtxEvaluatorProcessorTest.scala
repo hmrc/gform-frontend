@@ -16,83 +16,83 @@
 
 package uk.gov.hmrc.gform.graph.processor
 
-import cats.Id
-import cats.data.NonEmptyList
-import cats.syntax.applicative._
-import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
-import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, GovernmentGatewayId }
-import uk.gov.hmrc.gform.graph.{ NonConvertible, RecalculationOp }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, Always, AuthConfig, DoCheck, EnrolmentAuth, EnrolmentSection, FormCtx, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, IdentifierRecipe, Never, NoAction, RegimeId, RegimeIdCheck, RequireEnrolment, ServiceId, UserCtx, UserField }
-import uk.gov.hmrc.http.logging.SessionId
-
-class UserCtxEvaluatorProcessorTest extends Spec {
-
-  forAll(userCtxTable) { (enr, field, serviceId, authConfig, expected) =>
-    it should s"evaluate a user ctx with $enr, $field, $serviceId and $authConfig return $expected" in new UserCtxEvaluatorProcessor[
-      Id] {
-      val retrievals: AuthenticatedRetrievals = materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(enr)))
-
-      processEvaluation(retrievals, UserCtx(field), authConfig) should be(expected)
-    }
-  }
-
-  it should "return an empty string when authModule in authConfig is set anonymous" in new UserCtxEvaluatorProcessor[Id] {
-    processEvaluation(AnonymousRetrievals(SessionId("id")), UserCtx(UserField.EnrolledIdentifier), authConfig) should be(
-      NonConvertible(RecalculationOp.noChange.pure[Id]))
-  }
-
-  it should "return enrolledIdentifier value when authModule in authConfig are set" in new UserCtxEvaluatorProcessor[Id] {
-    val retrievals: AuthenticatedRetrievals = materialisedRetrievalsAgent.copy(enrolments = Enrolments(multi))
-    val enrSec =
-      EnrolmentSection(toSmartString("title"), None, Nil, NonEmptyList.one(IdentifierRecipe("key", FormCtx(""))), Nil)
-    val auth = HmrcEnrolmentModule(
-      EnrolmentAuth(
-        ServiceId("IR-CT"),
-        DoCheck(Always, RequireEnrolment(enrSec, NoAction), RegimeIdCheck(RegimeId("XX")))))
-
-    processEvaluation(retrievals, UserCtx(UserField.EnrolledIdentifier), auth) should be(
-      NonConvertible(RecalculationOp.newValue("12XX567890").pure[Id]))
-  }
-
-  // format:off
-  lazy val userCtxTable = Table(
-    ("enr", "userField", "serviceId", "authConfig", "NoncovertibleResult"),
-    (irctEnrolment, UserField.EnrolledIdentifier, ServiceId("IR-CT"), hmrcModule("IR-CT"), nonConvertible("CT value")),
-    (irsaEnrolment, UserField.EnrolledIdentifier, ServiceId("IR-SA"), hmrcModule("IR-SA"), nonConvertible("SA value")),
-    (
-      irsaEnrolment,
-      UserField.EnrolledIdentifier,
-      ServiceId("IR-SA"),
-      hmrcAgentWithEnrolmentModule,
-      nonConvertible("SA value")),
-    (irctEnrolment, UserField.EnrolledIdentifier, ServiceId(""), hmrcModule(""), nonConvertible("")),
-    (irctEnrolment, UserField.AffinityGroup, ServiceId(""), HmrcSimpleModule, nonConvertible("agent"))
-  )
-  // format:on
-
-  lazy val hmrcModule: String => AuthConfig = id => HmrcEnrolmentModule(EnrolmentAuth(ServiceId(id), Never))
-  lazy val nonConvertible: String => NonConvertible[Id] = value =>
-    NonConvertible(RecalculationOp.newValue(value).pure[Id])
-  lazy val hmrcAgentWithEnrolmentModule =
-    HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, EnrolmentAuth(ServiceId("IR-SA"), Never))
-
-  lazy val materialisedRetrievalsAgent =
-    AuthenticatedRetrievals(
-      GovernmentGatewayId(""),
-      Enrolments(Set(irsaEnrolment)),
-      AffinityGroup.Agent,
-      "TestGroupId",
-      None
-    )
-
-  lazy val irsaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "SA value")))
-  lazy val irctEnrolment = Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "CT value")))
-
-  lazy val multi = Set(
-    Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "12AB567890"))),
-    Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "12XX567890")))
-  )
-}
+/* import cats.Id
+ * import cats.data.NonEmptyList
+ * import cats.syntax.applicative._
+ * import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
+ * import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
+ * import uk.gov.hmrc.gform.Helpers.toSmartString
+ * import uk.gov.hmrc.gform.Spec
+ * import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, GovernmentGatewayId }
+ * import uk.gov.hmrc.gform.graph.{ NonConvertible, RecalculationOp }
+ * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, Always, AuthConfig, DoCheck, EnrolmentAuth, EnrolmentSection, FormCtx, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, IdentifierRecipe, Never, NoAction, RegimeId, RegimeIdCheck, RequireEnrolment, ServiceId, UserCtx, UserField }
+ * import uk.gov.hmrc.http.logging.SessionId
+ *
+ * class UserCtxEvaluatorProcessorTest extends Spec {
+ *
+ *   forAll(userCtxTable) { (enr, field, serviceId, authConfig, expected) =>
+ *     it should s"evaluate a user ctx with $enr, $field, $serviceId and $authConfig return $expected" in new UserCtxEvaluatorProcessor[
+ *       Id] {
+ *       val retrievals: AuthenticatedRetrievals = materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(enr)))
+ *
+ *       processEvaluation(retrievals, UserCtx(field), authConfig) should be(expected)
+ *     }
+ *   }
+ *
+ *   it should "return an empty string when authModule in authConfig is set anonymous" in new UserCtxEvaluatorProcessor[Id] {
+ *     processEvaluation(AnonymousRetrievals(SessionId("id")), UserCtx(UserField.EnrolledIdentifier), authConfig) should be(
+ *       NonConvertible(RecalculationOp.noChange.pure[Id]))
+ *   }
+ *
+ *   it should "return enrolledIdentifier value when authModule in authConfig are set" in new UserCtxEvaluatorProcessor[Id] {
+ *     val retrievals: AuthenticatedRetrievals = materialisedRetrievalsAgent.copy(enrolments = Enrolments(multi))
+ *     val enrSec =
+ *       EnrolmentSection(toSmartString("title"), None, Nil, NonEmptyList.one(IdentifierRecipe("key", FormCtx(""))), Nil)
+ *     val auth = HmrcEnrolmentModule(
+ *       EnrolmentAuth(
+ *         ServiceId("IR-CT"),
+ *         DoCheck(Always, RequireEnrolment(enrSec, NoAction), RegimeIdCheck(RegimeId("XX")))))
+ *
+ *     processEvaluation(retrievals, UserCtx(UserField.EnrolledIdentifier), auth) should be(
+ *       NonConvertible(RecalculationOp.newValue("12XX567890").pure[Id]))
+ *   }
+ *
+ *   // format:off
+ *   lazy val userCtxTable = Table(
+ *     ("enr", "userField", "serviceId", "authConfig", "NoncovertibleResult"),
+ *     (irctEnrolment, UserField.EnrolledIdentifier, ServiceId("IR-CT"), hmrcModule("IR-CT"), nonConvertible("CT value")),
+ *     (irsaEnrolment, UserField.EnrolledIdentifier, ServiceId("IR-SA"), hmrcModule("IR-SA"), nonConvertible("SA value")),
+ *     (
+ *       irsaEnrolment,
+ *       UserField.EnrolledIdentifier,
+ *       ServiceId("IR-SA"),
+ *       hmrcAgentWithEnrolmentModule,
+ *       nonConvertible("SA value")),
+ *     (irctEnrolment, UserField.EnrolledIdentifier, ServiceId(""), hmrcModule(""), nonConvertible("")),
+ *     (irctEnrolment, UserField.AffinityGroup, ServiceId(""), HmrcSimpleModule, nonConvertible("agent"))
+ *   )
+ *   // format:on
+ *
+ *   lazy val hmrcModule: String => AuthConfig = id => HmrcEnrolmentModule(EnrolmentAuth(ServiceId(id), Never))
+ *   lazy val nonConvertible: String => NonConvertible[Id] = value =>
+ *     NonConvertible(RecalculationOp.newValue(value).pure[Id])
+ *   lazy val hmrcAgentWithEnrolmentModule =
+ *     HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, EnrolmentAuth(ServiceId("IR-SA"), Never))
+ *
+ *   lazy val materialisedRetrievalsAgent =
+ *     AuthenticatedRetrievals(
+ *       GovernmentGatewayId(""),
+ *       Enrolments(Set(irsaEnrolment)),
+ *       AffinityGroup.Agent,
+ *       "TestGroupId",
+ *       None
+ *     )
+ *
+ *   lazy val irsaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "SA value")))
+ *   lazy val irctEnrolment = Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "CT value")))
+ *
+ *   lazy val multi = Set(
+ *     Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "12AB567890"))),
+ *     Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "12XX567890")))
+ *   )
+ * } */

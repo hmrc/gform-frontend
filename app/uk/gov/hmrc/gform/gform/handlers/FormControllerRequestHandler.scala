@@ -18,14 +18,14 @@ package uk.gov.hmrc.gform.gform.handlers
 
 import cats.syntax.validated._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.models.ProcessData
-import uk.gov.hmrc.gform.models.gform.{ FormComponentValidation, FormValidationOutcome }
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.{ FastForward, FormModel, ProcessData }
+import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, SeNo, SeYes, Section, SectionNumber, SuppressErrors }
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, Section, SectionNumber, SuppressErrors }
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationResult }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -34,145 +34,63 @@ import scala.concurrent.{ ExecutionContext, Future }
 class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: ExecutionContext) {
 
   def handleSuppressErrors(
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
     sectionNumber: SectionNumber,
-    suppressErrors: SuppressErrors,
-    cache: AuthCacheWithForm,
+    cache: CacheData,
     envelope: Envelope,
-    retrievals: MaterialisedRetrievals,
-    data: FormDataRecalculated,
-    sections: List[Section],
-    validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation,
-    maybeAccessCode: Option[AccessCode]
-  )(implicit hc: HeaderCarrier)
-    : Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] =
-    suppressErrors match {
-      case SeYes =>
-        Future.successful((List.empty, ValidationResult.empty.valid, envelope))
-      case SeNo =>
-        handleValidate(
-          data,
-          sections,
-          sectionNumber,
-          cache.form.envelopeId,
-          envelope,
-          retrievals,
-          cache.form.thirdPartyData,
-          cache.formTemplate,
-          validateFormComponents,
-          evaluateValidation,
-          maybeAccessCode
-        )
-    }
-
-  def handleForm(
-    sectionNumber: SectionNumber,
-    suppressErrors: SuppressErrors,
-    cache: AuthCacheWithForm,
-    envelope: Envelope,
-    recalculateDataAndSections: RecalculateDataAndSections[Future],
-    validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation,
-    maybeAccessCode: Option[AccessCode]
-  )(implicit hc: HeaderCarrier): Future[FormHandlerResult] = {
-    val retrievals = cache.retrievals
-
-    for {
-      (data, sections) <- recalculateDataAndSections(cache.variadicFormData, cache, maybeAccessCode)
-      (errors, validate, envelope) <- handleSuppressErrors(
-                                       sectionNumber,
-                                       suppressErrors,
-                                       cache,
-                                       envelope,
-                                       retrievals,
-                                       data,
-                                       sections,
-                                       validateFormComponents,
-                                       evaluateValidation,
-                                       maybeAccessCode
-                                     )
-    } yield FormHandlerResult(data, errors, envelope, validate, sections)
-  }
+    validatePageModel: ValidatePageModel[Future, DataOrigin.Mongo],
+    suppressErrors: SuppressErrors
+  )(
+    implicit hc: HeaderCarrier
+  ): Future[FormHandlerResult] =
+    formValidator
+      .validatePageModelBySectionNumber(
+        formModelOptics,
+        sectionNumber,
+        cache,
+        envelope,
+        validatePageModel
+      )
+      .map(suppressErrors.apply)
 
   def handleFormValidation(
-    data: FormDataRecalculated,
-    sections: List[Section],
-    sn: SectionNumber,
-    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Browser],
+    sectionNumber: SectionNumber,
+    cache: CacheData,
     envelope: Envelope,
-    extractedValidateFormHelper: (
-      List[FormComponentValidation],
-      ValidatedType[ValidationResult]) => FormValidationOutcome,
-    validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation,
-    maybeAccessCode: Option[AccessCode]
+    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser]
   )(
     implicit hc: HeaderCarrier
   ): Future[FormValidationOutcome] =
-    formValidator.validateForm(
-      data,
-      sections,
-      sn,
-      cache,
-      envelope,
-      extractedValidateFormHelper,
-      validateFormComponents,
-      evaluateValidation,
-      maybeAccessCode)
+    formValidator
+      .validatePageModelBySectionNumber(
+        formModelOptics,
+        sectionNumber,
+        cache,
+        envelope,
+        validatePageModel
+      )
+      .map(formValidator.toFormValidationOutcome)
 
   def handleFastForwardValidate(
     processData: ProcessData,
-    cache: AuthCacheWithForm,
+    cache: CacheData,
     envelope: Envelope,
-    extractedValidateFormHelper: (
-      List[FormComponentValidation],
-      ValidatedType[ValidationResult]) => FormValidationOutcome,
-    validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation,
-    maybeAccessCode: Option[AccessCode])(
+    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
+    fastForward: FastForward
+  )(
     implicit hc: HeaderCarrier
   ): Future[Option[SectionNumber]] =
     formValidator.fastForwardValidate(
       processData,
       cache,
       envelope,
-      extractedValidateFormHelper,
-      validateFormComponents,
-      evaluateValidation,
-      maybeAccessCode)
-
-  def handleValidate(
-    formDataRecalculated: FormDataRecalculated,
-    sections: List[Section],
-    sectionNumber: SectionNumber,
-    envelopeId: EnvelopeId,
-    envelope: Envelope,
-    retrievals: MaterialisedRetrievals,
-    thirdPartyData: ThirdPartyData,
-    formTemplate: FormTemplate,
-    validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation,
-    maybeAccessCode: Option[AccessCode])(
-    implicit hc: HeaderCarrier
-  ): Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] =
-    formValidator.validate(
-      formDataRecalculated,
-      sections,
-      sectionNumber,
-      envelopeId,
-      envelope,
-      retrievals,
-      thirdPartyData,
-      formTemplate,
-      validateFormComponents,
-      evaluateValidation,
-      maybeAccessCode
+      validatePageModel,
+      fastForward
     )
 }
 
 case class FormHandlerResult(
-  data: FormDataRecalculated,
-  result: List[(FormComponent, FormFieldValidationResult)],
-  envelope: Envelope,
-  validatedType: ValidatedType[ValidationResult],
-  sections: List[Section])
+  validationResult: ValidationResult,
+  envelope: Envelope
+)

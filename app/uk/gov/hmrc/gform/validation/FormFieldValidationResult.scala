@@ -17,19 +17,29 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.implicits._
+import uk.gov.hmrc.gform.models.Atom
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponent, FormComponentId, RevealingChoice }
 
-case class FieldOk(fieldValue: FormComponent, currentValue: String) extends FormFieldValidationResult
-case class FieldGlobalOk(fieldValue: FormComponent, currentValue: String) extends FormFieldValidationResult
-case class FieldError(fieldValue: FormComponent, currentValue: String, errors: Set[String])
+case class FieldOk(formComponent: FormComponent, currentValue: String) extends FormFieldValidationResult
+case class FieldGlobalOk(formComponent: FormComponent, currentValue: String) extends FormFieldValidationResult
+case class FieldError(formComponent: FormComponent, currentValue: String, errors: Set[String])
     extends FormFieldValidationResult
-case class FieldGlobalError(fieldValue: FormComponent, currentValue: String, errors: Set[String])
+case class FieldGlobalError(formComponent: FormComponent, currentValue: String, errors: Set[String])
     extends FormFieldValidationResult
-case class ComponentField(fieldValue: FormComponent, data: Map[String, FormFieldValidationResult])
+case class ComponentField(formComponent: FormComponent, data: Map[HtmlFieldId, FormFieldValidationResult]) // Used by multivalue fields ie. date, address, sortcode but also choice and revealingChoice
     extends FormFieldValidationResult
 
 trait FormFieldValidationResult {
+
+  def forgetErrors: FormFieldValidationResult = this match {
+    case t: FieldOk          => t
+    case t: FieldGlobalOk    => t
+    case t: FieldError       => FieldOk(t.formComponent, t.currentValue)
+    case t: FieldGlobalError => FieldGlobalOk(t.formComponent, t.currentValue)
+    case t: ComponentField   => ComponentField(t.formComponent, t.data.mapValues(_.forgetErrors))
+  }
 
   lazy val fieldErrors: Set[String] = this match {
     case e: FieldError                 => e.errors
@@ -38,17 +48,21 @@ trait FormFieldValidationResult {
     case _                             => Set()
   }
 
-  lazy val fieldErrorsByFieldValue: Map[FormComponent, Set[String]] = this match {
-    case e: FieldError => Map(fieldValue -> e.errors)
+  lazy val fieldErrorsByFieldValue: List[Set[String]] = this match {
+    case e: FieldError => List(e.errors)
     case cf: ComponentField =>
-      cf.data.values.foldLeft[Map[FormComponent, Set[String]]](Map())(_ |+| _.fieldErrorsByFieldValue)
-    case _ => Map()
+      cf.data.values.toList.flatMap(_.fieldErrorsByFieldValue)
+    case _ => Nil
   }
 
-  def fieldErrorsWithSuffix(suffix: String): Set[String] = this match {
-    case e: FieldError      => e.errors
-    case cf: ComponentField => cf.data.get(fieldValue.id.withSuffix(suffix).value).map(_.fieldErrors).getOrElse(Set())
-    case _                  => Set()
+  def fieldErrorsWithSuffix(atom: Atom): Set[String] = this match {
+    case ComponentField(formComponent, data) =>
+      val modelComponentId: ModelComponentId = formComponent.atomicFormComponentId(atom)
+      data
+        .get(HtmlFieldId.Pure(modelComponentId))
+        .map(_.fieldErrors)
+        .getOrElse(Set())
+    case _ => Set()
   }
 
   lazy val globalErrors: Set[String] = this match {
@@ -57,7 +71,7 @@ trait FormFieldValidationResult {
     case _                   => Set()
   }
 
-  def fieldValue: FormComponent
+  def formComponent: FormComponent
 
   def isOk: Boolean = this match {
     case FieldOk(_, _)           => true
@@ -75,29 +89,49 @@ trait FormFieldValidationResult {
     case _                    => None
   }
 
-  def getOptionalCurrentValue(key: String): Option[String] = this match {
-    case ComponentField(_, data) => data.get(key).flatMap(_.getCurrentValue)
-    case _                       => None
-  }
+  def getOptionalCurrentValue(key: HtmlFieldId): Option[String] =
+    this match {
+      case ComponentField(_, data) => data.get(key).flatMap(_.getCurrentValue)
+      case _                       => None
+    }
 
-  def getCurrentValue(key: String): String = this match {
-    case ComponentField(_, data) => data.get(key).flatMap(_.getCurrentValue).getOrElse("")
-    case _                       => ""
-  }
+  def getCurrentValue(key: HtmlFieldId): String = getOptionalCurrentValue(key).getOrElse("")
 
-  private def withId(f: FormField, id: String) = f.copy(FormComponentId(id))
+  def getComponentFieldIndices(formComponentId: FormComponentId): List[Int] =
+    this match {
+      case ComponentField(_, data) =>
+        data.collect {
+          case (HtmlFieldId.Indexed(fcId, index), _) if fcId === formComponentId => index
+        }.toList
+      case _ => Nil
+    }
 
-  def toFormField: List[FormField] = this match {
-    case FieldOk(fieldValue, cv)             => List(FormField(fieldValue.id, cv))
-    case FieldError(fieldValue, cv, _)       => List(FormField(fieldValue.id, cv))
-    case FieldGlobalError(fieldValue, cv, _) => List(FormField(fieldValue.id, cv))
-    case FieldGlobalOk(fieldValue, cv)       => List(FormField(fieldValue.id, cv))
-    case ComponentField(fieldValue, data) =>
-      fieldValue.`type` match {
-        case _: Choice | _: RevealingChoice =>
-          List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(",")))
-        case _ => data.flatMap { case (suffix, value) => value.toFormField.map(withId(_, suffix)) }.toList
+  // Construct List[FormField] to be stored in MongoDB
+  def convertToFormField: List[FormField] = this match {
+    case FieldOk(formComponent, cv)             => List(FormField(formComponent.modelComponentId, cv))
+    case FieldError(formComponent, cv, _)       => List(FormField(formComponent.modelComponentId, cv))
+    case FieldGlobalError(formComponent, cv, _) => List(FormField(formComponent.modelComponentId, cv))
+    case FieldGlobalOk(formComponent, cv)       => List(FormField(formComponent.modelComponentId, cv))
+    case ComponentField(formComponent, data) =>
+      val indexed: List[HtmlFieldId.Indexed] = data.collect {
+        case (htmlFieldId: HtmlFieldId.Indexed, _) => htmlFieldId
+      }.toList
+      val indices = indexed.map(_.index)
+      val xs1: List[FormField] =
+        if (indices.isEmpty) Nil else List(FormField(formComponent.modelComponentId, indices.mkString(",")))
+
+      val pures: Map[HtmlFieldId.Pure, FormFieldValidationResult] = data.collect {
+        case (htmlFieldId: HtmlFieldId.Pure, ffvr) => (htmlFieldId, ffvr)
       }
+
+      val xs2: List[FormField] =
+        pures.flatMap {
+          case (htmlFieldId, ffvr) =>
+            ffvr.convertToFormField.map(withId(_, htmlFieldId.modelComponentId))
+        }.toList
+
+      xs1 ++ xs2
   }
 
+  private def withId(f: FormField, id: ModelComponentId) = f.copy(id = id)
 }

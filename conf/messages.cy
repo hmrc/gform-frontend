@@ -155,6 +155,8 @@ internationalAddress.line2.label=llinell 2
 internationalAddress.line3.label=llinell 3
 internationalAddress.line4.label=llinell 4
 internationalAddress.country.label=gwlad
+# TODO Welsh translation
+internationalAddress.country.error.maxLength={0} country must be no more than {1} characters
 
 # Generic address
 address.isUK=Ai cyfeiriad yn y DU yw hwn?
@@ -178,7 +180,7 @@ date.inMonth=ym mis {0}
 date.ofMonth=o {0}
 date.before=Rhaid i {0} fod cyn {1}
 date.after=Rhaid i {0} fod ar ôl {1}
-date.exactDate=Rhaid i {0} fod {1}
+date.precisely=Rhaid i {0} fod {1}
 date.isMissing=ar goll
 date.invalid=Rhaid i’r {0} fod yn ddyddiad dilys
 
@@ -306,7 +308,6 @@ submission.date=Dyddiad y cyflwyniad
 submission.reference=Cyfeirnod y cyflwyniad
 submission.mark=Marc y cyflwyniad
 submission.details=Manylion y cyflwyniad
-submission.declaration.details=Manylion y datganiad
 
 # Save4later
 save4later.saved.title=Cadwyd eich {0}

@@ -14,6 +14,8 @@
  * limitations under the License.
  *@
 
+@import play.twirl.api.HtmlFormat
+@import uk.gov.hmrc.gform.models.ids.ModelComponentId
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Group
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
@@ -25,18 +27,13 @@
   maybeHelpText: Option[Hint],
   groupField: Group,
   snippets: List[Html],
-  disableAddButton: Boolean,
-  index: Int
+  canAddAnother: Option[ModelComponentId]
 )(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @repeatCount = @{groupField.repeatsMin.getOrElse(0)}
 
 @label = @{
-  if(groupField.repeatsMax.isDefined) {
-    LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
-  } else {
-    fieldValue.label.value
-  }
+  fieldValue.label.value
 }
 
 <div class="gform-group">
@@ -51,9 +48,10 @@
 
   @snippets
 
-  @if(groupField.repeatsMax.isDefined && !disableAddButton) {
-    <a id="addRepeatingGroup" class="govuk-link" href="AddGroup-@fieldValue.id">
+  @canAddAnother.fold(HtmlFormat.empty){ modelComponentId =>
+    <a id="addRepeatingGroup" class="govuk-link" href="AddGroup-@modelComponentId.toMongoIdentifier">
       @groupField.repeatAddAnotherText.map(ls=>ls.value).getOrElse(messages("linkText.addRepeatingGroup"))
     </a>
   }
+
 </div>

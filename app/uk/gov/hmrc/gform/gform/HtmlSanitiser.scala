@@ -88,7 +88,7 @@ object HtmlSanitiser {
         headerHtml)
   }
 
-  def acknowledgementPdf(doc: Document, extraData: String, declarationExtraData: String, formTemplate: FormTemplate)(
+  def acknowledgementPdf(doc: Document, submissionDetails: String, formTemplate: FormTemplate)(
     implicit l: LangADT,
     sse: SmartStringEvaluator): Unit = {
 
@@ -103,7 +103,7 @@ object HtmlSanitiser {
     val form = doc.getElementsByTag("form").first()
     headerHtml.map(header => form.prepend(header))
     form.prepend(h1(formTemplate.formName.value))
-    form.append(extraData + declarationExtraData)
+    form.append(submissionDetails)
     footerHtml.map(footer => form.append(footer))
   }
 

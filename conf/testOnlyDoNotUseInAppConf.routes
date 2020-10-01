@@ -36,5 +36,9 @@ GET           /submissions/test-only/config                            uk.gov.hm
 
 GET           /submissions/test-only/envelope-id/:formId               uk.gov.hmrc.gform.testonly.TestOnlyController.getEnvelopeId(formId: FormId)
 
+GET           /submissions/test-only/handlebars-model/:formTemplateId           uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarModel(formTemplateId: FormTemplateId, accessCode: Option[AccessCode] = None)
 GET           /submissions/test-only/:formTemplateId/:destinationId             uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayload(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode] = None)
 GET           /submissions/test-only/:formTemplateId/:destinationId/:accessCode uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayload(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode])
+
+GET           /submissions/gform-plugin/exprs/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.exprs(formTemplateId: FormTemplateId)
+GET           /submissions/gform-plugin/model/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)

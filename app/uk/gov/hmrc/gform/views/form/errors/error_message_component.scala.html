@@ -17,36 +17,22 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil, FieldGlobalError}
+@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil, FieldGlobalError, HtmlFieldId}
 
-@(validation: FormFieldValidationResult, errorMessage: String)
-
-@makeSelector(value: String) = @{
-  value.toLowerCase().replace(" ", "-")
-}
-
-@fieldId = @{
-  validation match {
-    case _:FieldGlobalError =>
-      validation.fieldValue.`type` match {
-        case _:UkSortCode => UkSortCode.fields(validation.fieldValue.id).toList.head.value
-        case _:Date       => Date.fields(validation.fieldValue.id).toList.head.value
-        case _            => validation.fieldValue.id.value
-    }
-    case _ => validation.fieldValue.id.value
-  }
-}
+@(multiFieldId: HtmlFieldId, validation: FormFieldValidationResult, errorMessage: String)
 
 @context = @{
-  fieldId.replace("-day", "")
+  multiFieldId.toHtmlId
+          .replace("-day", "")
           .replace("-month", "")
           .replace("-year", "")
 }
 
+
 <li>
-  <a href="#@fieldId"
+  <a href="#@multiFieldId.toHtmlId"
     data-context="@context"
-    data-focuses="@fieldId"
+    data-focuses="@multiFieldId.toHtmlId"
     class="js-hidden">
     @errorMessage
   </a>

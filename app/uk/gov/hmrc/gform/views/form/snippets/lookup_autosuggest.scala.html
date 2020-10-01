@@ -28,12 +28,12 @@
   register: Register,
   formTemplateId: FormTemplateId,
   prepop: Option[String],
-  validationResult: Option[FormFieldValidationResult],
+  validationResult: FormFieldValidationResult,
   hint: Option[Hint],
   errorMessage: Option[ErrorMessage]
 )
 
-@currentValue = @{validationResult.flatMap(_.getCurrentValue)}
+@currentValue = @{validationResult.getCurrentValue}
 
 @form_group(validationResult) { hasErrors =>
   @defining(fieldValue.id.value, prepop.orElse(currentValue).getOrElse("")) { case (fcId, prepopValue) =>

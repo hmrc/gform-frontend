@@ -15,7 +15,11 @@
  */
 
 package uk.gov.hmrc.gform.models.gform
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidationResult }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidatorsResult }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
-case class FormValidationOutcome(isValid: Boolean, formData: FormData, validatedType: ValidatedType[ValidationResult])
+case class FormValidationOutcome(
+  isValid: Boolean,
+  formData: FormData,
+  validatorsResult: Option[ValidatorsResult]
+)

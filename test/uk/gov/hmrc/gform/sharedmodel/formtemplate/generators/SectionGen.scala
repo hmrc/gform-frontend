@@ -15,7 +15,9 @@
  */
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
+
 import org.scalacheck.Gen
+import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import SmartStringGen.smartStringGen
 
@@ -66,15 +68,13 @@ trait SectionGen {
       fields      <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
     } yield DeclarationSection(title, description, shortName, fields.toList)
 
-  def pageGen: Gen[Page] =
+  def pageGen: Gen[Page[Basic]] =
     for {
       title             <- smartStringGen
       description       <- Gen.option(smartStringGen)
       progressIndicator <- Gen.option(smartStringGen)
       shortName         <- Gen.option(smartStringGen)
       includeIf         <- Gen.option(IncludeIfGen.includeIfGen)
-      repeatsMax        <- Gen.option(FormatExprGen.textExpressionGen)
-      repeatMin         <- Gen.option(FormatExprGen.textExpressionGen)
       validators        <- Gen.option(ValidatorGen.validatorGen)
       fields            <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
       continueLabel     <- Gen.option(smartStringGen)
@@ -97,18 +97,22 @@ trait SectionGen {
   def repeatingPageSectionGen: Gen[Section.RepeatingPage] =
     for {
       page    <- pageGen
-      repeats <- FormatExprGen.textExpressionGen
+      repeats <- ExprGen.exprGen()
     } yield Section.RepeatingPage(page, repeats)
 
   def addToListSectionGen: Gen[Section.AddToList] =
     for {
-      title       <- smartStringGen
-      description <- Gen.option(smartStringGen)
-      shortName   <- Gen.option(smartStringGen)
-      includeIf   <- Gen.option(IncludeIfGen.includeIfGen)
-      repeatsMax  <- Gen.option(FormatExprGen.textExpressionGen)
-      pages       <- PrimitiveGen.oneOrMoreGen(pageGen)
-    } yield Section.AddToList(title, description, shortName, includeIf, repeatsMax, pages)
+      title         <- smartStringGen
+      description   <- smartStringGen
+      shortName     <- smartStringGen
+      includeIf     <- Gen.option(IncludeIfGen.includeIfGen)
+      repeatsMax    <- Gen.option(ExprGen.exprGen())
+      pages         <- PrimitiveGen.oneOrMoreGen(pageGen)
+      formComponent <- FormComponentGen.formComponentGen(0)
+      choice        <- ComponentTypeGen.choiceGen
+    } yield
+      Section
+        .AddToList(title, description, shortName, includeIf, repeatsMax, pages, formComponent.copy(`type` = choice))
 
   def sectionGen: Gen[Section] = Gen.oneOf(nonRepeatingPageSectionGen, repeatingPageSectionGen)
 }

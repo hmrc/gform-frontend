@@ -22,7 +22,14 @@ import uk.gov.hmrc.gform.models.helpers.DefaultDateFormatter.dateFormatter
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 
-final case class DateExpr(year: Int, month: Int, day: Int)
+final case class DateExpr(year: Int, month: Int, day: Int) {
+  def valueForAtom(atom: Atom): String = atom match {
+    case Date.day   => day.toString
+    case Date.month => month.toString
+    case Date.year  => year.toString
+    case _          => ""
+  }
+}
 
 object DateExpr {
 

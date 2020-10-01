@@ -16,17 +16,27 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
+import cats.data.NonEmptyList
+import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.Helpers.toSmartString
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, FormModelSupport, SectionSelectorType }
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import VariadicValue.{ Many, One }
 import VariadicFormData.{ manys, ones }
 
 import scala.util.{ Failure, Success, Try }
 
-class VariadicFormDataSpec extends Spec {
-  private val aFormComponentId = FormComponentId("a")
-  private val bFormComponentId = FormComponentId("b")
-  private val cFormComponentId = FormComponentId("c")
+class VariadicFormDataSpec extends FlatSpec with Matchers with FormModelSupport {
+
+  private def mkModelComponentId(value: String) =
+    ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId(value)))
+
+  private val aFormComponentId = mkModelComponentId("a")
+  private val bFormComponentId = mkModelComponentId("b")
+  private val cFormComponentId = mkModelComponentId("c")
 
   "get" should "return None if no value can be found" in {
     VariadicFormData.empty.get(aFormComponentId) shouldBe None
@@ -93,12 +103,13 @@ class VariadicFormDataSpec extends Spec {
   }
 
   it should "overwrite bindings in the first collection with those in the second" in {
-    val first = ones(aFormComponentId -> "x") ++
-      manys(bFormComponentId          -> Seq("y"))
+    val first: VariadicFormData[SourceOrigin.Current] =
+      ones(aFormComponentId    -> "x") ++
+        manys(bFormComponentId -> Seq("y"))
 
-    val second = manys(bFormComponentId -> Seq("z"))
+    val second: VariadicFormData[SourceOrigin.Current] = manys(bFormComponentId -> Seq("z"))
 
-    val data = first ++ second
+    val data: VariadicFormData[SourceOrigin.Current] = first ++ second
 
     data.get(aFormComponentId) shouldBe Some(One("x"))
     data.get(bFormComponentId) shouldBe Some(Many(Seq("z")))
@@ -201,8 +212,16 @@ class VariadicFormDataSpec extends Spec {
   }
 
   "buildFromMongoData" should "create values of the right VariadicValue type" in {
+    val formTemplate = mkFormTemplate(
+      mkSection(
+        mkFormComponent(
+          "a",
+          Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None))))
+    val fmb = mkFormModelBuilder(formTemplate)
+
+    val formModel: FormModel[DependencyGraphVerification] = fmb.dependencyGraphValidation[SectionSelectorType.Normal]
     VariadicFormData.buildFromMongoData(
-      Set(aFormComponentId),
+      formModel,
       Map(aFormComponentId -> "1, 2, ", bFormComponentId -> "3, 4, 5, ")
     ) shouldBe (VariadicFormData.manys(aFormComponentId -> Seq("1", "2")) ++ VariadicFormData.ones(
       bFormComponentId                                  -> "3, 4, 5, "))

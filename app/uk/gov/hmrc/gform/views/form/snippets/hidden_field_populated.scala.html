@@ -14,11 +14,12 @@
  * limitations under the License.
  *@
 
+@import cats.data.NonEmptyList
 @import uk.gov.hmrc.gform.gform.FormRender
 
-@(formRender: List[FormRender])
+@(formRender: NonEmptyList[FormRender])
 
-@formRender.map{formRender =>
+@formRender.toList.map{formRender =>
 <input
   type="hidden"
   id="@formRender.id"

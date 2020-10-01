@@ -16,42 +16,30 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats.{ Applicative, Id, Monad, MonadError }
+import cats.{ Monad, MonadError, Monoid }
 import cats.syntax.eq._
 import cats.syntax.either._
+import cats.syntax.foldable._
 import cats.syntax.functor._
+import cats.instances.list._
 import cats.syntax.flatMap._
 import cats.syntax.applicative._
 import cats.instances.string._
-import cats.data.EitherT
+import cats.data.{ EitherT, StateT }
 
 import scala.language.higherKinds
 import scalax.collection.Graph
 import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.commons.{ BigDecimalUtil, NumberFormatUtil }
-import uk.gov.hmrc.gform.eval.BooleanExprEval
-import uk.gov.hmrc.gform.gform.AuthContextPrepop
-import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, IdNumberValue, RecalculatedTaxPeriodKey, SubmissionRef, VariadicFormData, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
+import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
+import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, AllFormTemplateExpressions, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypedExpr }
+import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode, IncludeIfGN, SimpleGN }
-import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.extractMaxFractionalDigits
-import uk.gov.hmrc.http.HeaderCarrier
-
-sealed trait RecalculationOp extends Product with Serializable
-
-object RecalculationOp {
-  val setEmpty: RecalculationOp = SetEmpty
-  val noChange: RecalculationOp = NoChange
-  def newValue(value: String): RecalculationOp = NewValue(value)
-}
-
-case object SetEmpty extends RecalculationOp
-case object NoChange extends RecalculationOp
-case class NewValue(value: String) extends RecalculationOp
+import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 
 sealed trait GraphException {
   def reportProblem: String = this match {
@@ -66,182 +54,183 @@ case class NoTopologicalOrder(fcId: GraphNode, graph: Graph[GraphNode, DiEdge]) 
 case class NoFormComponent(fcId: FormComponentId, lookup: Map[FormComponentId, FormComponent]) extends GraphException
 
 class Recalculation[F[_]: Monad, E](
-  val booleanExprEval: BooleanExprEval[F],
+  val seissEligibilityChecker: SeissEligibilityChecker[F],
+  val delegatedEnrolmentCheckStatus: DelegatedEnrolmentChecker[F],
+  val dbLookupCheckStatus: DbLookupChecker[F],
   val error: GraphException => E
 ) {
 
-  type Context = (Set[GraphNode], RecData)
-  type ContextWithNodesToRecalculate = (Set[GraphNode], List[FormComponentId])
-
-  def recalculateFormData(
-    data: VariadicFormData,
-    formTemplate: FormTemplate,
-    retrievals: MaterialisedRetrievals,
-    thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier, me: MonadError[F, E]): F[FormDataRecalculated] =
-    recalculateFormDataWithLookup(
-      data,
-      formTemplate,
-      retrievals,
-      thirdPartyData,
-      maybeAccessCode,
-      envelopeId,
-      Map.empty
-    )
-
-  def recalculateFormDataWithLookup(
-    data: VariadicFormData,
+  def recalculateFormDataNew(
+    data: VariadicFormData[SourceOrigin.OutOfDate],
+    formModel: FormModel[Interim],
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
-    additionalFcLookup: Map[FormComponentId, FormComponent]
-  )(implicit hc: HeaderCarrier, me: MonadError[F, E]): F[FormDataRecalculated] =
-    recalculateFormData_(
-      data,
-      formTemplate,
-      retrievals,
-      thirdPartyData,
-      maybeAccessCode,
-      envelopeId,
-      additionalFcLookup).value
-      .flatMap {
-        case Left(graphException) => me.raiseError(error(graphException))
-        case Right(fd)            => fd.pure[F]
+    evaluationContext: EvaluationContext
+  )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
+
+    val pageLookup: Map[FormComponentId, PageModel[Interim]] = formModel.pageLookup
+    val fcLookup: Map[FormComponentId, FormComponent] = formModel.fcLookup
+    val fcByModelComponentIdLookup: Map[ModelComponentId, FormComponent] =
+      formModel.formComponentByModelComponentIdLookup
+
+    def noStateChange[A](a: A): StateT[F, RecalculationState, A] = StateT(s => (s, a).pure[F])
+    def changeExpressionResult[A](a: A)(f: EvaluationResults => EvaluationResults): StateT[F, RecalculationState, A] =
+      StateT(s => (s.update(f(s.evaluationResults)), a).pure[F])
+
+    def evalIncludeIf(
+      includeIf: IncludeIf,
+      evaluationResults: EvaluationResults,
+      recData: RecData[SourceOrigin.OutOfDate],
+      evaluationContext: EvaluationContext
+    ): StateT[F, RecalculationState, Boolean] = {
+
+      def compare(expr1: Expr, expr2: Expr, f: (ExpressionResult, ExpressionResult) => Boolean) = {
+        val typedExpr1 = formModel.toTypedExpr(expr1)
+        val typedExpr2 = formModel.toTypedExpr(expr2)
+        val evalExpr1 = evaluationResults.evalTyped(typedExpr1, recData, evaluationContext)
+        val evalExpr2 = evaluationResults.evalTyped(typedExpr2, recData, evaluationContext)
+        val res = f(evalExpr1, evalExpr2)
+        changeExpressionResult(res)(evaluationResults =>
+          evaluationResults + (typedExpr1, evalExpr1) + (typedExpr2, evalExpr2))
       }
 
-  private def recalculateFormData_(
-    data: VariadicFormData,
-    formTemplate: FormTemplate,
-    retrievals: MaterialisedRetrievals,
-    thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId,
-    additionalFcLookup: Map[FormComponentId, FormComponent]
-  )(implicit hc: HeaderCarrier): EitherT[F, GraphException, FormDataRecalculated] = {
+      def loop(booleanExpr: BooleanExpr): StateT[F, RecalculationState, Boolean] = booleanExpr match {
+        case Equals(field1, field2)              => compare(field1, field2, _ identical _)
+        case NotEquals(field1, field2)           => compare(field1, field2, _ =!= _)
+        case GreaterThan(field1, field2)         => compare(field1, field2, _ > _)
+        case GreaterThanOrEquals(field1, field2) => compare(field1, field2, _ >= _)
+        case LessThan(field1, field2)            => compare(field1, field2, _ < _)
+        case LessThanOrEquals(field1, field2)    => compare(field1, field2, _ <= _)
+        case Not(invertedExpr)                   => loop(invertedExpr).map(!_)
+        case Or(expr1, expr2)                    => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 | e2
+        case And(expr1, expr2)                   => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 & e2
+        case IsTrue                              => noStateChange(true)
+        case IsFalse                             => noStateChange(false)
+        case Contains(field1, field2)            => compare(field1, field2, _ contains _)
+        case In(expr, dataSource) =>
+          val typedExpr = formModel.toTypedExpr(expr)
+          val expressionResult: ExpressionResult = evaluationResults.evalTyped(typedExpr, recData, evaluationContext)
+          val hc = evaluationContext.headerCarrier
 
-    val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formTemplate, data)
+          expressionResult.withStringResult(noStateChange(false)) { value =>
+            StateT[F, RecalculationState, Boolean] { s =>
+              val updS = s.update(evaluationResults + (typedExpr, expressionResult))
+              def makeCall() = dataSource match {
+                case DataSource.Mongo(collectionName) => dbLookupCheckStatus(value, collectionName, hc)
+                case DataSource.Enrolment(serviceName, identifierName) =>
+                  retrievals.enrolmentExists(serviceName, identifierName, value).pure[F]
+                case dd @ DataSource.DelegatedEnrolment(_, _) =>
+                  retrievals.maybeGovermentGatewayId.fold(false.pure[F]) { governmentGatewayId =>
+                    delegatedEnrolmentCheckStatus(governmentGatewayId, dd, IdentifierValue(value), hc)
+                  }
+                case DataSource.SeissEligible =>
+                  seissEligibilityChecker(UtrEligibilityRequest(value), hc)
+              }
 
-    val fcLookup = formTemplate.expandFormTemplate(data).formComponentsLookup(data) ++ additionalFcLookup
-
-    val revealingChoices: List[(FormComponent, RevealingChoice)] = fcLookup.values.toList.collect {
-      case fc @ IsRevealingChoice(rc) => (fc, rc)
+              updS
+                .get(dataSource, value)
+                .fold(makeCall().map { res =>
+                  (updS.add(dataSource, value, res), res)
+                })((updS, _).pure[F])
+            }
+          }
+      }
+      loop(includeIf.booleanExpr)
     }
 
-    val reverseRevealingChoiceLookup: Map[FormComponentId, (FormComponent, RevealingChoice)] = revealingChoices
-      .map {
-        case (fc, rc) =>
-          rc.options.toList.flatMap(_.revealingFields).map(rcFc => (rcFc.id, (fc, rc))).toMap
+    def isHidden(
+      fcId: FormComponentId,
+      evaluationResults: EvaluationResults,
+      recData: RecData[SourceOrigin.OutOfDate],
+      evaluationContext: EvaluationContext
+    ): StateT[F, RecalculationState, Boolean] =
+      pageLookup.get(fcId).flatMap(_.getIncludeIf).fold(noStateChange(false)) { includeIf =>
+        for {
+          b <- evalIncludeIf(includeIf, evaluationResults, recData, evaluationContext)
+        } yield {
+          !b
+        }
       }
-      .foldLeft(Map.empty[FormComponentId, (FormComponent, RevealingChoice)])(_ ++ _)
+
+    val formTemplateExprs: List[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
+
+    val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formModel, formTemplateExprs)
 
     val orderedGraph: Either[GraphException, Traversable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
-    val orderedGraphT: EitherT[F, GraphException, Traversable[(Int, List[GraphNode])]] = EitherT(orderedGraph.pure[F])
+    type Context = (StateT[F, RecalculationState, EvaluationResults], RecData[SourceOrigin.OutOfDate])
+    def recalculateGraphLayer(
+      graphLayer: List[GraphNode],
+      ctx: Context,
+      evaluationContext: EvaluationContext
+    ): Either[GraphException, Context] = {
 
-    def isHiddenOnRevealingChoice(fcId: FormComponentId): Boolean =
-      fcLookup.get(fcId).fold(false) { fc =>
-        reverseRevealingChoiceLookup.get(fc.id).fold(false) {
-          case (fcRc, rc) =>
-            !RevealingChoice.slice(fcRc.id)(data)(rc).map(_.id).contains(fcId)
-        }
-      }
+      val (evResultF: StateT[F, RecalculationState, EvaluationResults], recData: RecData[SourceOrigin.OutOfDate]) = ctx
 
-    /**
-      * Adds invisible nodes to invisibility set and returns nodes to recalculate for current Graph layer
-      */
-    def markInvisible(
-      acc: ContextWithNodesToRecalculate,
-      dataLookup: RecData,
-      gn: GraphNode): F[ContextWithNodesToRecalculate] = {
-      val (visibilitySet, nodesToRecalculate) = acc
-      gn match {
-        case s @ SimpleGN(fcId) =>
-          if (booleanExprEval.evaluator.isHidden(fcId, visibilitySet) || isHiddenOnRevealingChoice(fcId)) {
-            (visibilitySet ++ Set(s), fcId :: nodesToRecalculate).pure[F]
-          } else
-            (visibilitySet, fcId :: nodesToRecalculate).pure[F]
-        case n @ IncludeIfGN(_, includeIf) =>
-          val isSectionVisible: F[Boolean] =
-            booleanExprEval
-              .isTrue(
-                includeIf.expr,
-                dataLookup.data,
-                retrievals,
-                visibilitySet,
-                thirdPartyData,
-                maybeAccessCode,
-                envelopeId,
-                formTemplate)
+      val sums: List[Sum] = evaluationContext.typedExpressionLookup.values.flatMap(_.expr.sums).toList
+      val isSum: Set[FormComponentId] = sums.collect {
+        case Sum(FormCtx(formComponentId)) => formComponentId
+      }.toSet
+
+      val evaluationResults: StateT[F, RecalculationState, EvaluationResults] = graphLayer.foldMapM {
+        case GraphNode.Simple(fcId) =>
           for {
-            sectionVisible <- isSectionVisible
+            evResult <- evResultF
+            isH      <- isHidden(fcId, evResult, recData, evaluationContext)
           } yield {
-            if (sectionVisible) {
-              (visibilitySet, nodesToRecalculate)
+            if (isH) {
+              val typedExpr = formModel.explicitTypedExpr(FormCtx(fcId), fcId)
+              evResult + (typedExpr, ExpressionResult.Hidden)
             } else {
-              val predecessors: Set[graph.NodeT] = graph.find(n).map(_.diPredecessors).toSet.flatten
-              val hidden: Set[GraphNode] = predecessors.map(_.toOuter)
-              (visibilitySet ++ hidden + n, nodesToRecalculate)
+              fcLookup.get(fcId).fold(evResult) {
+                case AllFormComponentExpressions(exprsMetadata) =>
+                  exprsMetadata.foldMap(_.toEvaluationResults(evResult, formModel, recData, evaluationContext))
+                case _ => evResult
+              }
             }
           }
-      }
-    }
 
-    def recalculateGraphLayer(graphLayer: List[GraphNode], ctx: Context): EitherT[F, GraphException, Context] = {
-      val (visibilitySet, dataLookup) = ctx
+        case GraphNode.Expr(expr) =>
+          for {
+            evResult <- evResultF
+          } yield {
+            val sumsToAdd: List[FormComponentId] =
+              expr.leafs
+                .collect {
+                  case FormCtx(formComponentId) if isSum(formComponentId) => formComponentId
+                }
 
-      val extendVisibility: EitherT[F, GraphException, ContextWithNodesToRecalculate] = {
-        val visNodes: F[ContextWithNodesToRecalculate] =
-          graphLayer.foldLeft((visibilitySet, List.empty[FormComponentId]).pure[F]) {
-            case (accF, graphNode) =>
-              for {
-                acc <- accF
-                res <- markInvisible(acc, dataLookup, graphNode)
-              } yield res
+            val sumResults: Map[TypedExpr, ExpressionResult] = sumsToAdd
+              .map { formComponentId =>
+                val sumIds = recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
+
+                sumIds.map {
+                  case (k, v) =>
+                    val typedExpr = formModel.toTypedExpr(FormCtx(k.toFormComponentId))
+                    var exprResult = evResult.evalTyped(typedExpr, recData, evaluationContext)
+                    (typedExpr, exprResult)
+                }.toMap
+              }
+              .foldLeft(Map.empty[TypedExpr, ExpressionResult])(_ ++ _)
+
+            val typedExpr = formModel.toTypedExpr(expr)
+            val exprResult: ExpressionResult = evResult.evalTyped(typedExpr, recData, evaluationContext)
+            evResult ++ sumResults + (typedExpr, exprResult)
           }
 
-        EitherT(visNodes.map(Right.apply))
       }
-
-      def recalculateLayerNodes(
-        visSet: Set[GraphNode],
-        nodes: List[FormComponentId]): EitherT[F, GraphException, RecData] = {
-
-        val genesis: EitherT[F, GraphException, RecData] = EitherT(dataLookup.pure[F].map(Right.apply))
-
-        nodes.foldLeft(genesis) {
-          case (dataLookupF, node) =>
-            for {
-              dataLookupUpd <- dataLookupF
-              recalculated <- EitherT(
-                               calculate(
-                                 visSet,
-                                 node,
-                                 fcLookup,
-                                 dataLookupUpd,
-                                 retrievals,
-                                 formTemplate,
-                                 thirdPartyData,
-                                 maybeAccessCode,
-                                 envelopeId))
-            } yield recalculated
-        }
-      }
-
-      for {
-        visAndNodes <- extendVisibility
-        (visSet, nodesToRecalculate) = visAndNodes
-        recalculatedData <- recalculateLayerNodes(visSet, nodesToRecalculate)
-      } yield (visSet, recalculatedData)
+      val res: Either[GraphException, Context] = Right((evaluationResults, recData))
+      res
     }
 
-    val data2 = data.mapValues {
+    val dataCapitalised: VariadicFormData[SourceOrigin.OutOfDate] = data.mapValues {
       case (fcId, value) =>
-        fcLookup.get(fcId) match {
+        fcByModelComponentIdLookup.get(fcId) match {
           case Some(fc) =>
             fc match {
               case IsCapitalised() => value.map(_.toUpperCase())
@@ -252,417 +241,53 @@ class Recalculation[F[_]: Monad, E](
     }
 
     val contextE: Either[GraphException, Context] =
-      Right((Set.empty, RecData.fromData(data2)))
+      Right(
+        (
+          StateT[F, RecalculationState, EvaluationResults](s => (s, EvaluationResults.empty).pure[F]),
+          RecData.fromData(dataCapitalised)))
 
-    val genesisContext: EitherT[F, GraphException, Context] =
-      EitherT(contextE.pure[F])
+    val res: Either[
+      GraphException,
+      StateT[F, RecalculationState, (EvaluationResults, Traversable[(Int, List[GraphNode])])]] =
+      for {
+        graphTopologicalOrder <- orderedGraph
+        recalc <- graphTopologicalOrder.foldRight(contextE) {
+                   case ((_, graphLayer), contextF) =>
+                     for {
+                       context    <- contextF
+                       updatedCtx <- recalculateGraphLayer(graphLayer, context, evaluationContext)
+                     } yield updatedCtx
+                 }
+      } yield {
 
-    for {
-      graphTopologicalOrder <- orderedGraphT
-      recalc <- graphTopologicalOrder.foldRight(genesisContext) {
-                 case ((_, graphLayer), contextF) =>
-                   for {
-                     context    <- contextF
-                     updatedCtx <- recalculateGraphLayer(graphLayer, context)
-                   } yield updatedCtx
-               }
-    } yield {
-      val (allInvisible, recalculatedData) = recalc
-      FormDataRecalculated(allInvisible, recalculatedData)
-    }
-  }
+        val (
+          evResultF: StateT[F, RecalculationState, EvaluationResults],
+          recalculatedData: RecData[SourceOrigin.OutOfDate]) =
+          recalc
 
-  private def hasData(fc: FormComponent, dataLookup: VariadicFormData): Boolean =
-    dataLookup.get(fc.id).fold(false)(!_.exists(_.isEmpty))
-
-  private def isHmrcTaxPeriodComponent(fc: FormComponent): Boolean = fc match {
-    case IsHmrcTaxPeriod(_) => true
-    case _                  => false
-  }
-
-  private def calculate(
-    visSet: Set[GraphNode],
-    fcId: FormComponentId,
-    fcLookup: Map[FormComponentId, FormComponent],
-    dataLookup: RecData,
-    retrievals: MaterialisedRetrievals,
-    formTemplate: FormTemplate,
-    thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Either[GraphException, RecData]] =
-    Either.fromOption(fcLookup.get(fcId), NoFormComponent(fcId, fcLookup)).traverse { fc =>
-      if (fc.editable && (hasData(fc, dataLookup.data) && !isHmrcTaxPeriodComponent(fc)))
-        dataLookup.pure[F]
-      else
-        fc match {
-          case IsHmrcTaxPeriod(taxPeriod) =>
-            recalculate(fc, visSet, dataLookup, retrievals, formTemplate, thirdPartyData, maybeAccessCode, envelopeId)
-              .map {
-                case SetEmpty => dataLookup
-                case NoChange => dataLookup
-                case NewValue(value) =>
-                  dataLookup.copy(
-                    recalculatedTaxPeriod = dataLookup.recalculatedTaxPeriod + (RecalculatedTaxPeriodKey(
-                      fc.id,
-                      taxPeriod) -> IdNumberValue(value)))
-              }
-          case IsText(_) | IsTextArea(_) =>
-            recalculate(fc, visSet, dataLookup, retrievals, formTemplate, thirdPartyData, maybeAccessCode, envelopeId)
-              .map {
-                case SetEmpty        => dataLookup.copy(data = dataLookup.data addOne (fcId -> ""))
-                case NoChange        => dataLookup
-                case NewValue(value) => dataLookup.copy(data = dataLookup.data addOne (fcId -> value))
-              }
-          case _ => dataLookup.pure[F] // Nothing to recompute on non-text components
-        }
-    }
-
-  private def recalculate(
-    fc: FormComponent,
-    visSet: Set[GraphNode],
-    dataLookup: RecData,
-    retrievals: MaterialisedRetrievals,
-    formTemplate: FormTemplate,
-    thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[RecalculationOp] =
-    fc match {
-      case HasExpr(SingleExpr(expr)) =>
-        val conv: Convertible[F] =
-          booleanExprEval.evaluator
-            .eval(
-              visSet,
-              fc.id,
-              expr,
-              dataLookup.data,
-              retrievals,
-              formTemplate,
-              thirdPartyData,
-              maybeAccessCode,
-              envelopeId)
-        val maxFractionDigitsAndRoundingMode = extractMaxFractionalDigits(fc)
-
-        Convertible.round(
-          conv,
-          maxFractionDigitsAndRoundingMode.maxDigits,
-          maxFractionDigitsAndRoundingMode.roundingMode,
-          formTemplate)
-      case _ => RecalculationOp.noChange.pure[F]
-    }
-}
-
-class Evaluator[F[_]: Monad](
-  val eeittPrepop: (Eeitt, MaterialisedRetrievals, FormTemplate, HeaderCarrier) => F[String]
-) {
-
-  def defaultF[T[_]: Applicative]: T[String] = "0".pure[T]
-
-  private def evalRosm(thirdPartyData: ThirdPartyData, rosmProp: RosmProp): RecalculationOp = {
-    val f = thirdPartyData.desRegistrationResponse.fold(RecalculationOp.setEmpty) _
-    rosmProp match {
-      case RosmSafeId           => f(a => NewValue(a.safeId))
-      case RosmOrganisationName => f(a => NewValue(a.orgOrInd.getOrganisationName))
-      case RosmOrganisationType => f(a => NewValue(a.orgOrInd.getOrganisationType))
-      case RosmIsAGroup         => f(a => NewValue(a.orgOrInd.getIsAGroup))
-    }
-  }
-
-  def evalFormCtx(visSet: Set[GraphNode], fc: FormCtx, dataLookup: VariadicFormData): Convertible[F] =
-    if (isHidden(fc.toFieldId, visSet)) MaybeConvertibleHidden(defaultF, fc.toFieldId)
-    else getSubmissionData(dataLookup, fc.toFieldId)
-
-  def evalVariadicFormCtx(visSet: Set[GraphNode], fc: FormCtx, dataLookup: VariadicFormData): Option[VariadicValue] =
-    if (isHidden(fc.toFieldId, visSet)) None
-    else dataLookup.get(fc.toFieldId)
-
-  def eval(
-    visSet: Set[GraphNode],
-    fcId: FormComponentId,
-    expr: Expr,
-    dataLookup: VariadicFormData,
-    retrievals: MaterialisedRetrievals,
-    formTemplate: FormTemplate,
-    thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Convertible[F] =
-    expr match {
-      case Value                               => getSubmissionData(dataLookup, fcId)
-      case HmrcRosmRegistrationCheck(rosmProp) => NonConvertible(evalRosm(thirdPartyData, rosmProp).pure[F])
-      case ctx @ UserCtx(_) =>
-        new UserCtxEvaluatorProcessor[F].processEvaluation(retrievals, ctx, formTemplate.authConfig)
-      case ParamCtx(queryParam) =>
-        NonConvertible(RecalculationOp.newValue(thirdPartyData.queryParams(queryParam)).pure[F])
-      case AuthCtx(value) =>
-        NonConvertible(RecalculationOp.newValue(AuthContextPrepop.values(value, retrievals)).pure[F])
-      case LinkCtx(internalLink) =>
-        internalLink match {
-          case InternalLink.PrintSummaryPdf =>
-            NonConvertible(
-              RecalculationOp
-                .newValue(
-                  uk.gov.hmrc.gform.gform.routes.SummaryController
-                    .downloadPDF(formTemplate._id, maybeAccessCode)
-                    .url)
-                .pure[F])
-          case InternalLink.PrintAcknowledgementPdf =>
-            NonConvertible(
-              RecalculationOp
-                .newValue(
-                  uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-                    .downloadPDF(maybeAccessCode, formTemplate._id)
-                    .url)
-                .pure[F])
+        evResultF.map { evResult =>
+          val finalEvResult: EvaluationResults =
+            formModel.exprsMetadata ++ formTemplateExprs match {
+              case Nil => evResult
+              case xs  => xs.foldMap(_.toEvaluationResults(evResult, formModel, recalculatedData, evaluationContext))
+            }
+          (finalEvResult, graphTopologicalOrder)
         }
 
-      case EeittCtx(eeitt) =>
-        NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc).map(RecalculationOp.newValue))
-      case FormTemplateCtx(FormTemplateProp.SubmissionReference) =>
-        NonConvertible(RecalculationOp.newValue(SubmissionRef(envelopeId).toString).pure[F])
-      case FormTemplateCtx(FormTemplateProp.Id) =>
-        NonConvertible(RecalculationOp.newValue(formTemplate._id.value).pure[F])
-      case Constant(fc) => MaybeConvertible(fc.pure[F])
-      case fc: FormCtx  => evalFormCtx(visSet, fc, dataLookup)
-      case Sum(fc: FormCtx) =>
-        if (isHidden(fc.toFieldId, visSet)) MaybeConvertibleHidden(defaultF, fc.toFieldId)
-        else
-          sum(
-            visSet,
-            fcId,
-            fc.toFieldId,
-            dataLookup,
-            retrievals,
-            formTemplate,
-            thirdPartyData,
-            maybeAccessCode,
-            envelopeId)
-      case Sum(_) => NonConvertible(RecalculationOp.noChange.pure[F])
-      case Else(f1, f2) =>
-        val f: Expr => Convertible[F] =
-          eval(visSet, fcId, _, dataLookup, retrievals, formTemplate, thirdPartyData, maybeAccessCode, envelopeId)
-        Convertible.orElse(f(f1), f(f2))
+      }
 
-      case Add(f1, f2) =>
-        Converted(
-          makeCalc(
-            visSet,
-            fcId,
-            dataLookup,
-            f1,
-            f2,
-            retrievals,
-            formTemplate,
-            (_, _) => doComputation(_ + _),
-            thirdPartyData,
-            maybeAccessCode,
-            envelopeId))
-      case Subtraction(f1, f2) =>
-        Converted(
-          makeCalc(
-            visSet,
-            fcId,
-            dataLookup,
-            f1,
-            f2,
-            retrievals,
-            formTemplate,
-            (_, _) => doComputation(_ - _),
-            thirdPartyData,
-            maybeAccessCode,
-            envelopeId))
-      case Multiply(f1, f2) =>
-        Converted(
-          makeCalc(
-            visSet,
-            fcId,
-            dataLookup,
-            f1,
-            f2,
-            retrievals,
-            formTemplate,
-            (_, _) => doComputation(_ * _),
-            thirdPartyData,
-            maybeAccessCode,
-            envelopeId))
-    }
-
-  def evalAsString(
-    recalculated: FormDataRecalculated,
-    fcId: FormComponentId,
-    expr: Expr,
-    retrievals: MaterialisedRetrievals,
-    formTemplate: FormTemplate,
-    thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Option[String]] =
-    Convertible
-      .asString(
-        eval(
-          recalculated.invisible,
-          fcId,
-          expr,
-          recalculated.recData.data,
-          retrievals,
-          formTemplate,
-          thirdPartyData,
-          maybeAccessCode,
-          envelopeId),
-        formTemplate
-      )
-      .map(_.flatMap(_.cast[NewValue]).map(_.value))
-
-  private def getSubmissionData(dataLookup: VariadicFormData, fcId: FormComponentId): Convertible[F] =
-    dataLookup.get(fcId).toList.flatMap(_.toSeq).headOption match {
-      case None        => Converted((NonComputable: Computable).pure[F])
-      case Some(value) => MaybeConvertible(value.pure[F])
-    }
-
-  private def sum(
-    visSet: Set[GraphNode],
-    componentContainingSum: FormComponentId,
-    componentToBeSummed: FormComponentId,
-    dataLookup: VariadicFormData,
-    retrievals: MaterialisedRetrievals,
-    formTemplate: FormTemplate,
-    thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier) = {
-    val results = dataLookup.collect {
-      case (key, value: VariadicValue.One) if key.reduceToTemplateFieldId === componentToBeSummed =>
-        Constant(value.value)
-    }
-    val summation = results.foldLeft(Expr.additionIdentityExpr)(Add)
-    eval(
-      visSet,
-      componentContainingSum,
-      summation,
-      dataLookup,
-      retrievals,
-      formTemplate,
-      thirdPartyData,
-      maybeAccessCode,
-      envelopeId)
-  }
-
-  def isHidden(fcId: FormComponentId, visSet: Set[GraphNode]): Boolean =
-    visSet.exists {
-      case SimpleGN(fcId_)       => fcId === fcId_
-      case IncludeIfGN(fcId_, _) => fcId === fcId_
-    }
-
-  private def doComputation(operator: (BigDecimal, BigDecimal) => BigDecimal)(
-    maybeBigDecimalA: Option[BigDecimal],
-    maybeBigDecimalB: Option[BigDecimal]): F[Computable] =
-    ((maybeBigDecimalA, maybeBigDecimalB) match {
-      case (Some(bdA), Some(bdB)) => Computed(operator(bdA, bdB))
-      case (_, _)                 => NonComputable
-    }).pure[F]
-
-  def makeCalc[A](
-    visSet: Set[GraphNode],
-    fcId: FormComponentId,
-    dataLookup: VariadicFormData,
-    xExpr: Expr,
-    yExpr: Expr,
-    retrievals: MaterialisedRetrievals,
-    formTemplate: FormTemplate,
-    f: (Convertible[F], Convertible[F]) => (Option[BigDecimal], Option[BigDecimal]) => F[A],
-    thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId
-  )(implicit hc: HeaderCarrier): F[A] = {
-    def calc(expr: Expr): Convertible[F] =
-      eval(visSet, fcId, expr, dataLookup, retrievals, formTemplate, thirdPartyData, maybeAccessCode, envelopeId)
-
-    val x = calc(xExpr)
-    val y = calc(yExpr)
-
-    for {
-      maybeBigDecimalA <- Convertible.convert(x, formTemplate)
-      maybeBigDecimalB <- Convertible.convert(y, formTemplate)
-      a                <- f(x, y)(maybeBigDecimalA, maybeBigDecimalB)
-    } yield a
-
-  }
-}
-
-sealed trait Computable extends Product with Serializable
-case class Computed(x: BigDecimal) extends Computable
-case object NonComputable extends Computable
-
-sealed trait Convertible[F[_]] extends Product with Serializable
-
-case class Nested[F[_]](convertible: F[Convertible[F]]) extends Convertible[F]
-case class Converted[F[_]](computable: F[Computable]) extends Convertible[F]
-case class NonConvertible[F[_]](str: F[RecalculationOp]) extends Convertible[F]
-case class MaybeConvertible[F[_]](str: F[String]) extends Convertible[F]
-case class MaybeConvertibleHidden[F[_]: Applicative](str: F[String], fcId: FormComponentId) extends Convertible[F] {
-  def visible[A](formTemplate: FormTemplate, f: String => Option[A]): F[Option[A]] = {
-    val lookup = formTemplate.expandFormTemplateFull.formComponentsLookupFull
-    val maybeFc: Option[FormComponent] = lookup.get(fcId).filter {
-      case IsChoice(_) => false
-      case _           => true
-    }
-    val fNone: F[Option[A]] = Option.empty[A].pure[F]
-    maybeFc.fold(fNone)(Function.const(str.map(f)))
-  }
-}
-
-object Convertible {
-  def asString[F[_]: Monad](convertible: Convertible[F], formTemplate: FormTemplate): F[Option[RecalculationOp]] =
-    convertible match {
-      case Converted(computable) =>
-        computable.map {
-          case NonComputable => Some(RecalculationOp.noChange)
-          case Computed(bd)  => Some(NewValue(NumberFormatUtil.defaultFormat.format(bd)))
+    res match {
+      case Left(graphException) => me.raiseError(error(graphException))
+      case Right(fd) =>
+        fd.run(new RecalculationState(EvaluationResults.empty, thirdPartyData.booleanExprCache)).map {
+          case (cacheUpdate, (evaluationResults, graphTopologicalOrder)) =>
+            val finalEvaluationResults =
+              implicitly[Monoid[EvaluationResults]].combine(cacheUpdate.evaluationResults, evaluationResults)
+            new RecalculationResult(
+              finalEvaluationResults,
+              GraphData(graphTopologicalOrder, graph),
+              cacheUpdate.booleanExprCache)
         }
-      case MaybeConvertible(str)            => str.map(a => Some(RecalculationOp.newValue(a)))
-      case m @ MaybeConvertibleHidden(_, _) => m.visible(formTemplate, a => Some(RecalculationOp.newValue(a)))
-      case NonConvertible(str)              => str.map(Some.apply)
-      case Nested(convertible)              => convertible.flatMap(a => asString(a, formTemplate))
     }
-
-  def orElse[F[_]: Monad](leftConvertible: Convertible[F], rightConvertible: Convertible[F]): Convertible[F] =
-    leftConvertible match {
-      case Converted(computable) =>
-        Nested(computable.map {
-          case NonComputable => rightConvertible
-          case Computed(bd)  => leftConvertible
-        })
-      case MaybeConvertible(str) =>
-        Nested(str.map { s =>
-          if (s.isEmpty) rightConvertible else leftConvertible
-        })
-      case MaybeConvertibleHidden(str, _) =>
-        Nested(str.map { s =>
-          if (s.isEmpty || s === "0") rightConvertible else leftConvertible // 0 is special case in MaybeConvertibleHidden denoting field is hidden
-        })
-      case NonConvertible(str) =>
-        Nested(str.map {
-          case NewValue("") => rightConvertible
-          case NoChange     => rightConvertible
-          case _            => leftConvertible
-        })
-      case n @ Nested(convertible) => n
-    }
-
-  def convert[F[_]: Monad](convertible: Convertible[F], formTemplate: FormTemplate): F[Option[BigDecimal]] =
-    convertible match {
-      case Converted(computable) =>
-        computable.map { case NonComputable => None; case Computed(bd) => Some(bd) }
-      case MaybeConvertible(str)            => str.map(BigDecimalUtil.toBigDecimalSafe)
-      case m @ MaybeConvertibleHidden(_, _) => m.visible(formTemplate, BigDecimalUtil.toBigDecimalSafe)
-      case NonConvertible(_)                => Option.empty[BigDecimal].pure[F]
-      case Nested(convertible)              => convertible.flatMap(a => convert(a, formTemplate))
-    }
-
-  def round[F[_]: Monad](
-    convertible: Convertible[F],
-    scale: Int,
-    roundingMode: RoundingMode,
-    formTemplate: FormTemplate): F[RecalculationOp] =
-    convert(convertible, formTemplate).flatMap {
-      case Some(bd) =>
-        RecalculationOp.newValue(NumberFormatUtil.roundAndFormat(bd, scale, roundingMode)).pure[F]
-      case None => Convertible.asString(convertible, formTemplate).map(_.getOrElse(RecalculationOp.noChange))
-    }
+  }
 }

@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.data.Validated.{ Invalid, Valid }
 import cats.data.{ EitherT, Kleisli, NonEmptyList, ReaderT }
 import cats.instances.future._
 import cats.instances.list._
@@ -30,23 +29,23 @@ import cats.syntax.validated._
 import cats.{ Applicative, Monad, Traverse }
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request }
-import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.gform.handlers.{ FormHandlerResult, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
-import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue, Recalculation }
-import uk.gov.hmrc.gform.models.helpers.Fields
+import uk.gov.hmrc.gform.graph.{ Recalculation }
+import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, PageModel, SectionSelectorType, Singleton }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, GetEmailCodeFieldMatcher, ValidationService }
-import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
+import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
@@ -56,9 +55,12 @@ import scala.concurrent.{ ExecutionContext, Future }
 sealed trait SubmitEnrolmentError
 private case object NoIdentifierProvided extends SubmitEnrolmentError
 private case class RegimeIdNotMatch(identifier: IdentifierRecipe) extends SubmitEnrolmentError
-private case class EnrolmentFormNotValid(errors: GformError) extends SubmitEnrolmentError
+private case object EnrolmentFormNotValid extends SubmitEnrolmentError
 
-case class Env(formTemplate: FormTemplate, retrievals: MaterialisedRetrievals, data: FormDataRecalculated)
+case class Env(
+  formTemplate: FormTemplate,
+  retrievals: MaterialisedRetrievals,
+  formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo])
 
 class EnrolmentController(
   i18nSupport: I18nSupport,
@@ -81,13 +83,6 @@ class EnrolmentController(
   type EnrolM[A] = EitherT[Ctx, SubmitEnrolmentError, A]
 
   private def liftEM[A](a: Future[A]): EnrolM[A] = EitherT.liftF(Kleisli(Function.const(a)))
-
-  private val evaluator: Evaluator[EnrolM] = {
-    val eeittPrepop
-      : (Eeitt, MaterialisedRetrievals, FormTemplate, HeaderCarrier) => EitherT[Ctx, SubmitEnrolmentError, String] =
-      (e, mr, ft, hc) => liftEM(recalculation.booleanExprEval.evaluator.eeittPrepop(e, mr, ft, hc))
-    new Evaluator(eeittPrepop)
-  }
 
   private def enrolmentConnect(implicit hc: HeaderCarrier): EnrolmentConnect[EnrolM] =
     new EnrolmentConnect[EnrolM] {
@@ -115,10 +110,9 @@ class EnrolmentController(
               cache.formTemplate,
               cache.retrievals,
               enrolmentSection,
-              FormDataRecalculated.empty,
+              FormModelOptics.empty,
               Nil,
-              Nil,
-              ValidationResult.empty.valid)
+              ValidationResult.empty)
           ).pure[Future]
         case _ =>
           Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
@@ -131,12 +125,11 @@ class EnrolmentController(
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     enrolmentSection: EnrolmentSection,
-    recalculatedFormData: FormDataRecalculated,
-    errors: List[(FormComponent, FormFieldValidationResult)],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
     globalErrors: List[ErrorLink],
-    validatedType: ValidatedType[ValidationResult])(implicit request: Request[_], l: LangADT) = {
+    validationResult: ValidationResult)(implicit request: Request[_], l: LangADT) = {
     implicit val sse = smartStringEvaluatorFactory(
-      recalculatedFormData,
+      formModelOptics.formModelVisibilityOptics,
       retrievals,
       ThirdPartyData.empty,
       None,
@@ -148,10 +141,10 @@ class EnrolmentController(
         formTemplate,
         retrievals,
         enrolmentSection,
-        recalculatedFormData,
-        errors,
+        formModelOptics,
         globalErrors,
-        ValidationResult.empty.valid)
+        validationResult
+      )
   }
 
   def submitEnrolment(formTemplateId: FormTemplateId) =
@@ -159,13 +152,27 @@ class EnrolmentController(
       import cache._
       val checkEnrolment: ServiceId => NonEmptyList[Identifier] => EnrolM[CheckEnrolmentsResult] =
         serviceId => identifiers => EitherT.liftF(Kleisli(_ => auth.checkEnrolment(serviceId, identifiers)))
-      processResponseDataFromBody(request, cache.formTemplate) { dataRaw =>
-        formTemplate.authConfig match {
-          case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev)) =>
-            def handleContinueWithData(data: FormDataRecalculated) = {
+
+      formTemplate.authConfig match {
+        case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev)) =>
+          val pageModel: PageModel[DataExpanded] =
+            Singleton(enrolmentSection.toPage, enrolmentSection.toSection).asInstanceOf[PageModel[DataExpanded]]
+
+          val genesisFormModel: FormModel[DataExpanded] = FormModel((pageModel, SectionNumber(0)) :: Nil)
+
+          processResponseDataFromBody(request, genesisFormModel) { requestRelatedData => variadicFormData =>
+            val formModelOpticsF = FormModelOptics
+              .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.Enrolment](
+                variadicFormData,
+                cache,
+                cache.toCacheData,
+                recalculation)
+            def handleContinueWithData(formModelOptics: FormModelOptics[DataOrigin.Mongo]) = {
+              val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
+
               implicit val sse =
                 smartStringEvaluatorFactory(
-                  data,
+                  formModelVisibilityOptics,
                   cache.retrievals,
                   ThirdPartyData.empty,
                   None,
@@ -174,71 +181,55 @@ class EnrolmentController(
 
               implicit val EC = enrolmentConnect
               implicit val GGC = ggConnect
-              implicit val evtor = evaluator
 
-              val allFields = Fields.flattenGroups(enrolmentSection.fields)
+              val formValidator: FormValidator = new FormValidator()
+              val formHandlerResultF: Future[FormHandlerResult] =
+                formValidator.validatePageModelBySectionNumber[DataOrigin.Mongo](
+                  formModelOptics,
+                  SectionNumber(0),
+                  cache.toCacheData,
+                  Envelope.empty,
+                  validationService.validatePageModel)
+
+              val enrolmentResultProcessor = new EnrolmentResultProcessor(
+                renderEnrolmentSection,
+                formTemplate,
+                retrievals,
+                enrolmentSection,
+                formModelOptics,
+                frontendAppConfig)
               for {
-                validationResult <- validationService
-                                     .validateComponents(
-                                       allFields,
-                                       data,
-                                       EnvelopeId(""),
-                                       Envelope.empty,
-                                       retrievals,
-                                       ThirdPartyData.empty,
-                                       formTemplate,
-                                       GetEmailCodeFieldMatcher.noop,
-                                       None)(hc, request2Messages, l, sse)
-                enrolmentResultProcessor = new EnrolmentResultProcessor(
-                  renderEnrolmentSection,
-                  formTemplate,
-                  retrievals,
-                  enrolmentSection,
-                  data,
-                  frontendAppConfig)
+                formHandlerResult <- formHandlerResultF
                 res <- processValidation(
                         serviceId,
                         enrolmentSection,
                         postCheck,
                         checkEnrolment(serviceId),
-                        validationResult,
+                        formHandlerResult,
                         lfcev,
                         retrievals)
                         .fold(
-                          enrolmentResultProcessor.recoverEnrolmentError,
+                          enrolmentResultProcessor
+                            .recoverEnrolmentError(formHandlerResult.validationResult),
                           enrolmentResultProcessor.processEnrolmentResult
                         )
-                        .run(Env(formTemplate, retrievals, data))
+                        .run(Env(formTemplate, retrievals, formModelVisibilityOptics))
               } yield res
+            }
+            requestRelatedData.get("save") match {
+              case "Continue" =>
+                formModelOpticsF.flatMap(handleContinueWithData)
+              case _ => Future.successful(BadRequest("Cannot determine action"))
             }
 
-            def handleContinue =
-              for {
-                data <- recalculation
-                         .recalculateFormDataWithLookup(
-                           dataRaw,
-                           formTemplate,
-                           retrievals,
-                           ThirdPartyData.empty,
-                           None,
-                           EnvelopeId(""),
-                           enrolmentSection.fields
-                             .map(fc => fc.id -> fc)
-                             .toMap
-                         )
-                res <- handleContinueWithData(data)
-              } yield res
-            dataRaw.one(FormComponentId("save")) match {
-              case Some("Continue") => handleContinue
-              case _                => Future.successful(BadRequest("Cannot determine action"))
-            }
-          case _ =>
-            Future.successful(
-              Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
-                .flashing("formTitle" -> formTemplate.formName.value)
-            )
-        }
+          }
+        case _ =>
+          Future.successful(
+            Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
+              .flashing("formTitle" -> formTemplate.formName.value)
+          )
       }
+
     }
 
   private def validateIdentifiers[F[_]: Applicative](
@@ -255,12 +246,12 @@ class EnrolmentController(
           FR.raise(RegimeIdNotMatch(identifierRecipe))
     }
 
-  private def processValidation[F[_]: Monad: EnrolmentConnect: GGConnect: Evaluator](
+  private def processValidation[F[_]: Monad: EnrolmentConnect: GGConnect](
     serviceId: ServiceId,
     enrolmentSection: EnrolmentSection,
     postCheck: EnrolmentPostCheck,
     checkEnrolment: NonEmptyList[Identifier] => F[CheckEnrolmentsResult],
-    validationResult: ValidatedType[Unit],
+    formHandlerResult: FormHandlerResult,
     enrolmentAction: EnrolmentAction,
     retrievals: MaterialisedRetrievals
   )(
@@ -284,23 +275,22 @@ class EnrolmentController(
                  }
       } yield result
 
-    validationResult match {
-      case Invalid(errors) => FR.raise(EnrolmentFormNotValid(errors))
-      case Valid(()) =>
-        for {
-          idenVer <- extractIdentifiersAndVerifiers[F](enrolmentSection)
-          (identifierss, verifiers) = idenVer
-          identifiers = identifierss.map(_._2)
-          _             <- validateIdentifiers[F](identifierss, postCheck)
-          initialResult <- tryEnrolment(verifiers, identifiers)
-          reattemptResult <- (initialResult, enrolmentAction) match {
-                              case (CheckEnrolmentsResult.InvalidIdentifiers, LegacyFcEnrolmentVerifier(value)) =>
-                                tryEnrolment(List(Verifier(value, "FC")), identifiers)
-                              case _ =>
-                                initialResult.pure[F]
-                            }
-        } yield reattemptResult
-
+    if (formHandlerResult.validationResult.isFormValid) {
+      for {
+        idenVer <- extractIdentifiersAndVerifiers[F](enrolmentSection)
+        (identifierss, verifiers) = idenVer
+        identifiers = identifierss.map(_._2)
+        _             <- validateIdentifiers[F](identifierss, postCheck)
+        initialResult <- tryEnrolment(verifiers, identifiers)
+        reattemptResult <- (initialResult, enrolmentAction) match {
+                            case (CheckEnrolmentsResult.InvalidIdentifiers, LegacyFcEnrolmentVerifier(value)) =>
+                              tryEnrolment(List(Verifier(value, "FC")), identifiers)
+                            case _ =>
+                              initialResult.pure[F]
+                          }
+      } yield reattemptResult
+    } else {
+      FR.raise(EnrolmentFormNotValid)
     }
   }
 
@@ -318,31 +308,18 @@ class EnrolmentController(
     enrolmentSection: EnrolmentSection
   )(
     implicit hc: HeaderCarrier,
-    evaluator: Evaluator[F],
     AA: ApplicativeAsk[F, Env],
     FR: FunctorRaise[F, SubmitEnrolmentError]): F[(NonEmptyList[(IdentifierRecipe, Identifier)], List[Verifier])] = {
-    def evaluate[A, B, G[_]: Traverse](xs: G[A])(g: A => Expr, f: A => String => B): F[G[B]] =
+    def evaluate[A, B, G[_]: Traverse](xs: G[A])(g: A => FormCtx, f: A => String => B): F[G[B]] =
       for {
         env <- AA.ask
+        _ = {
+          val evaluationResults = env.formModelVisibilityOptics.evaluationResults
+          val data = env.formModelVisibilityOptics.recData.variadicFormData
+        }
         res <- xs.traverse { x =>
-                val fcId = FormComponentId("dummy")
-                val convertible: Convertible[F] =
-                  evaluator.eval(
-                    Set.empty,
-                    fcId,
-                    g(x),
-                    env.data.data,
-                    env.retrievals,
-                    env.formTemplate,
-                    ThirdPartyData.empty,
-                    None,
-                    EnvelopeId(""))
-                Convertible
-                  .asString(convertible, env.formTemplate)
-                  .map {
-                    case Some(NewValue(value)) => f(x)(value)
-                    case _                     => f(x)("")
-                  }
+                val value = env.formModelVisibilityOptics.eval(g(x))
+                f(x)(value).pure[F]
               }
       } yield res
 

@@ -22,12 +22,6 @@ import play.api.libs.functional.syntax._
 import uk.gov.hmrc.auth.core.{ AffinityGroup => CoreAffinityGroup }
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat }
 
-object EEITTAuthConfig {
-  val eeittAuth = "legacyEEITTAuth"
-  val nonAgentIdName = "registrationNumber"
-  val agentIdName = "arn"
-}
-
 case class EnrolmentAuth(
   serviceId: ServiceId,
   enrolmentCheck: EnrolmentCheck
@@ -91,7 +85,6 @@ object EnrolmentCheckVerb {
 
 sealed trait AuthConfig extends Product with Serializable
 case object Anonymous extends AuthConfig
-case class EeittModule(regimeId: RegimeId) extends AuthConfig
 case object HmrcAny extends AuthConfig
 case class HmrcVerified(ivFailure: LocalisedString, notAllowedIn: LocalisedString) extends AuthConfig
 case object HmrcSimpleModule extends AuthConfig
@@ -151,7 +144,6 @@ object AuthConfig {
 
   implicit val format: OFormat[AuthConfig] = derived.oformat
 
-  val missingRegimeIdForLegacyEEITTAuth: String = "Missing regimeId (regimeId is mandatory for legacyEEITTAuth)"
 }
 
 case class ServiceId(value: String) extends AnyVal

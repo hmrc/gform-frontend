@@ -30,7 +30,6 @@ import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.gform
-import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.models.mappings.IRSA
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -40,16 +39,13 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
 class AuthService(
-  appConfig: AppConfig,
-  eeittDelegate: EeittAuthorisationDelegate,
-  eeittService: EeittService
+  appConfig: AppConfig
 )(
   implicit ec: ExecutionContext
 ) {
 
   def authenticateAndAuthorise(
     formTemplate: FormTemplate,
-    requestUri: String,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
     ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult],
     assumedIdentity: Option[Cookie])(
@@ -62,9 +58,8 @@ class AuthService(
           .fold[AuthResult](AuthAnonymousSession(gform.routes.NewFormController.dashboard(formTemplate._id)))(
             sessionId => AuthSuccessful(AnonymousRetrievals(sessionId), Role.Customer))
           .pure[Future]
-      case AWSALBAuth            => performAWSALBAuth(assumedIdentity).pure[Future]
-      case EeittModule(regimeId) => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
-      case HmrcAny               => performHmrcAny(ggAuthorised(RecoverAuthResult.noop))
+      case AWSALBAuth => performAWSALBAuth(assumedIdentity).pure[Future]
+      case HmrcAny    => performHmrcAny(ggAuthorised(RecoverAuthResult.noop))
       case HmrcVerified(_, _) =>
         performGGAuth(ggAuthorised(RecoverAuthResult.noop)).map(authResult => isHmrcVerified(authResult, formTemplate))
       case HmrcSimpleModule => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
@@ -255,21 +250,6 @@ class AuthService(
 
     }
 
-  private def performEEITTAuth(
-    regimeId: RegimeId,
-    requestUri: String,
-    ggAuthorised: Predicate => Future[AuthResult]
-  )(implicit hc: HeaderCarrier): Future[AuthResult] =
-    performGGAuth(ggAuthorised)
-      .flatMap {
-        case ggSuccessfulAuth @ AuthSuccessful(AuthenticatedRetrievals(_, _, affinityGroup, groupIdentifier, _), _) =>
-          eeittDelegate.authenticate(regimeId, affinityGroup, groupIdentifier, requestUri).map {
-            case EeittAuthorisationSuccessful            => ggSuccessfulAuth
-            case EeittAuthorisationFailed(eeittLoginUrl) => AuthRedirectFlashingFormName(eeittLoginUrl)
-          }
-        case otherAuthResults => otherAuthResults.pure[Future]
-      }
-
   private def ggAgentAuthorise(agentAccess: AgentAccess, formTemplate: FormTemplate, enrolments: Enrolments)(
     implicit l: LangADT): HMRCAgentAuthorisation =
     agentAccess match {
@@ -281,23 +261,6 @@ class AuthService(
         HMRCAgentAuthorisationFailed(
           routes.AgentEnrolmentController.prologue(formTemplate._id, formTemplate.formName.value).url)
     }
-
-  def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String =
-    retrievals match {
-      case AuthenticatedRetrievals(_, enrolments, affinityGroup, _, _) =>
-        val identifier = affinityGroup match {
-          case AffinityGroup.Agent => EEITTAuthConfig.agentIdName
-          case _                   => EEITTAuthConfig.nonAgentIdName
-        }
-
-        enrolments
-          .getEnrolment(EEITTAuthConfig.eeittAuth)
-          .flatMap(_.getIdentifier(identifier))
-          .fold("")(_.value)
-
-      case _ => ""
-    }
-
 }
 
 sealed trait HMRCAgentAuthorisation

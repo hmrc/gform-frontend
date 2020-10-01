@@ -96,7 +96,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       googleTagManagerIdAvailable = typesafeConfig.getString("google-tag-manager.id-available").toBoolean,
       googleTagManagerId = typesafeConfig.getString(s"google-tag-manager.id"),
       authModule = AuthModule(
-        getJSConfig("auth-module.legacyEEITTAuth"),
         getJSConfig("auth-module.hmrc"),
         getJSConfig("auth-module.anonymous"),
         getJSConfig("auth-module.awsAlbAuth")

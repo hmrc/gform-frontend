@@ -16,38 +16,33 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
+@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil, HtmlFieldId}
 @import uk.gov.hmrc.gform.views.html.errorInline
+@import uk.gov.hmrc.gform.models.Atom
 
 @(international: Boolean,
   fieldValue: FormComponent,
-  validationResult: Option[FormFieldValidationResult],
-  index: Int,
+  validationResult: FormFieldValidationResult,
   formLevelHeading: Boolean)(
   implicit
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator)
 
-@safeId(id: String) = @{
-  fieldValue.id.withSuffix(id).toString
+@safeId(atom: Atom) = @{
+  HtmlFieldId.Pure(fieldValue.atomicFormComponentId(atom))
 }
 
-@groupId(id: String) = @{
-  if(index == 0) {
-    id
-  } else {
-    s"${index}_${id}"
-  }
+@groupId(id: HtmlFieldId.Pure) = @{
+  id.modelComponentId.toMongoIdentifier
 }
 
 @internationalSelected = @{
-  validationResult.map(_.getCurrentValue(safeId("uk"))).contains("false")
+    validationResult.getCurrentValue(safeId(Address.uk)) == "false"
 }
 
-
-@label = @{
-  LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
+@label = {
+  @fieldValue.label.value
 }
 
 <fieldset class="govuk-fieldset" id="@{fieldValue.id.value}-fieldset" role="group" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
@@ -71,44 +66,45 @@
                   @messages("address.isUK")
               </legend>
 
-              <div class="govuk-radios govuk-radios--inline">
-                  <div class="govuk-radios__item" data-target="@groupId(s"${fieldValue.id.value}-local")">
+	      <div class="govuk-radios govuk-radios--inline">
+                  <div class="govuk-radios__item" data-target="@{fieldValue.id.value}-local">
                       <input
                         class="govuk-radios__input"
-                        id="@groupId(s"${fieldValue.id.value}-international-yes")"
+                        id="@{fieldValue.id.value}-international-yes"
                         type="radio"
-                        name="@groupId(safeId("uk"))"
+			name="@groupId(safeId(Address.uk))"
                         value="true"
                         data-address-choice="uk"
-                        aria-controls="@groupId(s"${fieldValue.id.value}-local")"
+                        aria-controls="@{fieldValue.id.value}-local"
                         aria-expanded="true"
                         @if(!internationalSelected) {
                             checked="checked"
                         }/>
-                      <label class="govuk-label govuk-radios__label" for="@groupId(s"${fieldValue.id.value}-international-yes")">@messages("generic.Yes")</label>
+                      <label class="govuk-label govuk-radios__label" for="@{fieldValue.id.value}-international-yes">@messages("generic.Yes")</label>
                   </div>
 
-                  <div class="govuk-radios__item" data-target="@groupId(s"${fieldValue.id.value}-international")">
+                  <div class="govuk-radios__item" data-target="@{fieldValue.id.value}-international">
                       <input
                         class="govuk-radios__input"
-                        id="@groupId(s"${fieldValue.id.value}-international-no")"
+                        id="@{fieldValue.id.value}-international-no"
                         type="radio"
-                        name="@groupId(safeId("uk"))"
+                        name="@groupId(safeId(Address.uk))"
                         value="false"
                         data-address-choice="international"
-                        aria-controls="@groupId(s"${fieldValue.id.value}-international")"
+                        aria-controls="@{fieldValue.id.value}-international"
                         aria-expanded="false"
                         @if(internationalSelected) {
                             checked="checked"
                         }/>
 
-                      <label class="govuk-label govuk-radios__label" for="@groupId(s"${fieldValue.id.value}-international-no")">@messages("generic.No")</label>
+                      <label class="govuk-label govuk-radios__label" for="@{fieldValue.id.value}-international-no">@messages("generic.No")</label>
                   </div>
               </div>
+
           </fieldset>
       </div>
     } else {
-      <input type="hidden" name="@groupId(safeId("uk"))" id="@groupId(safeId("uk"))" value="true" />
+      <input type="hidden" name="@groupId(safeId(Address.uk))" id="@groupId(safeId(Address.uk))" value="true" />
     }
 
 
@@ -116,15 +112,15 @@
         <div class="govuk-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText.map(ls=>ls.value).getOrElse("")}</div>
       }
 
-      @safeError(suffix : String) = @{
-      val errors: Set[String] = validationResult.map(_.fieldErrorsWithSuffix(suffix)).getOrElse(Set())
+      @safeError(atom: Atom) = @{
+        val errors: Set[String] = validationResult.fieldErrorsWithSuffix(atom)
 
-      errors.map(e => errorInline(suffix, e, Seq("error-message")))
-
+        errors.map(e => errorInline(atom.value, e, Seq("error-message")))
       }
 
-      <div class="govuk-form-group@if(safeError("street1").nonEmpty){ govuk-form-group--error }">
-          <label class="govuk-label" data-address-line="1" for="@groupId(safeId("street1"))">
+      @defining(safeId(Address.street1), safeError(Address.street1)) { case (street1Id, street1Error) =>
+        <div class="govuk-form-group@if(street1Error.nonEmpty){ govuk-form-group--error }">
+          <label class="govuk-label" data-address-line="1" for="@groupId(street1Id)">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
               @messages("ukAddress.line1")
             </span>
@@ -133,16 +129,18 @@
             </span>
           </label>
 
-          @safeError("street1")
+          @street1Error
           <input type="text"
-                 class="govuk-input@if(safeError("street1").nonEmpty){ govuk-input--error }"
-                 name="@groupId(safeId("street1"))"
-                 id="@groupId(safeId("street1"))"
-                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("street1")))).getOrElse("")" />
-      </div>
+                 class="govuk-input@if(street1Error.nonEmpty){ govuk-input--error }"
+                 name="@groupId(street1Id)"
+                 id="@groupId(street1Id)"
+                 value="@validationResult.getCurrentValue(street1Id)" />
+        </div>
+      }
 
-      <div class="govuk-form-group@if(safeError("street2").nonEmpty){ govuk-form-group--error }">
-          <label class="govuk-label" data-address-line="2" for="@groupId(safeId("street2"))">
+      @defining(safeId(Address.street2), safeError(Address.street2)) { case (street2Id, street2Error) =>
+        <div class="govuk-form-group@if(street2Error.nonEmpty){ govuk-form-group--error }">
+          <label class="govuk-label" data-address-line="2" for="@groupId(street2Id)">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
               @messages("ukAddress.line2")
             </span>
@@ -150,16 +148,18 @@
               @messages("internationalAddress.line2")
             </span>
           </label>
-          @safeError("street2")
+          @street2Error
           <input type="text"
-                 class="govuk-input"
-                 name="@groupId(safeId("street2"))"
-                 id="@groupId(safeId("street2"))"
-                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("street2")))).getOrElse("")" />
-      </div>
+                 class="govuk-input@if(street2Error.nonEmpty){ govuk-input--error }"
+                 name="@groupId(street2Id)"
+                 id="@groupId(street2Id)"
+                 value="@validationResult.getCurrentValue(street2Id)" />
+        </div>
+      }
 
-      <div class="govuk-form-group@if(safeError("street3").nonEmpty){ govuk-form-group--error }">
-          <label class="govuk-label" data-address-line="3" for="@groupId(safeId("street3"))">
+      @defining(safeId(Address.street3), safeError(Address.street3)) { case (street3Id, street3Error) =>
+        <div class="govuk-form-group@if(street3Error.nonEmpty){ govuk-form-group--error }">
+          <label class="govuk-label" data-address-line="3" for="@groupId(street3Id)">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
             @messages("ukAddress.line3")
             </span>
@@ -168,16 +168,18 @@
             </span>
           </label>
 
-          @safeError("street3")
+          @street3Error
           <input type="text"
-                 class="govuk-input govuk-!-width-two-thirds"
-                 name="@groupId(safeId("street3"))"
-                 id="@groupId(safeId("street3"))"
-                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("street3")))).getOrElse("")" />
-      </div>
+                 class="govuk-input govuk-!-width-two-thirds@if(street3Error.nonEmpty){ govuk-input--error }"
+                 name="@groupId(street3Id)"
+                 id="@groupId(street3Id)"
+                 value="@validationResult.getCurrentValue(street3Id)" />
+        </div>
+      }
 
-      <div class="govuk-form-group@if(safeError("street4").nonEmpty){ govuk-form-group--error }">
-          <label class="govuk-label" data-address-line="4" for="@groupId(safeId("street4"))">
+      @defining(safeId(Address.street4), safeError(Address.street4)) { case (street4Id, street4Error) =>
+        <div class="govuk-form-group@if(street4Error.nonEmpty){ govuk-form-group--error }">
+          <label class="govuk-label" data-address-line="4" for="@groupId(street4Id)">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
               @messages("ukAddress.line4")
             </span>
@@ -186,68 +188,73 @@
             </span>
           </label>
 
-          @safeError("street4")
+          @street4Error
           <input type="text"
-                 class="govuk-input govuk-!-width-two-thirds"
-                 name="@groupId(safeId("street4"))"
-                 id="@groupId(safeId("street4"))"
-                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("street4")))).getOrElse("")" />
-      </div>
+                 class="govuk-input govuk-!-width-two-thirds@if(street4Error.nonEmpty){ govuk-input--error }"
+                 name="@groupId(street4Id)"
+                 id="@groupId(street4Id)"
+                 value="@validationResult.getCurrentValue(street4Id)" />
+        </div>
+      }
 
       @if(international) {
-      <div id="@groupId(s"${fieldValue.id.value}-local")" data-address-div="uk" @if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
-        <div class="govuk-form-group@if(safeError("postcode").nonEmpty){ govuk-form-group--error }">
-          <label class="govuk-label" data-address-line="postcode" for="@groupId(safeId("postcode"))">
-            <span data-address-label="uk">
-            @messages("ukAddress.postcode")
-            </span>
-          </label>
+        @defining(safeId(Address.postcode), safeError(Address.postcode)) { case (postcodeId, postcodeError) =>
+          <div id="@{fieldValue.id.value}-local" data-address-div="uk" @if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
+            <div class="govuk-form-group@if(postcodeError.nonEmpty){ govuk-form-group--error }">
+              <label class="govuk-label" data-address-line="postcode" for="@groupId(postcodeId)">
+                <span data-address-label="uk">
+                @messages("ukAddress.postcode")
+                </span>
+              </label>
 
-          @safeError("postcode")
-          <input type="text"
-                 class="govuk-input govuk-input--width-10@if(safeError("postcode").nonEmpty){ govuk-input--error }"
-                 name="@groupId(safeId("postcode"))"
-                 id="@groupId(safeId("postcode"))"
-                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("postcode")))).getOrElse("")" />
-        </div>
-      </div>
+              @postcodeError
+              <input type="text"
+                     class="govuk-input govuk-input--width-10@if(postcodeError.nonEmpty){ govuk-input--error }"
+                     name="@groupId(postcodeId)"
+                     id="@groupId(postcodeId)"
+                     value="@validationResult.getCurrentValue(postcodeId)" />
+            </div>
+          </div>
+        }
 
-      <div id="@groupId(s"${fieldValue.id.value}-international")" data-address-div="international" @if(!internationalSelected){ class="js-hidden" aria-hidden="true"}>
-        <div class="govuk-form-group@if(safeError("country").nonEmpty){ govuk-form-group--error }">
-          <label class="govuk-label" data-address-line="country" for="@groupId(safeId("country"))">
-            <span data-address-label="international">
-              @messages("internationalAddress.country")
-            </span>
-          </label>
+        @defining(safeId(Address.country), safeError(Address.country)) { case (coutryId, countryError) =>
+          <div id="@{fieldValue.id.value}-international" data-address-div="international" @if(!internationalSelected){ class="js-hidden" aria-hidden="true"}>
+            <div class="govuk-form-group@if(countryError.nonEmpty){ govuk-form-group--error }">
+              <label class="govuk-label" data-address-line="country" for="@groupId(coutryId)">
+                <span data-address-label="international">
+                  @messages("internationalAddress.country")
+                </span>
+              </label>
 
-            @safeError("country")
-          <input type="text"
-                 class="govuk-input govuk-!-width-two-thirds@if(safeError("country").nonEmpty){ govuk-input--error }"
-                 name="@groupId(safeId("country"))"
-                 id="@groupId(safeId("country"))"
-                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("country")))).getOrElse("")" />
-        </div>
-      </div>
+              @countryError
+              <input type="text"
+                     class="govuk-input govuk-!-width-two-thirds@if(countryError.nonEmpty){ govuk-input--error }"
+                     name="@groupId(coutryId)"
+                     id="@groupId(coutryId)"
+                     value="@validationResult.getCurrentValue(coutryId)" />
+            </div>
+          </div>
+        }
       } else {
-        <div class="govuk-form-group@if(safeError("postcode").nonEmpty){ govuk-form-group--error }">
-          <label class="govuk-label" data-address-line="postcode" for="@groupId(safeId("postcode"))">
-            <span data-address-label="uk">
-              @messages("ukAddress.postcode")
-            </span>
-          </label>
+        @defining(safeId(Address.postcode), safeError(Address.postcode)) { case (postcodeId, postcodeError) =>
+          <div class="govuk-form-group@if(postcodeError.nonEmpty){ govuk-form-group--error }">
+            <label class="govuk-label" data-address-line="postcode" for="@groupId(postcodeId)">
+              <span data-address-label="uk">
+                @messages("ukAddress.postcode")
+              </span>
+            </label>
 
-            @safeError("postcode")
-          <input type="text"
-                 class="govuk-input govuk-input--width-10@if(safeError("postcode").nonEmpty){ govuk-input--error }"
-                 name="@groupId(safeId("postcode"))"
-                 id="@groupId(safeId("postcode"))"
-                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("postcode")))).getOrElse("")" />
-
-            @safeError("country")
-          <input type="hidden"
-                 name="@groupId(safeId("country"))"
-                 id="@groupId(safeId("country"))"
-                 value="" />
-        </div>
+            @postcodeError
+            <input type="text"
+                   class="govuk-input govuk-input--width-10@if(postcodeError.nonEmpty){ govuk-input--error }"
+                   name="@groupId(postcodeId)"
+                   id="@groupId(postcodeId)"
+                   value="@validationResult.getCurrentValue(postcodeId)" />
+          </div>
+	  <input type="hidden"
+               name="@groupId(safeId(Address.country))"
+               id="@groupId(safeId(Address.country))"
+               value="" />
+	}
       }
 </fieldset>

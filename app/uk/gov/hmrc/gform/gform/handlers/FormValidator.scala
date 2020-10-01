@@ -16,136 +16,100 @@
 
 package uk.gov.hmrc.gform.gform.handlers
 
+import cats.syntax.eq._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, Origin }
+import uk.gov.hmrc.gform.controllers.{ CacheData, Origin }
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.models.ExpandUtils.{ nonSubmittedFCsOfNonGroup, submittedFCs }
-import uk.gov.hmrc.gform.models.ProcessData
-import uk.gov.hmrc.gform.models.gform.{ FormComponentValidation, FormValidationOutcome }
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
+import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.{ FastForward, FormModel, ProcessData }
+import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.{ EmailCodeFieldMatcher, FormFieldValidationResult, GetEmailCodeFieldMatcher }
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.validation.{ EmailCodeFieldMatcher, FormFieldValidationResult, GetEmailCodeFieldMatcher, ValidationResult }
+import uk.gov.hmrc.gform.validation.ValidationUtil
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
 class FormValidator(implicit ec: ExecutionContext) {
 
-  def validateForm(
-    data: FormDataRecalculated,
-    sections: List[Section],
-    sn: SectionNumber,
-    cache: AuthCacheWithForm,
-    envelope: Envelope,
-    extractedValidateFormHelper: (
-      List[FormComponentValidation],
-      ValidatedType[ValidationResult]) => FormValidationOutcome,
-    validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation,
-    maybeAccessCode: Option[AccessCode]
-  )(
-    implicit hc: HeaderCarrier
-  ): Future[FormValidationOutcome] =
-    validate(
-      data,
-      sections,
-      sn,
-      cache.form.envelopeId,
-      envelope,
-      cache.retrievals,
-      cache.form.thirdPartyData,
-      cache.formTemplate,
-      validateFormComponents,
-      evaluateValidation,
-      maybeAccessCode
-    ).map {
-      case (validationResult, validatedType, _) =>
-        val fcvs: List[FormComponentValidation] = validationResult.map {
-          case (formComponent, formFieldValidationResult) =>
-            FormComponentValidation(formComponent, formFieldValidationResult)
-        }
-        extractedValidateFormHelper(fcvs, validatedType)
-    }
-
-  def validate(
-    formDataRecalculated: FormDataRecalculated,
-    sections: List[Section],
+  // This is abstract in DataOrigin, since this is used in FastForward logic and when we render a form page with a GET.
+  def validatePageModelBySectionNumber[D <: DataOrigin](
+    formModelOptics: FormModelOptics[D],
     sectionNumber: SectionNumber,
-    envelopeId: EnvelopeId,
+    cache: CacheData,
     envelope: Envelope,
-    retrievals: MaterialisedRetrievals,
-    thirdPartyData: ThirdPartyData,
-    formTemplate: FormTemplate,
-    validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation,
-    maybeAccessCode: Option[AccessCode]
+    validatePageModel: ValidatePageModel[Future, D]
   )(
     implicit hc: HeaderCarrier
-  ): Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] = {
-    val section = sections(sectionNumber.value)
-    val nonSubmittedYet = nonSubmittedFCsOfNonGroup(formDataRecalculated, section)
-    val allFC = submittedFCs(formDataRecalculated, sections.flatMap(_.expandSection(formDataRecalculated.data).allFCs)) ++ nonSubmittedYet
-    val sectionFields = submittedFCs(formDataRecalculated, section.expandSectionRc(formDataRecalculated.data).allFCs) ++ nonSubmittedYet
+  ): Future[FormHandlerResult] = {
+    val formModel = formModelOptics.formModelRenderPageOptics.formModel
+    val visibilityFormModel = formModelOptics.formModelVisibilityOptics.formModel
+    val visibilityPageModel = visibilityFormModel(sectionNumber)
+    val allFC: List[FormComponent] = formModel.allFormComponents
 
     for {
-      v <- validateFormComponents(
-            sectionFields,
-            section,
-            envelopeId,
+      v <- validatePageModel(
+            visibilityPageModel,
+            cache,
             envelope,
-            retrievals,
-            thirdPartyData,
-            formTemplate,
-            formDataRecalculated,
-            GetEmailCodeFieldMatcher(sections),
-            maybeAccessCode
+            formModelOptics.formModelVisibilityOptics,
+            GetEmailCodeFieldMatcher(formModelOptics.formModelVisibilityOptics.formModel)
           )
-    } yield (evaluateValidation(v, allFC, formDataRecalculated, envelope), v, envelope)
+    } yield {
+      val validationResult: ValidationResult =
+        ValidationUtil.evaluateValidationResult(
+          visibilityPageModel.allFormComponents,
+          v,
+          formModelOptics.formModelVisibilityOptics,
+          envelope)
+      FormHandlerResult(validationResult, envelope)
+    }
+
+  }
+
+  def toFormValidationOutcome(
+    fhr: FormHandlerResult
+  ): FormValidationOutcome = {
+    val FormHandlerResult(validationResult, _) = fhr
+    validationResult.toFormValidationOutcome
   }
 
   def fastForwardValidate(
     processData: ProcessData,
-    cache: AuthCacheWithForm,
+    cache: CacheData,
     envelope: Envelope,
-    extractedValidateFormHelper: (
-      List[FormComponentValidation],
-      ValidatedType[ValidationResult]) => FormValidationOutcome,
-    validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation,
-    maybeAccessCode: Option[AccessCode])(
+    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
+    fastForward: FastForward
+  )(
     implicit hc: HeaderCarrier
   ): Future[Option[SectionNumber]] = {
 
-    val sections = processData.sections
-    val data = processData.data
+    val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
 
-    Origin(sections, data).availableSectionNumbers.foldLeft(Future.successful(None: Option[SectionNumber])) {
+    val availableSectionNumbers: List[SectionNumber] = Origin(formModelOptics).availableSectionNumbers
+    availableSectionNumbers.foldLeft(Future.successful(None: Option[SectionNumber])) {
       case (accF, currentSn) =>
         accF.flatMap {
           case Some(sn) => Future.successful(Some(sn))
           case None =>
-            validateForm(
-              data,
-              sections,
+            validatePageModelBySectionNumber(
+              formModelOptics,
               currentSn,
               cache,
               envelope,
-              extractedValidateFormHelper,
-              validateFormComponents,
-              evaluateValidation,
-              maybeAccessCode)
-              .map {
-                case FormValidationOutcome(isValid, _, _) =>
-                  val section = sections(currentSn.value)
-                  val hasBeenVisited = processData.visitsIndex.contains(currentSn.value)
+              validatePageModel
+            ).map(toFormValidationOutcome).map {
+              case FormValidationOutcome(isValid, _, _) =>
+                val page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
+                val hasBeenVisited = processData.visitsIndex.contains(currentSn.value)
 
-                  val stop = section.continueIf.contains(Stop) || !hasBeenVisited
-                  if (isValid && !stop) None else Some(currentSn)
-              }
+                val stop = page.isTerminationPage || !hasBeenVisited
+
+                if (isValid && !stop && fastForward.goOn(currentSn)) None else Some(currentSn)
+            }
         }
     }
   }
-
 }

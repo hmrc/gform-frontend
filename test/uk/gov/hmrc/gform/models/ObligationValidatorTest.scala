@@ -16,20 +16,20 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.sharedmodel.{ IdNumberValue, RetrievedObligations }
-import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
-
-class ObligationValidatorTest extends Spec with ObligationValidatorTestFixture {
-
-  it should "validate tax period selection against DES tax response" in new ObligationValidator {
-    val cachedObligation = RetrievedObligations(NonEmptyList.one(taxResponse))
-    val desObligation = RetrievedObligations(NonEmptyList.one(taxResponse))
-    val recalculatedTaxPeriod = Map(recalculatedTaxPeriodKey -> IdNumberValue("2"))
-    val formDataRecalculated = FormDataRecalculated(Set(), RecData(cachedData, recalculatedTaxPeriod))
-
-    validateWithDes(formDataRecalculated, cachedObligation, desObligation, FormDataRecalculated.clearTaxResponses) shouldBe formDataRecalculated
-  }
-}
+/* import cats.data.NonEmptyList
+ * import uk.gov.hmrc.gform.Spec
+ * import uk.gov.hmrc.gform.graph.RecData
+ * import uk.gov.hmrc.gform.sharedmodel.{ IdNumberValue, RetrievedObligations }
+ * import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+ *
+ * class ObligationValidatorTest extends Spec with ObligationValidatorTestFixture {
+ *
+ *   it should "validate tax period selection against DES tax response" in new ObligationValidator {
+ *     val cachedObligation = RetrievedObligations(NonEmptyList.one(taxResponse))
+ *     val desObligation = RetrievedObligations(NonEmptyList.one(taxResponse))
+ *     val recalculatedTaxPeriod = Map(recalculatedTaxPeriodKey -> IdNumberValue("2"))
+ *     val formDataRecalculated = FormDataRecalculated(Set(), RecData(cachedData, recalculatedTaxPeriod))
+ *
+ *     validateWithDes(formDataRecalculated, cachedObligation, desObligation, FormDataRecalculated.clearTaxResponses) shouldBe formDataRecalculated
+ *   }
+ * } */

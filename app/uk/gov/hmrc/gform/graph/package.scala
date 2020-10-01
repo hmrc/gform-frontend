@@ -16,18 +16,6 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.{ IdNumberValue, RecalculatedTaxPeriodKey }
+import uk.gov.hmrc.gform.sharedmodel.{ IdNumberValue, RecalculatedTaxPeriodKey, SourceOrigin, VariadicFormData }
 
-package graph {
-
-  import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
-
-  case class RecData(data: VariadicFormData, recalculatedTaxPeriod: Map[RecalculatedTaxPeriodKey, IdNumberValue]) {
-    val cleared = data -- recalculatedTaxPeriod.keySet.map(_.fcId)
-  }
-
-  object RecData {
-    val empty = fromData(VariadicFormData.empty)
-    def fromData(data: VariadicFormData): RecData = RecData(data, Map.empty[RecalculatedTaxPeriodKey, IdNumberValue])
-  }
-}
+package graph {}

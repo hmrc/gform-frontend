@@ -16,18 +16,22 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.data.Validated
+import cats.Monad
 import cats.implicits._
 import play.api.i18n.Messages
 
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Infected }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.Visibility
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.{ FormModel }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, verificationCodeFieldId }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString, SubmissionRef }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SubmissionRef }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
@@ -43,34 +47,29 @@ class EmailCodeFieldMatcher(
   }
 }
 
-class GetEmailCodeFieldMatcher(sections: List[Section]) {
-  def apply(fc: FormComponent): EmailCodeFieldMatcher = {
-    val fcIds: Map[VerificationCodeFieldId, EmailFieldId] = sections
-      .flatMap(_.expandSectionFull.allFCs)
-      .collect {
-        case IsEmailVerifier(emailFcId, emailVerifiedBy) =>
-          (verificationCodeFieldId(emailVerifiedBy.formComponentId), emailFcId)
-      }
-      .toMap
+class GetEmailCodeFieldMatcher(fcIds: Map[VerificationCodeFieldId, EmailFieldId]) {
+  def apply(fc: FormComponent): EmailCodeFieldMatcher =
     new EmailCodeFieldMatcher(verificationCodeFieldId(fc.id), fcIds)
-  }
 }
 
 object GetEmailCodeFieldMatcher {
-  def apply(sections: List[Section]) = new GetEmailCodeFieldMatcher(sections)
-  val noop = new GetEmailCodeFieldMatcher(Nil)
+  def apply(formModel: FormModel[Visibility]) = {
+    val fcIds: Map[VerificationCodeFieldId, EmailFieldId] = formModel.allFormComponents.collect {
+      case IsEmailVerifier(emailFcId, emailVerifiedBy) =>
+        (verificationCodeFieldId(emailVerifiedBy.formComponentId), emailFcId)
+    }.toMap
+    new GetEmailCodeFieldMatcher(fcIds)
+  }
+  val noop = new GetEmailCodeFieldMatcher(Map.empty)
 }
 
-class ComponentsValidator(
-  data: FormDataRecalculated,
-  envelopeId: EnvelopeId,
+class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
+  formModelVisibilityOptics: FormModelVisibilityOptics[D],
+  formComponent: FormComponent,
+  cache: CacheData,
   envelope: Envelope,
-  retrievals: MaterialisedRetrievals,
-  booleanExpr: BooleanExprEval[Future],
-  thirdPartyData: ThirdPartyData,
-  formTemplate: FormTemplate,
   lookupRegistry: LookupRegistry,
-  maybeAccessCode: Option[AccessCode]
+  booleanExprEval: BooleanExprEval[F]
 )(
   implicit
   ec: ExecutionContext,
@@ -79,223 +78,215 @@ class ComponentsValidator(
   sse: SmartStringEvaluator
 ) {
 
-  val cvh = new ComponentsValidatorHelper()
-  val dateValidation = new DateValidation()
+  private val envelopeId: EnvelopeId = cache.envelopeId
+  private val thirdPartyData: ThirdPartyData = cache.thirdPartyData
+  private val formTemplate: FormTemplate = cache.formTemplate
 
-  private[validation] def validIf(formComponent: FormComponent, validationResult: ValidatedType[Unit])(
+  private val cvh = new ComponentsValidatorHelper()
+  private val dateValidation = new DateValidation[D](formModelVisibilityOptics)
+
+  private[validation] def validIf(
+    validationResult: ValidatedType[Unit]
+  )(
     implicit
-    hc: HeaderCarrier): Future[ValidatedType[Unit]] =
+    hc: HeaderCarrier
+  ): F[ValidatedType[Unit]] =
     if (validationResult.isValid) {
-      findFirstCustomValidationError(formComponent)
-        .flatMap(produceCustomValidationErrorOrDefaultValidationResult(formComponent, _, validationResult))
-    } else validationResult.pure[Future]
+      for {
+        firstCustomer <- findFirstCustomValidationError
+        res           <- produceCustomValidationErrorOrDefaultValidationResult(firstCustomer, validationResult)
+      } yield res
+    } else validationResult.pure[F]
 
   private def produceCustomValidationErrorOrDefaultValidationResult(
-    formComponent: FormComponent,
     customValidationError: Option[SmartString],
-    validationResult: ValidatedType[Unit])(
+    validationResult: ValidatedType[Unit]
+  )(
     implicit
-    hc: HeaderCarrier): Future[ValidatedType[Unit]] =
+    hc: HeaderCarrier
+  ): F[ValidatedType[Unit]] =
     customValidationError
-      .map(produceValidationError(formComponent, _).pure[Future])
-      .getOrElse(defaultFormComponentValidIf(formComponent, validationResult))
+      .map(produceValidationError(_).pure[F])
+      .getOrElse(defaultFormComponentValidIf(validationResult))
 
-  private def findFirstCustomValidationError(formComponent: FormComponent)(
+  private def findFirstCustomValidationError(
     implicit
-    hc: HeaderCarrier): Future[Option[SmartString]] =
-    evaluateCustomValidators(formComponent)
-      .map(_.find(listItem => !listItem._1).map(_._2))
+    hc: HeaderCarrier
+  ): F[Option[SmartString]] =
+    evaluateCustomValidators(formComponent).map(_.find(listItem => !listItem._1).map(_._2))
 
-  private def evaluateCustomValidators(formComponent: FormComponent)(
+  private def evaluateCustomValidators(
+    formComponent: FormComponent
+  )(
     implicit
-    hc: HeaderCarrier): Future[List[(Boolean, SmartString)]] =
-    formComponent.validators.traverse { v =>
-      booleanExpr
-        .isTrue(
-          v.validIf.expr,
-          data.data,
-          retrievals,
-          data.invisible,
-          thirdPartyData,
-          maybeAccessCode,
-          envelopeId,
-          formTemplate)
-        .map(b => (b, v.errorMessage))
+    hc: HeaderCarrier
+  ): F[List[(Boolean, SmartString)]] =
+    formComponent.validators.traverse { formComponentValidator =>
+      val fb: F[Boolean] = booleanExprEval.eval(formModelVisibilityOptics)(formComponentValidator.validIf.booleanExpr)
+      fb.map(b => (b, formComponentValidator.errorMessage))
     }
 
-  private def produceValidationError(formComponent: FormComponent, message: SmartString)(
+  private def produceValidationError(
+    message: SmartString
+  )(
     implicit
-    hc: HeaderCarrier): Validated[Map[FormComponentId, Set[String]], Nothing] =
-    Validated.invalid(Map[FormComponentId, Set[String]](formComponent.id -> Set(message.value)))
+    hc: HeaderCarrier
+  ): ValidatedType[Unit] =
+    Map(formComponent.modelComponentId -> Set(message.value)).invalid
 
-  private def defaultFormComponentValidIf(formComponent: FormComponent, validationResult: ValidatedType[Unit])(
+  private def defaultFormComponentValidIf(
+    validationResult: ValidatedType[Unit]
+  )(
     implicit
-    hc: HeaderCarrier): Future[ValidatedType[Unit]] =
-    formComponent.validIf match {
-      case Some(vi) =>
-        booleanExpr
-          .isTrue(
-            vi.expr,
-            data.data,
-            retrievals,
-            data.invisible,
-            thirdPartyData,
-            maybeAccessCode,
-            envelopeId,
-            formTemplate)
-          .map {
-            case false => validationFailure(formComponent, "generic.error.required", None)
-            case true  => validationResult
-          }
-      case None => validationResult.pure[Future]
+    hc: HeaderCarrier
+  ): F[ValidatedType[Unit]] =
+    formComponent.validIf.fold(validationResult.pure[F]) { vi =>
+      booleanExprEval.eval(formModelVisibilityOptics)(vi.booleanExpr).map { b =>
+        if (b)
+          validationResult
+        else
+          validationFailure(formComponent, "generic.error.required", None)
+      }
     }
 
-  def validate(
-    formComponent: FormComponent,
-    fieldValues: List[FormComponent],
+  def validate9(
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(
     implicit
     hc: HeaderCarrier,
     messages: Messages
-  ): Future[ValidatedType[Unit]] = {
+  ): F[ValidatedType[Unit]] = {
 
     val emailCodeFieldMatcher: EmailCodeFieldMatcher = getEmailCodeFieldMatcher(formComponent)
 
     formComponent.`type` match {
       case sortCode @ UkSortCode(_) =>
         validIf(
-          formComponent,
           SortCodeValidation
-            .validateSortCode(formComponent, sortCode, formComponent.mandatory)(data))
+            .validateSortCode(formComponent, sortCode, formComponent.mandatory)(formModelVisibilityOptics))
       case date @ Date(_, _, _) =>
         validIf(
-          formComponent,
-          dateValidation.validateDate(formComponent, date, getCompanionFieldComponent(date, fieldValues), data))
+          dateValidation.validateDate(
+            formComponent,
+            date
+          )
+        )
       case Text(SubmissionRefFormat, _, _, _) if formTemplate.parentFormSubmissionRefs.contains(formComponent.id) =>
         validIf(
-          formComponent,
           ComponentValidator
-            .validateParentSubmissionRef(formComponent, SubmissionRef(envelopeId))(data))
+            .validateParentSubmissionRef(formComponent, SubmissionRef(envelopeId))(formModelVisibilityOptics))
       case emailCodeFieldMatcher.EmailCodeField(emailField) =>
-        validIf(formComponent, ComponentValidator.validateEmailCode(formComponent, emailField, data, thirdPartyData))
+        validIf(
+          ComponentValidator.validateEmailCode(formComponent, emailField, formModelVisibilityOptics, thirdPartyData))
       case Text(constraint, _, _, _) =>
-        validIf(formComponent, ComponentValidator.validateText(formComponent, constraint)(data, lookupRegistry))
+        validIf(ComponentValidator.validateText(formComponent, constraint)(formModelVisibilityOptics, lookupRegistry))
       case TextArea(constraint, _, _) =>
         validIf(
-          formComponent,
           ComponentValidator
-            .validateText(formComponent, constraint)(data, lookupRegistry))
+            .validateText(formComponent, constraint)(formModelVisibilityOptics, lookupRegistry))
       case address @ Address(_) =>
-        validIf(formComponent, new AddressValidation().validateAddress(formComponent, address)(data))
+        validIf(new AddressValidation[D]().validateAddress(formComponent, address)(formModelVisibilityOptics))
       case c @ Choice(_, _, _, _, _) =>
-        validIf(formComponent, ComponentValidator.validateChoice(formComponent)(data))
+        validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
       case _: RevealingChoice =>
-        validIf(formComponent, ComponentValidator.validateChoice(formComponent)(data))
-      case Group(_, _, _, _, _)     => cvh.validF //a group is read-only
-      case FileUpload()             => validateFileUpload(data, formComponent, envelope).pure[Future]
-      case InformationMessage(_, _) => cvh.validF
+        validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
+      case Group(_, _, _, _, _)     => validationSuccess.pure[F]
+      case FileUpload()             => validateFileUpload(envelope).pure[F]
+      case InformationMessage(_, _) => validationSuccess.pure[F]
       case HmrcTaxPeriod(_, _, _) =>
-        validIf(formComponent, ComponentValidator.validateChoice(formComponent)(data))
-      case t @ Time(_, _) => validIf(formComponent, ComponentValidator.validateTime(formComponent, t)(data))
+        validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
+      case t @ Time(_, _) =>
+        validIf(ComponentValidator.validateTime(formComponent, t, formModelVisibilityOptics))
     }
   }
 
-  private def validateFileUpload(data: FormDataRecalculated, fieldValue: FormComponent, envelope: Envelope)(
-    implicit hc: HeaderCarrier,
-    messages: Messages): ValidatedType[Unit] = {
-    val fileId = FileId(fieldValue.id.value)
+  private def validateFileUpload(
+    envelope: Envelope)(implicit hc: HeaderCarrier, messages: Messages): ValidatedType[Unit] = {
+    val fileId = FileId(formComponent.id.value)
     val file: Option[File] = envelope.files.find(_.fileId.value == fileId.value)
 
     file match {
       case Some(File(fileId, Error(Some(reason)), _)) =>
-        validationFailure(fieldValue, "generic.error.unknownUpload", None)
+        validationFailure(formComponent, "generic.error.unknownUpload", None)
       case Some(File(fileId, Error(None), _)) =>
-        validationFailure(fieldValue, "generic.error.unknownUpload", None)
+        validationFailure(formComponent, "generic.error.unknownUpload", None)
       case Some(File(fileId, Infected, _)) =>
-        validationFailure(fieldValue, "generic.error.virus", None)
-      case Some(File(fileId, _, _)) => ValidationServiceHelper.validationSuccess
-      case None if fieldValue.mandatory =>
-        validationFailure(fieldValue, "generic.error.upload", None)
-      case None =>
-        val dataEmpty: Boolean = data.data.get(fieldValue.id).forall(_.isEmpty)
-        if (dataEmpty) validationSuccess else validationFailure(fieldValue, "generic.error.upload", None)
+        validationFailure(formComponent, "generic.error.virus", None)
+      case Some(File(fileId, _, _)) => validationSuccess
+      case None if formComponent.mandatory =>
+        validationFailure(formComponent, "generic.error.upload", None)
+      case None => validationSuccess
     }
   }
 }
 
 class ComponentsValidatorHelper(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) {
 
-  def validF(implicit ec: ExecutionContext): Future[ValidatedType[Unit]] =
-    ValidationServiceHelper.validationSuccess.pure[Future]
-
-  def validateRF(fieldValue: FormComponent, value: String): Seq[String] => ValidatedType[Unit] =
-    validateRequired(fieldValue, fieldValue.id.withSuffix(value), None, value) _
-
-  def validateFF(fieldValue: FormComponent, value: String): Seq[String] => ValidatedType[Unit] =
-    validateForbidden(fieldValue, fieldValue.id.withSuffix(value)) _
-
-  def validateRequired(
-    fieldValue: FormComponent,
-    fieldId: FormComponentId,
-    errorPrefix: Option[String] = None,
-    value: String)(xs: Seq[String]): ValidatedType[Unit] =
+  def validateRequired2(
+    formComponent: FormComponent,
+    atomicFcId: ModelComponentId.Atomic,
+    errorPrefix: Option[String] = None
+  )(
+    xs: Seq[String]
+  ): ValidatedType[Unit] =
     xs.filterNot(_.isEmpty()) match {
       case Nil =>
-        Map(
-          fieldId -> ComponentsValidatorHelper
-            .errors(fieldValue, "field.error.required", None, errorPrefix.getOrElse(""))).invalid
+        Map[ModelComponentId, Set[String]](
+          atomicFcId -> ComponentsValidatorHelper
+            .errors(formComponent, "field.error.required", None, errorPrefix.getOrElse(""))).invalid
       case value :: Nil  => validationSuccess
       case value :: rest => validationSuccess // we don't support multiple values yet
     }
 
-  def validateForbidden(fieldValue: FormComponent, fieldId: FormComponentId)(xs: Seq[String]): ValidatedType[Unit] =
+  def validateForbidden(
+    formComponent: FormComponent,
+    atomicFcId: ModelComponentId.Atomic
+  )(
+    xs: Seq[String]
+  ): ValidatedType[Unit] = {
+    val res = Map[ModelComponentId, Set[String]](
+      atomicFcId -> ComponentsValidatorHelper
+        .errors(formComponent, "generic.error.forbidden", None)).invalid
     xs.filterNot(_.isEmpty()) match {
-      case Nil => validationSuccess
-      case value :: Nil =>
-        Map(fieldId -> ComponentsValidatorHelper.errors(fieldValue, "generic.error.forbidden", None)).invalid
-      case value :: rest =>
-        Map(fieldId -> ComponentsValidatorHelper.errors(fieldValue, "generic.error.forbidden", None)).invalid // we don't support multiple values yet
+      case Nil           => validationSuccess
+      case value :: Nil  => res
+      case value :: rest => res // we don't support multiple values yet
     }
+  }
 }
 
 object ComponentsValidatorHelper {
 
   def fieldDescriptor(
-    fieldValue: FormComponent,
-    workedOnId: FormComponentId,
-    otherFormComponent: Option[FormComponent],
-    partLabel: String)(implicit l: LangADT, sse: SmartStringEvaluator, messages: Messages): String =
-    otherFormComponent match {
-      case Some(x) if x.id === workedOnId =>
-        x.shortName.map { _.value + " " + partLabel }.getOrElse(x.label.value + " " + partLabel)
-      case Some(x) =>
-        fieldValue.shortName
-          .map { input =>
-            messages("helper.order", input.value, partLabel)
-          }
-          .getOrElse(messages("helper.order", fieldValue.label.value, partLabel))
-      case None =>
-        fieldValue.shortName
-          .map(ls => messages("helper.order", ls.value, partLabel))
-          .getOrElse(messages("helper.order", fieldValue.label.value, partLabel))
-    }
-
-  def errors(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]], partLabel: String = "")(
-    implicit l: LangADT,
+    formComponent: FormComponent,
+    partLabel: String
+  )(
+    implicit
+    l: LangADT,
     sse: SmartStringEvaluator,
-    messages: Messages): Set[String] = {
+    messages: Messages
+  ): String =
+    formComponent.shortName
+      .map(ls => messages("helper.order", ls.value, partLabel))
+      .getOrElse(messages("helper.order", formComponent.label.value, partLabel))
+
+  def errors(
+    formComponent: FormComponent,
+    messageKey: String,
+    vars: Option[List[String]],
+    partLabel: String = ""
+  )(
+    implicit
+    l: LangADT,
+    sse: SmartStringEvaluator,
+    messages: Messages
+  ): Set[String] = {
     val varsList: List[String] = vars.getOrElse(Nil)
-    val withDescriptor: List[String] = fieldDescriptor(fieldValue, fieldValue.id, None, partLabel).trim :: varsList
+    val withDescriptor: List[String] = fieldDescriptor(formComponent, partLabel).trim :: varsList
     Set(
-      fieldValue.errorMessage
+      formComponent.errorMessage
         .map(ls => ls.value)
-        .getOrElse(messages(messageKey, withDescriptor: _*)))
+        .getOrElse(messages(messageKey, withDescriptor: _*))
+    )
   }
-
-  def getError(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]])(
-    implicit l: LangADT,
-    sse: SmartStringEvaluator,
-    messages: Messages): Validated[Map[FormComponentId, Set[String]], Nothing] =
-    Map(fieldValue.id -> errors(fieldValue, messageKey, vars)).invalid
 }

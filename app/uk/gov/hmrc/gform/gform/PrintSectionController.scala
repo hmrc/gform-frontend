@@ -22,6 +22,7 @@ import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationPrint
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
@@ -43,8 +44,11 @@ class PrintSectionController(
     extends FrontendController(messagesControllerComponents) {
 
   def showPrintSection(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewPrintSection) {
-      implicit request => implicit l => cache => implicit sse =>
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.ViewPrintSection) {
+      implicit request => implicit l => cache => implicit sse => formModelOptics =>
         cache.formTemplate.destinations match {
           case destinationPrint: DestinationPrint =>
             Future.successful(Ok(renderPrintSection(cache, maybeAccessCode, destinationPrint)))
@@ -62,13 +66,22 @@ class PrintSectionController(
   }
 
   def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadPrintSectionPdf) {
-      implicit request => implicit l => cache => implicit sse =>
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.DownloadPrintSectionPdf) {
+      implicit request => implicit l => cache => implicit sse => formModelOptics =>
         cache.formTemplate.destinations match {
           case DestinationPrint(_, pdf, _) =>
             for {
               htmlForPDF <- summaryRenderingService
-                             .createHtmlForPrintPdf(maybeAccessCode, cache, SummaryPagePurpose.ForUser, pdf)
+                             .createHtmlForPrintPdf(
+                               maybeAccessCode,
+                               cache,
+                               SummaryPagePurpose.ForUser,
+                               pdf,
+                               formModelOptics
+                             )
               pdfStream <- pdfService.generatePDF(htmlForPDF)
             } yield
               Result(
@@ -81,8 +94,11 @@ class PrintSectionController(
     }
 
   def downloadNotificationPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadPrintSectionPdf) {
-      implicit request => implicit l => cache => implicit sse =>
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.DownloadPrintSectionPdf) {
+      implicit request => implicit l => cache => implicit sse => formModelOptics =>
         cache.formTemplate.destinations match {
           case DestinationPrint(_, _, Some(pdfNotification)) =>
             for {
@@ -91,7 +107,8 @@ class PrintSectionController(
                                maybeAccessCode,
                                cache,
                                SummaryPagePurpose.ForUser,
-                               pdfNotification)
+                               pdfNotification,
+                               formModelOptics)
               pdfStream <- pdfService.generatePDF(htmlForPDF)
             } yield
               Result(
