@@ -28,7 +28,7 @@ class LookupAdapter[A] extends IndexAdapter[A] {
   override def get(token: String): Collection[ScoredObject[A]] = {
 
     // Set threshold according to the token length
-    val threshold: Double = Math.log(Math.max(token.length() - 1, 1))
+    val threshold: Double = Math.log(Math.max(token.length() - 1, 1).toDouble)
     index.getAny(new EditDistanceAutomaton(token, threshold))
   }
 

@@ -16,25 +16,23 @@
 
 package uk.gov.hmrc.gform.auth
 
-import play.api.libs.json.{ JsBoolean, JsObject }
+import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
-import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT }
 import uk.gov.hmrc.gform.models.mappings.{ NINO => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.models.mappings.{ NINO => MNINO, VATReg => MVATReg }
 
 import scala.concurrent.Future
 import Function.const
 
-class AuthServiceSpec extends ExampleData with Spec {
+class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChecks {
 
   behavior of "Authentication and authorisation Service"
 

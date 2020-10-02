@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.Eq
 import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.core.parsers.ExprParsers
 
 sealed trait Expr extends Product with Serializable {
   def leafs: List[Expr] = this match {

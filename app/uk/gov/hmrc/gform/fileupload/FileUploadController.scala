@@ -41,7 +41,7 @@ class FileUploadController(
     maybeAccessCode: Option[AccessCode],
     fileId: FileId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
-    implicit request => implicit l => cache => _ => formModelOptics =>
+    implicit request => l => cache => _ => formModelOptics =>
       for {
         form <- gformConnector.getForm(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
         _    <- fileUploadService.deleteFile(form.envelopeId, fileId)

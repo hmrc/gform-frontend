@@ -21,15 +21,13 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
-class AddressValidation[D <: DataOrigin](implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) {
+class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: SmartStringEvaluator) {
 
   val cvh = new ComponentsValidatorHelper()
 

@@ -21,7 +21,6 @@ import cats.syntax.applicative._
 import play.api.{ Logger, data }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
-import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers._
@@ -82,7 +81,7 @@ class NewFormController(
   /**
     * To request a new confirmation code when verifying an email, user will have to start whole journey again in new session.
     */
-  def dashboardWithNewSession(formTemplateId: FormTemplateId) = Action.async { implicit request =>
+  def dashboardWithNewSession(formTemplateId: FormTemplateId) = Action.async { request =>
     Redirect(routes.NewFormController.dashboard(formTemplateId)).withSession().pure[Future]
   }
 
@@ -151,7 +150,7 @@ class NewFormController(
 
   def decision(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      implicit request => implicit l => cache => sse => formModelOptics =>
         val queryParams = QueryParams.fromRequest(request)
         choice.bindFromRequest
           .fold(
@@ -240,7 +239,7 @@ class NewFormController(
       }
     }
 
-    def processNewFormData(formIdData: FormIdData, drm: DraftRetrievalMethod)(implicit request: Request[AnyContent]) =
+    def processNewFormData(formIdData: FormIdData, drm: DraftRetrievalMethod) =
       formIdData match {
         case FormIdData.WithAccessCode(_, formTemplateId, accessCode) =>
           Redirect(routes.NewFormController.showAccessCode(formTemplateId))

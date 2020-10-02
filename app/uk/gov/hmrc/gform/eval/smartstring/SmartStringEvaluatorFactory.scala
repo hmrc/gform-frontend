@@ -18,17 +18,14 @@ package uk.gov.hmrc.gform.eval.smartstring
 
 import java.text.MessageFormat
 
-import cats.Id
 import org.intellij.markdown.html.entities.EntityConverter
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.ExprFormat
 import uk.gov.hmrc.gform.commons.FormatType
-import uk.gov.hmrc.gform.commons.FormatType.{ Default, FromText }
-import uk.gov.hmrc.gform.models.FormModel
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SourceOrigin }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId, FormTemplate }
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.http.HeaderCarrier

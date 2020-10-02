@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
-/* import org.scalatest.{ FlatSpec, Inside, Matchers }
+/*
  * import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
  * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
  * import uk.gov.hmrc.gform.sharedmodel.VariadicValue.{ Many, One }
@@ -24,10 +24,10 @@ package uk.gov.hmrc.gform.models
  * import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
  * import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, VisitIndex }
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FullyExpanded }
- *
- * class AddToListUtilsSpec
- *     extends FlatSpec with Matchers with Inside with RecalculatedFormDataSupport with FormModelSupport {
- *   "AddToListUtils.removeRecord" should "remove instance by its index" in {
+ */
+import org.scalatest.{ FlatSpec, Inside, Matchers }
+class AddToListUtilsSpec extends FlatSpec with Matchers with Inside with FormModelSupport {
+  /*   "AddToListUtils.removeRecord" should "remove instance by its index" in {
  *     val data: FormDataRecalculated = mkVariadicFormDataRecalculated(
  *       "regular"   -> One("r"),
  *       "1_a"       -> One("a_1"),
@@ -153,4 +153,5 @@ package uk.gov.hmrc.gform.models
  *    *     obligations shouldBe expectedObligations
  *    * } *\/
  *   }
- * } */
+ */
+}

@@ -26,11 +26,11 @@ package uk.gov.hmrc.gform.validation
  * import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
  * import uk.gov.hmrc.gform.Helpers.toSmartString
- * import uk.gov.hmrc.gform.{ GraphSpec, Spec }
  * import uk.gov.hmrc.http.HeaderCarrier
- *
- * class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec with GraphSpec {
- *
+ */
+import uk.gov.hmrc.gform.{ GraphSpec, Spec }
+class FormatValidationSpec extends Spec with GraphSpec {
+  /*
  *   "Sterling Format" should "Valid with whole number below 11 digits" in createSuccessTest(
  *     "12345678910",
  *     Sterling(RoundingMode.defaultRoundingMode, false))
@@ -430,4 +430,5 @@ package uk.gov.hmrc.gform.validation
  *
  *   private val fieldValueFunction: TextConstraint => FormComponent = contraint => fieldValue(Text(contraint, Value))
  *
- * } */
+ */
+}

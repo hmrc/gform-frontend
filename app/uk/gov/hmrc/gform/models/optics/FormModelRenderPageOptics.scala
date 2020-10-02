@@ -17,11 +17,11 @@
 package uk.gov.hmrc.gform.models.optics
 
 import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, PageModel, Visibility }
+import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, PageModel }
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 import uk.gov.hmrc.gform.testonly.RevealingChoiceLookup
 
 case class FormModelRenderPageOptics[D <: DataOrigin](

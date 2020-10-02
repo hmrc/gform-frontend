@@ -15,17 +15,17 @@
  */
 
 package uk.gov.hmrc.gform.graph
-import org.scalatest.{ FlatSpec, Matchers }
-import uk.gov.hmrc.gform.auth.models.Role
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm }
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData, VariadicValue }
-
-import scala.concurrent.ExecutionContext
-
-/* class EmailParameterRecalculationSpec(implicit ec: ExecutionContext) extends FlatSpec with Matchers {
+/*
+ * import uk.gov.hmrc.gform.auth.models.Role
+ * import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm }
+ * import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+ * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+ * import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData, VariadicValue }
  *
+ * import scala.concurrent.ExecutionContext */
+import org.scalatest.{ FlatSpec, Matchers }
+class EmailParameterRecalculationSpec extends FlatSpec with Matchers {
+  /*
  *   val cache: AuthCacheWithForm =
  *     AuthCacheWithoutForm(ExampleData.materialisedRetrievals, ExampleData.formTemplate, Role.Customer)
  *       .toAuthCacheWithForm(ExampleData.form)
@@ -43,5 +43,5 @@ import scala.concurrent.ExecutionContext
  *       .parameterFormat(emailParameters, FormDataRecalculated.empty.copy(recData = RecData.fromData(data))) shouldBe Map(
  *       EmailTemplateVariable("templateVarId") -> EmailParameterValue("value"))
  *   }
- *
- * } */
+ */
+}

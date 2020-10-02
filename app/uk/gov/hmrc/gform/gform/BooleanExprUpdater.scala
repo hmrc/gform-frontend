@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import uk.gov.hmrc.gform.models.PageMode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {

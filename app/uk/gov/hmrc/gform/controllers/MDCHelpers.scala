@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.controllers
 import cats.Applicative
 import cats.syntax.applicative._
 import org.slf4j.MDC
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId

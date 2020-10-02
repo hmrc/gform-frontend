@@ -16,10 +16,6 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.models.Basic
-import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, IncludeIf, Page, Section }
-
 package object formtemplate {
   /* implicit class SectionSyntax(section: Section) {
  *   def page(): Page[Basic] =

@@ -24,8 +24,6 @@ import play.api.libs.ws.{ WSClient, WSRequest }
 import play.api.mvc._
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
 
 class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponents)(
   implicit ec: ExecutionContext
@@ -76,7 +74,4 @@ class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponent
   private def streamedBodyParser(implicit ec: ExecutionContext): BodyParser[Source[ByteString, _]] = BodyParser { _ =>
     Accumulator.source[ByteString].map(Right.apply)
   }
-
-  private implicit def hc(implicit request: Request[_]): HeaderCarrier =
-    HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 }

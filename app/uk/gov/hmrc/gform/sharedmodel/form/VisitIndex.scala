@@ -21,7 +21,6 @@ import cats.syntax.eq._
 import play.api.libs.json.{ Json, OFormat }
 import scala.util.Try
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
 case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {

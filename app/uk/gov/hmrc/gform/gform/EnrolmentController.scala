@@ -25,10 +25,10 @@ import cats.syntax.applicative._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.traverse._
-import cats.syntax.validated._
 import cats.{ Applicative, Monad, Traverse }
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request }
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
@@ -255,8 +255,7 @@ class EnrolmentController(
     enrolmentAction: EnrolmentAction,
     retrievals: MaterialisedRetrievals
   )(
-    implicit hc: HeaderCarrier,
-    request: Request[AnyContent],
+    implicit
     AA: ApplicativeAsk[F, Env],
     FR: FunctorRaise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] = {
 
@@ -307,16 +306,12 @@ class EnrolmentController(
   private def extractIdentifiersAndVerifiers[F[_]: Monad](
     enrolmentSection: EnrolmentSection
   )(
-    implicit hc: HeaderCarrier,
+    implicit
     AA: ApplicativeAsk[F, Env],
     FR: FunctorRaise[F, SubmitEnrolmentError]): F[(NonEmptyList[(IdentifierRecipe, Identifier)], List[Verifier])] = {
     def evaluate[A, B, G[_]: Traverse](xs: G[A])(g: A => FormCtx, f: A => String => B): F[G[B]] =
       for {
         env <- AA.ask
-        _ = {
-          val evaluationResults = env.formModelVisibilityOptics.evaluationResults
-          val data = env.formModelVisibilityOptics.recData.variadicFormData
-        }
         res <- xs.traverse { x =>
                 val value = env.formModelVisibilityOptics.eval(g(x))
                 f(x)(value).pure[F]

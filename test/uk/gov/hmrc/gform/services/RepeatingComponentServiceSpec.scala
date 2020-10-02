@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.services
 
 /* import uk.gov.hmrc.gform.Helpers.toSmartString
- * import uk.gov.hmrc.gform.Spec
  * import uk.gov.hmrc.gform.formtemplate.SectionSyntax
  * import uk.gov.hmrc.gform.graph.RecData
  * import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -27,9 +26,11 @@ package uk.gov.hmrc.gform.services
  *
  * import scala.collection.immutable.List
  * import uk.gov.hmrc.http.HeaderCarrier
- *
- * class RepeatingComponentServiceSpec extends Spec with ExampleData {
- *
+ */
+import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.ExampleData
+class RepeatingComponentServiceSpec extends Spec with ExampleData {
+  /*
  *   // TODO JoVl - recreate these test in FormModelSpec.scala
  *
  *   private implicit lazy val hc = HeaderCarrier()
@@ -98,4 +99,5 @@ package uk.gov.hmrc.gform.services
  *
  *   protected def mkFormDataRecalculated(data: VariadicFormData): FormDataRecalculated =
  *     FormDataRecalculated.empty.copy(recData = RecData.fromData(data))
- * } */
+ */
+}

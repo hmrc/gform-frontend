@@ -137,8 +137,6 @@ object Javascript {
 
     val roundingMode = getRoundingMode(field)
 
-    import Expr._
-
     def computeExpr(expr: Expr): String = {
 
       def sum(id: FormComponentId) = {

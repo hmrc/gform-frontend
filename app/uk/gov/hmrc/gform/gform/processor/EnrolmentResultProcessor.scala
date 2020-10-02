@@ -16,25 +16,18 @@
 
 package uk.gov.hmrc.gform.gform.processor
 
-import cats.data.Validated.Invalid
-import cats.syntax.validated._
 import play.api.i18n.Messages
 import play.api.mvc.{ AnyContent, Request, Result }
 import play.api.mvc.Results.{ Ok, Redirect }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.{ EnrolmentFormNotValid, NoIdentifierProvided, SubmitEnrolmentError }
 import uk.gov.hmrc.gform.gform.RegimeIdNotMatch
-import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, ValidatorsResult }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormComponent, FormTemplate }
-import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationResult, ValidationUtil }
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormTemplate }
+import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
@@ -61,7 +54,7 @@ class EnrolmentResultProcessor(
     )
 
   def recoverEnrolmentError(validationResult: ValidationResult)(
-    implicit request: Request[AnyContent],
+    implicit
     messages: Messages): SubmitEnrolmentError => Result =
     enrolmentError => {
 

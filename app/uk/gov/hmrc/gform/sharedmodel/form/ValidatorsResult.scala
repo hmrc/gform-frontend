@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import cats.Monoid
 import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 case class ValidatorsResult(
   desRegistrationResponse: Option[DesRegistrationResponse],

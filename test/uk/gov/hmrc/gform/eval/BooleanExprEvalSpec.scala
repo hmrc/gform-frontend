@@ -22,11 +22,12 @@ package uk.gov.hmrc.gform.eval
  * import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData }
  * import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Contains, Equals, FormComponent, FormComponentId, FormCtx, GreaterThan, GreaterThanOrEquals, LessThan, LessThanOrEquals, NotEquals, Number, Text }
- * import uk.gov.hmrc.gform.{ GraphSpec, Spec }
  * import uk.gov.hmrc.http.HeaderCarrier
- *
- * class BooleanExprEvalSpec extends Spec with GraphSpec {
- *   implicit val hc = HeaderCarrier()
+ */
+import uk.gov.hmrc.gform.{ GraphSpec, Spec }
+
+class BooleanExprEvalSpec extends Spec with GraphSpec {
+  /*   implicit val hc = HeaderCarrier()
  *
  *   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
  *
@@ -240,4 +241,5 @@ package uk.gov.hmrc.gform.eval
  *       None
  *     )
  *   }
- * } */
+ */
+}

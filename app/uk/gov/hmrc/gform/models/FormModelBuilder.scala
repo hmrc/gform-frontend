@@ -21,6 +21,7 @@ import cats.instances.list._
 import cats.syntax.eq._
 import cats.syntax.foldable._
 import cats.syntax.functor._
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, TypedExpr }
 import uk.gov.hmrc.gform.gform.{ FormComponentUpdater, PageUpdater }

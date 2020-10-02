@@ -25,7 +25,7 @@ import org.scalactic.source.Position
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.{ FormModelBuilder, FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
+import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, Destinations }
@@ -1086,7 +1086,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
     fieldNames: FieldName*): Map[StructuredFormDataFieldNamePurpose, FieldName] = fieldNames.map(purpose -> _).toMap
 
   private def objectStructure(fields: Field*): StructuredFormValue =
-    StructuredFormValue.ObjectStructure(fields.map { case Field(n, v, a) => Field(n, v, a) } toList)
+    StructuredFormValue.ObjectStructure(fields.map { case Field(n, v, a) => Field(n, v, a) }.toList)
 
   private def textNode(value: String): StructuredFormValue =
     StructuredFormValue.TextNode(value)

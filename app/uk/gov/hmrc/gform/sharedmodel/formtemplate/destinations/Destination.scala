@@ -108,8 +108,6 @@ object Destination {
     implicit val personalisationReads =
       JsonUtils.formatMap[NotifierPersonalisationFieldId, FormComponentId](NotifierPersonalisationFieldId(_), _.value)
 
-    implicit def d: OFormat[Destination] = derived.oformat[Destination]()
-
     OFormatWithTemplateReadFallback(
       ADTFormat.adtRead[Destination](
         typeDiscriminatorFieldName,

@@ -21,7 +21,6 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import JsonUtils._
-import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 sealed trait Destinations extends Product with Serializable {
   def fold[A](f: Destinations.DestinationList => A)(g: Destinations.DestinationPrint => A): A = this match {
@@ -48,12 +47,9 @@ object Destinations {
 
   implicit val destinationPrintFormat: OFormat[DestinationPrint] = Json.format[DestinationPrint]
 
-  implicit val format: OFormat[Destinations] = {
-    implicit val destinationsFormat: OFormat[Destinations] = derived.oformat()
-
+  implicit val format: OFormat[Destinations] =
     OFormatWithTemplateReadFallback(
       safeCast[DestinationList, Destinations](destinationListFormat) orElse
         safeCast[DestinationPrint, Destinations](destinationPrintFormat)
     )
-  }
 }

@@ -18,13 +18,8 @@ package uk.gov.hmrc.gform.summary
 
 import java.time.format.DateTimeFormatter
 
-import cats.data.NonEmptyList
-import cats.data.Validated.{ Invalid, Valid }
-import cats.instances.future._
 import cats.instances.int._
 import cats.syntax.eq._
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Call, Request }
 import play.twirl.api.{ Html, HtmlFormat }
@@ -37,23 +32,18 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose }
 import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.graph.Recalculation
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, MultiValueId }
-import uk.gov.hmrc.gform.models.{ Atom, FastForward, FormModel, FormModelBuilder, PageModel, Repeater, SectionSelector, SectionSelectorType, Singleton, Visibility }
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
+import uk.gov.hmrc.gform.models.{ Atom, FastForward, FormModel, PageModel, Repeater, SectionSelector, SectionSelectorType, Singleton, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
+import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, ValidatorsResult }
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.validation.{ FieldOk, FormFieldValidationResult, HtmlFieldId, ValidationResult, ValidationService }
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.views.html.summary.snippets
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId, ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper._
@@ -61,13 +51,11 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, Sum
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.views.html.errorInline
 import uk.gov.hmrc.gform.views.summary.TextFormatter._
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
 import uk.gov.hmrc.gform.views.summary.TextFormatter
-import uk.gov.hmrc.govukfrontend.views.html.components.{ ErrorMessage, govukErrorMessage, govukSummaryList }
+import uk.gov.hmrc.govukfrontend.views.html.components.govukSummaryList
 
-import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Future }
 
 class SummaryRenderingService(
@@ -117,8 +105,7 @@ class SummaryRenderingService(
     hc: HeaderCarrier,
     ec: ExecutionContext,
     lise: SmartStringEvaluator
-  ): Future[PdfHtml] = {
-    import i18nSupport._
+  ): Future[PdfHtml] =
     for {
       summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics)
     } yield {
@@ -127,7 +114,6 @@ class SummaryRenderingService(
         HtmlSanitiser
           .sanitiseHtmlForPDF(summaryHtml, document => HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)))
     }
-  }
 
   def createHtmlForNotificationPdf(
     maybeAccessCode: Option[AccessCode],
@@ -142,8 +128,6 @@ class SummaryRenderingService(
     ec: ExecutionContext,
     lise: SmartStringEvaluator
   ): Future[PdfHtml] = {
-    import i18nSupport._
-
     val pdfFieldIds = pdfNotification.fieldIds
     val pdfHeader = pdfNotification.header
     val pdfFooter = pdfNotification.footer
@@ -168,10 +152,8 @@ class SummaryRenderingService(
     submissionDetails: Option[SubmissionDetails],
     cache: AuthCacheWithForm
   )(
-    implicit hc: HeaderCarrier,
-    messages: Messages,
-    curLang: LangADT,
-    lise: SmartStringEvaluator
+    implicit
+    messages: Messages
   ): String = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
@@ -193,7 +175,6 @@ class SummaryRenderingService(
     pdfFooter: SmartString
   )(
     implicit
-    curLang: LangADT,
     lise: SmartStringEvaluator
   ): (String, String) = {
 
@@ -867,7 +848,6 @@ object SummaryRenderingService {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     lise: SmartStringEvaluator): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
@@ -894,7 +874,7 @@ object SummaryRenderingService {
       summaryListRow(
         label,
         value,
-        None,
+        visuallyHiddenText,
         keyClasses,
         "",
         "",
@@ -926,7 +906,6 @@ object SummaryRenderingService {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     lise: SmartStringEvaluator): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
@@ -988,7 +967,6 @@ object SummaryRenderingService {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     lise: SmartStringEvaluator
   ): List[SummaryListRow] = {
 
@@ -1038,7 +1016,6 @@ object SummaryRenderingService {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     lise: SmartStringEvaluator): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
@@ -1094,7 +1071,6 @@ object SummaryRenderingService {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     lise: SmartStringEvaluator): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
@@ -1210,7 +1186,6 @@ object SummaryRenderingService {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     lise: SmartStringEvaluator): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk

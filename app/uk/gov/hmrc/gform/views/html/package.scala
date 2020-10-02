@@ -47,5 +47,5 @@ package object html {
     .withLocale(Locale.UK)
     .withZone(ZoneId.of("Europe/London"))
 
-  def formatInstant(instant: Instant)(implicit messages: Messages): String = dtf.format(instant)
+  def formatInstant(instant: Instant): String = dtf.format(instant)
 }

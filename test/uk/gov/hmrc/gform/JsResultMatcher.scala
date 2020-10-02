@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform
 
-import org.scalatest._
 import org.scalatest.matchers.{ BeMatcher, MatchResult, Matcher }
 import play.api.libs.json.JsResult
 

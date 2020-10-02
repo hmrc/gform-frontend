@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.instances.list._
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.{ Obligation, SourceOrigin, TaxResponse }
+import uk.gov.hmrc.gform.sharedmodel.{ Obligation, TaxResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 
 sealed trait TaxSelectionNavigation

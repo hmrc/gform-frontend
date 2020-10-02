@@ -19,9 +19,8 @@ package uk.gov.hmrc.gform.gform
 import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
-import org.jsoup.Jsoup
 import play.api.http.HttpEntity
-import play.api.i18n.{ I18nSupport, Messages }
+import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, ResponseHeader, Result }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -29,15 +28,14 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActionsAlgebra, ErrResponder }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.Recalculation
-import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, SectionSelectorType }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
+import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
-import uk.gov.hmrc.gform.validation.{ ValidationService, ValidationUtil }
+import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController

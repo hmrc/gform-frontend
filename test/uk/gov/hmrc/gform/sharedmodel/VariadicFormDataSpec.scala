@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import cats.data.NonEmptyList
 import org.scalatest.{ FlatSpec, Matchers }
-import uk.gov.hmrc.gform._
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, FormModelSupport, SectionSelectorType }

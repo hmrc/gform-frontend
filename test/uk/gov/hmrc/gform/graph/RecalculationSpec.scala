@@ -20,18 +20,18 @@ package uk.gov.hmrc.gform.graph
  * import cats.implicits._
  * import org.scalactic.source.Position
  * import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
- * import org.scalatest.{ FlatSpec, Matchers }
  * import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
- * import uk.gov.hmrc.gform.GraphSpec
  * import uk.gov.hmrc.gform.Helpers._
  * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
  * import uk.gov.hmrc.gform.sharedmodel._
  * import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
  * import uk.gov.hmrc.http.HeaderCarrier
- *
- * class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
- *
+ */
+import uk.gov.hmrc.gform.GraphSpec
+import org.scalatest.{ FlatSpec, Matchers }
+class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
+  /*
  *   implicit val hc: HeaderCarrier = HeaderCarrier()
  *
  *   type EitherEffect[A] = Either[GraphException, A]
@@ -759,4 +759,5 @@ package uk.gov.hmrc.gform.graph
  *     Right(expectedRecData) shouldBe output.map(_.recData)
  *
  *   }
- * } */
+ */
+}

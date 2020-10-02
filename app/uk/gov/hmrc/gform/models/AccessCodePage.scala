@@ -22,9 +22,7 @@ import play.api.data.Mapping
 import play.api.data.validation.Constraints
 import uk.gov.hmrc.gform.gform.AccessCodeForm
 import uk.gov.hmrc.gform.models.MappingsApi.{ MappingOps, MappingWithKeyOps }
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BySubmissionReference, DraftRetrievalMethod }
-import uk.gov.hmrc.gform.typeclasses.Rnd
 
 object AccessCodePage {
 

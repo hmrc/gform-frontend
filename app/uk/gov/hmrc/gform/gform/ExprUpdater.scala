@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.gform
 
 import cats.instances.int._
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {

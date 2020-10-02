@@ -16,16 +16,13 @@
 
 package uk.gov.hmrc.gform.sharedmodel.graph
 
-import cats.instances.either._
-import cats.syntax.functor._
 import cats.syntax.eq._
 import cats.syntax.option._
 import scalax.collection.Graph
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
-import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, ExprOnlyProjection, InferrableExpr, IsSelfReferring, SelfReferenceProjection }
-import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, Interim, PageMode, Repeater, Singleton }
-import uk.gov.hmrc.gform.sharedmodel.{ SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, ExprOnlyProjection, IsSelfReferring, SelfReferenceProjection }
+import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object DependencyGraph {
@@ -70,9 +67,6 @@ object DependencyGraph {
           if (cycleBreaker(fc.id) && e === FormCtx(fc.id)) fcNodes
           else GraphNode.Simple(fc.id) ~> GraphNode.Expr(e) :: fcNodes
         }
-
-    def fromOption(maybeSmartString: Option[SmartString]): List[Expr] =
-      maybeSmartString.fold(List.empty[Expr])(_.interpolations)
 
     def boolenExprDeps(
       booleanExpr: BooleanExpr,

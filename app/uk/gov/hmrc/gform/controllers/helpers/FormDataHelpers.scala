@@ -26,17 +26,15 @@ import uk.gov.hmrc.gform.controllers.RequestRelatedData
 import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormId, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplate, Group }
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group }
 
 import scala.concurrent.Future
 
 object FormDataHelpers {
 
   def processResponseDataFromBody(request: Request[AnyContent], formModel: FormModel[DataExpanded])(
-    continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => Future[Result])(
-    implicit hc: HeaderCarrier): Future[Result] =
+    continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => Future[Result]): Future[Result] =
     request.body.asFormUrlEncoded
       .map(_.map { case (a, b) => (a, b.map(_.trim)) }) match {
       case Some(requestData) =>

@@ -236,7 +236,6 @@ class DeclarationController(
     l: LangADT,
     lise: SmartStringEvaluator
   ): Future[Result] = {
-    import i18nSupport._
 
     val formModelOptics = processData.formModelOptics
 
@@ -276,7 +275,7 @@ class DeclarationController(
     if (customerId.isEmpty)
       Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
 
-    val submissionEventId = auditSubmissionEvent(cache, customerId, formModelVisibilityOptics)
+    auditSubmissionEvent(cache, customerId, formModelVisibilityOptics)
 
     Redirect(
       uk.gov.hmrc.gform.gform.routes.AcknowledgementController

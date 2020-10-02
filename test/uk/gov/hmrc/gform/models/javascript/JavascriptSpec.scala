@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.gform.models.javascript
 
-import Function.const
-import uk.gov.hmrc.gform.Helpers.toSmartString
+/* import Function.const
+ * import uk.gov.hmrc.gform.Helpers.toSmartString */
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+//import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class JavascriptSpec extends Spec {
 

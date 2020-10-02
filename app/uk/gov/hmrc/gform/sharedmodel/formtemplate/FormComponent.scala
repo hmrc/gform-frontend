@@ -16,20 +16,13 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import cats.data.NonEmptyList
-import cats.instances.list._
-import cats.instances.int._
-import cats.syntax.eq._
-import cats.syntax.foldable._
 import play.api.libs.json._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.eval.ExprType
-import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.Atom
-import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiValueId }
-import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, emailFieldId, verificationCodeFieldId }
-import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 case class FormComponent(
   id: FormComponentId,

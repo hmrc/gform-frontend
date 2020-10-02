@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.PresentationHintGen
-/*
+
 class PresentationHintSpec extends Spec {
   "PresentationHint" should "round trip derived JSON" in {
     forAll(PresentationHintGen.presentationHintGen) { obj =>
@@ -26,4 +26,3 @@ class PresentationHintSpec extends Spec {
     }
   }
 }
- */

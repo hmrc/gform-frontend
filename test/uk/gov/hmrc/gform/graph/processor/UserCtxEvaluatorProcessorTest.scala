@@ -22,14 +22,14 @@ package uk.gov.hmrc.gform.graph.processor
  * import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
  * import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
  * import uk.gov.hmrc.gform.Helpers.toSmartString
- * import uk.gov.hmrc.gform.Spec
  * import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, GovernmentGatewayId }
  * import uk.gov.hmrc.gform.graph.{ NonConvertible, RecalculationOp }
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, Always, AuthConfig, DoCheck, EnrolmentAuth, EnrolmentSection, FormCtx, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, IdentifierRecipe, Never, NoAction, RegimeId, RegimeIdCheck, RequireEnrolment, ServiceId, UserCtx, UserField }
  * import uk.gov.hmrc.http.logging.SessionId
- *
- * class UserCtxEvaluatorProcessorTest extends Spec {
- *
+ */
+import uk.gov.hmrc.gform.Spec
+class UserCtxEvaluatorProcessorTest extends Spec {
+  /*
  *   forAll(userCtxTable) { (enr, field, serviceId, authConfig, expected) =>
  *     it should s"evaluate a user ctx with $enr, $field, $serviceId and $authConfig return $expected" in new UserCtxEvaluatorProcessor[
  *       Id] {
@@ -95,4 +95,5 @@ package uk.gov.hmrc.gform.graph.processor
  *     Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "12AB567890"))),
  *     Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "12XX567890")))
  *   )
- * } */
+ */
+}

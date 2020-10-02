@@ -17,10 +17,9 @@
 package uk.gov.hmrc.gform.eval
 
 import cats.data.NonEmptyList
-import cats.instances.list._
 import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, Destinations, PrintSection }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, PrintSection }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
 
 /*

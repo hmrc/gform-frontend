@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import play.api.libs.json.{ JsString, JsValue, Json, OFormat }
+import play.api.libs.json.{ JsValue, Json, OFormat }
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormCtx, Validator }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Validator
 
 class ValidatorSpec extends Spec {
 

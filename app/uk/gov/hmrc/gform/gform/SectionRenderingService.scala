@@ -17,37 +17,29 @@
 package uk.gov.hmrc.gform.gform
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit.MINUTES
 
 import cats.data.NonEmptyList
-import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.int._
 import cats.instances.string._
 import cats.syntax.eq._
-import cats.syntax.validated._
 import shapeless.syntax.typeable._
 import play.api.i18n.Messages
 import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
 
-import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
-import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.Origin
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.models.{ Atom, DataExpanded }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ AddToListUtils, DateExpr, FastForward, FormModel, PageModel, Repeater, SectionRenderingInformation, Singleton }
-import uk.gov.hmrc.gform.models.ExpandUtils._
+import uk.gov.hmrc.gform.models.{ DateExpr, FastForward, FormModel, Repeater, SectionRenderingInformation, Singleton }
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
 import uk.gov.hmrc.gform.sharedmodel._
@@ -59,13 +51,11 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.validation.HtmlFieldId
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
-import uk.gov.hmrc.govukfrontend.views.html.components.govukInput
 import uk.gov.hmrc.govukfrontend.views.viewmodels.charactercount.CharacterCount
 import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
@@ -86,11 +76,6 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.html.components.hmrcCurrencyInput
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 
-import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
-
-import scala.annotation.tailrec
-
 sealed trait HasErrors {
 
   def hasErrors: Boolean = this match {
@@ -109,9 +94,7 @@ case class Errors(html: Html) extends HasErrors
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
-class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegistry: LookupRegistry)(
-  implicit ec: ExecutionContext
-) {
+class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegistry: LookupRegistry) {
 
   case class ExtraInfo(
     singleton: Singleton[DataExpanded],
@@ -167,11 +150,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     }
 
     val choice = formComponent.`type`.cast[Choice].get
-
-    val optionalHelpTextMarkDown: NonEmptyList[Html] =
-      choice.optionHelpText.fold(choice.options.map(_ => Html(""))) { helpTexts =>
-        helpTexts.map(ht => markDownParser(ht))
-      }
 
     val hiddenTemplateFields =
       Fields.getHiddenTemplateFields(repeater, formModelOptics, lookupRegistry.extractors)
@@ -386,7 +364,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     validationResult: ValidationResult,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(
-    implicit hc: HeaderCarrier,
+    implicit
     request: Request[_],
     messages: Messages,
     l: LangADT,
@@ -450,8 +428,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   def renderPrintSection(
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
-    destinationPrint: DestinationPrint)(
-    implicit hc: HeaderCarrier,
+    destinationPrint: DestinationPrint
+  )(
+    implicit
     request: Request[_],
     messages: Messages,
     l: LangADT,
@@ -474,8 +453,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formTemplate: FormTemplate,
     destinationList: DestinationList,
     retrievals: MaterialisedRetrievals,
-    envelopeId: EnvelopeId)(
-    implicit hc: HeaderCarrier,
+    envelopeId: EnvelopeId
+  )(
+    implicit
     request: Request[_],
     messages: Messages,
     l: LangADT,
@@ -536,7 +516,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     validationResult: ValidationResult
   )(
     implicit
-    hc: HeaderCarrier,
     request: Request[_],
     messages: Messages,
     l: LangADT,
@@ -821,7 +800,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     ei: ExtraInfo
   )(
     implicit
-    messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
   ) = {
@@ -1169,7 +1147,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formComponent: FormComponent,
     validationResult: ValidationResult,
     ei: ExtraInfo
-  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
+  )(
+    implicit
+    sse: SmartStringEvaluator
+  ) = {
     val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 
@@ -1266,7 +1247,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formComponent: FormComponent,
     validationResult: ValidationResult,
     ei: ExtraInfo
-  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
+  )(implicit l: LangADT, sse: SmartStringEvaluator) = {
     val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
 
     val formFieldValidationResult = validationResult(formComponent)
@@ -1408,7 +1389,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) = {
     val prepopValues: Option[DateExpr] = dateValue.map(DateExpr.fromDateValue).map(DateExpr.withOffset(offset, _))
@@ -1504,7 +1484,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formComponent: FormComponent,
     validationResult: ValidationResult,
     ei: ExtraInfo
-  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
+  )(implicit sse: SmartStringEvaluator) = {
     val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
     val formFieldValidationResult = validationResult(formComponent)
     if (formComponent.onlyShowOnSummary)
@@ -1673,8 +1653,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     maybeNino = None
   )
 
-  private def shouldDisplayHeading(
-    singleton: Singleton[DataExpanded])(implicit l: LangADT, sse: SmartStringEvaluator): Boolean = {
+  private def shouldDisplayHeading(singleton: Singleton[DataExpanded])(implicit sse: SmartStringEvaluator): Boolean = {
     val page = singleton.page
     page.fields match {
       case IsGroup(g) :: _              => false

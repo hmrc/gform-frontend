@@ -17,10 +17,9 @@
 package uk.gov.hmrc.gform.sharedmodel.form
 
 import cats.{ Functor, MonadError }
-import cats.syntax.eq._
 import cats.syntax.functor._
 import com.softwaremill.quicklens._
-import play.api.libs.json._
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.EvaluationResults
 import uk.gov.hmrc.gform.graph.{ GraphData, Recalculation }

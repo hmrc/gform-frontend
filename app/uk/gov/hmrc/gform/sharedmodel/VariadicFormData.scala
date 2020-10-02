@@ -17,17 +17,15 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import cats.instances.list._
-import cats.instances.set._
 import cats.syntax.eq._
 import cats.syntax.foldable._
 import cats.{ Monoid, Show }
 import cats.syntax.show._
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, PageMode, PageModel }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.{ AddToList, NonRepeatingPage, RepeatingPage }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 
 import scala.collection.GenTraversableOnce
 

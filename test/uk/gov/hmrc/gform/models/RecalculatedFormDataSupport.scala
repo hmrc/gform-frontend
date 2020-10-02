@@ -18,13 +18,9 @@ package uk.gov.hmrc.gform.models
 
 import cats.instances.list._
 import cats.syntax.foldable._
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
-import uk.gov.hmrc.gform.sharedmodel.VariadicValue.One
-import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 
 trait VariadicFormDataSupport {
 

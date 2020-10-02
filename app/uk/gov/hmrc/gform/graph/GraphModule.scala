@@ -16,22 +16,13 @@
 
 package uk.gov.hmrc.gform.graph
 
-import java.util.concurrent.TimeUnit
-
-import cats.Id
 import cats.instances.future._
-import cats.syntax.show._
-
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.AuthModule
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.{ BooleanExprEval, DbLookupChecker, DelegatedEnrolmentChecker }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.eval.SeissEligibilityChecker
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 
 class GraphModule(
   authModule: AuthModule,

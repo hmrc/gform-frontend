@@ -25,7 +25,6 @@ import play.api.libs.json.{ JsError, JsSuccess, Json }
 import play.api.mvc.Cookie
 import uk.gov.hmrc.auth.core.EnrolmentIdentifier
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
@@ -139,8 +138,6 @@ class AuthService(
     enrolmentAuth: EnrolmentAuth,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
     ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult]
-  )(
-    implicit hc: HeaderCarrier
   ): Future[AuthResult] =
     enrolmentAuth.enrolmentCheck match {
       case DoCheck(enrolmentCheckPredicate, needEnrolment, enrolmentPostCheck) =>
@@ -195,14 +192,12 @@ class AuthService(
         performGGAuth(ggAuthorised(RecoverAuthResult.noop))
     }
 
-  private def performHmrcAny(ggAuthorised: Predicate => Future[AuthResult])(
-    implicit hc: HeaderCarrier): Future[AuthResult] = {
+  private def performHmrcAny(ggAuthorised: Predicate => Future[AuthResult]): Future[AuthResult] = {
     val predicate = EmptyPredicate
     ggAuthorised(predicate)
   }
 
-  private def performGGAuth(ggAuthorised: Predicate => Future[AuthResult])(
-    implicit hc: HeaderCarrier): Future[AuthResult] = {
+  private def performGGAuth(ggAuthorised: Predicate => Future[AuthResult]): Future[AuthResult] = {
     val predicate = AuthProviders(AuthProvider.GovernmentGateway)
     ggAuthorised(predicate)
   }
@@ -211,7 +206,7 @@ class AuthService(
     agentAccess: AgentAccess,
     formTemplate: FormTemplate,
     ggAuthorised: Predicate => Future[AuthResult],
-    continuation: AuthResult => Future[AuthResult])(implicit hc: HeaderCarrier, l: LangADT): Future[AuthResult] =
+    continuation: AuthResult => Future[AuthResult])(implicit l: LangADT): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .map {
         case ggSuccessfulAuth @ AuthSuccessful(ar @ AuthenticatedRetrievals(_, enrolments, _, _, _), _)

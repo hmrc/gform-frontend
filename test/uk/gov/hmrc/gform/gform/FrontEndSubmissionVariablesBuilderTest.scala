@@ -21,18 +21,18 @@ package uk.gov.hmrc.gform.gform
  * import uk.gov.hmrc.auth.core.AffinityGroup
  * import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
  * import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
- * import uk.gov.hmrc.gform.Spec
  * import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
  * import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
  * import FrontEndSubmissionVariablesBuilder._
  * import uk.gov.hmrc.gform.formtemplate.SectionSyntax
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen._
- * import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormTemplateGen
  * import uk.gov.hmrc.gform.sharedmodel.FrontEndSubmissionVariables
- *
- * class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
- *   forAll(formTemplateGen) { template =>
+ */
+import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormTemplateGen
+class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
+  /*   forAll(formTemplateGen) { template =>
  *     it should s"Build a data structure with valid key value pair for ${template._id}" in new IdentifierExtractor {
  *       val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserField.EnrolledIdentifier)
  *       val enrolledIdType: ComponentType = Text(BasicText, userCtx)
@@ -90,4 +90,5 @@ package uk.gov.hmrc.gform.gform
  *     "TestGroupId",
  *     None
  *   )
- * } */
+ */
+}

@@ -20,7 +20,7 @@ import cats.Monad
 import cats.implicits._
 import play.api.i18n.Messages
 
-import scala.concurrent.ExecutionContext
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Infected }
@@ -72,7 +72,6 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   booleanExprEval: BooleanExprEval[F]
 )(
   implicit
-  ec: ExecutionContext,
   messages: Messages,
   l: LangADT,
   sse: SmartStringEvaluator
@@ -82,7 +81,6 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   private val thirdPartyData: ThirdPartyData = cache.thirdPartyData
   private val formTemplate: FormTemplate = cache.formTemplate
 
-  private val cvh = new ComponentsValidatorHelper()
   private val dateValidation = new DateValidation[D](formModelVisibilityOptics)
 
   private[validation] def validIf(
@@ -128,9 +126,6 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
 
   private def produceValidationError(
     message: SmartString
-  )(
-    implicit
-    hc: HeaderCarrier
   ): ValidatedType[Unit] =
     Map(formComponent.modelComponentId -> Set(message.value)).invalid
 
@@ -200,8 +195,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
     }
   }
 
-  private def validateFileUpload(
-    envelope: Envelope)(implicit hc: HeaderCarrier, messages: Messages): ValidatedType[Unit] = {
+  private def validateFileUpload(envelope: Envelope)(implicit messages: Messages): ValidatedType[Unit] = {
     val fileId = FileId(formComponent.id.value)
     val file: Option[File] = envelope.files.find(_.fileId.value == fileId.value)
 
@@ -220,7 +214,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   }
 }
 
-class ComponentsValidatorHelper(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) {
+class ComponentsValidatorHelper(implicit messages: Messages, sse: SmartStringEvaluator) {
 
   def validateRequired2(
     formComponent: FormComponent,
@@ -262,7 +256,6 @@ object ComponentsValidatorHelper {
     partLabel: String
   )(
     implicit
-    l: LangADT,
     sse: SmartStringEvaluator,
     messages: Messages
   ): String =
@@ -277,7 +270,6 @@ object ComponentsValidatorHelper {
     partLabel: String = ""
   )(
     implicit
-    l: LangADT,
     sse: SmartStringEvaluator,
     messages: Messages
   ): Set[String] = {

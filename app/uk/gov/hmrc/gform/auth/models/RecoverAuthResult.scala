@@ -20,7 +20,6 @@ import play.api.Logger
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.gform.config.AppConfig
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 
 object RecoverAuthResult {
 

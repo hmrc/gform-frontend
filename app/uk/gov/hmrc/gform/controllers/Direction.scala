@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import cats.syntax.show._
-import uk.gov.hmrc.gform.models.{ ExpandUtils, FormModel }
+import uk.gov.hmrc.gform.models.{ ExpandUtils }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics

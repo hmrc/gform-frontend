@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
-/* import org.scalatest.{ FlatSpec, Matchers }
+/*
  * import uk.gov.hmrc.gform.Helpers.toSmartString
  * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
  * import uk.gov.hmrc.gform.graph.RecData
@@ -24,9 +24,10 @@ package uk.gov.hmrc.gform.models
  * import uk.gov.hmrc.gform.sharedmodel.VariadicValue.One
  * import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Basic, FormComponent, FormComponentId, GroupExpanded, Page, Section, Value }
- *
- * class FormModelGroupExpandedSpec extends FlatSpec with Matchers with RecalculatedFormDataSupport with FormModelSupport {
- *   "FormModel.expandGroup" should "expand groups in Section.NonRepeatingPage" in {
+ */
+import org.scalatest.{ FlatSpec, Matchers }
+class FormModelGroupExpandedSpec extends FlatSpec with Matchers with FormModelSupport {
+  /*   "FormModel.expandGroup" should "expand groups in Section.NonRepeatingPage" in {
  *     val fcA = mkFormComponent("a", Value)
  *     val fcB = mkFormComponent("b", Value)
  *     val group: FormComponent = mkFormComponent("group", mkGroup(5, List(fcA, fcB)))
@@ -147,4 +148,5 @@ package uk.gov.hmrc.gform.models
  *  *   formModel shouldBe expected
  *  * } *\/
  *
- * } */
+ */
+}

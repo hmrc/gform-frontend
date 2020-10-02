@@ -16,15 +16,13 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import play.api.libs.json._
 import uk.gov.hmrc.gform._
 import java.math.BigInteger
 
-import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormTemplate
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import org.scalatest.prop.TableDrivenPropertyChecks
 
-class SubmissionReferenceSpec extends Spec {
+class SubmissionReferenceSpec extends Spec with TableDrivenPropertyChecks {
 
   "A valid EnvelopeID" should "return a 12 digit alphanumeric string separated with hyphens" in {
     val res: String = SubmissionRef(envelopeId).toString
@@ -61,7 +59,7 @@ class SubmissionReferenceSpec extends Spec {
       (BigInteger.valueOf(8), 3, 2, Stream.continually(List(1, 2)).flatten, "022")
     )
 
-    forAll(calculateValues) { (bigInteger, radix, digits, stream, expectedOutput) ⇒
+    TableDrivenPropertyChecks.forAll(calculateValues) { (bigInteger, radix, digits, stream, expectedOutput) ⇒
       val reference = SubmissionRef.calculate(bigInteger, radix, digits, stream)
       reference shouldBe expectedOutput
     }

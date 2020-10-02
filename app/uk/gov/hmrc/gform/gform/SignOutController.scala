@@ -31,7 +31,7 @@ class SignOutController(
   nonAuth: NonAuthenticatedRequestActionsAlgebra[Future]
 ) extends FrontendController(messagesControllerComponents) with I18nSupport {
 
-  def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth { implicit request => implicit l =>
+  def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth { request => l =>
     val signBackInURL = routes.NewFormController.dashboard(formTemplateId).url
     Redirect(routes.SignOutController.showSignedOutPage(signBackInURL)).withNewSession
   }

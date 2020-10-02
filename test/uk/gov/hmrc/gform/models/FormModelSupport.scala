@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.{ Id, Monad, MonadError, StackSafeMonad }
+import cats.{ Id, Monad }
 import cats.syntax.applicative._
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm

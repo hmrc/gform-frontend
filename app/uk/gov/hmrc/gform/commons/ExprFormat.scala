@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.commons
 
 import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 trait FormatType extends Product with Serializable

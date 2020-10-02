@@ -18,17 +18,12 @@ package uk.gov.hmrc.gform
 
 import cats.Monad
 import cats.syntax.applicative._
-import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 
 import scala.language.higherKinds
-import uk.gov.hmrc.gform.auth.models.{ GovernmentGatewayId, IdentifierValue, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.auth.models.{ GovernmentGatewayId, IdentifierValue }
 import uk.gov.hmrc.gform.eval.{ BooleanExprEval, SeissEligibilityChecker }
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.DelegatedEnrolment
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.http.HeaderCarrier
 
 trait GraphSpec {

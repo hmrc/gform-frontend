@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.eval
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Expr, FormComponentId, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, FormComponentId, FormTemplateId }
 import uk.gov.hmrc.http.HeaderCarrier
 
 // Various information needed for Expr evaluation

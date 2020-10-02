@@ -21,15 +21,16 @@ package uk.gov.hmrc.gform.controllers
  * import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
  * import uk.gov.hmrc.gform.models.{ FormModel, FormModelSupport }
  * import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, SmartString, VariadicFormData, VariadicValue }
- * import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
- * import uk.gov.hmrc.gform.{ GraphSpec, Spec }
- * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+ * import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData */
+
+import uk.gov.hmrc.gform.{ GraphSpec, Spec }
+/* import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
  * import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated }
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
  * import uk.gov.hmrc.http.HeaderCarrier
- *
- * class NavitagionSpec extends Spec with GraphSpec with FormModelSupport {
- *
+ */
+class NavitagionSpec extends Spec with GraphSpec {
+  /*
  *   implicit val hc: HeaderCarrier = HeaderCarrier()
  *
  *   val recalculation: Recalculation[Option, Unit] =
@@ -115,4 +116,5 @@ package uk.gov.hmrc.gform.controllers
  *
  *   private def variadic(data: (FormComponentId, String)*) =
  *     VariadicFormData(data.toMap.mapValues(VariadicValue.One(_)))
- * } */
+ */
+}

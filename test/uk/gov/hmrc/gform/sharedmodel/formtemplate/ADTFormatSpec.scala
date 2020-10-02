@@ -41,8 +41,6 @@ class ADTFormatSpec extends Spec {
   }
 
   it should "round trip JSON" in {
-    implicit val format: Format[EnumerationFoo] = ADTFormat.formatEnumeration(translations: _*)
-
     forAll(fooNameGen) { t =>
       verifyRoundTrip(t)
     }

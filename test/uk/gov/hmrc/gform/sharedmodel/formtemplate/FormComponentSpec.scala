@@ -16,25 +16,23 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import cats.data.NonEmptyList
-import org.scalactic.source.Position
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen
 
 class FormComponentSpec extends Spec {
-  private val exprText = Text(BasicText, Add(Constant("1"), FormCtx(FormComponentId("other-field-id"))))
-  private val exprTextArea = TextArea(BasicText, Value)
-  private val exprAddress = Address(international = false)
-  private val exprUKSortCode = UkSortCode(Value)
-  private val exprDate = Date(AnyDate, Offset(0), None)
-  private val exprChoice =
-    Choice(Checkbox, NonEmptyList(toSmartString("Natural gas"), Nil), Vertical, List.empty[Int], None)
-  private val exprInformationMessage = InformationMessage(StandardInfo, toSmartString("Info text"))
-  private val exprFileUpload = FileUpload()
-
-  private val labelNoCounter = "Label no counter"
-  private val shortNameNoCounter = "Short name no counter."
+  /* private val exprText = Text(BasicText, Add(Constant("1"), FormCtx(FormComponentId("other-field-id"))))
+   * private val exprTextArea = TextArea(BasicText, Value)
+   * private val exprAddress = Address(international = false)
+   * private val exprUKSortCode = UkSortCode(Value)
+   * private val exprDate = Date(AnyDate, Offset(0), None)
+   * private val exprChoice =
+   *   Choice(Checkbox, NonEmptyList(toSmartString("Natural gas"), Nil), Vertical, List.empty[Int], None)
+   * private val exprInformationMessage = InformationMessage(StandardInfo, toSmartString("Info text"))
+   * private val exprFileUpload = FileUpload()
+   *
+   * private val labelNoCounter = "Label no counter"
+   * private val shortNameNoCounter = "Short name no counter." */
 
   "FormComponent" should "round trip derived JSON" in {
     forAll(FormComponentGen.formComponentGen()) { value =>

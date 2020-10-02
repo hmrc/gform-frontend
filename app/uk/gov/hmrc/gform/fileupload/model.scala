@@ -22,7 +22,6 @@ import play.api.libs.json._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 
 case class Attachments(files: List[FormComponentId])
 

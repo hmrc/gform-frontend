@@ -94,8 +94,8 @@ class ApplicationModule(context: Context)
   override lazy val csrfErrorHandler: CSRF.ErrorHandler = new CSRF.CSRFHttpErrorHandler(csrfHttpErrorHandler)
 
   private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
-  private val graphiteModule =
-    new GraphiteModule(environment, configuration, configModule.runMode, applicationLifecycle, metricsModule)
+
+  new GraphiteModule(environment, configuration, configModule.runMode, applicationLifecycle, metricsModule)
 
   protected lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule, akkaModule, this)
 

@@ -17,10 +17,8 @@
 package uk.gov.hmrc.gform.eval
 
 import cats.syntax.option._
-import cats.instances.option._
 import uk.gov.hmrc.gform.models.{ PageMode, PageModel, Repeater, Singleton }
-import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BankAccountModulusCheck, Expr, HmrcRosmRegistrationCheckValidator }
 
 /*
  * Extracts metadata for all expressions of a Page.

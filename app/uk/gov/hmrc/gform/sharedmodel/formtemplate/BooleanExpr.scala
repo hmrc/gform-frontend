@@ -19,9 +19,6 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import julienrf.json.derived
 import play.api.libs.json._
 
-import uk.gov.hmrc.gform.eval.BooleanExprEval
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-
 sealed trait BooleanExpr {
   def allExpressions: List[Expr] = this match {
     case Equals(left, right)              => left :: right :: Nil

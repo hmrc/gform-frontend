@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.controllers
 
 /* import org.scalatest.mockito.MockitoSugar.mock
- * import uk.gov.hmrc.gform.Spec
+ *
  * import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
  * import uk.gov.hmrc.gform.graph.RecData
  * import uk.gov.hmrc.gform.models.{ FormModel, FormModelSupport }
@@ -25,9 +25,10 @@ package uk.gov.hmrc.gform.controllers
  * import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IncludeIf, IsFalse, Section }
  * import uk.gov.hmrc.gform.sharedmodel.graph.IncludeIfGN
- *
- * class SaveSpec extends Spec with FormModelSupport {
- *
+ */
+import uk.gov.hmrc.gform.Spec
+class SaveSpec extends Spec {
+  /*
  *   behavior of "navigate - Save"
  *
  *   it should "all sections are included" in new Fixture {
@@ -98,5 +99,5 @@ package uk.gov.hmrc.gform.controllers
  *         includeIf = Some(includeIf),
  *         fields = List(`fieldValue - businessName`, `fieldValue - startDate`, `fieldValue - iptRegNum`)
  *       )
- *   }
- * } */
+ *   }*/
+}

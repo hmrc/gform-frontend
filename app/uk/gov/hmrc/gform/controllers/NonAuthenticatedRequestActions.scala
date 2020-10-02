@@ -17,9 +17,10 @@
 package uk.gov.hmrc.gform
 package controllers
 
-import play.api.i18n.{ I18nSupport, Langs, MessagesApi }
+import play.api.i18n.{ Langs, MessagesApi }
 import play.api.mvc.{ Action, ActionBuilder, AnyContent, Request, Result }
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 trait NonAuthenticatedRequestActionsAlgebra[F[_]] {
@@ -33,7 +34,6 @@ class NonAuthenticatedRequestActions(
   actionBuilder: ActionBuilder[Request, AnyContent]
 )(
   implicit
-  ec: ExecutionContext,
   messagesApi: MessagesApi
 ) extends NonAuthenticatedRequestActionsAlgebra[Future] {
 

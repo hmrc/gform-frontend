@@ -16,14 +16,14 @@
 
 package uk.gov.hmrc.gform.models
 
-import java.time.LocalDate
-
-import com.softwaremill.quicklens._
-import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, HmrcTaxPeriod, IdType, RegimeType }
-
-/* trait ObligationValidatorTestFixture {
+/* import java.time.LocalDate
  *
+ * import com.softwaremill.quicklens._
+ * import uk.gov.hmrc.gform.sharedmodel._
+ * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, HmrcTaxPeriod, IdType, RegimeType } */
+
+trait ObligationValidatorTestFixture {
+  /*
  *   val formComponentId = FormComponentId("1")
  *   val cachedData: VariadicFormData = VariadicFormData.ones(formComponentId -> "16AZ", FormComponentId("2") -> "17BB")
  *   val taxPeriod = HmrcTaxPeriod(IdType("id"), FormCtx("ctx"), RegimeType("AAA"))
@@ -56,4 +56,5 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, Hm
  *     def withObligations(obligation: Obligation): TaxResponse =
  *       taxResponse.modify(_.obligation).setTo(obligation)
  *   }
- * } */
+ */
+}

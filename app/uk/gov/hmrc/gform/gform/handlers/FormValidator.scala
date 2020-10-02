@@ -16,21 +16,17 @@
 
 package uk.gov.hmrc.gform.gform.handlers
 
-import cats.syntax.eq._
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.{ CacheData, Origin }
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ FastForward, FormModel, ProcessData }
+import uk.gov.hmrc.gform.models.{ FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.{ EmailCodeFieldMatcher, FormFieldValidationResult, GetEmailCodeFieldMatcher, ValidationResult }
+import uk.gov.hmrc.gform.validation.{ GetEmailCodeFieldMatcher, ValidationResult }
 import uk.gov.hmrc.gform.validation.ValidationUtil
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
 
 class FormValidator(implicit ec: ExecutionContext) {
 
@@ -41,13 +37,9 @@ class FormValidator(implicit ec: ExecutionContext) {
     cache: CacheData,
     envelope: Envelope,
     validatePageModel: ValidatePageModel[Future, D]
-  )(
-    implicit hc: HeaderCarrier
   ): Future[FormHandlerResult] = {
-    val formModel = formModelOptics.formModelRenderPageOptics.formModel
     val visibilityFormModel = formModelOptics.formModelVisibilityOptics.formModel
     val visibilityPageModel = visibilityFormModel(sectionNumber)
-    val allFC: List[FormComponent] = formModel.allFormComponents
 
     for {
       v <- validatePageModel(
@@ -82,8 +74,6 @@ class FormValidator(implicit ec: ExecutionContext) {
     envelope: Envelope,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
     fastForward: FastForward
-  )(
-    implicit hc: HeaderCarrier
   ): Future[Option[SectionNumber]] = {
 
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics

@@ -16,25 +16,22 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.data.NonEmptyList
-import cats.instances.list._
-import cats.syntax.foldable._
-import org.scalatest.prop.PropertyChecks
+/* import cats.data.NonEmptyList
+ * import cats.instances.list._
+ * import cats.syntax.foldable._
+ * import ExpandUtils._
+ * import uk.gov.hmrc.gform.Helpers.toSmartString
+ * import uk.gov.hmrc.gform.graph.RecData
+ * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+ * import uk.gov.hmrc.gform.lookup.LookupExtractors
+ * import uk.gov.hmrc.gform.models.helpers.Fields
+ * import uk.gov.hmrc.gform.sharedmodel.VariadicValue.{ Many, One }
+ * import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
+ * import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+ * import uk.gov.hmrc.gform.sharedmodel.formtemplate._ */
 import org.scalatest.{ FlatSpec, Matchers }
-import ExpandUtils._
-import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.lookup.LookupExtractors
-import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.VariadicValue.{ Many, One }
-import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-
-/* class ExpandUtilsSpec
- *     extends FlatSpec with Matchers with PropertyChecks with RecalculatedFormDataSupport with FormModelSupport {
- *
+class ExpandUtilsSpec extends FlatSpec with Matchers with FormModelSupport {
+  /*
  *   private val lookupExtractors = new LookupExtractors(Map.empty)
  *
  *   "submittedFCs" should "FormComponents reconstructed from data and ignore unrelated FormComponents" in {
@@ -787,4 +784,5 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
  *       None,
  *       None
  *     )
- * } */
+ */
+}

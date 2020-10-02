@@ -16,20 +16,16 @@
 
 package uk.gov.hmrc.gform.validation
 
-import java.time.LocalDate
-
 import cats.implicits._
 import cats.Monoid
 import cats.data.Validated
-import cats.data.Validated.{ Invalid, Valid }
 import play.api.Logger
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Other, Quarantined }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, ValidatorsResult }
+import uk.gov.hmrc.gform.sharedmodel.form.{ ValidatorsResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object ValidationUtil {
@@ -204,7 +200,6 @@ object ValidationUtil {
     e: Envelope
   )(
     implicit
-    l: LangADT,
     sse: SmartStringEvaluator
   ): Validated[GformError, ValidatorsResult] = {
 

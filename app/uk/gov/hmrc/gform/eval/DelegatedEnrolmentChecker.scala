@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.eval
 
 import cats.Id
 import cats.syntax.applicative._
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.{ GovernmentGatewayId, IdentifierValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.DelegatedEnrolment
 import uk.gov.hmrc.http.HeaderCarrier

@@ -16,12 +16,7 @@
 
 package uk.gov.hmrc.gform.validation
 
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit.MINUTES
-
 import cats.Monoid
-import cats.data.Validated
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
@@ -33,14 +28,12 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
-import scala.annotation.tailrec
 import scala.util.matching.Regex
 
 object ComponentValidator {
@@ -152,7 +145,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(formModelVisibilityOptics, fieldValue)) match {
@@ -173,7 +165,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val ukBankAccountFormat = s"[0-9]{${ValidationValues.bankAccountLength}}".r
@@ -192,7 +183,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val str = value.replace(" ", "")
@@ -208,7 +198,6 @@ object ComponentValidator {
     mustBePositive: Boolean
   )(
     implicit messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
@@ -254,7 +243,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) = {
     val ValidText =
@@ -269,7 +257,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) =
     if (EmailAddress.isValid(value)) validationSuccess
@@ -281,7 +268,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) = {
     val Standard = "GB[0-9]{9}".r
@@ -310,7 +296,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) = {
     val ValidCRN = "[A-Z]{2}[0-9]{6}|[0-9]{8}".r
@@ -325,7 +310,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) = {
     val ValidEORI = "^[A-Z]{2}[0-9A-Z]{7,15}$".r
@@ -340,7 +324,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) = {
     val ValidUkEORI = "^GB[0-9]{12}$".r
@@ -348,9 +331,9 @@ object ComponentValidator {
     val errorMSG = "generic.ukEori.error.pattern"
     sharedTextComponentValidator(fieldValue, str, 14, 14, ValidUkEORI, errorMSG)
   }
-  private def checkChildBenefitNumber(
-    fieldValue: FormComponent,
-    value: String)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
+  private def checkChildBenefitNumber(fieldValue: FormComponent, value: String)(
+    implicit messages: Messages,
+    sse: SmartStringEvaluator) = {
     val ValidChildBenefitNumber = "^CHB[0-9]{8}[A-Z]{2}$".r
     val str = value.replace(" ", "")
     val errorMSG = "generic.childBenefitNumber.error.pattern"
@@ -363,7 +346,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) = {
     val ValidCountryCode = "[A-Z]+".r
@@ -378,7 +360,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) = {
     val ValidCountryCode = "[A-Z]+".r
@@ -386,9 +367,9 @@ object ComponentValidator {
     sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, messageKey)
   }
 
-  private def checkUtr(
-    fieldValue: FormComponent,
-    value: String)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
+  private def checkUtr(fieldValue: FormComponent, value: String)(
+    implicit messages: Messages,
+    sse: SmartStringEvaluator) = {
     val UTRFormat = "[0-9]{10}".r
 
     value match {
@@ -401,9 +382,9 @@ object ComponentValidator {
     }
   }
 
-  private def checkNino(
-    fieldValue: FormComponent,
-    value: String)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) =
+  private def checkNino(fieldValue: FormComponent, value: String)(
+    implicit messages: Messages,
+    sse: SmartStringEvaluator) =
     value match {
       case x if Nino.isValid(x) => validationSuccess
       case _                    => validationFailure(fieldValue, "generic.governmentId.error.pattern", None)
@@ -415,7 +396,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val messageKey = "generic.error.telephoneNumber"
@@ -436,7 +416,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) = {
     val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
@@ -450,7 +429,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) =
     textValidationWithConstraints(fieldValue, value, 0, 100000)
@@ -462,7 +440,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val choiceValue = formModelVisibilityOptics.data
@@ -493,7 +470,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ) =
     value match {
@@ -515,7 +491,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val expectedCode = thirdPartyData.emailVerification.get(emailFieldId).map(_.code)
@@ -534,7 +509,6 @@ object ComponentValidator {
   )(
     implicit
     messages: Messages,
-    l: LangADT,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val timeValue = formModelVisibilityOptics.data.one(formComponent.modelComponentId).filterNot(_.isEmpty)

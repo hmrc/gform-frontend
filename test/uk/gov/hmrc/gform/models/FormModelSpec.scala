@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.implicits._
 import cats.data.NonEmptyList
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
-import uk.gov.hmrc.gform.eval.{ ExprType, ExpressionResult, TypedExpr }
+import uk.gov.hmrc.gform.eval.{ ExprType, TypedExpr }
 import uk.gov.hmrc.gform.eval.ExpressionResult._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -497,7 +497,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
     )
 
     val expectedPage1 = mkPage(fcA :: fcB :: Nil)
-    val expectedPage2 = mkPageIncludeIf(fcC :: Nil, includeIf)
+    //val expectedPage2 = mkPageIncludeIf(fcC :: Nil, includeIf)
     val expectedPage3 = mkPage(fcD :: Nil)
 
     val fmb = mkFormModelFromSections(sections)

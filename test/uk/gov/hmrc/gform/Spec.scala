@@ -19,8 +19,8 @@ package uk.gov.hmrc.gform
 import cats.scalatest.EitherMatchers
 import org.scalatest._
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
-import org.scalatest.prop.PropertyChecks
 import org.scalatest.time.{ Millis, Span }
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, SmartString }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 
@@ -29,7 +29,7 @@ import scala.concurrent.ExecutionContext
 trait Spec
     extends FlatSpecLike with Matchers with EitherMatchers with DiagrammedAssertions with TryValues with EitherValues
     with OptionValues with AppendedClues with ScalaFutures with StreamlinedXml with JsResultMatcher with Inside
-    with Eventually with ExampleData with PropertyChecks with FormComponentMatcher {
+    with Eventually with ExampleData with ScalaCheckDrivenPropertyChecks with FormComponentMatcher {
 
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(1000, Millis)), interval = scaled(Span(15, Millis)))

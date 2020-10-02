@@ -16,16 +16,12 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
-import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.lookup.LookupExtractors
-import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, PageModel, Singleton }
-import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, MultiValueId }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormField, FormModelOptics }
+import uk.gov.hmrc.gform.models.{ DataExpanded, PageModel }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 
 object Fields {
 

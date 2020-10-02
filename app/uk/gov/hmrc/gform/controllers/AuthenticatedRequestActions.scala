@@ -24,12 +24,12 @@ import cats.syntax.applicative._
 import java.util.UUID
 
 import play.api.Logger
-import play.api.http.HeaderNames
-import play.api.i18n.{ I18nSupport, Lang, Langs, MessagesApi }
+import play.api.i18n.{ I18nSupport, Langs, MessagesApi }
 import play.api.mvc.Results._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
+import scala.language.higherKinds
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
@@ -98,8 +98,6 @@ class AuthenticatedRequestActions(
           case affinityGroup => Future.successful(affinityGroup)
         }
     }
-
-  import i18nSupport._
 
   implicit def hc(implicit request: Request[_]): HeaderCarrier =
     HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
@@ -296,8 +294,7 @@ class AuthenticatedRequestActions(
     onSuccess: MaterialisedRetrievals => Role => Future[Result]
   )(
     implicit
-    l: LangADT,
-    hc: HeaderCarrier
+    l: LangADT
   ): Future[Result] =
     result match {
       case AuthSuccessful(retrievals: AnonymousRetrievals, role) =>

@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.gform.models
 
-/* import uk.gov.hmrc.gform.Spec
+/*
  * import uk.gov.hmrc.gform.graph.RecData
  * import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
- *
- * class TaxSelectionNavigatorTest extends Spec with ObligationValidatorTestFixture {
- *
+ */
+import uk.gov.hmrc.gform.Spec
+class TaxSelectionNavigatorTest extends Spec with ObligationValidatorTestFixture {
+  /*
  *   // format: off
  *   val taxPeriodValidationTable = Table(
  *     ("description", "data", "cachedObligations", "taxResponse", "output"),
@@ -40,4 +41,5 @@ package uk.gov.hmrc.gform.models
  *       taxSelectionNavigator(formDataRecalculated, storedObligations, taxResponse) shouldBe output
  *     }
  *   }
- * } */
+ */
+}

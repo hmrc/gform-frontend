@@ -23,11 +23,11 @@ import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
-import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, SectionSelectorType }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SourceOrigin }
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
@@ -119,7 +119,7 @@ class AcknowledgementController(
     }
 
   def exitSurvey(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { request =>
       Future.successful(Redirect(s"/feedback/${formTemplateId.value}").withNewSession)
     }
 

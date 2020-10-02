@@ -17,16 +17,11 @@
 package uk.gov.hmrc.gform.auditing
 
 import play.api.libs.json.Json
-import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals, VerifyRetrievals }
 import uk.gov.hmrc.gform.gform.CustomerId
-import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, Group, UkSortCode }
+import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -49,14 +44,14 @@ trait AuditService {
     form: Form,
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]) =
+    customerId: CustomerId)(implicit ec: ExecutionContext, hc: HeaderCarrier) =
     sendEvent(form, formToMap(form, formModelVisibilityOptics), retrievals, customerId)
 
   private def sendEvent(
     form: Form,
     detail: Map[String, String],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): String = {
+    customerId: CustomerId)(implicit ec: ExecutionContext, hc: HeaderCarrier): String = {
     val event = eventFor(form, detail, retrievals, customerId)
     auditConnector.sendExtendedEvent(event)
     event.eventId
@@ -66,14 +61,14 @@ trait AuditService {
     form: Form,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): ExtendedDataEvent =
+    customerId: CustomerId)(implicit hc: HeaderCarrier): ExtendedDataEvent =
     eventFor(form, formToMap(form, formModelVisibilityOptics), retrievals, customerId)
 
   private def eventFor(
     form: Form,
     detail: Map[String, String],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId)(implicit hc: HeaderCarrier, request: Request[_]) =
+    customerId: CustomerId)(implicit hc: HeaderCarrier) =
     ExtendedDataEvent(
       auditSource = "Gform-Frontend",
       auditType = "formSubmitted",

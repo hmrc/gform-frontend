@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gformbackend
 import cats.data.NonEmptyList
 import cats.instances.future._
 import play.api.mvc.Request
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments

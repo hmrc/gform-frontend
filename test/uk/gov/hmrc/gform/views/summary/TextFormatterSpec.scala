@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.views.summary
 
+import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
@@ -24,7 +25,7 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FieldOk
 
-class TextFormatterSpec(implicit messages: Messages) extends Spec {
+class TextFormatterSpec(implicit messages: Messages) extends Spec with TableDrivenPropertyChecks {
 
   def getComponent(constraint: TextConstraint) = FormComponent(
     `fieldId - firstName`,
@@ -42,7 +43,7 @@ class TextFormatterSpec(implicit messages: Messages) extends Spec {
     None
   )
 
-  val equalsCombinations = Table(
+  val equalsCombinations = TableDrivenPropertyChecks.Table(
     // format: off
     ("value",     "sterlingResult",  "numberResult"),
     ("1",         "£1.00",           "1"),

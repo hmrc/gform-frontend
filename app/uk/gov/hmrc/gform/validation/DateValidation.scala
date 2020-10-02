@@ -19,13 +19,11 @@ import java.time.LocalDate
 
 import cats.Monoid
 import cats.data.Validated._
-import cats.data._
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.Atom
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.typeclasses.Now
@@ -41,7 +39,6 @@ case class SomeDate(year: Int, month: Int, day: Int)
 
 class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D])(
   implicit messages: Messages,
-  l: LangADT,
   sse: SmartStringEvaluator
 ) {
 
@@ -85,11 +82,6 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
   private def validateDateImpl(
     fieldValue: FormComponent,
     date: Date
-  )(
-    implicit
-    messages: Messages,
-    l: LangADT,
-    sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
     date.constraintType match {
 
@@ -163,7 +155,8 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
 
     validateOtherDate.andThen { otherLocalDate =>
       validatedThisDate.andThen { thisLocalDate =>
-        if (beforeAfterPrecisely.datePredicate(thisLocalDate, otherLocalDate.plusDays(offset.value))) validationSuccess
+        if (beforeAfterPrecisely.datePredicate(thisLocalDate, otherLocalDate.plusDays(offset.value.toLong)))
+          validationSuccess
         else {
           val messageKeyWithVars: MessageKeyWithVars =
             incorrectDateMessage(beforeAfterPrecisely, localDateToConcreteDate(otherLocalDate), offset)
@@ -179,7 +172,6 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
     date: LocalDate,
     offset: OffsetDate
   ): Boolean = {
-    val maybeLocalDate = exactConcreteDateToLocalDate(concreteDate)
 
     def op1: (Int, Int) => Boolean = beforeAfterPrecisely.intPredicate
     def op2: (LocalDate, LocalDate) => Boolean = beforeAfterPrecisely.datePredicate
@@ -193,7 +185,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
     def a4(year: Int): Boolean                       = op1(date.getYear, year)
     def a5(year: Int, day: Int): Boolean             = preciselyFalse(op1(date.getYear, year)) || (date.getYear === year && op1(date.getDayOfMonth, day))
     def a6(year: Int, month: Int): Boolean           = preciselyFalse(op1(date.getYear, year)) || (date.getYear === year && op1(date.getMonthValue, month))
-    def a7(year: Int, month: Int, day: Int): Boolean = op2(date, LocalDate.of(year, month, day).plusDays(offset.value))
+    def a7(year: Int, month: Int, day: Int): Boolean = op2(date, LocalDate.of(year, month, day).plusDays(offset.value.toLong))
     // format: on
 
     val nextYear: Int = DateValidationLogic.getNextYear
@@ -226,7 +218,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
     implicit
     now: Now[LocalDate]
   ): ValidatedType[Unit] = {
-    val nowWithOffset = now.apply().plusDays(offset.value)
+    val nowWithOffset = now.apply().plusDays(offset.value.toLong)
     if (beforeAfterPrecisely.datePredicate(date, nowWithOffset)) validationSuccess
     else validationFailed(formComponent, s"date.${beforeAfterPrecisely.mkString}", Some("today" :: Nil))
   }

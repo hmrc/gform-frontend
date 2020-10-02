@@ -17,11 +17,10 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import cats.instances.int._
-import cats.syntax.eq._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.{ Monad, MonadError }
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -31,8 +30,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.IsHmrcTaxPeriod
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.models.gform.ObligationsAction
-
-import scala.util.Try
 
 case class ProcessData(
   formModelOptics: FormModelOptics[DataOrigin.Browser],
@@ -63,8 +60,7 @@ class ProcessDataService[F[_]: Monad](
     obligationsAction: ObligationsAction
   )(
     implicit hc: HeaderCarrier,
-    me: MonadError[F, Throwable],
-    l: LangADT
+    me: MonadError[F, Throwable]
   ): F[ProcessData] = {
 
     val hmrcTaxPeriodWithEvaluatedIds: List[Option[HmrcTaxPeriodWithEvaluatedId]] =

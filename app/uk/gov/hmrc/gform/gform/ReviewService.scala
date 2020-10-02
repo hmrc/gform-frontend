@@ -23,14 +23,14 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.traverse._
 import play.api.mvc.{ AnyContent, Request }
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
+import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BundledFormSubmissionData, LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Accepting, Form, FormStatus, Returning }
@@ -98,7 +98,6 @@ class ReviewService[F[_]: Monad](
     maybeAccessCode: Option[AccessCode]
   )(
     implicit
-    request: Request[AnyContent],
     headerCarrier: HeaderCarrier,
     l: LangADT
   ): F[Unit] =
@@ -156,7 +155,7 @@ class ReviewService[F[_]: Monad](
     l: LangADT
   ): F[NonEmptyList[BundledFormSubmissionData]] =
     forms.traverse { form =>
-      val formModelVisibilityOptics: FormModelVisibilityOptics[D] = ???
+      val formModelVisibilityOptics: FormModelVisibilityOptics[D] = null
       StructuredFormDataBuilder[D, F](
         formModelVisibilityOptics,
         formTemplates(form.formTemplateId).destinations,

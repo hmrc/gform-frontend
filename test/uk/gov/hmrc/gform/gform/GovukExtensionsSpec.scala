@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import org.jsoup.Jsoup
-import org.jsoup.nodes.{ Document, Element }
 import org.scalatest.{ FlatSpec, Matchers }
 import play.twirl.api.Html
 

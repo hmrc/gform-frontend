@@ -19,9 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.instances.int._
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, MultiValueId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.IsRevealingChoice
 import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, AllValidIfs, FormComponent, FormComponentId, IncludeIf, Page, Section, ValidIf }
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {

@@ -26,13 +26,12 @@ package uk.gov.hmrc.gform.validation
  * import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
  * import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
- * import uk.gov.hmrc.gform.{ GraphSpec, Spec }
  * import uk.gov.hmrc.http.HeaderCarrier
- *
  * import scala.collection.immutable.List
- *
- * class ValidIfValidationSpec(implicit messages: Messages, l: LangADT) extends Spec with GraphSpec {
- *
+ */
+import uk.gov.hmrc.gform.{ GraphSpec, Spec }
+class ValidIfValidationSpec extends Spec with GraphSpec {
+  /*
  *   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
  *   "Valid if " should "return no errors for valid if it's condition is met" in new Test {
  *     override val value = "15"
@@ -101,4 +100,5 @@ package uk.gov.hmrc.gform.validation
  *
  *     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
  *   }
- * } */
+ */
+}

@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.data.NonEmptyList
+/* import cats.data.NonEmptyList
+ * import uk.gov.hmrc.gform.Helpers.toSmartString
+ * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+ * import uk.gov.hmrc.gform.sharedmodel.formtemplate._ */
 import org.scalatest.{ FlatSpec, Matchers }
-import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-
-/* class FormModelBasicSpec extends FlatSpec with Matchers with FormModelSupport {
- *
+class FormModelBasicSpec extends FlatSpec with Matchers with FormModelSupport {
+  /*
  *   val expectedFc = addToListQuestion.copy(id = FormComponentId("1_ownerFc"))
  *
  *   "FormModel.basic" should "expand from formTemplate" in {
@@ -116,4 +115,5 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
  *     formModel shouldBe expected
  *   }
  *
- * } */
+ */
+}

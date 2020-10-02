@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.validation
 
 /* import cats.implicits._
  * import org.scalatest.mockito.MockitoSugar.mock
- * import org.scalatest.prop.TableDrivenPropertyChecks
  * import play.api.i18n.Messages
  * import uk.gov.hmrc.gform.Helpers.toSmartString
  * import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -27,12 +26,12 @@ package uk.gov.hmrc.gform.validation
  * import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
  * import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
- * import uk.gov.hmrc.gform.{ GraphSpec, Spec }
  * import uk.gov.hmrc.http.HeaderCarrier
- *
- * class NumberValidationSpec(implicit messages: Messages, l: LangADT)
- *     extends Spec with TableDrivenPropertyChecks with GraphSpec {
- *
+ */
+import org.scalatest.prop.TableDrivenPropertyChecks
+import uk.gov.hmrc.gform.{ GraphSpec, Spec }
+class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with GraphSpec {
+  /*
  *   trait Test extends ExampleData {
  *     def value: String
  *
@@ -212,4 +211,5 @@ package uk.gov.hmrc.gform.validation
  *       }
  *     }
  *   }
- * } */
+ */
+}

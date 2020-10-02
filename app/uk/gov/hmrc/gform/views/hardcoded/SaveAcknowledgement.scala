@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.views.hardcoded
 
 import play.api.i18n.Messages
 import java.time.format.DateTimeFormatter
-import play.twirl.api.{ Html, HtmlFormat }
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeExpiryDate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.views.html.localisedDateString

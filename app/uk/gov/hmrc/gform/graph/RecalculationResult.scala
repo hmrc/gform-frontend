@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.graph
 
 import uk.gov.hmrc.gform.eval.EvaluationResults
 import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 
 class RecalculationResult(
   val evaluationResults: EvaluationResults,

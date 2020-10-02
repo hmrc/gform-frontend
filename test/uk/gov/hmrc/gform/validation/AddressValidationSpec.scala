@@ -17,14 +17,10 @@
 package uk.gov.hmrc.gform.validation
 
 /* import cats.instances.future._
- * import cats.scalatest.EitherMatchers
  * import cats.scalatest.ValidatedValues._
- * import org.scalatest.concurrent.ScalaFutures
  * import org.scalatest.mockito.MockitoSugar.mock
- * import org.scalatest.{ FlatSpec, Matchers }
  * import play.api.i18n.Messages
  * import uk.gov.hmrc.gform.Helpers.toSmartString
- * import uk.gov.hmrc.gform.GraphSpec
  * import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
  * import uk.gov.hmrc.gform.fileupload.Envelope
  * import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -34,12 +30,14 @@ package uk.gov.hmrc.gform.validation
  * import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
  * import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
  * import uk.gov.hmrc.http.HeaderCarrier
- *
  * import scala.concurrent.ExecutionContext.Implicits.global
- *
- * class AddressValidationSpec(implicit messages: Messages, l: LangADT)
- *     extends FlatSpec with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
- *   val retrievals = mock[MaterialisedRetrievals]
+ */
+import uk.gov.hmrc.gform.GraphSpec
+import org.scalatest.concurrent.ScalaFutures
+import cats.scalatest.EitherMatchers
+import org.scalatest.{ FlatSpec, Matchers }
+class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
+  /*   val retrievals = mock[MaterialisedRetrievals]
  *
  *   val baseAddress = Address(international = false)
  *   val baseListItem =
@@ -550,4 +548,5 @@ package uk.gov.hmrc.gform.validation
  *       )
  *     )
  *   }
- * } */
+ */
+}

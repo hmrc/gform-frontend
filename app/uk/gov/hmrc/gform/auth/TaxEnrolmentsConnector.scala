@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallRespon
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 

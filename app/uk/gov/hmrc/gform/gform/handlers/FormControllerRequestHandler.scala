@@ -16,18 +16,14 @@
 
 package uk.gov.hmrc.gform.gform.handlers
 
-import cats.syntax.validated._
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.{ FastForward, FormModel, ProcessData }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.{ FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, Section, SectionNumber, SuppressErrors }
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationResult }
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SectionNumber, SuppressErrors }
+import uk.gov.hmrc.gform.validation.ValidationResult
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -40,8 +36,6 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     envelope: Envelope,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Mongo],
     suppressErrors: SuppressErrors
-  )(
-    implicit hc: HeaderCarrier
   ): Future[FormHandlerResult] =
     formValidator
       .validatePageModelBySectionNumber(
@@ -59,8 +53,6 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     cache: CacheData,
     envelope: Envelope,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser]
-  )(
-    implicit hc: HeaderCarrier
   ): Future[FormValidationOutcome] =
     formValidator
       .validatePageModelBySectionNumber(
@@ -78,8 +70,6 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     envelope: Envelope,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
     fastForward: FastForward
-  )(
-    implicit hc: HeaderCarrier
   ): Future[Option[SectionNumber]] =
     formValidator.fastForwardValidate(
       processData,

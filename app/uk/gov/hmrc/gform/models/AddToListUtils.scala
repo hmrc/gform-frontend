@@ -18,12 +18,9 @@ package uk.gov.hmrc.gform.models
 
 import cats.instances.int._
 import cats.syntax.eq._
-import cats.syntax.option._
-import scala.util.Try
-import uk.gov.hmrc.gform.gform.ExprUpdater
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.{ SmartString, SourceOrigin, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Expr, FormComponentId, Section }
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddToListId
 
 object AddToListUtils {
 

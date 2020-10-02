@@ -30,8 +30,8 @@ import scala.util.Try
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.Atom
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin, ValueClassFormat, VariadicFormData }
+import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.sharedmodel.{ SmartString, SourceOrigin, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
@@ -169,7 +169,7 @@ case class Choice(
   optionHelpText: Option[NonEmptyList[SmartString]]
 ) extends ComponentType {
   def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult)(
-    implicit l: LangADT,
+    implicit
     evaluator: SmartStringEvaluator): List[String] =
     options.toList.zipWithIndex
       .map {
@@ -200,10 +200,7 @@ object RevealingChoiceElement {
 // ie. it needs to be able to represent that no option has been selected by a user
 case class RevealingChoice(options: List[RevealingChoiceElement], multiValue: Boolean) extends ComponentType
 object RevealingChoice {
-  implicit val format: OFormat[RevealingChoice] = {
-    import JsonUtils._
-    derived.oformat()
-  }
+  implicit val format: OFormat[RevealingChoice] = derived.oformat()
 
   def slice[S <: SourceOrigin](fcId: FormComponentId): VariadicFormData[S] => RevealingChoice => RevealingChoice =
     data =>
@@ -295,7 +292,7 @@ object Range {
 
   @tailrec
   def getTimeSlots(sTime: LocalTime, eTime: LocalTime, iMins: Int, acc: List[LocalTime]): List[LocalTime] = {
-    val t = sTime.plusMinutes(iMins)
+    val t = sTime.plusMinutes(iMins.toLong)
     if (t.isAfter(eTime) || (0 until iMins contains MINUTES
           .between(LocalTime.parse("00:00"), t)))
       acc

@@ -16,15 +16,16 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-/* import uk.gov.hmrc.gform.Spec
+/*
  * import FormDataRecalculated._
  * import uk.gov.hmrc.gform.graph.RecData
  * import uk.gov.hmrc.gform.sharedmodel.{ IdNumberValue, RecalculatedTaxPeriodKey, VariadicFormData }
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
  * import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
- *
- * class FormDataRecalculatedTest extends Spec {
- *
+ */
+import uk.gov.hmrc.gform.Spec
+class FormDataRecalculatedTest extends Spec {
+  /*
  *   it should "clear recalculated tax period" in {
  *     val taxPeriod = HmrcTaxPeriod(IdType("id"), FormCtx("ctx"), RegimeType("AAA"))
  *     val commonId = FormComponentId("2")
@@ -41,4 +42,5 @@ package uk.gov.hmrc.gform.sharedmodel.form
  *
  *     clearTaxResponses(formDataRecalculated) should be(formDataRecalculated.copy(recData = expectedRecData))
  *   }
- * } */
+ */
+}

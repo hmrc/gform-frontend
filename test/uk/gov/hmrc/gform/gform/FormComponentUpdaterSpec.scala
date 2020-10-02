@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._

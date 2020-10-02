@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.gform.commons
 
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatest.prop.TableDrivenPropertyChecks
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-class MarkDownUtilSpec extends Spec with GeneratorDrivenPropertyChecks {
+class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
   implicit val l = LangADT.En
   "addTargetToLinks" should "add target link" in {
 

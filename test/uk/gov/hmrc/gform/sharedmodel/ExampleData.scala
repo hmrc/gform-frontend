@@ -21,12 +21,9 @@ import java.time.{ LocalDateTime, LocalTime }
 import cats.data.NonEmptyList
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
-import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.models.FormModel
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
@@ -34,7 +31,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcD
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 
-import scala.collection.immutable
 import scala.collection.immutable.List
 
 object ExampleData extends ExampleData

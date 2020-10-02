@@ -16,35 +16,35 @@
 
 package uk.gov.hmrc.gform.services
 
-import cats.syntax.validated._
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import org.jsoup.select.Elements
-import play.api.i18n.{ Lang, Messages }
-import play.api.libs.typedmap.{ TypedEntry, TypedMap }
-import play.api.mvc.{ AnyContentAsEmpty, Request }
-import play.api.test.FakeRequest
-import uk.gov.hmrc.gform.Helpers.toSmartString
+/* import cats.syntax.validated._
+ * import org.jsoup.Jsoup
+ * import org.jsoup.nodes.Document
+ * import org.jsoup.select.Elements
+ * import play.api.i18n.{ Lang, Messages }
+ * import play.api.libs.typedmap.{ TypedEntry, TypedMap }
+ * import play.api.mvc.{ AnyContentAsEmpty, Request }
+ * import play.api.test.FakeRequest
+ * import uk.gov.hmrc.gform.Helpers.toSmartString */
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gform.SectionRenderingService
-import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.FastForward
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, NotChecked, VariadicFormData }
-import uk.gov.hmrc.http.HeaderCarrier
-import play.filters.csrf.CSRF
-import play.filters.csrf.CSRF.{ Token, TokenInfo }
-import play.twirl.api.{ Html, HtmlFormat }
-
-import scala.collection.JavaConverters
-import scala.collection.immutable.List
+/* import uk.gov.hmrc.gform.fileupload.Envelope
+ * import uk.gov.hmrc.gform.gform.SectionRenderingService
+ * import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
+ * import uk.gov.hmrc.gform.graph.RecData
+ * import uk.gov.hmrc.gform.lookup.LookupRegistry
+ * import uk.gov.hmrc.gform.models.FastForward
+ * import uk.gov.hmrc.gform.models.optics.DataOrigin
+ * import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
+ * import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
+ * import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+ * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+ * import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, NotChecked, VariadicFormData }
+ * import uk.gov.hmrc.http.HeaderCarrier
+ * import play.filters.csrf.CSRF
+ * import play.filters.csrf.CSRF.{ Token, TokenInfo }
+ * import play.twirl.api.{ Html, HtmlFormat }
+ *
+ * import scala.collection.JavaConverters
+ * import scala.collection.immutable.List */
 
 class SectionRenderingServiceSpec extends Spec {
 

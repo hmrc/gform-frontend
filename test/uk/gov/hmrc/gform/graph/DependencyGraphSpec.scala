@@ -17,10 +17,10 @@
 package uk.gov.hmrc.gform.graph
 
 import cats.data.NonEmptyList
-import org.scalactic.source.Position
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.prop.TableFor2
 import org.scalatest.{ FlatSpec, Matchers }
+import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExprMetadata }
 import uk.gov.hmrc.gform.models.{ Basic, DependencyGraphVerification, FormModel, FormModelSupport, Interim, SectionSelectorType, VariadicFormDataSupport }
@@ -684,10 +684,10 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
       }
   }
 
-  private def layers(sections: List[Section])(implicit position: Position): List[(Int, Set[GraphNode])] =
+  private def layers(sections: List[Section]): List[(Int, Set[GraphNode])] =
     layers(mkFormTemplate(sections))
 
-  private def layers(formTemplate: FormTemplate)(implicit position: Position): List[(Int, Set[GraphNode])] = {
+  private def layers(formTemplate: FormTemplate): List[(Int, Set[GraphNode])] = {
     val fmb = mkFormModelBuilder(formTemplate)
 
     val fm: FormModel[DependencyGraphVerification] = fmb.dependencyGraphValidation[SectionSelectorType.Normal]

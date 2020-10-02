@@ -97,10 +97,6 @@ class FastForwardService(
     maybeAccessCode: Option[AccessCode],
     processData: ProcessData,
     maybeSectionNumber: Option[SectionNumber]
-  )(
-    implicit
-    l: LangADT,
-    sse: SmartStringEvaluator
   ): Result =
     maybeSectionNumber match {
       case Some(sn) =>

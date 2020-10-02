@@ -20,17 +20,15 @@ import cats.data._
 import cats.implicits._
 import cats.Monoid
 import play.api.i18n.{ I18nSupport, Messages }
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, PageModel, Repeater, Singleton, Visibility }
+import uk.gov.hmrc.gform.models.{ PageModel, Repeater, Singleton, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.email.EmailFieldId
-import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, SourceOrigin }
+import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
@@ -38,7 +36,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.eval.BooleanExprEval
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, LangADT, NotFound, ServiceResponse }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
@@ -186,8 +183,7 @@ class ValidationService(
     thirdPartyData: ThirdPartyData
   )(
     implicit
-    hc: HeaderCarrier,
-    messages: Messages
+    hc: HeaderCarrier
   ): Future[ValidatedType[Map[EmailFieldId, EmailAndCode]]] = {
 
     val emailFields: List[(EmailFieldId, EmailVerifierService)] = pageModel.allFormComponents.collect {
@@ -222,7 +218,6 @@ class ValidationService(
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(
     implicit hc: HeaderCarrier,
-    messages: Messages,
     sse: SmartStringEvaluator
   ): Future[ValidatedType[ValidatorsResult]] = {
     val valid = ValidatorsResult.empty.valid.pure[Future]
@@ -237,7 +232,6 @@ class ValidationService(
     v: Validator,
     formModelVisibilityOptics: FormModelVisibilityOptics[D])(
     implicit hc: HeaderCarrier,
-    messages: Messages,
     sse: SmartStringEvaluator): Future[ValidatedType[ValidatorsResult]] = {
 
     def compare(postCode: String)(drr: DesRegistrationResponse): Boolean = {

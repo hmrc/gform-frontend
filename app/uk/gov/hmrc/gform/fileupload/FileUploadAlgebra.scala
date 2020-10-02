@@ -15,10 +15,9 @@
  */
 
 package uk.gov.hmrc.gform.fileupload
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.http.HeaderCarrier
-
-import scala.concurrent.Future
 
 trait FileUploadAlgebra[F[_]] {
   def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Envelope]

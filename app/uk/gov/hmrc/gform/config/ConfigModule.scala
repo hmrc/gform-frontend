@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.config
 
 import com.typesafe.config.{ ConfigFactory, Config => TypeSafeConfig }
-import net.ceedubs.ficus.Ficus._
 import play.api.libs.ws.WSClient
 import play.api.{ ApplicationLoader, Configuration, Environment }
 import play.api.Mode
@@ -45,7 +44,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
   val controllerConfigs = ControllerConfigs.fromConfig(playConfiguration)
 
   val controllerConfig: ControllerConfig = new ControllerConfig {
-    val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
+    //val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
   }
 
   val auditingConfig: AuditingConfig = new AuditingConfigProvider(playConfiguration, runMode, appConfig.appName).get()

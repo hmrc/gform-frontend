@@ -24,8 +24,7 @@ import cats.syntax.functor._
 import cats.instances.list._
 import cats.syntax.flatMap._
 import cats.syntax.applicative._
-import cats.instances.string._
-import cats.data.{ EitherT, StateT }
+import cats.data.StateT
 
 import scala.language.higherKinds
 import scalax.collection.Graph
@@ -212,7 +211,7 @@ class Recalculation[F[_]: Monad, E](
                 sumIds.map {
                   case (k, v) =>
                     val typedExpr = formModel.toTypedExpr(FormCtx(k.toFormComponentId))
-                    var exprResult = evResult.evalTyped(typedExpr, recData, evaluationContext)
+                    val exprResult = evResult.evalTyped(typedExpr, recData, evaluationContext)
                     (typedExpr, exprResult)
                 }.toMap
               }

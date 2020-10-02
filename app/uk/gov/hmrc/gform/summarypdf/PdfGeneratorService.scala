@@ -18,20 +18,16 @@ package uk.gov.hmrc.gform.summarypdf
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import play.api.i18n.{ I18nSupport, Messages }
+import play.api.i18n.I18nSupport
 import play.api.mvc.Request
 import play.mvc.Http.{ HeaderNames, MimeTypes }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
-import uk.gov.hmrc.gform.views.html.summary.snippets.pdf_header
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -40,8 +36,6 @@ class PdfGeneratorService(
   i18nSupport: I18nSupport,
   pdfGeneratorConnector: PdfGeneratorConnector,
   summaryRenderingService: SummaryRenderingService) {
-
-  import i18nSupport._
 
   def generatePDF(html: PdfHtml)(implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {
     val headers = Seq((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))

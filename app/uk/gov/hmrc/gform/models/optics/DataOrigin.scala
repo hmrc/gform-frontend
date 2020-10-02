@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.models.optics
 
+import scala.language.higherKinds
+
 sealed trait DataOrigin extends Product with Serializable
 object DataOrigin {
   def swapDataOrigin[M[_ <: DataOrigin]](x: M[Browser]): M[Mongo] = x.asInstanceOf[M[Mongo]]

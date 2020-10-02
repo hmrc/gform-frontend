@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
 
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.DestinationsGen
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.verifyRead
 
 class DestinationsSpec extends Spec {
   "Destinations" should "round trip derived JSON" in {

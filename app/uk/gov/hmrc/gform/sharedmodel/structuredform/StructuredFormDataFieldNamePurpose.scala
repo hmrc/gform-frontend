@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.structuredform
 
 import play.api.libs.json.Format
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ADTFormat, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.ADTFormat
 
 trait StructuredFormDataFieldNamePurpose
 case object RoboticsXml extends StructuredFormDataFieldNamePurpose

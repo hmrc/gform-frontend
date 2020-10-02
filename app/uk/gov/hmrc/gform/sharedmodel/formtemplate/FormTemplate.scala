@@ -19,9 +19,8 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LocalisedString, VariadicFormData, formtemplate }
+import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LocalisedString, formtemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 
 case class FormTemplate(
   _id: FormTemplateId,

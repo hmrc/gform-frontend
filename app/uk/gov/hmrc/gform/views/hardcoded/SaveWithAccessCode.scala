@@ -20,7 +20,7 @@ import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.govukfrontend.views.html.components._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BySubmissionReference, FormTemplate }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ p, strong }
 
 class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode)(implicit messages: Messages)

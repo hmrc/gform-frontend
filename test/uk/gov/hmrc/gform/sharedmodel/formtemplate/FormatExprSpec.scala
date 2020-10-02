@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ ComponentTypeGen, FormatExprGen }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormatExprGen
 import uk.gov.hmrc.gform.Spec
 
 class FormatExprSpec extends Spec {

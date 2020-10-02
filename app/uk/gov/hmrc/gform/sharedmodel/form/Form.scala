@@ -16,14 +16,12 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-import cats.{ Eq, Monoid }
+import cats.Eq
 import cats.instances.string._
 import cats.syntax.eq._
 import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
-import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 

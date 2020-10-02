@@ -16,13 +16,11 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-import cats.data.Validated.Valid
 import play.api.libs.json.{ Format, Json, OFormat }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 case class ThirdPartyData(
   desRegistrationResponse: Option[DesRegistrationResponse],

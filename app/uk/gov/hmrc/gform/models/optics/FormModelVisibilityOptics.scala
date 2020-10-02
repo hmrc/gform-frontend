@@ -18,12 +18,11 @@ package uk.gov.hmrc.gform.models.optics
 
 import uk.gov.hmrc.gform.eval.{ EvaluationResults, ExpressionResult }
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData }
-import uk.gov.hmrc.gform.models.{ FormModel, PageModel, Visibility }
+import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, IsMultiField, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
 case class FormModelVisibilityOptics[D <: DataOrigin](
   formModel: FormModel[Visibility],

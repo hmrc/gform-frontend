@@ -18,9 +18,7 @@ package uk.gov.hmrc.gform.models.javascript
 
 /* import cats.data.NonEmptyList
  * import cats.implicits._
- * import uk.gov.hmrc.gform.GraphSpec
  * import uk.gov.hmrc.gform.Helpers.toSmartString
- * import uk.gov.hmrc.gform.Spec
  * import uk.gov.hmrc.gform.auth.models.Role
  * import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
  * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
@@ -32,9 +30,11 @@ package uk.gov.hmrc.gform.models.javascript
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
  * import uk.gov.hmrc.http.HeaderCarrier
- *
- * class JavascriptMakerSpec extends Spec with GraphSpec {
- *
+ */
+import uk.gov.hmrc.gform.GraphSpec
+import uk.gov.hmrc.gform.Spec
+class JavascriptMakerSpec extends Spec with GraphSpec {
+  /*
  *   type EitherEffect[A] = Either[GraphException, A]
  *
  *   val recalculation: Recalculation[EitherEffect, GraphException] =
@@ -142,4 +142,5 @@ package uk.gov.hmrc.gform.models.javascript
  *
  *     snippets.foreach(snippet => js should include(snippet))
  *   }
- * } */
+ */
+}

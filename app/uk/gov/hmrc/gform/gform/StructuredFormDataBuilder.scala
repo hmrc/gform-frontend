@@ -25,6 +25,7 @@ import cats.syntax.apply._
 import cats.syntax.traverse._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import scala.language.higherKinds
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, MultiValueId }

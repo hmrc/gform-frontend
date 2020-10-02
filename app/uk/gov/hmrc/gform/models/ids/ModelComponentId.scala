@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.models.ids
 import cats.{ Eq, Show }
 import cats.instances.int._
 import cats.syntax.eq._
-import cats.syntax.option._
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 

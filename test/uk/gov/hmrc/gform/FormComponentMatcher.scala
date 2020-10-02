@@ -17,9 +17,7 @@
 package uk.gov.hmrc.gform
 
 import cats.syntax.eq._
-import org.scalatest._
-import org.scalatest.matchers.{ BeMatcher, MatchResult, Matcher }
-import play.api.libs.json.JsResult
+import org.scalatest.matchers.{ MatchResult, Matcher }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponent, HasExpr }
 
 trait FormComponentMatcher {

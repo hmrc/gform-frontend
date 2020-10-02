@@ -19,13 +19,14 @@ package uk.gov.hmrc.gform.graph
 /* import java.math.MathContext
  *
  * import cats.instances.option._
- * import org.scalatest.{ FlatSpec, Matchers }
+ *
  * import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
  * import FormTemplateBuilder._
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.RoundingMode
- *
- * class ConvertibleSpec extends FlatSpec with Matchers {
- *
+ */
+import org.scalatest.{ FlatSpec, Matchers }
+class ConvertibleSpec extends FlatSpec with Matchers {
+  /*
  *   "Convertible" should "convert to String with respect to maxDecimalDigits" in {
  *
  *     val formComponentIds = Table(
@@ -51,4 +52,5 @@ package uk.gov.hmrc.gform.graph
  *       converted shouldBe Some(expectedOutput)
  *     }
  *   }
- * } */
+ */
+}

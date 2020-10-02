@@ -17,14 +17,11 @@
 package uk.gov.hmrc.gform.models
 
 import cats.instances.int._
-import cats.instances.list._
 import cats.syntax.eq._
-import cats.syntax.foldable._
-import scala.util.Try
 import uk.gov.hmrc.gform.gform.{ ExprUpdater, FormComponentUpdater }
 import uk.gov.hmrc.gform.lookup.LookupExtractors
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, MultiValueId }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.{ SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -32,8 +29,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 object ExpandUtils {
 
   private val NumericPrefix = "^(\\d+)_.*".r
-
-  private val NumericPrefixWithId = "^(\\d+)_(.*)".r
 
   // format: off
   private val AtomicOnly     =        "^([^_]*)-(.*)$".r

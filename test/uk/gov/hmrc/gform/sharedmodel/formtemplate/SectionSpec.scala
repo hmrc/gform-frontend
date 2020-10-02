@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import cats.data.NonEmptyList
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.prop.TableFor4
-import uk.gov.hmrc.gform._
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+//import cats.data.NonEmptyList
+import uk.gov.hmrc.gform.Spec
+//import org.scalatest.prop.TableFor4
+/* import uk.gov.hmrc.gform._
+ * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._ */
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.SectionGen
-import uk.gov.hmrc.gform.Helpers._
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
+/* import uk.gov.hmrc.gform.Helpers._
+ * import uk.gov.hmrc.gform.sharedmodel.VariadicFormData */
 
-class SectionSpec extends Spec with GeneratorDrivenPropertyChecks {
+class SectionSpec extends Spec {
 
   "Section" should "round trip derived JSON" in {
     forAll(SectionGen.sectionGen) { section =>

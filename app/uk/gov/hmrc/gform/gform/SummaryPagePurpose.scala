@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.gform
 
 import cats.Eq
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 
 trait SummaryPagePurpose extends Product with Serializable {
   def forUser = this === SummaryPagePurpose.ForUser

@@ -16,18 +16,17 @@
 
 package uk.gov.hmrc.gform.models
 
+/*
+ * import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+ * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+ * import uk.gov.hmrc.gform.sharedmodel.VariadicValue.{ Many, One }
+ * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BasicText, FormComponent, FormComponentId, Section, Text, Value }
+ * import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
+ * import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, VisitIndex }
+ * import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddToListId */
 import org.scalatest.{ FlatSpec, Inside, Matchers }
-import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.sharedmodel.VariadicValue.{ Many, One }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BasicText, FormComponent, FormComponentId, Section, Text, Value }
-import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddToListId
-
-/* class AddToListUtilsBacisSpec
- *     extends FlatSpec with Matchers with Inside with RecalculatedFormDataSupport with FormModelSupport {
- *   "AddToListUtils.removeRecord" should "remove instance by its index" in {
+class AddToListUtilsBacisSpec extends FlatSpec with Matchers with Inside with FormModelSupport {
+  /*   "AddToListUtils.removeRecord" should "remove instance by its index" in {
  *
  *     val data: FormDataRecalculated = mkVariadicFormDataRecalculated(
  *       "regular"   -> One("r"),
@@ -126,4 +125,5 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddToListId
  *     }
  *
  *   }
- * } */
+ */
+}

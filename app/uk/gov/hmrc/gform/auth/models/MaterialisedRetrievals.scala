@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.auth.models
 
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
-import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials }
 import uk.gov.hmrc.gform.models.mappings._
 import uk.gov.hmrc.gform.models.userdetails.Nino
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil

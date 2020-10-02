@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.testonly
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import cats.MonadError
 import cats.data.EitherT
 import cats.instances.future._
 import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
@@ -37,9 +36,9 @@ import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder,
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, SectionSelectorType }
+import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SourceOrigin, SubmissionData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
@@ -67,7 +66,7 @@ class TestOnlyController(
     Ok(Json.toJson(request.session.data))
   }
 
-  def clearSession(): Action[AnyContent] = Action { implicit request =>
+  def clearSession(): Action[AnyContent] = Action { request =>
     Ok("session cleared").withSession()
   }
 
@@ -94,7 +93,6 @@ class TestOnlyController(
     auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
       implicit request => implicit lang => cache => _ => formModelOptics =>
         import cache._
-        implicit val data = cache.variadicFormData[SectionSelectorType.WithAcknowledgement]
         val customerId =
           CustomerIdRecalculation
             .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
@@ -122,7 +120,6 @@ class TestOnlyController(
   )(
     implicit
     l: LangADT,
-    me: MonadError[Future, Throwable],
     hc: HeaderCarrier
   ): EitherT[Future, UnexpectedState, Result] = {
 
@@ -166,7 +163,6 @@ class TestOnlyController(
     auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
       implicit request => implicit lang => cache => _ => formModelOptics =>
         import cache._
-        implicit val data = cache.variadicFormData[SectionSelectorType.WithAcknowledgement]
         val customerId =
           CustomerIdRecalculation
             .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
@@ -188,8 +184,6 @@ class TestOnlyController(
 
   private def withHandlebarPayload(
     eitherT: EitherT[Future, UnexpectedState, Result]
-  )(
-    implicit me: MonadError[Future, Throwable]
   ): Future[Result] =
     eitherT.fold(error => BadRequest(error.error), identity)
 
@@ -203,7 +197,6 @@ class TestOnlyController(
   )(
     implicit
     l: LangADT,
-    me: MonadError[Future, Throwable],
     hc: HeaderCarrier
   ): EitherT[Future, UnexpectedState, Result] = {
 

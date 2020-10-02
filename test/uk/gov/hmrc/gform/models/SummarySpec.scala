@@ -23,7 +23,6 @@ package uk.gov.hmrc.gform.models
  * import play.api.i18n.{ Lang, Messages }
  * import play.api.mvc.Call
  * import uk.gov.hmrc.gform.Helpers.toSmartString
- * import uk.gov.hmrc.gform.Spec
  * import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
  * import uk.gov.hmrc.gform.gform.routes
  * import uk.gov.hmrc.gform.graph.RecData
@@ -38,9 +37,10 @@ package uk.gov.hmrc.gform.models
  *
  * import scala.collection.immutable.List
  * import uk.gov.hmrc.http.HeaderCarrier
- *
- * class SummarySpec extends Spec with FormModelSupport {
- *
+ */
+import uk.gov.hmrc.gform.Spec
+class SummarySpec extends Spec {
+  /*
  *   private implicit val langADT = LangADT.En
  *   private implicit val messages = new Messages {
  *     override def lang: Lang = Lang.defaultLang
@@ -770,4 +770,5 @@ package uk.gov.hmrc.gform.models
  *       urlOfHrefToSection2 shouldBe targetUrl
  *     }
  *   }
- * } */
+ */
+}

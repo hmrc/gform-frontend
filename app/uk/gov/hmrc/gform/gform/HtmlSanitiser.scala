@@ -22,7 +22,7 @@ import play.twirl.api.Html
 import scala.collection.JavaConverters._
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
@@ -86,6 +86,8 @@ object HtmlSanitiser {
       h1(formTemplate.formName.value) +
         h1(formTemplate.summarySection.title.value) +
         headerHtml)
+
+    ()
   }
 
   def acknowledgementPdf(doc: Document, submissionDetails: String, formTemplate: FormTemplate)(
@@ -104,13 +106,14 @@ object HtmlSanitiser {
     headerHtml.map(header => form.prepend(header))
     form.prepend(h1(formTemplate.formName.value))
     form.append(submissionDetails)
-    footerHtml.map(footer => form.append(footer))
+    footerHtml.foreach(footer => form.append(footer))
   }
 
   def printSectionPdf(doc: Document, headerHtml: String, footerHtml: String): Unit = {
     val form = doc.getElementsByTag("form").first()
     form.prepend(headerHtml)
     form.append(footerHtml)
+    ()
   }
 
   private def h1(content: String): String = s"""<h1 class="govuk-heading-l">$content</h1>"""

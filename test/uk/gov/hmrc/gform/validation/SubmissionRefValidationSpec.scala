@@ -22,14 +22,14 @@ package uk.gov.hmrc.gform.validation
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ FormComponentGen, SubmissionRefGen }
  * import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData }
  * import uk.gov.hmrc.gform.eval.smartstring._
- * import uk.gov.hmrc.gform.Spec
  * import uk.gov.hmrc.gform.graph.RecData
  * import uk.gov.hmrc.gform.lookup.LookupRegistry
  * import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateCtx, FormTemplateProp, IsUpperCase, SubmissionRefFormat, Text }
- *
- * class SubmissionRefValidationSpec extends Spec {
- *   "A valid submission reference" should "be accepted" in {
+ */
+import uk.gov.hmrc.gform.Spec
+class SubmissionRefValidationSpec extends Spec {
+  /*   "A valid submission reference" should "be accepted" in {
  *     forAll(FormComponentGen.formComponentGen(1), SubmissionRefGen.submissionRefGen) {
  *       (generatedComponent, submissionRef) =>
  *         val formComponent = generatedComponent.copy(
@@ -80,4 +80,5 @@ package uk.gov.hmrc.gform.validation
  *         ) shouldBe Validated.Invalid(Map(formComponent.id -> Set(formComponent.errorMessage.map(_.value).orNull)))
  *     }
  *   }
- * } */
+ */
+}

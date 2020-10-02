@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 // Contains the *value* of a FormComponentId, where the FormComponentId is either:
 //   * the FormComponentId of a FormComponent with a singular value ComponentType, such as a Text or TextArea, OR

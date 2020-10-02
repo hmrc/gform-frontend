@@ -16,23 +16,23 @@
 
 package uk.gov.hmrc.gform.validation
 
-import java.time.LocalTime
-
-import cats.implicits._
-import org.scalatest.mockito.MockitoSugar.mock
-import play.api.i18n.{ Lang, Messages, MessagesApi, MessagesImpl }
-import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+/* import java.time.LocalTime
+ *
+ * import cats.implicits._
+ * import org.scalatest.mockito.MockitoSugar.mock
+ * import play.api.i18n.{ Lang, Messages, MessagesApi, MessagesImpl }
+ * import uk.gov.hmrc.gform.Helpers.toSmartString
+ * import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+ * import uk.gov.hmrc.gform.fileupload.Envelope
+ * import uk.gov.hmrc.gform.lookup.LookupRegistry
+ * import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
+ * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+ * import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
+ * import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType */
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
-import uk.gov.hmrc.http.HeaderCarrier
-
-import scala.concurrent.Future
+/* import uk.gov.hmrc.http.HeaderCarrier
+ *
+ * import scala.concurrent.Future */
 
 class TimeValidationSpec extends Spec with GraphSpec {
 

@@ -17,23 +17,18 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.Logger
-import play.api.i18n.{ I18nSupport, Messages }
+import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.gform.commons.MarkDownUtil
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.sharedmodel.LocalisedString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, HmrcVerified }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationPrint
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
-import uk.gov.hmrc.gform.summary.SummaryRenderingService
-import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, HmrcVerified }
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 
 class IdentityVerificationController(
   auth: AuthenticatedRequestActions,

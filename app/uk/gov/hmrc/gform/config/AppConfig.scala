@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.gform.config
 
-import pureconfig.generic.auto._ // used for implicit Derivation reader used by loadConfigOrThrow[AppConfig]
-
 import pureconfig._
+import pureconfig.generic.auto._
 import pureconfig.generic.ProductHint
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 
@@ -44,14 +43,9 @@ object AppConfig {
 
   def loadOrThrow(): AppConfig = {
     implicit def hint[T] = ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
-    val appConfig = loadConfigOrThrow[AppConfig]
+    val appConfig = ConfigSource.default.loadOrThrow[AppConfig]
 
     appConfig
-  }
-
-  private implicit class VerifyThat[T](t: T) {
-    def verifyThat(assertion: T => Boolean, message: String = "") =
-      if (!assertion(t)) throw new AppConfigException(message)
   }
 
   class AppConfigException(message: String) extends IllegalArgumentException(message)

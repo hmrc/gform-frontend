@@ -16,14 +16,12 @@
 
 package uk.gov.hmrc.gform.eval
 
-import cats.{ Eq, Monoid }
+import cats.{ Monoid }
 import cats.instances.list._
 import cats.instances.either._
 import cats.syntax.eq._
-import cats.syntax.either._
 import cats.syntax.traverse._
 import scala.util.Try
-import uk.gov.hmrc.gform.commons.BigDecimalUtil
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData

@@ -63,7 +63,7 @@ class ReviewController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.ReviewSubmitted) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      OperationWithForm.ReviewSubmitted) { implicit request => implicit l => cache => sse => formModelOptics =>
       asyncToResult(reviewService.submitFormBundle(cache, extractReviewData(request), maybeAccessCode))
     }
 
@@ -71,7 +71,7 @@ class ReviewController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.UpdateFormField) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      OperationWithForm.UpdateFormField) { implicit request => l => cache => sse => formModelOptics =>
       val maybeUpdatedForm: Option[Form] = for {
         body  <- request.body.asJson
         field <- body.asOpt[FormField]
@@ -84,7 +84,7 @@ class ReviewController(
 
   def forceUpdateFormStatus(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], status: FormStatus) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, ForceUpdateFormStatus) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      implicit request => l => cache => sse => formModelOptics =>
         asyncToResult(reviewService.forceUpdateFormStatus(cache, status, extractReviewData(request), maybeAccessCode))
     }
 
