@@ -16,4 +16,6 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-case class IdentifierValue(value: String) extends AnyVal
+case class IdentifierValue(value: String) extends AnyVal {
+  def isEmpty = value.isEmpty
+}
