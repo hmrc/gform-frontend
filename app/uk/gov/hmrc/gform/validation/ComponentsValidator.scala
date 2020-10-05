@@ -144,7 +144,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
       }
     }
 
-  def validate9(
+  def validate(
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(
     implicit

@@ -359,7 +359,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     maybeAccessCode: Option[AccessCode],
     form: Form,
     formTemplate: FormTemplate,
-    declarationSectionValue: DeclarationSection,
+    singleton: Singleton[DataExpanded],
     retrievals: MaterialisedRetrievals,
     validationResult: ValidationResult,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
@@ -371,10 +371,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     sse: SmartStringEvaluator
   ): Html = {
 
-    val decSection = declarationSectionValue.toSection
-
     val ei = ExtraInfo(
-      Singleton(decSection.page.asInstanceOf[Page[DataExpanded]], decSection), // TODO JoVl how to expand Page??
+      singleton,
       maybeAccessCode,
       SectionNumber(0),
       formModelOptics,
@@ -392,16 +390,18 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       case _              => messages("button.acceptAndSubmit")
     }
 
+    val declarationPage = singleton.page
+
     val listResult = validationResult.formFieldValidationResults
-    val snippets = declarationSectionValue.toPage.renderUnits.map(renderUnit =>
+    val snippets = declarationPage.renderUnits.map(renderUnit =>
       htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
       SectionNumber(0),
-      declarationSectionValue.title.value,
-      declarationSectionValue.description.map(ls => ls.value),
+      declarationPage.title.value,
+      declarationPage.description.map(ls => ls.value),
       Nil,
       snippets,
       "",

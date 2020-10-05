@@ -129,7 +129,6 @@ class ValidationService(
       .map(res => Monoid[ValidatedType[Unit]].combineAll(res))
 
   def validateDeclarationSection[D <: DataOrigin](
-    declarationSection: DeclarationSection,
     cache: CacheData,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     envelope: Envelope
@@ -139,7 +138,7 @@ class ValidationService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[ValidationResult] =
-    declarationSection.fields
+    formModelVisibilityOptics.formModel.allFormComponents
       .traverse(
         fv =>
           validateFormComponent(
@@ -175,7 +174,7 @@ class ValidationService(
       envelope,
       lookupRegistry,
       booleanExprEval
-    ).validate9(getEmailCodeFieldMatcher)
+    ).validate(getEmailCodeFieldMatcher)
 
   private def sendVerificationEmails[D <: DataOrigin](
     pageModel: PageModel[Visibility],
