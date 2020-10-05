@@ -36,7 +36,8 @@ class DelegatedEnrolmentService(
     ec: ExecutionContext
   ): Future[Boolean] = delegatedUserIds match {
     case ServiceResponse(DelegatedUserIds(ids)) => ids.contains(governmentGatewayId.ggId).pure[Future]
-    case NotFound | CannotRetrieveResponse      => Future.failed(new Exception("Call to enrolment-store-proxy has failed"))
+    case NotFound | CannotRetrieveResponse =>
+      Future.failed(new Exception(s"Call to enrolment-store-proxy has failed: $delegatedUserIds"))
   }
 
   def checkDelegatedEnrolment(

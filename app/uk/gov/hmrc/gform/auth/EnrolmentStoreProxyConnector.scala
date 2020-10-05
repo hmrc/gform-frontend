@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.auth
 
+import cats.instances.future._
+import cats.syntax.applicative._
 import julienrf.json.derived
 import play.api.Logger
 import play.api.libs.json.Format
@@ -37,34 +39,38 @@ object DelegatedUserIds {
 class EnrolmentStoreProxyConnector(baseUrl: String, http: WSHttp) {
   def hasDelegatedEnrolment(delegatedEnrolment: DelegatedEnrolment, identifierValue: IdentifierValue)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[ServiceCallResponse[DelegatedUserIds]] = {
+    ec: ExecutionContext): Future[ServiceCallResponse[DelegatedUserIds]] =
+    if (identifierValue.isEmpty) {
+      ServiceResponse(DelegatedUserIds.empty).pure[Future]
+    } else {
 
-    val delegatedEnrolmentKey = delegatedEnrolment.serviceName.value :: delegatedEnrolment.identifierName.value :: identifierValue.value :: Nil mkString ("~")
+      val delegatedEnrolmentKey = delegatedEnrolment.serviceName.value :: delegatedEnrolment.identifierName.value :: identifierValue.value :: Nil mkString ("~")
 
-    val url = s"$baseUrl/enrolment-store-proxy/enrolment-store/enrolments/$delegatedEnrolmentKey/users?type=delegated"
+      val url = s"$baseUrl/enrolment-store-proxy/enrolment-store/enrolments/$delegatedEnrolmentKey/users?type=delegated"
 
-    http
-      .doGet(url)
-      .map { httpResponse =>
-        val status = httpResponse.status
-        status match {
-          case 200 =>
-            Logger.info(s"Calling enrolment store proxy returned $status: Success.")
-            ServiceResponse(httpResponse.json.asOpt[DelegatedUserIds].getOrElse(DelegatedUserIds.empty))
-          case 204 =>
-            ServiceResponse(DelegatedUserIds.empty)
-          case 400 =>
-            Logger.info(s"Calling enrolment store proxy returned $status. Response: ${httpResponse.body}")
-            CannotRetrieveResponse
-          case other =>
-            Logger.error(s"Problem when calling enrolment store proxy. Http status: $other, body: ${httpResponse.body}")
+      http
+        .doGet(url)
+        .map { httpResponse =>
+          val status = httpResponse.status
+          status match {
+            case 200 =>
+              Logger.info(s"Calling enrolment store proxy returned $status: Success.")
+              ServiceResponse(httpResponse.json.asOpt[DelegatedUserIds].getOrElse(DelegatedUserIds.empty))
+            case 204 =>
+              ServiceResponse(DelegatedUserIds.empty)
+            case 400 =>
+              Logger.info(s"Calling enrolment store proxy returned $status. Response: ${httpResponse.body}")
+              CannotRetrieveResponse
+            case other =>
+              Logger.error(
+                s"Problem when calling enrolment store proxy. Http status: $other, body: ${httpResponse.body}")
+              CannotRetrieveResponse
+          }
+        }
+        .recover {
+          case ex =>
+            Logger.error("Unknown problem when calling enrolment store proxy", ex)
             CannotRetrieveResponse
         }
-      }
-      .recover {
-        case ex =>
-          Logger.error("Unknown problem when calling enrolment store proxy", ex)
-          CannotRetrieveResponse
-      }
-  }
+    }
 }
