@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform
 
 import uk.gov.hmrc.gform.models.javascript.{ FormComponentSimple, FormComponentWithCtx, FormComponentWithGroup }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, IsUpperCase, Number, PositiveNumber, Sterling, Text, TextArea }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, IsUpperCase, Number, PositiveNumber, ReferenceNumber, Sterling, Text, TextArea }
 
 package object ops {
 
@@ -41,6 +41,11 @@ package object ops {
     def isUpperCase = formComponent.`type` match {
       case Text(_, _, _, IsUpperCase) => true
       case _                          => false
+    }
+    def isReferenceNumber = formComponent.`type` match {
+      case Text(_: ReferenceNumber, _, _, _)  => true
+      case TextArea(_: ReferenceNumber, _, _) => true
+      case _                                  => false
     }
   }
 

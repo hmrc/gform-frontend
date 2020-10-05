@@ -92,6 +92,7 @@ generic.error.email={0} must match code you received by email
 
 generic.shortText.error.pattern={0} can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
 generic.longText.error.pattern={0} can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores
+generic.referenceNumber.error.pattern={0} can only include numbers
 
 generic.error.telephoneNumber={0} can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens
 

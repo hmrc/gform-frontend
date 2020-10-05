@@ -171,6 +171,7 @@ sealed trait TextConstraint {
     case Lookup(_)                    => CssClassSize._30
     case TextWithRestrictions(_, max) => deriveCssClassNameForText(max)
     case Sterling(_, _)               => CssClassSize._10
+    case ReferenceNumber(_, max)      => deriveCssClassNameForText(max)
     case UkBankAccountNumber          => CssClassSize._10
     case UkSortCodeFormat             => CssClassSize._2
     case SubmissionRefFormat          => CssClassSize._20
@@ -238,6 +239,7 @@ object ShortText { val default = ShortText(0, 1000) }
 case class Lookup(register: Register) extends TextConstraint
 case class TextWithRestrictions(min: Int, max: Int) extends TextConstraint
 case class Sterling(roundingMode: RoundingMode, positiveOnly: Boolean) extends TextConstraint
+case class ReferenceNumber(min: Int, max: Int) extends TextConstraint
 case object UkBankAccountNumber extends TextConstraint
 case object UkSortCodeFormat extends TextConstraint
 case object SubmissionRefFormat extends TextConstraint

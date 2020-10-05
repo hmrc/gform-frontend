@@ -99,6 +99,7 @@ object ComponentValidator {
           ValidationValues.sterlingLength,
           TextConstraint.defaultFactionalDigits,
           s.positiveOnly)
+      case (_, value :: Nil, ReferenceNumber(min, max)) => referenceNumberConstraints(fieldValue, value, min, max)
       case (_, value :: Nil, UkBankAccountNumber) =>
         validateBankAccountFormat(fieldValue, value)
       case (_, value :: Nil, SubmissionRefFormat) =>
@@ -216,6 +217,18 @@ object ComponentValidator {
       """[A-Za-z0-9\(\)\,\'\’\“\”\%\•\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}\–\—\‘\’\“\”]+""".r
     val messageKey = "generic.longText.error.pattern"
     sharedTextComponentValidator(fieldValue, value, min, max, ValidText, messageKey)
+  }
+
+  private def referenceNumberConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ) = {
+    val ValidReferenceNumber = s"[0-9]{$min,$max}".r
+    val str = value.replace(" ", "")
+    val messageKey = "generic.referenceNumber.error.pattern"
+    sharedTextComponentValidator(fieldValue, str, min, max, ValidReferenceNumber, messageKey)
   }
 
   private def email(

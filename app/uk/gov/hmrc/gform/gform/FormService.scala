@@ -34,6 +34,9 @@ object FormService {
         val poundOrComma = "[£,]".r
         val cvUpd: String = poundOrComma.replaceAllIn(cv, "")
         FormComponentValidation(formComponent, FieldOk(fv, cvUpd))
+      case FormComponentValidation(formComponent, FieldOk(fv, cv)) if formComponent.isReferenceNumber =>
+        val cvUpd: String = cv.replace(" ", "")
+        FormComponentValidation(formComponent, FieldOk(fv, cvUpd))
       case _ => formComponentValidation
     }
 
