@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.models
 
 import cats.{ Functor, MonadError }
 import cats.instances.list._
-import cats.syntax.eq._
 import cats.syntax.foldable._
 import cats.syntax.functor._
 import scala.language.higherKinds
@@ -227,7 +226,6 @@ class FormModelBuilder[E, F[_]: Functor](
 
     def loop(booleanExpr: BooleanExpr): Boolean = booleanExpr match {
       case Equals(field1, field2)              => compare(field1, field2, _ identical _)
-      case NotEquals(field1, field2)           => compare(field1, field2, _ =!= _)
       case GreaterThan(field1, field2)         => compare(field1, field2, _ > _)
       case GreaterThanOrEquals(field1, field2) => compare(field1, field2, _ >= _)
       case LessThan(field1, field2)            => compare(field1, field2, _ < _)

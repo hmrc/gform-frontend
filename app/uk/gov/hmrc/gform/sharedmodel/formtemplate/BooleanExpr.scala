@@ -22,7 +22,6 @@ import play.api.libs.json._
 sealed trait BooleanExpr {
   def allExpressions: List[Expr] = this match {
     case Equals(left, right)              => left :: right :: Nil
-    case NotEquals(left, right)           => left :: right :: Nil
     case GreaterThan(left, right)         => left :: right :: Nil
     case GreaterThanOrEquals(left, right) => left :: right :: Nil
     case LessThan(left, right)            => left :: right :: Nil
@@ -38,7 +37,6 @@ sealed trait BooleanExpr {
 }
 
 final case class Equals(left: Expr, right: Expr) extends BooleanExpr
-final case class NotEquals(left: Expr, right: Expr) extends BooleanExpr
 final case class GreaterThan(left: Expr, right: Expr) extends BooleanExpr
 final case class GreaterThanOrEquals(left: Expr, right: Expr) extends BooleanExpr
 final case class LessThan(left: Expr, right: Expr) extends BooleanExpr

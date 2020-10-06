@@ -25,7 +25,6 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
 
   def apply(booleanExpr: BooleanExpr): BooleanExpr = booleanExpr match {
     case Equals(left, right)              => Equals(expandExpr(left), expandExpr(right))
-    case NotEquals(left, right)           => NotEquals(expandExpr(left), expandExpr(right))
     case GreaterThan(left, right)         => GreaterThan(expandExpr(left), expandExpr(right))
     case GreaterThanOrEquals(left, right) => GreaterThanOrEquals(expandExpr(left), expandExpr(right))
     case LessThan(left, right)            => LessThan(expandExpr(left), expandExpr(right))
