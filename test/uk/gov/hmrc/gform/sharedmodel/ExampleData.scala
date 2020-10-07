@@ -51,6 +51,7 @@ trait ExampleAuthConfig {
     "",
     true,
     true,
+    true,
     Some(true)
   )
 
