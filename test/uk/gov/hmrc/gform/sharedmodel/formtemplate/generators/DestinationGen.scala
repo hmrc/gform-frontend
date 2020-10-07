@@ -44,6 +44,7 @@ trait DestinationGen {
       includeIf          <- includeIfGen
       failOnError        <- PrimitiveGen.booleanGen
       roboticsXml        <- PrimitiveGen.booleanGen
+      formdataXml        <- PrimitiveGen.booleanGen
       backscan           <- Gen.option(PrimitiveGen.booleanGen)
     } yield
       Destination
@@ -56,6 +57,7 @@ trait DestinationGen {
           includeIf,
           failOnError,
           roboticsXml,
+          formdataXml,
           backscan)
 
   def submissionConsolidatorGen: Gen[Destination.SubmissionConsolidator] =
