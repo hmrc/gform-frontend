@@ -190,7 +190,7 @@ class FormController(
 
                   val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
 
-                  val formData2 = oldData.toFormData
+                  val formDataU = oldData.toFormData ++ formData
                   val before: ThirdPartyData = cache.form.thirdPartyData
                   val after: ThirdPartyData = before.updateFrom(validatorsResult)
 
@@ -204,7 +204,7 @@ class FormController(
                       form = cache.form
                         .copy(
                           thirdPartyData = after.copy(obligations = processData.obligations),
-                          formData = formData2,
+                          formData = formDataU,
                           visitsIndex = visitsIndex))
 
                   if (needsSecondPhaseRecalculation.getOrElse(false)) {

@@ -69,7 +69,7 @@ trait FormModelSupport extends GraphSpec {
     envelopeId = envelopeId,
     userId = UserId("user-id"),
     formTemplateId = formTemplateId,
-    formData = FormData(Seq.empty[FormField]),
+    formData = FormData(List.empty[FormField]),
     status = InProgress,
     visitsIndex = VisitIndex(Set.empty[Int]),
     thirdPartyData = thirdPartyData,

@@ -521,7 +521,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   def accessCode = AccessCode("1234-0000-ABCD")
 
-  def formFields: Seq[FormField] = data.values.toSeq
+  def formFields: List[FormField] = data.values.toList
 
   def formData = FormData(formFields)
 

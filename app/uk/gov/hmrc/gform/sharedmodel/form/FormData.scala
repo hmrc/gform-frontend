@@ -16,23 +16,21 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-import cats.Semigroup
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 
-case class FormData(fields: Seq[FormField]) {
+case class FormData(fields: List[FormField]) {
+
   val toData: Map[ModelComponentId, String] = {
-    val a: List[(ModelComponentId, String)] = fields.toList.map(x => x.id -> x.value)
-    a.toMap
+    fields.map(x => x.id -> x.value).toMap
   }
+
   def find(id: ModelComponentId): Option[String] = toData.get(id)
+
+  def ++(other: FormData): FormData =
+    FormData((toData ++ other.toData).map { case (k, v) => FormField(k, v) }.toList)
 }
 
 object FormData {
-
-  implicit val semigroup: Semigroup[FormData] = new Semigroup[FormData] {
-    def combine(x: FormData, y: FormData): FormData = FormData(x.fields ++ y.fields)
-  }
-
   implicit val format: OFormat[FormData] = Json.format[FormData]
 }

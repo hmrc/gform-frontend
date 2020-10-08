@@ -24,13 +24,13 @@ import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, UserId }
 
 class FormDataHelpersSpec extends Spec {
 
-  private def toFormFields(xs: Seq[(String, String)]): Seq[FormField] = xs.map {
+  private def toFormFields(xs: List[(String, String)]): List[FormField] = xs.map {
     case (fcId, value) => FormField(FormComponentId(fcId).modelComponentId, value)
   }
 
   "updateFormField" should "update FormField in form data" in {
     val formFields = toFormFields(
-      Seq(
+      List(
         "1" -> "one",
         "2" -> "two",
         "3" -> "three"
@@ -52,6 +52,6 @@ class FormDataHelpersSpec extends Spec {
     val updatedForm =
       FormDataHelpers.updateFormField(existingForm, FormField(FormComponentId("2").modelComponentId, "xxx"))
 
-    updatedForm.formData.fields contains toFormFields(Seq(("1", "one"), ("2", "xxx"), ("3", "three")))
+    updatedForm.formData.fields contains toFormFields(List(("1", "one"), ("2", "xxx"), ("3", "three")))
   }
 }

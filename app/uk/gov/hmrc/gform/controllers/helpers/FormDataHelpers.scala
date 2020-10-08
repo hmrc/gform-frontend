@@ -56,7 +56,7 @@ object FormDataHelpers {
       .exists(id => fieldData.get(id).exists(_.exists(!_.isEmpty)))
 
   def updateFormField(form: Form, updatedFormField: FormField): Form = {
-    val updated: Seq[FormField] = form.formData.fields.filterNot(_.id === updatedFormField.id).+:(updatedFormField)
+    val updated: List[FormField] = form.formData.fields.filterNot(_.id === updatedFormField.id).+:(updatedFormField)
     form.modify(_.formData.fields).setTo(updated)
   }
 
