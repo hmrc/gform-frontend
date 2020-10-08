@@ -22,7 +22,7 @@ import cats.syntax.flatMap._
 import cats.syntax.applicative._
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, Equals, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, Not, NotEquals, Or }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, Equals, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, Not, Or }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -49,14 +49,6 @@ class BooleanExprEval[F[_]: Monad](
         } yield l.identical(r)
 
         res.getOrElse(false).pure[F]
-
-      case NotEquals(left, right) =>
-        val res = for {
-          l <- formModelVisibilityOptics.evalO(left)
-          r <- formModelVisibilityOptics.evalO(right)
-        } yield !l.identical(r)
-
-        res.getOrElse(false).pure[F] // NotEquals is strictly comparing different values of same type
 
       case GreaterThan(left, right) =>
         val res = for {

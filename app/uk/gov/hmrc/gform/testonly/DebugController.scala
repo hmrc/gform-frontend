@@ -35,7 +35,7 @@ class DebugController(
 ) extends FrontendController(messagesControllerComponents) {
 
   def model(formTemplateId: FormTemplateId) =
-    auth.async[SectionSelectorType.Normal](formTemplateId, None) {
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, None) {
       implicit request => lang => cache => sse => formModelOptics =>
         val totalColumns = formModelOptics.formModelRenderPageOptics.formModel.pages.size
 
@@ -48,30 +48,31 @@ class DebugController(
 
     }
   def exprs(formTemplateId: FormTemplateId) =
-    auth.async[SectionSelectorType.Normal](formTemplateId, None) { request => lang => cache => sse => formModelOptics =>
-      val graphTopologicalOrder: List[JsObject] =
-        formModelOptics.formModelVisibilityOptics.graphData.graphTopologicalOrder.toList.map {
-          case (layerNumber, nodes) =>
-            Json.obj(
-              "layerNumber" -> layerNumber.toString,
-              "nodes"       -> nodes.toString
-            )
-        }
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, None) {
+      request => lang => cache => sse => formModelOptics =>
+        val graphTopologicalOrder: List[JsObject] =
+          formModelOptics.formModelVisibilityOptics.graphData.graphTopologicalOrder.toList.map {
+            case (layerNumber, nodes) =>
+              Json.obj(
+                "layerNumber" -> layerNumber.toString,
+                "nodes"       -> nodes.toString
+              )
+          }
 
-      val exprs: List[JsObject] =
-        formModelOptics.formModelVisibilityOptics.evaluationResults.exprMap.toList.sortBy(_._1.toString).map {
-          case (typedExpr, expressionResult) =>
-            Json.obj(
-              "typedExpr"        -> typedExpr.toString,
-              "expressionResult" -> expressionResult.toString
-            )
-        }
+        val exprs: List[JsObject] =
+          formModelOptics.formModelVisibilityOptics.evaluationResults.exprMap.toList.sortBy(_._1.toString).map {
+            case (typedExpr, expressionResult) =>
+              Json.obj(
+                "typedExpr"        -> typedExpr.toString,
+                "expressionResult" -> expressionResult.toString
+              )
+          }
 
-      val result = Json.obj(
-        "expression" -> Json.toJson(exprs),
-        "graph"      -> Json.toJson(graphTopologicalOrder)
-      )
+        val result = Json.obj(
+          "expression" -> Json.toJson(exprs),
+          "graph"      -> Json.toJson(graphTopologicalOrder)
+        )
 
-      Future.successful(Ok(result))
+        Future.successful(Ok(result))
     }
 }

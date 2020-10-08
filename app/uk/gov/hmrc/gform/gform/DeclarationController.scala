@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.fileupload.{ Attachments, Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ ProcessData, ProcessDataService, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ DataExpanded, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
@@ -55,6 +55,12 @@ class DeclarationController(
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
+  private def getDeclarationPage(formModelOptics: FormModelOptics[DataOrigin.Mongo]): Option[Singleton[DataExpanded]] =
+    for {
+      declarationPage <- formModelOptics.formModelRenderPageOptics.formModel.pages.lastOption
+      singleton       <- declarationPage.fold[Option[Singleton[DataExpanded]]](Some.apply)(_ => None)
+    } yield singleton
+
   def showDeclaration(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId,
@@ -64,13 +70,13 @@ class DeclarationController(
       formTemplateId,
       maybeAccessCode,
       OperationWithForm.ViewDeclaration) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
-      cache.formTemplate.destinations match {
-        case DestinationList(_, _, declarationSection) =>
+      (cache.formTemplate.destinations, getDeclarationPage(formModelOptics)) match {
+        case (DestinationList(_, _, _), Some(declarationPage)) =>
+          getDeclarationPage(formModelOptics)
           import i18nSupport._
           for {
             validationResult <- validationService
                                  .validateDeclarationSection(
-                                   declarationSection,
                                    cache.toCacheData,
                                    formModelOptics.formModelVisibilityOptics,
                                    Envelope.empty
@@ -83,14 +89,17 @@ class DeclarationController(
                   maybeAccessCode,
                   cache.form,
                   cache.formTemplate,
-                  declarationSection,
+                  declarationPage,
                   cache.retrievals,
                   validationResultUpd,
                   formModelOptics))
           }
 
-        case _ =>
+        case (_, Some(_)) =>
           Future.failed(new BadRequestException(s"Declaration Section is not defined for $formTemplateId"))
+        case (_, None) =>
+          Future.failed(
+            new BadRequestException(s"Declaration section doesn't exist: Found empty page model for $formTemplateId"))
       }
     }
 
@@ -116,7 +125,6 @@ class DeclarationController(
                     maybeAccessCode,
                     envelopeId,
                     envelope,
-                    destinationList.declarationSection,
                     processData)
 
                 case ("Continue", _) =>
@@ -150,7 +158,6 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
     envelope: Envelope,
-    declarationSection: DeclarationSection,
     processData: ProcessData
   )(
     implicit
@@ -166,7 +173,7 @@ class DeclarationController(
 
     for {
       valRes <- validationService
-                 .validateDeclarationSection(declarationSection, cacheData, formModelVisibilityOptics, envelope)
+                 .validateDeclarationSection(cacheData, formModelVisibilityOptics, envelope)
       response <- processValidation(valRes, maybeAccessCode, cache, envelopeId, envelope, processData)
     } yield response
   }

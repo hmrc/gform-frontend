@@ -98,7 +98,6 @@ class Recalculation[F[_]: Monad, E](
 
       def loop(booleanExpr: BooleanExpr): StateT[F, RecalculationState, Boolean] = booleanExpr match {
         case Equals(field1, field2)              => compare(field1, field2, _ identical _)
-        case NotEquals(field1, field2)           => compare(field1, field2, _ =!= _)
         case GreaterThan(field1, field2)         => compare(field1, field2, _ > _)
         case GreaterThanOrEquals(field1, field2) => compare(field1, field2, _ >= _)
         case LessThan(field1, field2)            => compare(field1, field2, _ < _)
