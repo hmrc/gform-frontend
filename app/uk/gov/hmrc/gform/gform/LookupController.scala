@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.auth.models.OperationWithoutForm
 import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, ShowAll }
+import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.LookupQuery
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Register }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
@@ -40,21 +40,25 @@ class LookupController(
     lookup(formTemplateId, register, LookupQuery.Empty)
 
   def lookup(formTemplateId: FormTemplateId, register: Register, lookupQuery: LookupQuery): Action[AnyContent] =
-    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.Lookup) {
-      implicit request => implicit l => cache =>
-        val filtered: List[LookupLabel] = (lookupRegistry.get(register), lookupQuery) match {
-          case (Some(AjaxLookup(options, _, ShowAll.Enabled)), LookupQuery.Empty) => options.process(_.sorted)
-          case (Some(AjaxLookup(_, _, ShowAll.Disabled)), LookupQuery.Empty)      => List.empty
-          case (Some(AjaxLookup(options, autocomplete, showAll)), LookupQuery.Value(query)) =>
-            val labels: List[LookupLabel] =
-              autocomplete.get(l).fold(List.empty[LookupLabel])(_.search(query).asScala.toList.map(_.toLookupLabel))
-            showAll match {
-              case ShowAll.Enabled  => options.process(_.sorted.filter(labels.contains))
-              case ShowAll.Disabled => labels.sorted
-            }
-          case _ => List.empty
-        }
-        val results: List[String] = filtered.map(_.label)
-        Ok(Json.toJson(results)).pure[Future]
+    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.Lookup) { request => implicit l => cache =>
+      val filtered: List[LookupLabel] = (lookupRegistry.get(register), lookupQuery) match {
+        case (Some(AjaxLookup(options, _, ShowAll.Enabled)), LookupQuery.Empty) =>
+          options.process(_.sortLookupByPriorityAndLabel.map(_._1))
+        case (Some(AjaxLookup(_, _, ShowAll.Disabled)), LookupQuery.Empty) => List.empty
+        case (Some(AjaxLookup(options, autocomplete, showAll)), LookupQuery.Value(query)) =>
+          val labels: List[LookupLabel] =
+            autocomplete
+              .get(l)
+              .fold(List.empty[LookupLabel])(
+                _.search(query).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel))
+
+          showAll match {
+            case ShowAll.Enabled  => options.process(_.sortLookupByPriorityAndLabel.map(_._1).filter(labels.contains))
+            case ShowAll.Disabled => labels
+          }
+        case _ => List.empty
+      }
+      val results: List[String] = filtered.map(_.label)
+      Ok(Json.toJson(results)).pure[Future]
     }
 }

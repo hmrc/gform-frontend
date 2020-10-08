@@ -1073,7 +1073,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             checked = lookupLabel.label === selectedValue
           )
 
-          val lookupLabels: List[LookupLabel] = options.process(_.sorted)
+          val lookupLabels: List[LookupLabel] = options.process(_.sortLookupByIdx).map(_._1)
 
           val items = lookupLabels.zipWithIndex.map {
             case (lookupLabel, index) => renderOption(lookupLabel, index)

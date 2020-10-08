@@ -16,4 +16,37 @@
 
 package uk.gov.hmrc.gform.lookup
 
-case class LookupInfo(id: LookupId, index: Int)
+sealed trait LookupInfo {
+  def id: LookupId
+  def index: Int
+}
+
+final case class DefaultLookupInfo(
+  id: LookupId,
+  index: Int
+) extends LookupInfo
+
+final case class CountryLookupInfo(
+  id: LookupId,
+  index: Int,
+  keyWords: LookupKeyWords,
+  priority: LookupPriority,
+  region: LookupRegion
+) extends LookupInfo
+
+final case class CurrencyLookupInfo(
+  id: LookupId,
+  index: Int,
+  keyWords: LookupKeyWords,
+  priority: LookupPriority,
+  currencyCountryCode: LookupCurrencyCountryCode
+) extends LookupInfo
+
+final case class PortLookupInfo(
+  id: LookupId,
+  index: Int,
+  keyWords: LookupKeyWords,
+  priority: LookupPriority,
+  region: LookupRegion,
+  portType: LookupPortType
+) extends LookupInfo

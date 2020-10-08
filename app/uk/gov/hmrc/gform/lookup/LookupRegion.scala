@@ -16,14 +16,8 @@
 
 package uk.gov.hmrc.gform.lookup
 
-import com.miguelfonseca.completely.data.Indexable
-import java.util.{ List => jList }
+case class LookupRegion(region: Int) extends AnyVal
 
-import scala.collection.JavaConverters._
-
-class LookupRecord(val value: String, val priority: LookupPriority, val keyWords: LookupKeyWords) extends Indexable {
-  override val getFields: jList[String] =
-    List(value, keyWords.keyWords.getOrElse("")).asJava
-
-  def toLookupLabel = LookupLabel(value)
+object LookupRegion {
+  implicit val ord = Ordering.by(unapply)
 }
