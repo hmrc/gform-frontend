@@ -19,10 +19,11 @@ package uk.gov.hmrc.gform.models.optics
 import scala.language.higherKinds
 
 sealed trait DataOrigin extends Product with Serializable
+
 object DataOrigin {
   def swapDataOrigin[M[_ <: DataOrigin]](x: M[Browser]): M[Mongo] = x.asInstanceOf[M[Mongo]]
   def unSwapDataOrigin[M[_ <: DataOrigin]](x: M[Mongo]): M[Browser] = x.asInstanceOf[M[Browser]]
+
   trait Mongo extends DataOrigin
   trait Browser extends DataOrigin
-  trait Artificial extends DataOrigin
 }

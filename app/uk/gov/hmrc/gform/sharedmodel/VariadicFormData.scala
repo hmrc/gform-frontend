@@ -169,7 +169,7 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
   }
 
   def toFormData: FormData = FormData {
-    data.toSeq.map {
+    data.toList.map {
       case (variadicValueId, VariadicValue.One(one))   => FormField(variadicValueId, one)
       case (variadicValueId, VariadicValue.Many(many)) => FormField(variadicValueId, many.mkString(","))
     }

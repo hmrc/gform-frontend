@@ -253,7 +253,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val page = singleton.page
 
-    val listResult = validationResult.formFieldValidationResults(page)
+    val listResult = validationResult.formFieldValidationResults(singleton)
 
     val javascript =
       JavascriptMaker.generateJs(sectionNumber, formModelOptics)

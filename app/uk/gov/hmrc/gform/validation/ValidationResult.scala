@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.gform.validation
 
-import uk.gov.hmrc.gform.models.DataExpanded
+import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidatorsResult }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, IsGroup, IsRevealingChoice, Page }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
 class ValidationResult(
   lookup: Map[FormComponentId, FormFieldValidationResult],
@@ -45,24 +45,18 @@ class ValidationResult(
 
   def formFieldValidationResults: List[FormFieldValidationResult] = lookup.values.toList
 
-  def formFieldValidationResults(page: Page[DataExpanded]): List[FormFieldValidationResult] = {
+  def formFieldValidationResults(singleton: Singleton[DataExpanded]): List[FormFieldValidationResult] =
+    singleton.allFormComponents.map(apply)
 
-    def loop(formComponents: List[FormComponent]): List[FormFieldValidationResult] =
-      formComponents.flatMap {
-        case IsGroup(group)             => loop(group.fields)
-        case fc @ IsRevealingChoice(rc) => apply(fc) :: loop(rc.options.flatMap(_.revealingFields))
-        case formComponent              => apply(formComponent) :: Nil
-      }
-
-    loop(page.fields)
-  }
-
-  private def removeCommasAndPoundSymbol: List[FormFieldValidationResult] =
+  private def cleanCurrentValues: List[FormFieldValidationResult] =
     lookup.map {
       case (_, FieldOk(formComponent, cv))
           if formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber =>
         val poundOrComma = "[£,]".r
         val cvUpd: String = poundOrComma.replaceAllIn(cv, "")
+        FieldOk(formComponent, cvUpd)
+      case (_, FieldOk(formComponent, cv)) if formComponent.isReferenceNumber =>
+        val cvUpd: String = cv.replace(" ", "")
         FieldOk(formComponent, cvUpd)
       case (formComponent, ffvr) => ffvr
     }.toList
@@ -70,7 +64,7 @@ class ValidationResult(
   def toFormValidationOutcome: FormValidationOutcome = {
 
     val formComponentValidations =
-      if (isFormValid) removeCommasAndPoundSymbol else formFieldValidationResults
+      if (isFormValid) cleanCurrentValues else formFieldValidationResults
 
     FormValidationOutcome(
       isFormValid,
