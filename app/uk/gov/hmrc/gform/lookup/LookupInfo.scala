@@ -29,7 +29,7 @@ final case class DefaultLookupInfo(
 final case class CountryLookupInfo(
   id: LookupId,
   index: Int,
-  keyWords: LookupKeyWords,
+  keywords: LookupKeywords,
   priority: LookupPriority,
   region: LookupRegion
 ) extends LookupInfo
@@ -37,7 +37,7 @@ final case class CountryLookupInfo(
 final case class CurrencyLookupInfo(
   id: LookupId,
   index: Int,
-  keyWords: LookupKeyWords,
+  keywords: LookupKeywords,
   priority: LookupPriority,
   currencyCountryCode: LookupCurrencyCountryCode
 ) extends LookupInfo
@@ -45,7 +45,7 @@ final case class CurrencyLookupInfo(
 final case class PortLookupInfo(
   id: LookupId,
   index: Int,
-  keyWords: LookupKeyWords,
+  keywords: LookupKeywords,
   priority: LookupPriority,
   region: LookupRegion,
   portType: LookupPortType

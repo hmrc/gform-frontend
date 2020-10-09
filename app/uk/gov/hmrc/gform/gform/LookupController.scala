@@ -43,7 +43,7 @@ class LookupController(
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.Lookup) { request => implicit l => cache =>
       val filtered: List[LookupLabel] = (lookupRegistry.get(register), lookupQuery) match {
         case (Some(AjaxLookup(options, _, ShowAll.Enabled)), LookupQuery.Empty) =>
-          options.process(_.sortLookupByPriorityAndLabel.map(_._1))
+          options.process(_.sortLookupByPriorityAndLabel)
         case (Some(AjaxLookup(_, _, ShowAll.Disabled)), LookupQuery.Empty) => List.empty
         case (Some(AjaxLookup(options, autocomplete, showAll)), LookupQuery.Value(query)) =>
           val labels: List[LookupLabel] =
@@ -53,7 +53,7 @@ class LookupController(
                 _.search(query).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel))
 
           showAll match {
-            case ShowAll.Enabled  => options.process(_.sortLookupByPriorityAndLabel.map(_._1).filter(labels.contains))
+            case ShowAll.Enabled  => options.process(_.sortLookupByPriorityAndLabel.filter(labels.contains))
             case ShowAll.Disabled => labels
           }
         case _ => List.empty

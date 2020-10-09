@@ -34,12 +34,40 @@ class LookupLoader {
     implicitly[CellDecoder[Option[Int]]].map(p => LookupPriority(p.getOrElse(1)))
   implicit private val lookupRegionCellDecoder: CellDecoder[LookupRegion] =
     implicitly[CellDecoder[Int]].map(r => LookupRegion(r))
-  implicit private val lookupKeyWordsCellDecoder: CellDecoder[LookupKeyWords] =
-    implicitly[CellDecoder[Option[String]]].map(s => LookupKeyWords(s.map(_.trim)))
+  implicit private val lookupKeywordsCellDecoder: CellDecoder[LookupKeywords] =
+    implicitly[CellDecoder[Option[String]]].map(s => LookupKeywords(s.map(_.trim)))
   implicit private val lookupCurrencyCountryCodeCellDecoder: CellDecoder[LookupCurrencyCountryCode] =
     implicitly[CellDecoder[String]].map(s => LookupCurrencyCountryCode(s.trim))
   implicit private val lookupPortTypeCellDecoder: CellDecoder[LookupPortType] =
     implicitly[CellDecoder[Int]].map(r => LookupPortType(r))
+
+  type LookupDetails = (LookupLabel, LookupInfo)
+
+  private def readCsv[A](filename: String, headerDecoder: HeaderDecoder[A]): List[A] = {
+    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
+
+    lookup.unsafeReadCsv[List, A](rfc.withHeader)(headerDecoder, implicitly, implicitly)
+  }
+
+  private def getLocalisedLookupOptions[A](
+    fileName: String,
+    headerDecoder: HeaderDecoder[A],
+    f: A => Int => (LookupDetails, LookupDetails)): LocalisedLookupOptions = {
+
+    val csvData: List[A] = readCsv(fileName, headerDecoder)
+
+    val (enOptions, cyOptions): (List[LookupDetails], List[LookupDetails]) =
+      csvData.zipWithIndex.map {
+        case (a, idx) => f(a)(idx)
+      }.unzip
+
+    LocalisedLookupOptions {
+      Map(
+        LangADT.En -> LookupOptions(enOptions.toMap),
+        LangADT.Cy -> LookupOptions(cyOptions.toMap)
+      )
+    }
+  }
 
   private def read(
     filename: String,
@@ -48,30 +76,18 @@ class LookupLoader {
     welshLabel: String,
     mkLookupType: LocalisedLookupOptions => LookupType): LookupType = {
 
-    val headerDecoder: HeaderDecoder[(LookupLabel, LookupLabel, LookupId)] =
+    type ColumnData = (LookupLabel, LookupLabel, LookupId)
+
+    val headerDecoder: HeaderDecoder[ColumnData] =
       HeaderDecoder.decoder(englishLabel, welshLabel, id)((_: LookupLabel, _: LookupLabel, _: LookupId))
-    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
-    mkLookupType {
-      val cvsData: List[(LookupLabel, LookupLabel, LookupId)] = lookup
-        .unsafeReadCsv[List, (LookupLabel, LookupLabel, LookupId)](rfc.withHeader)(
-          headerDecoder,
-          implicitly,
-          implicitly)
 
-      val (enOptions, cyOptions): (List[(LookupLabel, LookupInfo)], List[(LookupLabel, LookupInfo)]) =
-        cvsData.zipWithIndex.map {
-          case ((enLabel, cyLabel, id), idx) =>
-            val li = DefaultLookupInfo(id, idx)
-            ((enLabel, li), (cyLabel, li))
-        }.unzip
-
-      LocalisedLookupOptions {
-        Map(
-          LangADT.En -> LookupOptions(enOptions.toMap),
-          LangADT.Cy -> LookupOptions(cyOptions.toMap)
-        )
-      }
+    def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
+      val (enLabel, cyLabel, id) = columnData
+      val li = DefaultLookupInfo(id, index)
+      ((enLabel, li), (cyLabel, li))
     }
+
+    mkLookupType(getLocalisedLookupOptions(filename, headerDecoder, processData))
   }
 
   private def readCountries(
@@ -79,35 +95,24 @@ class LookupLoader {
     id: String,
     englishLabel: String,
     welshLabel: String,
-    keyWords: String,
+    keywords: String,
     priority: String,
     region: String,
     mkLookupType: LocalisedLookupOptions => LookupType): LookupType = {
 
-    val headerDecoder
-      : HeaderDecoder[(LookupLabel, LookupLabel, LookupId, LookupKeyWords, LookupPriority, LookupRegion)] =
-      HeaderDecoder.decoder(englishLabel, welshLabel, id, keyWords, priority, region)(
-        (_: LookupLabel, _: LookupLabel, _: LookupId, _: LookupKeyWords, _: LookupPriority, _: LookupRegion))
-    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
-    mkLookupType {
-      val cvsData: List[(LookupLabel, LookupLabel, LookupId, LookupKeyWords, LookupPriority, LookupRegion)] = lookup
-        .unsafeReadCsv[List, (LookupLabel, LookupLabel, LookupId, LookupKeyWords, LookupPriority, LookupRegion)](
-          rfc.withHeader)(headerDecoder, implicitly, implicitly)
+    type ColumnData = (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority, LookupRegion)
 
-      val (enOptions, cyOptions): (List[(LookupLabel, LookupInfo)], List[(LookupLabel, LookupInfo)]) =
-        cvsData.zipWithIndex.map {
-          case ((enLabel, cyLabel, id, keyWords, priority, region), idx) =>
-            val li = CountryLookupInfo(id, idx, keyWords, priority, region)
-            ((enLabel, li), (cyLabel, li))
-        }.unzip
+    val headerDecoder: HeaderDecoder[ColumnData] =
+      HeaderDecoder.decoder(englishLabel, welshLabel, id, keywords, priority, region)(
+        (_: LookupLabel, _: LookupLabel, _: LookupId, _: LookupKeywords, _: LookupPriority, _: LookupRegion))
 
-      LocalisedLookupOptions {
-        Map(
-          LangADT.En -> LookupOptions(enOptions.toMap),
-          LangADT.Cy -> LookupOptions(cyOptions.toMap)
-        )
-      }
+    def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
+      val (enLabel, cyLabel, id, keywords, priority, region) = columnData
+      val li = CountryLookupInfo(id, index, keywords, priority, region)
+      ((enLabel, li), (cyLabel, li))
     }
+
+    mkLookupType(getLocalisedLookupOptions(filename, headerDecoder, processData))
   }
 
   private def readCurrencies(
@@ -115,45 +120,30 @@ class LookupLoader {
     id: String,
     englishLabel: String,
     welshLabel: String,
-    keyWords: String,
+    keywords: String,
     priority: String,
     countryCode: String,
     mkLookupType: LocalisedLookupOptions => LookupType): LookupType = {
 
-    val headerDecoder
-      : HeaderDecoder[(LookupLabel, LookupLabel, LookupId, LookupKeyWords, LookupPriority, LookupCurrencyCountryCode)] =
-      HeaderDecoder.decoder(englishLabel, welshLabel, id, keyWords, priority, countryCode)(
+    type ColumnData = (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority, LookupCurrencyCountryCode)
+
+    val headerDecoder: HeaderDecoder[ColumnData] =
+      HeaderDecoder.decoder(englishLabel, welshLabel, id, keywords, priority, countryCode)(
         (
           _: LookupLabel,
           _: LookupLabel,
           _: LookupId,
-          _: LookupKeyWords,
+          _: LookupKeywords,
           _: LookupPriority,
           _: LookupCurrencyCountryCode))
-    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
-    mkLookupType {
-      val cvsData
-        : List[(LookupLabel, LookupLabel, LookupId, LookupKeyWords, LookupPriority, LookupCurrencyCountryCode)] =
-        lookup
-          .unsafeReadCsv[
-            List,
-            (LookupLabel, LookupLabel, LookupId, LookupKeyWords, LookupPriority, LookupCurrencyCountryCode)](
-            rfc.withHeader)(headerDecoder, implicitly, implicitly)
 
-      val (enOptions, cyOptions): (List[(LookupLabel, LookupInfo)], List[(LookupLabel, LookupInfo)]) =
-        cvsData.zipWithIndex.map {
-          case ((enLabel, cyLabel, id, keyWords, priority, countryCode), idx) =>
-            val li = CurrencyLookupInfo(id, idx, keyWords, priority, countryCode)
-            ((enLabel, li), (cyLabel, li))
-        }.unzip
-
-      LocalisedLookupOptions {
-        Map(
-          LangADT.En -> LookupOptions(enOptions.toMap),
-          LangADT.Cy -> LookupOptions(cyOptions.toMap)
-        )
-      }
+    def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
+      val (enLabel, cyLabel, id, keywords, priority, countryCode) = columnData
+      val li = CurrencyLookupInfo(id, index, keywords, priority, countryCode)
+      ((enLabel, li), (cyLabel, li))
     }
+
+    mkLookupType(getLocalisedLookupOptions(filename, headerDecoder, processData))
   }
 
   private def readPorts(
@@ -161,53 +151,32 @@ class LookupLoader {
     id: String,
     englishLabel: String,
     welshLabel: String,
-    keyWords: String,
+    keywords: String,
     priority: String,
     region: String,
     portType: String,
     mkLookupType: LocalisedLookupOptions => LookupType): LookupType = {
 
-    val headerDecoder: HeaderDecoder[(
-      LookupLabel,
-      LookupLabel,
-      LookupId,
-      LookupKeyWords,
-      LookupPriority,
-      LookupRegion,
-      LookupPortType)] =
-      HeaderDecoder.decoder(englishLabel, welshLabel, id, keyWords, priority, region, portType)(
+    type ColumnData = (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority, LookupRegion, LookupPortType)
+
+    val headerDecoder: HeaderDecoder[ColumnData] =
+      HeaderDecoder.decoder(englishLabel, welshLabel, id, keywords, priority, region, portType)(
         (
           _: LookupLabel,
           _: LookupLabel,
           _: LookupId,
-          _: LookupKeyWords,
+          _: LookupKeywords,
           _: LookupPriority,
           _: LookupRegion,
           _: LookupPortType))
-    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
-    mkLookupType {
-      val cvsData
-        : List[(LookupLabel, LookupLabel, LookupId, LookupKeyWords, LookupPriority, LookupRegion, LookupPortType)] =
-        lookup
-          .unsafeReadCsv[
-            List,
-            (LookupLabel, LookupLabel, LookupId, LookupKeyWords, LookupPriority, LookupRegion, LookupPortType)](
-            rfc.withHeader)(headerDecoder, implicitly, implicitly)
 
-      val (enOptions, cyOptions): (List[(LookupLabel, LookupInfo)], List[(LookupLabel, LookupInfo)]) =
-        cvsData.zipWithIndex.map {
-          case ((enLabel, cyLabel, id, keyWords, priority, region, portType), idx) =>
-            val li = PortLookupInfo(id, idx, keyWords, priority, region, portType)
-            ((enLabel, li), (cyLabel, li))
-        }.unzip
-
-      LocalisedLookupOptions {
-        Map(
-          LangADT.En -> LookupOptions(enOptions.toMap),
-          LangADT.Cy -> LookupOptions(cyOptions.toMap)
-        )
-      }
+    def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
+      val (enLabel, cyLabel, id, keywords, priority, region, portType) = columnData
+      val li = PortLookupInfo(id, index, keywords, priority, region, portType)
+      ((enLabel, li), (cyLabel, li))
     }
+
+    mkLookupType(getLocalisedLookupOptions(filename, headerDecoder, processData))
   }
 
   private def mkAjaxLookup(showAll: ShowAll)(m: LocalisedLookupOptions): AjaxLookup =
@@ -244,7 +213,7 @@ class LookupLoader {
 
         m.options map {
           case (ll, DefaultLookupInfo(_, _)) =>
-            engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeyWords(None)))
+            engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
           case (ll, CountryLookupInfo(_, _, k, p, _))  => engine.add(new LookupRecord(ll.label, p, k))
           case (ll, CurrencyLookupInfo(_, _, k, p, _)) => engine.add(new LookupRecord(ll.label, p, k))
           case (ll, PortLookupInfo(_, _, k, p, _, _))  => engine.add(new LookupRecord(ll.label, p, k))

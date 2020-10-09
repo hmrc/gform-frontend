@@ -16,4 +16,4 @@
 
 package uk.gov.hmrc.gform.lookup
 
-case class LookupKeyWords(keyWords: Option[String]) extends AnyVal
+case class LookupKeywords(keywords: Option[String]) extends AnyVal

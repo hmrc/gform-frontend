@@ -24,19 +24,20 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
 
   def keys: Iterable[LookupLabel] = options.keys
 
-  def sortLookupByIdx: List[(LookupLabel, LookupInfo)] =
-    options.toList.sortBy {
-      case (_, DefaultLookupInfo(_, idx))           => idx
-      case (_, CountryLookupInfo(_, idx, _, _, _))  => idx
-      case (_, CurrencyLookupInfo(_, idx, _, _, _)) => idx
-      case (_, PortLookupInfo(_, idx, _, _, _, _))  => idx
-    }
+  def sortLookupByIdx: List[LookupLabel] =
+    options.toList
+      .sortBy {
+        case (_, lookupInfo) => lookupInfo.index
+      }
+      .map(_._1)
 
-  def sortLookupByPriorityAndLabel: List[(LookupLabel, LookupInfo)] =
-    options.toList.sortBy {
-      case (label, DefaultLookupInfo(_, _))                  => (LookupPriority(1), label)
-      case (label, CountryLookupInfo(_, _, _, priority, _))  => (priority, label)
-      case (label, CurrencyLookupInfo(_, _, _, priority, _)) => (priority, label)
-      case (label, PortLookupInfo(_, _, _, priority, _, _))  => (priority, label)
-    }
+  def sortLookupByPriorityAndLabel: List[LookupLabel] =
+    options.toList
+      .sortBy {
+        case (label, DefaultLookupInfo(_, _))                  => (LookupPriority(1), label)
+        case (label, CountryLookupInfo(_, _, _, priority, _))  => (priority, label)
+        case (label, CurrencyLookupInfo(_, _, _, priority, _)) => (priority, label)
+        case (label, PortLookupInfo(_, _, _, priority, _, _))  => (priority, label)
+      }
+      .map(_._1)
 }

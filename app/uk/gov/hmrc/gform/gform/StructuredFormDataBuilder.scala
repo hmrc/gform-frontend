@@ -165,10 +165,7 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
         case RadioLookup(options)      => options.lookupInfo(label)
         case AjaxLookup(options, _, _) => options.lookupInfo(label)
       } match {
-      case Some(DefaultLookupInfo(LookupId(id), _))           => id.pure[F]
-      case Some(CountryLookupInfo(LookupId(id), _, _, _, _))  => id.pure[F]
-      case Some(CurrencyLookupInfo(LookupId(id), _, _, _, _)) => id.pure[F]
-      case Some(PortLookupInfo(LookupId(id), _, _, _, _, _))  => id.pure[F]
+      case Some(lookupInfo) => lookupInfo.id.id.pure[F]
       case None =>
         me.raiseError(StructuredFormDataBuilderException(s"Cannot find '${label.label}' in register $register"))
     }

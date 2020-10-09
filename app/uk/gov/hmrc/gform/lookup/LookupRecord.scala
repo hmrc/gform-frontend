@@ -21,9 +21,9 @@ import java.util.{ List => jList }
 
 import scala.collection.JavaConverters._
 
-class LookupRecord(val value: String, val priority: LookupPriority, val keyWords: LookupKeyWords) extends Indexable {
+class LookupRecord(val value: String, val priority: LookupPriority, val keywords: LookupKeywords) extends Indexable {
   override val getFields: jList[String] =
-    List(value, keyWords.keyWords.getOrElse("")).asJava
+    List(value, keywords.keywords.getOrElse("")).asJava
 
   def toLookupLabel = LookupLabel(value)
 }
