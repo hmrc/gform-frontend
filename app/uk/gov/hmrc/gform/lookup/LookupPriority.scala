@@ -20,4 +20,5 @@ case class LookupPriority(priority: Int) extends AnyVal
 
 object LookupPriority {
   implicit val ord = Ordering.by(unapply).reverse
+  val DEFAULT = LookupPriority(1)
 }

@@ -16,27 +16,11 @@
 
 package uk.gov.hmrc.gform.lookup
 
-case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
+case class LookupOptions[T](options: Map[LookupLabel, T]) extends AnyVal {
 
-  def get(lookupLabel: LookupLabel): Option[LookupInfo] = options.get(lookupLabel)
+  def get(lookupLabel: LookupLabel): Option[T] = options.get(lookupLabel)
 
   def contains(lookupLabel: LookupLabel): Boolean = options.contains(lookupLabel)
 
   def keys: Iterable[LookupLabel] = options.keys
-
-  def sortLookupByIdx: List[(LookupLabel, LookupInfo)] =
-    options.toList.sortBy {
-      case (_, DefaultLookupInfo(_, idx))           => idx
-      case (_, CountryLookupInfo(_, idx, _, _, _))  => idx
-      case (_, CurrencyLookupInfo(_, idx, _, _, _)) => idx
-      case (_, PortLookupInfo(_, idx, _, _, _, _))  => idx
-    }
-
-  def sortLookupByPriorityAndLabel: List[(LookupLabel, LookupInfo)] =
-    options.toList.sortBy {
-      case (label, DefaultLookupInfo(_, _))                  => (LookupPriority(1), label)
-      case (label, CountryLookupInfo(_, _, _, priority, _))  => (priority, label)
-      case (label, CurrencyLookupInfo(_, _, _, priority, _)) => (priority, label)
-      case (label, PortLookupInfo(_, _, _, priority, _, _))  => (priority, label)
-    }
 }

@@ -21,6 +21,25 @@ sealed trait LookupInfo {
   def index: Int
 }
 
+sealed trait AutoCompleteInfo {
+  val keywords: LookupKeyWords = LookupKeyWords.EMPTY
+  val priority: LookupPriority = LookupPriority(1)
+}
+final case class LookupInfoDefault(
+  id: LookupId,
+  englishLabel: LookupLabel,
+  welshLabel: LookupLabel)
+    extends AutoCompleteInfo
+
+final case class LookupInfoCountry(
+  id: LookupId,
+  englishLabel: LookupLabel,
+  welshLabel: LookupLabel,
+  override val keywords: LookupKeyWords,
+  override val priority: LookupPriority,
+  region: LookupRegion)
+    extends AutoCompleteInfo
+
 final case class DefaultLookupInfo(
   id: LookupId,
   index: Int

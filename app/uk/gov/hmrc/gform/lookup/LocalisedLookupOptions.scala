@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.lookup
 
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-case class LocalisedLookupOptions(m: Map[LangADT, LookupOptions]) extends AnyVal {
+case class LocalisedLookupOptions[T](m: Map[LangADT, LookupOptions[T]]) extends AnyVal {
 
-  def lookupInfo(label: LookupLabel)(implicit l: LangADT): Option[LookupInfo] = m.get(l).flatMap(_.get(label))
+  def lookupInfo(label: LookupLabel)(implicit l: LangADT): Option[T] = m.get(l).flatMap(_.get(label))
 
-  def fold[A](empty: A)(f: LookupOptions => A)(implicit l: LangADT): A = m.get(l).fold(empty)(f)
+  def fold[A](empty: A)(f: LookupOptions[T] => A)(implicit l: LangADT): A = m.get(l).fold(empty)(f)
 
-  def process[A](f: LookupOptions => List[A])(implicit l: LangADT): List[A] = fold(List.empty[A])(f)
+  def process[A](f: LookupOptions[T] => List[A])(implicit l: LangADT): List[A] = fold(List.empty[A])(f)
 }

@@ -16,4 +16,8 @@
 
 package uk.gov.hmrc.gform.lookup
 
-case class LookupKeyWords(keyWords: Option[String]) extends AnyVal
+case class LookupKeyWords(keyWords: String) extends AnyVal
+
+object LookupKeyWords {
+  val EMPTY = LookupKeyWords("")
+}

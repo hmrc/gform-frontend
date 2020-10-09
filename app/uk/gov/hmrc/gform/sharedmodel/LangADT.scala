@@ -36,6 +36,8 @@ object LangADT {
   case object En extends LangADT
   case object Cy extends LangADT
 
+  val languages = List(En, Cy)
+
   def langADTToString(langADT: LangADT): String = langADT.langADTToString
 
   def stringToLangADT(string: String): LangADT = string match {

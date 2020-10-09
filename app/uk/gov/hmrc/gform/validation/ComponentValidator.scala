@@ -60,7 +60,7 @@ object ComponentValidator {
       validationFailure(fieldValue, "generic.error.lookup", Some(vars))
     }
 
-    def existsLabel(options: LookupOptions) =
+    def existsLabel(options: LookupOptions[_]) =
       if (options.contains(lookupLabel)) validationSuccess
       else lookupError
 
