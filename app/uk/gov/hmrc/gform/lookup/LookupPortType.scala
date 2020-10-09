@@ -16,14 +16,4 @@
 
 package uk.gov.hmrc.gform.lookup
 
-import com.miguelfonseca.completely.data.Indexable
-import java.util.{ List => jList }
-
-import scala.collection.JavaConverters._
-
-class LookupRecord(val value: String, val priority: LookupPriority, val keywords: LookupKeywords) extends Indexable {
-  override val getFields: jList[String] =
-    List(value, keywords.keywords.getOrElse("")).asJava
-
-  def toLookupLabel = LookupLabel(value)
-}
+case class LookupPortType(portType: Int) extends AnyVal

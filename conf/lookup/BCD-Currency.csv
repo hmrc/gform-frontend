@@ -1,172 +1,168 @@
-CurrencyCode, Name, CountryCode, cy
-AED, United Arab Emirates Dirham, AE, Dirham yr Emiraethau Arabaidd Unedig
-AFN, Afghanistan Afghani, AF, Afghani Afghanistan
-ALL, Albania Lek, AL, Lek Albania
-AMD, Armenia Dram, AM, Dram Armenia
-ANG, Netherlands Antilles Guilder, CW, Guilder Antilles yr Iseldiroedd
-AOA, Angola Kwanza, AO, Kwanza Angola
-ARS, Argentina Peso, AR, Peso’r Ariannin
-AUD, Australia Dollar, AU, Doler Awstralia
-AWG, Aruba Florin, AW, Fflorin Arwba
-AZM, Azerbaijani manat, AZ, Manat Azerbaijan
-AZN, Azerbaijan Manat, AZ, Manat Azerbaijan
-BAM, Bosnia and Herzegovina Convertible Mark, BA, Marc Bosnia a Herzegovina
-BBD, Barbados Dollar, BB, Doler Barbados
-BDT, Bangladesh Taka, BD, Taka Bangladesh
-BGN, Bulgaria Lev, BG, Lev Bwlgaria
-BHD, Bahrain Dinar, BH, Dinar Bahrain
-BIF, Burundi Franc, BI, Ffranc Burundi
-BMD, Bermuda Dollar, BM, Doler Bermuda
-BND, Brunei Darussalam Dollar, BN, Doler Brunei Darussalam
-BOB, Bolivia Boliviano, BO, Boliviano Bolivia
-BRL, Brazil Real, BR, Real Brasil
-BSD, Bahamas Dollar, BS, Doler y Bahamas
-BTN, Bhutan Ngultrum, BT, Ngultrum Bhutan
-BWP, Botswana Pula, BW, Pula Botswana
-BYR, Belarus Ruble, BY, Rŵbl Belarus
-BZD, Belize Dollar, BZ, Doler Belize
-CAD, Canada Dollar, CA, Doler Canada
-CDF, Congo Franc, CG, Ffranc Congo
-CHF, Switzerland Franc, CH, Ffranc y Swistir
-CLP, Chile Peso, CL, Peso Chile
-CNY, China Yuan Renminbi, CN, Iwan Renminbi Tsieina
-COP, Colombia Peso, CO, Peso Colombia
-CRC, Costa Rica Colon, CR, Colon Costa Rica
-CUC, Cuba Convertible Peso, NULL, Peso Cyfnewidiol Cuba
-CUP, Cuba Peso,	CU,	Peso Cuba
-CVE, Cape Verde Escudo, CV, Esgwdo Cabo Verde
-CYP, Pounds, CP, Punnoedd
-CZK, Czech Republic Koruna, CZ, Koruna y Weriniaeth Tsiec
-DEM, Deutsche Mark, DE, Marc yr Almaen
-DJF, Djibouti Franc, DJ, Ffranc Djibouti
-DKK, Denmark Krone, DK, Krone Denmarc
-DOP, Dominican Republic Peso, DO, Peso Gweriniaeth Dominica
-DZD, Algeria Dinar, DZ, Dinar Algeria
-EGP, Egypt Pound, EG, Punt yr Aifft
-ERN, Eritrea Nakfa, ER, Nakfa Eritrea
-ESP, Spanish Peseta, ES, Peseta Sbaen
-ETB, Ethiopia Birr, ET, Birr Ethiopia
-EUR, Euro, NULL, Ewro
-FJD, Fiji Dollar, FJ, Doler Ffiji
-FKP, Falkland Islands (Malvinas) Pound, FK, Punt Ynysoedd y Falkland (Malvinas)
-GBP, United Kingdom Pound, UK, Punt y Deyrnas Unedig
-GEL, Georgia Lari, GE, Lari Georgia
-GGP, Guernsey Pound, GG, Punt Guernsey
-GHS, Ghana Cedi, GH, Cedi Ghana
-GIP, Gibraltar Pound, GI, Punt Gibraltar
-GMD, Gambia Dalasi, GM, Dalasi Gambia
-GNF, Guinea Franc, GN, Franc Guinée
-GTQ, Guatemala Quetzal, GT, Cwetsal Guatemala
-GYD, Guyana Dollar, GY, Doler Guyana
-HKD, Hong Kong Dollar, HK, Doler Hong Kong
-HNL, Honduras Lempira, HN, Lempira Honduras
-HRK, Croatia Kuna, HR, Kuna Croatia
-HTG, Haiti Gourde, HT, Gourde Haiti
-HUF, Hungary Forint, HU, Fforint Hwngari
-IDR, Indonesia Rupiah, ID, Rwpïa Indonesia
-IEP, Irish Pound, IE, Punt Iwerddon
-ILS, Israel New Sheqel, IL, Sicl Newydd Israel
-IMP, Isle of Man Pound, IM, Punt Ynys Manaw
-INR, India Rupee, IN, Rwpî India
-IQD, Iraq Dinar, IQ, Dinar Irac
-IRR, Iran Rial, IR, Rial Iran
-ISK, Iceland Krona, IS, Krona Gwlad yr Iâ
-JEP, Jersey Pound, JE, Punt Jersey
-JMD, Jamaica Dollar, JM, Doler Jamaica
-JOD, Jordan Dinar, JO, Dinar Gwlad yr Iorddonen
-JPY, Japan Yen, JP, Ien Japan
-KES, Kenya Shilling, KE, Swllt Kenya
-KGS, Kyrgyzstan Som, KG, Som Kyrgyzstan
-KHR, Cambodia Riel, KH, Riel Cambodia
-KMF, Comoros Franc, KM, Ffranc y Comoros
-KPW, Korea (North) Won, KP, Won (Gogledd) Corea
-KRW, Korea (South) Won, KR, Won (De) Corea
-KWD, Kuwait Dinar, KW, Dinar Kuwait
-KYD, Cayman Islands Dollar, KY, Doler Ynysoedd Caiman
-KZT, Kazakhstan Tenge, KZ, Tenge Kazakhstan
-LAK, Laos Kip, LA, Kip Laos
-LBP, Lebanon Pound, LB, Punt Libanus
-LKR, Sri Lanka Rupee, LK, Rwpî Sri Lanka
-LRD, Liberia Dollar, LR, Doler Liberia
-LSL, Lesotho Loti, LS, Loti Lesotho
-LTL, Lithuania Litas, LT, Litas Lithuania
-LVL, Latvia Lat, LV, Lat Latvia
-LYD, Libya Dinar, LY, Dinar Libya
-MAD, Morocco Dirham, MA, Dirham Moroco
-MDL, Moldova Leu, MD, Leu Moldova
-MGA, Madagascar Ariary, MG, Ariary Malagasi
-MKD, Macedonia Denar, MK, Denar Macedonia
-MMK, Myanmar Kyat, MM, Kyat Myanmar
-MNT, Mongolia Tugrik, MN, Tögrög Mongolia
-MOP, Macau Pataca, MO, Pataca Macau
-MRO, Mauritania Ouguiya, MR, Ouguiya Mauritania
-MUR, Mauritius Rupee, MU, Rwpî Mauritius
-MVR, Maldives Rufiyaa, MV, Rufiyaa y Maldives
-MWK, Malawi Kwacha, MW, Kwacha Malawi
-MXN, Mexico Peso, MX, Peso Mecsico
-MYR, Malaysia Ringgit, MY, Ringgit Malaysia
-MZN, Mozambique Metical, MZ, Metical Moçambique
-NAD, Namibia Dollar, NA, Doler Namibia
-NGN, Nigeria Naira, NG, Naira Nigeria
-NIO, Nicaragua Cordoba, NI, Cordoba Nicaragua
-NOK, Norway Krone, NO, Krone Norwy
-NPR, Nepal Rupee, NP, Rwpî Nepal
-NZD, New Zealand Dollar, NZ, Doler Seland Newydd
-OMR, Oman Rial, OM, Rial Oman
-PAB, Panama Balboa, PA, Balboa Panamá
-PEN, Peru Nuevo Sol, PE, Nuevo Sol Periw
-PGK, Papua New Guinea Kina, PG, Kina Papua Guinea Newydd
-PHP, Philippines Peso, PH, Peso Pilipinas
-PKR, Pakistan Rupee, PK, Rwpî Pakistan
-PLN, Poland Zloty, PL, Sloti Gwlad Pwyl
-PYG, Paraguay Guarani, PY, Gwarani Paraguay
-QAR, Qatar Riyal, QA, Riyal Qatar
-RON, Romania New Leu, RO, Leu Newydd România
-RSD, Serbia Dinar, XS, Dinar Serbia
-RUB, Russia Ruble, RU, Rŵbl Rwsia
-RWF, Rwanda Franc, RW, Ffranc Rwanda
-SAR, Saudi Arabia Riyal, SA, Riyal Saudi Arabia
-SBD, Solomon Islands Dollar, SB, Doler Ynysoedd Solomon
-SCR, Seychelles Rupee, SC, Rwpî Seychelles
-SDG, Sudan Pound, SD, Punt Swdan
-SEK, Sweden Krona, SE, Krona Sweden
-SGD, Singapore Dollar, SG, Doler Singapôr
-SHP, Saint Helena Pound, SH, Punt Saint Helena
-SLL, Sierra Leone Leone, SL, Leone Sierra Leone
-SOS, Somalia Shilling, SO, Swllt Somalia
-SRD, Suriname Dollar, SR, Doler Suriname
-SSP, South Sudan Pound, SS, Punt De Swdan
-STD, Sao Tome and Principe Dobra, ST, Dobra São Tomé a Príncipe
-SVC, El Salvador Colon, SV, Colon El Salvador
-SYP, Syria Pound, SY, Punt Syria
-SZL, Swaziland Lilangeni, SZ, Lilangeni Eswatini
-THB, Thailand Baht, TH, Baht Gwlad Thai
-TJS, Tajikistan Somoni, TJ, Somoni Tajikistan
-TMT, Turkmenistan New Manat, TM, Manat Newydd Turkmenistan
-TND, Tunisia Dinar, TN, Dinar Tunisia
-TOP, Tonga Pa'anga, TO, Pa’anga Tonga
-TRY, Turkey Lira, TR, Lira Twrci
-TTD, Trinidad and Tobago Dollar, TT, Doler Trinidad a Thobago
-TVD, Tuvalu Dollar, TV, Doler Tuvalu
-TWD, Taiwan New Dollar, TW, Doler Taiwan
-TZS, Tanzania Shilling, TZ, Swllt Tanzania
-UAH, Ukraine Hryvnia, UA, Hryvnia Ukrain
-UGX, Uganda Shilling, UG, Swllt Uganda
-USD, United States Dollar, US, Doler yr Unol Daleithiau
-UYU, Uruguay Peso, UY, Peso Uruguay
-UZS, Uzbekistan Som, UZ, Som Uzbekistan
-VEF, Venezuela Bolivar, VE, Bolifar Venezuela
-VND, Vietnam Dong, VN, Dong Viet Nam
-VUV, Vanuatu Vatu, VU, Vatu Vanuatu
-WST, Samoa Tala, WS, Tala Samoa
-XAF, CFA Franc BEAC, CM, Ffranc CFA BEAC
-XAG, Silver Ounce, NULL, Owns Arian
-XAU, Gold Ounce, NULL, Owns Aur
-XCD, East Caribbean Dollar, AG, Doler Dwyrain y Caribî
-XOF, CFA Franc BCEAO, BJ, Ffranc CFA BCEAO
-XPF, CFP Franc, PF, Ffranc CFP
-YER, Yemen Rial, YE, Rial Yemen
-ZAR, South Africa Rand, ZA, Rand De Affrica
-ZMW, Zambia Kwacha, ZM, Kwacha Zambia
-ZWD, Zimbabwe Dollar, ZW , Zimbabwe
-ZZZ, Euro Combined Currency, NULL, Arian Cyfred Cyfunol yr Ewro
+CurrencyCode,KeyWords,Name,Name-cy,Priority,CountryCode
+AED,,United Arab Emirates Dirham - AED,Dirham yr Emiraethau Arabaidd Unedig - AED,,AE
+AFN,,Afghanistan Afghani - AFN,Afghani Afghanistan - AFN,,AF
+ALL,,Albania Lek - ALL,Lek Albania - ALL,,AL
+AMD,,Armenia Dram - AMD,Dram Armenia - AMD,,AM
+ANG,,Netherlands Antilles Guilder - ANG,Guilder Antilles yr Iseldiroedd - ANG,,CW
+AOA,,Angola Kwanza - AOA,Kwanza Angola - AOA,,AO
+ARS,,Argentina Peso - ARS,Peso’r Ariannin - ARS,,AR
+AUD,$,Australia Dollar - AUD,Doler Awstralia - AUD,10,AU
+AWG,,Aruba Florin - AWG,Fflorin Arwba - AWG,,AW
+AZM,,Azerbaijani manat - AZM,Manat Azerbaijan - AZM,,AZ
+AZN,,Azerbaijan Manat - AZN,Manat Azerbaijan - AZN,,AZ
+BAM,,Bosnia and Herzegovina Convertible Mark - BAM,Marc Bosnia a Herzegovina - BAM,,BA
+BBD,,Barbados Dollar - BBD,Doler Barbados - BBD,,BB
+BDT,,Bangladesh Taka - BDT,Taka Bangladesh - BDT,,BD
+BGN,,Bulgaria Lev - BGN,Lev Bwlgaria - BGN,,BG
+BHD,,Bahrain Dinar - BHD,Dinar Bahrain - BHD,,BH
+BIF,,Burundi Franc - BIF,Ffranc Burundi - BIF,,BI
+BMD,,Bermuda Dollar - BMD,Doler Bermuda - BMD,,BM
+BND,,Brunei Darussalam Dollar - BND,Doler Brunei Darussalam - BND,,BN
+BOB,,Bolivia Boliviano - BOB,Boliviano Bolivia - BOB,,BO
+BRL,,Brazil Real - BRL,Real Brasil - BRL,,BR
+BSD,,Bahamas Dollar - BSD,Doler y Bahamas - BSD,,BS
+BTN,,Bhutan Ngultrum - BTN,Ngultrum Bhutan - BTN,,BT
+BWP,,Botswana Pula - BWP,Pula Botswana - BWP,,BW
+BYR,,Belarus Ruble - BYR,Rwbl Belarus - BYR,,BY
+BZD,,Belize Dollar - BZD,Doler Belize - BZD,,BZ
+CAD,$,Canada Dollar - CAD,Doler Canada - CAD,10,CA
+CDF,,Congo Franc - CDF,Ffranc Congo - CDF,,CG
+CHF,,Switzerland Franc - CHF,Ffranc y Swistir - CHF,,CH
+CLP,,Chile Peso - CLP,Peso Chile - CLP,,CL
+CNY,,China Yuan Renminbi - CNY,Iwan Renminbi Tsieina - CNY,10,CN
+COP,,Colombia Peso - COP,Peso Colombia - COP,,CO
+CRC,,Costa Rica Colon - CRC,Colon Costa Rica - CRC,,CR
+CUC,,Cuba Convertible Peso - CUC,Peso Cyfnewidiol Cuba - CUC,,NULL
+CUP,,Cuba Peso - CUP,"	Peso Cuba - CUP",,"	CU"
+CVE,,Cape Verde Escudo - CVE,Esgwdo Cabo Verde - CVE,,CV
+CZK,,Czech Republic Koruna - CZK,Koruna y Weriniaeth Tsiec - CZK,,CZ
+DEM,,Deutsche Mark - DEM,Marc yr Almaen - DEM,,DE
+DJF,,Djibouti Franc - DJF,Ffranc Djibouti - DJF,,DJ
+DKK,,Denmark Krone - DKK,Krone Denmarc - DKK,,DK
+DOP,,Dominican Republic Peso - DOP,Peso Gweriniaeth Dominica - DOP,,DO
+DZD,,Algeria Dinar - DZD,Dinar Algeria - DZD,,DZ
+EGP,,Egypt Pound - EGP,Punt yr Aifft - EGP,,EG
+ERN,,Eritrea Nakfa - ERN,Nakfa Eritrea - ERN,,ER
+ETB,,Ethiopia Birr - ETB,Birr Ethiopia - ETB,,ET
+EUR,€,Euro - EUR,Ewro - EUR,20,NULL
+FJD,,Fiji Dollar - FJD,Doler Ffiji - FJD,,FJ
+FKP,,Falkland Islands (Malvinas) Pound - FKP,Punt Ynysoedd y Falkland (Malvinas) - FKP,,FK
+GBP,United Kingdom Great Britain Sterling £,British Pound - GBP,Punt y Deyrnas Unedig - GBP,30,UK
+GEL,,Georgia Lari - GEL,Lari Georgia - GEL,,GE
+GGP,,Guernsey Pound - GGP,Punt Guernsey - GGP,,GG
+GHS,,Ghana Cedi - GHS,Cedi Ghana - GHS,,GH
+GIP,,Gibraltar Pound - GIP,Punt Gibraltar - GIP,,GI
+GMD,,Gambia Dalasi - GMD,Dalasi Gambia - GMD,,GM
+GNF,,Guinea Franc - GNF,Franc Guinée - GNF,,GN
+GTQ,,Guatemala Quetzal - GTQ,Cwetsal Guatemala - GTQ,,GT
+GYD,,Guyana Dollar - GYD,Doler Guyana - GYD,,GY
+HKD,,Hong Kong Dollar - HKD,Doler Hong Kong - HKD,10,HK
+HNL,,Honduras Lempira - HNL,Lempira Honduras - HNL,,HN
+HRK,,Croatia Kuna - HRK,Kuna Croatia - HRK,,HR
+HTG,,Haiti Gourde - HTG,Gourde Haiti - HTG,,HT
+HUF,,Hungary Forint - HUF,Fforint Hwngari - HUF,,HU
+IDR,,Indonesia Rupiah - IDR,Rwpïa Indonesia - IDR,,ID
+ILS,,Israel New Sheqel - ILS,Sicl Newydd Israel - ILS,,IL
+IMP,,Isle of Man Pound - IMP,Punt Ynys Manaw - IMP,,IM
+INR,,India Rupee - INR,Rwpî India - INR,,IN
+IQD,,Iraq Dinar - IQD,Dinar Irac - IQD,,IQ
+IRR,,Iran Rial - IRR,Rial Iran - IRR,,IR
+ISK,,Iceland Krona - ISK,Krona Gwlad yr Iâ - ISK,,IS
+JEP,,Jersey Pound - JEP,Punt Jersey - JEP,,JE
+JMD,,Jamaica Dollar - JMD,Doler Jamaica - JMD,,JM
+JOD,,Jordan Dinar - JOD,Dinar Gwlad yr Iorddonen - JOD,,JO
+JPY,,Japan Yen - JPY,Ien Japan - JPY,10,JP
+KES,,Kenya Shilling - KES,Swllt Kenya - KES,,KE
+KGS,,Kyrgyzstan Som - KGS,Som Kyrgyzstan - KGS,,KG
+KHR,,Cambodia Riel - KHR,Riel Cambodia - KHR,,KH
+KMF,,Comoros Franc - KMF,Ffranc y Comoros - KMF,,KM
+KPW,,Korea (North) Won - KPW,Won (Gogledd) Corea - KPW,,KP
+KRW,,Korea (South) Won - KRW,Won (De) Corea - KRW,,KR
+KWD,,Kuwait Dinar - KWD,Dinar Kuwait - KWD,,KW
+KYD,,Cayman Islands Dollar - KYD,Doler Ynysoedd Caiman - KYD,,KY
+KZT,,Kazakhstan Tenge - KZT,Tenge Kazakhstan - KZT,,KZ
+LAK,,Laos Kip - LAK,Kip Laos - LAK,,LA
+LBP,,Lebanon Pound - LBP,Punt Libanus - LBP,,LB
+LKR,,Sri Lanka Rupee - LKR,Rwpî Sri Lanka - LKR,,LK
+LRD,,Liberia Dollar - LRD,Doler Liberia - LRD,,LR
+LSL,,Lesotho Loti - LSL,Loti Lesotho - LSL,,LS
+LTL,,Lithuania Litas - LTL,Litas Lithuania - LTL,,LT
+LVL,,Latvia Lat - LVL,Lat Latvia - LVL,,LV
+LYD,,Libya Dinar - LYD,Dinar Libya - LYD,,LY
+MAD,,Morocco Dirham - MAD,Dirham Moroco - MAD,,MA
+MDL,,Moldova Leu - MDL,Leu Moldova - MDL,,MD
+MGA,,Madagascar Ariary - MGA,Ariary Malagasi - MGA,,MG
+MKD,,Macedonia Denar - MKD,Denar Macedonia - MKD,,MK
+MMK,,Myanmar Kyat - MMK,Kyat Myanmar - MMK,,MM
+MNT,,Mongolia Tugrik - MNT,Tögrög Mongolia - MNT,,MN
+MOP,,Macau Pataca - MOP,Pataca Macau - MOP,,MO
+MRO,,Mauritania Ouguiya - MRO,Ouguiya Mauritania - MRO,,MR
+MUR,,Mauritius Rupee - MUR,Rwpî Mauritius - MUR,,MU
+MVR,,Maldives Rufiyaa - MVR,Rufiyaa y Maldives - MVR,,MV
+MWK,,Malawi Kwacha - MWK,Kwacha Malawi - MWK,,MW
+MXN,,Mexico Peso - MXN,Peso Mecsico - MXN,,MX
+MYR,,Malaysia Ringgit - MYR,Ringgit Malaysia - MYR,,MY
+MZN,,Mozambique Metical - MZN,Metical Moçambique - MZN,,MZ
+NAD,,Namibia Dollar - NAD,Doler Namibia - NAD,,NA
+NGN,,Nigeria Naira - NGN,Naira Nigeria - NGN,,NG
+NIO,,Nicaragua Cordoba - NIO,Cordoba Nicaragua - NIO,,NI
+NOK,,Norway Krone - NOK,Krone Norwy - NOK,,NO
+NPR,,Nepal Rupee - NPR,Rwpî Nepal - NPR,,NP
+NZD,,New Zealand Dollar - NZD,Doler Seland Newydd - NZD,10,NZ
+OMR,,Oman Rial - OMR,Rial Oman - OMR,,OM
+PAB,,Panama Balboa - PAB,Balboa Panamá - PAB,,PA
+PEN,,Peru Nuevo Sol - PEN,Nuevo Sol Periw - PEN,,PE
+PGK,,Papua New Guinea Kina - PGK,Kina Papua Guinea Newydd - PGK,,PG
+PHP,,Philippines Peso - PHP,Peso Pilipinas - PHP,,PH
+PKR,,Pakistan Rupee - PKR,Rwpî Pakistan - PKR,,PK
+PLN,,Poland Zloty - PLN,Sloti Gwlad Pwyl - PLN,,PL
+PYG,,Paraguay Guarani - PYG,Gwarani Paraguay - PYG,,PY
+QAR,,Qatar Riyal - QAR,Riyal Qatar - QAR,,QA
+RON,,Romania New Leu - RON,Leu Newydd România - RON,,RO
+RSD,,Serbia Dinar - RSD,Dinar Serbia - RSD,,XS
+RUB,,Russia Ruble - RUB,Rwbl Rwsia - RUB,10,RU
+RWF,,Rwanda Franc - RWF,Ffranc Rwanda - RWF,,RW
+SAR,,Saudi Arabia Riyal - SAR,Riyal Saudi Arabia - SAR,,SA
+SBD,,Solomon Islands Dollar - SBD,Doler Ynysoedd Solomon - SBD,,SB
+SCR,,Seychelles Rupee - SCR,Rwpî Seychelles - SCR,,SC
+SDG,,Sudan Pound - SDG,Punt Swdan - SDG,,SD
+SEK,,Sweden Krona - SEK,Krona Sweden - SEK,,SE
+SGD,,Singapore Dollar - SGD,Doler Singapôr - SGD,,SG
+SHP,,Saint Helena Pound - SHP,Punt Saint Helena - SHP,,SH
+SLL,,Sierra Leone Leone - SLL,Leone Sierra Leone - SLL,,SL
+SOS,,Somalia Shilling - SOS,Swllt Somalia - SOS,,SO
+SRD,,Suriname Dollar - SRD,Doler Suriname - SRD,,SR
+SSP,,South Sudan Pound - SSP,Punt De Swdan - SSP,,SS
+STD,,Sao Tome and Principe Dobra - STD,Dobra São Tomé a Príncipe - STD,,ST
+SVC,,El Salvador Colon - SVC,Colon El Salvador - SVC,,SV
+SYP,,Syria Pound - SYP,Punt Syria - SYP,,SY
+SZL,,Swaziland Lilangeni - SZL,Lilangeni Eswatini - SZL,,SZ
+THB,,Thailand Baht - THB,Baht Gwlad Thai - THB,,TH
+TJS,,Tajikistan Somoni - TJS,Somoni Tajikistan - TJS,,TJ
+TMT,,Turkmenistan New Manat - TMT,Manat Newydd Turkmenistan - TMT,,TM
+TND,,Tunisia Dinar - TND,Dinar Tunisia - TND,,TN
+TOP,,Tonga Pa'anga - TOP,Pa’anga Tonga - TOP,,TO
+TRY,,Turkey Lira - TRY,Lira Twrci - TRY,,TR
+TTD,,Trinidad and Tobago Dollar - TTD,Doler Trinidad a Thobago - TTD,,TT
+TVD,,Tuvalu Dollar - TVD,Doler Tuvalu - TVD,,TV
+TWD,,Taiwan New Dollar - TWD,Doler Taiwan - TWD,,TW
+TZS,,Tanzania Shilling - TZS,Swllt Tanzania - TZS,,TZ
+UAH,,Ukraine Hryvnia - UAH,Hryvnia Ukrain - UAH,,UA
+UGX,,Uganda Shilling - UGX,Swllt Uganda - UGX,,UG
+USD,$,United States Dollar - USD,Doler yr Unol Daleithiau - USD,20,US
+UYU,,Uruguay Peso - UYU,Peso Uruguay - UYU,,UY
+UZS,,Uzbekistan Som - UZS,Som Uzbekistan - UZS,,UZ
+VEF,,Venezuela Bolivar - VEF,Bolifar Venezuela - VEF,,VE
+VND,,Vietnam Dong - VND,Dong Viet Nam - VND,,VN
+VUV,,Vanuatu Vatu - VUV,Vatu Vanuatu - VUV,,VU
+WST,,Samoa Tala - WST,Tala Samoa - WST,,WS
+XAF,,CFA Franc BEAC - XAF,Ffranc CFA BEAC - XAF,,CM
+XAG,,Silver Ounce - XAG,Owns Arian - XAG,,NULL
+XAU,,Gold Ounce - XAU,Owns Aur - XAU,,NULL
+XCD,,East Caribbean Dollar - XCD,Doler Dwyrain y Caribî - XCD,,AG
+XOF,,CFA Franc BCEAO - XOF,Ffranc CFA BCEAO - XOF,,BJ
+XPF,,CFP Franc - XPF,Ffranc CFP - XPF,,PF
+YER,,Yemen Rial - YER,Rial Yemen - YER,,YE
+ZAR,,South Africa Rand - ZAR,Rand De Affrica - ZAR,,ZA
+ZMW,,Zambia Kwacha - ZMW,Kwacha Zambia - ZMW,,ZM
+ZWD,,Zimbabwe Dollar - ZWD,Zimbabwe - ZWD,,ZW 

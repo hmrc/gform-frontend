@@ -962,9 +962,8 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
   }
 
   private val lookupRegistry = new LookupRegistry(
-    Map(
-      Register.Origin -> RadioLookup(LocalisedLookupOptions(
-        Map(LangADT.En -> LookupOptions(Map(LookupLabel("fieldValue") -> LookupInfo(LookupId("field_id"), 1))))))))
+    Map(Register.Origin -> RadioLookup(LocalisedLookupOptions(
+      Map(LangADT.En -> LookupOptions(Map(LookupLabel("fieldValue") -> DefaultLookupInfo(LookupId("field_id"), 1))))))))
 
   private def validate[A](formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo], expected: A)(
     implicit position: Position,

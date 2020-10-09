@@ -431,7 +431,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
         case RadioLookup(options)      => options.lookupInfo(label)
         case AjaxLookup(options, _, _) => options.lookupInfo(label)
       } match {
-      case Some(LookupInfo(LookupId(id), _)) => id.pure[F]
+      case Some(lookupInfo) => lookupInfo.id.id.pure[F]
       case None =>
         me.raiseError(StructuredFormDataBuilderException(s"Cannot find '${label.label}' in register $register"))
     }
