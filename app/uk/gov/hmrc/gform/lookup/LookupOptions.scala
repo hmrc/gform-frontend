@@ -24,6 +24,20 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
 
   def keys: Iterable[LookupLabel] = options.keys
 
-  def sorted = options.toList.sortBy { case (_, LookupInfo(_, idx)) => idx }.map(_._1)
+  def sortLookupByIdx: List[LookupLabel] =
+    options.toList
+      .sortBy {
+        case (_, lookupInfo) => lookupInfo.index
+      }
+      .map(_._1)
 
+  def sortLookupByPriorityAndLabel: List[LookupLabel] =
+    options.toList
+      .sortBy {
+        case (label, DefaultLookupInfo(_, _))                  => (LookupPriority(1), label)
+        case (label, CountryLookupInfo(_, _, _, priority, _))  => (priority, label)
+        case (label, CurrencyLookupInfo(_, _, _, priority, _)) => (priority, label)
+        case (label, PortLookupInfo(_, _, _, priority, _, _))  => (priority, label)
+      }
+      .map(_._1)
 }
