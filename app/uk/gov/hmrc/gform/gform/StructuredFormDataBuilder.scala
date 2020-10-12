@@ -99,7 +99,7 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
     implicit l: LangADT): F[List[Field]] = {
     val maybeField: F[Option[Field]] = nonGroupField.`type` match {
       case mf: MultiField     => buildMultiField(nonGroupField, mf, repeatable).pure[F]
-      case r: RevealingChoice => buildRevealingChoiceFields(nonGroupField.id, r)
+      case r: RevealingChoice => buildRevealingChoiceFields(nonGroupField.id, r, repeatable)
       case _ =>
         formValuesByUnindexedId
           .get(nonGroupField.id)
@@ -190,18 +190,44 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
     elementsF.map(elements => Field(FieldName(field.id.value), ArrayNode(elements), Map.empty))
   }
 
-  private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice)(
-    implicit l: LangADT): F[Option[Field]] =
-    formValuesByUnindexedId.get(id).map(_.head).flatTraverse { selectionStr =>
-      if (selectionStr.isEmpty) {
-        Option.empty[Field].pure[F]
-      } else {
-        if (revealingChoice.multiValue)
-          buildMultiValueRevealingChoiceFields(id, revealingChoice, selectionStr.split(",").map(_.toInt).toList)
-        else
-          buildSingleValueRevealingChoiceFields(id, revealingChoice, selectionStr.toInt)
+  private def buildRevealingChoiceSelection(
+    selectionStr: String,
+    id: FormComponentId,
+    revealingChoice: RevealingChoice)(implicit l: LangADT): F[Option[Field]] =
+    if (selectionStr.isEmpty) {
+      Option.empty[Field].pure[F]
+    } else {
+      if (revealingChoice.multiValue)
+        buildMultiValueRevealingChoiceFields(id, revealingChoice, selectionStr.split(",").map(_.toInt).toList)
+      else
+        buildSingleValueRevealingChoiceFields(id, revealingChoice, selectionStr.toInt)
+    }
+
+  private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice, repeatable: Boolean)(
+    implicit l: LangADT): F[Option[Field]] = {
+
+    val values: Option[NonEmptyList[String]] = formValuesByUnindexedId.get(id)
+
+    if (repeatable) {
+      val fields1: F[Option[NonEmptyList[Option[Field]]]] = values.traverse { nelValues =>
+        nelValues.traverse { selectionStr =>
+          buildRevealingChoiceSelection(selectionStr, id, revealingChoice)
+        }
+      }
+
+      val fields2: F[Option[NonEmptyList[Field]]] = fields1.map(_.flatSequence).map(_.sequence)
+
+      fields2.map(_.map { nel =>
+        val values = nel.toList.map(_.value)
+        Field(nel.head.name, ArrayNode(values))
+      })
+
+    } else {
+      values.map(_.head).flatTraverse { selectionStr =>
+        buildRevealingChoiceSelection(selectionStr, id, revealingChoice)
       }
     }
+  }
 
   private def buildMultiValueRevealingChoiceFields(
     id: FormComponentId,
