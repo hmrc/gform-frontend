@@ -30,7 +30,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 696,KR,3,SEL,,Seoul Seaport - SEL,,4,NULL,0
 735,LY,3,TIP,,Tripoli Seaport - TIP,,4,NULL,0
 836,NG,2,LOS,,Lagos Airport - LOS,,4,NULL,0
-852,NL,2,AMS,,Amsterdam Airport - AMS,,3,NULL,0
+852,NL,2,AMS,Schiphol Holland Netherlands,Amsterdam Airport - AMS,20,3,NULL,0
 854,NL,3,BON,,Born Seaport - BON,,3,NULL,0
 863,NL,3,BRS,,Breskens Seaport - BRS,,3,NULL,0
 968,RU,2,MOW,,Moskva - MOW,,4,NULL,0
@@ -38,12 +38,12 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 1009,SE,2,BMA,,Bromma Apt/Stockholm Airport - BMA,,3,NULL,0
 1012,SE,3,MMA,,Malmö Seaport - MMA,,3,NULL,0
 1022,SG,3,SIN,,Port of Singapore Seaport - SIN,,4,NULL,1
-1023,SG,2,SIN,,Singapore Airport - SIN,,4,NULL,0
+1023,SG,2,SIN,Singapore Changi,Singapore Airport - SIN,20,4,NULL,0
 1055,TH,3,BKK,,Bangkok Seaport - BKK,,4,NULL,0
 1065,TH,3,PKK,,Prachuap Khiri Khan Seaport - PKK,,4,NULL,0
 1081,TR,3,IST,,Istanbul Seaport - IST,,4,NULL,0
 1152,UK,3,HEA,,Heacham - HEA,,1,NULL,0
-1153,UK,2,LHR,,London Heathrow Airport - LHR,20,1,NULL,0
+1153,UK,2,LHR,,London Heathrow Airport - LHR,30,1,NULL,0
 1155,UK,2,ABE,,Aberdeen Airport - ABE,,1,NULL,0
 1159,UK,2,AMS,,Amesbury - AMS,,1,NULL,0
 1160,UK,2,BEL,,Belfast - BEL,,2,NULL,0
@@ -90,7 +90,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 1266,UK,2,SOU,,Southampton Airport - SOU,,1,NULL,0
 1273,UK,3,TEE,,Teesport Seaport - TEE,,1,NULL,0
 1277,UK,3,CHA,,Cheadle - CHA,,1,NULL,0
-1280,UK,2,LGW,,London Gatwick Airport - LGW,10,1,NULL,0
+1280,UK,2,LGW,,London Gatwick Airport - LGW,20,1,NULL,0
 1299,UK,3,PEM,,Pembroke Seaport - PEM,,1,NULL,0
 1304,UK,3,POO,,Poole Seaport - POO,,1,NULL,0
 1319,UK,3,WEY,,Weymouth Seaport - WEY,,1,NULL,0
@@ -100,13 +100,13 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 1330,US,3,MLU,,Monroe - MLU,,4,NULL,0
 1333,US,3,ACC,,Raymond Port Dock - ACC,,4,NULL,0
 1352,US,3,CHI,,Port of Chicago - CHI,,4,NULL,0
-1390,US,2,JFK,,John F. Kennedy Apt/New York Airport - JFK,,4,NULL,0
+1390,US,2,JFK,,"John F. Kennedy Airport, New York - JFK",20,4,NULL,0
 1399,US,3,LLC,,Leland Seaport - LLC,,4,NULL,0
 1408,US,2,MIO,,Miami Municipal Airport  - MIO,,4,NULL,0
 1417,US,3,NYC,,New York Seaport - NYC,,4,NULL,0
 1423,US,2,ORL,,Orlando International Airport - ORL,,4,NULL,0
 3001,AC,2,ACI,,Alderney Airport - ACI,,4,NULL,1
-3006,AE,2,AUH,,Abu Dhabi International Airport - AUH,,4,NULL,1
+3006,AE,2,AUH,UAE United Arab Emirates,Abu Dhabi International Airport - AUH,,4,NULL,1
 3007,AE,2,AJM,,Ajman International Airport - AJM,,4,NULL,1
 3009,AE,2,AAN,,Al Ain International Airport - AAN,,4,NULL,1
 3012,AE,2,DWC,,Al Maktoum International Airport - DWC,,4,NULL,1
@@ -116,7 +116,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 3017,AE,2,DAS,,Das Island Airport (Oeon Airport) - DAS,,4,NULL,1
 3018,AE,2,ZDY,,Delma Airport - ZDY,,4,NULL,1
 3020,AE,2,DCG,,Dubai Creek SPB Airport - DCG,,4,NULL,1
-3021,AE,2,DXB,,Dubai International Airport - DXB,,4,NULL,1
+3021,AE,2,DXB,UAE United Arab Emirates,Dubai International Airport - DXB,30,4,NULL,1
 3024,AE,2,FJR,,Fujairah International Airport - FJR,,4,NULL,1
 3025,AE,3,HAM,,Hamriyah Seaport - HAM,,4,NULL,1
 3026,AE,3,JEA,,Jebel Ali Seaport - JEA,,4,NULL,1
@@ -2505,7 +2505,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 8861,CN,3,BAY,,Bayuquan Seaport - BAY,,4,NULL,1
 8862,CN,2,BHY,,Beihai Fucheng Airport - BHY,,4,NULL,1
 8864,CN,3,BJO,,Beijiao Seaport - BJO,,4,NULL,1
-8867,CN,2,PEK,,Beijing Capital International Airport - PEK,,4,NULL,1
+8867,CN,2,PEK,,Beijing Capital International Airport - PEK,30,4,NULL,1
 8868,CN,2,NAY,,Beijing Nanyuan Airport - NAY,,4,NULL,1
 8869,CN,3,BFU,,Bengbu Seaport - BFU,,4,NULL,1
 8873,CN,3,BUJ,,Buji Seaport - BUJ,,4,NULL,1
@@ -2520,7 +2520,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 8887,CN,2,CZX,,Changzhou Benniu Airport - CZX,,4,NULL,1
 8889,CN,2,WUZ,,Wuzhou Xijiang Airport - WUZ,,4,NULL,1
 8891,CN,2,CHG,,Chaoyang Airport - CHG,,4,NULL,1
-8894,CN,2,CTU,,Chengdu Shuangliu International Airport - CTU,,4,NULL,1
+8894,CN,2,CTU,,Chengdu Shuangliu International Airport - CTU,10,4,NULL,1
 8898,CN,3,CLJ,,Chenglingji Seaport - CLJ,,4,NULL,1
 8899,CN,2,CIF,,Chifeng Yulong Airport - CIF,,4,NULL,1
 8900,CN,3,CWN,,Chiwan Seaport - CWN,,4,NULL,1
@@ -2555,7 +2555,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 8963,CN,2,SZV,,Guangfu Airport - SZV,,4,NULL,1
 8965,CN,2,GHN,,Guanghan Airport - GHN,,4,NULL,1
 8966,CN,2,GYS,,Guangyuan Airport - GYS,,4,NULL,1
-8967,CN,2,CAN,,Guangzhou Baiyun International Airport - CAN,,4,NULL,1
+8967,CN,2,CAN,,Guangzhou Baiyun International Airport - CAN,20,4,NULL,1
 8971,CN,3,GUG,,Guigang Seaport - GUG,,4,NULL,1
 8972,CN,2,KWL,,Guilin Liangjiang International Airport - KWL,,4,NULL,1
 8974,CN,2,KWE,,Guiyang Longdongbao International Airport - KWE,,4,NULL,1
@@ -2669,14 +2669,14 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 9192,CN,2,SYX,,Sanya Phoenix International Airport - SYX,,4,NULL,1
 9192,CN,3,SYX,,Sanya Seaport - SYX,,4,NULL,1
 9196,CN,2,SHA,,Shanghai Hongqiao International Airport - SHA,,4,NULL,1
-9198,CN,2,PVG,,Shanghai Pudong International Airport - PVG,,4,NULL,1
+9198,CN,2,PVG,,Shanghai Pudong International Airport - PVG,30,4,NULL,1
 9204,CN,3,SWE,,Shanwei Seaport - SWE,,4,NULL,1
 9205,CN,2,HSC,,Shaoguan Guitou Airport  - HSC,,4,NULL,1
 9208,CN,2,SHS,,Shashi Airport - SHS,,4,NULL,1
 9212,CN,2,SQJ,,Shaxian Airport - SQJ,,4,NULL,1
 9213,CN,3,SHK,,Shekou Seaport - SHK,,4,NULL,1
 9214,CN,2,SHE,,Shenyang Taoxian International Airport - SHE,,4,NULL,1
-9215,CN,2,SZX,,Shenzhen Bao'an International Airport - SZX,,4,NULL,1
+9215,CN,2,SZX,,Shenzhen Bao'an International Airport - SZX,10,4,NULL,1
 9217,CN,3,SHD,,Shidao Seaport - SHD,,4,NULL,1
 9219,CN,2,SJW,,Shijiazhuang Zhengding International Airport - SJW,,4,NULL,1
 9227,CN,3,SUD,,Shunde Seaport - SUD,,4,NULL,1
@@ -3196,7 +3196,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 10516,DE,2,XFW,,Hamburg Finkenwerder Airport - XFW,,3,NULL,1
 10520,DE,2,FLF,,Flensburg Airport - FLF,,3,NULL,1
 10523,DE,2,MUC,,Flughafen München-Riem Airport - MUC,,3,NULL,1
-10531,DE,2,FRA,,Frankfurt am Main International Airport - FRA,,3,NULL,1
+10531,DE,2,FRA,,Frankfurt am Main International Airport - FRA,20,3,NULL,1
 10533,DE,3,FFO,,"Frankfurt, Oder Seaport - FFO",,3,NULL,1
 10534,DE,2,QEF,,Frankfurt-Egelsbach Airport - QEF,,3,NULL,1
 10544,DE,3,FRE,,Fresenburg Seaport - FRE,,3,NULL,1
@@ -3787,7 +3787,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 12940,ER,3,MSW,,Massawa - MSW,,4,NULL,1
 12942,ER,2,TES,,Tesneyi Airport - TES,,4,NULL,1
 12943,ES,2,LCG,,La Coruña Airport - LCG,,3,NULL,1
-12948,ES,2,MAD,,Adolfo Suárez Madrid–Barajas Airport - MAD,,3,NULL,1
+12948,ES,2,MAD,Madrid Barajas Airport,Adolfo Suárez Madrid–Barajas Airport - MAD,10,3,NULL,1
 12949,ES,3,ADR,,Adra Seaport - ADR,,3,NULL,1
 12950,ES,3,AGA,,Agaete Seaport - AGA,,3,NULL,1
 12956,ES,3,AGU,,Aguilas Seaport - AGU,,3,NULL,1
@@ -3812,7 +3812,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 13092,ES,3,AYA,,Ayamonte Seaport - AYA,,3,NULL,1
 13098,ES,2,BJZ,,Badajoz Airport - BJZ,,3,NULL,1
 13110,ES,3,BDF,,Barbate de Franco Seaport - BDF,,3,NULL,1
-13112,ES,2,BCN,,Barcelona Airport - BCN,,3,NULL,1
+13112,ES,2,BCN,Barcelona El Prat,Barcelona Airport - BCN,10,3,NULL,1
 13130,ES,3,BEM,,Benidorm Seaport - BEM,,3,NULL,1
 13137,ES,3,BRM,,Bermeo Seaport - BRM,,3,NULL,1
 13142,ES,2,BIO,,Bilbao Airport - BIO,,3,NULL,1
@@ -4204,7 +4204,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 14820,FR,3,CSS,,Chalon sur Saone Seaport - CSS,,3,NULL,1
 14821,FR,3,CSM,,Châlons-en-Champagne Seaport - CSM,,3,NULL,1
 14822,FR,2,CMF,,Chambéry-Savoie Airport - CMF,,3,NULL,1
-14841,FR,2,CDG,,Charles de Gaulle Airport - CDG,,3,NULL,1
+14841,FR,2,CDG,,Charles de Gaulle Airport - CDG,30,3,NULL,1
 14845,FR,3,CHM,,Charleville Mezieres Seaport - CHM,,3,NULL,1
 14846,FR,2,XCZ,,Charleville-Mézières Airport - XCZ,,3,NULL,1
 14875,FR,3,CMT,,Chaumont Seaport - CMT,,3,NULL,1
@@ -4659,7 +4659,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 17247,GY,2,PKM,,Port Kaituma Airport - PKM,,4,NULL,1
 17248,GY,2,SDC,,Sand Creek Airport - SDC,,4,NULL,1
 17250,GY,2,SKM,,Skeldon Airport - SKM,,4,NULL,1
-17253,HK,2,HKG,,Hong Kong International Airport - HKG,,4,NULL,1
+17253,HK,2,HKG,,Hong Kong International Airport - HKG,20,4,NULL,1
 17262,HN,2,AHS,,Ahuas Airport - AHS,,4,NULL,1
 17264,HN,2,AMP,,Amapala Airport - AMP,,4,NULL,1
 17265,HN,2,BHG,,Brus Laguna Airport - BHG,,4,NULL,1
@@ -4811,7 +4811,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 17637,ID,2,IUL,,Ilu Airport - IUL,,4,NULL,1
 17638,ID,2,INX,,Inanwatan Airport - INX,,4,NULL,1
 17639,ID,2,PKN,,Iskandar Airport - PKN,,4,NULL,1
-17641,ID,2,CGK,,Soekarno-Hatta International Airport - CGK,,4,NULL,1
+17641,ID,2,CGK,,Soekarno-Hatta International Airport - CGK,10,4,NULL,1
 17643,ID,2,DJB,,Sultan Thaha Airport - DJB,,4,NULL,1
 17644,ID,2,RGT,,Japura Airport - RGT,,4,NULL,1
 17647,ID,3,DJJ,,Port of Jayapura Seaport - DJJ,,4,NULL,1
@@ -5128,7 +5128,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 18496,IN,2,HBX,,Hubli Airport - HBX,,4,NULL,1
 18498,IN,2,HYD,,Hyderabad Airport - HYD,,4,NULL,1
 18499,IN,2,IMF,,Imphal Airport - IMF,,4,NULL,1
-18501,IN,2,DEL,,"Indira Gandhi International Airport, Delhi - DEL",,4,NULL,1
+18501,IN,2,DEL,,"Indira Gandhi International Airport, Delhi - DEL",20,4,NULL,1
 18503,IN,2,JLR,,Jabalpur Airport - JLR,,4,NULL,1
 18505,IN,3,JBD,,Jafrabad Seaport - JBD,,4,NULL,1
 18506,IN,2,JGB,,Jagdalpur Airport - JGB,,4,NULL,1
@@ -6737,7 +6737,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 20791,JP,3,HNK,,Hanasaki Seaport - HNK,,4,NULL,1
 20792,JP,3,HDA,,Handa Seaport - HDA,,4,NULL,1
 20793,JP,3,HNE,,Hane Seaport - HNE,,4,NULL,1
-20794,JP,2,HND,,"Haneda Airport, Tokyo Airport - HND",,4,NULL,1
+20794,JP,2,HND,,"Haneda Airport, Tokyo Airport - HND",30,4,NULL,1
 20795,JP,3,HAN,,Hannan Seaport - HAN,,4,NULL,1
 20796,JP,3,HUR,,Hannoura Seaport - HUR,,4,NULL,1
 20797,JP,3,HNY,,Hanyu Seaport - HNY,,4,NULL,1
@@ -8144,7 +8144,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 22436,KR,2,GMP,,Gimpo International Airport - GMP,,4,NULL,1
 22437,KR,3,KUV,,Kunsan Seaport - KUV,,4,NULL,1
 22439,KR,2,KWJ,,Gwangju Airport - KWJ,,4,NULL,1
-22442,KR,2,ICN,,Incheon International Airport - ICN,,4,NULL,1
+22442,KR,2,ICN,Seoul Korea,Incheon International Airport - ICN,20,4,NULL,1
 22446,KR,2,CJU,,Jeju International Airport - CJU,,4,NULL,1
 22447,KR,2,CHN,,Jeon Ju Airport - CHN,,4,NULL,1
 22448,KR,2,JDG,,Jeongseok Airport - JDG,,4,NULL,1
@@ -8710,7 +8710,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 23802,MY,2,KTE,,Kerteh Airport - KTE,,4,NULL,1
 23807,MY,2,KBR,,Sultan Ismail Petra Airport - KBR,,4,NULL,1
 23808,MY,2,BKI,,Kota Kinabalu International Airport - BKI,,4,NULL,1
-23817,MY,2,KUL,,Kuala Lumpur International Airport - KUL,,4,NULL,1
+23817,MY,2,KUL,,Kuala Lumpur International Airport - KUL,10,4,NULL,1
 23825,MY,2,TGG,,Sultan Mahmud Airport - TGG,,4,NULL,1
 23826,MY,3,KUA,,Kuantan (Tanjong Gelang) Seaport - KUA,,4,NULL,1
 23828,MY,2,KCH,,Kuching International Airport - KCH,,4,NULL,1
@@ -11723,7 +11723,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 33940,US,2,AST,,Astoria Regional Airport - AST,,4,NULL,1
 33943,US,2,AHN,,Athens International Airport - AHN,,4,NULL,1
 33953,US,2,AKB,,Atka Airport - AKB,,4,NULL,1
-33957,US,2,ATL,,Hartsfield-Jackson Atlanta International Airport - ATL,,4,NULL,1
+33957,US,2,ATL,,Hartsfield-Jackson Atlanta International Airport - ATL,30,4,NULL,1
 33958,US,2,ACY,,Atlantic City International Airport - ACY,,4,NULL,1
 33964,US,2,ATT,,Atmautluak Airport - ATT,,4,NULL,1
 33966,US,2,ATK,,Atqasuk Edward Burnell Sr. Memorial Airport - ATK,,4,NULL,1
@@ -11989,7 +11989,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 35171,US,2,PWK,,Chicago Executive Airport - PWK,,4,NULL,1
 35173,US,3,CGX,,Carthage Port - CGX,,4,NULL,1
 35174,US,2,MDW,,Chicago Midway International Airport - MDW,,4,NULL,1
-35175,US,2,ORD,,Chicago O'Hare International Airport - ORD,,4,NULL,1
+35175,US,2,ORD,,Chicago O'Hare International Airport - ORD,30,4,NULL,1
 35177,US,2,RFD,,Chicago Rockford International Airport - RFD,,4,NULL,1
 35179,US,2,CHK,,Chickasha Municipal Airport - CHK,,4,NULL,1
 35181,US,2,CKX,,Chicken Airport - CKX,,4,NULL,1
@@ -12102,7 +12102,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 35658,US,2,DCK,,Dahl Creek Airport - DCK,,4,NULL,1
 35668,US,2,DHT,,Dalhart Municipal Airport - DHT,,4,NULL,1
 35675,US,2,RBD,,Dallas Executive Airport - RBD,,4,NULL,1
-35676,US,2,DFW,,Dallas Fort Worth International Airport - DFW,,4,NULL,1
+35676,US,2,DFW,,Dallas Fort Worth International Airport - DFW,30,4,NULL,1
 35677,US,2,DAL,,Dallas Love Field Airport - DAL,,4,NULL,1
 35678,US,2,DTW,,Detroit Metropolitan Wayne County Airport - DTW,,4,NULL,1
 35679,US,2,DNN,,Dalton Municipal Airport - DNN,,4,NULL,1
@@ -12138,7 +12138,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 35814,US,2,DTA,,Delta Municipal Airport - DTA,,4,NULL,1
 35816,US,2,DMN,,Deming Municipal Airport - DMN,,4,NULL,1
 35821,US,2,DNS,,Denison Municipal Airport - DNS,,4,NULL,1
-35826,US,2,DEN,,Denver International Airport - DEN,,4,NULL,1
+35826,US,2,DEN,,Denver International Airport - DEN,20,4,NULL,1
 35836,US,2,LOL,,Lovelock Airport - LOL,,4,NULL,1
 35840,US,2,DSM,,Des Moines International Airport - DSM,,4,NULL,1
 35844,US,2,DSI,,Destin Executive Airport - DSI,,4,NULL,1
@@ -12753,7 +12753,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 38623,US,2,LSB,,Lordsburg Airport - LSB,,4,NULL,1
 38630,US,3,LAT,,Los Alamitos Seaport - LAT,,4,NULL,1
 38631,US,2,LAM,,Los Alamos Airport - LAM,,4,NULL,1
-38636,US,2,LAX,,Los Angeles International Airport - LAX,,4,NULL,1
+38636,US,2,LAX,,Los Angeles International Airport - LAX,30,4,NULL,1
 38637,US,2,LSN,,Los Banos Airport - LSN,,4,NULL,1
 38641,US,2,LHB,,Lost Harbor Airport - LHB,,4,NULL,1
 38642,US,2,LSR,,Lost River Airport - LSR,,4,NULL,1
@@ -13273,7 +13273,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 41291,US,2,SQL,,San Carlos Airport - SQL,,4,NULL,1
 41292,US,2,GLB,,San Carlos Apache Airport - GLB,,4,NULL,1
 41294,US,2,SAN,,San Diego International Airport - SAN,,4,NULL,1
-41301,US,2,SFO,,San Francisco International Airport - SFO,,4,NULL,1
+41301,US,2,SFO,,San Francisco International Airport - SFO,10,4,NULL,1
 41311,US,2,SBP,,San Luis Obisco County Regional Airport - SBP,,4,NULL,1
 41312,US,2,CSL,,San Luis Obispo County Regional Airport - CSL,,4,NULL,1
 41318,US,3,SXF,,San Mateo Seaport - SXF,,4,NULL,1
@@ -13306,7 +13306,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 41454,US,2,SYB,,Seal Bay Seaplane Base - SYB,,4,NULL,1
 41457,US,2,SRC,,Searcy Municipal Airport - SRC,,4,NULL,1
 41459,US,3,SRP,,Searsport Seaport - SRP,,4,NULL,1
-41462,US,2,SEA,,Seattle-Tacoma International Airport - SEA,,4,NULL,1
+41462,US,2,SEA,,Seattle-Tacoma International Airport - SEA,10,4,NULL,1
 41471,US,2,SEF,,Sebring Regional Airport - SEF,,4,NULL,1
 41473,US,2,DMO,,Sedalia Regional Airport - DMO,,4,NULL,1
 41475,US,2,SDX,,Sedona Airport - SDX,,4,NULL,1
@@ -14865,7 +14865,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46843,TD,2,MXR,,Moussoro Airport - MXR,,4,NULL,0
 46844,TD,2,OGR,,Bongor Airport - OGR,,4,Null,0
 46845,TG,3,LFW,,Lome Seaport - LFW,,4,NULL,1
-46846,TH,2,BKK,,Suvarnabhumi International Airport - BKK,,4,NULL,0
+46846,TH,2,BKK,,Suvarnabhumi International Airport - BKK,20,4,NULL,0
 46847,TH,2,CEI,,Mae Fah Luang Chiang Rai International Airport - CEI,,4,NULL,1
 46848,TH,2,CNX,,Chiang Mai International Airport - CNX,,4,NULL,0
 46849,TH,2,HDY,,Hat Yai International Airport - HDY,,4,NULL,1
@@ -14882,7 +14882,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46860,TN,3,TUN,,Tunis Seaport - TUN,,4,NULL,1
 46861,TN,3,ZRZ,,Zarzis Seaport - ZRZ,,4,NULL,1
 46862,TR,2,AYT,,Antalya Airport - AYT,,4,NULL,1
-46863,TR,2,IST,,Istanbul New Airport - IST,,4,NULL,1
+46863,TR,2,IST,,Istanbul New Airport - IST,10,4,NULL,1
 46864,TR,3,NOP,,Sinop Seaport - NOP,,4,NULL,1
 46865,TR,2,OGU,,Ordu Giresun Airport - OGU,,4,NULL,1
 46866,TR,2,TZX,,Trabzon Airport - TZX,,4,NULL,1

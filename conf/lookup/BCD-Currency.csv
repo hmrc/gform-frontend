@@ -29,7 +29,7 @@ CAD,$,Canada Dollar - CAD,Doler Canada - CAD,10,CA
 CDF,,Congo Franc - CDF,Ffranc Congo - CDF,,CG
 CHF,,Switzerland Franc - CHF,Ffranc y Swistir - CHF,,CH
 CLP,,Chile Peso - CLP,Peso Chile - CLP,,CL
-CNY,,China Yuan Renminbi - CNY,Iwan Renminbi Tsieina - CNY,10,CN
+CNY,Chinese ¥,China Yuan Renminbi - CNY,Iwan Renminbi Tsieina - CNY,10,CN
 COP,,Colombia Peso - COP,Peso Colombia - COP,,CO
 CRC,,Costa Rica Colon - CRC,Colon Costa Rica - CRC,,CR
 CUC,,Cuba Convertible Peso - CUC,Peso Cyfnewidiol Cuba - CUC,,NULL
@@ -71,12 +71,12 @@ ISK,,Iceland Krona - ISK,Krona Gwlad yr Iâ - ISK,,IS
 JEP,,Jersey Pound - JEP,Punt Jersey - JEP,,JE
 JMD,,Jamaica Dollar - JMD,Doler Jamaica - JMD,,JM
 JOD,,Jordan Dinar - JOD,Dinar Gwlad yr Iorddonen - JOD,,JO
-JPY,,Japan Yen - JPY,Ien Japan - JPY,10,JP
+JPY,Japanese ¥,Japan Yen - JPY,Ien Japan - JPY,10,JP
 KES,,Kenya Shilling - KES,Swllt Kenya - KES,,KE
 KGS,,Kyrgyzstan Som - KGS,Som Kyrgyzstan - KGS,,KG
 KHR,,Cambodia Riel - KHR,Riel Cambodia - KHR,,KH
 KMF,,Comoros Franc - KMF,Ffranc y Comoros - KMF,,KM
-KPW,,Korea (North) Won - KPW,Won (Gogledd) Corea - KPW,,KP
+KPW,Korean ₩,Korea (North) Won - KPW,Won (Gogledd) Corea - KPW,,KP
 KRW,,Korea (South) Won - KRW,Won (De) Corea - KRW,,KR
 KWD,,Kuwait Dinar - KWD,Dinar Kuwait - KWD,,KW
 KYD,,Cayman Islands Dollar - KYD,Doler Ynysoedd Caiman - KYD,,KY

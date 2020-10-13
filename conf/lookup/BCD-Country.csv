@@ -1,7 +1,7 @@
 CountryCode,KeyWords,Name,Name-cy,Priority,Region,InEU
 AC,,Alderney,Alderney,,4,0
 AD,,Andorra,Andorra,,4,0
-AE,,United Arab Emirates,Yr Emiraethau Arabaidd Unedig,10,4,0
+AE,Dubai Dubai International Airport,United Arab Emirates,Yr Emiraethau Arabaidd Unedig,10,4,0
 AF,,Afghanistan,Afghanistan,,4,0
 AG,,Antigua and Barbuda,Antigua a Barbuda,,4,0
 AI,,Anguilla,Anguilla,,4,0
@@ -49,7 +49,7 @@ CI,,Cote D'Ivoire,Côte D'Ivoire,,4,0
 CK,,Cook Islands,Ynysoedd Cook,,4,0
 CL,,Chile,Chile,,4,0
 CM,,Cameroon,Camerwn,,4,0
-CN,,China,Tsieina,10,4,0
+CN,Beijing PEK,China,Tsieina,10,4,0
 CO,,Colombia,Colombia,,4,0
 CR,,Costa Rica,Costa Rica,,4,0
 CU,,Cuba,Cuba,,4,0
@@ -58,7 +58,7 @@ CW,,Curacao,Curaçao,,4,0
 CX,,Christmas Islands,Ynys y Nadolig,,4,0
 CY,,Cyprus,Cyprus,20,3,1
 CZ,,Czech Republic,Y Weriniaeth Tsiec,20,3,1
-DE,,Germany,Yr Almaen,20,3,1
+DE,Frankfurt Airport,Germany,Yr Almaen,20,3,1
 DJ,,Djibouti,Djibouti,,4,0
 DK,,Denmark,Denmarc,20,3,1
 DM,,Dominica,Dominica,,4,0
@@ -114,7 +114,7 @@ IT,,Italy,Yr Eidal,20,3,1
 JE,,Jersey,Jersey,,4,0
 JM,,Jamaica,Jamaica,,4,0
 JO,,Jordan,Gwlad yr Iorddonen,,4,0
-JP,,Japan,Japan,,4,0
+JP,,Japan,Japan,10,4,0
 KE,,Kenya,Kenya,,4,0
 KG,,Kyrgyzstan,Kyrgyzstan,,4,0
 KH,,Cambodia,Cambodia,,4,0
@@ -122,7 +122,7 @@ KI,,Kiribati,Kiribati,,4,0
 KM,,Comoros,Comoros,,4,0
 KN,,St Kitts and Nevis,St Kitts a Nevis,,4,0
 KP,,North Korea,Gogledd Korea,,4,0
-KR,,South Korea,De Korea,,4,0
+KR,,South Korea,De Korea,10,4,0
 KW,,Kuwait,Kuwait,,4,0
 KY,,Cayman Islands,Ynysoedd Caiman,,4,0
 KZ,,Kazakhstan,Kazakhstan,,4,0
@@ -166,7 +166,7 @@ NE,,Niger,Niger,,4,0
 NF,,Norfolk Island,Ynys Norfolk,,4,0
 NG,,Nigeria,Nigeria,,4,0
 NI,,Nicaragua,Nicaragua,,4,0
-NL,,Netherlands,Yr Iseldiroedd,20,3,1
+NL,Holland Amsterdam Schiphol AMS,Netherlands,Yr Iseldiroedd,20,3,1
 NO,,Norway,Norwy,20,3,0
 NP,,Nepal,Nepal,,4,0
 NR,,Nauru,Nauru,,4,0
@@ -235,7 +235,7 @@ UA,,Ukraine,Ukrain,,4,0
 UG,,Uganda,Uganda,,4,0
 UK,England Great Britain,United Kingdom,Y Deyrnas Unedig,30,1,1
 UM,,United States Minor outlying islands,Mân Ynysoedd Pellennig yr Unol Daleithiau,,4,0
-US,,United States,Yr Unol Daleithiau,10,4,0
+US,US States America,United States,Yr Unol Daleithiau,10,4,0
 UY,,Uruguay,Uruguay,,4,0
 UZ,,Uzbekistan,Uzbekistan,,4,0
 VA,,Vatican City State,Gwladwriaeth Dinas y Fatican,,4,0
