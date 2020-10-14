@@ -215,53 +215,58 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
         case key @ FormComponentId(NumericPrefix(prefix)) if stripAnyPrefix(key) === id => prefix.toInt
       }
 
-      val rcFields: List[FormComponent] = revealingChoice.options.toList.flatMap(_.revealingFields)
+      if (indices.isEmpty) {
+        Option.empty[Field].pure[F]
+      } else {
+        val rcFields: List[FormComponent] = revealingChoice.options.toList.flatMap(_.revealingFields)
 
-      val rcFieldIds: List[FormComponentId] = rcFields.map(_.id)
+        val rcFieldIds: List[FormComponentId] = rcFields.map(_.id)
 
-      val rcFieldIdsSet: Set[FormComponentId] = rcFieldIds.toSet
+        val rcFieldIdsSet: Set[FormComponentId] = rcFieldIds.toSet
 
-      val numberOfRepeats = indices.max
+        val numberOfRepeats = indices.max
 
-      val existingFcIds: Set[FormComponentId] = answerLookup.keySet.collect {
-        case key if rcFieldIdsSet(stripAnyPrefix(key)) => key
-      }
-
-      val existingFcIdsByIndex: IndexedSeq[(Int, List[FormComponentId])] = for { i <- 1 to numberOfRepeats } yield {
-        i -> rcFieldIds.collect {
-          case fcId if existingFcIds(addPrefix(i, fcId)) => fcId
+        val existingFcIds: Set[FormComponentId] = answerLookup.keySet.collect {
+          case key if rcFieldIdsSet(stripAnyPrefix(key)) => key
         }
-      }
 
-      val fields: F[List[Field]] = existingFcIdsByIndex.toList.traverse {
-        case (index, existingFcIds) =>
-          val revealedFieldsF: F[List[Field]] = existingFcIds.flatTraverse { existingFcId =>
-            val data = answerLookup(addPrefix(index, existingFcId))
-            val maybeFormComponent: Option[FormComponent] = rcFields.find(_.id === existingFcId)
-            maybeFormComponent.toList.traverse(fc =>
-              buildNonRepeatingSimpleField(fc, data, multiChoiceFieldIds.contains(fc.id)))
+        val existingFcIdsByIndex: IndexedSeq[(Int, List[FormComponentId])] = for { i <- 1 to numberOfRepeats } yield {
+          i -> rcFieldIds.collect {
+            case fcId if existingFcIds(addPrefix(i, fcId)) => fcId
           }
+        }
 
-          val selections: List[String] = answerLookup(addPrefix(index, id)).split(",").toList
+        val fields: F[List[Field]] = existingFcIdsByIndex.toList.traverse {
+          case (index, existingFcIds) =>
+            val revealedFieldsF: F[List[Field]] = existingFcIds.flatTraverse { existingFcId =>
+              val data = answerLookup(addPrefix(index, existingFcId))
+              val maybeFormComponent: Option[FormComponent] = rcFields.find(_.id === existingFcId)
+              maybeFormComponent.toList.traverse(fc =>
+                buildNonRepeatingSimpleField(fc, data, multiChoiceFieldIds.contains(fc.id)))
+            }
 
-          revealedFieldsF.map { revealedFields =>
-            Field(
-              FieldName(id.value),
-              ObjectStructure(
-                List(
-                  Field(FieldName("choices"), ArrayNode(selections.map(TextNode(_)))),
-                  Field(FieldName("revealed"), ObjectStructure(revealedFields))
-                ))
-            )
-          }
-      }
+            val selections: List[String] =
+              answerLookup(addPrefix(index, id)).split(",").toList.map(_.toInt).sorted.map(_.toString)
 
-      fields.map {
-        case Nil => None
-        case x :: xs =>
-          val name = x.name
-          val values = (x :: xs).map(field => field.value)
-          Some(Field(name, ArrayNode(values)))
+            revealedFieldsF.map { revealedFields =>
+              Field(
+                FieldName(id.value),
+                ObjectStructure(
+                  List(
+                    Field(FieldName("choices"), ArrayNode(selections.map(TextNode(_)))),
+                    Field(FieldName("revealed"), ObjectStructure(revealedFields))
+                  ))
+              )
+            }
+        }
+
+        fields.map {
+          case Nil => None
+          case x :: xs =>
+            val name = x.name
+            val values = (x :: xs).map(field => field.value)
+            Some(Field(name, ArrayNode(values)))
+        }
       }
 
     } else {
