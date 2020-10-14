@@ -28,6 +28,7 @@ import cats.syntax.option._
 import cats.syntax.functor._
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.lookup._
+import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -204,30 +205,73 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
     }
 
   private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice, repeatable: Boolean)(
-    implicit l: LangADT): F[Option[Field]] = {
-
-    val values: Option[NonEmptyList[String]] = formValuesByUnindexedId.get(id)
-
+    implicit l: LangADT
+  ): F[Option[Field]] =
     if (repeatable) {
-      val fields1: F[Option[NonEmptyList[Option[Field]]]] = values.traverse { nelValues =>
-        nelValues.traverse { selectionStr =>
-          buildRevealingChoiceSelection(selectionStr, id, revealingChoice)
+
+      val answerLookup: Map[FormComponentId, String] = form.formData.toData
+
+      val indices: Set[Int] = answerLookup.keySet.collect {
+        case key @ FormComponentId(NumericPrefix(prefix)) if stripAnyPrefix(key) === id => prefix.toInt
+      }
+
+      val rcFields: List[FormComponent] = revealingChoice.options.toList.flatMap(_.revealingFields)
+
+      val rcFieldIds: List[FormComponentId] = rcFields.map(_.id)
+
+      val rcFieldIdsSet: Set[FormComponentId] = rcFieldIds.toSet
+
+      val numberOfRepeats = indices.max
+
+      val existingFcIds: Set[FormComponentId] = answerLookup.keySet.collect {
+        case key if rcFieldIdsSet(stripAnyPrefix(key)) => key
+      }
+
+      val existingFcIdsByIndex: IndexedSeq[(Int, List[FormComponentId])] = for { i <- 1 to numberOfRepeats } yield {
+        i -> rcFieldIds.collect {
+          case fcId if existingFcIds(addPrefix(i, fcId)) => fcId
         }
       }
 
-      val fields2: F[Option[NonEmptyList[Field]]] = fields1.map(_.flatSequence).map(_.sequence)
+      val fields: F[List[Field]] = existingFcIdsByIndex.toList.traverse {
+        case (index, existingFcIds) =>
+          val revealedFieldsF: F[List[Field]] = existingFcIds.flatTraverse { existingFcId =>
+            val data = answerLookup(addPrefix(index, existingFcId))
+            val maybeFormComponent: Option[FormComponent] = rcFields.find(_.id === existingFcId)
+            maybeFormComponent.toList.traverse(fc =>
+              buildNonRepeatingSimpleField(fc, data, multiChoiceFieldIds.contains(fc.id)))
+          }
 
-      fields2.map(_.map { nel =>
-        val values = nel.toList.map(_.value)
-        Field(nel.head.name, ArrayNode(values))
-      })
+          val selections: List[String] = answerLookup(addPrefix(index, id)).split(",").toList
+
+          revealedFieldsF.map { revealedFields =>
+            Field(
+              FieldName(id.value),
+              ObjectStructure(
+                List(
+                  Field(FieldName("choices"), ArrayNode(selections.map(TextNode(_)))),
+                  Field(FieldName("revealed"), ObjectStructure(revealedFields))
+                ))
+            )
+          }
+      }
+
+      fields.map {
+        case Nil => None
+        case x :: xs =>
+          val name = x.name
+          val values = (x :: xs).map(field => field.value)
+          Some(Field(name, ArrayNode(values)))
+      }
 
     } else {
-      values.map(_.head).flatTraverse { selectionStr =>
-        buildRevealingChoiceSelection(selectionStr, id, revealingChoice)
-      }
+      formValuesByUnindexedId
+        .get(id)
+        .map(_.head)
+        .flatTraverse { selectionStr =>
+          buildRevealingChoiceSelection(selectionStr, id, revealingChoice)
+        }
     }
-  }
 
   private def buildMultiValueRevealingChoiceFields(
     id: FormComponentId,
