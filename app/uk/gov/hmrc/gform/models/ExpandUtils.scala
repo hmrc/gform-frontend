@@ -92,12 +92,12 @@ object ExpandUtils {
   def findFormComponent(targetFcId: FormComponentId, sections: List[Section]): Option[FormComponent] =
     sections.flatMap(_.fields).find(_.id == targetFcId)
 
-  private val NumericPrefix = "^(\\d+)_.*".r
+  val NumericPrefix = "^(\\d+)_.*".r
 
   private def hasPrefix(n: Int, fcId: FormComponentId): Boolean =
     fcId.value.startsWith(n.toString + "_")
 
-  private def addPrefix(n: Int, targetFcId: FormComponentId): FormComponentId =
+  def addPrefix(n: Int, targetFcId: FormComponentId): FormComponentId =
     targetFcId.value match {
       case NumericPrefix(_) => targetFcId
       case _                => FormComponentId(n + "_" + targetFcId.value)
