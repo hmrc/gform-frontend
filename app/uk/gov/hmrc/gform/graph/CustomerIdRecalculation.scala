@@ -16,11 +16,6 @@
 
 package uk.gov.hmrc.gform.graph
 
-/* import cats.syntax.functor._
- * import cats.syntax.applicative._
- * import cats.syntax.traverse._
- * import cats.instances.list._ */
-
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }

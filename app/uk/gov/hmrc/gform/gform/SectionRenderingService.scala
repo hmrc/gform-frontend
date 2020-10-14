@@ -332,7 +332,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           case otherwise =>
             otherwise.fieldErrors
               .map { errorMessage =>
-                val multiFieldId = HtmlFieldId.pure(otherwise.formComponent.modelComponentId)
+                val formComponent = otherwise.formComponent
+                val multiFieldId =
+                  otherwise.formComponent match {
+                    case IsChoice(_) | IsRevealingChoice(_) => HtmlFieldId.indexed(formComponent.id, 0)
+                    case _                                  => HtmlFieldId.pure(formComponent.modelComponentId)
+                  }
                 ErrorLink(
                   href = Some("#" + multiFieldId.toHtmlId),
                   content = content.Text(errorMessage)
@@ -392,7 +397,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val declarationPage = singleton.page
 
-    val listResult = validationResult.formFieldValidationResults
+    val listResult = validationResult.formFieldValidationResults(singleton)
     val snippets = declarationPage.renderUnits.map(renderUnit =>
       htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
@@ -509,8 +514,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
   def renderEnrolmentSection(
     formTemplate: FormTemplate,
+    singleton: Singleton[DataExpanded],
     retrievals: MaterialisedRetrievals,
-    enrolmentSection: EnrolmentSection,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     globalErrors: List[ErrorLink],
     validationResult: ValidationResult
@@ -523,9 +528,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   ): Html = {
 
     val maybeAccessCode = None
-    val enrSection = enrolmentSection.toSection
     val ei = ExtraInfo(
-      Singleton(enrSection.page.asInstanceOf[Page[DataExpanded]], enrSection),
+      singleton,
       maybeAccessCode,
       SectionNumber(0),
       formModelOptics,
@@ -536,9 +540,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       formLevelHeading = false,
       specialAttributes = Map.empty
     )
-    val listResult = validationResult.formFieldValidationResults
+    val page = singleton.page
+    val listResult = validationResult.formFieldValidationResults(singleton)
     val snippets =
-      enrolmentSection.toPage.renderUnits.map { renderUnit =>
+      page.renderUnits.map { renderUnit =>
         htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked)
       }
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, globalErrors)
@@ -546,7 +551,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       formTemplate._id,
       maybeAccessCode,
       SectionNumber(0),
-      enrolmentSection.title.value,
+      page.title.value,
       None,
       Nil,
       snippets,
@@ -1275,7 +1280,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         )
       }
 
-      val maybeCurrentValue: Option[String] = prepopValue.orElse(formFieldValidationResult.getCurrentValue)
+      val maybeCurrentValue: Option[String] =
+        prepopValue
+          .orElse(formFieldValidationResult.getCurrentValue)
+          .map(cv => if (formComponent.editable) cv else TextFormatter.componentText(cv, text))
 
       formComponent.presentationHint match {
         case Some(xs) if xs.contains(TotalValue) =>

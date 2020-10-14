@@ -131,9 +131,7 @@ class FormModelBuilder[E, F[_]: Functor](
     val formModelVisibilityOpticsFinal = new FormModelVisibilityOptics[D](
       formModelVisibility,
       formModelVisibilityOptics.recData,
-      formModelVisibilityOptics.evaluationResults,
-      formModelVisibilityOptics.graphData,
-      formModelVisibilityOptics.booleanExprCache
+      formModelVisibilityOptics.recalculationResult
     )
 
     val formModelRenderPageOptics = FormModelRenderPageOptics[D](
@@ -177,7 +175,6 @@ class FormModelBuilder[E, F[_]: Functor](
 
     toEvaluationResults(data, formModel).map { recalculationResult =>
       val evaluationResults = recalculationResult.evaluationResults
-      val graphData = recalculationResult.graphData
       val booleanExprCache = recalculationResult.booleanExprCache
       val visibilityFormModel: FormModel[Visibility] = formModel.filter[Visibility] { pageModel =>
         pageModel.getIncludeIf.fold(true) { includeIf =>
@@ -201,7 +198,7 @@ class FormModelBuilder[E, F[_]: Functor](
 
       val recData: RecData[SourceOrigin.Current] = RecData.empty.copy(variadicFormData = currentData)
 
-      new FormModelVisibilityOptics(visibilityFormModel, recData, evaluationResults, graphData, booleanExprCache)
+      FormModelVisibilityOptics(visibilityFormModel, recData, recalculationResult)
     }
 
   }

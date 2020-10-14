@@ -40,13 +40,10 @@ object ComponentValidator {
   private def textData[D <: DataOrigin](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     fieldValue: FormComponent
-  ): List[String] =
+  ): Option[String] =
     formModelVisibilityOptics.data
-      .get(fieldValue.modelComponentId)
-      .toSeq
-      .flatMap(_.toSeq)
+      .one(fieldValue.modelComponentId)
       .filterNot(_.isEmpty())
-      .toList
 
   private def lookupValidation(
     fieldValue: FormComponent,
@@ -91,51 +88,48 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(formModelVisibilityOptics, fieldValue), constraint) match {
-      case (true, Nil, _) =>
+      case (true, None, _) =>
         val key = fieldValue match {
           case lookupRegistry.extractors.IsRadioLookup(_) => "choice.error.required"
           case _                                          => "generic.error.required"
         }
         validationFailure(fieldValue, key, None)
-      case (_, value :: Nil, Lookup(register)) =>
+      case (_, Some(value), Lookup(register)) =>
         lookupValidation(fieldValue, lookupRegistry, register, LookupLabel(value))
-      case (_, value :: Nil, ShortText(min, max)) => shortTextValidation(fieldValue, value, min, max)
-      case (_, value :: Nil, BasicText)           => textValidation(fieldValue, value)
-      case (_, value :: Nil, TextWithRestrictions(min, max)) =>
+      case (_, Some(value), ShortText(min, max)) => shortTextValidation(fieldValue, value, min, max)
+      case (_, Some(value), BasicText)           => textValidation(fieldValue, value)
+      case (_, Some(value), TextWithRestrictions(min, max)) =>
         textValidationWithConstraints(fieldValue, value, min, max)
-      case (_, value :: Nil, s: Sterling) =>
+      case (_, Some(value), s: Sterling) =>
         validateNumber(
           fieldValue,
           value,
           ValidationValues.sterlingLength,
           TextConstraint.defaultFactionalDigits,
           s.positiveOnly)
-      case (_, value :: Nil, ReferenceNumber(min, max)) => referenceNumberConstraints(fieldValue, value, min, max)
-      case (_, value :: Nil, UkBankAccountNumber) =>
-        validateBankAccountFormat(fieldValue, value)
-      case (_, value :: Nil, SubmissionRefFormat) =>
-        validateSubmissionRefFormat(fieldValue, value)
-      case (_, value :: Nil, UTR)                       => checkUtr(fieldValue, value)
-      case (_, value :: Nil, NINO)                      => checkNino(fieldValue, value)
-      case (_, value :: Nil, UkVrn)                     => checkVrn(fieldValue, value)
-      case (_, value :: Nil, CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
-      case (_, value :: Nil, EORI)                      => checkEORI(fieldValue, value)
-      case (_, value :: Nil, UkEORI)                    => checkUkEORI(fieldValue, value)
-      case (_, value :: Nil, ChildBenefitNumber)        => checkChildBenefitNumber(fieldValue, value)
-      case (_, value :: Nil, NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
-      case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
-      case (_, value :: Nil, TelephoneNumber) =>
-        validatePhoneNumber(fieldValue, value)
-      case (_, value :: Nil, Email | EmailVerifiedBy(_, _)) =>
+      case (_, Some(value), ReferenceNumber(min, max)) => referenceNumberConstraints(fieldValue, value, min, max)
+      case (_, Some(value), UkBankAccountNumber)       => validateBankAccountFormat(fieldValue, value)
+      case (_, Some(value), SubmissionRefFormat)       => validateSubmissionRefFormat(fieldValue, value)
+      case (_, Some(value), UTR)                       => checkUtr(fieldValue, value)
+      case (_, Some(value), NINO)                      => checkNino(fieldValue, value)
+      case (_, Some(value), UkVrn)                     => checkVrn(fieldValue, value)
+      case (_, Some(value), CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
+      case (_, Some(value), EORI)                      => checkEORI(fieldValue, value)
+      case (_, Some(value), UkEORI)                    => checkUkEORI(fieldValue, value)
+      case (_, Some(value), ChildBenefitNumber)        => checkChildBenefitNumber(fieldValue, value)
+      case (_, Some(value), NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
+      case (_, Some(value), CountryCode)               => checkCountryCode(fieldValue, value)
+      case (_, Some(value), TelephoneNumber)           => validatePhoneNumber(fieldValue, value)
+      case (_, Some(value), Email | EmailVerifiedBy(_, _)) =>
         Monoid.combine(
           email(fieldValue, value),
           textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit))
-      case (_, value :: Nil, Number(maxWhole, maxFractional, _, _)) =>
+      case (_, Some(value), Number(maxWhole, maxFractional, _, _)) =>
         validateNumber(fieldValue, value, maxWhole, maxFractional, false)
-      case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _, _)) =>
+      case (_, Some(value), PositiveNumber(maxWhole, maxFractional, _, _)) =>
         validateNumber(fieldValue, value, maxWhole, maxFractional, true)
-      case (false, Nil, _)       => validationSuccess
-      case (_, value :: rest, _) => validationSuccess // we don't support multiple values yet
+      case (_, Some(value), UkSortCodeFormat) => validationSuccess
+      case (false, None, _)                   => validationSuccess
     }
 
   def validateParentSubmissionRef[D <: DataOrigin](
@@ -149,9 +143,9 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(formModelVisibilityOptics, fieldValue)) match {
-      case (true, Nil) =>
+      case (true, None) =>
         validationFailure(fieldValue, "generic.error.required", None)
-      case (_, value :: Nil) =>
+      case (_, Some(value)) =>
         validateSubmissionRefFormat(fieldValue, value) andThen { _ =>
           if (value === thisFormSubmissionRef.value)
             validationFailure(fieldValue, "generic.error.parentSubmissionRefSameAsFormSubmissionRef", None)

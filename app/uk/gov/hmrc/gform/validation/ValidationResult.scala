@@ -20,7 +20,7 @@ import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidatorsResult }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, IsCapitalised }
 
 class ValidationResult(
   lookup: Map[FormComponentId, FormFieldValidationResult],
@@ -58,6 +58,9 @@ class ValidationResult(
       case (_, FieldOk(formComponent, cv)) if formComponent.isReferenceNumber =>
         val cvUpd: String = cv.replace(" ", "")
         FieldOk(formComponent, cvUpd)
+      case (_, FieldOk(fc @ IsCapitalised(), cv)) =>
+        val cvUpd: String = cv.toUpperCase()
+        FieldOk(fc, cvUpd)
       case (formComponent, ffvr) => ffvr
     }.toList
 

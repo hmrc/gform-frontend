@@ -24,3 +24,7 @@ class RecalculationResult(
   val graphData: GraphData,
   val booleanExprCache: BooleanExprCache
 )
+
+object RecalculationResult {
+  val empty = new RecalculationResult(EvaluationResults.empty, GraphData.empty, BooleanExprCache.empty)
+}

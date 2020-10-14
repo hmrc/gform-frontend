@@ -33,9 +33,6 @@ case class FormModel[A <: PageMode](pagesWithIndex: List[(PageModel[A], SectionN
   val fcLookup: Map[FormComponentId, FormComponent] =
     allFormComponents.map(fc => fc.id -> fc).toMap
 
-  val formComponentByModelComponentIdLookup: Map[ModelComponentId, FormComponent] =
-    allFormComponents.foldLeft(Map.empty[ModelComponentId, FormComponent]) { case (acc, fc) => acc ++ fc.lookupFor }
-
   val allMultiValueIds: List[MultiValueId] =
     allFormComponents.map(_.multiValueId)
 

@@ -34,7 +34,6 @@ import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, AllFormTemplateExpressions, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypedExpr }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -72,8 +71,6 @@ class Recalculation[F[_]: Monad, E](
 
     val pageLookup: Map[FormComponentId, PageModel[Interim]] = formModel.pageLookup
     val fcLookup: Map[FormComponentId, FormComponent] = formModel.fcLookup
-    val fcByModelComponentIdLookup: Map[ModelComponentId, FormComponent] =
-      formModel.formComponentByModelComponentIdLookup
 
     def noStateChange[A](a: A): StateT[F, RecalculationState, A] = StateT(s => (s, a).pure[F])
     def changeExpressionResult[A](a: A)(f: EvaluationResults => EvaluationResults): StateT[F, RecalculationState, A] =
@@ -226,23 +223,11 @@ class Recalculation[F[_]: Monad, E](
       res
     }
 
-    val dataCapitalised: VariadicFormData[SourceOrigin.OutOfDate] = data.mapValues {
-      case (fcId, value) =>
-        fcByModelComponentIdLookup.get(fcId) match {
-          case Some(fc) =>
-            fc match {
-              case IsCapitalised() => value.map(_.toUpperCase())
-              case _               => value
-            }
-          case _ => value
-        }
-    }
-
     val contextE: Either[GraphException, Context] =
       Right(
         (
           StateT[F, RecalculationState, EvaluationResults](s => (s, EvaluationResults.empty).pure[F]),
-          RecData.fromData(dataCapitalised)))
+          RecData.fromData(data)))
 
     val res: Either[
       GraphException,

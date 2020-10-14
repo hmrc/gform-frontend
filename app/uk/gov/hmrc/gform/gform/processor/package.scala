@@ -18,9 +18,10 @@ package uk.gov.hmrc.gform.gform
 
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormTemplate }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 
@@ -28,7 +29,7 @@ package object processor {
   type RenderEnrolmentSection = (
     FormTemplate,
     MaterialisedRetrievals,
-    EnrolmentSection,
+    Singleton[DataExpanded],
     FormModelOptics[DataOrigin.Mongo],
     List[ErrorLink],
     ValidationResult) => Html

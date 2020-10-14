@@ -314,57 +314,6 @@ object SummaryRenderingService {
     )
   }
 
-  /* def renderSummary(
-   *   formTemplate: FormTemplate,
-   *   validationResult: ValidationResult,
-   *   formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
-   *   maybeAccessCode: Option[AccessCode],
-   *   envelope: Envelope,
-   *   retrievals: MaterialisedRetrievals,
-   *   frontendAppConfig: FrontendAppConfig,
-   *   obligations: Obligations,
-   *   reviewerComments: Option[String],
-   *   summaryPagePurpose: SummaryPagePurpose
-   * )(
-   *   implicit
-   *   request: Request[_],
-   *   messages: Messages,
-   *   l: LangADT,
-   *   lise: SmartStringEvaluator
-   * ): Html = {
-   *   val headerHtml = markDownParser(formTemplate.summarySection.header)
-   *   val footerHtml = markDownParser(formTemplate.summarySection.footer)
-   *
-   *   val envelopeUpd =
-   *     summaryPagePurpose match {
-   *       case SummaryPagePurpose.ForUser => envelope.withUserFileNames
-   *       case SummaryPagePurpose.ForDms  => envelope
-   *     }
-   *   val sfr =
-   *     summaryForRender(
-   *       validationResult,
-   *       formModelVisibilityOptics,
-   *       maybeAccessCode,
-   *       formTemplate,
-   *       envelopeUpd,
-   *       obligations,
-   *       reviewerComments
-   *     )
-   *   summary(
-   *     formTemplate,
-   *     sfr,
-   *     maybeAccessCode,
-   *     formTemplate.formCategory,
-   *     retrievals.renderSaveAndComeBackLater,
-   *     retrievals.continueLabelKey,
-   *     frontendAppConfig,
-   *     summaryPagePurpose,
-   *     reviewerComments,
-   *     headerHtml,
-   *     footerHtml
-   *   )
-   * } */
-
   def renderNotificationPdfSummary(
     formTemplate: FormTemplate,
     validationResult: ValidationResult,

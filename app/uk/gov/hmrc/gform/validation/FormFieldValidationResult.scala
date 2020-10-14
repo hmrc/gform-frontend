@@ -100,9 +100,12 @@ trait FormFieldValidationResult {
   def getComponentFieldIndices(formComponentId: FormComponentId): List[Int] =
     this match {
       case ComponentField(_, data) =>
-        data.collect {
-          case (HtmlFieldId.Indexed(fcId, index), _) if fcId === formComponentId => index
-        }.toList
+        data
+          .collect {
+            case (HtmlFieldId.Indexed(fcId, index), _) if fcId === formComponentId => index
+          }
+          .toList
+          .sorted
       case _ => Nil
     }
 

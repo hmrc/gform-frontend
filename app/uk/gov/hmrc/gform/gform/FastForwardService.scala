@@ -147,7 +147,7 @@ class FastForwardService(
                 )
       userData = UserData(
         cache.form.formData,
-        maybeSn.fold(Summary: FormStatus)(_ => InProgress),
+        maybeSn.fold[FormStatus](Summary)(_ => InProgress),
         processData.visitsIndex,
         cache.form.thirdPartyData
           .modify(_.obligations)

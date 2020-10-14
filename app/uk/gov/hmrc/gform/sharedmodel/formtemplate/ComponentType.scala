@@ -205,14 +205,12 @@ object RevealingChoice {
   def slice[S <: SourceOrigin](fcId: FormComponentId): VariadicFormData[S] => RevealingChoice => RevealingChoice =
     data =>
       revealingChoice => {
-        val rcElements: List[RevealingChoiceElement] =
-          for {
-            index <- data.get(fcId.modelComponentId).toList.flatMap(_.toSeq)
-            i     <- Try(index.toInt).toOption.toList
-          } yield revealingChoice.options(i)
+        val indices: List[Int] =
+          data.many(fcId.modelComponentId).toList.flatten.flatMap(index => Try(index.toInt).toOption.toList).sorted
+
+        val rcElements: List[RevealingChoiceElement] = indices.map(revealingChoice.options)
 
         revealingChoice.copy(options = rcElements)
-
     }
 }
 

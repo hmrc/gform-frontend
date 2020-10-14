@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.handlers.{ FormHandlerResult, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.graph.{ Recalculation }
-import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, PageModel, SectionSelectorType, Singleton }
+import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
@@ -84,6 +84,9 @@ class EnrolmentController(
 
   private def liftEM[A](a: Future[A]): EnrolM[A] = EitherT.liftF(Kleisli(Function.const(a)))
 
+  private def toSingleton(enrolmentSection: EnrolmentSection): Singleton[DataExpanded] =
+    Singleton(enrolmentSection.toPage, enrolmentSection.toSection).asInstanceOf[Singleton[DataExpanded]]
+
   private def enrolmentConnect(implicit hc: HeaderCarrier): EnrolmentConnect[EnrolM] =
     new EnrolmentConnect[EnrolM] {
       def enrolGGUser(
@@ -105,11 +108,12 @@ class EnrolmentController(
     auth.asyncGGAuth(formTemplateId) { implicit request: Request[AnyContent] => implicit l => cache =>
       cache.formTemplate.authConfig match {
         case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
+          val singleton = toSingleton(enrolmentSection)
           Ok(
             renderEnrolmentSection(
               cache.formTemplate,
               cache.retrievals,
-              enrolmentSection,
+              singleton,
               FormModelOptics.empty,
               Nil,
               ValidationResult.empty)
@@ -124,7 +128,7 @@ class EnrolmentController(
   private def renderEnrolmentSection(
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
-    enrolmentSection: EnrolmentSection,
+    singleton: Singleton[DataExpanded],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     globalErrors: List[ErrorLink],
     validationResult: ValidationResult)(implicit request: Request[_], l: LangADT) = {
@@ -137,14 +141,7 @@ class EnrolmentController(
       formTemplate)
 
     renderer
-      .renderEnrolmentSection(
-        formTemplate,
-        retrievals,
-        enrolmentSection,
-        formModelOptics,
-        globalErrors,
-        validationResult
-      )
+      .renderEnrolmentSection(formTemplate, singleton, retrievals, formModelOptics, globalErrors, validationResult)
   }
 
   def submitEnrolment(formTemplateId: FormTemplateId) =
@@ -155,14 +152,12 @@ class EnrolmentController(
 
       formTemplate.authConfig match {
         case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev)) =>
-          val pageModel: PageModel[DataExpanded] =
-            Singleton(enrolmentSection.toPage, enrolmentSection.toSection).asInstanceOf[PageModel[DataExpanded]]
-
-          val genesisFormModel: FormModel[DataExpanded] = FormModel((pageModel, SectionNumber(0)) :: Nil)
+          val singleton = toSingleton(enrolmentSection)
+          val genesisFormModel: FormModel[DataExpanded] = FormModel((singleton, SectionNumber(0)) :: Nil)
 
           processResponseDataFromBody(request, genesisFormModel) { requestRelatedData => variadicFormData =>
             val formModelOpticsF = FormModelOptics
-              .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.Enrolment](
+              .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.EnrolmentOnly](
                 variadicFormData,
                 cache,
                 cache.toCacheData,
@@ -195,7 +190,7 @@ class EnrolmentController(
                 renderEnrolmentSection,
                 formTemplate,
                 retrievals,
-                enrolmentSection,
+                singleton,
                 formModelOptics,
                 frontendAppConfig)
               for {

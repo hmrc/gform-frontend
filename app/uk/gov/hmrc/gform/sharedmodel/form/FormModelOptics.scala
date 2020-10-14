@@ -21,13 +21,12 @@ import cats.syntax.functor._
 import com.softwaremill.quicklens._
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, CacheData }
-import uk.gov.hmrc.gform.eval.EvaluationResults
-import uk.gov.hmrc.gform.graph.{ GraphData, Recalculation }
+import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.http.HeaderCarrier
 
 case class FormModelOptics[D <: DataOrigin](
@@ -53,9 +52,8 @@ object FormModelOptics {
     new FormModelVisibilityOptics(
       FormModel.empty[Visibility],
       RecData.empty,
-      EvaluationResults.empty,
-      GraphData.empty,
-      BooleanExprCache.empty)
+      RecalculationResult.empty
+    )
   )
 
   def mkFormModelOptics[D <: DataOrigin, F[_]: Functor, U <: SectionSelectorType: SectionSelector](

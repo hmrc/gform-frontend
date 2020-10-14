@@ -26,6 +26,9 @@ sealed trait ExpressionResult extends Product with Serializable {
 
   import ExpressionResult._
 
+  private def invalidMult(er: ExpressionResult): ExpressionResult =
+    Invalid(s"Unsupported operation, cannot multiply $this and $er")
+
   def +(er: ExpressionResult): ExpressionResult = er match {
     case t: Invalid     => t // TODO we are loosing 'this' which can potentionally be invalid as well
     case t: Hidden.type => this
@@ -53,13 +56,15 @@ sealed trait ExpressionResult extends Product with Serializable {
   }
 
   def *(er: ExpressionResult): ExpressionResult = er match {
+    // format: off
     case t: Invalid      => t
-    case t: Hidden.type  => this
+    case t: Hidden.type  => fold[ExpressionResult](identity)(identity)(identity)(_ => NumberResult(0))(_ => IntResult(0))(invalidMult)(invalidMult)
     case t: Empty.type   => this
-    case t: NumberResult => fold[ExpressionResult](identity)(_ => t)(identity)(_ * t)(_ * t)(_ => ???)(_ => ???)
-    case t: IntResult    => fold[ExpressionResult](identity)(_ => t)(identity)(_ => ???)(_ * t)(_ => ???)(_ => ???)
+    case t: NumberResult => fold[ExpressionResult](identity)(_ => NumberResult(0))(identity)(_ * t)(_ * t)(invalidMult)(invalidMult)
+    case t: IntResult    => fold[ExpressionResult](identity)(_ => IntResult(0))(identity)(n => NumberResult(n.value * t.value))(_ * t)(invalidMult)(invalidMult)
     case t: StringResult => Invalid("Unsupported operation, cannot multiply strings")
     case t: OptionResult => Invalid("Unsupported operation, cannot multiply options")
+    // format: on
   }
 
   def orElse(er: ExpressionResult): ExpressionResult =
