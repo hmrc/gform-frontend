@@ -109,19 +109,19 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "10", "b" -> "20", "c" -> "5"),
         Map(
-          TypedExpr.number(FormCtx("a"))                      -> NumberResult(10),
-          TypedExpr.number(FormCtx("b"))                      -> NumberResult(20),
-          TypedExpr.number(Add(FormCtx("a"), FormCtx("b")))   -> NumberResult(30),
-          TypedExpr.sterling(Add(FormCtx("a"), FormCtx("b"))) -> NumberResult(30)
+          TypedExpr.number(FormCtx("a"))                    -> NumberResult(10),
+          TypedExpr.number(FormCtx("b"))                    -> NumberResult(20),
+          TypedExpr.number(Add(FormCtx("a"), FormCtx("b"))) -> NumberResult(30),
+          TypedExpr.number(Add(FormCtx("a"), FormCtx("b"))) -> NumberResult(30)
         )
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "dssd", "b" -> "20", "c" -> "5"),
         Map(
-          TypedExpr.number(FormCtx("a"))                      -> Invalid("Number - cannot convert 'dssd' to number"),
-          TypedExpr.number(FormCtx("b"))                      -> NumberResult(20),
-          TypedExpr.number(Add(FormCtx("a"), FormCtx("b")))   -> Invalid("Number - cannot convert 'dssd' to number"),
-          TypedExpr.sterling(Add(FormCtx("a"), FormCtx("b"))) -> Invalid("Sterling - cannot convert 'dssd' to sterling")
+          TypedExpr.number(FormCtx("a"))                    -> Invalid("Number - cannot convert 'dssd' to number"),
+          TypedExpr.number(FormCtx("b"))                    -> NumberResult(20),
+          TypedExpr.number(Add(FormCtx("a"), FormCtx("b"))) -> Invalid("Number - cannot convert 'dssd' to number"),
+          TypedExpr.number(Add(FormCtx("a"), FormCtx("b"))) -> Invalid("Number - cannot convert 'dssd' to number")
         )
       )
     )
@@ -158,10 +158,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "10", "b" -> "20", "c" -> "5"),
         Map(
-          TypedExpr.string(FormCtx("a"))                      -> StringResult("10"),
-          TypedExpr.string(FormCtx("b"))                      -> StringResult("20"),
-          TypedExpr.string(Add(FormCtx("a"), FormCtx("b")))   -> StringResult("1020"),
-          TypedExpr.sterling(Add(FormCtx("a"), FormCtx("b"))) -> NumberResult(30)
+          TypedExpr.string(FormCtx("a"))                    -> StringResult("10"),
+          TypedExpr.string(FormCtx("b"))                    -> StringResult("20"),
+          TypedExpr.string(Add(FormCtx("a"), FormCtx("b"))) -> StringResult("1020"),
+          TypedExpr.number(Add(FormCtx("a"), FormCtx("b"))) -> NumberResult(30)
         )
       ),
       (
@@ -170,8 +170,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           TypedExpr.string(FormCtx("a"))                    -> StringResult("Hello"),
           TypedExpr.string(FormCtx("b"))                    -> StringResult("World"),
           TypedExpr.string(Add(FormCtx("a"), FormCtx("b"))) -> StringResult("HelloWorld"),
-          TypedExpr.sterling(Add(FormCtx("a"), FormCtx("b"))) -> Invalid(
-            "Sterling - cannot convert 'World' to sterling")
+          TypedExpr.number(Add(FormCtx("a"), FormCtx("b"))) -> Invalid("Number - cannot convert 'World' to number")
         )
       )
     )
@@ -196,7 +195,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         Constant("1"),
         Map(
-          TypedExpr.wholeNumber(Constant("1")) -> IntResult(1)
+          TypedExpr.number(Constant("1")) -> NumberResult(1)
         )
       ),
       (
@@ -209,25 +208,25 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
         Add(Constant("1.2"), Constant("2")),
         Map(
           TypedExpr.number(Constant("1.2"))                     -> NumberResult(1.2),
-          TypedExpr.wholeNumber(Constant("2"))                  -> IntResult(2),
+          TypedExpr.number(Constant("2"))                       -> NumberResult(2),
           TypedExpr.number(Add(Constant("1.2"), Constant("2"))) -> NumberResult(3.2)
         )
       ),
-      (
-        Add(Constant("1"), Constant("2.2")),
-        Map(
-          TypedExpr.number(Constant("2.2"))    -> NumberResult(2.2),
-          TypedExpr.wholeNumber(Constant("1")) -> IntResult(1),
-          TypedExpr.wholeNumber(Add(Constant("1"), Constant("2.2"))) -> Invalid(
-            "WholeNumber - cannot convert '2.2' to wholeNumber")
-        )
-      ),
+      /* (
+       *   Add(Constant("1"), Constant("2.2")),
+       *   Map(
+       *     TypedExpr.number(Constant("2.2")) -> NumberResult(2.2),
+       *     TypedExpr.number(Constant("1"))   -> NumberResult(1),
+       *     TypedExpr.number(Add(Constant("1"), Constant("2.2"))) -> Invalid(
+       *       "WholeNumber - cannot convert '2.2' to wholeNumber")
+       *   )
+       * ), */
       (
         Add(Constant("1"), Constant("2")),
         Map(
-          TypedExpr.wholeNumber(Constant("1"))                     -> IntResult(1),
-          TypedExpr.wholeNumber(Constant("2"))                     -> IntResult(2),
-          TypedExpr.wholeNumber(Add(Constant("1"), Constant("2"))) -> IntResult(3)
+          TypedExpr.number(Constant("1"))                     -> NumberResult(1),
+          TypedExpr.number(Constant("2"))                     -> NumberResult(2),
+          TypedExpr.number(Add(Constant("1"), Constant("2"))) -> NumberResult(3)
         )
       ),
       (
@@ -241,16 +240,15 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         Add(Constant("1"), Constant("A")),
         Map(
-          TypedExpr.wholeNumber(Constant("1")) -> IntResult(1),
-          TypedExpr.string(Constant("A"))      -> StringResult("A"),
-          TypedExpr.wholeNumber(Add(Constant("1"), Constant("A"))) -> Invalid(
-            "WholeNumber - cannot convert 'A' to wholeNumber")
+          TypedExpr.number(Constant("1"))                     -> NumberResult(1),
+          TypedExpr.string(Constant("A"))                     -> StringResult("A"),
+          TypedExpr.number(Add(Constant("1"), Constant("A"))) -> Invalid("Number - cannot convert 'A' to number")
         )
       ),
       (
         Add(Constant(""), Add(Constant("1"), Constant("A"))),
         Map(
-          TypedExpr.wholeNumber(Constant("1"))                                   -> IntResult(1),
+          TypedExpr.number(Constant("1"))                                        -> NumberResult(1),
           TypedExpr.string(Constant(""))                                         -> StringResult(""),
           TypedExpr.string(Constant("A"))                                        -> StringResult("A"),
           TypedExpr.string(Add(Constant(""), Add(Constant("1"), Constant("A")))) -> StringResult("1A")
@@ -259,7 +257,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         Add(Constant("A"), Constant("1")),
         Map(
-          TypedExpr.wholeNumber(Constant("1"))                -> IntResult(1),
+          TypedExpr.number(Constant("1"))                     -> NumberResult(1),
           TypedExpr.string(Constant("A"))                     -> StringResult("A"),
           TypedExpr.string(Add(Constant("A"), Constant("1"))) -> StringResult("A1")
         )
@@ -288,10 +286,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         PositiveNumber(maxFractionalDigits = 0),
         Map(
-          TypedExpr.wholeNumber(Constant("123"))                    -> IntResult(123),
-          TypedExpr.wholeNumber(Constant("456"))                    -> IntResult(456),
-          TypedExpr.wholeNumber(FormCtx("a"))                       -> IntResult(123),
-          TypedExpr.wholeNumber(Add(FormCtx("a"), Constant("456"))) -> IntResult(579)
+          TypedExpr.number(Constant("123"))                    -> NumberResult(123),
+          TypedExpr.number(Constant("456"))                    -> NumberResult(456),
+          TypedExpr.number(FormCtx("a"))                       -> NumberResult(123),
+          TypedExpr.number(Add(FormCtx("a"), Constant("456"))) -> NumberResult(579)
         ),
         variadicFormData[SourceOrigin.Current]("a" -> "123")
       ),
@@ -299,8 +297,8 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
         BasicText,
         Map(
           TypedExpr.string(Constant("123"))                    -> StringResult("123"),
-          TypedExpr.wholeNumber(Constant("123"))               -> IntResult(123),
-          TypedExpr.wholeNumber(Constant("456"))               -> IntResult(456),
+          TypedExpr.number(Constant("123"))                    -> NumberResult(123),
+          TypedExpr.number(Constant("456"))                    -> NumberResult(456),
           TypedExpr.string(FormCtx("a"))                       -> StringResult("123"),
           TypedExpr.string(Add(FormCtx("a"), Constant("456"))) -> StringResult("123456")
         ),
@@ -366,10 +364,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormData[SourceOrigin.OutOfDate](),
         Map(
-          TypedExpr.wholeNumber(Constant("123"))   -> IntResult(123),
+          TypedExpr.number(Constant("123"))        -> NumberResult(123),
           TypedExpr.string(Constant("456"))        -> StringResult("456"),
-          TypedExpr.wholeNumber(Constant("456"))   -> IntResult(456),
-          TypedExpr.wholeNumber(Constant("0"))     -> IntResult(0),
+          TypedExpr.number(Constant("456"))        -> NumberResult(456),
+          TypedExpr.number(Constant("0"))          -> NumberResult(0),
           TypedExpr.choiceSelection(FormCtx("a2")) -> Empty,
           TypedExpr.string(FormCtx("c"))           -> Hidden
         ),
@@ -382,10 +380,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormDataMany("a2" -> List(0)) ++ variadicFormData[SourceOrigin.OutOfDate]("c" -> "X"),
         Map(
-          TypedExpr.wholeNumber(Constant("123"))   -> IntResult(123),
+          TypedExpr.number(Constant("123"))        -> NumberResult(123),
           TypedExpr.string(Constant("456"))        -> StringResult("456"),
-          TypedExpr.wholeNumber(Constant("456"))   -> IntResult(456),
-          TypedExpr.wholeNumber(Constant("0"))     -> IntResult(0),
+          TypedExpr.number(Constant("456"))        -> NumberResult(456),
+          TypedExpr.number(Constant("0"))          -> NumberResult(0),
           TypedExpr.choiceSelection(FormCtx("a2")) -> OptionResult(List(0)),
           TypedExpr.string(FormCtx("c"))           -> StringResult("X")
         ),
@@ -440,8 +438,8 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormDataMany("b" -> List(123)),
         Map(
-          TypedExpr.wholeNumber(Constant("123"))  -> IntResult(123),
-          TypedExpr.wholeNumber(FormCtx("a"))     -> IntResult(123),
+          TypedExpr.number(Constant("123"))       -> NumberResult(123),
+          TypedExpr.number(FormCtx("a"))          -> NumberResult(123),
           TypedExpr.choiceSelection(FormCtx("b")) -> OptionResult(List(123))
         ),
         List(
@@ -453,8 +451,8 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormDataMany("b" -> List(124)),
         Map(
-          TypedExpr.wholeNumber(Constant("123"))  -> IntResult(123),
-          TypedExpr.wholeNumber(FormCtx("a"))     -> IntResult(123),
+          TypedExpr.number(Constant("123"))       -> NumberResult(123),
+          TypedExpr.number(FormCtx("a"))          -> NumberResult(123),
           TypedExpr.choiceSelection(FormCtx("b")) -> OptionResult(List(124)),
           TypedExpr.string(FormCtx("c"))          -> Hidden
         ),
@@ -477,9 +475,9 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
     }
   }
 
-  it should "handle includeIf with reference to formComponent with NonWholeNumber format ie. evaluate to false despite data seemingly matching" in {
+  it should "handle contains in includeIf with reference to formComponent with NonWholeNumber format" in {
 
-    val fcA = mkFormComponent("a", Text(PositiveNumber(maxFractionalDigits = 2), Constant("123")))
+    val fcA = mkFormComponent("a", Text(PositiveNumber(maxFractionalDigits = 2), Constant("123.45")))
     val fcB =
       mkFormComponent("b", Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None))
     val fcC = mkFormComponent("c", Text(BasicText, Value))
@@ -497,7 +495,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
     )
 
     val expectedPage1 = mkPage(fcA :: fcB :: Nil)
-    //val expectedPage2 = mkPageIncludeIf(fcC :: Nil, includeIf)
+    val expectedPage2 = mkPageIncludeIf(fcC :: Nil, includeIf)
     val expectedPage3 = mkPage(fcD :: Nil)
 
     val fmb = mkFormModelFromSections(sections)
@@ -507,14 +505,13 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormDataMany("b" -> List(123)),
         Map(
-          TypedExpr.wholeNumber(Constant("123"))  -> IntResult(123),
-          TypedExpr.number(Constant("123"))       -> NumberResult(123),
-          TypedExpr.number(FormCtx("a"))          -> NumberResult(123),
-          TypedExpr.choiceSelection(FormCtx("b")) -> OptionResult(List(123)),
-          TypedExpr.string(FormCtx("c"))          -> Hidden
+          TypedExpr.number(Constant("123.45"))    -> NumberResult(123.45),
+          TypedExpr.number(FormCtx("a"))          -> NumberResult(123.45),
+          TypedExpr.choiceSelection(FormCtx("b")) -> OptionResult(List(123))
         ),
         List(
           (Singleton(expectedPage1, section1), 0),
+          (Singleton(expectedPage2, section2), 1),
           (Singleton(expectedPage3, section3), 2)
         )
       )

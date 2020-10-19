@@ -1283,7 +1283,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       val maybeCurrentValue: Option[String] =
         prepopValue
           .orElse(formFieldValidationResult.getCurrentValue)
-          .map(cv => if (formComponent.editable) cv else TextFormatter.componentText(cv, text))
+          .map { cv =>
+            if (formComponent.editable) cv else TextFormatter.componentText(cv, text)
+          }
 
       formComponent.presentationHint match {
         case Some(xs) if xs.contains(TotalValue) =>

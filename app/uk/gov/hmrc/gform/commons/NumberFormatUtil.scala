@@ -49,6 +49,6 @@ object RoundingModeBigDecimalUtil {
 }
 
 object NumberSetScale {
-  def setScale(bigDecimal: BigDecimal, decimalPlaces: Int, roundingMode: GformRoundingMode) =
+  def setScale(bigDecimal: BigDecimal, decimalPlaces: Int, roundingMode: GformRoundingMode): BigDecimal =
     bigDecimal.setScale(decimalPlaces, RoundingModeBigDecimalUtil.RoundingFormat(roundingMode))
 }

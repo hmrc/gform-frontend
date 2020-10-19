@@ -68,9 +68,8 @@ case class FormComponent(
   def firstAtomModelComponentId: ModelComponentId.Atomic = multiValueId.firstAtomModelComponentId
 
   def getType: ExprType = this match {
-    case IsText(Text(Sterling(_, _), _, _, _))             => ExprType.Sterling
+    case IsText(Text(Sterling(_, _), _, _, _))             => ExprType.Number
     case IsText(Text(Number(_, _, _, _), _, _, _))         => ExprType.Number
-    case IsText(Text(PositiveNumber(_, 0, _, _), _, _, _)) => ExprType.WholeNumber
     case IsText(Text(PositiveNumber(_, _, _, _), _, _, _)) => ExprType.Number
     case IsChoice(_)                                       => ExprType.ChoiceSelection
     case IsRevealingChoice(_)                              => ExprType.ChoiceSelection

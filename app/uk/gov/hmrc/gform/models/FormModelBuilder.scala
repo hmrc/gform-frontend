@@ -107,8 +107,6 @@ class FormModelBuilder[E, F[_]: Functor](
       case ExpressionResult.Invalid(_) => VariadicFormData.empty[SourceOrigin.Current]
       case ExpressionResult.NumberResult(bigDecimal) =>
         VariadicFormData.one[SourceOrigin.Current](modelComponentId, bigDecimal.toString)
-      case ExpressionResult.IntResult(integer) =>
-        VariadicFormData.one[SourceOrigin.Current](modelComponentId, integer.toString)
       case ExpressionResult.StringResult(value) => VariadicFormData.one[SourceOrigin.Current](modelComponentId, value)
       case ExpressionResult.OptionResult(value) =>
         VariadicFormData.many[SourceOrigin.Current](modelComponentId, value.map(_.toString))

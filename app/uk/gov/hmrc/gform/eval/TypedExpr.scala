@@ -28,35 +28,23 @@ object TypedExpr {
 
   def illegal(expr: Expr): TypedExpr = TypedExpr(expr, ExprType.illegal)
   def string(expr: Expr): TypedExpr = TypedExpr(expr, ExprType.string)
-  def sterling(expr: Expr): TypedExpr = TypedExpr(expr, ExprType.sterling)
   def number(expr: Expr): TypedExpr = TypedExpr(expr, ExprType.number)
-  def wholeNumber(expr: Expr): TypedExpr = TypedExpr(expr, ExprType.wholeNumber)
   def choiceSelection(expr: Expr): TypedExpr = TypedExpr(expr, ExprType.choiceSelection)
 
-  // format: off
-  case object IsSterling {
-    def unapply(typedExpr: TypedExpr): Option[Expr] =
-      typedExpr.exprType.fold[Option[Expr]](_ => Some(typedExpr.expr))(_ => None)(_ => None)(_ => None)(_ => None)(_ => None)
-  }
   case object IsNumber {
     def unapply(typedExpr: TypedExpr): Option[Expr] =
-      typedExpr.exprType.fold[Option[Expr]](_ => None)(_ => Some(typedExpr.expr))(_ => None)(_ => None)(_ => None)(_ => None)
-  }
-  case object IsWholeNumber {
-    def unapply(typedExpr: TypedExpr): Option[Expr] =
-      typedExpr.exprType.fold[Option[Expr]](_ => None)(_ => None)(_ => Some(typedExpr.expr))(_ => None)(_ => None)(_ => None)
+      typedExpr.exprType.fold[Option[Expr]](_ => Some(typedExpr.expr))(_ => None)(_ => None)(_ => None)
   }
   case object IsString {
     def unapply(typedExpr: TypedExpr): Option[Expr] =
-      typedExpr.exprType.fold[Option[Expr]](_ => None)(_ => None)(_ => None)(_ => Some(typedExpr.expr))(_ => None)(_ => None)
+      typedExpr.exprType.fold[Option[Expr]](_ => None)(_ => Some(typedExpr.expr))(_ => None)(_ => None)
   }
   case object IsChoiceSelection {
     def unapply(typedExpr: TypedExpr): Option[Expr] =
-      typedExpr.exprType.fold[Option[Expr]](_ => None)(_ => None)(_ => None)(_ => None)(_ => Some(typedExpr.expr))(_ => None)
+      typedExpr.exprType.fold[Option[Expr]](_ => None)(_ => None)(_ => Some(typedExpr.expr))(_ => None)
   }
   case object IsIllegal {
     def unapply(typedExpr: TypedExpr): Option[Expr] =
-      typedExpr.exprType.fold[Option[Expr]](_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(_ => Some(typedExpr.expr))
+      typedExpr.exprType.fold[Option[Expr]](_ => None)(_ => None)(_ => None)(_ => Some(typedExpr.expr))
   }
-  // format: on
 }

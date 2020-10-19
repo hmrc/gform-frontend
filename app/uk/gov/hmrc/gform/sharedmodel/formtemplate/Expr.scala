@@ -54,6 +54,12 @@ sealed trait Expr extends Product with Serializable {
     case ParamCtx(_)                                => Nil
     case LinkCtx(_)                                 => Nil
   }
+
+  def componentType(f: FormComponentId => Option[FormComponent]): Option[ComponentType] = leafs match {
+    case FormCtx(formComponentId) :: _ => f(formComponentId).map(_.`type`)
+    case _                             => None
+  }
+
 }
 final case class Add(field1: Expr, field2: Expr) extends Expr
 final case class Multiply(field1: Expr, field2: Expr) extends Expr

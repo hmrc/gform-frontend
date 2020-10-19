@@ -86,8 +86,10 @@ class Recalculation[F[_]: Monad, E](
       def compare(expr1: Expr, expr2: Expr, f: (ExpressionResult, ExpressionResult) => Boolean) = {
         val typedExpr1 = formModel.toTypedExpr(expr1)
         val typedExpr2 = formModel.toTypedExpr(expr2)
-        val evalExpr1 = evaluationResults.evalTyped(typedExpr1, recData, evaluationContext)
-        val evalExpr2 = evaluationResults.evalTyped(typedExpr2, recData, evaluationContext)
+        val componentType1: Option[ComponentType] = expr1.componentType(fcLookup.get)
+        val componentType2: Option[ComponentType] = expr2.componentType(fcLookup.get)
+        val evalExpr1 = evaluationResults.evalTyped(typedExpr1, recData, evaluationContext, componentType1)
+        val evalExpr2 = evaluationResults.evalTyped(typedExpr2, recData, evaluationContext, componentType2)
         val res = f(evalExpr1, evalExpr2)
         changeExpressionResult(res)(evaluationResults =>
           evaluationResults + (typedExpr1, evalExpr1) + (typedExpr2, evalExpr2))
@@ -107,7 +109,9 @@ class Recalculation[F[_]: Monad, E](
         case Contains(field1, field2)            => compare(field1, field2, _ contains _)
         case In(expr, dataSource) =>
           val typedExpr = formModel.toTypedExpr(expr)
-          val expressionResult: ExpressionResult = evaluationResults.evalTyped(typedExpr, recData, evaluationContext)
+          val componentType: Option[ComponentType] = expr.componentType(fcLookup.get)
+          val expressionResult: ExpressionResult =
+            evaluationResults.evalTyped(typedExpr, recData, evaluationContext, componentType)
           val hc = evaluationContext.headerCarrier
 
           expressionResult.withStringResult(noStateChange(false)) { value =>
@@ -206,15 +210,18 @@ class Recalculation[F[_]: Monad, E](
 
                 sumIds.map {
                   case (k, v) =>
-                    val typedExpr = formModel.toTypedExpr(FormCtx(k.toFormComponentId))
-                    val exprResult = evResult.evalTyped(typedExpr, recData, evaluationContext)
+                    val expr = FormCtx(k.toFormComponentId)
+                    val typedExpr = formModel.toTypedExpr(expr)
+                    val componentType: Option[ComponentType] = expr.componentType(fcLookup.get)
+                    val exprResult = evResult.evalTyped(typedExpr, recData, evaluationContext, componentType)
                     (typedExpr, exprResult)
                 }.toMap
               }
               .foldLeft(Map.empty[TypedExpr, ExpressionResult])(_ ++ _)
 
             val typedExpr = formModel.toTypedExpr(expr)
-            val exprResult: ExpressionResult = evResult.evalTyped(typedExpr, recData, evaluationContext)
+            val componentType: Option[ComponentType] = expr.componentType(fcLookup.get)
+            val exprResult: ExpressionResult = evResult.evalTyped(typedExpr, recData, evaluationContext, componentType)
             evResult ++ sumResults + (typedExpr, exprResult)
           }
 

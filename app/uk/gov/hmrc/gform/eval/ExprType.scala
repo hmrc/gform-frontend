@@ -18,40 +18,30 @@ package uk.gov.hmrc.gform.eval
 
 sealed trait ExprType extends Product with Serializable {
   def fold[B](
-    a: ExprType.Sterling.type => B
+    a: ExprType.Number.type => B
   )(
-    b: ExprType.Number.type => B
+    b: ExprType.String.type => B
   )(
-    c: ExprType.WholeNumber.type => B
+    c: ExprType.ChoiceSelection.type => B
   )(
-    d: ExprType.String.type => B
-  )(
-    e: ExprType.ChoiceSelection.type => B
-  )(
-    f: ExprType.Illegal.type => B
+    d: ExprType.Illegal.type => B
   ): B =
     this match {
-      case t: ExprType.Sterling.type        => a(t)
-      case t: ExprType.Number.type          => b(t)
-      case t: ExprType.WholeNumber.type     => c(t)
-      case t: ExprType.String.type          => d(t)
-      case t: ExprType.ChoiceSelection.type => e(t)
-      case t: ExprType.Illegal.type         => f(t)
+      case t: ExprType.Number.type          => a(t)
+      case t: ExprType.String.type          => b(t)
+      case t: ExprType.ChoiceSelection.type => c(t)
+      case t: ExprType.Illegal.type         => d(t)
     }
 }
 
 object ExprType {
 
-  val sterling: ExprType = Sterling
   val number: ExprType = Number
-  val wholeNumber: ExprType = WholeNumber
   val string: ExprType = String
   val illegal: ExprType = Illegal
   val choiceSelection: ExprType = ChoiceSelection
 
-  case object Sterling extends ExprType
   case object Number extends ExprType
-  case object WholeNumber extends ExprType
   case object String extends ExprType
   case object Illegal extends ExprType
   case object ChoiceSelection extends ExprType

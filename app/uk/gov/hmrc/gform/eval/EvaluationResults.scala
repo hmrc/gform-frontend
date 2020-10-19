@@ -21,7 +21,6 @@ import cats.instances.list._
 import cats.instances.either._
 import cats.syntax.eq._
 import cats.syntax.traverse._
-import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
@@ -91,42 +90,6 @@ case class EvaluationResults(
     maybeListToSum.map(listToSum => NumberResult(listToSum.sum)).merge
   }
 
-  private def evalSterling(
-    expr: Expr,
-    recData: RecData[SourceOrigin.OutOfDate],
-    evaluationContext: EvaluationContext
-  ): ExpressionResult = {
-
-    def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
-      variadicValue.fold(one => toNumberResult(one.value))(unsupportedMany("Sterling"))
-
-    def toNumberResult(value: String): ExpressionResult =
-      toBigDecimalSafe(value).fold(ExpressionResult.invalid(s"Sterling - cannot convert '$value' to sterling"))(
-        NumberResult.apply)
-
-    def loop(expr: Expr): ExpressionResult = expr match {
-      case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
-      case Multiply(field1: Expr, field2: Expr)    => loop(field1) * loop(field2)
-      case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
-      case Else(field1: Expr, field2: Expr)        => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId: FormComponentId) =>
-        get(ctx, TypedExpr(ctx, ExprType.Sterling), recData, evaluationContext, fromVariadicValue)
-      case Sum(FormCtx(formComponentId)) =>
-        calculateSum(formComponentId, recData, unsupportedOperation("Sterling")(expr), TypedExpr.sterling)
-      case Sum(_)                                     => unsupportedOperation("Sterling")(expr)
-      case AuthCtx(value: AuthInfo)                   => unsupportedOperation("Sterling")(expr)
-      case UserCtx(value: UserField)                  => unsupportedOperation("Sterling")(expr)
-      case Constant(value: String)                    => toNumberResult(value)
-      case HmrcRosmRegistrationCheck(value: RosmProp) => unsupportedOperation("Sterling")(expr)
-      case Value                                      => Empty
-      case FormTemplateCtx(value: FormTemplateProp)   => unsupportedOperation("Sterling")(expr)
-      case ParamCtx(_)                                => unsupportedOperation("Sterling")(expr)
-      case LinkCtx(_)                                 => unsupportedOperation("Sterling")(expr)
-    }
-
-    loop(expr)
-  }
-
   private def evalNumber(
     expr: Expr,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -159,42 +122,6 @@ case class EvaluationResults(
       case ParamCtx(_)                                => unsupportedOperation("Number")(expr)
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
 
-    }
-
-    loop(expr)
-  }
-
-  private def evalWholeNumber(
-    expr: Expr,
-    recData: RecData[SourceOrigin.OutOfDate],
-    evaluationContext: EvaluationContext
-  ): ExpressionResult = {
-
-    def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
-      variadicValue.fold(one => toNumberResult(one.value))(unsupportedMany("WholeNumber"))
-
-    def toNumberResult(value: String): ExpressionResult =
-      Try(value.toInt).toOption
-        .fold(ExpressionResult.invalid(s"WholeNumber - cannot convert '$value' to wholeNumber"))(IntResult.apply)
-
-    def loop(expr: Expr): ExpressionResult = expr match {
-      case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
-      case Multiply(field1: Expr, field2: Expr)    => loop(field1) * loop(field2)
-      case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
-      case Else(field1: Expr, field2: Expr)        => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId: FormComponentId) =>
-        get(ctx, TypedExpr(ctx, ExprType.WholeNumber), recData, evaluationContext, fromVariadicValue)
-      case Sum(FormCtx(formComponentId)) =>
-        calculateSum(formComponentId, recData, unsupportedOperation("WholeNumber")(expr), TypedExpr.wholeNumber)
-      case Sum(_)                                     => unsupportedOperation("WholeNumber")(expr)
-      case AuthCtx(value: AuthInfo)                   => unsupportedOperation("WholeNumber")(expr)
-      case UserCtx(value: UserField)                  => unsupportedOperation("WholeNumber")(expr)
-      case Constant(value: String)                    => toNumberResult(value)
-      case HmrcRosmRegistrationCheck(value: RosmProp) => unsupportedOperation("WholeNumber")(expr)
-      case Value                                      => Empty
-      case FormTemplateCtx(value: FormTemplateProp)   => unsupportedOperation("WholeNumber")(expr)
-      case ParamCtx(_)                                => unsupportedOperation("WholeNumber")(expr)
-      case LinkCtx(_)                                 => unsupportedOperation("WholeNumber")(expr)
     }
 
     loop(expr)
@@ -254,16 +181,18 @@ case class EvaluationResults(
   def evalTyped[T](
     typedExpr: TypedExpr,
     recData: RecData[SourceOrigin.OutOfDate],
-    evaluationContext: EvaluationContext
-  ): ExpressionResult =
-    typedExpr match {
-      case TypedExpr.IsSterling(expr)        => evalSterling(expr, recData, evaluationContext)
-      case TypedExpr.IsNumber(expr)          => evalNumber(expr, recData, evaluationContext)
-      case TypedExpr.IsWholeNumber(expr)     => evalWholeNumber(expr, recData, evaluationContext)
-      case TypedExpr.IsString(expr)          => evalString(expr, recData, evaluationContext)
-      case TypedExpr.IsChoiceSelection(expr) => evalString(expr, recData, evaluationContext)
-      case TypedExpr.IsIllegal(expr)         => ExpressionResult.invalid("[evalTyped] Illegal expression " + expr)
-    }
+    evaluationContext: EvaluationContext,
+    componentType: Option[ComponentType]
+  ): ExpressionResult = {
+    val expressionResult: ExpressionResult =
+      typedExpr match {
+        case TypedExpr.IsNumber(expr)          => evalNumber(expr, recData, evaluationContext)
+        case TypedExpr.IsString(expr)          => evalString(expr, recData, evaluationContext)
+        case TypedExpr.IsChoiceSelection(expr) => evalString(expr, recData, evaluationContext)
+        case TypedExpr.IsIllegal(expr)         => ExpressionResult.invalid("[evalTyped] Illegal expression " + expr)
+      }
+    componentType.fold(expressionResult)(expressionResult.applyComponentType) // Apply rounding if applicable
+  }
 }
 
 object EvaluationResults {

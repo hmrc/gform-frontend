@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil
 
 object HasExpr {
@@ -54,13 +53,6 @@ private object NonValueExpr {
 object IsNumberConstant {
   def unapply(expr: Expr): Option[BigDecimal] = expr match {
     case Constant(c) => BigDecimalUtil.toBigDecimalSafe(c)
-    case _           => None
-  }
-}
-
-object IsWholeNumberConstant {
-  def unapply(expr: Expr): Option[Int] = expr match {
-    case Constant(c) => Try(c.toInt).toOption
     case _           => None
   }
 }
