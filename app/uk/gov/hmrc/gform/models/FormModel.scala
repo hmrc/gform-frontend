@@ -83,9 +83,11 @@ case class FormModel[A <: PageMode](pagesWithIndex: List[(PageModel[A], SectionN
       case expr =>
         val first: Option[Expr] = expr.leafs.headOption
         first.fold(TypedExpr.illegal(expr)) {
+          // format: off
           case FormCtx(formComponentId) => mkTypedExpr(expr, formComponentId)
-          case IsNumberConstant(_)      => TypedExpr.number(expr)
+          case IsNumberConstant(_)      => TypedExpr.number(expr, RoundingMode.defaultRoundingMode, TextConstraint.defaultFactionalDigits)
           case otherwise                => TypedExpr.string(expr)
+          // format: on
         }
     }
 

@@ -52,6 +52,21 @@ class ProcessDataService[F[_]: Monad](
       case Nil     => None
     }
 
+  private def hmrcTaxPeriodWithEvaluatedIds(
+    browserFormModelOptics: FormModelOptics[DataOrigin.Browser]
+  ): List[Option[HmrcTaxPeriodWithEvaluatedId]] = {
+    val fmvo = browserFormModelOptics.formModelVisibilityOptics
+    fmvo.allFormComponents.collect {
+      case fc @ IsHmrcTaxPeriod(hmrcTaxPeriod) =>
+        val idNumber = fmvo.eval(hmrcTaxPeriod.idNumber)
+        if (idNumber.isEmpty) {
+          None
+        } else {
+          Some(HmrcTaxPeriodWithEvaluatedId(RecalculatedTaxPeriodKey(fc.id, hmrcTaxPeriod), IdNumberValue(idNumber)))
+        }
+    }
+  }
+
   def getProcessData[U <: SectionSelectorType: SectionSelector](
     dataRaw: VariadicFormData[SourceOrigin.OutOfDate],
     cache: AuthCacheWithForm,
@@ -63,19 +78,6 @@ class ProcessDataService[F[_]: Monad](
     me: MonadError[F, Throwable]
   ): F[ProcessData] = {
 
-    val hmrcTaxPeriodWithEvaluatedIds: List[Option[HmrcTaxPeriodWithEvaluatedId]] =
-      formModelOptics.formModelVisibilityOptics.allFormComponents.collect {
-        case fc @ IsHmrcTaxPeriod(hmrcTaxPeriod) =>
-          val idNumber = formModelOptics.formModelVisibilityOptics.eval(hmrcTaxPeriod.idNumber)
-          if (idNumber.isEmpty) {
-            None
-          } else
-            Some(
-              HmrcTaxPeriodWithEvaluatedId(
-                RecalculatedTaxPeriodKey(fc.id, hmrcTaxPeriod),
-                IdNumberValue(formModelOptics.formModelVisibilityOptics.eval(hmrcTaxPeriod.idNumber))))
-      }
-
     val cachedObligations: Obligations = cache.form.thirdPartyData.obligations
 
     val mongoData = formModelOptics
@@ -86,7 +88,7 @@ class ProcessDataService[F[_]: Monad](
 
       obligations <- taxPeriodStateChecker.callDesIfNeeded(
                       getAllTaxPeriods,
-                      hmrcTaxPeriodWithId(hmrcTaxPeriodWithEvaluatedIds),
+                      hmrcTaxPeriodWithId(hmrcTaxPeriodWithEvaluatedIds(browserFormModelOptics)),
                       cachedObligations,
                       obligationsAction
                     )

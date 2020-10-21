@@ -86,7 +86,7 @@ class SummaryController(
                                      formModelOptics.formModelVisibilityOptics)
             } yield validationResult.isFormValid
 
-            lazy val redirectToDeclarationOrPrint = gformConnector
+            val redirectToDeclarationOrPrint = gformConnector
               .updateUserData(
                 FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
                 UserData(
@@ -111,9 +111,9 @@ class SummaryController(
 
               }
 
-            lazy val redirectToSummary =
+            val redirectToSummary =
               Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
-            lazy val handleSummaryContinue = for {
+            val handleSummaryContinue = for {
               result <- isFormValidF.ifM(
                          redirectToDeclarationOrPrint,
                          redirectToSummary.pure[Future]

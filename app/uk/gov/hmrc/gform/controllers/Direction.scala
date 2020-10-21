@@ -27,10 +27,10 @@ trait Navigation {
 
   def formModelOptics: FormModelOptics[DataOrigin.Browser]
 
-  lazy val availableSectionNumbers: List[SectionNumber] =
+  val availableSectionNumbers: List[SectionNumber] =
     formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
 
-  lazy val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).value))
+  val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).value))
 }
 
 // TODO: Origin should not be in controllers, but Navigator probably should!

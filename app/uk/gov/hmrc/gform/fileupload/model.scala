@@ -50,8 +50,8 @@ case class Envelope(
 
 object Envelope {
   val empty = Envelope(Nil)
+  private val envelopeRawReads = Json.reads[EnvelopeRaw]
   implicit val reads: Reads[Envelope] = envelopeRawReads.map(er => Envelope(er.files.getOrElse(Nil)))
-  private lazy val envelopeRawReads = Json.reads[EnvelopeRaw]
 
 }
 
@@ -64,6 +64,8 @@ case class File(
 
 object File {
 
+  private val fileRawReads: Reads[FileRaw] = Json.reads[FileRaw]
+
   //TIP: look for FileStatus trait in https://github.com/hmrc/file-upload/blob/master/app/uk/gov/hmrc/fileupload/read/envelope/model.scala
   implicit val format: Reads[File] = fileRawReads.map {
     // format: OFF
@@ -75,8 +77,7 @@ object File {
     case FileRaw(id, name, other, reason)           => File(FileId(id), Other(other, reason), name)
     // format: ON
   }
-  private lazy val fileRawReads: Reads[FileRaw] = Json.reads[FileRaw]
-  private lazy val ERROR = "UnKnownFileStatusERROR"
+  private val ERROR = "UnKnownFileStatusERROR"
 }
 
 case class FileRaw(id: String, name: String, status: String, reason: Option[String])

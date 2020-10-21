@@ -55,9 +55,14 @@ sealed trait Expr extends Product with Serializable {
     case LinkCtx(_)                                 => Nil
   }
 
-  def componentType(f: FormComponentId => Option[FormComponent]): Option[ComponentType] = leafs match {
-    case FormCtx(formComponentId) :: _ => f(formComponentId).map(_.`type`)
-    case _                             => None
+  def textConstraint(f: FormComponentId => Option[FormComponent]): Option[TextConstraint] = leafs match {
+    case FormCtx(formComponentId) :: _ =>
+      f(formComponentId).flatMap {
+        case IsText(Text(constraint, _, _, _))      => Some(constraint)
+        case IsTextArea(TextArea(constraint, _, _)) => Some(constraint)
+        case _                                      => None
+      }
+    case _ => None
   }
 
 }

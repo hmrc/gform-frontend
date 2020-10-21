@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
-import cats.{ Monoid }
+import cats.Monoid
 import cats.instances.list._
 import cats.instances.either._
 import cats.syntax.eq._
@@ -93,7 +93,9 @@ case class EvaluationResults(
   private def evalNumber(
     expr: Expr,
     recData: RecData[SourceOrigin.OutOfDate],
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    roundingMode: RoundingMode,
+    maxFractionalDigits: Int
   ): ExpressionResult = {
 
     def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
@@ -109,9 +111,18 @@ case class EvaluationResults(
       case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
       case Else(field1: Expr, field2: Expr)        => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId: FormComponentId) =>
-        get(ctx, TypedExpr(ctx, ExprType.Number), recData, evaluationContext, fromVariadicValue)
+        get(
+          ctx,
+          TypedExpr(ctx, ExprType.Number(roundingMode, maxFractionalDigits)),
+          recData,
+          evaluationContext,
+          fromVariadicValue)
       case Sum(FormCtx(formComponentId)) =>
-        calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr), TypedExpr.number)
+        calculateSum(
+          formComponentId,
+          recData,
+          unsupportedOperation("Number")(expr),
+          TypedExpr.number(_, roundingMode, maxFractionalDigits))
       case Sum(_)                                     => unsupportedOperation("Number")(expr)
       case AuthCtx(value: AuthInfo)                   => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField)                  => unsupportedOperation("Number")(expr)
@@ -182,21 +193,32 @@ case class EvaluationResults(
     typedExpr: TypedExpr,
     recData: RecData[SourceOrigin.OutOfDate],
     evaluationContext: EvaluationContext,
-    componentType: Option[ComponentType]
+    textConstraint: Option[TextConstraint]
   ): ExpressionResult = {
+
+    val (roundingMode, maxFractionalDigits): (RoundingMode, Int) =
+      textConstraint.fold((RoundingMode.defaultRoundingMode, TextConstraint.defaultFactionalDigits)) {
+        case Sterling(roundingMode, _)                               => (roundingMode, 2)
+        case Number(_, maxFractionalDigits, roundingMode, _)         => (roundingMode, maxFractionalDigits)
+        case PositiveNumber(_, maxFractionalDigits, roundingMode, _) => (roundingMode, maxFractionalDigits)
+        case otherwise                                               => (RoundingMode.defaultRoundingMode, TextConstraint.defaultFactionalDigits)
+      }
+
     val expressionResult: ExpressionResult =
       typedExpr match {
-        case TypedExpr.IsNumber(expr)          => evalNumber(expr, recData, evaluationContext)
+        case TypedExpr.IsNumber(expr)          => evalNumber(expr, recData, evaluationContext, roundingMode, maxFractionalDigits)
         case TypedExpr.IsString(expr)          => evalString(expr, recData, evaluationContext)
         case TypedExpr.IsChoiceSelection(expr) => evalString(expr, recData, evaluationContext)
         case TypedExpr.IsIllegal(expr)         => ExpressionResult.invalid("[evalTyped] Illegal expression " + expr)
       }
-    componentType.fold(expressionResult)(expressionResult.applyComponentType) // Apply rounding if applicable
+    textConstraint.fold(expressionResult)(expressionResult.applyTextConstraint) // Apply rounding if applicable
   }
 }
 
 object EvaluationResults {
   val empty = EvaluationResults(Map.empty)
+
+  def unapply(a: EvaluationResults): Option[Map[TypedExpr, ExpressionResult]] = Some(a.exprMap)
 
   implicit val monoidEvaluationResults: Monoid[EvaluationResults] = new Monoid[EvaluationResults] {
     def empty = EvaluationResults.empty

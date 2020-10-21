@@ -24,7 +24,7 @@ lazy val microservice = (project in file("."))
     publishingSettings,
     defaultSettings(),
     scalafmtOnCompile := true,
-    scalaVersion := "2.12.11",
+    scalaVersion := "2.12.12",
     libraryDependencies ++= appDependencies,
     libraryDependencies ++= Seq(
       compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full)

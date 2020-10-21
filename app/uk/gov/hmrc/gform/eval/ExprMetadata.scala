@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.eval
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ComponentType, Expr, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId, FormCtx, TextConstraint }
 
 sealed trait ExprMetadata extends Product with Serializable {
   def toEvaluationResults[A <: PageMode](
@@ -31,12 +31,12 @@ sealed trait ExprMetadata extends Product with Serializable {
     this match {
       case InferrableExprProjection((InferrableExpr(expr, InferringRule.Explicit(fcId)))) =>
         val typedExpr = formModel.explicitTypedExpr(expr, fcId)
-        val sss: Option[ComponentType] = expr.componentType(formModel.fcLookup.get)
-        evResult + (typedExpr, evResult.evalTyped(typedExpr, recData, evaluationContext, sss))
+        val textConstraint: Option[TextConstraint] = FormCtx(fcId).textConstraint(formModel.fcLookup.get)
+        evResult + (typedExpr, evResult.evalTyped(typedExpr, recData, evaluationContext, textConstraint))
       case InferrableExprProjection((InferrableExpr(expr, InferringRule.FirstOperand))) =>
         val typedExpr = formModel.toTypedExpr(expr)
-        val sss: Option[ComponentType] = expr.componentType(formModel.fcLookup.get)
-        evResult + (typedExpr, evResult.evalTyped(typedExpr, recData, evaluationContext, sss))
+        val textConstraint: Option[TextConstraint] = expr.textConstraint(formModel.fcLookup.get)
+        evResult + (typedExpr, evResult.evalTyped(typedExpr, recData, evaluationContext, textConstraint))
     }
 }
 

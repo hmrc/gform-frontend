@@ -19,8 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.data.{ EitherT, Kleisli, NonEmptyList, ReaderT }
 import cats.instances.future._
 import cats.instances.list._
-import cats.mtl.implicits._
-import cats.mtl.{ ApplicativeAsk, FunctorRaise }
+import cats.mtl.{ Ask, Raise }
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
@@ -230,7 +229,7 @@ class EnrolmentController(
   private def validateIdentifiers[F[_]: Applicative](
     identifiers: NonEmptyList[(IdentifierRecipe, Identifier)],
     postCheck: EnrolmentPostCheck
-  )(implicit FR: FunctorRaise[F, SubmitEnrolmentError]): F[Unit] =
+  )(implicit FR: Raise[F, SubmitEnrolmentError]): F[Unit] =
     postCheck match {
       case NoCheck => ().pure[F]
       case RegimeIdCheck(regimeId) =>
@@ -251,8 +250,8 @@ class EnrolmentController(
     retrievals: MaterialisedRetrievals
   )(
     implicit
-    AA: ApplicativeAsk[F, Env],
-    FR: FunctorRaise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] = {
+    AA: Ask[F, Env],
+    FR: Raise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] = {
 
     def tryEnrolment(verifiers: List[Verifier], identifiers: NonEmptyList[Identifier]): F[CheckEnrolmentsResult] =
       for {
@@ -291,7 +290,7 @@ class EnrolmentController(
   private def purgeEmpty[F[_]: Applicative](
     xs: NonEmptyList[(IdentifierRecipe, Identifier)]
   )(
-    implicit FR: FunctorRaise[F, SubmitEnrolmentError]
+    implicit FR: Raise[F, SubmitEnrolmentError]
   ): F[NonEmptyList[(IdentifierRecipe, Identifier)]] =
     xs.toList.filterNot(_._2.value.isEmpty) match {
       case Nil    => FR.raise(NoIdentifierProvided)
@@ -302,8 +301,8 @@ class EnrolmentController(
     enrolmentSection: EnrolmentSection
   )(
     implicit
-    AA: ApplicativeAsk[F, Env],
-    FR: FunctorRaise[F, SubmitEnrolmentError]): F[(NonEmptyList[(IdentifierRecipe, Identifier)], List[Verifier])] = {
+    AA: Ask[F, Env],
+    FR: Raise[F, SubmitEnrolmentError]): F[(NonEmptyList[(IdentifierRecipe, Identifier)], List[Verifier])] = {
     def evaluate[A, B, G[_]: Traverse](xs: G[A])(g: A => FormCtx, f: A => String => B): F[G[B]] =
       for {
         env <- AA.ask

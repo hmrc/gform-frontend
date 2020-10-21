@@ -422,6 +422,6 @@ class FormController(
         }
     }
 
-  private lazy val formMaxAttachmentSizeMB = appConfig.formMaxAttachmentSizeMB
-  private lazy val contentTypes = appConfig.contentTypes
+  private val formMaxAttachmentSizeMB = appConfig.formMaxAttachmentSizeMB
+  private val contentTypes = appConfig.contentTypes
 }

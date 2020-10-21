@@ -6,8 +6,6 @@ object Dependencies {
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
-  val parsebackVersion = "0.3"
-
   val compile = Seq(
     ws,
     "uk.gov.hmrc"                  %% "bootstrap-play-26"        % "1.3.0",
@@ -18,11 +16,9 @@ object Dependencies {
     "uk.gov.hmrc"                  %% "domain"                   % "5.10.0-play-26",
     "uk.gov.hmrc"                  %% "play-partials"            % "6.9.0-play-26",
     "com.typesafe.play"            %% "play-json-joda"           % "2.6.14",
-    "com.codecommit"               %% "parseback-core"           % parsebackVersion,
-    "com.codecommit"               %% "parseback-cats"           % parsebackVersion,
     "org.julienrf"                 %% "play-json-derived-codecs" % "4.0.1",
-    "org.typelevel"                %% "cats-core"                % "1.6.0",
-    "org.typelevel"                %% "cats-mtl-core"            % "0.5.0" exclude ("org.scalacheck", "scalacheck_2.11"),
+    "org.typelevel"                %% "cats-core"                % "2.2.0",
+    "org.typelevel"                %% "cats-mtl"                 % "1.0.0",
     "com.github.pureconfig"        %% "pureconfig"               % "0.14.0",
     "org.jetbrains"                % "markdown"                  % "0.1.41",
     "com.chuusai"                  %% "shapeless"                % "2.3.3",

@@ -68,12 +68,12 @@ case class FormComponent(
   def firstAtomModelComponentId: ModelComponentId.Atomic = multiValueId.firstAtomModelComponentId
 
   def getType: ExprType = this match {
-    case IsText(Text(Sterling(_, _), _, _, _))             => ExprType.Number
-    case IsText(Text(Number(_, _, _, _), _, _, _))         => ExprType.Number
-    case IsText(Text(PositiveNumber(_, _, _, _), _, _, _)) => ExprType.Number
-    case IsChoice(_)                                       => ExprType.ChoiceSelection
-    case IsRevealingChoice(_)                              => ExprType.ChoiceSelection
-    case _                                                 => ExprType.String
+    case IsText(Text(Sterling(rm, _), _, _, _))                 => ExprType.Number(rm, 2)
+    case IsText(Text(Number(_, maxFD, rm, _), _, _, _))         => ExprType.Number(rm, maxFD)
+    case IsText(Text(PositiveNumber(_, maxFD, rm, _), _, _, _)) => ExprType.Number(rm, maxFD)
+    case IsChoice(_)                                            => ExprType.ChoiceSelection
+    case IsRevealingChoice(_)                                   => ExprType.ChoiceSelection
+    case _                                                      => ExprType.String
   }
 
   def hideOnSummary: Boolean =

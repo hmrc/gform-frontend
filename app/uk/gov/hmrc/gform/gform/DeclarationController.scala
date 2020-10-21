@@ -178,8 +178,13 @@ class DeclarationController(
     } yield response
   }
 
-  private def cleanseEnvelope(envelopeId: EnvelopeId, envelope: Envelope, attachments: Attachments)(
-    implicit hc: HeaderCarrier): Future[List[Unit]] = {
+  private def cleanseEnvelope(
+    envelopeId: EnvelopeId,
+    envelope: Envelope,
+    attachments: Attachments
+  )(
+    implicit hc: HeaderCarrier
+  ): Future[List[Unit]] = {
     val lookup = attachments.files.toSet
     val toRemove = envelope.files.filterNot { file =>
       lookup.contains(file.fileId.toFieldId)
@@ -249,13 +254,13 @@ class DeclarationController(
     val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
 
     val attachments: Attachments = {
-      val notVisibleFc: Set[FormComponent] =
-        formModelOptics.formModelRenderPageOptics.allFormComponents.toSet --
-          formModelVisibilityOptics.allFormComponents.toSet
-      val res: Set[FormComponentId] = notVisibleFc.collect {
+      val visibleFc: Set[FormComponent] = formModelVisibilityOptics.allFormComponents.toSet
+
+      val visibleFcIds: Set[FormComponentId] = visibleFc.collect {
         case fc @ IsFileUpload() if envelope.contains(fc.modelComponentId) => fc.id
       }
-      Attachments(res.toList)
+
+      Attachments(visibleFcIds.toList)
     }
 
     val variadicFormData: VariadicFormData[SourceOrigin.Current] = formModelOptics.pageOpticsData

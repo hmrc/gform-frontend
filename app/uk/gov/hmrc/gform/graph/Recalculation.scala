@@ -86,10 +86,10 @@ class Recalculation[F[_]: Monad, E](
       def compare(expr1: Expr, expr2: Expr, f: (ExpressionResult, ExpressionResult) => Boolean) = {
         val typedExpr1 = formModel.toTypedExpr(expr1)
         val typedExpr2 = formModel.toTypedExpr(expr2)
-        val componentType1: Option[ComponentType] = expr1.componentType(fcLookup.get)
-        val componentType2: Option[ComponentType] = expr2.componentType(fcLookup.get)
-        val evalExpr1 = evaluationResults.evalTyped(typedExpr1, recData, evaluationContext, componentType1)
-        val evalExpr2 = evaluationResults.evalTyped(typedExpr2, recData, evaluationContext, componentType2)
+        val textConstraint1: Option[TextConstraint] = expr1.textConstraint(fcLookup.get)
+        val textConstraint2: Option[TextConstraint] = expr2.textConstraint(fcLookup.get)
+        val evalExpr1 = evaluationResults.evalTyped(typedExpr1, recData, evaluationContext, textConstraint1)
+        val evalExpr2 = evaluationResults.evalTyped(typedExpr2, recData, evaluationContext, textConstraint2)
         val res = f(evalExpr1, evalExpr2)
         changeExpressionResult(res)(evaluationResults =>
           evaluationResults + (typedExpr1, evalExpr1) + (typedExpr2, evalExpr2))
@@ -109,9 +109,9 @@ class Recalculation[F[_]: Monad, E](
         case Contains(field1, field2)            => compare(field1, field2, _ contains _)
         case In(expr, dataSource) =>
           val typedExpr = formModel.toTypedExpr(expr)
-          val componentType: Option[ComponentType] = expr.componentType(fcLookup.get)
+          val textConstraint: Option[TextConstraint] = expr.textConstraint(fcLookup.get)
           val expressionResult: ExpressionResult =
-            evaluationResults.evalTyped(typedExpr, recData, evaluationContext, componentType)
+            evaluationResults.evalTyped(typedExpr, recData, evaluationContext, textConstraint)
           val hc = evaluationContext.headerCarrier
 
           expressionResult.withStringResult(noStateChange(false)) { value =>
@@ -212,16 +212,16 @@ class Recalculation[F[_]: Monad, E](
                   case (k, v) =>
                     val expr = FormCtx(k.toFormComponentId)
                     val typedExpr = formModel.toTypedExpr(expr)
-                    val componentType: Option[ComponentType] = expr.componentType(fcLookup.get)
-                    val exprResult = evResult.evalTyped(typedExpr, recData, evaluationContext, componentType)
+                    val textConstraint: Option[TextConstraint] = expr.textConstraint(fcLookup.get)
+                    val exprResult = evResult.evalTyped(typedExpr, recData, evaluationContext, textConstraint)
                     (typedExpr, exprResult)
                 }.toMap
               }
               .foldLeft(Map.empty[TypedExpr, ExpressionResult])(_ ++ _)
 
             val typedExpr = formModel.toTypedExpr(expr)
-            val componentType: Option[ComponentType] = expr.componentType(fcLookup.get)
-            val exprResult: ExpressionResult = evResult.evalTyped(typedExpr, recData, evaluationContext, componentType)
+            val textConstraint: Option[TextConstraint] = expr.textConstraint(fcLookup.get)
+            val exprResult: ExpressionResult = evResult.evalTyped(typedExpr, recData, evaluationContext, textConstraint)
             evResult ++ sumResults + (typedExpr, exprResult)
           }
 
@@ -273,6 +273,7 @@ class Recalculation[F[_]: Monad, E](
           case (cacheUpdate, (evaluationResults, graphTopologicalOrder)) =>
             val finalEvaluationResults =
               implicitly[Monoid[EvaluationResults]].combine(cacheUpdate.evaluationResults, evaluationResults)
+
             new RecalculationResult(
               finalEvaluationResults,
               GraphData(graphTopologicalOrder, graph),

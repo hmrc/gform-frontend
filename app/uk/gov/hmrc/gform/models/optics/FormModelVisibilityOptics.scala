@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.models.optics
 
-import uk.gov.hmrc.gform.eval.{ EvaluationResults, ExpressionResult }
+import uk.gov.hmrc.gform.eval.{ EvaluationResults, ExpressionResult, TypedExpr }
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -50,6 +50,9 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
   }
 
   def eval(expr: Expr): String = evalO(expr).fold("")(_.stringRepresentation)
+
+  def evalTyped(typedExpr: TypedExpr): Option[String] =
+    recalculationResult.evaluationResults.get(typedExpr).map(_.stringRepresentation)
 
   object data {
     def all: List[(ModelComponentId, VariadicValue)] =

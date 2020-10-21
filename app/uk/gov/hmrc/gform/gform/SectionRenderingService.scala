@@ -1253,7 +1253,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     validationResult: ValidationResult,
     ei: ExtraInfo
   )(implicit l: LangADT, sse: SmartStringEvaluator) = {
-    val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
+
+    def prepopValue: Option[String] = {
+      val fmvo = ei.formModelOptics.formModelVisibilityOptics
+      val typedExpr = fmvo.formModel.explicitTypedExpr(text.value, formComponent.id)
+      fmvo.evalTyped(typedExpr)
+    }
 
     val formFieldValidationResult = validationResult(formComponent)
 
@@ -1281,8 +1286,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       }
 
       val maybeCurrentValue: Option[String] =
-        prepopValue
-          .orElse(formFieldValidationResult.getCurrentValue)
+        formFieldValidationResult.getCurrentValue
+          .orElse(prepopValue)
           .map { cv =>
             if (formComponent.editable) cv else TextFormatter.componentText(cv, text)
           }

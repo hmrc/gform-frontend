@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import cats.Eq
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, RoundingMode }
 
 case class TypedExpr(expr: Expr, exprType: ExprType) {
   def leafs: List[TypedExpr] = expr.leafs.map(TypedExpr(_, exprType))
@@ -28,7 +28,8 @@ object TypedExpr {
 
   def illegal(expr: Expr): TypedExpr = TypedExpr(expr, ExprType.illegal)
   def string(expr: Expr): TypedExpr = TypedExpr(expr, ExprType.string)
-  def number(expr: Expr): TypedExpr = TypedExpr(expr, ExprType.number)
+  def number(expr: Expr, roundingMode: RoundingMode, maxFractionalDigits: Int): TypedExpr =
+    TypedExpr(expr, ExprType.number(roundingMode, maxFractionalDigits))
   def choiceSelection(expr: Expr): TypedExpr = TypedExpr(expr, ExprType.choiceSelection)
 
   case object IsNumber {

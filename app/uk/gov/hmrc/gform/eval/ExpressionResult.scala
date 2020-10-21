@@ -21,7 +21,7 @@ import cats.instances.bigDecimal._
 import cats.instances.string._
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.commons.NumberSetScale
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ComponentType, Number, PositiveNumber, Sterling, Text }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Number, PositiveNumber, Sterling, TextConstraint }
 
 sealed trait ExpressionResult extends Product with Serializable {
 
@@ -138,17 +138,17 @@ sealed trait ExpressionResult extends Product with Serializable {
 
   private def withNumberResult(f: BigDecimal => BigDecimal): ExpressionResult =
     fold[ExpressionResult](identity)(identity)(identity)(r => NumberResult(f(r.value)))(identity)(identity)
+
   def withStringResult[B](noString: B)(f: String => B): B =
     fold[B](_ => noString)(_ => noString)(_ => noString)(_ => noString)(r => f(r.value))(_ => noString)
 
-  def applyComponentType(componentType: ComponentType): ExpressionResult = componentType match {
-    case Text(Sterling(roundingMode, _), _, _, _) =>
-      withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 2, roundingMode))
-    case Text(Number(_, maxFractionalDigits, roundingMode, _), _, _, _) =>
-      withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, maxFractionalDigits, roundingMode))
-    case Text(PositiveNumber(_, maxFractionalDigits, roundingMode, _), _, _, _) =>
-      withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, maxFractionalDigits, roundingMode))
-    case _ => this
+  def applyTextConstraint(textConstraint: TextConstraint): ExpressionResult = textConstraint match {
+    // format: off
+    case Sterling(rm, _)                 => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 2, rm))
+    case Number(_, maxFD, rm, _)         => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, maxFD, rm))
+    case PositiveNumber(_, maxFD, rm, _) => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, maxFD, rm))
+    case _                               => this
+    // format: on
   }
 
   def stringRepresentation =
