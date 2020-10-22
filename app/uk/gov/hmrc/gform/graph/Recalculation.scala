@@ -17,15 +17,8 @@
 package uk.gov.hmrc.gform.graph
 
 import cats.{ Monad, MonadError, Monoid }
-import cats.syntax.eq._
-import cats.syntax.either._
-import cats.syntax.foldable._
-import cats.syntax.functor._
-import cats.instances.list._
-import cats.syntax.flatMap._
-import cats.syntax.applicative._
+import cats.syntax.all._
 import cats.data.StateT
-
 import scala.language.higherKinds
 import scalax.collection.Graph
 import scalax.collection.GraphEdge._
@@ -83,7 +76,11 @@ class Recalculation[F[_]: Monad, E](
       evaluationContext: EvaluationContext
     ): StateT[F, RecalculationState, Boolean] = {
 
-      def compare(expr1: Expr, expr2: Expr, f: (ExpressionResult, ExpressionResult) => Boolean) = {
+      def compare(
+        expr1: Expr,
+        expr2: Expr,
+        f: (ExpressionResult, ExpressionResult) => Boolean
+      ): StateT[F, RecalculationState, Boolean] = {
         val typedExpr1 = formModel.toTypedExpr(expr1)
         val typedExpr2 = formModel.toTypedExpr(expr2)
         val textConstraint1: Option[TextConstraint] = expr1.textConstraint(fcLookup.get)
@@ -167,7 +164,7 @@ class Recalculation[F[_]: Monad, E](
       graphLayer: List[GraphNode],
       ctx: Context,
       evaluationContext: EvaluationContext
-    ): Either[GraphException, Context] = {
+    ): Context = {
 
       val (evResultF: StateT[F, RecalculationState, EvaluationResults], recData: RecData[SourceOrigin.OutOfDate]) = ctx
 
@@ -176,28 +173,26 @@ class Recalculation[F[_]: Monad, E](
         case Sum(FormCtx(formComponentId)) => formComponentId
       }.toSet
 
-      val evaluationResults: StateT[F, RecalculationState, EvaluationResults] = graphLayer.foldMapM {
-        case GraphNode.Simple(fcId) =>
-          for {
-            evResult <- evResultF
-            isH      <- isHidden(fcId, evResult, recData, evaluationContext)
-          } yield {
-            if (isH) {
-              val typedExpr = formModel.explicitTypedExpr(FormCtx(fcId), fcId)
-              evResult + (typedExpr, ExpressionResult.Hidden)
-            } else {
-              fcLookup.get(fcId).fold(evResult) {
-                case AllFormComponentExpressions(exprsMetadata) =>
-                  exprsMetadata.foldMap(_.toEvaluationResults(evResult, formModel, recData, evaluationContext))
-                case _ => evResult
+      val evaluationResults: StateT[F, RecalculationState, EvaluationResults] = evResultF.flatMap { evResult =>
+        graphLayer.foldMapM {
+
+          case GraphNode.Simple(fcId) =>
+            for {
+              isH <- isHidden(fcId, evResult, recData, evaluationContext)
+            } yield {
+              if (isH) {
+                val typedExpr = formModel.explicitTypedExpr(FormCtx(fcId), fcId)
+                evResult + (typedExpr, ExpressionResult.Hidden)
+              } else {
+                fcLookup.get(fcId).fold(evResult) {
+                  case AllFormComponentExpressions(exprsMetadata) =>
+                    exprsMetadata.foldMap(_.toEvaluationResults(evResult, formModel, recData, evaluationContext))
+                  case _ => evResult
+                }
               }
             }
-          }
 
-        case GraphNode.Expr(expr) =>
-          for {
-            evResult <- evResultF
-          } yield {
+          case GraphNode.Expr(expr) =>
             val sumsToAdd: List[FormComponentId] =
               expr.leafs
                 .collect {
@@ -221,39 +216,35 @@ class Recalculation[F[_]: Monad, E](
 
             val typedExpr = formModel.toTypedExpr(expr)
             val textConstraint: Option[TextConstraint] = expr.textConstraint(fcLookup.get)
-            val exprResult: ExpressionResult = evResult.evalTyped(typedExpr, recData, evaluationContext, textConstraint)
-            evResult ++ sumResults + (typedExpr, exprResult)
-          }
-
+            val exprResult: ExpressionResult =
+              evResult.evalTyped(typedExpr, recData, evaluationContext, textConstraint)
+            noStateChange(evResult ++ sumResults + (typedExpr, exprResult))
+        }
       }
-      val res: Either[GraphException, Context] = Right((evaluationResults, recData))
-      res
+
+      val context: Context = (evaluationResults, recData)
+      context
     }
 
-    val contextE: Either[GraphException, Context] =
-      Right(
-        (
-          StateT[F, RecalculationState, EvaluationResults](s => (s, EvaluationResults.empty).pure[F]),
-          RecData.fromData(data)))
+    val contextE: Context =
+      (
+        StateT[F, RecalculationState, EvaluationResults](s => (s, EvaluationResults.empty).pure[F]),
+        RecData.fromData(data))
 
     val res: Either[
       GraphException,
       StateT[F, RecalculationState, (EvaluationResults, Traversable[(Int, List[GraphNode])])]] =
       for {
         graphTopologicalOrder <- orderedGraph
-        recalc <- graphTopologicalOrder.foldRight(contextE) {
-                   case ((_, graphLayer), contextF) =>
-                     for {
-                       context    <- contextF
-                       updatedCtx <- recalculateGraphLayer(graphLayer, context, evaluationContext)
-                     } yield updatedCtx
-                 }
       } yield {
+        val recalc: Context = graphTopologicalOrder.toList.reverse.foldLeft(contextE) {
+          case (context, (_, graphLayer)) => recalculateGraphLayer(graphLayer, context, evaluationContext)
+        }
 
         val (
           evResultF: StateT[F, RecalculationState, EvaluationResults],
-          recalculatedData: RecData[SourceOrigin.OutOfDate]) =
-          recalc
+          recalculatedData: RecData[SourceOrigin.OutOfDate]
+        ) = recalc
 
         evResultF.map { evResult =>
           val finalEvResult: EvaluationResults =

@@ -66,7 +66,7 @@ class FormModelBuilder[E, F[_]: Functor](
   me: MonadError[F, E]
 ) {
 
-  private def toEvaluationResults(
+  private def toRecalculationResults(
     data: VariadicFormData[SourceOrigin.OutOfDate],
     formModel: FormModel[Interim]
   ): F[RecalculationResult] = {
@@ -171,7 +171,9 @@ class FormModelBuilder[E, F[_]: Functor](
   ): F[FormModelVisibilityOptics[D]] = {
     val formModel: FormModel[Interim] = expand(data)
 
-    toEvaluationResults(data, formModel).map { recalculationResult =>
+    val recalculationResultF: F[RecalculationResult] = toRecalculationResults(data, formModel)
+
+    recalculationResultF.map { recalculationResult =>
       val evaluationResults = recalculationResult.evaluationResults
       val booleanExprCache = recalculationResult.booleanExprCache
       val visibilityFormModel: FormModel[Visibility] = formModel.filter[Visibility] { pageModel =>
