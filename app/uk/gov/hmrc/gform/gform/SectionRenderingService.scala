@@ -1253,11 +1253,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     validationResult: ValidationResult,
     ei: ExtraInfo
   )(implicit l: LangADT, sse: SmartStringEvaluator) = {
-
     def prepopValue: Option[String] = {
       val fmvo = ei.formModelOptics.formModelVisibilityOptics
-      val typedExpr = fmvo.formModel.explicitTypedExpr(text.value, formComponent.id)
-      fmvo.evalTyped(typedExpr)
+      text.value match {
+        case Value => None
+        case expr =>
+          val typedExpr = fmvo.formModel.explicitTypedExpr(expr, formComponent.id)
+          fmvo.evalTyped(typedExpr)
+      }
     }
 
     val formFieldValidationResult = validationResult(formComponent)
