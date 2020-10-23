@@ -46,6 +46,7 @@ trait DestinationGen {
       roboticsXml        <- PrimitiveGen.booleanGen
       formdataXml        <- PrimitiveGen.booleanGen
       backscan           <- Gen.option(PrimitiveGen.booleanGen)
+      includeInstructionPdf        <- PrimitiveGen.booleanGen
     } yield
       Destination
         .HmrcDms(
@@ -58,7 +59,8 @@ trait DestinationGen {
           failOnError,
           roboticsXml,
           formdataXml,
-          backscan)
+          backscan,
+          includeInstructionPdf)
 
   def submissionConsolidatorGen: Gen[Destination.SubmissionConsolidator] =
     for {

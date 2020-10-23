@@ -32,6 +32,9 @@ import uk.gov.hmrc.gform.sharedmodel.BundledFormSubmissionData
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, FormStatus, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.instructions.InstructionsRenderingService
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
 import uk.gov.hmrc.gform.submission.Submission
@@ -75,6 +78,7 @@ trait GformBackEndAlgebra[F[_]] {
 class GformBackEndService(
   gformConnector: GformConnector,
   summaryRenderingService: SummaryRenderingService,
+  instructionsRenderingService: InstructionsRenderingService,
   lookupRegistry: LookupRegistry)(implicit ec: ExecutionContext)
     extends GformBackEndAlgebra[Future] {
 
@@ -137,6 +141,17 @@ class GformBackEndService(
                        submissionDetails,
                        SummaryPagePurpose.ForDms,
                        formModelOptics)
+      htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate))
+                                instructionsRenderingService
+                                  .createHtmlForInstructionsPdf(
+                                    maybeAccessCode,
+                                    cache,
+                                    submissionDetails,
+                                    SummaryPagePurpose.ForDms,
+                                    formModelOptics)
+                                  .map(Some(_))
+                              else
+                                Future.successful(None)
       structuredFormData <- StructuredFormDataBuilder(
                              formModelOptics.formModelVisibilityOptics,
                              cache.formTemplate.destinations,
@@ -148,6 +163,7 @@ class GformBackEndService(
                    maybeAccessCode,
                    customerId,
                    htmlForPDF,
+                   htmlForInstructionPDF,
                    structuredFormData,
                    attachments,
                    formModelOptics.formModelVisibilityOptics
@@ -188,6 +204,7 @@ class GformBackEndService(
     maybeAccessCode: Option[AccessCode],
     customerId: CustomerId,
     htmlForPDF: PdfHtml,
+    htmlForInstructionPDF: Option[PdfHtml],
     structuredFormData: StructuredFormValue.ObjectStructure,
     attachments: Attachments,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
@@ -197,6 +214,7 @@ class GformBackEndService(
       customerId,
       buildSubmissionData(
         htmlForPDF,
+        htmlForInstructionPDF,
         customerId,
         retrievals,
         formTemplate,
@@ -209,6 +227,7 @@ class GformBackEndService(
 
   private def buildSubmissionData[D <: DataOrigin](
     htmlForPDF: PdfHtml,
+    htmlForInstructionPDF: Option[PdfHtml],
     customerId: CustomerId,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
@@ -219,9 +238,22 @@ class GformBackEndService(
   ): SubmissionData =
     SubmissionData(
       htmlForPDF,
+      htmlForInstructionPDF,
       FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, formModelVisibilityOptics, customerId),
       structuredFormData,
       emailParameters,
       attachments
     )
+
+  private def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Boolean =
+    formTemplate.destinations match {
+      case DestinationList(destinations, _, _) =>
+        destinations
+          .collect {
+            case HmrcDms(_, _, _, _, _, _, _, _, _, _, includeInstructionPdf) =>
+              includeInstructionPdf
+          }
+          .contains(true)
+      case _ => false
+    }
 }

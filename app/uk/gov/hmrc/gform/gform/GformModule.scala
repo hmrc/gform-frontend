@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormValidator }
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndService, GformBackendModule }
 import uk.gov.hmrc.gform.graph.GraphModule
+import uk.gov.hmrc.gform.instructions.InstructionsRenderingService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ ProcessDataService, TaxPeriodStateChecker }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
@@ -129,6 +130,12 @@ class GformModule(
     configModule.frontendAppConfig
   )
 
+  val instructionsRenderingService = new InstructionsRenderingService(
+    playBuiltInsModule.i18nSupport,
+    fileUploadModule.fileUploadService,
+    validationModule.validationService,
+    configModule.frontendAppConfig)
+
   val pdfGeneratorService = new PdfGeneratorService(
     playBuiltInsModule.i18nSupport,
     pdfGeneratorConnector,
@@ -188,6 +195,7 @@ class GformModule(
   val gformBackEndService = new GformBackEndService(
     gformBackendModule.gformConnector,
     summaryRenderingService,
+    instructionsRenderingService,
     lookupRegistry
   )
 

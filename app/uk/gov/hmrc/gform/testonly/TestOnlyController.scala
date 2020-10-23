@@ -135,6 +135,7 @@ class TestOnlyController(
 
       submissionData = SubmissionData(
         PdfHtml("htmlForPDF"),
+        None,
         FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, formModelVisibilityOptics, customerId),
         structuredFormData,
         emailParameters,
@@ -212,6 +213,7 @@ class TestOnlyController(
 
       submissionData = SubmissionData(
         PdfHtml("htmlForPDF"),
+        None,
         FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, formModelVisibilityOptics, customerId),
         structuredFormData,
         emailParameters,

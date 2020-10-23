@@ -46,13 +46,14 @@ trait SectionGen {
 
   def acknowledgementSectionGen: Gen[AcknowledgementSection] =
     for {
-      title         <- smartStringGen
-      description   <- Gen.option(smartStringGen)
-      shortName     <- Gen.option(smartStringGen)
-      fields        <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
-      showReference <- PrimitiveGen.booleanGen
-      pdf           <- Gen.option(acknowledgementSectionPdfGen)
-    } yield AcknowledgementSection(title, description, shortName, fields.toList, showReference, pdf)
+      title          <- smartStringGen
+      description    <- Gen.option(smartStringGen)
+      shortName      <- Gen.option(smartStringGen)
+      fields         <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
+      showReference  <- PrimitiveGen.booleanGen
+      pdf            <- Gen.option(acknowledgementSectionPdfGen)
+      instructionPdf <- Gen.option(acknowledgementSectionPdfGen)
+    } yield AcknowledgementSection(title, description, shortName, fields.toList, showReference, pdf, instructionPdf)
 
   def acknowledgementSectionPdfGen: Gen[AcknowledgementSectionPdf] =
     for {
@@ -79,6 +80,7 @@ trait SectionGen {
       fields            <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
       continueLabel     <- Gen.option(smartStringGen)
       continueIf        <- Gen.option(ContinueIfGen.continueIfGen)
+      instruction       <- Gen.option(InstructionGen.instructionGen)
     } yield
       Page(
         title,
@@ -89,7 +91,8 @@ trait SectionGen {
         validators,
         fields.toList,
         continueLabel,
-        continueIf
+        continueIf,
+        instruction
       )
 
   def nonRepeatingPageSectionGen: Gen[Section.NonRepeatingPage] = pageGen.map(Section.NonRepeatingPage)

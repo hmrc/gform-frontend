@@ -34,7 +34,6 @@ import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ Atom, FastForward, FormModel, PageModel, Repeater, SectionSelector, SectionSelectorType, Singleton, Visibility }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.sharedmodel._
@@ -84,7 +83,7 @@ class SummaryRenderingService(
     for {
       summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics)
     } yield {
-      val submissionDetailsString = addSubmissionDetailsToDocument(submissionDetails, cache)
+      val submissionDetailsString = SummaryRenderingService.addSubmissionDetailsToDocument(submissionDetails, cache)
       PdfHtml(
         HtmlSanitiser
           .sanitiseHtmlForPDF(
@@ -146,28 +145,6 @@ class SummaryRenderingService(
         HtmlSanitiser
           .sanitiseHtmlForPDF(pdfHtml, document => HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)))
     }
-  }
-
-  private def addSubmissionDetailsToDocument[U <: SectionSelectorType: SectionSelector](
-    submissionDetails: Option[SubmissionDetails],
-    cache: AuthCacheWithForm
-  )(
-    implicit
-    messages: Messages
-  ): String = {
-    val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
-    val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
-    val formattedTime = submissionDetails.map(sd =>
-      s"""${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}""")
-
-    val rows = List(
-      formattedTime.map(ft => cya_row(messages("submission.date"), ft)),
-      Some(cya_row(messages("submission.reference"), SubmissionRef(cache.form.envelopeId).toString)),
-      submissionDetails.map(sd => cya_row(messages("submission.mark"), sd.hashedValue))
-    ).flatten
-
-    cya_section(messages("submission.details"), HtmlFormat.fill(rows)).toString()
-
   }
 
   private def addDataToPrintPdfHTML(
@@ -399,7 +376,8 @@ object SummaryRenderingService {
               sectionTitle4Ga,
               obligations,
               validationResult,
-              envelope
+              envelope,
+              getLabel
           )
         )
 
@@ -482,7 +460,8 @@ object SummaryRenderingService {
               SectionTitle4Ga(""),
               obligations,
               validationResult,
-              envelope
+              envelope,
+              getLabel
           ))
 
       List(new govukSummaryList()(SummaryList(rows)))
@@ -502,7 +481,7 @@ object SummaryRenderingService {
     renderHtmls(sortedFcs)
   }
 
-  private def getSummaryListRows[D <: DataOrigin](
+  def getSummaryListRows[D <: DataOrigin](
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
@@ -511,7 +490,8 @@ object SummaryRenderingService {
     sectionTitle4Ga: SectionTitle4Ga,
     obligations: Obligations,
     validationResult: ValidationResult,
-    envelope: Envelope
+    envelope: Envelope,
+    labelExtractor: FormComponent => String
   )(
     implicit
     messages: Messages,
@@ -531,7 +511,9 @@ object SummaryRenderingService {
           sectionNumber,
           sectionTitle4Ga,
           formFieldValidationResult,
-          envelope)
+          envelope,
+          labelExtractor
+        )
 
       case IsTextArea(_) =>
         getTextAreaSummaryListRows(
@@ -542,7 +524,9 @@ object SummaryRenderingService {
           sectionNumber,
           sectionTitle4Ga,
           formFieldValidationResult,
-          envelope)
+          envelope,
+          labelExtractor
+        )
 
       case IsUkSortCode(_) =>
         getUkSortCodeSummaryListRows(
@@ -552,7 +536,8 @@ object SummaryRenderingService {
           maybeAccessCode,
           sectionNumber,
           sectionTitle4Ga,
-          formFieldValidationResult)
+          formFieldValidationResult,
+          labelExtractor)
 
       case IsDate(_) =>
         getDateSummaryListRows(
@@ -562,7 +547,8 @@ object SummaryRenderingService {
           maybeAccessCode,
           sectionNumber,
           sectionTitle4Ga,
-          formFieldValidationResult)
+          formFieldValidationResult,
+          labelExtractor)
 
       case IsTime(_) =>
         getTimeSummaryListRows(
@@ -572,7 +558,8 @@ object SummaryRenderingService {
           maybeAccessCode,
           sectionNumber,
           sectionTitle4Ga,
-          formFieldValidationResult)
+          formFieldValidationResult,
+          labelExtractor)
 
       case IsAddress(_) =>
         getAddressSummaryListRows(
@@ -582,7 +569,8 @@ object SummaryRenderingService {
           maybeAccessCode,
           sectionNumber,
           sectionTitle4Ga,
-          formFieldValidationResult)
+          formFieldValidationResult,
+          labelExtractor)
 
       case IsInformationMessage(_) =>
         List(SummaryListRow())
@@ -596,7 +584,9 @@ object SummaryRenderingService {
           sectionNumber,
           sectionTitle4Ga,
           formFieldValidationResult,
-          envelope)
+          envelope,
+          labelExtractor
+        )
 
       case IsHmrcTaxPeriod(h) =>
         getHmrcTaxPeriodSummaryListRows(
@@ -609,7 +599,9 @@ object SummaryRenderingService {
           formFieldValidationResult,
           obligations,
           h,
-          envelope)
+          envelope,
+          labelExtractor
+        )
 
       case IsChoice(choice) =>
         getChoiceSummaryListRows(
@@ -620,7 +612,8 @@ object SummaryRenderingService {
           sectionNumber,
           sectionTitle4Ga,
           formFieldValidationResult,
-          choice)
+          choice,
+          labelExtractor)
 
       case IsRevealingChoice(rc) =>
         getRevealingChoiceSummaryListRows(
@@ -634,7 +627,8 @@ object SummaryRenderingService {
           validationResult,
           rc,
           obligations,
-          envelope
+          envelope,
+          labelExtractor
         )
 
       case IsGroup(group) =>
@@ -649,9 +643,9 @@ object SummaryRenderingService {
           obligations,
           formFieldValidationResult,
           validationResult,
-          envelope
+          envelope,
+          labelExtractor
         )
-
     }
   }
 
@@ -680,7 +674,8 @@ object SummaryRenderingService {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    envelope: Envelope
+    envelope: Envelope,
+    labelExtractor: FormComponent => String
   )(
     implicit
     messages: Messages,
@@ -692,7 +687,7 @@ object SummaryRenderingService {
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = getLabel(fieldValue)
+    val label = labelExtractor(fieldValue)
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
@@ -726,7 +721,7 @@ object SummaryRenderingService {
 
   }
 
-  private def getTextAreaSummaryListRows[D <: DataOrigin](
+  def getTextAreaSummaryListRows[D <: DataOrigin](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
@@ -734,7 +729,8 @@ object SummaryRenderingService {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    envelope: Envelope
+    envelope: Envelope,
+    labelExtractor: FormComponent => String
   )(
     implicit
     messages: Messages,
@@ -745,7 +741,7 @@ object SummaryRenderingService {
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = getLabel(fieldValue)
+    val label = labelExtractor(fieldValue)
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
@@ -793,7 +789,8 @@ object SummaryRenderingService {
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
-    formFieldValidationResult: FormFieldValidationResult
+    formFieldValidationResult: FormFieldValidationResult,
+    labelExtractor: FormComponent => String
   )(
     implicit
     messages: Messages,
@@ -803,7 +800,7 @@ object SummaryRenderingService {
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = getLabel(fieldValue)
+    val label = labelExtractor(fieldValue)
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
@@ -851,17 +848,17 @@ object SummaryRenderingService {
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
-    formFieldValidationResult: FormFieldValidationResult
+    formFieldValidationResult: FormFieldValidationResult,
+    labelExtractor: FormComponent => String
   )(
     implicit
-    messages: Messages,
-    lise: SmartStringEvaluator): List[SummaryListRow] = {
+    messages: Messages): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = getLabel(fieldValue)
+    val label = labelExtractor(fieldValue)
 
     val keyClasses = getKeyClasses(hasErrors)
 
@@ -912,18 +909,17 @@ object SummaryRenderingService {
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
-    formFieldValidationResult: FormFieldValidationResult
+    formFieldValidationResult: FormFieldValidationResult,
+    labelExtractor: FormComponent => String
   )(
     implicit
-    messages: Messages,
-    lise: SmartStringEvaluator
-  ): List[SummaryListRow] = {
+    messages: Messages): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = getLabel(fieldValue)
+    val label = labelExtractor(fieldValue)
 
     val keyClasses = getKeyClasses(hasErrors)
 
@@ -961,7 +957,8 @@ object SummaryRenderingService {
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
-    formFieldValidationResult: FormFieldValidationResult
+    formFieldValidationResult: FormFieldValidationResult,
+    labelExtractor: FormComponent => String
   )(
     implicit
     messages: Messages,
@@ -1016,11 +1013,11 @@ object SummaryRenderingService {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    envelope: Envelope
+    envelope: Envelope,
+    labelExtractor: FormComponent => String
   )(
     implicit
-    messages: Messages,
-    lise: SmartStringEvaluator): List[SummaryListRow] = {
+    messages: Messages): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
@@ -1028,7 +1025,7 @@ object SummaryRenderingService {
       errorInline("summary", e, Seq("error-message"))
     }
 
-    val label = getLabel(formComponent)
+    val label = labelExtractor(formComponent)
 
     val keyClasses = getKeyClasses(hasErrors)
 
@@ -1069,7 +1066,8 @@ object SummaryRenderingService {
     formFieldValidationResult: FormFieldValidationResult,
     obligations: Obligations,
     h: HmrcTaxPeriod,
-    envelope: Envelope
+    envelope: Envelope,
+    labelExtractor: FormComponent => String
   )(
     implicit
     messages: Messages,
@@ -1082,7 +1080,7 @@ object SummaryRenderingService {
       errorInline("summary", e, Seq())
     }
 
-    val label = getLabel(fieldValue)
+    val label = labelExtractor(fieldValue)
 
     val keyClasses = getKeyClasses(hasErrors)
     val periodId = TaxPeriodHelper.formatTaxPeriodOutput(formFieldValidationResult, envelope)
@@ -1131,7 +1129,8 @@ object SummaryRenderingService {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    choice: Choice
+    choice: Choice,
+    labelExtractor: FormComponent => String
   )(
     implicit
     messages: Messages,
@@ -1143,7 +1142,7 @@ object SummaryRenderingService {
       errorInline("summary", e, Seq())
     }
 
-    val label = getLabel(formComponent)
+    val label = labelExtractor(formComponent)
 
     val keyClasses = getKeyClasses(hasErrors)
 
@@ -1189,7 +1188,8 @@ object SummaryRenderingService {
     validationResult: ValidationResult,
     rc: RevealingChoice,
     obligations: Obligations,
-    envelope: Envelope
+    envelope: Envelope,
+    labelExtractor: FormComponent => String
   )(
     implicit
     messages: Messages,
@@ -1208,7 +1208,7 @@ object SummaryRenderingService {
             errorInline("summary", e, Seq())
           }
 
-          val label = getLabel(fieldValue)
+          val label = labelExtractor(fieldValue)
 
           val keyClasses = getKeyClasses(hasErrors)
 
@@ -1231,7 +1231,8 @@ object SummaryRenderingService {
                   sectionTitle4Ga,
                   obligations,
                   validationResult,
-                  envelope
+                  envelope,
+                  getLabel
                 )
               }
 
@@ -1274,7 +1275,8 @@ object SummaryRenderingService {
     obligations: Obligations,
     formFieldValidationResult: FormFieldValidationResult,
     validationResult: ValidationResult,
-    envelope: Envelope
+    envelope: Envelope,
+    labelExtractor: FormComponent => String
   )(
     implicit
     messages: Messages,
@@ -1344,17 +1346,40 @@ object SummaryRenderingService {
             sectionTitle4Ga,
             obligations,
             validationResult,
-            envelope
+            envelope,
+            labelExtractor
           )
         }
 
-        val label = getLabel(formComponent)
+        val label = labelExtractor(formComponent)
         if (label.nonEmpty && formComponent.modelComponentId.maybeIndex.fold(false)(_ === 1)) {
           val customKeyClasses = "summary-group-label"
 
           summaryListRow(label, "", None, customKeyClasses, "", "", Nil) :: rows
         } else rows
     }
+  }
+
+  def addSubmissionDetailsToDocument[U <: SectionSelectorType: SectionSelector](
+    submissionDetails: Option[SubmissionDetails],
+    cache: AuthCacheWithForm
+  )(
+    implicit
+    messages: Messages
+  ): String = {
+    val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
+    val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
+    val formattedTime = submissionDetails.map(sd =>
+      s"""${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}""")
+
+    val rows = List(
+      formattedTime.map(ft => cya_row(messages("submission.date"), ft)),
+      Some(cya_row(messages("submission.reference"), SubmissionRef(cache.form.envelopeId).toString)),
+      submissionDetails.map(sd => cya_row(messages("submission.mark"), sd.hashedValue))
+    ).flatten
+
+    cya_section(messages("submission.details"), HtmlFormat.fill(rows)).toString()
+
   }
 
 }
