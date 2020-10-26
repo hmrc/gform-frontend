@@ -210,22 +210,15 @@ class InstructionsRenderingService(
         }
       }).getOrElse(List.empty)
 
-    val formModel = formModelOptics.formModelVisibilityOptics.formModel
-    val pagesToRender: List[(PageModel[Visibility], SectionNumber)] = formModel.pagesWithIndex.sortBy {
-      case (pageModel, _) =>
-        pageModel match {
-          case Singleton(page, _) => page.instruction.map(_.order).getOrElse(Integer.MAX_VALUE)
-          case _                  => Integer.MAX_VALUE
-        }
-    }
-
-    pagesToRender.flatMap {
-      case (pageModel, sectionNumber) =>
-        pageModel match {
-          case s: Singleton[_] if s.page.instruction.isDefined => renderHtmls(s, sectionNumber)
-          case _                                               => Nil
-        }
-    }
+    formModelOptics.formModelVisibilityOptics.formModel.pagesWithIndex
+      .sortBy {
+        case (pageModel, _) =>
+          pageModel.fold(_.page.instruction.map(_.order))(_ => None).getOrElse(Integer.MAX_VALUE)
+      }
+      .flatMap {
+        case (pageModel, sectionNumber) =>
+          pageModel.fold(renderHtmls(_, sectionNumber))(_ => Nil)
+      }
   }
 
   private def addHeaderFooterSubmissionDetails(
