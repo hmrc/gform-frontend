@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
 import org.scalacheck.Gen
@@ -21,7 +22,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.SmartStringGen.smar
 
 object InstructionGen {
   val instructionGen = for {
-    name <- smartStringGen
+    name  <- smartStringGen
     order <- Gen.posNum[Int]
   } yield Instruction(name, order)
 }

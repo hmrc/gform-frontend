@@ -69,12 +69,12 @@ class InstructionsRenderingService(
     import i18nSupport._
 
     for {
-      summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics)
+      instructionsHtml <- getInstructionsHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics)
     } yield {
       PdfHtml(
         HtmlSanitiser
           .sanitiseHtmlForPDF(
-            summaryHtml,
+            instructionsHtml,
             document => {
               val submissionDetailsString =
                 SummaryRenderingService.addSubmissionDetailsToDocument(submissionDetails, cache)
@@ -84,24 +84,7 @@ class InstructionsRenderingService(
     }
   }
 
-  private def addHeaderFooterSubmissionDetails(
-    formTemplate: FormTemplate,
-    submissionDetails: String,
-    document: Document)(implicit l: LangADT, lise: SmartStringEvaluator): Unit = {
-    val mayBeInstructionPdf = formTemplate.destinations match {
-      case DestinationList(_, acknowledgementSection, _) =>
-        acknowledgementSection.instructionPdf
-      case _ => None
-    }
-
-    val form = document.getElementsByTag("form").first()
-    mayBeInstructionPdf.flatMap(_.header).map(markDownParser(_).toString).foreach(form.prepend)
-    form.prepend(h1(formTemplate.formName.value))
-    form.append(submissionDetails)
-    mayBeInstructionPdf.flatMap(_.footer).map(markDownParser(_).toString).foreach(form.append)
-  }
-
-  def getSummaryHTML[D <: DataOrigin](
+  private def getInstructionsHTML[D <: DataOrigin](
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
@@ -120,7 +103,7 @@ class InstructionsRenderingService(
       validationResult <- validationService
                            .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics)
     } yield
-      renderSummary(
+      renderInstructionsHtml(
         cache.formTemplate,
         validationResult,
         formModelOptics,
@@ -134,7 +117,7 @@ class InstructionsRenderingService(
       )
   }
 
-  def renderSummary[D <: DataOrigin](
+  private def renderInstructionsHtml[D <: DataOrigin](
     formTemplate: FormTemplate,
     validationResult: ValidationResult,
     formModelOptics: FormModelOptics[D],
@@ -160,7 +143,7 @@ class InstructionsRenderingService(
 
     summary(
       formTemplate,
-      summaryRowsForRender(
+      htmlRows(
         validationResult,
         formModelOptics,
         maybeAccessCode,
@@ -180,7 +163,7 @@ class InstructionsRenderingService(
     )
   }
 
-  def summaryRowsForRender[D <: DataOrigin](
+  private def htmlRows[D <: DataOrigin](
     validationResult: ValidationResult,
     formModelOptics: FormModelOptics[D],
     maybeAccessCode: Option[AccessCode],
@@ -243,6 +226,23 @@ class InstructionsRenderingService(
           case _                                               => Nil
         }
     }
+  }
+
+  private def addHeaderFooterSubmissionDetails(
+    formTemplate: FormTemplate,
+    submissionDetails: String,
+    document: Document)(implicit l: LangADT, lise: SmartStringEvaluator): Unit = {
+    val mayBeInstructionPdf = formTemplate.destinations match {
+      case DestinationList(_, acknowledgementSection, _) =>
+        acknowledgementSection.instructionPdf
+      case _ => None
+    }
+
+    val form = document.getElementsByTag("form").first()
+    mayBeInstructionPdf.flatMap(_.header).map(markDownParser(_).toString).foreach(form.prepend)
+    form.prepend(h1(formTemplate.formName.value))
+    form.append(submissionDetails)
+    mayBeInstructionPdf.flatMap(_.footer).map(markDownParser(_).toString).foreach(form.append)
   }
 
   private def getInstructionLabel(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String =
