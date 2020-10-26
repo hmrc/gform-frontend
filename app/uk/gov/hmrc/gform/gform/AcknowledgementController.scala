@@ -74,7 +74,9 @@ class AcknowledgementController(
                     cache.formTemplate,
                     destinationList,
                     cache.retrievals,
-                    cache.form.envelopeId)))
+                    cache.form.envelopeId,
+                    formModelOptics
+                  )))
           case _ =>
             Future.failed(new BadRequestException(s"Acknowledgement is not defined for $formTemplateId"))
         }

@@ -20,9 +20,9 @@ import cats.data.NonEmptyList
 import cats.syntax.eq._
 import julienrf.json.derived
 import play.api.libs.json._
+import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.SmartString
-
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.nelFormat
 
 sealed trait Section extends Product with Serializable {
@@ -74,6 +74,15 @@ sealed trait Section extends Product with Serializable {
       case a: Section.AddToList        => h(a)
     }
 
+  def staticTypeInfo: StaticTypeInfo =
+    fold(_.page.staticTypeInfo)(_.page.staticTypeInfo)(_.staticInfo)
+
+  def revealingChoiceInfo: RevealingChoiceInfo =
+    fold(_.page.revealingChoiceInfo)(_.page.revealingChoiceInfo)(_.allRevealingChoiceInfo)
+
+  def sumInfo: SumInfo =
+    fold(_.page.sumInfo)(_.page.sumInfo)(_.allSumInfo)
+
 }
 
 object Section {
@@ -97,6 +106,19 @@ object Section {
     val allIds: List[FormComponentId] = {
       addAnotherQuestion.id :: pages.toList.flatMap(_.allIds)
     }
+
+    val staticInfo: StaticTypeInfo =
+      pages.toList.foldLeft(
+        StaticTypeInfo(Map(addAnotherQuestion.baseComponentId -> addAnotherQuestion.staticTypeData))) {
+        case (acc, page) => acc ++ page.staticTypeInfo
+      }
+
+    val allRevealingChoiceInfo: RevealingChoiceInfo =
+      pages.toList.foldLeft(RevealingChoiceInfo.empty)(_ ++ _.revealingChoiceInfo)
+
+    val allSumInfo: SumInfo =
+      pages.toList.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
+
   }
 
   implicit val format: OFormat[Section] = derived.oformat()

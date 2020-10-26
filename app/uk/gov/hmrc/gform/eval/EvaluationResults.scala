@@ -30,14 +30,14 @@ import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 case class EvaluationResults(
-  exprMap: Map[TypedExpr, ExpressionResult]
+  exprMap: Map[Expr, ExpressionResult]
 ) {
 
-  def +(expr: TypedExpr, result: ExpressionResult): EvaluationResults = this.copy(exprMap = exprMap + (expr -> result))
-  def ++(otherExprMap: Map[TypedExpr, ExpressionResult]): EvaluationResults =
+  def +(expr: Expr, result: ExpressionResult): EvaluationResults = this.copy(exprMap = exprMap + (expr -> result))
+  def ++(otherExprMap: Map[Expr, ExpressionResult]): EvaluationResults =
     this.copy(exprMap = exprMap ++ otherExprMap)
 
-  def get(typedExpr: TypedExpr): Option[ExpressionResult] = exprMap.get(typedExpr)
+  def get(expr: Expr): Option[ExpressionResult] = exprMap.get(expr)
 
   import ExpressionResult._
 
@@ -49,37 +49,33 @@ case class EvaluationResults(
 
   private def get(
     expr: FormCtx,
-    typedExpr: TypedExpr,
     recData: RecData[SourceOrigin.OutOfDate],
-    evaluationContext: EvaluationContext,
     fromVariadicValue: VariadicValue => ExpressionResult
   ): ExpressionResult =
     exprMap
-      .get(typedExpr)
-      .orElse(evaluationContext.typedExpressionLookup.get(expr.formComponentId).flatMap(exprMap.get))
+      .get(expr)
       .getOrElse(
         recData.variadicFormData
           .get(expr.formComponentId.modelComponentId)
           .fold(ExpressionResult.empty)(fromVariadicValue))
 
-  // Add-to-list sum field may be hidden
-  private def isSumHidden(modelComponentId: ModelComponentId, toTyped: FormCtx => TypedExpr): Boolean = {
-    val typedExpr = toTyped(FormCtx(modelComponentId.toFormComponentId))
-    exprMap.get(typedExpr).fold(true)(_ === Hidden)
+  // Sum field may be hidden by AddToList or by Revealing choice
+  private def isSumHidden(modelComponentId: ModelComponentId): Boolean = {
+    val expr = FormCtx(modelComponentId.toFormComponentId)
+    exprMap.get(expr).fold(true)(_ === Hidden)
   }
 
   private def calculateSum(
     formComponentId: FormComponentId,
     recData: RecData[SourceOrigin.OutOfDate],
-    invalidResult: ExpressionResult,
-    toTyped: FormCtx => TypedExpr
+    invalidResult: ExpressionResult
   ): ExpressionResult = {
     val maybeListToSum: Either[ExpressionResult, List[BigDecimal]] =
       recData.variadicFormData
         .forBaseComponentId(formComponentId.baseComponentId)
         .toList
         .collect {
-          case (k, v) if !isSumHidden(k, toTyped) => v
+          case (k, v) if !isSumHidden(k) => v
         }
         .traverse {
           case VariadicValue.One(v) =>
@@ -92,10 +88,7 @@ case class EvaluationResults(
 
   private def evalNumber(
     expr: Expr,
-    recData: RecData[SourceOrigin.OutOfDate],
-    evaluationContext: EvaluationContext,
-    roundingMode: RoundingMode,
-    maxFractionalDigits: Int
+    recData: RecData[SourceOrigin.OutOfDate]
   ): ExpressionResult = {
 
     def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
@@ -106,23 +99,13 @@ case class EvaluationResults(
         NumberResult.apply)
 
     def loop(expr: Expr): ExpressionResult = expr match {
-      case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
-      case Multiply(field1: Expr, field2: Expr)    => loop(field1) * loop(field2)
-      case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
-      case Else(field1: Expr, field2: Expr)        => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId: FormComponentId) =>
-        get(
-          ctx,
-          TypedExpr(ctx, ExprType.Number(roundingMode, maxFractionalDigits)),
-          recData,
-          evaluationContext,
-          fromVariadicValue)
+      case Add(field1: Expr, field2: Expr)                 => loop(field1) + loop(field2)
+      case Multiply(field1: Expr, field2: Expr)            => loop(field1) * loop(field2)
+      case Subtraction(field1: Expr, field2: Expr)         => loop(field1) - loop(field2)
+      case Else(field1: Expr, field2: Expr)                => loop(field1) orElse loop(field2)
+      case ctx @ FormCtx(formComponentId: FormComponentId) => get(ctx, recData, fromVariadicValue)
       case Sum(FormCtx(formComponentId)) =>
-        calculateSum(
-          formComponentId,
-          recData,
-          unsupportedOperation("Number")(expr),
-          TypedExpr.number(_, roundingMode, maxFractionalDigits))
+        calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
       case Sum(_)                                     => unsupportedOperation("Number")(expr)
       case AuthCtx(value: AuthInfo)                   => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField)                  => unsupportedOperation("Number")(expr)
@@ -149,14 +132,13 @@ case class EvaluationResults(
         ExpressionResult.OptionResult(many.value.map(_.toInt)))
 
     def loop(expr: Expr): ExpressionResult = expr match {
-      case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
-      case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
-      case Subtraction(field1: Expr, field2: Expr) => unsupportedOperation("String")(expr)
-      case Else(field1: Expr, field2: Expr)        => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId: FormComponentId) =>
-        get(ctx, TypedExpr(ctx, ExprType.String), recData, evaluationContext, fromVariadicValue)
-      case Sum(field1: Expr)        => unsupportedOperation("String")(expr)
-      case AuthCtx(value: AuthInfo) => StringResult(AuthContextPrepop.values(value, evaluationContext.retrievals))
+      case Add(field1: Expr, field2: Expr)                 => loop(field1) + loop(field2)
+      case Multiply(field1: Expr, field2: Expr)            => unsupportedOperation("String")(expr)
+      case Subtraction(field1: Expr, field2: Expr)         => unsupportedOperation("String")(expr)
+      case Else(field1: Expr, field2: Expr)                => loop(field1) orElse loop(field2)
+      case ctx @ FormCtx(formComponentId: FormComponentId) => get(ctx, recData, fromVariadicValue)
+      case Sum(field1: Expr)                               => unsupportedOperation("String")(expr)
+      case AuthCtx(value: AuthInfo)                        => StringResult(AuthContextPrepop.values(value, evaluationContext.retrievals))
       case UserCtx(value: UserField) =>
         StringResult(
           UserCtxEvaluatorProcessor
@@ -189,36 +171,32 @@ case class EvaluationResults(
     loop(expr)
   }
 
-  def evalTyped[T](
-    typedExpr: TypedExpr,
+  def evalExprCurrent(
+    typeInfo: TypeInfo,
+    recData: RecData[SourceOrigin.Current],
+    evaluationContext: EvaluationContext
+  ): ExpressionResult = evalExpr(typeInfo, recData.asInstanceOf[RecData[SourceOrigin.OutOfDate]], evaluationContext)
+
+  def evalExpr(
+    typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
-    evaluationContext: EvaluationContext,
-    textConstraint: Option[TextConstraint]
-  ): ExpressionResult = {
-
-    val (roundingMode, maxFractionalDigits): (RoundingMode, Int) =
-      textConstraint.fold((RoundingMode.defaultRoundingMode, TextConstraint.defaultFactionalDigits)) {
-        case Sterling(roundingMode, _)                               => (roundingMode, 2)
-        case Number(_, maxFractionalDigits, roundingMode, _)         => (roundingMode, maxFractionalDigits)
-        case PositiveNumber(_, maxFractionalDigits, roundingMode, _) => (roundingMode, maxFractionalDigits)
-        case otherwise                                               => (RoundingMode.defaultRoundingMode, TextConstraint.defaultFactionalDigits)
-      }
-
-    val expressionResult: ExpressionResult =
-      typedExpr match {
-        case TypedExpr.IsNumber(expr)          => evalNumber(expr, recData, evaluationContext, roundingMode, maxFractionalDigits)
-        case TypedExpr.IsString(expr)          => evalString(expr, recData, evaluationContext)
-        case TypedExpr.IsChoiceSelection(expr) => evalString(expr, recData, evaluationContext)
-        case TypedExpr.IsIllegal(expr)         => ExpressionResult.invalid("[evalTyped] Illegal expression " + expr)
-      }
-    textConstraint.fold(expressionResult)(expressionResult.applyTextConstraint) // Apply rounding if applicable
-  }
+    evaluationContext: EvaluationContext
+  ): ExpressionResult =
+    typeInfo.staticTypeData.exprType.fold { number =>
+      evalNumber(typeInfo.expr, recData)
+    } { string =>
+      evalString(typeInfo.expr, recData, evaluationContext)
+    } { choiceSelection =>
+      evalString(typeInfo.expr, recData, evaluationContext)
+    } { illegal =>
+      ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
+    }
 }
 
 object EvaluationResults {
   val empty = EvaluationResults(Map.empty)
 
-  def unapply(a: EvaluationResults): Option[Map[TypedExpr, ExpressionResult]] = Some(a.exprMap)
+  def unapply(a: EvaluationResults): Option[Map[Expr, ExpressionResult]] = Some(a.exprMap)
 
   implicit val monoidEvaluationResults: Monoid[EvaluationResults] = new Monoid[EvaluationResults] {
     def empty = EvaluationResults.empty

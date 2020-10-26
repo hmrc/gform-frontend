@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.models
 
-import scala.util.Try
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -46,8 +45,8 @@ object FormModelExpander {
         section: Section.RepeatingPage,
         data: VariadicFormData[SourceOrigin.OutOfDate]): List[Singleton[DataExpanded]] = {
         val repeats = section.repeats
-        val r: String = fmvo.eval(repeats)
-        val repeatCount = Try(r.toInt).getOrElse(1)
+        val bdRepeats: Option[BigDecimal] = fmvo.evalAndApplyTypeInfoFirst(repeats).numberRepresentation
+        val repeatCount = bdRepeats.fold(1)(_.toInt)
         (1 to repeatCount).toList.map { index =>
           val pageBasic: Page[Basic] = mkSingleton2(section.page, index)(section)
           Singleton(pageBasic.asInstanceOf[Page[DataExpanded]], section)

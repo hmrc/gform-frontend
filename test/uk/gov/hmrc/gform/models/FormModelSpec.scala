@@ -21,11 +21,12 @@ import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
-import uk.gov.hmrc.gform.eval.{ ExprType, TypedExpr }
+import uk.gov.hmrc.gform.eval.{ ExprType, RevealingChoiceData, RevealingChoiceInfo, StandaloneSumInfo, StaticTypeData, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.eval.ExpressionResult._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with VariadicFormDataSupport {
@@ -54,6 +55,17 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
     val fmb = mkFormModelFromSections(sections)
 
+    val expectedStaticTypeInfo = StaticTypeInfoBuilder.simple(
+      "rc" -> ExprType.ChoiceSelection,
+      "a"  -> ExprType.String,
+      "b"  -> ExprType.String
+    )
+
+    val expectedRevealinChoiceInfo = RevealingChoiceInfoBuilder(
+      "a" -> (0 -> "rc"),
+      "b" -> (1 -> "rc")
+    )
+
     val table = Table(
       ("data", "expected"),
       (variadicFormDataMany(), sliceA :: Nil),
@@ -77,7 +89,11 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           None
         )
 
-        val expected: FormModel[Visibility] = FormModel.fromPages(List(Singleton(expectedPage, section1)))
+        val expected: FormModel[Visibility] = FormModel.fromPages(
+          List(Singleton(expectedPage, section1)),
+          expectedStaticTypeInfo,
+          expectedRevealinChoiceInfo,
+          SumInfo.empty)
 
         val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
           fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data)
@@ -110,21 +126,15 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "10", "b" -> "20", "c" -> "5"),
         Map(
-          TypedExpr.number(FormCtx("a"), RoundingMode.Down, 2)                    -> NumberResult(10.00),
-          TypedExpr.number(FormCtx("b"), RoundingMode.Down, 2)                    -> NumberResult(20.00),
-          TypedExpr.number(Add(FormCtx("a"), FormCtx("b")), RoundingMode.Up, 2)   -> NumberResult(30.00),
-          TypedExpr.number(Add(FormCtx("a"), FormCtx("b")), RoundingMode.Down, 2) -> NumberResult(30.00)
+          FormCtx("a") -> NumberResult(10.00),
+          FormCtx("b") -> NumberResult(20.00)
         )
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "dssd", "b" -> "20", "c" -> "5"),
         Map(
-          TypedExpr.number(FormCtx("a"), RoundingMode.Down, 2) -> Invalid("Number - cannot convert 'dssd' to number"),
-          TypedExpr.number(FormCtx("b"), RoundingMode.Down, 2) -> NumberResult(20.00),
-          TypedExpr.number(Add(FormCtx("a"), FormCtx("b")), RoundingMode.Up, 2) -> Invalid(
-            "Number - cannot convert 'dssd' to number"),
-          TypedExpr.number(Add(FormCtx("a"), FormCtx("b")), RoundingMode.Down, 2) -> Invalid(
-            "Number - cannot convert 'dssd' to number")
+          FormCtx("a") -> Invalid("Number - cannot convert 'dssd' to number"),
+          FormCtx("b") -> NumberResult(20.00)
         )
       )
     )
@@ -161,20 +171,15 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "10", "b" -> "20", "c" -> "5"),
         Map(
-          TypedExpr.string(FormCtx("a"))                                        -> StringResult("10"),
-          TypedExpr.string(FormCtx("b"))                                        -> StringResult("20"),
-          TypedExpr.string(Add(FormCtx("a"), FormCtx("b")))                     -> StringResult("1020"),
-          TypedExpr.number(Add(FormCtx("a"), FormCtx("b")), RoundingMode.Up, 2) -> NumberResult(30.00)
+          FormCtx("a") -> StringResult("10"),
+          FormCtx("b") -> StringResult("20")
         )
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "Hello", "b" -> "World", "c" -> "5"),
         Map(
-          TypedExpr.string(FormCtx("a"))                    -> StringResult("Hello"),
-          TypedExpr.string(FormCtx("b"))                    -> StringResult("World"),
-          TypedExpr.string(Add(FormCtx("a"), FormCtx("b"))) -> StringResult("HelloWorld"),
-          TypedExpr.number(Add(FormCtx("a"), FormCtx("b")), RoundingMode.Up, 2) -> Invalid(
-            "Number - cannot convert 'World' to number")
+          FormCtx("a") -> StringResult("Hello"),
+          FormCtx("b") -> StringResult("World")
         )
       )
     )
@@ -193,69 +198,62 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         Constant("A"),
         Map(
-          TypedExpr.string(Constant("A")) -> StringResult("A")
+          Constant("A") -> StringResult("A")
         )
       ),
       (
         Constant("1"),
         Map(
-          TypedExpr.number(Constant("1"), RoundingMode.Down, 2) -> NumberResult(1)
+          Constant("1") -> NumberResult(1)
         )
       ),
       (
         Constant("1.2"),
         Map(
-          TypedExpr.number(Constant("1.2"), RoundingMode.Down, 2) -> NumberResult(1.2)
+          Constant("1.2") -> NumberResult(1.2)
         )
       ),
       (
         Add(Constant("1.2"), Constant("2")),
         Map(
-          TypedExpr.number(Constant("1.2"), RoundingMode.Down, 2)                     -> NumberResult(1.2),
-          TypedExpr.number(Constant("2"), RoundingMode.Down, 2)                       -> NumberResult(2),
-          TypedExpr.number(Add(Constant("1.2"), Constant("2")), RoundingMode.Down, 2) -> NumberResult(3.2)
+          Constant("1.2") -> NumberResult(1.2),
+          Constant("2")   -> NumberResult(2)
         )
       ),
       (
         Add(Constant("1"), Constant("2")),
         Map(
-          TypedExpr.number(Constant("1"), RoundingMode.Down, 2)                     -> NumberResult(1),
-          TypedExpr.number(Constant("2"), RoundingMode.Down, 2)                     -> NumberResult(2),
-          TypedExpr.number(Add(Constant("1"), Constant("2")), RoundingMode.Down, 2) -> NumberResult(3)
+          Constant("1") -> NumberResult(1),
+          Constant("2") -> NumberResult(2)
         )
       ),
       (
         Add(Constant("A"), Constant("B")),
         Map(
-          TypedExpr.string(Constant("A"))                     -> StringResult("A"),
-          TypedExpr.string(Constant("B"))                     -> StringResult("B"),
-          TypedExpr.string(Add(Constant("A"), Constant("B"))) -> StringResult("AB")
+          Constant("A") -> StringResult("A"),
+          Constant("B") -> StringResult("B")
         )
       ),
       (
         Add(Constant("1"), Constant("A")),
         Map(
-          TypedExpr.number(Constant("1"), RoundingMode.Down, 2) -> NumberResult(1),
-          TypedExpr.string(Constant("A"))                       -> StringResult("A"),
-          TypedExpr.number(Add(Constant("1"), Constant("A")), RoundingMode.Down, 2) -> Invalid(
-            "Number - cannot convert 'A' to number")
+          Constant("1") -> NumberResult(1),
+          Constant("A") -> StringResult("A")
         )
       ),
       (
         Add(Constant(""), Add(Constant("1"), Constant("A"))),
         Map(
-          TypedExpr.number(Constant("1"), RoundingMode.Down, 2)                  -> NumberResult(1),
-          TypedExpr.string(Constant(""))                                         -> StringResult(""),
-          TypedExpr.string(Constant("A"))                                        -> StringResult("A"),
-          TypedExpr.string(Add(Constant(""), Add(Constant("1"), Constant("A")))) -> StringResult("1A")
+          Constant("1") -> NumberResult(1),
+          Constant("")  -> StringResult(""),
+          Constant("A") -> StringResult("A")
         )
       ),
       (
         Add(Constant("A"), Constant("1")),
         Map(
-          TypedExpr.number(Constant("1"), RoundingMode.Down, 2) -> NumberResult(1),
-          TypedExpr.string(Constant("A"))                       -> StringResult("A"),
-          TypedExpr.string(Add(Constant("A"), Constant("1")))   -> StringResult("A1")
+          Constant("1") -> NumberResult(1),
+          Constant("A") -> StringResult("A")
         )
       )
     )
@@ -282,22 +280,18 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         PositiveNumber(maxFractionalDigits = 0),
         Map(
-          TypedExpr.number(Constant("123"), RoundingMode.Down, 0)                    -> NumberResult(123),
-          TypedExpr.number(Constant("123"), RoundingMode.Down, 2)                    -> NumberResult(123),
-          TypedExpr.number(Constant("456"), RoundingMode.Down, 2)                    -> NumberResult(456),
-          TypedExpr.number(FormCtx("a"), RoundingMode.Down, 0)                       -> NumberResult(123),
-          TypedExpr.number(Add(FormCtx("a"), Constant("456")), RoundingMode.Down, 0) -> NumberResult(579)
+          Constant("123") -> NumberResult(123),
+          Constant("456") -> NumberResult(456),
+          FormCtx("a")    -> NumberResult(123)
         ),
         variadicFormData[SourceOrigin.Current]("a" -> "123")
       ),
       (
         BasicText,
         Map(
-          TypedExpr.string(Constant("123"))                       -> StringResult("123"),
-          TypedExpr.number(Constant("123"), RoundingMode.Down, 2) -> NumberResult(123),
-          TypedExpr.number(Constant("456"), RoundingMode.Down, 2) -> NumberResult(456),
-          TypedExpr.string(FormCtx("a"))                          -> StringResult("123"),
-          TypedExpr.string(Add(FormCtx("a"), Constant("456")))    -> StringResult("123456")
+          Constant("123") -> NumberResult(123),
+          Constant("456") -> NumberResult(456),
+          FormCtx("a")    -> StringResult("123")
         ),
         variadicFormData[SourceOrigin.Current]("a" -> "123")
       )
@@ -315,7 +309,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           section2
         )
         val fmb = mkFormModelFromSections(sections)
-        val data = variadicFormData[SourceOrigin.OutOfDate]()
+        val data = variadicFormData[SourceOrigin.OutOfDate]("a" -> "123")
 
         val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
           fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data)
@@ -327,7 +321,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
   }
 
-  it should "handle includeIf" in {
+  it should "handle includeIf with simple contains expression" in {
 
     val fcA = mkFormComponent("a", Text(PositiveNumber(maxFractionalDigits = 0), Constant("123")))
     val fcA2 =
@@ -356,18 +350,24 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
     val fmb = mkFormModelFromSections(sections)
 
+    val staticTypeInfo = StaticTypeInfoBuilder(
+      "a"  -> (ExprType.Number          -> Some(PositiveNumber(11, 0, RoundingMode.Down, None))),
+      "b"  -> (ExprType.String          -> None),
+      "c"  -> (ExprType.String          -> None),
+      "a2" -> (ExprType.ChoiceSelection -> None),
+      "d"  -> (ExprType.String          -> None)
+    )
+
     val table = Table(
       ("data", "expected", "expectedFormModel"),
       (
         variadicFormData[SourceOrigin.OutOfDate](),
         Map(
-          TypedExpr.number(Constant("123"), RoundingMode.Down, 0) -> NumberResult(123),
-          TypedExpr.number(Constant("123"), RoundingMode.Down, 2) -> NumberResult(123),
-          TypedExpr.string(Constant("456"))                       -> StringResult("456"),
-          TypedExpr.number(Constant("456"), RoundingMode.Down, 2) -> NumberResult(456),
-          TypedExpr.number(Constant("0"), RoundingMode.Down, 2)   -> NumberResult(0),
-          TypedExpr.choiceSelection(FormCtx("a2"))                -> Empty,
-          TypedExpr.string(FormCtx("c"))                          -> Hidden
+          Constant("123") -> NumberResult(123),
+          Constant("456") -> NumberResult(456),
+          Constant("0")   -> NumberResult(0),
+          FormCtx("a2")   -> Empty,
+          FormCtx("c")    -> Hidden
         ),
         List(
           (Singleton(expectedPageA, section1), 0),
@@ -378,13 +378,11 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormDataMany("a2" -> List(0)) ++ variadicFormData[SourceOrigin.OutOfDate]("c" -> "X"),
         Map(
-          TypedExpr.number(Constant("123"), RoundingMode.Down, 0) -> NumberResult(123),
-          TypedExpr.number(Constant("123"), RoundingMode.Down, 2) -> NumberResult(123),
-          TypedExpr.string(Constant("456"))                       -> StringResult("456"),
-          TypedExpr.number(Constant("456"), RoundingMode.Down, 2) -> NumberResult(456),
-          TypedExpr.number(Constant("0"), RoundingMode.Down, 2)   -> NumberResult(0),
-          TypedExpr.choiceSelection(FormCtx("a2"))                -> OptionResult(List(0)),
-          TypedExpr.string(FormCtx("c"))                          -> StringResult("X")
+          Constant("123") -> NumberResult(123),
+          Constant("456") -> NumberResult(456),
+          Constant("0")   -> NumberResult(0),
+          FormCtx("a2")   -> OptionResult(List(0)),
+          FormCtx("c")    -> StringResult("X")
         ),
         List(
           (Singleton(expectedPageA, section1), 0),
@@ -397,7 +395,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
     forAll(table) {
       case (data, expected, expectedPages) =>
-        val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages)
+        val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
         val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
           fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data)
@@ -432,15 +430,22 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
     val fmb = mkFormModelFromSections(sections)
 
+    val staticTypeInfo = StaticTypeInfoBuilder(
+      "a" -> (ExprType.Number          -> Some(PositiveNumber(11, 0, RoundingMode.Down, None))),
+      "b" -> (ExprType.ChoiceSelection -> None),
+      "c" -> (ExprType.String          -> None),
+      "d" -> (ExprType.String          -> None)
+    )
+
     val table = Table(
       ("data", "expected", "expectedFormModel"),
       (
-        variadicFormDataMany("b" -> List(123)),
+        variadicFormData[SourceOrigin.OutOfDate]("a" -> "123") ++
+          variadicFormDataMany("b"                   -> List(123)),
         Map(
-          TypedExpr.number(Constant("123"), RoundingMode.Down, 0) -> NumberResult(123),
-          TypedExpr.number(Constant("123"), RoundingMode.Down, 2) -> NumberResult(123),
-          TypedExpr.number(FormCtx("a"), RoundingMode.Down, 0)    -> NumberResult(123),
-          TypedExpr.choiceSelection(FormCtx("b"))                 -> OptionResult(List(123))
+          Constant("123") -> NumberResult(123),
+          FormCtx("a")    -> NumberResult(123),
+          FormCtx("b")    -> OptionResult(List(123))
         ),
         List(
           (Singleton(expectedPage1, section1), 0),
@@ -451,11 +456,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormDataMany("b" -> List(124)),
         Map(
-          TypedExpr.number(Constant("123"), RoundingMode.Down, 0) -> NumberResult(123),
-          TypedExpr.number(Constant("123"), RoundingMode.Down, 2) -> NumberResult(123),
-          TypedExpr.number(FormCtx("a"), RoundingMode.Down, 0)    -> NumberResult(123),
-          TypedExpr.choiceSelection(FormCtx("b"))                 -> OptionResult(List(124)),
-          TypedExpr.string(FormCtx("c"))                          -> Hidden
+          Constant("123") -> NumberResult(123),
+          FormCtx("a")    -> Empty,
+          FormCtx("b")    -> OptionResult(List(124)),
+          FormCtx("c")    -> Hidden
         ),
         List(
           (Singleton(expectedPage1, section1), 0),
@@ -466,7 +470,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
     forAll(table) {
       case (data, expected, expectedPages) =>
-        val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages)
+        val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
         val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
           fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data)
@@ -501,14 +505,22 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
     val fmb = mkFormModelFromSections(sections)
 
+    val staticTypeInfo = StaticTypeInfoBuilder(
+      "a" -> (ExprType.Number          -> Some(PositiveNumber(11, 2, RoundingMode.Down, None))),
+      "b" -> (ExprType.ChoiceSelection -> None),
+      "c" -> (ExprType.String          -> None),
+      "d" -> (ExprType.String          -> None)
+    )
+
     val table = Table(
       ("data", "expected", "expectedFormModel"),
       (
-        variadicFormDataMany("b" -> List(123)),
+        variadicFormData[SourceOrigin.OutOfDate]("a" -> "123.45") ++
+          variadicFormDataMany("b"                   -> List(123)),
         Map(
-          TypedExpr.number(Constant("123.45"), RoundingMode.Down, 2) -> NumberResult(123.45),
-          TypedExpr.number(FormCtx("a"), RoundingMode.Down, 2)       -> NumberResult(123.45),
-          TypedExpr.choiceSelection(FormCtx("b"))                    -> OptionResult(List(123))
+          Constant("123.45") -> NumberResult(123.45),
+          FormCtx("a")       -> NumberResult(123.45),
+          FormCtx("b")       -> OptionResult(List(123))
         ),
         List(
           (Singleton(expectedPage1, section1), 0),
@@ -520,7 +532,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
     forAll(table) {
       case (data, expected, expectedPages) =>
-        val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages)
+        val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
         val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
           fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data)
@@ -530,7 +542,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
     }
   }
 
-  it should "use recalculate graph bla bla" in {
+  it should "use recalculate graph to correctly mark hidden fields" in {
 
     val fcA = mkFormComponent("a", Value)
     val fcB = mkFormComponent("b", Value)
@@ -566,38 +578,33 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "HELLO", "b" -> "WORLD2", "c" -> "C", "e" -> "E", "d" -> "D"),
         Map(
-          TypedExpr.string(FormCtx("a"))                     -> StringResult("HELLO"),
-          TypedExpr.string(FormCtx("b"))                     -> StringResult("WORLD2"),
-          TypedExpr.string(FormCtx("c"))                     -> Hidden,
-          TypedExpr.string(FormCtx("d"))                     -> Hidden,
-          TypedExpr.string(FormCtx("e"))                     -> Hidden,
-          TypedExpr.string(Constant("WORLD"))                -> StringResult("WORLD"),
-          TypedExpr.string(Else(FormCtx("a"), FormCtx("b"))) -> StringResult("HELLO"),
-          TypedExpr.string(Else(FormCtx("c"), FormCtx("d"))) -> Hidden
-        )),
+          FormCtx("a")      -> StringResult("HELLO"),
+          FormCtx("b")      -> StringResult("WORLD2"),
+          FormCtx("c")      -> Hidden,
+          FormCtx("d")      -> Hidden,
+          FormCtx("e")      -> Hidden,
+          Constant("WORLD") -> StringResult("WORLD")
+        )
+      ),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "HELLO", "b" -> "HELLO", "c" -> "C", "e" -> "E", "d" -> "D"),
         Map(
-          TypedExpr.string(FormCtx("a"))                     -> StringResult("HELLO"),
-          TypedExpr.string(FormCtx("b"))                     -> StringResult("HELLO"),
-          TypedExpr.string(FormCtx("c"))                     -> StringResult("C"),
-          TypedExpr.string(FormCtx("d"))                     -> Hidden,
-          TypedExpr.string(FormCtx("e"))                     -> Hidden,
-          TypedExpr.string(Constant("WORLD"))                -> StringResult("WORLD"),
-          TypedExpr.string(Else(FormCtx("a"), FormCtx("b"))) -> StringResult("HELLO"),
-          TypedExpr.string(Else(FormCtx("c"), FormCtx("d"))) -> StringResult("C")
+          FormCtx("a")      -> StringResult("HELLO"),
+          FormCtx("b")      -> StringResult("HELLO"),
+          FormCtx("c")      -> StringResult("C"),
+          FormCtx("d")      -> Hidden,
+          FormCtx("e")      -> Hidden,
+          Constant("WORLD") -> StringResult("WORLD")
         )
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "HELLO", "b" -> "WORLD", "c" -> "C", "e" -> "E", "d" -> "D"),
         Map(
-          TypedExpr.string(FormCtx("a"))                     -> StringResult("HELLO"),
-          TypedExpr.string(FormCtx("b"))                     -> StringResult("WORLD"),
-          TypedExpr.string(FormCtx("c"))                     -> Hidden,
-          TypedExpr.string(FormCtx("d"))                     -> StringResult("D"),
-          TypedExpr.string(Constant("WORLD"))                -> StringResult("WORLD"),
-          TypedExpr.string(Else(FormCtx("a"), FormCtx("b"))) -> StringResult("HELLO"),
-          TypedExpr.string(Else(FormCtx("c"), FormCtx("d"))) -> StringResult("D")
+          FormCtx("a")      -> StringResult("HELLO"),
+          FormCtx("b")      -> StringResult("WORLD"),
+          FormCtx("c")      -> Hidden,
+          FormCtx("d")      -> StringResult("D"),
+          Constant("WORLD") -> StringResult("WORLD")
         )
       )
     )
@@ -608,60 +615,6 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data)
         res.evaluationResults.exprMap shouldBe expected
     }
-  }
-
-  "toTypedExpr" should "infer type of an expresion" in {
-    val fcA = mkFormComponent("a", Text(BasicText, Value))
-    val fcB = mkFormComponent("b", Text(PositiveNumber(), Value))
-    val fcC = mkFormComponent("c", Else(FormCtx("b"), FormCtx("a")))
-    val fcD = mkFormComponent("d", Value).copy(label = toSmartStringExpression("", Else(FormCtx("a"), FormCtx("b"))))
-
-    val section1 = mkSection(List(fcA))
-    val section2 = mkSection(List(fcB))
-    val section3 = mkSection(List(fcC))
-    val section4 = mkSection(List(fcD))
-
-    val sections = List(
-      section1,
-      section2,
-      section3,
-      section4
-    )
-
-    val fmb = mkFormModelFromSections(sections)
-
-    val data: VariadicFormData[SourceOrigin.OutOfDate] = variadicFormDataMany()
-
-    val fm: FormModel[Visibility] =
-      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data).formModel
-
-    val expr1 = Add(FormCtx("a"), FormCtx("b"))
-    val expr2 = Add(FormCtx("b"), FormCtx("a"))
-
-    val table = Table(
-      ("expression", "expected"),
-      (expr1, TypedExpr(expr1, ExprType.String)),
-      (expr2, TypedExpr(expr2, ExprType.Number(RoundingMode.Down, 2)))
-    )
-
-    forAll(table) {
-      case (expression, expected) =>
-        val typedExpr = fm.toTypedExpr(expression)
-        typedExpr shouldBe expected
-    }
-
-    val table2 = Table(
-      ("expression", "formComponentId", "expected"),
-      (expr1, FormComponentId("a"), TypedExpr(expr1, ExprType.String)),
-      (expr1, FormComponentId("b"), TypedExpr(expr1, ExprType.Number(RoundingMode.Down, 2)))
-    )
-
-    forAll(table2) {
-      case (expression, fcId, expected) =>
-        val explicitTypedExpr = fm.explicitTypedExpr(expression, fcId)
-        explicitTypedExpr shouldBe expected
-    }
-
   }
 
   "visibilityModel" should "return visibility model" in {
@@ -699,6 +652,16 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
     val expectedPageD = mkPageIncludeIf(fcD :: fcE :: Nil, includeIf2)
     val expectedPageF = mkPage(fcF :: Nil)
     val expectedPageG = mkPage(fcG :: Nil)
+
+    val staticTypeInfo = StaticTypeInfoBuilder.simple(
+      "a" -> ExprType.String,
+      "b" -> ExprType.String,
+      "c" -> ExprType.String,
+      "d" -> ExprType.String,
+      "e" -> ExprType.String,
+      "f" -> ExprType.String,
+      "g" -> ExprType.String
+    )
 
     val table = Table(
       ("data", "expectedData", "expectedPages"),
@@ -792,15 +755,22 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
         val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
           fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data)
 
-        val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages)
+        val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
         visibilityOptics.formModel shouldBe expected
         visibilityOptics.recData.variadicFormData shouldBe expectedData
     }
   }
 
-  private def fromPagesWithIndex[A <: PageMode](pages: List[(PageModel[A], Int)]): FormModel[A] =
-    FormModel(pages.map { case (page, index) => page -> SectionNumber(index) })
+  private def fromPagesWithIndex[A <: PageMode](
+    pages: List[(PageModel[A], Int)],
+    staticTypeInfo: StaticTypeInfo): FormModel[A] =
+    FormModel(
+      pages.map { case (page, index) => page -> SectionNumber(index) },
+      staticTypeInfo,
+      RevealingChoiceInfo.empty,
+      SumInfo.empty,
+      StandaloneSumInfo.empty)
 
   private def mkPage(formComponents: List[FormComponent]): Page[Visibility] = Page[Visibility](
     toSmartString("Section Name"),
@@ -829,4 +799,28 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       None
     )
 
+}
+
+object StaticTypeInfoBuilder {
+  def simple(ts: (String, ExprType)*): StaticTypeInfo = StaticTypeInfo {
+    ts.map {
+      case (baseComponentId, exprType) =>
+        BaseComponentId(baseComponentId) -> StaticTypeData(exprType, None)
+    }.toMap
+  }
+  def apply(ts: (String, (ExprType, Option[TextConstraint]))*): StaticTypeInfo = StaticTypeInfo {
+    ts.map {
+      case (baseComponentId, (exprType, textConstraint)) =>
+        BaseComponentId(baseComponentId) -> StaticTypeData(exprType, textConstraint)
+    }.toMap
+  }
+}
+
+object RevealingChoiceInfoBuilder {
+  def apply(ts: (String, (Int, String))*): RevealingChoiceInfo = RevealingChoiceInfo {
+    ts.map {
+      case (baseComponentId, (index, parent)) =>
+        BaseComponentId(baseComponentId) -> RevealingChoiceData(index, BaseComponentId(parent))
+    }.toMap
+  }
 }

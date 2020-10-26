@@ -31,10 +31,10 @@
 
     <span class="govuk-label govuk-!-font-weight-bold" aria-live="polite">
 	@totalText.label.asHtml
-	<span id="@id-total">@totalText.formatedValue</span>
+	<span id="@id-total">@totalText.currentValue</span>
 	@totalText.unit
     </span>
 
 
-    @(hidden_field_populated(NonEmptyList.one(FormRender(id, id, totalText.currentValue))))
+    @(hidden_field_populated(NonEmptyList.one(FormRender(id, id, totalText.currentValue.replace("£", "").replace(",", "")))))
 </div>

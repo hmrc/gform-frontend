@@ -20,12 +20,11 @@ import java.text.MessageFormat
 
 import org.intellij.markdown.html.entities.EntityConverter
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.commons.ExprFormat
-import uk.gov.hmrc.gform.commons.FormatType
+import uk.gov.hmrc.gform.eval.TypeInfo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormTemplate }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.http.HeaderCarrier
@@ -84,13 +83,12 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
           .format(
             s.interpolations
               .map { interpolation =>
-                val interpolated = eval(interpolation)
-                val formatType = ExprFormat.formatForExpr(interpolation, formModelVisibilityOptics.formModel)
-                val formatted = formatType match {
-                  case FormatType.Default        => interpolated
-                  case FormatType.FromText(text) => TextFormatter.componentText(interpolated, text)
-                }
+                val typeInfo: TypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(interpolation)
+                val interpolated = formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation
 
+                val formatted = typeInfo.staticTypeData.textConstraint.fold(interpolated) { textConstraint =>
+                  TextFormatter.componentTextReadonly(interpolated, textConstraint)
+                }
                 if (markDown) {
                   escapeMarkdown(formatted)
                 } else {
@@ -101,8 +99,6 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
               .toArray)
 
       }
-
-      private def eval(expr: Expr): String = formModelVisibilityOptics.eval(expr)
 
       private def escapeMarkdown(s: String): String = {
         val replacedEntities = EntityConverter.INSTANCE.replaceEntities(s.replace("\n", ""), true, false)

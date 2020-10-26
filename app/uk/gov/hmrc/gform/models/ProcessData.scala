@@ -58,7 +58,7 @@ class ProcessDataService[F[_]: Monad](
     val fmvo = browserFormModelOptics.formModelVisibilityOptics
     fmvo.allFormComponents.collect {
       case fc @ IsHmrcTaxPeriod(hmrcTaxPeriod) =>
-        val idNumber = fmvo.eval(hmrcTaxPeriod.idNumber)
+        val idNumber = fmvo.evalAndApplyTypeInfoFirst(hmrcTaxPeriod.idNumber).stringRepresentation
         if (idNumber.isEmpty) {
           None
         } else {

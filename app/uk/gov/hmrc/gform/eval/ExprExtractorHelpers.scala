@@ -31,6 +31,6 @@ trait ExprExtractorHelpers {
   def fromOption(maybeSmartStrings: Option[SmartString]*): List[Expr] = maybeSmartStrings.toList.flatMap(fromOption)
 
   def toFirstOperandPlainExprs(exprs: List[Expr]*): List[ExprMetadata] =
-    exprs.toList.flatten.map(expr => ExprMetadata.Plain(InferrableExpr(expr, InferringRule.FirstOperand)))
+    exprs.toList.flatten.map(expr => ExprMetadata.Plain(expr))
 
 }

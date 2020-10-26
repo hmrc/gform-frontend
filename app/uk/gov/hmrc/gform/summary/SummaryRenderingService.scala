@@ -389,7 +389,7 @@ object SummaryRenderingService {
       }
     }
 
-    def addToListRender(addToList: Section.AddToList): Html = {
+    def addToListRender(addToList: Section.AddToList, repeater: Repeater[Visibility]): Html = {
       val repeaters: List[Repeater[Visibility]] = formModel.repeaters(addToList.id)
       val sectionNumber = formModelOptics.formModelRenderPageOptics.formModel.lastSectionNumberWith(addToList.id)
       val recordTable: List[SmartString] = repeaters.map(_.expandedDescription)
@@ -402,7 +402,7 @@ object SummaryRenderingService {
       val value = recordTable.map(_.value).mkString("</br>")
 
       val slr: SummaryListRow = summaryListRow(
-        addToList.title.value,
+        repeater.title.value, // This is weird to use, as it can have $n, but this list in shown only once. Should we have other property here?
         value,
         None,
         "",
@@ -422,7 +422,7 @@ object SummaryRenderingService {
         val nextRepeaterAfterRepeater = new NextRepeaterAfterRepeater(formModel)
         pageModel match {
           case firstSingletonOfAddToList(addToList, singleton, repeater) =>
-            addToListRender(addToList) +:
+            addToListRender(addToList, repeater) +:
               begin_section(repeater.expandedShortName) +:
               renderHtmls(singleton, sectionNumber)
           case s: Singleton[_]                     => renderHtmls(s, sectionNumber)

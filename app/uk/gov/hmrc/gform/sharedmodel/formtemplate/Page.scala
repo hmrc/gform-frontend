@@ -16,8 +16,11 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.Monoid
 import play.api.libs.json.{ Json, OFormat }
 import cats.syntax.eq._
+import uk.gov.hmrc.gform.eval.{ RevealingChoiceData, RevealingChoiceInfo, StaticTypeInfo, SumInfo }
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.gform.RenderUnit
 import uk.gov.hmrc.gform.models.{ Basic, PageMode }
@@ -36,6 +39,34 @@ case class Page[A <: PageMode](
 ) {
 
   val allIds: List[FormComponentId] = fields.map(_.id) ++ fields.flatMap(_.childrenFormComponents.map(_.id))
+
+  val staticTypeInfo: StaticTypeInfo = StaticTypeInfo {
+    (fields ++ fields
+      .flatMap(_.childrenFormComponents))
+      .map(fc => fc.baseComponentId -> fc.staticTypeData)
+      .toMap
+  }
+
+  val revealingChoiceInfo: RevealingChoiceInfo = RevealingChoiceInfo {
+    fields
+      .collect {
+        case fc @ IsRevealingChoice(revealingChoice) =>
+          revealingChoice.options.zipWithIndex.flatMap {
+            case (revealingChoiceElement, index) =>
+              revealingChoiceElement.revealingFields.map { rf =>
+                rf.id.baseComponentId -> RevealingChoiceData(index, fc.id.baseComponentId)
+              }
+          }.toMap
+      }
+      .foldLeft(Map.empty[BaseComponentId, RevealingChoiceData])(_ ++ _)
+  }
+
+  val sumInfo: SumInfo = implicitly[Monoid[SumInfo]].combineAll(
+    (fields ++ fields
+      .flatMap(_.childrenFormComponents)).collect {
+      case fc @ HasValueExpr(s @ Sum(_)) => SumInfo(Map((s, Set(fc.id))))
+    }
+  )
 
   def renderUnits: List[RenderUnit] = fields.foldRight(List.empty[RenderUnit]) {
     case (formComponent, (h @ RenderUnit.Group(baseComponentId, groupFormComponents)) :: xs) =>

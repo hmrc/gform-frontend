@@ -968,12 +968,12 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
   private def validate[A](formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo], expected: A)(
     implicit position: Position,
     l: LangADT): Assertion = {
-    val sss: EitherEffect[StructuredFormValue.ObjectStructure] =
+    val objectStructure: EitherEffect[StructuredFormValue.ObjectStructure] =
       StructuredFormDataBuilder[DataOrigin.Mongo, EitherEffect](
         formModelVisibilityOptics,
         destinationList,
         lookupRegistry)
-    sss shouldBe expected
+    objectStructure shouldBe expected
   }
 
   def createFormModelVisibilityOptics(

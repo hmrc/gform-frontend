@@ -37,11 +37,13 @@ sealed trait ExpressionResult extends Product with Serializable {
     Invalid(s"Unsupported operation, cannot multiply $this and $er")
 
   def +(er: ExpressionResult): ExpressionResult = er match {
-    case t: Invalid      => t // TODO we are loosing 'this' which can potentionally be invalid as well
-    case t: Hidden.type  => this
-    case t: Empty.type   => this
-    case t: NumberResult => fold[ExpressionResult](identity)(_ => t)(_ => t)(_ + t)(invalidAdd)(invalidAdd)
-    case t: StringResult => fold[ExpressionResult](identity)(_ => t)(_ => t)(_ + t)(_ + t)(invalidAdd)
+    case t: Invalid     => t // TODO we are loosing 'this' which can potentionally be invalid as well
+    case t: Hidden.type => this
+    case t: Empty.type  => this
+    case t: NumberResult =>
+      fold[ExpressionResult](identity)(_ => t)(_ => t)(_ + t)(s => StringResult(s.value + t.value.toString))(invalidAdd)
+    case t: StringResult =>
+      fold[ExpressionResult](identity)(_ => t)(_ => t)(n => StringResult(n.value.toString + t.value))(_ + t)(invalidAdd)
     case t: OptionResult => Invalid(s"Unsupported operation, cannot add options a OptionResult $t")
   }
 
@@ -136,7 +138,7 @@ sealed trait ExpressionResult extends Product with Serializable {
   private def ifOptionResult(f: Seq[Int] => Boolean): Boolean =
     fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(r => f(r.value))
 
-  private def withNumberResult(f: BigDecimal => BigDecimal): ExpressionResult =
+  def withNumberResult(f: BigDecimal => BigDecimal): ExpressionResult =
     fold[ExpressionResult](identity)(identity)(identity)(r => NumberResult(f(r.value)))(identity)(identity)
 
   def withStringResult[B](noString: B)(f: String => B): B =
@@ -151,8 +153,14 @@ sealed trait ExpressionResult extends Product with Serializable {
     // format: on
   }
 
+  def applyTypeInfo(typeInfo: TypeInfo): ExpressionResult =
+    typeInfo.staticTypeData.textConstraint.fold(this)(applyTextConstraint)
+
   def stringRepresentation =
     fold(_ => "")(_ => "")(_ => "")(_.value.toString)(_.value)(_.value.mkString(","))
+
+  def numberRepresentation: Option[BigDecimal] =
+    fold[Option[BigDecimal]](_ => None)(_ => None)(_ => None)(bd => Some(bd.value))(_ => None)(_ => None)
 
   def fold[B](
     a: Invalid => B

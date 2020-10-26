@@ -27,8 +27,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 object AllFormComponentExpressions extends ExprExtractorHelpers {
   def unapply(fc: FormComponent): Option[List[ExprMetadata]] = {
 
-    def toFirstOperandExprs(exprs: List[Expr], toExprMetadata: InferrableExpr => ExprMetadata): List[ExprMetadata] =
-      exprs.map(expr => toExprMetadata(InferrableExpr(expr, InferringRule.FirstOperand)))
+    def toFirstOperandExprs(exprs: List[Expr], toExprMetadata: Expr => ExprMetadata): List[ExprMetadata] =
+      exprs.map(toExprMetadata)
 
     def fromRcElements(revealingChoiceElements: List[RevealingChoiceElement]): List[ExprMetadata] =
       revealingChoiceElements.toList.flatMap {
@@ -71,9 +71,8 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
         componentTypeExprs
 
     val explicitExprs = fc match {
-      case HasExpr(expr) =>
-        Some(ExprMetadata.Plain(InferrableExpr(expr, InferringRule.Explicit(fc.id))))
-      case _ => None
+      case HasExpr(expr) => Some(ExprMetadata.Plain(expr))
+      case _             => None
     }
 
     (firstOperandExprs, explicitExprs) match {

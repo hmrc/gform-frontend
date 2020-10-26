@@ -18,4 +18,8 @@ package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
 
-case class InferrableExpr(expr: Expr, inferringRule: InferringRule)
+case class TypeInfo(expr: Expr, staticTypeData: StaticTypeData)
+
+object TypeInfo {
+  def illegal(expr: Expr) = TypeInfo(expr, StaticTypeData.illegal)
+}

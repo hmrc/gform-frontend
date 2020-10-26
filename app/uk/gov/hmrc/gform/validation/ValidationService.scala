@@ -243,8 +243,8 @@ class ValidationService(
 
     v match {
       case HmrcRosmRegistrationCheckValidator(errorMessage, regime, utr, postcode) =>
-        val utrValue = formModelVisibilityOptics.eval(utr)
-        val postcodeValue = formModelVisibilityOptics.eval(postcode)
+        val utrValue = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(utr).stringRepresentation
+        val postcodeValue = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(postcode).stringRepresentation
 
         val errors =
           Map(
@@ -266,7 +266,7 @@ class ValidationService(
               )
           }
       case BankAccountModulusCheck(errorMessage, accountNumber, sortCode) =>
-        val accountNumberValue = formModelVisibilityOptics.eval(accountNumber)
+        val accountNumberValue = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(accountNumber).stringRepresentation
 
         val sortCodeCombined = UkSortCode
           .fields(sortCode.formComponentId.modelComponentId.indexedComponentId)

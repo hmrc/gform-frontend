@@ -33,6 +33,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 class BooleanExprEval[F[_]: Monad](
   val seissEligibilityChecker: SeissEligibilityChecker[F]
 ) {
+
   def eval[D <: DataOrigin](
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(
@@ -43,56 +44,54 @@ class BooleanExprEval[F[_]: Monad](
   ): F[Boolean] = {
     def loop(booleanExpr: BooleanExpr): F[Boolean] = booleanExpr match {
       case Equals(left, right) =>
-        val res = for {
-          l <- formModelVisibilityOptics.evalO(left)
-          r <- formModelVisibilityOptics.evalO(right)
-        } yield l.identical(r)
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left)
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right)
 
-        res.getOrElse(false).pure[F]
+        l.identical(r).pure[F]
 
       case GreaterThan(left, right) =>
-        val res = for {
-          l <- formModelVisibilityOptics.evalO(left)
-          r <- formModelVisibilityOptics.evalO(right)
-        } yield l > r
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left)
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right)
+        (l > r).pure[F]
 
-        res.getOrElse(false).pure[F]
       case GreaterThanOrEquals(left, right) =>
-        val res = for {
-          l <- formModelVisibilityOptics.evalO(left)
-          r <- formModelVisibilityOptics.evalO(right)
-        } yield l >= r
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left)
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right)
+        (l >= r).pure[F]
 
-        res.getOrElse(false).pure[F]
       case LessThan(left, right) =>
-        val res = for {
-          l <- formModelVisibilityOptics.evalO(left)
-          r <- formModelVisibilityOptics.evalO(right)
-        } yield l < r
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left)
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right)
+        (l < r).pure[F]
 
-        res.getOrElse(false).pure[F]
       case LessThanOrEquals(left, right) =>
-        val res = for {
-          l <- formModelVisibilityOptics.evalO(left)
-          r <- formModelVisibilityOptics.evalO(right)
-        } yield l <= r
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left)
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right)
 
-        res.getOrElse(false).pure[F]
-      case Not(booleanExpr)                => loop(booleanExpr).map(b => !b)
-      case Or(booleanExpr1, booleanExpr2)  => for { e1 <- loop(booleanExpr1); e2 <- loop(booleanExpr2) } yield e1 | e2
-      case And(booleanExpr1, booleanExpr2) => for { e1 <- loop(booleanExpr1); e2 <- loop(booleanExpr2) } yield e1 & e2
-      case IsTrue                          => true.pure[F]
-      case IsFalse                         => false.pure[F]
+        (l <= r).pure[F]
+
+      case Not(booleanExpr) => loop(booleanExpr).map(b => !b)
+      case Or(booleanExpr1, booleanExpr2) =>
+        for {
+          e1 <- loop(booleanExpr1)
+          e2 <- loop(booleanExpr2)
+        } yield e1 | e2
+      case And(booleanExpr1, booleanExpr2) =>
+        for {
+          e1 <- loop(booleanExpr1)
+          e2 <- loop(booleanExpr2)
+        } yield e1 & e2
+      case IsTrue  => true.pure[F]
+      case IsFalse => false.pure[F]
       case Contains(ctx, expr) =>
-        val res = for {
-          l <- formModelVisibilityOptics.evalO(ctx)
-          r <- formModelVisibilityOptics.evalO(expr)
-        } yield l.contains(r)
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(ctx)
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)
 
-        res.getOrElse(false).pure[F]
+        l.contains(r).pure[F]
 
       case In(expr, dataSource) =>
-        val v = formModelVisibilityOptics.eval(expr)
+        val v =
+          formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
 
         seissEligibilityChecker(UtrEligibilityRequest(v), hc)
 

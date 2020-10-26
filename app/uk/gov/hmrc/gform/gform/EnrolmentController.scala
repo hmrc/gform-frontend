@@ -33,13 +33,14 @@ import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
+import uk.gov.hmrc.gform.eval.{ EvaluationContext, RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.handlers.{ FormHandlerResult, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.graph.{ Recalculation }
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
@@ -108,12 +109,21 @@ class EnrolmentController(
       cache.formTemplate.authConfig match {
         case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
           val singleton = toSingleton(enrolmentSection)
+          val evaluationContext =
+            new EvaluationContext(
+              cache.formTemplate._id,
+              SubmissionRef(""),
+              cache.accessCode,
+              cache.retrievals,
+              ThirdPartyData.empty,
+              cache.formTemplate.authConfig,
+              hc)
           Ok(
             renderEnrolmentSection(
               cache.formTemplate,
               cache.retrievals,
               singleton,
-              FormModelOptics.empty,
+              FormModelOptics.empty(evaluationContext),
               Nil,
               ValidationResult.empty)
           ).pure[Future]
@@ -152,7 +162,13 @@ class EnrolmentController(
       formTemplate.authConfig match {
         case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev)) =>
           val singleton = toSingleton(enrolmentSection)
-          val genesisFormModel: FormModel[DataExpanded] = FormModel((singleton, SectionNumber(0)) :: Nil)
+          val genesisFormModel: FormModel[DataExpanded] =
+            FormModel(
+              (singleton, SectionNumber(0)) :: Nil,
+              StaticTypeInfo.empty,
+              RevealingChoiceInfo.empty,
+              SumInfo.empty,
+              StandaloneSumInfo.empty)
 
           processResponseDataFromBody(request, genesisFormModel) { requestRelatedData => variadicFormData =>
             val formModelOpticsF = FormModelOptics
@@ -307,7 +323,9 @@ class EnrolmentController(
       for {
         env <- AA.ask
         res <- xs.traverse { x =>
-                val value = env.formModelVisibilityOptics.eval(g(x))
+                val value = env.formModelVisibilityOptics
+                  .evalAndApplyTypeInfoFirst(g(x))
+                  .stringRepresentation
                 f(x)(value).pure[F]
               }
       } yield res

@@ -17,17 +17,15 @@
 package uk.gov.hmrc.gform.models
 
 import cats.{ Functor, MonadError }
-import cats.instances.list._
-import cats.syntax.foldable._
-import cats.syntax.functor._
+import cats.syntax.all._
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, TypedExpr }
+import uk.gov.hmrc.gform.eval.{ EvaluationContext, ExpressionResult, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.gform.{ FormComponentUpdater, PageUpdater }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BooleanExprCache, SmartString, SourceOrigin, SubmissionRef, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SmartString, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -70,15 +68,10 @@ class FormModelBuilder[E, F[_]: Functor](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     formModel: FormModel[Interim]
   ): F[RecalculationResult] = {
-    val typedExpressionLookup: Map[FormComponentId, TypedExpr] = formModel.allFormComponents.collect {
-      case fc @ HasExpr(expr) => fc.id -> formModel.explicitTypedExpr(expr, fc.id)
-    }.toMap
-
     val evaluationContext =
       new EvaluationContext(
         formTemplate._id,
         SubmissionRef(envelopeId),
-        typedExpressionLookup,
         maybeAccessCode,
         retrievals,
         thirdPartyData,
@@ -144,13 +137,16 @@ class FormModelBuilder[E, F[_]: Functor](
     formModel: FormModel[DataExpanded],
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   ): FormModel[Visibility] = {
-    val evaluationResults = formModelVisibilityOptics.evaluationResults
-    val booleanExprCache = formModelVisibilityOptics.booleanExprCache
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
     formModel
       .filter { pageModel =>
         pageModel.getIncludeIf.fold(true) { includeIf =>
-          evalIncludeIf(includeIf, evaluationResults, formModelVisibilityOptics.formModel, booleanExprCache)
+          evalIncludeIf(
+            includeIf,
+            formModelVisibilityOptics.recalculationResult,
+            formModelVisibilityOptics.recData,
+            formModelVisibilityOptics.formModel
+          )
         }
       }
       .map { pageModel: PageModel[DataExpanded] =>
@@ -175,23 +171,26 @@ class FormModelBuilder[E, F[_]: Functor](
 
     recalculationResultF.map { recalculationResult =>
       val evaluationResults = recalculationResult.evaluationResults
-      val booleanExprCache = recalculationResult.booleanExprCache
       val visibilityFormModel: FormModel[Visibility] = formModel.filter[Visibility] { pageModel =>
         pageModel.getIncludeIf.fold(true) { includeIf =>
-          evalIncludeIf(includeIf, evaluationResults, formModel, booleanExprCache)
+          evalIncludeIf(
+            includeIf,
+            recalculationResult,
+            RecData(data).asInstanceOf[RecData[SourceOrigin.Current]],
+            formModel)
         }
       }
 
-      val visibleTypedExprs: List[(FormComponentId, TypedExpr)] = visibilityFormModel.allFormComponents.collect {
+      val visibleTypedExprs: List[(FormComponentId, TypeInfo)] = visibilityFormModel.allFormComponents.collect {
         case fc @ HasValueExpr(expr) if !fc.editable => (fc.id, visibilityFormModel.explicitTypedExpr(expr, fc.id))
       }
 
       val visibleVariadicData: VariadicFormData[SourceOrigin.Current] =
         visibleTypedExprs.foldMap {
-          case (fcId, typedExpr) =>
-            evaluationResults.get(typedExpr).fold(VariadicFormData.empty[SourceOrigin.Current]) { expressionResult =>
-              toCurrentData(fcId.modelComponentId, expressionResult)
-            }
+          case (fcId, typeInfo) =>
+            val expressionResult =
+              evaluationResults.evalExpr(typeInfo, RecData(data), recalculationResult.evaluationContext)
+            toCurrentData(fcId.modelComponentId, expressionResult)
         }
 
       val currentData = data ++ visibleVariadicData
@@ -205,20 +204,20 @@ class FormModelBuilder[E, F[_]: Functor](
 
   private def evalIncludeIf[T <: PageMode](
     includeIf: IncludeIf,
-    evaluationResults: EvaluationResults,
-    formModel: FormModel[T],
-    booleanExprCache: BooleanExprCache
+    recalculationResult: RecalculationResult,
+    recData: RecData[SourceOrigin.Current],
+    formModel: FormModel[T]
   ): Boolean = {
-    def compare(expr1: Expr, expr2: Expr, f: (ExpressionResult, ExpressionResult) => Boolean) = {
-      val typedExpr1 = formModel.toTypedExpr(expr1)
-      val typedExpr2 = formModel.toTypedExpr(expr2)
-      val maybeBoolean = for {
-        r <- evaluationResults.get(typedExpr1)
-        s <- evaluationResults.get(typedExpr2)
-      } yield f(r, s)
-
-      maybeBoolean.getOrElse(false)
-
+    def compare(expr1: Expr, expr2: Expr, f: (ExpressionResult, ExpressionResult) => Boolean): Boolean = {
+      val typeInfo1 = formModel.toFirstOperandTypeInfo(expr1)
+      val typeInfo2 = formModel.toFirstOperandTypeInfo(expr2)
+      val r = recalculationResult.evaluationResults
+        .evalExprCurrent(typeInfo1, recData, recalculationResult.evaluationContext)
+        .applyTypeInfo(typeInfo1)
+      val s = recalculationResult.evaluationResults
+        .evalExprCurrent(typeInfo2, recData, recalculationResult.evaluationContext)
+        .applyTypeInfo(typeInfo2)
+      f(r, s)
     }
 
     def loop(booleanExpr: BooleanExpr): Boolean = booleanExpr match {
@@ -234,26 +233,15 @@ class FormModelBuilder[E, F[_]: Functor](
       case IsFalse                             => false
       case Contains(field1, field2)            => compare(field1, field2, _ contains _)
       case In(expr, dataSource) =>
-        val maybeBoolean = for {
-          expressionResult <- evaluationResults.get(formModel.toTypedExpr(expr))
-          res              <- booleanExprCache.get(dataSource, expressionResult.stringRepresentation)
-        } yield res
+        val expressionResult = recalculationResult.evaluationResults
+          .evalExprCurrent(formModel.toFirstOperandTypeInfo(expr), recData, recalculationResult.evaluationContext)
+        val maybeBoolean = recalculationResult.booleanExprCache.get(dataSource, expressionResult.stringRepresentation)
         maybeBoolean.getOrElse(false)
     }
 
     loop(includeIf.booleanExpr)
 
   }
-
-  // 1. FormModel[DataExpanded, SourceOrigin.OutOfDate] - this model contains all pages and expanded
-  //      groups and repeated sections are expanded based on data (not based on repeatsMax ie. expression)
-
-  // 2. Remove revealingChoice fields which are not selected.
-  //    FormModel[DataExpanded, SourceOrigin.OutOfDate] => FormModel[DataExpanded with RevealingChoiceVisibleOnly, SourceOrigin.OutOfDate]
-
-  // 3. Create dependency graph based on model from step 2.
-  //     a) For every graphLayer adjust model such that it will not contain hidden section
-  //    FormModel[DataExpanded with RevealingChoiceVisibleOnly, SourceOrigin.OutOfDate] => FormModel[Visibility]
 
   private def expand[T <: PageMode: FormModelExpander, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate]
@@ -298,6 +286,12 @@ class FormModelBuilder[E, F[_]: Functor](
 
     val allSections: List[Section] = sectionIncluder.getSections(formTemplate)
 
+    val staticTypeInfo: StaticTypeInfo =
+      allSections.foldLeft(StaticTypeInfo.empty)(_ ++ _.staticTypeInfo)
+
+    val revealingChoiceInfo: RevealingChoiceInfo =
+      allSections.foldLeft(RevealingChoiceInfo.empty)(_ ++ _.revealingChoiceInfo)
+
     val pages = allSections
       .flatMap {
         case s: Section.NonRepeatingPage => List(Singleton[T](formModelExpander.lift(s.page, data), s))
@@ -305,7 +299,9 @@ class FormModelBuilder[E, F[_]: Functor](
         case s: Section.AddToList        => basicAddToList(s, 1, data)
       }
 
-    FormModel.fromPages(pages)
+    val sumInfo: SumInfo = allSections.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
+
+    FormModel.fromPages(pages, staticTypeInfo, revealingChoiceInfo, sumInfo)
 
   }
 
@@ -326,7 +322,13 @@ class FormModelBuilder[E, F[_]: Functor](
         val next = nextOne.toSeq.flatten
 
         val rest = if (next.contains("0")) {
-          val addToListFormModel: FormModel[T] = FormModel.fromPages(basicAddToList(source, index + 1, data))
+          val addToListFormModel: FormModel[T] =
+            FormModel
+              .fromPages(
+                basicAddToList(source, index + 1, data),
+                formModel.staticTypeInfo,
+                formModel.revealingChoiceInfo,
+                formModel.sumInfo)
           mkFormModel(addToListFormModel, data).pages
         } else {
           Nil

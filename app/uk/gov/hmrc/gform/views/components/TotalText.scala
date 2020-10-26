@@ -17,8 +17,6 @@
 package uk.gov.hmrc.gform.views.components
 
 import cats.syntax.option._
-import uk.gov.hmrc.gform.commons.{ BigDecimalUtil, NumberFormatUtil }
-import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
@@ -41,11 +39,6 @@ class TotalText(
   val errorMessage: Option[ErrorMessage] = maybeErrorMessage.map(_.copy(id = errorId))
 
   val currentValue: String = maybeCurrentValue.getOrElse("")
-
-  val formatedValue: String =
-    if (formComponent.isSterling)
-      NumberFormatUtil.currencyFormat.format(BigDecimalUtil.toBigDecimalDefault(currentValue))
-    else currentValue
 
   val unit: String = maybeUnit.getOrElse("")
 

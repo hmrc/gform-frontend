@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.gform.models.optics
 
-import uk.gov.hmrc.gform.eval.{ EvaluationResults, ExpressionResult, TypedExpr }
+import uk.gov.hmrc.gform.eval.{ EvaluationResults, ExpressionResult, TypeInfo }
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
 case class FormModelVisibilityOptics[D <: DataOrigin](
@@ -44,15 +44,20 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
 
   def fcLookup: Map[FormComponentId, FormComponent] = formModel.fcLookup
 
-  def evalO(expr: Expr): Option[ExpressionResult] = {
-    val typedExpr = formModel.toTypedExpr(expr)
-    recalculationResult.evaluationResults.get(typedExpr)
+  def evalAndApplyTypeInfoExplicit(expr: Expr, fcId: FormComponentId): ExpressionResult = {
+    val typeInfo = formModel.explicitTypedExpr(expr, fcId)
+    evalAndApplyTypeInfo(typeInfo)
   }
 
-  def eval(expr: Expr): String = evalO(expr).fold("")(_.stringRepresentation)
+  def evalAndApplyTypeInfoFirst(expr: Expr): ExpressionResult = {
+    val typeInfo = formModel.toFirstOperandTypeInfo(expr)
+    evalAndApplyTypeInfo(typeInfo)
+  }
 
-  def evalTyped(typedExpr: TypedExpr): Option[String] =
-    recalculationResult.evaluationResults.get(typedExpr).map(_.stringRepresentation)
+  def evalAndApplyTypeInfo(typeInfo: TypeInfo): ExpressionResult =
+    recalculationResult.evaluationResults
+      .evalExprCurrent(typeInfo, recData, recalculationResult.evaluationContext)
+      .applyTypeInfo(typeInfo)
 
   object data {
     def all: List[(ModelComponentId, VariadicValue)] =

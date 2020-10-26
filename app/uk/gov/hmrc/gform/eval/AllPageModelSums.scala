@@ -16,11 +16,17 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.models.{ PageMode, PageModel }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Sum
 
-sealed trait InferringRule extends Product with Serializable
+object AllPageModelSums {
+  def unapply[A <: PageMode](pageModel: PageModel[A]): Option[Set[Sum]] = pageModel match {
+    case AllPageModelExpressions(exprs) =>
+      val sums = exprs.flatMap(_.expr.sums)
 
-object InferringRule {
-  case object FirstOperand extends InferringRule
-  case class Explicit(formComponentId: FormComponentId) extends InferringRule
+      if (sums.isEmpty) None
+      else Some(sums.toSet)
+
+    case _ => None
+  }
 }

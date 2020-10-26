@@ -31,7 +31,7 @@ object CustomerIdRecalculation {
   ): CustomerId =
     customerIdExpressions(cache.formTemplate.destinations)
       .map { expr =>
-        CustomerId(formModelVisibilityOptics.eval(expr).take(32))
+        CustomerId(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation.take(32))
       }
       .filter(!_.isEmpty)
       .headOption

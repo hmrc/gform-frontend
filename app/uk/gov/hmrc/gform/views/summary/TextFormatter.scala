@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.views.summary
 import cats.syntax.option._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
-import uk.gov.hmrc.gform.commons.{ NumberFormatUtil, NumberSetScale }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.Atom
@@ -31,30 +30,29 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 object TextFormatter {
 
-  def componentText(currentValue: String, text: Text)(implicit l: LangADT): String =
-    if (currentValue.isEmpty) {
-      currentValue
-    } else {
-      text.constraint match {
-        case PositiveNumber(_, _, _, Some(unit)) => currentValue + " " + unit.value
-        case Number(_, _, _, Some(unit))         => currentValue + " " + unit.value
-        case PositiveNumber(_, maxFractionalDigits, rm, None) =>
-          getNumberConstraint(currentValue, bd => NumberFormatUtil.roundAndFormat(bd, maxFractionalDigits, rm))
-        case Number(_, maxFractionalDigits, rm, None) =>
-          getNumberConstraint(currentValue, bd => NumberFormatUtil.roundAndFormat(bd, maxFractionalDigits, rm))
-        case s: Sterling =>
-          getNumberConstraint(currentValue, bd => currencyFormat.format(NumberSetScale.setScale(bd, 2, s.roundingMode)))
-        case _ =>
-          currentValue
-      }
+  def componentTextReadonly(currentValue: String, textConstraint: TextConstraint)(implicit l: LangADT): String =
+    textConstraint match {
+      case PositiveNumber(_, _, _, unit) => stripTrailingZeros(currentValue) + unit.fold("")(" " + _.value)
+      case Number(_, _, _, unit)         => stripTrailingZeros(currentValue) + unit.fold("")(" " + _.value)
+      case s: Sterling                   => formatSterling(currentValue)
+      case _                             => currentValue
     }
 
-  private def getNumberConstraint(currentValue: String, f: BigDecimal => String): String = {
-    val poundOrComma = "[£,]".r
-    val valueWithoutPoundsOrCommas: String = poundOrComma.replaceAllIn(currentValue, "")
-    val maybeBigDecimal = toBigDecimalSafe(valueWithoutPoundsOrCommas)
-    maybeBigDecimal.fold(currentValue)(f)
-  }
+  def componentTextEditable(currentValue: String, textConstraint: TextConstraint): String =
+    textConstraint match {
+      case PositiveNumber(_, _, _, unit) => stripTrailingZeros(currentValue)
+      case Number(_, _, _, unit)         => stripTrailingZeros(currentValue)
+      case s: Sterling                   => stripTrailingZeros(currentValue)
+      case _                             => currentValue
+    }
+
+  private def stripTrailingZeros(currentValue: String): String =
+    if (currentValue.contains(".")) {
+      currentValue.reverse.dropWhile(_ == '0').dropWhile(_ == '.').reverse
+    } else currentValue
+
+  private def formatSterling(currentValue: String): String =
+    toBigDecimalSafe(currentValue).fold(currentValue)(currencyFormat.format)
 
   def formatText(
     validationResult: FormFieldValidationResult,
@@ -67,7 +65,7 @@ object TextFormatter {
     val currentValue = validationResult.getCurrentValue.getOrElse("")
 
     def getValue(formComponent: FormComponent): String = formComponent match {
-      case IsText(text)     => componentText(currentValue, text)
+      case IsText(text)     => componentTextReadonly(currentValue, text.constraint)
       case IsFileUpload()   => envelope.userFileName(formComponent)
       case IsChoice(choice) => choice.renderToString(formComponent, validationResult).mkString("<br>")
       case IsUkSortCode(sortCode) =>

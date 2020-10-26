@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
 import shapeless.syntax.typeable._
-import uk.gov.hmrc.gform.eval.ExprType
+import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData }
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
@@ -68,14 +68,23 @@ case class FormComponent(
 
   def firstAtomModelComponentId: ModelComponentId.Atomic = multiValueId.firstAtomModelComponentId
 
-  def getType: ExprType = this match {
-    case IsText(Text(Sterling(rm, _), _, _, _))                 => ExprType.Number(rm, 2)
-    case IsText(Text(Number(_, maxFD, rm, _), _, _, _))         => ExprType.Number(rm, maxFD)
-    case IsText(Text(PositiveNumber(_, maxFD, rm, _), _, _, _)) => ExprType.Number(rm, maxFD)
-    case IsChoice(_)                                            => ExprType.ChoiceSelection
-    case IsRevealingChoice(_)                                   => ExprType.ChoiceSelection
-    case _                                                      => ExprType.String
+  private val exprType: ExprType = this match {
+    case IsText(Text(Sterling(_, _), _, _, _))             => ExprType.number
+    case IsText(Text(Number(_, _, _, _), _, _, _))         => ExprType.number
+    case IsText(Text(PositiveNumber(_, _, _, _), _, _, _)) => ExprType.number
+    case IsChoice(_)                                       => ExprType.ChoiceSelection
+    case IsRevealingChoice(_)                              => ExprType.ChoiceSelection
+    case _                                                 => ExprType.String
   }
+
+  private val textConstraint: Option[TextConstraint] = this match {
+    case IsText(Text(tc @ Sterling(_, _), _, _, _))             => Some(tc)
+    case IsText(Text(tc @ Number(_, _, _, _), _, _, _))         => Some(tc)
+    case IsText(Text(tc @ PositiveNumber(_, _, _, _), _, _, _)) => Some(tc)
+    case _                                                      => None
+  }
+
+  val staticTypeData: StaticTypeData = StaticTypeData(exprType, textConstraint)
 
   def hideOnSummary: Boolean =
     presentationHint.fold(false)(x => x.contains(InvisibleInSummary)) || IsInformationMessage.unapply(this).isDefined
