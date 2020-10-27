@@ -185,7 +185,7 @@ class InstructionsRenderingService(
         fields = singleton.page.fields
           .filterNot(_.hideOnSummary)
           .filter(_.instruction.isDefined)
-          .sortBy(_.instruction.map(_.order).getOrElse(Integer.MAX_VALUE))
+          .sortBy(_.instruction.flatMap(_.order).getOrElse(Integer.MAX_VALUE))
         middleRows: List[SummaryListRow] = fields
           .flatMap(
             formComponent =>
@@ -213,7 +213,7 @@ class InstructionsRenderingService(
     formModelOptics.formModelVisibilityOptics.formModel.pagesWithIndex
       .sortBy {
         case (pageModel, _) =>
-          pageModel.fold(_.page.instruction.map(_.order))(_ => None).getOrElse(Integer.MAX_VALUE)
+          pageModel.fold(_.page.instruction.flatMap(_.order))(_ => None).getOrElse(Integer.MAX_VALUE)
       }
       .flatMap {
         case (pageModel, sectionNumber) =>
