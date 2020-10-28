@@ -58,7 +58,8 @@ object FormTemplateBuilder {
       None,
       None,
       NonEmptyList.fromListUnsafe(formComponents.toList.map(page)),
-      addToListQuestion(addAnotherQuestionName)
+      addToListQuestion(addAnotherQuestionName),
+      None
     )
 
   def mkRepeatingPageSection(formComponents: List[FormComponent]): Section.RepeatingPage =

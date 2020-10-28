@@ -54,7 +54,8 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     None,
     None,
     NonEmptyList.one(emptyPage),
-    mkFormComponent("choice", Value)
+    mkFormComponent("choice", Value),
+    None
   )
 
   private val emptyChoice = Choice(Checkbox, NonEmptyList.one(toSmartString("")), Vertical, List.empty, None)

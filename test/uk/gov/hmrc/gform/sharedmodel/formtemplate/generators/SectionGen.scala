@@ -113,9 +113,18 @@ trait SectionGen {
       pages         <- PrimitiveGen.oneOrMoreGen(pageGen)
       formComponent <- FormComponentGen.formComponentGen(0)
       choice        <- ComponentTypeGen.choiceGen
+      instruction   <- Gen.option(InstructionGen.instructionGen)
     } yield
       Section
-        .AddToList(title, description, shortName, includeIf, repeatsMax, pages, formComponent.copy(`type` = choice))
+        .AddToList(
+          title,
+          description,
+          shortName,
+          includeIf,
+          repeatsMax,
+          pages,
+          formComponent.copy(`type` = choice),
+          instruction)
 
   def sectionGen: Gen[Section] = Gen.oneOf(nonRepeatingPageSectionGen, repeatingPageSectionGen)
 }
