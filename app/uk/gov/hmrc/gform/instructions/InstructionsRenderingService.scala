@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.instructions
 import org.jsoup.nodes.Document
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -210,14 +210,23 @@ class InstructionsRenderingService(
         }
       }).getOrElse(List.empty)
 
-    formModelOptics.formModelVisibilityOptics.formModel.pagesWithIndex
+    val formModel = formModelOptics.formModelVisibilityOptics.formModel
+    formModel.singletonsBySource
       .sortBy {
-        case (pageModel, _) =>
-          pageModel.fold(_.page.instruction.flatMap(_.order))(_ => None).getOrElse(Integer.MAX_VALUE)
+        case (section, _) =>
+          section
+            .fold(_.page.instruction.flatMap(_.order))(_.page.instruction.flatMap(_.order))(
+              _.instruction.flatMap(_.order))
+            .getOrElse(Integer.MAX_VALUE)
       }
       .flatMap {
-        case (pageModel, sectionNumber) =>
-          pageModel.fold(renderHtmls(_, sectionNumber))(_ => Nil)
+        case (section, pageModels) =>
+          val header =
+            section.fold(_ => List.empty[HtmlFormat.Appendable])(_ => List.empty[HtmlFormat.Appendable])(addToList =>
+              addToList.instruction.map(i => begin_section(i.name)).toList)
+          header ++ pageModels.flatMap(pModel => {
+            pModel.fold(renderHtmls(_, formModel.pagesMap(pModel)))(_ => Nil)
+          })
       }
   }
 

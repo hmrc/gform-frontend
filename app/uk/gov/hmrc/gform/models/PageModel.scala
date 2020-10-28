@@ -20,7 +20,7 @@ import cats.instances.int._
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, AllValidIfs, FormComponent, FormComponentId, IncludeIf, Page, Section, ValidIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, AllValidIfs, FormComponent, FormComponentId, IncludeIf, Instruction, Page, Section, ValidIf }
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedTitle)
@@ -67,6 +67,8 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] =
     fold(_.page.fields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)
+
+  def source: Section
 }
 
 case class Singleton[A <: PageMode](page: Page[A], source: Section) extends PageModel[A]
@@ -77,5 +79,6 @@ case class Repeater[A <: PageMode](
   includeIf: Option[IncludeIf],
   addAnotherQuestion: FormComponent,
   index: Int,
+  instruction: Option[Instruction],
   source: Section.AddToList
 ) extends PageModel[A]

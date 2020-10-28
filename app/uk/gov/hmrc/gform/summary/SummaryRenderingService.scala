@@ -1288,7 +1288,7 @@ object SummaryRenderingService {
 
     val keyClasses = getKeyClasses(hasErrors)
 
-    val label = group.repeatLabel.map(_.value).getOrElse(getLabel(formComponent))
+    val label = group.repeatLabel.map(_.value).getOrElse(labelExtractor(formComponent))
 
     val visuallyHiddenText = Some(label)
 
