@@ -104,7 +104,8 @@ class UploadableDestinationSpec extends Spec {
       Some(failOnError),
       Some(roboticsXml),
       Some(formdataXml),
-      backscan
+      backscan,
+      Some(includeInstructionPdf)
     )
   }
 

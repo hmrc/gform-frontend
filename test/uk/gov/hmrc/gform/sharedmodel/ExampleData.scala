@@ -52,7 +52,8 @@ trait ExampleAuthConfig {
     true,
     true,
     true,
-    Some(true)
+    Some(true),
+    false
   )
 
   val formComponent = List(buildFormComponent("fieldInAcknowledgementSections", Value))
@@ -67,7 +68,8 @@ trait ExampleAuthConfig {
       Some(
         AcknowledgementSectionPdf(
           Some(toSmartString("It's a Acknowledgement Section Pdf header.")),
-          Some(toSmartString("It's a Acknowledgement Section Pdf footer."))))
+          Some(toSmartString("It's a Acknowledgement Section Pdf footer.")))),
+      None
     )
 
   val decFormComponent = List(buildFormComponent("fieldInDeclarationSections", Value))
@@ -342,6 +344,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         validators,
         fields,
         None,
+        None,
         None
       ))
 
@@ -367,6 +370,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None,
         List(`fieldValue - surname`),
+        None,
         None,
         None
       ),
@@ -432,6 +436,7 @@ trait ExampleFormTemplate {
       Some(toSmartString("shortName for acknowledgement")),
       List(`fieldValue - info`),
       true,
+      None,
       None
     )
 

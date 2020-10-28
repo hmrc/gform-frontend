@@ -33,7 +33,8 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
         page.description,
         page.shortName,
         page.progressIndicator,
-        page.continueLabel
+        page.continueLabel,
+        page.instruction.map(_.name)
       )
 
       val validatorExprs = page.validators.fold(List.empty[Expr]) {

@@ -90,7 +90,8 @@ object Section {
     includeIf: Option[IncludeIf],
     repeatsMax: Option[Expr],
     pages: NonEmptyList[Page[Basic]],
-    addAnotherQuestion: FormComponent
+    addAnotherQuestion: FormComponent,
+    instruction: Option[Instruction]
   ) extends Section {
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
     val allIds: List[FormComponentId] = {
@@ -119,7 +120,8 @@ case class DeclarationSection(
       validators = None,
       fields = fields,
       continueLabel = None,
-      continueIf = None
+      continueIf = None,
+      instruction = None
     )
 }
 
@@ -133,7 +135,8 @@ case class AcknowledgementSection(
   shortName: Option[SmartString],
   fields: List[FormComponent],
   showReference: Boolean,
-  pdf: Option[AcknowledgementSectionPdf]
+  pdf: Option[AcknowledgementSectionPdf],
+  instructionPdf: Option[AcknowledgementSectionPdf]
 ) {
 
   def toSection = Section.NonRepeatingPage(toPage)
@@ -148,7 +151,8 @@ case class AcknowledgementSection(
       validators = None,
       fields = fields,
       continueLabel = None,
-      continueIf = None
+      continueIf = None,
+      instruction = None
     )
 }
 
@@ -181,7 +185,8 @@ case class EnrolmentSection(
       validators = None,
       fields = fields,
       continueLabel = None,
-      continueIf = None
+      continueIf = None,
+      instruction = None
     )
 }
 

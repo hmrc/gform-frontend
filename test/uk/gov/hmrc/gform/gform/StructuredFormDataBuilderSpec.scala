@@ -1008,12 +1008,13 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
         None,
         fields.toList,
         None,
+        None,
         None
       ))
 
   def createRepeatingSection(repeats: Int)(fields: FormComponent*): Section =
     Section.RepeatingPage(
-      Page(toSmartString("repeating-page"), None, None, None, None, None, fields.toList, None, None),
+      Page(toSmartString("repeating-page"), None, None, None, None, None, fields.toList, None, None, None),
       Constant(repeats.toString)
     )
 

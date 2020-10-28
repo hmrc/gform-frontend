@@ -74,7 +74,8 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
     helpText = formComponent.helpText.map(expandSmartString),
     shortName = formComponent.shortName.map(expandSmartString),
     errorMessage = formComponent.errorMessage.map(expandSmartString),
-    validators = formComponent.validators.map(expandFormComponentValidator)
+    validators = formComponent.validators.map(expandFormComponentValidator),
+    instruction = formComponent.instruction.map(i => i.copy(name = expandSmartString(i.name)))
   )
 
   val updatedWithId: FormComponent = updated.copy(id = ExpandUtils.addPrefix(index, formComponent.id))

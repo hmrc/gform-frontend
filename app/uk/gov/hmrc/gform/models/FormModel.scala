@@ -26,6 +26,8 @@ case class FormModel[A <: PageMode](pagesWithIndex: List[(PageModel[A], SectionN
 
   val (pages, availableSectionNumbers) = pagesWithIndex.unzip
 
+  val pagesMap: Map[PageModel[A], SectionNumber] = pagesWithIndex.toMap
+
   val allFormComponents: List[FormComponent] = pages.flatMap(_.allFormComponents)
 
   val allFormComponentIds: List[FormComponentId] = allFormComponents.map(_.id)
@@ -157,6 +159,12 @@ case class FormModel[A <: PageMode](pagesWithIndex: List[(PageModel[A], SectionN
       case IsRepeater(repeater) => repeater
     }
   }
+
+  def singletonsBySource: List[(Section, Seq[PageModel[A]])] =
+    pages
+      .filter(_.fold(_ => true)(_ => false))
+      .groupBy(_.source)
+      .toList
 }
 
 object FormModel {

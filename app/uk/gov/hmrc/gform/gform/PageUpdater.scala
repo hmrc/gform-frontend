@@ -40,7 +40,8 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
       new FormComponentUpdater(field, index, baseIds).updatedWithId
     },
     validators = page.validators.map(expandValidator),
-    continueLabel = page.continueLabel.map(expandSmartString)
+    continueLabel = page.continueLabel.map(expandSmartString),
+    instruction = page.instruction.map(i => i.copy(name = expandSmartString(i.name)))
   )
 
 }

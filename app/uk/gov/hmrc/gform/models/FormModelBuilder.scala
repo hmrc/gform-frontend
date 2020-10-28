@@ -264,7 +264,7 @@ class FormModelBuilder[E, F[_]: Functor](
 
   private def mkRepeater[T <: PageMode](s: Section.AddToList, index: Int): Repeater[T] = {
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds).updatedWithId
-    Repeater[T](s.title, s.description, s.shortName, s.includeIf, fc, index, s)
+    Repeater[T](s.title, s.description, s.shortName, s.includeIf, fc, index, s.instruction, s)
   }
 
   private def mkSingleton(page: Page[Basic], index: Int): Section.AddToList => Page[Basic] =
@@ -315,13 +315,13 @@ class FormModelBuilder[E, F[_]: Functor](
   ): FormModel[T] =
     formModel.flatMap {
       case Singleton(page, source) => List(Singleton[T](page, source))
-      case Repeater(title, description, shortName, includeIf, addAnotherQuestionFc, index, source) =>
+      case Repeater(title, description, shortName, includeIf, addAnotherQuestionFc, index, instruction, source) =>
         val expand: SmartString => SmartString = _.expand(index, source.allIds)
         val exTitle = expand(title)
         val exShortName = expand(shortName)
         val exDescription = expand(description)
         val repeater =
-          Repeater[T](exTitle, exDescription, exShortName, includeIf, addAnotherQuestionFc, index, source)
+          Repeater[T](exTitle, exDescription, exShortName, includeIf, addAnotherQuestionFc, index, instruction, source)
         val nextOne: Option[Seq[String]] = data.many(addAnotherQuestionFc.modelComponentId)
         val next = nextOne.toSeq.flatten
 

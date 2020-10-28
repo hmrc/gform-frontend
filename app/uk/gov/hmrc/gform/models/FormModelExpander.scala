@@ -121,7 +121,8 @@ object FormModelExpander {
         continueLabel = page.continueLabel.map(expand),
         fields = page.fields.map { field =>
           new FormComponentUpdater(field, index, source.allIds).updatedWithId
-        }
+        },
+        instruction = page.instruction.map(i => i.copy(expand(i.name)))
       )
     }
 

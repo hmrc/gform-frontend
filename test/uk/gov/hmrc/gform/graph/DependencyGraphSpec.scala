@@ -44,6 +44,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     None,
     List.empty[FormComponent],
     None,
+    None,
     None
   )
   private val emptyAddToList: Section.AddToList = Section.AddToList(
@@ -53,7 +54,8 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     None,
     None,
     NonEmptyList.one(emptyPage),
-    mkFormComponent("choice", Value)
+    mkFormComponent("choice", Value),
+    None
   )
 
   private val emptyChoice = Choice(Checkbox, NonEmptyList.one(toSmartString("")), Vertical, List.empty, None)
@@ -638,8 +640,10 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     val emptyPrintSectionPdfNotification = PrintSection.PdfNotification(emptySS, emptySS, List.empty[FormComponentId])
     val emptyDestinationPrint = DestinationPrint(emptyPrintSectionPage, emptyPrintSectionPdf, None)
     val emptyDeclarationSection = DeclarationSection(emptySS, None, None, List.empty[FormComponent])
-    val emptyAcknowledgementSection = AcknowledgementSection(emptySS, None, None, List.empty[FormComponent], true, None)
-    val emptyHmrcDms = Destination.HmrcDms(DestinationId(""), "", Value, "", "", "", false, false, false, Some(false))
+    val emptyAcknowledgementSection =
+      AcknowledgementSection(emptySS, None, None, List.empty[FormComponent], true, None, None)
+    val emptyHmrcDms =
+      Destination.HmrcDms(DestinationId(""), "", Value, "", "", "", false, false, false, Some(false), false)
     val emptyCompositeDestination = Destination.Composite(DestinationId(""), "", NonEmptyList.one(emptyHmrcDms))
     val emptyDestinationList =
       DestinationList(NonEmptyList.one(emptyHmrcDms), emptyAcknowledgementSection, emptyDeclarationSection)

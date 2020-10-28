@@ -49,7 +49,8 @@ object Destination {
     failOnError: Boolean,
     roboticsXml: Boolean,
     formdataXml: Boolean,
-    backscan: Option[Boolean])
+    backscan: Option[Boolean],
+    includeInstructionPdf: Boolean)
       extends Destination with DestinationWithCustomerId
 
   case class SubmissionConsolidator(
@@ -134,7 +135,8 @@ case class UploadableHmrcDmsDestination(
   failOnError: Option[Boolean] = None,
   roboticsXml: Option[Boolean],
   formdataXml: Option[Boolean] = None,
-  closedStatus: Option[Boolean]) {
+  closedStatus: Option[Boolean],
+  includeInstructionPdf: Option[Boolean] = None) {
 
   def toHmrcDmsDestination: Either[String, Destination.HmrcDms] =
     for {
@@ -150,7 +152,8 @@ case class UploadableHmrcDmsDestination(
         failOnError.getOrElse(true),
         roboticsXml.getOrElse(false),
         formdataXml.getOrElse(false),
-        closedStatus
+        closedStatus,
+        includeInstructionPdf.getOrElse(false)
       )
 }
 
