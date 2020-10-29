@@ -284,7 +284,6 @@ class InstructionsRenderingServiceSpec
         )
         .futureValue
 
-      println(pdfHtml.html)
       trimLines(pdfHtml.html) shouldBe addToListSectionHtml
     }
   }
