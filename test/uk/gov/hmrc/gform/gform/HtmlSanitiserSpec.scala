@@ -286,7 +286,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
 
   "HtmlSanitiser.summaryPagePdf" should "embellish pdf with summary section data" in {
     val res =
-      HtmlSanitiser.sanitiseHtmlForPDF(Html(input), doc => HtmlSanitiser.summaryPagePdf(doc, formTemplate))
+      HtmlSanitiser.sanitiseHtmlForPDF(Html(input), doc => HtmlSanitiser.summaryPagePdf(doc, buildFormTemplate))
 
     noWhitespace(res) shouldBe noWhitespace(expectedSummaryPagePdf)
 
@@ -501,7 +501,9 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
     val submissionDetails = "<h2>Extra Data £</h2>"
     val res =
       HtmlSanitiser
-        .sanitiseHtmlForPDF(Html(input), doc => HtmlSanitiser.acknowledgementPdf(doc, submissionDetails, formTemplate))
+        .sanitiseHtmlForPDF(
+          Html(input),
+          doc => HtmlSanitiser.acknowledgementPdf(doc, submissionDetails, buildFormTemplate))
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdf)
 
@@ -522,7 +524,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
           HtmlSanitiser.acknowledgementPdf(
             doc,
             submissionDetails,
-            formTemplate.copy(destinations = destinationListWithNoAckSectionHeaderAndFooter))
+            buildFormTemplate.copy(destinations = destinationListWithNoAckSectionHeaderAndFooter))
       )
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdfWithNoHeaderAndFooter)
@@ -545,7 +547,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
             .acknowledgementPdf(
               doc,
               submissionDetails,
-              formTemplate.copy(destinations = destinationListWithNoAckSectionFooter))
+              buildFormTemplate.copy(destinations = destinationListWithNoAckSectionFooter))
       )
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdfWithNoFooter)
@@ -568,7 +570,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
             .acknowledgementPdf(
               doc,
               submissionDetails,
-              formTemplate.copy(destinations = destinationListWithNoAckSectionHeader))
+              buildFormTemplate.copy(destinations = destinationListWithNoAckSectionHeader))
       )
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdfWithNoHeader)
