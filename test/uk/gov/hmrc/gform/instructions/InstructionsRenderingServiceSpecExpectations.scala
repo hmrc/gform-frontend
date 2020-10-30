@@ -162,24 +162,22 @@ trait InstructionsRenderingServiceSpecExpectations {
           |""".stripMargin
       ))
 
-  def revealingChoiceSectionHtml (implicit now: LocalDateTime) =
-    trimLines(
-      htmlBase(
-        """
-          |<h2> revealingChoicePageInstruction </h2>
-          |<dl>
-          |<div>
-          |   <dt> revealingChoiceFieldInstruction </dt>
-          |   <dd> choice1 </dd>
-          |   <dd></dd>
-          |</div>
-          |<div>
-          |   <dt> revealingChoice1FieldInstruction </dt>
-          |   <dd> revealingChoice1FieldValue </dd>
-          |   <dd></dd>
-          |</div>
-          |</dl>
-          |""".stripMargin))
+  def revealingChoiceSectionHtml(implicit now: LocalDateTime) =
+    trimLines(htmlBase("""
+                         |<h2> revealingChoicePageInstruction </h2>
+                         |<dl>
+                         |<div>
+                         |   <dt> revealingChoiceFieldInstruction </dt>
+                         |   <dd> choice1 </dd>
+                         |   <dd></dd>
+                         |</div>
+                         |<div>
+                         |   <dt> revealingChoice1FieldInstruction </dt>
+                         |   <dd> revealingChoice1FieldValue </dd>
+                         |   <dd></dd>
+                         |</div>
+                         |</dl>
+                         |""".stripMargin))
 
   def trimLines(input: String): String =
     input.split("\n").map(_.trim).mkString("")
