@@ -34,6 +34,7 @@ lazy val microservice = (project in file("."))
       "uk.gov.hmrc.gform.binders.ValueClassBinder._",
       "uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations._",
       "uk.gov.hmrc.gform.sharedmodel.formtemplate._",
+      "uk.gov.hmrc.gform.models.ids._",
       "uk.gov.hmrc.gform.sharedmodel.form._",
       "uk.gov.hmrc.gform.sharedmodel._",
       "uk.gov.hmrc.gform.auth._",

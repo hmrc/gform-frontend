@@ -19,11 +19,12 @@ package uk.gov.hmrc.gform.binders
 import cats.implicits._
 import play.api.libs.json._
 import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ FastForward, LookupQuery }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId, FormStatus }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Register, SectionNumber, SectionTitle4Ga, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.util.Try
 object ValueClassBinder {
@@ -137,6 +138,14 @@ object ValueClassBinder {
           case None    => ""
         }
     }
+
+  implicit val formComponentIdBinder: PathBindable[FormComponentId] = valueClassBinder(_.value)
+
+  implicit val baseComponentIdBinder: PathBindable[BaseComponentId] =
+    mkPathBindable(
+      id => BaseComponentId(id).asRight,
+      _.value
+    )
 
   private def valueClassQueryBinder[A: Reads](fromAtoString: A => String)(
     implicit stringBinder: QueryStringBindable[String]) =

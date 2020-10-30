@@ -50,6 +50,7 @@ GET           /language/:lang                                                   
 
 GET           /lookup/:formTemplateId/:register/                                                                 uk.gov.hmrc.gform.gform.LookupController.lookupAll(formTemplateId: FormTemplateId, register: Register)
 GET           /lookup/:formTemplateId/:register/:query                                                           uk.gov.hmrc.gform.gform.LookupController.lookup(formTemplateId: FormTemplateId, register: Register, query: LookupQuery)
+GET           /lookup/:formTemplateId/:baseComponentId/:register/:query/:maybeAccessCode                         uk.gov.hmrc.gform.gform.LookupController.lookupWithSelectionCriteria(formTemplateId: FormTemplateId, baseComponentId: BaseComponentId, register: Register, query: LookupQuery, maybeAccessCode: Option[AccessCode])
 
 GET           /sign-out/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.SignOutController.signOut(formTemplateId: FormTemplateId)
 GET           /signed-out                                                                                        uk.gov.hmrc.gform.gform.SignOutController.showSignedOutPage(signBackInUrl: String)

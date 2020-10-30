@@ -16,4 +16,4 @@
 
 package uk.gov.hmrc.gform.lookup
 
-case class LookupCurrencyCountryCode(countryCode: String) extends AnyVal
+case class LookupPortCode(portCode: String) extends AnyVal

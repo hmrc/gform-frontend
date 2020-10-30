@@ -20,19 +20,18 @@ import cats.Monoid
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.referencechecker.CorporationTaxReferenceChecker
 import uk.gov.hmrc.emailaddress.EmailAddress
-import uk.gov.hmrc.gform.lookup.LookupOptions
+import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
+import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
+import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.referencechecker.CorporationTaxReferenceChecker
 
 import scala.util.matching.Regex
 
@@ -45,17 +44,41 @@ object ComponentValidator {
       .one(fieldValue.modelComponentId)
       .filterNot(_.isEmpty())
 
-  private def lookupValidation(
+  private def lookupValidation[D <: DataOrigin](
     fieldValue: FormComponent,
     lookupRegistry: LookupRegistry,
-    register: Register,
-    lookupLabel: LookupLabel
+    lookup: Lookup,
+    lookupLabel: LookupLabel,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(
     implicit
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
+    val sSelectionCriteria: Option[List[SimplifiedSelectionCriteria]] = lookup.selectionCriteria map {
+      SimplifiedSelectionCriteria
+        .convertToSimplifiedSelectionCriteria(_, lookupRegistry, formModelVisibilityOptics)
+    }
+
+    val filteredLookuplabels = (lookupRegistry.get(lookup.register), sSelectionCriteria) match {
+      case (Some(AjaxLookup(options, _, _)), Some(sc)) =>
+        val oLo = options.m.get(l).map(r => LookupOptions(filterBySelectionCriteria(sc, r.options)))
+        oLo
+          .map { s =>
+            if (s.options.nonEmpty)
+              LocalisedLookupOptions(Map(l -> s)).process(_.keys.toList)
+            else
+              List(LookupLabel("Dummy"))
+          }
+          .getOrElse(Nil)
+
+      case (Some(AjaxLookup(options, _, _)), None) =>
+        options.process(_.keys.toList)
+
+      case _ =>
+        Nil
+    }
 
     def lookupError: ValidatedType[Unit] = {
       val vars: List[String] = lookupLabel.label :: Nil
@@ -63,14 +86,18 @@ object ComponentValidator {
     }
 
     def existsLabel(options: LookupOptions) =
-      if (options.contains(lookupLabel)) validationSuccess
-      else lookupError
+      if (filteredLookuplabels.nonEmpty && filteredLookuplabels.filterNot(_.label === "Dummy").contains(lookupLabel))
+        validationSuccess
+      else if (filteredLookuplabels.isEmpty && options.contains(lookupLabel))
+        validationSuccess
+      else
+        lookupError
 
-    lookupRegistry.get(register) match {
+    lookupRegistry.get(lookup.register) match {
       case Some(AjaxLookup(options, _, _)) => options.fold(lookupError)(existsLabel)
       case Some(RadioLookup(options))      => options.fold(lookupError)(existsLabel)
       case None =>
-        val vars: List[String] = register.toString :: Nil
+        val vars: List[String] = lookup.register.toString :: Nil
         validationFailure(fieldValue, "generic.error.registry", Some(vars))
     }
   }
@@ -94,8 +121,8 @@ object ComponentValidator {
           case _                                          => "generic.error.required"
         }
         validationFailure(fieldValue, key, None)
-      case (_, Some(value), Lookup(register)) =>
-        lookupValidation(fieldValue, lookupRegistry, register, LookupLabel(value))
+      case (_, Some(value), lookup @ Lookup(_, _)) =>
+        lookupValidation(fieldValue, lookupRegistry, lookup, LookupLabel(value), formModelVisibilityOptics)
       case (_, Some(value), ShortText(min, max)) => shortTextValidation(fieldValue, value, min, max)
       case (_, Some(value), BasicText)           => textValidation(fieldValue, value)
       case (_, Some(value), TextWithRestrictions(min, max)) =>

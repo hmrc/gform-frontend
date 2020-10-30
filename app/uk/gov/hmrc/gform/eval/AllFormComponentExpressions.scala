@@ -18,7 +18,10 @@ package uk.gov.hmrc.gform.eval
 
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SelectionCriteriaValue._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+
+import scala.collection.immutable.List
 
 /*
  * Extracts metadata for all expressions of FormComponent.
@@ -52,7 +55,20 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       fromOption(fc.errorMessage) ++
         fc.validators.flatMap(_.errorMessage.interpolations)
 
+    def fcLookupExpr(selectionCriteria: Option[List[SelectionCriteria]]) = selectionCriteria match {
+      case Some(v) =>
+        val r = v flatMap {
+          case SelectionCriteria(_, SelectionCriteriaExpr(expr))         => List(expr)
+          case SelectionCriteria(c, SelectionCriteriaSimpleValue(v))     => Nil
+          case SelectionCriteria(_, SelectionCriteriaReference(expr, _)) => List(expr)
+        }
+        toFirstOperandPlainExprs(r)
+
+      case None => Nil
+    }
+
     val componentTypeExprs: List[ExprMetadata] = fc match {
+      case IsText(Text(Lookup(_, sc), _, _, _))           => fcLookupExpr(sc)
       case IsGroup(group)                                 => fromGroup(group)
       case IsRevealingChoice(RevealingChoice(options, _)) => fromRcElements(options)
       case IsChoice(Choice(_, options, _, _, optionHelpText)) =>
