@@ -23,27 +23,27 @@ import cats.instances.future._
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Millis, Span }
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.time.{Millis, Span}
+import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
-import play.api.test.{ FakeRequest, Helpers }
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, Role }
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
-import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
-import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
+import uk.gov.hmrc.gform.auth.models.{AnonymousRetrievals, Role}
+import uk.gov.hmrc.gform.controllers.{AuthCacheWithForm, CacheData}
+import uk.gov.hmrc.gform.eval.smartstring.{RealSmartStringEvaluatorFactory, SmartStringEvaluator}
+import uk.gov.hmrc.gform.eval.{DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker}
+import uk.gov.hmrc.gform.fileupload.{Envelope, FileUploadAlgebra}
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
-import uk.gov.hmrc.gform.graph.{ FormTemplateBuilder, GraphException, Recalculation }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.graph.{FormTemplateBuilder, GraphException, Recalculation}
+import uk.gov.hmrc.gform.models.optics.{DataOrigin, FormModelVisibilityOptics}
+import uk.gov.hmrc.gform.models.{SectionSelector, SectionSelectorType}
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSectionPdf, Constant, FormComponent, FormTemplate, Section }
-import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{AcknowledgementSectionPdf, Constant, FormComponent, FormTemplate, RevealingChoice, RevealingChoiceElement, Section}
+import uk.gov.hmrc.gform.submission.{DmsMetaData, Submission}
 import uk.gov.hmrc.gform.summary.SubmissionDetails
-import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult, ValidationService }
+import uk.gov.hmrc.gform.validation.{ComponentField, FieldOk, HtmlFieldId, ValidationResult, ValidationService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.SessionId
 
@@ -222,6 +222,76 @@ class InstructionsRenderingServiceSpec
         .futureValue
 
       trimLines(pdfHtml.html) shouldBe repeatingSectionHtml
+    }
+
+    "generate HTML for instruction pdf - revealing choice" in new TestFixture {
+
+      lazy val revealingChoice1Field: FormComponent = buildFormComponent(
+        "revealingChoice1Field",
+        Constant(""),
+        Some(buildInstruction("revealingChoice1FieldInstruction", Some(1))))
+      lazy val revealingChoice2Field: FormComponent = buildFormComponent(
+        "revealingChoice2Field",
+        Constant(""),
+        Some(buildInstruction("revealingChoice2FieldInstruction", Some(1))))
+      lazy val revealingChoiceField: FormComponent = buildFormComponent(
+        name = "revealingChoiceField",
+        componentType = RevealingChoice(
+          List(
+            RevealingChoiceElement(
+              toSmartString("choice1"),
+              revealingChoice1Field :: Nil,
+              false
+            ),
+            RevealingChoiceElement(
+              toSmartString("choice2"),
+              revealingChoice2Field :: Nil,
+              false
+            )
+          ),
+          true
+        ),
+        instruction = Some(buildInstruction("revealingChoiceFieldInstruction", Some(1)))
+      )
+
+      override lazy val form: Form =
+        buildForm(
+          FormData(
+            List(
+              FormField(revealingChoiceField.modelComponentId, "0"),
+              FormField(revealingChoice1Field.modelComponentId, "revealingChoice1FieldValue")
+            )))
+
+      override lazy val validationResult: ValidationResult = new ValidationResult(
+        Map(
+          revealingChoiceField.id -> ComponentField(revealingChoiceField, Map(HtmlFieldId.indexed(revealingChoiceField.id, 0) -> FieldOk(revealingChoiceField, "0"))),
+          revealingChoice1Field.id -> FieldOk(revealingChoice1Field, "revealingChoice1FieldValue")
+        ),
+        None
+      )
+
+      override lazy val formTemplate: FormTemplate = formTemplateWithInstructions(
+        List(
+          nonRepeatingPageSection(
+            title = "revealingChoicePage",
+            instruction = Some(buildInstruction("revealingChoicePageInstruction", Some(1))),
+            fields = List(revealingChoiceField)
+          )
+        ))
+
+      val pdfHtml = instructionRenderingService
+        .createHtmlForInstructionsPdf(
+          maybeAccessCode,
+          cache,
+          submissionDetails,
+          SummaryPagePurpose.ForDms,
+          formModelOptics
+        )
+        .futureValue
+
+      println(pdfHtml.html)
+
+      trimLines(pdfHtml.html) shouldBe revealingChoiceSectionHtml
     }
 
     "generate HTML for instruction pdf - add to list" in new TestFixture {

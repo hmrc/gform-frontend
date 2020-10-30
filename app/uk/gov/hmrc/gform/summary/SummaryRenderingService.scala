@@ -1232,7 +1232,7 @@ object SummaryRenderingService {
                   obligations,
                   validationResult,
                   envelope,
-                  getLabel
+                  labelExtractor
                 )
               }
 
