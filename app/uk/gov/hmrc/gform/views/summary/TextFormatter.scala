@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
+import uk.gov.hmrc.gform.sharedmodel.LocalisedString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.commons.NumberFormatUtil._
@@ -32,10 +33,10 @@ object TextFormatter {
 
   def componentTextReadonly(currentValue: String, textConstraint: TextConstraint)(implicit l: LangADT): String =
     textConstraint match {
-      case PositiveNumber(_, _, _, unit) => stripTrailingZeros(currentValue) + unit.fold("")(" " + _.value)
-      case Number(_, _, _, unit)         => stripTrailingZeros(currentValue) + unit.fold("")(" " + _.value)
-      case s: Sterling                   => formatSterling(currentValue)
-      case _                             => currentValue
+      case PositiveNumber(_, fracDigits, rm, unit) => formatNumber(currentValue, fracDigits, rm, unit)
+      case Number(_, fracDigits, rm, unit)         => formatNumber(currentValue, fracDigits, rm, unit)
+      case s: Sterling                             => formatSterling(currentValue)
+      case _                                       => currentValue
     }
 
   def componentTextEditable(currentValue: String, textConstraint: TextConstraint): String =
@@ -50,6 +51,19 @@ object TextFormatter {
     if (currentValue.contains(".")) {
       currentValue.reverse.dropWhile(_ == '0').dropWhile(_ == '.').reverse
     } else currentValue
+
+  private def formatNumber(
+    currentValue: String,
+    maxFractionalDigits: Int,
+    rm: RoundingMode,
+    unit: Option[LocalisedString]
+  )(
+    implicit l: LangADT
+  ): String = {
+    val un = unit.fold("")(" " + _.value)
+    val maybeBigDecimal = toBigDecimalSafe(currentValue)
+    stripTrailingZeros(maybeBigDecimal.fold(currentValue)(roundAndFormat(_, maxFractionalDigits, rm))) + un
+  }
 
   private def formatSterling(currentValue: String): String =
     toBigDecimalSafe(currentValue).fold(currentValue)(currencyFormat.format)

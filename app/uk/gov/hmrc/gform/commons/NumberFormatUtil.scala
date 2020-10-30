@@ -30,8 +30,9 @@ object NumberFormatUtil {
     formatter.setRoundingMode(RoundingMode.FLOOR)
     formatter
   }
-  /* def roundAndFormat(bd: BigDecimal, scale: Int, roundingMode: GformRoundingMode): String =
-   *   NumberFormatUtil.defaultFormat(scale).format(NumberSetScale.setScale(bd, scale, roundingMode)) */
+
+  def roundAndFormat(bd: BigDecimal, scale: Int, roundingMode: GformRoundingMode): String =
+    NumberFormatUtil.defaultFormat(scale).format(NumberSetScale.setScale(bd, scale, roundingMode))
 
   val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
 }
