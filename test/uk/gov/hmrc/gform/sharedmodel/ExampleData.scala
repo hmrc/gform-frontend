@@ -21,12 +21,14 @@ import java.time.{ LocalDateTime, LocalTime }
 import cats.data.NonEmptyList
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
+import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
+import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
@@ -38,7 +40,14 @@ object ExampleData extends ExampleData
 trait ExampleData
     extends ExampleFormTemplate with ExampleFieldId with ExampleFieldValue with ExampleFormField with ExampleValidator
     with ExampleSection with ExampleSectionNumber with ExampleForm with ExampleAuthConfig with ExampleFrontendAppConfig
-    with ExampleAuthContext
+    with ExampleAuthContext with ExampleInstruction
+
+trait ExampleInstruction {
+  val instruction = Instruction(toSmartString("some-instruction"), Some(1))
+
+  def buildInstruction(name: String, order: Option[Int] = None) =
+    instruction.copy(name = toSmartString(name), order = order)
+}
 
 trait ExampleAuthConfig {
 
@@ -77,10 +86,13 @@ trait ExampleAuthConfig {
   val decSection =
     DeclarationSection(toSmartString("declaration section"), None, None, decFormComponent)
 
-  private def buildFormComponent(name: String, expr: Expr) =
+  def buildFormComponent(name: String, expr: Expr, instruction: Option[Instruction] = None): FormComponent =
+    buildFormComponent(name, Text(BasicText, expr), instruction)
+
+  def buildFormComponent(name: String, componentType: ComponentType, instruction: Option[Instruction]): FormComponent =
     FormComponent(
       FormComponentId(name),
-      Text(BasicText, expr),
+      componentType,
       toSmartString(name),
       None,
       None,
@@ -91,7 +103,9 @@ trait ExampleAuthConfig {
       false,
       false,
       None,
-      None
+      None,
+      Nil,
+      instruction
     )
 
   def destinationList = DestinationList(NonEmptyList.of(hmrcDms), ackSection, decSection)
@@ -326,6 +340,23 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     None
   )
 
+  def addToListQuestion(addAnotherQuestionName: String): FormComponent =
+    FormComponent(
+      FormComponentId(addAnotherQuestionName),
+      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None),
+      ls,
+      None,
+      None,
+      None,
+      true,
+      false,
+      true,
+      false,
+      false,
+      None,
+      None
+    )
+
 }
 
 trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
@@ -333,7 +364,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     title: String = "About you",
     validators: Option[Validator] = None,
     fields: List[FormComponent] = List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`),
-    includeIf: Option[IncludeIf] = None) =
+    includeIf: Option[IncludeIf] = None,
+    instruction: Option[Instruction] = None) =
     Section.NonRepeatingPage(
       Page(
         toSmartString(title),
@@ -345,7 +377,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         fields,
         None,
         None,
-        None
+        instruction
       ))
 
   def `section - about you`: Section =
@@ -361,21 +393,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       fields = List(`fieldValue - businessName`, `fieldValue - startDate`, `fieldValue - iptRegNum`))
 
   def `repeating section` =
-    Section.RepeatingPage(
-      Page(
-        toSmartString("Repeating section"),
-        None,
-        None,
-        None,
-        None,
-        None,
-        List(`fieldValue - surname`),
-        None,
-        None,
-        None
-      ),
-      repeats = FormCtx(`fieldId - firstName`)
-    )
+    repeatingSection("Repeating section", List(`fieldValue - surname`), None, FormCtx(`fieldId - firstName`))
 
   def `section - group` =
     nonRepeatingPageSection(
@@ -384,6 +402,56 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 
   def allSections = List(`section - about you`, `section - businessDetails`)
 
+  def repeatingSection(
+    title: String,
+    fields: List[FormComponent],
+    instruction: Option[Instruction],
+    repeatsExpr: Expr) =
+    Section.RepeatingPage(
+      Page(
+        toSmartString(title),
+        None,
+        None,
+        None,
+        None,
+        None,
+        fields,
+        None,
+        None,
+        instruction
+      ),
+      repeats = repeatsExpr
+    )
+
+  def addToListSection(
+    title: String,
+    addAnotherQuestion: FormComponent,
+    instruction: Option[Instruction],
+    pages: List[Page[Basic]]): Section.AddToList =
+    Section.AddToList(
+      toSmartString(title),
+      toSmartString(title),
+      toSmartString(title),
+      None,
+      None,
+      NonEmptyList.fromListUnsafe(pages),
+      addAnotherQuestion,
+      instruction
+    )
+
+  def toPage(title: String, instruction: Option[Instruction], formComponents: List[FormComponent]) =
+    Page[Basic](
+      toSmartString(title),
+      None,
+      None,
+      None,
+      None,
+      None,
+      formComponents,
+      None,
+      None,
+      instruction
+    )
 }
 
 trait ExampleSectionNumber {
@@ -451,23 +519,26 @@ trait ExampleFormTemplate {
   def summarySection =
     SummarySection(toSmartString("Summary Title"), toSmartString("Summary Header"), toSmartString("Summary Footer"))
 
-  def formTemplate = FormTemplate(
-    formTemplateId,
-    formName,
-    Some(ResearchBanner),
-    Default,
-    OnePerUser(ContinueOrDeletePage.Show),
-    destinationList,
-    authConfig,
-    emailTemplateId,
-    emailParameters,
-    webChat,
-    allSections,
-    Nil,
-    AvailableLanguages.default,
-    None,
-    summarySection
-  )
+  def buildFormTemplate: FormTemplate = buildFormTemplate(destinationList, allSections)
+
+  def buildFormTemplate(destinationList: DestinationList, sections: List[Section]): FormTemplate =
+    FormTemplate(
+      formTemplateId,
+      formName,
+      Some(ResearchBanner),
+      Default,
+      OnePerUser(ContinueOrDeletePage.Show),
+      destinationList,
+      authConfig,
+      emailTemplateId,
+      emailParameters,
+      webChat,
+      sections,
+      Nil,
+      AvailableLanguages.default,
+      None,
+      summarySection
+    )
 }
 
 trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
@@ -539,7 +610,9 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   val envelopeExpiryDate = Some(EnvelopeExpiryDate(LocalDateTime.now.plusDays(1).withNano(0)))
 
-  def form = Form(
+  def buildForm: Form = buildForm(formData)
+
+  def buildForm(formData: FormData): Form = Form(
     formId,
     envelopeId,
     userId,
@@ -549,9 +622,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     VisitIndex(Set.empty),
     ThirdPartyData.empty,
     envelopeExpiryDate
-//    EvaluationResults.empty
   )
-
 }
 
 trait ExampleAuthContext {

@@ -113,25 +113,25 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), DoCheck(Always, RejectAccess, RegimeIdCheck(RegimeId("AB"))))
 
   val authConfigAgentDenied = HmrcAgentWithEnrolmentModule(DenyAnyAgentAffinityUser, enrolmentAuthNoCheck)
-  val formTemplateAgentDenied = formTemplate.copy(authConfig = authConfigAgentDenied)
+  val formTemplateAgentDenied = buildFormTemplate.copy(authConfig = authConfigAgentDenied)
 
   val authConfigAnyAgentAllowed = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuthNoCheck)
-  val formTemplateAnyAgentAllowed = formTemplate.copy(authConfig = authConfigAnyAgentAllowed)
+  val formTemplateAnyAgentAllowed = buildFormTemplate.copy(authConfig = authConfigAnyAgentAllowed)
 
   val authConfigRequireMTDAgentEnrolment = HmrcAgentWithEnrolmentModule(RequireMTDAgentEnrolment, enrolmentAuthNoCheck)
-  val formTemplateRequireMTDAgentEnrolment = formTemplate.copy(authConfig = authConfigRequireMTDAgentEnrolment)
+  val formTemplateRequireMTDAgentEnrolment = buildFormTemplate.copy(authConfig = authConfigRequireMTDAgentEnrolment)
 
   val authConfigEnrolment = HmrcAgentWithEnrolmentModule(RequireMTDAgentEnrolment, enrolmentAuthCheck)
-  val formTemplateEnrolment = formTemplate.copy(authConfig = authConfigEnrolment)
+  val formTemplateEnrolment = buildFormTemplate.copy(authConfig = authConfigEnrolment)
 
   val authAWSALB: AuthConfig = AWSALBAuth
-  val formTemplateAWSALB = formTemplate.copy(authConfig = authAWSALB)
+  val formTemplateAWSALB = buildFormTemplate.copy(authConfig = authAWSALB)
 
   val authService = new AuthService(appConfig)
 
   it should "authorise a gg authentication only user when no agentAccess config" in {
     val result =
-      authService.authenticateAndAuthorise(formTemplate, getAffinityGroup, ggAuthorisedSuccessful, None)
+      authService.authenticateAndAuthorise(buildFormTemplate, getAffinityGroup, ggAuthorisedSuccessful, None)
     result.futureValue should be(AuthSuccessful(materialisedRetrievals, Role.Customer))
   }
 
