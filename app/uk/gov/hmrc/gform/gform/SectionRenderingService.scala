@@ -458,20 +458,21 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formTemplate: FormTemplate,
     destinationList: DestinationList,
     retrievals: MaterialisedRetrievals,
-    envelopeId: EnvelopeId
+    envelopeId: EnvelopeId,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(
     implicit
     request: Request[_],
     messages: Messages,
     l: LangADT,
-    sse: SmartStringEvaluator): Html = {
-
+    sse: SmartStringEvaluator
+  ): Html = {
     val ackSection = destinationList.acknowledgementSection.toSection
     val ei = ExtraInfo(
       Singleton(ackSection.page.asInstanceOf[Page[DataExpanded]], ackSection),
       maybeAccessCode,
       SectionNumber(0),
-      FormModelOptics.empty,
+      formModelOptics,
       formTemplate,
       Envelope.empty,
       0,
@@ -1253,22 +1254,17 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     validationResult: ValidationResult,
     ei: ExtraInfo
   )(implicit l: LangADT, sse: SmartStringEvaluator) = {
-    def prepopValue: Option[String] = {
-      val fmvo = ei.formModelOptics.formModelVisibilityOptics
-      text.value match {
-        case Value => None
-        case expr =>
-          val typedExpr = fmvo.formModel.explicitTypedExpr(expr, formComponent.id)
-          fmvo.evalTyped(typedExpr)
-      }
-    }
+    def prepopValue: String =
+      ei.formModelOptics.formModelVisibilityOptics
+        .evalAndApplyTypeInfoExplicit(text.value, formComponent.id)
+        .stringRepresentation
 
     val formFieldValidationResult = validationResult(formComponent)
 
     if (formComponent.onlyShowOnSummary)
       html.form.snippets
         .hidden_field_populated(
-          NonEmptyList.one(FormRender(formComponent.id.value, formComponent.id.value, prepopValue.getOrElse(""))))
+          NonEmptyList.one(FormRender(formComponent.id.value, formComponent.id.value, prepopValue)))
     else {
 
       val maybeUnit = TextFormatter.appendUnit(text.constraint)
@@ -1290,9 +1286,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
       val maybeCurrentValue: Option[String] =
         formFieldValidationResult.getCurrentValue
-          .orElse(prepopValue)
+          .orElse(Some(prepopValue))
           .map { cv =>
-            if (formComponent.editable) cv else TextFormatter.componentText(cv, text)
+            if (formComponent.editable)
+              TextFormatter.componentTextEditable(cv, text.constraint)
+            else
+              TextFormatter.componentTextReadonly(cv, text.constraint)
           }
 
       formComponent.presentationHint match {

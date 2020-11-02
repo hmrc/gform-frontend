@@ -156,7 +156,7 @@ object Javascript {
           if (isDependent(modelComponentId)) {
             s"""getValue("$id", isHidden$id)"""
           } else {
-            formModelOptics.formModelVisibilityOptics.data.one(modelComponentId).getOrElse("")
+            formModelOptics.formModelVisibilityOptics.data.one(modelComponentId).getOrElse("0")
           }
         case Constant(amount)  => amount
         case Add(a, b)         => compute("add", a, b)

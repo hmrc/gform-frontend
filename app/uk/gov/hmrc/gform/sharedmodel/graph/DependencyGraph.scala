@@ -21,7 +21,7 @@ import cats.syntax.option._
 import scalax.collection.Graph
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
-import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, ExprOnlyProjection, IsSelfReferring, SelfReferenceProjection }
+import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, IsSelfReferring, SelfReferenceProjection, StandaloneSumInfo, SumInfo }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -37,7 +37,11 @@ object DependencyGraph {
     formTemplateExprs: List[ExprMetadata]
   ): Graph[GraphNode, DiEdge] = {
 
+    val isSum = new IsOneOfSum(formModel.sumInfo)
+    val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
+
     def edges(fc: FormComponent): List[DiEdge[GraphNode]] = {
+
       def fcIds(fc: FormComponent): List[DiEdge[GraphNode]] = fc match {
         case AllFormComponentExpressions(exprsMetadata) =>
           exprsMetadata.flatMap {
@@ -49,6 +53,13 @@ object DependencyGraph {
             case SelfReferenceProjection(IsSelfReferring.Yes(expr, selfReference)) =>
               toDiEdge(fc, expr, _ === selfReference)
           }
+        case isSum.IsSum(values) =>
+          values.toList.flatMap { value =>
+            GraphNode.Expr(FormCtx(fc.id)) ~> GraphNode.Simple(fc.id) ::
+              GraphNode.Simple(value) ~> GraphNode.Expr(FormCtx(fc.id)) :: Nil
+          }
+        case isStandaloneSum.IsSum(fcId) =>
+          List(GraphNode.Expr(FormCtx(fcId)) ~> GraphNode.Simple(fcId))
         case _ => Nil
       }
       fcIds(fc)
@@ -102,8 +113,7 @@ object DependencyGraph {
     }
 
     val sections = {
-
-      val exprs = (formTemplateExprs ++ formModel.exprsMetadata).collect { case ExprOnlyProjection(expr) => expr }
+      val exprs = (formTemplateExprs ++ formModel.exprsMetadata).map(_.expr)
 
       val allExprGNs: List[GraphNode.Expr] = exprs.flatMap(_.leafs).map(GraphNode.Expr.apply)
 
@@ -113,7 +123,9 @@ object DependencyGraph {
       deps
     }
 
-    formModel.allFormComponents.flatMap(edges).foldLeft(emptyGraph)(_ + _) ++ includeIfs ++ validIfs ++ sections
+    formModel.allFormComponents
+      .flatMap(edges)
+      .foldLeft(emptyGraph)(_ + _) ++ includeIfs ++ validIfs ++ sections
   }
 
   def constructDependencyGraph(
@@ -126,5 +138,19 @@ object DependencyGraph {
       .map(_.toLayered.map {
         case (index, items) => (index, sortedOuterNodes(items))
       })
+  }
+}
+
+class IsOneOfSum(sumInfo: SumInfo) {
+  object IsSum {
+    def unapply(formComponent: FormComponent): Option[Set[FormComponentId]] =
+      sumInfo.dependees(formComponent.id)
+  }
+}
+
+class IsOneOfStandaloneSum(standaloneSumInfo: StandaloneSumInfo) {
+  object IsSum {
+    def unapply(formComponent: FormComponent): Option[FormComponentId] =
+      standaloneSumInfo.dependees(formComponent.id)
   }
 }

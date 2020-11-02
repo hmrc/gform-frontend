@@ -26,7 +26,7 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
 
   private def expandBooleanExpr(booleanExpr: BooleanExpr): BooleanExpr = BooleanExprUpdater(booleanExpr, index, baseIds)
 
-  private def expandeRevealingChoice(revealingChoice: RevealingChoice): RevealingChoice =
+  private def expandRevealingChoice(revealingChoice: RevealingChoice): RevealingChoice =
     revealingChoice.copy(options = revealingChoice.options.map { revealingChoiceElement =>
       revealingChoiceElement.copy(
         choice = expandSmartString(revealingChoiceElement.choice),
@@ -65,7 +65,7 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
       case t: UkSortCode         => t.copy(value = expandExpr(t.value))
       case t: HmrcTaxPeriod      => t.copy(idNumber = expandExpr(t.idNumber))
       case t: Choice             => expandChoice(t)
-      case t: RevealingChoice    => expandeRevealingChoice(t)
+      case t: RevealingChoice    => expandRevealingChoice(t)
       case t: Group              => expandGroup(t)
       case t: InformationMessage => t.copy(infoText = expandSmartString(t.infoText))
       case otherwise             => otherwise

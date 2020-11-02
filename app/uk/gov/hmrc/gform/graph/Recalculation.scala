@@ -25,7 +25,7 @@ import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, AllFormTemplateExpressions, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypedExpr }
+import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
@@ -63,14 +63,11 @@ class Recalculation[F[_]: Monad, E](
   )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
 
     val pageLookup: Map[FormComponentId, PageModel[Interim]] = formModel.pageLookup
-    val fcLookup: Map[FormComponentId, FormComponent] = formModel.fcLookup
 
     def noStateChange[A](a: A): StateT[F, RecalculationState, A] = StateT(s => (s, a).pure[F])
-    def changeExpressionResult[A](a: A)(f: EvaluationResults => EvaluationResults): StateT[F, RecalculationState, A] =
-      StateT(s => (s.update(f(s.evaluationResults)), a).pure[F])
 
     def evalIncludeIf(
-      includeIf: IncludeIf,
+      booleanExpr: BooleanExpr,
       evaluationResults: EvaluationResults,
       recData: RecData[SourceOrigin.OutOfDate],
       evaluationContext: EvaluationContext
@@ -81,15 +78,14 @@ class Recalculation[F[_]: Monad, E](
         expr2: Expr,
         f: (ExpressionResult, ExpressionResult) => Boolean
       ): StateT[F, RecalculationState, Boolean] = {
-        val typedExpr1 = formModel.toTypedExpr(expr1)
-        val typedExpr2 = formModel.toTypedExpr(expr2)
-        val textConstraint1: Option[TextConstraint] = expr1.textConstraint(fcLookup.get)
-        val textConstraint2: Option[TextConstraint] = expr2.textConstraint(fcLookup.get)
-        val evalExpr1 = evaluationResults.evalTyped(typedExpr1, recData, evaluationContext, textConstraint1)
-        val evalExpr2 = evaluationResults.evalTyped(typedExpr2, recData, evaluationContext, textConstraint2)
-        val res = f(evalExpr1, evalExpr2)
-        changeExpressionResult(res)(evaluationResults =>
-          evaluationResults + (typedExpr1, evalExpr1) + (typedExpr2, evalExpr2))
+        val typeInfo1: TypeInfo = formModel.toFirstOperandTypeInfo(expr1)
+        val typeInfo2: TypeInfo = formModel.toFirstOperandTypeInfo(expr2)
+        val exprRes1: ExpressionResult =
+          evaluationResults.evalExpr(typeInfo1, recData, evaluationContext).applyTypeInfo(typeInfo1)
+        val exprRes2: ExpressionResult =
+          evaluationResults.evalExpr(typeInfo2, recData, evaluationContext).applyTypeInfo(typeInfo2)
+        val res = f(exprRes1, exprRes2)
+        noStateChange(res)
       }
 
       def loop(booleanExpr: BooleanExpr): StateT[F, RecalculationState, Boolean] = booleanExpr match {
@@ -105,15 +101,14 @@ class Recalculation[F[_]: Monad, E](
         case IsFalse                             => noStateChange(false)
         case Contains(field1, field2)            => compare(field1, field2, _ contains _)
         case In(expr, dataSource) =>
-          val typedExpr = formModel.toTypedExpr(expr)
-          val textConstraint: Option[TextConstraint] = expr.textConstraint(fcLookup.get)
+          val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
           val expressionResult: ExpressionResult =
-            evaluationResults.evalTyped(typedExpr, recData, evaluationContext, textConstraint)
+            evaluationResults.evalExpr(typeInfo, recData, evaluationContext).applyTypeInfo(typeInfo)
           val hc = evaluationContext.headerCarrier
 
           expressionResult.withStringResult(noStateChange(false)) { value =>
             StateT[F, RecalculationState, Boolean] { s =>
-              val updS = s.update(evaluationResults + (typedExpr, expressionResult))
+              val updS = s.update(evaluationResults + (expr, expressionResult))
               def makeCall() = dataSource match {
                 case DataSource.Mongo(collectionName) => dbLookupCheckStatus(value, collectionName, hc)
                 case DataSource.Enrolment(serviceName, identifierName) =>
@@ -134,10 +129,10 @@ class Recalculation[F[_]: Monad, E](
             }
           }
       }
-      loop(includeIf.booleanExpr)
+      loop(booleanExpr)
     }
 
-    def isHidden(
+    def isHiddenByIncludeIf(
       fcId: FormComponentId,
       evaluationResults: EvaluationResults,
       recData: RecData[SourceOrigin.OutOfDate],
@@ -145,11 +140,21 @@ class Recalculation[F[_]: Monad, E](
     ): StateT[F, RecalculationState, Boolean] =
       pageLookup.get(fcId).flatMap(_.getIncludeIf).fold(noStateChange(false)) { includeIf =>
         for {
-          b <- evalIncludeIf(includeIf, evaluationResults, recData, evaluationContext)
+          b <- evalIncludeIf(includeIf.booleanExpr, evaluationResults, recData, evaluationContext)
         } yield {
           !b
         }
       }
+
+    def isHiddenByRevealingChoice(
+      fcId: FormComponentId,
+      recData: RecData[SourceOrigin.OutOfDate],
+    ): StateT[F, RecalculationState, Boolean] = {
+
+      val isHidden = formModel.revealingChoiceInfo.isHiddenByParentId(fcId, recData.variadicFormData)
+
+      isHidden.fold(noStateChange(false))(noStateChange)
+    }
 
     val formTemplateExprs: List[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
@@ -168,57 +173,28 @@ class Recalculation[F[_]: Monad, E](
 
       val (evResultF: StateT[F, RecalculationState, EvaluationResults], recData: RecData[SourceOrigin.OutOfDate]) = ctx
 
-      val sums: List[Sum] = evaluationContext.typedExpressionLookup.values.flatMap(_.expr.sums).toList
-      val isSum: Set[FormComponentId] = sums.collect {
-        case Sum(FormCtx(formComponentId)) => formComponentId
-      }.toSet
-
       val evaluationResults: StateT[F, RecalculationState, EvaluationResults] = evResultF.flatMap { evResult =>
         graphLayer.foldMapM {
 
           case GraphNode.Simple(fcId) =>
             for {
-              isH <- isHidden(fcId, evResult, recData, evaluationContext)
+              isHiddenIncludeIf       <- isHiddenByIncludeIf(fcId, evResult, recData, evaluationContext)
+              isHiddenRevealingChoice <- isHiddenByRevealingChoice(fcId, recData)
             } yield {
-              if (isH) {
-                val typedExpr = formModel.explicitTypedExpr(FormCtx(fcId), fcId)
-                evResult + (typedExpr, ExpressionResult.Hidden)
+              if (isHiddenIncludeIf || isHiddenRevealingChoice) {
+                evResult + (FormCtx(fcId), ExpressionResult.Hidden)
               } else {
-                fcLookup.get(fcId).fold(evResult) {
-                  case AllFormComponentExpressions(exprsMetadata) =>
-                    exprsMetadata.foldMap(_.toEvaluationResults(evResult, formModel, recData, evaluationContext))
-                  case _ => evResult
-                }
+                evResult
               }
             }
 
           case GraphNode.Expr(expr) =>
-            val sumsToAdd: List[FormComponentId] =
-              expr.leafs
-                .collect {
-                  case FormCtx(formComponentId) if isSum(formComponentId) => formComponentId
-                }
+            val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
 
-            val sumResults: Map[TypedExpr, ExpressionResult] = sumsToAdd
-              .map { formComponentId =>
-                val sumIds = recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
-
-                sumIds.map {
-                  case (k, v) =>
-                    val expr = FormCtx(k.toFormComponentId)
-                    val typedExpr = formModel.toTypedExpr(expr)
-                    val textConstraint: Option[TextConstraint] = expr.textConstraint(fcLookup.get)
-                    val exprResult = evResult.evalTyped(typedExpr, recData, evaluationContext, textConstraint)
-                    (typedExpr, exprResult)
-                }.toMap
-              }
-              .foldLeft(Map.empty[TypedExpr, ExpressionResult])(_ ++ _)
-
-            val typedExpr = formModel.toTypedExpr(expr)
-            val textConstraint: Option[TextConstraint] = expr.textConstraint(fcLookup.get)
             val exprResult: ExpressionResult =
-              evResult.evalTyped(typedExpr, recData, evaluationContext, textConstraint)
-            noStateChange(evResult ++ sumResults + (typedExpr, exprResult))
+              evResult.evalExpr(typeInfo, recData, evaluationContext)
+
+            noStateChange(evResult + (expr, exprResult))
         }
       }
 
@@ -247,14 +223,8 @@ class Recalculation[F[_]: Monad, E](
         ) = recalc
 
         evResultF.map { evResult =>
-          val finalEvResult: EvaluationResults =
-            formModel.exprsMetadata ++ formTemplateExprs match {
-              case Nil => evResult
-              case xs  => xs.foldMap(_.toEvaluationResults(evResult, formModel, recalculatedData, evaluationContext))
-            }
-          (finalEvResult, graphTopologicalOrder)
+          (evResult, graphTopologicalOrder)
         }
-
       }
 
     res match {
@@ -264,11 +234,12 @@ class Recalculation[F[_]: Monad, E](
           case (cacheUpdate, (evaluationResults, graphTopologicalOrder)) =>
             val finalEvaluationResults =
               implicitly[Monoid[EvaluationResults]].combine(cacheUpdate.evaluationResults, evaluationResults)
-
             new RecalculationResult(
               finalEvaluationResults,
               GraphData(graphTopologicalOrder, graph),
-              cacheUpdate.booleanExprCache)
+              cacheUpdate.booleanExprCache,
+              evaluationContext)
+
         }
     }
   }

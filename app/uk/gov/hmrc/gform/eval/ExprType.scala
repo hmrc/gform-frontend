@@ -16,11 +16,9 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.RoundingMode
-
 sealed trait ExprType extends Product with Serializable {
   def fold[B](
-    a: ExprType.Number => B
+    a: ExprType.Number.type => B
   )(
     b: ExprType.String.type => B
   )(
@@ -29,7 +27,7 @@ sealed trait ExprType extends Product with Serializable {
     d: ExprType.Illegal.type => B
   ): B =
     this match {
-      case t: ExprType.Number               => a(t)
+      case t: ExprType.Number.type          => a(t)
       case t: ExprType.String.type          => b(t)
       case t: ExprType.ChoiceSelection.type => c(t)
       case t: ExprType.Illegal.type         => d(t)
@@ -38,12 +36,12 @@ sealed trait ExprType extends Product with Serializable {
 
 object ExprType {
 
-  def number(roundingMode: RoundingMode, maxFractionalDigits: Int): ExprType = Number(roundingMode, maxFractionalDigits)
+  val number: ExprType = Number
   val string: ExprType = String
   val illegal: ExprType = Illegal
   val choiceSelection: ExprType = ChoiceSelection
 
-  case class Number(roundingMode: RoundingMode, maxFractionalDigits: Int) extends ExprType
+  case object Number extends ExprType
   case object String extends ExprType
   case object Illegal extends ExprType
   case object ChoiceSelection extends ExprType

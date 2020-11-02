@@ -16,6 +16,12 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
+import uk.gov.hmrc.gform.models.{ PageMode, PageModel }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Sum
 
-case class InferrableExpr(expr: Expr, inferringRule: InferringRule)
+object AllPageModelSums {
+  def unapply[A <: PageMode](pageModel: PageModel[A]): Option[Set[Sum]] = pageModel match {
+    case AllPageModelExpressions(exprMetadatas) => Some(exprMetadatas.flatMap(_.expr.sums).toSet).filter(_.nonEmpty)
+    case _                                      => None
+  }
+}

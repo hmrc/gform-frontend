@@ -44,6 +44,6 @@ object FormComponentHelper {
   def extractMaxFractionalDigits(fc: FormComponent): MaxDigitsAndRoundingMode = fc.`type` match {
     case HasDigits(digits)   => digits
     case HasSterling(digits) => digits
-    case _                   => MaxDigitsAndRoundingMode(TextConstraint.defaultFactionalDigits, RoundingMode.defaultRoundingMode)
+    case _                   => MaxDigitsAndRoundingMode(TextConstraint.defaultFractionalDigits, RoundingMode.defaultRoundingMode)
   }
 }

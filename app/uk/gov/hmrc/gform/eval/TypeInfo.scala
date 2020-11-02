@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
 
-sealed trait InferringRule extends Product with Serializable
+case class TypeInfo(expr: Expr, staticTypeData: StaticTypeData)
 
-object InferringRule {
-  case object FirstOperand extends InferringRule
-  case class Explicit(formComponentId: FormComponentId) extends InferringRule
+object TypeInfo {
+  def illegal(expr: Expr) = TypeInfo(expr, StaticTypeData.illegal)
 }

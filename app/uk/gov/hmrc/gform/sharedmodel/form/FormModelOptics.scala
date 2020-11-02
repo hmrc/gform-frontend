@@ -21,6 +21,7 @@ import cats.syntax.functor._
 import com.softwaremill.quicklens._
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, CacheData }
+import uk.gov.hmrc.gform.eval.EvaluationContext
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
@@ -47,12 +48,12 @@ case class FormModelOptics[D <: DataOrigin](
 
 object FormModelOptics {
 
-  def empty[D <: DataOrigin] = FormModelOptics[D](
+  def empty[D <: DataOrigin](evaluationContext: EvaluationContext) = FormModelOptics[D](
     new FormModelRenderPageOptics(FormModel.empty[DataExpanded], RecData.empty),
     new FormModelVisibilityOptics(
       FormModel.empty[Visibility],
       RecData.empty,
-      RecalculationResult.empty
+      RecalculationResult.empty(evaluationContext)
     )
   )
 

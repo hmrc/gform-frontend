@@ -236,14 +236,14 @@ sealed trait TextConstraint {
 
 final case class Number(
   maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
-  maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits,
+  maxFractionalDigits: Int = TextConstraint.defaultFractionalDigits,
   roundingMode: RoundingMode = RoundingMode.defaultRoundingMode,
   unit: Option[LocalisedString] = None)
     extends TextConstraint
 
 final case class PositiveNumber(
   maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
-  maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits,
+  maxFractionalDigits: Int = TextConstraint.defaultFractionalDigits,
   roundingMode: RoundingMode = RoundingMode.defaultRoundingMode,
   unit: Option[LocalisedString] = None)
     extends TextConstraint
@@ -280,7 +280,7 @@ case object ChildBenefitNumber extends TextConstraint
 
 object TextConstraint {
   val defaultWholeDigits = 11
-  val defaultFactionalDigits = 2
+  val defaultFractionalDigits = 2
 
   implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]()
 

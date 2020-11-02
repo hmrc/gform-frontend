@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId }
 
 trait ExprExtractorHelpers {
 
@@ -30,7 +30,10 @@ trait ExprExtractorHelpers {
 
   def fromOption(maybeSmartStrings: Option[SmartString]*): List[Expr] = maybeSmartStrings.toList.flatMap(fromOption)
 
-  def toFirstOperandPlainExprs(exprs: List[Expr]*): List[ExprMetadata] =
-    exprs.toList.flatten.map(expr => ExprMetadata.Plain(InferrableExpr(expr, InferringRule.FirstOperand)))
+  def toPlainExprs(exprs: List[Expr]*): List[ExprMetadata] =
+    exprs.toList.flatten.map(ExprMetadata.Plain(_))
+
+  def toSelfReferringExprs(formComponentId: FormComponentId, exprs: List[Expr]): List[ExprMetadata] =
+    exprs.map(ExprMetadata.SelfReferring(_, formComponentId))
 
 }

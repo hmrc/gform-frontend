@@ -18,11 +18,17 @@ package uk.gov.hmrc.gform.models
 
 import cats.instances.int._
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.eval.{ AllPageModelExpressions, ExprMetadata, ExprType, TypedExpr }
+import uk.gov.hmrc.gform.eval.{ AllPageModelExpressions, ExprMetadata, ExprType, RevealingChoiceInfo, StandaloneSumInfo, StaticTypeData, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-case class FormModel[A <: PageMode](pagesWithIndex: List[(PageModel[A], SectionNumber)]) {
+case class FormModel[A <: PageMode](
+  pagesWithIndex: List[(PageModel[A], SectionNumber)],
+  staticTypeInfo: StaticTypeInfo,
+  revealingChoiceInfo: RevealingChoiceInfo,
+  sumInfo: SumInfo,
+  standaloneSumInfo: StandaloneSumInfo // This represents ${abc.sum} expressions which are not in "value" property of FormComponent
+) {
 
   val (pages, availableSectionNumbers) = pagesWithIndex.unzip
 
@@ -49,18 +55,24 @@ case class FormModel[A <: PageMode](pagesWithIndex: List[(PageModel[A], SectionN
     .toSet
 
   val exprsMetadata: List[ExprMetadata] = pages.flatMap {
-    case AllPageModelExpressions(exprs) => exprs
-    case _                              => Nil
+    case AllPageModelExpressions(exprMetadatas) => exprMetadatas
+    case _                                      => Nil
   }
 
   private val pageModelLookup: Map[SectionNumber, PageModel[A]] = pagesWithIndex.map(_.swap).toMap
 
-  def map[B <: PageMode](f: PageModel[A] => PageModel[B]): FormModel[B] = FormModel {
-    pagesWithIndex.map { case (page, sectionNumber) => f(page) -> sectionNumber }
-  }
+  def map[B <: PageMode](f: PageModel[A] => PageModel[B]): FormModel[B] = FormModel(
+    pagesWithIndex.map {
+      case (page, sectionNumber) => f(page) -> sectionNumber
+    },
+    staticTypeInfo,
+    revealingChoiceInfo,
+    sumInfo,
+    standaloneSumInfo
+  )
   def flatMap[B <: PageMode](f: PageModel[A] => List[PageModel[B]]): FormModel[B] = {
     val i: List[PageModel[B]] = pagesWithIndex.flatMap { case (page, sectionNumber) => f(page) }
-    FormModel.fromPages(i)
+    FormModel.fromPages(i, staticTypeInfo, revealingChoiceInfo, sumInfo)
   }
 
   def apply(sectionNumber: SectionNumber): PageModel[A] = pageModelLookup(sectionNumber)
@@ -69,33 +81,30 @@ case class FormModel[A <: PageMode](pagesWithIndex: List[(PageModel[A], SectionN
   def isDefinedAt(modelComponentId: ModelComponentId): Boolean = allModelComponentIds(modelComponentId)
 
   def filter[B <: PageMode](predicate: PageModel[A] => Boolean): FormModel[B] =
-    FormModel[A](pagesWithIndex.filter { case (page, sectionNumber) => predicate(page) })
-      .map(_.asInstanceOf[PageModel[B]])
+    FormModel[A](
+      pagesWithIndex.filter { case (page, sectionNumber) => predicate(page) },
+      staticTypeInfo,
+      revealingChoiceInfo,
+      sumInfo,
+      standaloneSumInfo
+    ).map(_.asInstanceOf[PageModel[B]])
 
-  private def mkTypedExpr(expr: Expr, formComponentId: FormComponentId): TypedExpr = {
-    val exprType = fcLookup.get(formComponentId).fold(ExprType.illegal)(_.getType)
-    TypedExpr(expr, exprType)
+  private def toStaticTypeData(formComponentId: FormComponentId): Option[StaticTypeData] =
+    staticTypeInfo.get(formComponentId.baseComponentId)
+
+  def toFirstOperandTypeInfo(expr: Expr): TypeInfo = {
+    def illegal = TypeInfo.illegal(expr)
+    val first: Option[Expr] = expr.leafs.headOption
+    first.fold(illegal) {
+      case FormCtx(formComponentId) => explicitTypedExpr(expr, formComponentId)
+      case IsNumberConstant(_)      => TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case otherwise                => TypeInfo(expr, StaticTypeData(ExprType.string, None))
+    }
   }
 
-  def toTypedExpr(expr: Expr): TypedExpr =
-    expr match {
-      case Sum(FormCtx(formComponentId)) =>
-        val indexed = formComponentId.modelComponentId.expandWithPrefix(1).toFormComponentId
-        mkTypedExpr(expr, indexed)
-      case expr =>
-        val first: Option[Expr] = expr.leafs.headOption
-        first.fold(TypedExpr.illegal(expr)) {
-          // format: off
-          case FormCtx(formComponentId) => mkTypedExpr(expr, formComponentId)
-          case IsNumberConstant(_)      => TypedExpr.number(expr, RoundingMode.defaultRoundingMode, TextConstraint.defaultFactionalDigits)
-          case otherwise                => TypedExpr.string(expr)
-          // format: on
-        }
-    }
-
-  def explicitTypedExpr(expr: Expr, fcId: FormComponentId): TypedExpr = {
-    val exprType = fcLookup(fcId).getType
-    TypedExpr(expr, exprType)
+  def explicitTypedExpr(expr: Expr, fcId: FormComponentId): TypeInfo = {
+    def illegal = TypeInfo.illegal(expr)
+    toStaticTypeData(fcId).fold(illegal)(staticTypeData => TypeInfo(expr, staticTypeData))
   }
 
   def pageLookup: Map[FormComponentId, PageModel[A]] =
@@ -169,10 +178,31 @@ case class FormModel[A <: PageMode](pagesWithIndex: List[(PageModel[A], SectionN
 
 object FormModel {
 
-  def empty[A <: PageMode]: FormModel[A] = FormModel.fromPages(List.empty[PageModel[A]])
+  def empty[A <: PageMode]: FormModel[A] =
+    FormModel.fromPages(
+      List.empty[PageModel[A]],
+      StaticTypeInfo.empty,
+      RevealingChoiceInfo.empty,
+      SumInfo.empty
+    )
 
-  def fromPages[A <: PageMode](pages: List[PageModel[A]]): FormModel[A] =
-    FormModel(pages.zipWithIndex.map { case (page, index) => page -> SectionNumber(index) })
+  def fromPages[A <: PageMode](
+    pages: List[PageModel[A]],
+    staticTypeInfo: StaticTypeInfo,
+    revealingChoiceInfo: RevealingChoiceInfo,
+    sumInfo: SumInfo
+  ): FormModel[A] = {
+
+    val standaloneSumInfo = StandaloneSumInfo.from(pages, sumInfo)
+
+    FormModel(
+      pages.zipWithIndex.map { case (page, index) => page -> SectionNumber(index) },
+      staticTypeInfo,
+      revealingChoiceInfo,
+      sumInfo,
+      standaloneSumInfo
+    )
+  }
 }
 
 private class IsRepeater(addToListId: AddToListId) {

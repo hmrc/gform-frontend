@@ -36,7 +36,7 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
 
     def fromPage(page: Page[Basic]): List[ExprMetadata] =
       page.fields.flatMap(AllFormComponentExpressions.unapply).flatten ++
-        toFirstOperandPlainExprs(
+        toPlainExprs(
           fromSmartStrings(page.title),
           fromOption(
             page.description,
@@ -46,7 +46,7 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
     def fromAuth: List[ExprMetadata] = formTemplate.authConfig match {
       case HasEnrolmentSection(_, enrolmentSection, _, _) =>
         fromPage(enrolmentSection.toPage) ++
-          toFirstOperandPlainExprs(
+          toPlainExprs(
             enrolmentSection.identifiers.map(_.value).toList,
             enrolmentSection.verifiers.map(_.value)
           )
@@ -66,7 +66,7 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
       }
 
       def fromDestinations(destinations: NonEmptyList[Destination]): List[ExprMetadata] =
-        toFirstOperandPlainExprs(destinations.toList.flatMap(fromDestination))
+        toPlainExprs(destinations.toList.flatMap(fromDestination))
       def fromDeclarationSection(declaration: DeclarationSection): List[ExprMetadata] = fromPage(declaration.toPage)
       def fromAcknowledgementSection(acknowledgement: AcknowledgementSection): List[ExprMetadata] =
         fromPage(acknowledgement.toPage)
@@ -80,7 +80,7 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
       def fromPdf(pdf: PrintSection.Pdf): List[Expr] = fromSmartStrings(pdf.header, pdf.footer)
       def fromPdfNotification(pdf: PrintSection.PdfNotification): List[Expr] = fromSmartStrings(pdf.header, pdf.footer)
       val DestinationPrint(page, pdf, pdfNotification) = destinationPrint
-      toFirstOperandPlainExprs(
+      toPlainExprs(
         fromPage(page),
         fromPdf(pdf),
         fromOptionF(pdfNotification)(fromPdfNotification)
@@ -90,6 +90,6 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
     val destinationsExprs: List[ExprMetadata] =
       formTemplate.destinations.fold(fromDestinationList)(fromDestinationPrint)
 
-    toFirstOperandPlainExprs(emailExprs, summarySectionExprs) ++ destinationsExprs ++ fromAuth
+    toPlainExprs(emailExprs, summarySectionExprs) ++ destinationsExprs ++ fromAuth
   }
 }

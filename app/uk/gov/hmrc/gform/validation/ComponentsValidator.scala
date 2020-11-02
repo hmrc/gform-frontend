@@ -121,7 +121,9 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   ): F[List[(Boolean, SmartString)]] =
     formComponent.validators.traverse { formComponentValidator =>
       val fb: F[Boolean] = booleanExprEval.eval(formModelVisibilityOptics)(formComponentValidator.validIf.booleanExpr)
-      fb.map(b => (b, formComponentValidator.errorMessage))
+      fb.map { b =>
+        (b, formComponentValidator.errorMessage)
+      }
     }
 
   private def produceValidationError(

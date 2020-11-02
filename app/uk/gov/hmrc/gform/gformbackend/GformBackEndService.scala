@@ -177,7 +177,7 @@ class GformBackEndService(
       val emailParametersRecalculated: Map[EmailTemplateVariable, EmailParameterValue] = emailParameters
         .map {
           case EmailParameter(emailTemplateVariable, expr) =>
-            val emailParameterValue = formModelVisibilityOptics.eval(expr)
+            val emailParameterValue = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
             EmailTemplateVariable(emailTemplateVariable) -> EmailParameterValue(emailParameterValue)
         }
         .toList

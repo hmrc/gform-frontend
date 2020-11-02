@@ -53,10 +53,10 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
       singleton.source.fold[Option[Expr]](_ => none)(_.repeats.some)(_ => none)
 
     val pageExprs: List[Expr] = pageModel.fold(fromSingleton)(fromRepeater)
-    val pageExprsMeta = toFirstOperandPlainExprs(pageExprs)
+    val pageExprsMeta = toPlainExprs(pageExprs)
 
     val repeatedSectionExprs: Option[Expr] = pageModel.fold[Option[Expr]](fromRepatedSection)(_ => none)
-    val repeatedSectionExprsMeta: List[ExprMetadata] = toFirstOperandPlainExprs(repeatedSectionExprs.toList)
+    val repeatedSectionExprsMeta: List[ExprMetadata] = toPlainExprs(repeatedSectionExprs.toList)
 
     (pageExprsMeta ++ repeatedSectionExprsMeta) match {
       case Nil => None
