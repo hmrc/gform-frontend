@@ -27,14 +27,11 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 object AllFormComponentExpressions extends ExprExtractorHelpers {
   def unapply(fc: FormComponent): Option[List[ExprMetadata]] = {
 
-    def toFirstOperandExprs(exprs: List[Expr], toExprMetadata: Expr => ExprMetadata): List[ExprMetadata] =
-      exprs.map(toExprMetadata)
-
     def fromRcElements(revealingChoiceElements: List[RevealingChoiceElement]): List[ExprMetadata] =
       revealingChoiceElements.toList.flatMap {
         case RevealingChoiceElement(choice, _, _) =>
           // We don't need to do anything about revealingFields, since they are expanded, see FormModelExpander[DependencyGraphVerification]
-          toFirstOperandPlainExprs(choice.interpolations)
+          toPlainExprs(choice.interpolations)
       }
 
     def fromGroup(group: Group): List[ExprMetadata] = {
@@ -42,7 +39,7 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       val Group(_, _, _, repeatLabel, repeatAddAnotherText) = group
 
       val exprs = fromOption(repeatLabel, repeatAddAnotherText)
-      toFirstOperandPlainExprs(exprs)
+      toPlainExprs(exprs)
     }
 
     def fromNel(nel: NonEmptyList[SmartString]): List[Expr] = nel.toList.flatMap(_.interpolations)
@@ -59,26 +56,18 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       case IsGroup(group)                                 => fromGroup(group)
       case IsRevealingChoice(RevealingChoice(options, _)) => fromRcElements(options)
       case IsChoice(Choice(_, options, _, _, optionHelpText)) =>
-        toFirstOperandPlainExprs(fromNel(options), optionHelpText.fold(List.empty[Expr])(fromNel))
+        toPlainExprs(fromNel(options), optionHelpText.fold(List.empty[Expr])(fromNel))
       case IsInformationMessage(InformationMessage(_, infoText)) =>
-        toFirstOperandPlainExprs(infoText.interpolations)
-      case _ => Nil
+        toPlainExprs(infoText.interpolations)
+      case HasExpr(expr) => toPlainExprs(expr :: Nil)
+      case _             => Nil
     }
 
-    val firstOperandExprs: List[ExprMetadata] =
-      toFirstOperandPlainExprs(fcExprs) ++
-        toFirstOperandExprs(fcSelfRefferingExprs, ExprMetadata.SelfReferring(_, fc.id)) ++
+    val allExprs: List[ExprMetadata] =
+      toPlainExprs(fcExprs) ++
+        toSelfReferringExprs(fc.id, fcSelfRefferingExprs) ++
         componentTypeExprs
 
-    val explicitExprs = fc match {
-      case HasExpr(expr) => Some(ExprMetadata.Plain(expr))
-      case _             => None
-    }
-
-    (firstOperandExprs, explicitExprs) match {
-      case (Nil, None)       => None
-      case (xs, None)        => Some(xs)
-      case (xs, Some(exprs)) => Some(exprs :: xs)
-    }
+    Some(allExprs).filter(_.nonEmpty)
   }
 }

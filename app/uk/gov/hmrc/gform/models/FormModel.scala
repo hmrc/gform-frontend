@@ -55,8 +55,8 @@ case class FormModel[A <: PageMode](
     .toSet
 
   val exprsMetadata: List[ExprMetadata] = pages.flatMap {
-    case AllPageModelExpressions(exprs) => exprs
-    case _                              => Nil
+    case AllPageModelExpressions(exprMetadatas) => exprMetadatas
+    case _                                      => Nil
   }
 
   private val pageModelLookup: Map[SectionNumber, PageModel[A]] = pagesWithIndex.map(_.swap).toMap

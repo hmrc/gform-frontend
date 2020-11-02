@@ -21,12 +21,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.Sum
 
 object AllPageModelSums {
   def unapply[A <: PageMode](pageModel: PageModel[A]): Option[Set[Sum]] = pageModel match {
-    case AllPageModelExpressions(exprs) =>
-      val sums = exprs.flatMap(_.expr.sums)
-
-      if (sums.isEmpty) None
-      else Some(sums.toSet)
-
-    case _ => None
+    case AllPageModelExpressions(exprMetadatas) => Some(exprMetadatas.flatMap(_.expr.sums).toSet).filter(_.nonEmpty)
+    case _                                      => None
   }
 }
