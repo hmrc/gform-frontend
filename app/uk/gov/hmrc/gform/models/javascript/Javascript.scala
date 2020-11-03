@@ -63,7 +63,7 @@ object Javascript {
       : Map[FormComponentId, Set[ModelComponentId]] = fcWithSuccessors.map { case (k, v) => k.id -> v }.toMap
 
     val fcWithExprs: List[(FormComponent, Expr)] = fcWithSuccessors.map(_._1).collect {
-      case fc @ HasExpr(expr) => fc -> expr
+      case fc @ HasExpr(expr) if fc.editable || fc.submissible => fc -> expr
     }
 
     fcWithExprs
@@ -181,11 +181,14 @@ object Javascript {
                 |  return isElementHidden("$id");
                 |};
                 |
-                |var check = document.getElementById("$id").dataset.checkbox;
-                |if(check) {
-                |  var checkbox = document.getElementById(check);
-                |  if (checkbox) {
-                |    checkbox.addEventListener("change",$functionName);
+                |var element = document.getElementById("$id");
+                |if (element) {
+                |  var check = element.dataset.checkbox;
+                |  if(check) {
+                |    var checkbox = document.getElementById(check);
+                |    if (checkbox) {
+                |      checkbox.addEventListener("change",$functionName);
+                |    }
                 |  }
                 |}
                 |""".stripMargin

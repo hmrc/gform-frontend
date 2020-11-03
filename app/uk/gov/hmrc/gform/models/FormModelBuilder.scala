@@ -189,7 +189,10 @@ class FormModelBuilder[E, F[_]: Functor](
         visibleTypedExprs.foldMap {
           case (fcId, typeInfo) =>
             val expressionResult =
-              evaluationResults.evalExpr(typeInfo, RecData(data), recalculationResult.evaluationContext)
+              evaluationResults
+                .evalExpr(typeInfo, RecData(data), recalculationResult.evaluationContext)
+                .applyTypeInfo(typeInfo)
+
             toCurrentData(fcId.modelComponentId, expressionResult)
         }
 
