@@ -21,8 +21,6 @@ import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SelectionCriteriaValue._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-import scala.collection.immutable.List
-
 /*
  * Extracts metadata for all expressions of FormComponent.
  * This assume that RevealingChoice's and Group's fields (ie. nested FormComponents) are being expanded.
@@ -55,17 +53,15 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       fromOption(fc.errorMessage) ++
         fc.validators.flatMap(_.errorMessage.interpolations)
 
-    def fcLookupExpr(selectionCriteria: Option[List[SelectionCriteria]]) = selectionCriteria match {
-      case Some(v) =>
-        val r = v flatMap {
-          case SelectionCriteria(_, SelectionCriteriaExpr(expr))         => List(expr)
-          case SelectionCriteria(c, SelectionCriteriaSimpleValue(v))     => Nil
-          case SelectionCriteria(_, SelectionCriteriaReference(expr, _)) => List(expr)
-        }
-        toFirstOperandPlainExprs(r)
-
-      case None => Nil
-    }
+    def fcLookupExpr(selectionCriteria: Option[List[SelectionCriteria]]): List[ExprMetadata] =
+      selectionCriteria.fold(List.empty[ExprMetadata]) { selectionCriterias =>
+        toPlainExprs(
+          selectionCriterias collect {
+            case SelectionCriteria(_, SelectionCriteriaExpr(expr))         => expr
+            case SelectionCriteria(_, SelectionCriteriaReference(expr, _)) => expr
+          }
+        )
+      }
 
     val componentTypeExprs: List[ExprMetadata] = fc match {
       case IsText(Text(Lookup(_, sc), _, _, _))           => fcLookupExpr(sc)

@@ -66,10 +66,7 @@ object ComponentValidator {
         val oLo = options.m.get(l).map(r => LookupOptions(filterBySelectionCriteria(sc, r.options)))
         oLo
           .map { s =>
-            if (s.options.nonEmpty)
-              LocalisedLookupOptions(Map(l -> s)).process(_.keys.toList)
-            else
-              List(LookupLabel("Dummy"))
+            LocalisedLookupOptions(Map(l -> s)).process(_.keys.toList)
           }
           .getOrElse(Nil)
 
@@ -86,7 +83,7 @@ object ComponentValidator {
     }
 
     def existsLabel(options: LookupOptions) =
-      if (filteredLookuplabels.nonEmpty && filteredLookuplabels.filterNot(_.label === "Dummy").contains(lookupLabel))
+      if (filteredLookuplabels.nonEmpty && filteredLookuplabels.contains(lookupLabel))
         validationSuccess
       else if (filteredLookuplabels.isEmpty && options.contains(lookupLabel))
         validationSuccess

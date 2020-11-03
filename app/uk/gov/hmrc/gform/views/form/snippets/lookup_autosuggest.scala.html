@@ -36,11 +36,7 @@
 )
 
 @currentValue = @{validationResult.getCurrentValue}
-@accessCode = @{maybeAccessCode match {
-    case Some(ac) => ac.value
-    case None => "-"
-  }
-}
+@accessCode = @{maybeAccessCode.fold("-")(_.value)}
 
 @form_group(validationResult) { hasErrors =>
   @defining(fieldValue.id.value, prepop.orElse(currentValue).getOrElse("")) { case (fcId, prepopValue) =>

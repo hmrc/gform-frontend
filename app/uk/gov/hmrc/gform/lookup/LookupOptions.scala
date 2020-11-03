@@ -65,11 +65,15 @@ object LookupOptions {
   def filterBySelectionCriteria(
     selectionCriteria: List[SimplifiedSelectionCriteria],
     acc: Map[LookupLabel, LookupInfo]): Map[LookupLabel, LookupInfo] =
-    if (selectionCriteria.isEmpty || acc.isEmpty) acc
-    else {
-      val (column, values) = (selectionCriteria.head.column.column.toLowerCase, selectionCriteria.head.value)
-      filterBySelectionCriteria(
-        selectionCriteria.tail,
-        acc.filter(r => values.contains(getLookupValue(r._2, column).getOrElse(false))))
-    }
+    if (acc.isEmpty) acc
+    else
+      selectionCriteria match {
+        case Nil => acc
+        case head :: tail =>
+          val (column, values) = (head.column.column.toLowerCase, head.value)
+          filterBySelectionCriteria(
+            tail,
+            acc.filter(r => values.contains(getLookupValue(r._2, column).getOrElse(false))))
+      }
+
 }

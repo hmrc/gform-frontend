@@ -17,13 +17,10 @@
 package uk.gov.hmrc.gform.models.ids
 
 import cats.Eq
-import julienrf.json.derived
-import play.api.libs.json._
 
 case class BaseComponentId(value: String) extends AnyVal
 
 object BaseComponentId {
-  implicit val catsEq: Eq[BaseComponentId] = Eq.fromUniversalEquals
 
-  val oformat: OFormat[BaseComponentId] = derived.oformat()
+  implicit val catsEq: Eq[BaseComponentId] = Eq.fromUniversalEquals
 }

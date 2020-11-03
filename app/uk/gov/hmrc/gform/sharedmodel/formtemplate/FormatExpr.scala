@@ -29,8 +29,6 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SelectionCriteriaValue.{ SelectionCriteriaExpr, SelectionCriteriaReference, SelectionCriteriaSimpleValue }
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, LocalisedString }
 
-import scala.collection.immutable.List
-
 sealed trait FormatExpr
 final case class OrientationFormat(value: String) extends FormatExpr
 final case class DateFormat(expressions: DateConstraintType) extends FormatExpr
@@ -428,10 +426,6 @@ object SelectionCriteriaValue {
   case class SelectionCriteriaReference(expr: FormCtx, name: CsvColumnName) extends SelectionCriteriaValue
   case class SelectionCriteriaSimpleValue(value: List[String]) extends SelectionCriteriaValue
 
-  implicit val formatSelectionCriteriaExpr: OFormat[SelectionCriteriaExpr] = derived.oformat()
-  implicit val formatSelectionCriteriaReference: OFormat[SelectionCriteriaReference] = derived.oformat()
-  implicit val formatSelectionCriteriaSimpleValue: OFormat[SelectionCriteriaSimpleValue] = derived.oformat()
-
   implicit val format: OFormat[SelectionCriteriaValue] = derived.oformat()
 }
 
@@ -457,34 +451,28 @@ object SimplifiedSelectionCriteria {
     l: LangADT
   ): List[SimplifiedSelectionCriteria] = lsc map {
     case SelectionCriteria(c, SelectionCriteriaExpr(expr)) =>
-      SimplifiedSelectionCriteria(c, List(formModelVisibilityOptics.eval(expr)))
+      SimplifiedSelectionCriteria(
+        c,
+        List(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation))
 
     case SelectionCriteria(c, SelectionCriteriaSimpleValue(v)) =>
       SimplifiedSelectionCriteria(c, v)
 
     case SelectionCriteria(c, SelectionCriteriaReference(expr, cName)) =>
       val aFormComponents: Seq[FormComponent] = formModelVisibilityOptics.formModel.allFormComponents
-      val reg: Option[Register] = aFormComponents.find(_.id == expr.formComponentId).flatMap { fc =>
-        fc.`type` match {
-          case Text(Lookup(r, _), _, _, _) =>
-            Some(r)
-          case _ => None
-        }
+      val reg: Option[Register] = aFormComponents.find(_.id === expr.formComponentId).collectFirst {
+        case IsText(Text(Lookup(r, _), _, _, _)) => r
       }
-      val ols = reg map { r =>
+      val ols: List[String] = reg.toList.flatMap { r =>
         lookupRegistry.get(r) match {
           case Some(AjaxLookup(options, _, _)) =>
-            val oLi = options.lookupInfo(LookupLabel(formModelVisibilityOptics.eval(expr)))
-            val sv = oLi match {
-              case Some(li) => getLookupValue(li, cName.column.toLowerCase)
-              case None     => None
-            }
-            List(sv.getOrElse(""))
-
+            val oLi = options.lookupInfo(
+              LookupLabel(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation))
+            oLi.flatMap(getLookupValue(_, cName.column.toLowerCase)).toList
           case _ => Nil
         }
       }
-      SimplifiedSelectionCriteria(c, ols.getOrElse(Nil))
+      SimplifiedSelectionCriteria(c, ols)
   }
 }
 

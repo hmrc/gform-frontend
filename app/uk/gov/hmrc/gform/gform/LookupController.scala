@@ -76,10 +76,9 @@ class LookupController(
         val oFormComponent = aFormComponents.find(_.id.baseComponentId === baseComponentId)
 
         val sSelectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
-          _.`type` match {
-            case Text(Lookup(_, sc), _, _, _) =>
-              sc
-            case _ => None
+          _ match {
+            case IsText(Text(Lookup(_, sc), _, _, _)) => sc
+            case _                                    => None
           }
         } map {
           SimplifiedSelectionCriteria
