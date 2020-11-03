@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.syntax.all._
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
-import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
+import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
@@ -38,32 +38,6 @@ class LookupController(
   messagesControllerComponents: MessagesControllerComponents)(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
-  def lookupAll(formTemplateId: FormTemplateId, register: Register): Action[AnyContent] =
-    lookup(formTemplateId, register, LookupQuery.Empty)
-
-  def lookup(formTemplateId: FormTemplateId, register: Register, lookupQuery: LookupQuery): Action[AnyContent] =
-    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.Lookup) { request => implicit l => cache =>
-      val filtered: List[LookupLabel] = (lookupRegistry.get(register), lookupQuery) match {
-        case (Some(AjaxLookup(options, _, ShowAll.Enabled)), LookupQuery.Empty) =>
-          options.process(_.sortLookupByPriorityAndLabel)
-        case (Some(AjaxLookup(_, _, ShowAll.Disabled)), LookupQuery.Empty) => List.empty
-        case (Some(AjaxLookup(options, autocomplete, showAll)), LookupQuery.Value(query)) =>
-          val labels: List[LookupLabel] =
-            autocomplete
-              .get(l)
-              .fold(List.empty[LookupLabel])(
-                _.search(query).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel))
-
-          showAll match {
-            case ShowAll.Enabled  => options.process(_.sortLookupByPriorityAndLabel.filter(labels.contains))
-            case ShowAll.Disabled => labels
-          }
-        case _ => List.empty
-      }
-      val results: List[String] = filtered.map(_.label)
-      Ok(Json.toJson(results)).pure[Future]
-    }
-
   def lookupWithSelectionCriteria(
     formTemplateId: FormTemplateId,
     baseComponentId: BaseComponentId,
@@ -76,10 +50,8 @@ class LookupController(
         val oFormComponent = aFormComponents.find(_.id.baseComponentId === baseComponentId)
 
         val sSelectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
-          _ match {
-            case IsText(Text(Lookup(_, sc), _, _, _)) => sc
-            case _                                    => None
-          }
+          case IsText(Text(Lookup(_, sc), _, _, _)) => sc
+          case _                                    => None
         } map {
           SimplifiedSelectionCriteria
             .convertToSimplifiedSelectionCriteria(_, lookupRegistry, formModelOptics.formModelVisibilityOptics)
