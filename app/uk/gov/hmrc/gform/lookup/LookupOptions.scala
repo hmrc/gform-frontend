@@ -71,9 +71,7 @@ object LookupOptions {
         case Nil => acc
         case head :: tail =>
           val (column, values) = (head.column.column.toLowerCase, head.value)
-          filterBySelectionCriteria(
-            tail,
-            acc.filter(r => values.contains(getLookupValue(r._2, column).getOrElse(false))))
+          filterBySelectionCriteria(tail, acc.filter(r => values.contains(getLookupValue(r._2, column).getOrElse(""))))
       }
 
 }
