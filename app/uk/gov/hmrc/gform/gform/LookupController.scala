@@ -42,8 +42,8 @@ class LookupController(
     formTemplateId: FormTemplateId,
     baseComponentId: BaseComponentId,
     register: Register,
-    lookupQuery: LookupQuery,
-    maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+    maybeAccessCode: Option[AccessCode],
+    lookupQuery: LookupQuery): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       request => implicit l => cache => sse => formModelOptics =>
         val aFormComponents: Seq[FormComponent] = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents

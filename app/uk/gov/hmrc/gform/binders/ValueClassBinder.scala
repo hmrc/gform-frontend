@@ -29,10 +29,19 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import scala.util.Try
 object ValueClassBinder {
 
-  implicit val lookupQueryBinder: PathBindable[LookupQuery] =
-    mkPathBindable(
-      query => if (query.isEmpty) LookupQuery.Empty.asRight else LookupQuery.Value(query).asRight,
-      _.asString)
+  implicit val lookupQueryBinder: QueryStringBindable[LookupQuery] =
+    new QueryStringBindable[LookupQuery] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, LookupQuery]] =
+        params.get(key).flatMap(_.headOption).map { value =>
+          value match {
+            case "" => LookupQuery.Empty.asRight
+            case v  => LookupQuery.Value(v).asRight
+          }
+        }
+
+      override def unbind(key: String, lookupQuery: LookupQuery): String =
+        s"""$key=${lookupQuery.asString}"""
+    }
   implicit val registerBinder: PathBindable[Register] = mkPathBindable(
     lookup => Register.fromString(lookup).fold[Either[String, Register]](Left(s"Unknown lookup: $lookup"))(Right.apply),
     _.asString)

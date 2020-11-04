@@ -12,7 +12,7 @@
     function generateSourceFn (lookup, formTemplateId, id, maybeAccessCode) {
       var URL = baseLookupUrl + formTemplateId + "/" + id + "/" + lookup;
       return function (query, populateResults) {
-        return $.get(URL + '/' + encodeURIComponent(query) + "/" + maybeAccessCode)
+        return $.get(URL + '/' + maybeAccessCode + "?query=" + encodeURIComponent(query))
           .then(populateResults)
       }
     }
