@@ -61,21 +61,24 @@ object ComponentValidator {
         .convertToSimplifiedSelectionCriteria(_, lookupRegistry, formModelVisibilityOptics)
     }
 
-    val filteredLookuplabels = (lookupRegistry.get(lookup.register), sSelectionCriteria) match {
-      case (Some(AjaxLookup(options, _, _)), Some(sc)) =>
-        val oLo = options.m.get(l).map(r => LookupOptions(filterBySelectionCriteria(sc, r.options)))
-        oLo
-          .map { s =>
-            LocalisedLookupOptions(Map(l -> s)).process(_.keys.toList)
-          }
-          .getOrElse(Nil)
+    val filteredLookuplabels =
+      (lookupRegistry.get(lookup.register), sSelectionCriteria) match {
+        case (Some(AjaxLookup(options, _, _)), Some(sc)) =>
+          val oLo = options.m.get(l).map(r => LookupOptions(filterBySelectionCriteria(sc, r.options)))
+          oLo
+            .map { s =>
+              if (s.options.nonEmpty)
+                LocalisedLookupOptions(Map(l -> s)).process(_.keys.toList)
+              else
+                Nil
+            }
 
-      case (Some(AjaxLookup(options, _, _)), None) =>
-        options.process(_.keys.toList)
+        case (Some(AjaxLookup(options, _, _)), None) =>
+          Some(options.process(_.keys.toList))
 
-      case _ =>
-        Nil
-    }
+        case _ =>
+          None
+      }
 
     def lookupError: ValidatedType[Unit] = {
       val vars: List[String] = lookupLabel.label :: Nil
@@ -83,7 +86,7 @@ object ComponentValidator {
     }
 
     def existsLabel(options: LookupOptions) =
-      if (filteredLookuplabels.nonEmpty && filteredLookuplabels.contains(lookupLabel))
+      if (filteredLookuplabels.isDefined && filteredLookuplabels.fold(false)(_.contains(lookupLabel)))
         validationSuccess
       else if (filteredLookuplabels.isEmpty && options.contains(lookupLabel))
         validationSuccess
