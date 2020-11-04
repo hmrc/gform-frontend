@@ -49,8 +49,8 @@ case class FormModelOptics[D <: DataOrigin](
 object FormModelOptics {
 
   def empty[D <: DataOrigin](evaluationContext: EvaluationContext) = FormModelOptics[D](
-    new FormModelRenderPageOptics(FormModel.empty[DataExpanded], RecData.empty),
-    new FormModelVisibilityOptics(
+    FormModelRenderPageOptics(FormModel.empty[DataExpanded], RecData.empty),
+    FormModelVisibilityOptics(
       FormModel.empty[Visibility],
       RecData.empty,
       RecalculationResult.empty(evaluationContext)

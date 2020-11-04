@@ -457,7 +457,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
         variadicFormDataMany("b" -> List(124)),
         Map(
           Constant("123") -> NumberResult(123),
-          FormCtx("a")    -> Empty,
+          FormCtx("a")    -> NumberResult(123),
           FormCtx("b")    -> OptionResult(List(124)),
           FormCtx("c")    -> Hidden
         ),

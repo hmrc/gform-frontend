@@ -64,7 +64,8 @@ case class Page[A <: PageMode](
   val sumInfo: SumInfo = implicitly[Monoid[SumInfo]].combineAll(
     (fields ++ fields
       .flatMap(_.childrenFormComponents)).collect {
-      case fc @ HasValueExpr(s @ Sum(_)) => SumInfo(Map((s, Set(fc.id))))
+      case fc @ HasValueExpr(expr) if expr.sums.nonEmpty =>
+        SumInfo(expr.sums.map(sum => (sum, Set(fc.id))).toMap)
     }
   )
 
