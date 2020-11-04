@@ -188,6 +188,20 @@ class Recalculation[F[_]: Monad, E](
               }
             }
 
+          case GraphNode.Expr(formCtx @ FormCtx(formComponentId)) =>
+            val expr: Expr = formModel.fcLookup
+              .get(formComponentId)
+              .collect {
+                case HasValueExpr(expr) => expr
+              }
+              .getOrElse(formCtx)
+            val typeInfo: TypeInfo = formModel.explicitTypedExpr(expr, formComponentId)
+
+            val exprResult: ExpressionResult =
+              evResult.evalExpr(typeInfo, recData, evaluationContext)
+
+            noStateChange(evResult + (formCtx, exprResult))
+
           case GraphNode.Expr(expr) =>
             val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
 

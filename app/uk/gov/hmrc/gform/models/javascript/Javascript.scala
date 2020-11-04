@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.models.javascript
 
-import cats.syntax.eq._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.extractMaxFractionalDigits
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
@@ -40,22 +39,32 @@ object Javascript {
     val graph = formModelOptics.formModelVisibilityOptics.graphData.graph
 
     val fcWithSuccessors: List[(FormComponent, Set[ModelComponentId])] = pageModel.allFormComponents
-      .map { formComponent =>
-        val formComponentId = formComponent.id
+      .flatMap { formComponent =>
+        val maybeExpr: Option[Expr] = HasValueExpr.unapply(formComponent)
+        maybeExpr
+          .map { expr =>
+            val leafs: Set[BaseComponentId] = expr.leafs.collect {
+              case FormCtx(fcId) => fcId.baseComponentId
+            }.toSet
+            val formComponentId = formComponent.id
 
-        val nodeT: Option[graph.NodeT] = graph.find(GraphNode.Simple(formComponentId))
+            val nodeT: Option[graph.NodeT] = graph.find(GraphNode.Simple(formComponentId))
 
-        val successors: Set[FormComponentId] =
-          nodeT.fold(Set.empty[FormComponentId])(_.diSuccessors.map(_.toOuter).collect {
-            case GraphNode.Expr(FormCtx(fcId)) => fcId
-          })
+            val successors: Set[FormComponentId] =
+              nodeT.fold(Set.empty[FormComponentId])(_.diSuccessors.map(_.toOuter).collect {
+                case GraphNode.Expr(FormCtx(fcId)) => fcId
+              })
 
-        val baseComponentIds: Set[BaseComponentId] = successors.map(_.baseComponentId)
+            val baseComponentIds: Set[BaseComponentId] = successors.map(_.baseComponentId)
 
-        val modelComponentIds =
-          pageModel.allModelComponentIds.filter(modelComponentId => baseComponentIds(modelComponentId.baseComponentId))
+            val modelComponentIds =
+              pageModel.allModelComponentIds.filter { modelComponentId =>
+                val baseComponentId = modelComponentId.baseComponentId
+                baseComponentIds(baseComponentId) && leafs(baseComponentId)
+              }
 
-        formComponent -> modelComponentIds
+            formComponent -> modelComponentIds
+          }
       }
       .filter { case (fc, set) => set.nonEmpty } // Ignore if there are no successors (for example ${form.submissionReference})
 
@@ -138,15 +147,6 @@ object Javascript {
     val roundingMode = getRoundingMode(field)
 
     def computeExpr(expr: Expr): String = {
-
-      def sum(id: FormComponentId) = {
-        val sumFcIds: Set[ModelComponentId] = successorLookup.values.flatten.toList
-          .filter(_.baseComponentId === id.baseComponentId)
-          .toSet // Remove duplicates
-        val sumExpr = sumFcIds.map(x => FormCtx(x.toFormComponentId)).foldLeft(Expr.additionIdentity)(Add)
-        computeExpr(sumExpr)
-      }
-
       def compute(operation: String, left: Expr, right: Expr) =
         s"$operation(${computeExpr(left)}, ${computeExpr(right)})"
 
@@ -162,8 +162,15 @@ object Javascript {
         case Add(a, b)         => compute("add", a, b)
         case Subtraction(a, b) => compute("subtract", a, b)
         case Multiply(a, b)    => compute("multiply", a, b)
-        case Sum(FormCtx(id))  => sum(id)
-        case otherwise         => ""
+        case sum @ Sum(_)      =>
+          // Sum should never be calculated dynamically in javascripts
+          formModelOptics.formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(sum)
+            .numberRepresentation
+            .map(_.toInt)
+            .getOrElse(0)
+            .toString
+        case otherwise => ""
       }
     }
 

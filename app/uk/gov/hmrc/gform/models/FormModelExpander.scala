@@ -46,7 +46,7 @@ object FormModelExpander {
         data: VariadicFormData[SourceOrigin.OutOfDate]): List[Singleton[DataExpanded]] = {
         val repeats = section.repeats
         val bdRepeats: Option[BigDecimal] = fmvo.evalAndApplyTypeInfoFirst(repeats).numberRepresentation
-        val repeatCount = bdRepeats.fold(1)(_.toInt)
+        val repeatCount = bdRepeats.fold(0)(_.toInt)
         (1 to repeatCount).toList.map { index =>
           val pageBasic: Page[Basic] = mkSingleton2(section.page, index)(section)
           Singleton(pageBasic.asInstanceOf[Page[DataExpanded]], section)
