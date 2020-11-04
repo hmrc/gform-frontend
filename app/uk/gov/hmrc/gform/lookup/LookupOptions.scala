@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.lookup
 
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvColumnName, SimplifiedSelectionCriteria }
+
 case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
 
   def get(lookupLabel: LookupLabel): Option[LookupInfo] = options.get(lookupLabel)
@@ -34,10 +36,42 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
   def sortLookupByPriorityAndLabel: List[LookupLabel] =
     options.toList
       .sortBy {
-        case (label, DefaultLookupInfo(_, _))                  => (LookupPriority(1), label)
-        case (label, CountryLookupInfo(_, _, _, priority, _))  => (priority, label)
-        case (label, CurrencyLookupInfo(_, _, _, priority, _)) => (priority, label)
-        case (label, PortLookupInfo(_, _, _, priority, _, _))  => (priority, label)
+        case (label, DefaultLookupInfo(_, _))                       => (LookupPriority(1), label)
+        case (label, CountryLookupInfo(_, _, _, priority, _))       => (priority, label)
+        case (label, CurrencyLookupInfo(_, _, _, priority, _))      => (priority, label)
+        case (label, PortLookupInfo(_, _, _, priority, _, _, _, _)) => (priority, label)
       }
       .map(_._1)
+}
+
+object LookupOptions {
+
+  def getLookupValue(lookupInfo: LookupInfo, columnName: String): Option[String] =
+    (lookupInfo, columnName) match {
+      // format: off
+      case (CountryLookupInfo(_, _, _, _, region), CsvColumnName.region)                  => Some(region.region)
+      case (CountryLookupInfo(id, _, _, _, _), CsvColumnName.countryCode)                 => Some(id.id)
+      case (CurrencyLookupInfo(id, _, _, _, _), CsvColumnName.currencyCode)               => Some(id.id)
+      case (CurrencyLookupInfo(_, _, _, _, countryCode), CsvColumnName.countryCode)       => Some(countryCode.countryCode)
+      case (PortLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.portId)                => Some(id.id)
+      case (PortLookupInfo(_, _, _, _, region, _, _, _), CsvColumnName.region)            => Some(region.region)
+      case (PortLookupInfo(_, _, _, _, _, portType, _, _), CsvColumnName.portType)        => Some(portType.portType)
+      case (PortLookupInfo(_, _, _, _, _, _, countryCode, _), CsvColumnName.countryCode)  => Some(countryCode.countryCode)
+      case (PortLookupInfo(_, _, _, _, _, _, _, portCode), CsvColumnName.portCode)        => Some(portCode.portCode)
+      case _                                                                              => None
+      // format: on
+    }
+
+  def filterBySelectionCriteria(
+    selectionCriteria: List[SimplifiedSelectionCriteria],
+    acc: Map[LookupLabel, LookupInfo]): Map[LookupLabel, LookupInfo] =
+    if (acc.isEmpty) acc
+    else
+      selectionCriteria match {
+        case Nil => acc
+        case head :: tail =>
+          val (column, values) = (head.column.column.toLowerCase, head.value)
+          filterBySelectionCriteria(tail, acc.filter(r => values.contains(getLookupValue(r._2, column).getOrElse(""))))
+      }
+
 }

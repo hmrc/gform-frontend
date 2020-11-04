@@ -20,6 +20,7 @@
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 @import uk.gov.hmrc.govukfrontend.views.html.components.{ govukHint, govukLabel }
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
 
 @(
   label: Label,
@@ -27,6 +28,7 @@
   showAll: ShowAll,
   register: Register,
   formTemplateId: FormTemplateId,
+  maybeAccessCode: Option[AccessCode],
   prepop: Option[String],
   validationResult: FormFieldValidationResult,
   hint: Option[Hint],
@@ -34,6 +36,7 @@
 )
 
 @currentValue = @{validationResult.getCurrentValue}
+@accessCode = @{maybeAccessCode.fold("-")(_.value)}
 
 @form_group(validationResult) { hasErrors =>
   @defining(fieldValue.id.value, prepop.orElse(currentValue).getOrElse("")) { case (fcId, prepopValue) =>
@@ -50,10 +53,12 @@
       <div
       class="lookup @{if(hasErrors) "gform-lookup-error"}"
       data-field-id="@fcId"
+      data-basefield-id="@{fieldValue.id.baseComponentId.value}"
       data-value="@prepopValue"
       data-lookup="@register.asString"
       data-formTemplateId="@formTemplateId.value"
-      data-show-all="@showAll.enabled">
+      data-show-all="@showAll.enabled"
+      data-accessCode="@accessCode">
       </div>
     }
   }

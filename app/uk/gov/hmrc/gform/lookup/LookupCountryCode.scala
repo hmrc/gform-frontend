@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.ids
+package uk.gov.hmrc.gform.lookup
 
-import cats.Eq
-
-case class BaseComponentId(value: String) extends AnyVal
-
-object BaseComponentId {
-
-  implicit val catsEq: Eq[BaseComponentId] = Eq.fromUniversalEquals
-}
+case class LookupCountryCode(countryCode: String) extends AnyVal

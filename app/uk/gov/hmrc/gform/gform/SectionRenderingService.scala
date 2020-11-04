@@ -593,7 +593,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           case t @ Time(_, _) =>
             renderTime(t, formComponent, validationResult, ei)
           case Address(international) => htmlForAddress(formComponent, international, validationResult, ei)
-          case Text(Lookup(register), _, _, _) =>
+          case Text(Lookup(register, _), _, _, _) =>
             renderLookup(formComponent, register, validationResult, ei)
           case t @ Text(_, _, _, _) =>
             renderText(t, formComponent, validationResult, ei)
@@ -1099,6 +1099,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             showAll,
             register,
             ei.formTemplate._id,
+            ei.maybeAccessCode,
             prepopValue,
             formFieldValidationResult,
             hint,
@@ -1140,7 +1141,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             errorMessage = errorMessage,
             classes = hiddenClass,
             name = formComponent.id.value,
-            items = items.toList
+            items = items
           )
 
           new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)

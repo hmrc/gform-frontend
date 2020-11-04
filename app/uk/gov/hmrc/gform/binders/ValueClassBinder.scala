@@ -19,19 +19,29 @@ package uk.gov.hmrc.gform.binders
 import cats.implicits._
 import play.api.libs.json._
 import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ FastForward, LookupQuery }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId, FormStatus }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Register, SectionNumber, SectionTitle4Ga, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.util.Try
 object ValueClassBinder {
 
-  implicit val lookupQueryBinder: PathBindable[LookupQuery] =
-    mkPathBindable(
-      query => if (query.isEmpty) LookupQuery.Empty.asRight else LookupQuery.Value(query).asRight,
-      _.asString)
+  implicit val lookupQueryBinder: QueryStringBindable[LookupQuery] =
+    new QueryStringBindable[LookupQuery] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, LookupQuery]] =
+        params.get(key).flatMap(_.headOption).map { value =>
+          value match {
+            case "" => LookupQuery.Empty.asRight
+            case v  => LookupQuery.Value(v).asRight
+          }
+        }
+
+      override def unbind(key: String, lookupQuery: LookupQuery): String =
+        s"""$key=${lookupQuery.asString}"""
+    }
   implicit val registerBinder: PathBindable[Register] = mkPathBindable(
     lookup => Register.fromString(lookup).fold[Either[String, Register]](Left(s"Unknown lookup: $lookup"))(Right.apply),
     _.asString)
@@ -137,6 +147,14 @@ object ValueClassBinder {
           case None    => ""
         }
     }
+
+  implicit val formComponentIdBinder: PathBindable[FormComponentId] = valueClassBinder(_.value)
+
+  implicit val baseComponentIdBinder: PathBindable[BaseComponentId] =
+    mkPathBindable(
+      id => BaseComponentId(id).asRight,
+      _.value
+    )
 
   private def valueClassQueryBinder[A: Reads](fromAtoString: A => String)(
     implicit stringBinder: QueryStringBindable[String]) =

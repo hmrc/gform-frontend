@@ -1025,7 +1025,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
     createFormComponent(id, Text(BasicText, Value))
 
   def createLookupField(id: String): FormComponent =
-    createFormComponent(id, Text(Lookup(Register.Origin), Value))
+    createFormComponent(id, Text(Lookup(Register.Origin, None), Value))
 
   def createGroup(fields: FormComponent*): FormComponent =
     createFormComponent("a_group", Group(fields.toList, Some(5)))

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.lookup
 
-case class LookupRegion(region: Int) extends AnyVal
+case class LookupRegion(region: String) extends AnyVal
 
 object LookupRegion {
   implicit val ord = Ordering.by(unapply)

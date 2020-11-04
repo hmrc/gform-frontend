@@ -15002,3 +15002,12 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46980,WS,3,AAU,,Asau Port - AAU,,4,NULL,0
 46981,WS,3,APW,,Apia Port - APW,,4,NULL,0
 46982,YE,3,ZAM,,Port of Al Mukalla - ZAM,,4,NULL,0
+100001,FR,2,FR1,,Private airstrip,0,3,NULL,0
+100002,FR,3,FR2,,Private dock,0,3,NULL,0
+100003,FR,2,FR3,,Not listed,0,3,NULL,0
+100004,FR,3,FR4,,Not listed,0,3,NULL,0
+100005,FR,4,FR5,,Channel Tunnel,0,3,NULL,0
+100006,ES,2,ES1,,Private airstrip,0,3,NULL,0
+100007,ES,3,ES2,,Private dock,0,3,NULL,0
+100008,ES,2,ES3,,Not listed,0,3,NULL,0
+100009,ES,3,ES4,,Not listed,0,3,NULL,0

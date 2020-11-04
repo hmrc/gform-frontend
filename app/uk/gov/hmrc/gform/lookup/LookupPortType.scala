@@ -16,4 +16,4 @@
 
 package uk.gov.hmrc.gform.lookup
 
-case class LookupPortType(portType: Int) extends AnyVal
+case class LookupPortType(portType: String) extends AnyVal

@@ -31,8 +31,8 @@ class LookupExtractors(lookup: Map[Register, LookupType]) {
   object IsRadioLookup {
     def unapply(fc: FormComponent): Option[Text] =
       fc.`type` match {
-        case t @ Text(Lookup(IsRadioRegister()), _, _, _) => Some(t)
-        case _                                            => None
+        case t @ Text(Lookup(IsRadioRegister(), _), _, _, _) => Some(t)
+        case _                                               => None
       }
   }
 }
