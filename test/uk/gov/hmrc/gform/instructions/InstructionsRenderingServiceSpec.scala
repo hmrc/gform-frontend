@@ -18,31 +18,32 @@ package uk.gov.hmrc.gform.instructions
 
 import java.time.LocalDateTime
 
+import cats.MonadError
 import cats.data.NonEmptyList
 import cats.instances.future._
-import org.mockito.Matchers.any
-import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchersSugar
+import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
 import org.scalatest.{ Matchers, WordSpec }
-import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.test.{ FakeRequest, Helpers }
 import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, Role }
+import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
-import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
+import uk.gov.hmrc.gform.eval.EvaluationContext
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
-import uk.gov.hmrc.gform.graph.{ FormTemplateBuilder, GraphException, Recalculation }
+import uk.gov.hmrc.gform.graph.{ FormTemplateBuilder, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSectionPdf, Constant, FormComponent, FormTemplate, RevealingChoice, RevealingChoiceElement, Section }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSectionPdf, Constant, FormComponent, FormTemplate, RevealingChoice, RevealingChoiceElement, Section, Value }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
+import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, HtmlFieldId, ValidationResult, ValidationService }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.SessionId
@@ -52,8 +53,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class InstructionsRenderingServiceSpec
-    extends WordSpec with Matchers with MockitoSugar with ScalaFutures with ExampleData
-    with InstructionsRenderingServiceSpecExpectations {
+    extends WordSpec with Matchers with ScalaFutures with ExampleData with InstructionsRenderingServiceSpecExpectations
+    with ArgumentMatchersSugar with IdiomaticMockito {
 
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
@@ -297,36 +298,42 @@ class InstructionsRenderingServiceSpec
     "generate HTML for instruction pdf - add to list" in new TestFixture {
 
       lazy val addToListQuestionComponent = addToListQuestion("addToListQuestion")
-
-      lazy val page1Field = buildFormComponent(
-        "page1Field",
-        Constant("page1FieldText"),
-        Some(buildInstruction("page1FieldInstruction", Some(1))))
-
-      lazy val page2Field = buildFormComponent(
-        "page2Field",
-        Constant("page2FieldText"),
-        Some(buildInstruction("page2FieldInstruction", Some(1))))
+      lazy val page1Field =
+        buildFormComponent("page1Field", Value, Some(buildInstruction("page1FieldInstruction", Some(1))))
+      lazy val page2Field =
+        buildFormComponent("page2Field", Value, Some(buildInstruction("page2FieldInstruction", Some(1))))
 
       override lazy val form: Form =
         buildForm(
           FormData(List(
-            FormField(page1Field.withIndex(1).modelComponentId, "page1FieldValue1"),
-            FormField(page2Field.withIndex(1).modelComponentId, "page2FieldValue1"),
-            FormField(page1Field.withIndex(2).modelComponentId, "page1FieldValue2"),
-            FormField(page2Field.withIndex(2).modelComponentId, "page2FieldValue2"),
-            FormField(addToListQuestionComponent.withIndex(1).modelComponentId, "1"),
-            FormField(addToListQuestionComponent.withIndex(2).modelComponentId, "0"),
+            FormField(page1Field.withIndex(1).modelComponentId, "page1Field-value1"),
+            FormField(page1Field.withIndex(2).modelComponentId, "page1Field-value2"),
+            FormField(page2Field.withIndex(1).modelComponentId, "page2Field-value1"),
+            FormField(page2Field.withIndex(2).modelComponentId, "page2Field-value2"),
+            FormField(addToListQuestionComponent.withIndex(1).modelComponentId, "0"),
+            FormField(addToListQuestionComponent.withIndex(2).modelComponentId, "1"),
           )))
 
       override lazy val validationResult: ValidationResult = new ValidationResult(
         Map(
-          page1Field.withIndex(1).id                 -> FieldOk(page1Field.withIndex(1), "page1Field1Value1"),
-          page2Field.withIndex(1).id                 -> FieldOk(page2Field.withIndex(1), "page2Field1Value1"),
-          page1Field.withIndex(2).id                 -> FieldOk(page1Field.withIndex(2), "page1Field1Value2"),
-          page2Field.withIndex(2).id                 -> FieldOk(page2Field.withIndex(2), "page2Field1Value2"),
-          addToListQuestionComponent.withIndex(1).id -> FieldOk(addToListQuestionComponent.withIndex(1), "1"),
-          addToListQuestionComponent.withIndex(2).id -> FieldOk(addToListQuestionComponent.withIndex(2), "0")
+          page1Field.withIndex(1).id -> FieldOk(page1Field.withIndex(1), "page1Field-value1"),
+          page1Field.withIndex(2).id -> FieldOk(page1Field.withIndex(2), "page1Field-value2"),
+          page2Field.withIndex(1).id -> FieldOk(page2Field.withIndex(1), "page2Field-value1"),
+          page2Field.withIndex(2).id -> FieldOk(page2Field.withIndex(2), "page2Field-value2"),
+          addToListQuestionComponent.withIndex(1).id -> ComponentField(
+            addToListQuestionComponent.withIndex(1),
+            Map(
+              Indexed(addToListQuestionComponent.withIndex(1).id, 0) -> FieldOk(
+                addToListQuestionComponent.withIndex(1),
+                "1"))
+          ),
+          addToListQuestionComponent.withIndex(2).id -> ComponentField(
+            addToListQuestionComponent.withIndex(2),
+            Map(
+              Indexed(addToListQuestionComponent.withIndex(2).id, 1) -> FieldOk(
+                addToListQuestionComponent.withIndex(2),
+                "0"))
+          )
         ),
         None
       )
@@ -340,9 +347,11 @@ class InstructionsRenderingServiceSpec
             List(
               toPage("page1", Some(buildInstruction("page1Instruction")), List(page1Field)),
               toPage("page2", Some(buildInstruction("page2Instruction")), List(page2Field)),
-            )
+            ),
+            None
           )
-        ))
+        )
+      )
 
       val pdfHtml = instructionRenderingService
         .createHtmlForInstructionsPdf(
@@ -381,25 +390,6 @@ class InstructionsRenderingServiceSpec
     implicit val request = FakeRequest()
     implicit val headerCarrier = HeaderCarrier()
     implicit val langADT = LangADT.En
-
-    val mockFileUploadService = mock[FileUploadAlgebra[Future]]
-    val mockValidationService = mock[ValidationService]
-
-    val instructionRenderingService =
-      new InstructionsRenderingService(i18nSupport, mockFileUploadService, mockValidationService, frontendAppConfig)
-
-    lazy val validationResult = ValidationResult.empty
-
-    when(mockFileUploadService.getEnvelope(any[EnvelopeId])(any[HeaderCarrier]))
-      .thenReturn(Future.successful(Envelope(List.empty)))
-    when(
-      mockValidationService
-        .validateFormModel(any[CacheData], any[Envelope], any[FormModelVisibilityOptics[DataOrigin.Mongo]])(
-          any[HeaderCarrier],
-          any[Messages],
-          any[LangADT],
-          any[SmartStringEvaluator])).thenReturn(Future.successful(validationResult))
-
     val submissionRef = SubmissionRef("some-submission-ref")
     val retrievals = AnonymousRetrievals(SessionId("session-id"))
     val maybeAccessCode = Some(AccessCode("some-access-code"))
@@ -407,21 +397,51 @@ class InstructionsRenderingServiceSpec
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
 
-    val seissEligibilityChecker = new SeissEligibilityChecker((_, _) => Future.successful(true))
-    val delegatedEnrolmentCheckStatus = new DelegatedEnrolmentChecker((_, _, _, _) => Future.successful(true))
-    val dbLookupCheckStatus = new DbLookupChecker((_, _, _) => Future.successful(true))
-    val graphErrorHandler = (s: GraphException) => new IllegalArgumentException(s.reportProblem)
-
-    val recalculation: Recalculation[Future, Throwable] =
-      new Recalculation(seissEligibilityChecker, delegatedEnrolmentCheckStatus, dbLookupCheckStatus, graphErrorHandler)
     val cache = AuthCacheWithForm(retrievals, form, formTemplate, Role.Customer, maybeAccessCode)
+
+    val mockFileUploadService = mock[FileUploadAlgebra[Future]]
+    val mockValidationService = mock[ValidationService]
+    val mockRecalculation = mock[Recalculation[Future, Throwable]]
+
+    val instructionRenderingService =
+      new InstructionsRenderingService(i18nSupport, mockFileUploadService, mockValidationService, frontendAppConfig)
+
+    lazy val validationResult = ValidationResult.empty
+
+    mockFileUploadService.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]) returns Future.successful(Envelope(List.empty))
+    mockValidationService
+      .validateFormModel(*[CacheData], *[Envelope], *[FormModelVisibilityOptics[DataOrigin.Mongo]])(
+        *[HeaderCarrier],
+        *[Messages],
+        *[LangADT],
+        *[SmartStringEvaluator]) returns Future.successful(validationResult)
+    mockRecalculation.recalculateFormDataNew(
+      *[VariadicFormData[SourceOrigin.OutOfDate]],
+      *[FormModel[Interim]],
+      *[FormTemplate],
+      *[MaterialisedRetrievals],
+      *[ThirdPartyData],
+      *[Option[AccessCode]],
+      *[EnvelopeId],
+      *[EvaluationContext]
+    )(*[MonadError[Future, Throwable]]) returns Future.successful(
+      RecalculationResult.empty(
+        new EvaluationContext(
+          formTemplate._id,
+          submissionRef,
+          maybeAccessCode,
+          retrievals,
+          ThirdPartyData.empty,
+          authConfig,
+          headerCarrier)))
+
     val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
       .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
         cache,
-        recalculation)
+        mockRecalculation)
       .futureValue
-    implicit val now = LocalDateTime.now()
+    implicit val now: LocalDateTime = LocalDateTime.now()
     val submissionDetails = Some(
       SubmissionDetails(
         Submission(form._id, now, submissionRef, EnvelopeId("some-envelope-id"), DmsMetaData(form.formTemplateId)),

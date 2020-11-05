@@ -100,7 +100,8 @@ object Section {
     repeatsMax: Option[Expr],
     pages: NonEmptyList[Page[Basic]],
     addAnotherQuestion: FormComponent,
-    instruction: Option[Instruction]
+    instruction: Option[Instruction],
+    presentationHint: Option[List[PresentationHint]]
   ) extends Section {
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
     val allIds: List[FormComponentId] = {

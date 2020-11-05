@@ -356,12 +356,21 @@ object SummaryRenderingService {
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
     def renderHtmls(singleton: Singleton[Visibility], sectionNumber: SectionNumber)(implicit l: LangADT): List[Html] = {
-
       val page = singleton.page
-
       val sectionTitle4Ga = sectionTitle4GaFactory(page.title, sectionNumber)
-      val shortNameOrTitle = page.shortName.getOrElse(page.title)
-      val begin = begin_section(shortNameOrTitle)
+      val pageTitle = page.shortName.getOrElse(page.title)
+
+      val begin = singleton.source.fold { _ =>
+        begin_section(pageTitle)
+      } { _ =>
+        begin_section(pageTitle)
+      } { addToList =>
+        addToList.presentationHint
+          .filter(_.contains(SummariseGroupAsGrid))
+          .fold(begin_section(pageTitle)) { _ =>
+            HtmlFormat.empty
+          }
+      }
 
       val middleRows: List[SummaryListRow] = page.fields
         .filterNot(_.hideOnSummary)

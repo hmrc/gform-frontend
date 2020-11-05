@@ -1,0 +1,64 @@
+/*
+ * Copyright 2020 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package uk.gov.hmrc.gform.summary
+
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
+import play.twirl.api.Html
+import uk.gov.hmrc.gform.summary.SummaryHtmlSupport._
+
+import scala.collection.JavaConverters._
+
+trait SummaryHtmlSupport {
+
+  implicit class HtmlOps(html: Html) {
+
+    val document = Jsoup.parse(html.body)
+
+    def summaryElements: List[SummaryElement] =
+      buildSummaryLists(
+        document.select("h2[class='govuk-heading-m'],dl[class='govuk-summary-list govuk-!-margin-bottom-9']").asScala)
+  }
+
+  def buildSummaryLists(summaryElms: Seq[Element]): List[SummaryElement] =
+    summaryElms.map { e =>
+      e.tagName() match {
+        case "h2" => buildHeaderElement(e)
+        case "dl" => buildSummaryListElement(e)
+      }
+    }.toList
+
+  def buildHeaderElement(element: Element): HeaderElement =
+    HeaderElement(element.text())
+
+  def buildSummaryListElement(element: Element): SummaryListElement = {
+    val rows = element.getElementsByClass("govuk-summary-list__row").asScala
+    SummaryListElement(rows.flatMap { row =>
+      for {
+        key   <- row.getElementsByClass("govuk-summary-list__key").asScala.headOption.map(_.text())
+        value <- row.getElementsByClass("govuk-summary-list__value").asScala.headOption.map(_.text())
+      } yield SummaryListRow(key, value)
+    }.toList)
+  }
+}
+
+object SummaryHtmlSupport {
+  trait SummaryElement
+  case class HeaderElement(value: String) extends SummaryElement
+  case class SummaryListElement(rows: List[SummaryListRow]) extends SummaryElement
+  case class SummaryListRow(key: String, value: String)
+}

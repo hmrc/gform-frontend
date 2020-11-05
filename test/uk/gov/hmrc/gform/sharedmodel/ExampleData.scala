@@ -427,7 +427,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     title: String,
     addAnotherQuestion: FormComponent,
     instruction: Option[Instruction],
-    pages: List[Page[Basic]]): Section.AddToList =
+    pages: List[Page[Basic]],
+    presentationHint: Option[List[PresentationHint]] = None): Section.AddToList =
     Section.AddToList(
       toSmartString(title),
       toSmartString(title),
@@ -436,7 +437,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       None,
       NonEmptyList.fromListUnsafe(pages),
       addAnotherQuestion,
-      instruction
+      instruction,
+      presentationHint
     )
 
   def toPage(title: String, instruction: Option[Instruction], formComponents: List[FormComponent]) =
