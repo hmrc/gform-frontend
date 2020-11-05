@@ -157,10 +157,10 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
     val emailCodeFieldMatcher: EmailCodeFieldMatcher = getEmailCodeFieldMatcher(formComponent)
 
     formComponent.`type` match {
-      case sortCode @ UkSortCode(_) =>
+      case UkSortCode(_) =>
         validIf(
           SortCodeValidation
-            .validateSortCode(formComponent, sortCode, formComponent.mandatory)(formModelVisibilityOptics))
+            .validateSortCode(formComponent)(formModelVisibilityOptics))
       case date @ Date(_, _, _) =>
         validIf(
           dateValidation.validateDate(

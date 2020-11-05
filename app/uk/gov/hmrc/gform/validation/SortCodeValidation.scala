@@ -18,19 +18,17 @@ package uk.gov.hmrc.gform.validation
 import cats.Monoid
 import cats.implicits._
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.models.ids.IndexedComponentId
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, UkSortCode }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
+import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
 object SortCodeValidation {
-
   def validateSortCode[D <: DataOrigin](
-    fieldValue: FormComponent,
-    sC: UkSortCode,
-    mandatory: Boolean
+    fieldValue: FormComponent
   )(
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(
@@ -39,25 +37,21 @@ object SortCodeValidation {
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
     Monoid[ValidatedType[Unit]].combineAll {
-      val indexedComponentId
-        : IndexedComponentId = fieldValue.modelComponentId.indexedComponentId // TODO JoVl, this is weird, let's use MultiValueId istead here to create `fieldIdList`
-      val fieldIdList = UkSortCode
-        .fields(indexedComponentId)
-        .toList
-      fieldIdList.map { fieldId =>
-        val sortCode: Option[String] =
-          formModelVisibilityOptics.data.one(fieldId).filterNot(_.isEmpty)
-        (sortCode, mandatory) match {
-          case (None, true) =>
-            validationFailure(fieldValue, "generic.error.sortcode", None)
-          case (None, false)    => validationSuccess
-          case (Some(value), _) => checkLength(fieldValue, value, 2)
+      if (fieldValue.mandatory) {
+        fieldValue.multiValueId.atomsModelComponentIds.map { modelComponentId =>
+          val answer = formModelVisibilityOptics.data.one(modelComponentId)
+          answer
+            .filterNot(_.isEmpty())
+            .fold[ValidatedType[Unit]](requiredError(fieldValue, modelComponentId)) { value =>
+              checkLength(fieldValue, modelComponentId, value, 2)
+            }
         }
-      }
+      } else List(validationSuccess)
     }
 
   def checkLength(
     fieldValue: FormComponent,
+    modelComponentId: ModelComponentId,
     value: String,
     desiredLength: Int
   )(
@@ -68,11 +62,39 @@ object SortCodeValidation {
     val WholeShape = s"[0-9]{$desiredLength}".r
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     value match {
-      case FractionalShape(_, _, _) =>
-        validationFailure(fieldValue, "generic.error.wholeNumber", None)
-      case WholeShape() => validationSuccess
-      case _ =>
-        validationFailure(fieldValue, "generic.error.sortcode", None)
+      case FractionalShape(_, _, _) => lengthError(fieldValue, modelComponentId)
+      case WholeShape()             => validationSuccess
+      case _                        => requiredError(fieldValue, modelComponentId)
     }
   }
+
+  private def requiredError(
+    formComponent: FormComponent,
+    modelComponentId: ModelComponentId
+  )(
+    implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] = error(formComponent, modelComponentId, "generic.error.sortcode")
+
+  private def lengthError(
+    formComponent: FormComponent,
+    modelComponentId: ModelComponentId
+  )(
+    implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] = error(formComponent, modelComponentId, "generic.error.wholeNumber")
+
+  private def error(
+    formComponent: FormComponent,
+    modelComponentId: ModelComponentId,
+    messageKey: String
+  )(
+    implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] =
+    Map[ModelComponentId, Set[String]](modelComponentId -> errors(formComponent, messageKey, None, "")).invalid
+
 }
