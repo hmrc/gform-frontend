@@ -393,7 +393,7 @@ object SummaryRenderingService {
       if (middleRows.isEmpty) {
         Nil
       } else {
-        val middleRowsHtml = new govukSummaryList()(SummaryList(middleRows, "govuk-!-margin-bottom-9"))
+        val middleRowsHtml = new govukSummaryList()(SummaryList(middleRows, "govuk-!-margin-bottom-5"))
         List(begin, middleRowsHtml)
       }
     }
@@ -420,7 +420,7 @@ object SummaryRenderingService {
         (url, messages("addToList.addOrRemove")) :: Nil
       )
 
-      new govukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-9"))
+      new govukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-5"))
     }
 
     val pagesToRender: List[(PageModel[Visibility], SectionNumber)] = formModel.pagesWithIndex

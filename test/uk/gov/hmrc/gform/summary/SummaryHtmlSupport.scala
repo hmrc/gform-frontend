@@ -31,7 +31,7 @@ trait SummaryHtmlSupport {
 
     def summaryElements: List[SummaryElement] =
       buildSummaryLists(
-        document.select("h2[class='govuk-heading-m'],dl[class='govuk-summary-list govuk-!-margin-bottom-9']").asScala)
+        document.select("h2[class='govuk-heading-m'],dl[class='govuk-summary-list govuk-!-margin-bottom-5']").asScala)
   }
 
   def buildSummaryLists(summaryElms: Seq[Element]): List[SummaryElement] =
