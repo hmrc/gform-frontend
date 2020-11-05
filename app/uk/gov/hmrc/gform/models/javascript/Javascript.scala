@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models.javascript
 
+import cats.syntax.eq._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.extractMaxFractionalDigits
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
@@ -150,6 +151,24 @@ object Javascript {
       def compute(operation: String, left: Expr, right: Expr) =
         s"$operation(${computeExpr(left)}, ${computeExpr(right)})"
 
+      def sumCalc(id: FormComponentId, sum: Sum) = {
+        val sumFcIds: Set[ModelComponentId] = successorLookup.values.flatten.toList
+          .filter(_.baseComponentId === id.baseComponentId)
+          .toSet // Remove duplicates
+        if (sumFcIds.isEmpty) {
+          formModelOptics.formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(sum)
+            .numberRepresentation
+            .map(_.toInt)
+            .getOrElse(0)
+            .toString
+        } else {
+          // This make sense only for sum over a Group field
+          val sumExpr = sumFcIds.map(x => FormCtx(x.toFormComponentId)).foldLeft(Expr.additionIdentity)(Add)
+          computeExpr(sumExpr)
+        }
+      }
+
       expr match {
         case FormCtx(id) =>
           val modelComponentId = id.modelComponentId
@@ -158,19 +177,12 @@ object Javascript {
           } else {
             formModelOptics.formModelVisibilityOptics.data.one(modelComponentId).getOrElse("0")
           }
-        case Constant(amount)  => amount
-        case Add(a, b)         => compute("add", a, b)
-        case Subtraction(a, b) => compute("subtract", a, b)
-        case Multiply(a, b)    => compute("multiply", a, b)
-        case sum @ Sum(_)      =>
-          // Sum should never be calculated dynamically in javascripts
-          formModelOptics.formModelVisibilityOptics
-            .evalAndApplyTypeInfoFirst(sum)
-            .numberRepresentation
-            .map(_.toInt)
-            .getOrElse(0)
-            .toString
-        case otherwise => ""
+        case Constant(amount)       => amount
+        case Add(a, b)              => compute("add", a, b)
+        case Subtraction(a, b)      => compute("subtract", a, b)
+        case Multiply(a, b)         => compute("multiply", a, b)
+        case sum @ Sum(FormCtx(id)) => sumCalc(id, sum)
+        case otherwise              => ""
       }
     }
 
