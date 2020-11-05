@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.models.optics
 
-import uk.gov.hmrc.gform.eval.{ EvaluationResults, ExpressionResult, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ EvaluationResults, ExpressionResultWithTypeInfo, TypeInfo }
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -44,20 +44,23 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
 
   def fcLookup: Map[FormComponentId, FormComponent] = formModel.fcLookup
 
-  def evalAndApplyTypeInfoExplicit(expr: Expr, fcId: FormComponentId): ExpressionResult = {
+  def evalAndApplyTypeInfoExplicit(expr: Expr, fcId: FormComponentId): ExpressionResultWithTypeInfo = {
     val typeInfo = formModel.explicitTypedExpr(expr, fcId)
     evalAndApplyTypeInfo(typeInfo)
   }
 
-  def evalAndApplyTypeInfoFirst(expr: Expr): ExpressionResult = {
+  def evalAndApplyTypeInfoFirst(expr: Expr): ExpressionResultWithTypeInfo = {
     val typeInfo = formModel.toFirstOperandTypeInfo(expr)
     evalAndApplyTypeInfo(typeInfo)
   }
 
-  def evalAndApplyTypeInfo(typeInfo: TypeInfo): ExpressionResult =
-    recalculationResult.evaluationResults
-      .evalExprCurrent(typeInfo, recData, recalculationResult.evaluationContext)
-      .applyTypeInfo(typeInfo)
+  def evalAndApplyTypeInfo(typeInfo: TypeInfo): ExpressionResultWithTypeInfo =
+    ExpressionResultWithTypeInfo(
+      recalculationResult.evaluationResults
+        .evalExprCurrent(typeInfo, recData, recalculationResult.evaluationContext)
+        .applyTypeInfo(typeInfo),
+      typeInfo
+    )
 
   object data {
     def all: List[(ModelComponentId, VariadicValue)] =

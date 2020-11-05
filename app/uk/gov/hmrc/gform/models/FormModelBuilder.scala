@@ -236,9 +236,11 @@ class FormModelBuilder[E, F[_]: Functor](
       case IsFalse                             => false
       case Contains(field1, field2)            => compare(field1, field2, _ contains _)
       case In(expr, dataSource) =>
+        val typeInfo = formModel.toFirstOperandTypeInfo(expr)
         val expressionResult = recalculationResult.evaluationResults
-          .evalExprCurrent(formModel.toFirstOperandTypeInfo(expr), recData, recalculationResult.evaluationContext)
-        val maybeBoolean = recalculationResult.booleanExprCache.get(dataSource, expressionResult.stringRepresentation)
+          .evalExprCurrent(typeInfo, recData, recalculationResult.evaluationContext)
+        val maybeBoolean =
+          recalculationResult.booleanExprCache.get(dataSource, expressionResult.stringRepresentation(typeInfo))
         maybeBoolean.getOrElse(false)
     }
 
