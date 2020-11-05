@@ -16,17 +16,8 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, Number, PositiveNumber, Sterling }
+case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, typeInfo: TypeInfo) {
+  def stringRepresentation: String = expressionResult.stringRepresentation(typeInfo)
 
-case class TypeInfo(expr: Expr, staticTypeData: StaticTypeData) {
-  def defaultValue: String = staticTypeData.textConstraint.fold("") {
-    case Sterling(_, _)             => "0"
-    case Number(_, _, _, _)         => "0"
-    case PositiveNumber(_, _, _, _) => "0"
-    case _                          => ""
-  }
-}
-
-object TypeInfo {
-  def illegal(expr: Expr) = TypeInfo(expr, StaticTypeData.illegal)
+  def numberRepresentation: Option[BigDecimal] = expressionResult.numberRepresentation
 }

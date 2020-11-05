@@ -156,8 +156,8 @@ sealed trait ExpressionResult extends Product with Serializable {
   def applyTypeInfo(typeInfo: TypeInfo): ExpressionResult =
     typeInfo.staticTypeData.textConstraint.fold(this)(applyTextConstraint)
 
-  def stringRepresentation =
-    fold(_ => "")(_ => "")(_ => "")(_.value.toString)(_.value)(_.value.mkString(","))
+  def stringRepresentation(typeInfo: TypeInfo) =
+    fold(_ => "")(_ => typeInfo.defaultValue)(_ => "")(_.value.toString)(_.value)(_.value.mkString(","))
 
   def numberRepresentation: Option[BigDecimal] =
     fold[Option[BigDecimal]](_ => None)(_ => None)(_ => None)(bd => Some(bd.value))(_ => None)(_ => None)

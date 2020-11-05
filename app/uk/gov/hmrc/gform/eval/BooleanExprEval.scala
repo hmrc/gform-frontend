@@ -44,29 +44,29 @@ class BooleanExprEval[F[_]: Monad](
   ): F[Boolean] = {
     def loop(booleanExpr: BooleanExpr): F[Boolean] = booleanExpr match {
       case Equals(left, right) =>
-        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left)
-        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right)
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
 
         l.identical(r).pure[F]
 
       case GreaterThan(left, right) =>
-        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left)
-        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right)
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
         (l > r).pure[F]
 
       case GreaterThanOrEquals(left, right) =>
-        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left)
-        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right)
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
         (l >= r).pure[F]
 
       case LessThan(left, right) =>
-        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left)
-        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right)
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
         (l < r).pure[F]
 
       case LessThanOrEquals(left, right) =>
-        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left)
-        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right)
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
 
         (l <= r).pure[F]
 
@@ -84,8 +84,8 @@ class BooleanExprEval[F[_]: Monad](
       case IsTrue  => true.pure[F]
       case IsFalse => false.pure[F]
       case Contains(ctx, expr) =>
-        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(ctx)
-        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)
+        val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(ctx).expressionResult
+        val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).expressionResult
 
         l.contains(r).pure[F]
 
