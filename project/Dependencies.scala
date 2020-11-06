@@ -38,6 +38,6 @@ object Dependencies {
     "com.ironcorelabs"       %% "cats-scalatest"     % "2.4.0"             % scope,
     "com.typesafe.play"      %% "play-test"          % PlayVersion.current % scope,
     "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.3"             % scope,
-    "org.mockito"            % "mockito-all"         % "1.10.19"           % scope
+    "org.mockito" %% "mockito-scala-scalatest" % "1.7.0" % scope
   )
 }

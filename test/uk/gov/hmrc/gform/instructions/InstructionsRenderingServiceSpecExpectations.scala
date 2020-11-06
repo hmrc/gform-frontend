@@ -147,7 +147,7 @@ trait InstructionsRenderingServiceSpecExpectations {
           |<dl>
           |   <div>
           |      <dt> page1FieldInstruction </dt>
-          |      <dd> page1Field1Value1 </dd>
+          |      <dd> page1Field-value1 </dd>
           |      <dd></dd>
           |   </div>
           |</dl>
@@ -155,7 +155,23 @@ trait InstructionsRenderingServiceSpecExpectations {
           |<dl>
           |   <div>
           |      <dt> page2FieldInstruction </dt>
-          |      <dd> page2Field1Value1 </dd>
+          |      <dd> page2Field-value1 </dd>
+          |      <dd></dd>
+          |   </div>
+          |</dl>
+          |<h2> page1Instruction </h2>
+          |<dl>
+          |   <div>
+          |      <dt> page1FieldInstruction </dt>
+          |      <dd> page1Field-value2 </dd>
+          |      <dd></dd>
+          |   </div>
+          |</dl>
+          |<h2> page2Instruction </h2>
+          |<dl>
+          |   <div>
+          |      <dt> page2FieldInstruction </dt>
+          |      <dd> page2Field-value2 </dd>
           |      <dd></dd>
           |   </div>
           |</dl>
