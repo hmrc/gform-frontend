@@ -428,7 +428,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     addAnotherQuestion: FormComponent,
     instruction: Option[Instruction],
     pages: List[Page[Basic]],
-    presentationHint: Option[List[PresentationHint]] = None): Section.AddToList =
+    presentationHint: Option[PresentationHint] = None): Section.AddToList =
     Section.AddToList(
       toSmartString(title),
       toSmartString(title),

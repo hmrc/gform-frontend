@@ -366,10 +366,8 @@ object SummaryRenderingService {
         begin_section(pageTitle)
       } { addToList =>
         addToList.presentationHint
-          .filter(_.contains(SummariseGroupAsGrid))
-          .fold(begin_section(pageTitle)) { _ =>
-            HtmlFormat.empty
-          }
+          .filter(_ == InvisiblePageTitleInSummary)
+          .fold(begin_section(pageTitle))(_ => HtmlFormat.empty)
       }
 
       val middleRows: List[SummaryListRow] = page.fields

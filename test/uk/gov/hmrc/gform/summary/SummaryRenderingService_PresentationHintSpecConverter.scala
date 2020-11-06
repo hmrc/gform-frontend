@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, SummariseGroupAsGrid, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, InvisiblePageTitleInSummary, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ExampleData, LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.summary.SummaryHtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
@@ -136,7 +136,7 @@ class SummaryRenderingService_PresentationHintSpecConverter
                 toPage("page1", None, List(page1Field)),
                 toPage("page2", None, List(page2Field)),
               ),
-              Some(List(SummariseGroupAsGrid))
+              Some(InvisiblePageTitleInSummary)
             )
           )
         )
