@@ -58,11 +58,13 @@
     }
 
     case BannerInfo => {
-      <div class="transaction-banner--complete panel-info">
-        <p>
-          <strong class="text--bold">@{fieldValue.label.value}</strong><br />
-          @text
-        </p>
+      <div class="govuk-panel govuk-panel--confirmation">
+        <h1 class="govuk-panel__title">
+            @{fieldValue.label.value}
+        </h1>
+        <div class="govuk-panel__body">
+            @text
+        </div>
       </div>
     }
 
