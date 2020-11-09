@@ -35,7 +35,8 @@
     formAction: Call,
     renderComeBackLater: Boolean,
     snippets: Html,
-    hiddenFieldsSnippets: List[Html]
+    hiddenFieldsSnippets: List[Html],
+    specimenNavigation: Html
 )(
     implicit
     request: Request[_],
@@ -120,9 +121,6 @@
       }
     }
 
-    @* @if(formTemplate.isSpecimen) {
-       @specimen.navigation(formTemplate, page)
-    } *@
-
+    @specimenNavigation
 
 }

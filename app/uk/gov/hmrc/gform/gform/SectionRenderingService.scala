@@ -36,6 +36,8 @@ import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
+import uk.gov.hmrc.gform.models.PageModel
+import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ Atom, DataExpanded }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -54,6 +56,7 @@ import uk.gov.hmrc.gform.validation.HtmlFieldId
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.html
+import uk.gov.hmrc.gform.views.html.specimen
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.charactercount.CharacterCount
@@ -206,7 +209,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       actionForm,
       retrievals.renderSaveAndComeBackLater,
       addAnotherQuestion,
-      hiddenSnippets
+      hiddenSnippets,
+      specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics),
     )
   }
 
@@ -294,10 +298,25 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       shouldDisplayHeading = !formLevelHeading,
       shouldDisplayContinue = !page.isTerminationPage,
       frontendAppConfig,
-      isDeclaration = false
+      specimenNavigation = specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics),
+      isDeclaration = false,
     )
 
   }
+
+  private def specimenNavigation(
+    formTemplate: FormTemplate,
+    sectionNumber: SectionNumber,
+    formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo]
+  )(
+    implicit
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Html =
+    if (formTemplate.isSpecimen) {
+      val pages: List[(PageModel[DataExpanded], SectionNumber)] = formModelRenderPageOptics.formModel.pagesWithIndex
+      specimen.navigation(formTemplate, sectionNumber, pages)
+    } else HtmlFormat.empty
 
   private def generatePageLevelErrorHtml(
     listValidation: List[FormFieldValidationResult],
@@ -565,7 +584,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       Nil
     )
     html.form
-      .form(formTemplate, pageLevelErrorHtml, renderingInfo, false, true, true, frontendAppConfig, false)
+      .form(formTemplate, pageLevelErrorHtml, renderingInfo, false, true, true, frontendAppConfig)
   }
 
   private def htmlFor(
