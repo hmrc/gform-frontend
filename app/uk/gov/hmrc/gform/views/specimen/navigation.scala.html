@@ -16,57 +16,60 @@
 
 @import cats.syntax.eq._
 @import cats.instances.int._
+@import uk.gov.hmrc.gform.models.{ DataExpanded, PageModel }
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SectionTitle4Ga, SectionNumber }
-@import uk.gov.hmrc.gform.models.SectionRenderingInformation
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SectionNumber, SectionTitle4Ga }
 
 @(formTemplate: FormTemplate,
-  sectionRenderingInformation: SectionRenderingInformation
+  sectionNumber: SectionNumber,
+  pages: List[(PageModel[DataExpanded], SectionNumber)]
 )(implicit l: LangADT, sse: SmartStringEvaluator)
 
 @navigationLink(sectionIndex: Int, label: String, templateId: String) = {
-  @defining(formTemplate.sections(sectionIndex)) { section =>
-    @defining(SectionTitle4Ga.sectionTitle4GaFactory(section.getTitle, SectionNumber(sectionIndex))) { sectionTitle4Ga =>
-      <a href="/submissions/form/@templateId/@sectionTitle4Ga?n=@sectionIndex&se=t">@label</a>
+  @defining(pages(sectionIndex)) { case (page, sectionNumber) =>
+    @defining(SectionTitle4Ga.sectionTitle4GaFactory(page.title, sectionNumber).value) { sectionTitle4Ga =>
+      <a href="/submissions/form/@templateId/@sectionTitle4Ga?n=@sectionIndex&se=t&ff=t" class="govuk-link">@label</a>
     }
   }
 }
 
 @defining(
   formTemplate._id.value,
-  formTemplate.sections(sectionRenderingInformation.sectionNumber.value),
-  sectionRenderingInformation.sectionNumber.value,
-  formTemplate.sections.size) { case (templateId, section, sectionNumber, total) =>
+  pages(sectionNumber.value),
+  sectionNumber.value,
+  pages.size) { case (templateId, section, sectionNumber, total) =>
 
-  @if(sectionNumber >= 1) {
-    @navigationLink(sectionNumber - 1, "Previous", templateId)
-  } else {
-    Previous
-  }
-
-  <select id="specimenNavigation">
-    @formTemplate.sections.zipWithIndex.map { case (section, sectionIndex) =>
-      @defining(section.getTitle.value, if(sectionNumber === sectionIndex) "selected" else "") { case (title, selected) =>
-	@*@defining(
-	  SectionTitle4Ga.sectionTitle4GaFactory(section, SectionNumber(sectionIndex)).value,
-	  title.substring(0, Math.min(title.length, 80))) { case (sectionTitle4Ga, titleTrimmed) =>
-          <option value="@sectionIndex" data-title="@sectionTitle4Ga"  @selected>@{sectionIndex + 1}/@total - @titleTrimmed</option>
-        }*@
-      }
+  <div class="govuk-body">
+    @if(sectionNumber >= 1) {
+      @navigationLink(sectionNumber - 1, "Previous", templateId)
+    } else {
+      Previous
     }
-  </select>
 
-  @if(sectionNumber < total - 1) {
-    @navigationLink(sectionNumber + 1, "Next", templateId)
-  } else {
-    Next
-  }
+    <select id="specimenNavigation" class="govuk-select">
+      @pages.map { case (pageModel, sectionIndex) =>
+        @defining(pageModel.title.value, if(sectionNumber === sectionIndex.value) "selected" else "") { case (title, selected) =>
+          @defining(
+            SectionTitle4Ga.sectionTitle4GaFactory(pageModel.title, sectionIndex).value,
+            title.substring(0, Math.min(title.length, 80))) { case (sectionTitle4Ga, titleTrimmed) =>
+              <option value="@{sectionIndex.value}" data-title="@sectionTitle4Ga"  @selected>@{sectionIndex.value + 1}/@total - @titleTrimmed</option>
+            }
+          }
+      }
+    </select>
+
+    @if(sectionNumber < total - 1) {
+      @navigationLink(sectionNumber + 1, "Next", templateId)
+    } else {
+      Next
+    }
+  </div>
 
   <script type="text/javascript">
     document.getElementById("specimenNavigation").addEventListener("change", function(el) {
       var index = el.target.value;
       var sectionTitle4Ga = el.target.options[index].getAttribute("data-title");
-      window.location.href = '/submissions/form/@templateId/' + sectionTitle4Ga + '?n=' + index + '&se=t';
+      window.location.href = '/submissions/form/@templateId/' + sectionTitle4Ga + '?n=' + index + '&se=t&ff=t';
     });
   </script>
 

@@ -32,7 +32,8 @@
   shouldDisplayHeading: Boolean,
   shouldDisplayContinue: Boolean,
   frontendAppConfig: FrontendAppConfig,
-  isDeclaration: Boolean = false
+  specimenNavigation: Html = HtmlFormat.empty,
+  isDeclaration: Boolean = false,
 )(
   implicit
   request: Request[_],
@@ -111,9 +112,7 @@
       }
     }
 
-    @if(formTemplate.isSpecimen) {
-      @specimen.navigation(formTemplate, page)
-    }
+    @specimenNavigation
 
     <script type="text/javascript">
       window.gform = window.gform || {};
