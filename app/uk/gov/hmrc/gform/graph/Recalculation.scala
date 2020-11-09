@@ -198,7 +198,9 @@ class Recalculation[F[_]: Monad, E](
             val typeInfo: TypeInfo = formModel.explicitTypedExpr(expr, formComponentId)
 
             val exprResult: ExpressionResult =
-              evResult.evalExpr(typeInfo, recData, evaluationContext)
+              evResult
+                .evalExpr(typeInfo, recData, evaluationContext)
+                .applyTypeInfo(typeInfo)
 
             noStateChange(evResult + (formCtx, exprResult))
 
