@@ -9,7 +9,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 339,DE,3,MUN,,Munster Seaport - MUN,,3,NULL,0
 388,ES,3,BLA,,Blanes Seaport - BLA,,3,NULL,0
 437,FR,2,LYN,,Bron Apt/Lyon Airport - LYN,,3,NULL,0
-442,FR,2,ORY,,Orly International Airport - ORY,,3,NULL,0
+442,FR,2,ORY,Paris,Orly International Airport - ORY,,3,NULL,0
 443,FR,3,PAR,,Paris Seaport - PAR,,3,NULL,0
 453,FR,3,MRS,,Marseille Seaport - MRS,,3,NULL,0
 485,GP,2,CCE,,Grand Case Airport - CCE,,4,NULL,0
@@ -30,7 +30,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 696,KR,3,SEL,,Seoul Seaport - SEL,,4,NULL,0
 735,LY,3,TIP,,Tripoli Seaport - TIP,,4,NULL,0
 836,NG,2,LOS,,Lagos Airport - LOS,,4,NULL,0
-852,NL,2,AMS,,Amsterdam Airport - AMS,,3,NULL,0
+852,NL,2,AMS,Schiphol,Amsterdam Airport - AMS,10,3,NULL,0
 854,NL,3,BON,,Born Seaport - BON,,3,NULL,0
 863,NL,3,BRS,,Breskens Seaport - BRS,,3,NULL,0
 968,RU,2,MOW,,Moskva - MOW,,4,NULL,0
@@ -38,7 +38,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 1009,SE,2,BMA,,Bromma Apt/Stockholm Airport - BMA,,3,NULL,0
 1012,SE,3,MMA,,Malmö Seaport - MMA,,3,NULL,0
 1022,SG,3,SIN,,Port of Singapore Seaport - SIN,,4,NULL,1
-1023,SG,2,SIN,,Singapore Airport - SIN,,4,NULL,0
+1023,SG,2,SIN,Changi,Singapore Airport - SIN,10,4,NULL,0
 1055,TH,3,BKK,,Bangkok Seaport - BKK,,4,NULL,0
 1065,TH,3,PKK,,Prachuap Khiri Khan Seaport - PKK,,4,NULL,0
 1081,TR,3,IST,,Istanbul Seaport - IST,,4,NULL,0
@@ -47,7 +47,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 1155,UK,2,ABE,,Aberdeen Airport - ABE,,1,NULL,0
 1159,UK,2,AMS,,Amesbury - AMS,,1,NULL,0
 1160,UK,2,BEL,,Belfast - BEL,,2,NULL,0
-1164,UK,2,BHM,,Birmingham - BHM,,1,NULL,0
+1164,UK,2,BHM,,Birmingham - BHM,5,1,NULL,0
 1166,UK,2,BIG,,Bridgtown - BIG,,1,NULL,0
 1167,UK,2,BIR,,Birtley - BIR,,1,NULL,0
 1170,UK,2,BRI,,Braintree - BRI,,1,NULL,0
@@ -64,7 +64,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 1191,UK,2,EAS,,East Malling - EAS,,1,NULL,0
 1192,UK,2,EBB,,Ebbw Vale - EBB,,1,NULL,0
 1194,UK,2,EDI,,Edinburgh Airport - EDI,,1,NULL,0
-1195,UK,2,EMA,,East Midlands Apt - EMA,,1,NULL,0
+1195,UK,2,EMA,Derby Nottingham Leicester,East Midlands Apt - EMA,5,1,NULL,0
 1197,UK,2,FAR,,Farnham - FAR,,1,NULL,0
 1199,UK,3,FXT,,Felixstowe Seaport - FXT,,1,NULL,0
 1200,UK,2,GAT,,Gateshead - GAT,,1,NULL,0
@@ -84,8 +84,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 1231,UK,3,LIV,,Liverpool Seaport - LIV,,1,NULL,0
 1235,UK,2,LON,,London - LON,,1,NULL,0
 1238,UK,2,LRH,,Lark Hill - LRH,,1,NULL,0
-1241,UK,2,LUT,,Luton Airport - LUT,,1,NULL,0
-1245,UK,2,MAN,,Manchester  Airport - MAN,,1,NULL,0
+1241,UK,2,LUT,,Luton Airport - LUT,5,1,NULL,0
+1245,UK,2,MAN,,Manchester  Airport - MAN,10,1,NULL,0
 1254,UK,2,NQT,,Nottingham City Airport - NQT,,1,NULL,0
 1266,UK,2,SOU,,Southampton Airport - SOU,,1,NULL,0
 1273,UK,3,TEE,,Teesport Seaport - TEE,,1,NULL,0
@@ -100,7 +100,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 1330,US,3,MLU,,Monroe - MLU,,4,NULL,0
 1333,US,3,ACC,,Raymond Port Dock - ACC,,4,NULL,0
 1352,US,3,CHI,,Port of Chicago - CHI,,4,NULL,0
-1390,US,2,JFK,,John F. Kennedy Apt/New York Airport - JFK,,4,NULL,0
+1390,US,2,JFK,,John F. Kennedy Apt/New York Airport - JFK,10,4,NULL,0
 1399,US,3,LLC,,Leland Seaport - LLC,,4,NULL,0
 1408,US,2,MIO,,Miami Municipal Airport  - MIO,,4,NULL,0
 1417,US,3,NYC,,New York Seaport - NYC,,4,NULL,0
@@ -116,7 +116,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 3017,AE,2,DAS,,Das Island Airport (Oeon Airport) - DAS,,4,NULL,1
 3018,AE,2,ZDY,,Delma Airport - ZDY,,4,NULL,1
 3020,AE,2,DCG,,Dubai Creek SPB Airport - DCG,,4,NULL,1
-3021,AE,2,DXB,,Dubai International Airport - DXB,,4,NULL,1
+3021,AE,2,DXB,Garhoud,Dubai International Airport - DXB,10,4,NULL,1
 3024,AE,2,FJR,,Fujairah International Airport - FJR,,4,NULL,1
 3025,AE,3,HAM,,Hamriyah Seaport - HAM,,4,NULL,1
 3026,AE,3,JEA,,Jebel Ali Seaport - JEA,,4,NULL,1
@@ -1129,7 +1129,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 5171,BE,3,BRE,,Bree Seaport - BRE,,3,NULL,1
 5175,BE,3,BGS,,Brugge (Bruges) Seaport - BGS,,3,NULL,1
 5176,BE,2,BRU,,Brussel (Bruxelles) Airport - BRU,,3,NULL,1
-5178,BE,2,CRL,,Charleroi Airport - CRL,,3,NULL,1
+5178,BE,2,CRL,Brussels,Charleroi Airport - CRL,,3,NULL,1
 5182,BE,3,BHU,,Buggenhout Seaport - BHU,,3,NULL,1
 5183,BE,3,BUD,,Burcht Seaport - BUD,,3,NULL,1
 5195,BE,3,DEZ,,Deinze Seaport - DEZ,,3,NULL,1
@@ -2505,7 +2505,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 8861,CN,3,BAY,,Bayuquan Seaport - BAY,,4,NULL,1
 8862,CN,2,BHY,,Beihai Fucheng Airport - BHY,,4,NULL,1
 8864,CN,3,BJO,,Beijiao Seaport - BJO,,4,NULL,1
-8867,CN,2,PEK,,Beijing Capital International Airport - PEK,,4,NULL,1
+8867,CN,2,PEK,Chaoyang Shunyi,Beijing Capital International Airport - PEK,10,4,NULL,1
 8868,CN,2,NAY,,Beijing Nanyuan Airport - NAY,,4,NULL,1
 8869,CN,3,BFU,,Bengbu Seaport - BFU,,4,NULL,1
 8873,CN,3,BUJ,,Buji Seaport - BUJ,,4,NULL,1
@@ -2520,11 +2520,11 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 8887,CN,2,CZX,,Changzhou Benniu Airport - CZX,,4,NULL,1
 8889,CN,2,WUZ,,Wuzhou Xijiang Airport - WUZ,,4,NULL,1
 8891,CN,2,CHG,,Chaoyang Airport - CHG,,4,NULL,1
-8894,CN,2,CTU,,Chengdu Shuangliu International Airport - CTU,,4,NULL,1
+8894,CN,2,CTU,Shuangliu-Wuhou Chengdu Sichuan ,Chengdu Shuangliu International Airport - CTU,10,4,NULL,1
 8898,CN,3,CLJ,,Chenglingji Seaport - CLJ,,4,NULL,1
 8899,CN,2,CIF,,Chifeng Yulong Airport - CIF,,4,NULL,1
 8900,CN,3,CWN,,Chiwan Seaport - CWN,,4,NULL,1
-8901,CN,2,CKG,,Chongqing Jiangbei International Airport - CKG,,4,NULL,1
+8901,CN,2,CKG,,Chongqing Jiangbei International Airport - CKG,10,4,NULL,1
 8905,CN,2,DAX,,Dachuan Airport - DAX,,4,NULL,1
 8907,CN,2,DLU,,Dali Airport - DLU,,4,NULL,1
 8908,CN,3,DLC,,Dalian Seaport - DLC,,4,NULL,1
@@ -2555,7 +2555,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 8963,CN,2,SZV,,Guangfu Airport - SZV,,4,NULL,1
 8965,CN,2,GHN,,Guanghan Airport - GHN,,4,NULL,1
 8966,CN,2,GYS,,Guangyuan Airport - GYS,,4,NULL,1
-8967,CN,2,CAN,,Guangzhou Baiyun International Airport - CAN,,4,NULL,1
+8967,CN,2,CAN,Baiyun-Huadu Guangdong,Guangzhou Baiyun International Airport - CAN,10,4,NULL,1
 8971,CN,3,GUG,,Guigang Seaport - GUG,,4,NULL,1
 8972,CN,2,KWL,,Guilin Liangjiang International Airport - KWL,,4,NULL,1
 8974,CN,2,KWE,,Guiyang Longdongbao International Airport - KWE,,4,NULL,1
@@ -2668,15 +2668,15 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 9191,CN,3,SJQ,,Sanshui Seaport - SJQ,,4,NULL,1
 9192,CN,2,SYX,,Sanya Phoenix International Airport - SYX,,4,NULL,1
 9192,CN,3,SYX,,Sanya Seaport - SYX,,4,NULL,1
-9196,CN,2,SHA,,Shanghai Hongqiao International Airport - SHA,,4,NULL,1
-9198,CN,2,PVG,,Shanghai Pudong International Airport - PVG,,4,NULL,1
+9196,CN,2,SHA,,Shanghai Hongqiao International Airport - SHA,10,4,NULL,1
+9198,CN,2,PVG,,Shanghai Pudong International Airport - PVG,10,4,NULL,1
 9204,CN,3,SWE,,Shanwei Seaport - SWE,,4,NULL,1
 9205,CN,2,HSC,,Shaoguan Guitou Airport  - HSC,,4,NULL,1
 9208,CN,2,SHS,,Shashi Airport - SHS,,4,NULL,1
 9212,CN,2,SQJ,,Shaxian Airport - SQJ,,4,NULL,1
 9213,CN,3,SHK,,Shekou Seaport - SHK,,4,NULL,1
 9214,CN,2,SHE,,Shenyang Taoxian International Airport - SHE,,4,NULL,1
-9215,CN,2,SZX,,Shenzhen Bao'an International Airport - SZX,,4,NULL,1
+9215,CN,2,SZX,,Shenzhen Bao'an International Airport - SZX,10,4,NULL,1
 9217,CN,3,SHD,,Shidao Seaport - SHD,,4,NULL,1
 9219,CN,2,SJW,,Shijiazhuang Zhengding International Airport - SJW,,4,NULL,1
 9227,CN,3,SUD,,Shunde Seaport - SUD,,4,NULL,1
@@ -2709,7 +2709,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 9283,CN,2,WUH,,Wuhan Tianhe International Airport - WUH,,4,NULL,1
 9285,CN,3,WHI,,Wuhu Seaport - WHI,,4,NULL,1
 9294,CN,2,XMN,,Xiamen Gaoqi International Airport - XMN,,4,NULL,1
-9296,CN,2,XIY,,Xi''an Xianyang International Airport - XIY,,4,NULL,1
+9296,CN,2,XIY,,Xi''an Xianyang International Airport - XIY,10,4,NULL,1
 9297,CN,2,XFN,,Xiangyang Liuji Airport - XFN,,4,NULL,1
 9299,CN,3,XIS,,Xiaoshan Seaport - XIS,,4,NULL,1
 9300,CN,2,XIC,,Xichang Qingshan Airport - XIC,,4,NULL,1
@@ -3036,7 +3036,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 9864,CZ,2,OSR,,Ostrava Airport - OSR,,3,NULL,1
 9868,CZ,2,PED,,Pardubice Airport - PED,,3,NULL,1
 9869,CZ,2,PRV,,Prerov Air Base - PRV,,3,NULL,1
-9880,CZ,2,PRG,,Vaclav Havel Airport - PRG,,3,NULL,1
+9880,CZ,2,PRG,Prague,Vaclav Havel Airport - PRG,,3,NULL,1
 9921,CZ,3,ULN,,Usti nad Labem Seaport - ULN,,3,NULL,1
 9929,CZ,2,VOD,,Vodochody Airport - VOD,,3,NULL,1
 9935,CZ,3,VMO,,Vysoke Myto - VMO,,3,NULL,1
@@ -3195,8 +3195,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 10505,DE,3,ETG,,Eutingen - ETG,,3,NULL,1
 10516,DE,2,XFW,,Hamburg Finkenwerder Airport - XFW,,3,NULL,1
 10520,DE,2,FLF,,Flensburg Airport - FLF,,3,NULL,1
-10523,DE,2,MUC,,Flughafen München-Riem Airport - MUC,,3,NULL,1
-10531,DE,2,FRA,,Frankfurt am Main International Airport - FRA,,3,NULL,1
+10523,DE,2,MUC,Munich,Flughafen München-Riem Airport - MUC,,3,NULL,1
+10531,DE,2,FRA,,Frankfurt am Main International Airport - FRA,10,3,NULL,1
 10533,DE,3,FFO,,"Frankfurt, Oder Seaport - FFO",,3,NULL,1
 10534,DE,2,QEF,,Frankfurt-Egelsbach Airport - QEF,,3,NULL,1
 10544,DE,3,FRE,,Fresenburg Seaport - FRE,,3,NULL,1
@@ -3237,7 +3237,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 10721,DE,3,HMM,,Hamm Seaport - HMM,,3,NULL,1
 10724,DE,3,HAU,,Hanau Seaport - HAU,,3,NULL,1
 10725,DE,2,ZNF,,Hanau Army Air Field - ZNF,,3,NULL,1
-10727,DE,2,HAJ,,Hannover Airport - HAJ,,3,NULL,1
+10727,DE,2,HAJ,Langenhagen,Hannover Airport - HAJ,,3,NULL,1
 10733,DE,3,HRN,,"Haren, Ems Seaport - HRN",,3,NULL,1
 10742,DE,2,HAS,,Hassfurt Airport - HAS,,3,NULL,1
 10755,DE,2,HDE,,Heide Airport - HDE,,3,NULL,1
@@ -3812,7 +3812,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 13092,ES,3,AYA,,Ayamonte Seaport - AYA,,3,NULL,1
 13098,ES,2,BJZ,,Badajoz Airport - BJZ,,3,NULL,1
 13110,ES,3,BDF,,Barbate de Franco Seaport - BDF,,3,NULL,1
-13112,ES,2,BCN,,Barcelona Airport - BCN,,3,NULL,1
+13112,ES,2,BCN,El Prat Josep Tarradellas,Barcelona Airport - BCN,10,3,NULL,1
 13130,ES,3,BEM,,Benidorm Seaport - BEM,,3,NULL,1
 13137,ES,3,BRM,,Bermeo Seaport - BRM,,3,NULL,1
 13142,ES,2,BIO,,Bilbao Airport - BIO,,3,NULL,1
@@ -4182,7 +4182,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 14668,FR,2,XBQ,,Blois - Le Breuil Airport - XBQ,,3,NULL,1
 14678,FR,3,BON,,Bonifacio Seaport - BON,,3,NULL,1
 14683,FR,3,BSC,,Bonsecours Seaport - BSC,,3,NULL,1
-14685,FR,2,BOD,,Bordeaux Airport - BOD,,3,NULL,1
+14685,FR,2,BOD,Merignac M�rignac,Bordeaux Airport - BOD,,3,NULL,1
 14693,FR,2,BOL,,Boulogne Sur Mer Airport - BOL,,3,NULL,1
 14698,FR,3,BSG,,Bourg sur Gironde Seaport - BSG,,3,NULL,1
 14699,FR,2,BOU,,Bourges Airport - BOU,,3,NULL,1
@@ -4204,7 +4204,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 14820,FR,3,CSS,,Chalon sur Saone Seaport - CSS,,3,NULL,1
 14821,FR,3,CSM,,Châlons-en-Champagne Seaport - CSM,,3,NULL,1
 14822,FR,2,CMF,,Chambéry-Savoie Airport - CMF,,3,NULL,1
-14841,FR,2,CDG,,Charles de Gaulle Airport - CDG,,3,NULL,1
+14841,FR,2,CDG,Paris,Charles de Gaulle Airport - CDG,10,3,NULL,1
 14845,FR,3,CHM,,Charleville Mezieres Seaport - CHM,,3,NULL,1
 14846,FR,2,XCZ,,Charleville-Mézières Airport - XCZ,,3,NULL,1
 14875,FR,3,CMT,,Chaumont Seaport - CMT,,3,NULL,1
@@ -4659,7 +4659,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 17247,GY,2,PKM,,Port Kaituma Airport - PKM,,4,NULL,1
 17248,GY,2,SDC,,Sand Creek Airport - SDC,,4,NULL,1
 17250,GY,2,SKM,,Skeldon Airport - SKM,,4,NULL,1
-17253,HK,2,HKG,,Hong Kong International Airport - HKG,,4,NULL,1
+17253,HK,2,HKG,,Hong Kong International Airport - HKG,10,4,NULL,1
 17262,HN,2,AHS,,Ahuas Airport - AHS,,4,NULL,1
 17264,HN,2,AMP,,Amapala Airport - AMP,,4,NULL,1
 17265,HN,2,BHG,,Brus Laguna Airport - BHG,,4,NULL,1
@@ -4811,7 +4811,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 17637,ID,2,IUL,,Ilu Airport - IUL,,4,NULL,1
 17638,ID,2,INX,,Inanwatan Airport - INX,,4,NULL,1
 17639,ID,2,PKN,,Iskandar Airport - PKN,,4,NULL,1
-17641,ID,2,CGK,,Soekarno-Hatta International Airport - CGK,,4,NULL,1
+17641,ID,2,CGK,Tangerang Banten,Soekarno-Hatta International Airport - CGK,10,4,NULL,1
 17643,ID,2,DJB,,Sultan Thaha Airport - DJB,,4,NULL,1
 17644,ID,2,RGT,,Japura Airport - RGT,,4,NULL,1
 17647,ID,3,DJJ,,Port of Jayapura Seaport - DJJ,,4,NULL,1
@@ -5078,7 +5078,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 18395,IN,3,CHR,,Chapora Seaport - CHR,,4,NULL,1
 18396,IN,2,LKO,,Chaudhary Charan Singh International Airport - LKO,,4,NULL,1
 18397,IN,2,MAA,,Chennai (Ex Madras) Airport - MAA,,4,NULL,1
-18400,IN,2,BOM,,Chhatrapati Shivaji International Airport - BOM,,4,NULL,1
+18400,IN,2,BOM,,Chhatrapati Shivaji International Airport - BOM,10,4,NULL,1
 18402,IN,2,REW,,"Churhata Airport, Rewa - REW",,4,NULL,1
 18403,IN,3,COK,,Cochin Seaport - COK,,4,NULL,1
 18405,IN,2,CJB,,Coimbatore Airport - CJB,,4,NULL,1
@@ -5128,7 +5128,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 18496,IN,2,HBX,,Hubli Airport - HBX,,4,NULL,1
 18498,IN,2,HYD,,Hyderabad Airport - HYD,,4,NULL,1
 18499,IN,2,IMF,,Imphal Airport - IMF,,4,NULL,1
-18501,IN,2,DEL,,"Indira Gandhi International Airport, Delhi - DEL",,4,NULL,1
+18501,IN,2,DEL,,"Indira Gandhi International Airport, Delhi - DEL",10,4,NULL,1
 18503,IN,2,JLR,,Jabalpur Airport - JLR,,4,NULL,1
 18505,IN,3,JBD,,Jafrabad Seaport - JBD,,4,NULL,1
 18506,IN,2,JGB,,Jagdalpur Airport - JGB,,4,NULL,1
@@ -5490,7 +5490,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 19141,IS,2,HLO,,Ingjaldssanður Airport - HLO,,4,NULL,1
 19142,IS,3,ISA,,Isafjordur - hofn Seaport - ISA,,4,NULL,1
 19143,IS,2,OPA,,Kópasker Airport - OPA,,4,NULL,1
-19144,IS,2,KEF,,Keflavik Airport - KEF,,4,NULL,1
+19144,IS,2,KEF,Reykjavik Reykjav�k,Keflavik Airport - KEF,,4,NULL,1
 19146,IS,3,KEV,,Keflavikurkaupstadur Seaport - KEV,,4,NULL,1
 19147,IS,3,KOP,,Kopasker - hofn Seaport - KOP,,4,NULL,1
 19148,IS,3,KOV,,Kopavogur Seaport - KOV,,4,NULL,1
@@ -5834,7 +5834,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 19508,IT,3,CII,,Chieti - CII,,3,NULL,1
 19509,IT,3,CHI,,Chioggia Seaport - CHI,,3,NULL,1
 19510,IT,3,CVS,,Chiopris Viscone - CVS,,3,NULL,1
-19512,IT,2,CIA,,"Ciampino Airport, Roma - CIA",,3,NULL,1
+19512,IT,2,CIA,Rome,"Ciampino Airport, Roma - CIA",,3,NULL,1
 19514,IT,3,CIM,,Cimadolmo - CIM,,3,NULL,1
 19515,IT,3,CIB,,Cinisello Balsamo - CIB,,3,NULL,1
 19516,IT,3,CIR,,Cirie - CIR,,3,NULL,1
@@ -5928,7 +5928,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 19608,IT,3,FAE,,Faenza Seaport - FAE,,3,NULL,1
 19609,IT,3,FAA,,Fagagna - FAA,,3,NULL,1
 19610,IT,3,FAL,,Falconara - FAL,,3,NULL,1
-19611,IT,2,PMO,,Falcone–Borsellino Airport - PMO,,3,NULL,1
+19611,IT,2,PMO,Palermo,Falcone–Borsellino Airport - PMO,,3,NULL,1
 19612,IT,3,FNO,,Fanano - FNO,,3,NULL,1
 19613,IT,3,FAO,,Fano - FAO,,3,NULL,1
 19614,IT,3,FVR,,Favara - FVR,,3,NULL,1
@@ -6737,7 +6737,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 20791,JP,3,HNK,,Hanasaki Seaport - HNK,,4,NULL,1
 20792,JP,3,HDA,,Handa Seaport - HDA,,4,NULL,1
 20793,JP,3,HNE,,Hane Seaport - HNE,,4,NULL,1
-20794,JP,2,HND,,"Haneda Airport, Tokyo Airport - HND",,4,NULL,1
+20794,JP,2,HND,,"Haneda Airport, Tokyo Airport - HND",10,4,NULL,1
 20795,JP,3,HAN,,Hannan Seaport - HAN,,4,NULL,1
 20796,JP,3,HUR,,Hannoura Seaport - HUR,,4,NULL,1
 20797,JP,3,HNY,,Hanyu Seaport - HNY,,4,NULL,1
@@ -7357,7 +7357,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 21479,JP,3,NAO,,Naoetsu Seaport - NAO,,4,NULL,1
 21480,JP,3,NAS,,Naoshima Seaport - NAS,,4,NULL,1
 21481,JP,3,NRO,,Narao Seaport - NRO,,4,NULL,1
-21482,JP,2,NRT,,"Narita Airport, Tokyo - NRT",,4,NULL,1
+21482,JP,2,NRT,,"Narita Airport, Tokyo - NRT",10,4,NULL,1
 21484,JP,3,NRS,,Narushima Seaport - NRS,,4,NULL,1
 21485,JP,3,NRU,,Naruto Seaport - NRU,,4,NULL,1
 21486,JP,3,NSX,,Nasa Seaport - NSX,,4,NULL,1
@@ -8144,7 +8144,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 22436,KR,2,GMP,,Gimpo International Airport - GMP,,4,NULL,1
 22437,KR,3,KUV,,Kunsan Seaport - KUV,,4,NULL,1
 22439,KR,2,KWJ,,Gwangju Airport - KWJ,,4,NULL,1
-22442,KR,2,ICN,,Incheon International Airport - ICN,,4,NULL,1
+22442,KR,2,ICN,Seoul,Incheon International Airport - ICN,10,4,NULL,1
 22446,KR,2,CJU,,Jeju International Airport - CJU,,4,NULL,1
 22447,KR,2,CHN,,Jeon Ju Airport - CHN,,4,NULL,1
 22448,KR,2,JDG,,Jeongseok Airport - JDG,,4,NULL,1
@@ -8646,7 +8646,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 23583,MX,2,ZIH,,Ixtapa-Zihuatanejo International Airport - ZIH,,4,NULL,1
 23591,MX,2,LZC,,Lázaro Cárdenas Airport - LZC,,4,NULL,1
 23596,MX,2,TLC,,Lic. Adolfo López Mateos International Airport - TLC,,4,NULL,1
-23597,MX,2,MEX,,Aeropuerto Internacional Benito Juárez (Mexico City International Airport) - MEX,,4,NULL,1
+23597,MX,2,MEX,,Aeropuerto Internacional Benito Juárez (Mexico City International Airport) - MEX,10,4,NULL,1
 23598,MX,2,PVR,,Lic. Gustavo Díaz Ordaz International Airport - PVR,,4,NULL,1
 23599,MX,2,MID,,Manuel Crescencio Rejón International Airport - MID,,4,NULL,1
 23600,MX,2,CLQ,,Lic. Miguel de la Madrid Airport - CLQ,,4,NULL,1
@@ -8710,7 +8710,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 23802,MY,2,KTE,,Kerteh Airport - KTE,,4,NULL,1
 23807,MY,2,KBR,,Sultan Ismail Petra Airport - KBR,,4,NULL,1
 23808,MY,2,BKI,,Kota Kinabalu International Airport - BKI,,4,NULL,1
-23817,MY,2,KUL,,Kuala Lumpur International Airport - KUL,,4,NULL,1
+23817,MY,2,KUL,,Kuala Lumpur International Airport - KUL,10,4,NULL,1
 23825,MY,2,TGG,,Sultan Mahmud Airport - TGG,,4,NULL,1
 23826,MY,3,KUA,,Kuantan (Tanjong Gelang) Seaport - KUA,,4,NULL,1
 23828,MY,2,KCH,,Kuching International Airport - KCH,,4,NULL,1
@@ -9157,7 +9157,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 25387,NO,3,NVK,,Port of Narvik - Seaport - NVK,,4,NULL,1
 25413,NO,3,ORK,,Orkanger - Seaport - ORK,,4,NULL,1
 25423,NO,3,OSL,,Port of Oslo - Seaport - OSL,,4,NULL,1
-25425,NO,2,FBU,,"Oslo, Fornebu Airport - FBU",,4,NULL,1
+25425,NO,2,OSL,,Oslo Gardermoen Airport - OSL,,4,NULL,1
 25433,NO,2,RRS,,Røros Airport - RRS,,4,NULL,1
 25434,NO,2,RVK,,"Rørvik Airport, Ryum - RVK",,4,NULL,1
 25435,NO,2,RET,,Røst Airport - RET,,4,NULL,1
@@ -9900,7 +9900,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 27284,PH,3,MSB,,"Malasugat Bay, Zamboanga - Seaport - MSB",,4,NULL,1
 27285,PH,3,MLB,,Port of Maluso (Port Holland) - Seaport - MLB,,4,NULL,1
 27287,PH,2,MBO,,Mamburao Airport - MBO,,4,NULL,1
-27292,PH,2,MNL,,Ninoy Aquino International Airport - MNL,,4,NULL,1
+27292,PH,2,MNL,Pasay Para�aque,Ninoy Aquino International Airport - MNL,10,4,NULL,1
 27293,PH,3,MNN,,Manila North Harbour - MNN,,4,NULL,1
 27294,PH,3,MNS,,Manila South Harbour - MNS,,4,NULL,1
 27295,PH,2,XMA,,Oadi Maramag Airport - XMA,,4,NULL,1
@@ -10045,7 +10045,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 27661,PL,3,JZB,,Jastrzebie Zdroj - JZB,,3,NULL,1
 27662,PL,3,JWR,,Jawor - JWR,,3,NULL,1
 27663,PL,3,JZW,,Jedrzejow - JZW,,3,NULL,1
-27664,PL,2,KRK,,John Paul II International Airport Kraków-Balice Airport - KRK,,3,NULL,1
+27664,PL,2,KRK,Krakow,John Paul II International Airport Kraków-Balice Airport - KRK,,3,NULL,1
 27665,PL,3,JRT,,Jurata - JRT,,3,NULL,1
 27666,PL,3,KAL,,Kalisz - KAL,,3,NULL,1
 27667,PL,3,KPI,,Kamien Pomorski - KPI,,3,NULL,1
@@ -10302,7 +10302,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 27999,PT,3,LRS,,Loures - LRS,,3,NULL,1
 28000,PT,3,LOU,,Lourosa - LOU,,3,NULL,1
 28001,PT,3,LOA,,Lousada - LOA,,3,NULL,1
-28002,PT,3,MAD,,Madalena - MAD,,3,NULL,1
+28002,PT,3,MAD,,Madalena - MAD,10,3,NULL,1
 28005,PT,3,MAI,,Maia - MAI,,3,NULL,1
 28006,PT,3,MRC,,Marco de Canavezes - MRC,,3,NULL,1
 28007,PT,3,MGR,,Marimha Grande - MGR,,3,NULL,1
@@ -10477,7 +10477,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 28320,RU,3,DKA,,De-Kastri - DKA,,4,NULL,1
 28321,RU,2,DPT,,Deputatskiy Airport - DPT,,4,NULL,1
 28322,RU,3,DKS,,Dikson - DKS,,4,NULL,1
-28324,RU,2,DME,,"Domedovo Airport, Moscow - DME",,4,NULL,1
+28324,RU,2,DME,Domededovo,"Domededovo Airport, Moscow - DME",,4,NULL,1
 28326,RU,2,TBW,,Donskoye Airport - TBW,,4,NULL,1
 28327,RU,3,DUD,,Dudinka - DUD,,4,NULL,1
 28329,RU,3,EGV,,Egvekinot - EGV,,4,NULL,1
@@ -10543,7 +10543,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 28435,RU,3,MEZ,,Mezen - MEZ,,4,NULL,1
 28437,RU,3,MRV,,Mineralnye Vody - MRV,,4,NULL,1
 28439,RU,2,MJZ,,Mirny Airport - MJZ,,4,NULL,1
-28444,RU,2,SVO,,Moscow-Sheremetyevo Airport - SVO,,4,NULL,1
+28444,RU,2,SVO,,Moscow-Sheremetyevo Airport - SVO,10,4,NULL,1
 28445,RU,2,VKO,,Moscow-Vnukovo Airport - VKO,,4,NULL,1
 28446,RU,3,MVO,,Moskalvo - MVO,,4,NULL,1
 28447,RU,3,MMK,,"Murmansk, Port - MMK",,4,NULL,1
@@ -10594,7 +10594,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 28522,RU,2,PVS,,Provideniya Bay Airport - PVS,,4,NULL,1
 28524,RU,3,PKV,,Pskov - PKV,,4,NULL,1
 28526,RU,3,PUD,,Pudozh - PUD,,4,NULL,1
-28527,RU,2,LED,,Pulkovo Airport - LED,,4,NULL,1
+28527,RU,2,LED,Saint Petersburg St Petersburg,Pulkovo Airport - LED,,4,NULL,1
 28528,RU,2,RAT,,Raduzhny Airport - RAT,,4,NULL,1
 28530,RU,2,TJM,,Roshchino International Airport - TJM,,4,NULL,1
 28531,RU,3,ROV,,Rostov Port - ROV,,4,NULL,1
@@ -11346,7 +11346,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 30869,TW,3,TXG,,Taichung Seaport - TXG,,4,NULL,1
 30871,TW,2,RMQ,,Taichung International Airport - RMQ,,4,NULL,1
 30872,TW,2,TNN,,Tainan Airport - TNN,,4,NULL,1
-30874,TW,2,TPE,,Taiwan Taoyuan International Airport - TPE,,4,NULL,1
+30874,TW,2,TPE,,Taiwan Taoyuan International Airport - TPE,10,4,NULL,1
 30875,TW,2,TSA,,Taipei Songshan Airport - TSA,,4,NULL,1
 30876,TW,2,TTT,,Taitung Airport - TTT,,4,NULL,1
 30881,TW,2,WOT,,Wang-an Airport - WOT,,4,NULL,1
@@ -11379,7 +11379,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 30955,UA,2,UKS,,Belbek Airport - UKS,,4,NULL,1
 30956,UA,3,BGD,,Belgorod-Dnestrovskiy Seaport - BGD,,4,NULL,1
 30957,UA,2,ERD,,Berdyansk Airport - ERD,,4,NULL,1
-30959,UA,2,KBP,,Boryspil International Airport - KBP,,4,NULL,1
+30959,UA,2,KBP,Kiev,Boryspil International Airport - KBP,,4,NULL,1
 30961,UA,2,CKC,,Cherkasy International Airport - CKC,,4,NULL,1
 30965,UA,2,CWC,,Chernivtsi International Airport - CWC,,4,NULL,1
 30966,UA,2,KHE,,Kherson International Airport - KHE,,4,NULL,1
@@ -11424,14 +11424,14 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 31083,UG,2,TRY,,Tororo Airport - TRY,,4,NULL,1
 31088,UK,2,ABZ,,Aberdeen Dyce Airport - ABZ,,1,NULL,1
 31138,UK,2,VLY,,Anglesey Airport - VLY,,1,NULL,1
-31201,UK,2,BOL,,Ballykelly Airport - BOL,,1,NULL,1
+31201,UK,2,BOL,,Ballykelly Airport - BOL,,2,NULL,1
 31228,UK,2,BWF,,Barrow Walney Island Airport - BWF,,1,NULL,1
 31258,UK,2,BEB,,Benbecula Airport - BEB,,1,NULL,1
-31276,UK,2,BFS,,Belfast International Airport - BFS,,2,NULL,1
+31276,UK,2,BFS,,Belfast International Airport - BFS,10,2,NULL,1
 31280,UK,2,BBP,,Bembridge Airport - BBP,,1,NULL,1
 31302,UK,2,BQH,,London Biggin Hill Airport - BQH,,1,NULL,1
 31309,UK,2,GSY,,Binbrook Airfield - GSY,,1,NULL,1
-31317,UK,2,BHX,,Birmingham International Airport - BHX,,1,NULL,1
+31317,UK,2,BHX,,Birmingham International Airport - BHX,10,1,NULL,1
 31331,UK,2,BLK,,Blackpool Airport - BLK,,1,NULL,1
 31418,UK,2,FZO,,Bristol Filton Airport - FZO,,1,NULL,1
 31496,UK,2,CBG,,Cambridge Airport - CBG,,1,NULL,1
@@ -11450,9 +11450,9 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 31861,UK,2,EXT,,Exeter International Airport - EXT,,1,NULL,1
 31870,UK,2,FIE,,Fair Isle Airport - FIE,,1,NULL,1
 31879,UK,2,FAB,,Farnborough Airport - FAB,,1,NULL,1
-31961,UK,2,BHD,,George Best Belfast City Airport - BHD,,2,NULL,1
-31969,UK,2,GLW,,Glasgow International Airport - GLW,,1,NULL,1
-31971,UK,2,PIK,,Glasgow Prestwick Airport - PIK,,1,NULL,1
+31961,UK,2,BHD,,George Best Belfast City Airport - BHD,5,2,NULL,1
+31969,UK,2,GLW,,Glasgow International Airport - GLW,5,1,NULL,1
+31971,UK,2,PIK,,Glasgow Prestwick Airport - PIK,5,1,NULL,1
 31976,UK,3,ULL,,Ullapool Seaport - ULL,,1,NULL,1
 31981,UK,2,GLO,,Gloucestershire Airport - GLO,,1,NULL,1
 32053,UK,2,HAP,,HAirporton - HAP,,1,NULL,1
@@ -11464,10 +11464,10 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 32343,UK,2,KOI,,Kirkwall Airport - KOI,,1,NULL,1
 32346,UK,2,KPT,,KnAirporton - KPT,,1,NULL,1
 32373,UK,2,QLA,,Lasham Airport - QLA,,1,NULL,1
-32382,UK,2,LBA,,Leeds Bradford International Airport - LBA,,1,NULL,1
+32382,UK,2,LBA,,Leeds Bradford International Airport - LBA,5,1,NULL,1
 32398,UK,2,LWK,,Lerwick / Tingwall Airport - LWK,,1,NULL,1
-32437,UK,2,LPL,,Liverpool John Lennon Airport - LPL,,1,NULL,1
-32466,UK,2,LCY,,London City Airport - LCY,,1,NULL,1
+32437,UK,2,LPL,,Liverpool John Lennon Airport - LPL,5,1,NULL,1
+32466,UK,2,LCY,,London City Airport - LCY,5,1,NULL,1
 32471,UK,2,STN,,London Stansted Airport - STN,,1,NULL,1
 32504,UK,2,LYX,,Lydd Airport - LYX,,1,NULL,1
 32509,UK,3,LYM,,Lymington Seaport - LYM,,1,NULL,1
@@ -11571,7 +11571,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 33055,UK,3,SKE,,Skegness Seaport - SKE,,1,NULL,1
 33082,UK,3,EDH,,South Queensferry Seaport - EDH,,1,NULL,1
 33083,UK,3,SSH,,Port of South Shields Seaport - SSH,,1,NULL,1
-33091,UK,2,SEN,,London Southend Airport - SEN,,1,NULL,1
+33091,UK,2,SEN,,London Southend Airport - SEN,5,1,NULL,1
 33097,UK,3,SWD,,Southwold Seaport - SWD,,1,NULL,1
 33105,UK,3,SUH,,Spurn Head Seaport - SUH,,1,NULL,1
 33155,UK,3,SVN,,Stonehaven Seaport - SVN,,1,NULL,1
@@ -11723,7 +11723,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 33940,US,2,AST,,Astoria Regional Airport - AST,,4,NULL,1
 33943,US,2,AHN,,Athens International Airport - AHN,,4,NULL,1
 33953,US,2,AKB,,Atka Airport - AKB,,4,NULL,1
-33957,US,2,ATL,,Hartsfield-Jackson Atlanta International Airport - ATL,,4,NULL,1
+33957,US,2,ATL,,Hartsfield-Jackson Atlanta International Airport - ATL,10,4,NULL,1
 33958,US,2,ACY,,Atlantic City International Airport - ACY,,4,NULL,1
 33964,US,2,ATT,,Atmautluak Airport - ATT,,4,NULL,1
 33966,US,2,ATK,,Atqasuk Edward Burnell Sr. Memorial Airport - ATK,,4,NULL,1
@@ -11967,7 +11967,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 35083,US,2,MKC,,Charles B. Wheeler Downtown Airport - MKC,,4,NULL,1
 35084,US,2,CCY,,Northeast Iowa Regional Airport - CCY,,4,NULL,1
 35085,US,2,STS,,Charles M. Schulz Sonoma County Airport - STS,,4,NULL,1
-35097,US,2,CLT,,Charlotte Douglas International Airport - CLT,,4,NULL,1
+35097,US,2,CLT,,Charlotte Douglas International Airport - CLT,10,4,NULL,1
 35099,US,2,PGD,,Charlotte County Airport-Punta Gorda Airport - PGD,,4,NULL,1
 35101,US,2,CHO,,Charlottesville Albemarle Airport - CHO,,4,NULL,1
 35109,US,2,CYM,,Chatham Seaplane Base - CYM,,4,NULL,1
@@ -11989,7 +11989,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 35171,US,2,PWK,,Chicago Executive Airport - PWK,,4,NULL,1
 35173,US,3,CGX,,Carthage Port - CGX,,4,NULL,1
 35174,US,2,MDW,,Chicago Midway International Airport - MDW,,4,NULL,1
-35175,US,2,ORD,,Chicago O'Hare International Airport - ORD,,4,NULL,1
+35175,US,2,ORD,,Chicago O'Hare International Airport - ORD,10,4,NULL,1
 35177,US,2,RFD,,Chicago Rockford International Airport - RFD,,4,NULL,1
 35179,US,2,CHK,,Chickasha Municipal Airport - CHK,,4,NULL,1
 35181,US,2,CKX,,Chicken Airport - CKX,,4,NULL,1
@@ -12102,7 +12102,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 35658,US,2,DCK,,Dahl Creek Airport - DCK,,4,NULL,1
 35668,US,2,DHT,,Dalhart Municipal Airport - DHT,,4,NULL,1
 35675,US,2,RBD,,Dallas Executive Airport - RBD,,4,NULL,1
-35676,US,2,DFW,,Dallas Fort Worth International Airport - DFW,,4,NULL,1
+35676,US,2,DFW,,Dallas Fort Worth International Airport - DFW,10,4,NULL,1
 35677,US,2,DAL,,Dallas Love Field Airport - DAL,,4,NULL,1
 35678,US,2,DTW,,Detroit Metropolitan Wayne County Airport - DTW,,4,NULL,1
 35679,US,2,DNN,,Dalton Municipal Airport - DNN,,4,NULL,1
@@ -12138,7 +12138,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 35814,US,2,DTA,,Delta Municipal Airport - DTA,,4,NULL,1
 35816,US,2,DMN,,Deming Municipal Airport - DMN,,4,NULL,1
 35821,US,2,DNS,,Denison Municipal Airport - DNS,,4,NULL,1
-35826,US,2,DEN,,Denver International Airport - DEN,,4,NULL,1
+35826,US,2,DEN,,Denver International Airport - DEN,10,4,NULL,1
 35836,US,2,LOL,,Lovelock Airport - LOL,,4,NULL,1
 35840,US,2,DSM,,Des Moines International Airport - DSM,,4,NULL,1
 35844,US,2,DSI,,Destin Executive Airport - DSI,,4,NULL,1
@@ -12365,7 +12365,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 36824,US,2,BOS,,General Edward Lawrence Logan International Airport - BOS,,4,NULL,1
 36825,US,2,MKE,,General Mitchell International Airport - MKE,,4,NULL,1
 36826,US,2,PIA,,General Wayne A. Downing Peoria International Airport - PIA,,4,NULL,1
-36835,US,2,IAH,,George Bush Intercontinental Houston Airport - IAH,,4,NULL,1
+36835,US,2,IAH,,George Bush Intercontinental Houston Airport - IAH,10,4,NULL,1
 36847,US,2,GGE,,Georgetown County Airport - GGE,,4,NULL,1
 36849,US,2,GRR,,Gerald R. Ford International Airport - GRR,,4,NULL,1
 36854,US,2,GTY,,Gettysburg Airport - GTY,,4,NULL,1
@@ -12704,7 +12704,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 38318,US,2,KLN,,Larsen Bay Airport - KLN,,4,NULL,1
 38320,US,2,LRU,,Las Cruces Airport - LRU,,4,NULL,1
 38322,US,2,LAS,,Las Vegas Airport - LAS,,4,NULL,1
-38324,US,2,LVS,,Las Vegas Municipal Airport - LVS,,4,NULL,1
+38324,US,2,LVS,McCarran,Las Vegas Municipal Airport - LVS,10,4,NULL,1
 38327,US,2,LRO,,Lathrop Airport - LRO,,4,NULL,1
 38328,US,3,LTH,,Lathrop Wells - LTH,,4,NULL,1
 38337,US,2,BED,,Laurence G Hanscom Field Airport - BED,,4,NULL,1
@@ -12753,7 +12753,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 38623,US,2,LSB,,Lordsburg Airport - LSB,,4,NULL,1
 38630,US,3,LAT,,Los Alamitos Seaport - LAT,,4,NULL,1
 38631,US,2,LAM,,Los Alamos Airport - LAM,,4,NULL,1
-38636,US,2,LAX,,Los Angeles International Airport - LAX,,4,NULL,1
+38636,US,2,LAX,,Los Angeles International Airport - LAX,10,4,NULL,1
 38637,US,2,LSN,,Los Banos Airport - LSN,,4,NULL,1
 38641,US,2,LHB,,Lost Harbor Airport - LHB,,4,NULL,1
 38642,US,2,LSR,,Lost River Airport - LSR,,4,NULL,1
@@ -12850,7 +12850,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 39129,US,3,MTM,,Metlakatla Seaport - MTM,,4,NULL,1
 39132,US,2,PMX,,Metropolitan Airport - PMX,,4,NULL,1
 39133,US,2,OAK,,Metropolitan Oakland International Airport - OAK,,4,NULL,1
-39143,US,2,MIA,,Miami International Airport - MIA,,4,NULL,1
+39143,US,2,MIA,,Miami International Airport - MIA,10,4,NULL,1
 39147,US,2,OXD,,Miami University Airport - OXD,,4,NULL,1
 39151,US,3,MGC,,Michigan City - MGC,,4,NULL,1
 39154,US,2,GLH,,Mid Delta Regional Airport - GLH,,4,NULL,1
@@ -12940,7 +12940,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 39694,US,2,KNW,,New Stuyahok Airport - KNW,,4,NULL,1
 39699,US,2,ULM,,New Ulm Municipal Airport - ULM,,4,NULL,1
 39706,US,2,QNY,,New York Skyports Inc Seaplane Base - QNY,,4,NULL,1
-39715,US,2,EWR,,Newark Airport - EWR,,4,NULL,1
+39715,US,2,EWR,,Newark Airport - EWR,10,4,NULL,1
 39750,US,3,JNP,,Newport Beach Seaport - JNP,,4,NULL,1
 39753,US,2,EFK,,Northeast Kingdom International Airport - EFK,,4,NULL,1
 39756,US,2,WWT,,Newtok Airport - WWT,,4,NULL,1
@@ -13009,7 +13009,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 40077,US,2,ONT,,Ontario International Airport - ONT,,4,NULL,1
 40081,US,2,OPL,,St Landry Parish Airport - OPL,,4,NULL,1
 40094,US,2,OGB,,Orangeburg Municipal Airport - OGB,,4,NULL,1
-40111,US,2,MCO,,Orlando International Airport - MCO,,4,NULL,1
+40111,US,2,MCO,,Orlando International Airport - MCO,10,4,NULL,1
 40112,US,2,SFB,,Orlando Sanford International Airport - SFB,,4,NULL,1
 40116,US,2,OVE,,Oroville Municipal Airport - OVE,,4,NULL,1
 40124,US,2,OSB,,Grand Glaize-Osage Beach Airport - OSB,,4,NULL,1
@@ -13079,7 +13079,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 40406,US,2,PSQ,,Philadelphia Seaplane Base Airport - PSQ,,4,NULL,1
 40407,US,2,PHP,,Philip Airport - PHP,,4,NULL,1
 40409,US,2,TOP,,Philip Billard Municipal Airport - TOP,,4,NULL,1
-40414,US,2,PHX,,Phoenix Sky Harbor International Airport - PHX,,4,NULL,1
+40414,US,2,PHX,,Phoenix Sky Harbor International Airport - PHX,10,4,NULL,1
 40416,US,2,GYR,,Phoenix Goodyear Airport - GYR,,4,NULL,1
 40422,US,2,PCU,,Picayune Municipal Airport - PCU,,4,NULL,1
 40423,US,2,LQK,,Pickens Airport - LQK,,4,NULL,1
@@ -13273,7 +13273,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 41291,US,2,SQL,,San Carlos Airport - SQL,,4,NULL,1
 41292,US,2,GLB,,San Carlos Apache Airport - GLB,,4,NULL,1
 41294,US,2,SAN,,San Diego International Airport - SAN,,4,NULL,1
-41301,US,2,SFO,,San Francisco International Airport - SFO,,4,NULL,1
+41301,US,2,SFO,,San Francisco International Airport - SFO,10,4,NULL,1
 41311,US,2,SBP,,San Luis Obisco County Regional Airport - SBP,,4,NULL,1
 41312,US,2,CSL,,San Luis Obispo County Regional Airport - CSL,,4,NULL,1
 41318,US,3,SXF,,San Mateo Seaport - SXF,,4,NULL,1
@@ -13306,7 +13306,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 41454,US,2,SYB,,Seal Bay Seaplane Base - SYB,,4,NULL,1
 41457,US,2,SRC,,Searcy Municipal Airport - SRC,,4,NULL,1
 41459,US,3,SRP,,Searsport Seaport - SRP,,4,NULL,1
-41462,US,2,SEA,,Seattle-Tacoma International Airport - SEA,,4,NULL,1
+41462,US,2,SEA,SeaTac,Seattle-Tacoma International Airport - SEA,10,4,NULL,1
 41471,US,2,SEF,,Sebring Regional Airport - SEF,,4,NULL,1
 41473,US,2,DMO,,Sedalia Regional Airport - DMO,,4,NULL,1
 41475,US,2,SDX,,Sedona Airport - SDX,,4,NULL,1
@@ -13993,7 +13993,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 44087,ZA,2,VRE,,Vredendal Airport - VRE,,4,NULL,1
 44094,ZA,2,PRY,,Wonderboom National Airport - PRY,,4,NULL,1
 44095,ZA,2,PZL,,Zulu Inyala Airport - PZL,,4,NULL,1
-45974,CA,2,YYZ,,Toronto Pearson International Airport - YYZ,,4,NULL,1
+45974,CA,2,YYZ,,Toronto Pearson International Airport - YYZ,10,4,NULL,1
 45975,CH,2,PKX,,Beijing Daxing International Airport - PKX,,4,NULL,1
 45976,BN,2,BWN,,Brunei International Airport - BWN,,4,NULL,1
 45977,ZM,2,CGJ,,Kasompe Airport - CGJ,,4,NULL,1
@@ -14039,7 +14039,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46017,DE,3,DRS,,Dresden Seaport - DRS,,3,NULL,1
 46018,DE,3,DTM,,Dortmund Seaport - DTM,,3,NULL,1
 46019,DE,3,DUI,,Duisburg Seaport - DUI,,3,NULL,1
-46020,DE,3,DUS,,Düsseldorf International Seaport - DUS,,3,NULL,1
+46020,DE,3,DUS,Dusseldorf,Düsseldorf International Seaport - DUS,,3,NULL,1
 46021,AR,3,RZA,,Santa Cruz Seaport - RZA,,4,NULL,0
 46022,AR,3,SFN,,Santa Fe Seaport - SFN,,4,NULL,0
 46023,AR,3,SNS,,San Nicolás de los Arroyos Seaport - SNS,,4,NULL,0
@@ -14098,7 +14098,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46076,AU,3,ROK,,Rockhampton Seaport - ROK,,4,NULL,0
 46077,AU,3,RTS,,Rottnest Island Seaport - RTS,,4,NULL,0
 46078,AU,3,SRN,,Strahan Seaport - SRN,,4,NULL,0
-46079,AU,3,SYD,,Sydney Seaport - SYD,,4,NULL,0
+46079,AU,3,SYD,,Sydney Seaport - SYD,10,4,NULL,0
 46080,AU,3,TIS,,Thursday Island Seaport - TIS,,4,NULL,0
 46081,AU,3,TSV,,Townsville Seaport - TSV,,4,NULL,0
 46082,AU,3,WAZ,,Warwick Seaport - WAZ,,4,NULL,0
@@ -14396,7 +14396,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46374,FR,3,MZM,,Metz Seaport - MZM,,3,NULL,1
 46375,FR,2,MZT,,Metz Airport - MZT,,3,NULL,1
 46376,FR,3,NCE,,Nice Seaport - NCE,,3,NULL,1
-46377,FR,2,NTE,,Nantes Airport - NTE,,3,NULL,1
+46377,FR,2,NTE,Atlantique,Nantes Airport - NTE,,3,NULL,1
 46378,FR,3,NVS,,Nevers Seaport - NVS,,3,NULL,1
 46379,FR,4,PAR,,Paris rail terminal - PAR,,3,NULL,0
 46380,FR,2,PRP,,Propriano Airport - PRP,,3,NULL,1
@@ -14580,7 +14580,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46558,IT,3,REG,,Reggio Calabria Seaport - REG,,3,NULL,1
 46559,IT,2,TPS,,Trapani Airport - TPS,,3,NULL,1
 46560,IT,2,TRS,,Trieste Airport - TRS,,3,Null,1
-46561,IT,2,VCE,,Venice (Venezia) Airport - VCE,,3,NULL,1
+46561,IT,2,VCE,Marco Polo,Venice (Venezia) Airport - VCE,,3,NULL,1
 46562,JM,2,KIN,,Norman Manley International Airport - KIN,,4,NULL,1
 46563,JM,2,MBJ,,Montego Bay Airport - MBJ,,4,Null,1
 46564,JM,2,OCJ,,Ocho Rios Airport - OCJ,,4,NULL,0
@@ -14865,7 +14865,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46843,TD,2,MXR,,Moussoro Airport - MXR,,4,NULL,0
 46844,TD,2,OGR,,Bongor Airport - OGR,,4,Null,0
 46845,TG,3,LFW,,Lome Seaport - LFW,,4,NULL,1
-46846,TH,2,BKK,,Suvarnabhumi International Airport - BKK,,4,NULL,0
+46846,TH,2,BKK,Bang Phli Samut Prakan,Suvarnabhumi International Airport - BKK,10,4,NULL,0
 46847,TH,2,CEI,,Mae Fah Luang Chiang Rai International Airport - CEI,,4,NULL,1
 46848,TH,2,CNX,,Chiang Mai International Airport - CNX,,4,NULL,0
 46849,TH,2,HDY,,Hat Yai International Airport - HDY,,4,NULL,1
@@ -14882,7 +14882,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46860,TN,3,TUN,,Tunis Seaport - TUN,,4,NULL,1
 46861,TN,3,ZRZ,,Zarzis Seaport - ZRZ,,4,NULL,1
 46862,TR,2,AYT,,Antalya Airport - AYT,,4,NULL,1
-46863,TR,2,IST,,Istanbul New Airport - IST,,4,NULL,1
+46863,TR,2,IST,Arnavutk�y,Istanbul Airport - IST,10,4,NULL,1
 46864,TR,3,NOP,,Sinop Seaport - NOP,,4,NULL,1
 46865,TR,2,OGU,,Ordu Giresun Airport - OGU,,4,NULL,1
 46866,TR,2,TZX,,Trabzon Airport - TZX,,4,NULL,1
@@ -15002,12 +15002,515 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46980,WS,3,AAU,,Asau Port - AAU,,4,NULL,0
 46981,WS,3,APW,,Apia Port - APW,,4,NULL,0
 46982,YE,3,ZAM,,Port of Al Mukalla - ZAM,,4,NULL,0
-100001,FR,2,FR1,,Private airstrip,0,3,NULL,0
-100002,FR,3,FR2,,Private dock,0,3,NULL,0
-100003,FR,2,FR3,,Not listed,0,3,NULL,0
-100004,FR,3,FR4,,Not listed,0,3,NULL,0
-100005,FR,4,FR5,,Channel Tunnel,0,3,NULL,0
-100006,ES,2,ES1,,Private airstrip,0,3,NULL,0
-100007,ES,3,ES2,,Private dock,0,3,NULL,0
-100008,ES,2,ES3,,Not listed,0,3,NULL,0
-100009,ES,3,ES4,,Not listed,0,3,NULL,0
+100001,FR,4,CH2,,Channel Tunnel in France,0,3,NULL,0
+100002,UK,4,CH1,,Channel Tunnel in United Kingdom,0,1,NULL,0
+100007,UK,2,NI1,,Private airstrip in Northern Ireland,0,2,NULL,0
+100008,UK,3,NI2,,Private dock in Northern Ireland,0,2,NULL,0
+100009,AC,2,AC1,,Private airstrip in Alderney,0,4,NULL,0
+100010,AD,2,AD1,,Private airstrip in Andorra,0,4,NULL,0
+100011,AE,2,AE1,,Private airstrip in United Arab Emirates,0,4,NULL,0
+100012,AF,2,AF1,,Private airstrip in Afghanistan,0,4,NULL,0
+100013,AG,2,AG1,,Private airstrip in Antigua and Barbuda,0,4,NULL,0
+100014,AI,2,AI1,,Private airstrip in Anguilla,0,4,NULL,0
+100015,AL,2,AL1,,Private airstrip in Albania,0,4,NULL,0
+100016,AM,2,AM1,,Private airstrip in Armenia,0,4,NULL,0
+100017,AN,2,AN1,,Private airstrip in Netherlands Antilles,0,4,NULL,0
+100018,AO,2,AO1,,Private airstrip in Angola,0,4,NULL,0
+100019,AQ,2,AQ1,,Private airstrip in Antarctica,0,4,NULL,0
+100020,AR,2,AR1,,Private airstrip in Argentina,0,4,NULL,0
+100021,AS,2,AS1,,Private airstrip in American Samoa,0,4,NULL,0
+100022,AT,2,AT1,,Private airstrip in Austria,0,3,NULL,0
+100023,AU,2,AU1,,Private airstrip in Australia,0,4,NULL,0
+100024,AW,2,AW1,,Private airstrip in Aruba,0,4,NULL,0
+100025,AX,2,AX1,,Private airstrip in Aland Islands,0,4,NULL,0
+100026,AZ,2,AZ1,,Private airstrip in Azerbaijan,0,4,NULL,0
+100027,BA,2,BA1,,Private airstrip in Bosnia-Herzegovina,0,4,NULL,0
+100028,BB,2,BB1,,Private airstrip in Barbados,0,4,NULL,0
+100029,BD,2,BD1,,Private airstrip in Bangladesh,0,4,NULL,0
+100030,BE,2,BE1,,Private airstrip in Belgium,0,3,NULL,0
+100031,BF,2,BF1,,Private airstrip in Burkina Faso,0,4,NULL,0
+100032,BG,2,BG1,,Private airstrip in Bulgaria,0,3,NULL,0
+100033,BH,2,BH1,,Private airstrip in Bahrain,0,4,NULL,0
+100034,BI,2,BI1,,Private airstrip in Burundi,0,4,NULL,0
+100035,BJ,2,BJ1,,Private airstrip in Benin,0,4,NULL,0
+100036,BL,2,BL1,,Private airstrip in Saint Barthelemy,0,4,NULL,0
+100037,BM,2,BM1,,Private airstrip in Bermuda,0,4,NULL,0
+100038,BN,2,BN1,,Private airstrip in Brunei,0,4,NULL,0
+100039,BO,2,BO1,,Private airstrip in Bolivia,0,4,NULL,0
+100040,BQ,2,BQ1,,"Private airstrip in Bonaire, Sint Eustatius and Saba",0,4,NULL,0
+100041,BR,2,BR1,,Private airstrip in Brazil,0,4,NULL,0
+100042,BS,2,BS1,,Private airstrip in Bahamas,0,4,NULL,0
+100043,BT,2,BT1,,Private airstrip in Bhutan,0,4,NULL,0
+100044,BV,2,BV1,,Private airstrip in Bouvet Island,0,4,NULL,0
+100045,BW,2,BW1,,Private airstrip in Botswana,0,4,NULL,0
+100046,BY,2,BY1,,Private airstrip in Belarus,0,4,NULL,0
+100047,BZ,2,BZ1,,Private airstrip in Belize,0,4,NULL,0
+100048,CA,2,CA1,,Private airstrip in Canada,0,4,NULL,0
+100049,CC,2,CC1,,Private airstrip in Cocos Islands,0,4,NULL,0
+100050,CD,2,CD1,,Private airstrip in Congo (Democratic Republic of the),0,4,NULL,0
+100051,CE,2,CE1,,Private airstrip in Channel Islands,0,4,NULL,0
+100052,CF,2,CF1,,Private airstrip in Central Africa Republic,0,4,NULL,0
+100053,CG,2,CG1,,Private airstrip in Congo,0,4,NULL,0
+100054,CH,2,CH1,,Private airstrip in Switzerland,0,4,NULL,0
+100055,CI,2,CI1,,Private airstrip in Cote D'Ivoire,0,4,NULL,0
+100056,CK,2,CK1,,Private airstrip in Cook Islands,0,4,NULL,0
+100057,CL,2,CL1,,Private airstrip in Chile,0,4,NULL,0
+100058,CM,2,CM1,,Private airstrip in Cameroon,0,4,NULL,0
+100059,CN,2,CN1,,Private airstrip in China,0,4,NULL,0
+100060,CO,2,CO1,,Private airstrip in Colombia,0,4,NULL,0
+100061,CR,2,CR1,,Private airstrip in Costa Rica,0,4,NULL,0
+100062,CU,2,CU1,,Private airstrip in Cuba,0,4,NULL,0
+100063,CV,2,CV1,,Private airstrip in Cape Verde,0,4,NULL,0
+100064,CW,2,CW1,,Private airstrip in Curacao,0,4,NULL,0
+100065,CX,2,CX1,,Private airstrip in Christmas Islands,0,4,NULL,0
+100066,CY,2,CY1,,Private airstrip in Cyprus,0,3,NULL,0
+100067,CZ,2,CZ1,,Private airstrip in Czech Republic,0,3,NULL,0
+100068,DE,2,DE1,,Private airstrip in Germany,0,3,NULL,0
+100069,DJ,2,DJ1,,Private airstrip in Djibouti,0,4,NULL,0
+100070,DK,2,DK1,,Private airstrip in Denmark,0,3,NULL,0
+100071,DM,2,DM1,,Private airstrip in Dominica,0,4,NULL,0
+100072,DO,2,DO1,,Private airstrip in Dominican Republic,0,4,NULL,0
+100073,DZ,2,DZ1,,Private airstrip in Algeria,0,4,NULL,0
+100074,EC,2,EC1,,Private airstrip in Ecuador,0,4,NULL,0
+100075,EE,2,EE1,,Private airstrip in Estonia,0,3,NULL,0
+100076,EG,2,EG1,,Private airstrip in Egypt,0,4,NULL,0
+100077,EH,2,EH1,,Private airstrip in Western Sahara,0,4,NULL,0
+100078,ER,2,ER1,,Private airstrip in Eritrea,0,4,NULL,0
+100079,ES,2,ES1,,Private airstrip in Spain,0,3,NULL,0
+100080,ET,2,ET1,,Private airstrip in Ethiopia,0,4,NULL,0
+100081,FI,2,FI1,,Private airstrip in Finland,0,3,NULL,0
+100082,FJ,2,FJ1,,Private airstrip in Fiji,0,4,NULL,0
+100083,FK,2,FK1,,Private airstrip in Falklands Islands and dependencies,0,4,NULL,0
+100084,FM,2,FM1,,Private airstrip in Micronesia,0,4,NULL,0
+100085,FO,2,FO1,,Private airstrip in Faroe Islands,0,4,NULL,0
+100086,FR,2,FR1,,Private airstrip in France,0,3,NULL,0
+100087,GA,2,GA1,,Private airstrip in Gabon,0,4,NULL,0
+100088,GD,2,GD1,,Private airstrip in Grenada,0,4,NULL,0
+100089,GE,2,GE1,,Private airstrip in Georgia,0,4,NULL,0
+100090,GF,2,GF1,,Private airstrip in French Guiana,0,4,NULL,0
+100091,GG,2,GG1,,Private airstrip in Guernsey,0,4,NULL,0
+100092,GH,2,GH1,,Private airstrip in Ghana,0,4,NULL,0
+100093,GI,2,GI1,,Private airstrip in Gibraltar,0,4,NULL,0
+100094,GL,2,GL1,,Private airstrip in Greenland,0,4,NULL,0
+100095,GM,2,GM1,,Private airstrip in Gambia,0,4,NULL,0
+100096,GN,2,GN1,,Private airstrip in Guinea,0,4,NULL,0
+100097,GP,2,GP1,,Private airstrip in Guadeloupe,0,4,NULL,0
+100098,GQ,2,GQ1,,Private airstrip in Equatorial Guinea,0,4,NULL,0
+100099,GR,2,GR1,,Private airstrip in Greece,0,3,NULL,0
+100100,GS,2,GS1,,Private airstrip in South Georgia and South Sandwich Islands,0,4,NULL,0
+100101,GT,2,GT1,,Private airstrip in Guatemala,0,4,NULL,0
+100102,GU,2,GU1,,Private airstrip in Guam,0,4,NULL,0
+100103,GW,2,GW1,,Private airstrip in Guinea Bissau,0,4,NULL,0
+100104,GY,2,GY1,,Private airstrip in Guyana,0,4,NULL,0
+100105,HK,2,HK1,,Private airstrip in Hong Kong,0,4,NULL,0
+100106,HM,2,HM1,,Private airstrip in Heard Island and McDonald Islands,0,4,NULL,0
+100107,HN,2,HN1,,Private airstrip in Honduras,0,4,NULL,0
+100108,HR,2,HR1,,Private airstrip in Croatia,0,3,NULL,0
+100109,HT,2,HT1,,Private airstrip in Haiti,0,4,NULL,0
+100110,HU,2,HU1,,Private airstrip in Hungary,0,3,NULL,0
+100111,ID,2,ID1,,Private airstrip in Indonesia,0,4,NULL,0
+100112,IE,2,IE1,,Private airstrip in Ireland,0,3,NULL,0
+100113,IL,2,IL1,,Private airstrip in Israel,0,4,NULL,0
+100114,IM,2,IM1,,Private airstrip in Isle of Man,0,4,NULL,0
+100115,IN,2,IN1,,Private airstrip in India,0,4,NULL,0
+100116,IO,2,IO1,,Private airstrip in British Indian Ocean Territory,0,4,NULL,0
+100117,IQ,2,IQ1,,Private airstrip in Iraq,0,4,NULL,0
+100118,IR,2,IR1,,Private airstrip in Iran,0,4,NULL,0
+100119,IS,2,IS1,,Private airstrip in Iceland,0,4,NULL,0
+100120,IT,2,IT1,,Private airstrip in Italy,0,3,NULL,0
+100121,JE,2,JE1,,Private airstrip in Jersey,0,4,NULL,0
+100122,JM,2,JM1,,Private airstrip in Jamaica,0,4,NULL,0
+100123,JO,2,JO1,,Private airstrip in Jordan,0,4,NULL,0
+100124,JP,2,JP1,,Private airstrip in Japan,0,4,NULL,0
+100125,KE,2,KE1,,Private airstrip in Kenya,0,4,NULL,0
+100126,KG,2,KG1,,Private airstrip in Kyrgyzstan,0,4,NULL,0
+100127,KH,2,KH1,,Private airstrip in Cambodia,0,4,NULL,0
+100128,KI,2,KI1,,Private airstrip in Kiribati,0,4,NULL,0
+100129,KM,2,KM1,,Private airstrip in Comoros,0,4,NULL,0
+100130,KN,2,KN1,,Private airstrip in St Kitts and Nevis,0,4,NULL,0
+100131,KP,2,KP1,,Private airstrip in North Korea,0,4,NULL,0
+100132,KR,2,KR1,,Private airstrip in South Korea,0,4,NULL,0
+100133,KW,2,KW1,,Private airstrip in Kuwait,0,4,NULL,0
+100134,KY,2,KY1,,Private airstrip in Cayman Islands,0,4,NULL,0
+100135,KZ,2,KZ1,,Private airstrip in Kazakhstan,0,4,NULL,0
+100136,LA,2,LA1,,Private airstrip in Laos,0,4,NULL,0
+100137,LB,2,LB1,,Private airstrip in Lebanon,0,4,NULL,0
+100138,LC,2,LC1,,Private airstrip in St Lucia,0,4,NULL,0
+100139,LI,2,LI1,,Private airstrip in Liechtenstein,0,4,NULL,0
+100140,LK,2,LK1,,Private airstrip in Sri Lanka,0,4,NULL,0
+100141,LR,2,LR1,,Private airstrip in Liberia,0,4,NULL,0
+100142,LS,2,LS1,,Private airstrip in Lesotho,0,4,NULL,0
+100143,LT,2,LT1,,Private airstrip in Lithuania,0,3,NULL,0
+100144,LU,2,LU1,,Private airstrip in Luxembourg,0,3,NULL,0
+100145,LV,2,LV1,,Private airstrip in Latvia,0,3,NULL,0
+100146,LY,2,LY1,,Private airstrip in Libya,0,4,NULL,0
+100147,MA,2,MA1,,Private airstrip in Morocco,0,4,NULL,0
+100148,MC,2,MC1,,Private airstrip in Monaco,0,4,NULL,0
+100149,MD,2,MD1,,Private airstrip in Moldova,0,4,NULL,0
+100150,ME,2,ME1,,Private airstrip in Montenegro,0,4,NULL,0
+100151,MF,2,MF1,,Private airstrip in Saint Martin,0,4,NULL,0
+100152,MG,2,MG1,,Private airstrip in Madagascar,0,4,NULL,0
+100153,MH,2,MH1,,Private airstrip in Marshall Islands,0,4,NULL,0
+100154,MK,2,MK1,,Private airstrip in Macedonia,0,4,NULL,0
+100155,ML,2,ML1,,Private airstrip in Mali,0,4,NULL,0
+100156,MM,2,MM1,,Private airstrip in Myanmar,0,4,NULL,0
+100157,MN,2,MN1,,Private airstrip in Mongolia,0,4,NULL,0
+100158,MO,2,MO1,,Private airstrip in Macao,0,4,NULL,0
+100159,MP,2,MP1,,Private airstrip in Northern Mariana Islands,0,4,NULL,0
+100160,MQ,2,MQ1,,Private airstrip in Martinique,0,4,NULL,0
+100161,MR,2,MR1,,Private airstrip in Mauritania,0,4,NULL,0
+100162,MS,2,MS1,,Private airstrip in Montserrat,0,4,NULL,0
+100163,MT,2,MT1,,Private airstrip in Malta,0,3,NULL,0
+100164,MU,2,MU1,,Private airstrip in Mauritius,0,4,NULL,0
+100165,MV,2,MV1,,Private airstrip in Maldives,0,4,NULL,0
+100166,MW,2,MW1,,Private airstrip in Malawi,0,4,NULL,0
+100167,MX,2,MX1,,Private airstrip in Mexico,0,4,NULL,0
+100168,MY,2,MY1,,Private airstrip in Malaysia,0,4,NULL,0
+100169,MZ,2,MZ1,,Private airstrip in Mozambique,0,4,NULL,0
+100170,NA,2,NA1,,Private airstrip in Namibia,0,4,NULL,0
+100171,NC,2,NC1,,Private airstrip in New Caledonia,0,4,NULL,0
+100172,NE,2,NE1,,Private airstrip in Niger,0,4,NULL,0
+100173,NF,2,NF1,,Private airstrip in Norfolk Island,0,4,NULL,0
+100174,NG,2,NG1,,Private airstrip in Nigeria,0,4,NULL,0
+100175,NI,2,NI1,,Private airstrip in Nicaragua,0,4,NULL,0
+100176,NL,2,NL1,,Private airstrip in Netherlands,0,3,NULL,0
+100177,NO,2,NO1,,Private airstrip in Norway,0,3,NULL,0
+100178,NP,2,NP1,,Private airstrip in Nepal,0,4,NULL,0
+100179,NR,2,NR1,,Private airstrip in Nauru,0,4,NULL,0
+100180,NU,2,NU1,,Private airstrip in Niue,0,4,NULL,0
+100181,NZ,2,NZ1,,Private airstrip in New Zealand,0,4,NULL,0
+100182,OM,2,OM1,,Private airstrip in Oman,0,4,NULL,0
+100183,PA,2,PA1,,Private airstrip in Panama,0,4,NULL,0
+100184,PE,2,PE1,,Private airstrip in Peru,0,4,NULL,0
+100185,PF,2,PF1,,Private airstrip in French Polynesia,0,4,NULL,0
+100186,PG,2,PG1,,Private airstrip in Papua New Guinea,0,4,NULL,0
+100187,PH,2,PH1,,Private airstrip in Philippines,0,4,NULL,0
+100188,PK,2,PK1,,Private airstrip in Pakistan,0,4,NULL,0
+100189,PL,2,PL1,,Private airstrip in Poland,0,3,NULL,0
+100190,PM,2,PM1,,Private airstrip in St Pierre and Miquelon,0,4,NULL,0
+100191,PN,2,PN1,,Private airstrip in Pitcairn,0,4,NULL,0
+100192,PR,2,PR1,,Private airstrip in Puerto Rico,0,4,NULL,0
+100193,PS,2,PS1,,Private airstrip in Palestinian Territory,0,4,NULL,0
+100194,PT,2,PT1,,Private airstrip in Portugal,0,3,NULL,0
+100195,PW,2,PW1,,Private airstrip in Palau,0,4,NULL,0
+100196,PY,2,PY1,,Private airstrip in Paraguay,0,4,NULL,0
+100197,QA,2,QA1,,Private airstrip in Qatar,0,4,NULL,0
+100198,RE,2,RE1,,Private airstrip in Reunion,0,4,NULL,0
+100199,RO,2,RO1,,Private airstrip in Romania,0,3,NULL,0
+100200,RS,2,RS1,,Private airstrip in Serbia,0,4,NULL,0
+100201,RU,2,RU1,,Private airstrip in Russia,0,4,NULL,0
+100202,RW,2,RW1,,Private airstrip in Rwanda,0,4,NULL,0
+100203,SA,2,SA1,,Private airstrip in Saudi Arabia,0,4,NULL,0
+100204,SB,2,SB1,,Private airstrip in Solomon Islands,0,4,NULL,0
+100205,SC,2,SC1,,Private airstrip in Seychelles,0,4,NULL,0
+100206,SD,2,SD1,,Private airstrip in Sudan,0,4,NULL,0
+100207,SE,2,SE1,,Private airstrip in Sweden,0,3,NULL,0
+100208,SG,2,SG1,,Private airstrip in Singapore,0,4,NULL,0
+100209,SH,2,SH1,,"Private airstrip in St Helena, Ascension and Tristan da Cunha",0,4,NULL,0
+100210,SI,2,SI1,,Private airstrip in Slovenia,0,3,NULL,0
+100211,SJ,2,SJ1,,Private airstrip in Svalbard and Jan Mayen Islands,0,4,NULL,0
+100212,SK,2,SK1,,Private airstrip in Slovakia,0,3,NULL,0
+100213,SL,2,SL1,,Private airstrip in Sierra Leone,0,4,NULL,0
+100214,SM,2,SM1,,Private airstrip in San Marino,0,4,NULL,0
+100215,SN,2,SN1,,Private airstrip in Senegal,0,4,NULL,0
+100216,SO,2,SO1,,Private airstrip in Somalia,0,4,NULL,0
+100217,SR,2,SR1,,Private airstrip in Surinam,0,4,NULL,0
+100218,SS,2,SS1,,Private airstrip in South Sudan,0,4,NULL,0
+100219,ST,2,ST1,,Private airstrip in Sao Tome and Principe,0,4,NULL,0
+100220,SV,2,SV1,,Private airstrip in El Salvador,0,4,NULL,0
+100221,SX,2,SX1,,Private airstrip in Sint Maarten (Dutch part),0,4,NULL,0
+100222,SY,2,SY1,,Private airstrip in Syria,0,4,NULL,0
+100223,SZ,2,SZ1,,Private airstrip in Swaziland,0,4,NULL,0
+100224,TC,2,TC1,,Private airstrip in Turks and Caicos Islands,0,4,NULL,0
+100225,TD,2,TD1,,Private airstrip in Chad,0,4,NULL,0
+100226,TF,2,TF1,,Private airstrip in French Southern Territories,0,4,NULL,0
+100227,TG,2,TG1,,Private airstrip in Togo,0,4,NULL,0
+100228,TH,2,TH1,,Private airstrip in Thailand,0,4,NULL,0
+100229,TJ,2,TJ1,,Private airstrip in Tajikistan,0,4,NULL,0
+100230,TK,2,TK1,,Private airstrip in Tokelau,0,4,NULL,0
+100231,TL,2,TL1,,Private airstrip in Timor-Leste,0,4,NULL,0
+100232,TM,2,TM1,,Private airstrip in Turkmenistan,0,4,NULL,0
+100233,TN,2,TN1,,Private airstrip in Tunisia,0,4,NULL,0
+100234,TO,2,TO1,,Private airstrip in Tonga,0,4,NULL,0
+100235,TP,2,TP1,,Private airstrip in East Timor,0,4,NULL,0
+100236,TR,2,TR1,,Private airstrip in Turkey,0,4,NULL,0
+100237,TT,2,TT1,,Private airstrip in Trinidad and Tobago,0,4,NULL,0
+100238,TV,2,TV1,,Private airstrip in Tuvalu,0,4,NULL,0
+100239,TW,2,TW1,,Private airstrip in Taiwan,0,4,NULL,0
+100240,TZ,2,TZ1,,Private airstrip in Tanzania,0,4,NULL,0
+100241,UA,2,UA1,,Private airstrip in Ukraine,0,4,NULL,0
+100242,UG,2,UG1,,Private airstrip in Uganda,0,4,NULL,0
+100243,UK,2,UK1,,Private airstrip in United Kingdom,0,1,NULL,0
+100244,UM,2,UM1,,Private airstrip in United States Minor outlying islands,0,4,NULL,0
+100245,US,2,US1,,Private airstrip in United States,0,4,NULL,0
+100246,UY,2,UY1,,Private airstrip in Uruguay,0,4,NULL,0
+100247,UZ,2,UZ1,,Private airstrip in Uzbekistan,0,4,NULL,0
+100248,VA,2,VA1,,Private airstrip in Vatican City State,0,4,NULL,0
+100249,VC,2,VC1,,Private airstrip in St Vincent and the Grenadines,0,4,NULL,0
+100250,VE,2,VE1,,Private airstrip in Venezuela,0,4,NULL,0
+100251,VG,2,VG1,,"Private airstrip in Virgin Islands, British",0,4,NULL,0
+100252,VI,2,VI1,,"Private airstrip in Virgin Islands, United States",0,4,NULL,0
+100253,VN,2,VN1,,Private airstrip in Vietnam,0,4,NULL,0
+100254,VU,2,VU1,,Private airstrip in Vanuatu,0,4,NULL,0
+100255,WF,2,WF1,,Private airstrip in Wallis and Futuna,0,4,NULL,0
+100256,WS,2,WS1,,Private airstrip in Samoa,0,4,NULL,0
+100257,XK,2,XK1,,Private airstrip in Kosovo,0,4,NULL,0
+100258,YE,2,YE1,,Private airstrip in Yemen,0,4,NULL,0
+100259,YT,2,YT1,,Private airstrip in Mayotte,0,4,NULL,0
+100260,ZA,2,ZA1,,Private airstrip in South Africa,0,4,NULL,0
+100261,ZM,2,ZM1,,Private airstrip in Zambia,0,4,NULL,0
+100262,ZW,2,ZW1,,Private airstrip in Zimbabwe,0,4,NULL,0
+100263,AC,3,AC2,,Private dock in Alderney,0,4,NULL,0
+100264,AD,3,AD2,,Private dock in Andorra,0,4,NULL,0
+100265,AE,3,AE2,,Private dock in United Arab Emirates,0,4,NULL,0
+100266,AF,3,AF2,,Private dock in Afghanistan,0,4,NULL,0
+100267,AG,3,AG2,,Private dock in Antigua and Barbuda,0,4,NULL,0
+100268,AI,3,AI2,,Private dock in Anguilla,0,4,NULL,0
+100269,AL,3,AL2,,Private dock in Albania,0,4,NULL,0
+100270,AM,3,AM2,,Private dock in Armenia,0,4,NULL,0
+100271,AN,3,AN2,,Private dock in Netherlands Antilles,0,4,NULL,0
+100272,AO,3,AO2,,Private dock in Angola,0,4,NULL,0
+100273,AQ,3,AQ2,,Private dock in Antarctica,0,4,NULL,0
+100274,AR,3,AR2,,Private dock in Argentina,0,4,NULL,0
+100275,AS,3,AS2,,Private dock in American Samoa,0,4,NULL,0
+100276,AT,3,AT2,,Private dock in Austria,0,3,NULL,0
+100277,AU,3,AU2,,Private dock in Australia,0,4,NULL,0
+100278,AW,3,AW2,,Private dock in Aruba,0,4,NULL,0
+100279,AX,3,AX2,,Private dock in Aland Islands,0,4,NULL,0
+100280,AZ,3,AZ2,,Private dock in Azerbaijan,0,4,NULL,0
+100281,BA,3,BA2,,Private dock in Bosnia-Herzegovina,0,4,NULL,0
+100282,BB,3,BB2,,Private dock in Barbados,0,4,NULL,0
+100283,BD,3,BD2,,Private dock in Bangladesh,0,4,NULL,0
+100284,BE,3,BE2,,Private dock in Belgium,0,3,NULL,0
+100285,BF,3,BF2,,Private dock in Burkina Faso,0,4,NULL,0
+100286,BG,3,BG2,,Private dock in Bulgaria,0,3,NULL,0
+100287,BH,3,BH2,,Private dock in Bahrain,0,4,NULL,0
+100288,BI,3,BI2,,Private dock in Burundi,0,4,NULL,0
+100289,BJ,3,BJ2,,Private dock in Benin,0,4,NULL,0
+100290,BL,3,BL2,,Private dock in Saint Barthelemy,0,4,NULL,0
+100291,BM,3,BM2,,Private dock in Bermuda,0,4,NULL,0
+100292,BN,3,BN2,,Private dock in Brunei,0,4,NULL,0
+100293,BO,3,BO2,,Private dock in Bolivia,0,4,NULL,0
+100294,BQ,3,BQ2,,"Private dock in Bonaire, Sint Eustatius and Saba",0,4,NULL,0
+100295,BR,3,BR2,,Private dock in Brazil,0,4,NULL,0
+100296,BS,3,BS2,,Private dock in Bahamas,0,4,NULL,0
+100297,BT,3,BT2,,Private dock in Bhutan,0,4,NULL,0
+100298,BV,3,BV2,,Private dock in Bouvet Island,0,4,NULL,0
+100299,BW,3,BW2,,Private dock in Botswana,0,4,NULL,0
+100300,BY,3,BY2,,Private dock in Belarus,0,4,NULL,0
+100301,BZ,3,BZ2,,Private dock in Belize,0,4,NULL,0
+100302,CA,3,CA2,,Private dock in Canada,0,4,NULL,0
+100303,CC,3,CC2,,Private dock in Cocos Islands,0,4,NULL,0
+100304,CD,3,CD2,,Private dock in Congo (Democratic Republic of the),0,4,NULL,0
+100305,CE,3,CE2,,Private dock in Channel Islands,0,4,NULL,0
+100306,CF,3,CF2,,Private dock in Central Africa Republic,0,4,NULL,0
+100307,CG,3,CG2,,Private dock in Congo,0,4,NULL,0
+100308,CH,3,CH2,,Private dock in Switzerland,0,4,NULL,0
+100309,CI,3,CI2,,Private dock in Cote D'Ivoire,0,4,NULL,0
+100310,CK,3,CK2,,Private dock in Cook Islands,0,4,NULL,0
+100311,CL,3,CL2,,Private dock in Chile,0,4,NULL,0
+100312,CM,3,CM2,,Private dock in Cameroon,0,4,NULL,0
+100313,CN,3,CN2,,Private dock in China,0,4,NULL,0
+100314,CO,3,CO2,,Private dock in Colombia,0,4,NULL,0
+100315,CR,3,CR2,,Private dock in Costa Rica,0,4,NULL,0
+100316,CU,3,CU2,,Private dock in Cuba,0,4,NULL,0
+100317,CV,3,CV2,,Private dock in Cape Verde,0,4,NULL,0
+100318,CW,3,CW2,,Private dock in Curacao,0,4,NULL,0
+100319,CX,3,CX2,,Private dock in Christmas Islands,0,4,NULL,0
+100320,CY,3,CY2,,Private dock in Cyprus,0,3,NULL,0
+100321,CZ,3,CZ2,,Private dock in Czech Republic,0,3,NULL,0
+100322,DE,3,DE2,,Private dock in Germany,0,3,NULL,0
+100323,DJ,3,DJ2,,Private dock in Djibouti,0,4,NULL,0
+100324,DK,3,DK2,,Private dock in Denmark,0,3,NULL,0
+100325,DM,3,DM2,,Private dock in Dominica,0,4,NULL,0
+100326,DO,3,DO2,,Private dock in Dominican Republic,0,4,NULL,0
+100327,DZ,3,DZ2,,Private dock in Algeria,0,4,NULL,0
+100328,EC,3,EC2,,Private dock in Ecuador,0,4,NULL,0
+100329,EE,3,EE2,,Private dock in Estonia,0,3,NULL,0
+100330,EG,3,EG2,,Private dock in Egypt,0,4,NULL,0
+100331,EH,3,EH2,,Private dock in Western Sahara,0,4,NULL,0
+100332,ER,3,ER2,,Private dock in Eritrea,0,4,NULL,0
+100333,ES,3,ES2,,Private dock in Spain,0,3,NULL,0
+100334,ET,3,ET2,,Private dock in Ethiopia,0,4,NULL,0
+100335,FI,3,FI2,,Private dock in Finland,0,3,NULL,0
+100336,FJ,3,FJ2,,Private dock in Fiji,0,4,NULL,0
+100337,FK,3,FK2,,Private dock in Falklands Islands and dependencies,0,4,NULL,0
+100338,FM,3,FM2,,Private dock in Micronesia,0,4,NULL,0
+100339,FO,3,FO2,,Private dock in Faroe Islands,0,4,NULL,0
+100340,FR,3,FR2,,Private dock in France,0,3,NULL,0
+100341,GA,3,GA2,,Private dock in Gabon,0,4,NULL,0
+100342,GD,3,GD2,,Private dock in Grenada,0,4,NULL,0
+100343,GE,3,GE2,,Private dock in Georgia,0,4,NULL,0
+100344,GF,3,GF2,,Private dock in French Guiana,0,4,NULL,0
+100345,GG,3,GG2,,Private dock in Guernsey,0,4,NULL,0
+100346,GH,3,GH2,,Private dock in Ghana,0,4,NULL,0
+100347,GI,3,GI2,,Private dock in Gibraltar,0,4,NULL,0
+100348,GL,3,GL2,,Private dock in Greenland,0,4,NULL,0
+100349,GM,3,GM2,,Private dock in Gambia,0,4,NULL,0
+100350,GN,3,GN2,,Private dock in Guinea,0,4,NULL,0
+100351,GP,3,GP2,,Private dock in Guadeloupe,0,4,NULL,0
+100352,GQ,3,GQ2,,Private dock in Equatorial Guinea,0,4,NULL,0
+100353,GR,3,GR2,,Private dock in Greece,0,3,NULL,0
+100354,GS,3,GS2,,Private dock in South Georgia and South Sandwich Islands,0,4,NULL,0
+100355,GT,3,GT2,,Private dock in Guatemala,0,4,NULL,0
+100356,GU,3,GU2,,Private dock in Guam,0,4,NULL,0
+100357,GW,3,GW2,,Private dock in Guinea Bissau,0,4,NULL,0
+100358,GY,3,GY2,,Private dock in Guyana,0,4,NULL,0
+100359,HK,3,HK2,,Private dock in Hong Kong,0,4,NULL,0
+100360,HM,3,HM2,,Private dock in Heard Island and McDonald Islands,0,4,NULL,0
+100361,HN,3,HN2,,Private dock in Honduras,0,4,NULL,0
+100362,HR,3,HR2,,Private dock in Croatia,0,3,NULL,0
+100363,HT,3,HT2,,Private dock in Haiti,0,4,NULL,0
+100364,HU,3,HU2,,Private dock in Hungary,0,3,NULL,0
+100365,ID,3,ID2,,Private dock in Indonesia,0,4,NULL,0
+100366,IE,3,IE2,,Private dock in Ireland,0,3,NULL,0
+100367,IL,3,IL2,,Private dock in Israel,0,4,NULL,0
+100368,IM,3,IM2,,Private dock in Isle of Man,0,4,NULL,0
+100369,IN,3,IN2,,Private dock in India,0,4,NULL,0
+100370,IO,3,IO2,,Private dock in British Indian Ocean Territory,0,4,NULL,0
+100371,IQ,3,IQ2,,Private dock in Iraq,0,4,NULL,0
+100372,IR,3,IR2,,Private dock in Iran,0,4,NULL,0
+100373,IS,3,IS2,,Private dock in Iceland,0,4,NULL,0
+100374,IT,3,IT2,,Private dock in Italy,0,3,NULL,0
+100375,JE,3,JE2,,Private dock in Jersey,0,4,NULL,0
+100376,JM,3,JM2,,Private dock in Jamaica,0,4,NULL,0
+100377,JO,3,JO2,,Private dock in Jordan,0,4,NULL,0
+100378,JP,3,JP2,,Private dock in Japan,0,4,NULL,0
+100379,KE,3,KE2,,Private dock in Kenya,0,4,NULL,0
+100380,KG,3,KG2,,Private dock in Kyrgyzstan,0,4,NULL,0
+100381,KH,3,KH2,,Private dock in Cambodia,0,4,NULL,0
+100382,KI,3,KI2,,Private dock in Kiribati,0,4,NULL,0
+100383,KM,3,KM2,,Private dock in Comoros,0,4,NULL,0
+100384,KN,3,KN2,,Private dock in St Kitts and Nevis,0,4,NULL,0
+100385,KP,3,KP2,,Private dock in North Korea,0,4,NULL,0
+100386,KR,3,KR2,,Private dock in South Korea,0,4,NULL,0
+100387,KW,3,KW2,,Private dock in Kuwait,0,4,NULL,0
+100388,KY,3,KY2,,Private dock in Cayman Islands,0,4,NULL,0
+100389,KZ,3,KZ2,,Private dock in Kazakhstan,0,4,NULL,0
+100390,LA,3,LA2,,Private dock in Laos,0,4,NULL,0
+100391,LB,3,LB2,,Private dock in Lebanon,0,4,NULL,0
+100392,LC,3,LC2,,Private dock in St Lucia,0,4,NULL,0
+100393,LI,3,LI2,,Private dock in Liechtenstein,0,4,NULL,0
+100394,LK,3,LK2,,Private dock in Sri Lanka,0,4,NULL,0
+100395,LR,3,LR2,,Private dock in Liberia,0,4,NULL,0
+100396,LS,3,LS2,,Private dock in Lesotho,0,4,NULL,0
+100397,LT,3,LT2,,Private dock in Lithuania,0,3,NULL,0
+100398,LU,3,LU2,,Private dock in Luxembourg,0,3,NULL,0
+100399,LV,3,LV2,,Private dock in Latvia,0,3,NULL,0
+100400,LY,3,LY2,,Private dock in Libya,0,4,NULL,0
+100401,MA,3,MA2,,Private dock in Morocco,0,4,NULL,0
+100402,MC,3,MC2,,Private dock in Monaco,0,4,NULL,0
+100403,MD,3,MD2,,Private dock in Moldova,0,4,NULL,0
+100404,ME,3,ME2,,Private dock in Montenegro,0,4,NULL,0
+100405,MF,3,MF2,,Private dock in Saint Martin,0,4,NULL,0
+100406,MG,3,MG2,,Private dock in Madagascar,0,4,NULL,0
+100407,MH,3,MH2,,Private dock in Marshall Islands,0,4,NULL,0
+100408,MK,3,MK2,,Private dock in Macedonia,0,4,NULL,0
+100409,ML,3,ML2,,Private dock in Mali,0,4,NULL,0
+100410,MM,3,MM2,,Private dock in Myanmar,0,4,NULL,0
+100411,MN,3,MN2,,Private dock in Mongolia,0,4,NULL,0
+100412,MO,3,MO2,,Private dock in Macao,0,4,NULL,0
+100413,MP,3,MP2,,Private dock in Northern Mariana Islands,0,4,NULL,0
+100414,MQ,3,MQ2,,Private dock in Martinique,0,4,NULL,0
+100415,MR,3,MR2,,Private dock in Mauritania,0,4,NULL,0
+100416,MS,3,MS2,,Private dock in Montserrat,0,4,NULL,0
+100417,MT,3,MT2,,Private dock in Malta,0,3,NULL,0
+100418,MU,3,MU2,,Private dock in Mauritius,0,4,NULL,0
+100419,MV,3,MV2,,Private dock in Maldives,0,4,NULL,0
+100420,MW,3,MW2,,Private dock in Malawi,0,4,NULL,0
+100421,MX,3,MX2,,Private dock in Mexico,0,4,NULL,0
+100422,MY,3,MY2,,Private dock in Malaysia,0,4,NULL,0
+100423,MZ,3,MZ2,,Private dock in Mozambique,0,4,NULL,0
+100424,NA,3,NA2,,Private dock in Namibia,0,4,NULL,0
+100425,NC,3,NC2,,Private dock in New Caledonia,0,4,NULL,0
+100426,NE,3,NE2,,Private dock in Niger,0,4,NULL,0
+100427,NF,3,NF2,,Private dock in Norfolk Island,0,4,NULL,0
+100428,NG,3,NG2,,Private dock in Nigeria,0,4,NULL,0
+100429,NI,3,NI2,,Private dock in Nicaragua,0,4,NULL,0
+100430,NL,3,NL2,,Private dock in Netherlands,0,3,NULL,0
+100431,NO,3,NO2,,Private dock in Norway,0,3,NULL,0
+100432,NP,3,NP2,,Private dock in Nepal,0,4,NULL,0
+100433,NR,3,NR2,,Private dock in Nauru,0,4,NULL,0
+100434,NU,3,NU2,,Private dock in Niue,0,4,NULL,0
+100435,NZ,3,NZ2,,Private dock in New Zealand,0,4,NULL,0
+100436,OM,3,OM2,,Private dock in Oman,0,4,NULL,0
+100437,PA,3,PA2,,Private dock in Panama,0,4,NULL,0
+100438,PE,3,PE2,,Private dock in Peru,0,4,NULL,0
+100439,PF,3,PF2,,Private dock in French Polynesia,0,4,NULL,0
+100440,PG,3,PG2,,Private dock in Papua New Guinea,0,4,NULL,0
+100441,PH,3,PH2,,Private dock in Philippines,0,4,NULL,0
+100442,PK,3,PK2,,Private dock in Pakistan,0,4,NULL,0
+100443,PL,3,PL2,,Private dock in Poland,0,3,NULL,0
+100444,PM,3,PM2,,Private dock in St Pierre and Miquelon,0,4,NULL,0
+100445,PN,3,PN2,,Private dock in Pitcairn,0,4,NULL,0
+100446,PR,3,PR2,,Private dock in Puerto Rico,0,4,NULL,0
+100447,PS,3,PS2,,Private dock in Palestinian Territory,0,4,NULL,0
+100448,PT,3,PT2,,Private dock in Portugal,0,3,NULL,0
+100449,PW,3,PW2,,Private dock in Palau,0,4,NULL,0
+100450,PY,3,PY2,,Private dock in Paraguay,0,4,NULL,0
+100451,QA,3,QA2,,Private dock in Qatar,0,4,NULL,0
+100452,RE,3,RE2,,Private dock in Reunion,0,4,NULL,0
+100453,RO,3,RO2,,Private dock in Romania,0,3,NULL,0
+100454,RS,3,RS2,,Private dock in Serbia,0,4,NULL,0
+100455,RU,3,RU2,,Private dock in Russia,0,4,NULL,0
+100456,RW,3,RW2,,Private dock in Rwanda,0,4,NULL,0
+100457,SA,3,SA2,,Private dock in Saudi Arabia,0,4,NULL,0
+100458,SB,3,SB2,,Private dock in Solomon Islands,0,4,NULL,0
+100459,SC,3,SC2,,Private dock in Seychelles,0,4,NULL,0
+100460,SD,3,SD2,,Private dock in Sudan,0,4,NULL,0
+100461,SE,3,SE2,,Private dock in Sweden,0,3,NULL,0
+100462,SG,3,SG2,,Private dock in Singapore,0,4,NULL,0
+100463,SH,3,SH2,,"Private dock in St Helena, Ascension and Tristan da Cunha",0,4,NULL,0
+100464,SI,3,SI2,,Private dock in Slovenia,0,3,NULL,0
+100465,SJ,3,SJ2,,Private dock in Svalbard and Jan Mayen Islands,0,4,NULL,0
+100466,SK,3,SK2,,Private dock in Slovakia,0,3,NULL,0
+100467,SL,3,SL2,,Private dock in Sierra Leone,0,4,NULL,0
+100468,SM,3,SM2,,Private dock in San Marino,0,4,NULL,0
+100469,SN,3,SN2,,Private dock in Senegal,0,4,NULL,0
+100470,SO,3,SO2,,Private dock in Somalia,0,4,NULL,0
+100471,SR,3,SR2,,Private dock in Surinam,0,4,NULL,0
+100472,SS,3,SS2,,Private dock in South Sudan,0,4,NULL,0
+100473,ST,3,ST2,,Private dock in Sao Tome and Principe,0,4,NULL,0
+100474,SV,3,SV2,,Private dock in El Salvador,0,4,NULL,0
+100475,SX,3,SX2,,Private dock in Sint Maarten (Dutch part),0,4,NULL,0
+100476,SY,3,SY2,,Private dock in Syria,0,4,NULL,0
+100477,SZ,3,SZ2,,Private dock in Swaziland,0,4,NULL,0
+100478,TC,3,TC2,,Private dock in Turks and Caicos Islands,0,4,NULL,0
+100479,TD,3,TD2,,Private dock in Chad,0,4,NULL,0
+100480,TF,3,TF2,,Private dock in French Southern Territories,0,4,NULL,0
+100481,TG,3,TG2,,Private dock in Togo,0,4,NULL,0
+100482,TH,3,TH2,,Private dock in Thailand,0,4,NULL,0
+100483,TJ,3,TJ2,,Private dock in Tajikistan,0,4,NULL,0
+100484,TK,3,TK2,,Private dock in Tokelau,0,4,NULL,0
+100485,TL,3,TL2,,Private dock in Timor-Leste,0,4,NULL,0
+100486,TM,3,TM2,,Private dock in Turkmenistan,0,4,NULL,0
+100487,TN,3,TN2,,Private dock in Tunisia,0,4,NULL,0
+100488,TO,3,TO2,,Private dock in Tonga,0,4,NULL,0
+100489,TP,3,TP2,,Private dock in East Timor,0,4,NULL,0
+100490,TR,3,TR2,,Private dock in Turkey,0,4,NULL,0
+100491,TT,3,TT2,,Private dock in Trinidad and Tobago,0,4,NULL,0
+100492,TV,3,TV2,,Private dock in Tuvalu,0,4,NULL,0
+100493,TW,3,TW2,,Private dock in Taiwan,0,4,NULL,0
+100494,TZ,3,TZ2,,Private dock in Tanzania,0,4,NULL,0
+100495,UA,3,UA2,,Private dock in Ukraine,0,4,NULL,0
+100496,UG,3,UG2,,Private dock in Uganda,0,4,NULL,0
+100497,UK,3,UK2,,Private dock in United Kingdom,0,1,NULL,0
+100498,UM,3,UM2,,Private dock in United States Minor outlying islands,0,4,NULL,0
+100499,US,3,US2,,Private dock in United States,0,4,NULL,0
+100500,UY,3,UY2,,Private dock in Uruguay,0,4,NULL,0
+100501,UZ,3,UZ2,,Private dock in Uzbekistan,0,4,NULL,0
+100502,VA,3,VA2,,Private dock in Vatican City State,0,4,NULL,0
+100503,VC,3,VC2,,Private dock in St Vincent and the Grenadines,0,4,NULL,0
+100504,VE,3,VE2,,Private dock in Venezuela,0,4,NULL,0
+100505,VG,3,VG2,,"Private dock in Virgin Islands, British",0,4,NULL,0
+100506,VI,3,VI2,,"Private dock in Virgin Islands, United States",0,4,NULL,0
+100507,VN,3,VN2,,Private dock in Vietnam,0,4,NULL,0
+100508,VU,3,VU2,,Private dock in Vanuatu,0,4,NULL,0
+100509,WF,3,WF2,,Private dock in Wallis and Futuna,0,4,NULL,0
+100510,WS,3,WS2,,Private dock in Samoa,0,4,NULL,0
+100511,XK,3,XK2,,Private dock in Kosovo,0,4,NULL,0
+100512,YE,3,YE2,,Private dock in Yemen,0,4,NULL,0
+100513,YT,3,YT2,,Private dock in Mayotte,0,4,NULL,0
+100514,ZA,3,ZA2,,Private dock in South Africa,0,4,NULL,0
+100515,ZM,3,ZM2,,Private dock in Zambia,0,4,NULL,0
+100516,ZW,3,ZW2,,Private dock in Zimbabwe,0,4,NULL,0
