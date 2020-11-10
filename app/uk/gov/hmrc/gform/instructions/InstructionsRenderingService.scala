@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.instructions
 import org.jsoup.nodes.Document
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
-import play.twirl.api.{ Html, HtmlFormat }
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -42,7 +42,9 @@ import uk.gov.hmrc.govukfrontend.views.html.components.govukSummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.AddToList
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
+import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper.summaryListRow
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -177,6 +179,8 @@ class InstructionsRenderingService(
     lise: SmartStringEvaluator
   ): List[Html] = {
 
+    val formModel = formModelOptics.formModelVisibilityOptics.formModel
+
     def renderHtmls(singleton: Singleton[Visibility], sectionNumber: SectionNumber)(implicit l: LangADT): List[Html] =
       (for {
         pageInstruction <- singleton.page.instruction
@@ -210,30 +214,72 @@ class InstructionsRenderingService(
         }
       }).getOrElse(List.empty)
 
-    val formModel = formModelOptics.formModelVisibilityOptics.formModel
-    formModel.singletonsBySource
+    def addToListRender(addToList: Section.AddToList): Html = {
+      val repeaters: List[Repeater[Visibility]] = formModel.repeaters(addToList.id)
+      val recordTable: List[SmartString] = repeaters.map(_.expandedDescription)
+      val value = recordTable.map(_.value()).mkString("</br>")
+
+      val slr: SummaryListRow = summaryListRow(
+        addToList.title.value(),
+        value,
+        None,
+        "",
+        "",
+        "",
+        Nil
+      )
+
+      new govukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-5"))
+    }
+
+    def instructionOrder(section: Section) =
+      section
+        .fold(_.page.instruction.flatMap(_.order))(_.page.instruction.flatMap(_.order))(_.instruction.flatMap(_.order))
+        .getOrElse(Integer.MAX_VALUE)
+
+    formModel.pagesWithIndex
+      .groupBy {
+        case (pageModel, _) => pageModel.source
+      }
+      .toList
       .sortBy {
-        case (section, _) =>
-          section
-            .fold(_.page.instruction.flatMap(_.order))(_.page.instruction.flatMap(_.order))(
-              _.instruction.flatMap(_.order))
-            .getOrElse(Integer.MAX_VALUE)
+        case (section, _) => instructionOrder(section)
       }
       .flatMap {
-        case (section, pageModels) =>
-          val header =
-            section.fold(_ => List.empty[HtmlFormat.Appendable])(_ => List.empty[HtmlFormat.Appendable])(addToList =>
-              addToList.instruction.map(i => begin_section(i.name)).toList)
-          header ++ pageModels.flatMap(pModel => {
-            pModel.fold(renderHtmls(_, formModel.pagesMap(pModel)))(_ => Nil)
-          })
+        case (a: AddToList, pagesWithSectionNumber) =>
+          List(addToListRender(a)) ++ pagesWithSectionNumber
+            .collect {
+              case (singleton: Singleton[Visibility], sectionNumber) =>
+                (formModel.repeaterForSingleton(singleton, sectionNumber).get, (singleton, sectionNumber))
+            }
+            .groupBy {
+              case (repeater, _) => repeater
+            }
+            .mapValues(_.map(_._2))
+            .toList
+            .sortBy {
+              case (repeater, _) => repeater.index
+            }
+            .flatMap {
+              case (repeater: Repeater[Visibility], pages: List[(Singleton[Visibility], SectionNumber)]) =>
+                List(begin_section(repeater.expandedShortName)) ++ pages
+                  .flatMap {
+                    case (pageModel, sectionNumber) => renderHtmls(pageModel, sectionNumber)
+                  }
+              case _ => List.empty
+            }
+        case (_, pagesWithSectionNumber) =>
+          pagesWithSectionNumber
+            .flatMap {
+              case (pModel, _) => pModel.fold(renderHtmls(_, formModel.pagesMap(pModel)))(_ => Nil)
+            }
       }
   }
 
   private def addHeaderFooterSubmissionDetails(
     formTemplate: FormTemplate,
     submissionDetails: String,
-    document: Document)(implicit l: LangADT, lise: SmartStringEvaluator): Unit = {
+    document: Document)(implicit lise: SmartStringEvaluator): Unit = {
     val mayBeInstructionPdf = formTemplate.destinations match {
       case DestinationList(_, acknowledgementSection, _) =>
         acknowledgementSection.instructionPdf
@@ -241,10 +287,9 @@ class InstructionsRenderingService(
     }
 
     val form = document.getElementsByTag("form").first()
-    mayBeInstructionPdf.flatMap(_.header).map(markDownParser(_).toString).foreach(form.prepend)
-    form.prepend(h1(formTemplate.formName.value))
+    mayBeInstructionPdf.flatMap(_.header).map(ss => h1(markDownParser(ss).toString)).foreach(form.prepend)
     form.append(submissionDetails)
-    mayBeInstructionPdf.flatMap(_.footer).map(markDownParser(_).toString).foreach(form.append)
+    mayBeInstructionPdf.flatMap(_.footer).map(ss => h1(markDownParser(ss).toString)).foreach(form.append)
   }
 
   private def getInstructionLabel(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String =

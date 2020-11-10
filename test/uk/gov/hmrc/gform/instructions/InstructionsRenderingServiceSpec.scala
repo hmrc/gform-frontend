@@ -342,6 +342,7 @@ class InstructionsRenderingServiceSpec
         List(
           addToListSection(
             "addToList",
+            "addToListShortName",
             addToListQuestionComponent,
             Some(buildInstruction("addToListInstruction", Some(1))),
             List(

@@ -130,6 +130,7 @@ class SummaryRenderingService_PresentationHintSpecConverter
           List(
             addToListSection(
               "addToList",
+              "addToList",
               addToListQuestionComponent,
               None,
               List(
@@ -202,6 +203,7 @@ class SummaryRenderingService_PresentationHintSpecConverter
           destinationList,
           List(
             addToListSection(
+              "addToList",
               "addToList",
               addToListQuestionComponent,
               None,
