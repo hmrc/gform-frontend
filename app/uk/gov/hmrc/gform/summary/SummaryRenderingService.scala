@@ -1343,7 +1343,7 @@ object SummaryRenderingService {
         } else List(SummaryListRow())
 
       case _ =>
-        val rows = group.fields.flatMap { formComponent =>
+        val rows = group.fields.filterNot(_.hideOnSummary).flatMap { formComponent =>
           getSummaryListRows(
             formComponent,
             formTemplateId,
