@@ -247,10 +247,13 @@ class InstructionsRenderingService(
       }
       .flatMap {
         case (a: AddToList, pagesWithSectionNumber) =>
-          List(addToListRender(a)) ++ pagesWithSectionNumber
-            .collect {
+          val addToListPageRenders = pagesWithSectionNumber
+            .flatMap {
               case (singleton: Singleton[Visibility], sectionNumber) =>
-                (formModel.repeaterForSingleton(singleton, sectionNumber).get, (singleton, sectionNumber))
+                formModel
+                  .repeaterForSingleton(singleton, sectionNumber)
+                  .map((_, (singleton, sectionNumber)))
+              case _ => None
             }
             .groupBy {
               case (repeater, _) => repeater
@@ -268,6 +271,7 @@ class InstructionsRenderingService(
                   }
               case _ => List.empty
             }
+          List(addToListRender(a)) ++ addToListPageRenders
         case (_, pagesWithSectionNumber) =>
           pagesWithSectionNumber
             .flatMap {
