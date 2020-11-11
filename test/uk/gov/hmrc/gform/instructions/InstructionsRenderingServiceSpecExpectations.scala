@@ -40,8 +40,7 @@ trait InstructionsRenderingServiceSpecExpectations {
        |         <p> HM Revenue &amp; Customs </p>
        |      </div>
        |      <form>
-       |         <h1>AAA999 dev test template</h1>
-       |         <p>some-pdf-header</p>
+       |         <h1><p>some-pdf-header</p></h1>
        |         $rows
        |         <h3> submission.details </h3>
        |         <dl>
@@ -61,7 +60,7 @@ trait InstructionsRenderingServiceSpecExpectations {
        |               <dd></dd>
        |            </div>
        |         </dl>
-       |         <p>some-pdf-footer</p>
+       |         <h1><p>some-pdf-footer</p></h1>
        |      </form>
        |   </body>
        |</html>
@@ -142,38 +141,45 @@ trait InstructionsRenderingServiceSpecExpectations {
     trimLines(
       htmlBase(
         """
-          |<h2> addToListInstruction </h2>
+          |<dl>
+          | <div>
+          |   <dt> addToList </dt>
+          |   <dd> addToList <br>addToList </dd>
+          | </div>
+          |</dl>
+          |<h2> addToListShortName </h2>
           |<h2> page1Instruction </h2>
           |<dl>
-          |   <div>
-          |      <dt> page1FieldInstruction </dt>
-          |      <dd> page1Field-value1 </dd>
-          |      <dd></dd>
-          |   </div>
+          | <div>
+          |   <dt> page1FieldInstruction </dt>
+          |   <dd> page1Field-value1 </dd>
+          |   <dd></dd>
+          | </div>
           |</dl>
           |<h2> page2Instruction </h2>
           |<dl>
-          |   <div>
-          |      <dt> page2FieldInstruction </dt>
-          |      <dd> page2Field-value1 </dd>
-          |      <dd></dd>
-          |   </div>
+          |  <div>
+          |   <dt> page2FieldInstruction </dt>
+          |   <dd> page2Field-value1 </dd>
+          |   <dd></dd>
+          |  </div>
           |</dl>
+          |<h2> addToListShortName </h2>
           |<h2> page1Instruction </h2>
           |<dl>
-          |   <div>
-          |      <dt> page1FieldInstruction </dt>
-          |      <dd> page1Field-value2 </dd>
-          |      <dd></dd>
-          |   </div>
+          |  <div>
+          |   <dt> page1FieldInstruction </dt>
+          |   <dd> page1Field-value2 </dd>
+          |   <dd></dd>
+          |  </div>
           |</dl>
           |<h2> page2Instruction </h2>
           |<dl>
-          |   <div>
-          |      <dt> page2FieldInstruction </dt>
-          |      <dd> page2Field-value2 </dd>
-          |      <dd></dd>
-          |   </div>
+          |  <div>
+          |   <dt> page2FieldInstruction </dt>
+          |   <dd> page2Field-value2 </dd>
+          |   <dd></dd>
+          |  </div>
           |</dl>
           |""".stripMargin
       ))

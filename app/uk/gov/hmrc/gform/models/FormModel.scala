@@ -169,11 +169,13 @@ case class FormModel[A <: PageMode](
     }
   }
 
-  def singletonsBySource: List[(Section, Seq[PageModel[A]])] =
-    pages
-      .filter(_.fold(_ => true)(_ => false))
-      .groupBy(_.source)
-      .toList
+  def repeaterForSingleton(singleton: Singleton[Visibility], singletonSection: SectionNumber) =
+    pagesWithIndex
+      .collectFirst {
+        case (repeater: Repeater[_], repeaterSection)
+            if singleton.source == repeater.source && repeaterSection > singletonSection =>
+          repeater
+      }
 }
 
 object FormModel {
