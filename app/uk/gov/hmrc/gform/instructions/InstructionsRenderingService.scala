@@ -265,13 +265,20 @@ class InstructionsRenderingService(
             }
             .flatMap {
               case (repeater: Repeater[Visibility], pages: List[(Singleton[Visibility], SectionNumber)]) =>
-                List(begin_section(repeater.expandedShortName)) ++ pages
+                val pageRenders = pages
                   .flatMap {
                     case (pageModel, sectionNumber) => renderHtmls(pageModel, sectionNumber)
                   }
+                if (pageRenders.isEmpty)
+                  List.empty
+                else
+                  List(begin_section(repeater.expandedShortName)) ++ pageRenders
               case _ => List.empty
             }
-          List(addToListRender(a)) ++ addToListPageRenders
+          if (addToListPageRenders.isEmpty)
+            List.empty
+          else
+            List(addToListRender(a)) ++ addToListPageRenders
         case (_, pagesWithSectionNumber) =>
           pagesWithSectionNumber
             .flatMap {
