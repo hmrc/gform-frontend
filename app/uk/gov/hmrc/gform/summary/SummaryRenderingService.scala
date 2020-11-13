@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.summary
 
+import cats.data.NonEmptyList
 import java.time.format.DateTimeFormatter
 
 import cats.instances.int._
@@ -32,8 +33,9 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose }
 import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.models.{ SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.{ Atom, FastForward, FormModel, PageModel, Repeater, SectionSelector, SectionSelectorType, Singleton, Visibility }
+import uk.gov.hmrc.gform.models.{ Atom, Bracket, FastForward, RepeaterWithNumber, SectionSelector, Singleton }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.sharedmodel._
@@ -355,12 +357,13 @@ object SummaryRenderingService {
 
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
-    def renderHtmls(singleton: Singleton[Visibility], sectionNumber: SectionNumber)(implicit l: LangADT): List[Html] = {
+    def renderHtmls(singleton: Singleton[Visibility], sectionNumber: SectionNumber, source: Section)(
+      implicit l: LangADT): List[Html] = {
       val page = singleton.page
       val sectionTitle4Ga = sectionTitle4GaFactory(page.title, sectionNumber)
       val pageTitle = page.shortName.getOrElse(page.title)
 
-      val begin = singleton.source.fold { _ =>
+      val begin = source.fold { _ =>
         begin_section(pageTitle)
       } { _ =>
         begin_section(pageTitle)
@@ -396,17 +399,30 @@ object SummaryRenderingService {
       }
     }
 
-    def addToListRender(addToList: Section.AddToList, repeater: Repeater[Visibility]): Html = {
-      val repeaters: List[Repeater[Visibility]] = formModel.repeaters(addToList.id)
-      val sectionNumber = formModelOptics.formModelRenderPageOptics.formModel.lastSectionNumberWith(addToList.id)
-      val recordTable: List[SmartString] = repeaters.map(_.expandedDescription)
+    def addToListRenderBracket(bracket: Bracket.AddToList[Visibility]): List[Html] = {
+      val repeaters: NonEmptyList[RepeaterWithNumber[Visibility]] = bracket.iterations.map(_.repeater)
 
-      val sectionTitle4Ga: SectionTitle4Ga = sectionTitle4GaFactory(addToList.title, sectionNumber)
+      val htmls: List[Html] = bracket.iterations.toList.flatMap { iteration =>
+        begin_section(iteration.repeater.repeater.expandedShortName) :: {
+          iteration.singletons.toList.flatMap { singletonWithNumber =>
+            renderHtmls(singletonWithNumber.singleton, singletonWithNumber.sectionNumber, bracket.source)
+          }
+        }
+      }
+
+      val recordTable: NonEmptyList[SmartString] = repeaters.map(_.repeater.expandedDescription)
+
+      val lastRepeaterWithNumber = repeaters.last
+
+      val repeater = lastRepeaterWithNumber.repeater
+      val sectionNumber = lastRepeaterWithNumber.sectionNumber
+
+      val sectionTitle4Ga: SectionTitle4Ga = sectionTitle4GaFactory(repeater.expandedTitle, sectionNumber)
 
       val url: Call = routes.FormController
         .form(formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
 
-      val value = recordTable.map(_.value).mkString("</br>")
+      val value = recordTable.map(_.value).toList.mkString("</br>")
 
       val slr: SummaryListRow = summaryListRow(
         repeater.title.value, // This is weird to use, as it can have $n, but this list in shown only once. Should we have other property here?
@@ -418,24 +434,19 @@ object SummaryRenderingService {
         (url, messages("addToList.addOrRemove")) :: Nil
       )
 
-      new govukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-5"))
+      new govukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-5")) :: htmls
     }
 
-    val pagesToRender: List[(PageModel[Visibility], SectionNumber)] = formModel.pagesWithIndex
+    val brackets: NonEmptyList[Bracket[Visibility]] = formModel.brackets.brackets
 
-    pagesToRender.flatMap {
-      case (pageModel, sectionNumber) =>
-        val firstSingletonOfAddToList = new IsFirstSingletonOfAddToList(sectionNumber, formModel)
-        val nextRepeaterAfterRepeater = new NextRepeaterAfterRepeater(formModel)
-        pageModel match {
-          case firstSingletonOfAddToList(addToList, singleton, repeater) =>
-            addToListRender(addToList, repeater) +:
-              begin_section(repeater.expandedShortName) +:
-              renderHtmls(singleton, sectionNumber)
-          case s: Singleton[_]                     => renderHtmls(s, sectionNumber)
-          case nextRepeaterAfterRepeater(repeater) => begin_section(repeater.expandedShortName) :: Nil
-          case r: Repeater[_]                      => Nil
+    brackets.toList.flatMap {
+      case bracket @ Bracket.AddToList(_, _) => addToListRenderBracket(bracket)
+      case Bracket.RepeatingPage(singletons, source) =>
+        singletons.toList.flatMap { singletonWithNumber =>
+          renderHtmls(singletonWithNumber.singleton, singletonWithNumber.sectionNumber, source)
         }
+      case Bracket.NonRepeatingPage(singleton, sectionNumber, source) =>
+        renderHtmls(singleton, sectionNumber, source)
     }
   }
 
@@ -1389,29 +1400,4 @@ object SummaryRenderingService {
 
   }
 
-}
-
-class NextRepeaterAfterRepeater(formModel: FormModel[Visibility]) {
-  def unapply(page: PageModel[Visibility]): Option[Repeater[Visibility]] =
-    page match {
-      case r: Repeater[_] => formModel.repeaterFor(r.index + 1, r.source.id)
-      case _              => None
-
-    }
-}
-
-class IsFirstSingletonOfAddToList(sectionNumber: SectionNumber, formModel: FormModel[Visibility]) {
-  val lookup: Map[AddToListId, Int] = formModel.firstsAddToList
-  def unapply(page: PageModel[Visibility]): Option[(Section.AddToList, Singleton[Visibility], Repeater[Visibility])] =
-    page match {
-      case s: Singleton[_] =>
-        for {
-          addToList <- s.sourceIsAddToList
-          a         <- lookup.get(addToList.id)
-          repeater  <- formModel.repeaterFor(1, addToList.id)
-          res       <- if (a === sectionNumber.value) Some((addToList, s, repeater)) else None
-        } yield res
-      case _ => None
-
-    }
 }

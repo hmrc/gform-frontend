@@ -20,14 +20,15 @@ import cats.{ Functor, MonadError }
 import cats.syntax.functor._
 import com.softwaremill.quicklens._
 import scala.language.higherKinds
-import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, CacheData }
+import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
 import uk.gov.hmrc.gform.eval.EvaluationContext
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, SubmissionRef, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.EnrolmentSection
 import uk.gov.hmrc.http.HeaderCarrier
 
 case class FormModelOptics[D <: DataOrigin](
@@ -48,14 +49,26 @@ case class FormModelOptics[D <: DataOrigin](
 
 object FormModelOptics {
 
-  def empty[D <: DataOrigin](evaluationContext: EvaluationContext) = FormModelOptics[D](
-    FormModelRenderPageOptics(FormModel.empty[DataExpanded], RecData.empty),
-    FormModelVisibilityOptics(
-      FormModel.empty[Visibility],
-      RecData.empty,
-      RecalculationResult.empty(evaluationContext)
+  def fromEnrolmentSection[D <: DataOrigin](enrolmentSection: EnrolmentSection, cache: AuthCacheWithoutForm)(
+    implicit hc: HeaderCarrier) = {
+    val evaluationContext =
+      new EvaluationContext(
+        cache.formTemplate._id,
+        SubmissionRef(""),
+        cache.accessCode,
+        cache.retrievals,
+        ThirdPartyData.empty,
+        cache.formTemplate.authConfig,
+        hc)
+    FormModelOptics[D](
+      FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
+      FormModelVisibilityOptics(
+        FormModel.fromEnrolmentSection[Visibility](enrolmentSection),
+        RecData.empty,
+        RecalculationResult.empty(evaluationContext)
+      )
     )
-  )
+  }
 
   def mkFormModelOptics[D <: DataOrigin, F[_]: Functor, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],

@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -24,7 +25,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 trait FormModelExpander[T <: PageMode] {
   def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[T]
-  def liftRepeating(section: Section.RepeatingPage, data: VariadicFormData[SourceOrigin.OutOfDate]): List[Singleton[T]]
+  def liftRepeating(
+    section: Section.RepeatingPage,
+    data: VariadicFormData[SourceOrigin.OutOfDate]): Option[BracketPlain.RepeatingPage[T]]
 }
 
 object FormModelExpander {
@@ -43,14 +46,15 @@ object FormModelExpander {
       // Perfect we have access to FormModelVisibilityOptics, so we can evaluate 'section.repeats' expression
       def liftRepeating(
         section: Section.RepeatingPage,
-        data: VariadicFormData[SourceOrigin.OutOfDate]): List[Singleton[DataExpanded]] = {
+        data: VariadicFormData[SourceOrigin.OutOfDate]): Option[BracketPlain.RepeatingPage[DataExpanded]] = {
         val repeats = section.repeats
         val bdRepeats: Option[BigDecimal] = fmvo.evalAndApplyTypeInfoFirst(repeats).numberRepresentation
         val repeatCount = bdRepeats.fold(0)(_.toInt)
-        (1 to repeatCount).toList.map { index =>
-          val pageBasic: Page[Basic] = mkSingleton2(section.page, index)(section)
-          Singleton(pageBasic.asInstanceOf[Page[DataExpanded]], section)
+        val singletons = (1 to repeatCount).toList.map { index =>
+          val pageBasic: Page[Basic] = mkSingleton(section.page, index)(section)
+          Singleton(pageBasic.asInstanceOf[Page[DataExpanded]])
         }
+        NonEmptyList.fromList(singletons).map(BracketPlain.RepeatingPage(_, section))
       }
     }
 
@@ -67,7 +71,7 @@ object FormModelExpander {
     // Expand by data, we don't know value of 'section.repeats' expression here
     def liftRepeating(
       section: Section.RepeatingPage,
-      data: VariadicFormData[SourceOrigin.OutOfDate]): List[Singleton[Interim]] = {
+      data: VariadicFormData[SourceOrigin.OutOfDate]): Option[BracketPlain.RepeatingPage[Interim]] = {
       val baseIds: Set[BaseComponentId] = {
         section.allIds.map(_.baseComponentId)
       }.toSet
@@ -84,10 +88,12 @@ object FormModelExpander {
 
       val repeatCount = if (indexes.isEmpty) 1 else indexes.max
 
-      (1 to repeatCount).toList.map { index =>
-        val pageBasic: Page[Basic] = mkSingleton2(section.page, index)(section)
-        Singleton(pageBasic.asInstanceOf[Page[Interim]], section)
+      val singletons = (1 to repeatCount).toList.map { index =>
+        val pageBasic: Page[Basic] = mkSingleton(section.page, index)(section)
+        Singleton(pageBasic.asInstanceOf[Page[Interim]])
       }
+
+      NonEmptyList.fromList(singletons).map(BracketPlain.RepeatingPage(_, section))
     }
   }
 
@@ -100,16 +106,16 @@ object FormModelExpander {
       }
       page.copy(fields = expanded).asInstanceOf[Page[DependencyGraphVerification]]
     }
-    def liftRepeating(
-      section: Section.RepeatingPage,
-      data: VariadicFormData[SourceOrigin.OutOfDate]): List[Singleton[DependencyGraphVerification]] = {
-      val pageBasic = mkSingleton2(section.page, 1)(section)
-      Singleton(pageBasic.asInstanceOf[Page[DependencyGraphVerification]], section) :: Nil
+    def liftRepeating(section: Section.RepeatingPage, data: VariadicFormData[SourceOrigin.OutOfDate])
+      : Option[BracketPlain.RepeatingPage[DependencyGraphVerification]] = {
+      val pageBasic = mkSingleton(section.page, 1)(section)
+      val singletons = NonEmptyList.one(Singleton(pageBasic.asInstanceOf[Page[DependencyGraphVerification]]))
+      Some(BracketPlain.RepeatingPage(singletons, section))
     }
 
   }
 
-  private def mkSingleton2(page: Page[Basic], index: Int): Section.RepeatingPage => Page[Basic] =
+  private def mkSingleton(page: Page[Basic], index: Int): Section.RepeatingPage => Page[Basic] =
     source => {
       val expand: SmartString => SmartString = _.expand(index, source.allIds).replace("$n", index.toString)
       page.copy(
