@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.eval
 
 import cats.syntax.option._
 import uk.gov.hmrc.gform.models.{ PageMode, PageModel, Repeater, Singleton }
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BankAccountModulusCheck, Expr, HmrcRosmRegistrationCheckValidator }
 
 /*
@@ -47,7 +48,11 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
     }
 
     def fromRepeater(repeater: Repeater[_]): List[Expr] =
-      fromSmartStrings(repeater.expandedTitle, repeater.expandedDescription, repeater.expandedShortName)
+      fromSmartStrings(
+        repeater.expandedTitle,
+        repeater.expandedDescription,
+        repeater.expandedShortName,
+        repeater.expandedSummaryName.getOrElse(SmartString.empty))
 
     def fromRepatedSection(singleton: Singleton[_]): Option[Expr] =
       singleton.source.fold[Option[Expr]](_ => none)(_.repeats.some)(_ => none)

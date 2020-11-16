@@ -214,6 +214,9 @@ class InstructionsRenderingService(
         }
       }).getOrElse(List.empty)
 
+    def addToListSummary(addToList: Section.AddToList): Option[Html] =
+      addToList.summaryName.map(begin_section(_))
+
     def addToListRender(addToList: Section.AddToList): Html = {
       val repeaters: List[Repeater[Visibility]] = formModel.repeaters(addToList.id)
       val recordTable: List[SmartString] = repeaters.map(_.expandedDescription)
@@ -278,7 +281,7 @@ class InstructionsRenderingService(
           if (addToListPageRenders.isEmpty)
             List.empty
           else
-            List(addToListRender(a)) ++ addToListPageRenders
+            addToListSummary(a).toList ++ List(addToListRender(a)) ++ addToListPageRenders
         case (_, pagesWithSectionNumber) =>
           pagesWithSectionNumber
             .flatMap {

@@ -396,6 +396,9 @@ object SummaryRenderingService {
       }
     }
 
+    def addToListSummary(addToList: Section.AddToList): Html =
+      addToList.summaryName.map(begin_section(_)).getOrElse(Html(""))
+
     def addToListRender(addToList: Section.AddToList, repeater: Repeater[Visibility]): Html = {
       val repeaters: List[Repeater[Visibility]] = formModel.repeaters(addToList.id)
       val sectionNumber = formModelOptics.formModelRenderPageOptics.formModel.lastSectionNumberWith(addToList.id)
@@ -429,7 +432,8 @@ object SummaryRenderingService {
         val nextRepeaterAfterRepeater = new NextRepeaterAfterRepeater(formModel)
         pageModel match {
           case firstSingletonOfAddToList(addToList, singleton, repeater) =>
-            addToListRender(addToList, repeater) +:
+            addToListSummary(addToList) +:
+              addToListRender(addToList, repeater) +:
               begin_section(repeater.expandedShortName) +:
               renderHtmls(singleton, sectionNumber)
           case s: Singleton[_]                     => renderHtmls(s, sectionNumber)

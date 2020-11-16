@@ -47,7 +47,7 @@ import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class SummaryRenderingService_PresentationHintSpecConverter
+class SummaryRenderingServiceSpec
     extends WordSpec with Matchers with ScalaFutures with ExampleData with ArgumentMatchersSugar with IdiomaticMockito
     with SummaryHtmlSupport {
 
@@ -122,6 +122,83 @@ class SummaryRenderingService_PresentationHintSpecConverter
   }
 
   "getSummaryHTML" when {
+
+    "add to list - summaryName populated" should {
+      "render add to list section with summaryName as title" in new TestFixture {
+        override lazy val formTemplate: FormTemplate = buildFormTemplate(
+          destinationList,
+          List(
+            addToListSection(
+              "addToList",
+              "addToList",
+              Some("addToListSummary"),
+              addToListQuestionComponent,
+              None,
+              List(
+                toPage("page1", None, List(page1Field)),
+                toPage("page2", None, List(page2Field)),
+              ),
+              Some(InvisiblePageTitleInSummary)
+            )
+          )
+        )
+
+        override lazy val form: Form =
+          buildForm(
+            FormData(List(
+              FormField(page1Field.withIndex(1).modelComponentId, "page1Field-value1"),
+              FormField(page1Field.withIndex(2).modelComponentId, "page1Field-value2"),
+              FormField(page2Field.withIndex(1).modelComponentId, "page2Field-value1"),
+              FormField(page2Field.withIndex(2).modelComponentId, "page2Field-value2"),
+              FormField(addToListQuestionComponent.withIndex(1).modelComponentId, "0"),
+              FormField(addToListQuestionComponent.withIndex(2).modelComponentId, "1"),
+            )))
+
+        override lazy val validationResult: ValidationResult = new ValidationResult(
+          Map(
+            page1Field.withIndex(1).id -> FieldOk(page1Field.withIndex(1), "page1Field-value1"),
+            page1Field.withIndex(2).id -> FieldOk(page1Field.withIndex(2), "page1Field-value2"),
+            page2Field.withIndex(1).id -> FieldOk(page2Field.withIndex(1), "page2Field-value1"),
+            page2Field.withIndex(2).id -> FieldOk(page2Field.withIndex(2), "page2Field-value2"),
+            addToListQuestionComponent.withIndex(1).id -> ComponentField(
+              addToListQuestionComponent.withIndex(1),
+              Map(
+                Indexed(addToListQuestionComponent.withIndex(1).id, 0) -> FieldOk(
+                  addToListQuestionComponent.withIndex(1),
+                  "1"))
+            ),
+            addToListQuestionComponent.withIndex(2).id -> ComponentField(
+              addToListQuestionComponent.withIndex(2),
+              Map(
+                Indexed(addToListQuestionComponent.withIndex(2).id, 1) -> FieldOk(
+                  addToListQuestionComponent.withIndex(2),
+                  "0"))
+            )
+          ),
+          None
+        )
+
+        val html: Html =
+          summaryRenderingService
+            .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForDms, formModelOptics)
+            .futureValue
+
+        html.summaryElements shouldBe List(
+          HeaderElement("addToListSummary"),
+          SummaryListElement(List(SummaryListRow("addToList", "addToList addToList"))),
+          HeaderElement("addToList"),
+          SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value1"))),
+          SummaryListElement(List(SummaryListRow("page2Field", "page2Field-value1"))),
+          HeaderElement("addToList"),
+          SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value2"))),
+          SummaryListElement(List(SummaryListRow("page2Field", "page2Field-value2"))),
+          HeaderElement("declaration section"),
+          SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
+        )
+
+      }
+    }
+
     "add to list - presentationHint is SummariseGroupAsGrid" should {
       "render elements without page titles" in new TestFixture {
 
@@ -131,6 +208,7 @@ class SummaryRenderingService_PresentationHintSpecConverter
             addToListSection(
               "addToList",
               "addToList",
+              None,
               addToListQuestionComponent,
               None,
               List(
@@ -205,6 +283,7 @@ class SummaryRenderingService_PresentationHintSpecConverter
             addToListSection(
               "addToList",
               "addToList",
+              None,
               addToListQuestionComponent,
               None,
               List(

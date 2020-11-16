@@ -76,6 +76,7 @@ case class Repeater[A <: PageMode](
   expandedTitle: SmartString,
   expandedDescription: SmartString,
   expandedShortName: SmartString,
+  expandedSummaryName: Option[SmartString],
   includeIf: Option[IncludeIf],
   addAnotherQuestion: FormComponent,
   index: Int,

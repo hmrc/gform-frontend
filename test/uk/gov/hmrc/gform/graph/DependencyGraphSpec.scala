@@ -53,6 +53,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     toSmartString(""),
     None,
     None,
+    None,
     NonEmptyList.one(emptyPage),
     mkFormComponent("choice", Value),
     None,
