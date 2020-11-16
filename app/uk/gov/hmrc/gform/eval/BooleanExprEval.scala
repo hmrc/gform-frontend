@@ -21,26 +21,22 @@ import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.applicative._
 import scala.language.higherKinds
-import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
+import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
+import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
+import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, Equals, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, Not, Or }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.http.HeaderCarrier
 
 /**
   * Evaluates Boolean expressions in context where they do not participate to overall FormModel.
   * For example Boolean expressions from validIf expressions.
   */
-class BooleanExprEval[F[_]: Monad](
-  val seissEligibilityChecker: SeissEligibilityChecker[F]
-) {
+class BooleanExprEval[F[_]: Monad] {
 
   def eval[D <: DataOrigin](
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(
     booleanExpr: BooleanExpr
-  )(
-    implicit
-    hc: HeaderCarrier
   ): F[Boolean] = {
     def loop(booleanExpr: BooleanExpr): F[Boolean] = booleanExpr match {
       case Equals(left, right) =>
@@ -89,14 +85,31 @@ class BooleanExprEval[F[_]: Monad](
 
         l.contains(r).pure[F]
 
-      case In(expr, dataSource) =>
-        val v =
-          formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
-
-        seissEligibilityChecker(UtrEligibilityRequest(v), hc)
-
+      case in @ In(_, _) =>
+        val formModel = formModelVisibilityOptics.formModel
+        val recalculationResult = formModelVisibilityOptics.recalculationResult
+        val recData = formModelVisibilityOptics.recData
+        // TODO this doesn't work for BooleanExpr from ValidIf yet (they will need to be evaluated in Recalculation.scala).
+        BooleanExprEval.evalInExpr(in, formModel, recalculationResult, recData).pure[F]
     }
 
     loop(booleanExpr)
+  }
+}
+
+object BooleanExprEval {
+
+  def evalInExpr[T <: PageMode](
+    in: In,
+    formModel: FormModel[T],
+    recalculationResult: RecalculationResult,
+    recData: RecData[SourceOrigin.Current]
+  ): Boolean = {
+    val typeInfo = formModel.toFirstOperandTypeInfo(in.value)
+    val expressionResult = recalculationResult.evaluationResults
+      .evalExprCurrent(typeInfo, recData, recalculationResult.evaluationContext)
+    val maybeBoolean =
+      recalculationResult.booleanExprCache.get(in.dataSource, expressionResult.stringRepresentation(typeInfo))
+    maybeBoolean.getOrElse(false)
   }
 }

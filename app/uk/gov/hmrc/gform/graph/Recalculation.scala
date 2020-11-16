@@ -106,7 +106,7 @@ class Recalculation[F[_]: Monad, E](
             evaluationResults.evalExpr(typeInfo, recData, evaluationContext).applyTypeInfo(typeInfo)
           val hc = evaluationContext.headerCarrier
 
-          expressionResult.withStringResult(noStateChange(false)) { value =>
+          expressionResult.convertNumberToString.withStringResult(noStateChange(false)) { value =>
             StateT[F, RecalculationState, Boolean] { s =>
               val updS = s.update(evaluationResults + (expr, expressionResult))
               def makeCall() = dataSource match {

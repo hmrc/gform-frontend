@@ -120,7 +120,7 @@ class ValidationService(
     envelope: Envelope,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(
-    implicit hc: HeaderCarrier,
+    implicit
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator): Future[ValidatedType[Unit]] =
@@ -133,7 +133,7 @@ class ValidationService(
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     envelope: Envelope
   )(
-    implicit hc: HeaderCarrier,
+    implicit
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
@@ -162,7 +162,7 @@ class ValidationService(
     envelope: Envelope,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(
-    implicit hc: HeaderCarrier,
+    implicit
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
