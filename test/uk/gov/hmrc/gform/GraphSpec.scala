@@ -21,18 +21,12 @@ import cats.syntax.applicative._
 
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.{ GovernmentGatewayId, IdentifierValue }
-import uk.gov.hmrc.gform.eval.{ BooleanExprEval, SeissEligibilityChecker }
+import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.DelegatedEnrolment
 import uk.gov.hmrc.http.HeaderCarrier
 
 trait GraphSpec {
-
-  private def eligibilityStatusTrue[F[_]: Monad]: SeissEligibilityChecker[F] =
-    new SeissEligibilityChecker[F]((_, _) => true.pure[F])
-
-  private def eligibilityStatusFalse[F[_]: Monad]: SeissEligibilityChecker[F] =
-    new SeissEligibilityChecker[F]((_, _) => false.pure[F])
 
   def dbLookupStatusTrue[F[_]: Monad](id: String, collectionName: CollectionName, hc: HeaderCarrier): F[Boolean] =
     true.pure[F]
@@ -43,11 +37,6 @@ trait GraphSpec {
     identifierValue: IdentifierValue,
     hc: HeaderCarrier): F[Boolean] = true.pure[F]
 
-  def booleanExprEval[F[_]: Monad]: BooleanExprEval[F] = new BooleanExprEval[F](eligibilityStatusTrue[F])
-
-  def booleanExprEval2[F[_]: Monad]: BooleanExprEval[F] = new BooleanExprEval[F](eligibilityStatusFalse[F])
-
-  /* protected def mkFormDataRecalculated(data: VariadicFormData[SourceOrigin.OutOfDate]): FormDataRecalculated =
- *   FormDataRecalculated.empty.copy(recData = RecData.fromData(data)) */
+  def booleanExprEval[F[_]: Monad]: BooleanExprEval[F] = new BooleanExprEval[F]()
 
 }

@@ -20,7 +20,7 @@ import cats.{ Functor, MonadError }
 import cats.syntax.all._
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, ExpressionResult, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ BooleanExprEval, EvaluationContext, ExpressionResult, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.gform.{ FormComponentUpdater, PageUpdater }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -235,13 +235,7 @@ class FormModelBuilder[E, F[_]: Functor](
       case IsTrue                              => true
       case IsFalse                             => false
       case Contains(field1, field2)            => compare(field1, field2, _ contains _)
-      case In(expr, dataSource) =>
-        val typeInfo = formModel.toFirstOperandTypeInfo(expr)
-        val expressionResult = recalculationResult.evaluationResults
-          .evalExprCurrent(typeInfo, recData, recalculationResult.evaluationContext)
-        val maybeBoolean =
-          recalculationResult.booleanExprCache.get(dataSource, expressionResult.stringRepresentation(typeInfo))
-        maybeBoolean.getOrElse(false)
+      case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, formModel, recalculationResult, recData)
     }
 
     loop(includeIf.booleanExpr)

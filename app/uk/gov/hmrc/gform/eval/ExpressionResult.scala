@@ -144,6 +144,9 @@ sealed trait ExpressionResult extends Product with Serializable {
   def withStringResult[B](noString: B)(f: String => B): B =
     fold[B](_ => noString)(_ => noString)(_ => noString)(_ => noString)(r => f(r.value))(_ => noString)
 
+  def convertNumberToString: ExpressionResult =
+    fold[ExpressionResult](identity)(identity)(identity)(r => StringResult(r.value.toString))(identity)(identity)
+
   def applyTextConstraint(textConstraint: TextConstraint): ExpressionResult = textConstraint match {
     // format: off
     case Sterling(rm, _)                 => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 2, rm))

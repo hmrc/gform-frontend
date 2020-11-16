@@ -36,7 +36,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.http.HeaderCarrier
 
 class EmailCodeFieldMatcher(
   val fcId: VerificationCodeFieldId,
@@ -85,9 +84,6 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
 
   private[validation] def validIf(
     validationResult: ValidatedType[Unit]
-  )(
-    implicit
-    hc: HeaderCarrier
   ): F[ValidatedType[Unit]] =
     if (validationResult.isValid) {
       for {
@@ -99,25 +95,16 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   private def produceCustomValidationErrorOrDefaultValidationResult(
     customValidationError: Option[SmartString],
     validationResult: ValidatedType[Unit]
-  )(
-    implicit
-    hc: HeaderCarrier
   ): F[ValidatedType[Unit]] =
     customValidationError
       .map(produceValidationError(_).pure[F])
       .getOrElse(defaultFormComponentValidIf(validationResult))
 
-  private def findFirstCustomValidationError(
-    implicit
-    hc: HeaderCarrier
-  ): F[Option[SmartString]] =
+  private def findFirstCustomValidationError: F[Option[SmartString]] =
     evaluateCustomValidators(formComponent).map(_.find(listItem => !listItem._1).map(_._2))
 
   private def evaluateCustomValidators(
     formComponent: FormComponent
-  )(
-    implicit
-    hc: HeaderCarrier
   ): F[List[(Boolean, SmartString)]] =
     formComponent.validators.traverse { formComponentValidator =>
       val fb: F[Boolean] = booleanExprEval.eval(formModelVisibilityOptics)(formComponentValidator.validIf.booleanExpr)
@@ -133,9 +120,6 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
 
   private def defaultFormComponentValidIf(
     validationResult: ValidatedType[Unit]
-  )(
-    implicit
-    hc: HeaderCarrier
   ): F[ValidatedType[Unit]] =
     formComponent.validIf.fold(validationResult.pure[F]) { vi =>
       booleanExprEval.eval(formModelVisibilityOptics)(vi.booleanExpr).map { b =>
@@ -150,7 +134,6 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(
     implicit
-    hc: HeaderCarrier,
     messages: Messages
   ): F[ValidatedType[Unit]] = {
 
