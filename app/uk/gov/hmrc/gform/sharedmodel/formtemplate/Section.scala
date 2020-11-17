@@ -96,7 +96,7 @@ object Section {
     title: SmartString,
     description: SmartString,
     shortName: SmartString,
-    summaryName: Option[SmartString],
+    summaryName: SmartString,
     includeIf: Option[IncludeIf],
     repeatsMax: Option[Expr],
     pages: NonEmptyList[Page[Basic]],

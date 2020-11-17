@@ -55,7 +55,7 @@ object FormTemplateBuilder {
       toSmartString("Pet owner title"),
       toSmartString("Pet owner description"),
       toSmartString("Pet owner shortName"),
-      None,
+      toSmartString("Pet owner summaryName"),
       None,
       None,
       NonEmptyList.fromListUnsafe(formComponents.toList.map(page)),

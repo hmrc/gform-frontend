@@ -51,7 +51,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     toSmartString(""),
     toSmartString(""),
     toSmartString(""),
-    None,
+    toSmartString(""),
     None,
     None,
     NonEmptyList.one(emptyPage),

@@ -397,7 +397,7 @@ object SummaryRenderingService {
     }
 
     def addToListSummary(addToList: Section.AddToList): Html =
-      addToList.summaryName.map(begin_section(_)).getOrElse(Html(""))
+      begin_section(addToList.summaryName)
 
     def addToListRender(addToList: Section.AddToList, repeater: Repeater[Visibility]): Html = {
       val repeaters: List[Repeater[Visibility]] = formModel.repeaters(addToList.id)

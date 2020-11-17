@@ -330,7 +330,7 @@ class FormModelBuilder[E, F[_]: Functor](
         val exTitle = expand(title)
         val exShortName = expand(shortName)
         val exDescription = expand(description)
-        val exSummaryName = summaryName.map(expand(_))
+        val exSummaryName = expand(summaryName)
         val repeater =
           Repeater[T](
             exTitle,
