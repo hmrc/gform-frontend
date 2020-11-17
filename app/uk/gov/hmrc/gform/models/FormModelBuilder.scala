@@ -251,7 +251,15 @@ class FormModelBuilder[E, F[_]: Functor](
   private def mkRepeater[T <: PageMode](s: Section.AddToList, index: Int): Repeater[T] = {
     val expand: SmartString => SmartString = _.expand(index, s.allIds)
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds).updatedWithId
-    Repeater[T](expand(s.title), expand(s.description), expand(s.shortName), s.includeIf, fc, index, s.instruction)
+    Repeater[T](
+      expand(s.title),
+      expand(s.description),
+      expand(s.shortName),
+      expand(s.summaryName),
+      s.includeIf,
+      fc,
+      index,
+      s.instruction)
   }
 
   private def mkSingleton(page: Page[Basic], index: Int): Section.AddToList => Page[Basic] =

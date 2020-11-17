@@ -46,7 +46,11 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
     }
 
     def fromRepeater(repeater: Repeater[_]): List[Expr] =
-      fromSmartStrings(repeater.expandedTitle, repeater.expandedDescription, repeater.expandedShortName)
+      fromSmartStrings(
+        repeater.expandedTitle,
+        repeater.expandedDescription,
+        repeater.expandedShortName,
+        repeater.expandedSummaryName)
 
     def fromNonRepeatingBracket(bracket: BracketPlain.NonRepeatingPage[A]): List[Expr] =
       fromSingleton(bracket.singleton)
@@ -54,10 +58,10 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
     def fromRepeatedBracket(bracket: BracketPlain.RepeatingPage[A]): List[Expr] =
       bracket.source.repeats :: bracket.singletons.toList.flatMap(fromSingleton)
 
-    def fromAddToListBracket(bracket: BracketPlain.AddToList[A]): List[Expr] = bracket.iterations.toList.flatMap {
-      iteration =>
+    def fromAddToListBracket(bracket: BracketPlain.AddToList[A]): List[Expr] =
+      fromSmartStrings(bracket.source.summaryName) ++ bracket.iterations.toList.flatMap { iteration =>
         iteration.singletons.toList.flatMap(fromSingleton) ::: fromRepeater(iteration.repeater)
-    }
+      }
 
     val pageExprs: List[Expr] = bracket.fold(fromNonRepeatingBracket)(fromRepeatedBracket)(fromAddToListBracket)
     val pageExprsMeta = toPlainExprs(pageExprs)

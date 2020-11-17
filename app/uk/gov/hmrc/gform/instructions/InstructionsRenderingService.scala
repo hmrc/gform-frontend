@@ -214,6 +214,9 @@ class InstructionsRenderingService(
         }
       }).getOrElse(List.empty)
 
+    def addToListSummary(addToList: Bracket.AddToList[Visibility]): Html =
+      begin_section(addToList.source.summaryName)
+
     def addToListRender(addToList: Bracket.AddToList[Visibility]): Html = {
       val repeaters: NonEmptyList[Repeater[Visibility]] = addToList.repeaters
       val recordTable: NonEmptyList[SmartString] = repeaters.map(_.expandedDescription)
@@ -259,7 +262,7 @@ class InstructionsRenderingService(
         if (addToListPageRenders.isEmpty)
           List.empty
         else
-          List(addToListRender(addToListBracket)) ++ addToListPageRenders
+          List(addToListSummary(addToListBracket), addToListRender(addToListBracket)) ++ addToListPageRenders
 
       }
     }

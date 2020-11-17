@@ -399,6 +399,9 @@ object SummaryRenderingService {
       }
     }
 
+    def addToListSummary(bracket: Bracket.AddToList[Visibility]): Html =
+      begin_section(bracket.source.summaryName)
+
     def addToListRenderBracket(bracket: Bracket.AddToList[Visibility]): List[Html] = {
       val repeaters: NonEmptyList[RepeaterWithNumber[Visibility]] = bracket.iterations.map(_.repeater)
 
@@ -440,7 +443,7 @@ object SummaryRenderingService {
     val brackets: NonEmptyList[Bracket[Visibility]] = formModel.brackets.brackets
 
     brackets.toList.flatMap {
-      case bracket @ Bracket.AddToList(_, _) => addToListRenderBracket(bracket)
+      case bracket @ Bracket.AddToList(_, _) => List(addToListSummary(bracket)) ++ addToListRenderBracket(bracket)
       case Bracket.RepeatingPage(singletons, source) =>
         singletons.toList.flatMap { singletonWithNumber =>
           renderHtmls(singletonWithNumber.singleton, singletonWithNumber.sectionNumber, source)

@@ -47,7 +47,7 @@ import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class SummaryRenderingService_PresentationHintSpecConverter
+class SummaryRenderingServiceSpec
     extends WordSpec with Matchers with ScalaFutures with ExampleData with ArgumentMatchersSugar with IdiomaticMockito
     with SummaryHtmlSupport {
 
@@ -122,6 +122,7 @@ class SummaryRenderingService_PresentationHintSpecConverter
   }
 
   "getSummaryHTML" when {
+
     "add to list - presentationHint is SummariseGroupAsGrid" should {
       "render elements without page titles" in new TestFixture {
 
@@ -131,6 +132,7 @@ class SummaryRenderingService_PresentationHintSpecConverter
             addToListSection(
               "addToList",
               "addToList",
+              "addToListSummary",
               addToListQuestionComponent,
               None,
               List(
@@ -183,6 +185,7 @@ class SummaryRenderingService_PresentationHintSpecConverter
             .futureValue
 
         html.summaryElements shouldBe List(
+          HeaderElement("addToListSummary"),
           SummaryListElement(List(SummaryListRow("addToList", "addToList addToList"))),
           HeaderElement("addToList"),
           SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value1"))),
@@ -205,6 +208,7 @@ class SummaryRenderingService_PresentationHintSpecConverter
             addToListSection(
               "addToList",
               "addToList",
+              "addToListSummary",
               addToListQuestionComponent,
               None,
               List(
@@ -257,6 +261,7 @@ class SummaryRenderingService_PresentationHintSpecConverter
             .futureValue
 
         html.summaryElements shouldBe List(
+          HeaderElement("addToListSummary"),
           SummaryListElement(List(SummaryListRow("addToList", "addToList addToList"))),
           HeaderElement("addToList"),
           HeaderElement("page1"),

@@ -141,6 +141,7 @@ trait InstructionsRenderingServiceSpecExpectations {
     trimLines(
       htmlBase(
         """
+          |<h2> addToListSummary </h2>
           |<dl>
           | <div>
           |   <dt> addToList </dt>
