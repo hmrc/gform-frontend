@@ -90,7 +90,11 @@ class SummaryRenderingService(
         HtmlSanitiser
           .sanitiseHtmlForPDF(
             summaryHtml,
-            document => HtmlSanitiser.acknowledgementPdf(document, submissionDetailsString, cache.formTemplate)))
+            document => {
+              document.title(s"Form Summary - ${cache.formTemplate.formName.value}")
+              HtmlSanitiser.acknowledgementPdf(document, submissionDetailsString, cache.formTemplate)
+            }
+          ))
     }
   }
 
@@ -113,7 +117,13 @@ class SummaryRenderingService(
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdf.header, pdf.footer)
       PdfHtml(
         HtmlSanitiser
-          .sanitiseHtmlForPDF(summaryHtml, document => HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)))
+          .sanitiseHtmlForPDF(
+            summaryHtml,
+            document => {
+              document.title(s"Form Summary - ${cache.formTemplate.formName.value}")
+              HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)
+            }
+          ))
     }
 
   def createHtmlForNotificationPdf(
@@ -145,7 +155,10 @@ class SummaryRenderingService(
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdfHeader, pdfFooter)
       PdfHtml(
         HtmlSanitiser
-          .sanitiseHtmlForPDF(pdfHtml, document => HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)))
+          .sanitiseHtmlForPDF(pdfHtml, document => {
+            document.title(s"Form Summary - ${cache.formTemplate.formName.value}")
+            HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)
+          }))
     }
   }
 

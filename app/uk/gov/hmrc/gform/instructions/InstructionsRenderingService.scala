@@ -78,6 +78,7 @@ class InstructionsRenderingService(
           .sanitiseHtmlForPDF(
             instructionsHtml,
             document => {
+              document.title(s"Instructions - ${cache.formTemplate.formName.value}")
               val submissionDetailsString =
                 SummaryRenderingService.addSubmissionDetailsToDocument(submissionDetails, cache)
               addHeaderFooterSubmissionDetails(cache.formTemplate, submissionDetailsString, document)
