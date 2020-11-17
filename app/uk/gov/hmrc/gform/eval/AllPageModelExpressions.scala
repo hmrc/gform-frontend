@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
-import cats.syntax.option._
-import uk.gov.hmrc.gform.models.{ PageMode, PageModel, Repeater, Singleton }
+import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode, Repeater, Singleton }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BankAccountModulusCheck, Expr, HmrcRosmRegistrationCheckValidator }
 
 /*
@@ -25,7 +24,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BankAccountModulusCheck, Exp
  * This doesn't include expressions in fields
  */
 object AllPageModelExpressions extends ExprExtractorHelpers {
-  def unapply[A <: PageMode](pageModel: PageModel[A]): Option[List[ExprMetadata]] = {
+  def unapply[A <: PageMode](bracket: BracketPlain[A]): Option[List[ExprMetadata]] = {
 
     def fromSingleton(singleton: Singleton[_]): List[Expr] = {
       val page = singleton.page
@@ -49,16 +48,21 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
     def fromRepeater(repeater: Repeater[_]): List[Expr] =
       fromSmartStrings(repeater.expandedTitle, repeater.expandedDescription, repeater.expandedShortName)
 
-    def fromRepatedSection(singleton: Singleton[_]): Option[Expr] =
-      singleton.source.fold[Option[Expr]](_ => none)(_.repeats.some)(_ => none)
+    def fromNonRepeatingBracket(bracket: BracketPlain.NonRepeatingPage[A]): List[Expr] =
+      fromSingleton(bracket.singleton)
 
-    val pageExprs: List[Expr] = pageModel.fold(fromSingleton)(fromRepeater)
+    def fromRepeatedBracket(bracket: BracketPlain.RepeatingPage[A]): List[Expr] =
+      bracket.source.repeats :: bracket.singletons.toList.flatMap(fromSingleton)
+
+    def fromAddToListBracket(bracket: BracketPlain.AddToList[A]): List[Expr] = bracket.iterations.toList.flatMap {
+      iteration =>
+        iteration.singletons.toList.flatMap(fromSingleton) ::: fromRepeater(iteration.repeater)
+    }
+
+    val pageExprs: List[Expr] = bracket.fold(fromNonRepeatingBracket)(fromRepeatedBracket)(fromAddToListBracket)
     val pageExprsMeta = toPlainExprs(pageExprs)
 
-    val repeatedSectionExprs: Option[Expr] = pageModel.fold[Option[Expr]](fromRepatedSection)(_ => none)
-    val repeatedSectionExprsMeta: List[ExprMetadata] = toPlainExprs(repeatedSectionExprs.toList)
-
-    (pageExprsMeta ++ repeatedSectionExprsMeta) match {
+    pageExprsMeta match {
       case Nil => None
       case xs  => Some(xs)
     }

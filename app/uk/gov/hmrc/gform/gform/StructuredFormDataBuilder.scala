@@ -80,14 +80,16 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
   }
 
   private def buildAddToList(implicit l: LangADT): (F[List[Field]], List[MultiValueId]) = {
-    val addToLists: List[(AddToListId, List[MultiValueId])] = formModelVisibilityOptics.formModel.pages
-      .map(
-        _.fold(
-          singleton => singleton.sourceIsAddToList.map(_.id -> singleton.allMultiValueIds)
-        )(
-          repeater => Some(repeater.source.id -> repeater.allMultiValueIds)
-        ))
-      .flatten
+    val addToLists: List[(AddToListId, List[MultiValueId])] =
+      formModelVisibilityOptics.formModel.addToListBrackets
+        .flatMap(
+          bracket =>
+            bracket.toPageModel.toList.map(
+              _.fold(
+                singleton => bracket.source.id -> singleton.allMultiValueIds
+              )(
+                repeater => bracket.source.id -> repeater.allMultiValueIds
+              )))
 
     val addToListMultiValueIds: List[MultiValueId] = addToLists.flatMap(_._2)
 
@@ -168,10 +170,14 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
   }
 
   private def buildRevealingChoice(implicit l: LangADT): (F[List[Field]], List[MultiValueId]) = {
+
     val revealingChoices: List[(FormComponent, RevealingChoice)] =
-      formModelVisibilityOptics.formModel.filter(!_.sourceIsAddToList.isDefined).allFormComponents.collect {
-        case fc @ IsRevealingChoice(revealingChoice) => fc -> revealingChoice
-      }
+      (formModelVisibilityOptics.formModel.nonRepeatingPageBrackets ++ formModelVisibilityOptics.formModel.repeatingPageBrackets)
+        .flatMap(_.toPageModel.toList)
+        .flatMap(_.allFormComponents)
+        .collect {
+          case fc @ IsRevealingChoice(revealingChoice) => fc -> revealingChoice
+        }
 
     val rcModelComponentIds: List[(ModelComponentId, (FormComponent, RevealingChoice))] = revealingChoices.map {
       case (fc, rc) => (fc.modelComponentId, (fc, rc))

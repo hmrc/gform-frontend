@@ -90,7 +90,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
         )
 
         val expected: FormModel[Visibility] = FormModel.fromPages(
-          List(Singleton(expectedPage, section1)),
+          NonEmptyList.one(BracketPlain.NonRepeatingPage(Singleton(expectedPage), section1)),
           expectedStaticTypeInfo,
           expectedRevealinChoiceInfo,
           SumInfo.empty)
@@ -369,10 +369,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           FormCtx("a2")   -> Empty,
           FormCtx("c")    -> Hidden
         ),
-        List(
-          (Singleton(expectedPageA, section1), 0),
-          (Singleton(expectedPageB, section2), 1),
-          (Singleton(expectedPageD, section4), 3)
+        NonEmptyList.of(
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber(3), section4)
         )
       ),
       (
@@ -384,11 +384,11 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           FormCtx("a2")   -> OptionResult(List(0)),
           FormCtx("c")    -> StringResult("X")
         ),
-        List(
-          (Singleton(expectedPageA, section1), 0),
-          (Singleton(expectedPageB, section2), 1),
-          (Singleton(expectedPageC, section3), 2),
-          (Singleton(expectedPageD, section4), 3)
+        NonEmptyList.of(
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageC), SectionNumber(2), section3),
+          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber(3), section4)
         )
       )
     )
@@ -447,10 +447,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           FormCtx("a")    -> NumberResult(123),
           FormCtx("b")    -> OptionResult(List(123))
         ),
-        List(
-          (Singleton(expectedPage1, section1), 0),
-          (Singleton(expectedPage2, section2), 1),
-          (Singleton(expectedPage3, section3), 2)
+        NonEmptyList.of(
+          Bracket.NonRepeatingPage(Singleton(expectedPage1), SectionNumber(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPage2), SectionNumber(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPage3), SectionNumber(2), section3)
         )
       ),
       (
@@ -461,9 +461,9 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           FormCtx("b")    -> OptionResult(List(124)),
           FormCtx("c")    -> Hidden
         ),
-        List(
-          (Singleton(expectedPage1, section1), 0),
-          (Singleton(expectedPage3, section3), 2)
+        NonEmptyList.of(
+          Bracket.NonRepeatingPage(Singleton(expectedPage1), SectionNumber(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPage3), SectionNumber(2), section3)
         )
       )
     )
@@ -522,10 +522,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           FormCtx("a")       -> NumberResult(123.45),
           FormCtx("b")       -> OptionResult(List(123))
         ),
-        List(
-          (Singleton(expectedPage1, section1), 0),
-          (Singleton(expectedPage2, section2), 1),
-          (Singleton(expectedPage3, section3), 2)
+        NonEmptyList.of(
+          Bracket.NonRepeatingPage(Singleton(expectedPage1), SectionNumber(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPage2), SectionNumber(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPage3), SectionNumber(2), section3)
         )
       )
     )
@@ -668,11 +668,11 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "HELLO", "b" -> "WORLD2", "c" -> "C", "e" -> "E", "d" -> "D"),
         variadicFormData[SourceOrigin.Current]("a"   -> "HELLO", "b" -> "WORLD2", "c" -> "C", "e" -> "E", "d" -> "D"),
-        List(
-          (Singleton(expectedPageA, section1), 0),
-          (Singleton(expectedPageB, section2), 1),
-          (Singleton(expectedPageF, section5), 4),
-          (Singleton(expectedPageG, section6), 5)
+        NonEmptyList.of(
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber(4), section5),
+          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber(5), section6)
         )
       ),
       (
@@ -691,12 +691,12 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           "e" -> "E",
           "f" -> "C"
         ),
-        List(
-          (Singleton(expectedPageA, section1), 0),
-          (Singleton(expectedPageB, section2), 1),
-          (Singleton(expectedPageC, section3), 2),
-          (Singleton(expectedPageF, section5), 4),
-          (Singleton(expectedPageG, section6), 5)
+        NonEmptyList.of(
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageC), SectionNumber(2), section3),
+          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber(4), section5),
+          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber(5), section6)
         )
       ),
       (
@@ -715,12 +715,12 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           "e" -> "E",
           "f" -> "D"
         ),
-        List(
-          (Singleton(expectedPageA, section1), 0),
-          (Singleton(expectedPageB, section2), 1),
-          (Singleton(expectedPageD, section4), 3),
-          (Singleton(expectedPageF, section5), 4),
-          (Singleton(expectedPageG, section6), 5)
+        NonEmptyList.of(
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber(3), section4),
+          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber(4), section5),
+          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber(5), section6)
         )
       ),
       (
@@ -739,13 +739,13 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           "e" -> "E",
           "f" -> "C"
         ),
-        List(
-          (Singleton(expectedPageA, section1), 0),
-          (Singleton(expectedPageB, section2), 1),
-          (Singleton(expectedPageC, section3), 2),
-          (Singleton(expectedPageD, section4), 3),
-          (Singleton(expectedPageF, section5), 4),
-          (Singleton(expectedPageG, section6), 5)
+        NonEmptyList.of(
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageC), SectionNumber(2), section3),
+          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber(3), section4),
+          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber(4), section5),
+          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber(5), section6)
         )
       )
     )
@@ -763,10 +763,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
   }
 
   private def fromPagesWithIndex[A <: PageMode](
-    pages: List[(PageModel[A], Int)],
+    brackets: NonEmptyList[Bracket[A]],
     staticTypeInfo: StaticTypeInfo): FormModel[A] =
     FormModel(
-      pages.map { case (page, index) => page -> SectionNumber(index) },
+      BracketsWithSectionNumber(brackets),
       staticTypeInfo,
       RevealingChoiceInfo.empty,
       SumInfo.empty,

@@ -34,9 +34,7 @@ trait Navigation {
 }
 
 // TODO: Origin should not be in controllers, but Navigator probably should!
-case class Origin(formModelOptics: FormModelOptics[DataOrigin.Browser]) extends Navigation {
-  //def data[S <: SourceOrigin] = sssdata
-}
+case class Origin(formModelOptics: FormModelOptics[DataOrigin.Browser]) extends Navigation
 
 sealed trait Direction
 

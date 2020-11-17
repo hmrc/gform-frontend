@@ -17,8 +17,6 @@
 package uk.gov.hmrc.gform.models.ids
 
 import cats.{ Eq, Show }
-import cats.instances.int._
-import cats.syntax.eq._
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
@@ -31,8 +29,6 @@ sealed trait ModelComponentId extends Product with Serializable {
 
   def toAtomicFormComponentId(atom: Atom): ModelComponentId.Atomic =
     fold(pure => ModelComponentId.Atomic(pure.indexedComponentId, atom))(identity)
-
-  def hasExpansionPrefix(index: Int): Boolean = maybeIndex.fold(false)(_ === index)
 
   def expandWithPrefix(index: Int): ModelComponentId = map {
     case i: IndexedComponentId.Indexed => i

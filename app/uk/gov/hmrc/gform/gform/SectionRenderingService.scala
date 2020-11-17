@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
-import uk.gov.hmrc.gform.models.PageModel
+import uk.gov.hmrc.gform.models.{ Bracket, PageModel }
 import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ Atom, DataExpanded }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -123,6 +123,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
   def renderAddToList(
     repeater: Repeater[DataExpanded],
+    bracket: Bracket.AddToList[DataExpanded],
     formModel: FormModel[DataExpanded],
     maybeAccessCode: Option[AccessCode],
     form: Form,
@@ -146,10 +147,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val formComponent = repeater.addAnotherQuestion
 
-    val descriptions = formModel.repeaters(repeater.source.id).map(_.expandedDescription)
+    val descriptions: NonEmptyList[SmartString] = bracket.repeaters.map(_.expandedDescription)
 
-    val recordTable: List[(String, Int)] = descriptions.zipWithIndex.map {
-      case (description, index) => (description.value, index + 1)
+    val recordTable: NonEmptyList[(String, Int)] = descriptions.zipWithIndex.map {
+      case (description, index) => (description.value, index)
     }
 
     val choice = formComponent.`type`.cast[Choice].get
@@ -202,6 +203,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     html.form.addToList(
       repeater,
+      bracket,
       formTemplate,
       recordTable,
       pageLevelErrorHtml,
@@ -314,8 +316,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     sse: SmartStringEvaluator
   ): Html =
     if (formTemplate.isSpecimen) {
-      val pages: List[(PageModel[DataExpanded], SectionNumber)] = formModelRenderPageOptics.formModel.pagesWithIndex
-      specimen.navigation(formTemplate, sectionNumber, pages)
+      val pages: NonEmptyList[(PageModel[DataExpanded], SectionNumber)] =
+        formModelRenderPageOptics.formModel.pagesWithIndex
+      specimen.navigation(formTemplate, sectionNumber, pages.toList)
     } else HtmlFormat.empty
 
   private def generatePageLevelErrorHtml(
@@ -488,7 +491,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   ): Html = {
     val ackSection = destinationList.acknowledgementSection.toSection
     val ei = ExtraInfo(
-      Singleton(ackSection.page.asInstanceOf[Page[DataExpanded]], ackSection),
+      Singleton(ackSection.page.asInstanceOf[Page[DataExpanded]]),
       maybeAccessCode,
       SectionNumber(0),
       formModelOptics,
