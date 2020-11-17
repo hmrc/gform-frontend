@@ -64,7 +64,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
 
   private val emptyInformationMessage = InformationMessage(StandardInfo, toSmartString(""))
 
-  private val emptyFormTemplate = mkFormTemplate(Nil)
+  private val dummyFormTemplate = mkFormTemplate(mkSection(mkFormComponent("dummy", Value)))
 
   "Dependency Graph" should "handle component's value expression" in {
     val sections = List(
@@ -653,26 +653,26 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     Table(
       // format: off
       ("prop", "page"),
-      ("emailParameters",                     emptyFormTemplate.copy(emailParameters = Some(NonEmptyList.of(EmailParameter("", ctx))))),
-      ("summarySection.title",                emptyFormTemplate.copy(summarySection = emptySummarySection.copy(title = stringExpr))),
-      ("summarySection.header",               emptyFormTemplate.copy(summarySection = emptySummarySection.copy(header = stringExpr))),
-      ("summarySection.footer",               emptyFormTemplate.copy(summarySection = emptySummarySection.copy(footer = stringExpr))),
-      ("printSection.page.title",             emptyFormTemplate.copy(destinations = emptyDestinationPrint.copy(page = emptyPrintSectionPage.copy(title = stringExpr)))),
-      ("printSection.page.instructions",      emptyFormTemplate.copy(destinations = emptyDestinationPrint.copy(page = emptyPrintSectionPage.copy(instructions = stringExpr)))),
-      ("printSection.pdf.header",             emptyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdf = emptyPrintSectionPdf.copy(header = stringExpr)))),
-      ("printSection.pdf.footer",             emptyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdf = emptyPrintSectionPdf.copy(footer = stringExpr)))),
-      ("printSection.pdfNotification.header", emptyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdfNotification = Some(emptyPrintSectionPdfNotification.copy(header = stringExpr))))),
-      ("printSection.pdfNotification.footer", emptyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdfNotification = Some(emptyPrintSectionPdfNotification.copy(footer = stringExpr))))),
-      ("acknowledgementSection.title",        emptyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(title = stringExpr)))),
-      ("acknowledgementSection.description",  emptyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(description = Some(stringExpr))))),
-      ("acknowledgementSection.shortName",    emptyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(shortName = Some(stringExpr))))),
-      ("acknowledgementSection.fields",       emptyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(fields = field :: Nil)))),
-      ("declarationSection.title",            emptyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(title = stringExpr)))),
-      ("declarationSection.description",      emptyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(description = Some(stringExpr))))),
-      ("declarationSection.shortName",        emptyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(shortName = Some(stringExpr))))),
-      ("declarationSection.fields",           emptyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(fields = field :: Nil)))),
-      ("destination.hmrcDms.customerId",      emptyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx))))),
-      ("destination.composite.destinations",  emptyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyCompositeDestination.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx)))))))
+      ("emailParameters",                     dummyFormTemplate.copy(emailParameters = Some(NonEmptyList.of(EmailParameter("", ctx))))),
+      ("summarySection.title",                dummyFormTemplate.copy(summarySection = emptySummarySection.copy(title = stringExpr))),
+      ("summarySection.header",               dummyFormTemplate.copy(summarySection = emptySummarySection.copy(header = stringExpr))),
+      ("summarySection.footer",               dummyFormTemplate.copy(summarySection = emptySummarySection.copy(footer = stringExpr))),
+      ("printSection.page.title",             dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(page = emptyPrintSectionPage.copy(title = stringExpr)))),
+      ("printSection.page.instructions",      dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(page = emptyPrintSectionPage.copy(instructions = stringExpr)))),
+      ("printSection.pdf.header",             dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdf = emptyPrintSectionPdf.copy(header = stringExpr)))),
+      ("printSection.pdf.footer",             dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdf = emptyPrintSectionPdf.copy(footer = stringExpr)))),
+      ("printSection.pdfNotification.header", dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdfNotification = Some(emptyPrintSectionPdfNotification.copy(header = stringExpr))))),
+      ("printSection.pdfNotification.footer", dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdfNotification = Some(emptyPrintSectionPdfNotification.copy(footer = stringExpr))))),
+      ("acknowledgementSection.title",        dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(title = stringExpr)))),
+      ("acknowledgementSection.description",  dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(description = Some(stringExpr))))),
+      ("acknowledgementSection.shortName",    dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(shortName = Some(stringExpr))))),
+      ("acknowledgementSection.fields",       dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(fields = field :: Nil)))),
+      ("declarationSection.title",            dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(title = stringExpr)))),
+      ("declarationSection.description",      dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(description = Some(stringExpr))))),
+      ("declarationSection.shortName",        dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(shortName = Some(stringExpr))))),
+      ("declarationSection.fields",           dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(fields = field :: Nil)))),
+      ("destination.hmrcDms.customerId",      dummyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx))))),
+      ("destination.composite.destinations",  dummyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyCompositeDestination.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx)))))))
       // format: on
     )
   }

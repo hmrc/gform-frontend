@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.eval
+package uk.gov.hmrc.gform.models
 
-import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Sum
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
-object AllPageModelSums {
-  def unapply[A <: PageMode](bracket: BracketPlain[A]): Option[Set[Sum]] = bracket match {
-    case AllPageModelExpressions(exprMetadatas) => Some(exprMetadatas.flatMap(_.expr.sums).toSet).filter(_.nonEmpty)
-    case _                                      => None
-  }
+case class SingletonWithNumber[A <: PageMode](
+  singleton: Singleton[A],
+  sectionNumber: SectionNumber
+) {
+  def map[B <: PageMode](f: Singleton[A] => Singleton[B]): SingletonWithNumber[B] =
+    SingletonWithNumber(f(singleton), sectionNumber)
+
+  def toPageModelWithNumber: (PageModel[A], SectionNumber) = (singleton, sectionNumber)
 }

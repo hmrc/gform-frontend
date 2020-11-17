@@ -16,44 +16,32 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.instances.int._
-import cats.syntax.eq._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddToListId
 
 object AddToListUtils {
 
   def removeRecord(
     processData: ProcessData,
+    bracket: Bracket.AddToList[DataExpanded],
     idx: Int,
-    addToListId: AddToListId
   ): VariadicFormData[SourceOrigin.Current] = {
-    val allAddToListPages: List[PageModel[DataExpanded]] =
-      processData.formModel.pages.filter(_.isAddToList(addToListId))
 
-    val (
-      toBeRemoved: List[PageModel[DataExpanded]],
-      toKeep: List[PageModel[DataExpanded]]
-    ) =
-      allAddToListPages.partition(pageModel =>
-        pageModel.fold(s => s.page.fields.forall(_.modelComponentId.hasExpansionPrefix(idx)))(_.index === idx))
+    val iteration: Bracket.AddToListIteration[DataExpanded] = bracket.iterations.toList(idx)
 
-    val toBeReindex: List[PageModel[DataExpanded]] = toKeep.filter(
-      pageModel =>
-        pageModel
-          .fold(s => s.page.fields.forall(_.modelComponentId.maybeIndex.exists(_ > idx)))(_.index > idx))
+    val (_, iterationsToReindex) = bracket.iterations.toList.splitAt(idx + 1)
+
+    val toBeRemovedIds: List[ModelComponentId] = iteration.toPageModel.toList.flatMap(_.allModelComponentIds)
+    val toReindex: Set[ModelComponentId] =
+      iterationsToReindex.flatMap(_.toPageModel.toList).flatMap(_.allModelComponentIds).toSet
 
     val variadicFormData = processData.formModelOptics.pageOpticsData
 
-    val toReindex: Set[ModelComponentId] = toBeReindex.flatMap(_.allModelComponentIds).toSet
     val variadicFormDataToModify = variadicFormData.subset(toReindex)
 
     val variadicFormDataToModified = variadicFormDataToModify.mapKeys { variadicValueId =>
       variadicValueId.decrement
     }
-
-    val toBeRemovedIds: List[ModelComponentId] = toBeRemoved.flatMap(_.allModelComponentIds)
 
     val res = variadicFormData -- toBeRemovedIds -- variadicFormDataToModify ++ variadicFormDataToModified
 
@@ -61,7 +49,8 @@ object AddToListUtils {
 
     val maxPrefix = prefixes.max
 
-    val lastAddAnotherQuestionId = addToListId.formComponentId.modelComponentId.expandWithPrefix(maxPrefix)
+    val lastAddAnotherQuestionId =
+      bracket.source.id.formComponentId.modelComponentId.expandWithPrefix(maxPrefix)
 
     res - lastAddAnotherQuestionId
 

@@ -23,11 +23,10 @@ import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.gform.{ EnrolmentFormNotValid, NoIdentifierProvided, SubmitEnrolmentError }
 import uk.gov.hmrc.gform.gform.RegimeIdNotMatch
-import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormTemplate }
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
@@ -37,7 +36,7 @@ class EnrolmentResultProcessor(
   renderEnrolmentSection: RenderEnrolmentSection,
   formTemplate: FormTemplate,
   retrievals: MaterialisedRetrievals,
-  singleton: Singleton[DataExpanded],
+  enrolmentSection: EnrolmentSection,
   formModelOptics: FormModelOptics[DataOrigin.Mongo],
   frontendAppConfig: FrontendAppConfig
 ) {
@@ -47,7 +46,7 @@ class EnrolmentResultProcessor(
       renderEnrolmentSection(
         formTemplate,
         retrievals,
-        singleton,
+        enrolmentSection,
         formModelOptics,
         globalErrors,
         validationResult

@@ -47,7 +47,6 @@ class GraphModule(
   val smartStringEvaluatorFactory: SmartStringEvaluatorFactory =
     new RealSmartStringEvaluatorFactory()
 
-  val booleanExprEval: BooleanExprEval[Future] =
-    new BooleanExprEval(seissEligibilityChecker)
+  val booleanExprEval: BooleanExprEval[Future] = new BooleanExprEval()
 
 }

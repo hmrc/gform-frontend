@@ -16,14 +16,17 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.Eq
 import play.api.libs.json._
 
 case class SectionNumber(value: Int) extends Ordered[SectionNumber] {
   override def compare(that: SectionNumber): Int = value.compare(that.value)
   def +(i: Int): SectionNumber = SectionNumber(value + i)
+  def increment: SectionNumber = SectionNumber(value + 1)
 }
 
 object SectionNumber {
+  implicit val equal: Eq[SectionNumber] = Eq.fromUniversalEquals
   implicit val format: Format[SectionNumber] = Format[SectionNumber](
     Reads[SectionNumber] {
       case JsNumber(n: BigDecimal) => JsSuccess(SectionNumber(n.toInt))
@@ -31,6 +34,4 @@ object SectionNumber {
     },
     Writes[SectionNumber](a => JsNumber(a.value))
   )
-
-  val firstSection = SectionNumber(0)
 }

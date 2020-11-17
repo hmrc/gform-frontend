@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.gform.eval
 
+import cats.data.NonEmptyList
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.models.{ PageMode, PageModel }
+import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, Sum }
 
 /**
@@ -36,10 +37,10 @@ object StandaloneSumInfo {
   val empty: StandaloneSumInfo = StandaloneSumInfo(Set.empty[Sum])
 
   def from[A <: PageMode](
-    pages: List[PageModel[A]],
+    brackets: NonEmptyList[BracketPlain[A]],
     sumInfo: SumInfo
   ): StandaloneSumInfo = {
-    val allSums: List[Set[Sum]] = pages.collect {
+    val allSums: List[Set[Sum]] = brackets.collect {
       case AllPageModelSums(sums) => sums
     }
     val sums = sumInfo.keys

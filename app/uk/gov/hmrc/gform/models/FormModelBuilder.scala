@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.data.NonEmptyList
 import cats.{ Functor, MonadError }
 import cats.syntax.all._
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, ExpressionResult, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ BooleanExprEval, EvaluationContext, ExpressionResult, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.gform.{ FormComponentUpdater, PageUpdater }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -149,17 +150,15 @@ class FormModelBuilder[E, F[_]: Functor](
           )
         }
       }
-      .map { pageModel: PageModel[DataExpanded] =>
-        pageModel.fold[PageModel[DataExpanded]] { singleton =>
-          val updatedFields = singleton.page.fields.flatMap {
-            case fc @ IsRevealingChoice(rc) =>
-              fc.copy(`type` = RevealingChoice.slice(fc.id)(data)(rc)) :: Nil
-            case otherwise => otherwise :: Nil
-          }
-          singleton.copy(page = singleton.page.copy(fields = updatedFields))
-        }(identity)
+      .map[Visibility] { singleton: Singleton[DataExpanded] =>
+        val updatedFields = singleton.page.fields.flatMap {
+          case fc @ IsRevealingChoice(rc) => fc.copy(`type` = RevealingChoice.slice(fc.id)(data)(rc)) :: Nil
+          case otherwise                  => otherwise :: Nil
+        }
+        singleton.copy(page = singleton.page.copy(fields = updatedFields))
+      } { repeater: Repeater[DataExpanded] =>
+        repeater.asInstanceOf[Repeater[Visibility]]
       }
-      .asInstanceOf[FormModel[Visibility]]
   }
 
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
@@ -235,13 +234,7 @@ class FormModelBuilder[E, F[_]: Functor](
       case IsTrue                              => true
       case IsFalse                             => false
       case Contains(field1, field2)            => compare(field1, field2, _ contains _)
-      case In(expr, dataSource) =>
-        val typeInfo = formModel.toFirstOperandTypeInfo(expr)
-        val expressionResult = recalculationResult.evaluationResults
-          .evalExprCurrent(typeInfo, recData, recalculationResult.evaluationContext)
-        val maybeBoolean =
-          recalculationResult.booleanExprCache.get(dataSource, expressionResult.stringRepresentation(typeInfo))
-        maybeBoolean.getOrElse(false)
+      case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, formModel, recalculationResult, recData)
     }
 
     loop(includeIf.booleanExpr)
@@ -256,8 +249,17 @@ class FormModelBuilder[E, F[_]: Functor](
   }
 
   private def mkRepeater[T <: PageMode](s: Section.AddToList, index: Int): Repeater[T] = {
+    val expand: SmartString => SmartString = _.expand(index, s.allIds)
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds).updatedWithId
-    Repeater[T](s.title, s.description, s.shortName, s.summaryName, s.includeIf, fc, index, s.instruction, s)
+    Repeater[T](
+      expand(s.title),
+      expand(s.description),
+      expand(s.shortName),
+      expand(s.summaryName),
+      s.includeIf,
+      fc,
+      index,
+      s.instruction)
   }
 
   private def mkSingleton(page: Page[Basic], index: Int): Section.AddToList => Page[Basic] =
@@ -271,18 +273,19 @@ class FormModelBuilder[E, F[_]: Functor](
     s: Section.AddToList,
     index: Int,
     data: VariadicFormData[SourceOrigin.OutOfDate]
-  ): List[PageModel[T]] = {
-    val qq: List[PageModel[T]] =
+  ): Option[BracketPlain.AddToListIteration[T]] = {
+    val singletons: List[Singleton[T]] =
       s.pages.map { page =>
         val page1: Page[Basic] = s.includeIf.fold(page)(includeIf => mergeIncludeIfs(includeIf, page))
         val page2: Page[Basic] = mkSingleton(page1, index)(s)
         val page3: Page[T] = implicitly[FormModelExpander[T]].lift(page2, data)
-        Singleton[T](page3, s)
+        Singleton[T](page3)
       }.toList
 
-    val repeater: PageModel[T] = mkRepeater(s, index)
+    val repeater: Repeater[T] = mkRepeater(s, index)
 
-    qq :+ repeater
+    NonEmptyList.fromList(singletons).map(BracketPlain.AddToListIteration(_, repeater))
+
   }
 
   private def basic[T <: PageMode, U <: SectionSelectorType](
@@ -297,67 +300,66 @@ class FormModelBuilder[E, F[_]: Functor](
     val revealingChoiceInfo: RevealingChoiceInfo =
       allSections.foldLeft(RevealingChoiceInfo.empty)(_ ++ _.revealingChoiceInfo)
 
-    val pages = allSections
-      .flatMap {
-        case s: Section.NonRepeatingPage => List(Singleton[T](formModelExpander.lift(s.page, data), s))
-        case s: Section.RepeatingPage    => formModelExpander.liftRepeating(s, data)
-        case s: Section.AddToList        => basicAddToList(s, 1, data)
+    val brackets: List[BracketPlain[T]] = allSections
+      .map {
+        case s: Section.NonRepeatingPage =>
+          val page = formModelExpander.lift(s.page, data)
+          Some(BracketPlain.NonRepeatingPage(Singleton[T](page), s))
+        case s: Section.RepeatingPage => formModelExpander.liftRepeating(s, data)
+        case s: Section.AddToList =>
+          basicAddToList(s, 1, data).map(atl => BracketPlain.AddToList(NonEmptyList.one(atl), s))
+      }
+      .collect {
+        case Some(bracket) => bracket
       }
 
     val sumInfo: SumInfo = allSections.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
 
-    FormModel.fromPages(pages, staticTypeInfo, revealingChoiceInfo, sumInfo)
+    NonEmptyList
+      .fromList(brackets)
+      .fold(throw new IllegalArgumentException("Form must have at least one (visible) page")) {
+        FormModel.fromPages(_, staticTypeInfo, revealingChoiceInfo, sumInfo)
+      }
 
+  }
+
+  private def repeaterIsYes(
+    modelComponentId: ModelComponentId,
+    data: VariadicFormData[SourceOrigin.OutOfDate]
+  ): Boolean = {
+    val nextOne: Option[Seq[String]] = data.many(modelComponentId)
+    val next = nextOne.toSeq.flatten
+    next.contains("0")
+  }
+
+  private def answeredAddToListIterations[T <: PageMode: FormModelExpander](
+    iteration: BracketPlain.AddToListIteration[T],
+    data: VariadicFormData[SourceOrigin.OutOfDate],
+    source: Section.AddToList
+  ): NonEmptyList[BracketPlain.AddToListIteration[T]] = {
+    def loop(
+      repeater: Repeater[T],
+      acc: NonEmptyList[BracketPlain.AddToListIteration[T]]
+    ): NonEmptyList[BracketPlain.AddToListIteration[T]] =
+      if (repeaterIsYes(repeater.addAnotherQuestion.modelComponentId, data)) {
+        val maybeBracket = basicAddToList(source, repeater.index + 1, data)
+        maybeBracket
+          .map { bracket =>
+            loop(bracket.repeater, acc ::: NonEmptyList.one(bracket))
+          }
+          .getOrElse(acc)
+      } else {
+        acc
+      }
+    loop(iteration.repeater, NonEmptyList.one(iteration))
   }
 
   private def mkFormModel[T <: PageMode: FormModelExpander](
     formModel: FormModel[T],
     data: VariadicFormData[SourceOrigin.OutOfDate]
   ): FormModel[T] =
-    formModel.flatMap {
-      case Singleton(page, source) => List(Singleton[T](page, source))
-      case Repeater(
-          title,
-          description,
-          shortName,
-          summaryName,
-          includeIf,
-          addAnotherQuestionFc,
-          index,
-          instruction,
-          source) =>
-        val expand: SmartString => SmartString = _.expand(index, source.allIds)
-        val exTitle = expand(title)
-        val exShortName = expand(shortName)
-        val exDescription = expand(description)
-        val exSummaryName = expand(summaryName)
-        val repeater =
-          Repeater[T](
-            exTitle,
-            exDescription,
-            exShortName,
-            exSummaryName,
-            includeIf,
-            addAnotherQuestionFc,
-            index,
-            instruction,
-            source)
-        val nextOne: Option[Seq[String]] = data.many(addAnotherQuestionFc.modelComponentId)
-        val next = nextOne.toSeq.flatten
-
-        val rest = if (next.contains("0")) {
-          val addToListFormModel: FormModel[T] =
-            FormModel
-              .fromPages(
-                basicAddToList(source, index + 1, data),
-                formModel.staticTypeInfo,
-                formModel.revealingChoiceInfo,
-                formModel.sumInfo)
-          mkFormModel(addToListFormModel, data).pages
-        } else {
-          Nil
-        }
-        repeater :: rest
+    formModel.flatMapRepeater {
+      case (NonEmptyList(iteration, Nil), source) => answeredAddToListIterations(iteration, data, source)
+      case (iterations, _)                        => iterations
     }
-
 }

@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.data.NonEmptyList
-import cats.syntax.eq._
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StaticTypeInfo, SumInfo }
@@ -26,46 +25,6 @@ import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.nelFormat
 
 sealed trait Section extends Product with Serializable {
-  def getTitle: SmartString = this match {
-    case s: Section.NonRepeatingPage => s.page.title
-    case s: Section.RepeatingPage    => s.page.title
-    case s: Section.AddToList        => s.title
-  }
-
-  def validators: Option[Validator] = this match {
-    case s: Section.NonRepeatingPage => s.page.validators
-    case s: Section.RepeatingPage    => s.page.validators
-    case s: Section.AddToList        => None
-  }
-
-  def progressIndicator: Option[SmartString] = this match {
-    case s: Section.NonRepeatingPage => s.page.progressIndicator
-    case s: Section.RepeatingPage    => s.page.progressIndicator
-    case s: Section.AddToList        => None
-  }
-
-  def continueLabel: Option[SmartString] = this match {
-    case s: Section.NonRepeatingPage => s.page.continueLabel
-    case s: Section.RepeatingPage    => s.page.continueLabel
-    case s: Section.AddToList        => None
-  }
-
-  def isRepeating: Boolean = this match {
-    case s: Section.NonRepeatingPage => false
-    case s: Section.RepeatingPage    => true
-    case s: Section.AddToList        => false
-  }
-
-  def isTerminationPage: Boolean = this match {
-    case s: Section.NonRepeatingPage => s.page.continueIf.contains(Stop)
-    case s: Section.RepeatingPage    => s.page.continueIf.contains(Stop)
-    case s: Section.AddToList        => false
-  }
-
-  def addToList: Option[Section.AddToList] =
-    fold[Option[Section.AddToList]](_ => None)(_ => None)(addToList => Some(addToList))
-
-  def byAddToListId(addToListId: AddToListId): Boolean = fold(_ => false)(_ => false)(_.id === addToListId)
 
   def fold[B](f: Section.NonRepeatingPage => B)(g: Section.RepeatingPage => B)(h: Section.AddToList => B): B =
     this match {
@@ -74,14 +33,15 @@ sealed trait Section extends Product with Serializable {
       case a: Section.AddToList        => h(a)
     }
 
-  def staticTypeInfo: StaticTypeInfo =
-    fold(_.page.staticTypeInfo)(_.page.staticTypeInfo)(_.staticInfo)
-
+  def getTitle: SmartString = fold(_.page.title)(_.page.title)(_.title)
+  def validators: Option[Validator] = fold(_.page.validators)(_.page.validators)(_ => None)
+  def progressIndicator: Option[SmartString] = fold(_.page.progressIndicator)(_.page.progressIndicator)(_ => None)
+  def continueLabel: Option[SmartString] = fold(_.page.continueLabel)(_.page.continueLabel)(_ => None)
+  def isTerminationPage: Boolean = fold(_.page.continueIf.contains(Stop))(_.page.continueIf.contains(Stop))(_ => false)
+  def staticTypeInfo: StaticTypeInfo = fold(_.page.staticTypeInfo)(_.page.staticTypeInfo)(_.staticInfo)
   def revealingChoiceInfo: RevealingChoiceInfo =
     fold(_.page.revealingChoiceInfo)(_.page.revealingChoiceInfo)(_.allRevealingChoiceInfo)
-
-  def sumInfo: SumInfo =
-    fold(_.page.sumInfo)(_.page.sumInfo)(_.allSumInfo)
+  def sumInfo: SumInfo = fold(_.page.sumInfo)(_.page.sumInfo)(_.allSumInfo)
 
 }
 

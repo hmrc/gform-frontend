@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.instructions
 
+import cats.data.NonEmptyList
 import org.jsoup.nodes.Document
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
@@ -42,7 +43,6 @@ import uk.gov.hmrc.govukfrontend.views.html.components.govukSummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.AddToList
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper.summaryListRow
 
@@ -214,16 +214,16 @@ class InstructionsRenderingService(
         }
       }).getOrElse(List.empty)
 
-    def addToListSummary(addToList: Section.AddToList): Html =
-      begin_section(addToList.summaryName)
+    def addToListSummary(addToList: Bracket.AddToList[Visibility]): Html =
+      begin_section(addToList.source.summaryName)
 
-    def addToListRender(addToList: Section.AddToList): Html = {
-      val repeaters: List[Repeater[Visibility]] = formModel.repeaters(addToList.id)
-      val recordTable: List[SmartString] = repeaters.map(_.expandedDescription)
-      val value = recordTable.map(_.value()).mkString("</br>")
+    def addToListRender(addToList: Bracket.AddToList[Visibility]): Html = {
+      val repeaters: NonEmptyList[Repeater[Visibility]] = addToList.repeaters
+      val recordTable: NonEmptyList[SmartString] = repeaters.map(_.expandedDescription)
+      val value = recordTable.map(_.value()).toList.mkString("</br>")
 
       val slr: SummaryListRow = summaryListRow(
-        addToList.title.value(),
+        repeaters.last.title.value(),
         value,
         None,
         "",
@@ -235,59 +235,37 @@ class InstructionsRenderingService(
       new govukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-5"))
     }
 
-    def instructionOrder(section: Section) =
-      section
-        .fold(_.page.instruction.flatMap(_.order))(_.page.instruction.flatMap(_.order))(_.instruction.flatMap(_.order))
+    def instructionOrder(bracket: Bracket[Visibility]): Int =
+      bracket
+        .fold(_.source.page.instruction.flatMap(_.order))(_.source.page.instruction.flatMap(_.order))(
+          _.source.instruction.flatMap(_.order))
         .getOrElse(Integer.MAX_VALUE)
 
-    formModel.pagesWithIndex
-      .groupBy {
-        case (pageModel, _) => pageModel.source
-      }
-      .toList
-      .sortBy {
-        case (section, _) => instructionOrder(section)
-      }
-      .flatMap {
-        case (a: AddToList, pagesWithSectionNumber) =>
-          val addToListPageRenders = pagesWithSectionNumber
-            .flatMap {
-              case (singleton: Singleton[Visibility], sectionNumber) =>
-                formModel
-                  .repeaterForSingleton(singleton, sectionNumber)
-                  .map((_, (singleton, sectionNumber)))
-              case _ => None
-            }
-            .groupBy {
-              case (repeater, _) => repeater
-            }
-            .mapValues(_.map(_._2))
-            .toList
-            .sortBy {
-              case (repeater, _) => repeater.index
-            }
-            .flatMap {
-              case (repeater: Repeater[Visibility], pages: List[(Singleton[Visibility], SectionNumber)]) =>
-                val pageRenders = pages
-                  .flatMap {
-                    case (pageModel, sectionNumber) => renderHtmls(pageModel, sectionNumber)
-                  }
-                if (pageRenders.isEmpty)
-                  List.empty
-                else
-                  List(begin_section(repeater.expandedShortName)) ++ pageRenders
-              case _ => List.empty
-            }
-          if (addToListPageRenders.isEmpty)
+    val sortedBrackets: NonEmptyList[Bracket[Visibility]] = formModel.brackets.brackets.sortBy(instructionOrder)
+
+    sortedBrackets.toList.flatMap {
+      _.fold[List[Html]] { nonRepeatingBracket =>
+        renderHtmls(nonRepeatingBracket.singleton, nonRepeatingBracket.sectionNumber)
+      } { repeatingBracket =>
+        repeatingBracket.singletons.toList.flatMap(singletonWithNumber =>
+          renderHtmls(singletonWithNumber.singleton, singletonWithNumber.sectionNumber))
+      } { addToListBracket =>
+        val addToListPageRenders = addToListBracket.iterations.toList.flatMap { iteration =>
+          val pageRenders = iteration.singletons.toList.flatMap(singletonWithNumber =>
+            renderHtmls(singletonWithNumber.singleton, singletonWithNumber.sectionNumber))
+          if (pageRenders.isEmpty)
             List.empty
           else
-            List(addToListSummary(a), addToListRender(a)) ++ addToListPageRenders
-        case (_, pagesWithSectionNumber) =>
-          pagesWithSectionNumber
-            .flatMap {
-              case (pModel, _) => pModel.fold(renderHtmls(_, formModel.pagesMap(pModel)))(_ => Nil)
-            }
+            begin_section(iteration.repeater.repeater.expandedShortName) :: pageRenders
+
+        }
+        if (addToListPageRenders.isEmpty)
+          List.empty
+        else
+          List(addToListSummary(addToListBracket), addToListRender(addToListBracket)) ++ addToListPageRenders
+
       }
+    }
   }
 
   private def addHeaderFooterSubmissionDetails(
