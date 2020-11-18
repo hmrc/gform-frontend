@@ -21,7 +21,6 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.extractMaxFractionalDigits
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.ops._
@@ -37,8 +36,6 @@ object Javascript {
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   ): String = {
 
-    val graph = formModelOptics.formModelVisibilityOptics.graphData.graph
-
     val fcWithSuccessors: List[(FormComponent, Set[ModelComponentId])] = pageModel.allFormComponents
       .flatMap { formComponent =>
         val maybeExpr: Option[Expr] = HasValueExpr.unapply(formComponent)
@@ -47,22 +44,8 @@ object Javascript {
             val leafs: Set[BaseComponentId] = expr.leafs.collect {
               case FormCtx(fcId) => fcId.baseComponentId
             }.toSet
-            val formComponentId = formComponent.id
-
-            val nodeT: Option[graph.NodeT] = graph.find(GraphNode.Simple(formComponentId))
-
-            val successors: Set[FormComponentId] =
-              nodeT.fold(Set.empty[FormComponentId])(_.diSuccessors.map(_.toOuter).collect {
-                case GraphNode.Expr(FormCtx(fcId)) => fcId
-              })
-
-            val baseComponentIds: Set[BaseComponentId] = successors.map(_.baseComponentId)
-
             val modelComponentIds =
-              pageModel.allModelComponentIds.filter { modelComponentId =>
-                val baseComponentId = modelComponentId.baseComponentId
-                baseComponentIds(baseComponentId) && leafs(baseComponentId)
-              }
+              pageModel.allModelComponentIds.filter(modelComponentId => leafs(modelComponentId.baseComponentId))
 
             formComponent -> modelComponentIds
           }
