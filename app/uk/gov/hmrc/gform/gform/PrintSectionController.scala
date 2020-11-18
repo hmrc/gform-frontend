@@ -73,6 +73,7 @@ class PrintSectionController(
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         cache.formTemplate.destinations match {
           case DestinationPrint(_, pdf, _) =>
+            import i18nSupport._
             for {
               htmlForPDF <- summaryRenderingService
                              .createHtmlForPrintPdf(
@@ -101,6 +102,7 @@ class PrintSectionController(
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         cache.formTemplate.destinations match {
           case DestinationPrint(_, _, Some(pdfNotification)) =>
+            import i18nSupport._
             for {
               htmlForPDF <- summaryRenderingService
                              .createHtmlForNotificationPdf(

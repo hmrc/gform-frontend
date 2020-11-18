@@ -215,6 +215,7 @@ class GformModule(
   val reviewService = new ReviewService(gformBackEndService, lookupRegistry, graphModule.recalculation)
 
   val reviewController = new ReviewController(
+    playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     gformBackEndService,
     reviewService,

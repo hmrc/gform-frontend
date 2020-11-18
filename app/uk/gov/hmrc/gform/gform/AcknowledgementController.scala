@@ -100,6 +100,7 @@ class AcknowledgementController(
           .calculateSubmissionEvent(cache.form, formModelOptics.formModelVisibilityOptics, cache.retrievals, customerId)
           .eventId
 
+        import i18nSupport._
         for {
 
           _          <- nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)

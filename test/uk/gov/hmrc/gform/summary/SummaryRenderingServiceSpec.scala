@@ -61,10 +61,11 @@ class SummaryRenderingServiceSpec
     implicit val request = FakeRequest()
     implicit val headerCarrier = HeaderCarrier()
     implicit val langADT = LangADT.En
-    val i18nSupport: I18nSupport = new I18nSupport {
+    lazy val i18nSupport: I18nSupport = new I18nSupport {
       override def messagesApi: MessagesApi =
         Helpers.stubMessagesApi(Map("en" -> Map("summary.formSummary" -> "Form Summary")))
     }
+    implicit val messages: Messages = i18nSupport.request2Messages
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
     lazy val addToListQuestionComponent = addToListQuestion("addToListQuestion")

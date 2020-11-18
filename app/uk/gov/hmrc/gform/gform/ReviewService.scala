@@ -22,6 +22,7 @@ import cats.instances.list._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.traverse._
+import play.api.i18n.Messages
 import play.api.mvc.{ AnyContent, Request }
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -67,6 +68,7 @@ class ReviewService[F[_]: Monad](
   )(
     implicit
     request: Request[AnyContent],
+    messages: Messages,
     headerCarrier: HeaderCarrier,
     l: LangADT,
     sse: SmartStringEvaluator
@@ -81,6 +83,7 @@ class ReviewService[F[_]: Monad](
   )(
     implicit
     request: Request[AnyContent],
+    messages: Messages,
     headerCarrier: HeaderCarrier,
     l: LangADT,
     sse: SmartStringEvaluator
@@ -118,6 +121,7 @@ class ReviewService[F[_]: Monad](
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(
     implicit request: Request[AnyContent],
+    messages: Messages,
     headerCarrier: HeaderCarrier,
     l: LangADT,
     sse: SmartStringEvaluator

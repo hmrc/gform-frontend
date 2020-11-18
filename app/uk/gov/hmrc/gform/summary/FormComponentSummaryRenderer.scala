@@ -746,7 +746,7 @@ object FormComponentSummaryRenderer {
           formFieldValidationResult
             .getOptionalCurrentValue(HtmlFieldId.indexed(fieldValue.id, index))
             .map { _ =>
-              val revealingFields = fcrd.sort(element.revealingFields.filter(fcrd.isVisible)).flatMap {
+              val revealingFields = fcrd.sort(element.revealingFields.filter(fcrd.isRenderable)).flatMap {
                 summaryListRows(
                   _,
                   formTemplateId,
@@ -819,7 +819,7 @@ object FormComponentSummaryRenderer {
     formComponent.presentationHint match {
       case Some(hints) if hints.contains(SummariseGroupAsGrid) =>
         val formFieldValidationResults: List[FormFieldValidationResult] =
-          fcrd.sort(group.fields.filter(fcrd.isVisible)).map(validationResult.apply)
+          fcrd.sort(group.fields.filter(fcrd.isRenderable)).map(validationResult.apply)
 
         val errorResults = formFieldValidationResults.filter(_.isNotOk)
 
@@ -861,7 +861,7 @@ object FormComponentSummaryRenderer {
         } else List(SummaryListRow())
 
       case _ =>
-        val rows = fcrd.sort(group.fields.filter(fcrd.isVisible)).flatMap { formComponent =>
+        val rows = fcrd.sort(group.fields.filter(fcrd.isRenderable)).flatMap { formComponent =>
           summaryListRows(
             formComponent,
             formTemplateId,
@@ -890,7 +890,7 @@ trait InstructionRender extends RenderType
 trait SummaryRender extends RenderType
 
 sealed trait FormComponentRenderDetails[T <: RenderType] {
-  def isVisible(formComponent: FormComponent): Boolean
+  def isRenderable(formComponent: FormComponent): Boolean
   def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String
   def sort(fields: List[FormComponent]): List[FormComponent]
 }
@@ -900,7 +900,7 @@ object FormComponentRenderDetails {
   implicit val instructionsFormComponentRenderInfo: FormComponentRenderDetails[InstructionRender] =
     new FormComponentRenderDetails[InstructionRender] {
 
-      override def isVisible(formComponent: FormComponent): Boolean =
+      override def isRenderable(formComponent: FormComponent): Boolean =
         !formComponent.hideOnSummary && formComponent.instruction.isDefined
 
       override def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String =
@@ -914,7 +914,7 @@ object FormComponentRenderDetails {
   implicit val summaryFormComponentRenderInfo: FormComponentRenderDetails[SummaryRender] =
     new FormComponentRenderDetails[SummaryRender] {
 
-      override def isVisible(formComponent: FormComponent): Boolean = !formComponent.hideOnSummary
+      override def isRenderable(formComponent: FormComponent): Boolean = !formComponent.hideOnSummary
 
       override def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String =
         formComponent.shortName.map(ls => ls.value()).getOrElse(formComponent.label.value())

@@ -68,13 +68,12 @@ class SummaryRenderingService(
   )(
     implicit
     request: Request[_],
+    messages: Messages,
     l: LangADT,
     hc: HeaderCarrier,
     ec: ExecutionContext,
     lise: SmartStringEvaluator
-  ): Future[PdfHtml] = {
-    import i18nSupport._
-
+  ): Future[PdfHtml] =
     for {
       summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics)
     } yield {
@@ -84,13 +83,11 @@ class SummaryRenderingService(
           .sanitiseHtmlForPDF(
             summaryHtml,
             document => {
-              document.title(
-                s"${request2Messages(request).messages("summary.formSummary")} - ${cache.formTemplate.formName.value}")
+              document.title(s"${messages("summary.formSummary")} - ${cache.formTemplate.formName.value}")
               HtmlSanitiser.acknowledgementPdf(document, submissionDetailsString, cache.formTemplate)
             }
           ))
     }
-  }
 
   def createHtmlForPrintPdf(
     maybeAccessCode: Option[AccessCode],
@@ -100,6 +97,7 @@ class SummaryRenderingService(
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(
     implicit request: Request[_],
+    messages: Messages,
     l: LangADT,
     hc: HeaderCarrier,
     ec: ExecutionContext,
@@ -108,15 +106,13 @@ class SummaryRenderingService(
     for {
       summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics)
     } yield {
-      import i18nSupport._
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdf.header, pdf.footer)
       PdfHtml(
         HtmlSanitiser
           .sanitiseHtmlForPDF(
             summaryHtml,
             document => {
-              document.title(
-                s"${request2Messages(request).messages("summary.formSummary")} - ${cache.formTemplate.formName.value}")
+              document.title(s"${messages("summary.formSummary")} - ${cache.formTemplate.formName.value}")
               HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)
             }
           ))
@@ -130,6 +126,7 @@ class SummaryRenderingService(
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(
     implicit request: Request[_],
+    messages: Messages,
     l: LangADT,
     hc: HeaderCarrier,
     ec: ExecutionContext,
@@ -148,15 +145,13 @@ class SummaryRenderingService(
                   pdfFieldIds,
                   formModelOptics)
     } yield {
-      import i18nSupport._
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdfHeader, pdfFooter)
       PdfHtml(
         HtmlSanitiser
           .sanitiseHtmlForPDF(
             pdfHtml,
             document => {
-              document.title(
-                s"${request2Messages(request).messages("summary.formSummary")} - ${cache.formTemplate.formName.value}")
+              document.title(s"${messages("summary.formSummary")} - ${cache.formTemplate.formName.value}")
               HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)
             }
           ))
