@@ -50,7 +50,7 @@ import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class RenderingServiceSpec
+class SummaryRenderingServiceSpec
     extends WordSpec with Matchers with ScalaFutures with ExampleData with ArgumentMatchersSugar with IdiomaticMockito
     with HtmlSupport {
 
@@ -62,7 +62,8 @@ class RenderingServiceSpec
     implicit val headerCarrier = HeaderCarrier()
     implicit val langADT = LangADT.En
     val i18nSupport: I18nSupport = new I18nSupport {
-      override def messagesApi: MessagesApi = Helpers.stubMessagesApi()
+      override def messagesApi: MessagesApi =
+        Helpers.stubMessagesApi(Map("en" -> Map("summary.formSummary" -> "Form Summary")))
     }
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
