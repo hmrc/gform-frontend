@@ -140,7 +140,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
           "addAnotherQuestionWithRevealingChoiceWithText",
           arrayNode(
             objectStructure(
-              field("addAnotherQuestionWithRevealingChoiceWithText", arrayNode(textNode("0"))),
+              field("addAnotherQuestionWithRevealingChoiceWithText", textNode("0")),
               field(
                 "revealingChoiceInAddToList",
                 objectStructure(
@@ -150,7 +150,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
               )
             ),
             objectStructure(
-              field("addAnotherQuestionWithRevealingChoiceWithText", arrayNode(textNode("0"))),
+              field("addAnotherQuestionWithRevealingChoiceWithText", textNode("0")),
               field(
                 "revealingChoiceInAddToList",
                 objectStructure(
@@ -160,7 +160,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
               )
             ),
             objectStructure(
-              field("addAnotherQuestionWithRevealingChoiceWithText", arrayNode(textNode("1"))),
+              field("addAnotherQuestionWithRevealingChoiceWithText", textNode("1")),
               field(
                 "revealingChoiceInAddToList",
                 objectStructure(
@@ -175,15 +175,16 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
           "addAnotherQuestionWithText",
           arrayNode(
             objectStructure(
-              field("addAnotherQuestionWithText", arrayNode(textNode("0"))),
-              field("lookupInAddToList", textNode("field_id"))),
-            objectStructure(
-              field("addAnotherQuestionWithText", arrayNode(textNode("0"))),
-              field("lookupInAddToList", textNode("field_id"))
+              field("lookupInAddToList", textNode("field_id")),
+              field("addAnotherQuestionWithText", textNode("0"))
             ),
             objectStructure(
-              field("addAnotherQuestionWithText", arrayNode(textNode("1"))),
-              field("lookupInAddToList", textNode("field_id"))
+              field("lookupInAddToList", textNode("field_id")),
+              field("addAnotherQuestionWithText", textNode("0"))
+            ),
+            objectStructure(
+              field("lookupInAddToList", textNode("field_id")),
+              field("addAnotherQuestionWithText", textNode("1"))
             )
           )
         ),
@@ -201,26 +202,26 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
               field("choices", arrayNode(textNode("0"))),
               field(
                 "revealed",
-                objectStructure(field("lookupInRevealingChoiceInRepeatedSection", arrayNode(textNode("field_id")))))
+                objectStructure(field("lookupInRevealingChoiceInRepeatedSection", textNode("field_id"))))
             ),
             objectStructure(
               field("choices", arrayNode(textNode("0"))),
               field(
                 "revealed",
-                objectStructure(field("lookupInRevealingChoiceInRepeatedSection", arrayNode(textNode("field_id")))))
+                objectStructure(field("lookupInRevealingChoiceInRepeatedSection", textNode("field_id"))))
             ),
             objectStructure(
               field("choices", arrayNode(textNode("0"))),
               field(
                 "revealed",
-                objectStructure(field("lookupInRevealingChoiceInRepeatedSection", arrayNode(textNode("field_id")))))
+                objectStructure(field("lookupInRevealingChoiceInRepeatedSection", textNode("field_id"))))
             )
           )
         ),
         field("standardLookup", textNode("field_id")),
+        field("a_group", arrayNode(textNode(""), textNode(""), textNode(""))),
         field("lookupInGroup", arrayNode(textNode("field_id"), textNode("field_id"), textNode("field_id"))),
-        field("lookupInRepeatedSection", arrayNode(textNode("field_id"), textNode("field_id"), textNode("field_id"))),
-        field("a_group", arrayNode(textNode(""), textNode(""), textNode("")))
+        field("lookupInRepeatedSection", arrayNode(textNode("field_id"), textNode("field_id"), textNode("field_id")))
       ).asRight
     )
   }
@@ -311,7 +312,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
           "addAnotherQuestionWithRevealingChoiceWithText",
           arrayNode(
             objectStructure(
-              field("addAnotherQuestionWithRevealingChoiceWithText", arrayNode(textNode("0"))),
+              field("addAnotherQuestionWithRevealingChoiceWithText", textNode("0")),
               field(
                 "revealingChoiceInAddToList",
                 objectStructure(
@@ -324,7 +325,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
               )
             ),
             objectStructure(
-              field("addAnotherQuestionWithRevealingChoiceWithText", arrayNode(textNode("0"))),
+              field("addAnotherQuestionWithRevealingChoiceWithText", textNode("0")),
               field(
                 "revealingChoiceInAddToList",
                 objectStructure(
@@ -337,7 +338,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
               )
             ),
             objectStructure(
-              field("addAnotherQuestionWithRevealingChoiceWithText", arrayNode(textNode("1"))),
+              field("addAnotherQuestionWithRevealingChoiceWithText", textNode("1")),
               field(
                 "revealingChoiceInAddToList",
                 objectStructure(
@@ -356,13 +357,13 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
           arrayNode(
             objectStructure(
               field("textInAddToList", textNode("Add to list text 1")),
-              field("addAnotherQuestionWithText", arrayNode(textNode("0")))),
+              field("addAnotherQuestionWithText", textNode("0"))),
             objectStructure(
               field("textInAddToList", textNode("Add to list text 2")),
-              field("addAnotherQuestionWithText", arrayNode(textNode("0")))),
+              field("addAnotherQuestionWithText", textNode("0"))),
             objectStructure(
               field("textInAddToList", textNode("Add to list text 3")),
-              field("addAnotherQuestionWithText", arrayNode(textNode("1"))))
+              field("addAnotherQuestionWithText", textNode("1")))
           )
         ),
         field(
@@ -384,7 +385,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
                 objectStructure(
                   field(
                     "textInRevealingChoiceInRepeatedSection",
-                    arrayNode(textNode("Repeated section with revealing choice text 1")))))
+                    textNode("Repeated section with revealing choice text 1"))))
             ),
             objectStructure(
               field("choices", arrayNode(textNode("0"))),
@@ -393,7 +394,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
                 objectStructure(
                   field(
                     "textInRevealingChoiceInRepeatedSection",
-                    arrayNode(textNode("Repeated section with revealing choice text 2")))))
+                    textNode("Repeated section with revealing choice text 2"))))
             ),
             objectStructure(
               field("choices", arrayNode(textNode("0"))),
@@ -402,19 +403,19 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
                 objectStructure(
                   field(
                     "textInRevealingChoiceInRepeatedSection",
-                    arrayNode(textNode("Repeated section with revealing choice text 3")))))
+                    textNode("Repeated section with revealing choice text 3"))))
             )
           )
         ),
         field("standardText", textNode("Standard text")),
+        field("a_group", arrayNode(textNode(""), textNode(""), textNode(""))),
+        field("textInGroup", arrayNode(textNode("Group text 1"), textNode("Group text 2"), textNode("Group text 3"))),
         field(
           "textInRepeatedSection",
           arrayNode(
             textNode("Repeated section text 1"),
             textNode("Repeated section text 2"),
-            textNode("Repeated section text 3"))),
-        field("textInGroup", arrayNode(textNode("Group text 1"), textNode("Group text 2"), textNode("Group text 3"))),
-        field("a_group", arrayNode(textNode(""), textNode(""), textNode("")))
+            textNode("Repeated section text 3")))
       ).asRight
     )
   }
@@ -477,13 +478,13 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
         )
       ),
       objectStructure(
+        field("a_group", arrayNode(textNode(""), textNode(""))),
         field(
           "field",
           arrayNode(
             textNode("fieldValue1"),
             textNode("fieldValue2")
-          )),
-        field("a_group", arrayNode(textNode(""), textNode("")))
+          ))
       ).asRight
     )
   }
@@ -504,13 +505,13 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
           )
       ),
       objectStructure(
+        field("a_group", arrayNode(textNode(""), textNode(""))),
         field(
           "field",
           arrayNode(
             arrayNode(textNode("1"), textNode("2")),
             arrayNode(textNode("1"), textNode("3"), textNode("4"))
-          )),
-        field("a_group", arrayNode(textNode(""), textNode("")))
+          ))
       ).asRight
     )
   }
@@ -700,8 +701,8 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
             field(
               "revealed",
               objectStructure(
-                field("revealedField2", textNode("revealedField2Value")),
                 field("revealedField1", textNode("revealedField1Value")),
+                field("revealedField2", textNode("revealedField2Value")),
                 field(
                   "revealedDate",
                   objectStructure(
@@ -740,14 +741,14 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
         ) ++
           variadicFormData(
             "1_cakeName"           -> "lemonCake",
-            "1_lemonPieces"        -> "1",
-            "1_chocolatePieces"    -> "2",
+            "1_chocolatePieces"    -> "1",
+            "1_lemonPieces"        -> "2",
             "1_deliveryDate-day"   -> "1",
             "1_deliveryDate-month" -> "2",
             "1_deliveryDate-year"  -> "2003",
             "2_cakeName"           -> "chocolateCake",
-            "2_lemonPieces"        -> "3",
-            "2_chocolatePieces"    -> "4",
+            "2_chocolatePieces"    -> "3",
+            "2_lemonPieces"        -> "4",
             "2_deliveryDate-day"   -> "4",
             "2_deliveryDate-month" -> "5",
             "2_deliveryDate-year"  -> "2006"
@@ -759,7 +760,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
           arrayNode(
             objectStructure(
               field("cakeName", textNode("lemonCake")),
-              field("addToListAnotherQuestion", arrayNode(textNode("0"))),
+              field("addToListAnotherQuestion", textNode("0")),
               field(
                 "deliveryDate",
                 objectStructure(
@@ -773,8 +774,8 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
                   field(
                     "revealed",
                     objectStructure(
-                      field("lemonPieces", textNode("1")),
-                      field("chocolatePieces", textNode("2"))
+                      field("chocolatePieces", textNode("1")),
+                      field("lemonPieces", textNode("2")),
                     )
                   )
                 )
@@ -782,7 +783,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
             ),
             objectStructure(
               field("cakeName", textNode("chocolateCake")),
-              field("addToListAnotherQuestion", arrayNode(textNode("1"))),
+              field("addToListAnotherQuestion", textNode("1")),
               field(
                 "deliveryDate",
                 objectStructure(
@@ -796,8 +797,8 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
                   field(
                     "revealed",
                     objectStructure(
-                      field("lemonPieces", textNode("3")),
-                      field("chocolatePieces", textNode("4"))
+                      field("chocolatePieces", textNode("3")),
+                      field("lemonPieces", textNode("4"))
                     )
                   )
                 )
@@ -899,7 +900,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
           "addToListAnotherQuestion",
           arrayNode(
             objectStructure(
-              field("addToListAnotherQuestion", arrayNode(textNode("0"))),
+              field("addToListAnotherQuestion", textNode("0")),
               field(
                 "field",
                 objectStructure(
@@ -914,7 +915,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
               )
             ),
             objectStructure(
-              field("addToListAnotherQuestion", arrayNode(textNode("1"))),
+              field("addToListAnotherQuestion", textNode("1")),
               field(
                 "field",
                 objectStructure(
