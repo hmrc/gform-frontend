@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gformbackend
 
 import cats.data.NonEmptyList
 import cats.instances.future._
+import play.api.i18n.Messages
 import play.api.mvc.Request
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -60,6 +61,7 @@ trait GformBackEndAlgebra[F[_]] {
   )(
     implicit
     request: Request[_],
+    messages: Messages,
     l: LangADT,
     hc: HeaderCarrier,
     lise: SmartStringEvaluator
@@ -107,6 +109,7 @@ class GformBackEndService(
   )(
     implicit
     request: Request[_],
+    messages: Messages,
     l: LangADT,
     hc: HeaderCarrier,
     lise: SmartStringEvaluator
@@ -130,6 +133,7 @@ class GformBackEndService(
   )(
     implicit
     request: Request[_],
+    messages: Messages,
     l: LangADT,
     hc: HeaderCarrier,
     lise: SmartStringEvaluator): Future[HttpResponse] =

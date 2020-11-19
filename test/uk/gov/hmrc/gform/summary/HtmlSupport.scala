@@ -19,15 +19,17 @@ package uk.gov.hmrc.gform.summary
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import play.twirl.api.Html
-import uk.gov.hmrc.gform.summary.SummaryHtmlSupport._
+import uk.gov.hmrc.gform.summary.HtmlSupport._
 
 import scala.collection.JavaConverters._
 
-trait SummaryHtmlSupport {
+trait HtmlSupport {
 
   implicit class HtmlOps(html: Html) {
 
     val document = Jsoup.parse(html.body)
+
+    val title = document.title()
 
     def summaryElements: List[SummaryElement] =
       buildSummaryLists(
@@ -56,7 +58,8 @@ trait SummaryHtmlSupport {
   }
 }
 
-object SummaryHtmlSupport {
+object HtmlSupport {
+
   trait SummaryElement
   case class HeaderElement(value: String) extends SummaryElement
   case class SummaryListElement(rows: List[SummaryListRow]) extends SummaryElement

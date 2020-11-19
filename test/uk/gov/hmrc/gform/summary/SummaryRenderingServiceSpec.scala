@@ -25,6 +25,7 @@ import org.scalatest.{ Matchers, WordSpec }
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.test.{ FakeRequest, Helpers }
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.EvaluationContext
@@ -32,12 +33,14 @@ import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, Sma
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField, FormModelOptics, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, InvisiblePageTitleInSummary, Value }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ExampleData, LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
-import uk.gov.hmrc.gform.summary.SummaryHtmlSupport._
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ExampleData, LangADT, PdfHtml, SourceOrigin, SubmissionRef, VariadicFormData }
+import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, ValidationResult, ValidationService }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -49,7 +52,7 @@ import scala.concurrent.Future
 
 class SummaryRenderingServiceSpec
     extends WordSpec with Matchers with ScalaFutures with ExampleData with ArgumentMatchersSugar with IdiomaticMockito
-    with SummaryHtmlSupport {
+    with HtmlSupport {
 
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
@@ -58,9 +61,11 @@ class SummaryRenderingServiceSpec
     implicit val request = FakeRequest()
     implicit val headerCarrier = HeaderCarrier()
     implicit val langADT = LangADT.En
-    val i18nSupport: I18nSupport = new I18nSupport {
-      override def messagesApi: MessagesApi = Helpers.stubMessagesApi()
+    lazy val i18nSupport: I18nSupport = new I18nSupport {
+      override def messagesApi: MessagesApi =
+        Helpers.stubMessagesApi(Map("en" -> Map("summary.formSummary" -> "Form Summary")))
     }
+    implicit val messages: Messages = i18nSupport.request2Messages
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
     lazy val addToListQuestionComponent = addToListQuestion("addToListQuestion")
@@ -121,9 +126,57 @@ class SummaryRenderingServiceSpec
       frontendAppConfig)
   }
 
+  "createHtmlForPdf" should {
+
+    "should have title with 'Form Summary' prefix and form template name" in new TestFixture {
+      implicit val sectionSelectorType: SectionSelector[SectionSelectorType.Normal] = SectionSelector.normal
+
+      val pdfHtml: PdfHtml =
+        summaryRenderingService
+          .createHtmlForPdf(maybeAccessCode, cache, None, SummaryPagePurpose.ForDms, formModelOptics)
+          .futureValue
+
+      Html(pdfHtml.html).title shouldBe "Form Summary - AAA999 dev test template"
+    }
+  }
+
+  "createHtmlForPrintPdf" should {
+    "should have title with 'Form Summary' prefix and form template name" in new TestFixture {
+
+      val pdfHtml: PdfHtml =
+        summaryRenderingService
+          .createHtmlForPrintPdf(
+            maybeAccessCode,
+            cache,
+            SummaryPagePurpose.ForDms,
+            PrintSection.Pdf(toSmartString("header"), toSmartString("footer")),
+            formModelOptics)
+          .futureValue
+
+      Html(pdfHtml.html).title shouldBe "Form Summary - AAA999 dev test template"
+    }
+  }
+
+  "createHtmlForNotificationPdf" should {
+    "should have title with 'Form Summary' prefix and form template name" in new TestFixture {
+
+      val pdfHtml: PdfHtml =
+        summaryRenderingService
+          .createHtmlForNotificationPdf(
+            maybeAccessCode,
+            cache,
+            SummaryPagePurpose.ForDms,
+            PdfNotification(toSmartString("header"), toSmartString("footer"), List.empty),
+            formModelOptics)
+          .futureValue
+
+      Html(pdfHtml.html).title shouldBe "Form Summary - AAA999 dev test template"
+    }
+  }
+
   "getSummaryHTML" when {
 
-    "add to list - presentationHint is SummariseGroupAsGrid" should {
+    "add to list - presentationHint is InvisiblePageTitleInSummary" should {
       "render elements without page titles" in new TestFixture {
 
         override lazy val formTemplate: FormTemplate = buildFormTemplate(

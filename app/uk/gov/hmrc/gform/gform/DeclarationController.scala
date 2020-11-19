@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
 import play.api.Logger
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
@@ -207,6 +207,7 @@ class DeclarationController(
   )(
     implicit
     request: Request[_],
+    messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator
   ): Future[Result] =
@@ -245,6 +246,7 @@ class DeclarationController(
   )(
     implicit
     request: Request[_],
+    messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator
   ): Future[Result] = {

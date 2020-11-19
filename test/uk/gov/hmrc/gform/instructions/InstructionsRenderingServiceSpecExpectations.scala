@@ -29,7 +29,7 @@ trait InstructionsRenderingServiceSpecExpectations {
        |<!doctype html>
        |<html>
        |   <head>
-       |      <title>Summary Title - AAA999 dev test template - GOV.UK</title>
+       |      <title>Instructions - AAA999 dev test template</title>
        |      <style>body{font-family:Arial,sans-serif;font-size: 19px;}
        |         dl{border-bottom: 1px solid #bfc1c3;}
        |         dt{font-weight: bold;}

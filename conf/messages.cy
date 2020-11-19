@@ -255,6 +255,7 @@ assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt
 # Summary
 summary.change=Newid
 summary.view=Bwrw golwg
+summary.formSummary=Crynodeb o'r Ffurflen
 
 # Acknowledgement
 ack.title=Cyflwynwyd eich {0}

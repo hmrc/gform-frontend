@@ -35,7 +35,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4G
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.summary.SummaryRenderingService.getSummaryListRows
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.summary.snippets.begin_section
 import uk.gov.hmrc.gform.views.html.summary.summary
@@ -43,7 +42,7 @@ import uk.gov.hmrc.govukfrontend.views.html.components.govukSummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
+import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, FormComponentSummaryRenderer, InstructionRender, SubmissionDetails, SummaryRenderingService }
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper.summaryListRow
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -78,6 +77,7 @@ class InstructionsRenderingService(
           .sanitiseHtmlForPDF(
             instructionsHtml,
             document => {
+              document.title(s"Instructions - ${cache.formTemplate.formName.value}")
               val submissionDetailsString =
                 SummaryRenderingService.addSubmissionDetailsToDocument(submissionDetails, cache)
               addHeaderFooterSubmissionDetails(cache.formTemplate, submissionDetailsString, document)
@@ -176,7 +176,8 @@ class InstructionsRenderingService(
     implicit
     messages: Messages,
     l: LangADT,
-    lise: SmartStringEvaluator
+    lise: SmartStringEvaluator,
+    fcrd: FormComponentRenderDetails[InstructionRender]
   ): List[Html] = {
 
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
@@ -186,25 +187,20 @@ class InstructionsRenderingService(
         pageInstruction <- singleton.page.instruction
         begin = begin_section(pageInstruction.name)
         sectionTitle4Ga = sectionTitle4GaFactory(pageInstruction.name, sectionNumber)
-        fields = singleton.page.fields
-          .filterNot(_.hideOnSummary)
-          .filter(_.instruction.isDefined)
-          .sortBy(_.instruction.flatMap(_.order).getOrElse(Integer.MAX_VALUE))
-        middleRows: List[SummaryListRow] = fields
-          .flatMap(
-            formComponent =>
-              getSummaryListRows(
-                formComponent,
-                formTemplate._id,
-                formModelOptics.formModelVisibilityOptics,
-                maybeAccessCode,
-                sectionNumber,
-                sectionTitle4Ga,
-                obligations,
-                validationResult,
-                envelope,
-                getInstructionLabel
-            ))
+        middleRows = fcrd
+          .prepareRenderables(singleton.page.fields)
+          .flatMap(formComponent =>
+            FormComponentSummaryRenderer.summaryListRows[D, InstructionRender](
+              formComponent,
+              formTemplate._id,
+              formModelOptics.formModelVisibilityOptics,
+              maybeAccessCode,
+              sectionNumber,
+              sectionTitle4Ga,
+              obligations,
+              validationResult,
+              envelope
+          ))
       } yield {
         if (middleRows.isEmpty) {
           Nil
@@ -283,9 +279,6 @@ class InstructionsRenderingService(
     form.append(submissionDetails)
     mayBeInstructionPdf.flatMap(_.footer).map(ss => h1(markDownParser(ss).toString)).foreach(form.append)
   }
-
-  private def getInstructionLabel(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String =
-    formComponent.instruction.map(_.name.value()).getOrElse(SmartString.empty.value())
 
   private def h1(content: String): String = s"""<h1 class="govuk-heading-l">$content</h1>"""
 }
