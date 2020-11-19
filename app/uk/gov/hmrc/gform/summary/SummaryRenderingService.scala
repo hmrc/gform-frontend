@@ -83,7 +83,7 @@ class SummaryRenderingService(
           .sanitiseHtmlForPDF(
             summaryHtml,
             document => {
-              document.title(s"${messages("summary.formSummary")} - ${cache.formTemplate.formName.value}")
+              document.title(s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}")
               HtmlSanitiser.acknowledgementPdf(document, submissionDetailsString, cache.formTemplate)
             }
           ))
@@ -112,7 +112,7 @@ class SummaryRenderingService(
           .sanitiseHtmlForPDF(
             summaryHtml,
             document => {
-              document.title(s"${messages("summary.formSummary")} - ${cache.formTemplate.formName.value}")
+              document.title(s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}")
               HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)
             }
           ))
@@ -151,7 +151,7 @@ class SummaryRenderingService(
           .sanitiseHtmlForPDF(
             pdfHtml,
             document => {
-              document.title(s"${messages("summary.formSummary")} - ${cache.formTemplate.formName.value}")
+              document.title(s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}")
               HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)
             }
           ))

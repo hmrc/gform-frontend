@@ -63,7 +63,7 @@ class SummaryRenderingServiceSpec
     implicit val langADT = LangADT.En
     lazy val i18nSupport: I18nSupport = new I18nSupport {
       override def messagesApi: MessagesApi =
-        Helpers.stubMessagesApi(Map("en" -> Map("summary.formSummary" -> "Form Summary")))
+        Helpers.stubMessagesApi(Map("en" -> Map("summary.acknowledgement.pdf" -> "Acknowledgement PDF")))
     }
     implicit val messages: Messages = i18nSupport.request2Messages
     lazy val form: Form = buildForm
@@ -136,7 +136,7 @@ class SummaryRenderingServiceSpec
           .createHtmlForPdf(maybeAccessCode, cache, None, SummaryPagePurpose.ForDms, formModelOptics)
           .futureValue
 
-      Html(pdfHtml.html).title shouldBe "Form Summary - AAA999 dev test template"
+      Html(pdfHtml.html).title shouldBe "Acknowledgement PDF - AAA999 dev test template"
     }
   }
 
@@ -153,7 +153,7 @@ class SummaryRenderingServiceSpec
             formModelOptics)
           .futureValue
 
-      Html(pdfHtml.html).title shouldBe "Form Summary - AAA999 dev test template"
+      Html(pdfHtml.html).title shouldBe "Acknowledgement PDF - AAA999 dev test template"
     }
   }
 
@@ -170,7 +170,7 @@ class SummaryRenderingServiceSpec
             formModelOptics)
           .futureValue
 
-      Html(pdfHtml.html).title shouldBe "Form Summary - AAA999 dev test template"
+      Html(pdfHtml.html).title shouldBe "Acknowledgement PDF - AAA999 dev test template"
     }
   }
 
