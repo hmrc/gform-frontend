@@ -266,7 +266,7 @@ assistive.text.sterling=in pounds sterling, do not enter the pound sign
 # Summary
 summary.change=Change
 summary.view=View
-summary.formSummary=Form Summary
+summary.acknowledgement.pdf=Acknowledgement PDF
 
 # Acknowledgement
 ack.title=Your {0} has been submitted
