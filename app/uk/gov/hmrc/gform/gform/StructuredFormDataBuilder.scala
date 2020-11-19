@@ -65,6 +65,14 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     .map(_.modelComponentId)
     .toSet
 
+  private val isGroupOrInfoIds: Set[ModelComponentId] = formModelVisibilityOptics.formModel.allFormComponents
+    .collect {
+      case fc @ IsGroup(_)              => fc.id
+      case fc @ IsInformationMessage(_) => fc.id
+    }
+    .map(_.modelComponentId)
+    .toSet
+
   def build()(implicit l: LangADT): F[List[Field]] =
     destinations match {
       case DestinationList(_, _, _)  => buildSections
@@ -96,7 +104,10 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
 
     val allMultiValueIds: List[MultiValueId] = formModelVisibilityOptics.formModel.allMultiValueIds
 
-    val multiValuesNotProcessedYet: List[MultiValueId] = allMultiValueIds.filterNot(addToListAndRcMultivalues.contains)
+    val multiValuesNotProcessedYet: List[MultiValueId] =
+      allMultiValueIds
+        .filterNot(addToListAndRcMultivalues.contains)
+        .filterNot(multiValueId => isGroupOrInfoIds(multiValueId.modelComponentId))
 
     val restOfTheFields: F[List[Field]] = buildMultiField(multiValuesNotProcessedYet, false)
 
@@ -246,7 +257,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     revealingChoices.traverse {
       case (revealedChoiceFc, revealedChoice) =>
         val selection: Seq[String] =
-          formModelVisibilityOptics.data.many(revealedChoiceFc.modelComponentId).getOrElse(Seq.empty)
+          formModelVisibilityOptics.data.many(revealedChoiceFc.modelComponentId).map(_.sorted).getOrElse(Seq.empty)
         val fieldsF: F[List[Field]] =
           buildMultiField(revealedChoice.options.flatMap(_.revealingFields.map(_.multiValueId)), indexedIsPure)
         fieldsF.map { field =>
@@ -276,13 +287,13 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
           if (isMultiSelectionIds(modelComponentId)) {
             formModelVisibilityOptics.data
               .many(modelComponentId)
+              .map(_.sorted)
               .map { answers =>
-                val sorted = answers.sorted
                 if (isStrictlyMultiSelectionIds(modelComponentId)) {
-                  val arrayNode = ArrayNode(sorted.map(_.trim).filterNot(_.isEmpty).map(TextNode).toList)
+                  val arrayNode = ArrayNode(answers.map(_.trim).filterNot(_.isEmpty).map(TextNode).toList)
                   Field(FieldName(pure.baseComponentId.value), arrayNode, Map.empty)
                 } else {
-                  Field(FieldName(pure.baseComponentId.value), TextNode(sorted.headOption.getOrElse("")), Map.empty)
+                  Field(FieldName(pure.baseComponentId.value), TextNode(answers.headOption.getOrElse("")), Map.empty)
                 }
               }
               .pure[F]
@@ -313,12 +324,12 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                 if (isMultiSelectionIds(modelComponentId)) {
                   formModelVisibilityOptics.data
                     .many(modelComponentId)
+                    .map(_.sorted)
                     .map { answers =>
-                      val sorted = answers.sorted
                       if (isStrictlyMultiSelectionIds(modelComponentId)) {
-                        ArrayNode(sorted.map(TextNode).toList): StructuredFormValue
+                        ArrayNode(answers.map(TextNode).toList): StructuredFormValue
                       } else {
-                        TextNode(sorted.headOption.getOrElse(""))
+                        TextNode(answers.headOption.getOrElse(""))
                       }
                     }
                     .pure[F]
