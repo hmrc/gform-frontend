@@ -188,7 +188,7 @@ class InstructionsRenderingService(
         begin = begin_section(pageInstruction.name)
         sectionTitle4Ga = sectionTitle4GaFactory(pageInstruction.name, sectionNumber)
         middleRows = fcrd
-          .sort(singleton.page.fields.filter(fcrd.isRenderable))
+          .prepareRenderables(singleton.page.fields)
           .flatMap(formComponent =>
             FormComponentSummaryRenderer.summaryListRows[D, InstructionRender](
               formComponent,
