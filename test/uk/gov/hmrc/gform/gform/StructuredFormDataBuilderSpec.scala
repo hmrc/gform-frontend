@@ -219,7 +219,6 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
           )
         ),
         field("standardLookup", textNode("field_id")),
-        field("a_group", arrayNode(textNode(""), textNode(""), textNode(""))),
         field("lookupInGroup", arrayNode(textNode("field_id"), textNode("field_id"), textNode("field_id"))),
         field("lookupInRepeatedSection", arrayNode(textNode("field_id"), textNode("field_id"), textNode("field_id")))
       ).asRight
@@ -408,7 +407,6 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
           )
         ),
         field("standardText", textNode("Standard text")),
-        field("a_group", arrayNode(textNode(""), textNode(""), textNode(""))),
         field("textInGroup", arrayNode(textNode("Group text 1"), textNode("Group text 2"), textNode("Group text 3"))),
         field(
           "textInRepeatedSection",
@@ -478,7 +476,6 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
         )
       ),
       objectStructure(
-        field("a_group", arrayNode(textNode(""), textNode(""))),
         field(
           "field",
           arrayNode(
@@ -505,7 +502,6 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
           )
       ),
       objectStructure(
-        field("a_group", arrayNode(textNode(""), textNode(""))),
         field(
           "field",
           arrayNode(
@@ -538,7 +534,6 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
         )
       ),
       objectStructure(
-        field("a_group", arrayNode(textNode(""), textNode(""), textNode(""))),
         field(
           "field",
           arrayNode(
