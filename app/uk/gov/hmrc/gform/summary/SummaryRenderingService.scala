@@ -414,7 +414,7 @@ object SummaryRenderingService {
         }
       }
 
-      val recordTable: NonEmptyList[SmartString] = repeaters.map(_.repeater.expandedDescription)
+      val addToListItemSummaries: NonEmptyList[SmartString] = repeaters.map(_.repeater.expandedDescription)
 
       val lastRepeaterWithNumber = repeaters.last
 
@@ -426,11 +426,12 @@ object SummaryRenderingService {
       val url: Call = routes.FormController
         .form(formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
 
-      val value = recordTable.map(_.value).toList.mkString("</br>")
+      val addToListSummary = addToListItemSummaries.map(ss => markDownParser(ss).toString).toList.mkString("")
 
       val slr: SummaryListRow = summaryListRow(
-        repeater.title.value, // This is weird to use, as it can have $n, but this list in shown only once. Should we have other property here?
-        value,
+        repeater.title
+          .value(), // This is weird to use, as it can have $n, but this list in shown only once. Should we have other property here?
+        addToListSummary,
         None,
         "",
         "",

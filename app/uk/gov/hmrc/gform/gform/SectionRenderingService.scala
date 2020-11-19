@@ -149,8 +149,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val descriptions: NonEmptyList[SmartString] = bracket.repeaters.map(_.expandedDescription)
 
-    val recordTable: NonEmptyList[(String, Int)] = descriptions.zipWithIndex.map {
-      case (description, index) => (description.value, index)
+    val recordTable: NonEmptyList[(Html, Int)] = descriptions.zipWithIndex.map {
+      case (description, index) => (markDownParser(description), index)
     }
 
     val choice = formComponent.`type`.cast[Choice].get

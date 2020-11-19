@@ -53,3 +53,12 @@ $hmrc-assets-path: "/submissions/assets/lib/hmrc-frontend/hmrc/";
 .gform-details {
     margin-top: 30px;
 }
+
+@media (min-width: 48.0625em) {
+  .hmrc-add-to-a-list--wide {
+    width: 100%;
+  }
+  .hmrc-add-to-a-list--wide .hmrc-add-to-a-list__identifier {
+    width: 75%;
+  }
+}
