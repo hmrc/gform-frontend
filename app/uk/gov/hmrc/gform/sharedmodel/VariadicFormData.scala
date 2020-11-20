@@ -245,7 +245,7 @@ object VariadicFormData {
       baseComponentId: BaseComponentId,
       original: Map[ModelComponentId, String],
       updated: Map[ModelComponentId, String],
-      addBase: Boolean = false) =
+      addBase: Boolean = true) =
       getFormComponentId(baseComponentId).fold(original) { bcId =>
         if (addBase) {
           updated flatMap {
@@ -280,12 +280,14 @@ object VariadicFormData {
             updateData(
               b,
               Map(ModelComponentId.atomic(iPure(b), atom)      -> v),
-              Map(ModelComponentId.atomic(Indexed(b, 1), atom) -> v))
+              Map(ModelComponentId.atomic(Indexed(b, 1), atom) -> v),
+              false)
           case (Atomic(Indexed(b, i), atom @ Atom(_)), v) =>
             updateData(
               b,
               Map(ModelComponentId.atomic(Indexed(b, 1), atom)     -> v),
-              Map(ModelComponentId.atomic(Indexed(b, i + 1), atom) -> v))
+              Map(ModelComponentId.atomic(Indexed(b, i + 1), atom) -> v),
+              false)
           case _ =>
             Map[ModelComponentId, String]()
         }
@@ -296,14 +298,12 @@ object VariadicFormData {
             updateData(
               b,
               Map(ModelComponentId.pure(iPure(b))                         -> v),
-              Map(ModelComponentId.pure(IndexedComponentId.indexed(b, 1)) -> v),
-              true)
+              Map(ModelComponentId.pure(IndexedComponentId.indexed(b, 1)) -> v))
           case (Pure(Indexed(b, i)), v) =>
             updateData(
               b,
               Map(ModelComponentId.pure(IndexedComponentId.indexed(b, i))     -> v),
-              Map(ModelComponentId.pure(IndexedComponentId.indexed(b, i + 1)) -> v),
-              true)
+              Map(ModelComponentId.pure(IndexedComponentId.indexed(b, i + 1)) -> v))
           case _ =>
             Map[ModelComponentId, String]()
         }
