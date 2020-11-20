@@ -126,20 +126,30 @@ object ValidationUtil {
 
       case IsChoice(_) | IsRevealingChoice(_) =>
         val atomicFcId = formComponent.modelComponentId
-        gFormErrors.get(atomicFcId) match {
-          case Some(errors) =>
-            FieldError(formComponent, dataGetter(atomicFcId).headOption.getOrElse(""), errors)
-          case None =>
-            val optionalData = formModelVisibilityOptics.data.many(atomicFcId).map { selectedValue =>
-              selectedValue.map { index =>
-                HtmlFieldId
-                  .indexed(formComponent.id, index.toInt) -> FieldOk(
-                  formComponent,
-                  dataGetter(atomicFcId).headOption.getOrElse(""))
-              }.toMap
+
+        def ifNoData =
+          gFormErrors
+            .get(atomicFcId)
+            .fold[FormFieldValidationResult](
+              FieldOk(formComponent, "") // This is optional field, for which no data was entered
+            ) { errors =>
+              FieldError(formComponent, dataGetter(atomicFcId).headOption.getOrElse(""), errors)
             }
-            ComponentField(formComponent, optionalData.getOrElse(Map.empty))
-        }
+
+        formModelVisibilityOptics.data
+          .many(atomicFcId)
+          .filterNot(_.isEmpty)
+          .fold[FormFieldValidationResult](ifNoData) { selectedValue =>
+            val optionalData = selectedValue.map { index =>
+              val currentValue = dataGetter(atomicFcId).headOption.getOrElse("")
+              val formFieldValidationResult = gFormErrors.get(atomicFcId) match {
+                case Some(errors) => FieldError(formComponent, currentValue, errors)
+                case None         => FieldOk(formComponent, currentValue)
+              }
+              HtmlFieldId.indexed(formComponent.id, index.toInt) -> formFieldValidationResult
+            }.toMap
+            ComponentField(formComponent, optionalData)
+          }
 
       case IsFileUpload() =>
         val modelComponentId = formComponent.modelComponentId
