@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ValidationService
+import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationService }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
@@ -320,8 +320,32 @@ class FormController(
               }
 
             def processAddGroup(processData: ProcessData, modelComponentId: ModelComponentId): Future[Result] = {
+
+              val incremented = modelComponentId.increment
+
+              def anchor(formModelOptics: FormModelOptics[DataOrigin.Browser]): Option[HtmlFieldId] = {
+                val childs: List[FormComponent] =
+                  formModelOptics.formModelVisibilityOptics.fcLookup
+                    .get(incremented.toFormComponentId)
+                    .toList
+                    .flatMap(_.childrenFormComponents)
+
+                childs
+                  .dropWhile {
+                    case IsInformationMessage(_) => true
+                    case _                       => false
+                  }
+                  .headOption
+                  .map {
+                    case fc @ IsChoice(_)          => HtmlFieldId.indexed(fc.id, 0)
+                    case fc @ IsRevealingChoice(_) => HtmlFieldId.indexed(fc.id, 0)
+                    case fc =>
+                      HtmlFieldId.pure(fc.multiValueId.fold[ModelComponentId](_.modelComponentId)(_.atoms.head))
+                  }
+              }
+
               val variadicFormData = processData.formModelOptics.pageOpticsData
-              val updatedVariadicFormData = variadicFormData.addOne(modelComponentId.increment -> "")
+              val updatedVariadicFormData = variadicFormData.addOne(incremented -> "")
               for {
                 updFormModelOptics <- FormModelOptics
                                        .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
@@ -329,10 +353,9 @@ class FormController(
                                            .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                                          cache,
                                          recalculation)
-                anchor = Some(modelComponentId.toMongoIdentifier)
                 res <- handleGroup(
                         processData.copy(formModelOptics = updFormModelOptics),
-                        anchor.map("#" + _).getOrElse(""))
+                        anchor(updFormModelOptics).map("#" + _.toHtmlId).getOrElse(""))
               } yield res
 
             }
