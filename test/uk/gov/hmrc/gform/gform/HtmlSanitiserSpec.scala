@@ -159,7 +159,7 @@ class HtmlSanitiserSpec extends Spec {
     </div>
    </div>
   </footer>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="/submissions/assets/javascripts/jquery.min.js"></script>
   <script src="/submissions/assets/javascripts/gformGAEvents.js"></script>
   <script src="/submissions/assets/javascripts/gformFileUpload.js"></script>
   <script src="/submissions/assets/javascripts/gformRepeatingGroups.js"></script>
