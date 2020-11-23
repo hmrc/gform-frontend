@@ -225,4 +225,82 @@ class VariadicFormDataSpec extends FlatSpec with Matchers with FormModelSupport 
     ) shouldBe (VariadicFormData.manys(aFormComponentId -> Seq("1", "2")) ++ VariadicFormData.ones(
       bFormComponentId                                  -> "3, 4, 5, "))
   }
+
+  it should "re-index group fields when field in group is un-indexed" in {
+    val groupModelComponentId = ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("group")))
+    val text1ModelComponentId = ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("text1")))
+    val text2ModelComponentId = ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("text2")))
+
+    val groupModelComponentIdAtIndex1 = ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("group"), 1))
+    val text1ModelComponentIdAtIndex1 = ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("text1"), 1))
+    val text2ModelComponentIdAtIndex1 = ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("text2"), 1))
+
+    val formTemplate = mkFormTemplate(
+      mkSection(
+        mkFormComponent(
+          "group",
+          mkGroup(1, List(mkFormComponent("text1", Constant("")), mkFormComponent("text2", Constant("")))))))
+    val formModel: FormModel[DependencyGraphVerification] =
+      mkFormModelBuilder(formTemplate).dependencyGraphValidation[SectionSelectorType.Normal]
+
+    val result = VariadicFormData.buildFromMongoData(
+      formModel,
+      Map(
+        groupModelComponentId         -> "",
+        text1ModelComponentId         -> "text1Value",
+        text2ModelComponentId         -> "text2Value",
+        groupModelComponentIdAtIndex1 -> "",
+        text1ModelComponentIdAtIndex1 -> "text1Value1",
+        text2ModelComponentIdAtIndex1 -> "text2Value1"
+      )
+    )
+
+    result.data shouldBe Map(
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("group"), 1)) -> One(""),
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("text1"), 1)) -> One("text1Value"),
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("text2"), 1)) -> One("text2Value"),
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("group"), 2)) -> One(""),
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("text1"), 2)) -> One("text1Value1"),
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("text2"), 2)) -> One("text2Value1")
+    )
+  }
+
+  it should "not re-index group fields when all fields in the group are indexed" in {
+    val groupModelComponentIdAtIndex1 = ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("group"), 1))
+    val text1ModelComponentIdAtIndex1 = ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("text1"), 1))
+    val text2ModelComponentIdAtIndex1 = ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("text2"), 1))
+
+    val groupModelComponentIdAtIndex2 = ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("group"), 2))
+    val text1ModelComponentIdAtIndex2 = ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("text1"), 2))
+    val text2ModelComponentIdAtIndex2 = ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("text2"), 2))
+
+    val formTemplate = mkFormTemplate(
+      mkSection(
+        mkFormComponent(
+          "group",
+          mkGroup(1, List(mkFormComponent("text1", Constant("")), mkFormComponent("text2", Constant("")))))))
+    val formModel: FormModel[DependencyGraphVerification] =
+      mkFormModelBuilder(formTemplate).dependencyGraphValidation[SectionSelectorType.Normal]
+
+    val result = VariadicFormData.buildFromMongoData(
+      formModel,
+      Map(
+        groupModelComponentIdAtIndex1 -> "",
+        text1ModelComponentIdAtIndex1 -> "text1Value1",
+        text2ModelComponentIdAtIndex1 -> "text2Value1",
+        groupModelComponentIdAtIndex2 -> "",
+        text1ModelComponentIdAtIndex2 -> "text1Value2",
+        text2ModelComponentIdAtIndex2 -> "text2Value2"
+      )
+    )
+
+    result.data shouldBe Map(
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("group"), 1)) -> One(""),
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("text1"), 1)) -> One("text1Value1"),
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("text2"), 1)) -> One("text2Value1"),
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("group"), 2)) -> One(""),
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("text1"), 2)) -> One("text1Value2"),
+      ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId("text2"), 2)) -> One("text2Value2")
+    )
+  }
 }

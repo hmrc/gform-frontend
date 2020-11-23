@@ -21,16 +21,14 @@ import cats.syntax.eq._
 import cats.syntax.foldable._
 import cats.{ Monoid, Show }
 import cats.syntax.show._
+
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, PageMode, PageModel }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.ids.ModelComponentId.{ Atomic, Pure }
-import uk.gov.hmrc.gform.models.ids.IndexedComponentId.{ Indexed, Pure => iPure }
-import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-import scala.collection.GenTraversableOnce
+import scala.collection.{ GenTraversableOnce }
 
 sealed trait VariadicValue extends Product with Serializable {
   def toSeq: Seq[String] = this match {
@@ -215,104 +213,69 @@ object VariadicFormData {
     // We do not know fully expanded form model, so we must descent to VariadicValueId level to
     // properly classify data to VariadicValues
     val multiValueIds: Set[BaseComponentId] = formModel.allMultiSelectionIds.map(_.baseComponentId)
-
-    val dataGroupBy = data.groupBy(_._1.baseComponentId)
-
-    val allGroupFormComponentsMap = formModel.allFormComponents.collect {
-      case fc @ IsGroup(group) => fc.baseComponentId -> (fc.baseComponentId +: group.fields.map(_.baseComponentId))
+    val allGroupFormComponents: Map[BaseComponentId, List[BaseComponentId]] = formModel.allFormComponents.collect {
+      case fc @ IsGroup(group) => fc.baseComponentId -> group.fields.map(_.baseComponentId)
     }.toMap
 
-    def isPureExists(ids: List[ModelComponentId]): Boolean =
-      ids.exists { r =>
-        r match {
-          case Pure(iPure(BaseComponentId(_))) => true
-          case _                               => false
-        }
-      }
-
-    def isAtomicExists(ids: List[ModelComponentId]): Boolean =
-      ids.exists { r =>
-        r match {
-          case Atomic(iPure(BaseComponentId(_)), _) => true
-          case _                                    => false
-        }
-      }
-
-    def getFormComponentId(baseComponentId: BaseComponentId): Option[BaseComponentId] =
-      allGroupFormComponentsMap.find(_._2.contains(baseComponentId)).map(_._1)
-
-    def updateData(
-      baseComponentId: BaseComponentId,
-      original: Map[ModelComponentId, String],
-      updated: Map[ModelComponentId, String],
-      addBase: Boolean = false) =
-      getFormComponentId(baseComponentId).fold(original) { bcId =>
-        if (addBase) {
-          updated flatMap {
-            case (Pure(iPure(b)), v) =>
-              Map(
-                ModelComponentId.pure(IndexedComponentId.indexed(b, 1))    -> v,
-                ModelComponentId.pure(IndexedComponentId.indexed(bcId, 1)) -> ""
-              )
-            case (Pure(Indexed(b, i)), v) =>
-              Map(
-                ModelComponentId.pure(IndexedComponentId.indexed(b, i))    -> v,
-                ModelComponentId.pure(IndexedComponentId.indexed(bcId, i)) -> ""
-              )
-            case _ =>
-              Map[ModelComponentId, String]()
-          }
-        } else
-          updated
-      }
-
-    val uData: Map[ModelComponentId, String] = dataGroupBy flatMap {
-      case (_, values) if isAtomicExists(values.keys.toList) && isPureExists(values.keys.toList) =>
-        values flatMap {
-          case (Pure(iPure(b)), v) =>
-            updateData(b, Map(ModelComponentId.pure(iPure(b)) -> v), Map(ModelComponentId.pure(Indexed(b, 1)) -> v))
-          case (Pure(Indexed(b, i)), v) =>
-            updateData(
-              b,
-              Map(ModelComponentId.pure(Indexed(b, i))     -> v),
-              Map(ModelComponentId.pure(Indexed(b, i + 1)) -> v))
-          case (Atomic(iPure(b), atom @ Atom(_)), v) =>
-            updateData(
-              b,
-              Map(ModelComponentId.atomic(iPure(b), atom)      -> v),
-              Map(ModelComponentId.atomic(Indexed(b, 1), atom) -> v))
-          case (Atomic(Indexed(b, i), atom @ Atom(_)), v) =>
-            updateData(
-              b,
-              Map(ModelComponentId.atomic(Indexed(b, 1), atom)     -> v),
-              Map(ModelComponentId.atomic(Indexed(b, i + 1), atom) -> v))
-          case _ =>
-            Map[ModelComponentId, String]()
-        }
-
-      case (_, values) if isPureExists(values.keys.toList) =>
-        values flatMap {
-          case (Pure(iPure(b)), v) =>
-            updateData(
-              b,
-              Map(ModelComponentId.pure(iPure(b))                         -> v),
-              Map(ModelComponentId.pure(IndexedComponentId.indexed(b, 1)) -> v),
-              true)
-          case (Pure(Indexed(b, i)), v) =>
-            updateData(
-              b,
-              Map(ModelComponentId.pure(IndexedComponentId.indexed(b, i))     -> v),
-              Map(ModelComponentId.pure(IndexedComponentId.indexed(b, i + 1)) -> v),
-              true)
-          case _ =>
-            Map[ModelComponentId, String]()
-        }
-
-      case (_, v) => v
+    val (groupComponentsData, nonGroupComponentsData) = data.partition {
+      case (modelComponentId, _) =>
+        allGroupFormComponents.contains(modelComponentId.indexedComponentId.baseComponentId) ||
+          allGroupFormComponents.values.flatten.toList.contains(modelComponentId.indexedComponentId.baseComponentId)
     }
 
+    val updatedGroupComponentsData: Map[BaseComponentId, List[(ModelComponentId, String)]] = allGroupFormComponents
+      .foldLeft(Map.empty[BaseComponentId, Set[(ModelComponentId, String)]]) {
+        case (acc, (groupBaseComponentId, groupFields)) =>
+          acc + (groupBaseComponentId -> groupComponentsData
+            .collect {
+              case (groupModelComponentId, _)
+                  if groupModelComponentId.indexedComponentId.baseComponentId == groupBaseComponentId =>
+                val groupFieldDatas: List[(ModelComponentId, String)] = (groupModelComponentId -> "") :: groupFields
+                  .flatMap(groupField =>
+                    groupComponentsData.collect {
+                      case (dataGroupFieldCompId, dataGroupFieldCompValue)
+                          if dataGroupFieldCompId.baseComponentId == groupField =>
+                        dataGroupFieldCompId -> dataGroupFieldCompValue
+                    }.toList)
+                groupFieldDatas.toSet
+            }
+            .flatten
+            .toSet)
+      }
+      .mapValues(datas => {
+        if (datas.toMap.keys.exists(_.maybeIndex.isEmpty)) { // group contains model components without index
+          datas.toList
+            .sortBy {
+              case (modelComponentId, _) => modelComponentId.indexedComponentId.fold(_ => 0)(i => i.index)
+            }
+            .map {
+              case (modelComponentId, value) =>
+                (
+                  modelComponentId
+                    .fold[ModelComponentId] { pure =>
+                      pure.copy(indexedComponentId = pure.indexedComponentId match {
+                        case IndexedComponentId.Pure(baseComponentId) => IndexedComponentId.indexed(baseComponentId, 1)
+                        case IndexedComponentId.Indexed(baseComponentId, index: Int) =>
+                          IndexedComponentId.indexed(baseComponentId, index + 1)
+                      })
+                    } { atomic =>
+                      atomic.copy(indexedComponentId = atomic.indexedComponentId match {
+                        case IndexedComponentId.Pure(baseComponentId) => IndexedComponentId.indexed(baseComponentId, 1)
+                        case IndexedComponentId.Indexed(baseComponentId, index: Int) =>
+                          IndexedComponentId.indexed(baseComponentId, index + 1)
+                      })
+                    },
+                  value)
+            }
+        } else {
+          datas.toList
+        }
+      })
+
+    val updatedData = updatedGroupComponentsData.values.flatten.toMap ++ nonGroupComponentsData
+
     VariadicFormData[S](
-      uData.map {
+      updatedData.map {
         case (id, s) =>
           if (multiValueIds(id.baseComponentId))
             (id, VariadicValue.Many(s.split(",").map(_.trim).filterNot(_.isEmpty).toSeq))
