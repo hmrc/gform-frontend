@@ -27,6 +27,7 @@ import cats.syntax.traverse._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import scala.language.higherKinds
+import scala.util.Try
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, MultiValueId }
@@ -251,13 +252,19 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
 
   }
 
+  private def sortMany(xs: Seq[String]): Seq[String] =
+    xs.sortBy(s => Try(s.toInt).toOption.getOrElse(0))
+
   private def processRevealingChoices[A](
     revealingChoices: List[(FormComponent, RevealingChoice)],
     indexedIsPure: Boolean)(f: (FormComponent, ObjectStructure) => A)(implicit l: LangADT): F[List[A]] =
     revealingChoices.traverse {
       case (revealedChoiceFc, revealedChoice) =>
         val selection: Seq[String] =
-          formModelVisibilityOptics.data.many(revealedChoiceFc.modelComponentId).map(_.sorted).getOrElse(Seq.empty)
+          formModelVisibilityOptics.data
+            .many(revealedChoiceFc.modelComponentId)
+            .map(sortMany)
+            .getOrElse(Seq.empty)
         val fieldsF: F[List[Field]] =
           buildMultiField(revealedChoice.options.flatMap(_.revealingFields.map(_.multiValueId)), indexedIsPure)
         fieldsF.map { field =>
@@ -287,7 +294,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
           if (isMultiSelectionIds(modelComponentId)) {
             formModelVisibilityOptics.data
               .many(modelComponentId)
-              .map(_.sorted)
+              .map(sortMany)
               .map { answers =>
                 if (isStrictlyMultiSelectionIds(modelComponentId)) {
                   val arrayNode = ArrayNode(answers.map(_.trim).filterNot(_.isEmpty).map(TextNode).toList)
@@ -324,7 +331,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                 if (isMultiSelectionIds(modelComponentId)) {
                   formModelVisibilityOptics.data
                     .many(modelComponentId)
-                    .map(_.sorted)
+                    .map(sortMany)
                     .map { answers =>
                       if (isStrictlyMultiSelectionIds(modelComponentId)) {
                         ArrayNode(answers.map(TextNode).toList): StructuredFormValue
