@@ -50,7 +50,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
         mkHtmlFieldId("day") -> FieldOk(
           FormComponent(
             FormComponentId("day"),
-            Text(BasicText, Value),
+            Text(TextConstraint.default, Value),
             toSmartString("label"),
             None,
             None,
@@ -66,7 +66,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
         mkHtmlFieldId("month") -> FieldOk(
           FormComponent(
             FormComponentId("month"),
-            Text(BasicText, Value),
+            Text(TextConstraint.default, Value),
             toSmartString("label"),
             None,
             None,
@@ -82,7 +82,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
         mkHtmlFieldId("year") -> FieldError(
           FormComponent(
             FormComponentId("year"),
-            Text(BasicText, Value),
+            Text(TextConstraint.default, Value),
             toSmartString("label"),
             None,
             None,
@@ -110,7 +110,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
         mkHtmlFieldId("day") -> FieldOk(
           FormComponent(
             FormComponentId("day"),
-            Text(BasicText, Value),
+            Text(TextConstraint.default, Value),
             toSmartString("day"),
             None,
             None,
@@ -121,11 +121,12 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             true,
             false,
             None),
-          "1"),
+          "1"
+        ),
         mkHtmlFieldId("month") -> FieldOk(
           FormComponent(
             FormComponentId("month"),
-            Text(BasicText, Value),
+            Text(TextConstraint.default, Value),
             toSmartString("month"),
             None,
             None,
@@ -141,7 +142,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
         mkHtmlFieldId("year") -> FieldOk(
           FormComponent(
             FormComponentId("year"),
-            Text(BasicText, Value),
+            Text(TextConstraint.default, Value),
             toSmartString("year"),
             None,
             None,

@@ -1018,7 +1018,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
     mkAddToListSection(addAnotherQuestionName, fields: _*)
 
   def createNonGroupField(id: String): FormComponent =
-    createFormComponent(id, Text(BasicText, Value))
+    createFormComponent(id, Text(TextConstraint.default, Value))
 
   def createLookupField(id: String): FormComponent =
     createFormComponent(id, Text(Lookup(Register.Origin, None), Value))

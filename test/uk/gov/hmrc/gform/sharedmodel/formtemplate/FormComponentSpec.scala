@@ -85,9 +85,17 @@ class FormComponentSpec extends Spec {
 
   it should "be able to recognise when a text component needs to be capitalised" in {
     val toBeCapitalised =
-      mkFormComponent("anything", Text(BasicText, Value, DisplayWidth.DEFAULT, IsUpperCase), "anything", "anything")
+      mkFormComponent(
+        "anything",
+        Text(TextConstraint.default, Value, DisplayWidth.DEFAULT, IsUpperCase),
+        "anything",
+        "anything")
     val toNotBeCapitalised =
-      mkFormComponent("anything", Text(BasicText, Value, DisplayWidth.DEFAULT, IsNotUpperCase), "anything", "anything")
+      mkFormComponent(
+        "anything",
+        Text(TextConstraint.default, Value, DisplayWidth.DEFAULT, IsNotUpperCase),
+        "anything",
+        "anything")
     val upperCaseresult = IsCapitalised.unapply(toBeCapitalised)
     val lowerCaseResult = IsCapitalised.unapply(toNotBeCapitalised)
 
