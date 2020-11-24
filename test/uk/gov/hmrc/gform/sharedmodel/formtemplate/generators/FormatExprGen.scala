@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 import org.scalacheck.Gen
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ After, AnyDate, BasicText, Before, BeforeAfterPrecisely, ChildBenefitNumber, CompanyRegistrationNumber, ConcreteDate, CountryCode, DateConstraint, DateConstraintInfo, DateConstraintType, DateConstraints, DateField, Day, EORI, Email, Month, NINO, NonUkCountryCode, Number, OffsetDate, PositiveNumber, Precisely, RoundingMode, ShortText, Sterling, TelephoneNumber, TextConstraint, TextWithRestrictions, Today, UTR, UkBankAccountNumber, UkEORI, UkSortCodeFormat, UkVrn, Year }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ After, AnyDate, Before, BeforeAfterPrecisely, ChildBenefitNumber, CompanyRegistrationNumber, ConcreteDate, CountryCode, DateConstraint, DateConstraintInfo, DateConstraintType, DateConstraints, DateField, Day, EORI, Email, Month, NINO, NonUkCountryCode, Number, OffsetDate, PositiveNumber, Precisely, RoundingMode, ShortText, Sterling, TelephoneNumber, TextConstraint, TextWithRestrictions, Today, UTR, UkBankAccountNumber, UkEORI, UkSortCodeFormat, UkVrn, Year }
 
 trait FormatExprGen {
   def numberGen: Gen[Number] =
@@ -51,10 +51,10 @@ trait FormatExprGen {
     PrimitiveGen.booleanGen.map(b => Sterling(RoundingMode.defaultRoundingMode, b))
 
   def textConstraintGen: Gen[TextConstraint] = Gen.oneOf(
-    Gen.const(BasicText),
+    Gen.const(TextConstraint.default),
     numberGen,
     positiveNumberGen,
-    Gen.const(BasicText),
+    Gen.const(TextConstraint.default),
     shortText,
     textWithRestrictions,
     sterlingGen,

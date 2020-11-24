@@ -186,7 +186,6 @@ sealed trait TextConstraint {
       deriveCssClassNameForNumber(maxWholeDigits, maxFractionalDigits)
     case PositiveNumber(maxWholeDigits, maxFractionalDigits, _, _) =>
       deriveCssClassNameForNumber(maxWholeDigits, maxFractionalDigits)
-    case BasicText                    => CssClassSize._20
     case ShortText(_, max)            => deriveCssClassNameForText(max)
     case Lookup(_, _)                 => CssClassSize._30
     case TextWithRestrictions(_, max) => deriveCssClassNameForText(max)
@@ -253,7 +252,6 @@ final case class PositiveNumber(
   unit: Option[LocalisedString] = None)
     extends TextConstraint
 
-case object BasicText extends TextConstraint
 case class ShortText(min: Int, max: Int) extends TextConstraint
 object ShortText { val default = ShortText(0, 1000) }
 case class Lookup(register: Register, selectionCriteria: Option[List[SelectionCriteria]]) extends TextConstraint
@@ -284,6 +282,8 @@ case object UkEORI extends TextConstraint
 case object ChildBenefitNumber extends TextConstraint
 
 object TextConstraint {
+  val default = TextWithRestrictions(0, 100000)
+
   val defaultWholeDigits = 11
   val defaultFractionalDigits = 2
 

@@ -124,7 +124,6 @@ object ComponentValidator {
       case (_, Some(value), lookup @ Lookup(_, _)) =>
         lookupValidation(fieldValue, lookupRegistry, lookup, LookupLabel(value), formModelVisibilityOptics)
       case (_, Some(value), ShortText(min, max)) => shortTextValidation(fieldValue, value, min, max)
-      case (_, Some(value), BasicText)           => textValidation(fieldValue, value)
       case (_, Some(value), TextWithRestrictions(min, max)) =>
         textValidationWithConstraints(fieldValue, value, min, max)
       case (_, Some(value), s: Sterling) =>
@@ -455,16 +454,6 @@ object ComponentValidator {
     val messageKey = "generic.shortText.error.pattern"
     sharedTextComponentValidator(fieldValue, value, min, max, ValidShortText, messageKey)
   }
-
-  private def textValidation(
-    fieldValue: FormComponent,
-    value: String
-  )(
-    implicit
-    messages: Messages,
-    sse: SmartStringEvaluator
-  ) =
-    textValidationWithConstraints(fieldValue, value, 0, 100000)
 
   def validateChoice[D <: DataOrigin](
     fieldValue: FormComponent

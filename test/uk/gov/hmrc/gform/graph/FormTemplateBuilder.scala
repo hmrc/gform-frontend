@@ -108,7 +108,7 @@ object FormTemplateBuilder {
     )
 
   def mkFormComponentValidIf(fcId: String, expr: Expr, validIf: ValidIf): FormComponent =
-    mkFormComponentValidIf(fcId, Text(BasicText, expr), validIf)
+    mkFormComponentValidIf(fcId, Text(TextConstraint.default, expr), validIf)
   def mkFormComponentValidIf(fcId: String, ct: ComponentType, validIf: ValidIf) =
     FormComponent(
       FormComponentId(fcId),
@@ -144,10 +144,10 @@ object FormTemplateBuilder {
     )
 
   def mkFormComponent(fcId: String, expr: Expr): FormComponent =
-    mkFormComponent(fcId, Text(BasicText, expr))
+    mkFormComponent(fcId, Text(TextConstraint.default, expr))
 
   def mkFormComponentEditable(fcId: String, expr: Expr): FormComponent =
-    mkFormComponentEditable(fcId, Text(BasicText, expr))
+    mkFormComponentEditable(fcId, Text(TextConstraint.default, expr))
 
   def mkFormTemplate(sections: Section*): FormTemplate = mkFormTemplate(sections.toList)
   def mkFormTemplate(sections: List[Section], declarationSection: Option[DeclarationSection] = None) = FormTemplate(
