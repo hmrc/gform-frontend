@@ -76,6 +76,7 @@ trait FormTemplateGen {
       parentFormSubmissionRefs <- PrimitiveGen.zeroOrMoreGen(FormComponentGen.formComponentIdGen)
       save4LaterInfoText       <- Gen.option(Save4LaterInfoTextGen.save4LaterInfoTextGen)
       summarySection           <- SummarySectionGen.summarySectionGen
+      displayHMRCLogo          <- Gen.option(PrimitiveGen.booleanGen)
     } yield
       FormTemplate(
         id,
@@ -92,7 +93,8 @@ trait FormTemplateGen {
         parentFormSubmissionRefs,
         AvailableLanguages.default,
         save4LaterInfoText,
-        summarySection
+        summarySection,
+        displayHMRCLogo
       )
 }
 

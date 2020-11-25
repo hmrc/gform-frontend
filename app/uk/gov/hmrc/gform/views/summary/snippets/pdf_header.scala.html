@@ -21,7 +21,7 @@
 
 <div>
   <span>
-    @if(formTemplate.formCategory.isHmrc) { @messages("branding.hmrc") }
+    @if(formTemplate.isDisplayHMRCLogo) { @messages("branding.hmrc") }
   </span>
   <h1>
     @formTemplate.formName.value
