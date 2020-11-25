@@ -128,7 +128,7 @@ case class EvaluationResults(
   ): ExpressionResult = {
 
     def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
-      variadicValue.fold[ExpressionResult](one => StringResult(one.value))(many =>
+      variadicValue.fold[ExpressionResult](one => if (one.value.isEmpty()) Empty else StringResult(one.value))(many =>
         ExpressionResult.OptionResult(many.value.map(_.toInt)))
 
     def loop(expr: Expr): ExpressionResult = expr match {
