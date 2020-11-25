@@ -42,3 +42,4 @@ GET           /submissions/test-only/:formTemplateId/:destinationId/:accessCode 
 
 GET           /submissions/gform-plugin/exprs/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.exprs(formTemplateId: FormTemplateId)
 GET           /submissions/gform-plugin/model/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)
+GET           /submissions/gform-plugin/verify/:formTemplateId            uk.gov.hmrc.gform.testonly.DebugController.verify(formTemplateId: FormTemplateId)
