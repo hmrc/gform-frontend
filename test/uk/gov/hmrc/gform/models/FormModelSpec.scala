@@ -245,7 +245,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
         Add(Constant(""), Add(Constant("1"), Constant("A"))),
         Map(
           Constant("1") -> NumberResult(1),
-          Constant("")  -> StringResult(""),
+          Constant("")  -> Empty,
           Constant("A") -> StringResult("A")
         )
       ),

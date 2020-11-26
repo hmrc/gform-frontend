@@ -143,7 +143,7 @@ case class EvaluationResults(
         StringResult(
           UserCtxEvaluatorProcessor
             .processEvaluation(evaluationContext.retrievals, value, evaluationContext.authConfig))
-      case Constant(value: String) => StringResult(value)
+      case Constant(value: String) => if (value.isEmpty) Empty else StringResult(value)
       case HmrcRosmRegistrationCheck(value: RosmProp) =>
         StringResult(UserCtxEvaluatorProcessor.evalRosm(evaluationContext.thirdPartyData, value))
       case Value => Empty
