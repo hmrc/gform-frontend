@@ -46,6 +46,11 @@ case class FormModel[A <: PageMode](
 
   val allModelComponentIds: Set[ModelComponentId] = allMultiValueIds.flatMap(_.toModelComponentIds).toSet
 
+  def allUpperCaseIds: Set[ModelComponentId] =
+    allFormComponents.collect {
+      case fc @ IsCapitalised() => fc.modelComponentId
+    }.toSet
+
   val allMultiSelectionIds: Set[ModelComponentId] = allFormComponents
     .collect {
       case fc @ IsChoice(_)          => fc.id
