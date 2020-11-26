@@ -158,6 +158,16 @@ case class FormModel[A <: PageMode](
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] = pages.flatMap(_.allValidIfs)
 
+  def visibleSectionNumber(sectionNumber: SectionNumber): SectionNumber =
+    if (availableSectionNumbers.contains(sectionNumber)) {
+      sectionNumber
+    } else {
+      // User is trying to see invisible page, so we need to send him to appropriate SectionNumber instead
+      availableSectionNumbers match {
+        case Nil       => throw new IllegalArgumentException(s"Cannot find valid sectionNumber for $sectionNumber.")
+        case head :: _ => availableSectionNumbers.reverse.find(_ < sectionNumber).getOrElse(head)
+      }
+    }
 }
 
 object FormModel {

@@ -79,13 +79,15 @@ class FormController(
   def form(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    sectionNumber: SectionNumber,
+    browserSectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     suppressErrors: SuppressErrors,
     fastForward: FastForward
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
+        val sectionNumber: SectionNumber =
+          formModelOptics.formModelVisibilityOptics.formModel.visibleSectionNumber(browserSectionNumber)
         fileUploadService
           .getEnvelope(cache.form.envelopeId)
           .flatMap { envelope =>
@@ -184,13 +186,15 @@ class FormController(
   def updateFormData(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    sectionNumber: SectionNumber,
+    browserSectionNumber: SectionNumber,
     fastForward: FastForward
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics.formModel) {
           requestRelatedData => variadicFormData =>
+            val sectionNumber: SectionNumber =
+              formModelOptics.formModelVisibilityOptics.formModel.visibleSectionNumber(browserSectionNumber)
             def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber): SectionTitle4Ga =
               sectionTitle4GaFactory(processData.formModel(sectionNumber).title, sectionNumber)
 
