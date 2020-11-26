@@ -65,6 +65,7 @@ object FormDataHelpers {
     requestData: Map[String, Seq[String]]
   ): (VariadicFormData[SourceOrigin.OutOfDate], RequestRelatedData) = {
 
+    val upperCaseIds: Set[ModelComponentId] = formModel.allUpperCaseIds
     val variadicFormComponentIds: Set[ModelComponentId] = formModel.allModelComponentIds
     val multiValueIds: Set[ModelComponentId] = formModel.allMultiSelectionIds
 
@@ -82,7 +83,11 @@ object FormDataHelpers {
           case (true, false) =>
             s.toList match {
               case first :: _ =>
-                (Some(modelComponentId -> VariadicValue.One(first)), None)
+                val firstUpdated =
+                  if (upperCaseIds(modelComponentId)) {
+                    first.toUpperCase()
+                  } else first
+                (Some(modelComponentId -> VariadicValue.One(firstUpdated)), None)
               case _ =>
                 throw new IllegalArgumentException(
                   show"""Got a single value form component ID "$id", with an empty list of values""")
