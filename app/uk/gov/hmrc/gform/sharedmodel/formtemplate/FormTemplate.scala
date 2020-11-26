@@ -38,9 +38,8 @@ case class FormTemplate(
   languages: AvailableLanguages,
   save4LaterInfoText: Option[Save4LaterInfoText],
   summarySection: SummarySection,
-  displayHMRCLogo: Option[Boolean]) {
+  displayHMRCLogo: Boolean) {
 
-  val isDisplayHMRCLogo = displayHMRCLogo.getOrElse(true)
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")
 
 }

@@ -543,7 +543,7 @@ trait ExampleFormTemplate {
       AvailableLanguages.default,
       None,
       summarySection,
-      None
+      true
     )
 }
 
