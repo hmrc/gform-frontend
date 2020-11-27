@@ -24,10 +24,13 @@ import uk.gov.hmrc.gform.eval.TypeInfo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Expr, FormCtx, FormTemplate, Radio }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.http.HeaderCarrier
+import shapeless.syntax.typeable._
+
+import scala.util.Try
 
 trait SmartStringEvaluatorFactory {
   def apply(
@@ -84,15 +87,31 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
             s.interpolations
               .map { interpolation =>
                 val typeInfo: TypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(interpolation)
-                val interpolated = formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation
 
-                val formatted = typeInfo.staticTypeData.textConstraint.fold(interpolated) { textConstraint =>
-                  TextFormatter.componentTextReadonly(interpolated, textConstraint)
+                val evaluated = formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation
+                val formatted = typeInfo.staticTypeData.textConstraint.fold(evaluated) { textConstraint =>
+                  TextFormatter.componentTextReadonly(evaluated, textConstraint)
                 }
+
+                val formCtxExprChoiceRadioPattern = FormCtxExprChoiceRadio(formModelVisibilityOptics)
+                val formattedFinal: String = interpolation match {
+                  case formCtxExprChoiceRadioPattern(choice) =>
+                    Try(formatted.toInt)
+                      .map { selectedIndex =>
+                        this.apply(
+                          choice.options
+                            .toList(selectedIndex),
+                          true)
+                      }
+                      .getOrElse(formatted)
+                  case _ =>
+                    formatted
+                }
+
                 if (markDown) {
-                  escapeMarkdown(formatted)
+                  escapeMarkdown(formattedFinal)
                 } else {
-                  formatted
+                  formattedFinal
                 }
               }
               .asJava
@@ -108,4 +127,14 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
         }
       }
     }
+}
+
+case class FormCtxExprChoiceRadio(formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]) {
+  def unapply(expr: Expr): Option[Choice] = expr.cast[FormCtx].flatMap {
+    case FormCtx(formComponentId) =>
+      formModelVisibilityOptics.formModel.fcLookup
+        .get(formComponentId)
+        .flatMap(_.`type`.cast[Choice])
+        .filter(_.`type` == Radio)
+  }
 }
