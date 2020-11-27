@@ -127,8 +127,11 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
 
+    def nonEmpty(stringResult: StringResult): ExpressionResult =
+      if (stringResult.value.trim.isEmpty) Empty else stringResult
+
     def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
-      variadicValue.fold[ExpressionResult](one => if (one.value.isEmpty()) Empty else StringResult(one.value))(many =>
+      variadicValue.fold[ExpressionResult](one => nonEmpty(StringResult(one.value)))(many =>
         ExpressionResult.OptionResult(many.value.map(_.toInt)))
 
     def loop(expr: Expr): ExpressionResult = expr match {
@@ -138,22 +141,27 @@ case class EvaluationResults(
       case Else(field1: Expr, field2: Expr)                => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId: FormComponentId) => get(ctx, recData, fromVariadicValue)
       case Sum(field1: Expr)                               => unsupportedOperation("String")(expr)
-      case AuthCtx(value: AuthInfo)                        => StringResult(AuthContextPrepop.values(value, evaluationContext.retrievals))
+      case AuthCtx(value: AuthInfo) =>
+        nonEmpty(StringResult(AuthContextPrepop.values(value, evaluationContext.retrievals)))
       case UserCtx(value: UserField) =>
-        StringResult(
-          UserCtxEvaluatorProcessor
-            .processEvaluation(evaluationContext.retrievals, value, evaluationContext.authConfig))
-      case Constant(value: String) => if (value.isEmpty) Empty else StringResult(value)
+        nonEmpty(
+          StringResult(
+            UserCtxEvaluatorProcessor
+              .processEvaluation(evaluationContext.retrievals, value, evaluationContext.authConfig)))
+      case Constant(value: String) => nonEmpty(StringResult(value))
       case HmrcRosmRegistrationCheck(value: RosmProp) =>
-        StringResult(UserCtxEvaluatorProcessor.evalRosm(evaluationContext.thirdPartyData, value))
+        nonEmpty(StringResult(UserCtxEvaluatorProcessor.evalRosm(evaluationContext.thirdPartyData, value)))
       case Value => Empty
       case FormTemplateCtx(value: FormTemplateProp) =>
-        value match {
-          case FormTemplateProp.Id                  => StringResult(evaluationContext.formTemplateId.value)
-          case FormTemplateProp.SubmissionReference => StringResult(evaluationContext.submissionRef.value)
+        nonEmpty {
+          value match {
+            case FormTemplateProp.Id                  => StringResult(evaluationContext.formTemplateId.value)
+            case FormTemplateProp.SubmissionReference => StringResult(evaluationContext.submissionRef.value)
+          }
         }
 
-      case ParamCtx(queryParam) => StringResult(evaluationContext.thirdPartyData.queryParams(queryParam))
+      case ParamCtx(queryParam) =>
+        nonEmpty(StringResult(evaluationContext.thirdPartyData.queryParams(queryParam)))
       case LinkCtx(internalLink) =>
         val link =
           internalLink match {
@@ -165,7 +173,7 @@ case class EvaluationResults(
                 .downloadPDF(evaluationContext.maybeAccessCode, evaluationContext.formTemplateId)
 
           }
-        StringResult(link.url)
+        nonEmpty(StringResult(link.url))
     }
 
     loop(expr)
