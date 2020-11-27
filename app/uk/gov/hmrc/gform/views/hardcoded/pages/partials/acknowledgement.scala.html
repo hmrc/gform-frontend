@@ -44,6 +44,7 @@
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,
   formCategory = formTemplate.formCategory,
+  displayHMRCLogo = formTemplate.displayHMRCLogo,
   languages = formTemplate.languages,
   templateId = formTemplate._id
 ) {
@@ -56,7 +57,7 @@
 
   @{supportContents.snippets}
 
-  @if(formCategory.isHmrc) {
+  @if(!formTemplate.displayHMRCLogo) {
     <h2 class="govuk-heading-m">
       @messages("ack.beforeYouGo")
     </h2>

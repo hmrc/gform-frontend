@@ -35,7 +35,7 @@
   content: Html = HtmlFormat.empty,
   scriptElem: Option[Html] = None,
   authConfig: Option[AuthConfig],
-  includeHMRCBranding: Boolean,
+  displayHMRCLogo: Boolean,
   formLanguages: AvailableLanguages = AvailableLanguages.default,
   templateId: FormTemplateId,
   backLink: Option[BackLink]
@@ -163,7 +163,7 @@
 @beforeContentBlock = {
   @afterHeader
   @phaseBanner
-  @if(includeHMRCBranding){
+  @if(displayHMRCLogo){
     @hmrcBanner(Banner(language))
   }
   @languageSwitch

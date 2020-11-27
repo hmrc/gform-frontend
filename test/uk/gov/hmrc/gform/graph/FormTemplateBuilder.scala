@@ -171,7 +171,8 @@ object FormTemplateBuilder {
     Nil,
     AvailableLanguages.default,
     None,
-    SummarySection(toSmartString("Title"), toSmartString("Header"), toSmartString("Footer"))
+    SummarySection(toSmartString("Title"), toSmartString("Header"), toSmartString("Footer")),
+    true
   )
 
   def addToListQuestion(addAnotherQuestionName: String): FormComponent =

@@ -542,7 +542,8 @@ trait ExampleFormTemplate {
       Nil,
       AvailableLanguages.default,
       None,
-      summarySection
+      summarySection,
+      true
     )
 }
 
