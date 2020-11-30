@@ -94,30 +94,16 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
 
         val typeInfo: TypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(expr)
 
-        def stringRepresentation = formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation
-
-        val interpolated = typeInfo.isChoiceSelection.fold(stringRepresentation) {
+        val interpolated = typeInfo.isChoiceSelection.fold(stringRepresentation(typeInfo)) {
           case FormCtx(formComponentId) =>
             formModelVisibilityOptics.formModel.fcLookup(formComponentId) match {
               case IsChoice(choice) =>
                 val optionsList = choice.options.toList
-                formModelVisibilityOptics
-                  .evalAndApplyTypeInfo(typeInfo)
-                  .optionRepresentation
-                  .fold(stringRepresentation) { selectedChoiceIndexes =>
-                    selectedChoiceIndexes.map(scIndex => apply(optionsList(scIndex), markDown)).mkString(",")
-                  }
+                mapChoiceSelectedIndexes(typeInfo, index => apply(optionsList(index), markDown))
               case IsRevealingChoice(revealingChoice) =>
-                formModelVisibilityOptics
-                  .evalAndApplyTypeInfo(typeInfo)
-                  .optionRepresentation
-                  .fold(stringRepresentation) { selectedChoiceIndexes =>
-                    selectedChoiceIndexes
-                      .map(scIndex => apply(revealingChoice.options(scIndex).choice, markDown))
-                      .mkString(",")
-                  }
+                mapChoiceSelectedIndexes(typeInfo, scIndex => apply(revealingChoice.options(scIndex).choice, markDown))
               case _ =>
-                stringRepresentation
+                stringRepresentation(typeInfo)
             }
         }
 
@@ -131,6 +117,15 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
           formatted
         }
       }
+
+      private def stringRepresentation(typeInfo: TypeInfo): String =
+        formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation
+
+      private def mapChoiceSelectedIndexes(typeInfo: TypeInfo, f: Int => String): String =
+        formModelVisibilityOptics
+          .evalAndApplyTypeInfo(typeInfo)
+          .optionRepresentation
+          .fold(stringRepresentation(typeInfo))(_.map(f).mkString(","))
 
       private def escapeMarkdown(s: String): String = {
         val replacedEntities = EntityConverter.INSTANCE.replaceEntities(s.replace("\n", ""), true, false)
