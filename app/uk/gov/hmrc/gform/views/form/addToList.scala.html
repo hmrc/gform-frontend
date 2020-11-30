@@ -79,8 +79,9 @@
 
     @pageLevelError.render
 
-    @hmrcPageHeading(PageHeading(text = heading))
-
+    <h1 class="govuk-heading-l">
+        @heading
+    </h1>
     <div class="govuk-form-group">
       <ul class="hmrc-add-to-a-list hmrc-add-to-a-list--wide">
         @for(record <- recordTable.toList) {
