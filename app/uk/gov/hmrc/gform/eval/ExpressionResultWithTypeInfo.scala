@@ -20,4 +20,6 @@ case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, type
   def stringRepresentation: String = expressionResult.stringRepresentation(typeInfo)
 
   def numberRepresentation: Option[BigDecimal] = expressionResult.numberRepresentation
+
+  def optionRepresentation: Option[Seq[Int]] = expressionResult.optionRepresentation
 }

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, Number, PositiveNumber, Sterling }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, Number, PositiveNumber, Sterling }
 
 case class TypeInfo(expr: Expr, staticTypeData: StaticTypeData) {
   def defaultValue: String = staticTypeData.textConstraint.fold("") {
@@ -24,6 +24,11 @@ case class TypeInfo(expr: Expr, staticTypeData: StaticTypeData) {
     case Number(_, _, _, _)         => "0"
     case PositiveNumber(_, _, _, _) => "0"
     case _                          => ""
+  }
+
+  def isChoiceSelection: Option[FormCtx] = expr match {
+    case e: FormCtx if staticTypeData.exprType == ExprType.ChoiceSelection => Some(e)
+    case _                                                                 => None
   }
 }
 

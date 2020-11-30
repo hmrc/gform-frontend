@@ -22,10 +22,9 @@ import org.intellij.markdown.html.entities.EntityConverter
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.TypeInfo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, FormTemplate, IsChoice, IsRevealingChoice }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -77,28 +76,56 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
     hc: HeaderCarrier
   ): SmartStringEvaluator =
     new SmartStringEvaluator {
+
       override def apply(s: SmartString, markDown: Boolean): String = {
         import scala.collection.JavaConverters._
         new MessageFormat(s.rawValue(l))
           .format(
             s.interpolations
               .map { interpolation =>
-                val typeInfo: TypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(interpolation)
-                val interpolated = formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation
-
-                val formatted = typeInfo.staticTypeData.textConstraint.fold(interpolated) { textConstraint =>
-                  TextFormatter.componentTextReadonly(interpolated, textConstraint)
-                }
-                if (markDown) {
-                  escapeMarkdown(formatted)
-                } else {
-                  formatted
-                }
+                formatExpr(interpolation, markDown)
               }
               .asJava
               .toArray)
 
       }
+
+      private def formatExpr(expr: Expr, markDown: Boolean): String = {
+
+        val typeInfo: TypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(expr)
+
+        val interpolated = typeInfo.isChoiceSelection.fold(stringRepresentation(typeInfo)) {
+          case FormCtx(formComponentId) =>
+            formModelVisibilityOptics.formModel.fcLookup(formComponentId) match {
+              case IsChoice(choice) =>
+                val optionsList = choice.options.toList
+                mapChoiceSelectedIndexes(typeInfo, index => apply(optionsList(index), markDown))
+              case IsRevealingChoice(revealingChoice) =>
+                mapChoiceSelectedIndexes(typeInfo, scIndex => apply(revealingChoice.options(scIndex).choice, markDown))
+              case _ =>
+                stringRepresentation(typeInfo)
+            }
+        }
+
+        val formatted = typeInfo.staticTypeData.textConstraint.fold(interpolated) { textConstraint =>
+          TextFormatter.componentTextReadonly(interpolated, textConstraint)
+        }
+
+        if (markDown) {
+          escapeMarkdown(formatted)
+        } else {
+          formatted
+        }
+      }
+
+      private def stringRepresentation(typeInfo: TypeInfo): String =
+        formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation
+
+      private def mapChoiceSelectedIndexes(typeInfo: TypeInfo, f: Int => String): String =
+        formModelVisibilityOptics
+          .evalAndApplyTypeInfo(typeInfo)
+          .optionRepresentation
+          .fold(stringRepresentation(typeInfo))(_.map(f).mkString(","))
 
       private def escapeMarkdown(s: String): String = {
         val replacedEntities = EntityConverter.INSTANCE.replaceEntities(s.replace("\n", ""), true, false)
