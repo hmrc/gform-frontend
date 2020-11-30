@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.eval.TypeInfo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, FormTemplate, IsChoice, IsRevealingChoice, RevealingChoiceElement }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, FormTemplate, IsChoice, IsRevealingChoice }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -113,7 +113,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
                   .optionRepresentation
                   .fold(stringRepresentation) { selectedChoiceIndexes =>
                     selectedChoiceIndexes
-                      .map(scIndex => formatRevealingFields(revealingChoice.options(scIndex), markDown))
+                      .map(scIndex => apply(revealingChoice.options(scIndex).choice, markDown))
                       .mkString(",")
                   }
               case _ =>
@@ -139,10 +139,5 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
             escaped.replace(specialChar, "\\" + specialChar)
         }
       }
-
-      private def formatRevealingFields(c: RevealingChoiceElement, markDown: Boolean): String =
-        c.revealingFields
-          .map(rf => formatExpr(FormCtx(rf.id), markDown))
-          .mkString(",")
     }
 }

@@ -167,17 +167,13 @@ class RealSmartStringEvaluatorFactorySpec
     "evaluate SmartString with FormCtx (type revealingChoice) interpolation" in new TestFixture {
 
       lazy val choice1TextField: FormComponent = buildFormComponent("choice1TextField", Value)
-      lazy val choice2ChoiceField: FormComponent = buildFormComponent(
-        "choice2ChoiceField",
-        Choice(Radio, NonEmptyList.of(toSmartString("Yes"), toSmartString("No")), Horizontal, List.empty, None),
-        None
-      )
+      lazy val choice2TextField: FormComponent = buildFormComponent("choice2TextField", Value)
       lazy val revealingChoiceField: FormComponent = buildFormComponent(
         "revealingChoiceField",
         RevealingChoice(
           List(
             RevealingChoiceElement(toSmartString("Option1"), List(choice1TextField), true),
-            RevealingChoiceElement(toSmartString("Option2"), List(choice2ChoiceField), true)
+            RevealingChoiceElement(toSmartString("Option2"), List(choice2TextField), true)
           ),
           true
         ),
@@ -188,7 +184,7 @@ class RealSmartStringEvaluatorFactorySpec
           FormData(List(
             FormField(revealingChoiceField.modelComponentId, "0,1"),
             FormField(choice1TextField.modelComponentId, "choice1TextFieldValue"),
-            FormField(choice2ChoiceField.modelComponentId, "0,1")
+            FormField(choice2TextField.modelComponentId, "choice2TextFieldValue")
           )))
       override lazy val formTemplate: FormTemplate = buildFormTemplate(
         destinationList,
@@ -197,7 +193,7 @@ class RealSmartStringEvaluatorFactorySpec
       val result: String = smartStringEvaluator
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("revealingChoiceField"))), false)
 
-      result shouldBe "Smart string choice1TextFieldValue,Yes,No"
+      result shouldBe "Smart string Option1,Option2"
     }
   }
 
