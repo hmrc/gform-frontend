@@ -31,11 +31,10 @@ import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponent, FormComponentId, FormCtx, FormTemplate, Horizontal, Radio }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, FormComponent, FormComponentId, FormCtx, FormTemplate, Horizontal, Radio, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.SessionId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Value
 
 import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -135,6 +134,34 @@ class RealSmartStringEvaluatorFactorySpec
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("choiceField"))), false)
 
       result shouldBe "Smart string Yes textValue"
+    }
+
+    "evaluate SmartString with FormCtx (type choice, with multi) interpolation" in new TestFixture {
+
+      lazy val multiChoiceField: FormComponent = buildFormComponent(
+        "multiChoiceField",
+        Choice(
+          Checkbox,
+          NonEmptyList.of(toSmartString("Choice1"), toSmartString("Choice2")),
+          Horizontal,
+          List.empty,
+          None),
+        None
+      )
+      override lazy val form: Form =
+        buildForm(
+          FormData(
+            List(
+              FormField(multiChoiceField.modelComponentId, "0,1")
+            )))
+      override lazy val formTemplate: FormTemplate = buildFormTemplate(
+        destinationList,
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(multiChoiceField))))
+
+      val result: String = smartStringEvaluator
+        .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("multiChoiceField"))), false)
+
+      result shouldBe "Smart string Choice1,Choice2"
     }
   }
 

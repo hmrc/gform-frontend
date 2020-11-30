@@ -167,6 +167,9 @@ sealed trait ExpressionResult extends Product with Serializable {
   def numberRepresentation: Option[BigDecimal] =
     fold[Option[BigDecimal]](_ => None)(_ => None)(_ => None)(bd => Some(bd.value))(_ => None)(_ => None)
 
+  def optionRepresentation: Option[Seq[Int]] =
+    fold[Option[Seq[Int]]](_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(o => Some(o.value))
+
   def fold[B](
     a: Invalid => B
   )(
