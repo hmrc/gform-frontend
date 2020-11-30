@@ -27,32 +27,36 @@ object AddToListUtils {
     idx: Int,
   ): VariadicFormData[SourceOrigin.Current] = {
 
+    def toModelComponentIds(iterations: List[Bracket.AddToListIteration[DataExpanded]]): Set[ModelComponentId] =
+      iterations.flatMap(_.toPageModel.toList).flatMap(_.allModelComponentIds).toSet
+
     val iteration: Bracket.AddToListIteration[DataExpanded] = bracket.iterations.toList(idx)
 
-    val (_, iterationsToReindex) = bracket.iterations.toList.splitAt(idx + 1)
+    val (iteratonsToKeep, iterationsToReindex) = bracket.iterations.toList.splitAt(idx + 1)
 
-    val toBeRemovedIds: List[ModelComponentId] = iteration.toPageModel.toList.flatMap(_.allModelComponentIds)
-    val toReindex: Set[ModelComponentId] =
-      iterationsToReindex.flatMap(_.toPageModel.toList).flatMap(_.allModelComponentIds).toSet
+    val toBeRemovedIds: Set[ModelComponentId] = toModelComponentIds(iteration :: Nil)
+    val toReindex: Set[ModelComponentId] = toModelComponentIds(iterationsToReindex)
+    /* iteration is part of iterationsToKeep (due to how splitAt works),
+     * and we don't want iteration's ids in toKeep Set.
+     */
+    val toKeep: Set[ModelComponentId] = toModelComponentIds(iteratonsToKeep) -- toBeRemovedIds
 
     val variadicFormData = processData.formModelOptics.pageOpticsData
 
     val variadicFormDataToModify = variadicFormData.subset(toReindex)
+    val variadicFormDataToKeep = variadicFormData.subset(toKeep)
 
-    val variadicFormDataToModified = variadicFormDataToModify.mapKeys { variadicValueId =>
-      variadicValueId.decrement
-    }
+    val variadicFormDataToModified = variadicFormDataToModify.mapKeys(_.decrement)
 
-    val res = variadicFormData -- toBeRemovedIds -- variadicFormDataToModify ++ variadicFormDataToModified
+    val bracketPrefixes: Set[Int] =
+      (variadicFormDataToKeep.keySet ++ variadicFormDataToModified.keySet).flatMap(_.maybeIndex)
 
-    val prefixes: Set[Int] = res.keySet.flatMap(_.maybeIndex)
-
-    val maxPrefix = prefixes.max
+    val maxBracketPrefix = bracketPrefixes.max
 
     val lastAddAnotherQuestionId =
-      bracket.source.id.formComponentId.modelComponentId.expandWithPrefix(maxPrefix)
+      bracket.source.id.formComponentId.modelComponentId.expandWithPrefix(maxBracketPrefix)
 
-    res - lastAddAnotherQuestionId
+    variadicFormData -- toBeRemovedIds -- variadicFormDataToModify ++ variadicFormDataToModified - lastAddAnotherQuestionId
 
   }
 
