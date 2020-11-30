@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, FormComponent, FormComponentId, FormCtx, FormTemplate, Horizontal, Radio, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, FormComponent, FormComponentId, FormCtx, FormTemplate, Horizontal, Radio, RevealingChoice, RevealingChoiceElement, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.SessionId
@@ -162,6 +162,42 @@ class RealSmartStringEvaluatorFactorySpec
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("multiChoiceField"))), false)
 
       result shouldBe "Smart string Choice1,Choice2"
+    }
+
+    "evaluate SmartString with FormCtx (type revealingChoice) interpolation" in new TestFixture {
+
+      lazy val choice1TextField: FormComponent = buildFormComponent("choice1TextField", Value)
+      lazy val choice2ChoiceField: FormComponent = buildFormComponent(
+        "choice2ChoiceField",
+        Choice(Radio, NonEmptyList.of(toSmartString("Yes"), toSmartString("No")), Horizontal, List.empty, None),
+        None
+      )
+      lazy val revealingChoiceField: FormComponent = buildFormComponent(
+        "revealingChoiceField",
+        RevealingChoice(
+          List(
+            RevealingChoiceElement(toSmartString("Option1"), List(choice1TextField), true),
+            RevealingChoiceElement(toSmartString("Option2"), List(choice2ChoiceField), true)
+          ),
+          true
+        ),
+        None
+      )
+      override lazy val form: Form =
+        buildForm(
+          FormData(List(
+            FormField(revealingChoiceField.modelComponentId, "0,1"),
+            FormField(choice1TextField.modelComponentId, "choice1TextFieldValue"),
+            FormField(choice2ChoiceField.modelComponentId, "0,1")
+          )))
+      override lazy val formTemplate: FormTemplate = buildFormTemplate(
+        destinationList,
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(revealingChoiceField))))
+
+      val result: String = smartStringEvaluator
+        .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("revealingChoiceField"))), false)
+
+      result shouldBe "Smart string choice1TextFieldValue,Yes,No"
     }
   }
 
