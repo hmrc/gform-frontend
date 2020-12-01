@@ -25,7 +25,6 @@
 @import uk.gov.hmrc.gform.views.html.{main_template, specimen}
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.{hmrcPageHeading, PageHeading}
 
 @(
     repeater: Repeater[DataExpanded],
@@ -49,7 +48,6 @@
 
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
-@hmrcPageHeading = @{new hmrcPageHeading}
 
 @heading = @{repeater.title.value}
 
@@ -79,7 +77,7 @@
 
     @pageLevelError.render
 
-    @hmrcPageHeading(PageHeading(text = heading))
+    @pageHeading(heading)
 
     <div class="govuk-form-group">
       <ul class="hmrc-add-to-a-list hmrc-add-to-a-list--wide">
