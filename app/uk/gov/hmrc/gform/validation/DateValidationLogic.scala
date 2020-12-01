@@ -27,6 +27,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedNumeric
 import uk.gov.hmrc.gform.views.html.localisedDateString
+import uk.gov.hmrc.gform.validation.ComponentValidator._
 
 import scala.util.{ Failure, Success, Try }
 
@@ -110,7 +111,7 @@ object DateValidationLogic {
 
   def hasMaximumLength(str: String, maximumLength: Int, label: String)(
     implicit messages: Messages): Validated[String, String] =
-    if (str.length > maximumLength) Invalid(messages("generic.error.maxLength", label, maximumLength))
+    if (str.length > maximumLength) Invalid(messages(genericErrorMaxLength, label, maximumLength))
     else Valid(str)
 
   def isNumeric(str: String, timeUnitLabel: String, label: String)(implicit messages: Messages): ValidatedNumeric =

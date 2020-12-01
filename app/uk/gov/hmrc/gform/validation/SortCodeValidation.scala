@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
+import uk.gov.hmrc.gform.validation.ComponentValidator._
 
 object SortCodeValidation {
   def validateSortCode[D <: DataOrigin](
@@ -84,7 +85,7 @@ object SortCodeValidation {
     implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ): ValidatedType[Unit] = error(formComponent, modelComponentId, "generic.error.wholeNumber")
+  ): ValidatedType[Unit] = error(formComponent, modelComponentId, genericErrorWholeNumber)
 
   private def error(
     formComponent: FormComponent,
