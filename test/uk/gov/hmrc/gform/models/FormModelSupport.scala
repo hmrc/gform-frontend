@@ -25,6 +25,10 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, NotChecked, Obligations }
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, InProgress, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, UserId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, ThirdPartyData }
@@ -93,72 +97,25 @@ trait FormModelSupport extends GraphSpec {
       maybeAccessCode,
       recalculation
     )
+
+  def mkFormModelOptics(
+    formTemplate: FormTemplate,
+    data: VariadicFormData[SourceOrigin.OutOfDate]
+  ): FormModelOptics[DataOrigin.Browser] = {
+    val authCache: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate)
+    FormModelOptics
+      .mkFormModelOptics[DataOrigin.Browser, Id, SectionSelectorType.Normal](data, authCache, recalculation)
+  }
+
+  def mkProcessData(
+    formModelOptics: FormModelOptics[DataOrigin.Browser]
+  ): ProcessData = {
+
+    val visitsIndex: VisitIndex = VisitIndex(Set.empty[Int])
+    val booleanExprCache: BooleanExprCache = BooleanExprCache.empty
+    val obligations: Obligations = NotChecked
+
+    ProcessData(formModelOptics, visitsIndex, obligations, booleanExprCache)
+  }
+
 }
-/* import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals }
- * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
- * import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
- * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Basic, FormTemplate, FullyExpanded, GroupExpanded, Section }
- * import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
- * import uk.gov.hmrc.http.HeaderCarrier
- * import uk.gov.hmrc.http.logging.SessionId
- *
- * trait FormModelSupport {
- *
- *   private implicit val hc: HeaderCarrier = HeaderCarrier()
- *
- *   private val retrievals: MaterialisedRetrievals = AnonymousRetrievals(SessionId("dummy-sessionId"))
- *   private val thirdPartyData: ThirdPartyData = ThirdPartyData.empty
- *   private val envelopeId: EnvelopeId = EnvelopeId("dummy")
- *
- *   private def mkFormModelBuilder(formTemplate: FormTemplate): FormModelBuilder = new FormModelBuilder(
- *     retrievals,
- *     formTemplate,
- *     thirdPartyData,
- *     envelopeId
- *   )
- *
- *   def getSingleton(section: Section.NonRepeatingPage): Singleton[FullyExpanded] =
- *     getSingleton(section, FormDataRecalculated.empty)
- *
- *   def getSingleton(section: Section.NonRepeatingPage, data: FormDataRecalculated): Singleton[FullyExpanded] = {
- *     val formModel: FormModel[FullyExpanded] = mkFormModel(List(section), data)
- *     val singletons: Option[Singleton[FullyExpanded]] = formModel.pages.collectFirst {
- *       case s: Singleton[_] => s
- *     }
- *     singletons.getOrElse(throw new Exception("Wrong test data setup"))
- *   }
- *
- *   def mkFormModelExpandGroups(sections: List[Section]): FormModel[GroupExpanded] =
- *     mkFormModelExpandGroups(sections, FormDataRecalculated.empty)
- *
- *   def mkFormModelExpandGroups(sections: List[Section], data: FormDataRecalculated): FormModel[GroupExpanded] = {
- *     val formTemplate: FormTemplate = mkFormTemplate(sections)
- *     val formModelBuilder = mkFormModelBuilder(formTemplate)
- *     val basicModel = formModelBuilder.basic()
- *     formModelBuilder.expandGroups(basicModel, data)
- *   }
- *
- *   def mkFormModelBasic(sections: List[Section]): FormModel[Basic] = {
- *     val formTemplate: FormTemplate = mkFormTemplate(sections)
- *     mkFormModelBuilder(formTemplate).basic()
- *   }
- *
- *   def mkFormModel(sections: List[Section]): FormModel[FullyExpanded] =
- *     mkFormModel(sections, FormDataRecalculated.empty)
- *
- *   def mkFormModel(
- *     sections: List[Section],
- *     data: FormDataRecalculated): FormModel[FullyExpanded] = {
- *     val formTemplate: FormTemplate = mkFormTemplate(sections)
- *     mkFormModel(formTemplate, data)
- *   }
- *
- *   def mkFormModel(formTemplate: FormTemplate): FormModel[FullyExpanded] =
- *     mkFormModel(formTemplate, FormDataRecalculated.empty)
- *
- *   def mkFormModel(
- *     formTemplate: FormTemplate,
- *     data: FormDataRecalculated): FormModel[FullyExpanded] =
- *     mkFormModelBuilder(formTemplate).expand(data)
- *
- * } */

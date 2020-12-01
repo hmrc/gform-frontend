@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.instances.list._
 import cats.syntax.foldable._
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 
@@ -35,13 +35,8 @@ trait VariadicFormDataSupport {
   def variadicFormDataMany(kv: (String, List[Int])*): VariadicFormData[SourceOrigin.OutOfDate] =
     kv.toList.foldMap { case (id, v) => VariadicFormData.many(mkModelComponentId(id), v.map(_.toString)) }
 
-  /* def mkFormDataRecalculated(kv: (String, String)*): FormDataRecalculated = {
- *   val data: Seq[(String, VariadicValue)] = kv.map { case (k, v) => (k, One(v)) }
- *   mkVariadicFormDataRecalculated(data: _*)
- * }
- *
- * def mkVariadicFormDataRecalculated(data: (String, VariadicValue)*): FormDataRecalculated = {
- *   val fcData = data.map { case (k, v) => (FormComponentId(k), v) }
- *   FormDataRecalculated.empty.copy(recData = RecData.fromData(VariadicFormData.create(fcData: _*)))
- * } */
+  def mkVariadicFormData[T <: SourceOrigin](data: (String, VariadicValue)*): VariadicFormData[T] = {
+    val fcData = data.map { case (k, v) => (mkModelComponentId(k), v) }
+    VariadicFormData.create(fcData: _*)
+  }
 }
