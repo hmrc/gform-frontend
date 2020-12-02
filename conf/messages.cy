@@ -89,10 +89,13 @@ generic.error.lookup=Rhaid i {0} gyd-fynd ag un o’r awgrymiadau o’r rhestr
 generic.error.email=Rhaid i {0} gyd-fynd â’r cod rydych wedi ei gael drwy e-bost
 
 generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau, cysylltnodau, ampersandau a chollnodau
-generic.longText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau a bachau crwn, sgwâr, onglog neu gyrliog, collnodau, cysylltnodau, llinellau toriad, atalnodau llawn, arwyddion punt, arwyddion plws, hanner colonau, colonau, serenigion, marciau cwestiwn, hafalnodau, blaenslaesau, ampersandau, ebychnodau, symbolau @, hashnodau, arwyddion doler, arwyddion ewro, acenion disgynedig, tildiau, dyfynodau dwbl a thanlinellau
+generic.longText.error.pattern=Ni all {0} gynnwys y cymeriadau {1}
 generic.referenceNumber.error.pattern=Gall {0} ond cynnwys rhifau
 
 generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
+
+generic.error.submissionRef=Ni ellir dod o hyd i {0}. Nodwch {0} dilys yn y fformat cywir. Mae’n rhaid i hyn fod yn 14 o gymeriadau a chynnwys rhifau, cysylltnodau a phriflythrennau yn unig, er enghraifft ABCD-1234-1234
+generic.error.parentSubmissionRefSameAsFormSubmissionRef=Mae’n rhaid i {0} fod yn gyfeirnod cyflwyno ffurflen rhiant. Yr hyn a nodwyd yw cyfeirnod cyflwyno’r ffurflen hon.
 
 enrolment.error.failed=Ni ellir dod o hyd i’r manylion cofrestru a nodwyd gennych neu mae cysylltiad rhyngddynt â chyfrif Porth y Llywodraeth gwahanol. Gallwch wneud y canlynol:
 enrolment.error.failed.step1=gwirio’ch manylion a rhoi cynnig arall arni

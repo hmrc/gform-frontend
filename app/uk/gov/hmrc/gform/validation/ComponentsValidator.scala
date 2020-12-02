@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.Visibility
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.{ FormModel }
+import uk.gov.hmrc.gform.models.FormModel
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, verificationCodeFieldId }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, ThirdPartyData }
@@ -36,6 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.validation.ComponentValidator._
 
 class EmailCodeFieldMatcher(
   val fcId: VerificationCodeFieldId,
@@ -126,7 +127,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         if (b)
           validationResult
         else
-          validationFailure(formComponent, "generic.error.required", None)
+          validationFailure(formComponent, genericErrorRequired, None)
       }
     }
 
