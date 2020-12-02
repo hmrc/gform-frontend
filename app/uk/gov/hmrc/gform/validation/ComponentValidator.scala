@@ -72,9 +72,9 @@ object ComponentValidator {
   val timeErrorRequired                                      = "time.error.required"
   // format: on
 
-  // List of invisible characters to skip for validations referred from https://unicode.org/reports/tr9/
-  val skipCharactersForValidations = List('\u061C', '\u200E', '\u200F', '\u202A', '\u202B', '\u202C', '\u202D',
-    '\u202E', '\u2066', '\u2067', '\u2068', '\u2069')
+  // Below Set of invisible characters to skip for validations referred from https://unicode.org/reports/tr9/
+  val skipCharactersForValidations = Set('\u061C', '\u200E', '\u200F', '\u202A', '\u202B', '\u202C', '\u202D', '\u202E',
+    '\u2066', '\u2067', '\u2068', '\u2069')
 
   private def textData[D <: DataOrigin](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
@@ -306,17 +306,17 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
-    val ValueWithoutInvisibleCharacters =
+    val valueWithoutInvisibleCharacters =
       value.filterNot(skipCharactersForValidations contains _)
 
     val ValidText =
       """[A-Za-z0-9\(\)\,\'\’\“\”\%\•\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}\–\—\‘\’\“\”]+""".r
 
-    invalidCharactersValidator(fieldValue, ValueWithoutInvisibleCharacters, ValidText, genericLongTextErrorPattern)
+    invalidCharactersValidator(fieldValue, valueWithoutInvisibleCharacters, ValidText, genericLongTextErrorPattern)
       .andThen { _ =>
         sharedTextComponentValidator(
           fieldValue,
-          ValueWithoutInvisibleCharacters,
+          valueWithoutInvisibleCharacters,
           min,
           max,
           ValidText,
