@@ -37,43 +37,44 @@ import scala.util.matching.Regex
 
 object ComponentValidator {
   // format: off
-  val genericLongTextErrorPattern = "generic.longText.error.pattern"
-  val genericReferenceNumberErrorPattern = "generic.referenceNumber.error.pattern"
-  val genericCrnErrorInvalid = "generic.crn.error.invalid"
-  val genericEoriErrorPattern = "generic.eori.error.pattern"
-  val genericUkEoriErrorPattern = "generic.ukEori.error.pattern"
-  val genericChildBenefitNumberErrorPattern = "generic.childBenefitNumber.error.pattern"
-  val genericNonUKCountryCodeErrorPattern = "generic.nonUKCountryCode.error.pattern"
-  val genericCountryCodeErrorPattern = "generic.countryCode.error.pattern"
-  val genericErrorTelephoneNumber = "generic.error.telephoneNumber"
-  val genericShortTextErrorPattern = "generic.shortText.error.pattern"
-  val genericErrorLookup = "generic.error.lookup"
-  val genericErrorRegistry = "generic.error.registry"
-  val genericErrorRequired = "generic.error.required"
+  val genericLongTextErrorPattern                            = "generic.longText.error.pattern"
+  val genericReferenceNumberErrorPattern                     = "generic.referenceNumber.error.pattern"
+  val genericCrnErrorInvalid                                 = "generic.crn.error.invalid"
+  val genericEoriErrorPattern                                = "generic.eori.error.pattern"
+  val genericUkEoriErrorPattern                              = "generic.ukEori.error.pattern"
+  val genericChildBenefitNumberErrorPattern                  = "generic.childBenefitNumber.error.pattern"
+  val genericNonUKCountryCodeErrorPattern                    = "generic.nonUKCountryCode.error.pattern"
+  val genericCountryCodeErrorPattern                         = "generic.countryCode.error.pattern"
+  val genericErrorTelephoneNumber                            = "generic.error.telephoneNumber"
+  val genericShortTextErrorPattern                           = "generic.shortText.error.pattern"
+  val genericErrorLookup                                     = "generic.error.lookup"
+  val genericErrorRegistry                                   = "generic.error.registry"
+  val genericErrorRequired                                   = "generic.error.required"
   val genericErrorParentSubmissionRefSameAsFormSubmissionRef = "generic.error.parentSubmissionRefSameAsFormSubmissionRef"
-  val genericErrorExactNumbers = "generic.error.exactNumbers"
-  val genericErrorSubmissionRef = "generic.error.submissionRef"
-  val genericErrorMaxWhole = "generic.error.maxWhole"
-  val genericErrorPositiveNumber = "generic.error.positiveNumber"
-  val genericErrorMaxLengthNoDecimals = "generic.error.maxLength.noDecimals"
-  val genericErrorMaxLengthMaxDecimals = "generic.error.maxLength.maxDecimals"
-  val genericErrorWholeNumber = "generic.error.wholeNumber"
-  val genericErrorMaxDecimals = "generic.error.maxDecimals"
-  val genericErrorPositiveWholeNumber = "generic.error.positiveWholeNumber"
-  val genericErrorNumber = "generic.error.number"
-  val genericErrorInvalid = "generic.error.invalid"
-  val genericErrorMaxLength = "generic.error.maxLength"
-  val genericErrorMinLength = "generic.error.minLength"
-  val genericVrnErrorPattern = "generic.vrn.error.pattern"
-  val genericGovernmentIdNotExist = "generic.governmentId.not.exist"
-  val genericGovernmentIdErrorPattern = "generic.governmentId.error.pattern"
-  val genericErrorEmail = "generic.error.email"
-  val choiceErrorRequired = "choice.error.required"
-  val timeErrorRequired = "time.error.required"
+  val genericErrorExactNumbers                               = "generic.error.exactNumbers"
+  val genericErrorSubmissionRef                              = "generic.error.submissionRef"
+  val genericErrorMaxWhole                                   = "generic.error.maxWhole"
+  val genericErrorPositiveNumber                             = "generic.error.positiveNumber"
+  val genericErrorMaxLengthNoDecimals                        = "generic.error.maxLength.noDecimals"
+  val genericErrorMaxLengthMaxDecimals                       = "generic.error.maxLength.maxDecimals"
+  val genericErrorWholeNumber                                = "generic.error.wholeNumber"
+  val genericErrorMaxDecimals                                = "generic.error.maxDecimals"
+  val genericErrorPositiveWholeNumber                        = "generic.error.positiveWholeNumber"
+  val genericErrorNumber                                     = "generic.error.number"
+  val genericErrorInvalid                                    = "generic.error.invalid"
+  val genericErrorMaxLength                                  = "generic.error.maxLength"
+  val genericErrorMinLength                                  = "generic.error.minLength"
+  val genericVrnErrorPattern                                 = "generic.vrn.error.pattern"
+  val genericGovernmentIdNotExist                            = "generic.governmentId.not.exist"
+  val genericGovernmentIdErrorPattern                        = "generic.governmentId.error.pattern"
+  val genericErrorEmail                                      = "generic.error.email"
+  val choiceErrorRequired                                    = "choice.error.required"
+  val timeErrorRequired                                      = "time.error.required"
   // format: on
 
-  val skipValidationsCharacterHexStrings =
-    List("061c", "200E", "200f", "202a", "202b", "202c", "202d", "202e", "2066", "2067", "2068", "2069")
+  // List of invisible characters to skip for validations referred from https://unicode.org/reports/tr9/
+  val skipCharactersForValidations = List('\u061C', '\u200E', '\u200F', '\u202A', '\u202B', '\u202C', '\u202D',
+    '\u202E', '\u2066', '\u2067', '\u2068', '\u2069')
 
   private def textData[D <: DataOrigin](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
@@ -305,9 +306,22 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
+    val ValueWithoutInvisibleCharacters =
+      value.filterNot(skipCharactersForValidations contains _)
+
     val ValidText =
       """[A-Za-z0-9\(\)\,\'\’\“\”\%\•\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}\–\—\‘\’\“\”]+""".r
-    sharedTextComponentValidator(fieldValue, value, min, max, ValidText, genericLongTextErrorPattern)
+
+    invalidCharactersValidator(fieldValue, ValueWithoutInvisibleCharacters, ValidText, genericLongTextErrorPattern)
+      .andThen { _ =>
+        sharedTextComponentValidator(
+          fieldValue,
+          ValueWithoutInvisibleCharacters,
+          min,
+          max,
+          ValidText,
+          genericLongTextErrorPattern)
+      }
   }
 
   private def referenceNumberConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int)(
@@ -528,26 +542,15 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ) =
-    (value.filterNot(c => skipValidationsCharacterHexStrings.contains(c.toInt.toHexString.toLowerCase)), messageKey) match {
-      case (tooLong, _) if tooLong.length > maxChars =>
+    value match {
+      case tooLong if tooLong.length > maxChars =>
         val vars: List[String] = maxChars.toString :: Nil
         validationFailure(fieldValue, genericErrorMaxLength, Some(vars))
-      case (tooShort, _) if tooShort.length < minChars =>
+      case tooShort if tooShort.length < minChars =>
         val vars: List[String] = minChars.toString :: Nil
         validationFailure(fieldValue, genericErrorMinLength, Some(vars))
-      case (regex(), _) => validationSuccess
-      case (s, `genericLongTextErrorPattern`) =>
-        val vars = s
-          .foldLeft(Set[Char]()) { (acc, c) =>
-            c match {
-              case regex() => acc
-              case _       => acc + c
-            }
-          }
-          .map(_.toString)
-          .mkString(" ") :: Nil
-        validationFailure(fieldValue, messageKey, Some(vars))
-      case _ => validationFailure(fieldValue, messageKey, None)
+      case regex() => validationSuccess
+      case _       => validationFailure(fieldValue, messageKey, None)
     }
 
   def validateEmailCode[D <: DataOrigin](
@@ -593,5 +596,31 @@ object ComponentValidator {
           None)
       case _ => validationSuccess
     }
+  }
+
+  private def invalidCharactersValidator(
+    fieldValue: FormComponent,
+    value: String,
+    regex: Regex,
+    messageKey: String
+  )(
+    implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ) = {
+    val vars = value
+      .foldLeft(Set[Char]()) { (acc, c) =>
+        c match {
+          case regex() => acc
+          case _       => acc + c
+        }
+      }
+      .map(_.toString)
+      .mkString(" ")
+
+    if (vars.isEmpty)
+      validationSuccess
+    else
+      validationFailure(fieldValue, messageKey, Some(List(vars)))
   }
 }

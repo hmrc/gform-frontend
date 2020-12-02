@@ -146,11 +146,18 @@ class ComponentValidatorSpec extends Spec with Matchers with GraphSpec with Mock
     result.isValid shouldBe true
   }
 
-  it should "return valid if there are valid and invisible characters" in {
+  it should "return valid if there are valid and invisible characters in a compiled list" in {
     val textWithInvisibleCharacters =
-      "This would make my 80 percent of your average trading profits for 3 months £730.6\u202C0."
+      "This would make my 80 percent of your average tra\u2069ding profits for 3 months £730.6\u202C0."
     val result = ComponentValidator.textValidationWithConstraints(textComponent, textWithInvisibleCharacters, 3, 100)
     result.isValid shouldBe true
+  }
+
+  it should "return invalid if there are invisible characters not in a compiled list" in {
+    val textWithInvisibleCharacters =
+      "This would make my 80 percent of your average trading profits fo\u2078r 3 months £730.6\u202C0."
+    val result = ComponentValidator.textValidationWithConstraints(textComponent, textWithInvisibleCharacters, 3, 100)
+    result.isInvalid shouldBe true
   }
 
   it should "return invalid if there are some invalid characters" in {
