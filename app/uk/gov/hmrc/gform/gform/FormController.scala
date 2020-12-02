@@ -299,13 +299,36 @@ class FormController(
                 }
               }
 
-            def processBack(processData: ProcessData, sn: SectionNumber): Future[Result] =
-              validateAndUpdateData(cache, processData, sn) { _ =>
+            def processBack(processData: ProcessData, sn: SectionNumber): Future[Result] = {
+              def goBack = validateAndUpdateData(cache, processData, sn) { _ =>
                 val sectionTitle4Ga = getSectionTitle4Ga(processData, sn)
                 Redirect(
                   routes.FormController
                     .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes))
               }
+
+              val formModel = formModelOptics.formModelRenderPageOptics.formModel
+              val bracket = formModel.bracket(sn)
+
+              bracket match {
+                case Bracket.NonRepeatingPage(_, _, _) => goBack
+                case Bracket.RepeatingPage(_, _)       => goBack
+                case bracket @ Bracket.AddToList(iterations, _) =>
+                  val iteration: Bracket.AddToListIteration[DataExpanded] = bracket.iterationForSectionNumber(sn)
+                  val lastIteration: Bracket.AddToListIteration[DataExpanded] = iterations.last
+                  if (iteration.repeater.sectionNumber === sn && iteration.repeater.sectionNumber < lastIteration.repeater.sectionNumber) {
+                    val isCommited =
+                      lastIteration.isCommited(formModelOptics.formModelVisibilityOptics, processData.visitsIndex)
+                    if (isCommited) {
+                      goBack
+                    } else {
+                      processRemoveAddToList(processData, bracket.iterations.size - 1, bracket.source.id)
+                    }
+                  } else {
+                    goBack
+                  }
+              }
+            }
 
             def handleGroup(processData: ProcessData, anchor: String): Future[Result] =
               validateAndUpdateData(cache, processData, sectionNumber) { _ =>
