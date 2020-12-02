@@ -18,6 +18,8 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import cats.syntax.eq._
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Section, SectionNumber }
 
 sealed trait Bracket[A <: PageMode] extends Product with Serializable {
@@ -30,11 +32,11 @@ sealed trait Bracket[A <: PageMode] extends Product with Serializable {
   )(
     g: Bracket.RepeatingPage[A] => B
   )(
-    singletonWithNumber: Bracket.AddToList[A] => B
+    h: Bracket.AddToList[A] => B
   ): B = this match {
     case b: Bracket.NonRepeatingPage[A] => f(b)
     case b: Bracket.RepeatingPage[A]    => g(b)
-    case b: Bracket.AddToList[A]        => singletonWithNumber(b)
+    case b: Bracket.AddToList[A]        => h(b)
   }
 
   def isToListById(addToListId: AddToListId): Boolean = this match {
@@ -95,6 +97,11 @@ object Bracket {
 
     def firstSectionNumber: SectionNumber = singletons.head.sectionNumber
 
+    def isCommited(
+      formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+      visitsIndex: VisitIndex
+    ): Boolean =
+      singletons.forall(singletonWithNumber => visitsIndex.contains(singletonWithNumber.sectionNumber.value))
   }
 
   case class NonRepeatingPage[A <: PageMode](
