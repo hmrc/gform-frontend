@@ -51,7 +51,7 @@ trait InstructionsRenderingServiceSpecExpectations {
        |            </div>
        |            <div>
        |               <dt> submission.reference </dt>
-       |               <dd> 6FJX-HVQL-U4FD </dd>
+       |               <dd> some-submission-ref </dd>
        |               <dd></dd>
        |            </div>
        |            <div>

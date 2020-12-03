@@ -516,7 +516,7 @@ object SummaryRenderingService {
 
     val rows = List(
       formattedTime.map(ft => cya_row(messages("submission.date"), ft)),
-      Some(cya_row(messages("submission.reference"), SubmissionRef(cache.form.envelopeId).toString)),
+      submissionDetails.map(sd => cya_row(messages("submission.reference"), sd.submission.submissionRef.toString)),
       submissionDetails.map(sd => cya_row(messages("submission.mark"), sd.hashedValue))
     ).flatten
 
