@@ -27,6 +27,8 @@ sealed trait Destinations extends Product with Serializable {
     case d: Destinations.DestinationList  => f(d)
     case d: Destinations.DestinationPrint => g(d)
   }
+
+  def displayFeedbackLink = fold(_.acknowledgementSection.displayFeedbackLink)(_ => false)
 }
 
 object Destinations {
