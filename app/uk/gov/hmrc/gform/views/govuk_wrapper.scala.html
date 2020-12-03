@@ -176,7 +176,8 @@
     @hmrcReportTechnicalIssue(
       ReportTechnicalIssue(
         serviceCode = appConfig.contactFormServiceIdentifier,
-        language = Some(language.code)
+        language = Some(language.code),
+        classList = Some("govuk-body")
       )
     )
 }
