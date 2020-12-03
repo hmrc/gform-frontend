@@ -269,7 +269,7 @@
 
     // Display the uploaded file name and delete button
     function makeFileEntry(name, fileId, formTemplateId, accessCode) {
-      return $('<span>' + name + '</span> <a href="#" class="delete-file" data-file-id="' + fileId + '" data-form-id="' + formTemplateId + '" data-access-code="' + accessCode + '"><span aria-hidden="true">' + strings.deleteLabel[lang] + '</span><span class="govuk-visually-hidden">' + strings.deleteLabel[lang] + ' ' + name + '</span></a>')
+      return $('<span>' + name + '</span> <a href="#" class="delete-file govuk-link" data-file-id="' + fileId + '" data-form-id="' + formTemplateId + '" data-access-code="' + accessCode + '"><span aria-hidden="true">' + strings.deleteLabel[lang] + '</span><span class="govuk-visually-hidden">' + strings.deleteLabel[lang] + ' ' + name + '</span></a>')
     }
 
     // Handle file deletion
