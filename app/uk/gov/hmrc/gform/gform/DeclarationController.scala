@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import java.time.LocalDateTime
-
 import cats.instances.future._
 import play.api.Logger
 import play.api.i18n.{ I18nSupport, Messages }
@@ -31,16 +29,16 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.{ DataExpanded, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.http.{ BadRequestException, HeaderCarrier }
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
-import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
@@ -275,23 +273,24 @@ class DeclarationController(
 
     val cacheUpd = cache.copy(form = cache.form.copy(formData = variadicFormData.toFormData))
 
-    val formString = nonRepudiationHelpers.formDataToJson(cache.form)
-    val hashedValue = nonRepudiationHelpers.computeHash(formString)
-    val submission = Submission(
-      cache.form._id,
-      LocalDateTime.now(),
-      SubmissionRef(cache.form.envelopeId),
-      cache.form.envelopeId,
-      DmsMetaData(cache.formTemplate._id))
+    val submissionMark = nonRepudiationHelpers.computeHash(nonRepudiationHelpers.formDataToJson(cache.form))
 
     for {
       _ <- cleanseEnvelope(envelopeId, envelope, attachments)
+      customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
+      submission <- gformBackEnd.createSubmission(
+                     cache.form._id,
+                     cache.form.formTemplateId,
+                     cache.form.envelopeId,
+                     customerId.id,
+                     attachments.size)
       result <- gformBackEnd
                  .submitWithUpdatedFormStatus(
                    Signed,
                    cacheUpd,
                    maybeAccessCode,
-                   Some(SubmissionDetails(submission, hashedValue)),
+                   Some(SubmissionDetails(submission, submissionMark)),
+                   customerId,
                    attachments,
                    formModelOptics)
 

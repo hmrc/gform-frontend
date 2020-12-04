@@ -25,12 +25,11 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder, SummaryPagePurpose }
-import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.BundledFormSubmissionData
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, FormStatus, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.instructions.InstructionsRenderingService
@@ -49,6 +48,13 @@ trait GformBackEndAlgebra[F[_]] {
 
   def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): F[FormTemplate]
 
+  def createSubmission(
+    formId: FormId,
+    formTemplateId: FormTemplateId,
+    envelopeId: EnvelopeId,
+    customerId: String,
+    noOfAttachments: Int)(implicit hc: HeaderCarrier): F[Submission]
+
   def submissionDetails(formIdData: FormIdData)(implicit hc: HeaderCarrier): F[Submission]
 
   def submitWithUpdatedFormStatus[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
@@ -56,6 +62,7 @@ trait GformBackEndAlgebra[F[_]] {
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     submissionDetails: Option[SubmissionDetails],
+    customerId: CustomerId,
     attachments: Attachments,
     formModelOptics: FormModelOptics[D]
   )(
@@ -92,6 +99,14 @@ class GformBackEndService(
   def getFormBundle(rootFormId: FormIdData)(implicit hc: HeaderCarrier): Future[NonEmptyList[FormIdData]] =
     gformConnector.getFormBundle(rootFormId)
 
+  def createSubmission(
+    formId: FormId,
+    formTemplateId: FormTemplateId,
+    envelopeId: EnvelopeId,
+    customerId: String,
+    noOfAttachments: Int)(implicit hc: HeaderCarrier): Future[Submission] =
+    gformConnector.createSubmission(formId, formTemplateId, envelopeId, customerId, noOfAttachments)
+
   def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(
     implicit hc: HeaderCarrier): Future[Unit] =
     gformConnector.submitFormBundle(rootFormId, bundle)
@@ -104,6 +119,7 @@ class GformBackEndService(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     submissionDetails: Option[SubmissionDetails],
+    customerId: CustomerId,
     attachments: Attachments,
     formModelOptics: FormModelOptics[D]
   )(
@@ -115,8 +131,7 @@ class GformBackEndService(
     lise: SmartStringEvaluator
   ): Future[(HttpResponse, CustomerId)] =
     for {
-      _ <- updateUserData(cache.form.copy(status = formStatus), maybeAccessCode)
-      customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
+      _        <- updateUserData(cache.form.copy(status = formStatus), maybeAccessCode)
       response <- handleSubmission(maybeAccessCode, cache, customerId, submissionDetails, attachments, formModelOptics)
     } yield (response, customerId)
 

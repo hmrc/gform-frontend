@@ -28,7 +28,7 @@ import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
-import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.graph.{ CustomerIdRecalculation, Recalculation }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -128,11 +128,13 @@ class ReviewService[F[_]: Monad](
   ): F[HttpResponse] =
     for {
       submission <- gformBackEnd.submissionDetails(FormIdData.fromForm(cache.form, maybeAccessCode))
+      customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
       result <- gformBackEnd.submitWithUpdatedFormStatus(
                  formStatus,
                  cache,
                  maybeAccessCode,
                  Some(SubmissionDetails(submission, "")),
+                 customerId,
                  Attachments.empty,
                  formModelOptics
                )

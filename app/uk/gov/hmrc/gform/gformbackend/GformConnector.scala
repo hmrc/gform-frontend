@@ -103,6 +103,15 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").void
 
   /******submission*******/
+  def createSubmission(
+    formId: FormId,
+    formTemplateId: FormTemplateId,
+    envelopeId: EnvelopeId,
+    customerId: String,
+    noOfAttachments: Int)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
+    ws.POSTEmpty[Submission](
+      baseUrl + s"/forms/${formId.value}/${formTemplateId.value}/${envelopeId.value}/$customerId/$noOfAttachments/createSubmission")
+
   def submitForm(
     formIdData: FormIdData,
     customerId: CustomerId,
