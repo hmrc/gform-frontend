@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
+import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
 
 import scala.collection.immutable.List
 
@@ -40,7 +41,23 @@ object ExampleData extends ExampleData
 trait ExampleData
     extends ExampleFormTemplate with ExampleFieldId with ExampleFieldValue with ExampleFormField with ExampleValidator
     with ExampleSection with ExampleSectionNumber with ExampleForm with ExampleAuthConfig with ExampleFrontendAppConfig
-    with ExampleAuthContext with ExampleInstruction
+    with ExampleAuthContext with ExampleInstruction with ExampleSubmissionRef with ExampleDmsMetaData
+    with ExampleSubmission
+
+trait ExampleSubmission {
+  self: ExampleForm with ExampleSubmissionRef with ExampleDmsMetaData =>
+  def submission(implicit localDateTime: LocalDateTime) =
+    Submission(formId, localDateTime, submissionRef, envelopeId, dmsMetaData)
+}
+
+trait ExampleDmsMetaData {
+  self: ExampleFormTemplate =>
+  val dmsMetaData = DmsMetaData(formTemplateId)
+}
+
+trait ExampleSubmissionRef {
+  val submissionRef = SubmissionRef("submission-ref")
+}
 
 trait ExampleInstruction {
   val instruction = Instruction(toSmartString("some-instruction"), Some(1))
