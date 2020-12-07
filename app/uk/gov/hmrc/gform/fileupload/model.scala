@@ -23,7 +23,9 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
-case class Attachments(files: List[FormComponentId])
+case class Attachments(files: List[FormComponentId]) {
+  val size = files.length
+}
 
 object Attachments {
   val empty = Attachments(Nil)

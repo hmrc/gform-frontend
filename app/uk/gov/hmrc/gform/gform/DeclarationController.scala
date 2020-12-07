@@ -36,7 +36,10 @@ import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.http.{ BadRequestException, HeaderCarrier }
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
+import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
+import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -51,6 +54,7 @@ class DeclarationController(
   gformConnector: GformConnector,
   processDataService: ProcessDataService[Future],
   gformBackEnd: GformBackEndAlgebra[Future],
+  nonRepudiationHelpers: NonRepudiationHelpers,
   messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
@@ -269,10 +273,26 @@ class DeclarationController(
 
     val cacheUpd = cache.copy(form = cache.form.copy(formData = variadicFormData.toFormData))
 
+    val submissionMark = nonRepudiationHelpers.computeHash(nonRepudiationHelpers.formDataToJson(cache.form))
+
     for {
       _ <- cleanseEnvelope(envelopeId, envelope, attachments)
+      customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
+      submission <- gformBackEnd.createSubmission(
+                     cache.form._id,
+                     cache.form.formTemplateId,
+                     cache.form.envelopeId,
+                     customerId.id,
+                     attachments.size)
       result <- gformBackEnd
-                 .submitWithUpdatedFormStatus(Signed, cacheUpd, maybeAccessCode, None, attachments, formModelOptics)
+                 .submitWithUpdatedFormStatus(
+                   Signed,
+                   cacheUpd,
+                   maybeAccessCode,
+                   Some(SubmissionDetails(submission, submissionMark)),
+                   customerId,
+                   attachments,
+                   formModelOptics)
 
     } yield {
       val (_, customerId) = result

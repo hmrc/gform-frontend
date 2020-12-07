@@ -164,6 +164,8 @@ class GformModule(
     controllersModule.messagesControllerComponents
   )
 
+  val nonRepudiationHelpers = new NonRepudiationHelpers(auditingModule)
+
   val acknowledgementController: AcknowledgementController = new AcknowledgementController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
@@ -171,7 +173,7 @@ class GformModule(
     sectionRenderingService,
     summaryRenderingService,
     gformBackendModule.gformConnector,
-    new NonRepudiationHelpers(auditingModule),
+    nonRepudiationHelpers,
     controllersModule.messagesControllerComponents,
     graphModule.recalculation,
     auditingModule.auditService
@@ -209,6 +211,7 @@ class GformModule(
     gformBackendModule.gformConnector,
     processDataService,
     gformBackEndService,
+    nonRepudiationHelpers,
     controllersModule.messagesControllerComponents
   )
 
