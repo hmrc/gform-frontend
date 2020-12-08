@@ -99,9 +99,9 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
             formModelVisibilityOptics.formModel.fcLookup(formComponentId) match {
               case IsChoice(choice) =>
                 val optionsList = choice.options.toList
-                mapChoiceSelectedIndexes(typeInfo, index => apply(optionsList(index), markDown))
+                mapChoiceSelectedIndexes(typeInfo, _.map(i => apply(optionsList(i), markDown)).mkString(","))
               case IsRevealingChoice(revealingChoice) =>
-                mapChoiceSelectedIndexes(typeInfo, scIndex => apply(revealingChoice.options(scIndex).choice, markDown))
+                revealingChoice.options.map(c => apply(c.choice, markDown)).mkString(",")
               case _ =>
                 stringRepresentation(typeInfo)
             }
@@ -121,11 +121,11 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
       private def stringRepresentation(typeInfo: TypeInfo): String =
         formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation
 
-      private def mapChoiceSelectedIndexes(typeInfo: TypeInfo, f: Int => String): String =
+      private def mapChoiceSelectedIndexes(typeInfo: TypeInfo, f: Seq[Int] => String): String =
         formModelVisibilityOptics
           .evalAndApplyTypeInfo(typeInfo)
           .optionRepresentation
-          .fold(stringRepresentation(typeInfo))(_.map(f).mkString(","))
+          .fold(stringRepresentation(typeInfo))(f(_))
 
       private def escapeMarkdown(s: String): String = {
         val replacedEntities = EntityConverter.INSTANCE.replaceEntities(s.replace("\n", ""), true, false)

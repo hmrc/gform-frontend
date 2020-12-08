@@ -136,7 +136,7 @@ class RealSmartStringEvaluatorFactorySpec
       result shouldBe "Smart string Yes textValue"
     }
 
-    "evaluate SmartString with FormCtx (type choice, with multi) interpolation" in new TestFixture {
+    "evaluate SmartString with FormCtx (type choice, with multi) interpolation - multiple selections" in new TestFixture {
 
       lazy val multiChoiceField: FormComponent = buildFormComponent(
         "multiChoiceField",
@@ -164,7 +164,35 @@ class RealSmartStringEvaluatorFactorySpec
       result shouldBe "Smart string Choice1,Choice2"
     }
 
-    "evaluate SmartString with FormCtx (type revealingChoice) interpolation" in new TestFixture {
+    "evaluate SmartString with FormCtx (type choice, with multi) interpolation - single selection" in new TestFixture {
+
+      lazy val multiChoiceField: FormComponent = buildFormComponent(
+        "multiChoiceField",
+        Choice(
+          Checkbox,
+          NonEmptyList.of(toSmartString("Choice1"), toSmartString("Choice2")),
+          Horizontal,
+          List.empty,
+          None),
+        None
+      )
+      override lazy val form: Form =
+        buildForm(
+          FormData(
+            List(
+              FormField(multiChoiceField.modelComponentId, "1")
+            )))
+      override lazy val formTemplate: FormTemplate = buildFormTemplate(
+        destinationList,
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(multiChoiceField))))
+
+      val result: String = smartStringEvaluator
+        .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("multiChoiceField"))), false)
+
+      result shouldBe "Smart string Choice2"
+    }
+
+    "evaluate SmartString with FormCtx (type revealingChoice, with multi) interpolation - multiple selections" in new TestFixture {
 
       lazy val choice1TextField: FormComponent = buildFormComponent("choice1TextField", Value)
       lazy val choice2TextField: FormComponent = buildFormComponent("choice2TextField", Value)
@@ -194,6 +222,38 @@ class RealSmartStringEvaluatorFactorySpec
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("revealingChoiceField"))), false)
 
       result shouldBe "Smart string Option1,Option2"
+    }
+
+    "evaluate SmartString with FormCtx (type revealingChoice, with multi) interpolation - single selection" in new TestFixture {
+
+      lazy val choice1TextField: FormComponent = buildFormComponent("choice1TextField", Value)
+      lazy val choice2TextField: FormComponent = buildFormComponent("choice2TextField", Value)
+      lazy val revealingChoiceField: FormComponent = buildFormComponent(
+        "revealingChoiceField",
+        RevealingChoice(
+          List(
+            RevealingChoiceElement(toSmartString("Option1"), List(choice1TextField), true),
+            RevealingChoiceElement(toSmartString("Option2"), List(choice2TextField), true)
+          ),
+          true
+        ),
+        None
+      )
+      override lazy val form: Form =
+        buildForm(
+          FormData(List(
+            FormField(revealingChoiceField.modelComponentId, "1"),
+            FormField(choice1TextField.modelComponentId, "choice1TextFieldValue"),
+            FormField(choice2TextField.modelComponentId, "choice2TextFieldValue")
+          )))
+      override lazy val formTemplate: FormTemplate = buildFormTemplate(
+        destinationList,
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(revealingChoiceField))))
+
+      val result: String = smartStringEvaluator
+        .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("revealingChoiceField"))), false)
+
+      result shouldBe "Smart string Option2"
     }
   }
 
