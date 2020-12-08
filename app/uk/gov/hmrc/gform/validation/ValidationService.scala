@@ -206,7 +206,7 @@ class ValidationService(
       .traverse {
         case (emailFieldId, eac @ EmailAndCode(email, code), emailVerifierService) =>
           gformConnector
-            .sendEmail(NotifierEmailAddress(email), ConfirmationCodeWithEmailService(code, emailVerifierService))
+            .sendEmail(ConfirmationCodeWithEmailService(NotifierEmailAddress(email), code, emailVerifierService))
             .map(_ => (emailFieldId, eac))
       }
       .map(_.toMap.valid)
