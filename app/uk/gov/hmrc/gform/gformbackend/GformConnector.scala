@@ -30,7 +30,6 @@ import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse }
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
-import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
@@ -228,7 +227,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   }
 
   def sendEmail(
-    emailAddress: NotifierEmailAddress,
     notifierConfirmationCode: ConfirmationCodeWithEmailService
   )(
     implicit
@@ -236,7 +234,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ec: ExecutionContext
   ): Future[Unit] =
     ws.POST[ConfirmationCodeWithEmailService, HttpResponse](
-        show"$baseUrl/email/$emailAddress",
+        show"$baseUrl/email",
         notifierConfirmationCode,
         Seq("Content-Type" -> ContentType.`application/json`.value))
       .void
