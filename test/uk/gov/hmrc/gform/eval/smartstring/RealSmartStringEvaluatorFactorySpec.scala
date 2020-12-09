@@ -76,6 +76,27 @@ class RealSmartStringEvaluatorFactorySpec
       result shouldBe "Smart string textValue"
     }
 
+    "evaluate SmartString with FormCtx, even when the component is not visible" in new TestFixture {
+      lazy val textField: FormComponent = buildFormComponent(
+        "textField",
+        Value
+      )
+      override lazy val form: Form =
+        buildForm(
+          FormData(
+            List(
+              FormField(textField.modelComponentId, "textValue")
+            )))
+      override lazy val formTemplate: FormTemplate = buildFormTemplate(
+        destinationList,
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(textField))))
+
+      val result: String = smartStringEvaluator
+        .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("textFieldInvisible"))), false)
+
+      result shouldBe "Smart string "
+    }
+
     "evaluate SmartString with FormCtx (type choice) interpolation" in new TestFixture {
 
       lazy val choiceField: FormComponent = buildFormComponent(
