@@ -96,15 +96,18 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
 
         val interpolated = typeInfo.isChoiceSelection.fold(stringRepresentation(typeInfo)) {
           case FormCtx(formComponentId) =>
-            formModelVisibilityOptics.formModel.fcLookup(formComponentId) match {
-              case IsChoice(choice) =>
-                val optionsList = choice.options.toList
-                mapChoiceSelectedIndexes(typeInfo, _.map(i => apply(optionsList(i), markDown)).mkString(","))
-              case IsRevealingChoice(revealingChoice) =>
-                revealingChoice.options.map(c => apply(c.choice, markDown)).mkString(",")
-              case _ =>
-                stringRepresentation(typeInfo)
-            }
+            formModelVisibilityOptics.formModel.fcLookup
+              .get(formComponentId)
+              .map({
+                case IsChoice(choice) =>
+                  val optionsList = choice.options.toList
+                  mapChoiceSelectedIndexes(typeInfo, _.map(i => apply(optionsList(i), markDown)).mkString(","))
+                case IsRevealingChoice(revealingChoice) =>
+                  revealingChoice.options.map(c => apply(c.choice, markDown)).mkString(",")
+                case _ =>
+                  stringRepresentation(typeInfo)
+              })
+              .getOrElse("")
         }
 
         val formatted = typeInfo.staticTypeData.textConstraint.fold(interpolated) { textConstraint =>
