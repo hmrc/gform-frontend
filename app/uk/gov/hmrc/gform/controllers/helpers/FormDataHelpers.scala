@@ -23,6 +23,7 @@ import com.softwaremill.quicklens._
 import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
+import uk.gov.hmrc.gform.controllers.helpers.InvisibleCharsStripper.stripInvisibleChars
 import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
@@ -36,7 +37,9 @@ object FormDataHelpers {
   def processResponseDataFromBody(request: Request[AnyContent], formModel: FormModel[DataExpanded])(
     continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => Future[Result]): Future[Result] =
     request.body.asFormUrlEncoded
-      .map(_.map { case (a, b) => (a, b.map(_.trim)) }) match {
+      .map(_.map {
+        case (a, b) => (a, b.map(s => stripInvisibleChars(s).trim))
+      }) match {
       case Some(requestData) =>
         val (variadicFormData, requestRelatedData) = buildVariadicFormDataFromBrowserPostData(formModel, requestData)
         continuation(requestRelatedData)(variadicFormData)
