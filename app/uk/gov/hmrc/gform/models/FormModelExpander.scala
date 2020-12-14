@@ -32,6 +32,8 @@ trait FormModelExpander[T <: PageMode] {
 
 object FormModelExpander {
 
+  private val repeatsLimit = 99 // Repeated section must be limited since repeatsMax expression has not been validated at this point
+
   implicit def dataExpanded[D <: DataOrigin](implicit fmvo: FormModelVisibilityOptics[D]) =
     new FormModelExpander[DataExpanded] {
       def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[DataExpanded] = {
@@ -49,7 +51,7 @@ object FormModelExpander {
         data: VariadicFormData[SourceOrigin.OutOfDate]): Option[BracketPlain.RepeatingPage[DataExpanded]] = {
         val repeats = section.repeats
         val bdRepeats: Option[BigDecimal] = fmvo.evalAndApplyTypeInfoFirst(repeats).numberRepresentation
-        val repeatCount = bdRepeats.fold(0)(_.toInt)
+        val repeatCount = Math.min(bdRepeats.fold(0)(_.toInt), repeatsLimit)
         val singletons = (1 to repeatCount).toList.map { index =>
           val pageBasic: Page[Basic] = mkSingleton(section.page, index)(section)
           Singleton(pageBasic.asInstanceOf[Page[DataExpanded]])
