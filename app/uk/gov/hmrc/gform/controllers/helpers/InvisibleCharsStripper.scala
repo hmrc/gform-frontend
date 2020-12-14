@@ -36,10 +36,11 @@ object InvisibleCharsStripper {
     * U+200E    Left-To-Right Mark     &#8206;      "‎"
     * U+200F    Right-To-Left Mark     &#8207;      "‏"
     * U+202F    Narrow No-Break Space  &#8239;      " "
+    * U+202C    POP DIRECTIONAL FORMATTING &#8236;
     * U+FEFF    Byte order mark
     */
   private val INVISIBLE_CHARS_REGEX =
-    "(\u2000|\u2001|\u2002|\u2003|\u2004|\u2005|\u2006|\u2007|\u2008|\u2009|\u200A|\u200B|\u200C|\u200D|\u200E|\u200F|\u202F|\uFEFF)"
+    "(\u2000|\u2001|\u2002|\u2003|\u2004|\u2005|\u2006|\u2007|\u2008|\u2009|\u200A|\u200B|\u200C|\u200D|\u200E|\u200F|\u202F|\u202C|\uFEFF)"
 
   def stripInvisibleChars(input: String) = input.replaceAll(INVISIBLE_CHARS_REGEX, "")
 }

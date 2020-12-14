@@ -22,7 +22,7 @@ class InvisibleCharsStripperSpec extends FlatSpecLike with Matchers {
 
   "stripInvisibleChars" should "remove all invisible characters" in {
     val input =
-      "123\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u200B\u200C\u200D\u200E\u200F\u202F4\uFEFF"
+      "123\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u200B\u200C\u200D\u200E\u200F\u202F\u202C4\uFEFF"
     val result = InvisibleCharsStripper.stripInvisibleChars(input)
     result shouldBe "1234"
   }
