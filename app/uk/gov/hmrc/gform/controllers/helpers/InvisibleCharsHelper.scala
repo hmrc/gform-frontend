@@ -18,58 +18,62 @@ package uk.gov.hmrc.gform.controllers.helpers
 
 object InvisibleCharsHelper {
 
+  case class UnicodeDescMapping(code: Char, desc: String, mapping: String)
+
   /**
     * All invisible characters from the U+2000 block
     *
     */
-  val INVISIBLE_CHARS_TO_DESC: Map[String, String] = Seq(
-    ("\u2000", "En Quad"),
-    ("\u2001", "Em Quad"),
-    ("\u2002", "En Space"),
-    ("\u2003", "Em Space"),
-    ("\u2004", "Three-Per-Em Space"),
-    ("\u2005", "Four-Per-Em Space"),
-    ("\u2006", "Six-Per-Em Space"),
-    ("\u2007", "Figure Space"),
-    ("\u2008", "Punctuation Space"),
-    ("\u2009", "Thin Space"),
-    ("\u200A", "Hair Space"),
-    ("\u200B", "Zero-Width Space"),
-    ("\u200C", "Zero Width Non-Joiner"),
-    ("\u200D", "Zero Width Joiner"),
-    ("\u200E", "Left-To-Right Mark"),
-    ("\u200F", "Right-To-Left Mark"),
-    ("\u202A", "Left-to-Right Embedding"),
-    ("\u202B", "Right-to-Left Embedding"),
-    ("\u202C", "Pop Directional Formatting (PDF)"),
-    ("\u202D", "Left-to-Right Override (LRO)"),
-    ("\u202E", "Right-to-Left Override (RLO)"),
-    ("\u202F", "Narrow No-Break Space"),
-    ("\u2061", "Function Application"),
-    ("\u2062", "Invisible Times"),
-    ("\u2063", "Invisible Separator"),
-    ("\u2064", "Invisible Plus"),
-    ("\u2066", "Left-to-Right Isolate (LRI)"),
-    ("\u2067", "Right-to-Left Isolate (RLI)"),
-    ("\u2068", "First Strong Isolate (FSI)"),
-    ("\u2069", "Pop Directional Isolate (PDI)"),
-    ("\u206A", "Inhibit Symmetric Swapping"),
-    ("\u206B", "Activate Symmetric Swapping"),
-    ("\u206C", "Inhibit Arabic Form Shaping"),
-    ("\u206D", "Activate Arabic Form Shaping"),
-    ("\u206E", "National Digit Shapes"),
-    ("\u206F", "Nominal Digit Shapes"),
-    ("\uFEFF", "Byte order mark"),
-  ).toMap
+  private val INVISIBLE_UNICODE_DESC_MAPPING: Seq[UnicodeDescMapping] = Seq(
+    UnicodeDescMapping('\u2000', "En Quad", " "),
+    UnicodeDescMapping('\u2001', "Em Quad", " "),
+    UnicodeDescMapping('\u2002', "En Space", " "),
+    UnicodeDescMapping('\u2003', "Em Space", " "),
+    UnicodeDescMapping('\u2004', "Three-Per-Em Space", " "),
+    UnicodeDescMapping('\u2005', "Four-Per-Em Space", " "),
+    UnicodeDescMapping('\u2006', "Six-Per-Em Space", " "),
+    UnicodeDescMapping('\u2007', "Figure Space", " "),
+    UnicodeDescMapping('\u2008', "Punctuation Space", " "),
+    UnicodeDescMapping('\u2009', "Thin Space", " "),
+    UnicodeDescMapping('\u200A', "Hair Space", " "),
+    UnicodeDescMapping('\u200B', "Zero-Width Space", ""),
+    UnicodeDescMapping('\u200C', "Zero Width Non-Joiner", ""),
+    UnicodeDescMapping('\u200D', "Zero Width Joiner", ""),
+    UnicodeDescMapping('\u200E', "Left-To-Right Mark", ""),
+    UnicodeDescMapping('\u200F', "Right-To-Left Mark", ""),
+    UnicodeDescMapping('\u202A', "Left-to-Right Embedding", ""),
+    UnicodeDescMapping('\u202B', "Right-to-Left Embedding", ""),
+    UnicodeDescMapping('\u202C', "Pop Directional Formatting (PDF)", ""),
+    UnicodeDescMapping('\u202D', "Left-to-Right Override (LRO)", ""),
+    UnicodeDescMapping('\u202E', "Right-to-Left Override (RLO)", ""),
+    UnicodeDescMapping('\u202F', "Narrow No-Break Space", " "),
+    UnicodeDescMapping('\u2061', "Function Application", ""),
+    UnicodeDescMapping('\u2062', "Invisible Times", ""),
+    UnicodeDescMapping('\u2063', "Invisible Separator", ""),
+    UnicodeDescMapping('\u2064', "Invisible Plus", ""),
+    UnicodeDescMapping('\u2066', "Left-to-Right Isolate (LRI)", ""),
+    UnicodeDescMapping('\u2067', "Right-to-Left Isolate (RLI)", ""),
+    UnicodeDescMapping('\u2068', "First Strong Isolate (FSI)", ""),
+    UnicodeDescMapping('\u2069', "Pop Directional Isolate (PDI)", ""),
+    UnicodeDescMapping('\u206A', "Inhibit Symmetric Swapping", ""),
+    UnicodeDescMapping('\u206B', "Activate Symmetric Swapping", ""),
+    UnicodeDescMapping('\u206C', "Inhibit Arabic Form Shaping", ""),
+    UnicodeDescMapping('\u206D', "Activate Arabic Form Shaping", ""),
+    UnicodeDescMapping('\u206E', "National Digit Shapes", ""),
+    UnicodeDescMapping('\u206F', "Nominal Digit Shapes", ""),
+    UnicodeDescMapping('\uFEFF', "Byte order mark", "")
+  )
 
-  private val INVISIBLE_CHARS_REGEX = s"(${INVISIBLE_CHARS_TO_DESC.keys.mkString("|")})".r
+  private val INVISIBLE_CHAR_MAP: Map[Char, UnicodeDescMapping] =
+    INVISIBLE_UNICODE_DESC_MAPPING.groupBy(_.code).mapValues(_.head)
 
-  def replaceInvisibleChars(input: String): String = INVISIBLE_CHARS_REGEX.replaceAllIn(input, " ")
+  def replaceInvisibleChars(input: String): String =
+    input.toCharArray.map(c => INVISIBLE_CHAR_MAP.get(c).map(_.mapping).getOrElse(c)).mkString("")
 
-  def findInvisibleCharMatches(input: String): Map[String, Int] =
-    INVISIBLE_CHARS_REGEX.findAllIn(input).toList.groupBy(identity).mapValues(_.size)
+  def invisibleCharMatches(input: String): Map[Char, Int] =
+    input.toCharArray.filter(INVISIBLE_CHAR_MAP.contains).groupBy(identity).mapValues(_.length)
 
-  def getUnicode(char: String) = s"U+${char.charAt(0).toInt.toHexString.toUpperCase}"
+  def getUnicode(char: Char) = s"U+${char.toInt.toHexString.toUpperCase}"
 
-  def getDesc(char: String): String = INVISIBLE_CHARS_TO_DESC.getOrElse(char, "")
+  def getDesc(char: Char): String = INVISIBLE_CHAR_MAP.get(char).map(_.desc).getOrElse("")
 }

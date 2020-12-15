@@ -41,13 +41,13 @@ object FormDataHelpers {
       .map(_.map {
         case (field, values) =>
           (field, values.map(value => {
-            val invisibleCharMatches = findInvisibleCharMatches(value)
-            if (invisibleCharMatches.isEmpty) {
+            val matches = invisibleCharMatches(value)
+            if (matches.isEmpty) {
               value
             } else {
               Logger.info(
                 s"Found invisible characters in field $field. " +
-                  s"Matches are [${invisibleCharMatches
+                  s"Matches are [${matches
                     .map {
                       case (m, count) => s"${getUnicode(m)}:${getDesc(m)}($count)"
                     }

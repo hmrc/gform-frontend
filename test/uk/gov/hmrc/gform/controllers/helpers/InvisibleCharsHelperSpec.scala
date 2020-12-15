@@ -24,7 +24,7 @@ class InvisibleCharsHelperSpec extends FlatSpecLike with Matchers {
     val input =
       "123\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u200B\u200C\u200D\u200E\u200F\u202A\u202B\u202C\u202D\u202E\u202F\u2061\u2062\u2063\u2064\u2066\u2067\u2068\u2069\u206A\u206B\u206C\u206D\u206E\u206F\uFEFF4"
     val result = InvisibleCharsHelper.replaceInvisibleChars(input)
-    result shouldBe "123                                     4"
+    result shouldBe "123            4"
   }
 
   it should "return the input as it is when there are no invisible chars" in {
@@ -35,22 +35,22 @@ class InvisibleCharsHelperSpec extends FlatSpecLike with Matchers {
 
   "findInvisibleCharMatches" should "return all matches for invisble chars, with counts" in {
     val input = "123\u2000\u2000\u20014"
-    val result = InvisibleCharsHelper.findInvisibleCharMatches(input)
-    result shouldBe Map("\u2000" -> 2, "\u2001" -> 1)
+    val result = InvisibleCharsHelper.invisibleCharMatches(input)
+    result shouldBe Map('\u2000' -> 2, '\u2001' -> 1)
   }
 
   "getUnicode" should "return unicode representation for the given char" in {
-    val input = "\u2000"
+    val input = '\u2000'
     InvisibleCharsHelper.getUnicode(input) shouldBe "U+2000"
   }
 
   "getDesc" should "return description for the given character" in {
-    val input = "\u2000"
+    val input = '\u2000'
     InvisibleCharsHelper.getDesc(input) shouldBe "En Quad"
   }
 
   it should "return empty string when given character does not exist in invisible chars map" in {
-    val input = "A"
+    val input = 'A'
     InvisibleCharsHelper.getDesc(input) shouldBe ""
   }
 }
