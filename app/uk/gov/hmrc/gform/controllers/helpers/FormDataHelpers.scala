@@ -20,10 +20,11 @@ import cats.instances.string._
 import cats.syntax.eq._
 import cats.syntax.show._
 import com.softwaremill.quicklens._
+import play.api.Logger
 import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
-import uk.gov.hmrc.gform.controllers.helpers.InvisibleCharsStripper.stripInvisibleChars
+import uk.gov.hmrc.gform.controllers.helpers.InvisibleCharsHelper._
 import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
@@ -38,7 +39,22 @@ object FormDataHelpers {
     continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => Future[Result]): Future[Result] =
     request.body.asFormUrlEncoded
       .map(_.map {
-        case (a, b) => (a, b.map(s => stripInvisibleChars(s).trim))
+        case (field, values) =>
+          (field, values.map(value => {
+            val invisibleCharMatches = findInvisibleCharMatches(value)
+            if (invisibleCharMatches.isEmpty) {
+              value
+            } else {
+              Logger.info(
+                s"Found invisible characters in field $field. " +
+                  s"Matches are [${invisibleCharMatches
+                    .map {
+                      case (m, count) => s"${getUnicode(m)}:${getDesc(m)}($count)"
+                    }
+                    .mkString(", ")}]")
+              replaceInvisibleChars(value).trim
+            }
+          }))
       }) match {
       case Some(requestData) =>
         val (variadicFormData, requestRelatedData) = buildVariadicFormDataFromBrowserPostData(formModel, requestData)
