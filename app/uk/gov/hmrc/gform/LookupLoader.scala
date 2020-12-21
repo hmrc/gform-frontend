@@ -189,7 +189,7 @@ class LookupLoader {
   }
 
   private def mkAjaxLookup(showAll: ShowAll)(m: LocalisedLookupOptions): AjaxLookup =
-    AjaxLookup(m, mkAutocomplete(m), showAll)
+    AjaxLookup(m, LookupLoader.mkAutocomplete(m), showAll)
   private def mkRadioLookup(m: LocalisedLookupOptions): RadioLookup = RadioLookup(m)
 
   // format: off
@@ -212,25 +212,6 @@ class LookupLoader {
   private val port                     = readPorts("BCD-Port.csv",                "PortCode",     "Name", "Name",    "KeyWords", "Priority", "Region", "PortType",  "CountryCode", "PortCode", mkAjaxLookup(ShowAll.Disabled))
   // format: on
 
-  private def mkAutocomplete(options: LocalisedLookupOptions): Map[LangADT, AutocompleteEngine[LookupRecord]] =
-    options.m.map {
-      case (l, m) =>
-        val engine: AutocompleteEngine[LookupRecord] = new AutocompleteEngine.Builder[LookupRecord]()
-          .setIndex(new LookupAdapter[LookupRecord]())
-          .setAnalyzers(new LowerCaseTransformer(), new CustomWordTokenizer())
-          .build()
-
-        m.options map {
-          case (ll, DefaultLookupInfo(_, _)) =>
-            engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
-          case (ll, CountryLookupInfo(_, _, k, p, _))       => engine.add(new LookupRecord(ll.label, p, k))
-          case (ll, CurrencyLookupInfo(_, _, k, p, _))      => engine.add(new LookupRecord(ll.label, p, k))
-          case (ll, PortLookupInfo(_, _, k, p, _, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
-        }
-
-        l -> engine
-    }
-
   val registerLookup: Map[Register, LookupType] =
     Map(
       Register.CashType                 -> cashType,
@@ -251,4 +232,25 @@ class LookupLoader {
       Register.IntentLivingCostsAndFees -> intentLivingCostsAndFees,
       Register.IntentOther              -> intentOther
     )
+}
+
+object LookupLoader {
+  def mkAutocomplete(options: LocalisedLookupOptions): Map[LangADT, AutocompleteEngine[LookupRecord]] =
+    options.m.map {
+      case (l, m) =>
+        val engine: AutocompleteEngine[LookupRecord] = new AutocompleteEngine.Builder[LookupRecord]()
+          .setIndex(new LookupAdapter[LookupRecord]())
+          .setAnalyzers(new LowerCaseTransformer(), new CustomWordTokenizer())
+          .build()
+
+        m.options map {
+          case (ll, DefaultLookupInfo(_, _)) =>
+            engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
+          case (ll, CountryLookupInfo(_, _, k, p, _))       => engine.add(new LookupRecord(ll.label, p, k))
+          case (ll, CurrencyLookupInfo(_, _, k, p, _))      => engine.add(new LookupRecord(ll.label, p, k))
+          case (ll, PortLookupInfo(_, _, k, p, _, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
+        }
+
+        l -> engine
+    }
 }

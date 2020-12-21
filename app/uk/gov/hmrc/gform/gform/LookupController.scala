@@ -72,7 +72,7 @@ class LookupController(
           case (Some(AjaxLookup(_, _, ShowAll.Disabled)), LookupQuery.Empty, _) =>
             List.empty
 
-          case (Some(AjaxLookup(options, autocomplete, showAll)), LookupQuery.Value(query), Some(sc)) =>
+          case (Some(AjaxLookup(options, autocomplete, _)), LookupQuery.Value(query), Some(sc)) =>
             val labels: List[LookupLabel] =
               autocomplete
                 .get(l)

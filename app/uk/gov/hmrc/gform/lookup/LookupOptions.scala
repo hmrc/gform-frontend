@@ -64,14 +64,16 @@ object LookupOptions {
 
   def filterBySelectionCriteria(
     selectionCriteria: List[SimplifiedSelectionCriteria],
-    acc: Map[LookupLabel, LookupInfo]): Map[LookupLabel, LookupInfo] =
-    if (acc.isEmpty) acc
+    lookupOptions: Map[LookupLabel, LookupInfo]): Map[LookupLabel, LookupInfo] =
+    if (lookupOptions.isEmpty) lookupOptions
     else
       selectionCriteria match {
-        case Nil => acc
+        case Nil => lookupOptions
         case head :: tail =>
           val (column, values) = (head.column.column.toLowerCase, head.value)
-          filterBySelectionCriteria(tail, acc.filter(r => values.contains(getLookupValue(r._2, column).getOrElse(""))))
+          filterBySelectionCriteria(
+            tail,
+            lookupOptions.filter(r => values.contains(getLookupValue(r._2, column).getOrElse(""))))
       }
 
 }
