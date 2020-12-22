@@ -15003,6 +15003,10 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46981,WS,3,APW,,Apia Port - APW,,4,NULL,0
 46982,YE,3,ZAM,,Port of Al Mukalla - ZAM,,4,NULL,0
 46983,PK,2,ISB,,Islamabad International Airport - ISB,,4,NULL,1
+46983,UK,3,BEL,,Belfast Seaport - BEL,,2,NULL,0
+46984,UK,3,LDY,,Londonderry,,2,NULL,1
+46985,UK,3,LAR,,Larne,,2,NULL,1
+46986,UK,3,CLR,,Coleraine,,2,NULL,1
 100001,FR,4,CH2,,Channel Tunnel in France,0,3,NULL,0
 100002,UK,4,CH1,,Channel Tunnel in United Kingdom,0,1,NULL,0
 100007,UK,2,NI1,,Private airstrip in Northern Ireland,0,2,NULL,0
