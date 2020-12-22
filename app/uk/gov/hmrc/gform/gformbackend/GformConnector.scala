@@ -109,7 +109,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     customerId: String,
     noOfAttachments: Int)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
     ws.POSTEmpty[Submission](
-      baseUrl + s"/forms/${formId.value}/${formTemplateId.value}/${envelopeId.value}/$customerId/$noOfAttachments/createSubmission")
+      baseUrl + s"/forms/${formId.value}/${formTemplateId.value}/${envelopeId.value}/$noOfAttachments/createSubmission",
+      Seq(("customerId", customerId))
+    )
 
   def submitForm(
     formIdData: FormIdData,
