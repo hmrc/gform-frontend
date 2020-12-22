@@ -108,8 +108,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     envelopeId: EnvelopeId,
     customerId: String,
     noOfAttachments: Int)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
-    ws.POSTEmpty[Submission](
+    ws.POST[String, Submission](
       baseUrl + s"/forms/${formId.value}/${formTemplateId.value}/${envelopeId.value}/$noOfAttachments/createSubmission",
+      "",
       Seq(("customerId", customerId))
     )
 
