@@ -5,6 +5,10 @@
   var GOVUK = global.GOVUK || {};
   var lang = global.gform && global.gform.lang || "en";
   var strings = {
+    emptyFileSizeError: {
+      en: "This file is empty",
+      cy: "Mae'r ffeil hon yn wag"
+    },
     maxSizeError: {
       en: "This file is larger than the maximum file size of {0}MB",
       cy: "Mae’r ffeil hon yn fwy na maint y ffeil fwyaf a ganiateir sef {0}MB"
@@ -226,7 +230,11 @@
 
       if (file.type === "" || window.gform.contentTypes.indexOf(file.type) === -1) {
                return handleError($input, interpolate(strings.fileTypeError[lang], [transformMimeTypes(file.type), transformMimeTypes(window.gform.contentTypes)]));
-       }
+      }
+
+      if(file.size == 0) {
+        return handleError($input, strings.emptyFileSizeError[lang]);
+      }
 
       if (file.size > (maxFileSize * 1024 * 1024)) {
         return handleError($input, interpolate(strings.maxSizeError[lang], [maxFileSize]));
