@@ -29,7 +29,6 @@ class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBa
   lazy val authConnector = new AuthConnector(
     configModule.serviceConfig.baseUrl("auth"),
     wSHttpModule.auditableWSHttp,
-    configModule.runMode,
     configModule.playConfiguration
   )
 

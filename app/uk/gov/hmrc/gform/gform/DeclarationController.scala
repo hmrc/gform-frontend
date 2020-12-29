@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
-import play.api.Logger
+import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
@@ -40,7 +40,7 @@ import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.summary.SubmissionDetails
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -58,6 +58,8 @@ class DeclarationController(
   messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   private def getDeclarationPage(formModelOptics: FormModelOptics[DataOrigin.Mongo]): Option[Singleton[DataExpanded]] =
     for {
@@ -194,7 +196,7 @@ class DeclarationController(
       lookup.contains(file.fileId.toFieldId)
     }
 
-    Logger.warn(s"Removing ${toRemove.size} files from envelopeId $envelopeId.")
+    logger.warn(s"Removing ${toRemove.size} files from envelopeId $envelopeId.")
 
     Future.traverse(toRemove) { file =>
       fileUploadService.deleteFile(envelopeId, file.fileId)
@@ -307,7 +309,7 @@ class DeclarationController(
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
   )(implicit request: Request[_]) = {
     if (customerId.isEmpty)
-      Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
+      logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
 
     auditSubmissionEvent(cache, customerId, formModelVisibilityOptics)
 

@@ -20,7 +20,7 @@ import cats.instances.string._
 import cats.syntax.eq._
 import cats.syntax.show._
 import com.softwaremill.quicklens._
-import play.api.Logger
+import org.slf4j.LoggerFactory
 import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
@@ -35,6 +35,8 @@ import scala.concurrent.Future
 
 object FormDataHelpers {
 
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def processResponseDataFromBody(request: Request[AnyContent], formModel: FormModel[DataExpanded])(
     continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => Future[Result]): Future[Result] =
     request.body.asFormUrlEncoded
@@ -45,7 +47,7 @@ object FormDataHelpers {
             if (matches.isEmpty) {
               value
             } else {
-              Logger.info(
+              logger.info(
                 s"Found invisible characters in field $field. " +
                   s"Matches are [${matches
                     .map {

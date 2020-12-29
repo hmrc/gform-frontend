@@ -19,8 +19,9 @@ package uk.gov.hmrc.gform.auth
 import cats.instances.future._
 import cats.syntax.applicative._
 import julienrf.json.derived
-import play.api.Logger
+import org.slf4j.LoggerFactory
 import play.api.libs.json.Format
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.IdentifierValue
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallResponse, ServiceResponse }
@@ -37,6 +38,9 @@ object DelegatedUserIds {
 }
 
 class EnrolmentStoreProxyConnector(baseUrl: String, http: WSHttp) {
+
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def hasDelegatedEnrolment(delegatedEnrolment: DelegatedEnrolment, identifierValue: IdentifierValue)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[ServiceCallResponse[DelegatedUserIds]] =
@@ -54,22 +58,22 @@ class EnrolmentStoreProxyConnector(baseUrl: String, http: WSHttp) {
           val status = httpResponse.status
           status match {
             case 200 =>
-              Logger.info(s"Calling enrolment store proxy returned $status: Success.")
+              logger.info(s"Calling enrolment store proxy returned $status: Success.")
               ServiceResponse(httpResponse.json.asOpt[DelegatedUserIds].getOrElse(DelegatedUserIds.empty))
             case 204 =>
               ServiceResponse(DelegatedUserIds.empty)
             case 400 =>
-              Logger.info(s"Calling enrolment store proxy returned $status. Response: ${httpResponse.body}")
+              logger.info(s"Calling enrolment store proxy returned $status. Response: ${httpResponse.body}")
               CannotRetrieveResponse
             case other =>
-              Logger.error(
+              logger.error(
                 s"Problem when calling enrolment store proxy. Http status: $other, body: ${httpResponse.body}")
               CannotRetrieveResponse
           }
         }
         .recover {
           case ex =>
-            Logger.error("Unknown problem when calling enrolment store proxy", ex)
+            logger.error("Unknown problem when calling enrolment store proxy", ex)
             CannotRetrieveResponse
         }
     }

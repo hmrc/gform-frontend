@@ -23,7 +23,7 @@ import play.api.i18n.I18nSupport
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.signed_out
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 class SignOutController(
   frontendConfig: FrontendAppConfig,

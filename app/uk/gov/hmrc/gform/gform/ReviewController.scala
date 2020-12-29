@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
-import play.api.Logger
+import org.slf4j.LoggerFactory
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -41,6 +41,8 @@ class ReviewController(
     extends FrontendController(messagesControllerComponents) {
 
   import i18nSupport._
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   //TODO make all three a single endpoint
   def reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
@@ -103,7 +105,7 @@ class ReviewController(
       .map(_ => Ok)
       .recoverWith {
         case e: Exception =>
-          Logger.warn("Caught exception", e)
+          logger.warn("Caught exception", e)
           Future.successful(BadRequest(
             s"Caught an exception while attempting the operation. The exception message was:\n----\n${e.getMessage}\n----"))
       }

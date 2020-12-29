@@ -20,9 +20,10 @@ import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.mvc.{ RequestHeader, Result }
 import play.core.SourceMapper
+import uk.gov.hmrc.http.UpstreamErrorResponse.WithStatusCode
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ BadRequestException, ForbiddenException, NotFoundException }
+import uk.gov.hmrc.http.{ BadRequestException, ForbiddenException, NotFoundException, UpstreamErrorResponse }
 
 class ErrorHandler(
   environment: Environment,
@@ -46,11 +47,27 @@ class ErrorHandler(
     message: String): Future[Result] = errResponder.onOtherClientError(requestHeader, statusCode, message)
 
   override def onServerError(requestHeader: RequestHeader, exception: Throwable): Future[Result] = exception match {
-    case e: BadRequestException => onBadRequest(requestHeader, e.message)
+    case e: BadRequestException             => onBadRequest(requestHeader, e.message)
+    case IsUpstreamBadRequestError(message) => onBadRequest(requestHeader, message)
     //    case e: UnauthorizedException => TODO redirect to login page
-    case e: ForbiddenException => errResponder.forbidden(requestHeader, e.message)
-    case e: NotFoundException  => errResponder.notFound(requestHeader, e.message)
-    case e                     => errResponder.internalServerError(requestHeader, e)
+    case e: ForbiddenException            => errResponder.forbidden(requestHeader, e.message)
+    case e: NotFoundException             => errResponder.notFound(requestHeader, e.message)
+    case IsUpstreamNotFoundError(message) => errResponder.notFound(requestHeader, message)
+    case e                                => errResponder.internalServerError(requestHeader, e)
+  }
+
+  object IsUpstreamNotFoundError {
+    def unapply(e: UpstreamErrorResponse): Option[String] = e match {
+      case WithStatusCode(statusCode, _) if statusCode == 404 => Some(e.message)
+      case _                                                  => None
+    }
+  }
+
+  object IsUpstreamBadRequestError {
+    def unapply(e: UpstreamErrorResponse): Option[String] = e match {
+      case WithStatusCode(statusCode, _) if statusCode == 400 => Some(e.message)
+      case _                                                  => None
+    }
   }
 
 }

@@ -16,11 +16,14 @@
 
 package uk.gov.hmrc.gform.controllers
 
+import org.slf4j.LoggerFactory
+
 import java.net.URLEncoder
 import play.api._
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ RequestHeader, Result }
 import play.core.SourceMapper
+
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.gform.routes
@@ -33,6 +36,8 @@ class CSRFErrorHandler(
   errResponder: ErrResponder,
   appConfig: AppConfig
 ) extends ErrorHandler(environment, configuration, sourceMapper, errResponder) {
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   private val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
   private val gformBaseUrl = appConfig.`gform-frontend-base-url`
@@ -51,7 +56,7 @@ class CSRFErrorHandler(
       s"$ggLoginUrl?continue=$continueUrl"
     }
 
-    Logger.info(s"CSRF token problem for request.uri: ${requestHeader.uri}. Redirecting user to: $loginUrl")
+    logger.info(s"CSRF token problem for request.uri: ${requestHeader.uri}. Redirecting user to: $loginUrl")
 
     Future.successful(Redirect(loginUrl))
   }

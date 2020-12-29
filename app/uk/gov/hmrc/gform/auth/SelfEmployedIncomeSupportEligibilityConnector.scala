@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.auth
 
-import play.api.Logger
+import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http._
@@ -30,6 +30,8 @@ object UtrEligibilityRequest {
 }
 
 class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHttp) {
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   private def getUtrEligibility(
     request: UtrEligibilityRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
@@ -45,10 +47,10 @@ class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHtt
           .flatMap { response =>
             response.status match {
               case 200 =>
-                Logger.info(s"The person with the given UTR is eligible to use the SEISS service")
+                logger.info(s"The person with the given UTR is eligible to use the SEISS service")
                 Future.successful(true)
               case 404 =>
-                Logger.info(s"The person with the given UTR is not eligible to use the SEISS service")
+                logger.info(s"The person with the given UTR is not eligible to use the SEISS service")
                 Future.successful(false)
               case 400 =>
                 Future.failed(new BadRequestException(
@@ -63,7 +65,7 @@ class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHtt
           }
 
       case _ =>
-        Logger.warn(s"An empty UTR is invalid.")
+        logger.warn(s"An empty UTR is invalid.")
         Future.successful(false)
     }
   }

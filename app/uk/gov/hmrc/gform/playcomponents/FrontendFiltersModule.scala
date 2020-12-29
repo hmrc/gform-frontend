@@ -27,10 +27,13 @@ import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.play.bootstrap.config.DefaultHttpAuditEvent
-import uk.gov.hmrc.play.bootstrap.filters.frontend.crypto.{ DefaultSessionCookieCryptoFilter, SessionCookieCrypto, SessionCookieCryptoFilter, SessionCookieCryptoProvider }
-import uk.gov.hmrc.play.bootstrap.filters.frontend.deviceid.DefaultDeviceIdFilter
-import uk.gov.hmrc.play.bootstrap.filters.{ CacheControlConfig, CacheControlFilter, DefaultLoggingFilter, FrontendFilters, MDCFilter }
-import uk.gov.hmrc.play.bootstrap.filters.frontend.{ DefaultFrontendAuditFilter, HeadersFilter, SessionTimeoutFilter, SessionTimeoutFilterConfig }
+import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.DefaultSessionCookieCryptoFilter
+import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
+import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoFilter
+import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoProvider
+import uk.gov.hmrc.play.bootstrap.frontend.filters.deviceid.DefaultDeviceIdFilter
+import uk.gov.hmrc.play.bootstrap.frontend.filters.{ AllowlistFilter, DefaultFrontendAuditFilter, FrontendFilters, HeadersFilter, SessionIdFilter, SessionTimeoutFilter, SessionTimeoutFilterConfig }
+import uk.gov.hmrc.play.bootstrap.filters.{ CacheControlConfig, CacheControlFilter, DefaultLoggingFilter, MDCFilter }
 
 import scala.concurrent.ExecutionContext
 
@@ -84,6 +87,10 @@ class FrontendFiltersModule(
 
   private val loggingFilter = new DefaultLoggingFilter(configModule.controllerConfigs)
 
+  private val allowListFilter = new AllowlistFilter(configModule.playConfiguration, materializer)
+
+  private val sessionIdFilter = new SessionIdFilter(materializer, ec, sessionCookieBaker)
+
   lazy val httpFilters: Seq[EssentialFilter] = new FrontendFilters(
     configModule.playConfiguration,
     loggingFilter,
@@ -96,6 +103,8 @@ class FrontendFiltersModule(
     cookieCryptoFilter,
     sessionTimeoutFilter,
     cacheControlFilter,
-    mdcFilter
+    mdcFilter,
+    allowListFilter,
+    sessionIdFilter
   ).filters
 }

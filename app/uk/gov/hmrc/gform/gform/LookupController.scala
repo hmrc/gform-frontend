@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.models.{ LookupQuery, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.lookup.LookupOptions._
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }

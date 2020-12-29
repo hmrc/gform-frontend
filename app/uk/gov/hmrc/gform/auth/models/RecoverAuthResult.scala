@@ -16,24 +16,26 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import play.api.Logger
+import org.slf4j.LoggerFactory
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.gform.config.AppConfig
 
 object RecoverAuthResult {
 
+  private val logger = LoggerFactory.getLogger(getClass)
+
   val noop: PartialFunction[Throwable, AuthResult] = PartialFunction.empty
 
   def redirectToEnrolmentSection(authRedirect: AuthRedirect): PartialFunction[Throwable, AuthResult] = {
     case _: InsufficientEnrolments =>
-      Logger.debug("Enrolment required")
+      logger.debug("Enrolment required")
       authRedirect
   }
 
   val rejectInsufficientEnrolments: PartialFunction[Throwable, AuthResult] = {
     case _: InsufficientEnrolments =>
-      Logger.debug("Auth Failed")
+      logger.debug("Auth Failed")
       AuthRedirectFlashingFormName(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
   }
 
@@ -45,7 +47,7 @@ object RecoverAuthResult {
     appConfig: AppConfig
   ): PartialFunction[Throwable, AuthResult] = {
     case _: NoActiveSession =>
-      Logger.debug("No Active Session")
+      logger.debug("No Active Session")
       val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
       val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
       val url = s"$ggLoginUrl?continue=$continueUrl"
@@ -54,7 +56,7 @@ object RecoverAuthResult {
 
   val logAndRethrow: PartialFunction[Throwable, AuthResult] = {
     case otherException =>
-      Logger.debug(s"Exception thrown on authorization with message : ${otherException.getMessage}")
+      logger.debug(s"Exception thrown on authorization with message : ${otherException.getMessage}")
       throw otherException
   }
 }

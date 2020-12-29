@@ -16,21 +16,25 @@
 
 package uk.gov.hmrc.gform.fileupload
 
-import play.api.Logger
+import org.slf4j.LoggerFactory
+
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.auditing.loggingHelpers
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, NotFoundException }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, NotFoundException }
 
 class FileUploadConnector(wSHttp: WSHttp, baseUrl: String)(
   implicit ec: ExecutionContext
 ) {
+  private val logger = LoggerFactory.getLogger(getClass)
 
   def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] = {
-    Logger.info(s" get envelope, envelopeId: ${envelopeId.value}, ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
+    logger.info(s" get envelope, envelopeId: ${envelopeId.value}, ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
+    implicit val httpJsonReads: HttpReads[Envelope] = HttpReads.Implicits.throwOnFailure(
+      HttpReadsInstances.readEitherOf(HttpReadsInstances.readJsValue.map(_.as[Envelope])))
     wSHttp.GET[Envelope](s"$baseUrl/envelopes/${envelopeId.value}")
   }
 
@@ -40,8 +44,9 @@ class FileUploadConnector(wSHttp: WSHttp, baseUrl: String)(
     }
 
   def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): Future[Unit] = {
-    Logger.info(s" delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}', ${loggingHelpers
+    logger.info(s" delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}', ${loggingHelpers
       .cleanHeaderCarrierHeader(hc)}")
+    implicit val httpRawReads: HttpReads[HttpResponse] = HttpReadsInstances.readRaw
     wSHttp
       .DELETE[HttpResponse](s"$baseUrl/envelopes/${envelopeId.value}/files/${fileId.value}")
       .map(_ => ())

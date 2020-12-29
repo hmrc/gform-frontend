@@ -38,40 +38,31 @@ class GformConnectorSpec extends Spec {
 
   behavior of "GformConnector.formTemplate - unhappy scenario"
 
-  it should "it fails when formTemplate doesn't exist" in new Fixture {
-    val status = 404
-    val responseJson = None
-    connector
-      .getFormTemplate(formTemplateId)
-      .failed
-      .futureValue shouldBe an[uk.gov.hmrc.http.NotFoundException]
-  }
-
   it should "it fails when gform returns 5xx" in new Fixture {
     val status = 500
     val responseJson = None
-    connector
+    val isUpstream5xxResponse: Boolean = connector
       .getFormTemplate(formTemplateId)
       .failed
-      .futureValue shouldBe an[Upstream5xxResponse]
+      .futureValue match {
+      case UpstreamErrorResponse.Upstream5xxResponse(_) => true
+      case _                                            => false
+    }
+    isUpstream5xxResponse shouldBe true
   }
 
-  it should "it fails when gform returns BadRequest" in new Fixture {
-    val status = 400
-    val responseJson = None
-    connector
-      .getFormTemplate(formTemplateId)
-      .failed
-      .futureValue shouldBe an[BadRequestException]
-  }
-
-  it should "it fails when gform returns other 4xx code" in new Fixture {
+  it should "it fails when gform returns 4xx code" in new Fixture {
     val status = 401
     val responseJson = None
-    connector
+    val isUpstream4xxResponse: Boolean = connector
       .getFormTemplate(formTemplateId)
       .failed
-      .futureValue shouldBe an[Upstream4xxResponse]
+      .futureValue match {
+      case UpstreamErrorResponse.Upstream4xxResponse(_) => true
+      case _                                            => false
+    }
+
+    isUpstream4xxResponse shouldBe true
   }
 
   behavior of "GformConnector.form - happy path"
@@ -86,40 +77,30 @@ class GformConnectorSpec extends Spec {
 
   behavior of "GformConnector.form - unhappy scenarios"
 
-  it should "it fails when form doesn't exist" in new Fixture {
-    val status = 404
-    val responseJson = None
-    connector
-      .getForm(formId)
-      .failed
-      .futureValue shouldBe an[NotFoundException]
-  }
-
   it should "it fails when gform returns 5xx" in new Fixture {
     val status = 500
     val responseJson = None
-    connector
+    val isUpstream5xxResponse: Boolean = connector
       .getForm(formId)
       .failed
-      .futureValue shouldBe an[Upstream5xxResponse]
+      .futureValue match {
+      case UpstreamErrorResponse.Upstream5xxResponse(_) => true
+      case _                                            => false
+    }
+    isUpstream5xxResponse shouldBe true
   }
 
-  it should "it fails when gform returns BadRequest" in new Fixture {
-    val status = 400
-    val responseJson = None
-    connector
-      .getForm(formId)
-      .failed
-      .futureValue shouldBe an[BadRequestException]
-  }
-
-  it should "it fails when gform returns other 4xx code" in new Fixture {
+  it should "it fails when gform returns 4xx code" in new Fixture {
     val status = 401
     val responseJson = None
-    connector
+    val isUpstream4xxResponse: Boolean = connector
       .getForm(formId)
       .failed
-      .futureValue shouldBe an[Upstream4xxResponse]
+      .futureValue match {
+      case UpstreamErrorResponse.Upstream4xxResponse(_) => true
+      case _                                            => false
+    }
+    isUpstream4xxResponse shouldBe true
   }
 
   behavior of "GformConnector.createSubmission - successful scenario"
@@ -136,18 +117,23 @@ class GformConnectorSpec extends Spec {
   it should "it fails when gform returns non OK response" in new Fixture {
     val status = 400
     val responseJson = None
-    connector
+    val isUpstreamErrorResponse: Boolean = connector
       .createSubmission(formId, formTemplateId, envelopeId, "some-customer-id", 1)
       .failed
-      .futureValue shouldBe an[BadRequestException]
+      .futureValue match {
+      case _: UpstreamErrorResponse => true
+      case _                        => false
+    }
+    isUpstreamErrorResponse shouldBe true
   }
 
   trait Fixture extends ExampleData {
     def status: Int
     def responseJson: Option[JsValue]
-    lazy val r = HttpResponse(
-      responseStatus = status,
-      responseJson = responseJson
+    lazy val r: HttpResponse = HttpResponse(
+      status,
+      responseJson.orNull,
+      Map.empty[String, Seq[String]]
     )
 
     lazy val wSHttp = new StubbedWSHttp(r)

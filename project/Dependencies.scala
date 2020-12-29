@@ -8,14 +8,14 @@ object Dependencies {
 
   val compile = Seq(
     ws,
-    "uk.gov.hmrc"                  %% "bootstrap-play-26"        % "1.3.0",
-    "uk.gov.hmrc"                  %% "play-language"            % "4.2.0-play-26",
-    "uk.gov.hmrc"                  %% "play-frontend-govuk"      % "0.56.0-play-26",
-    "uk.gov.hmrc"                  %% "play-frontend-hmrc"       % "0.34.0-play-26",
-    "uk.gov.hmrc"                  %% "auth-client"              % "2.31.0-play-26",
-    "uk.gov.hmrc"                  %% "domain"                   % "5.10.0-play-26",
-    "uk.gov.hmrc"                  %% "play-partials"            % "6.9.0-play-26",
-    "com.typesafe.play"            %% "play-json-joda"           % "2.6.14",
+    "uk.gov.hmrc" %% "bootstrap-frontend-play-27" % "3.2.0",
+    "uk.gov.hmrc"                  %% "play-language"            % "4.5.0-play-27",
+    "uk.gov.hmrc"                  %% "play-frontend-govuk"      % "0.56.0-play-27",
+    "uk.gov.hmrc"                  %% "play-frontend-hmrc"       % "0.34.0-play-27",
+    "uk.gov.hmrc"                  %% "auth-client"              % "3.2.0-play-27",
+    "uk.gov.hmrc"                  %% "domain"                   % "5.10.0-play-27",
+    "uk.gov.hmrc"                  %% "play-partials"            % "7.1.0-play-27",
+    "com.typesafe.play"            %% "play-json-joda"           % "2.7.4",
     "org.julienrf"                 %% "play-json-derived-codecs" % "4.0.1",
     "org.typelevel"                %% "cats-core"                % "2.2.0",
     "org.typelevel"                %% "cats-mtl"                 % "1.0.0",
@@ -32,12 +32,12 @@ object Dependencies {
   )
 
   def test(scope: String = "test") = Seq(
-    "uk.gov.hmrc"            %% "hmrctest"           % "3.9.0-play-26"     % scope,
+    "uk.gov.hmrc" %% "service-integration-test" % "0.13.0-play-27" % scope,
     "org.scalacheck"         %% "scalacheck"         % "1.14.3"            % scope,
     "org.pegdown"            % "pegdown"             % "1.6.0"             % scope,
     "com.ironcorelabs"       %% "cats-scalatest"     % "2.4.0"             % scope,
     "com.typesafe.play"      %% "play-test"          % PlayVersion.current % scope,
-    "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.3"             % scope,
+    "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3"             % scope,
     "org.mockito" %% "mockito-scala-scalatest" % "1.7.0" % scope
   )
 }

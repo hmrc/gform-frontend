@@ -16,24 +16,26 @@
 
 package uk.gov.hmrc.gform.auth
 
+import org.slf4j.{ Logger, LoggerFactory }
 import org.slf4j.helpers.NOPLogger
-import play.api.Logger
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.{ EditForm => EditFormWith, _ }
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm.{ EditForm => EditFormWithout, _ }
 import uk.gov.hmrc.gform.auth.models.PermissionResult.{ FormSubmitted, NotPermitted, Permitted }
 import uk.gov.hmrc.gform.auth.models.Role.{ Agent, Customer, Reviewer }
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm, PermissionResult, Role }
-import uk.gov.hmrc.gform.logging.Loggers
 import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, Accepting, FormStatus, InProgress, NeedsReview, Returning, Signed, Submitted, Submitting, Summary, Validated }
 
 import scala.io.Source
 
 object Permissions {
+
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def apply(operation: OperationWithoutForm, role: Role): PermissionResult =
-    evaluateOperationWithoutForm(operation, role)(Loggers.permissions)
+    evaluateOperationWithoutForm(operation, role)(logger)
 
   def apply(operation: OperationWithForm, role: Role, status: FormStatus): PermissionResult =
-    evaluateOperationWithForm(operation, role, status)(Loggers.permissions)
+    evaluateOperationWithForm(operation, role, status)(logger)
 
   private[auth] def evaluateOperationWithoutForm(operation: OperationWithoutForm, role: Role)(
     implicit logger: Logger): PermissionResult =
@@ -256,8 +258,8 @@ object PermissionsTable extends App {
                     OperationWithoutForm.Lookup)
       role <- roles
     } yield
-      RowWithoutForm(operation.toString, role.toString) -> (Permissions.evaluateOperationWithoutForm(operation, role)(
-        new Logger(NOPLogger.NOP_LOGGER)))
+      RowWithoutForm(operation.toString, role.toString) -> Permissions.evaluateOperationWithoutForm(operation, role)(
+        NOPLogger.NOP_LOGGER)
   }.toMap
 
   private def enumerateWithFormPermittedRows: Map[Row, PermissionResult] = {
@@ -279,8 +281,8 @@ object PermissionsTable extends App {
       role   <- roles
       status <- FormStatus.all
     } yield
-      RowWithForm(operation.toString, role.toString, status.toString) -> (Permissions
-        .evaluateOperationWithForm(operation, role, status)(new Logger(NOPLogger.NOP_LOGGER)))
+      RowWithForm(operation.toString, role.toString, status.toString) -> Permissions
+        .evaluateOperationWithForm(operation, role, status)(NOPLogger.NOP_LOGGER)
   }.toMap
 
   private def readLoggedOperations: Map[Row, Boolean] = {
