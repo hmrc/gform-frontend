@@ -38,6 +38,15 @@ class GformConnectorSpec extends Spec {
 
   behavior of "GformConnector.formTemplate - unhappy scenario"
 
+  it should "it fails when formTemplate doesn't exist" in new Fixture {
+    val status = 404
+    val responseJson = None
+    connector
+      .getFormTemplate(formTemplateId)
+      .failed
+      .futureValue shouldBe an[uk.gov.hmrc.http.NotFoundException]
+  }
+
   it should "it fails when gform returns 5xx" in new Fixture {
     val status = 500
     val responseJson = None
@@ -49,6 +58,15 @@ class GformConnectorSpec extends Spec {
       case _                                            => false
     }
     isUpstream5xxResponse shouldBe true
+  }
+
+  it should "it fails when gform returns BadRequest" in new Fixture {
+    val status = 400
+    val responseJson = None
+    connector
+      .getFormTemplate(formTemplateId)
+      .failed
+      .futureValue shouldBe an[BadRequestException]
   }
 
   it should "it fails when gform returns 4xx code" in new Fixture {
@@ -77,6 +95,15 @@ class GformConnectorSpec extends Spec {
 
   behavior of "GformConnector.form - unhappy scenarios"
 
+  it should "it fails when form doesn't exist" in new Fixture {
+    val status = 404
+    val responseJson = None
+    connector
+      .getForm(formId)
+      .failed
+      .futureValue shouldBe an[NotFoundException]
+  }
+
   it should "it fails when gform returns 5xx" in new Fixture {
     val status = 500
     val responseJson = None
@@ -88,6 +115,15 @@ class GformConnectorSpec extends Spec {
       case _                                            => false
     }
     isUpstream5xxResponse shouldBe true
+  }
+
+  it should "it fails when gform returns BadRequest" in new Fixture {
+    val status = 400
+    val responseJson = None
+    connector
+      .getForm(formId)
+      .failed
+      .futureValue shouldBe an[BadRequestException]
   }
 
   it should "it fails when gform returns 4xx code" in new Fixture {
@@ -117,14 +153,10 @@ class GformConnectorSpec extends Spec {
   it should "it fails when gform returns non OK response" in new Fixture {
     val status = 400
     val responseJson = None
-    val isUpstreamErrorResponse: Boolean = connector
+    connector
       .createSubmission(formId, formTemplateId, envelopeId, "some-customer-id", 1)
       .failed
-      .futureValue match {
-      case _: UpstreamErrorResponse => true
-      case _                        => false
-    }
-    isUpstreamErrorResponse shouldBe true
+      .futureValue shouldBe an[BadRequestException]
   }
 
   trait Fixture extends ExampleData {
