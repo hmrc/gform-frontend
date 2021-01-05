@@ -69,7 +69,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, Erro
 import uk.gov.hmrc.govukfrontend.views.viewmodels.fieldset.{ Fieldset, Legend }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.fileupload
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
-import uk.gov.hmrc.govukfrontend.views.viewmodels.input.Input
+import uk.gov.hmrc.govukfrontend.views.viewmodels.input.{ Input, PrefixOrSuffix }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.InputItem
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
@@ -1370,12 +1370,11 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               value = maybeCurrentValue,
               errorMessage = hiddenErrorMessage,
               classes = s"$hiddenClass $sizeClasses",
-              attributes = ei.specialAttributes ++ attributes
+              attributes = ei.specialAttributes ++ attributes,
+              suffix = maybeUnit.map(s => PrefixOrSuffix(content = content.Text(s)))
             )
-            val govukInput: Html = new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
 
-            maybeUnit.fold(govukInput)(GovukExtensions.insertUnit(govukInput))
-
+            new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
           }
 
       }
