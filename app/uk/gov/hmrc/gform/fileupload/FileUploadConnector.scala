@@ -16,37 +16,39 @@
 
 package uk.gov.hmrc.gform.fileupload
 
+import akka.http.scaladsl.model.StatusCodes
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.auditing.loggingHelpers
-import uk.gov.hmrc.gform.commons.HttpFunctions
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, NotFoundException }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
+import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
 class FileUploadConnector(wSHttp: WSHttp, baseUrl: String)(
   implicit ec: ExecutionContext
-) extends HttpFunctions {
+) {
   private val logger = LoggerFactory.getLogger(getClass)
+
+  implicit val legacyRawReads: HttpReads[HttpResponse] =
+    HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
 
   def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] = {
     logger.info(s" get envelope, envelopeId: ${envelopeId.value}, ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
-    implicit val httpReads: HttpReads[Envelope] = jsonHttpReads(HttpReadsInstances.readJsValue.map(_.as[Envelope]))
     wSHttp.GET[Envelope](s"$baseUrl/envelopes/${envelopeId.value}")
   }
 
   def getMaybeEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] =
     getEnvelope(envelopeId).map(Some(_)).recover {
-      case e: NotFoundException => None
+      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => None
     }
 
   def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): Future[Unit] = {
     logger.info(s" delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}', ${loggingHelpers
       .cleanHeaderCarrierHeader(hc)}")
-    implicit val httpReads: HttpReads[HttpResponse] = jsonHttpReads(HttpReadsInstances.readRaw)
     wSHttp
       .DELETE[HttpResponse](s"$baseUrl/envelopes/${envelopeId.value}/files/${fileId.value}")
       .map(_ => ())

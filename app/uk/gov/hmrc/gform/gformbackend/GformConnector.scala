@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
+import akka.http.scaladsl.model.StatusCodes
 import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.instances.string._
@@ -23,7 +24,6 @@ import cats.syntax.functor._
 import cats.syntax.show._
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.commons.HttpFunctions
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
@@ -36,11 +36,14 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, NotFoundException }
-
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
+import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 import scala.concurrent.{ ExecutionContext, Future }
 
-class GformConnector(ws: WSHttp, baseUrl: String) extends HttpFunctions {
+class GformConnector(ws: WSHttp, baseUrl: String) {
+
+  implicit val legacyRawReads: HttpReads[HttpResponse] =
+    HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
 
   /******form*******/
   //TODO: remove userId since this information will be passed using HeaderCarrier
@@ -54,22 +57,16 @@ class GformConnector(ws: WSHttp, baseUrl: String) extends HttpFunctions {
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[FormIdData] = {
     val ag = affinityGroup.map(a => "/" + AffinityGroupUtil.affinityGroupName(a)).getOrElse("")
-    implicit val httpReads: HttpReads[FormIdData] = jsonHttpReads(HttpReadsInstances.readJsValue.map(_.as[FormIdData]))
     ws.POST[QueryParams, FormIdData](s"$baseUrl/new-form/${formTemplateId.value}/${userId.value}$ag", queryParams)
   }
 
   def getAllForms(userId: UserId, formTemplateId: FormTemplateId)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[List[FormOverview]] = {
-    implicit val httpReads: HttpReads[List[FormOverview]] = jsonHttpReads(
-      HttpReadsInstances.readJsValue.map(_.as[List[FormOverview]]))
+    ec: ExecutionContext): Future[List[FormOverview]] =
     ws.GET[List[FormOverview]](s"$baseUrl/forms/all/${userId.value}/${formTemplateId.value}")
-  }
 
-  def getForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] = {
-    implicit val httpReads: HttpReads[Form] = jsonHttpReads(HttpReadsInstances.readJsValue.map(_.as[Form]))
+  def getForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] =
     ws.GET[Form](s"$baseUrl/forms/${formId.value}")
-  }
 
   def getForm(formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] = {
     val url =
@@ -79,13 +76,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) extends HttpFunctions {
         case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
           s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/${accessCode.value}"
       }
-    implicit val httpReads: HttpReads[Form] = jsonHttpReads(HttpReadsInstances.readJsValue.map(_.as[Form]))
     ws.GET[Form](url)
   }
 
   def maybeForm(formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Form]] =
     getForm(formIdData).map(Some(_)).recover {
-      case e: NotFoundException => None
+      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => None
     }
 
   def updateUserData(formIdData: FormIdData, userData: UserData)(
@@ -98,21 +94,16 @@ class GformConnector(ws: WSHttp, baseUrl: String) extends HttpFunctions {
         case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
           s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/${accessCode.value}"
       }
-    implicit val httpReads: HttpReads[HttpResponse] = jsonHttpReads(HttpReadsInstances.readRaw)
     ws.PUT[UserData, HttpResponse](url, userData).void
   }
 
   def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Unit] = {
-    implicit val httpReads: HttpReads[HttpResponse] = jsonHttpReads(HttpReadsInstances.readRaw)
+    ec: ExecutionContext): Future[Unit] =
     ws.PUT[String, HttpResponse](s"$baseUrl/formBundles/${urlFragment(formId)}/$status/forceStatus", "").void
-  }
 
-  def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
-    implicit val httpReads: HttpReads[HttpResponse] = jsonHttpReads(HttpReadsInstances.readRaw)
+  def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").void
-  }
 
   /******submission*******/
   def createSubmission(
@@ -120,14 +111,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) extends HttpFunctions {
     formTemplateId: FormTemplateId,
     envelopeId: EnvelopeId,
     customerId: String,
-    noOfAttachments: Int)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] = {
-    implicit val httpReads: HttpReads[Submission] = jsonHttpReads(HttpReadsInstances.readJsValue.map(_.as[Submission]))
+    noOfAttachments: Int)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
     ws.POST[String, Submission](
       baseUrl + s"/forms/${formId.value}/${formTemplateId.value}/${envelopeId.value}/$noOfAttachments/createSubmission",
       "",
       Seq(("customerId", customerId))
     )
-  }
 
   def submitForm(
     formIdData: FormIdData,
@@ -165,13 +154,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) extends HttpFunctions {
       s"$baseUrl/test-only/handlebars-model/${formTemplateId.value}/${formId.value}")
 
   private def mkPost(customerId: CustomerId, submissionData: SubmissionData, affinityGroup: Option[AffinityGroup])(
-    url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    implicit val httpReads: HttpReads[HttpResponse] = jsonHttpReads(HttpReadsInstances.readRaw)
+    url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
     ws.POST[SubmissionData, HttpResponse](
       url,
       submissionData,
       Seq("customerId" -> customerId.id, "affinityGroup" -> affinityGroupNameO(affinityGroup)))
-  }
 
   def submissionDetails(
     formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] = {
@@ -182,52 +169,39 @@ class GformConnector(ws: WSHttp, baseUrl: String) extends HttpFunctions {
         case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
           s"$baseUrl/submissionDetails/${userId.value}/${formTemplateId.value}/${accessCode.value}"
       }
-    implicit val httpReads: HttpReads[Submission] = jsonHttpReads(HttpReadsInstances.readJsValue.map(_.as[Submission]))
     ws.GET[Submission](url)
   }
 
   /******formTemplate*******/
-  def upsertTemplate(template: JsValue)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
-    implicit val httpReads: HttpReads[HttpResponse] = jsonHttpReads(HttpReadsInstances.readRaw)
+  def upsertTemplate(template: JsValue)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.POST[JsValue, HttpResponse](
         s"$baseUrl/formtemplates",
         template,
         Seq("Content-Type" -> ContentType.`application/json`.value))
       .void
-  }
 
   def getFormTemplate(
-    formTemplateId: FormTemplateId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] = {
-    implicit val httpReads: HttpReads[FormTemplate] = jsonHttpReads(
-      HttpReadsInstances.readJsValue.map(_.as[FormTemplate]))
+    formTemplateId: FormTemplateId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}")
-  }
 
   /******file-upload*******/
-  def deleteFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
-    implicit val httpReads: HttpReads[HttpResponse] = jsonHttpReads(HttpReadsInstances.readRaw)
+  def deleteFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.DELETE[HttpResponse](s"$baseUrl/forms/${formId.value}/deleteFile/${fileId.value}").void
-  }
 
   /********Validators******/
   def validatePostCodeUtr(utr: String, desRegistrationRequest: DesRegistrationRequest)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[ServiceCallResponse[DesRegistrationResponse]] = {
-    implicit val httpReads: HttpReads[ServiceCallResponse[DesRegistrationResponse]] = jsonHttpReads(
-      HttpReadsInstances.readJsValue.map(_.as[ServiceCallResponse[DesRegistrationResponse]]))
+    ec: ExecutionContext): Future[ServiceCallResponse[DesRegistrationResponse]] =
     ws.POST[DesRegistrationRequest, ServiceCallResponse[DesRegistrationResponse]](
       s"$baseUrl/validate/des/$utr",
       desRegistrationRequest)
-  }
 
   def validateBankModulus(accountNumber: String, sortCode: String)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Boolean] = {
-    implicit val httpReads: HttpReads[HttpResponse] = jsonHttpReads(HttpReadsInstances.readRaw)
+    ec: ExecutionContext): Future[Boolean] =
     ws.POST[Account, HttpResponse](s"$baseUrl/validate/bank", Account(sortCode, accountNumber)).map(_ => true).recover {
-      case _: NotFoundException => false
+      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => false
     }
-  }
 
   //TODO other formTemplate endpoints
   //TODO move this file to gform and make it's origin there
@@ -237,9 +211,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) extends HttpFunctions {
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[NonEmptyList[ServiceCallResponse[TaxResponse]]] = {
     import JsonUtils._
-    implicit val httpReads: HttpReads[NonEmptyList[ServiceCallResponse[TaxResponse]]] = jsonHttpReads(
-      HttpReadsInstances.readJsValue.map(_.as[NonEmptyList[ServiceCallResponse[TaxResponse]]]))
-
     ws.POST[NonEmptyList[HmrcTaxPeriodWithEvaluatedId], NonEmptyList[ServiceCallResponse[TaxResponse]]](
       s"$baseUrl/obligation/tax-period",
       htps)
@@ -249,8 +220,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) extends HttpFunctions {
   def getFormBundle(
     rootFormId: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NonEmptyList[FormIdData]] = {
     import JsonUtils._
-    implicit val httpReads: HttpReads[NonEmptyList[FormIdData]] = jsonHttpReads(
-      HttpReadsInstances.readJsValue.map(_.as[NonEmptyList[FormIdData]]))
     ws.GET[NonEmptyList[FormIdData]](show"$baseUrl/formBundles/${urlFragment(rootFormId)}")
   }
 
@@ -258,7 +227,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) extends HttpFunctions {
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Unit] = {
     import JsonUtils._
-    implicit val httpReads: HttpReads[HttpResponse] = jsonHttpReads(HttpReadsInstances.readRaw)
     ws.POST[NonEmptyList[BundledFormSubmissionData], HttpResponse](
         show"$baseUrl/formBundles/${urlFragment(rootFormId)}/submitAfterReview",
         bundle)
@@ -271,14 +239,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) extends HttpFunctions {
     implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
-  ): Future[Unit] = {
-    implicit val httpReads: HttpReads[HttpResponse] = jsonHttpReads(HttpReadsInstances.readRaw)
+  ): Future[Unit] =
     ws.POST[ConfirmationCodeWithEmailService, HttpResponse](
         show"$baseUrl/email",
         notifierConfirmationCode,
         Seq("Content-Type" -> ContentType.`application/json`.value))
       .void
-  }
 
   def dbLookup(id: String, collectionName: CollectionName, hc: HeaderCarrier)(
     implicit ec: ExecutionContext): Future[Boolean] = {
