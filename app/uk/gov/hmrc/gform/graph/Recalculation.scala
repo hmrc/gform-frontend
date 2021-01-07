@@ -202,7 +202,10 @@ class Recalculation[F[_]: Monad, E](
                 .evalExpr(typeInfo, recData, evaluationContext)
                 .applyTypeInfo(typeInfo)
 
-            noStateChange(evResult + (formCtx, exprResult))
+            noStateChange(evResult + (formCtx, evResult.get(formCtx).fold(exprResult) {
+              case ExpressionResult.Hidden => ExpressionResult.Hidden // If something is Hidden keep it so.
+              case _                       => exprResult
+            }))
 
           case GraphNode.Expr(expr) =>
             val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)

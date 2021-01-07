@@ -143,11 +143,14 @@ object FormTemplateBuilder {
       None
     )
 
-  def mkFormComponent(fcId: String, expr: Expr): FormComponent =
-    mkFormComponent(fcId, Text(TextConstraint.default, expr))
+  def mkFormComponent(fcId: String, expr: Expr, constraint: TextConstraint = TextConstraint.default): FormComponent =
+    mkFormComponent(fcId, Text(constraint, expr))
 
-  def mkFormComponentEditable(fcId: String, expr: Expr): FormComponent =
-    mkFormComponentEditable(fcId, Text(TextConstraint.default, expr))
+  def mkFormComponentEditable(
+    fcId: String,
+    expr: Expr,
+    constraint: TextConstraint = TextConstraint.default): FormComponent =
+    mkFormComponentEditable(fcId, Text(constraint, expr))
 
   def mkFormTemplate(sections: Section*): FormTemplate = mkFormTemplate(sections.toList)
   def mkFormTemplate(sections: List[Section], declarationSection: Option[DeclarationSection] = None) = FormTemplate(
