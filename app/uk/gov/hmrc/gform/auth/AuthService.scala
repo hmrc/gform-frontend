@@ -18,9 +18,8 @@ package uk.gov.hmrc.gform.auth
 
 import java.net.URLEncoder
 import java.util.Base64
-
 import cats.implicits._
-import play.api.Logger
+import org.slf4j.LoggerFactory
 import play.api.libs.json.{ JsError, JsSuccess, Json }
 import play.api.mvc.Cookie
 import uk.gov.hmrc.auth.core.EnrolmentIdentifier
@@ -42,6 +41,8 @@ class AuthService(
 )(
   implicit ec: ExecutionContext
 ) {
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   def authenticateAndAuthorise(
     formTemplate: FormTemplate,
@@ -78,13 +79,13 @@ class AuthService(
   private val decoder = Base64.getDecoder
 
   private def performAWSALBAuth(assumedIdentity: Option[Cookie])(implicit hc: HeaderCarrier): AuthResult = {
-    Logger.info("ALB-AUTH: Start authorization...")
+    logger.info("ALB-AUTH: Start authorization...")
 
     val encodedJWT: Option[String] = hc.otherHeaders.collectFirst {
       case (header, value) if header === "X-Amzn-Oidc-Data" => value
     }
 
-    Logger.info(s"ALB-AUTH: JWT -> [${encodedJWT.getOrElse("No ALB JWT")}]")
+    logger.info(s"ALB-AUTH: JWT -> [${encodedJWT.getOrElse("No ALB JWT")}]")
 
     encodedJWT.fold(notAuthorized) { jwt =>
       jwt.split("\\.") match {
@@ -97,16 +98,16 @@ class AuthService(
                   assumedIdentity match {
                     case Some(cookie) =>
                       if (jwtPayload.iss === appConfig.albAdminIssuerUrl) {
-                        Logger.info(
+                        logger.info(
                           s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]")
                         AuthSuccessful(awsAlbAuthenticatedRetrieval(AffinityGroup.Agent, cookie.value), Role.Reviewer)
                       } else {
-                        Logger.error(
+                        logger.error(
                           s"ALB-AUTH: Attempted unauthorized access with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]")
                         notAuthorized
                       }
                     case None =>
-                      Logger.info(s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}]")
+                      logger.info(s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}]")
                       AuthSuccessful(
                         awsAlbAuthenticatedRetrieval(AffinityGroup.Individual, jwtPayload.username),
                         Role.Customer)
@@ -114,11 +115,11 @@ class AuthService(
                 case JsError(_) => AuthBlocked("Not authorized")
               }
             case Failure(_) =>
-              Logger.error(s"ALB-AUTH : Corrupt JWT received from AWS ALB: payload is not a json: $payloadJson")
+              logger.error(s"ALB-AUTH : Corrupt JWT received from AWS ALB: payload is not a json: $payloadJson")
               notAuthorized
           }
         case _ =>
-          Logger.error(s"ALB-AUTH : Corrupt JWT received from AWS ALB: [$jwt]")
+          logger.error(s"ALB-AUTH : Corrupt JWT received from AWS ALB: [$jwt]")
           notAuthorized
       }
     }

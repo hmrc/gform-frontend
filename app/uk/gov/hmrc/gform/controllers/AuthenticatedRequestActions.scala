@@ -21,9 +21,9 @@ import cats.Id
 import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
-import java.util.UUID
+import org.slf4j.LoggerFactory
 
-import play.api.Logger
+import java.util.UUID
 import play.api.i18n.{ I18nSupport, Langs, MessagesApi }
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -88,6 +88,8 @@ class AuthenticatedRequestActions(
   messagesApi: MessagesApi
 ) extends AuthenticatedRequestActionsAlgebra[Future] with AuthorisedFunctions {
 
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def getAffinityGroup(implicit request: Request[AnyContent]): Unit => Future[Option[AffinityGroup]] =
     _ => {
 
@@ -113,10 +115,10 @@ class AuthenticatedRequestActions(
       }
       .recoverWith {
         case ex @ InsufficientEnrolments(enrolment) =>
-          Logger.error("tax-enrolment service returned 201, but enrolment check in auth failed", ex)
+          logger.error("tax-enrolment service returned 201, but enrolment check in auth failed", ex)
           CheckEnrolmentsResult.InsufficientEnrolments.pure[Future]
         case ex =>
-          Logger.error("tax-enrolment service returned 201, but auth call failed unexpectedly", ex)
+          logger.error("tax-enrolment service returned 201, but auth call failed unexpectedly", ex)
           CheckEnrolmentsResult.Failed.pure[Future]
       }
   }

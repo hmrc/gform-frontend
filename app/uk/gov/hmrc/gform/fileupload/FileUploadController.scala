@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.ExecutionContext
 

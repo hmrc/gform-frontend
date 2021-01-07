@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.gform.controllers
 
+import akka.http.scaladsl.model.StatusCodes.{ BadRequest, Forbidden, NotFound }
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.mvc.{ RequestHeader, Result }
 import play.core.SourceMapper
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ BadRequestException, ForbiddenException, NotFoundException }
+import uk.gov.hmrc.http.{ BadRequestException, ForbiddenException, NotFoundException, UpstreamErrorResponse }
 
 class ErrorHandler(
   environment: Environment,
@@ -46,11 +47,16 @@ class ErrorHandler(
     message: String): Future[Result] = errResponder.onOtherClientError(requestHeader, statusCode, message)
 
   override def onServerError(requestHeader: RequestHeader, exception: Throwable): Future[Result] = exception match {
+    case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == BadRequest.intValue =>
+      onBadRequest(requestHeader, e.message)
     case e: BadRequestException => onBadRequest(requestHeader, e.message)
     //    case e: UnauthorizedException => TODO redirect to login page
+    case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == Forbidden.intValue =>
+      errResponder.forbidden(requestHeader, e.message)
     case e: ForbiddenException => errResponder.forbidden(requestHeader, e.message)
-    case e: NotFoundException  => errResponder.notFound(requestHeader, e.message)
-    case e                     => errResponder.internalServerError(requestHeader, e)
+    case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == NotFound.intValue =>
+      errResponder.notFound(requestHeader, e.message)
+    case e: NotFoundException => errResponder.notFound(requestHeader, e.message)
+    case e                    => errResponder.internalServerError(requestHeader, e)
   }
-
 }

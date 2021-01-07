@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform
 package controllers
 
-import play.api.Logger
+import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results.{ BadRequest, Forbidden, InternalServerError, NotFound }
 import play.api.mvc.{ RequestHeader, Result }
@@ -44,18 +44,20 @@ class ErrResponder(
   messagesApi: MessagesApi
 ) {
 
+  private val logger = LoggerFactory.getLogger(getClass)
+
   import i18nSupport._
 
   private val restricted = "We're sorry, but this page is restricted."
 
   def internalServerError(requestHeader: RequestHeader, e: Throwable) = {
-    Logger.logger.error(s"Experienced internal server error", e)
+    logger.error(s"Experienced internal server error", e)
     httpAuditingService.auditServerError(requestHeader)
     Future.successful(InternalServerError.apply(renderInternalServerError(requestHeader)))
   }
 
   def onOtherClientError(requestHeader: RequestHeader, statusCode: Int, message: String) = {
-    Logger.logger.warn(s"Experienced internal server error, statusCode=$statusCode, message=$message")
+    logger.warn(s"Experienced internal server error, statusCode=$statusCode, message=$message")
     //no auditing
     Future.successful(InternalServerError.apply(renderInternalServerError(requestHeader)))
   }
@@ -67,19 +69,19 @@ class ErrResponder(
     forbiddenReason(requestHeader, reason, reason)
 
   private def forbiddenReason(requestHeader: RequestHeader, message: String, reason: String): Future[Result] = {
-    Logger.logger.info(s"Trying to access forbidden resource: $message")
+    logger.info(s"Trying to access forbidden resource: $message")
     httpAuditingService.auditForbidden(requestHeader)
     Future.successful(Forbidden(renderForbidden(reason)(requestHeader)))
   }
 
   def badRequest(requestHeader: RequestHeader, message: String): Future[Result] = {
-    Logger.logger.info(s"Bad request: $message")
+    logger.info(s"Bad request: $message")
     httpAuditingService.auditBadRequest(requestHeader, message)
     Future.successful(BadRequest(renderBadRequest(requestHeader)))
   }
 
   def notFound(requestHeader: RequestHeader, message: String): Future[Result] = {
-    Logger.logger.info(s"Page NotFound: $message")
+    logger.info(s"Page NotFound: $message")
     httpAuditingService.auditNotFound(requestHeader)
     Future.successful(NotFound(renderNotFound(requestHeader)))
   }

@@ -19,16 +19,18 @@ package uk.gov.hmrc.gform.validation
 import cats.implicits._
 import cats.Monoid
 import cats.data.Validated
-import play.api.Logger
+import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Other, Quarantined }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.form.{ ValidatorsResult }
+import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object ValidationUtil {
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   type GformError = Map[ModelComponentId, Set[String]]
   type ValidatedNumeric = Validated[String, Int]
@@ -230,11 +232,11 @@ object ValidationUtil {
           (f, "File has not been processed, please wait and try again")
         case f @ File(_, s: Other, _) =>
           val message = s"Internal server problem. Please contact support. (Unsupported state from FU: $s)"
-          Logger.error(message)
+          logger.error(message)
           (f, message)
         case f @ File(_, s: Error, _) =>
           val message = s"Internal server problem. Please contact support. (Error state from FU: $s)"
-          Logger.error(message)
+          logger.error(message)
           (f, message)
       }
       .map {

@@ -18,7 +18,8 @@ package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
 import cats.syntax.applicative._
-import play.api.{ Logger, data }
+import org.slf4j.LoggerFactory
+import play.api.data
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
@@ -35,7 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode }
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -53,6 +54,8 @@ class NewFormController(
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   implicit val frontendConfig: FrontendAppConfig = frontendAppConfig
 
@@ -292,7 +295,7 @@ class NewFormController(
         val userId = UserId(cache.retrievals)
 
         def notFound = {
-          Logger.error(s"Form not found for formTemplateId $formTemplateId and submissionRef: $submissionRef")
+          logger.error(s"Form not found for formTemplateId $formTemplateId and submissionRef: $submissionRef")
           showAccessCodeList(cache, userId, formTemplateId)
         }
 

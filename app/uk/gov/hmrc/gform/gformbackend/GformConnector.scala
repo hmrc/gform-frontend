@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
+import akka.http.scaladsl.model.StatusCodes
 import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.instances.string._
@@ -35,11 +36,14 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, NotFoundException }
-
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
+import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
+
+  implicit val legacyRawReads: HttpReads[HttpResponse] =
+    HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
 
   /******form*******/
   //TODO: remove userId since this information will be passed using HeaderCarrier
@@ -77,7 +81,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def maybeForm(formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Form]] =
     getForm(formIdData).map(Some(_)).recover {
-      case e: NotFoundException => None
+      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => None
     }
 
   def updateUserData(formIdData: FormIdData, userData: UserData)(
@@ -196,7 +200,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Boolean] =
     ws.POST[Account, HttpResponse](s"$baseUrl/validate/bank", Account(sortCode, accountNumber)).map(_ => true).recover {
-      case _: NotFoundException => false
+      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => false
     }
 
   //TODO other formTemplate endpoints
@@ -247,7 +251,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     implicit val hc_ = hc
 
     val url = s"$baseUrl/dblookup/$id/${collectionName.name}"
-
     ws.doGet(url, hc.extraHeaders) map { response =>
       response.status match {
         case 200 => true

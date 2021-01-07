@@ -16,20 +16,21 @@
 
 package uk.gov.hmrc.gform.auditing
 
+import play.api.inject.ApplicationLifecycle
+
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.audit.DefaultAuditConnector
 
-class AuditingModule(configModule: ConfigModule, akkaModule: AkkaModule, playBuiltInsModule: PlayBuiltInsModule)(
+class AuditingModule(configModule: ConfigModule, akkaModule: AkkaModule, applicationLifecycle: ApplicationLifecycle)(
   implicit ec: ExecutionContext
 ) {
   self =>
 
   lazy val auditConnector: AuditConnector =
-    new DefaultAuditConnector(configModule.auditingConfig)
+    new DefaultAuditConnector(configModule.auditingConfig, akkaModule.materializer, applicationLifecycle)
 
   lazy val auditService = new AuditService {
     override def auditConnector = self.auditConnector

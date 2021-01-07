@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform
 
-import org.slf4j.MDC
+import org.slf4j.{ LoggerFactory, MDC }
 import play.api.ApplicationLoader.Context
 import play.api._
 import play.api.http._
@@ -61,13 +61,15 @@ class ApplicationModule(context: Context)
     with CSRFComponents {
   self =>
 
-  Logger.info(s"Starting GFORM-FRONTEND (ApplicationModule)...")
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  logger.info(s"Starting GFORM-FRONTEND (ApplicationModule)...")
 
   protected val akkaModule = new AkkaModule(materializer, actorSystem)
   private val playBuiltInsModule = new PlayBuiltInsModule(self)
 
   protected val configModule = new ConfigModule(context, playBuiltInsModule, wsClient)
-  protected val auditingModule = new AuditingModule(configModule, akkaModule, playBuiltInsModule)
+  protected val auditingModule = new AuditingModule(configModule, akkaModule, applicationLifecycle)
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
@@ -79,14 +81,14 @@ class ApplicationModule(context: Context)
   override lazy val httpErrorHandler: ErrorHandler = new ErrorHandler(
     configModule.environment,
     configModule.playConfiguration,
-    configModule.context.sourceMapper,
+    configModule.context.devContext.map(_.sourceMapper),
     errResponder
   )
 
   val csrfHttpErrorHandler: CSRFErrorHandler = new CSRFErrorHandler(
     configModule.environment,
     configModule.playConfiguration,
-    configModule.context.sourceMapper,
+    configModule.context.devContext.map(_.sourceMapper),
     errResponder,
     configModule.appConfig
   )
@@ -95,7 +97,7 @@ class ApplicationModule(context: Context)
 
   private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
 
-  new GraphiteModule(environment, configuration, configModule.runMode, applicationLifecycle, metricsModule)
+  new GraphiteModule(environment, configuration, applicationLifecycle, metricsModule)
 
   protected lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule, akkaModule, this)
 
@@ -229,11 +231,11 @@ class ApplicationModule(context: Context)
   def initialize() = {
 
     val appName = configModule.appConfig.appName
-    Logger.info(s"Starting frontend $appName in mode ${environment.mode}")
+    logger.info(s"Starting frontend $appName in mode ${environment.mode}")
     MDC.put("appName", appName)
     val loggerDateFormat: Option[String] = configuration.getOptional[String]("logger.json.dateformat")
     loggerDateFormat.foreach(str => MDC.put("logger.json.dateformat", str))
-    Logger.info(
+    logger.info(
       s"Started Fronted $appName in mode ${environment.mode} at port ${application.configuration.getOptional[String]("http.port")}")
   }
 }

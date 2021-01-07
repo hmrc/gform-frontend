@@ -16,31 +16,38 @@
 
 package uk.gov.hmrc.gform.fileupload
 
-import play.api.Logger
+import akka.http.scaladsl.model.StatusCodes
+import org.slf4j.LoggerFactory
+
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.auditing.loggingHelpers
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, NotFoundException }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
+import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
 class FileUploadConnector(wSHttp: WSHttp, baseUrl: String)(
   implicit ec: ExecutionContext
 ) {
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  implicit val legacyRawReads: HttpReads[HttpResponse] =
+    HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
 
   def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] = {
-    Logger.info(s" get envelope, envelopeId: ${envelopeId.value}, ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
+    logger.info(s" get envelope, envelopeId: ${envelopeId.value}, ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
     wSHttp.GET[Envelope](s"$baseUrl/envelopes/${envelopeId.value}")
   }
 
   def getMaybeEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] =
     getEnvelope(envelopeId).map(Some(_)).recover {
-      case e: NotFoundException => None
+      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => None
     }
 
   def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): Future[Unit] = {
-    Logger.info(s" delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}', ${loggingHelpers
+    logger.info(s" delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}', ${loggingHelpers
       .cleanHeaderCarrierHeader(hc)}")
     wSHttp
       .DELETE[HttpResponse](s"$baseUrl/envelopes/${envelopeId.value}/files/${fileId.value}")

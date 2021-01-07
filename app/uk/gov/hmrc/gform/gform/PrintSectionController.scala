@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.http.BadRequestException
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.playcomponents
 
 import controllers.AssetsComponents
-import play.api.Logger
+import org.slf4j.LoggerFactory
 import play.api.http.HttpRequestHandler
 import play.api.routing.Router
 import uk.gov.hmrc.gform.akka.AkkaModule
@@ -47,6 +47,8 @@ class RoutingModule(
   errorHandler: ErrorHandler,
   assetsMetadata: _root_.controllers.AssetsMetadata
 ) { self =>
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   //This must be called before `controllers.template.routes` gets read be classloader ...
 
@@ -103,13 +105,13 @@ class RoutingModule(
     val property = configModule.typesafeConfig.getString(key)
     property match {
       case null | "prod.Routes" =>
-        Logger.info("Using router with prod.Routes")
+        logger.info("Using router with prod.Routes")
         prodRoutes
       case "testOnlyDoNotUseInAppConf.Routes" =>
-        Logger.info(s"Using router with $property")
+        logger.info(s"Using router with $property")
         testOnlyDoNotUseInAppConfRoutes
       case _ =>
-        Logger.error(
+        logger.error(
           s"The option $key has unsupported value: $property. We support only prod.Routes and testOnlyDoNotUseInAppConf.Routes . Using prod.Routes .")
         prodRoutes
     }

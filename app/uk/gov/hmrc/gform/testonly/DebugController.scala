@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.views.html
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 class DebugController(
   auth: AuthenticatedRequestActions,

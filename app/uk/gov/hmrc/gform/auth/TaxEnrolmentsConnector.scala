@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.auth
 
-import play.api.Logger
+import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallResponse, ServiceResponse }
@@ -39,6 +39,9 @@ object TaxEnrolment {
 }
 
 class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
+
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def enrolGGUser(request: TaxEnrolment, service: ServiceId, retrievals: MaterialisedRetrievals)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[ServiceCallResponse[TaxEnrolmentsResponse]] = {
@@ -58,25 +61,25 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
         val status = httpResponse.status
         status match {
           case 201 =>
-            Logger.info(s"Calling tax enrolment returned $status: Success.")
+            logger.info(s"Calling tax enrolment returned $status: Success.")
             ServiceResponse(TaxEnrolmentsResponse.Success)
           case 400 =>
-            Logger.info(s"Calling tax enrolment returned $status: InvalidIdentifiers.")
+            logger.info(s"Calling tax enrolment returned $status: InvalidIdentifiers.")
             ServiceResponse(TaxEnrolmentsResponse.InvalidIdentifiers)
           case 403 =>
-            Logger.info(s"Calling tax enrolment returned $status: InvalidCredentials.")
+            logger.info(s"Calling tax enrolment returned $status: InvalidCredentials.")
             ServiceResponse(TaxEnrolmentsResponse.InvalidCredentials)
           case 409 =>
-            Logger.info(s"Calling tax enrolment returned $status: Conflict.")
+            logger.info(s"Calling tax enrolment returned $status: Conflict.")
             ServiceResponse(TaxEnrolmentsResponse.Conflict)
           case other =>
-            Logger.error(s"Problem when calling tax enrolment. Http status: $other, body: ${httpResponse.body}")
+            logger.error(s"Problem when calling tax enrolment. Http status: $other, body: ${httpResponse.body}")
             CannotRetrieveResponse
         }
       }
       .recover {
         case ex =>
-          Logger.error("Unknown problem when calling tax enrolment", ex)
+          logger.error("Unknown problem when calling tax enrolment", ex)
           CannotRetrieveResponse
       }
 

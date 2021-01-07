@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.auth
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -30,6 +30,9 @@ object GGEnrolmentRequest {
 
 class GovernmentGatewayConnector(baseUrl: String, http: WSHttp) {
 
+  implicit val legacyRawReads: HttpReads[HttpResponse] =
+    HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
+
   def enrolGGUser(request: GGEnrolmentRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
-    http.POST(s"$baseUrl/enrol", request)
+    http.POST[GGEnrolmentRequest, HttpResponse](s"$baseUrl/enrol", request)
 }

@@ -24,7 +24,7 @@ import play.api.i18n.Lang
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
-import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, RunMode, ServicesConfig }
+import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, ServicesConfig }
 
 class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: PlayBuiltInsModule, wsClient: WSClient) {
 
@@ -33,13 +33,12 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
   val environment: Environment = context.environment
 
   val mode: Mode = environment.mode
-  val runMode: RunMode = new RunMode(playConfiguration, mode)
 
   val timeOut: Int = typesafeConfig.getInt("future.timeout")
 
   val appConfig: AppConfig = AppConfig.loadOrThrow()
 
-  val serviceConfig = new ServicesConfig(playConfiguration, runMode)
+  val serviceConfig = new ServicesConfig(playConfiguration)
 
   val controllerConfigs = ControllerConfigs.fromConfig(playConfiguration)
 
@@ -47,7 +46,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
     //val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
   }
 
-  val auditingConfig: AuditingConfig = new AuditingConfigProvider(playConfiguration, runMode, appConfig.appName).get()
+  val auditingConfig: AuditingConfig = new AuditingConfigProvider(playConfiguration, appConfig.appName).get()
 
   val availableLanguages: Map[String, Lang] = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
   def routeToSwitchLanguage: String => Call =
