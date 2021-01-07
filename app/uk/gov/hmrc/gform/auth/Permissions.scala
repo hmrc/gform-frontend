@@ -75,6 +75,7 @@ object Permissions {
       case (ForceUpdateFormStatus, Reviewer, _)                            => valid(operation, role, status)
       case (ViewPrintSection, _, Validated)                                => valid(operation, role, status)
       case (DownloadPrintSectionPdf, _, Validated)                         => valid(operation, role, status)
+      case (ViewDeclaration, Customer, Signed)                             => valid(operation, role, status)
       case _                                                               => mostLikelyInvalid(operation, role, status)
     }
 
