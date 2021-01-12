@@ -318,7 +318,10 @@ class FormController(
                   val lastIteration: Bracket.AddToListIteration[DataExpanded] = iterations.last
                   if (iteration.repeater.sectionNumber === sn && iteration.repeater.sectionNumber < lastIteration.repeater.sectionNumber) {
                     val isCommited =
-                      lastIteration.isCommited(formModelOptics.formModelVisibilityOptics, processData.visitsIndex)
+                      formModelOptics.formModelVisibilityOptics.formModel.bracket(sectionNumber).withAddToListBracket {
+                        addToListBracket =>
+                          addToListBracket.iterationForSectionNumber(sectionNumber).isCommited(processData.visitsIndex)
+                      }
                     if (isCommited) {
                       goBack
                     } else {

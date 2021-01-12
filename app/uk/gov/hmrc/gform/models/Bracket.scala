@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Section, SectionNumber }
 
@@ -62,6 +61,14 @@ sealed trait Bracket[A <: PageMode] extends Product with Serializable {
     case b @ Bracket.NonRepeatingPage(singleton, _, _) => if (predicate(singleton)) Some(b) else None
   }
 
+  def withAddToListBracket[B](f: Bracket.AddToList[A] => B): B =
+    fold { nonRepeating =>
+      throw new IllegalArgumentException(s"Expected AddToList bracket, got: $nonRepeating")
+    } { repeating =>
+      throw new IllegalArgumentException(s"Expected AddToList bracket, got: $repeating")
+    } {
+      f
+    }
 }
 
 object Bracket {
@@ -97,11 +104,10 @@ object Bracket {
 
     def firstSectionNumber: SectionNumber = singletons.head.sectionNumber
 
-    def isCommited(
-      formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
-      visitsIndex: VisitIndex
-    ): Boolean =
-      singletons.forall(singletonWithNumber => visitsIndex.contains(singletonWithNumber.sectionNumber.value))
+    def isCommited(visitsIndex: VisitIndex): Boolean =
+      singletons.forall { singletonWithNumber =>
+        visitsIndex.contains(singletonWithNumber.sectionNumber.value)
+      }
   }
 
   case class NonRepeatingPage[A <: PageMode](
