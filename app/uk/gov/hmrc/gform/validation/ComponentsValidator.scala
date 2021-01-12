@@ -152,14 +152,15 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
             date
           )
         )
-      case Text(SubmissionRefFormat, _, _, _) if formTemplate.parentFormSubmissionRefs.contains(formComponent.id) =>
+      case Text(SubmissionRefFormat, _, _, _, _, _)
+          if formTemplate.parentFormSubmissionRefs.contains(formComponent.id) =>
         validIf(
           ComponentValidator
             .validateParentSubmissionRef(formComponent, SubmissionRef(envelopeId))(formModelVisibilityOptics))
       case emailCodeFieldMatcher.EmailCodeField(emailField) =>
         validIf(
           ComponentValidator.validateEmailCode(formComponent, emailField, formModelVisibilityOptics, thirdPartyData))
-      case Text(constraint, _, _, _) =>
+      case Text(constraint, _, _, _, _, _) =>
         validIf(ComponentValidator.validateText(formComponent, constraint)(formModelVisibilityOptics, lookupRegistry))
       case TextArea(constraint, _, _) =>
         validIf(

@@ -461,7 +461,7 @@ object SimplifiedSelectionCriteria {
     case SelectionCriteria(c, SelectionCriteriaReference(expr, cName)) =>
       val aFormComponents: Seq[FormComponent] = formModelVisibilityOptics.formModel.allFormComponents
       val reg: Option[Register] = aFormComponents.find(_.id === expr.formComponentId).collectFirst {
-        case IsText(Text(Lookup(r, _), _, _, _)) => r
+        case IsText(Text(Lookup(r, _), _, _, _, _, _)) => r
       }
       val ols: List[String] = reg.toList.flatMap { r =>
         lookupRegistry.get(r) match {

@@ -119,13 +119,13 @@ object Javascript {
 
     def getRoundingMode(fc: FormComponent) =
       fc.`type` match {
-        case Text(Number(_, _, rm, _), _, _, _)          => Some(rm)
-        case TextArea(Number(_, _, rm, _), _, _)         => Some(rm)
-        case Text(PositiveNumber(_, _, rm, _), _, _, _)  => Some(rm)
-        case TextArea(PositiveNumber(_, _, rm, _), _, _) => Some(rm)
-        case Text(s: Sterling, _, _, _)                  => Some(s.roundingMode)
-        case TextArea(s: Sterling, _, _)                 => Some(s.roundingMode)
-        case _                                           => None
+        case Text(Number(_, _, rm, _), _, _, _, _, _)         => Some(rm)
+        case TextArea(Number(_, _, rm, _), _, _)              => Some(rm)
+        case Text(PositiveNumber(_, _, rm, _), _, _, _, _, _) => Some(rm)
+        case TextArea(PositiveNumber(_, _, rm, _), _, _)      => Some(rm)
+        case Text(s: Sterling, _, _, _, _, _)                 => Some(s.roundingMode)
+        case TextArea(s: Sterling, _, _)                      => Some(s.roundingMode)
+        case _                                                => None
       }
 
     val roundingMode = getRoundingMode(field)

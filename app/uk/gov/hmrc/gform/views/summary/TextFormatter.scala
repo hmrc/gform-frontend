@@ -18,39 +18,72 @@ package uk.gov.hmrc.gform.views.summary
 
 import cats.syntax.option._
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
+import uk.gov.hmrc.gform.commons.BigDecimalUtil._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
-import uk.gov.hmrc.gform.sharedmodel.LocalisedString
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.commons.NumberFormatUtil._
-import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 object TextFormatter {
 
-  def componentTextReadonly(currentValue: String, textConstraint: TextConstraint)(implicit l: LangADT): String =
-    textConstraint match {
-      case PositiveNumber(_, fracDigits, rm, unit) => formatNumber(currentValue, fracDigits, rm, unit)
-      case Number(_, fracDigits, rm, unit)         => formatNumber(currentValue, fracDigits, rm, unit)
-      case s: Sterling                             => formatSterling(currentValue)
-      case _                                       => currentValue
+  def componentTextReadonly(
+    currentValue: String,
+    textConstraint: TextConstraint,
+    prefix: Option[SmartString] = None,
+    suffix: Option[SmartString] = None)(
+    implicit l: LangADT
+  ): String =
+    (textConstraint, prefix, suffix) match {
+      // format: off
+      case (PositiveNumber(_, fracDigits, rm, _), Some(p), Some(s))  =>   prependPrefix(p) + formatNumber(currentValue, fracDigits, rm, Some(s.localised))
+      case (PositiveNumber(_, fracDigits, rm, unit), Some(p), None)  =>   prependPrefix(p) + formatNumber(currentValue, fracDigits, rm, unit)
+      case (PositiveNumber(_, fracDigits, rm, _), None, Some(s))     =>   formatNumber(currentValue, fracDigits, rm, Some(s.localised))
+      case (PositiveNumber(_, fracDigits, rm, unit), None, None)     =>   formatNumber(currentValue, fracDigits, rm, unit)
+      case (Number(_, fracDigits, rm, _), Some(p), Some(s))          =>   prependPrefix(p) + formatNumber(currentValue, fracDigits, rm, Some(s.localised))
+      case (Number(_, fracDigits, rm, unit), Some(p), None)          =>   prependPrefix(p) + formatNumber(currentValue, fracDigits, rm, unit)
+      case (Number(_, fracDigits, rm, _), None, Some(s))             =>   formatNumber(currentValue, fracDigits, rm, Some(s.localised))
+      case (Number(_, fracDigits, rm, unit), None, None)             =>   formatNumber(currentValue, fracDigits, rm, unit)
+      case (_: Sterling, Some(p), Some(s))                           =>   prependPrefix(p) + currentValue + appendSuffix(s)
+      case (_: Sterling, Some(p), None)                              =>   prependPrefix(p) + currentValue
+      case (_: Sterling, None, Some(s))                              =>   formatSterling(currentValue) + appendSuffix(s)
+      case (_: Sterling, None, None)                                 =>   formatSterling(currentValue)
+      case (_, Some(p), Some(s))                                     =>   prependPrefix(p) + currentValue + appendSuffix(s)
+      case (_, Some(p), None)                                        =>   prependPrefix(p) + currentValue
+      case (_, None, Some(s))                                        =>   currentValue + appendSuffix(s)
+      case _                                                         =>   currentValue
+      // format: on
     }
 
   def componentTextEditable(currentValue: String, textConstraint: TextConstraint): String =
     textConstraint match {
-      case PositiveNumber(_, _, _, unit) => stripTrailingZeros(currentValue)
-      case Number(_, _, _, unit)         => stripTrailingZeros(currentValue)
-      case s: Sterling                   => stripTrailingZeros(currentValue)
-      case _                             => currentValue
+      case PositiveNumber(_, _, _, _) => stripTrailingZeros(currentValue)
+      case Number(_, _, _, _)         => stripTrailingZeros(currentValue)
+      case _: Sterling                => stripTrailingZeros(currentValue)
+      case _                          => currentValue
     }
 
   private def stripTrailingZeros(currentValue: String): String =
     if (currentValue.contains(".")) {
       currentValue.reverse.dropWhile(_ == '0').dropWhile(_ == '.').reverse
     } else currentValue
+
+  private def prependPrefix(
+    prefix: SmartString
+  )(
+    implicit l: LangADT
+  ): String =
+    prefix.localised.value + " "
+
+  private def appendSuffix(
+    suffix: SmartString
+  )(
+    implicit l: LangADT
+  ): String =
+    " " + suffix.localised.value
 
   private def formatNumber(
     currentValue: String,
@@ -70,7 +103,9 @@ object TextFormatter {
 
   def formatText(
     validationResult: FormFieldValidationResult,
-    envelope: Envelope
+    envelope: Envelope,
+    prefix: Option[SmartString] = None,
+    suffix: Option[SmartString] = None
   )(
     implicit l: LangADT,
     messages: Messages,
@@ -79,7 +114,7 @@ object TextFormatter {
     val currentValue = validationResult.getCurrentValue.getOrElse("")
 
     def getValue(formComponent: FormComponent): String = formComponent match {
-      case IsText(text)     => componentTextReadonly(currentValue, text.constraint)
+      case IsText(text)     => componentTextReadonly(currentValue, text.constraint, prefix, suffix)
       case IsFileUpload()   => envelope.userFileName(formComponent)
       case IsChoice(choice) => choice.renderToString(formComponent, validationResult).mkString("<br>")
       case IsUkSortCode(sortCode) =>
@@ -118,7 +153,7 @@ object TextFormatter {
   }
 
   def isNumber(formComponent: FormComponent) = formComponent.`type` match {
-    case Text(Number(_, _, _, _), _, _, _) | Text(PositiveNumber(_, _, _, _), _, _, _) => true
-    case _                                                                             => false
+    case Text(Number(_, _, _, _), _, _, _, _, _) | Text(PositiveNumber(_, _, _, _), _, _, _, _, _) => true
+    case _                                                                                         => false
   }
 }

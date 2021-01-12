@@ -76,8 +76,6 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
-import uk.gov.hmrc.hmrcfrontend.views.html.components.hmrcCurrencyInput
-import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 
 sealed trait HasErrors {
 
@@ -615,9 +613,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           case t @ Time(_, _) =>
             renderTime(t, formComponent, validationResult, ei)
           case Address(international) => htmlForAddress(formComponent, international, validationResult, ei)
-          case Text(Lookup(register, _), _, _, _) =>
+          case Text(Lookup(register, _), _, _, _, _, _) =>
             renderLookup(formComponent, register, validationResult, ei)
-          case t @ Text(_, _, _, _) =>
+          case t @ Text(_, _, _, _, _, _) =>
             renderText(t, formComponent, validationResult, ei)
           case t @ TextArea(_, _, _) =>
             renderTextArea(t, formComponent, validationResult, ei)
@@ -1347,35 +1345,26 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             else
               Map("readonly" -> "")
 
-          if (formComponent.isSterling) {
-            val currencyInput = CurrencyInput(
-              id = formComponent.id.value,
-              name = formComponent.id.value,
-              label = label,
-              hint = hint,
-              value = maybeCurrentValue,
-              errorMessage = hiddenErrorMessage,
-              classes = s"$hiddenClass $sizeClasses",
-              attributes = ei.specialAttributes ++ attributes
-            )
+          val maybePrefix: Option[SmartString] =
+            text.prefix.orElse(if (formComponent.isSterling) Some(toSmartString(sterlingSymbol)) else None)
 
-            new hmrcCurrencyInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
+          val maybeSuffix: Option[SmartString] =
+            text.suffix.orElse(maybeUnit.map(u => toSmartString(u)))
 
-          } else {
-            val input = Input(
-              id = formComponent.id.value,
-              name = formComponent.id.value,
-              label = label,
-              hint = hint,
-              value = maybeCurrentValue,
-              errorMessage = hiddenErrorMessage,
-              classes = s"$hiddenClass $sizeClasses",
-              attributes = ei.specialAttributes ++ attributes,
-              suffix = maybeUnit.map(s => PrefixOrSuffix(content = content.Text(s)))
-            )
+          val input = Input(
+            id = formComponent.id.value,
+            name = formComponent.id.value,
+            label = label,
+            hint = hint,
+            value = maybeCurrentValue,
+            errorMessage = hiddenErrorMessage,
+            classes = s"$hiddenClass $sizeClasses",
+            attributes = ei.specialAttributes ++ attributes,
+            prefix = maybePrefix.map(s => PrefixOrSuffix(content = content.Text(s.value))),
+            suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value)))
+          )
 
-            new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
-          }
+          new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
 
       }
     }
@@ -1703,11 +1692,15 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     }
   }
 
+  private def toSmartString(s: String) =
+    SmartString(LocalisedString(Map(LangADT.En -> s)), Nil)
+
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
   private val govukFieldset: components.govukFieldset = new components.govukFieldset()
   private val govukHint: components.govukHint = new components.govukHint()
   private val govukLabel: components.govukLabel = new components.govukLabel()
   private val govukInput: components.govukInput = new components.govukInput(govukErrorMessage, govukHint, govukLabel)
+  private val sterlingSymbol = "£"
 
 }
 

@@ -69,20 +69,20 @@ case class FormComponent(
   def firstAtomModelComponentId: ModelComponentId.Atomic = multiValueId.firstAtomModelComponentId
 
   private val exprType: ExprType = this match {
-    case IsText(Text(Sterling(_, _), _, _, _))             => ExprType.number
-    case IsText(Text(Number(_, _, _, _), _, _, _))         => ExprType.number
-    case IsText(Text(PositiveNumber(_, _, _, _), _, _, _)) => ExprType.number
-    case IsChoice(_)                                       => ExprType.ChoiceSelection
-    case IsRevealingChoice(_)                              => ExprType.ChoiceSelection
-    case IsDate(_)                                         => ExprType.DateString
-    case _                                                 => ExprType.String
+    case IsText(Text(Sterling(_, _), _, _, _, _, _))             => ExprType.number
+    case IsText(Text(Number(_, _, _, _), _, _, _, _, _))         => ExprType.number
+    case IsText(Text(PositiveNumber(_, _, _, _), _, _, _, _, _)) => ExprType.number
+    case IsChoice(_)                                             => ExprType.ChoiceSelection
+    case IsRevealingChoice(_)                                    => ExprType.ChoiceSelection
+    case IsDate(_)                                               => ExprType.DateString
+    case _                                                       => ExprType.String
   }
 
   private val textConstraint: Option[TextConstraint] = this match {
-    case IsText(Text(tc @ Sterling(_, _), _, _, _))             => Some(tc)
-    case IsText(Text(tc @ Number(_, _, _, _), _, _, _))         => Some(tc)
-    case IsText(Text(tc @ PositiveNumber(_, _, _, _), _, _, _)) => Some(tc)
-    case _                                                      => None
+    case IsText(Text(tc @ Sterling(_, _), _, _, _, _, _))             => Some(tc)
+    case IsText(Text(tc @ Number(_, _, _, _), _, _, _, _, _))         => Some(tc)
+    case IsText(Text(tc @ PositiveNumber(_, _, _, _), _, _, _, _, _)) => Some(tc)
+    case _                                                            => None
   }
 
   val staticTypeData: StaticTypeData = StaticTypeData(exprType, textConstraint)
@@ -102,8 +102,8 @@ object IsText {
 object IsCapitalised {
   def unapply(fc: FormComponent): Boolean =
     fc.`type` match {
-      case t @ Text(_, _, _, IsUpperCase) => true
-      case _                              => false
+      case t @ Text(_, _, _, IsUpperCase, _, _) => true
+      case _                                    => false
     }
 }
 
@@ -158,7 +158,7 @@ object IsTime {
 object IsEmailVerifier {
   def unapply(formComponent: FormComponent): Option[(EmailFieldId, EmailVerifiedBy)] =
     formComponent.`type` match {
-      case Text(evb @ EmailVerifiedBy(_, _), _, _, _) =>
+      case Text(evb @ EmailVerifiedBy(_, _), _, _, _, _, _) =>
         Some((emailFieldId(formComponent.id), evb))
       case _ => None
     }
