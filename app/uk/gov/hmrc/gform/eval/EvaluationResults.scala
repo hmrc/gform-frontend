@@ -30,6 +30,8 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
+import java.time.LocalDate
+
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult]
 ) {
@@ -52,12 +54,12 @@ case class EvaluationResults(
     expr: FormCtx,
     recData: RecData[SourceOrigin.OutOfDate],
     fromVariadicValue: VariadicValue => ExpressionResult
-  ): ExpressionResult = {
-    val result = recData.variadicFormData
-      .get(expr.formComponentId.modelComponentId)
-      .fold(ExpressionResult.empty)(fromVariadicValue)
-    exprMap.getOrElse(expr, result)
-  }
+  ): ExpressionResult =
+    exprMap.getOrElse(
+      expr,
+      recData.variadicFormData
+        .get(expr.formComponentId.modelComponentId)
+        .fold(ExpressionResult.empty)(fromVariadicValue))
 
   private def get(modelComponentId: ModelComponentId, recData: RecData[SourceOrigin.OutOfDate]): Option[VariadicValue] =
     recData.variadicFormData
@@ -187,26 +189,20 @@ case class EvaluationResults(
     recData: RecData[SourceOrigin.OutOfDate]
   ): ExpressionResult = {
 
-    def nonEmpty(stringResult: StringResult): ExpressionResult =
-      if (stringResult.value.trim.isEmpty) Empty else stringResult
-
-    def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
-      variadicValue.fold[ExpressionResult](one => nonEmpty(StringResult(one.value)))(many =>
-        ExpressionResult.OptionResult(many.value.map(_.toInt)))
-
     def loop(expr: Expr): ExpressionResult = expr match {
       case ctx @ FormCtx(formComponentId) =>
-        val exprResult: ExpressionResult = get(ctx, recData, fromVariadicValue)
-        exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => {
-          val year = get(formComponentId.toAtomicFormComponentId(Atom("year")), recData)
-          val month = get(formComponentId.toAtomicFormComponentId(Atom("month")), recData)
-          val day = get(formComponentId.toAtomicFormComponentId(Atom("day")), recData)
-          (year, month, day) match {
-            case (Some(VariadicValue.One(y)), Some(VariadicValue.One(m)), Some(VariadicValue.One(d))) =>
-              StringResult(y.toInt.formatted("%04d") + m.toInt.formatted("%02d") + d.toInt.formatted("%02d"))
-            case _ => Empty
+        exprMap.getOrElse(
+          ctx, {
+            val year = get(formComponentId.toAtomicFormComponentId(Atom("year")), recData)
+            val month = get(formComponentId.toAtomicFormComponentId(Atom("month")), recData)
+            val day = get(formComponentId.toAtomicFormComponentId(Atom("day")), recData)
+            (year, month, day) match {
+              case (Some(VariadicValue.One(y)), Some(VariadicValue.One(m)), Some(VariadicValue.One(d))) =>
+                DateResult(LocalDate.of(y.toInt, m.toInt, d.toInt))
+              case _ => Empty
+            }
           }
-        })(identity)(identity)(identity)(identity)
+        )
       case _ => ExpressionResult.empty
     }
 

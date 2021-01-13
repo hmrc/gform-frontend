@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.eval
 
-import org.slf4j.{ Logger, LoggerFactory }
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
@@ -24,14 +23,8 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, OffsetUnit, OffsetUnitDay, OffsetUnitMonth, OffsetUnitYear, TodayDateExprValue }
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import scala.util.{ Failure, Success, Try }
 
 object DateExprEval {
-
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
-
-  private val DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd")
 
   def eval[T <: PageMode, U <: SourceOrigin](
     formModel: FormModel[T],
@@ -56,15 +49,10 @@ object DateExprEval {
     val typeInfo: TypeInfo = formModel.explicitTypedExpr(FormCtx(formComponentId), formComponentId)
     val expressionResult =
       evaluationResults.evalExpr(typeInfo, recData.asInstanceOf[RecData[SourceOrigin.OutOfDate]], evaluationContext)
-    expressionResult.fold(_ => Option.empty[DateResult])(_ => None)(_ => None)(_ => None)(dateStr => {
-      Try(LocalDate.parse(dateStr.value, DATE_FORMAT)) match {
-        case Success(parseDate) =>
-          Option(DateResult(parseDate))
-        case Failure(exception) =>
-          logger.warn(s"Failed to parse date [fcId=$formComponentId, value=${dateStr.value}", exception)
-          None
-      }
-    })(_ => None)(_ => None)
+    expressionResult.fold(_ => Option.empty[DateResult])(_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(
+      dateResult => {
+        Some(dateResult)
+      })
   }
 
   private def addOffset(d: LocalDate, offset: Int, offsetUnit: OffsetUnit) =

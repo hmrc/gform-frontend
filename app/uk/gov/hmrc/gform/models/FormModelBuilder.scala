@@ -16,9 +16,10 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.data.{ NonEmptyList }
+import cats.data.NonEmptyList
 import cats.{ Functor, MonadError }
 import cats.syntax.all._
+
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
 import uk.gov.hmrc.gform.eval.{ BooleanExprEval, DateExprEval, EvaluationContext, ExpressionResult, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
@@ -32,6 +33,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.http.HeaderCarrier
+
+import java.time.format.DateTimeFormatter
 
 object FormModelBuilder {
   def fromCache[E, F[_]: Functor](
@@ -97,9 +100,8 @@ class FormModelBuilder[E, F[_]: Functor](
       case ExpressionResult.StringResult(value) => VariadicFormData.one[SourceOrigin.Current](modelComponentId, value)
       case ExpressionResult.OptionResult(value) =>
         VariadicFormData.many[SourceOrigin.Current](modelComponentId, value.map(_.toString))
-      case ExpressionResult.DateResult(_) =>
-        VariadicFormData
-          .empty[SourceOrigin.Current] //TODO: geneate DateResult instead of StringResult for ExprType DateString
+      case ExpressionResult.DateResult(value) =>
+        VariadicFormData.one(modelComponentId, value.format(DateTimeFormatter.BASIC_ISO_DATE))
     }
 
   def dependencyGraphValidation[U <: SectionSelectorType: SectionSelector]: FormModel[DependencyGraphVerification] =
