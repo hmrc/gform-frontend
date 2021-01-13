@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.data.NonEmptyList
+import cats.data.{ NonEmptyList }
 import cats.{ Functor, MonadError }
 import cats.syntax.all._
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
-import uk.gov.hmrc.gform.eval.{ BooleanExprEval, EvaluationContext, ExpressionResult, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ BooleanExprEval, DateExprEval, EvaluationContext, ExpressionResult, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.gform.{ FormComponentUpdater, PageUpdater }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SmartString, SourceOrigin, Su
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.http.HeaderCarrier
 
 object FormModelBuilder {
@@ -80,15 +81,7 @@ class FormModelBuilder[E, F[_]: Functor](
         hc)
 
     recalculation
-      .recalculateFormDataNew(
-        data,
-        formModel,
-        formTemplate,
-        retrievals,
-        thirdPartyData,
-        maybeAccessCode,
-        envelopeId,
-        evaluationContext)
+      .recalculateFormDataNew(data, formModel, formTemplate, retrievals, thirdPartyData, evaluationContext)
   }
 
   private def toCurrentData(
@@ -104,6 +97,9 @@ class FormModelBuilder[E, F[_]: Functor](
       case ExpressionResult.StringResult(value) => VariadicFormData.one[SourceOrigin.Current](modelComponentId, value)
       case ExpressionResult.OptionResult(value) =>
         VariadicFormData.many[SourceOrigin.Current](modelComponentId, value.map(_.toString))
+      case ExpressionResult.DateResult(_) =>
+        VariadicFormData
+          .empty[SourceOrigin.Current] //TODO: geneate DateResult instead of StringResult for ExprType DateString
     }
 
   def dependencyGraphValidation[U <: SectionSelectorType: SectionSelector]: FormModel[DependencyGraphVerification] =
@@ -222,11 +218,28 @@ class FormModelBuilder[E, F[_]: Functor](
       f(r, s)
     }
 
+    def compareDate(
+      dateExprLHS: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr,
+      dateExprRHS: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr,
+      f: (DateResult, DateResult) => Boolean): Boolean = {
+      val evalFunc: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr => Option[DateResult] =
+        DateExprEval
+          .eval(formModel, recData, recalculationResult.evaluationContext, recalculationResult.evaluationResults)
+      val exprResultLHS = evalFunc(dateExprLHS)
+      val exprResultRHS = evalFunc(dateExprRHS)
+      (exprResultLHS, exprResultRHS) match {
+        case (Some(left), Some(right)) => f(left, right)
+        case _                         => false
+      }
+    }
+
     def loop(booleanExpr: BooleanExpr): Boolean = booleanExpr match {
       case Equals(field1, field2)              => compare(field1, field2, _ identical _)
       case GreaterThan(field1, field2)         => compare(field1, field2, _ > _)
+      case DateAfter(field1, field2)           => compareDate(field1, field2, _ after _)
       case GreaterThanOrEquals(field1, field2) => compare(field1, field2, _ >= _)
       case LessThan(field1, field2)            => compare(field1, field2, _ < _)
+      case DateBefore(field1, field2)          => compareDate(field1, field2, _ before _)
       case LessThanOrEquals(field1, field2)    => compare(field1, field2, _ <= _)
       case Not(invertedExpr)                   => !loop(invertedExpr)
       case Or(expr1, expr2)                    => val e1 = loop(expr1); val e2 = loop(expr2); e1 | e2

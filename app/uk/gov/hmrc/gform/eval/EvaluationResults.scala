@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
+import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -51,13 +52,16 @@ case class EvaluationResults(
     expr: FormCtx,
     recData: RecData[SourceOrigin.OutOfDate],
     fromVariadicValue: VariadicValue => ExpressionResult
-  ): ExpressionResult =
-    exprMap
-      .get(expr)
-      .getOrElse(
-        recData.variadicFormData
-          .get(expr.formComponentId.modelComponentId)
-          .fold(ExpressionResult.empty)(fromVariadicValue))
+  ): ExpressionResult = {
+    val result = recData.variadicFormData
+      .get(expr.formComponentId.modelComponentId)
+      .fold(ExpressionResult.empty)(fromVariadicValue)
+    exprMap.getOrElse(expr, result)
+  }
+
+  private def get(modelComponentId: ModelComponentId, recData: RecData[SourceOrigin.OutOfDate]): Option[VariadicValue] =
+    recData.variadicFormData
+      .get(modelComponentId)
 
   // Sum field may be hidden by AddToList or by Revealing choice
   private def isSumHidden(modelComponentId: ModelComponentId): Boolean = {
@@ -178,6 +182,36 @@ case class EvaluationResults(
 
     loop(expr)
   }
+  private def evalDateString(
+    expr: Expr,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ): ExpressionResult = {
+
+    def nonEmpty(stringResult: StringResult): ExpressionResult =
+      if (stringResult.value.trim.isEmpty) Empty else stringResult
+
+    def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
+      variadicValue.fold[ExpressionResult](one => nonEmpty(StringResult(one.value)))(many =>
+        ExpressionResult.OptionResult(many.value.map(_.toInt)))
+
+    def loop(expr: Expr): ExpressionResult = expr match {
+      case ctx @ FormCtx(formComponentId) =>
+        val exprResult: ExpressionResult = get(ctx, recData, fromVariadicValue)
+        exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => {
+          val year = get(formComponentId.toAtomicFormComponentId(Atom("year")), recData)
+          val month = get(formComponentId.toAtomicFormComponentId(Atom("month")), recData)
+          val day = get(formComponentId.toAtomicFormComponentId(Atom("day")), recData)
+          (year, month, day) match {
+            case (Some(VariadicValue.One(y)), Some(VariadicValue.One(m)), Some(VariadicValue.One(d))) =>
+              StringResult(y.toInt.formatted("%04d") + m.toInt.formatted("%02d") + d.toInt.formatted("%02d"))
+            case _ => Empty
+          }
+        })(identity)(identity)(identity)(identity)
+      case _ => ExpressionResult.empty
+    }
+
+    loop(expr)
+  }
 
   def evalExprCurrent(
     typeInfo: TypeInfo,
@@ -196,6 +230,8 @@ case class EvaluationResults(
       evalString(typeInfo.expr, recData, evaluationContext)
     } { choiceSelection =>
       evalString(typeInfo.expr, recData, evaluationContext)
+    } { dateString =>
+      evalDateString(typeInfo.expr, recData)
     } { illegal =>
       ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
     }

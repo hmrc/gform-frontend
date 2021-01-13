@@ -24,7 +24,7 @@ import scala.language.higherKinds
 import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, Equals, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, Not, Or }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, Equals, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, Not, Or }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 
 /**
@@ -50,6 +50,9 @@ class BooleanExprEval[F[_]: Monad] {
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
         (l > r).pure[F]
 
+      case DateAfter(_, _) =>
+        false.pure[F]
+
       case GreaterThanOrEquals(left, right) =>
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
@@ -59,6 +62,9 @@ class BooleanExprEval[F[_]: Monad] {
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
         (l < r).pure[F]
+
+      case DateBefore(_, _) =>
+        false.pure[F]
 
       case LessThanOrEquals(left, right) =>
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult

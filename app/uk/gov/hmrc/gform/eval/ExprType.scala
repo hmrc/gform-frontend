@@ -24,13 +24,16 @@ sealed trait ExprType extends Product with Serializable {
   )(
     c: ExprType.ChoiceSelection.type => B
   )(
-    d: ExprType.Illegal.type => B
+    d: ExprType.DateString.type => B
+  )(
+    e: ExprType.Illegal.type => B
   ): B =
     this match {
       case t: ExprType.Number.type          => a(t)
       case t: ExprType.String.type          => b(t)
       case t: ExprType.ChoiceSelection.type => c(t)
-      case t: ExprType.Illegal.type         => d(t)
+      case t: ExprType.DateString.type      => d(t)
+      case t: ExprType.Illegal.type         => e(t)
     }
 }
 
@@ -38,11 +41,13 @@ object ExprType {
 
   val number: ExprType = Number
   val string: ExprType = String
+  val dateString: ExprType = DateString
   val illegal: ExprType = Illegal
   val choiceSelection: ExprType = ChoiceSelection
 
   case object Number extends ExprType
   case object String extends ExprType
+  case object DateString extends ExprType
   case object Illegal extends ExprType
   case object ChoiceSelection extends ExprType
 }
