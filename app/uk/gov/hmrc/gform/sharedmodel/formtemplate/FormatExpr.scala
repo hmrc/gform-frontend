@@ -281,6 +281,22 @@ case object EORI extends TextConstraint
 case object UkEORI extends TextConstraint
 case object ChildBenefitNumber extends TextConstraint
 
+final case class PositiveNumberOrNumber(
+  maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
+  maxFractionalDigits: Int = TextConstraint.defaultFractionalDigits,
+  roundingMode: RoundingMode = RoundingMode.defaultRoundingMode,
+  unit: Option[LocalisedString] = None)
+
+final object IsPositiveNumberOrNumber {
+  def unapply(tc: TextConstraint): Option[PositiveNumberOrNumber] = tc match {
+    case PositiveNumber(maxWholeDigits, maxFractionalDigits, roundingMode, unit) =>
+      Some(PositiveNumberOrNumber(maxWholeDigits, maxFractionalDigits, roundingMode, unit))
+    case Number(maxWholeDigits, maxFractionalDigits, roundingMode, unit) =>
+      Some(PositiveNumberOrNumber(maxWholeDigits, maxFractionalDigits, roundingMode, unit))
+    case _ => None
+  }
+}
+
 object TextConstraint {
   val default = TextWithRestrictions(0, 100000)
 

@@ -99,7 +99,7 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks {
     ("-123456789.12", "-£123,456,789.12", "-123,456,789.12"),
     ("-1,2,3,4,5,6,7,8,9.12", "-£123,456,789.12", "-123,456,789.12"), // ignore spurious commas
     ("-1,234,5678,9.12",      "-£123,456,789.12", "-123,456,789.12"),
-    //("£-1,234,£56£78,9.12",   "-£123,456,789.12", "-123,456,789.12"), // ignore spurious £
+    ("£-1,234,£56£78,9.12",   "-£123,456,789.12", "-123,456,789.12"), // ignore spurious £
     ("bogus",                 "bogus",            "bogus")            // unknown values are rendered unaltered
     // format: on
   )
@@ -116,193 +116,193 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks {
 
   "componentTextReadonly for positiveNumber" should "return correct string for prefix and suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", positiveNumber, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", positiveNumber, prefixSmartString, suffixSmartString)
     result shouldBe "enPrefix value enSuffix"
   }
 
   it should "return correct string for prefix and suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", positiveNumber, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", positiveNumber, prefixSmartString, suffixSmartString)
     result shouldBe "cyPrefix value cySuffix"
   }
 
   it should "return correct string for only prefix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", positiveNumberWithUnit, prefixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, prefixSmartString, None)
     result shouldBe "enPrefix value litres"
   }
 
   it should "return correct string for only prefix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", positiveNumberWithUnit, prefixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, prefixSmartString, None)
     result shouldBe "cyPrefix value litr"
   }
 
   it should "return correct string for only suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", positiveNumberWithUnit, suffix = suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, None, suffixSmartString)
     result shouldBe "value enSuffix"
   }
 
   it should "return correct string for only suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", positiveNumberWithUnit, suffix = suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, None, suffixSmartString)
     result shouldBe "value cySuffix"
   }
 
   it should "return correct string for no prefix and suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", positiveNumberWithUnit)
+    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, None, None)
     result shouldBe "value litres"
   }
 
   it should "return correct string for no prefix and suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", positiveNumberWithUnit)
+    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, None, None)
     result shouldBe "value litr"
   }
 
   "componentTextReadonly for Number" should "return correct string for prefix and suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", simpleNumber, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", simpleNumber, prefixSmartString, suffixSmartString)
     result shouldBe "enPrefix value enSuffix"
   }
 
   it should "return correct string for prefix and suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", simpleNumber, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", simpleNumber, prefixSmartString, suffixSmartString)
     result shouldBe "cyPrefix value cySuffix"
   }
 
   it should "return correct string for only prefix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", simpleNumberWithUnit, prefixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, prefixSmartString, None)
     result shouldBe "enPrefix value litres"
   }
 
   it should "return correct string for only prefix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", simpleNumberWithUnit, prefixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, prefixSmartString, None)
     result shouldBe "cyPrefix value litr"
   }
 
   it should "return correct string for only suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", simpleNumberWithUnit, suffix = suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, None, suffixSmartString)
     result shouldBe "value enSuffix"
   }
 
   it should "return correct string for only suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", simpleNumberWithUnit, suffix = suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, None, suffixSmartString)
     result shouldBe "value cySuffix"
   }
 
   it should "return correct string for no prefix and suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", simpleNumberWithUnit)
+    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, None, None)
     result shouldBe "value litres"
   }
 
   it should "return correct string for no prefix and suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", simpleNumberWithUnit)
+    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, None, None)
     result shouldBe "value litr"
   }
 
   "componentTextReadonly for Sterling" should "return correct string for prefix and suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("10000", sterling, prefixSmartString, suffixSmartString)
-    result shouldBe "enPrefix 10000 enSuffix"
+    val result = TextFormatter.componentTextForSummary("10000", sterling, prefixSmartString, suffixSmartString)
+    result shouldBe "£10,000.00"
   }
 
   it should "return correct string for prefix and suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("10000", sterling, prefixSmartString, suffixSmartString)
-    result shouldBe "cyPrefix 10000 cySuffix"
+    val result = TextFormatter.componentTextForSummary("10000", sterling, prefixSmartString, suffixSmartString)
+    result shouldBe "£10,000.00"
   }
 
   it should "return correct string for only prefix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("10000", sterling, prefixSmartString)
-    result shouldBe "enPrefix 10000"
+    val result = TextFormatter.componentTextForSummary("10000", sterling, prefixSmartString, None)
+    result shouldBe "£10,000.00"
   }
 
   it should "return correct string for only prefix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("10000", sterling, prefixSmartString)
-    result shouldBe "cyPrefix 10000"
+    val result = TextFormatter.componentTextForSummary("10000", sterling, prefixSmartString, None)
+    result shouldBe "£10,000.00"
   }
 
   it should "return correct string for only suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("10000", sterling, suffix = suffixSmartString)
-    result shouldBe "£10,000.00 enSuffix"
+    val result = TextFormatter.componentTextForSummary("10000", sterling, None, suffixSmartString)
+    result shouldBe "£10,000.00"
   }
 
   it should "return correct string for only suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("10000", sterling, suffix = suffixSmartString)
-    result shouldBe "£10,000.00 cySuffix"
+    val result = TextFormatter.componentTextForSummary("10000", sterling, None, suffixSmartString)
+    result shouldBe "£10,000.00"
   }
 
   it should "return correct string for no prefix and suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("10000", sterling)
+    val result = TextFormatter.componentTextForSummary("10000", sterling, None, None)
     result shouldBe "£10,000.00"
   }
 
   it should "return correct string for no prefix and suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("10000", sterling)
+    val result = TextFormatter.componentTextForSummary("10000", sterling, None, None)
     result shouldBe "£10,000.00"
   }
 
   "componentTextReadonly for ShortText" should "return correct string for prefix and suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", shortText, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", shortText, prefixSmartString, suffixSmartString)
     result shouldBe "enPrefix value enSuffix"
   }
 
   it should "return correct string for prefix and suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", shortText, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", shortText, prefixSmartString, suffixSmartString)
     result shouldBe "cyPrefix value cySuffix"
   }
 
   it should "return correct string for only prefix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", shortText, prefixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", shortText, prefixSmartString, None)
     result shouldBe "enPrefix value"
   }
 
   it should "return correct string for only prefix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", shortText, prefixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", shortText, prefixSmartString, None)
     result shouldBe "cyPrefix value"
   }
 
   it should "return correct string for only suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", shortText, suffix = suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", shortText, None, suffixSmartString)
     result shouldBe "value enSuffix"
   }
 
   it should "return correct string for only suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", shortText, suffix = suffixSmartString)
+    val result = TextFormatter.componentTextForSummary("value", shortText, None, suffixSmartString)
     result shouldBe "value cySuffix"
   }
 
   it should "return correct string for no prefix and suffix for language En" in {
     implicit val l: LangADT = LangADT.En
-    val result = TextFormatter.componentTextReadonly("value", shortText)
+    val result = TextFormatter.componentTextForSummary("value", shortText, None, None)
     result shouldBe "value"
   }
 
   it should "return correct string for no prefix and suffix for language Cy" in {
     implicit val l: LangADT = LangADT.Cy
-    val result = TextFormatter.componentTextReadonly("value", shortText)
+    val result = TextFormatter.componentTextForSummary("value", shortText, None, None)
     result shouldBe "value"
   }
 }

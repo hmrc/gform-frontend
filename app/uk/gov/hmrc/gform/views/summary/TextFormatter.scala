@@ -30,32 +30,12 @@ import uk.gov.hmrc.gform.commons.NumberFormatUtil._
 
 object TextFormatter {
 
-  def componentTextReadonly(
-    currentValue: String,
-    textConstraint: TextConstraint,
-    prefix: Option[SmartString] = None,
-    suffix: Option[SmartString] = None)(
-    implicit l: LangADT
-  ): String =
-    (textConstraint, prefix, suffix) match {
-      // format: off
-      case (PositiveNumber(_, fracDigits, rm, _), Some(p), Some(s))  =>   prependPrefix(p) + formatNumber(currentValue, fracDigits, rm, Some(s.localised))
-      case (PositiveNumber(_, fracDigits, rm, unit), Some(p), None)  =>   prependPrefix(p) + formatNumber(currentValue, fracDigits, rm, unit)
-      case (PositiveNumber(_, fracDigits, rm, _), None, Some(s))     =>   formatNumber(currentValue, fracDigits, rm, Some(s.localised))
-      case (PositiveNumber(_, fracDigits, rm, unit), None, None)     =>   formatNumber(currentValue, fracDigits, rm, unit)
-      case (Number(_, fracDigits, rm, _), Some(p), Some(s))          =>   prependPrefix(p) + formatNumber(currentValue, fracDigits, rm, Some(s.localised))
-      case (Number(_, fracDigits, rm, unit), Some(p), None)          =>   prependPrefix(p) + formatNumber(currentValue, fracDigits, rm, unit)
-      case (Number(_, fracDigits, rm, _), None, Some(s))             =>   formatNumber(currentValue, fracDigits, rm, Some(s.localised))
-      case (Number(_, fracDigits, rm, unit), None, None)             =>   formatNumber(currentValue, fracDigits, rm, unit)
-      case (_: Sterling, Some(p), Some(s))                           =>   prependPrefix(p) + currentValue + appendSuffix(s)
-      case (_: Sterling, Some(p), None)                              =>   prependPrefix(p) + currentValue
-      case (_: Sterling, None, Some(s))                              =>   formatSterling(currentValue) + appendSuffix(s)
-      case (_: Sterling, None, None)                                 =>   formatSterling(currentValue)
-      case (_, Some(p), Some(s))                                     =>   prependPrefix(p) + currentValue + appendSuffix(s)
-      case (_, Some(p), None)                                        =>   prependPrefix(p) + currentValue
-      case (_, None, Some(s))                                        =>   currentValue + appendSuffix(s)
-      case _                                                         =>   currentValue
-      // format: on
+  def componentTextReadonly(currentValue: String, textConstraint: TextConstraint)(implicit l: LangADT): String =
+    textConstraint match {
+      case PositiveNumber(_, fracDigits, rm, unit) => formatNumber(currentValue, fracDigits, rm, unit)
+      case Number(_, fracDigits, rm, unit)         => formatNumber(currentValue, fracDigits, rm, unit)
+      case s: Sterling                             => formatSterling(currentValue)
+      case _                                       => currentValue
     }
 
   def componentTextEditable(currentValue: String, textConstraint: TextConstraint): String =
@@ -66,10 +46,34 @@ object TextFormatter {
       case _                          => currentValue
     }
 
+  def componentTextForSummary(
+    currentValue: String,
+    textConstraint: TextConstraint,
+    prefix: Option[SmartString],
+    suffix: Option[SmartString])(
+    implicit l: LangADT
+  ): String =
+    (textConstraint, prefix, suffix) match {
+      // format: off
+      case (IsPositiveNumberOrNumber(PositiveNumberOrNumber(_, maxFractionalDigits, roundingMode, _)), Some(p), Some(s))  =>   prependPrefix(p) + formatNumber(currentValue, maxFractionalDigits, roundingMode, Some(s.localised))
+      case (IsPositiveNumberOrNumber(PositiveNumberOrNumber(_, maxFractionalDigits, roundingMode, unit)), Some(p), None)  =>   prependPrefix(p) + formatNumber(currentValue, maxFractionalDigits, roundingMode, unit)
+      case (IsPositiveNumberOrNumber(PositiveNumberOrNumber(_, maxFractionalDigits, roundingMode, _)), None, Some(s))     =>   formatNumber(currentValue, maxFractionalDigits, roundingMode, Some(s.localised))
+      case (IsPositiveNumberOrNumber(PositiveNumberOrNumber(_, maxFractionalDigits, roundingMode, unit)), None, None)     =>   formatNumber(currentValue, maxFractionalDigits, roundingMode, unit)
+      case (_: Sterling, _, _)                                                                                            =>   formatSterling(currentValue)
+      case (_, Some(p), Some(s))                                                                                          =>   prependPrefix(p) + currentValue + appendSuffix(s)
+      case (_, Some(p), None)                                                                                             =>   prependPrefix(p) + currentValue
+      case (_, None, Some(s))                                                                                             =>   currentValue + appendSuffix(s)
+      case _                                                                                                              =>   currentValue
+      // format: on
+    }
+
   private def stripTrailingZeros(currentValue: String): String =
     if (currentValue.contains(".")) {
       currentValue.reverse.dropWhile(_ == '0').dropWhile(_ == '.').reverse
     } else currentValue
+
+  private def stripPoundSignAndCommas(currentValue: String): String =
+    "[£,]".r.replaceAllIn(currentValue, "")
 
   private def prependPrefix(
     prefix: SmartString
@@ -93,13 +97,16 @@ object TextFormatter {
   )(
     implicit l: LangADT
   ): String = {
+    val sanitisedValue = stripPoundSignAndCommas(currentValue)
     val un = unit.fold("")(" " + _.value)
-    val maybeBigDecimal = toBigDecimalSafe(currentValue)
-    stripTrailingZeros(maybeBigDecimal.fold(currentValue)(roundAndFormat(_, maxFractionalDigits, rm))) + un
+    val maybeBigDecimal = toBigDecimalSafe(sanitisedValue)
+    stripTrailingZeros(maybeBigDecimal.fold(sanitisedValue)(roundAndFormat(_, maxFractionalDigits, rm))) + un
   }
 
-  private def formatSterling(currentValue: String): String =
-    toBigDecimalSafe(currentValue).fold(currentValue)(currencyFormat.format)
+  private def formatSterling(currentValue: String): String = {
+    val sanitisedValue = stripPoundSignAndCommas(currentValue)
+    toBigDecimalSafe(sanitisedValue).fold(sanitisedValue)(currencyFormat.format)
+  }
 
   def formatText(
     validationResult: FormFieldValidationResult,
@@ -114,7 +121,7 @@ object TextFormatter {
     val currentValue = validationResult.getCurrentValue.getOrElse("")
 
     def getValue(formComponent: FormComponent): String = formComponent match {
-      case IsText(text)     => componentTextReadonly(currentValue, text.constraint, prefix, suffix)
+      case IsText(text)     => componentTextForSummary(currentValue, text.constraint, prefix, suffix)
       case IsFileUpload()   => envelope.userFileName(formComponent)
       case IsChoice(choice) => choice.renderToString(formComponent, validationResult).mkString("<br>")
       case IsUkSortCode(sortCode) =>

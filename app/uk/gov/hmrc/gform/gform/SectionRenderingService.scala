@@ -26,7 +26,6 @@ import shapeless.syntax.typeable._
 import play.api.i18n.Messages
 import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
-
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals }
@@ -76,6 +75,8 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
+import uk.gov.hmrc.hmrcfrontend.views.html.components.hmrcCurrencyInput
+import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 
 sealed trait HasErrors {
 
@@ -1309,6 +1310,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         formFieldValidationResult.getCurrentValue
           .orElse(Some(prepopValue))
           .map { cv =>
+            println(s"========= Sandy ==== cv = $cv")
             if (formComponent.editable)
               TextFormatter.componentTextEditable(cv, text.constraint)
             else
@@ -1351,21 +1353,40 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           val maybeSuffix: Option[SmartString] =
             text.suffix.orElse(maybeUnit.map(u => toSmartString(u)))
 
-          val input = Input(
-            id = formComponent.id.value,
-            name = formComponent.id.value,
-            label = label,
-            hint = hint,
-            value = maybeCurrentValue,
-            errorMessage = hiddenErrorMessage,
-            classes = s"$hiddenClass $sizeClasses",
-            attributes = ei.specialAttributes ++ attributes,
-            prefix = maybePrefix.map(s => PrefixOrSuffix(content = content.Text(s.value))),
-            suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value)))
-          )
+          println(s"========= Sandy = maybeCurrentValue = $maybeCurrentValue")
+          println(s"========= Sandy = maybePrefix = $maybePrefix")
+          println(s"========= Sandy = maybeSuffix = $maybeSuffix")
 
-          new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
+          if (formComponent.isSterling) {
+            val currencyInput = CurrencyInput(
+              id = formComponent.id.value,
+              name = formComponent.id.value,
+              label = label,
+              hint = hint,
+              value = maybeCurrentValue,
+              errorMessage = hiddenErrorMessage,
+              classes = s"$hiddenClass $sizeClasses",
+              attributes = ei.specialAttributes ++ attributes
+            )
 
+            new hmrcCurrencyInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
+
+          } else {
+            val input = Input(
+              id = formComponent.id.value,
+              name = formComponent.id.value,
+              label = label,
+              hint = hint,
+              value = maybeCurrentValue,
+              errorMessage = hiddenErrorMessage,
+              classes = s"$hiddenClass $sizeClasses",
+              attributes = ei.specialAttributes ++ attributes,
+              prefix = maybePrefix.map(s => PrefixOrSuffix(content = content.Text(s.value))),
+              suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value)))
+            )
+
+            new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
+          }
       }
     }
   }
