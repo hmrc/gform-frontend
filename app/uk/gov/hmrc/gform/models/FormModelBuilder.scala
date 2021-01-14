@@ -32,9 +32,8 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPa
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
+import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.http.HeaderCarrier
-
-import java.time.format.DateTimeFormatter
 
 object FormModelBuilder {
   def fromCache[E, F[_]: Functor](
@@ -101,7 +100,7 @@ class FormModelBuilder[E, F[_]: Functor](
       case ExpressionResult.OptionResult(value) =>
         VariadicFormData.many[SourceOrigin.Current](modelComponentId, value.map(_.toString))
       case ExpressionResult.DateResult(value) =>
-        VariadicFormData.one(modelComponentId, value.format(DateTimeFormatter.BASIC_ISO_DATE))
+        VariadicFormData.empty
     }
 
   def dependencyGraphValidation[U <: SectionSelectorType: SectionSelector]: FormModel[DependencyGraphVerification] =
@@ -226,7 +225,11 @@ class FormModelBuilder[E, F[_]: Functor](
       f: (DateResult, DateResult) => Boolean): Boolean = {
       val evalFunc: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr => Option[DateResult] =
         DateExprEval
-          .eval(formModel, recData, recalculationResult.evaluationContext, recalculationResult.evaluationResults)
+          .eval(
+            formModel,
+            recData.asInstanceOf[RecData[OutOfDate]],
+            recalculationResult.evaluationContext,
+            recalculationResult.evaluationResults)
       val exprResultLHS = evalFunc(dateExprLHS)
       val exprResultRHS = evalFunc(dateExprRHS)
       (exprResultLHS, exprResultRHS) match {

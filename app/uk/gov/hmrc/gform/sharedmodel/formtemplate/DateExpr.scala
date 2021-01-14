@@ -39,7 +39,7 @@ object DateExprValue {
 }
 
 case class DateValueExpr(value: DateExprValue) extends DateExpr
-case class DateFormCtxVar(formComponentId: FormComponentId) extends DateExpr
+case class DateFormCtxVar(formCtx: FormCtx) extends DateExpr
 case class DateExprWithOffset(dExpr: DateExpr, offset: Int, offsetUnit: OffsetUnit) extends DateExpr
 
 object DateExpr {
@@ -47,7 +47,7 @@ object DateExpr {
 
   def allFormCtxExprs(dateExpr: DateExpr): List[FormCtx] = dateExpr match {
     case DateValueExpr(_)                => Nil
-    case DateFormCtxVar(formComponentId) => FormCtx(formComponentId) :: Nil
+    case DateFormCtxVar(formCtx)         => formCtx :: Nil
     case DateExprWithOffset(dExpr, _, _) => allFormCtxExprs(dExpr)
   }
 }

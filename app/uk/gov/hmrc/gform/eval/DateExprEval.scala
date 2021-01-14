@@ -19,36 +19,36 @@ package uk.gov.hmrc.gform.eval
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, OffsetUnit, OffsetUnitDay, OffsetUnitMonth, OffsetUnitYear, TodayDateExprValue }
+import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormCtx, OffsetUnit, OffsetUnitDay, OffsetUnitMonth, OffsetUnitYear, TodayDateExprValue }
 
 import java.time.LocalDate
 
 object DateExprEval {
 
-  def eval[T <: PageMode, U <: SourceOrigin](
+  def eval[T <: PageMode](
     formModel: FormModel[T],
-    recData: RecData[U],
+    recData: RecData[OutOfDate],
     evaluationContext: EvaluationContext,
     evaluationResults: EvaluationResults)(dateExpr: DateExpr): Option[DateResult] =
     dateExpr match {
       case DateValueExpr(value) => Some(DateResult(fromValue(value)))
-      case DateFormCtxVar(formComponentId) =>
-        fromFormCtx(formModel, recData, evaluationResults, evaluationContext, formComponentId)
+      case DateFormCtxVar(formCtx) =>
+        fromFormCtx(formModel, recData, evaluationResults, evaluationContext, formCtx)
       case DateExprWithOffset(dExpr, offset, offsetUnit) =>
         eval(formModel, recData, evaluationContext, evaluationResults)(dExpr).map(r =>
           DateResult(addOffset(r.value, offset, offsetUnit)))
     }
 
-  private def fromFormCtx[T <: PageMode, U <: SourceOrigin](
+  private def fromFormCtx[T <: PageMode](
     formModel: FormModel[T],
-    recData: RecData[U],
+    recData: RecData[OutOfDate],
     evaluationResults: EvaluationResults,
     evaluationContext: EvaluationContext,
-    formComponentId: FormComponentId): Option[DateResult] = {
-    val typeInfo: TypeInfo = formModel.explicitTypedExpr(FormCtx(formComponentId), formComponentId)
+    formCtx: FormCtx): Option[DateResult] = {
+    val typeInfo: TypeInfo = formModel.explicitTypedExpr(formCtx, formCtx.formComponentId)
     val expressionResult =
-      evaluationResults.evalExpr(typeInfo, recData.asInstanceOf[RecData[SourceOrigin.OutOfDate]], evaluationContext)
+      evaluationResults.evalExpr(typeInfo, recData, evaluationContext)
     expressionResult.fold(_ => Option.empty[DateResult])(_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(
       dateResult => {
         Some(dateResult)

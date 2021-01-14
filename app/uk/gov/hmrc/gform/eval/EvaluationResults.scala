@@ -25,7 +25,6 @@ import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
-import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -193,9 +192,9 @@ case class EvaluationResults(
       case ctx @ FormCtx(formComponentId) =>
         exprMap.getOrElse(
           ctx, {
-            val year = get(formComponentId.toAtomicFormComponentId(Atom("year")), recData)
-            val month = get(formComponentId.toAtomicFormComponentId(Atom("month")), recData)
-            val day = get(formComponentId.toAtomicFormComponentId(Atom("day")), recData)
+            val year = get(formComponentId.toAtomicFormComponentId(Date.year), recData)
+            val month = get(formComponentId.toAtomicFormComponentId(Date.month), recData)
+            val day = get(formComponentId.toAtomicFormComponentId(Date.day), recData)
             (year, month, day) match {
               case (Some(VariadicValue.One(y)), Some(VariadicValue.One(m)), Some(VariadicValue.One(d))) =>
                 DateResult(LocalDate.of(y.toInt, m.toInt, d.toInt))
