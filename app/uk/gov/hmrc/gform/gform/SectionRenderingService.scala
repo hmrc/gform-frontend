@@ -1310,11 +1310,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         formFieldValidationResult.getCurrentValue
           .orElse(Some(prepopValue))
           .map { cv =>
-            println(s"========= Sandy ==== cv = $cv")
-            if (formComponent.editable)
-              TextFormatter.componentTextEditable(cv, text.constraint)
-            else
-              TextFormatter.componentTextReadonly(cv, text.constraint)
+            TextFormatter.componentTextEditable(cv, text.constraint)
           }
 
       formComponent.presentationHint match {
@@ -1352,10 +1348,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
           val maybeSuffix: Option[SmartString] =
             text.suffix.orElse(maybeUnit.map(u => toSmartString(u)))
-
-          println(s"========= Sandy = maybeCurrentValue = $maybeCurrentValue")
-          println(s"========= Sandy = maybePrefix = $maybePrefix")
-          println(s"========= Sandy = maybeSuffix = $maybeSuffix")
 
           if (formComponent.isSterling) {
             val currencyInput = CurrencyInput(

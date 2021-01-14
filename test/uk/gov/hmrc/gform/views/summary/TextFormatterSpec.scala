@@ -99,7 +99,6 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks {
     ("-123456789.12", "-£123,456,789.12", "-123,456,789.12"),
     ("-1,2,3,4,5,6,7,8,9.12", "-£123,456,789.12", "-123,456,789.12"), // ignore spurious commas
     ("-1,234,5678,9.12",      "-£123,456,789.12", "-123,456,789.12"),
-    ("£-1,234,£56£78,9.12",   "-£123,456,789.12", "-123,456,789.12"), // ignore spurious £
     ("bogus",                 "bogus",            "bogus")            // unknown values are rendered unaltered
     // format: on
   )
