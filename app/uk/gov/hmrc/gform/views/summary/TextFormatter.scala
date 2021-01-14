@@ -34,7 +34,7 @@ object TextFormatter {
     textConstraint match {
       // format: off
       case IsPositiveNumberOrNumber(PositiveNumberOrNumber(_, maxFractionalDigits, roundingMode, unit)) => formatNumber(currentValue, maxFractionalDigits, roundingMode, unit)
-      case s: Sterling                                                                                  => formatSterling(currentValue)
+      case _: Sterling                                                                                  => formatSterling(currentValue)
       case _                                                                                            => currentValue
       // format: on
     }
