@@ -21,6 +21,7 @@ import cats.{ Functor, MonadError }
 import cats.syntax.all._
 
 import scala.language.higherKinds
+import scala.util.matching.Regex
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
 import uk.gov.hmrc.gform.eval.{ BooleanExprEval, DateExprEval, EvaluationContext, ExpressionResult, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.gform.{ FormComponentUpdater, PageUpdater }
@@ -238,6 +239,15 @@ class FormModelBuilder[E, F[_]: Functor](
       }
     }
 
+    def matchRegex(formCtx: FormCtx, regex: Regex): Boolean = {
+      val typeInfo1 = formModel.toFirstOperandTypeInfo(formCtx)
+      val expressionResult = recalculationResult.evaluationResults
+        .evalExprCurrent(typeInfo1, recData, recalculationResult.evaluationContext)
+        .applyTypeInfo(typeInfo1)
+
+      expressionResult.matchRegex(regex)
+    }
+
     def loop(booleanExpr: BooleanExpr): Boolean = booleanExpr match {
       case Equals(field1, field2)              => compare(field1, field2, _ identical _)
       case GreaterThan(field1, field2)         => compare(field1, field2, _ > _)
@@ -253,6 +263,7 @@ class FormModelBuilder[E, F[_]: Functor](
       case IsFalse                             => false
       case Contains(field1, field2)            => compare(field1, field2, _ contains _)
       case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, formModel, recalculationResult, recData)
+      case MatchRegex(formCtx, regex)          => matchRegex(formCtx, regex)
     }
 
     loop(includeIf.booleanExpr)

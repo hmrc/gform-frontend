@@ -20,6 +20,7 @@ import cats.Eq
 import cats.instances.bigDecimal._
 import cats.instances.string._
 import cats.syntax.eq._
+import scala.util.matching.Regex
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Number, PositiveNumber, Sterling, TextConstraint }
 
@@ -206,6 +207,23 @@ sealed trait ExpressionResult extends Product with Serializable {
 
   def optionRepresentation: Option[Seq[Int]] =
     fold[Option[Seq[Int]]](_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(o => Some(o.value))(_ => None)
+
+  def matchRegex(regex: Regex): Boolean =
+    fold { _ =>
+      false
+    } { _ =>
+      false
+    } { _ =>
+      false
+    } { number =>
+      regex.findFirstIn(number.value.toString).isDefined
+    } { string =>
+      regex.findFirstIn(string.value).isDefined
+    } { _ =>
+      false
+    } { _ =>
+      false
+    }
 
   def fold[B](
     a: Invalid => B

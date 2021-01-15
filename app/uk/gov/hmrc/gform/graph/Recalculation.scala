@@ -21,6 +21,7 @@ import cats.syntax.all._
 import cats.data.StateT
 
 import scala.language.higherKinds
+import scala.util.matching.Regex
 import scalax.collection.Graph
 import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
@@ -103,6 +104,14 @@ class Recalculation[F[_]: Monad, E](
         noStateChange(res)
       }
 
+      def matchRegex(formCtx: FormCtx, regex: Regex): Boolean = {
+        val typeInfo1 = formModel.toFirstOperandTypeInfo(formCtx)
+        val exprRes1: ExpressionResult =
+          evaluationResults.evalExpr(typeInfo1, recData, evaluationContext).applyTypeInfo(typeInfo1)
+
+        exprRes1.matchRegex(regex)
+      }
+
       def loop(booleanExpr: BooleanExpr): StateT[F, RecalculationState, Boolean] = booleanExpr match {
         case Equals(field1, field2)              => compare(field1, field2, _ identical _)
         case GreaterThan(field1, field2)         => compare(field1, field2, _ > _)
@@ -117,6 +126,8 @@ class Recalculation[F[_]: Monad, E](
         case IsTrue                              => noStateChange(true)
         case IsFalse                             => noStateChange(false)
         case Contains(field1, field2)            => compare(field1, field2, _ contains _)
+        case MatchRegex(formCtx, regex)          => noStateChange(matchRegex(formCtx, regex))
+
         case In(expr, dataSource) =>
           val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
           val expressionResult: ExpressionResult =
