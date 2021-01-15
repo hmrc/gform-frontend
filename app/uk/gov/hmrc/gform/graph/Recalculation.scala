@@ -19,16 +19,18 @@ package uk.gov.hmrc.gform.graph
 import cats.{ Monad, MonadError, Monoid }
 import cats.syntax.all._
 import cats.data.StateT
+
 import scala.language.higherKinds
 import scalax.collection.Graph
 import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }
+import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
+import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, DateExprEval, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SourceOrigin, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 
@@ -57,8 +59,6 @@ class Recalculation[F[_]: Monad, E](
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId,
     evaluationContext: EvaluationContext
   )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
 
@@ -88,11 +88,28 @@ class Recalculation[F[_]: Monad, E](
         noStateChange(res)
       }
 
+      def compareDate(
+        dateExprLHS: DateExpr,
+        dateExprRHS: DateExpr,
+        f: (DateResult, DateResult) => Boolean): StateT[F, RecalculationState, Boolean] = {
+        val evalFunc: DateExpr => Option[DateResult] =
+          DateExprEval.eval(formModel, recData, evaluationContext, evaluationResults)
+        val exprResultLHS = evalFunc(dateExprLHS)
+        val exprResultRHS = evalFunc(dateExprRHS)
+        val res = (exprResultLHS, exprResultRHS) match {
+          case (Some(left), Some(right)) => f(left, right)
+          case _                         => false
+        }
+        noStateChange(res)
+      }
+
       def loop(booleanExpr: BooleanExpr): StateT[F, RecalculationState, Boolean] = booleanExpr match {
         case Equals(field1, field2)              => compare(field1, field2, _ identical _)
         case GreaterThan(field1, field2)         => compare(field1, field2, _ > _)
+        case DateAfter(field1, field2)           => compareDate(field1, field2, _ after _)
         case GreaterThanOrEquals(field1, field2) => compare(field1, field2, _ >= _)
         case LessThan(field1, field2)            => compare(field1, field2, _ < _)
+        case DateBefore(field1, field2)          => compareDate(field1, field2, _ before _)
         case LessThanOrEquals(field1, field2)    => compare(field1, field2, _ <= _)
         case Not(invertedExpr)                   => loop(invertedExpr).map(!_)
         case Or(expr1, expr2)                    => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 | e2
@@ -238,7 +255,7 @@ class Recalculation[F[_]: Monad, E](
 
         val (
           evResultF: StateT[F, RecalculationState, EvaluationResults],
-          recalculatedData: RecData[SourceOrigin.OutOfDate]
+          _
         ) = recalc
 
         evResultF.map { evResult =>

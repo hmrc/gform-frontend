@@ -20,12 +20,15 @@ import cats.Monad
 import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.applicative._
+import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
+
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, Equals, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, Not, Or }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, Equals, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, Not, Or }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 
 /**
   * Evaluates Boolean expressions in context where they do not participate to overall FormModel.
@@ -50,6 +53,9 @@ class BooleanExprEval[F[_]: Monad] {
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
         (l > r).pure[F]
 
+      case DateAfter(left, right) =>
+        compare(left, right, _ after _, formModelVisibilityOptics)
+
       case GreaterThanOrEquals(left, right) =>
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
@@ -59,6 +65,9 @@ class BooleanExprEval[F[_]: Monad] {
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
         (l < r).pure[F]
+
+      case DateBefore(left, right) =>
+        compare(left, right, _ before _, formModelVisibilityOptics)
 
       case LessThanOrEquals(left, right) =>
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
@@ -94,6 +103,25 @@ class BooleanExprEval[F[_]: Monad] {
     }
 
     loop(booleanExpr)
+  }
+
+  private def compare[D <: DataOrigin](
+    left: DateExpr,
+    right: DateExpr,
+    f: (DateResult, DateResult) => Boolean,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]) = {
+    val evalFunc: DateExpr => Option[ExpressionResult.DateResult] = DateExprEval.eval(
+      formModelVisibilityOptics.formModel,
+      formModelVisibilityOptics.recData.asInstanceOf[RecData[OutOfDate]],
+      formModelVisibilityOptics.recalculationResult.evaluationContext,
+      formModelVisibilityOptics.evaluationResults
+    )
+    val l = evalFunc(left)
+    val r = evalFunc(right)
+    ((l, r) match {
+      case (Some(lResult), Some(rResult)) => f(lResult, rResult)
+      case _                              => false
+    }).pure[F]
   }
 }
 

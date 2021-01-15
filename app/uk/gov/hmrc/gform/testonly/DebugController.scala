@@ -120,8 +120,10 @@ class DebugController(
       booleanExpr match {
         case Equals(left, right)              => inner(left, right) :: Nil
         case GreaterThan(left, right)         => inner(left, right) :: Nil
+        case DateAfter(field1, field2)        => Nil // TODO: Display debugger details
         case GreaterThanOrEquals(left, right) => inner(left, right) :: Nil
         case LessThan(left, right)            => inner(left, right) :: Nil
+        case DateBefore(field1, field2)       => Nil // TODO: Display debugger details
         case LessThanOrEquals(left, right)    => inner(left, right) :: Nil
         case Not(e)                           => loop(e)
         case Or(left, right)                  => loop(left) ::: loop(right)

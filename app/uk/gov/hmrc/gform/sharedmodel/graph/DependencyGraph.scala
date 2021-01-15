@@ -81,19 +81,19 @@ object DependencyGraph {
 
     def boolenExprDeps(
       booleanExpr: BooleanExpr,
-      fcs: List[FormComponent],
+      dependingFCs: List[FormComponent],
       cycleBreaker: GraphNode.Expr => Boolean): List[DiEdge[GraphNode]] = {
 
       val allExprGNs: List[GraphNode.Expr] =
         booleanExpr.allExpressions.flatMap(_.leafs).map(GraphNode.Expr.apply)
 
-      val fcIds = fcs.map(_.id)
+      val dependingFCIds = dependingFCs.map(_.id)
 
       val deps1: List[DiEdge[GraphNode]] =
         for {
-          exprGN <- allExprGNs.filterNot(cycleBreaker)
-          fcId   <- fcIds
-        } yield GraphNode.Simple(fcId) ~> exprGN
+          exprGN        <- allExprGNs.filterNot(cycleBreaker)
+          dependingFCId <- dependingFCIds
+        } yield GraphNode.Simple(dependingFCId) ~> exprGN
 
       val deps2: List[DiEdge[GraphNode]] =
         allExprGNs.flatMap(exprGN => toFormComponentId(exprGN.expr).map(fcId => exprGN ~> GraphNode.Simple(fcId)))

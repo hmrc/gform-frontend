@@ -74,6 +74,7 @@ case class FormComponent(
     case IsText(Text(PositiveNumber(_, _, _, _), _, _, _)) => ExprType.number
     case IsChoice(_)                                       => ExprType.ChoiceSelection
     case IsRevealingChoice(_)                              => ExprType.ChoiceSelection
+    case IsDate(_)                                         => ExprType.DateString
     case _                                                 => ExprType.String
   }
 

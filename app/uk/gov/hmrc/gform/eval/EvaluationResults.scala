@@ -29,6 +29,8 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
+import java.time.LocalDate
+
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult]
 ) {
@@ -52,12 +54,15 @@ case class EvaluationResults(
     recData: RecData[SourceOrigin.OutOfDate],
     fromVariadicValue: VariadicValue => ExpressionResult
   ): ExpressionResult =
-    exprMap
-      .get(expr)
-      .getOrElse(
-        recData.variadicFormData
-          .get(expr.formComponentId.modelComponentId)
-          .fold(ExpressionResult.empty)(fromVariadicValue))
+    exprMap.getOrElse(
+      expr,
+      recData.variadicFormData
+        .get(expr.formComponentId.modelComponentId)
+        .fold(ExpressionResult.empty)(fromVariadicValue))
+
+  private def get(modelComponentId: ModelComponentId, recData: RecData[SourceOrigin.OutOfDate]): Option[VariadicValue] =
+    recData.variadicFormData
+      .get(modelComponentId)
 
   // Sum field may be hidden by AddToList or by Revealing choice
   private def isSumHidden(modelComponentId: ModelComponentId): Boolean = {
@@ -178,6 +183,30 @@ case class EvaluationResults(
 
     loop(expr)
   }
+  private def evalDateString(
+    expr: Expr,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ): ExpressionResult = {
+
+    def loop(expr: Expr): ExpressionResult = expr match {
+      case ctx @ FormCtx(formComponentId) =>
+        exprMap.getOrElse(
+          ctx, {
+            val year = get(formComponentId.toAtomicFormComponentId(Date.year), recData)
+            val month = get(formComponentId.toAtomicFormComponentId(Date.month), recData)
+            val day = get(formComponentId.toAtomicFormComponentId(Date.day), recData)
+            (year, month, day) match {
+              case (Some(VariadicValue.One(y)), Some(VariadicValue.One(m)), Some(VariadicValue.One(d))) =>
+                DateResult(LocalDate.of(y.toInt, m.toInt, d.toInt))
+              case _ => Empty
+            }
+          }
+        )
+      case _ => ExpressionResult.empty
+    }
+
+    loop(expr)
+  }
 
   def evalExprCurrent(
     typeInfo: TypeInfo,
@@ -196,6 +225,8 @@ case class EvaluationResults(
       evalString(typeInfo.expr, recData, evaluationContext)
     } { choiceSelection =>
       evalString(typeInfo.expr, recData, evaluationContext)
+    } { dateString =>
+      evalDateString(typeInfo.expr, recData)
     } { illegal =>
       ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
     }

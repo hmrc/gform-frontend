@@ -23,8 +23,10 @@ sealed trait BooleanExpr {
   def allExpressions: List[Expr] = this match {
     case Equals(left, right)              => left :: right :: Nil
     case GreaterThan(left, right)         => left :: right :: Nil
+    case DateAfter(left, right)           => DateExpr.allFormCtxExprs(left) ++ DateExpr.allFormCtxExprs(right)
     case GreaterThanOrEquals(left, right) => left :: right :: Nil
     case LessThan(left, right)            => left :: right :: Nil
+    case DateBefore(left, right)          => DateExpr.allFormCtxExprs(left) ++ DateExpr.allFormCtxExprs(right)
     case LessThanOrEquals(left, right)    => left :: right :: Nil
     case Not(e)                           => e.allExpressions
     case Or(left, right)                  => left.allExpressions ++ right.allExpressions
@@ -32,7 +34,7 @@ sealed trait BooleanExpr {
     case IsTrue                           => Nil
     case IsFalse                          => Nil
     case Contains(multiValueField, value) => multiValueField :: value :: Nil
-    case In(formCtx, dataSource)          => formCtx :: Nil
+    case In(formCtx, _)                   => formCtx :: Nil
   }
 }
 
@@ -48,6 +50,9 @@ final case object IsTrue extends BooleanExpr
 final case object IsFalse extends BooleanExpr
 final case class Contains(multiValueField: FormCtx, value: Expr) extends BooleanExpr
 final case class In(value: Expr, dataSource: DataSource) extends BooleanExpr
+
+final case class DateBefore(left: DateExpr, right: DateExpr) extends BooleanExpr
+final case class DateAfter(left: DateExpr, right: DateExpr) extends BooleanExpr
 
 object BooleanExpr {
   implicit val format: OFormat[BooleanExpr] = derived.oformat()

@@ -423,8 +423,6 @@ class InstructionsRenderingServiceSpec
       *[FormTemplate],
       *[MaterialisedRetrievals],
       *[ThirdPartyData],
-      *[Option[AccessCode]],
-      *[EnvelopeId],
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
       RecalculationResult.empty(
