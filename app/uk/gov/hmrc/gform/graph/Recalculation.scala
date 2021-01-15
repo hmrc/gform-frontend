@@ -106,10 +106,10 @@ class Recalculation[F[_]: Monad, E](
       def loop(booleanExpr: BooleanExpr): StateT[F, RecalculationState, Boolean] = booleanExpr match {
         case Equals(field1, field2)              => compare(field1, field2, _ identical _)
         case GreaterThan(field1, field2)         => compare(field1, field2, _ > _)
-        case DateAfter(field1, field2)           => compareDate(field1, field2, _ before _)
+        case DateAfter(field1, field2)           => compareDate(field1, field2, _ after _)
         case GreaterThanOrEquals(field1, field2) => compare(field1, field2, _ >= _)
         case LessThan(field1, field2)            => compare(field1, field2, _ < _)
-        case DateBefore(field1, field2)          => compareDate(field1, field2, _ after _)
+        case DateBefore(field1, field2)          => compareDate(field1, field2, _ before _)
         case LessThanOrEquals(field1, field2)    => compare(field1, field2, _ <= _)
         case Not(invertedExpr)                   => loop(invertedExpr).map(!_)
         case Or(expr1, expr2)                    => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 | e2
