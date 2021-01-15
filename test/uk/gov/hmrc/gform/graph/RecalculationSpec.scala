@@ -31,6 +31,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.GraphSpec
 import org.scalatest.{ FlatSpec, Matchers }
 
+import java.time.LocalDate
+
 class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormModelSupport {
 
   type EitherEffect[A] = Either[GraphException, A]
@@ -901,6 +903,114 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
     forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
       verify(input, expectedOutput, expectedExprMap, sections)
     }
+  }
+
+  it should "hide Section and fields in it, when includeIf = false - date comparison" in {
+
+    val inputData = mkDataOutOfDate(
+      "sec1Date1-year"  -> "2020",
+      "sec1Date1-month" -> "01",
+      "sec1Date1-day"   -> "01",
+      "sec1Date2-year"  -> "2020",
+      "sec1Date2-month" -> "01",
+      "sec1Date2-day"   -> "02"
+    )
+
+    val expectedOutputData = mkDataCurrent(
+      "sec1Date1-year"  -> "2020",
+      "sec1Date1-month" -> "01",
+      "sec1Date1-day"   -> "01",
+      "sec1Date2-year"  -> "2020",
+      "sec1Date2-month" -> "01",
+      "sec1Date2-day"   -> "02"
+    )
+
+    val expectedExprMap: Map[Expr, ExpressionResult] = Map(
+      ctx("sec1Date1")  -> DateResult(LocalDate.of(2020, 1, 1)),
+      ctx("sec1Date2")  -> DateResult(LocalDate.of(2020, 1, 2)),
+      ctx("sec2Field1") -> ExpressionResult.Hidden)
+
+    val sections = List(
+      mkSection(
+        List(
+          mkFormComponent("sec1Date1", Date(AnyDate, Offset(0), None)),
+          mkFormComponent("sec1Date2", Date(AnyDate, Offset(0), None))
+        )
+      ),
+      mkSectionIncludeIf(
+        List(
+          mkFormComponent("sec2Field1", Value),
+        ),
+        IncludeIf(DateAfter(DateFormCtxVar(ctx("sec1Date1")), DateFormCtxVar(ctx("sec1Date2"))))
+      ),
+      mkSection(
+        List(
+          mkFormComponent("sec3Field1", ctx("sec2Field1")),
+        )
+      )
+    )
+
+    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData)
+
+    formModelOptics.formModelVisibilityOptics.recData.variadicFormData shouldBe expectedOutputData
+    formModelOptics.formModelVisibilityOptics.recalculationResult.evaluationResults.exprMap shouldBe expectedExprMap
+    formModelOptics.formModelVisibilityOptics.formModel.pages.size shouldBe 2
+  }
+
+  it should "show Section and evaluate fields (and dependent fields), when includeIf = true - date comparison" in {
+
+    val inputData = mkDataOutOfDate(
+      "sec1Date1-year"  -> "2020",
+      "sec1Date1-month" -> "01",
+      "sec1Date1-day"   -> "01",
+      "sec1Date2-year"  -> "2020",
+      "sec1Date2-month" -> "01",
+      "sec1Date2-day"   -> "02"
+    )
+
+    val expectedOutputData = mkDataCurrent(
+      "sec1Date1-year"  -> "2020",
+      "sec1Date1-month" -> "01",
+      "sec1Date1-day"   -> "01",
+      "sec1Date2-year"  -> "2020",
+      "sec1Date2-month" -> "01",
+      "sec1Date2-day"   -> "02",
+      "sec2Field1"      -> "sec2Field1Value",
+      "sec3Field1"      -> "sec2Field1Value",
+    )
+
+    val expectedExprMap: Map[Expr, ExpressionResult] = Map(
+      ctx("sec1Date1")            -> DateResult(LocalDate.of(2020, 1, 1)),
+      ctx("sec1Date2")            -> DateResult(LocalDate.of(2020, 1, 2)),
+      ctx("sec2Field1")           -> StringResult("sec2Field1Value"),
+      Constant("sec2Field1Value") -> StringResult("sec2Field1Value")
+    )
+
+    val sections = List(
+      mkSection(
+        List(
+          mkFormComponent("sec1Date1", Date(AnyDate, Offset(0), None)),
+          mkFormComponent("sec1Date2", Date(AnyDate, Offset(0), None))
+        )
+      ),
+      mkSectionIncludeIf(
+        List(
+          mkFormComponent("sec2Field1", Constant("sec2Field1Value")),
+        ),
+        IncludeIf(DateBefore(DateFormCtxVar(ctx("sec1Date1")), DateFormCtxVar(ctx("sec1Date2"))))
+      ),
+      mkSection(
+        List(
+          mkFormComponent("sec3Field1", ctx("sec2Field1")),
+        )
+      )
+    )
+
+    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData)
+
+    formModelOptics.formModelVisibilityOptics.recData.variadicFormData shouldBe expectedOutputData
+    formModelOptics.formModelVisibilityOptics.recalculationResult.evaluationResults.exprMap shouldBe expectedExprMap
+    formModelOptics.formModelVisibilityOptics.formModel.pages.size shouldBe 3
   }
 
   private def verify(
