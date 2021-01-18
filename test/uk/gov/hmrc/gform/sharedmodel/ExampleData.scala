@@ -60,10 +60,10 @@ trait ExampleSubmissionRef {
 }
 
 trait ExampleInstruction {
-  val instruction = Instruction(toSmartString("some-instruction"), Some(1))
+  val instruction = Instruction(Some(toSmartString("some-instruction")), Some(1))
 
   def buildInstruction(name: String, order: Option[Int] = None) =
-    instruction.copy(name = toSmartString(name), order = order)
+    instruction.copy(name = Some(toSmartString(name)), order = order)
 }
 
 trait ExampleAuthConfig {
@@ -383,7 +383,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     validators: Option[Validator] = None,
     fields: List[FormComponent] = List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`),
     includeIf: Option[IncludeIf] = None,
-    instruction: Option[Instruction] = None) =
+    instruction: Option[Instruction] = None,
+    presentationHint: Option[PresentationHint] = None) =
     Section.NonRepeatingPage(
       Page(
         toSmartString(title),
@@ -395,7 +396,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         fields,
         None,
         None,
-        instruction
+        instruction,
+        presentationHint
       ))
 
   def `section - about you`: Section =
@@ -423,8 +425,9 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
   def repeatingSection(
     title: String,
     fields: List[FormComponent],
-    instruction: Option[Instruction],
-    repeatsExpr: Expr) =
+    instruction: Option[Instruction] = None,
+    repeatsExpr: Expr,
+    presentationHint: Option[PresentationHint] = None) =
     Section.RepeatingPage(
       Page(
         toSmartString(title),
@@ -436,7 +439,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         fields,
         None,
         None,
-        instruction
+        instruction,
+        presentationHint
       ),
       repeats = repeatsExpr
     )
@@ -462,7 +466,11 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       presentationHint
     )
 
-  def toPage(title: String, instruction: Option[Instruction], formComponents: List[FormComponent]) =
+  def toPage(
+    title: String,
+    instruction: Option[Instruction],
+    formComponents: List[FormComponent],
+    presentationHint: Option[PresentationHint] = None) =
     Page[Basic](
       toSmartString(title),
       None,
@@ -473,7 +481,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       formComponents,
       None,
       None,
-      instruction
+      instruction,
+      presentationHint
     )
 }
 

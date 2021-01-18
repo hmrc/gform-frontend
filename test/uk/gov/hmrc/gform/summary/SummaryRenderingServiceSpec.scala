@@ -38,13 +38,14 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, InvisiblePageTitleInSummary, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormTemplate, InvisibleInSummary, InvisiblePageTitle, InvisiblePageTitleInSummary, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ExampleData, LangADT, PdfHtml, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, ValidationResult, ValidationService }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.SessionId
+import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 
 import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -116,12 +117,8 @@ class SummaryRenderingServiceSpec
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
       .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
 
-    val summaryRenderingService = new SummaryRenderingService(
-      i18nSupport,
-      mockFileUploadService,
-      mockRecalculation,
-      mockValidationService,
-      frontendAppConfig)
+    val summaryRenderingService =
+      new SummaryRenderingService(i18nSupport, mockFileUploadService, mockValidationService, frontendAppConfig)
   }
 
   "createHtmlForPdf" should {
@@ -135,6 +132,66 @@ class SummaryRenderingServiceSpec
           .futureValue
 
       Html(pdfHtml.html).title shouldBe "Acknowledgement PDF - AAA999 dev test template"
+    }
+
+    "hide/show page title based on presentationHint" in {
+      implicit val sectionSelectorType: SectionSelector[SectionSelectorType.Normal] = SectionSelector.normal
+
+      val table = Table(
+        ("presentationHint", "summaryElements"),
+        (
+          None,
+          List(
+            HeaderElement("Some page title"),
+            SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
+            HeaderElement("declaration section"),
+            SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", ""))),
+            SummaryListElement(List())
+          )),
+        (
+          Some(InvisibleInSummary),
+          List(
+            HeaderElement("Some page title"),
+            SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
+            HeaderElement("declaration section"),
+            SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", ""))),
+            SummaryListElement(List())
+          )),
+        (
+          Some(InvisiblePageTitle),
+          List(
+            SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
+            HeaderElement("declaration section"),
+            SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", ""))),
+            SummaryListElement(List())
+          ))
+      )
+
+      forAll(table) { (presentationHint, expectedSummaryElements) =>
+        val testFixture: TestFixture = new TestFixture {
+          override lazy val formTemplate: FormTemplate = buildFormTemplate(
+            destinationList,
+            List(
+              nonRepeatingPageSection(
+                title = "Some page title",
+                fields = List(page1Field),
+                presentationHint = presentationHint
+              )
+            ))
+          override lazy val form: Form =
+            buildForm(FormData(List(FormField(page1Field.modelComponentId, "page1Field-value"))))
+          override lazy val validationResult: ValidationResult = new ValidationResult(
+            Map(
+              page1Field.id -> FieldOk(page1Field, "page1Field-value")
+            ),
+            None)
+        }
+        import testFixture._
+        val pdfHtml = summaryRenderingService
+          .createHtmlForPdf(maybeAccessCode, cache, None, SummaryPagePurpose.ForDms, formModelOptics)
+          .futureValue
+        pdfHtml.summaryElements shouldBe expectedSummaryElements
+      }
     }
   }
 
@@ -173,6 +230,125 @@ class SummaryRenderingServiceSpec
   }
 
   "getSummaryHTML" when {
+
+    "non-repeating page" should {
+
+      "hide/show page title based on presentationHint" in {
+        val table = Table(
+          ("presentationHint", "summaryElements"),
+          (
+            None,
+            List(
+              HeaderElement("Some page title"),
+              SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
+              HeaderElement("declaration section"),
+              SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
+            )),
+          (
+            Some(InvisibleInSummary),
+            List(
+              HeaderElement("Some page title"),
+              SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
+              HeaderElement("declaration section"),
+              SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
+            )),
+          (
+            Some(InvisiblePageTitle),
+            List(
+              SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
+              HeaderElement("declaration section"),
+              SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
+            ))
+        )
+
+        forAll(table) { (presentationHint, expectedSummaryElements) =>
+          val testFixture: TestFixture = new TestFixture {
+            override lazy val formTemplate: FormTemplate = buildFormTemplate(
+              destinationList,
+              List(
+                nonRepeatingPageSection(
+                  title = "Some page title",
+                  fields = List(page1Field),
+                  presentationHint = presentationHint
+                )
+              ))
+            override lazy val form: Form =
+              buildForm(FormData(List(FormField(page1Field.modelComponentId, "page1Field-value"))))
+            override lazy val validationResult: ValidationResult = new ValidationResult(
+              Map(
+                page1Field.id -> FieldOk(page1Field, "page1Field-value")
+              ),
+              None)
+          }
+          import testFixture._
+          summaryRenderingService
+            .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForDms, formModelOptics)
+            .futureValue
+            .summaryElements shouldBe expectedSummaryElements
+        }
+      }
+    }
+
+    "repeating page" should {
+
+      "hide page title when presentationHint is InvisiblePageTitle" in {
+
+        val table = Table(
+          ("presentationHint", "summaryElements"),
+          (
+            None,
+            List(
+              HeaderElement("Some page title"),
+              SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
+              HeaderElement("declaration section"),
+              SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
+            )),
+          (
+            Some(InvisibleInSummary),
+            List(
+              HeaderElement("Some page title"),
+              SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
+              HeaderElement("declaration section"),
+              SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
+            )),
+          (
+            Some(InvisiblePageTitle),
+            List(
+              SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
+              HeaderElement("declaration section"),
+              SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
+            ))
+        )
+
+        forAll(table) { (presentationHint, expectedSummaryElements) =>
+          val testFixture: TestFixture = new TestFixture {
+            override lazy val formTemplate: FormTemplate = buildFormTemplate(
+              destinationList,
+              List(
+                repeatingSection(
+                  title = "Some page title",
+                  fields = List(page1Field),
+                  repeatsExpr = Constant("1"),
+                  presentationHint = presentationHint
+                )
+              )
+            )
+            override lazy val form: Form =
+              buildForm(FormData(List(FormField(page1Field.withIndex(1).modelComponentId, "page1Field-value"))))
+            override lazy val validationResult: ValidationResult = new ValidationResult(
+              Map(
+                page1Field.withIndex(1).id -> FieldOk(page1Field.withIndex(1), "page1Field-value")
+              ),
+              None)
+          }
+          import testFixture._
+          summaryRenderingService
+            .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForDms, formModelOptics)
+            .futureValue
+            .summaryElements shouldBe expectedSummaryElements
+        }
+      }
+    }
 
     "add to list - presentationHint is InvisiblePageTitleInSummary" should {
       "render elements without page titles" in new TestFixture {

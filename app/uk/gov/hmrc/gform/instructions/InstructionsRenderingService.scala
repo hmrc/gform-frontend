@@ -182,33 +182,31 @@ class InstructionsRenderingService(
 
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
-    def renderHtmls(singleton: Singleton[Visibility], sectionNumber: SectionNumber)(implicit l: LangADT): List[Html] =
-      (for {
-        pageInstruction <- singleton.page.instruction
-        begin = begin_section(pageInstruction.name)
-        sectionTitle4Ga = sectionTitle4GaFactory(pageInstruction.name, sectionNumber)
-        middleRows = fcrd
-          .prepareRenderables(singleton.page.fields)
-          .flatMap(formComponent =>
-            FormComponentSummaryRenderer.summaryListRows[D, InstructionRender](
-              formComponent,
-              formTemplate._id,
-              formModelOptics.formModelVisibilityOptics,
-              maybeAccessCode,
-              sectionNumber,
-              sectionTitle4Ga,
-              obligations,
-              validationResult,
-              envelope
-          ))
-      } yield {
-        if (middleRows.isEmpty) {
-          Nil
-        } else {
-          val middleRowsHtml = new govukSummaryList()(SummaryList(middleRows, "govuk-!-margin-bottom-9"))
-          List(begin, middleRowsHtml)
-        }
-      }).getOrElse(List.empty)
+    def renderHtmls(singleton: Singleton[Visibility], sectionNumber: SectionNumber)(implicit l: LangADT): List[Html] = {
+      val begin = singleton.page.instruction.flatMap(_.name.map(n => begin_section(n))).toList
+      val sectionTitle4Ga = singleton.page.instruction.map(i =>
+        sectionTitle4GaFactory(i.name.fold(SmartString.empty)(identity), sectionNumber))
+      val middleRows = fcrd
+        .prepareRenderables(singleton.page.fields)
+        .flatMap(formComponent =>
+          FormComponentSummaryRenderer.summaryListRows[D, InstructionRender](
+            formComponent,
+            formTemplate._id,
+            formModelOptics.formModelVisibilityOptics,
+            maybeAccessCode,
+            sectionNumber,
+            sectionTitle4Ga.getOrElse(SectionTitle4Ga("")),
+            obligations,
+            validationResult,
+            envelope
+        ))
+      if (middleRows.isEmpty) {
+        Nil
+      } else {
+        val middleRowsHtml = new govukSummaryList()(SummaryList(middleRows, "govuk-!-margin-bottom-9"))
+        begin ++ List(middleRowsHtml)
+      }
+    }
 
     def addToListSummary(addToList: Bracket.AddToList[Visibility]): Html =
       begin_section(addToList.source.summaryName)

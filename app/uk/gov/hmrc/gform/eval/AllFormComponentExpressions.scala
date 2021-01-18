@@ -47,7 +47,7 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
 
     val fcExprs: List[Expr] =
       fc.label.interpolations ++
-        fromOption(fc.helpText, fc.shortName, fc.instruction.map(_.name))
+        fromOption(fc.helpText, fc.shortName, fc.instruction.flatMap(_.name))
 
     val fcSelfRefferingExprs: List[Expr] =
       fromOption(fc.errorMessage) ++

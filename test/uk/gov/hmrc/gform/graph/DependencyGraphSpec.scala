@@ -45,6 +45,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     List.empty[FormComponent],
     None,
     None,
+    None,
     None
   )
   private val emptyAddToList: Section.AddToList = Section.AddToList(

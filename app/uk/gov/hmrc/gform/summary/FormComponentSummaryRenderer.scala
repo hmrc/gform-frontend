@@ -900,7 +900,7 @@ object FormComponentRenderDetails {
     new FormComponentRenderDetails[InstructionRender] {
 
       override def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String =
-        formComponent.instruction.map(_.name.value()).getOrElse("")
+        formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse("")
 
       override def prepareRenderables(fields: List[FormComponent]): List[FormComponent] =
         fields

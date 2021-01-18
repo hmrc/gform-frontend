@@ -47,6 +47,7 @@ object FormTemplateBuilder {
     formComponents,
     None,
     None,
+    None,
     None
   )
 
@@ -83,6 +84,7 @@ object FormTemplateBuilder {
         Some(includeIf),
         None,
         formComponents,
+        None,
         None,
         None,
         None
