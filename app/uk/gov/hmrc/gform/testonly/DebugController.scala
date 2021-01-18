@@ -133,7 +133,9 @@ class DebugController(
         case Contains(multiValueField, value) =>
           InspectedBooleanExpr
             .Contains(booleanExpr, inspectExpr(multiValueField, formModel), inspectExpr(value, formModel)) :: Nil
-        case In(formCtx, dataSource) => Nil
+        case In(formCtx, dataSource)    => Nil
+        case MatchRegex(formCtx, regex) => Nil
+
       }
     }
 
