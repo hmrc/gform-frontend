@@ -1343,11 +1343,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             else
               Map("readonly" -> "")
 
-          val maybePrefix: Option[SmartString] =
-            text.prefix.orElse(if (formComponent.isSterling) Some(toSmartString(sterlingSymbol)) else None)
-
           val maybeSuffix: Option[SmartString] =
-            text.suffix.orElse(maybeUnit.map(u => toSmartString(u)))
+            text.suffix.orElse(maybeUnit.map(u => SmartString(u, Nil)))
 
           if (formComponent.isSterling) {
             val currencyInput = CurrencyInput(
@@ -1373,7 +1370,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               errorMessage = hiddenErrorMessage,
               classes = s"$hiddenClass $sizeClasses",
               attributes = ei.specialAttributes ++ attributes,
-              prefix = maybePrefix.map(s => PrefixOrSuffix(content = content.Text(s.value))),
+              prefix = text.prefix.map(s => PrefixOrSuffix(content = content.Text(s.value))),
               suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value)))
             )
 
@@ -1705,15 +1702,11 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     }
   }
 
-  private def toSmartString(s: String) =
-    SmartString(LocalisedString(Map(LangADT.En -> s)), Nil)
-
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
   private val govukFieldset: components.govukFieldset = new components.govukFieldset()
   private val govukHint: components.govukHint = new components.govukHint()
   private val govukLabel: components.govukLabel = new components.govukLabel()
   private val govukInput: components.govukInput = new components.govukInput(govukErrorMessage, govukHint, govukLabel)
-  private val sterlingSymbol = "£"
 
 }
 

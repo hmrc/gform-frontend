@@ -16,10 +16,13 @@
 
 package uk.gov.hmrc.gform.views.summary
 
+import java.text.NumberFormat
+
 import cats.syntax.option._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.commons.BigDecimalUtil._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
@@ -43,7 +46,7 @@ object TextFormatter {
     textConstraint match {
       // format: off
       case IsPositiveNumberOrNumber(PositiveNumberOrNumber(_, _, _, _)) => stripTrailingZeros(currentValue)
-      case _: Sterling                                                  => stripTrailingZeros(currentValue)
+      case _: Sterling                                                  => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
       case _                                                            => currentValue
       // format: on
     }
@@ -53,7 +56,8 @@ object TextFormatter {
     textConstraint: TextConstraint,
     prefix: Option[SmartString],
     suffix: Option[SmartString])(
-    implicit l: LangADT
+    implicit l: LangADT,
+    sse: SmartStringEvaluator
   ): String =
     (textConstraint, prefix, suffix) match {
       // format: off
@@ -72,16 +76,16 @@ object TextFormatter {
   private def prependPrefix(
     prefix: Option[SmartString]
   )(
-    implicit l: LangADT
+    implicit sse: SmartStringEvaluator
   ): String =
-    prefix.fold("")(_.localised.value + " ")
+    prefix.fold("")(_.value + " ")
 
   private def appendSuffix(
     suffix: Option[SmartString]
   )(
-    implicit l: LangADT
+    implicit sse: SmartStringEvaluator
   ): String =
-    suffix.fold("")(" " + _.localised.value)
+    suffix.fold("")(" " + _.value)
 
   private def formatNumber(
     currentValue: String,
@@ -96,8 +100,8 @@ object TextFormatter {
     stripTrailingZeros(maybeBigDecimal.fold(currentValue)(roundAndFormat(_, maxFractionalDigits, rm))) + un
   }
 
-  private def formatSterling(currentValue: String): String =
-    toBigDecimalSafe(currentValue).fold(currentValue)(currencyFormat.format)
+  private def formatSterling(currentValue: String, format: NumberFormat = currencyFormat): String =
+    toBigDecimalSafe(currentValue).fold(currentValue)(format.format)
 
   def formatText(
     validationResult: FormFieldValidationResult,
@@ -144,9 +148,9 @@ object TextFormatter {
     getValue(validationResult.formComponent)
   }
 
-  def appendUnit(constraint: TextConstraint)(implicit l: LangADT): Option[String] = constraint match {
-    case PositiveNumber(_, _, _, Some(unit)) => unit.value.some
-    case Number(_, _, _, Some(unit))         => unit.value.some
+  def appendUnit(constraint: TextConstraint): Option[LocalisedString] = constraint match {
+    case PositiveNumber(_, _, _, Some(unit)) => unit.some
+    case Number(_, _, _, Some(unit))         => unit.some
     case _                                   => none
   }
 

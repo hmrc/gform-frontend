@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.views.components
 
 import cats.syntax.option._
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
@@ -25,11 +26,11 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 class TotalText(
   formComponent: FormComponent,
   val label: Text,
-  maybeUnit: Option[String],
+  maybeUnit: Option[LocalisedString],
   maybeHint: Option[Hint],
   maybeErrorMessage: Option[ErrorMessage],
   maybeCurrentValue: Option[String]
-) {
+)(implicit l: LangADT) {
 
   val id: String = formComponent.id.value
   private val hintId = s"$id-hint".some
@@ -40,6 +41,6 @@ class TotalText(
 
   val currentValue: String = maybeCurrentValue.getOrElse("")
 
-  val unit: String = maybeUnit.getOrElse("")
+  val unit: String = maybeUnit.map(_.value).getOrElse("")
 
 }
