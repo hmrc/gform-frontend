@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import java.time.LocalDate
+import scala.util.Try
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult]
@@ -197,7 +198,7 @@ case class EvaluationResults(
             val day = get(formComponentId.toAtomicFormComponentId(Date.day), recData)
             (year, month, day) match {
               case (Some(VariadicValue.One(y)), Some(VariadicValue.One(m)), Some(VariadicValue.One(d))) =>
-                DateResult(LocalDate.of(y.toInt, m.toInt, d.toInt))
+                Try(LocalDate.of(y.toInt, m.toInt, d.toInt)).fold[ExpressionResult](_ => Empty, DateResult)
               case _ => Empty
             }
           }
