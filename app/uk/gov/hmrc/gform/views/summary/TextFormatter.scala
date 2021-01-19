@@ -49,8 +49,8 @@ object TextFormatter {
     (textConstraint, presentationHint) match {
       // format: off
       case (IsPositiveNumberOrNumber(PositiveNumberOrNumber(_, _, _, _)), _) => stripTrailingZeros(currentValue)
-      case (_: Sterling, Some(_))                                            => formatSterling(stripTrailingZeros(currentValue))
-      case (_: Sterling, None)                                               => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
+      case (_: Sterling, Some(ph)) if ph.contains(TotalValue)                => formatSterling(stripTrailingZeros(currentValue))
+      case (_: Sterling, _)                                                  => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
       case _                                                                 => currentValue
       // format: on
     }
