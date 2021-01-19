@@ -1310,7 +1310,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         formFieldValidationResult.getCurrentValue
           .orElse(Some(prepopValue))
           .map { cv =>
-            TextFormatter.componentTextForRendering(cv, text.constraint, formComponent.presentationHint)
+            TextFormatter
+              .componentTextForRendering(cv, text.constraint, formComponent.presentationHint, formComponent.editable)
           }
 
       formComponent.presentationHint match {

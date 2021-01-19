@@ -45,13 +45,15 @@ object TextFormatter {
   def componentTextForRendering(
     currentValue: String,
     textConstraint: TextConstraint,
-    presentationHint: Option[List[PresentationHint]]): String =
-    (textConstraint, presentationHint) match {
+    presentationHint: Option[List[PresentationHint]],
+    editable: Boolean): String =
+    (textConstraint, presentationHint, editable) match {
       // format: off
-      case (IsPositiveNumberOrNumber(PositiveNumberOrNumber(_, _, _, _)), _) => stripTrailingZeros(currentValue)
-      case (_: Sterling, Some(ph)) if ph.contains(TotalValue)                => formatSterling(stripTrailingZeros(currentValue))
-      case (_: Sterling, _)                                                  => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
-      case _                                                                 => currentValue
+      case (IsPositiveNumberOrNumber(PositiveNumberOrNumber(_, _, _, _)), _, _) => stripTrailingZeros(currentValue)
+      case (_: Sterling, Some(ph), _) if ph.contains(TotalValue)                => formatSterling(stripTrailingZeros(currentValue))
+      case (_: Sterling, _, true)                                               => stripTrailingZeros(currentValue)
+      case (_: Sterling, _, _)                                                  => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
+      case _                                                                    => currentValue
       // format: on
     }
 
