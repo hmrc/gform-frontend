@@ -282,12 +282,10 @@ case object UkEORI extends TextConstraint
 case object ChildBenefitNumber extends TextConstraint
 
 final object IsPositiveNumberOrNumber {
-  def unapply(tc: TextConstraint): Option[(Int, Int, RoundingMode, Option[LocalisedString])] = tc match {
-    case PositiveNumber(maxWholeDigits, maxFractionalDigits, roundingMode, unit) =>
-      Some((maxWholeDigits, maxFractionalDigits, roundingMode, unit))
-    case Number(maxWholeDigits, maxFractionalDigits, roundingMode, unit) =>
-      Some((maxWholeDigits, maxFractionalDigits, roundingMode, unit))
-    case _ => None
+  def unapply(tc: TextConstraint): Option[(Int, RoundingMode, Option[LocalisedString])] = tc match {
+    case PositiveNumber(_, maxFractionalDigits, roundingMode, unit) => Some((maxFractionalDigits, roundingMode, unit))
+    case Number(_, maxFractionalDigits, roundingMode, unit)         => Some((maxFractionalDigits, roundingMode, unit))
+    case _                                                          => None
   }
 }
 
