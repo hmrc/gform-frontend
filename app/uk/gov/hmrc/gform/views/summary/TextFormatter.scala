@@ -42,12 +42,16 @@ object TextFormatter {
       // format: on
     }
 
-  def componentTextEditable(currentValue: String, textConstraint: TextConstraint): String =
-    textConstraint match {
+  def componentTextForRendering(
+    currentValue: String,
+    textConstraint: TextConstraint,
+    presentationHint: Option[List[PresentationHint]]): String =
+    (textConstraint, presentationHint) match {
       // format: off
-      case IsPositiveNumberOrNumber(PositiveNumberOrNumber(_, _, _, _)) => stripTrailingZeros(currentValue)
-      case _: Sterling                                                  => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
-      case _                                                            => currentValue
+      case (IsPositiveNumberOrNumber(PositiveNumberOrNumber(_, _, _, _)), _) => stripTrailingZeros(currentValue)
+      case (_: Sterling, Some(_))                                            => formatSterling(stripTrailingZeros(currentValue))
+      case (_: Sterling, None)                                               => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
+      case _                                                                 => currentValue
       // format: on
     }
 
