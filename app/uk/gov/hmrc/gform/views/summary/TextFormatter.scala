@@ -46,13 +46,16 @@ object TextFormatter {
     currentValue: String,
     textConstraint: TextConstraint,
     presentationHint: Option[List[PresentationHint]],
-    editable: Boolean): String =
+    editable: Boolean)(implicit l: LangADT): String =
     (textConstraint, presentationHint, editable) match {
-      case (IsPositiveNumberOrNumber(_, _, _), _, _)             => stripTrailingZeros(currentValue)
-      case (_: Sterling, Some(ph), _) if ph.contains(TotalValue) => formatSterling(stripTrailingZeros(currentValue))
-      case (_: Sterling, _, true)                                => stripTrailingZeros(currentValue)
-      case (_: Sterling, _, _)                                   => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
-      case _                                                     => currentValue
+      // format: off
+      case (IsPositiveNumberOrNumber(_, _, _), _, true)                               => stripTrailingZeros(currentValue)
+      case (IsPositiveNumberOrNumber(maxFractionalDigits, roundingMode, _), _, false) => formatNumber(currentValue, maxFractionalDigits, roundingMode, None)
+      case (_: Sterling, Some(ph), _) if ph.contains(TotalValue)                      => formatSterling(stripTrailingZeros(currentValue))
+      case (_: Sterling, _, true)                                                     => stripTrailingZeros(currentValue)
+      case (_: Sterling, _, _)                                                        => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
+      case _                                                                          => currentValue
+      // format: off
     }
 
   def componentTextForSummary(
@@ -70,7 +73,7 @@ object TextFormatter {
       case (_, p, s)                                                                 => prependPrefix(p) + currentValue + appendSuffix(s)
       case _                                                                         => currentValue
       // format: on
-    }
+  }
 
   private def stripTrailingZeros(currentValue: String): String =
     if (currentValue.contains(".")) {
