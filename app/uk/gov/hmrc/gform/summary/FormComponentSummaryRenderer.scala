@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ Atom, FastForward }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, SmartString }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId, ValidationResult }
 import uk.gov.hmrc.gform.views.html.errorInline
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper.summaryListRow
@@ -57,7 +57,7 @@ object FormComponentSummaryRenderer {
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 
     formComponent match {
-      case IsText(_) =>
+      case IsText(Text(_, _, _, _, prefix, suffix)) =>
         getTextSummaryListRows(
           formComponent,
           formTemplateId,
@@ -66,6 +66,8 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult,
           envelope,
+          prefix,
+          suffix
         )
 
       case IsTextArea(_) =>
@@ -205,7 +207,9 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    envelope: Envelope
+    envelope: Envelope,
+    prefix: Option[SmartString],
+    suffix: Option[SmartString]
   )(
     implicit
     messages: Messages,
@@ -224,7 +228,7 @@ object FormComponentSummaryRenderer {
 
     val keyClasses = getKeyClasses(hasErrors)
 
-    val value = if (hasErrors) errors.mkString(" ") else formatText(formFieldValidationResult, envelope)
+    val value = if (hasErrors) errors.mkString(" ") else formatText(formFieldValidationResult, envelope, prefix, suffix)
 
     List(
       summaryListRow(

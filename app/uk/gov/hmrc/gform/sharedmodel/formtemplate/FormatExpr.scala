@@ -281,6 +281,14 @@ case object EORI extends TextConstraint
 case object UkEORI extends TextConstraint
 case object ChildBenefitNumber extends TextConstraint
 
+final object IsPositiveNumberOrNumber {
+  def unapply(tc: TextConstraint): Option[(Int, RoundingMode, Option[LocalisedString])] = tc match {
+    case PositiveNumber(_, maxFractionalDigits, roundingMode, unit) => Some((maxFractionalDigits, roundingMode, unit))
+    case Number(_, maxFractionalDigits, roundingMode, unit)         => Some((maxFractionalDigits, roundingMode, unit))
+    case _                                                          => None
+  }
+}
+
 object TextConstraint {
   val default = TextWithRestrictions(0, 100000)
 
@@ -461,7 +469,7 @@ object SimplifiedSelectionCriteria {
     case SelectionCriteria(c, SelectionCriteriaReference(expr, cName)) =>
       val aFormComponents: Seq[FormComponent] = formModelVisibilityOptics.formModel.allFormComponents
       val reg: Option[Register] = aFormComponents.find(_.id === expr.formComponentId).collectFirst {
-        case IsText(Text(Lookup(r, _), _, _, _)) => r
+        case IsText(Text(Lookup(r, _), _, _, _, _, _)) => r
       }
       val ols: List[String] = reg.toList.flatMap { r =>
         lookupRegistry.get(r) match {

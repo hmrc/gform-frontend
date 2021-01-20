@@ -26,7 +26,6 @@ import shapeless.syntax.typeable._
 import play.api.i18n.Messages
 import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
-
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals }
@@ -615,9 +614,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           case t @ Time(_, _) =>
             renderTime(t, formComponent, validationResult, ei)
           case Address(international) => htmlForAddress(formComponent, international, validationResult, ei)
-          case Text(Lookup(register, _), _, _, _) =>
+          case Text(Lookup(register, _), _, _, _, _, _) =>
             renderLookup(formComponent, register, validationResult, ei)
-          case t @ Text(_, _, _, _) =>
+          case t @ Text(_, _, _, _, _, _) =>
             renderText(t, formComponent, validationResult, ei)
           case t @ TextArea(_, _, _) =>
             renderTextArea(t, formComponent, validationResult, ei)
@@ -1311,10 +1310,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         formFieldValidationResult.getCurrentValue
           .orElse(Some(prepopValue))
           .map { cv =>
-            if (formComponent.editable)
-              TextFormatter.componentTextEditable(cv, text.constraint)
-            else
-              TextFormatter.componentTextReadonly(cv, text.constraint)
+            TextFormatter
+              .componentTextForRendering(cv, text.constraint, formComponent.presentationHint, formComponent.editable)
           }
 
       formComponent.presentationHint match {
@@ -1347,6 +1344,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             else
               Map("readonly" -> "")
 
+          val maybeSuffix: Option[SmartString] =
+            text.suffix.orElse(maybeUnit.map(u => SmartString(u, Nil)))
+
           if (formComponent.isSterling) {
             val currencyInput = CurrencyInput(
               id = formComponent.id.value,
@@ -1371,12 +1371,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               errorMessage = hiddenErrorMessage,
               classes = s"$hiddenClass $sizeClasses",
               attributes = ei.specialAttributes ++ attributes,
-              suffix = maybeUnit.map(s => PrefixOrSuffix(content = content.Text(s)))
+              prefix = text.prefix.map(s => PrefixOrSuffix(content = content.Text(s.value))),
+              suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value)))
             )
 
             new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
           }
-
       }
     }
   }
