@@ -42,11 +42,7 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
       },
       validators = page.validators.map(expandValidator),
       continueLabel = page.continueLabel.map(expandSmartString),
-      instruction = page.instruction.map(i =>
-        i.name match {
-          case Some(name) => i.copy(name = Some(expandSmartString(name)))
-          case _          => i
-      })
+      instruction = page.instruction.map(i => i.copy(name = i.name.map(expandSmartString)))
     )
 }
 
