@@ -31,7 +31,6 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose }
 import uk.gov.hmrc.gform.gform.routes
-import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.{ SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ Bracket, FastForward, RepeaterWithNumber, SectionSelector, Singleton }
@@ -55,7 +54,6 @@ import scala.concurrent.{ ExecutionContext, Future }
 class SummaryRenderingService(
   i18nSupport: I18nSupport,
   fileUploadAlgebra: FileUploadAlgebra[Future],
-  recalculation: Recalculation[Future, Throwable],
   validationService: ValidationService,
   frontendAppConfig: FrontendAppConfig) {
 
@@ -366,9 +364,13 @@ object SummaryRenderingService {
       val pageTitle = page.shortName.getOrElse(page.title)
 
       val begin = source.fold { _ =>
-        begin_section(pageTitle)
+        page.presentationHint
+          .filter(_ == InvisiblePageTitle)
+          .fold(begin_section(pageTitle))(_ => HtmlFormat.empty)
       } { _ =>
-        begin_section(pageTitle)
+        page.presentationHint
+          .filter(_ == InvisiblePageTitle)
+          .fold(begin_section(pageTitle))(_ => HtmlFormat.empty)
       } { addToList =>
         addToList.presentationHint
           .filter(_ == InvisiblePageTitleInSummary)

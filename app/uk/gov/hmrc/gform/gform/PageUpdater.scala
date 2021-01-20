@@ -30,20 +30,20 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
 
   private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds)
 
-  def updated: Page[A] = page.copy(
-    title = expandSmartString(page.title),
-    description = page.description.map(expandSmartString),
-    shortName = page.shortName.map(expandSmartString),
-    progressIndicator = page.progressIndicator.map(expandSmartString),
-    includeIf = page.includeIf.map(expandIncludeId),
-    fields = page.fields.map { field =>
-      new FormComponentUpdater(field, index, baseIds).updatedWithId
-    },
-    validators = page.validators.map(expandValidator),
-    continueLabel = page.continueLabel.map(expandSmartString),
-    instruction = page.instruction.map(i => i.copy(name = expandSmartString(i.name)))
-  )
-
+  def updated: Page[A] =
+    page.copy(
+      title = expandSmartString(page.title),
+      description = page.description.map(expandSmartString),
+      shortName = page.shortName.map(expandSmartString),
+      progressIndicator = page.progressIndicator.map(expandSmartString),
+      includeIf = page.includeIf.map(expandIncludeId),
+      fields = page.fields.map { field =>
+        new FormComponentUpdater(field, index, baseIds).updatedWithId
+      },
+      validators = page.validators.map(expandValidator),
+      continueLabel = page.continueLabel.map(expandSmartString),
+      instruction = page.instruction.map(i => i.copy(name = i.name.map(expandSmartString)))
+    )
 }
 
 object PageUpdater {

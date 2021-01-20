@@ -86,6 +86,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
           expectedFcs,
           None,
           None,
+          None,
           None
         )
 
@@ -782,6 +783,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
     formComponents,
     None,
     None,
+    None,
     None
   )
 
@@ -794,6 +796,7 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       Some(includeIf),
       None,
       formComponents,
+      None,
       None,
       None,
       None

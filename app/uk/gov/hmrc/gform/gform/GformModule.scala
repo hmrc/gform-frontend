@@ -125,7 +125,6 @@ class GformModule(
   val summaryRenderingService = new SummaryRenderingService(
     playBuiltInsModule.i18nSupport,
     fileUploadModule.fileUploadService,
-    graphModule.recalculation,
     validationModule.validationService,
     configModule.frontendAppConfig
   )

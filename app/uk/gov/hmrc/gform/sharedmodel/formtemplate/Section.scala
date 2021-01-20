@@ -105,7 +105,8 @@ case class DeclarationSection(
       fields = fields,
       continueLabel = None,
       continueIf = None,
-      instruction = None
+      instruction = None,
+      presentationHint = None
     )
 }
 
@@ -137,7 +138,8 @@ case class AcknowledgementSection(
       fields = fields,
       continueLabel = None,
       continueIf = None,
-      instruction = None
+      instruction = None,
+      presentationHint = None
     )
 }
 
@@ -171,7 +173,8 @@ case class EnrolmentSection(
       fields = fields,
       continueLabel = None,
       continueIf = None,
-      instruction = None
+      instruction = None,
+      presentationHint = None
     )
 }
 

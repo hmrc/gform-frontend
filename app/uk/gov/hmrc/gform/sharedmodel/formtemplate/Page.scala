@@ -35,7 +35,8 @@ case class Page[A <: PageMode](
   fields: List[FormComponent],
   continueLabel: Option[SmartString],
   continueIf: Option[ContinueIf],
-  instruction: Option[Instruction]
+  instruction: Option[Instruction],
+  presentationHint: Option[PresentationHint]
 ) {
 
   val allIds: List[FormComponentId] = fields.map(_.id) ++ fields.flatMap(_.childrenFormComponents.map(_.id))

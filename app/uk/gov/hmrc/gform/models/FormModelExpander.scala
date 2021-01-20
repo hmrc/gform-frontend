@@ -129,7 +129,7 @@ object FormModelExpander {
         fields = page.fields.map { field =>
           new FormComponentUpdater(field, index, source.allIds).updatedWithId
         },
-        instruction = page.instruction.map(i => i.copy(expand(i.name)))
+        instruction = page.instruction.map(i => i.copy(name = i.name.map(expand)))
       )
     }
 
