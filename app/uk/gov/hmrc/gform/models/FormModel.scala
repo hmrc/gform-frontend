@@ -59,6 +59,13 @@ case class FormModel[A <: PageMode](
     .map(_.modelComponentId)
     .toSet
 
+  val allFileIds: Set[ModelComponentId] = allFormComponents
+    .collect {
+      case fc @ IsFileUpload() => fc.id
+    }
+    .map(_.modelComponentId)
+    .toSet
+
   val exprsMetadata: List[ExprMetadata] = brackets.toBrackets.toList.flatMap {
     case AllPageModelExpressions(exprMetadatas) => exprMetadatas
     case _                                      => Nil

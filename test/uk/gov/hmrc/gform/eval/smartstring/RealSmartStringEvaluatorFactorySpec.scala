@@ -28,10 +28,11 @@ import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrieva
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.EvaluationContext
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, FormComponent, FormComponentId, FormCtx, FormTemplate, Horizontal, Radio, RevealingChoice, RevealingChoiceElement, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, Horizontal, Radio, RevealingChoice, RevealingChoiceElement, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.SessionId
@@ -302,15 +303,17 @@ class RealSmartStringEvaluatorFactorySpec
       *[ThirdPartyData],
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
-      RecalculationResult.empty(
-        new EvaluationContext(
-          formTemplate._id,
-          submissionRef,
-          maybeAccessCode,
-          retrievals,
-          ThirdPartyData.empty,
-          authConfig,
-          headerCarrier)))
+      RecalculationResult.empty(new EvaluationContext(
+        formTemplate._id,
+        submissionRef,
+        maybeAccessCode,
+        retrievals,
+        ThirdPartyData.empty,
+        authConfig,
+        headerCarrier,
+        Option.empty[FormPhase],
+        Set.empty[ModelComponentId]
+      )))
 
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
       .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](

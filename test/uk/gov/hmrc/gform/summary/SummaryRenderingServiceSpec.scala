@@ -33,9 +33,11 @@ import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, Sma
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField, FormModelOptics, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormPhase
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormTemplate, InvisibleInSummary, InvisiblePageTitle, Value }
@@ -98,15 +100,17 @@ class SummaryRenderingServiceSpec
       *[ThirdPartyData],
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
-      RecalculationResult.empty(
-        new EvaluationContext(
-          formTemplate._id,
-          submissionRef,
-          maybeAccessCode,
-          retrievals,
-          ThirdPartyData.empty,
-          authConfig,
-          headerCarrier)))
+      RecalculationResult.empty(new EvaluationContext(
+        formTemplate._id,
+        submissionRef,
+        maybeAccessCode,
+        retrievals,
+        ThirdPartyData.empty,
+        authConfig,
+        headerCarrier,
+        Option.empty[FormPhase],
+        Set.empty[ModelComponentId]
+      )))
 
     val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
       .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](

@@ -60,7 +60,10 @@ object FormModelOptics {
         cache.retrievals,
         ThirdPartyData.empty,
         cache.formTemplate.authConfig,
-        hc)
+        hc,
+        Option.empty[FormPhase],
+        Set.empty[ModelComponentId]
+      )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
       FormModelVisibilityOptics(
