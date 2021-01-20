@@ -53,13 +53,22 @@ case class EvaluationResults(
   private def get(
     expr: FormCtx,
     recData: RecData[SourceOrigin.OutOfDate],
-    fromVariadicValue: VariadicValue => ExpressionResult
-  ): ExpressionResult =
-    exprMap.getOrElse(
+    fromVariadicValue: VariadicValue => ExpressionResult,
+    isFileField: Set[ModelComponentId] = Set.empty
+  ): ExpressionResult = {
+    val modelComponentId = expr.formComponentId.modelComponentId
+    val expressionResult = exprMap.getOrElse(
       expr,
       recData.variadicFormData
-        .get(expr.formComponentId.modelComponentId)
+        .get(modelComponentId)
         .fold(ExpressionResult.empty)(fromVariadicValue))
+    if (isFileField(modelComponentId)) stripFileName(expressionResult, modelComponentId) else expressionResult
+  }
+
+  private def stripFileName(expressionResult: ExpressionResult, modelComponentId: ModelComponentId): ExpressionResult =
+    expressionResult.withStringResult(expressionResult) { fileName =>
+      StringResult(fileName.replace(modelComponentId.toMongoIdentifier + "_", ""))
+    }
 
   private def get(modelComponentId: ModelComponentId, recData: RecData[SourceOrigin.OutOfDate]): Option[VariadicValue] =
     recData.variadicFormData
@@ -140,12 +149,13 @@ case class EvaluationResults(
         ExpressionResult.OptionResult(many.value.map(_.toInt)))
 
     def loop(expr: Expr): ExpressionResult = expr match {
-      case Add(field1: Expr, field2: Expr)                 => loop(field1) + loop(field2)
-      case Multiply(field1: Expr, field2: Expr)            => unsupportedOperation("String")(expr)
-      case Subtraction(field1: Expr, field2: Expr)         => unsupportedOperation("String")(expr)
-      case Else(field1: Expr, field2: Expr)                => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId: FormComponentId) => get(ctx, recData, fromVariadicValue)
-      case Sum(field1: Expr)                               => unsupportedOperation("String")(expr)
+      case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
+      case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
+      case Subtraction(field1: Expr, field2: Expr) => unsupportedOperation("String")(expr)
+      case Else(field1: Expr, field2: Expr)        => loop(field1) orElse loop(field2)
+      case ctx @ FormCtx(formComponentId: FormComponentId) =>
+        get(ctx, recData, fromVariadicValue, evaluationContext.fileFields)
+      case Sum(field1: Expr) => unsupportedOperation("String")(expr)
       case AuthCtx(value: AuthInfo) =>
         nonEmpty(StringResult(AuthContextPrepop.values(value, evaluationContext.retrievals)))
       case UserCtx(value: UserField) =>

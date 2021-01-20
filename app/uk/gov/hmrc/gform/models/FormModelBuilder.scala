@@ -204,7 +204,9 @@ class FormModelBuilder[E, F[_]: Functor](
         thirdPartyData,
         formTemplate.authConfig,
         hc,
-        formPhase)
+        formPhase,
+        formModel.allFileIds
+      )
 
     recalculation
       .recalculateFormDataNew(data, formModel, formTemplate, retrievals, thirdPartyData, evaluationContext)
