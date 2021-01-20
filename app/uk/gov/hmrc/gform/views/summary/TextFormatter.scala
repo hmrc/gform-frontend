@@ -65,10 +65,10 @@ object TextFormatter {
   ): String =
     (textConstraint, prefix, suffix) match {
       // format: off
-      case (IsPositiveNumberOrNumber(maxFractionalDigits, roundingMode, unit), p, s)  =>  prependPrefix(p) + formatNumber(currentValue, maxFractionalDigits, roundingMode,  s.map(_.localised).orElse(unit))
-      case (_: Sterling, _, _)                                                        =>  formatSterling(currentValue)
-      case (_, p, s)                                                                  =>  prependPrefix(p) + currentValue + appendSuffix(s)
-      case _                                                                          =>  currentValue
+      case (IsPositiveNumberOrNumber(maxFractionalDigits, roundingMode, unit), p, s) => prependPrefix(p) + formatNumber(currentValue, maxFractionalDigits, roundingMode, s.map(_.localised).orElse(unit))
+      case (_: Sterling, _, _)                                                       => formatSterling(currentValue)
+      case (_, p, s)                                                                 => prependPrefix(p) + currentValue + appendSuffix(s)
+      case _                                                                         => currentValue
       // format: on
     }
 
