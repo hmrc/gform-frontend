@@ -55,7 +55,7 @@ object TextFormatter {
       case (_: Sterling, _, true)                                                     => stripTrailingZeros(currentValue)
       case (_: Sterling, _, _)                                                        => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
       case _                                                                          => currentValue
-      // format: off
+      // format: on
     }
 
   def componentTextForSummary(
