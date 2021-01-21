@@ -185,7 +185,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         RadioItem(
           value = Some(index.toString),
           content = content.Text(option.value),
-          checked = isChecked(index)
+          checked = isChecked(index),
+          attributes = dataLabelAttribute(option)
         )
     }
 
@@ -711,7 +712,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       id = Some(formComponent.id.value + index),
       value = Some(optionParams.value),
       content = content.Text(dateRangeLabel(optionParams)),
-      checked = optionParams.value === setValue
+      checked = optionParams.value === setValue,
+      attributes = dataLabelAttribute(dateRangeLabel(optionParams))
     )
 
     def renderOptions(optionParams: NonEmptyList[OptionParams]) = {
@@ -887,7 +889,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               value = Some(index.toString),
               content = content.Text(option.value),
               checked = isChecked(index),
-              conditionalHtml = helpTextHtml(maybeHelpText)
+              conditionalHtml = helpTextHtml(maybeHelpText),
+              attributes = dataLabelAttribute(option)
             )
         }
 
@@ -911,7 +914,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               value = index.toString,
               content = content.Text(option.value),
               checked = isChecked(index),
-              conditionalHtml = helpTextHtml(maybeHelpText)
+              conditionalHtml = helpTextHtml(maybeHelpText),
+              attributes = dataLabelAttribute(option)
             )
         }
 
@@ -1019,7 +1023,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             value = index.toString,
             content = content.Text(option.value),
             checked = isChecked(index),
-            conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index))
+            conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
+            attributes = dataLabelAttribute(option)
           )
       }
 
@@ -1042,7 +1047,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             value = Some(index.toString),
             content = content.Text(option.value),
             checked = isChecked(index),
-            conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index))
+            conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
+            attributes = dataLabelAttribute(option)
           )
       }
 
@@ -1146,7 +1152,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             id = Some(formComponent.id.value + index),
             value = Some(lookupLabel.label),
             content = content.Text(lookupLabel.label),
-            checked = lookupLabel.label === selectedValue
+            checked = lookupLabel.label === selectedValue,
+            attributes = dataLabelAttribute(lookupLabel.label)
           )
 
           val lookupLabels: List[LookupLabel] = options.process(_.sortLookupByIdx)
@@ -1702,6 +1709,11 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       case _ => false
     }
   }
+
+  private def dataLabelAttribute(label: SmartString): Map[String, String] =
+    dataLabelAttribute(label.localised.value(LangADT.En))
+  private def dataLabelAttribute(label: String): Map[String, String] =
+    Map("data-label" -> label.replaceAll("''", "'"))
 
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
   private val govukFieldset: components.govukFieldset = new components.govukFieldset()
