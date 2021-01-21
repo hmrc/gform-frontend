@@ -73,7 +73,7 @@ object TextFormatter {
       case (_, p, s)                                                                 => prependPrefix(p) + currentValue + appendSuffix(s)
       case _                                                                         => currentValue
       // format: on
-  }
+    }
 
   private def stripTrailingZeros(currentValue: String): String =
     if (currentValue.contains(".")) {
