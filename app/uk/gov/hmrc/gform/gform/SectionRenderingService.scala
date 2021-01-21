@@ -1713,7 +1713,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   private def dataLabelAttribute(label: SmartString): Map[String, String] =
     dataLabelAttribute(label.localised.value(LangADT.En))
   private def dataLabelAttribute(label: String): Map[String, String] =
-    Map("data-label" -> label.replaceAll("''", "'"))
+    Map("data-label" -> label.replaceAll("''", "'")) // Unescape single-quote
 
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
   private val govukFieldset: components.govukFieldset = new components.govukFieldset()
