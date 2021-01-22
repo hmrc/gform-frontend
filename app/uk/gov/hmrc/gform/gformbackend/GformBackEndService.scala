@@ -23,16 +23,18 @@ import play.api.mvc.Request
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.eval.ExpressionResult.StringResult
 import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder, SummaryPagePurpose }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ FormModelBuilder, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.BundledFormSubmissionData
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormPhase, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.instructions.InstructionsRenderingService
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormPhases.GENERATE_INSTRUCTION_PDF
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
@@ -160,17 +162,27 @@ class GformBackEndService(
                        submissionDetails,
                        SummaryPagePurpose.ForDms,
                        formModelOptics)
-      htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate))
+      htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate)) {
+
+                                val updatedFormModelOptics = formModelOptics.copy(
+                                  formModelVisibilityOptics = FormModelBuilder.buildFormModelVisibilityOptics(
+                                    formModelOptics.formModelVisibilityOptics.recData.variadicFormData,
+                                    formModelOptics.formModelRenderPageOptics.formModel,
+                                    formModelOptics.formModelVisibilityOptics.recalculationResult
+                                      .withExpressionResult(FormPhase, StringResult(GENERATE_INSTRUCTION_PDF))
+                                  ))
+
                                 instructionsRenderingService
                                   .createHtmlForInstructionsPdf(
                                     maybeAccessCode,
                                     cache,
                                     submissionDetails,
                                     SummaryPagePurpose.ForDms,
-                                    formModelOptics)
+                                    updatedFormModelOptics)
                                   .map(Some(_))
-                              else
+                              } else {
                                 Future.successful(None)
+                              }
       structuredFormData <- StructuredFormDataBuilder(
                              formModelOptics.formModelVisibilityOptics,
                              cache.formTemplate.destinations,

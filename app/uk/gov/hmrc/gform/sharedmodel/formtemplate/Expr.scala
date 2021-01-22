@@ -36,6 +36,7 @@ sealed trait Expr extends Product with Serializable {
     case FormTemplateCtx(value: FormTemplateProp)   => this :: Nil
     case ParamCtx(_)                                => this :: Nil
     case LinkCtx(_)                                 => this :: Nil
+    case FormPhase                                  => this :: Nil
   }
 
   def sums: List[Sum] = this match {
@@ -53,6 +54,7 @@ sealed trait Expr extends Product with Serializable {
     case FormTemplateCtx(value: FormTemplateProp)   => Nil
     case ParamCtx(_)                                => Nil
     case LinkCtx(_)                                 => Nil
+    case FormPhase                                  => Nil
   }
 }
 
@@ -70,6 +72,7 @@ final case class LinkCtx(link: InternalLink) extends Expr
 final case class HmrcRosmRegistrationCheck(value: RosmProp) extends Expr
 final case object Value extends Expr
 final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
+case object FormPhase extends Expr
 
 object FormCtx {
   implicit val format: OFormat[FormCtx] = derived.oformat()
@@ -128,4 +131,8 @@ object FormTemplateProp {
   case object SubmissionReference extends FormTemplateProp
 
   implicit val format: OFormat[FormTemplateProp] = derived.oformat()
+}
+
+object FormPhases {
+  val GENERATE_INSTRUCTION_PDF = "instructionPDF"
 }
