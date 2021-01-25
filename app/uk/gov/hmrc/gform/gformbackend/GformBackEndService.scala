@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import cats.instances.future._
 import play.api.i18n.Messages
 import play.api.mvc.Request
+
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -27,13 +28,14 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.StringResult
 import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder, SummaryPagePurpose }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ FormModelBuilder, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.BundledFormSubmissionData
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormPhase, FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.instructions.InstructionsRenderingService
+import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormPhases.GENERATE_INSTRUCTION_PDF
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
@@ -90,7 +92,8 @@ class GformBackEndService(
   gformConnector: GformConnector,
   summaryRenderingService: SummaryRenderingService,
   instructionsRenderingService: InstructionsRenderingService,
-  lookupRegistry: LookupRegistry)(implicit ec: ExecutionContext)
+  lookupRegistry: LookupRegistry,
+  smartStringEvaluatorFactory: SmartStringEvaluatorFactory)(implicit ec: ExecutionContext)
     extends GformBackEndAlgebra[Future] {
 
   def getForm(id: FormIdData)(implicit hc: HeaderCarrier): Future[Form] = gformConnector.getForm(id)
@@ -163,14 +166,17 @@ class GformBackEndService(
                        SummaryPagePurpose.ForDms,
                        formModelOptics)
       htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate)) {
-
-                                val updatedFormModelOptics = formModelOptics.copy(
-                                  formModelVisibilityOptics = FormModelBuilder.buildFormModelVisibilityOptics(
-                                    formModelOptics.formModelVisibilityOptics.recData.variadicFormData,
-                                    formModelOptics.formModelRenderPageOptics.formModel,
-                                    formModelOptics.formModelVisibilityOptics.recalculationResult
-                                      .withExpressionResult(FormPhase, StringResult(GENERATE_INSTRUCTION_PDF))
-                                  ))
+                                val formModelOpticsUpdated = formModelOptics
+                                  .withExpressionResult(FormPhase, StringResult(GENERATE_INSTRUCTION_PDF))
+                                val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorFactory
+                                  .apply(
+                                    formModelOpticsUpdated.formModelVisibilityOptics
+                                      .asInstanceOf[FormModelVisibilityOptics[Mongo]],
+                                    cache.retrievals,
+                                    maybeAccessCode,
+                                    cache.form,
+                                    cache.formTemplate
+                                  )
 
                                 instructionsRenderingService
                                   .createHtmlForInstructionsPdf(
@@ -178,7 +184,8 @@ class GformBackEndService(
                                     cache,
                                     submissionDetails,
                                     SummaryPagePurpose.ForDms,
-                                    updatedFormModelOptics)
+                                    formModelOpticsUpdated
+                                  )(implicitly[SectionSelector[U]], request, l, hc, ec, smartStringEvaluator)
                                   .map(Some(_))
                               } else {
                                 Future.successful(None)

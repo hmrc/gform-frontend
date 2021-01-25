@@ -70,9 +70,9 @@ object FormModelBuilder {
       case fc @ HasValueExpr(expr) if !fc.editable => (fc.id, visibilityFormModel.explicitTypedExpr(expr, fc.id))
     }
 
-    val visibleVariadicData: VariadicFormData[SourceOrigin.Current] =
-      visibleTypedExprs.foldMap {
-        case (fcId, typeInfo) =>
+    val (visibleVariadicData, recalculationResultUpdated) =
+      visibleTypedExprs.foldLeft((VariadicFormData.empty[SourceOrigin.Current], recalculationResult)) {
+        case ((variadicFormDataAcc, recalculationResultAcc), (fcId, typeInfo)) =>
           val expressionResult =
             evaluationResults
               .evalExpr(
@@ -80,15 +80,16 @@ object FormModelBuilder {
                 RecData(data).asInstanceOf[RecData[SourceOrigin.OutOfDate]],
                 recalculationResult.evaluationContext)
               .applyTypeInfo(typeInfo)
-
-          toCurrentData(fcId.modelComponentId, expressionResult)
+          (
+            variadicFormDataAcc ++ toCurrentData(fcId.modelComponentId, expressionResult),
+            recalculationResultAcc.withExpressionResult(FormCtx(fcId), expressionResult))
       }
 
     val currentData = data ++ visibleVariadicData
 
     val recData: RecData[SourceOrigin.Current] = RecData.empty.copy(variadicFormData = currentData)
 
-    FormModelVisibilityOptics[D](visibilityFormModel, recData, recalculationResult)
+    FormModelVisibilityOptics[D](visibilityFormModel, recData, recalculationResultUpdated)
   }
 
   private def evalIncludeIf[T <: PageMode](

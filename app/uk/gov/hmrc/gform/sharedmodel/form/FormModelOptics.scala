@@ -19,16 +19,17 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import cats.{ Functor, MonadError }
 import cats.syntax.functor._
 import com.softwaremill.quicklens._
+
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
-import uk.gov.hmrc.gform.eval.EvaluationContext
+import uk.gov.hmrc.gform.eval.{ EvaluationContext, ExpressionResult }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, SubmissionRef, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.EnrolmentSection
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, Expr }
 import uk.gov.hmrc.http.HeaderCarrier
 
 case class FormModelOptics[D <: DataOrigin](
@@ -45,6 +46,19 @@ case class FormModelOptics[D <: DataOrigin](
       .setTo(formModelRenderPageOptics.recData.cleared(modelComponentIds))
       .modify(_.formModelVisibilityOptics.recData.variadicFormData)
       .setTo(formModelVisibilityOptics.recData.cleared(modelComponentIds))
+
+  def withExpressionResult[U <: SectionSelectorType: SectionSelector](
+    expr: Expr,
+    expressionResult: ExpressionResult): FormModelOptics[D] = {
+    val formModelVisibilityOpticsUpdated: FormModelVisibilityOptics[D] =
+      FormModelBuilder.buildFormModelVisibilityOptics(
+        formModelVisibilityOptics.recData.variadicFormData,
+        formModelRenderPageOptics.formModel,
+        formModelVisibilityOptics.recalculationResult
+          .withExpressionResult(expr, expressionResult)
+      )
+    copy(formModelVisibilityOptics = formModelVisibilityOpticsUpdated)
+  }
 }
 
 object FormModelOptics {
