@@ -164,40 +164,10 @@ class GformBackEndService(
                        submissionDetails,
                        SummaryPagePurpose.ForDms,
                        formModelOptics)
-      htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate)) {
-
-                                val formModelOpticsUpdatedF = FormModelOptics.mkFormModelOptics(
-                                  formModelOptics.formModelVisibilityOptics.recData.variadicFormData
-                                    .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                  cache,
-                                  cache.toCacheData,
-                                  recalculation,
-                                  Some(InstructionPDF)
-                                )
-
-                                formModelOpticsUpdatedF.flatMap { formModelOpticsUpdated =>
-                                  val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorFactory
-                                    .apply(
-                                      formModelOpticsUpdated.formModelVisibilityOptics
-                                        .asInstanceOf[FormModelVisibilityOptics[Mongo]],
-                                      cache.retrievals,
-                                      maybeAccessCode,
-                                      cache.form,
-                                      cache.formTemplate
-                                    )
-                                  instructionsRenderingService
-                                    .createHtmlForInstructionsPdf(
-                                      maybeAccessCode,
-                                      cache,
-                                      submissionDetails,
-                                      SummaryPagePurpose.ForDms,
-                                      formModelOpticsUpdated
-                                    )(implicitly[SectionSelector[U]], request, l, hc, ec, smartStringEvaluator)
-                                    .map(Some(_))
-                                }
-                              } else {
+      htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate))
+                                createHTMLForInstructionPDF(maybeAccessCode, cache, submissionDetails, formModelOptics)
+                              else
                                 Future.successful(None)
-                              }
       structuredFormData <- StructuredFormDataBuilder(
                              formModelOptics.formModelVisibilityOptics,
                              cache.formTemplate.destinations,
@@ -215,6 +185,47 @@ class GformBackEndService(
                    formModelOptics.formModelVisibilityOptics
                  )
     } yield response
+
+  private def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, D <: DataOrigin](
+    maybeAccessCode: Option[AccessCode],
+    cache: AuthCacheWithForm,
+    submissionDetails: Option[SubmissionDetails],
+    formModelOptics: FormModelOptics[D])(
+    implicit
+    request: Request[_],
+    l: LangADT,
+    hc: HeaderCarrier) = {
+
+    val formModelOpticsUpdatedF = FormModelOptics.mkFormModelOptics(
+      formModelOptics.formModelVisibilityOptics.recData.variadicFormData
+        .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+      cache,
+      cache.toCacheData,
+      recalculation,
+      Some(InstructionPDF)
+    )
+
+    formModelOpticsUpdatedF.flatMap { formModelOpticsUpdated =>
+      implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorFactory
+        .apply(
+          formModelOpticsUpdated.formModelVisibilityOptics
+            .asInstanceOf[FormModelVisibilityOptics[Mongo]],
+          cache.retrievals,
+          maybeAccessCode,
+          cache.form,
+          cache.formTemplate
+        )
+      instructionsRenderingService
+        .createHtmlForInstructionsPdf(
+          maybeAccessCode,
+          cache,
+          submissionDetails,
+          SummaryPagePurpose.ForDms,
+          formModelOpticsUpdated
+        )
+        .map(Some(_))
+    }
+  }
 
   def emailParameter[D <: DataOrigin](
     formTemplate: FormTemplate,
