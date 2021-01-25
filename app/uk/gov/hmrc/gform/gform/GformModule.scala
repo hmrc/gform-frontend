@@ -198,7 +198,8 @@ class GformModule(
     summaryRenderingService,
     instructionsRenderingService,
     lookupRegistry,
-    graphModule.smartStringEvaluatorFactory
+    graphModule.smartStringEvaluatorFactory,
+    graphModule.recalculation
   )
 
   val declarationController = new DeclarationController(

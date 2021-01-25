@@ -121,7 +121,7 @@ case class EvaluationResults(
       case FormTemplateCtx(value: FormTemplateProp)   => unsupportedOperation("Number")(expr)
       case ParamCtx(_)                                => unsupportedOperation("Number")(expr)
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
-      case FormPhase                                  => unsupportedOperation("Number")(expr)
+      case CurrentFormPhase                           => unsupportedOperation("Number")(expr)
     }
 
     loop(expr)
@@ -180,8 +180,8 @@ case class EvaluationResults(
 
           }
         nonEmpty(StringResult(link.url))
-      case FormPhase =>
-        exprMap.getOrElse(FormPhase, ExpressionResult.empty)
+      case CurrentFormPhase =>
+        exprMap.getOrElse(CurrentFormPhase, ExpressionResult.empty)
     }
 
     loop(expr)
@@ -237,6 +237,8 @@ case class EvaluationResults(
 
 object EvaluationResults {
   val empty = EvaluationResults(Map.empty)
+
+  def one(expr: Expr, result: ExpressionResult): EvaluationResults = empty.+(expr, result)
 
   def unapply(a: EvaluationResults): Option[Map[Expr, ExpressionResult]] = Some(a.exprMap)
 

@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.eval
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, FormPhase, FormTemplateId }
 import uk.gov.hmrc.http.HeaderCarrier
 
 // Various information needed for Expr evaluation
@@ -30,5 +30,6 @@ class EvaluationContext(
   val retrievals: MaterialisedRetrievals,
   val thirdPartyData: ThirdPartyData,
   val authConfig: AuthConfig,
-  val headerCarrier: HeaderCarrier
+  val headerCarrier: HeaderCarrier,
+  val formPhase: Option[FormPhase] = None
 )

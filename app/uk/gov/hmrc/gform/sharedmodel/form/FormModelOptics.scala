@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, Sec
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, SubmissionRef, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, Expr }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, Expr, FormPhase }
 import uk.gov.hmrc.http.HeaderCarrier
 
 case class FormModelOptics[D <: DataOrigin](
@@ -88,14 +88,15 @@ object FormModelOptics {
     data: VariadicFormData[SourceOrigin.OutOfDate],
     cache: AuthCache,
     cacheData: CacheData,
-    recalculation: Recalculation[F, Throwable]
+    recalculation: Recalculation[F, Throwable],
+    phase: Option[FormPhase]
   )(
     implicit
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
   ): F[FormModelOptics[D]] = {
     val formModelBuilder = FormModelBuilder.fromCache(cache, cacheData, recalculation)
-    val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] = formModelBuilder.visibilityModel(data)
+    val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] = formModelBuilder.visibilityModel(data, phase)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
       formModelBuilder.renderPageModel(formModelVisibilityOptics)
     }
@@ -104,10 +105,11 @@ object FormModelOptics {
   def mkFormModelOptics[D <: DataOrigin, F[_]: Functor, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     cache: AuthCacheWithForm,
-    recalculation: Recalculation[F, Throwable]
+    recalculation: Recalculation[F, Throwable],
+    phase: Option[FormPhase] = None
   )(
     implicit
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
-  ): F[FormModelOptics[D]] = mkFormModelOptics(data, cache, cache.toCacheData, recalculation)
+  ): F[FormModelOptics[D]] = mkFormModelOptics(data, cache, cache.toCacheData, recalculation, phase)
 }

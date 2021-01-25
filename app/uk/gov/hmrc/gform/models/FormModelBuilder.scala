@@ -37,11 +37,7 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.http.HeaderCarrier
 
 object FormModelBuilder {
-  def fromCache[E, F[_]: Functor](
-    cache: AuthCache,
-    cacheData: CacheData,
-    recalculation: Recalculation[F, E]
-  )(
+  def fromCache[E, F[_]: Functor](cache: AuthCache, cacheData: CacheData, recalculation: Recalculation[F, E])(
     implicit
     hc: HeaderCarrier,
     me: MonadError[F, E]
@@ -194,7 +190,8 @@ class FormModelBuilder[E, F[_]: Functor](
 
   private def toRecalculationResults(
     data: VariadicFormData[SourceOrigin.OutOfDate],
-    formModel: FormModel[Interim]
+    formModel: FormModel[Interim],
+    formPhase: Option[FormPhase]
   ): F[RecalculationResult] = {
     val evaluationContext =
       new EvaluationContext(
@@ -204,7 +201,8 @@ class FormModelBuilder[E, F[_]: Functor](
         retrievals,
         thirdPartyData,
         formTemplate.authConfig,
-        hc)
+        hc,
+        formPhase)
 
     recalculation
       .recalculateFormDataNew(data, formModel, formTemplate, retrievals, thirdPartyData, evaluationContext)
@@ -266,16 +264,20 @@ class FormModelBuilder[E, F[_]: Functor](
   }
 
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
-    data: VariadicFormData[SourceOrigin.OutOfDate]
+    data: VariadicFormData[SourceOrigin.OutOfDate],
+    phase: Option[FormPhase] = None
   ): F[FormModelVisibilityOptics[D]] = {
     val formModel: FormModel[Interim] = expand(data)
 
-    val recalculationResultF: F[RecalculationResult] = toRecalculationResults(data, formModel)
+    val recalculationResultF: F[RecalculationResult] = toRecalculationResults(data, formModel, phase)
 
     recalculationResultF.map { recalculationResult =>
-      buildFormModelVisibilityOptics(data, formModel, recalculationResult)
+      buildFormModelVisibilityOptics(
+        data,
+        formModel,
+        recalculationResult
+      )
     }
-
   }
 
   def buildFormModelVisibilityOptics[U <: SectionSelectorType: SectionSelector, D <: DataOrigin](

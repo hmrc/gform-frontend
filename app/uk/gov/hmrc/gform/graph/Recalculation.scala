@@ -27,11 +27,11 @@ import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, StringResult }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, DateExprEval, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.form.{ ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 
@@ -251,7 +251,12 @@ class Recalculation[F[_]: Monad, E](
 
     val contextE: Context =
       (
-        StateT[F, RecalculationState, EvaluationResults](s => (s, EvaluationResults.empty).pure[F]),
+        StateT[F, RecalculationState, EvaluationResults](
+          s =>
+            (
+              s,
+              evaluationContext.formPhase.fold(EvaluationResults.empty)(p =>
+                EvaluationResults.one(CurrentFormPhase, StringResult(p.toString)))).pure[F]),
         RecData.fromData(data))
 
     val res: Either[
