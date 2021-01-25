@@ -25,8 +25,8 @@ object HasDigits {
     expr match {
       case Text(Number(_, digits, rm, _), _, _, _, _, _)         => Some(MaxDigitsAndRoundingMode(digits, rm))
       case Text(PositiveNumber(_, digits, rm, _), _, _, _, _, _) => Some(MaxDigitsAndRoundingMode(digits, rm))
-      case TextArea(Number(_, digits, rm, _), _, _)              => Some(MaxDigitsAndRoundingMode(digits, rm))
-      case TextArea(PositiveNumber(_, digits, rm, _), _, _)      => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case TextArea(Number(_, digits, rm, _), _, _, _)           => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case TextArea(PositiveNumber(_, digits, rm, _), _, _, _)   => Some(MaxDigitsAndRoundingMode(digits, rm))
       case _                                                     => None
     }
 }
@@ -35,7 +35,7 @@ object HasSterling {
   def unapply(expr: ComponentType): Option[MaxDigitsAndRoundingMode] =
     expr match {
       case Text(s: Sterling, _, _, _, _, _) => Some(MaxDigitsAndRoundingMode(2, s.roundingMode))
-      case TextArea(s: Sterling, _, _)      => Some(MaxDigitsAndRoundingMode(2, s.roundingMode))
+      case TextArea(s: Sterling, _, _, _)   => Some(MaxDigitsAndRoundingMode(2, s.roundingMode))
       case _                                => None
     }
 }

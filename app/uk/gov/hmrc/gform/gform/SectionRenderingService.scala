@@ -619,7 +619,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             renderLookup(formComponent, register, validationResult, ei)
           case t @ Text(_, _, _, _, _, _) =>
             renderText(t, formComponent, validationResult, ei)
-          case t @ TextArea(_, _, _) =>
+          case t @ TextArea(_, _, _, _) =>
             renderTextArea(t, formComponent, validationResult, ei)
           case Choice(choice, options, orientation, selections, optionalHelpText) =>
             htmlForChoice(
@@ -1249,6 +1249,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           val characterCount = CharacterCount(
             id = formComponent.id.value,
             name = formComponent.id.value,
+            rows = text.rows,
             label = label,
             hint = hint,
             value = maybeCurrentValue,
@@ -1264,6 +1265,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           val textArea = Textarea(
             id = formComponent.id.value,
             name = formComponent.id.value,
+            rows = text.rows,
             label = label,
             hint = hint,
             value = maybeCurrentValue,
