@@ -85,8 +85,13 @@ object UpperCaseBoolean {
 case class TextArea(
   constraint: TextConstraint,
   value: Expr,
-  displayWidth: DisplayWidth = DisplayWidth.DEFAULT
+  displayWidth: DisplayWidth = DisplayWidth.DEFAULT,
+  rows: Int = TextArea.defaultRows
 ) extends ComponentType
+
+object TextArea {
+  val defaultRows = 5
+}
 
 case class UkSortCode(value: Expr) extends ComponentType with MultiField {
   override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =

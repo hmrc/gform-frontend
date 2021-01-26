@@ -24,7 +24,7 @@ object HasExpr {
   def unapply(ct: ComponentType): Option[Expr] =
     ct match {
       case Text(_, NonValueExpr(expr), _, _, _, _) => Some(expr)
-      case TextArea(_, NonValueExpr(expr), _)      => Some(expr)
+      case TextArea(_, NonValueExpr(expr), _, _)   => Some(expr)
       case UkSortCode(NonValueExpr(expr))          => Some(expr)
       case HmrcTaxPeriod(_, NonValueExpr(expr), _) => Some(expr)
       case _                                       => None
@@ -37,7 +37,7 @@ object HasValueExpr {
   def unapply(ct: ComponentType): Option[Expr] =
     ct match {
       case Text(_, NonValueExpr(expr), _, _, _, _) => Some(expr)
-      case TextArea(_, NonValueExpr(expr), _)      => Some(expr)
+      case TextArea(_, NonValueExpr(expr), _, _)   => Some(expr)
       case _                                       => None
     }
 }

@@ -202,7 +202,7 @@ object ValidationUtil {
   private final object IsTextOrTextArea {
     def unapply(fc: FormComponent): Option[TextConstraint] = fc.`type` match {
       case Text(constraint, _, _, _, _, _) => Some(constraint)
-      case TextArea(constraint, _, _)      => Some(constraint)
+      case TextArea(constraint, _, _, _)   => Some(constraint)
       case _                               => None
     }
   }
