@@ -135,7 +135,7 @@ class DebugController(
             .Contains(booleanExpr, inspectExpr(multiValueField, formModel), inspectExpr(value, formModel)) :: Nil
         case In(formCtx, dataSource)    => Nil
         case MatchRegex(formCtx, regex) => Nil
-
+        case FormPhase(value)           => Nil
       }
     }
 

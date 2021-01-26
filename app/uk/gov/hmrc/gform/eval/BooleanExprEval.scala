@@ -26,7 +26,7 @@ import scala.language.higherKinds
 import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, Equals, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, MatchRegex, Not, Or }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, Equals, FormPhase, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, MatchRegex, Not, Or }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 
@@ -105,6 +105,9 @@ class BooleanExprEval[F[_]: Monad] {
         val expressionResult: ExpressionResult =
           formModelVisibilityOptics.evalAndApplyTypeInfoFirst(formCtx).expressionResult
         expressionResult.matchRegex(regex).pure[F]
+
+      case FormPhase(_) =>
+        false.pure[F]
     }
 
     loop(booleanExpr)

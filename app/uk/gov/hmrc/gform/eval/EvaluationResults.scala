@@ -121,7 +121,6 @@ case class EvaluationResults(
       case FormTemplateCtx(value: FormTemplateProp)   => unsupportedOperation("Number")(expr)
       case ParamCtx(_)                                => unsupportedOperation("Number")(expr)
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
-      case CurrentFormPhase                           => unsupportedOperation("Number")(expr)
     }
 
     loop(expr)
@@ -180,8 +179,6 @@ case class EvaluationResults(
 
           }
         nonEmpty(StringResult(link.url))
-      case CurrentFormPhase =>
-        exprMap.getOrElse(CurrentFormPhase, ExpressionResult.empty)
     }
 
     loop(expr)

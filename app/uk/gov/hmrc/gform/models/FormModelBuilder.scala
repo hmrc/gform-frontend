@@ -54,11 +54,12 @@ object FormModelBuilder {
   def buildFormModelVisibilityOptics[D <: DataOrigin, U <: SectionSelectorType: SectionSelector, P <: PageMode](
     data: VariadicFormData[SourceOrigin.Current],
     formModel: FormModel[P],
-    recalculationResult: RecalculationResult) = {
+    recalculationResult: RecalculationResult,
+    phase: Option[FormPhase]) = {
     val evaluationResults = recalculationResult.evaluationResults
     val visibilityFormModel: FormModel[Visibility] = formModel.filter[Visibility] { pageModel =>
       pageModel.getIncludeIf.fold(true) { includeIf =>
-        evalIncludeIf(includeIf, recalculationResult, RecData(data), formModel)
+        evalIncludeIf(includeIf, recalculationResult, RecData(data), formModel, phase)
       }
     }
 
@@ -66,9 +67,9 @@ object FormModelBuilder {
       case fc @ HasValueExpr(expr) if !fc.editable => (fc.id, visibilityFormModel.explicitTypedExpr(expr, fc.id))
     }
 
-    val (visibleVariadicData, recalculationResultUpdated) =
-      visibleTypedExprs.foldLeft((VariadicFormData.empty[SourceOrigin.Current], recalculationResult)) {
-        case ((variadicFormDataAcc, recalculationResultAcc), (fcId, typeInfo)) =>
+    val visibleVariadicData =
+      visibleTypedExprs.foldLeft(VariadicFormData.empty[SourceOrigin.Current]) {
+        case (variadicFormDataAcc, (fcId, typeInfo)) =>
           val expressionResult =
             evaluationResults
               .evalExpr(
@@ -76,23 +77,23 @@ object FormModelBuilder {
                 RecData(data).asInstanceOf[RecData[SourceOrigin.OutOfDate]],
                 recalculationResult.evaluationContext)
               .applyTypeInfo(typeInfo)
-          (
-            variadicFormDataAcc ++ toCurrentData(fcId.modelComponentId, expressionResult),
-            recalculationResultAcc.withExpressionResult(FormCtx(fcId), expressionResult))
+
+          variadicFormDataAcc ++ toCurrentData(fcId.modelComponentId, expressionResult)
       }
 
     val currentData = data ++ visibleVariadicData
 
     val recData: RecData[SourceOrigin.Current] = RecData.empty.copy(variadicFormData = currentData)
 
-    FormModelVisibilityOptics[D](visibilityFormModel, recData, recalculationResultUpdated)
+    FormModelVisibilityOptics[D](visibilityFormModel, recData, recalculationResult)
   }
 
   private def evalIncludeIf[T <: PageMode](
     includeIf: IncludeIf,
     recalculationResult: RecalculationResult,
     recData: RecData[SourceOrigin.Current],
-    formModel: FormModel[T]
+    formModel: FormModel[T],
+    phase: Option[FormPhase]
   ): Boolean = {
     def compare(expr1: Expr, expr2: Expr, f: (ExpressionResult, ExpressionResult) => Boolean): Boolean = {
       val typeInfo1 = formModel.toFirstOperandTypeInfo(expr1)
@@ -150,6 +151,7 @@ object FormModelBuilder {
       case Contains(field1, field2)            => compare(field1, field2, _ contains _)
       case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, formModel, recalculationResult, recData)
       case MatchRegex(formCtx, regex)          => matchRegex(formCtx, regex)
+      case FormPhase(value)                    => phase.fold(false)(_.value == value)
     }
 
     loop(includeIf.booleanExpr)
@@ -212,7 +214,8 @@ class FormModelBuilder[E, F[_]: Functor](
     expand(VariadicFormData.empty[SourceOrigin.OutOfDate])
 
   def renderPageModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    phase: Option[FormPhase]
   ): FormModelOptics[D] = {
 
     implicit val fmvo = formModelVisibilityOptics
@@ -220,7 +223,7 @@ class FormModelBuilder[E, F[_]: Functor](
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
     val dataOutOfDate = data.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]]
     val formModel: FormModel[DataExpanded] = expand(dataOutOfDate)
-    val formModelVisibility: FormModel[Visibility] = visibilityModel(formModel, formModelVisibilityOptics)
+    val formModelVisibility: FormModel[Visibility] = visibilityModel(formModel, formModelVisibilityOptics, phase)
 
     val formModelVisibilityOpticsFinal = new FormModelVisibilityOptics[D](
       formModelVisibility,
@@ -238,7 +241,8 @@ class FormModelBuilder[E, F[_]: Functor](
 
   private def visibilityModel[D <: DataOrigin](
     formModel: FormModel[DataExpanded],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    phase: Option[FormPhase]
   ): FormModel[Visibility] = {
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
     formModel
@@ -248,7 +252,8 @@ class FormModelBuilder[E, F[_]: Functor](
             includeIf,
             formModelVisibilityOptics.recalculationResult,
             formModelVisibilityOptics.recData,
-            formModelVisibilityOptics.formModel
+            formModelVisibilityOptics.formModel,
+            phase
           )
         }
       }
@@ -275,7 +280,8 @@ class FormModelBuilder[E, F[_]: Functor](
       buildFormModelVisibilityOptics(
         data,
         formModel,
-        recalculationResult
+        recalculationResult,
+        phase
       )
     }
   }
@@ -283,7 +289,8 @@ class FormModelBuilder[E, F[_]: Functor](
   def buildFormModelVisibilityOptics[U <: SectionSelectorType: SectionSelector, D <: DataOrigin](
     data: VariadicFormData[OutOfDate],
     formModel: FormModel[Interim],
-    recalculationResult: RecalculationResult): FormModelVisibilityOptics[D] = {
+    recalculationResult: RecalculationResult,
+    phase: Option[FormPhase]): FormModelVisibilityOptics[D] = {
     val evaluationResults = recalculationResult.evaluationResults
     val visibilityFormModel: FormModel[Visibility] = formModel.filter[Visibility] { pageModel =>
       pageModel.getIncludeIf.fold(true) { includeIf =>
@@ -291,7 +298,8 @@ class FormModelBuilder[E, F[_]: Functor](
           includeIf,
           recalculationResult,
           RecData(data).asInstanceOf[RecData[SourceOrigin.Current]],
-          formModel)
+          formModel,
+          phase)
       }
     }
 

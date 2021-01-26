@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfHtml, SourceOrigin, SubmissionData, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormTemplate, FormTemplateId, InstructionPDF }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormPhase, FormTemplate, FormTemplateId, InstructionPDF }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.instructions.InstructionsRenderingService
@@ -200,9 +200,8 @@ class GformBackEndService(
       formModelOptics.formModelVisibilityOptics.recData.variadicFormData
         .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
       cache,
-      cache.toCacheData,
       recalculation,
-      Some(InstructionPDF)
+      Some(FormPhase(InstructionPDF))
     )
 
     formModelOpticsUpdatedF.flatMap { formModelOpticsUpdated =>

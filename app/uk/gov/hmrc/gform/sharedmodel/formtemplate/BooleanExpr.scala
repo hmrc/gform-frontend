@@ -37,6 +37,7 @@ sealed trait BooleanExpr {
     case Contains(multiValueField, value) => multiValueField :: value :: Nil
     case In(formCtx, _)                   => formCtx :: Nil
     case MatchRegex(formCtx, _)           => formCtx :: Nil
+    case FormPhase(_)                     => Nil
   }
 }
 
@@ -56,6 +57,14 @@ final case class MatchRegex(formCtx: FormCtx, regex: Regex) extends BooleanExpr
 
 final case class DateBefore(left: DateExpr, right: DateExpr) extends BooleanExpr
 final case class DateAfter(left: DateExpr, right: DateExpr) extends BooleanExpr
+
+final case class FormPhase(value: FormPhaseValue) extends BooleanExpr
+sealed trait FormPhaseValue
+case object InstructionPDF extends FormPhaseValue
+
+object FormPhaseValue {
+  implicit val format: OFormat[FormPhaseValue] = derived.oformat()
+}
 
 object BooleanExpr {
   implicit val format: OFormat[BooleanExpr] = derived.oformat()
