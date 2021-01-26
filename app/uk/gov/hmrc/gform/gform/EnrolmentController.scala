@@ -161,7 +161,8 @@ class EnrolmentController(
                 variadicFormData,
                 cache,
                 cache.toCacheData,
-                recalculation)
+                recalculation,
+                None)
             def handleContinueWithData(formModelOptics: FormModelOptics[DataOrigin.Mongo]) = {
               val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
 

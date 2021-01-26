@@ -197,7 +197,9 @@ class GformModule(
     gformBackendModule.gformConnector,
     summaryRenderingService,
     instructionsRenderingService,
-    lookupRegistry
+    lookupRegistry,
+    graphModule.smartStringEvaluatorFactory,
+    graphModule.recalculation
   )
 
   val declarationController = new DeclarationController(
