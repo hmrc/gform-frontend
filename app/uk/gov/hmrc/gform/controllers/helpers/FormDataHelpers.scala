@@ -45,7 +45,7 @@ object FormDataHelpers {
           (field, values.map(value => {
             val matches = invisibleCharMatches(value)
             if (matches.isEmpty) {
-              value
+              value.trim
             } else {
               logger.info(
                 s"Found invisible characters in field $field. " +
