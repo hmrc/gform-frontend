@@ -22,10 +22,9 @@ import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.prop.TableFor3
 import uk.gov.hmrc.gform.Helpers._
 import uk.gov.hmrc.gform.eval.ExpressionResult._
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult }
+import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.FormModelSupport
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -52,7 +51,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
       formTemplate.authConfig,
       hc,
       Option.empty[FormPhase],
-      Set.empty[ModelComponentId]
+      FileIdsWithMapping.empty
     )
 
   "recalculation" should "recalculate single dependency" in {

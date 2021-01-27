@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewa
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.Origin
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.models.{ Bracket, PageModel }
@@ -104,7 +104,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     sectionNumber: SectionNumber,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     formTemplate: FormTemplate,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     formMaxAttachmentSizeMB: Int,
     retrievals: MaterialisedRetrievals,
     formLevelHeading: Boolean,
@@ -411,7 +411,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       formModelOptics,
       formTemplate,
-      Envelope.empty,
+      EnvelopeWithMapping.empty,
       0,
       retrievals,
       formLevelHeading = false,
@@ -503,7 +503,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       formModelOptics,
       formTemplate,
-      Envelope.empty,
+      EnvelopeWithMapping.empty,
       0,
       retrievals,
       formLevelHeading = false,
@@ -564,7 +564,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       formModelOptics,
       formTemplate,
-      Envelope.empty,
+      EnvelopeWithMapping.empty,
       0,
       emptyRetrievals,
       formLevelHeading = false,
@@ -802,6 +802,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       content = labelContent
     )
 
+    val realFileId: FileId =
+      ei.envelope.find(formComponent.modelComponentId).map(_.fileId).getOrElse(FileId.empty)
+
     val fileUpload: fileupload.FileUpload = fileupload.FileUpload(
       id = formComponent.id.value,
       name = formComponent.id.value,
@@ -810,6 +813,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       hint = hint,
       errorMessage = errorMessage,
       attributes = Map(
+        "data-file-id"          -> realFileId.value,
         "data-form-template-id" -> formTemplateId.value,
         "data-max-file-size-MB" -> ei.formMaxAttachmentSizeMB.toString,
         "data-access-code"      -> ei.maybeAccessCode.fold("-")(_.value)
@@ -819,7 +823,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val fileInput: Html = new components.govukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
 
     val uploadedFiles: Html =
-      html.form.snippets.uploaded_files(ei.maybeAccessCode, formTemplateId, formComponent, currentValue)
+      html.form.snippets.uploaded_files(ei.maybeAccessCode, formTemplateId, formComponent.id, realFileId, currentValue)
 
     HtmlFormat.fill(List(fileInput, uploadedFiles))
 

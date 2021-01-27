@@ -54,8 +54,8 @@ trait FormGen {
         status,
         visitIndex,
         thirdPartyData,
-        expiryDate
-        //EvaluationResults.empty
+        expiryDate,
+        FormComponentIdToFileIdMapping.empty
       )
 }
 

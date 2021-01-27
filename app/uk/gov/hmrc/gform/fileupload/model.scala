@@ -21,7 +21,7 @@ import cats.syntax.eq._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 case class Attachments(files: List[FormComponentId]) {
   val size = files.length
@@ -44,10 +44,6 @@ case class Envelope(
   def withUserFileNames: Envelope = Envelope(
     files.map(file => file.copy(fileName = file.fileName.replace(file.fileId.value + "_", "")))
   )
-
-  def userFileName(formComponent: FormComponent): String =
-    find(formComponent.modelComponentId).fold("")(_.fileName)
-
 }
 
 object Envelope {

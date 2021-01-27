@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, Seis
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
@@ -77,7 +78,8 @@ trait FormModelSupport extends GraphSpec {
     status = InProgress,
     visitsIndex = VisitIndex(Set.empty[Int]),
     thirdPartyData = thirdPartyData,
-    envelopeExpiryDate = None
+    envelopeExpiryDate = None,
+    componentIdToFileId = FormComponentIdToFileIdMapping.empty
   )
 
   def mkAuthCacheWithForm(formTemplate: FormTemplate): AuthCacheWithForm = AuthCacheWithForm(
@@ -95,7 +97,8 @@ trait FormModelSupport extends GraphSpec {
       thirdPartyData,
       envelopeId,
       maybeAccessCode,
-      recalculation
+      recalculation,
+      FormComponentIdToFileIdMapping.empty
     )
 
   def mkFormModelOptics(

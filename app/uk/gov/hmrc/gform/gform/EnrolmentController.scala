@@ -33,12 +33,13 @@ import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.{ FormHandlerResult, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -162,7 +163,8 @@ class EnrolmentController(
                 cache,
                 cache.toCacheData,
                 recalculation,
-                None)
+                None,
+                FormComponentIdToFileIdMapping.empty)
             def handleContinueWithData(formModelOptics: FormModelOptics[DataOrigin.Mongo]) = {
               val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
 
@@ -184,7 +186,7 @@ class EnrolmentController(
                   formModelOptics,
                   SectionNumber(0),
                   cache.toCacheData,
-                  Envelope.empty,
+                  EnvelopeWithMapping.empty,
                   validationService.validatePageModel)
 
               val enrolmentResultProcessor = new EnrolmentResultProcessor(

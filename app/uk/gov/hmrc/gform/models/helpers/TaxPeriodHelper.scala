@@ -19,7 +19,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult }
@@ -29,7 +29,7 @@ object TaxPeriodHelper {
 
   def formatTaxPeriodOutput(
     valResult: FormFieldValidationResult,
-    envelope: Envelope
+    envelope: EnvelopeWithMapping
   )(implicit l: LangADT, messages: Messages, evaluator: SmartStringEvaluator) =
     valResult match {
       case ComponentField(a, b) => b.values.headOption.fold("")(ffvr => TextFormatter.formatText(ffvr, envelope))

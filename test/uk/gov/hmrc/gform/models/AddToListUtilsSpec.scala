@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.{ Many, One }
@@ -206,7 +207,7 @@ class AddToListUtilsSpec extends FlatSpec with Matchers with FormModelSupport wi
     forAll(variations) { (index, addToListId, expected) ⇒
       val bracket: Bracket.AddToList[DataExpanded] =
         formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
-      val res = AddToListUtils.removeRecord(processData, bracket, index)
+      val (res, _, _) = AddToListUtils.removeRecord(processData, bracket, index, FileIdsWithMapping.empty)
 
       res shouldBe expected
     }
