@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormTemplate, InvisibleInSummary, InvisiblePageTitle, InvisiblePageTitleInSummary, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormTemplate, InvisibleInSummary, InvisiblePageTitle, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ExampleData, LangADT, PdfHtml, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
@@ -350,7 +350,7 @@ class SummaryRenderingServiceSpec
       }
     }
 
-    "add to list - presentationHint is InvisiblePageTitleInSummary" should {
+    "add to list - presentationHint is InvisiblePageTitle" should {
       "render elements without page titles" in new TestFixture {
 
         override lazy val formTemplate: FormTemplate = buildFormTemplate(
@@ -366,7 +366,7 @@ class SummaryRenderingServiceSpec
                 toPage("page1", None, List(page1Field)),
                 toPage("page2", None, List(page2Field)),
               ),
-              Some(InvisiblePageTitleInSummary)
+              Some(InvisiblePageTitle)
             )
           )
         )
