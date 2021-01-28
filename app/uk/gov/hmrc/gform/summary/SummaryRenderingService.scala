@@ -372,9 +372,13 @@ object SummaryRenderingService {
           .filter(_ == InvisiblePageTitle)
           .fold(begin_section(pageTitle))(_ => HtmlFormat.empty)
       } { addToList =>
-        addToList.presentationHint
-          .filter(_ == InvisiblePageTitleInSummary)
-          .fold(begin_section(pageTitle))(_ => HtmlFormat.empty)
+        val hidePageTitle =
+          addToList.presentationHint
+            .fold(page.presentationHint.fold(false)(_ == InvisiblePageTitle))(_ == InvisiblePageTitle)
+        if (hidePageTitle)
+          HtmlFormat.empty
+        else
+          begin_section(pageTitle)
       }
 
       val middleRows: List[SummaryListRow] = page.fields
