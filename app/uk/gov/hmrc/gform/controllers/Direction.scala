@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import uk.gov.hmrc.gform.models.{ ExpandUtils }
+import uk.gov.hmrc.gform.models.{ Bracket, ExpandUtils, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -29,6 +29,15 @@ trait Navigation {
 
   val availableSectionNumbers: List[SectionNumber] =
     formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
+
+  val addToListBrackets: List[Bracket.AddToList[Visibility]] =
+    formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
+
+  val addToListSectionNumbers: List[SectionNumber] =
+    addToListBrackets.flatMap(_.toPageModelWithNumber.toList).map(_._2)
+
+  val addToListRepeaterSectionNumbers: List[SectionNumber] =
+    addToListBrackets.flatMap(_.iterations.toList).map(_.repeater.sectionNumber)
 
   val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).value))
 }
@@ -78,9 +87,17 @@ case class Navigator(
 
   private lazy val maxSectionNumber: SectionNumber = availableSectionNumbers.max(Ordering.by((_: SectionNumber).value))
 
-  private val previousOrCurrentSectionNumber: SectionNumber =
-    availableSectionNumbers.reverse
+  private val previousOrCurrentSectionNumber: SectionNumber = {
+    val filteredSectionNumbers =
+      if (addToListRepeaterSectionNumbers.contains(sectionNumber))
+        availableSectionNumbers
+          .filterNot(addToListSectionNumbers.toSet)
+      else
+        availableSectionNumbers
+
+    filteredSectionNumbers.reverse
       .find(_ < sectionNumber)
       .getOrElse(sectionNumber)
+  }
 
 }
