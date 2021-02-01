@@ -25,8 +25,11 @@ import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Number, PositiveNumber, Sterling, TextConstraint }
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 sealed trait ExpressionResult extends Product with Serializable {
+
+  val DATE_DISPLAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
 
   import ExpressionResult._
 
@@ -200,7 +203,7 @@ sealed trait ExpressionResult extends Product with Serializable {
 
   def stringRepresentation(typeInfo: TypeInfo) =
     fold(_ => "")(_ => typeInfo.defaultValue)(_ => "")(_.value.toString)(_.value)(_.value.mkString(","))(
-      _.value.toString)
+      _.value.format(DATE_DISPLAY_FORMAT))
 
   def numberRepresentation: Option[BigDecimal] =
     fold[Option[BigDecimal]](_ => None)(_ => None)(_ => None)(bd => Some(bd.value))(_ => None)(_ => None)(_ => None)

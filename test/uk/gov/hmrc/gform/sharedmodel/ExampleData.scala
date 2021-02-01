@@ -24,6 +24,7 @@ import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
+import uk.gov.hmrc.gform.eval.EvaluationContext
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
 import uk.gov.hmrc.gform.models.Basic
@@ -33,6 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcD
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.immutable.List
 
@@ -42,7 +44,21 @@ trait ExampleData
     extends ExampleFormTemplate with ExampleFieldId with ExampleFieldValue with ExampleFormField with ExampleValidator
     with ExampleSection with ExampleSectionNumber with ExampleForm with ExampleAuthConfig with ExampleFrontendAppConfig
     with ExampleAuthContext with ExampleInstruction with ExampleSubmissionRef with ExampleDmsMetaData
-    with ExampleSubmission
+    with ExampleSubmission with ExampleEvaluationContext
+
+trait ExampleEvaluationContext {
+  self: ExampleFormTemplate with ExampleAuthContext with ExampleAuthConfig with ExampleSubmissionRef =>
+
+  val evaluationContext: EvaluationContext =
+    new EvaluationContext(
+      formTemplateId,
+      submissionRef,
+      None,
+      authContext,
+      ThirdPartyData.empty,
+      authConfig,
+      HeaderCarrier())
+}
 
 trait ExampleSubmission {
   self: ExampleForm with ExampleSubmissionRef with ExampleDmsMetaData =>

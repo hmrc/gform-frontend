@@ -24,10 +24,10 @@ sealed trait BooleanExpr {
   def allExpressions: List[Expr] = this match {
     case Equals(left, right)              => left :: right :: Nil
     case GreaterThan(left, right)         => left :: right :: Nil
-    case DateAfter(left, right)           => DateExpr.allFormCtxExprs(left) ++ DateExpr.allFormCtxExprs(right)
+    case DateAfter(left, right)           => DateCtx(left) :: DateCtx(right) :: Nil
     case GreaterThanOrEquals(left, right) => left :: right :: Nil
     case LessThan(left, right)            => left :: right :: Nil
-    case DateBefore(left, right)          => DateExpr.allFormCtxExprs(left) ++ DateExpr.allFormCtxExprs(right)
+    case DateBefore(left, right)          => DateCtx(left) :: DateCtx(right) :: Nil
     case LessThanOrEquals(left, right)    => left :: right :: Nil
     case Not(e)                           => e.allExpressions
     case Or(left, right)                  => left.allExpressions ++ right.allExpressions
