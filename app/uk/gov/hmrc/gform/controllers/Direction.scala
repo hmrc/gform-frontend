@@ -30,6 +30,8 @@ trait Navigation {
   val availableSectionNumbers: List[SectionNumber] =
     formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
 
+  val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).value))
+
   val addToListBrackets: List[Bracket.AddToList[Visibility]] =
     formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
 
@@ -39,7 +41,12 @@ trait Navigation {
   val addToListRepeaterSectionNumbers: List[SectionNumber] =
     addToListBrackets.flatMap(_.iterations.toList).map(_.repeater.sectionNumber)
 
-  val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).value))
+  val filteredSectionNumbers: SectionNumber => List[SectionNumber] = sectionNumber =>
+    if (addToListRepeaterSectionNumbers.contains(sectionNumber))
+      availableSectionNumbers
+        .filterNot(addToListSectionNumbers.toSet)
+    else
+    availableSectionNumbers
 }
 
 // TODO: Origin should not be in controllers, but Navigator probably should!
@@ -87,17 +94,9 @@ case class Navigator(
 
   private lazy val maxSectionNumber: SectionNumber = availableSectionNumbers.max(Ordering.by((_: SectionNumber).value))
 
-  private val previousOrCurrentSectionNumber: SectionNumber = {
-    val filteredSectionNumbers =
-      if (addToListRepeaterSectionNumbers.contains(sectionNumber))
-        availableSectionNumbers
-          .filterNot(addToListSectionNumbers.toSet)
-      else
-        availableSectionNumbers
-
-    filteredSectionNumbers.reverse
+  private val previousOrCurrentSectionNumber: SectionNumber =
+    filteredSectionNumbers(sectionNumber).reverse
       .find(_ < sectionNumber)
       .getOrElse(sectionNumber)
-  }
 
 }
