@@ -35,6 +35,7 @@
     frontendAppConfig: FrontendAppConfig,
     formAction: Call,
     renderComeBackLater: Boolean,
+    shouldDisplayBack: Boolean,
     snippets: Html,
     hiddenFieldsSnippets: List[Html],
     specimenNavigation: Html
@@ -72,7 +73,7 @@
   displayHMRCLogo = formTemplate.displayHMRCLogo,
   languages = formTemplate.languages,
   templateId = formTemplate._id,
-  backLink = Some(backLink)
+  backLink = if(shouldDisplayBack) Some(backLink) else None
 ) {
 
     @pageLevelError.render

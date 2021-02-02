@@ -201,6 +201,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val addAnotherQuestion: Html =
       new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
+    val shouldDisplayBack: Boolean =
+      Origin(DataOrigin.unSwapDataOrigin(formModelOptics))
+        .filteredSectionNumbers(sectionNumber)
+        .sorted
+        .exists(_ < sectionNumber)
+
     html.form.addToList(
       repeater,
       bracket,
@@ -210,6 +216,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       frontendAppConfig,
       actionForm,
       retrievals.renderSaveAndComeBackLater,
+      shouldDisplayBack,
       addAnotherQuestion,
       hiddenSnippets,
       specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics),
