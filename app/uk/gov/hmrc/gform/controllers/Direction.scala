@@ -41,10 +41,13 @@ trait Navigation {
   val addToListRepeaterSectionNumbers: List[SectionNumber] =
     addToListBrackets.flatMap(_.iterations.toList).map(_.repeater.sectionNumber)
 
+  val addToListNonRepeaterSectionNumbers: List[SectionNumber] =
+    addToListSectionNumbers.filterNot(addToListRepeaterSectionNumbers.toSet)
+
   val filteredSectionNumbers: SectionNumber => List[SectionNumber] = sectionNumber =>
     if (addToListRepeaterSectionNumbers.contains(sectionNumber))
       availableSectionNumbers
-        .filterNot(addToListSectionNumbers.toSet)
+        .filterNot(addToListNonRepeaterSectionNumbers.toSet)
     else
     availableSectionNumbers
 }
