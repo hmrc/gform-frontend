@@ -123,6 +123,7 @@ case class FormModel[A <: PageMode](
     val first: Option[Expr] = expr.leafs.headOption
     first.fold(illegal) {
       case FormCtx(formComponentId) => explicitTypedExpr(expr, formComponentId)
+      case DateCtx(_)               => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))
       case IsNumberConstant(_)      => TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case otherwise                => TypeInfo(expr, StaticTypeData(ExprType.string, None))
     }

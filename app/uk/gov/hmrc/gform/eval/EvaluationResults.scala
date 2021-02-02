@@ -29,8 +29,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-import java.time.LocalDate
-import scala.util.Try
+import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult]
@@ -60,10 +59,6 @@ case class EvaluationResults(
       recData.variadicFormData
         .get(expr.formComponentId.modelComponentId)
         .fold(ExpressionResult.empty)(fromVariadicValue))
-
-  private def get(modelComponentId: ModelComponentId, recData: RecData[SourceOrigin.OutOfDate]): Option[VariadicValue] =
-    recData.variadicFormData
-      .get(modelComponentId)
 
   // Sum field may be hidden by AddToList or by Revealing choice
   private def isSumHidden(modelComponentId: ModelComponentId): Boolean = {
@@ -121,6 +116,7 @@ case class EvaluationResults(
       case FormTemplateCtx(value: FormTemplateProp)   => unsupportedOperation("Number")(expr)
       case ParamCtx(_)                                => unsupportedOperation("Number")(expr)
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
+      case DateCtx(_)                                 => unsupportedOperation("Number")(expr)
     }
 
     loop(expr)
@@ -179,6 +175,7 @@ case class EvaluationResults(
 
           }
         nonEmpty(StringResult(link.url))
+      case DateCtx(dateExpr) => evalDateExpr(recData, this)(dateExpr)
     }
 
     loop(expr)
@@ -189,19 +186,10 @@ case class EvaluationResults(
   ): ExpressionResult = {
 
     def loop(expr: Expr): ExpressionResult = expr match {
-      case ctx @ FormCtx(formComponentId) =>
-        exprMap.getOrElse(
-          ctx, {
-            val year = get(formComponentId.toAtomicFormComponentId(Date.year), recData)
-            val month = get(formComponentId.toAtomicFormComponentId(Date.month), recData)
-            val day = get(formComponentId.toAtomicFormComponentId(Date.day), recData)
-            (year, month, day) match {
-              case (Some(VariadicValue.One(y)), Some(VariadicValue.One(m)), Some(VariadicValue.One(d))) =>
-                Try(LocalDate.of(y.toInt, m.toInt, d.toInt)).fold[ExpressionResult](_ => Empty, DateResult)
-              case _ => Empty
-            }
-          }
-        )
+      case ctx @ FormCtx(_) =>
+        evalDateExpr(recData, this)(DateFormCtxVar(ctx))
+      case DateCtx(dateExpr) =>
+        evalDateExpr(recData, this)(dateExpr)
       case _ => ExpressionResult.empty
     }
 

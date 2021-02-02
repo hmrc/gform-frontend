@@ -20,9 +20,13 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormCtx, OffsetUnit, OffsetUnitDay, OffsetUnitMonth, OffsetUnitYear, TodayDateExprValue }
-
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormCtx, OffsetUnit, OffsetUnitDay, OffsetUnitMonth, OffsetUnitYear, TodayDateExprValue }
 import java.time.LocalDate
+
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
+
+import scala.util.Try
 
 object DateExprEval {
 
@@ -38,6 +42,30 @@ object DateExprEval {
       case DateExprWithOffset(dExpr, offset, offsetUnit) =>
         eval(formModel, recData, evaluationContext, evaluationResults)(dExpr).map(r =>
           DateResult(addOffset(r.value, offset, offsetUnit)))
+    }
+
+  def evalDateExpr(recData: RecData[OutOfDate], evaluationResults: EvaluationResults)(
+    dateExpr: DateExpr): ExpressionResult =
+    dateExpr match {
+      case DateValueExpr(value) => DateResult(fromValue(value))
+      case DateFormCtxVar(formCtx @ FormCtx(formComponentId)) =>
+        evaluationResults
+          .get(formCtx)
+          .getOrElse {
+            val year = get(formComponentId.toAtomicFormComponentId(Date.year), recData)
+            val month = get(formComponentId.toAtomicFormComponentId(Date.month), recData)
+            val day = get(formComponentId.toAtomicFormComponentId(Date.day), recData)
+            (year, month, day) match {
+              case (Some(VariadicValue.One(y)), Some(VariadicValue.One(m)), Some(VariadicValue.One(d))) =>
+                Try(LocalDate.of(y.toInt, m.toInt, d.toInt))
+                  .fold(_ => ExpressionResult.empty, localDate => DateResult(localDate))
+              case _ => ExpressionResult.empty
+            }
+          }
+      case DateExprWithOffset(dExpr, offset, offsetUnit) =>
+        val exprResult = evalDateExpr(recData, evaluationResults)(dExpr)
+        exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => exprResult)(identity)(identity)(identity)(d =>
+          d.copy(value = addOffset(d.value, offset, offsetUnit)))
     }
 
   private def fromFormCtx[T <: PageMode](
@@ -67,4 +95,8 @@ object DateExprEval {
       case TodayDateExprValue                   => LocalDate.now()
       case ExactDateExprValue(year, month, day) => LocalDate.of(year, month, day)
     }
+
+  private def get(modelComponentId: ModelComponentId, recData: RecData[SourceOrigin.OutOfDate]): Option[VariadicValue] =
+    recData.variadicFormData
+      .get(modelComponentId)
 }
