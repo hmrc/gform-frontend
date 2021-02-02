@@ -99,15 +99,22 @@ case class EvaluationResults(
       toBigDecimalSafe(value).fold(ExpressionResult.invalid(s"Number - cannot convert '$value' to number"))(
         NumberResult.apply)
 
+    def addToListCount(formComponentId: FormComponentId) = {
+      val xs: Iterable[(ModelComponentId, VariadicValue)] =
+        recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
+      val zeros: Int = xs.map(_._2).count(_.contains(0.toString))
+      NumberResult(zeros + 1)
+    }
+
     def loop(expr: Expr): ExpressionResult = expr match {
-      case Add(field1: Expr, field2: Expr)                 => loop(field1) + loop(field2)
-      case Multiply(field1: Expr, field2: Expr)            => loop(field1) * loop(field2)
-      case Subtraction(field1: Expr, field2: Expr)         => loop(field1) - loop(field2)
-      case Else(field1: Expr, field2: Expr)                => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId: FormComponentId) => get(ctx, recData, fromVariadicValue)
-      case Sum(FormCtx(formComponentId)) =>
-        calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
+      case Add(field1: Expr, field2: Expr)            => loop(field1) + loop(field2)
+      case Multiply(field1: Expr, field2: Expr)       => loop(field1) * loop(field2)
+      case Subtraction(field1: Expr, field2: Expr)    => loop(field1) - loop(field2)
+      case Else(field1: Expr, field2: Expr)           => loop(field1) orElse loop(field2)
+      case ctx @ FormCtx(formComponentId)             => get(ctx, recData, fromVariadicValue)
+      case Sum(FormCtx(formComponentId))              => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
       case Sum(_)                                     => unsupportedOperation("Number")(expr)
+      case Count(formComponentId)                     => addToListCount(formComponentId)
       case AuthCtx(value: AuthInfo)                   => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField)                  => unsupportedOperation("Number")(expr)
       case Constant(value: String)                    => toNumberResult(value)
@@ -142,6 +149,7 @@ case class EvaluationResults(
       case Else(field1: Expr, field2: Expr)                => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId: FormComponentId) => get(ctx, recData, fromVariadicValue)
       case Sum(field1: Expr)                               => unsupportedOperation("String")(expr)
+      case Count(_)                                        => unsupportedOperation("String")(expr)
       case AuthCtx(value: AuthInfo) =>
         nonEmpty(StringResult(AuthContextPrepop.values(value, evaluationContext.retrievals)))
       case UserCtx(value: UserField) =>

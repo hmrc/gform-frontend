@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StaticTypeInfo, SumInfo }
+import uk.gov.hmrc.gform.eval.{ ExprType, RevealingChoiceInfo, StaticTypeData, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.nelFormat
@@ -69,9 +69,11 @@ object Section {
       addAnotherQuestion.id :: pages.toList.flatMap(_.allIds)
     }
 
+    val addToListTypeInfo = StaticTypeInfo(
+      Map(addAnotherQuestion.baseComponentId -> StaticTypeData(ExprType.number, None)))
+
     val staticInfo: StaticTypeInfo =
-      pages.toList.foldLeft(
-        StaticTypeInfo(Map(addAnotherQuestion.baseComponentId -> addAnotherQuestion.staticTypeData))) {
+      pages.toList.foldLeft(addToListTypeInfo) {
         case (acc, page) => acc ++ page.staticTypeInfo
       }
 
