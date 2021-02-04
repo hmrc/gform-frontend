@@ -196,6 +196,8 @@ case class EvaluationResults(
     def loop(expr: Expr): ExpressionResult = expr match {
       case ctx @ FormCtx(_) =>
         evalDateExpr(recData, this)(DateFormCtxVar(ctx))
+      case Else(field1: Expr, field2: Expr) =>
+        loop(field1) orElse loop(field2)
       case DateCtx(dateExpr) =>
         evalDateExpr(recData, this)(dateExpr)
       case _ => ExpressionResult.empty

@@ -24,8 +24,8 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateFormCtxVar, FormComponentId, FormCtx }
+import uk.gov.hmrc.gform.sharedmodel.{VariadicFormData, VariadicValue}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DateCtx, DateFormCtxVar, Else, FormComponentId, FormCtx}
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
@@ -33,23 +33,34 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
     val recData = RecData[OutOfDate](
       VariadicFormData.create(
-        (toModelComponentId("dateFieldId-year"), VariadicValue.One("1970")),
-        (toModelComponentId("dateFieldId-month"), VariadicValue.One("1")),
-        (toModelComponentId("dateFieldId-day"), VariadicValue.One("11"))
+        (toModelComponentId("dateFieldId1-year"), VariadicValue.One("1970")),
+        (toModelComponentId("dateFieldId1-month"), VariadicValue.One("1")),
+        (toModelComponentId("dateFieldId1-day"), VariadicValue.One("11")),
+        (toModelComponentId("dateFieldId2-year"), VariadicValue.One("1971")),
+        (toModelComponentId("dateFieldId2-month"), VariadicValue.One("1")),
+        (toModelComponentId("dateFieldId2-day"), VariadicValue.One("11"))
       ))
 
     val table = Table(
       ("typeInfo", "recData", "expectedResult"),
       (
         TypeInfo(
-          DateCtx(DateFormCtxVar(FormCtx(FormComponentId("dateFieldId")))),
+          DateCtx(DateFormCtxVar(FormCtx(FormComponentId("dateFieldId1")))),
           StaticTypeData(ExprType.dateString, None)),
         recData,
         DateResult(LocalDate.of(1970, 1, 11))),
       (
-        TypeInfo(FormCtx(FormComponentId("dateFieldId")), StaticTypeData(ExprType.dateString, None)),
+        TypeInfo(FormCtx(FormComponentId("dateFieldId1")), StaticTypeData(ExprType.dateString, None)),
         recData,
-        DateResult(LocalDate.of(1970, 1, 11)))
+        DateResult(LocalDate.of(1970, 1, 11))),
+      (
+        TypeInfo(Else(FormCtx(FormComponentId("dateFieldId1")), FormCtx(FormComponentId("dateFieldId2"))), StaticTypeData(ExprType.dateString, None)),
+        recData,
+        DateResult(LocalDate.of(1970, 1, 11))),
+      (
+        TypeInfo(Else(FormCtx(FormComponentId("dateFieldIdNotExists")), FormCtx(FormComponentId("dateFieldId2"))), StaticTypeData(ExprType.dateString, None)),
+        recData,
+        DateResult(LocalDate.of(1971, 1, 11)))
     )
 
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: DateResult) =>
