@@ -190,7 +190,8 @@ case class EvaluationResults(
   }
   private def evalDateString(
     expr: Expr,
-    recData: RecData[SourceOrigin.OutOfDate]
+    recData: RecData[SourceOrigin.OutOfDate],
+    evaluationContext: EvaluationContext
   ): ExpressionResult = {
 
     def loop(expr: Expr): ExpressionResult = expr match {
@@ -203,7 +204,7 @@ case class EvaluationResults(
       case _ => ExpressionResult.empty
     }
 
-    loop(expr)
+    loop(expr) orElse evalString(expr, recData, evaluationContext)
   }
 
   def evalExprCurrent(
@@ -224,7 +225,7 @@ case class EvaluationResults(
     } { choiceSelection =>
       evalString(typeInfo.expr, recData, evaluationContext)
     } { dateString =>
-      evalDateString(typeInfo.expr, recData)
+      evalDateString(typeInfo.expr, recData, evaluationContext)
     } { illegal =>
       ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
     }

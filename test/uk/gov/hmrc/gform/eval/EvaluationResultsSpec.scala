@@ -20,12 +20,12 @@ import java.time.LocalDate
 
 import org.scalatest.prop.TableDrivenPropertyChecks
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
+import uk.gov.hmrc.gform.eval.ExpressionResult.{DateResult, StringResult}
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateFormCtxVar, Else, FormComponentId, FormCtx }
+import uk.gov.hmrc.gform.sharedmodel.{VariadicFormData, VariadicValue}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Constant, DateCtx, DateFormCtxVar, Else, FormComponentId, FormCtx}
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
@@ -38,7 +38,9 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         (toModelComponentId("dateFieldId1-day"), VariadicValue.One("11")),
         (toModelComponentId("dateFieldId2-year"), VariadicValue.One("1971")),
         (toModelComponentId("dateFieldId2-month"), VariadicValue.One("1")),
-        (toModelComponentId("dateFieldId2-day"), VariadicValue.One("11"))
+        (toModelComponentId("dateFieldId2-day"), VariadicValue.One("11")),
+        (toModelComponentId("textFieldEmpty"), VariadicValue.One("")),
+        (toModelComponentId("textField"), VariadicValue.One("textFieldValue"))
       ))
 
     val table = Table(
@@ -61,13 +63,25 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         DateResult(LocalDate.of(1970, 1, 11))),
       (
         TypeInfo(
-          Else(FormCtx(FormComponentId("dateFieldIdNotExists")), FormCtx(FormComponentId("dateFieldId2"))),
+          Else(FormCtx(FormComponentId("textFieldEmpty")), FormCtx(FormComponentId("dateFieldId2"))),
           StaticTypeData(ExprType.dateString, None)),
         recData,
-        DateResult(LocalDate.of(1971, 1, 11)))
+        DateResult(LocalDate.of(1971, 1, 11))),
+      (
+        TypeInfo(
+          Else(FormCtx(FormComponentId("textFieldEmpty")), Constant("someConstant")),
+          StaticTypeData(ExprType.dateString, None)),
+        recData,
+        StringResult("someConstant")),
+      (
+        TypeInfo(
+          Else(FormCtx(FormComponentId("textFieldEmpty")),FormCtx(FormComponentId("textField"))),
+          StaticTypeData(ExprType.dateString, None)),
+        recData,
+        StringResult("textFieldValue"))
     )
 
-    forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: DateResult) =>
+    forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
       EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
     }
   }
