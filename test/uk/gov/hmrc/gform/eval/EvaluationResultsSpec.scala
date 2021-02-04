@@ -24,8 +24,8 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.{VariadicFormData, VariadicValue}
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DateCtx, DateFormCtxVar, Else, FormComponentId, FormCtx}
+import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateFormCtxVar, Else, FormComponentId, FormCtx }
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
@@ -54,11 +54,15 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         recData,
         DateResult(LocalDate.of(1970, 1, 11))),
       (
-        TypeInfo(Else(FormCtx(FormComponentId("dateFieldId1")), FormCtx(FormComponentId("dateFieldId2"))), StaticTypeData(ExprType.dateString, None)),
+        TypeInfo(
+          Else(FormCtx(FormComponentId("dateFieldId1")), FormCtx(FormComponentId("dateFieldId2"))),
+          StaticTypeData(ExprType.dateString, None)),
         recData,
         DateResult(LocalDate.of(1970, 1, 11))),
       (
-        TypeInfo(Else(FormCtx(FormComponentId("dateFieldIdNotExists")), FormCtx(FormComponentId("dateFieldId2"))), StaticTypeData(ExprType.dateString, None)),
+        TypeInfo(
+          Else(FormCtx(FormComponentId("dateFieldIdNotExists")), FormCtx(FormComponentId("dateFieldId2"))),
+          StaticTypeData(ExprType.dateString, None)),
         recData,
         DateResult(LocalDate.of(1971, 1, 11)))
     )
