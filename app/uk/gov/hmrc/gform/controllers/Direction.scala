@@ -44,11 +44,21 @@ trait Navigation {
   val addToListNonRepeaterSectionNumbers: List[SectionNumber] =
     addToListSectionNumbers.filterNot(addToListRepeaterSectionNumbers.toSet)
 
+  val samePageRepeatersSectionNumbers: List[List[SectionNumber]] =
+    formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
+      .map(_.iterations.toList.map(_.repeater.sectionNumber))
+
   val filteredSectionNumbers: SectionNumber => List[SectionNumber] = sectionNumber =>
-    if (addToListRepeaterSectionNumbers.contains(sectionNumber))
-      availableSectionNumbers
+    if (addToListRepeaterSectionNumbers.contains(sectionNumber)) {
+      val excludesAddToListNonRepeaterSectionNumbers = availableSectionNumbers
         .filterNot(addToListNonRepeaterSectionNumbers.toSet)
-    else
+
+      samePageRepeatersSectionNumbers
+        .find(_.contains(sectionNumber))
+        .fold(excludesAddToListNonRepeaterSectionNumbers) { l =>
+          excludesAddToListNonRepeaterSectionNumbers.filterNot(l.toSet)
+        }
+    } else
     availableSectionNumbers
 }
 
