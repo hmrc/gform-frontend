@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.controllers.helpers
 
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, _ }
+import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, UserId }
 

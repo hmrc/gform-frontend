@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.models
 import cats.instances.list._
 import cats.syntax.eq._
 import cats.syntax.foldable._
-import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, Group, IsFileUpload, IsGroup, SectionNumber }
@@ -32,8 +31,8 @@ object GroupUtils {
     processData: ProcessData,
     modelComponentId: ModelComponentId,
     sectionNumber: SectionNumber,
-    cache: AuthCacheWithForm
-  ): (VariadicFormData[SourceOrigin.Current], AuthCacheWithForm, Set[FileId]) = {
+    fileIdsWithMapping: FormComponentIdToFileIdMapping
+  ): (VariadicFormData[SourceOrigin.Current], FormComponentIdToFileIdMapping, Set[FileId]) = {
 
     val removingIndex = modelComponentId.maybeIndex.getOrElse(
       throw new IllegalArgumentException(s"Attempting to delete group, but no index found $modelComponentId"))
@@ -87,7 +86,7 @@ object GroupUtils {
     val decrementedVariadicFormDatas: VariadicFormData[SourceOrigin.Current] =
       variadicFormDatas.mapKeys(_.decrement)
 
-    val formComponentIdToFileIdMapping = cache.form.componentIdToFileId
+    val formComponentIdToFileIdMapping = fileIdsWithMapping
 
     val filesToDelete: Set[FileId] =
       groupFileUploadIdToRemoves.flatMap(ff => formComponentIdToFileIdMapping.find(ff))
@@ -112,8 +111,7 @@ object GroupUtils {
 
     val updData = data -- dataToRemove -- variadicFormDatas ++ decrementedVariadicFormDatas
 
-    val cacheUpd = cache.copy(form = cache.form.copy(componentIdToFileId = componentIdToFileId))
-    (updData, cacheUpd, filesToDelete)
+    (updData, componentIdToFileId, filesToDelete)
 
   }
 

@@ -393,8 +393,9 @@ class FormController(
             }
 
             def processRemoveGroup(processData: ProcessData, modelComponentId: ModelComponentId): Future[Result] = {
-              val (updData, cacheUpd: AuthCacheWithForm, filesToDelete: Set[FileId]) =
-                GroupUtils.removeRecord(processData, modelComponentId, sectionNumber, cache)
+              val (updData, componentIdToFileId, filesToDelete) =
+                GroupUtils.removeRecord(processData, modelComponentId, sectionNumber, cache.form.componentIdToFileId)
+              val cacheUpd = cache.copy(form = cache.form.copy(componentIdToFileId = componentIdToFileId))
               for {
                 updFormModelOptics <- FormModelOptics
                                        .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
