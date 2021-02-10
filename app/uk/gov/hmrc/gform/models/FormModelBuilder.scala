@@ -23,11 +23,12 @@ import cats.syntax.all._
 import scala.language.higherKinds
 import scala.util.matching.Regex
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
-import uk.gov.hmrc.gform.eval.{ BooleanExprEval, DateExprEval, EvaluationContext, ExpressionResult, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ BooleanExprEval, DateExprEval, EvaluationContext, ExpressionResult, FileIdsWithMapping, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.gform.{ FormComponentUpdater, PageUpdater }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SmartString, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -37,7 +38,12 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.http.HeaderCarrier
 
 object FormModelBuilder {
-  def fromCache[E, F[_]: Functor](cache: AuthCache, cacheData: CacheData, recalculation: Recalculation[F, E])(
+  def fromCache[E, F[_]: Functor](
+    cache: AuthCache,
+    cacheData: CacheData,
+    recalculation: Recalculation[F, E],
+    componentIdToFileId: FormComponentIdToFileIdMapping
+  )(
     implicit
     hc: HeaderCarrier,
     me: MonadError[F, E]
@@ -48,7 +54,8 @@ object FormModelBuilder {
       cacheData.thirdPartyData,
       cacheData.envelopeId,
       cache.accessCode,
-      recalculation
+      recalculation,
+      componentIdToFileId
     )
 
   def buildFormModelVisibilityOptics[D <: DataOrigin, U <: SectionSelectorType: SectionSelector, P <: PageMode](
@@ -183,7 +190,8 @@ class FormModelBuilder[E, F[_]: Functor](
   thirdPartyData: ThirdPartyData,
   envelopeId: EnvelopeId,
   maybeAccessCode: Option[AccessCode],
-  recalculation: Recalculation[F, E]
+  recalculation: Recalculation[F, E],
+  componentIdToFileId: FormComponentIdToFileIdMapping
 )(
   implicit
   hc: HeaderCarrier,
@@ -204,7 +212,9 @@ class FormModelBuilder[E, F[_]: Functor](
         thirdPartyData,
         formTemplate.authConfig,
         hc,
-        formPhase)
+        formPhase,
+        FileIdsWithMapping(formModel.allFileIds, componentIdToFileId)
+      )
 
     recalculation
       .recalculateFormDataNew(data, formModel, formTemplate, retrievals, thirdPartyData, evaluationContext)

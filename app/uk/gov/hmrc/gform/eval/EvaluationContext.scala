@@ -31,5 +31,6 @@ class EvaluationContext(
   val thirdPartyData: ThirdPartyData,
   val authConfig: AuthConfig,
   val headerCarrier: HeaderCarrier,
-  val formPhase: Option[FormPhase] = None
+  val formPhase: Option[FormPhase],
+  val fileIdsWithMapping: FileIdsWithMapping
 )

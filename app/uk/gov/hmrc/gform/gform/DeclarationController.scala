@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
-import uk.gov.hmrc.gform.fileupload.{ Attachments, Envelope, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.{ Attachments, Envelope, EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.{ DataExpanded, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
@@ -85,7 +85,7 @@ class DeclarationController(
                                  .validateDeclarationSection(
                                    cache.toCacheData,
                                    formModelOptics.formModelVisibilityOptics,
-                                   Envelope.empty
+                                   EnvelopeWithMapping.empty
                                  )
           } yield {
             val validationResultUpd = suppressErrors(validationResult)
@@ -123,7 +123,7 @@ class DeclarationController(
 
             val envelopeId = cache.form.envelopeId
 
-            def processDeclaration(processData: ProcessData, envelope: Envelope): Future[Result] =
+            def processDeclaration(processData: ProcessData, envelope: EnvelopeWithMapping): Future[Result] =
               (requestRelatedData.get("save"), cache.formTemplate.destinations) match {
                 case ("Continue", destinationList: DestinationList) =>
                   continueToSubmitDeclaration[SectionSelectorType.WithDeclaration](
@@ -153,7 +153,7 @@ class DeclarationController(
             for {
               processData <- processDataF
               envelope    <- envelopeF
-              res         <- processDeclaration(processData, envelope)
+              res         <- processDeclaration(processData, EnvelopeWithMapping(envelope, cache.form))
             } yield res
 
         }
@@ -163,7 +163,7 @@ class DeclarationController(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     processData: ProcessData
   )(
     implicit
@@ -186,21 +186,23 @@ class DeclarationController(
 
   private def cleanseEnvelope(
     envelopeId: EnvelopeId,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     attachments: Attachments
   )(
     implicit hc: HeaderCarrier
-  ): Future[List[Unit]] = {
-    val lookup = attachments.files.toSet
-    val toRemove = envelope.files.filterNot { file =>
-      lookup.contains(file.fileId.toFieldId)
-    }
+  ): Future[Unit] = {
+    val lookup: Set[FileId] =
+      attachments.files.flatMap(envelope.mapping.mapping.get).toSet
+    val toRemove: List[FileId] = envelope.files
+      .filterNot { file =>
+        lookup.contains(file.fileId)
+      }
+      .map(_.fileId)
 
     logger.warn(s"Removing ${toRemove.size} files from envelopeId $envelopeId.")
 
-    Future.traverse(toRemove) { file =>
-      fileUploadService.deleteFile(envelopeId, file.fileId)
-    }
+    fileUploadService.deleteFiles(envelopeId, toRemove.toSet)
+
   }
 
   private def processValidation[U <: SectionSelectorType: SectionSelector](
@@ -208,7 +210,7 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     envelopeId: EnvelopeId,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     processData: ProcessData
   )(
     implicit
@@ -247,7 +249,7 @@ class DeclarationController(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     processData: ProcessData
   )(
     implicit

@@ -23,9 +23,11 @@ import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.fileupload.FileUploadConnector
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
+import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
 class ControllersModule(
   configModule: ConfigModule,
@@ -36,7 +38,8 @@ class ControllersModule(
   builtInComponents: BuiltInComponents,
   sessionCookieBaker: SessionCookieBaker,
   errResponder: ErrResponder,
-  graphModule: GraphModule
+  graphModule: GraphModule,
+  wSHttpModule: WSHttpModule
 )(
   implicit ec: ExecutionContext
 ) {
@@ -48,8 +51,19 @@ class ControllersModule(
     builtInComponents.defaultActionBuilder
   )
 
+  // Delete after 28 days of deployment of this change
+  private lazy val fileUploadConnector = {
+    lazy val fileUploadBaseUrl = {
+      val baseUrl = configModule.serviceConfig.baseUrl("file-upload")
+      val pathPrefix = configModule.serviceConfig.getConfString("file-upload.path-prefix", "")
+      baseUrl + pathPrefix + "/file-upload"
+    }
+    new FileUploadConnector(wSHttpModule.auditableWSHttp, fileUploadBaseUrl)
+  }
+
   val authenticatedRequestActions: AuthenticatedRequestActions = new AuthenticatedRequestActions(
     gformBackendModule.gformConnector,
+    fileUploadConnector,
     authModule.authService,
     configModule.appConfig,
     configModule.frontendAppConfig,

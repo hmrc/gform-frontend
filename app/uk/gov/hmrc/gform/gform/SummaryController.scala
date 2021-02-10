@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActionsAlgebra, ErrResponder }
-import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
@@ -82,7 +82,7 @@ class SummaryController(
               validationResult <- validationService
                                    .validateFormModel(
                                      cache.toCacheData,
-                                     envelope,
+                                     EnvelopeWithMapping(envelope, cache.form),
                                      formModelOptics.formModelVisibilityOptics)
             } yield validationResult.isFormValid
 
@@ -93,7 +93,8 @@ class SummaryController(
                   cache.form.formData,
                   Validated,
                   cache.form.visitsIndex,
-                  cache.form.thirdPartyData
+                  cache.form.thirdPartyData,
+                  cache.form.componentIdToFileId
                 )
               )
               .map { _ =>

@@ -132,7 +132,8 @@ class ApplicationModule(context: Context)
     this,
     sessionCookieBaker,
     errResponder,
-    graphModule
+    graphModule,
+    wSHttpModule
   )
 
   private val fileUploadModule = new FileUploadModule(

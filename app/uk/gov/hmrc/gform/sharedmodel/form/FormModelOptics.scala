@@ -22,7 +22,7 @@ import com.softwaremill.quicklens._
 
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
-import uk.gov.hmrc.gform.eval.{ EvaluationContext }
+import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
@@ -60,7 +60,10 @@ object FormModelOptics {
         cache.retrievals,
         ThirdPartyData.empty,
         cache.formTemplate.authConfig,
-        hc)
+        hc,
+        Option.empty[FormPhase],
+        FileIdsWithMapping.empty
+      )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
       FormModelVisibilityOptics(
@@ -76,13 +79,14 @@ object FormModelOptics {
     cache: AuthCache,
     cacheData: CacheData,
     recalculation: Recalculation[F, Throwable],
-    phase: Option[FormPhase]
+    phase: Option[FormPhase],
+    componentIdToFileId: FormComponentIdToFileIdMapping
   )(
     implicit
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
   ): F[FormModelOptics[D]] = {
-    val formModelBuilder = FormModelBuilder.fromCache(cache, cacheData, recalculation)
+    val formModelBuilder = FormModelBuilder.fromCache(cache, cacheData, recalculation, componentIdToFileId)
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] = formModelBuilder.visibilityModel(data, phase)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
       formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
@@ -98,5 +102,6 @@ object FormModelOptics {
     implicit
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
-  ): F[FormModelOptics[D]] = mkFormModelOptics(data, cache, cache.toCacheData, recalculation, phase)
+  ): F[FormModelOptics[D]] =
+    mkFormModelOptics(data, cache, cache.toCacheData, recalculation, phase, cache.form.componentIdToFileId)
 }

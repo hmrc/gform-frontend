@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.summary
 import cats.syntax.eq._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
@@ -45,7 +45,7 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     obligations: Obligations,
     validationResult: ValidationResult,
-    envelope: Envelope
+    envelope: EnvelopeWithMapping
   )(
     implicit
     messages: Messages,
@@ -207,7 +207,7 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     prefix: Option[SmartString],
     suffix: Option[SmartString]
   )(
@@ -263,7 +263,7 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    envelope: Envelope
+    envelope: EnvelopeWithMapping
   )(
     implicit
     messages: Messages,
@@ -543,7 +543,7 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    envelope: Envelope
+    envelope: EnvelopeWithMapping
   )(
     implicit
     messages: Messages,
@@ -596,7 +596,7 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     obligations: Obligations,
     h: HmrcTaxPeriod,
-    envelope: Envelope
+    envelope: EnvelopeWithMapping
   )(
     implicit
     messages: Messages,
@@ -717,7 +717,7 @@ object FormComponentSummaryRenderer {
     validationResult: ValidationResult,
     rc: RevealingChoice,
     obligations: Obligations,
-    envelope: Envelope
+    envelope: EnvelopeWithMapping
   )(
     implicit
     messages: Messages,
@@ -803,7 +803,7 @@ object FormComponentSummaryRenderer {
     obligations: Obligations,
     formFieldValidationResult: FormFieldValidationResult,
     validationResult: ValidationResult,
-    envelope: Envelope
+    envelope: EnvelopeWithMapping
   )(
     implicit
     messages: Messages,

@@ -16,14 +16,15 @@
 
 package uk.gov.hmrc.gform.fileupload
 
+import play.api.libs.json.Json
 import play.api.mvc.MessagesControllerComponents
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.EditForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.{ FileUploadUtils, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormIdData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.ExecutionContext
@@ -36,16 +37,36 @@ class FileUploadController(
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
-  def deleteFile(
+  def addFileId(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
+    formComponentId: FormComponentId,
     fileId: FileId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => l => cache => _ => formModelOptics =>
       for {
-        form <- gformConnector.getForm(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
-        _    <- fileUploadService.deleteFile(form.envelopeId, fileId)
-      } yield NoContent
+        envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+        (resolvedFileId, userData) = FileUploadUtils.updateMapping(formComponentId, fileId, cache.form, envelope)
+        _ <- gformConnector.updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)
+      } yield {
+        Ok(Json.toJson(resolvedFileId))
+      }
+  }
+
+  def deleteFile(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    formComponentId: FormComponentId
+  ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
+    implicit request => l => cache => _ => formModelOptics =>
+      val (fileToDelete, userData) = FileUploadUtils.prepareDeleteFile(formComponentId, cache.form)
+
+      for {
+        _ <- fileUploadService.deleteFile(cache.form.envelopeId, fileToDelete)
+        _ <- gformConnector.updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)
+      } yield {
+        NoContent
+      }
   }
 
 }

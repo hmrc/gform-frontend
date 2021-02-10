@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
+import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose }
 import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.models.{ SectionSelectorType, Visibility }
@@ -183,7 +183,7 @@ class SummaryRenderingService(
     hc: HeaderCarrier,
     ec: ExecutionContext,
     lise: SmartStringEvaluator): Future[Html] = {
-    val envelopeF = fileUploadAlgebra.getEnvelope(cache.form.envelopeId)
+    val envelopeF = fileUploadAlgebra.getEnvelope(cache.form.envelopeId).map(EnvelopeWithMapping(_, cache.form))
 
     import i18nSupport._
 
@@ -222,7 +222,7 @@ class SummaryRenderingService(
     lise: SmartStringEvaluator
   ): Future[Html] = {
 
-    val envelopeF = fileUploadAlgebra.getEnvelope(cache.form.envelopeId)
+    val envelopeF = fileUploadAlgebra.getEnvelope(cache.form.envelopeId).map(EnvelopeWithMapping(_, cache.form))
 
     import i18nSupport._
 
@@ -253,7 +253,7 @@ object SummaryRenderingService {
     validationResult: ValidationResult,
     formModelOptics: FormModelOptics[D],
     maybeAccessCode: Option[AccessCode],
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     retrievals: MaterialisedRetrievals,
     frontendAppConfig: FrontendAppConfig,
     obligations: Obligations,
@@ -267,11 +267,8 @@ object SummaryRenderingService {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
 
-    val envelopeUpd =
-      summaryPagePurpose match {
-        case SummaryPagePurpose.ForUser => envelope.withUserFileNames
-        case SummaryPagePurpose.ForDms  => envelope
-      }
+    val envelopeUpd = envelope.byPurpose(summaryPagePurpose)
+
     val sfr =
       summaryRowsForRender(
         validationResult,
@@ -301,7 +298,7 @@ object SummaryRenderingService {
     validationResult: ValidationResult,
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     maybeAccessCode: Option[AccessCode],
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     retrievals: MaterialisedRetrievals,
     frontendAppConfig: FrontendAppConfig,
     obligations: Obligations,
@@ -346,7 +343,7 @@ object SummaryRenderingService {
     formModelOptics: FormModelOptics[D],
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     obligations: Obligations,
   )(
     implicit
@@ -466,7 +463,7 @@ object SummaryRenderingService {
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     obligations: Obligations,
     pdfFieldIds: List[FormComponentId]
   )(
