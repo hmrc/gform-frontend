@@ -28,7 +28,7 @@ object Dependencies {
     "com.nrinaudo"                 %% "kantan.csv"               % "0.5.1",
     "com.miguelfonseca.completely" % "completely-core"           % "0.8.0",
     "org.jsoup"                    % "jsoup"                     % "1.13.1",
-    "org.webjars.npm"              % "govuk-frontend"            % "3.6.0"
+    "org.webjars.npm"              % "govuk-frontend"            % "3.11.0"
   )
 
   def test(scope: String = "test") = Seq(
