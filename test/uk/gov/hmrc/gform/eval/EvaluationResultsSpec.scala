@@ -16,19 +16,16 @@
 
 package uk.gov.hmrc.gform.eval
 
-import java.time.LocalDate
-
 import org.scalatest.prop.TableDrivenPropertyChecks
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, StringResult }
-import uk.gov.hmrc.gform.eval.ExpressionResult.{DateResult, StringResult}
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, DateCtx, DateFormCtxVar, Else, FormComponentId, FormCtx }
-import uk.gov.hmrc.gform.sharedmodel.{VariadicFormData, VariadicValue}
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Constant, DateCtx, DateFormCtxVar, Else, FormComponentId, FormCtx}
+import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
+
+import java.time.LocalDate
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
@@ -75,10 +72,33 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           Else(FormCtx(FormComponentId("textFieldEmpty")), Constant("someConstant")),
           StaticTypeData(ExprType.dateString, None)),
         recData,
-        DateResult(LocalDate.of(1970, 1, 11)))
+        StringResult("someConstant"))
     )
 
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
+      EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
+    }
+  }
+
+  it should "evaluate expression of type string" in {
+    val recData = RecData[OutOfDate](
+      VariadicFormData.create(
+        (toModelComponentId("dateFieldId1-year"), VariadicValue.One("1970")),
+        (toModelComponentId("dateFieldId1-month"), VariadicValue.One("1")),
+        (toModelComponentId("dateFieldId1-day"), VariadicValue.One("11"))
+      ))
+
+    val table = Table(
+      ("typeInfo", "recData", "expectedResult", "scenario"),
+      (
+        TypeInfo(
+          DateCtx(DateFormCtxVar(FormCtx(FormComponentId("dateFieldId1")))),
+          StaticTypeData(ExprType.string, None)),
+        recData,
+        StringResult("11 January 1970"),
+        "Expression of type 'dateString' converted to type 'string'")
+    )
+    forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>
       EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
     }
   }

@@ -107,7 +107,7 @@ case class EvaluationResults(
   }
 
   private def evalNumber(
-    expr: Expr,
+    typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
@@ -146,11 +146,11 @@ case class EvaluationResults(
       case DateCtx(_)                                 => unsupportedOperation("Number")(expr)
     }
 
-    loop(expr)
+    loop(typeInfo.expr)
   }
 
   private def evalString(
-    expr: Expr,
+    typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
@@ -204,13 +204,13 @@ case class EvaluationResults(
 
           }
         nonEmpty(StringResult(link.url))
-      case DateCtx(dateExpr) => evalDateExpr(recData, this)(dateExpr)
+      case DateCtx(dateExpr) => StringResult(evalDateExpr(recData, this)(dateExpr).stringRepresentation(typeInfo))
     }
 
-    loop(expr)
+    loop(typeInfo.expr)
   }
   private def evalDateString(
-    expr: Expr,
+    typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
@@ -225,7 +225,7 @@ case class EvaluationResults(
       case _ => ExpressionResult.empty
     }
 
-    loop(expr) orElse evalString(expr, recData, evaluationContext)
+    loop(typeInfo.expr) orElse evalString(typeInfo, recData, evaluationContext)
   }
 
   def evalExprCurrent(
@@ -240,13 +240,13 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext
   ): ExpressionResult =
     typeInfo.staticTypeData.exprType.fold { number =>
-      evalNumber(typeInfo.expr, recData, evaluationContext)
+      evalNumber(typeInfo, recData, evaluationContext)
     } { string =>
-      evalString(typeInfo.expr, recData, evaluationContext)
+      evalString(typeInfo, recData, evaluationContext)
     } { choiceSelection =>
-      evalString(typeInfo.expr, recData, evaluationContext)
+      evalString(typeInfo, recData, evaluationContext)
     } { dateString =>
-      evalDateString(typeInfo.expr, recData, evaluationContext)
+      evalDateString(typeInfo, recData, evaluationContext)
     } { illegal =>
       ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
     }
