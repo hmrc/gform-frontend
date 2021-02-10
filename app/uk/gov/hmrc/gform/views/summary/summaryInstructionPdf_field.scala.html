@@ -27,13 +27,13 @@
 }
 
 @field match {
-    case SimpleField(label, values, _) => {
+    case SimpleField(label, values) => {
         <tr>
             <th>@{label}</th>
             <td>@displayValues(values)</td>
         </tr>
     }
-    case GroupField(label, groupFields, _) => {
+    case GroupField(label, groupFields) => {
         <tr>
             <th class="section-title" colspan="2">@label</th>
         </tr>

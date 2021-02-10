@@ -47,8 +47,7 @@ object InstructionsPDFPageFieldConverters {
 
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
-        formatText(validationResult(formComponent), envelope, prefix, suffix),
-        validationResult(formComponent).fieldErrors
+        formatText(validationResult(formComponent), envelope, prefix, suffix)
       )
     }
   }
@@ -62,8 +61,7 @@ object InstructionsPDFPageFieldConverters {
       envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
-        formatText(validationResult(formComponent), envelope).flatMap(_.split("\\R")),
-        validationResult(formComponent).fieldErrors
+        formatText(validationResult(formComponent), envelope).flatMap(_.split("\\R"))
       )
   }
 
@@ -83,8 +81,7 @@ object InstructionsPDFPageFieldConverters {
             .map { fieldId =>
               validationResult(formComponent).getCurrentValue(HtmlFieldId.pure(fieldId))
             }
-            .mkString("-")),
-        validationResult(formComponent).fieldErrors
+            .mkString("-"))
       )
   }
 
@@ -107,8 +104,7 @@ object InstructionsPDFPageFieldConverters {
           val year = validationResult(formComponent).getCurrentValue(safeId(Date.year))
 
           s"$day $month $year"
-        }),
-        validationResult(formComponent).fieldErrors
+        })
       )
     }
   }
@@ -122,8 +118,7 @@ object InstructionsPDFPageFieldConverters {
       envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
-        List(validationResult(formComponent).getCurrentValue.getOrElse("")),
-        validationResult(formComponent).fieldErrors
+        List(validationResult(formComponent).getCurrentValue.getOrElse(""))
       )
   }
 
@@ -137,8 +132,7 @@ object InstructionsPDFPageFieldConverters {
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
         Address
-          .renderToString(formComponent, validationResult(formComponent)),
-        validationResult(formComponent).fieldErrors
+          .renderToString(formComponent, validationResult(formComponent))
       )
   }
 
@@ -150,7 +144,7 @@ object InstructionsPDFPageFieldConverters {
         sectionNumber: SectionNumber,
         validationResult: ValidationResult,
         envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
-        SimpleField("", List.empty, Set.empty)
+        SimpleField("", List.empty)
     }
 
   implicit val fileUploadConverter: PageFieldConverter[FileUpload] = new PageFieldConverter[FileUpload] {
@@ -162,8 +156,7 @@ object InstructionsPDFPageFieldConverters {
       envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
-        List(envelope.userFileName(formComponent)),
-        validationResult(formComponent).fieldErrors
+        List(envelope.userFileName(formComponent))
       )
   }
 
@@ -186,8 +179,7 @@ object InstructionsPDFPageFieldConverters {
           List(maybeObligation.fold("Value Lost!") { od =>
             messages("generic.From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
               messages("generic.to") + " " + formatDate(od.inboundCorrespondenceToDate)
-          }),
-          validationResult(formComponent).fieldErrors
+          })
         )
       }
     }
@@ -201,8 +193,7 @@ object InstructionsPDFPageFieldConverters {
       envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
-        formComponent.`type`.asInstanceOf[Choice].renderToString(formComponent, validationResult(formComponent)),
-        validationResult(formComponent).fieldErrors
+        formComponent.`type`.asInstanceOf[Choice].renderToString(formComponent, validationResult(formComponent))
       )
   }
 
@@ -247,10 +238,7 @@ object InstructionsPDFPageFieldConverters {
           FormModelSummaryConverter.mapFormComponent(f, cache, sectionNumber, validationResult, envelope)
         }
 
-        GroupField(
-          formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
-          fields,
-          validationResult(formComponent).fieldErrors)
+        GroupField(formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""), fields)
       }
     }
 }

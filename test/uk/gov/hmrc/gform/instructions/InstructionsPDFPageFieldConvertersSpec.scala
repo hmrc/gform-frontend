@@ -116,7 +116,7 @@ class InstructionsPDFPageFieldConvertersSpec
 
     val pageFieldData = textConverter.convert(textComponent, cache, sectionNumber0, validationResult, envelope)
 
-    pageFieldData shouldBe SimpleField("sample label - instruction", List("some text value"), Set.empty)
+    pageFieldData shouldBe SimpleField("sample label - instruction", List("some text value"))
   }
 
   it should "return PageField with errors, when validation result is ERROR" in new Fixture {
@@ -129,10 +129,7 @@ class InstructionsPDFPageFieldConvertersSpec
 
     val pageFieldData = textConverter.convert(textComponent, cache, sectionNumber0, validationResult, envelope)
 
-    pageFieldData shouldBe SimpleField(
-      "sample label - instruction",
-      List("some text value"),
-      Set(s"${default.value} is invalid"))
+    pageFieldData shouldBe SimpleField("sample label - instruction", List("some text value"))
   }
 
   it should "return PageField, with value having prefix and suffix when exists" in new Fixture {
@@ -145,7 +142,7 @@ class InstructionsPDFPageFieldConvertersSpec
     val pageFieldData =
       textConverter.convert(textComponentPrefixSuffix, cache, sectionNumber0, validationResult, envelope)
 
-    pageFieldData shouldBe SimpleField("sample label - instruction", List("PREFIX some text value SUFFIX"), Set.empty)
+    pageFieldData shouldBe SimpleField("sample label - instruction", List("PREFIX some text value SUFFIX"))
   }
 
   "revealingChoiceConverter" should "return RevealingChoiceField with no errors, when validation result is OK" in new Fixture {
@@ -196,13 +193,11 @@ class InstructionsPDFPageFieldConvertersSpec
       List(
         ChoiceElement(
           "choice1",
-          List(
-            SimpleField("text1 - instruction", List("value1"), Set.empty),
-            SimpleField("text2 - instruction", List("value2"), Set.empty))),
+          List(SimpleField("text1 - instruction", List("value1")), SimpleField("text2 - instruction", List("value2")))),
         ChoiceElement(
           "choice2",
           List(
-            SimpleField("Address - instruction", List("street1-value", "postcode-value", "country-value"), Set.empty)
+            SimpleField("Address - instruction", List("street1-value", "postcode-value", "country-value"))
           ))
       )
     )

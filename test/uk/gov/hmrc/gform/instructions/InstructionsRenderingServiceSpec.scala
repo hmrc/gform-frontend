@@ -373,7 +373,7 @@ class InstructionsRenderingServiceSpec
     val mockRecalculation = mock[Recalculation[Future, Throwable]]
 
     val instructionRenderingService =
-      new InstructionsRenderingService(i18nSupport, mockFileUploadService, mockValidationService, frontendAppConfig)
+      new InstructionsRenderingService(i18nSupport, mockFileUploadService, mockValidationService)
 
     lazy val validationResult = ValidationResult.empty
 

@@ -900,18 +900,6 @@ sealed trait FormComponentRenderDetails[T <: RenderType] {
 
 object FormComponentRenderDetails {
 
-  implicit val instructionsFormComponentRenderInfo: FormComponentRenderDetails[InstructionRender] =
-    new FormComponentRenderDetails[InstructionRender] {
-
-      override def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String =
-        formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse("")
-
-      override def prepareRenderables(fields: List[FormComponent]): List[FormComponent] =
-        fields
-          .filter(f => !f.hideOnSummary && f.instruction.isDefined)
-          .sortBy(_.instruction.flatMap(_.order).getOrElse(Integer.MAX_VALUE))
-    }
-
   implicit val summaryFormComponentRenderInfo: FormComponentRenderDetails[SummaryRender] =
     new FormComponentRenderDetails[SummaryRender] {
 
