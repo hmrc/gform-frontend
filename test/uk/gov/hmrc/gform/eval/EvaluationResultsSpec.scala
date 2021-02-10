@@ -16,19 +16,16 @@
 
 package uk.gov.hmrc.gform.eval
 
-import java.time.LocalDate
-
 import org.scalatest.prop.TableDrivenPropertyChecks
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, StringResult }
-import uk.gov.hmrc.gform.eval.ExpressionResult.{DateResult, StringResult}
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, DateCtx, DateFormCtxVar, Else, FormComponentId, FormCtx }
-import uk.gov.hmrc.gform.sharedmodel.{VariadicFormData, VariadicValue}
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Constant, DateCtx, DateFormCtxVar, Else, FormComponentId, FormCtx}
+import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
+
+import java.time.LocalDate
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
@@ -75,7 +72,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           Else(FormCtx(FormComponentId("textFieldEmpty")), Constant("someConstant")),
           StaticTypeData(ExprType.dateString, None)),
         recData,
-        DateResult(LocalDate.of(1970, 1, 11)))
+        StringResult("someConstant"))
     )
 
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>

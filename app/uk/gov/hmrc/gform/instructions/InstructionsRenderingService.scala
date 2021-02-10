@@ -42,6 +42,7 @@ import uk.gov.hmrc.govukfrontend.views.html.components.govukSummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.models.Bracket.AddToList
 import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, FormComponentSummaryRenderer, InstructionRender, SubmissionDetails, SummaryRenderingService }
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper.summaryListRow
 
@@ -225,13 +226,14 @@ class InstructionsRenderingService(
       new govukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-5"))
     }
 
-    def instructionOrder(bracket: Bracket[Visibility]): Int =
-      bracket
-        .fold(_.source.page.instruction.flatMap(_.order))(_.source.page.instruction.flatMap(_.order))(
-          _.source.instruction.flatMap(_.order))
-        .getOrElse(Integer.MAX_VALUE)
+    def instructionOrder(i: Option[Instruction]): Int = i.flatMap(_.order).getOrElse(Integer.MAX_VALUE)
+    def pageInstructionOrder(p: Page[_]): Int = instructionOrder(p.instruction)
+    def addToListInstructionOrder(a: AddToList[_]): Int =
+      instructionOrder(a.source.instruction)
 
-    val sortedBrackets: NonEmptyList[Bracket[Visibility]] = formModel.brackets.brackets.sortBy(instructionOrder)
+    val sortedBrackets: NonEmptyList[Bracket[Visibility]] =
+      formModel.brackets.brackets.sortBy(_.fold(b => pageInstructionOrder(b.source.page))(b =>
+        pageInstructionOrder(b.source.page))(addToListInstructionOrder(_)))
 
     sortedBrackets.toList.flatMap {
       _.fold[List[Html]] { nonRepeatingBracket =>
@@ -241,8 +243,10 @@ class InstructionsRenderingService(
           renderHtmls(singletonWithNumber.singleton, singletonWithNumber.sectionNumber))
       } { addToListBracket =>
         val addToListPageRenders = addToListBracket.iterations.toList.flatMap { iteration =>
-          val pageRenders = iteration.singletons.toList.flatMap(singletonWithNumber =>
-            renderHtmls(singletonWithNumber.singleton, singletonWithNumber.sectionNumber))
+          val pageRenders = iteration.singletons.toList
+            .sortBy(s => pageInstructionOrder(s.singleton.page))
+            .flatMap(singletonWithNumber =>
+              renderHtmls(singletonWithNumber.singleton, singletonWithNumber.sectionNumber))
           if (pageRenders.isEmpty)
             List.empty
           else
