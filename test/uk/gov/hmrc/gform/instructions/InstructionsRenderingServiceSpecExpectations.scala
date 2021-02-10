@@ -125,12 +125,12 @@ trait InstructionsRenderingServiceSpecExpectations {
                            |      <th class="section-title" colspan="2">page2Instruction</th>
                            |   </tr>
                            |   <tr>
-                           |      <th>page2Field1Instruction</th>
-                           |      <td>page2Field1Value<br/></td>
-                           |   </tr>
-                           |   <tr>
                            |      <th>page2Field2Instruction</th>
                            |      <td>page2Field2Value<br/></td>
+                           |   </tr>
+                           |   <tr>
+                           |      <th>page2Field1Instruction</th>
+                           |      <td>page2Field1Value<br/></td>
                            |   </tr>
                            |</table>
                            |<table>

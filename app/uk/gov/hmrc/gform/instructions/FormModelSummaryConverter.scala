@@ -21,6 +21,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.models.Bracket.AddToList
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ Bracket, Repeater, Singleton, SingletonWithNumber, Visibility }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -55,15 +56,10 @@ object FormModelSummaryConverter {
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator): List[SummaryData] = {
-    val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
-    def instructionOrder(bracket: Bracket[Visibility]): Int =
-      bracket
-        .fold(_.source.page.instruction.flatMap(_.order))(_.source.page.instruction.flatMap(_.order))(
-          _.source.instruction.flatMap(_.order))
-        .getOrElse(Integer.MAX_VALUE)
+    val sortedBrackets: List[Bracket[Visibility]] = sortBracketsByInstructionOrder(
+      formModelOptics.formModelVisibilityOptics.formModel.brackets.brackets)
 
-    val sortedBrackets: List[Bracket[Visibility]] = formModel.brackets.brackets.toList.sortBy(instructionOrder)
     sortedBrackets.flatMap {
       _.fold { nonRepeatingPage =>
         List[SummaryData](
@@ -74,33 +70,47 @@ object FormModelSummaryConverter {
             mapSingleton(singleton, sectionNumber, cache, envelope, validationResult)
         }
       } { addToList =>
-        def addToListTitle(addToList: Bracket.AddToList[Visibility]): String =
-          addToList.source.summaryName.value()
-
-        def addToListSummary(addToList: Bracket.AddToList[Visibility]): AddToListSummary = {
-          val repeaters: NonEmptyList[Repeater[Visibility]] = addToList.repeaters
-          val recordTable: NonEmptyList[SmartString] = repeaters.map(_.expandedDescription)
-          val values = recordTable.map(_.value()).toList
-          AddToListSummary(repeaters.last.title.value(), values)
-        }
-
-        val addToListPageGroups: List[AddToListPageGroup] = addToList.iterations.toList.flatMap { iteration =>
-          val addToListPages: List[PageData] = iteration.singletons.toList.map {
-            case SingletonWithNumber(singleton, sectionNumber) =>
-              mapSingleton(singleton, sectionNumber, cache, envelope, validationResult)
-          }
-          if (addToListPages.isEmpty)
-            None
-          else
-            Some(AddToListPageGroup(iteration.repeater.repeater.expandedShortName.value(), addToListPages))
-        }
-
-        if (addToListPageGroups.isEmpty)
-          List.empty
-        else
-          List(AddToListData(addToListTitle(addToList), addToListSummary(addToList), addToListPageGroups))
+        convertAddToList(cache, envelope, validationResult, addToList)
       }
     }
+  }
+
+  private def convertAddToList[D <: DataOrigin](
+    cache: AuthCacheWithForm,
+    envelope: Envelope,
+    validationResult: ValidationResult,
+    addToList: AddToList[Visibility])(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator) = {
+    def addToListTitle(addToList: AddToList[Visibility]): String =
+      addToList.source.summaryName.value()
+
+    def addToListSummary(addToList: AddToList[Visibility]): AddToListSummary = {
+      val repeaters: NonEmptyList[Repeater[Visibility]] = addToList.repeaters
+      val recordTable: NonEmptyList[SmartString] = repeaters.map(_.expandedDescription)
+      val values = recordTable.map(_.value()).toList
+      AddToListSummary(repeaters.last.title.value(), values)
+    }
+
+    val addToListPageGroups: List[AddToListPageGroup] = addToList.iterations.toList.flatMap { iteration =>
+      val addToListPages: List[PageData] = iteration.singletons.toList
+        .sortBy(s => pageInstructionOrder(s.singleton.page))
+        .map {
+          case SingletonWithNumber(singleton, sectionNumber) =>
+            mapSingleton(singleton, sectionNumber, cache, envelope, validationResult)
+        }
+      if (addToListPages.isEmpty)
+        None
+      else
+        Some(AddToListPageGroup(iteration.repeater.repeater.expandedShortName.value(), addToListPages))
+    }
+
+    if (addToListPageGroups.isEmpty)
+      List.empty
+    else
+      List(AddToListData(addToListTitle(addToList), addToListSummary(addToList), addToListPageGroups))
   }
 
   def mapSingleton(
@@ -115,7 +125,9 @@ object FormModelSummaryConverter {
     lise: SmartStringEvaluator): PageData = {
     val pageTitle = singleton.page.instruction.flatMap(_.name).map(_.value())
     val pageFields =
-      singleton.page.fields.map(c => mapFormComponent(c, cache, sectionNumber, validationResult, envelope))
+      singleton.page.fields
+        .sortBy(f => instructionOrder(f.instruction))
+        .map(c => mapFormComponent(c, cache, sectionNumber, validationResult, envelope))
     PageData(pageTitle, pageFields)
   }
 
@@ -157,4 +169,15 @@ object FormModelSummaryConverter {
         PageFieldConverter[Address]
     }).convert(component, cache, sectionNumber, validationResult, envelope)
   }
+
+  private def sortBracketsByInstructionOrder[D <: DataOrigin](brackets: NonEmptyList[Bracket[Visibility]]) =
+    brackets.toList.sortBy(
+      _.fold(b => pageInstructionOrder(b.source.page))(b => pageInstructionOrder(b.source.page))(
+        addToListInstructionOrder(_)))
+
+  private def instructionOrder(i: Option[Instruction]): Int = i.flatMap(_.order).getOrElse(Integer.MAX_VALUE)
+
+  private def pageInstructionOrder(p: Page[_]): Int = instructionOrder(p.instruction)
+
+  private def addToListInstructionOrder(a: AddToList[_]): Int = instructionOrder(a.source.instruction)
 }
