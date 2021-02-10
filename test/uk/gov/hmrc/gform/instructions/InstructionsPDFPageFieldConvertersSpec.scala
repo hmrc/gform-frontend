@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.EvaluationContext
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.instructions.FormModelSummaryConverter.{ ChoiceElement, RevealingChoiceField, SimpleField }
+import uk.gov.hmrc.gform.instructions.FormModelInstructionSummaryConverter.{ ChoiceElement, RevealingChoiceField, SimpleField }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormModelOptics, ThirdPartyData }
@@ -43,6 +43,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.Address._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import FormModelInstructionSummaryConverter._
 
 class InstructionsPDFPageFieldConvertersSpec
     extends FlatSpec with ScalaFutures with Matchers with ExampleData with ArgumentMatchersSugar with IdiomaticMockito {

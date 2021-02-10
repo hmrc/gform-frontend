@@ -158,11 +158,19 @@ trait InstructionsRenderingServiceSpecExpectations {
                           |    <th class="section-title" colspan="2">page1Field1Instruction</th>
                           |</tr>
                           |<tr>
+                          |    <th>page1Field1GroupElement2Instruction</th>
+                          |    <td>page1Field1GroupElement2Value1<br/></td>
+                          |</tr>
+                          |<tr>
                           |    <th>page1Field1GroupElement1Instruction</th>
                           |    <td>page1Field1GroupElement1Value1<br/></td>
                           |</tr>
                           |<tr>
                           |     <th class="section-title" colspan="2">page1Field1Instruction</th>
+                          |</tr>
+                          |<tr>
+                          |    <th>page1Field1GroupElement2Instruction</th>
+                          |    <td>page1Field1GroupElement2Value2<br/></td>
                           |</tr>
                           |<tr>
                           |    <th>page1Field1GroupElement1Instruction</th>

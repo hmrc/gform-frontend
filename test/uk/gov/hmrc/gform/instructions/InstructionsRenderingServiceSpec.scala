@@ -123,13 +123,19 @@ class InstructionsRenderingServiceSpec
       lazy val page1Field1GroupElement1 = buildFormComponent(
         "page1Field1GroupElement1",
         Constant("page1FieldGroupElement1Text"),
-        Some(buildInstruction("page1Field1GroupElement1Instruction", Some(1))))
+        Some(buildInstruction("page1Field1GroupElement1Instruction", Some(2))))
+
+      lazy val page1Field1GroupElement2 = buildFormComponent(
+        "page1Field1GroupElement2",
+        Constant("page1FieldGroupElement2Text"),
+        Some(buildInstruction("page1Field1GroupElement2Instruction", Some(1))))
 
       lazy val page1Field1 =
         buildFormComponent(
           "page1Field1",
-          FormTemplateBuilder.mkGroup(2, List(page1Field1GroupElement1)),
-          Some(buildInstruction("page1Field1Instruction", Some(1))))
+          FormTemplateBuilder.mkGroup(2, List(page1Field1GroupElement1, page1Field1GroupElement2)),
+          Some(buildInstruction("page1Field1Instruction", Some(1)))
+        )
 
       override lazy val form: Form =
         buildForm(
@@ -137,7 +143,9 @@ class InstructionsRenderingServiceSpec
             FormField(page1Field1.withIndex(1).modelComponentId, ""),
             FormField(page1Field1.withIndex(2).modelComponentId, ""),
             FormField(page1Field1GroupElement1.withIndex(1).modelComponentId, "page1Field1GroupElement1Value1"),
-            FormField(page1Field1GroupElement1.withIndex(2).modelComponentId, "page1Field1GroupElement1Value2")
+            FormField(page1Field1GroupElement1.withIndex(2).modelComponentId, "page1Field1GroupElement1Value2"),
+            FormField(page1Field1GroupElement2.withIndex(1).modelComponentId, "page1Field1GroupElement2Value1"),
+            FormField(page1Field1GroupElement2.withIndex(2).modelComponentId, "page1Field1GroupElement2Value2")
           )))
 
       override lazy val validationResult: ValidationResult = new ValidationResult(
@@ -147,7 +155,13 @@ class InstructionsRenderingServiceSpec
             "page1Field1GroupElement1Value1"),
           page1Field1GroupElement1.withIndex(2).id -> FieldOk(
             page1Field1GroupElement1.withIndex(2),
-            "page1Field1GroupElement1Value2")
+            "page1Field1GroupElement1Value2"),
+          page1Field1GroupElement2.withIndex(1).id -> FieldOk(
+            page1Field1GroupElement2.withIndex(1),
+            "page1Field1GroupElement2Value1"),
+          page1Field1GroupElement2.withIndex(2).id -> FieldOk(
+            page1Field1GroupElement2.withIndex(2),
+            "page1Field1GroupElement2Value2")
         ),
         None
       )

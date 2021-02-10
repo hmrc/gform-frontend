@@ -21,7 +21,7 @@ import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.instructions.FormModelSummaryConverter._
+import uk.gov.hmrc.gform.instructions.FormModelInstructionSummaryConverter._
 import uk.gov.hmrc.gform.instructions.TextFormatter.formatText
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
@@ -39,7 +39,11 @@ object InstructionsPDFPageFieldConverters {
       cache: AuthCacheWithForm,
       sectionNumber: SectionNumber,
       validationResult: ValidationResult,
-      envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField = {
+      envelope: Envelope)(
+      implicit lise: SmartStringEvaluator,
+      messages: Messages,
+      l: LangADT,
+      fieldOrdering: Ordering[FormComponent]): PageField = {
       val (prefix, suffix) = formComponent match {
         case IsText(Text(_, _, _, _, prefix, suffix)) => (prefix, suffix)
         case _                                        => (None, None)
@@ -58,7 +62,11 @@ object InstructionsPDFPageFieldConverters {
       cache: AuthCacheWithForm,
       sectionNumber: SectionNumber,
       validationResult: ValidationResult,
-      envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
+      envelope: Envelope)(
+      implicit lise: SmartStringEvaluator,
+      messages: Messages,
+      l: LangADT,
+      fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
         formatText(validationResult(formComponent), envelope).flatMap(_.split("\\R"))
@@ -71,7 +79,11 @@ object InstructionsPDFPageFieldConverters {
       cache: AuthCacheWithForm,
       sectionNumber: SectionNumber,
       validationResult: ValidationResult,
-      envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
+      envelope: Envelope)(
+      implicit lise: SmartStringEvaluator,
+      messages: Messages,
+      l: LangADT,
+      fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
         List(
@@ -91,7 +103,11 @@ object InstructionsPDFPageFieldConverters {
       cache: AuthCacheWithForm,
       sectionNumber: SectionNumber,
       validationResult: ValidationResult,
-      envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField = {
+      envelope: Envelope)(
+      implicit lise: SmartStringEvaluator,
+      messages: Messages,
+      l: LangADT,
+      fieldOrdering: Ordering[FormComponent]): PageField = {
       def safeId(atom: Atom) = HtmlFieldId.pure(formComponent.atomicFormComponentId(atom))
 
       def monthKey = getMonthValue(validationResult(formComponent).getCurrentValue(safeId(Date.month)))
@@ -115,7 +131,11 @@ object InstructionsPDFPageFieldConverters {
       cache: AuthCacheWithForm,
       sectionNumber: SectionNumber,
       validationResult: ValidationResult,
-      envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
+      envelope: Envelope)(
+      implicit lise: SmartStringEvaluator,
+      messages: Messages,
+      l: LangADT,
+      fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
         List(validationResult(formComponent).getCurrentValue.getOrElse(""))
@@ -128,7 +148,11 @@ object InstructionsPDFPageFieldConverters {
       cache: AuthCacheWithForm,
       sectionNumber: SectionNumber,
       validationResult: ValidationResult,
-      envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
+      envelope: Envelope)(
+      implicit lise: SmartStringEvaluator,
+      messages: Messages,
+      l: LangADT,
+      fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
         Address
@@ -143,7 +167,11 @@ object InstructionsPDFPageFieldConverters {
         cache: AuthCacheWithForm,
         sectionNumber: SectionNumber,
         validationResult: ValidationResult,
-        envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
+        envelope: Envelope)(
+        implicit lise: SmartStringEvaluator,
+        messages: Messages,
+        l: LangADT,
+        fieldOrdering: Ordering[FormComponent]): PageField =
         SimpleField("", List.empty)
     }
 
@@ -153,7 +181,11 @@ object InstructionsPDFPageFieldConverters {
       cache: AuthCacheWithForm,
       sectionNumber: SectionNumber,
       validationResult: ValidationResult,
-      envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
+      envelope: Envelope)(
+      implicit lise: SmartStringEvaluator,
+      messages: Messages,
+      l: LangADT,
+      fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
         List(envelope.userFileName(formComponent))
@@ -167,7 +199,11 @@ object InstructionsPDFPageFieldConverters {
         cache: AuthCacheWithForm,
         sectionNumber: SectionNumber,
         validationResult: ValidationResult,
-        envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField = {
+        envelope: Envelope)(
+        implicit lise: SmartStringEvaluator,
+        messages: Messages,
+        l: LangADT,
+        fieldOrdering: Ordering[FormComponent]): PageField = {
 
         val periodId = TaxPeriodHelper.formatTaxPeriodOutput(validationResult(formComponent), envelope)
         val mayBeHmrcTaxPeriod = formComponent.`type`.cast[HmrcTaxPeriod]
@@ -190,7 +226,11 @@ object InstructionsPDFPageFieldConverters {
       cache: AuthCacheWithForm,
       sectionNumber: SectionNumber,
       validationResult: ValidationResult,
-      envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField =
+      envelope: Envelope)(
+      implicit lise: SmartStringEvaluator,
+      messages: Messages,
+      l: LangADT,
+      fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
         formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
         formComponent.`type`.asInstanceOf[Choice].renderToString(formComponent, validationResult(formComponent))
@@ -204,7 +244,11 @@ object InstructionsPDFPageFieldConverters {
         cache: AuthCacheWithForm,
         sectionNumber: SectionNumber,
         validationResult: ValidationResult,
-        envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField = {
+        envelope: Envelope)(
+        implicit lise: SmartStringEvaluator,
+        messages: Messages,
+        l: LangADT,
+        fieldOrdering: Ordering[FormComponent]): PageField = {
         val rc = formComponent.`type`.asInstanceOf[RevealingChoice]
         val selections: List[ChoiceElement] = rc.options
           .zip(validationResult(formComponent).getComponentFieldIndices(formComponent.id))
@@ -214,7 +258,8 @@ object InstructionsPDFPageFieldConverters {
                 .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
                 .map { _ =>
                   val revealingFields = element.revealingFields.map(f =>
-                    FormModelSummaryConverter.mapFormComponent(f, cache, sectionNumber, validationResult, envelope))
+                    FormModelInstructionSummaryConverter
+                      .mapFormComponent(f, cache, sectionNumber, validationResult, envelope))
                   ChoiceElement(element.choice.value(), revealingFields)
                 }
           }
@@ -232,10 +277,14 @@ object InstructionsPDFPageFieldConverters {
         cache: AuthCacheWithForm,
         sectionNumber: SectionNumber,
         validationResult: ValidationResult,
-        envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField = {
+        envelope: Envelope)(
+        implicit lise: SmartStringEvaluator,
+        messages: Messages,
+        l: LangADT,
+        fieldOrdering: Ordering[FormComponent]): PageField = {
 
-        val fields = formComponent.`type`.asInstanceOf[Group].fields.map { f =>
-          FormModelSummaryConverter.mapFormComponent(f, cache, sectionNumber, validationResult, envelope)
+        val fields = formComponent.`type`.asInstanceOf[Group].fields.sorted.map { f =>
+          FormModelInstructionSummaryConverter.mapFormComponent(f, cache, sectionNumber, validationResult, envelope)
         }
 
         GroupField(formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""), fields)

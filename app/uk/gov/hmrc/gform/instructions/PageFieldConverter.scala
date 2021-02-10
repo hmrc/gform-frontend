@@ -20,7 +20,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.instructions.FormModelSummaryConverter.PageField
+import uk.gov.hmrc.gform.instructions.FormModelInstructionSummaryConverter.PageField
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ComponentType, FormComponent, SectionNumber }
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -31,7 +31,11 @@ trait PageFieldConverter[T <: ComponentType] {
     cache: AuthCacheWithForm,
     sectionNumber: SectionNumber,
     validationResult: ValidationResult,
-    envelope: Envelope)(implicit lise: SmartStringEvaluator, messages: Messages, l: LangADT): PageField
+    envelope: Envelope)(
+    implicit lise: SmartStringEvaluator,
+    messages: Messages,
+    l: LangADT,
+    fieldOrdering: Ordering[FormComponent]): PageField
 }
 
 object PageFieldConverter {

@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.validation.ValidationResult
 
-object FormModelSummaryConverter {
+object FormModelInstructionSummaryConverter {
 
   sealed trait SummaryData
 
@@ -47,6 +47,28 @@ object FormModelSummaryConverter {
   case class AddToListData(title: String, summary: AddToListSummary, pageGroups: List[AddToListPageGroup])
       extends SummaryData
 
+  def instructionOrderVal(i: Option[Instruction]): Int = i.flatMap(_.order).getOrElse(Integer.MAX_VALUE)
+
+  implicit val pageOrdering: Ordering[Page[Visibility]] = (x: Page[Visibility], y: Page[Visibility]) =>
+    instructionOrderVal(x.instruction).compareTo(instructionOrderVal(y.instruction))
+
+  implicit val bracketOrdering: Ordering[Bracket[Visibility]] = (x: Bracket[Visibility], y: Bracket[Visibility]) =>
+    x.fold(a => instructionOrderVal(a.source.page.instruction))(a => instructionOrderVal(a.source.page.instruction))(
+        a => instructionOrderVal(a.source.instruction)
+      )
+      .compareTo(
+        y.fold(a => instructionOrderVal(a.source.page.instruction))(a =>
+          instructionOrderVal(a.source.page.instruction))(
+          a => instructionOrderVal(a.source.instruction)
+        ))
+
+  implicit val fieldOrdering: Ordering[FormComponent] = (x: FormComponent, y: FormComponent) =>
+    instructionOrderVal(x.instruction).compareTo(instructionOrderVal(y.instruction))
+
+  implicit val singletonWithNumberOrdering: Ordering[SingletonWithNumber[Visibility]] =
+    (x: SingletonWithNumber[Visibility], y: SingletonWithNumber[Visibility]) =>
+      pageOrdering.compare(x.singleton.page, y.singleton.page)
+
   def convert[D <: DataOrigin](
     formModelOptics: FormModelOptics[D],
     cache: AuthCacheWithForm,
@@ -57,8 +79,8 @@ object FormModelSummaryConverter {
     l: LangADT,
     lise: SmartStringEvaluator): List[SummaryData] = {
 
-    val sortedBrackets: List[Bracket[Visibility]] = sortBracketsByInstructionOrder(
-      formModelOptics.formModelVisibilityOptics.formModel.brackets.brackets)
+    val sortedBrackets: List[Bracket[Visibility]] =
+      formModelOptics.formModelVisibilityOptics.formModel.brackets.brackets.toList.sorted
 
     sortedBrackets.flatMap {
       _.fold { nonRepeatingPage =>
@@ -95,8 +117,7 @@ object FormModelSummaryConverter {
     }
 
     val addToListPageGroups: List[AddToListPageGroup] = addToList.iterations.toList.flatMap { iteration =>
-      val addToListPages: List[PageData] = iteration.singletons.toList
-        .sortBy(s => pageInstructionOrder(s.singleton.page))
+      val addToListPages: List[PageData] = iteration.singletons.toList.sorted
         .map {
           case SingletonWithNumber(singleton, sectionNumber) =>
             mapSingleton(singleton, sectionNumber, cache, envelope, validationResult)
@@ -125,8 +146,7 @@ object FormModelSummaryConverter {
     lise: SmartStringEvaluator): PageData = {
     val pageTitle = singleton.page.instruction.flatMap(_.name).map(_.value())
     val pageFields =
-      singleton.page.fields
-        .sortBy(f => instructionOrder(f.instruction))
+      singleton.page.fields.sorted
         .map(c => mapFormComponent(c, cache, sectionNumber, validationResult, envelope))
     PageData(pageTitle, pageFields)
   }
@@ -169,15 +189,4 @@ object FormModelSummaryConverter {
         PageFieldConverter[Address]
     }).convert(component, cache, sectionNumber, validationResult, envelope)
   }
-
-  private def sortBracketsByInstructionOrder[D <: DataOrigin](brackets: NonEmptyList[Bracket[Visibility]]) =
-    brackets.toList.sortBy(
-      _.fold(b => pageInstructionOrder(b.source.page))(b => pageInstructionOrder(b.source.page))(
-        addToListInstructionOrder(_)))
-
-  private def instructionOrder(i: Option[Instruction]): Int = i.flatMap(_.order).getOrElse(Integer.MAX_VALUE)
-
-  private def pageInstructionOrder(p: Page[_]): Int = instructionOrder(p.instruction)
-
-  private def addToListInstructionOrder(a: AddToList[_]): Int = instructionOrder(a.source.instruction)
 }

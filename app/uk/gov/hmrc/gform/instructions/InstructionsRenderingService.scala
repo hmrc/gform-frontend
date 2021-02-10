@@ -63,10 +63,11 @@ class InstructionsRenderingService(
       }
       PdfHtml(
         summaryInstructionPdf(
-          FormModelSummaryConverter.convert(formModelOptics, cache, envelope, validationResult),
+          FormModelInstructionSummaryConverter.convert(formModelOptics, cache, envelope, validationResult),
           maybeSubmissionDetails,
           mayBeInstructionPdf,
-          cache.formTemplate).toString)
+          cache.formTemplate
+        ).toString)
     }
   }
 }
