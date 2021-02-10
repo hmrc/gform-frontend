@@ -54,7 +54,7 @@ class ValidationService(
   def validatePageModel[D <: DataOrigin](
     pageModel: PageModel[Visibility],
     cache: CacheData,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(
@@ -80,7 +80,7 @@ class ValidationService(
 
   def validateFormModel[D <: DataOrigin](
     cache: CacheData,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(
     implicit
@@ -117,7 +117,7 @@ class ValidationService(
     pageModel: PageModel[Visibility],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     cache: CacheData,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(
     implicit
@@ -131,7 +131,7 @@ class ValidationService(
   def validateDeclarationSection[D <: DataOrigin](
     cache: CacheData,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    envelope: Envelope
+    envelope: EnvelopeWithMapping
   )(
     implicit
     messages: Messages,
@@ -159,7 +159,7 @@ class ValidationService(
     formComponent: FormComponent,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     cache: CacheData,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(
     implicit

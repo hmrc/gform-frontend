@@ -148,7 +148,10 @@ object ValueClassBinder {
         }
     }
 
-  implicit val formComponentIdBinder: PathBindable[FormComponentId] = valueClassBinder(_.value)
+  implicit val formComponentIdBinder: PathBindable[FormComponentId] = {
+    implicit val reads: Reads[FormComponentId] = FormComponentId.oformat
+    valueClassBinder(_.value)
+  }
 
   implicit val baseComponentIdBinder: PathBindable[BaseComponentId] =
     mkPathBindable(
@@ -169,7 +172,7 @@ object ValueClassBinder {
   private def parseString[A: Reads](str: String) =
     JsString(str).validate[A] match {
       case JsSuccess(a, _) => Right(a)
-      case JsError(_)      => Left("No valid value in url binding: " + str)
+      case JsError(error)  => Left("No valid value in url binding: " + str + ". Error: " + error)
     }
 
   private def valueClassBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: PathBindable[String]) =

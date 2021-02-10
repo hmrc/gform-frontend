@@ -17,24 +17,23 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
-import cats.instances.list._
 import cats.instances.option._
 import cats.syntax.applicative._
 import cats.syntax.apply._
 import cats.syntax.eq._
-import cats.syntax.foldable._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.fileupload.FileUploadAlgebra
+import uk.gov.hmrc.gform.eval.FileIdsWithMapping
+import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LookupExtractors
-import uk.gov.hmrc.gform.models.{ AddToListUtils, Bracket, DataExpanded, FastForward, FormModel, ProcessData, ProcessDataService, SectionSelectorType, Singleton }
+import uk.gov.hmrc.gform.models.{ AddToListUtils, Bracket, DataExpanded, FastForward, FormModel, GroupUtils, ProcessData, ProcessDataService, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
@@ -96,7 +95,7 @@ class FormController(
                 formModelOptics,
                 sectionNumber,
                 cache.toCacheData,
-                envelope,
+                EnvelopeWithMapping(envelope, cache.form),
                 validationService.validatePageModel,
                 suppressErrors
               )
@@ -207,11 +206,12 @@ class FormController(
             ): Future[Result] =
               for {
                 envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+                envelopeWithMapping = EnvelopeWithMapping(envelope, cache.form)
                 FormValidationOutcome(_, formData, validatorsResult) <- handler.handleFormValidation(
                                                                          processData.formModelOptics,
                                                                          sectionNumber,
                                                                          cache.toCacheData,
-                                                                         envelope,
+                                                                         envelopeWithMapping,
                                                                          validationService.validatePageModel
                                                                        )
                 res <- {
@@ -254,7 +254,7 @@ class FormController(
                         processData.copy(visitsIndex = visitsIndex),
                         maybeAccessCode,
                         fastForward,
-                        envelope)(toResult)
+                        envelopeWithMapping)(toResult)
                   }
                 }
               } yield res
@@ -264,6 +264,7 @@ class FormController(
             ): Future[Result] =
               validateAndUpdateData(cache, processData, sectionNumber) {
                 case Some(sn) =>
+                  val isFirstLanding = sectionNumber < sn
                   val sectionTitle4Ga = getSectionTitle4Ga(processData, sn)
                   Redirect(
                     routes.FormController
@@ -272,8 +273,8 @@ class FormController(
                         maybeAccessCode,
                         sn,
                         sectionTitle4Ga,
-                        SuppressErrors(sectionNumber < sn),
-                        fastForward.next))
+                        SuppressErrors(isFirstLanding),
+                        if (isFirstLanding) fastForward.next else fastForward))
                 case None =>
                   Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
               }
@@ -333,8 +334,8 @@ class FormController(
               }
             }
 
-            def handleGroup(processData: ProcessData, anchor: String): Future[Result] =
-              validateAndUpdateData(cache, processData, sectionNumber) { _ =>
+            def handleGroup(cacheUpd: AuthCacheWithForm, processData: ProcessData, anchor: String): Future[Result] =
+              validateAndUpdateData(cacheUpd, processData, sectionNumber) { _ =>
                 val sectionTitle4Ga = getSectionTitle4Ga(processData, sectionNumber)
                 Redirect(
                   routes.FormController
@@ -384,6 +385,7 @@ class FormController(
                                          cache,
                                          recalculation)
                 res <- handleGroup(
+                        cache,
                         processData.copy(formModelOptics = updFormModelOptics),
                         anchor(updFormModelOptics).map("#" + _.toHtmlId).getOrElse(""))
               } yield res
@@ -391,31 +393,18 @@ class FormController(
             }
 
             def processRemoveGroup(processData: ProcessData, modelComponentId: ModelComponentId): Future[Result] = {
-
-              val formModelRenderPageOptics = processData.formModelOptics.formModelRenderPageOptics
-              val data = processData.formModelOptics.pageOpticsData
-
-              val maybeFormComponent = formModelRenderPageOptics.find(modelComponentId)
-              val dataToRemove = maybeFormComponent.map(data.by).getOrElse(VariadicFormData.empty)
-              val indexedComponentId = modelComponentId.indexedComponentId
-              val toToReindexed: List[FormComponent] = formModelRenderPageOptics.findBigger(indexedComponentId)
-
-              val variadicFormDatas: VariadicFormData[SourceOrigin.Current] = toToReindexed.foldMap(data.by)
-
-              val decrementedVariadicFormDatas: VariadicFormData[SourceOrigin.Current] =
-                variadicFormDatas.mapKeys(_.decrement)
-
-              val updData = data -- dataToRemove -- variadicFormDatas ++ decrementedVariadicFormDatas
-
+              val (updData, componentIdToFileId, filesToDelete) =
+                GroupUtils.removeRecord(processData, modelComponentId, sectionNumber, cache.form.componentIdToFileId)
+              val cacheUpd = cache.copy(form = cache.form.copy(componentIdToFileId = componentIdToFileId))
               for {
                 updFormModelOptics <- FormModelOptics
                                        .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
                                          updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                                          cache,
                                          recalculation)
-                res <- handleGroup(processData.copy(formModelOptics = updFormModelOptics), "")
+                res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
+                _   <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
               } yield res
-
             }
 
             def processEditAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
@@ -440,7 +429,10 @@ class FormController(
 
             def processRemoveAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
 
-              def saveAndRedirect(updFormModelOptics: FormModelOptics[DataOrigin.Browser]): Future[Result] = {
+              def saveAndRedirect(
+                updFormModelOptics: FormModelOptics[DataOrigin.Browser],
+                componentIdToFileId: FormComponentIdToFileIdMapping
+              ): Future[Result] = {
                 val updFormModel: FormModel[DataExpanded] = updFormModelOptics.formModelRenderPageOptics.formModel
 
                 val sn = updFormModel.brackets.addToListBracket(addToListId).lastSectionNumber
@@ -453,7 +445,9 @@ class FormController(
                   visitsIndex = VisitIndex(visitsIndex)
                 )
 
-                val cacheUpd = cache.copy(form = cache.form.copy(visitsIndex = VisitIndex(visitsIndex)))
+                val cacheUpd = cache.copy(
+                  form =
+                    cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId))
 
                 validateAndUpdateData(cacheUpd, processDataUpd, sn) { _ =>
                   val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sn)
@@ -463,9 +457,14 @@ class FormController(
                 }
               }
 
-              val bracket = formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
-              val updData: VariadicFormData[SourceOrigin.Current] =
-                AddToListUtils.removeRecord(processData, bracket, idx)
+              val formModel = formModelOptics.formModelRenderPageOptics.formModel
+              val bracket = formModel.brackets.addToListBracket(addToListId)
+              val (updData, componentIdToFileIdMapping, filesToDelete) =
+                AddToListUtils.removeRecord(
+                  processData,
+                  bracket,
+                  idx,
+                  FileIdsWithMapping(formModel.allFileIds, cache.form.componentIdToFileId))
 
               for {
                 updFormModelOptics <- FormModelOptics
@@ -473,7 +472,8 @@ class FormController(
                                          updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                                          cache,
                                          recalculation)
-                redirect <- saveAndRedirect(updFormModelOptics)
+                redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping)
+                _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
               } yield redirect
             }
 

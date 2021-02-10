@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -52,13 +53,31 @@ case class EvaluationResults(
   private def get(
     expr: FormCtx,
     recData: RecData[SourceOrigin.OutOfDate],
-    fromVariadicValue: VariadicValue => ExpressionResult
-  ): ExpressionResult =
-    exprMap.getOrElse(
+    fromVariadicValue: VariadicValue => ExpressionResult,
+    fileIdsWithMapping: FileIdsWithMapping
+  ): ExpressionResult = {
+    val modelComponentId = expr.formComponentId.modelComponentId
+    val expressionResult = exprMap.getOrElse(
       expr,
       recData.variadicFormData
-        .get(expr.formComponentId.modelComponentId)
+        .get(modelComponentId)
         .fold(ExpressionResult.empty)(fromVariadicValue))
+    if (fileIdsWithMapping.isFileField(modelComponentId))
+      stripFileName(expressionResult, modelComponentId, fileIdsWithMapping.mapping)
+    else expressionResult
+  }
+
+  private def stripFileName(
+    expressionResult: ExpressionResult,
+    modelComponentId: ModelComponentId,
+    componentIdToFileId: FormComponentIdToFileIdMapping
+  ): ExpressionResult = {
+    val fileIdPrefix: String =
+      componentIdToFileId.find(modelComponentId).fold(modelComponentId.toMongoIdentifier)(_.value)
+    expressionResult.withStringResult(expressionResult) { fileName =>
+      StringResult(fileName.replace(fileIdPrefix + "_", ""))
+    }
+  }
 
   // Sum field may be hidden by AddToList or by Revealing choice
   private def isSumHidden(modelComponentId: ModelComponentId): Boolean = {
@@ -89,7 +108,8 @@ case class EvaluationResults(
 
   private def evalNumber(
     expr: Expr,
-    recData: RecData[SourceOrigin.OutOfDate]
+    recData: RecData[SourceOrigin.OutOfDate],
+    evaluationContext: EvaluationContext
   ): ExpressionResult = {
 
     def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
@@ -111,7 +131,7 @@ case class EvaluationResults(
       case Multiply(field1: Expr, field2: Expr)       => loop(field1) * loop(field2)
       case Subtraction(field1: Expr, field2: Expr)    => loop(field1) - loop(field2)
       case Else(field1: Expr, field2: Expr)           => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId)             => get(ctx, recData, fromVariadicValue)
+      case ctx @ FormCtx(formComponentId)             => get(ctx, recData, fromVariadicValue, evaluationContext.fileIdsWithMapping)
       case Sum(FormCtx(formComponentId))              => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
       case Sum(_)                                     => unsupportedOperation("Number")(expr)
       case Count(formComponentId)                     => addToListCount(formComponentId)
@@ -143,13 +163,14 @@ case class EvaluationResults(
         ExpressionResult.OptionResult(many.value.map(_.toInt)))
 
     def loop(expr: Expr): ExpressionResult = expr match {
-      case Add(field1: Expr, field2: Expr)                 => loop(field1) + loop(field2)
-      case Multiply(field1: Expr, field2: Expr)            => unsupportedOperation("String")(expr)
-      case Subtraction(field1: Expr, field2: Expr)         => unsupportedOperation("String")(expr)
-      case Else(field1: Expr, field2: Expr)                => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId: FormComponentId) => get(ctx, recData, fromVariadicValue)
-      case Sum(field1: Expr)                               => unsupportedOperation("String")(expr)
-      case Count(_)                                        => unsupportedOperation("String")(expr)
+      case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
+      case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
+      case Subtraction(field1: Expr, field2: Expr) => unsupportedOperation("String")(expr)
+      case Else(field1: Expr, field2: Expr)        => loop(field1) orElse loop(field2)
+      case ctx @ FormCtx(formComponentId: FormComponentId) =>
+        get(ctx, recData, fromVariadicValue, evaluationContext.fileIdsWithMapping)
+      case Sum(field1: Expr) => unsupportedOperation("String")(expr)
+      case Count(_)          => unsupportedOperation("String")(expr)
       case AuthCtx(value: AuthInfo) =>
         nonEmpty(StringResult(AuthContextPrepop.values(value, evaluationContext.retrievals)))
       case UserCtx(value: UserField) =>
@@ -219,7 +240,7 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext
   ): ExpressionResult =
     typeInfo.staticTypeData.exprType.fold { number =>
-      evalNumber(typeInfo.expr, recData)
+      evalNumber(typeInfo.expr, recData, evaluationContext)
     } { string =>
       evalString(typeInfo.expr, recData, evaluationContext)
     } { choiceSelection =>

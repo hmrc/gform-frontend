@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
+import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models._
@@ -101,7 +101,7 @@ class InstructionsRenderingService(
     import i18nSupport._
 
     for {
-      envelope <- fileUploadAlgebra.getEnvelope(cache.form.envelopeId)
+      envelope <- fileUploadAlgebra.getEnvelope(cache.form.envelopeId).map(EnvelopeWithMapping(_, cache.form))
       validationResult <- validationService
                            .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics)
     } yield
@@ -124,7 +124,7 @@ class InstructionsRenderingService(
     validationResult: ValidationResult,
     formModelOptics: FormModelOptics[D],
     maybeAccessCode: Option[AccessCode],
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     retrievals: MaterialisedRetrievals,
     frontendAppConfig: FrontendAppConfig,
     obligations: Obligations,
@@ -137,11 +137,7 @@ class InstructionsRenderingService(
     l: LangADT,
     lise: SmartStringEvaluator): Html = {
 
-    val envelopeUpd =
-      summaryPagePurpose match {
-        case SummaryPagePurpose.ForUser => envelope.withUserFileNames
-        case SummaryPagePurpose.ForDms  => envelope
-      }
+    val envelopeUpd = envelope.byPurpose(summaryPagePurpose)
 
     summary(
       formTemplate,
@@ -170,7 +166,7 @@ class InstructionsRenderingService(
     formModelOptics: FormModelOptics[D],
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     obligations: Obligations
   )(
     implicit

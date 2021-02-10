@@ -31,16 +31,17 @@ import play.api.test.{ FakeRequest, Helpers }
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
+import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.eval.EvaluationContext
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.graph.{ FormTemplateBuilder, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSectionPdf, Constant, FormComponent, FormTemplate, RevealingChoice, RevealingChoiceElement, Section, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSectionPdf, Constant, FormComponent, FormPhase, FormTemplate, RevealingChoice, RevealingChoiceElement, Section, Value }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
@@ -412,7 +413,7 @@ class InstructionsRenderingServiceSpec
 
     mockFileUploadService.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]) returns Future.successful(Envelope(List.empty))
     mockValidationService
-      .validateFormModel(*[CacheData], *[Envelope], *[FormModelVisibilityOptics[DataOrigin.Mongo]])(
+      .validateFormModel(*[CacheData], *[EnvelopeWithMapping], *[FormModelVisibilityOptics[DataOrigin.Mongo]])(
         *[HeaderCarrier],
         *[Messages],
         *[LangADT],
@@ -425,15 +426,17 @@ class InstructionsRenderingServiceSpec
       *[ThirdPartyData],
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
-      RecalculationResult.empty(
-        new EvaluationContext(
-          formTemplate._id,
-          submissionRef,
-          maybeAccessCode,
-          retrievals,
-          ThirdPartyData.empty,
-          authConfig,
-          headerCarrier)))
+      RecalculationResult.empty(new EvaluationContext(
+        formTemplate._id,
+        submissionRef,
+        maybeAccessCode,
+        retrievals,
+        ThirdPartyData.empty,
+        authConfig,
+        headerCarrier,
+        Option.empty[FormPhase],
+        FileIdsWithMapping.empty
+      )))
 
     val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
       .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](

@@ -35,12 +35,13 @@ import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadConnector }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.GraphException
 import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.userdetails.Nino
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormIdData, FormModelOptics, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormComponentIdToFileIdMapping, FormIdData, FormModelOptics, ThirdPartyData, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.auth.core.retrieve.Credentials
@@ -71,6 +72,7 @@ trait AuthenticatedRequestActionsAlgebra[F[_]] {
 
 class AuthenticatedRequestActions(
   gformConnector: GformConnector,
+  fileUploadConnector: FileUploadConnector,
   authService: AuthService,
   appConfig: AppConfig,
   frontendAppConfig: FrontendAppConfig,
@@ -275,9 +277,10 @@ class AuthenticatedRequestActions(
     implicit
     hc: HeaderCarrier,
     l: LangADT
-  ): Future[Result] =
+  ): Future[Result] = {
+    val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
     for {
-      form <- gformConnector.getForm(FormIdData(retrievals, formTemplate._id, maybeAccessCode))
+      form <- gformConnector.getForm(formIdData)
       _    <- MDCHelpers.addFormIdToMdc(form._id)
       cache = AuthCacheWithForm(retrievals, form, formTemplate, role, maybeAccessCode)
 
@@ -286,8 +289,42 @@ class AuthenticatedRequestActions(
 
       smartStringEvaluator = smartStringEvaluatorFactory
         .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
-      result <- f(cache)(smartStringEvaluator)(formModelOptics)
+      envelope <- fileUploadConnector.getEnvelope(cache.form.envelopeId)
+      _        <- updateMappingIfInFlight(envelope, formIdData, form) // Delete after 28 days of deployment of this change
+      result   <- f(cache)(smartStringEvaluator)(formModelOptics)
     } yield result
+  }
+
+  /**
+    * This is compatibility layer for forms without `componentIdToFileId` fields. Once this
+    * field will be long enough in production, we can remove this.
+    */
+  private def updateMappingIfInFlight(envelope: Envelope, formIdData: FormIdData, form: Form)(
+    implicit
+    hc: HeaderCarrier
+  ): Future[Unit] = {
+    val componentIdToFileId: FormComponentIdToFileIdMapping = form.componentIdToFileId
+    if (envelope.files.nonEmpty && componentIdToFileId.mapping.isEmpty) {
+      // If some file exists in envelope and mapping is empty,
+      // it means we are in-flight when we deployed form.componentIdToFileId feature
+      val mapping = envelope.files.map { file =>
+        file.fileId.toFieldId -> file.fileId
+      }.toMap
+
+      val userData: UserData = UserData(
+        form.formData,
+        form.status,
+        form.visitsIndex,
+        form.thirdPartyData,
+        FormComponentIdToFileIdMapping(mapping)
+      )
+
+      logger.warn("Adding fileupload-component <-> fileId mapping for form " + formIdData.toFormId)
+      gformConnector.updateUserData(formIdData, userData)
+    } else {
+      ().pure[Future]
+    }
+  }
 
   private def handleAuthResults(
     result: AuthResult,
@@ -423,7 +460,8 @@ case class AuthCacheWithForm(
           DelegatedEnrolmentChecker.alwaysDelegated,
           DbLookupChecker.alwaysPresent,
           (s: GraphException) => new IllegalArgumentException(s.reportProblem)
-        )
+        ),
+        form.componentIdToFileId
       )
       .dependencyGraphValidation
   }

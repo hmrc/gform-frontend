@@ -21,18 +21,19 @@
 @(
   maybeAccessCode: Option[AccessCode],
   formTemplateId: FormTemplateId,
-  fieldValue: FormComponent,
+  formComponentId: FormComponentId,
+  fileId: FileId,
   maybeCurrentValue: Option[String]
 )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
-@defining(fieldValue.id.value, formTemplateId.value, maybeAccessCode.getOrElse("-")) { case (fileId, templateId, accessCode) =>
-  <div id="@fileId-files" class="govuk-body uploaded-files">
+@defining(formComponentId.value, formTemplateId.value, maybeAccessCode.getOrElse("-")) { case (formComponentId, templateId, accessCode) =>
+  <div id="@formComponentId-files" class="govuk-body uploaded-files">
     @maybeCurrentValue.map { currentValue =>
-      <span href="#">@{currentValue.replace(fileId + "_", "")}</span>
+      <span>@{currentValue.replace(fileId.value + "_", "")}</span>
       <a
         href="#"
-        class="delete-file govuk-link"
-        data-file-id="@fileId"
+        class="govuk-link"
+        data-form-component-id="@formComponentId"
         data-form-id="@templateId"
         data-access-code="@accessCode">
         <span aria-hidden="true">@messages("file.delete")</span>

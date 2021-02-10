@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.CacheData
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.{ PageModel, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
@@ -30,7 +30,7 @@ package object handlers {
   type ValidatePageModel[F[_], D <: DataOrigin] = (
     PageModel[Visibility],
     CacheData,
-    Envelope,
+    EnvelopeWithMapping,
     FormModelVisibilityOptics[D],
     GetEmailCodeFieldMatcher
   ) => F[ValidatedType[ValidatorsResult]]

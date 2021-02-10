@@ -24,7 +24,7 @@ import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
-import uk.gov.hmrc.gform.eval.EvaluationContext
+import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
 import uk.gov.hmrc.gform.models.Basic
@@ -57,7 +57,10 @@ trait ExampleEvaluationContext {
       authContext,
       ThirdPartyData.empty,
       authConfig,
-      HeaderCarrier())
+      HeaderCarrier(),
+      Option.empty[FormPhase],
+      FileIdsWithMapping.empty
+    )
 }
 
 trait ExampleSubmission {
@@ -671,7 +674,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     InProgress,
     VisitIndex(Set.empty),
     ThirdPartyData.empty,
-    envelopeExpiryDate
+    envelopeExpiryDate,
+    FormComponentIdToFileIdMapping.empty
   )
 }
 
