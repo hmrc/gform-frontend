@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.instructions
 
 import java.time.LocalDateTime
-
 import cats.MonadError
 import cats.data.NonEmptyList
 import cats.instances.future._
@@ -34,7 +33,6 @@ import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.eval.EvaluationContext
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
-import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.graph.{ FormTemplateBuilder, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
@@ -59,9 +57,9 @@ class InstructionsRenderingServiceSpec
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
 
-  "createHtmlForInstructionsPdf" should {
+  "createInstructionPDFHtml" should {
 
-    "generate HTML for instruction pdf in order - non repeating section" in new TestFixture {
+    "generate HTML for non-repeating-section" in new TestFixture {
 
       lazy val page1Field1 = buildFormComponent(
         "page1Field1",
@@ -114,15 +112,8 @@ class InstructionsRenderingServiceSpec
             fields = List(page2Field1, page2Field2))
         ))
 
-      val pdfHtml = instructionRenderingService
-        .createHtmlForInstructionsPdf(
-          maybeAccessCode,
-          cache,
-          submissionDetails,
-          SummaryPagePurpose.ForDms,
-          formModelOptics
-        )
-        .futureValue
+      val pdfHtml =
+        instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
 
       trimLines(pdfHtml.html) shouldBe nonRepeatingSectionsHtml
     }
@@ -168,20 +159,12 @@ class InstructionsRenderingServiceSpec
             instruction = Some(buildInstruction("page1Instruction", Some(1))),
             fields = List(page1Field1))))
 
-      val pdfHtml = instructionRenderingService
-        .createHtmlForInstructionsPdf(
-          maybeAccessCode,
-          cache,
-          submissionDetails,
-          SummaryPagePurpose.ForDms,
-          formModelOptics
-        )
-        .futureValue
-
+      val pdfHtml =
+        instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
       trimLines(pdfHtml.html) shouldBe nonRepeatingSectionsWithGroupHtml
     }
 
-    "generate HTML for instruction pdf - repeating section" in new TestFixture {
+    "generate HTML for repeating section" in new TestFixture {
 
       lazy val page1Field1 = buildFormComponent(
         "page1Field1",
@@ -212,15 +195,8 @@ class InstructionsRenderingServiceSpec
             instruction = Some(buildInstruction("page1Instruction", Some(1))),
             repeatsExpr = Constant("2"))))
 
-      val pdfHtml = instructionRenderingService
-        .createHtmlForInstructionsPdf(
-          maybeAccessCode,
-          cache,
-          submissionDetails,
-          SummaryPagePurpose.ForDms,
-          formModelOptics
-        )
-        .futureValue
+      val pdfHtml =
+        instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
 
       trimLines(pdfHtml.html) shouldBe repeatingSectionHtml
     }
@@ -229,11 +205,11 @@ class InstructionsRenderingServiceSpec
 
       lazy val revealingChoice1Field: FormComponent = buildFormComponent(
         "revealingChoice1Field",
-        Constant(""),
+        Constant("value1"),
         Some(buildInstruction("revealingChoice1FieldInstruction", Some(1))))
       lazy val revealingChoice2Field: FormComponent = buildFormComponent(
         "revealingChoice2Field",
-        Constant(""),
+        Constant("value2"),
         Some(buildInstruction("revealingChoice2FieldInstruction", Some(1))))
       lazy val revealingChoiceField: FormComponent = buildFormComponent(
         name = "revealingChoiceField",
@@ -242,12 +218,12 @@ class InstructionsRenderingServiceSpec
             RevealingChoiceElement(
               toSmartString("choice1"),
               revealingChoice1Field :: Nil,
-              false
+              true
             ),
             RevealingChoiceElement(
               toSmartString("choice2"),
               revealingChoice2Field :: Nil,
-              false
+              true
             )
           ),
           true
@@ -257,18 +233,23 @@ class InstructionsRenderingServiceSpec
 
       override lazy val form: Form =
         buildForm(
-          FormData(
-            List(
-              FormField(revealingChoiceField.modelComponentId, "0"),
-              FormField(revealingChoice1Field.modelComponentId, "revealingChoice1FieldValue")
-            )))
+          FormData(List(
+            FormField(revealingChoiceField.modelComponentId, "0,1"),
+            FormField(revealingChoice1Field.modelComponentId, "value1"),
+            FormField(revealingChoice2Field.modelComponentId, "value2")
+          )))
 
       override lazy val validationResult: ValidationResult = new ValidationResult(
         Map(
           revealingChoiceField.id -> ComponentField(
             revealingChoiceField,
-            Map(HtmlFieldId.indexed(revealingChoiceField.id, 0) -> FieldOk(revealingChoiceField, "0"))),
-          revealingChoice1Field.id -> FieldOk(revealingChoice1Field, "revealingChoice1FieldValue")
+            Map(
+              HtmlFieldId.indexed(revealingChoiceField.id, 0) -> FieldOk(revealingChoiceField, "0"),
+              HtmlFieldId.indexed(revealingChoiceField.id, 1) -> FieldOk(revealingChoiceField, "0")
+            )
+          ),
+          revealingChoice1Field.id -> FieldOk(revealingChoice1Field, "value1"),
+          revealingChoice2Field.id -> FieldOk(revealingChoice2Field, "value2")
         ),
         None
       )
@@ -282,20 +263,13 @@ class InstructionsRenderingServiceSpec
           )
         ))
 
-      val pdfHtml = instructionRenderingService
-        .createHtmlForInstructionsPdf(
-          maybeAccessCode,
-          cache,
-          submissionDetails,
-          SummaryPagePurpose.ForDms,
-          formModelOptics
-        )
-        .futureValue
+      val pdfHtml =
+        instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
 
       trimLines(pdfHtml.html) shouldBe revealingChoiceSectionHtml
     }
 
-    "generate HTML for instruction pdf - add to list" in new TestFixture {
+    "generate HTML for add-to-list" in new TestFixture {
 
       lazy val addToListQuestionComponent = addToListQuestion("addToListQuestion")
       lazy val page1Field =
@@ -342,8 +316,9 @@ class InstructionsRenderingServiceSpec
         List(
           addToListSection(
             "addToList",
+            "addToListDesc",
             "addToListShortName",
-            "addToListSummary",
+            "addToListSummaryName",
             addToListQuestionComponent,
             Some(buildInstruction("addToListInstruction", Some(1))),
             List(
@@ -355,16 +330,8 @@ class InstructionsRenderingServiceSpec
         )
       )
 
-      val pdfHtml = instructionRenderingService
-        .createHtmlForInstructionsPdf(
-          maybeAccessCode,
-          cache,
-          submissionDetails,
-          SummaryPagePurpose.ForDms,
-          formModelOptics
-        )
-        .futureValue
-
+      val pdfHtml =
+        instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
       trimLines(pdfHtml.html) shouldBe addToListSectionHtml
     }
   }
@@ -386,8 +353,8 @@ class InstructionsRenderingServiceSpec
       override def messagesApi: MessagesApi = Helpers.stubMessagesApi()
     }
 
-    implicit val sectionSelectorWithDeclaration: SectionSelector[SectionSelectorType.WithDeclaration] =
-      SectionSelector.withDeclaration
+    implicit val sectionSelectorNormal: SectionSelector[SectionSelectorType.Normal] =
+      SectionSelector.normal
 
     implicit val request = FakeRequest()
     implicit val headerCarrier = HeaderCarrier()
@@ -436,7 +403,7 @@ class InstructionsRenderingServiceSpec
           headerCarrier)))
 
     val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
+      .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.Normal](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
         cache,
         mockRecalculation)

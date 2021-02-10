@@ -1,0 +1,57 @@
+@*
+ * Copyright 2021 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.instructions.FormModelSummaryConverter._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+
+@(field: PageField)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+
+@displayValues(values: List[String]) = {
+    @for(value <- values) {
+        @value<br/>
+    }
+}
+
+@field match {
+    case SimpleField(label, values, _) => {
+        <tr>
+            <th>@{label}</th>
+            <td>@displayValues(values)</td>
+        </tr>
+    }
+    case GroupField(label, groupFields, _) => {
+        <tr>
+            <th class="section-title" colspan="2">@label</th>
+        </tr>
+        @for(groupField <- groupFields) {
+            @summaryInstructionPdf_field(groupField)
+        }
+    }
+    case RevealingChoiceField(label, choiceElements) => {
+        <tr>
+            <th class="section-title" colspan="2">@label</th>
+        </tr>
+         @for(choiceElement <- choiceElements) {
+            <tr>
+                <th class="section-title" colspan="2">@{choiceElement.label}</th>
+            </tr>
+            @for(choiceElementField <- choiceElement.fields) {
+                @summaryInstructionPdf_field(choiceElementField)
+            }
+        }
+    }
+}

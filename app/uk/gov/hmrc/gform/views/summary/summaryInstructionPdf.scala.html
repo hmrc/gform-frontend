@@ -1,0 +1,113 @@
+@*
+ * Copyright 2021 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.instructions.FormModelSummaryConverter._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.summary.SubmissionDetails
+@import java.time.format.DateTimeFormatter
+@import uk.gov.hmrc.gform.commons.MarkDownUtil._
+@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+
+@(
+summaryDatas: List[SummaryData],
+maybeSubmissionDetails: Option[SubmissionDetails],
+maybeInstructionPdf: Option[AcknowledgementSectionPdf],
+formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+
+@timeFormat = @{DateTimeFormatter.ofPattern("HH:mm")}
+@dateFormat = @{DateTimeFormatter.ofPattern("dd MMM yyyy")}
+
+<html>
+<head>
+    <title>Instructions PDF - @{formTemplate.formName.value}</title>
+    <style>
+        body { font-family:Arial, sans-serif; font-size: 16px; }
+        td,th { vertical-align: top; text-align: left; padding-bottom: 15px; }
+        th { font-weight: bold; }
+        .pdf-header-footer { font-size: 25px; font-weight: bold; }
+        .section-title { font-size: 25px; font-weight: bold; }
+        .section-bottom-border { border-bottom: 2px solid #bfc1c3; }
+        .field-label { font-weight: bold; width: 40%; }
+        .field-value { width: 60%; }
+    </style>
+</head>
+<body>
+    <div><p>HM Revenue &amp; Customs</p></div>
+        @for(instructionPdf <- maybeInstructionPdf) {
+            @for(header <- instructionPdf.header) {
+                <table>
+                    <tr>
+                        <th class="pdf-header-footer"> @{markDownParser(header)} </th>
+                    </tr>
+                </table>
+            }
+        }
+        @for(summaryData <- summaryDatas) {
+            @summaryData match {
+                case pageData: PageData => {
+                    @summaryInstructionPdf_page(pageData)
+                }
+                case AddToListData(title, summary, pageGroups) => {
+                    <table>
+                    @for(pageGroup <- pageGroups) {
+                        <tr>
+                            <th class="section-title">@{pageGroup.title}</th>
+                        </tr>
+                        @for(pageData <- pageGroup.pages) {
+                            <tr>
+                                <td>
+                                    @summaryInstructionPdf_page(pageData)
+                                </td>
+                            </tr>
+                        }
+                    }
+                    </table>
+                }
+            }
+        }
+
+        @for(submissionDetails <- maybeSubmissionDetails) {
+            <table>
+                <tr>
+                    <th class="section-title" colspan="2"> @messages("submission.details") </th>
+                </tr>
+                <tr>
+                    <th> @messages("submission.date") </th>
+                    <td> @{submissionDetails.submission.submittedDate.format(dateFormat)} @{submissionDetails.submission.submittedDate.format(timeFormat)} </td>
+                </tr>
+                <tr>
+                    <th> @messages("submission.reference") </th>
+                    <td> @{submissionDetails.submission.submissionRef.toString} </td>
+                </tr>
+                <tr>
+                    <th> @messages("submission.mark") </th>
+                    <td> @{submissionDetails.hashedValue}</td>
+                </tr>
+            </table>
+        }
+        @for(instructionPdf <- maybeInstructionPdf) {
+            @for(footer <- instructionPdf.footer) {
+                <table>
+                    <tr>
+                        <th class="pdf-header-footer"> @{markDownParser(footer)} </th>
+                    </tr>
+                </table>
+            }
+        }
+</body>
+</html>
+
+

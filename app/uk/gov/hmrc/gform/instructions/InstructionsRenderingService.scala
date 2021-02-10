@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.summary.snippets.begin_section
-import uk.gov.hmrc.gform.views.html.summary.summary
+import uk.gov.hmrc.gform.views.html.summary.{ summary, summaryInstructionPdf }
 import uk.gov.hmrc.govukfrontend.views.html.components.govukSummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -53,6 +53,38 @@ class InstructionsRenderingService(
   validationService: ValidationService,
   frontendAppConfig: FrontendAppConfig
 ) {
+
+  def createInstructionPDFHtml[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
+    cache: AuthCacheWithForm,
+    maybeSubmissionDetails: Option[SubmissionDetails],
+    formModelOptics: FormModelOptics[D]
+  )(
+    implicit
+    request: Request[_],
+    l: LangADT,
+    hc: HeaderCarrier,
+    ec: ExecutionContext,
+    lise: SmartStringEvaluator
+  ): Future[PdfHtml] = {
+    import i18nSupport._
+    for {
+      envelope <- fileUploadAlgebra.getEnvelope(cache.form.envelopeId)
+      validationResult <- validationService
+                           .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics)
+    } yield {
+      val mayBeInstructionPdf = cache.formTemplate.destinations match {
+        case DestinationList(_, acknowledgementSection, _) =>
+          acknowledgementSection.instructionPdf
+        case _ => None
+      }
+      PdfHtml(
+        summaryInstructionPdf(
+          FormModelSummaryConverter.convert(formModelOptics, cache, envelope, validationResult),
+          maybeSubmissionDetails,
+          mayBeInstructionPdf,
+          cache.formTemplate).toString)
+    }
+  }
 
   def createHtmlForInstructionsPdf[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     maybeAccessCode: Option[AccessCode],
