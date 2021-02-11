@@ -260,15 +260,10 @@
         );
       }
 
-      return updateMapping(
-        $input.attr("id"),
-        fileId,
-        formTemplateId,
-        accessCode
-      )
+      updateMapping($input.attr("id"), fileId, formTemplateId, accessCode)
         .then(function(response) {
           const realFileId = response.fileId;
-          uploadFile(file, realFileId);
+          return uploadFile(file, realFileId);
         }, onError)
         .then(function(response) {
           fileUploadSuccess(

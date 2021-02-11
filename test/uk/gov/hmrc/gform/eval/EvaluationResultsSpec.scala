@@ -79,4 +79,27 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
     }
   }
+
+  it should "evaluate expression of type string" in {
+    val recData = RecData[OutOfDate](
+      VariadicFormData.create(
+        (toModelComponentId("dateFieldId1-year"), VariadicValue.One("1970")),
+        (toModelComponentId("dateFieldId1-month"), VariadicValue.One("1")),
+        (toModelComponentId("dateFieldId1-day"), VariadicValue.One("11"))
+      ))
+
+    val table = Table(
+      ("typeInfo", "recData", "expectedResult", "scenario"),
+      (
+        TypeInfo(
+          DateCtx(DateFormCtxVar(FormCtx(FormComponentId("dateFieldId1")))),
+          StaticTypeData(ExprType.string, None)),
+        recData,
+        StringResult("11 January 1970"),
+        "Expression of type 'dateString' converted to type 'string'")
+    )
+    forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>
+      EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
+    }
+  }
 }
