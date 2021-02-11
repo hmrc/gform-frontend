@@ -58,43 +58,6 @@ object FormModelBuilder {
       componentIdToFileId
     )
 
-  def buildFormModelVisibilityOptics[D <: DataOrigin, U <: SectionSelectorType: SectionSelector, P <: PageMode](
-    data: VariadicFormData[SourceOrigin.Current],
-    formModel: FormModel[P],
-    recalculationResult: RecalculationResult,
-    phase: Option[FormPhase]) = {
-    val evaluationResults = recalculationResult.evaluationResults
-    val visibilityFormModel: FormModel[Visibility] = formModel.filter[Visibility] { pageModel =>
-      pageModel.getIncludeIf.fold(true) { includeIf =>
-        evalIncludeIf(includeIf, recalculationResult, RecData(data), formModel, phase)
-      }
-    }
-
-    val visibleTypedExprs: List[(FormComponentId, TypeInfo)] = visibilityFormModel.allFormComponents.collect {
-      case fc @ HasValueExpr(expr) if !fc.editable => (fc.id, visibilityFormModel.explicitTypedExpr(expr, fc.id))
-    }
-
-    val visibleVariadicData =
-      visibleTypedExprs.foldLeft(VariadicFormData.empty[SourceOrigin.Current]) {
-        case (variadicFormDataAcc, (fcId, typeInfo)) =>
-          val expressionResult =
-            evaluationResults
-              .evalExpr(
-                typeInfo,
-                RecData(data).asInstanceOf[RecData[SourceOrigin.OutOfDate]],
-                recalculationResult.evaluationContext)
-              .applyTypeInfo(typeInfo)
-
-          variadicFormDataAcc ++ toCurrentData(fcId.modelComponentId, expressionResult)
-      }
-
-    val currentData = data ++ visibleVariadicData
-
-    val recData: RecData[SourceOrigin.Current] = RecData.empty.copy(variadicFormData = currentData)
-
-    FormModelVisibilityOptics[D](visibilityFormModel, recData, recalculationResult)
-  }
-
   private def evalIncludeIf[T <: PageMode](
     includeIf: IncludeIf,
     recalculationResult: RecalculationResult,
@@ -178,8 +141,8 @@ object FormModelBuilder {
       case ExpressionResult.StringResult(value) => VariadicFormData.one[SourceOrigin.Current](modelComponentId, value)
       case ExpressionResult.OptionResult(value) =>
         VariadicFormData.many[SourceOrigin.Current](modelComponentId, value.map(_.toString))
-      case ExpressionResult.DateResult(value) =>
-        VariadicFormData.empty
+      case d @ ExpressionResult.DateResult(_) =>
+        VariadicFormData.one[SourceOrigin.Current](modelComponentId, d.asString)
     }
 
 }
