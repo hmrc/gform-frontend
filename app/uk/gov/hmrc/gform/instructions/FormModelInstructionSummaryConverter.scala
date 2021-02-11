@@ -35,10 +35,10 @@ object FormModelInstructionSummaryConverter {
 
   sealed trait PageField
 
-  case class SimpleField(label: String, values: List[String]) extends PageField
-  case class GroupField(label: String, fields: List[PageField]) extends PageField
+  case class SimpleField(label: Option[String], values: List[String]) extends PageField
+  case class GroupField(label: Option[String], fields: List[PageField]) extends PageField
   case class ChoiceElement(label: String, fields: List[PageField])
-  case class RevealingChoiceField(label: String, choiceElements: List[ChoiceElement]) extends PageField
+  case class RevealingChoiceField(label: Option[String], choiceElements: List[ChoiceElement]) extends PageField
 
   case class PageData(title: Option[String], fields: List[PageField]) extends SummaryData
 

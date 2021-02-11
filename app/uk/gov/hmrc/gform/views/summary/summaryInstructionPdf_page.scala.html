@@ -14,17 +14,19 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.instructions.FormModelSummaryConverter._
+@import uk.gov.hmrc.gform.instructions.FormModelInstructionSummaryConverter._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 
 @(pageData: PageData)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
-<table>
-    <tr>
-        <th class="section-title" colspan="2">@{pageData.title}</th>
-    </tr>
-    @for(field <- pageData.fields) {
-        @summaryInstructionPdf_field(field)
-    }
-</table>
+@for(title <- pageData.title) {
+    <div class="row">
+        <div class="col-lg-12 heading-1">
+            @title
+        </div>
+    </div>
+}
+@for(field <- pageData.fields) {
+    @summaryInstructionPdf_field(field)
+}

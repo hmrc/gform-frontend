@@ -114,7 +114,6 @@ class InstructionsRenderingServiceSpec
 
       val pdfHtml =
         instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
-
       trimLines(pdfHtml.html) shouldBe nonRepeatingSectionsHtml
     }
 
@@ -211,7 +210,6 @@ class InstructionsRenderingServiceSpec
 
       val pdfHtml =
         instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
-
       trimLines(pdfHtml.html) shouldBe repeatingSectionHtml
     }
 
@@ -422,10 +420,14 @@ class InstructionsRenderingServiceSpec
         cache,
         mockRecalculation)
       .futureValue
-    implicit val now: LocalDateTime = LocalDateTime.now()
     val submissionDetails = Some(
       SubmissionDetails(
-        Submission(form._id, now, submissionRef, EnvelopeId("some-envelope-id"), DmsMetaData(form.formTemplateId)),
+        Submission(
+          form._id,
+          LocalDateTime.now(),
+          submissionRef,
+          EnvelopeId("some-envelope-id"),
+          DmsMetaData(form.formTemplateId)),
         ""))
 
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()

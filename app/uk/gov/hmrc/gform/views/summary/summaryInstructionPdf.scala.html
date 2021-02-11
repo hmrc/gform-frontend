@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.instructions.FormModelSummaryConverter._
+@import uk.gov.hmrc.gform.instructions.FormModelInstructionSummaryConverter._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.summary.SubmissionDetails
 @import java.time.format.DateTimeFormatter
@@ -34,25 +34,84 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
 <head>
     <title>Instructions PDF - @{formTemplate.formName.value}</title>
     <style>
-        body { font-family:Arial, sans-serif; font-size: 16px; }
-        td,th { vertical-align: top; text-align: left; padding-bottom: 15px; }
-        th { font-weight: bold; }
-        .pdf-header-footer { font-size: 25px; font-weight: bold; }
-        .section-title { font-size: 25px; font-weight: bold; }
-        .section-bottom-border { border-bottom: 2px solid #bfc1c3; }
-        .field-label { font-weight: bold; width: 40%; }
-        .field-value { width: 60%; }
+        body {
+          font-family:Arial, sans-serif;
+          font-size: 16px;
+        }
+        body {
+          margin: 0;
+        }
+        * {
+          box-sizing: border-box;
+        }
+        *:before,
+        *:after {
+          box-sizing: border-box;
+        }
+        .container-fluid {
+          padding-right: 15px;
+          padding-left: 15px;
+          margin-right: auto;
+          margin-left: auto;
+        }
+        .row {
+          margin-right: -15px;
+          margin-left: -15px;
+        }
+        .container-fluid:before,
+        .container-fluid:after,
+        .row:before,
+        .row:after {
+          display: table;
+          content: " ";
+        }
+        .container-fluid:after,
+        .row:after {
+          clear: both;
+        }
+
+        .col-lg-4, .col-lg-8, .col-lg-12 {
+          position: relative;
+          min-height: 1px;
+          padding-right: 16px;
+          padding-left: 16px;
+          padding-top: 11px;
+          padding-bottom: 11px;
+        }
+        .col-lg-4, .col-lg-8, .col-lg-12 {
+            float: left;
+          }
+        .col-lg-12 {
+            width: 100%;
+          }
+        .col-lg-4 {
+            width: 33.33333333%;
+          }
+        .col-lg-8 {
+            width: 66.66666667%;
+         }
+
+        .label { font-weight: bold }
+
+        .heading-1 { font-size: 22px; font-weight: bold;}
+        .heading-2 { font-size: 20px; font-weight: bold;}
+        .heading-3 { font-size: 18px; font-weight: bold;}
     </style>
 </head>
 <body>
-    <div><p>HM Revenue &amp; Customs</p></div>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            HM Revenue &amp; Customs
+        </div>
+    </div>
         @for(instructionPdf <- maybeInstructionPdf) {
             @for(header <- instructionPdf.header) {
-                <table>
-                    <tr>
-                        <th class="pdf-header-footer"> @{markDownParser(header)} </th>
-                    </tr>
-                </table>
+                <div class="row">
+                    <div class="col-lg-12 heading-1">
+                        @{markDownParser(header)}
+                    </div>
+                </div>
             }
         }
         @for(summaryData <- summaryDatas) {
@@ -60,53 +119,31 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
                 case pageData: PageData => {
                     @summaryInstructionPdf_page(pageData)
                 }
-                case AddToListData(title, summary, pageGroups) => {
-                    <table>
+                case AddToListData(_, _, pageGroups) => {
                     @for(pageGroup <- pageGroups) {
-                        <tr>
-                            <th class="section-title">@{pageGroup.title}</th>
-                        </tr>
+                        <div class="row">
+                            <div class="col-lg-12 heading-1">
+                                @{pageGroup.title}
+                            </div>
+                        </div>
                         @for(pageData <- pageGroup.pages) {
-                            <tr>
-                                <td>
-                                    @summaryInstructionPdf_page(pageData)
-                                </td>
-                            </tr>
+                            @summaryInstructionPdf_page(pageData)
                         }
                     }
-                    </table>
                 }
             }
         }
 
-        @for(submissionDetails <- maybeSubmissionDetails) {
-            <table>
-                <tr>
-                    <th class="section-title" colspan="2"> @messages("submission.details") </th>
-                </tr>
-                <tr>
-                    <th> @messages("submission.date") </th>
-                    <td> @{submissionDetails.submission.submittedDate.format(dateFormat)} @{submissionDetails.submission.submittedDate.format(timeFormat)} </td>
-                </tr>
-                <tr>
-                    <th> @messages("submission.reference") </th>
-                    <td> @{submissionDetails.submission.submissionRef.toString} </td>
-                </tr>
-                <tr>
-                    <th> @messages("submission.mark") </th>
-                    <td> @{submissionDetails.hashedValue}</td>
-                </tr>
-            </table>
-        }
         @for(instructionPdf <- maybeInstructionPdf) {
             @for(footer <- instructionPdf.footer) {
-                <table>
-                    <tr>
-                        <th class="pdf-header-footer"> @{markDownParser(footer)} </th>
-                    </tr>
-                </table>
+                <div class="row">
+                    <div class="col-lg-12 heading-1">
+                        @{markDownParser(footer)}
+                    </div>
+                </div>
             }
         }
+</div>
 </body>
 </html>
 

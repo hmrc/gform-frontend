@@ -50,7 +50,7 @@ object InstructionsPDFPageFieldConverters {
       }
 
       SimpleField(
-        formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
+        formComponent.instruction.flatMap(_.name.map(_.value())),
         formatText(validationResult(formComponent), envelope, prefix, suffix)
       )
     }
@@ -68,7 +68,7 @@ object InstructionsPDFPageFieldConverters {
       l: LangADT,
       fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
-        formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
+        formComponent.instruction.flatMap(_.name.map(_.value())),
         formatText(validationResult(formComponent), envelope).flatMap(_.split("\\R"))
       )
   }
@@ -85,7 +85,7 @@ object InstructionsPDFPageFieldConverters {
       l: LangADT,
       fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
-        formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
+        formComponent.instruction.flatMap(_.name.map(_.value())),
         List(
           UkSortCode
             .fields(formComponent.modelComponentId.indexedComponentId) // TODO JoVl, this is weird, let's use MultiValueId instead
@@ -113,7 +113,7 @@ object InstructionsPDFPageFieldConverters {
       def monthKey = getMonthValue(validationResult(formComponent).getCurrentValue(safeId(Date.month)))
 
       SimpleField(
-        formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
+        formComponent.instruction.flatMap(_.name.map(_.value())),
         List({
           val day = renderMonth(validationResult(formComponent).getCurrentValue(safeId(Date.day)))
           val month = messages(s"date.$monthKey")
@@ -137,7 +137,7 @@ object InstructionsPDFPageFieldConverters {
       l: LangADT,
       fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
-        formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
+        formComponent.instruction.flatMap(_.name.map(_.value())),
         List(validationResult(formComponent).getCurrentValue.getOrElse(""))
       )
   }
@@ -154,7 +154,7 @@ object InstructionsPDFPageFieldConverters {
       l: LangADT,
       fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
-        formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
+        formComponent.instruction.flatMap(_.name.map(_.value())),
         Address
           .renderToString(formComponent, validationResult(formComponent))
       )
@@ -172,7 +172,7 @@ object InstructionsPDFPageFieldConverters {
         messages: Messages,
         l: LangADT,
         fieldOrdering: Ordering[FormComponent]): PageField =
-        SimpleField("", List.empty)
+        SimpleField(None, List.empty)
     }
 
   implicit val fileUploadConverter: PageFieldConverter[FileUpload] = new PageFieldConverter[FileUpload] {
@@ -187,7 +187,7 @@ object InstructionsPDFPageFieldConverters {
       l: LangADT,
       fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
-        formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
+        formComponent.instruction.flatMap(_.name.map(_.value())),
         List(envelope.userFileName(formComponent))
       )
   }
@@ -211,7 +211,7 @@ object InstructionsPDFPageFieldConverters {
           mayBeHmrcTaxPeriod.flatMap(h => cache.form.thirdPartyData.obligations.findByPeriodKey(h, periodId))
 
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse("").capitalize,
+          formComponent.instruction.flatMap(_.name.map(_.value())).map(_.capitalize),
           List(maybeObligation.fold("Value Lost!") { od =>
             messages("generic.From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
               messages("generic.to") + " " + formatDate(od.inboundCorrespondenceToDate)
@@ -232,7 +232,7 @@ object InstructionsPDFPageFieldConverters {
       l: LangADT,
       fieldOrdering: Ordering[FormComponent]): PageField =
       SimpleField(
-        formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
+        formComponent.instruction.flatMap(_.name.map(_.value())),
         formComponent.`type`.asInstanceOf[Choice].renderToString(formComponent, validationResult(formComponent))
       )
   }
@@ -264,7 +264,7 @@ object InstructionsPDFPageFieldConverters {
                 }
           }
         RevealingChoiceField(
-          formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""),
+          formComponent.instruction.flatMap(_.name.map(_.value())),
           selections
         )
       }
@@ -287,7 +287,7 @@ object InstructionsPDFPageFieldConverters {
           FormModelInstructionSummaryConverter.mapFormComponent(f, cache, sectionNumber, validationResult, envelope)
         }
 
-        GroupField(formComponent.instruction.flatMap(_.name.map(_.value())).getOrElse(""), fields)
+        GroupField(formComponent.instruction.flatMap(_.name.map(_.value())), fields)
       }
     }
 }
