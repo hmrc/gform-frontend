@@ -149,14 +149,6 @@ trait InstructionsRenderingServiceSpecExpectations {
           | </div>
           |</dl>
           |<h2> addToListShortName </h2>
-          |<h2> page1Instruction </h2>
-          |<dl>
-          | <div>
-          |   <dt> page1FieldInstruction </dt>
-          |   <dd> page1Field-value1 </dd>
-          |   <dd></dd>
-          | </div>
-          |</dl>
           |<h2> page2Instruction </h2>
           |<dl>
           |  <div>
@@ -165,20 +157,28 @@ trait InstructionsRenderingServiceSpecExpectations {
           |   <dd></dd>
           |  </div>
           |</dl>
-          |<h2> addToListShortName </h2>
           |<h2> page1Instruction </h2>
           |<dl>
-          |  <div>
+          | <div>
           |   <dt> page1FieldInstruction </dt>
-          |   <dd> page1Field-value2 </dd>
+          |   <dd> page1Field-value1 </dd>
           |   <dd></dd>
-          |  </div>
+          | </div>
           |</dl>
+          |<h2> addToListShortName </h2>
           |<h2> page2Instruction </h2>
           |<dl>
           |  <div>
           |   <dt> page2FieldInstruction </dt>
           |   <dd> page2Field-value2 </dd>
+          |   <dd></dd>
+          |  </div>
+          |</dl>
+          |<h2> page1Instruction </h2>
+          |<dl>
+          |  <div>
+          |   <dt> page1FieldInstruction </dt>
+          |   <dd> page1Field-value2 </dd>
           |   <dd></dd>
           |  </div>
           |</dl>

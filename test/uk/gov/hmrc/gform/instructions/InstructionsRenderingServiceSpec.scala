@@ -300,9 +300,9 @@ class InstructionsRenderingServiceSpec
 
       lazy val addToListQuestionComponent = addToListQuestion("addToListQuestion")
       lazy val page1Field =
-        buildFormComponent("page1Field", Value, Some(buildInstruction("page1FieldInstruction", Some(1))))
+        buildFormComponent("page1Field", Value, Some(buildInstruction("page1FieldInstruction")))
       lazy val page2Field =
-        buildFormComponent("page2Field", Value, Some(buildInstruction("page2FieldInstruction", Some(1))))
+        buildFormComponent("page2Field", Value, Some(buildInstruction("page2FieldInstruction")))
 
       override lazy val form: Form =
         buildForm(
@@ -348,8 +348,8 @@ class InstructionsRenderingServiceSpec
             addToListQuestionComponent,
             Some(buildInstruction("addToListInstruction", Some(1))),
             List(
-              toPage("page1", Some(buildInstruction("page1Instruction")), List(page1Field)),
-              toPage("page2", Some(buildInstruction("page2Instruction")), List(page2Field)),
+              toPage("page1", Some(buildInstruction("page1Instruction", Some(2))), List(page1Field)),
+              toPage("page2", Some(buildInstruction("page2Instruction", Some(1))), List(page2Field)),
             ),
             None
           )
