@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
 import uk.gov.hmrc.gform.eval.EvaluationContext
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
-import uk.gov.hmrc.gform.models.Basic
+import uk.gov.hmrc.gform.models.{ Basic, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RevealingChoiceElement, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
@@ -548,20 +548,26 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     title: String,
     instruction: Option[Instruction],
     formComponents: List[FormComponent],
-    presentationHint: Option[PresentationHint] = None) =
-    Page[Basic](
-      toSmartString(title),
-      None,
-      None,
-      None,
-      None,
-      None,
-      formComponents,
-      None,
-      None,
-      instruction,
-      presentationHint
-    )
+    presentationHint: Option[PresentationHint] = None): Page[Basic] =
+    mkPage[Basic](title, instruction, formComponents, presentationHint)
+
+  def mkPage[T <: PageMode](
+    title: String,
+    instruction: Option[Instruction],
+    formComponents: List[FormComponent],
+    presentationHint: Option[PresentationHint] = None): Page[T] = Page[T](
+    toSmartString(title),
+    None,
+    None,
+    None,
+    None,
+    None,
+    formComponents,
+    None,
+    None,
+    instruction,
+    presentationHint
+  )
 }
 
 trait ExampleSectionNumber {

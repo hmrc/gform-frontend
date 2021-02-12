@@ -24,6 +24,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
 import org.scalatest.{ FlatSpec, Matchers }
 import play.api.test.{ FakeRequest, Helpers }
+import uk.gov.hmrc.gform.models.Visibility
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -34,18 +35,18 @@ import uk.gov.hmrc.gform.instructions.FormModelInstructionSummaryConverter.{ Cho
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormTemplate, Instruction, Text, TextConstraint }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ExampleData, LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormTemplate, Instruction, Text, TextConstraint }
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldError, FieldGlobalOk, FieldOk, HtmlFieldId, ValidationResult }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.SessionId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Address._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Address.{ country, postcode, street1, street2, street3, street4, uk }
+import FormModelInstructionSummaryConverter.{fieldOrdering,PageData}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import FormModelInstructionSummaryConverter._
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class InstructionsPDFPageFieldConvertersSpec
+class InstructionPDFPageConverterSpec
     extends FlatSpec with ScalaFutures with Matchers with ExampleData with ArgumentMatchersSugar with IdiomaticMockito {
 
   override implicit val patienceConfig =
@@ -105,9 +106,7 @@ class InstructionsPDFPageFieldConvertersSpec
     )
   }
 
-  import InstructionsPDFPageFieldConverters._
-
-  "textConverter" should "return PageField with no errors, when validation result is OK" in new Fixture {
+  "convert" should "convert a Page to PageData" in new Fixture {
     val validationResult: ValidationResult = new ValidationResult(
       Map(
         textComponent.id -> FieldOk(textComponent, "some text value")
@@ -115,25 +114,36 @@ class InstructionsPDFPageFieldConvertersSpec
       None
     )
 
-    val pageFieldData = textConverter.convert(textComponent, cache, sectionNumber0, validationResult, envelope)
-
-    pageFieldData shouldBe SimpleField(Some("sample label - instruction"), List("some text value"))
+    val pageData = InstructionPDFPageConverter.convert(
+      mkPage[Visibility](
+        "Some Page Title",
+        instruction = Some(buildInstruction("Some Page Title Instruction")),
+        formComponents = List(textComponent)),
+      sectionNumber0,
+      cache,
+      envelope,
+      validationResult
+    )
+    pageData shouldBe PageData(
+      Some("Some Page Title Instruction"),
+      List(SimpleField(Some("sample label - instruction"), List("some text value"))))
   }
 
-  it should "return PageField with errors, when validation result is ERROR" in new Fixture {
+  "mapFormComponent" should "return PageField for text component, when validation result is OK" in new Fixture {
     val validationResult: ValidationResult = new ValidationResult(
       Map(
-        textComponent.id -> FieldError(textComponent, "some text value", Set(s"${default.value} is invalid"))
+        textComponent.id -> FieldOk(textComponent, "some text value")
       ),
       None
     )
 
-    val pageFieldData = textConverter.convert(textComponent, cache, sectionNumber0, validationResult, envelope)
+    val pageFieldData =
+      InstructionPDFPageConverter.mapFormComponent(textComponent, cache, sectionNumber0, validationResult, envelope)
 
     pageFieldData shouldBe SimpleField(Some("sample label - instruction"), List("some text value"))
   }
 
-  it should "return PageField, with value having prefix and suffix when exists" in new Fixture {
+  it should "return PageField for text component with value having prefix and suffix, when exists" in new Fixture {
     val validationResult: ValidationResult = new ValidationResult(
       Map(
         textComponent.id -> FieldError(textComponent, "some text value", Set.empty)
@@ -141,12 +151,13 @@ class InstructionsPDFPageFieldConvertersSpec
       None
     )
     val pageFieldData =
-      textConverter.convert(textComponentPrefixSuffix, cache, sectionNumber0, validationResult, envelope)
+      InstructionPDFPageConverter
+        .mapFormComponent(textComponentPrefixSuffix, cache, sectionNumber0, validationResult, envelope)
 
     pageFieldData shouldBe SimpleField(Some("sample label - instruction"), List("PREFIX some text value SUFFIX"))
   }
 
-  "revealingChoiceConverter" should "return RevealingChoiceField with no errors, when validation result is OK" in new Fixture {
+  it should "return RevealingChoiceField for revealing choice component, when validation result is OK" in new Fixture {
 
     val validationResult: ValidationResult = new ValidationResult(
       Map(
@@ -186,8 +197,8 @@ class InstructionsPDFPageFieldConvertersSpec
       None
     )
 
-    val pageFieldData = revealingChoiceConverter
-      .convert(`fieldValue - revealingChoice`, cache, sectionNumber0, validationResult, envelope)
+    val pageFieldData = InstructionPDFPageConverter
+      .mapFormComponent(`fieldValue - revealingChoice`, cache, sectionNumber0, validationResult, envelope)
 
     pageFieldData shouldBe RevealingChoiceField(
       Some("Revealing Choice - instruction"),
@@ -206,4 +217,5 @@ class InstructionsPDFPageFieldConvertersSpec
     )
 
   }
+
 }
