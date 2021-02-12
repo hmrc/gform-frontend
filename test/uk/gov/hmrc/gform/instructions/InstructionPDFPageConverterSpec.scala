@@ -24,6 +24,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
 import org.scalatest.{ FlatSpec, Matchers }
 import play.api.test.{ FakeRequest, Helpers }
+import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.models.Visibility
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
@@ -41,7 +42,7 @@ import uk.gov.hmrc.gform.validation.{ ComponentField, FieldError, FieldGlobalOk,
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.SessionId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Address.{ country, postcode, street1, street2, street3, street4, uk }
-import FormModelInstructionSummaryConverter.{fieldOrdering,PageData}
+import FormModelInstructionSummaryConverter.{ PageData, fieldOrdering }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -83,7 +84,9 @@ class InstructionPDFPageConverterSpec
           retrievals,
           ThirdPartyData.empty,
           authConfig,
-          headerCarrier)))
+          headerCarrier,
+          None,
+          FileIdsWithMapping.empty)))
     val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
       .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.Normal](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
@@ -121,7 +124,7 @@ class InstructionPDFPageConverterSpec
         formComponents = List(textComponent)),
       sectionNumber0,
       cache,
-      envelope,
+      envelopeWithMapping,
       validationResult
     )
     pageData shouldBe PageData(
@@ -138,7 +141,8 @@ class InstructionPDFPageConverterSpec
     )
 
     val pageFieldData =
-      InstructionPDFPageConverter.mapFormComponent(textComponent, cache, sectionNumber0, validationResult, envelope)
+      InstructionPDFPageConverter
+        .mapFormComponent(textComponent, cache, sectionNumber0, validationResult, envelopeWithMapping)
 
     pageFieldData shouldBe SimpleField(Some("sample label - instruction"), List("some text value"))
   }
@@ -152,7 +156,7 @@ class InstructionPDFPageConverterSpec
     )
     val pageFieldData =
       InstructionPDFPageConverter
-        .mapFormComponent(textComponentPrefixSuffix, cache, sectionNumber0, validationResult, envelope)
+        .mapFormComponent(textComponentPrefixSuffix, cache, sectionNumber0, validationResult, envelopeWithMapping)
 
     pageFieldData shouldBe SimpleField(Some("sample label - instruction"), List("PREFIX some text value SUFFIX"))
   }
@@ -198,7 +202,7 @@ class InstructionPDFPageConverterSpec
     )
 
     val pageFieldData = InstructionPDFPageConverter
-      .mapFormComponent(`fieldValue - revealingChoice`, cache, sectionNumber0, validationResult, envelope)
+      .mapFormComponent(`fieldValue - revealingChoice`, cache, sectionNumber0, validationResult, envelopeWithMapping)
 
     pageFieldData shouldBe RevealingChoiceField(
       Some("Revealing Choice - instruction"),

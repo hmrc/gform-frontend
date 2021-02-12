@@ -22,7 +22,7 @@ import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.prop.TableFor3
 import uk.gov.hmrc.gform.Helpers._
 import uk.gov.hmrc.gform.eval.ExpressionResult._
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult }
+import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.FormModelSupport
 import uk.gov.hmrc.gform.sharedmodel._
@@ -49,7 +49,10 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
       ExampleData.authContext,
       ThirdPartyData.empty,
       formTemplate.authConfig,
-      hc)
+      hc,
+      Option.empty[FormPhase],
+      FileIdsWithMapping.empty
+    )
 
   "recalculation" should "recalculate single dependency" in {
 
@@ -899,6 +902,31 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
         mkSectionIncludeIf(List(mkFormComponent("b", Value)), includeIf1) ::
         mkSection(List(mkFormComponent("c", Value))) ::
         mkSection(List(mkFormComponent("z", Else(FormCtx(FormComponentId("b")), FormCtx(FormComponentId("c")))))) :: Nil
+
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+      verify(input, expectedOutput, expectedExprMap, sections)
+    }
+  }
+
+  it should "strip uniqueness identifier from fileUpload component" in {
+    val formComponentIds: TableFor3[
+      VariadicFormData[SourceOrigin.OutOfDate],
+      VariadicFormData[SourceOrigin.Current],
+      Map[Expr, ExpressionResult]] = Table(
+      ("input", "output", "expectedExprMap"),
+      (
+        mkDataOutOfDate("uploadInvoice" -> "uploadInvoice_userFileName"),
+        mkDataCurrent("uploadInvoice"   -> "uploadInvoice_userFileName"),
+        Map(ctx("uploadInvoice")        -> StringResult("userFileName")))
+    )
+
+    val fileUpload = FileUpload()
+
+    val sections =
+      mkSection(List(mkFormComponent("uploadInvoice", fileUpload))) ::
+        mkSection(
+        List(mkFormComponent("dummy", Value).copy(
+          label = SmartString(LocalisedString.empty, List(ctx("uploadInvoice")))))) :: Nil
 
     forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
       verify(input, expectedOutput, expectedExprMap, sections)

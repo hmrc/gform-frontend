@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.Bracket.AddToList
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ Bracket, Repeater, SingletonWithNumber, Visibility }
@@ -70,7 +70,7 @@ object FormModelInstructionSummaryConverter {
   def convert[D <: DataOrigin](
     formModelOptics: FormModelOptics[D],
     cache: AuthCacheWithForm,
-    envelope: Envelope,
+    envelopeWithMapping: EnvelopeWithMapping,
     validationResult: ValidationResult)(
     implicit
     messages: Messages,
@@ -82,22 +82,29 @@ object FormModelInstructionSummaryConverter {
 
     sortedBrackets.flatMap {
       _.fold { nonRepeatingPage =>
-        List[SummaryData](InstructionPDFPageConverter
-          .convert(nonRepeatingPage.singleton.page, nonRepeatingPage.sectionNumber, cache, envelope, validationResult))
+        List[SummaryData](
+          InstructionPDFPageConverter
+            .convert(
+              nonRepeatingPage.singleton.page,
+              nonRepeatingPage.sectionNumber,
+              cache,
+              envelopeWithMapping,
+              validationResult))
       } { repeatingPage =>
         repeatingPage.singletons.toList.map {
           case SingletonWithNumber(singleton, sectionNumber) =>
-            InstructionPDFPageConverter.convert(singleton.page, sectionNumber, cache, envelope, validationResult)
+            InstructionPDFPageConverter
+              .convert(singleton.page, sectionNumber, cache, envelopeWithMapping, validationResult)
         }
       } { addToList =>
-        convertAddToList(cache, envelope, validationResult, addToList)
+        convertAddToList(cache, envelopeWithMapping, validationResult, addToList)
       }
     }
   }
 
   private def convertAddToList[D <: DataOrigin](
     cache: AuthCacheWithForm,
-    envelope: Envelope,
+    envelopeWithMapping: EnvelopeWithMapping,
     validationResult: ValidationResult,
     addToList: AddToList[Visibility])(
     implicit
@@ -118,7 +125,8 @@ object FormModelInstructionSummaryConverter {
       val addToListPages: List[PageData] = iteration.singletons.toList.sorted
         .map {
           case SingletonWithNumber(singleton, sectionNumber) =>
-            InstructionPDFPageConverter.convert(singleton.page, sectionNumber, cache, envelope, validationResult)
+            InstructionPDFPageConverter
+              .convert(singleton.page, sectionNumber, cache, envelopeWithMapping, validationResult)
         }
       if (addToListPages.isEmpty)
         None

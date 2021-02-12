@@ -22,7 +22,7 @@ import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FieldOk
@@ -113,7 +113,7 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks {
   forAll(equalsCombinations) { (input, expectedSterling, expectedNumber) =>
     implicit val l: LangADT = LangADT.En
     def formatForConstraint(constraint: TextConstraint) =
-      TextFormatter.formatText(FieldOk(getComponent(constraint), input), Envelope.empty)
+      TextFormatter.formatText(FieldOk(getComponent(constraint), input), EnvelopeWithMapping.empty)
 
     formatForConstraint(Sterling(RoundingMode.defaultRoundingMode, false)) shouldBe expectedSterling
     formatForConstraint(Number()) shouldBe expectedNumber

@@ -243,17 +243,6 @@ trait InstructionsRenderingServiceSpecExpectations {
           |</div>
           |<div class="row">
           |    <div class="col-lg-12 heading-1">
-          |        page1Instruction
-          |    </div>
-          |</div>
-          |<div class="row">
-          |    <div class="col-lg-4 label">
-          |        page1FieldInstruction
-          |    </div>
-          |    <div class="col-lg-8">page1Field-value1<br/></div>
-          |</div>
-          |<div class="row">
-          |    <div class="col-lg-12 heading-1">
           |        page2Instruction
           |    </div>
           |</div>
@@ -265,11 +254,6 @@ trait InstructionsRenderingServiceSpecExpectations {
           |</div>
           |<div class="row">
           |    <div class="col-lg-12 heading-1">
-          |        addToListShortName
-          |    </div>
-          |</div>
-          |<div class="row">
-          |    <div class="col-lg-12 heading-1">
           |        page1Instruction
           |    </div>
           |</div>
@@ -277,7 +261,12 @@ trait InstructionsRenderingServiceSpecExpectations {
           |    <div class="col-lg-4 label">
           |        page1FieldInstruction
           |    </div>
-          |    <div class="col-lg-8">page1Field-value2<br/></div>
+          |    <div class="col-lg-8">page1Field-value1<br/></div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        addToListShortName
+          |    </div>
           |</div>
           |<div class="row">
           |    <div class="col-lg-12 heading-1">
@@ -289,6 +278,17 @@ trait InstructionsRenderingServiceSpecExpectations {
           |        page2FieldInstruction
           |    </div>
           |    <div class="col-lg-8">page2Field-value2<br/></div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        page1Instruction
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        page1FieldInstruction
+          |    </div>
+          |    <div class="col-lg-8">page1Field-value2<br/></div>
           |</div>
           |""".stripMargin
       ))

@@ -15,6 +15,7 @@
  */
 
 package uk.gov.hmrc.gform.fileupload
+
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -23,4 +24,5 @@ trait FileUploadAlgebra[F[_]] {
   def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Envelope]
   def getMaybeEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Option[Envelope]]
   def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): F[Unit]
+  def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(implicit hc: HeaderCarrier): F[Unit]
 }

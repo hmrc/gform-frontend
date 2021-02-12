@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform.handlers
 
 import uk.gov.hmrc.gform.controllers.CacheData
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
@@ -33,7 +33,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     sectionNumber: SectionNumber,
     cache: CacheData,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Mongo],
     suppressErrors: SuppressErrors
   ): Future[FormHandlerResult] =
@@ -51,7 +51,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     formModelOptics: FormModelOptics[DataOrigin.Browser],
     sectionNumber: SectionNumber,
     cache: CacheData,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser]
   ): Future[FormValidationOutcome] =
     formValidator
@@ -67,7 +67,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
   def handleFastForwardValidate(
     processData: ProcessData,
     cache: CacheData,
-    envelope: Envelope,
+    envelope: EnvelopeWithMapping,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
     fastForward: FastForward
   ): Future[Option[SectionNumber]] =
@@ -82,5 +82,5 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
 
 case class FormHandlerResult(
   validationResult: ValidationResult,
-  envelope: Envelope
+  envelope: EnvelopeWithMapping
 )

@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.instructions
 
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter.componentTextForSummary
 object TextFormatter {
   def formatText(
     validationResult: FormFieldValidationResult,
-    envelope: Envelope,
+    envelopeWithMapping: EnvelopeWithMapping,
     prefix: Option[SmartString] = None,
     suffix: Option[SmartString] = None
   )(
@@ -41,7 +41,7 @@ object TextFormatter {
 
     def getValue(formComponent: FormComponent): List[String] = formComponent match {
       case IsText(text)     => List(componentTextForSummary(currentValue, text.constraint, prefix, suffix))
-      case IsFileUpload()   => List(envelope.userFileName(formComponent))
+      case IsFileUpload()   => List(envelopeWithMapping.userFileName(formComponent))
       case IsChoice(choice) => choice.renderToString(formComponent, validationResult)
       case IsUkSortCode(sortCode) =>
         List(

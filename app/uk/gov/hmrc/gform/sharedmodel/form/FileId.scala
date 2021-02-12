@@ -27,6 +27,8 @@ case class FileId(value: String) {
 
 object FileId {
 
+  val empty: FileId = FileId("-")
+
   implicit val equal: Eq[FileId] = Eq.fromUniversalEquals
 
   implicit val format: OFormat[FileId] = ValueClassFormat.oformat("fileId", FileId.apply, _.value)

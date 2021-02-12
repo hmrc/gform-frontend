@@ -23,8 +23,8 @@ import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
-import uk.gov.hmrc.gform.eval.EvaluationContext
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
 import uk.gov.hmrc.gform.models.{ Basic, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -56,7 +56,10 @@ trait ExampleEvaluationContext {
       authContext,
       ThirdPartyData.empty,
       authConfig,
-      HeaderCarrier())
+      HeaderCarrier(),
+      Option.empty[FormPhase],
+      FileIdsWithMapping.empty
+    )
 }
 
 trait ExampleSubmission {
@@ -726,6 +729,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   def envelope = Envelope.empty
 
+  def envelopeWithMapping = EnvelopeWithMapping.empty
+
   val envelopeExpiryDate = Some(EnvelopeExpiryDate(LocalDateTime.now.plusDays(1).withNano(0)))
 
   def buildForm: Form = buildForm(formData)
@@ -739,7 +744,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     InProgress,
     VisitIndex(Set.empty),
     ThirdPartyData.empty,
-    envelopeExpiryDate
+    envelopeExpiryDate,
+    FormComponentIdToFileIdMapping.empty
   )
 }
 

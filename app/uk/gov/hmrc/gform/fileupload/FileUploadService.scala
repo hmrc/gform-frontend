@@ -16,12 +16,15 @@
 
 package uk.gov.hmrc.gform.fileupload
 
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-class FileUploadService(fileUploadConnector: FileUploadConnector) extends FileUploadAlgebra[Future] {
+class FileUploadService(fileUploadConnector: FileUploadConnector)(
+  implicit ec: ExecutionContext
+) extends FileUploadAlgebra[Future] {
 
   override def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] =
     fileUploadConnector.getEnvelope(envelopeId)
@@ -31,5 +34,12 @@ class FileUploadService(fileUploadConnector: FileUploadConnector) extends FileUp
 
   override def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): Future[Unit] =
     fileUploadConnector.deleteFile(envelopeId, fileId)
+
+  override def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(implicit hc: HeaderCarrier): Future[Unit] =
+    Future
+      .traverse(fileIds) { fileId =>
+        deleteFile(envelopeId, fileId)
+      }
+      .map(_ => ())
 
 }

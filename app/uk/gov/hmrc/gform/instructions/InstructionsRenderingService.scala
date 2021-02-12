@@ -20,7 +20,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.fileupload.FileUploadAlgebra
+import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel._
@@ -52,9 +52,14 @@ class InstructionsRenderingService(
   ): Future[PdfHtml] = {
     import i18nSupport._
     for {
-      envelope <- fileUploadAlgebra.getEnvelope(cache.form.envelopeId)
+      envelopeWithMapping <- fileUploadAlgebra
+                              .getEnvelope(cache.form.envelopeId)
+                              .map(EnvelopeWithMapping(_, cache.form))
       validationResult <- validationService
-                           .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics)
+                           .validateFormModel(
+                             cache.toCacheData,
+                             envelopeWithMapping,
+                             formModelOptics.formModelVisibilityOptics)
     } yield {
       val mayBeInstructionPdf = cache.formTemplate.destinations match {
         case DestinationList(_, acknowledgementSection, _) =>
@@ -63,7 +68,7 @@ class InstructionsRenderingService(
       }
       PdfHtml(
         summaryInstructionPdf(
-          FormModelInstructionSummaryConverter.convert(formModelOptics, cache, envelope, validationResult),
+          FormModelInstructionSummaryConverter.convert(formModelOptics, cache, envelopeWithMapping, validationResult),
           maybeSubmissionDetails,
           mayBeInstructionPdf,
           cache.formTemplate

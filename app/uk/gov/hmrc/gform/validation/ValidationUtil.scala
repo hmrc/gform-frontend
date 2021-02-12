@@ -21,7 +21,7 @@ import cats.Monoid
 import cats.data.Validated
 import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Other, Quarantined }
+import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, Error, File, Other, Quarantined }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -86,7 +86,7 @@ object ValidationUtil {
     atomicFields: List[FormComponent],
     validationResult: ValidatedType[ValidatorsResult],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    envelope: Envelope
+    envelope: EnvelopeWithMapping
   ): ValidationResult = {
 
     // ToDo: This should be removed and replaced with data.data.one or data.data.many as appropriate
@@ -155,8 +155,7 @@ object ValidationUtil {
 
       case IsFileUpload() =>
         val modelComponentId = formComponent.modelComponentId
-        val fileName =
-          envelope.find(modelComponentId).map(_.fileName).getOrElse("")
+        val fileName = envelope.find(modelComponentId).map(_.fileName).getOrElse("")
         gFormErrors.get(modelComponentId) match {
           case Some(errors) => FieldError(formComponent, fileName, errors)
           case None         => FieldOk(formComponent, fileName)
@@ -209,7 +208,7 @@ object ValidationUtil {
 
   def validateFileUploadHasScannedFiles(
     formComponents: List[FormComponent],
-    e: Envelope
+    e: EnvelopeWithMapping
   )(
     implicit
     sse: SmartStringEvaluator

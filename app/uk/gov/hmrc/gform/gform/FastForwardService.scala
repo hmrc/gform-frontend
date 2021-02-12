@@ -22,7 +22,7 @@ import play.api.i18n.Messages
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.{ FastForward, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType }
@@ -86,8 +86,12 @@ class FastForwardService(
         )
         for {
           envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
-          res <- updateUserData(cache, processData, maybeAccessCode, fastForward, envelope)(
-                  redirectResult(cache, maybeAccessCode, processData, _))
+          res <- updateUserData(
+                  cache,
+                  processData,
+                  maybeAccessCode,
+                  fastForward,
+                  EnvelopeWithMapping(envelope, cache.form))(redirectResult(cache, maybeAccessCode, processData, _))
         } yield res
 
       }
@@ -127,7 +131,7 @@ class FastForwardService(
     processData: ProcessData,
     maybeAccessCode: Option[AccessCode],
     fastForward: FastForward,
-    envelope: Envelope
+    envelope: EnvelopeWithMapping
   )(
     toResult: Option[SectionNumber] => Result
   )(
@@ -153,7 +157,8 @@ class FastForwardService(
           .modify(_.obligations)
           .setTo(processData.obligations)
           .modify(_.booleanExprCache)
-          .setTo(processData.booleanExprCache)
+          .setTo(processData.booleanExprCache),
+        cache.form.componentIdToFileId
       )
       res <- gformConnector
               .updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)

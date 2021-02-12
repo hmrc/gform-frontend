@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.instructions
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.instructions.FormModelInstructionSummaryConverter._
 import uk.gov.hmrc.gform.instructions.TextFormatter.formatText
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
@@ -35,7 +35,7 @@ object InstructionPDFPageConverter {
     page: Page[Visibility],
     sectionNumber: SectionNumber,
     cache: AuthCacheWithForm,
-    envelope: Envelope,
+    envelopeWithMapping: EnvelopeWithMapping,
     validationResult: ValidationResult)(
     implicit
     messages: Messages,
@@ -45,7 +45,7 @@ object InstructionPDFPageConverter {
     val pageTitle = page.instruction.flatMap(_.name).map(_.value())
     val pageFields =
       page.fields.sorted
-        .map(c => mapFormComponent(c, cache, sectionNumber, validationResult, envelope))
+        .map(c => mapFormComponent(c, cache, sectionNumber, validationResult, envelopeWithMapping))
     PageData(pageTitle, pageFields)
   }
 
@@ -54,7 +54,7 @@ object InstructionPDFPageConverter {
     cache: AuthCacheWithForm,
     sectionNumber: SectionNumber,
     validationResult: ValidationResult,
-    envelope: Envelope)(
+    envelopeWithMapping: EnvelopeWithMapping)(
     implicit
     messages: Messages,
     l: LangADT,
@@ -64,13 +64,13 @@ object InstructionPDFPageConverter {
       case IsText(Text(_, _, _, _, prefix, suffix)) =>
         SimpleField(
           formComponent.instruction.flatMap(_.name.map(_.value())),
-          formatText(validationResult(formComponent), envelope, prefix, suffix)
+          formatText(validationResult(formComponent), envelopeWithMapping, prefix, suffix)
         )
 
       case IsTextArea(_) =>
         SimpleField(
           formComponent.instruction.flatMap(_.name.map(_.value())),
-          formatText(validationResult(formComponent), envelope).flatMap(_.split("\\R"))
+          formatText(validationResult(formComponent), envelopeWithMapping).flatMap(_.split("\\R"))
         )
 
       case IsUkSortCode(_) =>
@@ -120,11 +120,11 @@ object InstructionPDFPageConverter {
       case IsFileUpload() =>
         SimpleField(
           formComponent.instruction.flatMap(_.name.map(_.value())),
-          List(envelope.userFileName(formComponent))
+          List(envelopeWithMapping.userFileName(formComponent))
         )
 
       case IsHmrcTaxPeriod(h) =>
-        val periodId = TaxPeriodHelper.formatTaxPeriodOutput(validationResult(formComponent), envelope)
+        val periodId = TaxPeriodHelper.formatTaxPeriodOutput(validationResult(formComponent), envelopeWithMapping)
         val maybeObligation = cache.form.thirdPartyData.obligations.findByPeriodKey(h, periodId)
 
         SimpleField(
@@ -150,7 +150,7 @@ object InstructionPDFPageConverter {
                 .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
                 .map { _ =>
                   val revealingFields = element.revealingFields.map(f =>
-                    mapFormComponent(f, cache, sectionNumber, validationResult, envelope))
+                    mapFormComponent(f, cache, sectionNumber, validationResult, envelopeWithMapping))
                   ChoiceElement(element.choice.value(), revealingFields)
                 }
           }
@@ -161,7 +161,7 @@ object InstructionPDFPageConverter {
 
       case IsGroup(group) =>
         val fields = group.fields.sorted.map { f =>
-          mapFormComponent(f, cache, sectionNumber, validationResult, envelope)
+          mapFormComponent(f, cache, sectionNumber, validationResult, envelopeWithMapping)
         }
 
         GroupField(formComponent.instruction.flatMap(_.name.map(_.value())), fields)

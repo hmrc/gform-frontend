@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.BooleanExprEval
-import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Infected }
+import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, Error, File, Infected }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.Visibility
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.FormModel
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, verificationCodeFieldId }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SubmissionRef }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
@@ -67,7 +67,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   formModelVisibilityOptics: FormModelVisibilityOptics[D],
   formComponent: FormComponent,
   cache: CacheData,
-  envelope: Envelope,
+  envelope: EnvelopeWithMapping,
   lookupRegistry: LookupRegistry,
   booleanExprEval: BooleanExprEval[F]
 )(
@@ -182,9 +182,8 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
     }
   }
 
-  private def validateFileUpload(envelope: Envelope)(implicit messages: Messages): ValidatedType[Unit] = {
-    val fileId = FileId(formComponent.id.value)
-    val file: Option[File] = envelope.files.find(_.fileId.value == fileId.value)
+  private def validateFileUpload(envelope: EnvelopeWithMapping)(implicit messages: Messages): ValidatedType[Unit] = {
+    val file: Option[File] = envelope.find(formComponent.id.modelComponentId)
 
     file match {
       case Some(File(fileId, Error(Some(reason)), _)) =>
