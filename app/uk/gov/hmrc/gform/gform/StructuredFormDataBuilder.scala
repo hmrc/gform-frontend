@@ -60,7 +60,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
 
   private val isStrictlyMultiSelectionIds: Set[ModelComponentId] = formModelVisibilityOptics.formModel.allFormComponents
     .collect {
-      case fc @ IsChoice(Choice(Checkbox, _, _, _, _))      => fc.id
+      case fc @ IsChoice(Choice(Checkbox, _, _, _, _, _))   => fc.id
       case fc @ IsRevealingChoice(RevealingChoice(_, true)) => fc.id
     }
     .map(_.modelComponentId)

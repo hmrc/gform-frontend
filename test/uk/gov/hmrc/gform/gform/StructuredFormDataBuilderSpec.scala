@@ -1051,6 +1051,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
         NonEmptyList.of(toSmartString("One"), toSmartString("Two"), toSmartString("Three")),
         Vertical,
         Nil,
+        None,
         None))
 
   def createRadio(id: String): FormComponent =
@@ -1061,6 +1062,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
         NonEmptyList.of(toSmartString("One"), toSmartString("Two"), toSmartString("Three")),
         Vertical,
         Nil,
+        None,
         None))
 
   def createDate(id: String): FormComponent =
@@ -1074,7 +1076,7 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
     createFormComponent(id, RevealingChoice(element1 :: elements.toList, multiValue))
 
   def createRevealingChoiceElement(fields: FormComponent*): RevealingChoiceElement =
-    RevealingChoiceElement(toSmartString("foo"), fields.toList, false)
+    RevealingChoiceElement(toSmartString("foo"), fields.toList, None, false)
 
   def createAddress(id: String): FormComponent = createFormComponent(id, Address(false))
 

@@ -232,11 +232,13 @@ class InstructionsRenderingServiceSpec
             RevealingChoiceElement(
               toSmartString("choice1"),
               revealingChoice1Field :: Nil,
+              None,
               true
             ),
             RevealingChoiceElement(
               toSmartString("choice2"),
               revealingChoice2Field :: Nil,
+              None,
               true
             )
           ),
