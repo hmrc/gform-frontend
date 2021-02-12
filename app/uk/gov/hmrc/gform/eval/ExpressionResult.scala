@@ -29,8 +29,6 @@ import java.time.format.DateTimeFormatter
 
 sealed trait ExpressionResult extends Product with Serializable {
 
-  val DATE_DISPLAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
-
   import ExpressionResult._
 
   private def invalidAdd(er: ExpressionResult): ExpressionResult =
@@ -202,8 +200,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     typeInfo.staticTypeData.textConstraint.fold(this)(applyTextConstraint)
 
   def stringRepresentation(typeInfo: TypeInfo) =
-    fold(_ => "")(_ => typeInfo.defaultValue)(_ => "")(_.value.toString)(_.value)(_.value.mkString(","))(
-      _.value.format(DATE_DISPLAY_FORMAT))
+    fold(_ => "")(_ => typeInfo.defaultValue)(_ => "")(_.value.toString)(_.value)(_.value.mkString(","))(_.asString)
 
   def numberRepresentation: Option[BigDecimal] =
     fold[Option[BigDecimal]](_ => None)(_ => None)(_ => None)(bd => Some(bd.value))(_ => None)(_ => None)(_ => None)
@@ -270,7 +267,10 @@ object ExpressionResult {
   case class StringResult(value: String) extends ExpressionResult {
     def +(sr: StringResult): StringResult = StringResult(value + sr.value)
   }
-  case class DateResult(value: LocalDate) extends ExpressionResult
+  case class DateResult(value: LocalDate) extends ExpressionResult {
+    val DATE_DISPLAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
+    def asString = value.format(DATE_DISPLAY_FORMAT)
+  }
   case class OptionResult(value: Seq[Int]) extends ExpressionResult {
     def contains(bd: BigDecimal): Boolean = value.contains(bd.toInt)
   }

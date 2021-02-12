@@ -85,7 +85,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       VariadicFormData.create(
         (toModelComponentId("dateFieldId1-year"), VariadicValue.One("1970")),
         (toModelComponentId("dateFieldId1-month"), VariadicValue.One("1")),
-        (toModelComponentId("dateFieldId1-day"), VariadicValue.One("11"))
+        (toModelComponentId("dateFieldId1-day"), VariadicValue.One("11")),
+        (toModelComponentId("dateFieldId1"), VariadicValue.One("11 January 1970"))
       ))
 
     val table = Table(
@@ -96,7 +97,12 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.string, None)),
         recData,
         StringResult("11 January 1970"),
-        "Expression of type 'dateString' converted to type 'string'")
+        "DateCtx expression converted to type 'string'"),
+      (
+        TypeInfo(FormCtx(FormComponentId("dateFieldId1")), StaticTypeData(ExprType.string, None)),
+        recData,
+        StringResult("11 January 1970"),
+        "FormCtx Expression converted to type 'string'")
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>
       EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
