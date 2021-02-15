@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import java.time.{ LocalDateTime, LocalTime }
-
 import cats.data.NonEmptyList
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
@@ -25,11 +24,11 @@ import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
-import uk.gov.hmrc.gform.models.Basic
+import uk.gov.hmrc.gform.models.{ Basic, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RevealingChoiceElement, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
@@ -160,6 +159,7 @@ trait ExampleAuthConfig {
 trait ExampleFieldId {
 
   def `fieldId - facePhoto` = FormComponentId("facePhoto")
+  def `fieldId - address` = FormComponentId("address")
   def `fieldId - surname` = FormComponentId("surname")
   def `fieldId - firstName` = FormComponentId("firstName")
   def `fieldId - timeOfCall` = FormComponentId("timeOfCall")
@@ -172,6 +172,7 @@ trait ExampleFieldId {
   def `fieldId - startDate-month` = FormComponentId("startDate-month")
   def `fieldId - number` = FormComponentId("number")
   def `fieldId - choice` = FormComponentId("choice")
+  def `fieldId - revealingChoice` = FormComponentId("revealingChoice")
   def default = FormComponentId("test")
 
   //fieldId when submitting form
@@ -182,6 +183,22 @@ trait ExampleFieldId {
 trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def validIf: Option[ValidIf] = None
+
+  def `fieldValue - address` = FormComponent(
+    `fieldId - address`,
+    Address(false),
+    toSmartString("Address"),
+    helpText = None,
+    None,
+    None,
+    mandatory = true,
+    editable = true,
+    submissible = true,
+    derived = false,
+    false,
+    None,
+    instruction = instruction("Address - instruction")
+  )
 
   def `fieldValue - facePhoto` = FormComponent(
     `fieldId - facePhoto`,
@@ -362,10 +379,51 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     None
   )
 
-  def fieldValue(text: Text) = FormComponent(
-    default,
+  def `fieldValue - text1` =
+    fieldValue(
+      Text(TextConstraint.default, Constant("value1")),
+      fcId = FormComponentId("text1"),
+      label = "text1",
+      instruction = instruction("text1 - instruction"))
+
+  def `fieldValue - text2` =
+    fieldValue(
+      Text(TextConstraint.default, Constant("value2")),
+      fcId = FormComponentId("text2"),
+      label = "text2",
+      instruction = instruction("text2 - instruction"))
+
+  def `fieldValue - revealingChoice` =
+    FormComponent(
+      `fieldId - revealingChoice`,
+      RevealingChoice(
+        List(
+          RevealingChoiceElement(toSmartString("choice1"), List(`fieldValue - text1`, `fieldValue - text2`), true),
+          RevealingChoiceElement(toSmartString("choice2"), List(`fieldValue - address`), true),
+        ),
+        true
+      ),
+      toSmartString("Revealing Choice"),
+      None,
+      None,
+      validIf,
+      true,
+      true,
+      true,
+      true,
+      true,
+      None,
+      instruction = instruction("Revealing Choice - instruction")
+    )
+
+  def fieldValue(
+    text: Text,
+    fcId: FormComponentId = default,
+    label: String = "sample label",
+    instruction: Option[Instruction] = None) = FormComponent(
+    fcId,
     text,
-    toSmartString("sample label"),
+    toSmartString(label),
     None,
     None,
     None,
@@ -374,7 +432,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     false,
     true,
     false,
-    None
+    None,
+    instruction = instruction
   )
 
   def addToListQuestion(addAnotherQuestionName: String): FormComponent =
@@ -394,6 +453,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
       None
     )
 
+  def instruction(name: String, order: Int = 1): Option[Instruction] =
+    Some(Instruction(name = Some(toSmartString(name)), order = Some(order)))
 }
 
 trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
@@ -466,6 +527,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 
   def addToListSection(
     title: String,
+    description: String,
     shortName: String,
     summaryName: String,
     addAnotherQuestion: FormComponent,
@@ -474,7 +536,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     presentationHint: Option[PresentationHint] = None): Section.AddToList =
     Section.AddToList(
       toSmartString(title),
-      toSmartString(title),
+      toSmartString(description),
       toSmartString(shortName),
       toSmartString(summaryName),
       None,
@@ -489,20 +551,26 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     title: String,
     instruction: Option[Instruction],
     formComponents: List[FormComponent],
-    presentationHint: Option[PresentationHint] = None) =
-    Page[Basic](
-      toSmartString(title),
-      None,
-      None,
-      None,
-      None,
-      None,
-      formComponents,
-      None,
-      None,
-      instruction,
-      presentationHint
-    )
+    presentationHint: Option[PresentationHint] = None): Page[Basic] =
+    mkPage[Basic](title, instruction, formComponents, presentationHint)
+
+  def mkPage[T <: PageMode](
+    title: String,
+    instruction: Option[Instruction],
+    formComponents: List[FormComponent],
+    presentationHint: Option[PresentationHint] = None): Page[T] = Page[T](
+    toSmartString(title),
+    None,
+    None,
+    None,
+    None,
+    None,
+    formComponents,
+    None,
+    None,
+    instruction,
+    presentationHint
+  )
 }
 
 trait ExampleSectionNumber {
@@ -660,6 +728,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
   def envelopeId = EnvelopeId("b66c5979-e885-49cd-9281-c7f42ce6b307")
 
   def envelope = Envelope.empty
+
+  def envelopeWithMapping = EnvelopeWithMapping.empty
 
   val envelopeExpiryDate = Some(EnvelopeExpiryDate(LocalDateTime.now.plusDays(1).withNano(0)))
 
