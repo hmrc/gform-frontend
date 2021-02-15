@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.instructions
 
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 trait InstructionsRenderingServiceSpecExpectations {
@@ -24,182 +23,310 @@ trait InstructionsRenderingServiceSpecExpectations {
   val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
   val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
 
-  def htmlBase(rows: String)(implicit now: LocalDateTime) =
+  def htmlBase(summaryRows: String) =
     s"""
-       |<!doctype html>
        |<html>
-       |   <head>
-       |      <title>Instructions - AAA999 dev test template</title>
-       |      <style>body{font-family:Arial,sans-serif;font-size: 19px;}
-       |         dl{border-bottom: 1px solid #bfc1c3;}
-       |         dt{font-weight: bold;}
-       |         dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;} </style>
-       |   </head>
-       |   <body>
-       |      <div>
-       |         <p> HM Revenue &amp; Customs </p>
-       |      </div>
-       |      <form>
-       |         <h1><p>some-pdf-header</p></h1>
-       |         $rows
-       |         <h3> submission.details </h3>
-       |         <dl>
-       |            <div>
-       |               <dt> submission.date </dt>
-       |               <dd> ${now.format(dateFormat)} ${now.format(timeFormat)} </dd>
-       |               <dd></dd>
-       |            </div>
-       |            <div>
-       |               <dt> submission.reference </dt>
-       |               <dd> some-submission-ref </dd>
-       |               <dd></dd>
-       |            </div>
-       |            <div>
-       |               <dt> submission.mark </dt>
-       |               <dd></dd>
-       |               <dd></dd>
-       |            </div>
-       |         </dl>
-       |         <h1><p>some-pdf-footer</p></h1>
-       |      </form>
-       |   </body>
+       |	<head>
+       |		<title>Instructions PDF - AAA999 dev test template</title>
+       |		<style>
+       |         body {
+       |          font-family:Arial, sans-serif;
+       |          font-size: 16px;
+       |         }
+       |         body {
+       |          margin: 0;
+       |         }
+       |         * {
+       |          box-sizing: border-box;
+       |         }
+       |         *:before,
+       |         *:after {
+       |          box-sizing: border-box;
+       |         }
+       |         .container-fluid {
+       |          padding-right: 15px;
+       |          padding-left: 15px;
+       |          margin-right: auto;
+       |          margin-left: auto;
+       |         }
+       |         .row {
+       |          margin-right: -15px;
+       |          margin-left: -15px;
+       |         }
+       |         .container-fluid:before,
+       |         .container-fluid:after,
+       |         .row:before,
+       |         .row:after {
+       |          display: table;
+       |          content: " ";
+       |         }
+       |         .container-fluid:after,
+       |         .row:after {
+       |          clear: both;
+       |         }
+       |         .col-lg-4, .col-lg-8, .col-lg-12 {
+       |          position: relative;
+       |          min-height: 1px;
+       |          padding-right: 16px;
+       |          padding-left: 16px;
+       |          padding-top: 11px;
+       |          padding-bottom: 11px;
+       |         }
+       |         .col-lg-4, .col-lg-8, .col-lg-12 {
+       |          float: left;
+       |         }
+       |         .col-lg-12 {
+       |          width: 100%;
+       |         }
+       |         .col-lg-4 {
+       |          width: 33.33333333%;
+       |         }
+       |         .col-lg-8 {
+       |          width: 66.66666667%;
+       |         }
+       |         .label { font-weight: bold }
+       |         .heading-1 { font-size: 22px; font-weight: bold;}
+       |         .heading-2 { font-size: 20px; font-weight: bold;}
+       |         .heading-3 { font-size: 18px; font-weight: bold;}
+       |      </style>
+       |	</head>
+       |	<body>
+       |		<div class="container-fluid">
+       |			<div class="row">
+       |				<div class="col-lg-12">
+       |            HM Revenue &amp; Customs
+       |        </div>
+       |			</div>
+       |			<div class="row">
+       |				<div class="col-lg-12 heading-1">
+       |					<p>some-pdf-header</p>
+       |				</div>
+       |			</div>
+       |      $summaryRows
+       |			<div class="row">
+       |				<div class="col-lg-12 heading-1">
+       |					<p>some-pdf-footer</p>
+       |				</div>
+       |			</div>
+       |		</div>
+       |	</body>
        |</html>
        |""".stripMargin
 
-  def nonRepeatingSectionsHtml()(implicit now: LocalDateTime) =
+  def nonRepeatingSectionsHtml() =
+    trimLines(htmlBase(s"""
+                          |<div class="row">
+                          |    <div class="col-lg-12 heading-1">
+                          |        page2Instruction
+                          |    </div>
+                          |</div>
+                          |<div class="row">
+                          |    <div class="col-lg-4 label">
+                          |        page2Field2Instruction
+                          |    </div>
+                          |    <div class="col-lg-8">
+                          |        page2Field2Value
+                          |        <br/>
+                          |    </div>
+                          |</div>
+                          |<div class="row">
+                          |    <div class="col-lg-4 label">
+                          |        page2Field1Instruction
+                          |    </div>
+                          |    <div class="col-lg-8">
+                          |        page2Field1Value
+                          |        <br/>
+                          |    </div>
+                          |</div>
+                          |<div class="row">
+                          |    <div class="col-lg-12 heading-1">
+                          |        page1Instruction
+                          |    </div>
+                          |</div>
+                          |<div class="row">
+                          |    <div class="col-lg-4 label">
+                          |        page1Field1Instruction
+                          |    </div>
+                          |    <div class="col-lg-8">
+                          |        page1Field1Value
+                          |        <br/>
+                          |    </div>
+                          |</div>
+                          |<div class="row">
+                          |    <div class="col-lg-4 label">
+                          |        page1Field2Instruction
+                          |    </div>
+                          |    <div class="col-lg-8">
+                          |        page1Field2Value
+                          |        <br/>
+                          |    </div>
+                          |</div>
+                          |""".stripMargin))
+
+  def nonRepeatingSectionsWithGroupHtml() =
     trimLines(htmlBase("""
-                         |<h2> page2Instruction </h2>
-                         |<dl>
-                         |  <div>
-                         |   <dt> page2Field2Instruction </dt>
-                         |   <dd> page2Field2Value </dd>
-                         |   <dd></dd>
-                         |  </div>
-                         |  <div>
-                         |   <dt> page2Field1Instruction </dt>
-                         |   <dd> page2Field1Value </dd>
-                         |   <dd></dd>
-                         |  </div>
-                         |</dl>
-                         |<h2> page1Instruction </h2>
-                         |<dl>
-                         |  <div>
-                         |   <dt> page1Field1Instruction </dt>
-                         |   <dd> page1Field1Value </dd>
-                         |   <dd></dd>
-                         |  </div>
-                         |  <div>
-                         |   <dt> page1Field2Instruction </dt>
-                         |   <dd> page1Field2Value </dd>
-                         |   <dd></dd>
-                         |  </div>
-                         |</dl>
+                         |<div class="row">
+                         |    <div class="col-lg-12 heading-1">
+                         |        page1Instruction
+                         |    </div>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-12 heading-2">
+                         |        page1Field1Instruction
+                         |    </div>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-4 label">
+                         |        page1Field1GroupElement2Instruction
+                         |    </div>
+                         |    <div class="col-lg-8">page1Field1GroupElement2Value1<br/></div>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-4 label">
+                         |        page1Field1GroupElement1Instruction
+                         |    </div>
+                         |    <div class="col-lg-8">page1Field1GroupElement1Value1<br/></div>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-12 heading-2">
+                         |        page1Field1Instruction
+                         |    </div>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-4 label">
+                         |        page1Field1GroupElement2Instruction
+                         |    </div>
+                         |    <div class="col-lg-8">page1Field1GroupElement2Value2<br/></div>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-4 label">
+                         |        page1Field1GroupElement1Instruction
+                         |    </div>
+                         |    <div class="col-lg-8">page1Field1GroupElement1Value2<br/></div>
+                         |</div>
                          |""".stripMargin))
 
-  def nonRepeatingSectionsWithGroupHtml()(implicit now: LocalDateTime) =
+  def repeatingSectionHtml() =
     trimLines(htmlBase("""
-                         | <h2> page1Instruction </h2>
-                         | <dl>
-                         |   <div>
-                         |      <dt> page1Field1Instruction </dt>
-                         |      <dd></dd>
-                         |      <span></span>
+                         |<div class="row">
+                         |    <div class="col-lg-12 heading-1">
+                         |        page1Instruction
                          |    </div>
-                         |    <div>
-                         |      <dt> page1Field1GroupElement1Instruction </dt>
-                         |      <dd> page1Field1GroupElement1Value1 </dd>
-                         |      <dd></dd>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-4 label">
+                         |        page1Field1Instruction
                          |    </div>
-                         |    <div>
-                         |      <dt> page1Field1GroupElement1Instruction </dt>
-                         |      <dd> page1Field1GroupElement1Value2 </dd>
-                         |      <dd></dd>
+                         |    <div class="col-lg-8">page1Field1Value1<br/></div>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-12 heading-1">
+                         |        page1Instruction
                          |    </div>
-                         | </dl>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-4 label">
+                         |        page1Field1Instruction
+                         |    </div>
+                         |    <div class="col-lg-8">page1Field1Value2<br/></div>
+                         |</div>
                          |""".stripMargin))
 
-  def repeatingSectionHtml()(implicit now: LocalDateTime) = trimLines(htmlBase("""
-                                                                                 |<h2> page1Instruction </h2>
-                                                                                 |<dl>
-                                                                                 |   <div>
-                                                                                 |      <dt> page1Field1Instruction </dt>
-                                                                                 |      <dd> page1Field1Value1 </dd>
-                                                                                 |      <dd></dd>
-                                                                                 |   </div>
-                                                                                 |</dl>
-                                                                                 |<h2> page1Instruction </h2>
-                                                                                 |<dl>
-                                                                                 |   <div>
-                                                                                 |      <dt> page1Field1Instruction </dt>
-                                                                                 |      <dd> page1Field1Value2 </dd>
-                                                                                 |      <dd></dd>
-                                                                                 |   </div>
-                                                                                 |</dl>
-                                                                                 |""".stripMargin))
-
-  def addToListSectionHtml()(implicit now: LocalDateTime) =
+  def addToListSectionHtml() =
     trimLines(
       htmlBase(
         """
-          |<h2> addToListSummary </h2>
-          |<dl>
-          | <div>
-          |   <dt> addToList </dt>
-          |   <dd> addToList <br>addToList </dd>
-          | </div>
-          |</dl>
-          |<h2> addToListShortName </h2>
-          |<h2> page2Instruction </h2>
-          |<dl>
-          |  <div>
-          |   <dt> page2FieldInstruction </dt>
-          |   <dd> page2Field-value1 </dd>
-          |   <dd></dd>
-          |  </div>
-          |</dl>
-          |<h2> page1Instruction </h2>
-          |<dl>
-          | <div>
-          |   <dt> page1FieldInstruction </dt>
-          |   <dd> page1Field-value1 </dd>
-          |   <dd></dd>
-          | </div>
-          |</dl>
-          |<h2> addToListShortName </h2>
-          |<h2> page2Instruction </h2>
-          |<dl>
-          |  <div>
-          |   <dt> page2FieldInstruction </dt>
-          |   <dd> page2Field-value2 </dd>
-          |   <dd></dd>
-          |  </div>
-          |</dl>
-          |<h2> page1Instruction </h2>
-          |<dl>
-          |  <div>
-          |   <dt> page1FieldInstruction </dt>
-          |   <dd> page1Field-value2 </dd>
-          |   <dd></dd>
-          |  </div>
-          |</dl>
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        addToListShortName
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        page2Instruction
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        page2FieldInstruction
+          |    </div>
+          |    <div class="col-lg-8">page2Field-value1<br/></div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        page1Instruction
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        page1FieldInstruction
+          |    </div>
+          |    <div class="col-lg-8">page1Field-value1<br/></div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        addToListShortName
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        page2Instruction
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        page2FieldInstruction
+          |    </div>
+          |    <div class="col-lg-8">page2Field-value2<br/></div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        page1Instruction
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        page1FieldInstruction
+          |    </div>
+          |    <div class="col-lg-8">page1Field-value2<br/></div>
+          |</div>
           |""".stripMargin
       ))
 
-  def revealingChoiceSectionHtml(implicit now: LocalDateTime) =
+  def revealingChoiceSectionHtml =
     trimLines(htmlBase("""
-                         |<h2> revealingChoicePageInstruction </h2>
-                         |<dl>
-                         |<div>
-                         |   <dt> revealingChoiceFieldInstruction </dt>
-                         |   <dd> choice1 </dd>
-                         |   <dd></dd>
+                         |<div class="row">
+                         |    <div class="col-lg-12 heading-1">
+                         |        revealingChoicePageInstruction
+                         |    </div>
                          |</div>
-                         |<div>
-                         |   <dt> revealingChoice1FieldInstruction </dt>
-                         |   <dd> revealingChoice1FieldValue </dd>
-                         |   <dd></dd>
+                         |<div class="row">
+                         |    <div class="col-lg-12 heading-2">
+                         |        revealingChoiceFieldInstruction
+                         |    </div>
                          |</div>
-                         |</dl>
+                         |<div class="row">
+                         |    <div class="col-lg-12 heading-3">
+                         |        choice1
+                         |    </div>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-4 label">
+                         |        revealingChoice1FieldInstruction
+                         |    </div>
+                         |    <div class="col-lg-8">value1<br/></div>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-12 heading-3">
+                         |        choice2
+                         |    </div>
+                         |</div>
+                         |<div class="row">
+                         |    <div class="col-lg-4 label">
+                         |        revealingChoice2FieldInstruction
+                         |    </div>
+                         |    <div class="col-lg-8">value2<br/></div>
+                         |</div>
                          |""".stripMargin))
 
   def trimLines(input: String): String =

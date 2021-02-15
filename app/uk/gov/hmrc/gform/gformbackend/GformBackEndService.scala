@@ -215,11 +215,9 @@ class GformBackEndService(
           cache.formTemplate
         )
       instructionsRenderingService
-        .createHtmlForInstructionsPdf(
-          maybeAccessCode,
+        .createInstructionPDFHtml(
           cache,
           submissionDetails,
-          SummaryPagePurpose.ForDms,
           formModelOpticsUpdated
         )
         .map(Some(_))

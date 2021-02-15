@@ -132,8 +132,7 @@ class GformModule(
   val instructionsRenderingService = new InstructionsRenderingService(
     playBuiltInsModule.i18nSupport,
     fileUploadModule.fileUploadService,
-    validationModule.validationService,
-    configModule.frontendAppConfig)
+    validationModule.validationService)
 
   val pdfGeneratorService = new PdfGeneratorService(
     playBuiltInsModule.i18nSupport,
