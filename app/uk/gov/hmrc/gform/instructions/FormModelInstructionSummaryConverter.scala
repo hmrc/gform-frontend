@@ -82,16 +82,16 @@ object FormModelInstructionSummaryConverter {
 
     sortedBrackets.flatMap {
       _.fold { nonRepeatingPage =>
-        List[SummaryData](
-          InstructionPDFPageConverter
-            .convert(
-              nonRepeatingPage.singleton.page,
-              nonRepeatingPage.sectionNumber,
-              cache,
-              envelopeWithMapping,
-              validationResult))
+        InstructionPDFPageConverter
+          .convert(
+            nonRepeatingPage.singleton.page,
+            nonRepeatingPage.sectionNumber,
+            cache,
+            envelopeWithMapping,
+            validationResult)
+          .toList: List[SummaryData]
       } { repeatingPage =>
-        repeatingPage.singletons.toList.map {
+        repeatingPage.singletons.toList.flatMap {
           case SingletonWithNumber(singleton, sectionNumber) =>
             InstructionPDFPageConverter
               .convert(singleton.page, sectionNumber, cache, envelopeWithMapping, validationResult)
@@ -123,7 +123,7 @@ object FormModelInstructionSummaryConverter {
 
     val addToListPageGroups: List[AddToListPageGroup] = addToList.iterations.toList.flatMap { iteration =>
       val addToListPages: List[PageData] = iteration.singletons.toList.sorted
-        .map {
+        .flatMap {
           case SingletonWithNumber(singleton, sectionNumber) =>
             InstructionPDFPageConverter
               .convert(singleton.page, sectionNumber, cache, envelopeWithMapping, validationResult)

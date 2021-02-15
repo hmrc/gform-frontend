@@ -101,7 +101,7 @@ class RealSmartStringEvaluatorFactorySpec
 
       lazy val choiceField: FormComponent = buildFormComponent(
         "choiceField",
-        Choice(Radio, NonEmptyList.of(toSmartString("Yes"), toSmartString("No")), Horizontal, List.empty, None),
+        Choice(Radio, NonEmptyList.of(toSmartString("Yes"), toSmartString("No")), Horizontal, List.empty, None, None),
         None
       )
       override lazy val form: Form =
@@ -136,6 +136,7 @@ class RealSmartStringEvaluatorFactorySpec
             toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))),
           Horizontal,
           List.empty,
+          None,
           None
         ),
         None
@@ -166,6 +167,7 @@ class RealSmartStringEvaluatorFactorySpec
           NonEmptyList.of(toSmartString("Choice1"), toSmartString("Choice2")),
           Horizontal,
           List.empty,
+          None,
           None),
         None
       )
@@ -194,6 +196,7 @@ class RealSmartStringEvaluatorFactorySpec
           NonEmptyList.of(toSmartString("Choice1"), toSmartString("Choice2")),
           Horizontal,
           List.empty,
+          None,
           None),
         None
       )
@@ -221,8 +224,8 @@ class RealSmartStringEvaluatorFactorySpec
         "revealingChoiceField",
         RevealingChoice(
           List(
-            RevealingChoiceElement(toSmartString("Option1"), List(choice1TextField), true),
-            RevealingChoiceElement(toSmartString("Option2"), List(choice2TextField), true)
+            RevealingChoiceElement(toSmartString("Option1"), List(choice1TextField), None, true),
+            RevealingChoiceElement(toSmartString("Option2"), List(choice2TextField), None, true)
           ),
           true
         ),
@@ -253,8 +256,8 @@ class RealSmartStringEvaluatorFactorySpec
         "revealingChoiceField",
         RevealingChoice(
           List(
-            RevealingChoiceElement(toSmartString("Option1"), List(choice1TextField), true),
-            RevealingChoiceElement(toSmartString("Option2"), List(choice2TextField), true)
+            RevealingChoiceElement(toSmartString("Option1"), List(choice1TextField), None, true),
+            RevealingChoiceElement(toSmartString("Option2"), List(choice2TextField), None, true)
           ),
           true
         ),

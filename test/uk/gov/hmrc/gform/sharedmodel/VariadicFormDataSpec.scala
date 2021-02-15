@@ -215,7 +215,7 @@ class VariadicFormDataSpec extends FlatSpec with Matchers with FormModelSupport 
       mkSection(
         mkFormComponent(
           "a",
-          Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None))))
+          Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None))))
     val fmb = mkFormModelBuilder(formTemplate)
 
     val formModel: FormModel[DependencyGraphVerification] = fmb.dependencyGraphValidation[SectionSelectorType.Normal]

@@ -38,8 +38,8 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
     val fcA = mkFormComponent("a", Value)
     val fcB = mkFormComponent("b", Value)
 
-    val rcElementA = RevealingChoiceElement(toSmartString("Yes"), fcA :: Nil, false)
-    val rcElementB = RevealingChoiceElement(toSmartString("No"), fcB :: Nil, false)
+    val rcElementA = RevealingChoiceElement(toSmartString("Yes"), fcA :: Nil, None, false)
+    val rcElementB = RevealingChoiceElement(toSmartString("No"), fcB :: Nil, None, false)
 
     val sliceA = mkFormComponent("rc", RevealingChoice(Nil, true))
     val sliceB = mkFormComponent("rc", RevealingChoice(List(rcElementA), true))
@@ -326,7 +326,9 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
     val fcA = mkFormComponent("a", Text(PositiveNumber(maxFractionalDigits = 0), Constant("123")))
     val fcA2 =
-      mkFormComponent("a2", Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None))
+      mkFormComponent(
+        "a2",
+        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None))
     val fcB = mkFormComponent("b", Text(TextConstraint.default, Constant("456")))
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
     val fcD = mkFormComponent("d", Text(TextConstraint.default, FormCtx("c")))
@@ -410,7 +412,9 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
     val fcA = mkFormComponent("a", Text(PositiveNumber(maxFractionalDigits = 0), Constant("123")))
     val fcB =
-      mkFormComponent("b", Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None))
+      mkFormComponent(
+        "b",
+        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None))
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
     val fcD = mkFormComponent("d", Text(TextConstraint.default, Value))
 
@@ -485,7 +489,9 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
     val fcA = mkFormComponent("a", Text(PositiveNumber(maxFractionalDigits = 2), Constant("123.45")))
     val fcB =
-      mkFormComponent("b", Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None))
+      mkFormComponent(
+        "b",
+        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None))
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
     val fcD = mkFormComponent("d", Text(TextConstraint.default, Value))
 
