@@ -41,12 +41,13 @@ object InstructionPDFPageConverter {
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator,
-    fieldOrdering: Ordering[FormComponent]): PageData = {
-    val pageTitle = page.instruction.flatMap(_.name).map(_.value())
-    val pageFields =
-      page.fields.sorted
-        .map(c => mapFormComponent(c, cache, sectionNumber, validationResult, envelopeWithMapping))
-    PageData(pageTitle, pageFields)
+    fieldOrdering: Ordering[FormComponent]): Option[PageData] = {
+    val pageFields = filteredAndSorted(page.fields)
+      .map(c => mapFormComponent(c, cache, sectionNumber, validationResult, envelopeWithMapping))
+    if (pageFields.isEmpty)
+      None
+    else
+      Some(PageData(page.instruction.flatMap(_.name).map(_.value()), pageFields))
   }
 
   def mapFormComponent(
@@ -149,7 +150,7 @@ object InstructionPDFPageConverter {
               validationResult(formComponent)
                 .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
                 .map { _ =>
-                  val revealingFields = element.revealingFields.map(f =>
+                  val revealingFields = filteredAndSorted(element.revealingFields).map(f =>
                     mapFormComponent(f, cache, sectionNumber, validationResult, envelopeWithMapping))
                   ChoiceElement(element.choice.value(), revealingFields)
                 }
@@ -166,4 +167,10 @@ object InstructionPDFPageConverter {
 
         GroupField(formComponent.instruction.flatMap(_.name.map(_.value())), fields)
     }
+
+  private def filteredAndSorted(fields: List[FormComponent])(
+    implicit fieldOrdering: Ordering[FormComponent]): List[FormComponent] =
+    fields
+      .filter(f => !f.hideOnSummary && f.instruction.isDefined)
+      .sorted
 }

@@ -165,7 +165,11 @@ class GformBackEndService(
                        SummaryPagePurpose.ForDms,
                        formModelOptics)
       htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate))
-                                createHTMLForInstructionPDF(maybeAccessCode, cache, submissionDetails, formModelOptics)
+                                createHTMLForInstructionPDF[SectionSelectorType.Normal, D](
+                                  maybeAccessCode,
+                                  cache,
+                                  submissionDetails,
+                                  formModelOptics)
                               else
                                 Future.successful(None)
       structuredFormData <- StructuredFormDataBuilder(
