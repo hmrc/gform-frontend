@@ -28,14 +28,16 @@
 
 @field match {
     case SimpleField(label, values) => {
-        <div class="row">
-            <div class="col-lg-4 label">
-                @for(l <- label) {
-                    @l
-                }
+        @if(values.nonEmpty) {
+            <div class="row">
+                <div class="col-lg-4 label">
+                    @for(l <- label) {
+                        @l
+                    }
+                </div>
+                <div class="col-lg-8">@renderValues(values)</div>
             </div>
-            <div class="col-lg-8">@renderValues(values)</div>
-        </div>
+        }
     }
     case GroupField(label, groupFields) => {
         @for(l <- label) {

@@ -127,9 +127,31 @@ class InstructionPDFPageConverterSpec
       envelopeWithMapping,
       validationResult
     )
-    pageData shouldBe PageData(
-      Some("Some Page Title Instruction"),
-      List(SimpleField(Some("sample label - instruction"), List("some text value"))))
+    pageData shouldBe Some(
+      PageData(
+        Some("Some Page Title Instruction"),
+        List(SimpleField(Some("sample label - instruction"), List("some text value")))))
+  }
+
+  it should "return empty when no fields have instruction defined" in new Fixture {
+    val validationResult: ValidationResult = new ValidationResult(
+      Map(
+        textComponent.id -> FieldOk(textComponent, "some text value")
+      ),
+      None
+    )
+
+    val pageData = InstructionPDFPageConverter.convert(
+      mkPage[Visibility](
+        "Some Page Title",
+        instruction = Some(buildInstruction("Some Page Title Instruction")),
+        formComponents = List(textComponent.copy(instruction = None))),
+      sectionNumber0,
+      cache,
+      envelopeWithMapping,
+      validationResult
+    )
+    pageData shouldBe None
   }
 
   "mapFormComponent" should "return PageField for text component, when validation result is OK" in new Fixture {

@@ -40,7 +40,8 @@ object TextFormatter {
     val currentValue = validationResult.getCurrentValue.getOrElse("")
 
     def getValue(formComponent: FormComponent): List[String] = formComponent match {
-      case IsText(text)     => List(componentTextForSummary(currentValue, text.constraint, prefix, suffix))
+      case IsText(text) =>
+        List(componentTextForSummary(currentValue, text.constraint, prefix, suffix)).filter(_.nonEmpty)
       case IsFileUpload()   => List(envelopeWithMapping.userFileName(formComponent))
       case IsChoice(choice) => choice.renderToString(formComponent, validationResult)
       case IsUkSortCode(sortCode) =>
