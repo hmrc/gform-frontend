@@ -628,13 +628,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             renderText(t, formComponent, validationResult, ei)
           case t @ TextArea(_, _, _, _, _) =>
             renderTextArea(t, formComponent, validationResult, ei)
-          case Choice(choice, options, orientation, selections, optionalHelpText) =>
+          case Choice(choice, options, orientation, selections, hints, optionalHelpText) =>
             htmlForChoice(
               formComponent,
               choice,
               options,
               orientation,
               selections,
+              hints,
               optionalHelpText,
               validationResult,
               ei)
@@ -835,6 +836,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     options: NonEmptyList[SmartString],
     orientation: Orientation,
     selections: List[Int],
+    hints: Option[NonEmptyList[SmartString]],
     optionalHelpText: Option[NonEmptyList[SmartString]],
     validationResult: ValidationResult,
     ei: ExtraInfo
@@ -854,6 +856,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         .map(_.zipWith(options)((helpText, option) =>
           (option, if (helpText.isEmpty) None else Some(markDownParser(helpText)))))
         .getOrElse(options.map(option => (option, None)))
+
+    val optionsWithHintAndHelpText: NonEmptyList[(SmartString, Option[Hint], Option[Html])] =
+      hints
+        .map(_.zipWith(optionsWithHelpText) {
+          case (hint, (option, helpText)) =>
+            (option, if (hint.isEmpty) None else toHint(Some(hint)), helpText)
+        })
+        .getOrElse(optionsWithHelpText.map { case (option, helpText) => (option, None, helpText) })
 
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 
@@ -893,15 +903,16 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     choice match {
       case Radio | YesNo =>
-        val items = optionsWithHelpText.zipWithIndex.map {
-          case ((option, maybeHelpText), index) =>
+        val items = optionsWithHintAndHelpText.zipWithIndex.map {
+          case ((option, maybeHint, maybeHelpText), index) =>
             RadioItem(
               id = Some(formComponent.id.value + index),
               value = Some(index.toString),
               content = content.Text(option.value),
               checked = isChecked(index),
               conditionalHtml = helpTextHtml(maybeHelpText),
-              attributes = dataLabelAttribute(option)
+              attributes = dataLabelAttribute(option),
+              hint = maybeHint
             )
         }
 
@@ -918,15 +929,16 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
       case Checkbox =>
-        val items = optionsWithHelpText.zipWithIndex.map {
-          case ((option, maybeHelpText), index) =>
+        val items = optionsWithHintAndHelpText.zipWithIndex.map {
+          case ((option, maybeHint, maybeHelpText), index) =>
             CheckboxItem(
               id = Some(formComponent.id.value + index),
               value = index.toString,
               content = content.Text(option.value),
               checked = isChecked(index),
               conditionalHtml = helpTextHtml(maybeHelpText),
-              attributes = dataLabelAttribute(option)
+              attributes = dataLabelAttribute(option),
+              hint = maybeHint
             )
         }
 
@@ -943,6 +955,17 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         new components.govukCheckboxes(govukErrorMessage, govukFieldset, govukHint, govukLabel)(checkboxes)
     }
   }
+
+  private def toHint(maybeHint: Option[SmartString])(
+    implicit
+    sse: SmartStringEvaluator
+  ): Option[Hint] =
+    maybeHint.map(
+      hint =>
+        Hint(
+          content = content.HtmlContent(markDownParser(hint))
+      )
+    )
 
   private def htmlForRevealingChoice(
     formComponent: FormComponent,
@@ -967,7 +990,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             specialAttributes = Map("data-checkbox" -> (formComponent.id.value + index)) // Used by javascript for dynamic calculations
       )
     val revealingChoicesList
-      : List[(SmartString, Int => Boolean, FormComponentId => Int => Option[NonEmptyList[Html]])] =
+      : List[(SmartString, Option[Hint], Int => Boolean, FormComponentId => Int => Option[NonEmptyList[Html]])] =
       options.map { o =>
         val isSelected: Int => Boolean =
           index =>
@@ -995,7 +1018,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               case Nil     => None
         }
 
-        (o.choice, isSelected, maybeRevealingFieldsHtml)
+        (o.choice, toHint(o.hint), isSelected, maybeRevealingFieldsHtml)
       }
 
     val hint = formComponent.helpText.map { ls =>
@@ -1028,14 +1051,15 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     if (multiValue) {
       val items = revealingChoicesList.zipWithIndex.map {
-        case ((option, isChecked, maybeRevealingFieldsHtml), index) =>
+        case ((option, maybeHint, isChecked, maybeRevealingFieldsHtml), index) =>
           CheckboxItem(
             id = Some(formComponent.id.value + index),
             value = index.toString,
             content = content.Text(option.value),
             checked = isChecked(index),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
-            attributes = dataLabelAttribute(option)
+            attributes = dataLabelAttribute(option),
+            hint = maybeHint
           )
       }
 
@@ -1052,14 +1076,15 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     } else {
 
       val items = revealingChoicesList.zipWithIndex.map {
-        case ((option, isChecked, maybeRevealingFieldsHtml), index) =>
+        case ((option, maybeHint, isChecked, maybeRevealingFieldsHtml), index) =>
           RadioItem(
             id = Some(formComponent.id.value + index),
             value = Some(index.toString),
             content = content.Text(option.value),
             checked = isChecked(index),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
-            attributes = dataLabelAttribute(option)
+            attributes = dataLabelAttribute(option),
+            hint = maybeHint
           )
       }
 

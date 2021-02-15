@@ -30,7 +30,7 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
 
     def fromRcElements(revealingChoiceElements: List[RevealingChoiceElement]): List[ExprMetadata] =
       revealingChoiceElements.toList.flatMap {
-        case RevealingChoiceElement(choice, _, _) =>
+        case RevealingChoiceElement(choice, _, _, _) =>
           // We don't need to do anything about revealingFields, since they are expanded, see FormModelExpander[DependencyGraphVerification]
           toPlainExprs(choice.interpolations)
       }
@@ -67,8 +67,11 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       case IsText(Text(Lookup(_, sc), _, _, _, _, _))     => fcLookupExpr(sc)
       case IsGroup(group)                                 => fromGroup(group)
       case IsRevealingChoice(RevealingChoice(options, _)) => fromRcElements(options)
-      case IsChoice(Choice(_, options, _, _, optionHelpText)) =>
-        toPlainExprs(fromNel(options), optionHelpText.fold(List.empty[Expr])(fromNel))
+      case IsChoice(Choice(_, options, _, _, hints, optionHelpText)) =>
+        toPlainExprs(
+          fromNel(options),
+          hints.fold(List.empty[Expr])(fromNel),
+          optionHelpText.fold(List.empty[Expr])(fromNel))
       case IsInformationMessage(InformationMessage(_, infoText)) =>
         toPlainExprs(infoText.interpolations)
       case HasExpr(expr) => toPlainExprs(expr :: Nil)

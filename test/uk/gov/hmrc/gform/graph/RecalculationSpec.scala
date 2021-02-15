@@ -334,7 +334,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
   it should "not recalculate sections which are invisible based on choice component" in {
 
     val choice =
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None)
+      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None)
 
     val formComponentIds = Table(
       ("input", "output", "expectedExprMap"),
@@ -405,7 +405,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
   it should "handle Else expression (in SmartString label) depending on IncludeIf page" in {
 
     val choice =
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None)
+      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None)
 
     val formComponentIds = Table(
       ("input", "output", "expectedExprMap"),
@@ -503,10 +503,12 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
               RevealingChoiceElement(
                 toSmartString("Yes"),
                 mkFormComponent("d", Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))), sterling) :: Nil,
+                None,
                 false),
               RevealingChoiceElement(
                 toSmartString("No"),
                 mkFormComponent("e", Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))), sterling) :: Nil,
+                None,
                 false)
             ),
             true
@@ -554,8 +556,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
           "rc",
           RevealingChoice(
             List(
-              RevealingChoiceElement(toSmartString("Yes"), mkFormComponent("a", Value, sterling) :: Nil, false),
-              RevealingChoiceElement(toSmartString("No"), mkFormComponent("b", Value, sterling) :: Nil, false)
+              RevealingChoiceElement(toSmartString("Yes"), mkFormComponent("a", Value, sterling) :: Nil, None, false),
+              RevealingChoiceElement(toSmartString("No"), mkFormComponent("b", Value, sterling) :: Nil, None, false)
             ),
             true
           )
@@ -681,7 +683,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
     )
 
     val choice =
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None)
+      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None)
 
     val includeIf1 = IncludeIf(Contains(ctx("a"), Constant("0")))
     val includeIf2 = IncludeIf(Contains(ctx("b"), Constant("0")))
@@ -792,7 +794,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
     )
 
     val choice =
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None)
+      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None)
 
     val includeIf1 = IncludeIf(Contains(ctx("a"), Constant("1")))
     val includeIf2 = IncludeIf(Contains(ctx("b"), Constant("1")))

@@ -183,6 +183,6 @@ object FormTemplateBuilder {
   def addToListQuestion(addAnotherQuestionName: String): FormComponent =
     mkFormComponent(
       addAnotherQuestionName,
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None))
+      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None))
 
 }

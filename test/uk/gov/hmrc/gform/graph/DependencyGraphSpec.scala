@@ -61,7 +61,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     None
   )
 
-  private val emptyChoice = Choice(Checkbox, NonEmptyList.one(toSmartString("")), Vertical, List.empty, None)
+  private val emptyChoice = Choice(Checkbox, NonEmptyList.one(toSmartString("")), Vertical, List.empty, None, None)
 
   private val emptyInformationMessage = InformationMessage(StandardInfo, toSmartString(""))
 
@@ -154,8 +154,8 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     val revealingChoice =
       RevealingChoice(
         List(
-          RevealingChoiceElement(toSmartString("Yes"), fcA :: Nil, false),
-          RevealingChoiceElement(toSmartString("No"), fcB :: Nil, false)
+          RevealingChoiceElement(toSmartString("Yes"), fcA :: Nil, None, false),
+          RevealingChoiceElement(toSmartString("No"), fcB :: Nil, None, false)
         ),
         true
       )
@@ -378,7 +378,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     val revealingChoice =
       RevealingChoice(
         List(
-          RevealingChoiceElement(choice, fcA :: fcB :: Nil, false)
+          RevealingChoiceElement(choice, fcA :: fcB :: Nil, None, false)
         ),
         true
       )
@@ -406,7 +406,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
         val revealingChoice =
           RevealingChoice(
             List(
-              RevealingChoiceElement(toSmartString(""), fcA :: Nil, false)
+              RevealingChoiceElement(toSmartString(""), fcA :: Nil, None, false)
             ),
             true
           )
@@ -431,7 +431,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
         val revealingChoice =
           RevealingChoice(
             List(
-              RevealingChoiceElement(toSmartString(""), fcA :: fcB :: Nil, false)
+              RevealingChoiceElement(toSmartString(""), fcA :: fcB :: Nil, None, false)
             ),
             true
           )

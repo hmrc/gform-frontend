@@ -419,3 +419,7 @@ div.gform-date-input__item {
 .gform-group {
     margin-bottom: 30px;
 }
+
+.govuk-hint > p {
+    margin: 0px;
+}
