@@ -48,12 +48,6 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
         *:after {
           box-sizing: border-box;
         }
-        hr {
-          margin-top: 1rem;
-          margin-bottom: 1rem;
-          border: 0;
-          border-top: 1px solid grey;
-        }
         .container-fluid {
           padding-right: 15px;
           padding-left: 15px;
@@ -119,7 +113,6 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
         @summaryData match {
             case pageData: PageData => {
                 @summaryInstructionPdf_page(pageData)
-                <hr/>
             }
             case AddToListData(_, _, pageGroups) => {
                 @for(pageGroup <- pageGroups) {
@@ -130,7 +123,6 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
                     </div>
                     @for(pageData <- pageGroup.pages) {
                         @summaryInstructionPdf_page(pageData)
-                        <hr/>
                     }
                 }
             }
