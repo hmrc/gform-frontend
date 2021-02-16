@@ -43,6 +43,12 @@ trait InstructionsRenderingServiceSpecExpectations {
        |         *:after {
        |          box-sizing: border-box;
        |         }
+       |         hr {
+       |          margin-top: 1rem;
+       |          margin-bottom: 1rem;
+       |          border: 0;
+       |          border-top: 1px solid grey;
+       |         }
        |         .container-fluid {
        |          padding-right: 15px;
        |          padding-left: 15px;
@@ -138,6 +144,7 @@ trait InstructionsRenderingServiceSpecExpectations {
                           |        <br/>
                           |    </div>
                           |</div>
+                          |<hr/>
                           |<div class="row">
                           |    <div class="col-lg-12 heading-1">
                           |        page1Instruction
@@ -161,6 +168,7 @@ trait InstructionsRenderingServiceSpecExpectations {
                           |        <br/>
                           |    </div>
                           |</div>
+                          |<hr/>
                           |""".stripMargin))
 
   def nonRepeatingSectionsWithGroupHtml() =
@@ -204,6 +212,7 @@ trait InstructionsRenderingServiceSpecExpectations {
                          |    </div>
                          |    <div class="col-lg-8">page1Field1GroupElement1Value2<br/></div>
                          |</div>
+                         |<hr/>
                          |""".stripMargin))
 
   def repeatingSectionHtml() =
@@ -219,6 +228,7 @@ trait InstructionsRenderingServiceSpecExpectations {
                          |    </div>
                          |    <div class="col-lg-8">page1Field1Value1<br/></div>
                          |</div>
+                         |<hr/>
                          |<div class="row">
                          |    <div class="col-lg-12 heading-1">
                          |        page1Instruction
@@ -230,6 +240,7 @@ trait InstructionsRenderingServiceSpecExpectations {
                          |    </div>
                          |    <div class="col-lg-8">page1Field1Value2<br/></div>
                          |</div>
+                         |<hr/>
                          |""".stripMargin))
 
   def addToListSectionHtml() =
@@ -252,6 +263,7 @@ trait InstructionsRenderingServiceSpecExpectations {
           |    </div>
           |    <div class="col-lg-8">page2Field-value1<br/></div>
           |</div>
+          |<hr/>
           |<div class="row">
           |    <div class="col-lg-12 heading-1">
           |        page1Instruction
@@ -263,6 +275,7 @@ trait InstructionsRenderingServiceSpecExpectations {
           |    </div>
           |    <div class="col-lg-8">page1Field-value1<br/></div>
           |</div>
+          |<hr/>
           |<div class="row">
           |    <div class="col-lg-12 heading-1">
           |        addToListShortName
@@ -279,6 +292,7 @@ trait InstructionsRenderingServiceSpecExpectations {
           |    </div>
           |    <div class="col-lg-8">page2Field-value2<br/></div>
           |</div>
+          |<hr/>
           |<div class="row">
           |    <div class="col-lg-12 heading-1">
           |        page1Instruction
@@ -290,6 +304,7 @@ trait InstructionsRenderingServiceSpecExpectations {
           |    </div>
           |    <div class="col-lg-8">page1Field-value2<br/></div>
           |</div>
+          |<hr/>
           |""".stripMargin
       ))
 
@@ -327,6 +342,7 @@ trait InstructionsRenderingServiceSpecExpectations {
                          |    </div>
                          |    <div class="col-lg-8">value2<br/></div>
                          |</div>
+                         |<hr/>
                          |""".stripMargin))
 
   def trimLines(input: String): String =
