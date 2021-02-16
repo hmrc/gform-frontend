@@ -99,11 +99,6 @@ trait InstructionsRenderingServiceSpecExpectations {
        |	<body>
        |		<div class="container-fluid">
        |			<div class="row">
-       |				<div class="col-lg-12">
-       |            HM Revenue &amp; Customs
-       |        </div>
-       |			</div>
-       |			<div class="row">
        |				<div class="col-lg-12 heading-1">
        |					<p>some-pdf-header</p>
        |				</div>
