@@ -56,6 +56,7 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks {
     None,
     None,
     None,
+    None,
     mandatory = true,
     editable = true,
     submissible = true,

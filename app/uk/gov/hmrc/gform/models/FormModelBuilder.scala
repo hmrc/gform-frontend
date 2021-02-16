@@ -58,7 +58,7 @@ object FormModelBuilder {
       componentIdToFileId
     )
 
-  private def evalIncludeIf[T <: PageMode](
+  def evalIncludeIf[T <: PageMode](
     includeIf: IncludeIf,
     recalculationResult: RecalculationResult,
     recData: RecData[SourceOrigin.Current],
@@ -219,6 +219,7 @@ class FormModelBuilder[E, F[_]: Functor](
   ): FormModel[Visibility] = {
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
     formModel
+      .stripHiddenFormComponents(formModelVisibilityOptics, phase)
       .filter { pageModel =>
         pageModel.getIncludeIf.fold(true) { includeIf =>
           FormModelBuilder.evalIncludeIf(
@@ -243,7 +244,7 @@ class FormModelBuilder[E, F[_]: Functor](
 
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],
-    phase: Option[FormPhase] = None
+    phase: Option[FormPhase]
   ): F[FormModelVisibilityOptics[D]] = {
     val formModel: FormModel[Interim] = expand(data)
 
@@ -259,7 +260,7 @@ class FormModelBuilder[E, F[_]: Functor](
     }
   }
 
-  def buildFormModelVisibilityOptics[U <: SectionSelectorType: SectionSelector, D <: DataOrigin](
+  private def buildFormModelVisibilityOptics[U <: SectionSelectorType: SectionSelector, D <: DataOrigin](
     data: VariadicFormData[OutOfDate],
     formModel: FormModel[Interim],
     recalculationResult: RecalculationResult,

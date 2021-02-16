@@ -35,14 +35,11 @@ import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
-import uk.gov.hmrc.gform.models.{ Bracket, PageModel }
-import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
-import uk.gov.hmrc.gform.models.{ Atom, DataExpanded }
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ DateExpr, FastForward, FormModel, Repeater, SectionRenderingInformation, Singleton }
-import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
+import uk.gov.hmrc.gform.models.{ Atom, Bracket, DataExpanded, DateExpr, FastForward, FormModel, PageModel, Repeater, SectionRenderingInformation, Singleton }
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -281,7 +278,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val originSection = Origin(DataOrigin.unSwapDataOrigin(formModelOptics)).minSectionNumber
     val renderUnits: List[RenderUnit] = page.renderUnits
     val snippetsForFields = renderUnits
-      .map(renderUnit => htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations))
+      .map(renderUnit => htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, formModelOptics))
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -428,7 +425,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val listResult = validationResult.formFieldValidationResults(singleton)
     val snippets = declarationPage.renderUnits.map(renderUnit =>
-      htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked))
+      htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked, formModelOptics))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
@@ -520,7 +517,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val formCategory = formTemplate.formCategory
     val snippets = destinationList.acknowledgementSection.toPage.renderUnits.map(renderUnit =>
-      htmlFor(renderUnit, formTemplate._id, ei, ValidationResult.empty, obligations = NotChecked))
+      htmlFor(renderUnit, formTemplate._id, ei, ValidationResult.empty, obligations = NotChecked, formModelOptics))
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -574,7 +571,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val listResult = validationResult.formFieldValidationResults(singleton)
     val snippets =
       page.renderUnits.map { renderUnit =>
-        htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked)
+        htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked, formModelOptics)
       }
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, globalErrors)
     val renderingInfo = SectionRenderingInformation(
@@ -602,7 +599,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formTemplateId: FormTemplateId,
     ei: ExtraInfo,
     validationResult: ValidationResult,
-    obligations: Obligations
+    obligations: Obligations,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(
     implicit
     request: RequestHeader,
@@ -612,48 +610,58 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   ): Html =
     renderUnit.fold {
       case RenderUnit.Pure(formComponent) =>
-        formComponent.`type` match {
-          case UkSortCode(_) =>
-            htmlForSortCode(formComponent, validationResult, ei)
-          case Group(_, _, _, _, _) =>
-            throw new IllegalArgumentException(s"Group '${formComponent.id}' cannot be rendered as RenderUnit.Pure")
-          case Date(_, offset, dateValue) =>
-            htmlForDate(formComponent, offset, dateValue, validationResult, ei)
-          case t @ Time(_, _) =>
-            renderTime(t, formComponent, validationResult, ei)
-          case Address(international) => htmlForAddress(formComponent, international, validationResult, ei)
-          case Text(Lookup(register, _), _, _, _, _, _) =>
-            renderLookup(formComponent, register, validationResult, ei)
-          case t @ Text(_, _, _, _, _, _) =>
-            renderText(t, formComponent, validationResult, ei)
-          case t @ TextArea(_, _, _, _, _) =>
-            renderTextArea(t, formComponent, validationResult, ei)
-          case Choice(choice, options, orientation, selections, hints, optionalHelpText) =>
-            htmlForChoice(
-              formComponent,
-              choice,
-              options,
-              orientation,
-              selections,
-              hints,
-              optionalHelpText,
-              validationResult,
-              ei)
-          case RevealingChoice(options, multiValue) =>
-            htmlForRevealingChoice(
-              formComponent,
-              multiValue,
-              formTemplateId,
-              options,
-              validationResult,
-              ei,
-              obligations)
-          case FileUpload() =>
-            htmlForFileUpload(formComponent, formTemplateId, ei, ei.retrievals, validationResult)
-          case InformationMessage(infoType, infoText) =>
-            htmlForInformationMessage(formComponent, infoType, infoText, ei)
-          case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>
-            htmlForHmrcTaxPeriod(formComponent, ei, validationResult, obligations, htp)
+        val isVisible = formComponent.includeIf.fold(true) { includeIf =>
+          formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+        }
+
+        if (!isVisible) {
+          val formField = formModelOptics.formModelRenderPageOptics.toFormField(formComponent.modelComponentId)
+          html.form.snippets.hidden_field(formField)
+        } else {
+
+          formComponent.`type` match {
+            case UkSortCode(_) =>
+              htmlForSortCode(formComponent, validationResult, ei)
+            case Group(_, _, _, _, _) =>
+              throw new IllegalArgumentException(s"Group '${formComponent.id}' cannot be rendered as RenderUnit.Pure")
+            case Date(_, offset, dateValue) =>
+              htmlForDate(formComponent, offset, dateValue, validationResult, ei)
+            case t @ Time(_, _) =>
+              renderTime(t, formComponent, validationResult, ei)
+            case Address(international) => htmlForAddress(formComponent, international, validationResult, ei)
+            case Text(Lookup(register, _), _, _, _, _, _) =>
+              renderLookup(formComponent, register, validationResult, ei)
+            case t @ Text(_, _, _, _, _, _) =>
+              renderText(t, formComponent, validationResult, ei)
+            case t @ TextArea(_, _, _, _, _) =>
+              renderTextArea(t, formComponent, validationResult, ei)
+            case Choice(choice, options, orientation, selections, hints, optionalHelpText) =>
+              htmlForChoice(
+                formComponent,
+                choice,
+                options,
+                orientation,
+                selections,
+                hints,
+                optionalHelpText,
+                validationResult,
+                ei)
+            case RevealingChoice(options, multiValue) =>
+              htmlForRevealingChoice(
+                formComponent,
+                multiValue,
+                formTemplateId,
+                options,
+                validationResult,
+                ei,
+                obligations)
+            case FileUpload() =>
+              htmlForFileUpload(formComponent, formTemplateId, ei, ei.retrievals, validationResult)
+            case InformationMessage(infoType, infoText) =>
+              htmlForInformationMessage(formComponent, infoType, infoText, ei)
+            case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>
+              htmlForHmrcTaxPeriod(formComponent, ei, validationResult, obligations, htp)
+          }
         }
     } {
       case r @ RenderUnit.Group(_, _) =>
@@ -1009,7 +1017,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
                     formTemplateId,
                     nestedEi(controlledBy)(index),
                     validationResult,
-                    obligations = obligations))
+                    obligations = obligations,
+                    extraInfo.formModelOptics
+                ))
 
         val maybeRevealingFieldsHtml: FormComponentId => Int => Option[NonEmptyList[Html]] = controlledBy =>
           index =>
@@ -1696,8 +1706,15 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
       val isLast = !ei.formModelOptics.pageOpticsData.contains(formComponent.modelComponentId.increment)
 
-      val lhtml = group.fields.map(formComponent =>
-        htmlFor(RenderUnit.pure(formComponent), formTemplateId, ei, validationResult, obligations = obligations))
+      val lhtml = group.fields.map(
+        formComponent =>
+          htmlFor(
+            RenderUnit.pure(formComponent),
+            formTemplateId,
+            ei,
+            validationResult,
+            obligations = obligations,
+            ei.formModelOptics))
 
       val removeButton: Option[ModelComponentId] =
         if (group.repeatsMax.getOrElse(0) === group.repeatsMin.getOrElse(0) ||
@@ -1724,8 +1741,15 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     } else {
       val htmls =
-        group.fields.map(formComponent =>
-          htmlFor(RenderUnit.pure(formComponent), formTemplateId, ei, validationResult, obligations = obligations))
+        group.fields.map(
+          formComponent =>
+            htmlFor(
+              RenderUnit.pure(formComponent),
+              formTemplateId,
+              ei,
+              validationResult,
+              obligations = obligations,
+              ei.formModelOptics))
       htmls
     }
 

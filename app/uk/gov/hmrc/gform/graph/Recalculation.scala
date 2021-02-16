@@ -166,7 +166,32 @@ class Recalculation[F[_]: Monad, E](
       recData: RecData[SourceOrigin.OutOfDate],
       evaluationContext: EvaluationContext
     ): StateT[F, RecalculationState, Boolean] =
-      pageLookup.get(fcId).flatMap(_.getIncludeIf).fold(noStateChange(false)) { includeIf =>
+      evaluateIncludeIf(evaluationResults, recData, evaluationContext) {
+        pageLookup
+          .get(fcId)
+          .flatMap(_.getIncludeIf)
+      }
+
+    def isHiddenByComponentIncludeIf(
+      fcId: FormComponentId,
+      evaluationResults: EvaluationResults,
+      recData: RecData[SourceOrigin.OutOfDate],
+      evaluationContext: EvaluationContext
+    ): StateT[F, RecalculationState, Boolean] =
+      evaluateIncludeIf(evaluationResults, recData, evaluationContext) {
+        formModel.fcLookup
+          .get(fcId)
+          .flatMap(_.includeIf)
+      }
+
+    def evaluateIncludeIf(
+      evaluationResults: EvaluationResults,
+      recData: RecData[SourceOrigin.OutOfDate],
+      evaluationContext: EvaluationContext
+    )(
+      includeIf: Option[IncludeIf]
+    ): StateT[F, RecalculationState, Boolean] =
+      includeIf.fold(noStateChange(false)) { includeIf =>
         for {
           b <- evalIncludeIf(includeIf.booleanExpr, evaluationResults, recData, evaluationContext)
         } yield {
@@ -206,10 +231,11 @@ class Recalculation[F[_]: Monad, E](
 
           case GraphNode.Simple(fcId) =>
             for {
-              isHiddenIncludeIf       <- isHiddenByIncludeIf(fcId, evResult, recData, evaluationContext)
-              isHiddenRevealingChoice <- isHiddenByRevealingChoice(fcId, recData)
+              isHiddenIncludeIf          <- isHiddenByIncludeIf(fcId, evResult, recData, evaluationContext)
+              isHiddenComponentIncludeIf <- isHiddenByComponentIncludeIf(fcId, evResult, recData, evaluationContext)
+              isHiddenRevealingChoice    <- isHiddenByRevealingChoice(fcId, recData)
             } yield {
-              if (isHiddenIncludeIf || isHiddenRevealingChoice) {
+              if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf) {
                 evResult + (FormCtx(fcId), ExpressionResult.Hidden)
               } else {
                 evResult

@@ -174,6 +174,7 @@ class FormComponentSpec extends Spec {
       None,
       Some(toSmartString(shortName)),
       None,
+      None,
       true,
       false,
       true,

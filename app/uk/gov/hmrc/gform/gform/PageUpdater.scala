@@ -24,7 +24,7 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
 
   private def expandBooleanExpr(booleanExpr: BooleanExpr): BooleanExpr = BooleanExprUpdater(booleanExpr, index, baseIds)
 
-  private def expandIncludeId(includeIf: IncludeIf) = IncludeIf(expandBooleanExpr(includeIf.booleanExpr))
+  private def expandIncludeIf(includeIf: IncludeIf) = IncludeIf(expandBooleanExpr(includeIf.booleanExpr))
 
   private def expandValidator(validator: Validator) = ValidatorUpdater(validator, index, baseIds)
 
@@ -36,7 +36,7 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
       description = page.description.map(expandSmartString),
       shortName = page.shortName.map(expandSmartString),
       progressIndicator = page.progressIndicator.map(expandSmartString),
-      includeIf = page.includeIf.map(expandIncludeId),
+      includeIf = page.includeIf.map(expandIncludeIf),
       fields = page.fields.map { field =>
         new FormComponentUpdater(field, index, baseIds).updatedWithId
       },

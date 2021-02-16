@@ -47,6 +47,7 @@ trait FormComponentGen {
       helpText          <- Gen.option(helpTextGen)
       shortName         <- Gen.option(shortNameGen)
       validIf           <- Gen.option(ValidIfGen.validIfGen)
+      includeIf         <- Gen.option(IncludeIfGen.includeIfGen)
       mandatory         <- PrimitiveGen.booleanGen
       editable          <- PrimitiveGen.booleanGen
       submissable       <- PrimitiveGen.booleanGen
@@ -62,6 +63,7 @@ trait FormComponentGen {
         label,
         helpText,
         shortName,
+        includeIf,
         validIf,
         mandatory,
         editable,

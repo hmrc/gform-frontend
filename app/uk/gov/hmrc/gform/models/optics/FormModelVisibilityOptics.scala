@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform.models.optics
 
 import uk.gov.hmrc.gform.eval.{ EvaluationResults, ExpressionResultWithTypeInfo, TypeInfo }
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
-import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
+import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormPhase, IncludeIf }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
@@ -61,6 +61,9 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
         .applyTypeInfo(typeInfo),
       typeInfo
     )
+
+  def evalIncludeIfExpr(includeIf: IncludeIf, phase: Option[FormPhase]): Boolean =
+    FormModelBuilder.evalIncludeIf(includeIf, recalculationResult, recData, formModel, phase)
 
   object data {
     def all: List[(ModelComponentId, VariadicValue)] =

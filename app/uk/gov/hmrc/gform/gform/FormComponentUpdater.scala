@@ -47,18 +47,20 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
     optionHelpText = choice.optionHelpText.map(_.map(expandSmartString))
   )
 
-  private def expandValidId(validIf: ValidIf) = ValidIf(expandBooleanExpr(validIf.booleanExpr))
+  private def expandIncludeIf(includeIf: IncludeIf) = IncludeIf(expandBooleanExpr(includeIf.booleanExpr))
+  private def expandValidIf(validIf: ValidIf) = ValidIf(expandBooleanExpr(validIf.booleanExpr))
 
   private def expandFormComponentValidator(formComponentValidator: FormComponentValidator) =
     formComponentValidator.copy(
-      validIf = expandValidId(formComponentValidator.validIf),
+      validIf = expandValidIf(formComponentValidator.validIf),
       errorMessage = expandSmartString(formComponentValidator.errorMessage)
     )
 
   private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds)
 
   private val updated = formComponent.copy(
-    validIf = formComponent.validIf.map(expandValidId),
+    includeIf = formComponent.includeIf.map(expandIncludeIf),
+    validIf = formComponent.validIf.map(expandValidIf),
     `type` = formComponent.`type` match {
       case t: Text               => t.copy(value = expandExpr(t.value))
       case t: TextArea           => t.copy(value = expandExpr(t.value))

@@ -106,6 +106,10 @@ object DependencyGraph {
         validIfs.flatMap(validIf =>
           boolenExprDeps(validIf.booleanExpr, fc :: Nil, _ === GraphNode.Expr(FormCtx(fc.id))))
     }
+    val componentIncludeIfs: List[DiEdge[GraphNode]] = formModel.allComponentIncludeIfs.flatMap {
+      case (includeIf, fc) =>
+        boolenExprDeps(includeIf.booleanExpr, fc :: Nil, _ => false)
+    }
 
     val includeIfs: List[DiEdge[GraphNode]] = formModel.allIncludeIfsWithDependingFormComponents.flatMap {
       case (includeIf, dependingFCs) =>
@@ -125,7 +129,7 @@ object DependencyGraph {
 
     formModel.allFormComponents
       .flatMap(edges)
-      .foldLeft(emptyGraph)(_ + _) ++ includeIfs ++ validIfs ++ sections
+      .foldLeft(emptyGraph)(_ + _) ++ includeIfs ++ componentIncludeIfs ++ validIfs ++ sections
   }
 
   def constructDependencyGraph(

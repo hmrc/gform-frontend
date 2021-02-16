@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.graph
 
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.models.Basic
+import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
+import uk.gov.hmrc.gform.models.{ Basic, Bracket, BracketsWithSectionNumber, FormModel, PageMode, Visibility }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.sharedmodel.AvailableLanguages
@@ -100,6 +101,7 @@ object FormTemplateBuilder {
       None,
       None,
       None,
+      None,
       true,
       false,
       true,
@@ -118,6 +120,7 @@ object FormTemplateBuilder {
       ls,
       None,
       None,
+      None,
       Some(validIf),
       true,
       false,
@@ -133,6 +136,7 @@ object FormTemplateBuilder {
       FormComponentId(fcId),
       ct,
       ls,
+      None,
       None,
       None,
       None,
@@ -184,5 +188,45 @@ object FormTemplateBuilder {
     mkFormComponent(
       addAnotherQuestionName,
       Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None))
+
+  def mkPage(formComponents: List[FormComponent]): Page[Visibility] = Page[Visibility](
+    toSmartString("Section Name"),
+    None,
+    None,
+    None,
+    None,
+    None,
+    formComponents,
+    None,
+    None,
+    None,
+    None
+  )
+
+  def mkPageIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf): Page[Visibility] =
+    Page[Visibility](
+      toSmartString("Section Name"),
+      None,
+      None,
+      None,
+      Some(includeIf),
+      None,
+      formComponents,
+      None,
+      None,
+      None,
+      None
+    )
+
+  def fromPagesWithIndex[A <: PageMode](
+    brackets: NonEmptyList[Bracket[A]],
+    staticTypeInfo: StaticTypeInfo): FormModel[A] =
+    FormModel(
+      BracketsWithSectionNumber(brackets),
+      staticTypeInfo,
+      RevealingChoiceInfo.empty,
+      SumInfo.empty,
+      StandaloneSumInfo.empty
+    )
 
 }
