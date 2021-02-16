@@ -111,51 +111,46 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
             HM Revenue &amp; Customs
         </div>
     </div>
-    <div class="row">
-        <div class="col-lg-12">
-            <h2>@{formTemplate.formName.value}</h2>
-        </div>
-    </div>
-        @for(instructionPdf <- maybeInstructionPdf) {
-            @for(header <- instructionPdf.header) {
-                <div class="row">
-                    <div class="col-lg-12 heading-1">
-                        @{markDownParser(header)}
-                    </div>
+    @for(instructionPdf <- maybeInstructionPdf) {
+        @for(header <- instructionPdf.header) {
+            <div class="row">
+                <div class="col-lg-12 heading-1">
+                    @{markDownParser(header)}
                 </div>
-            }
+            </div>
         }
-        @for(summaryData <- summaryDatas) {
-            @summaryData match {
-                case pageData: PageData => {
-                    @summaryInstructionPdf_page(pageData)
-                    <hr/>
-                }
-                case AddToListData(_, _, pageGroups) => {
-                    @for(pageGroup <- pageGroups) {
-                        <div class="row">
-                            <div class="col-lg-12 heading-1">
-                                @{pageGroup.title}
-                            </div>
+    }
+    @for(summaryData <- summaryDatas) {
+        @summaryData match {
+            case pageData: PageData => {
+                @summaryInstructionPdf_page(pageData)
+                <hr/>
+            }
+            case AddToListData(_, _, pageGroups) => {
+                @for(pageGroup <- pageGroups) {
+                    <div class="row">
+                        <div class="col-lg-12 heading-1">
+                            @{pageGroup.title}
                         </div>
-                        @for(pageData <- pageGroup.pages) {
-                            @summaryInstructionPdf_page(pageData)
-                            <hr/>
-                        }
+                    </div>
+                    @for(pageData <- pageGroup.pages) {
+                        @summaryInstructionPdf_page(pageData)
+                        <hr/>
                     }
                 }
             }
         }
+    }
 
-        @for(instructionPdf <- maybeInstructionPdf) {
-            @for(footer <- instructionPdf.footer) {
-                <div class="row">
-                    <div class="col-lg-12 heading-1">
-                        @{markDownParser(footer)}
-                    </div>
+    @for(instructionPdf <- maybeInstructionPdf) {
+        @for(footer <- instructionPdf.footer) {
+            <div class="row">
+                <div class="col-lg-12 heading-1">
+                    @{markDownParser(footer)}
                 </div>
-            }
+            </div>
         }
+    }
 </div>
 </body>
 </html>
