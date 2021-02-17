@@ -281,7 +281,6 @@ class InstructionsRenderingServiceSpec
 
       val pdfHtml =
         instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
-      println(pdfHtml)
       trimLines(pdfHtml.html) shouldBe revealingChoiceSectionHtml
     }
 
@@ -331,7 +330,7 @@ class InstructionsRenderingServiceSpec
       override lazy val formTemplate: FormTemplate = formTemplateWithInstructions(
         List(
           addToListSection(
-            "addToList",
+            "add To List",
             "addToListDesc",
             "addToListShortName",
             "addToListSummaryName",

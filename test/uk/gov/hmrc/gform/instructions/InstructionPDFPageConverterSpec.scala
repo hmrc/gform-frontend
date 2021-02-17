@@ -130,7 +130,8 @@ class InstructionPDFPageConverterSpec
     pageData shouldBe Some(
       PageData(
         Some("Some Page Title Instruction"),
-        List(SimpleField(Some("sample label - instruction"), List("some text value")))))
+        List(SimpleField(Some("sample label - instruction"), List("some text value"))),
+        sectionNumber0.value.toString))
   }
 
   it should "return empty when no fields have instruction defined" in new Fixture {

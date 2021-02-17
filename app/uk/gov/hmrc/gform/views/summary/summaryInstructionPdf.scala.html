@@ -97,6 +97,22 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
         .heading-2 { font-size: 20px; font-weight: bold;}
         .heading-3 { font-size: 18px; font-weight: bold;}
     </style>
+    <bookmarks>
+    @for(summaryData <- summaryDatas) {
+        @summaryData match {
+            case p: PageData => {
+                @for(title <- p.title) {
+                    <bookmark name="@{title}" href="#@{p.id}"/>
+                }
+            }
+            case a: AddToListData => {
+                @if(a.title.nonEmpty) {
+                    <bookmark name="@{a.title}" href="#@{a.id}"/>
+                }
+            }
+        }
+    }
+    </bookmarks>
 </head>
 <body>
 <div class="container-fluid">
@@ -112,19 +128,23 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
     @for(summaryData <- summaryDatas) {
         @summaryData match {
             case pageData: PageData => {
-                @summaryInstructionPdf_page(pageData)
+                <div id="@{pageData.id}">
+                    @summaryInstructionPdf_page(pageData)
+                </div>
             }
-            case AddToListData(_, _, pageGroups) => {
-                @for(pageGroup <- pageGroups) {
-                    <div class="row">
-                        <div class="col-lg-12 heading-1">
-                            @{pageGroup.title}
+            case AddToListData(_, _, pageGroups, id) => {
+                <div id="@{id}">
+                    @for(pageGroup <- pageGroups) {
+                        <div class="row">
+                            <div class="col-lg-12 heading-1">
+                                @{pageGroup.title}
+                            </div>
                         </div>
-                    </div>
-                    @for(pageData <- pageGroup.pages) {
-                        @summaryInstructionPdf_page(pageData)
+                        @for(pageData <- pageGroup.pages) {
+                            @summaryInstructionPdf_page(pageData)
+                        }
                     }
-                }
+                </div>
             }
         }
     }
