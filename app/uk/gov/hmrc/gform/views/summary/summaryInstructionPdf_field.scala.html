@@ -52,18 +52,14 @@
         }
     }
     case RevealingChoiceField(label, choiceElements) => {
-        @for(l <- label) {
-            <div class="row">
-                <div class="col-lg-12 heading-2">
-                    @l
-                </div>
-            </div>
-        }
          @for(choiceElement <- choiceElements) {
             <div class="row">
-                <div class="col-lg-12 heading-3">
-                    @{choiceElement.label}
+                <div class="col-lg-4 label">
+                    @for(l <- label) {
+                        @l
+                    }
                 </div>
+                <div class="col-lg-8">@{choiceElement.label}</div>
             </div>
             @for(choiceElementField <- choiceElement.fields) {
                 @summaryInstructionPdf_field(choiceElementField)
