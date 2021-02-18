@@ -161,7 +161,7 @@ case class FormModel[A <: PageMode](
 
   def allIncludeIfsWithDependingFormComponents: List[(IncludeIf, List[FormComponent])] = pages.collect {
     case (pm @ HasIncludeIf(includeIf)) =>
-      (includeIf, pm.fold(_.page.fields)(_ => List.empty))
+      (includeIf, pm.fold(_.page.fields)(_.addAnotherQuestion :: Nil))
   }
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] = pages.flatMap(_.allValidIfs)
