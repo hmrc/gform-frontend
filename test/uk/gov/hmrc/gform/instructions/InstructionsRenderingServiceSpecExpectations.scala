@@ -268,7 +268,7 @@ trait InstructionsRenderingServiceSpecExpectations {
     trimLines(
       htmlBase(
         """
-          |<div id="addToList">
+          |<div id="addToListSummaryName">
           |<div id="addToListShortName0">
           |<div class="row">
           |    <div class="col-lg-12 heading-1">
@@ -331,7 +331,7 @@ trait InstructionsRenderingServiceSpecExpectations {
           |""".stripMargin,
         """
           |<bookmarks>
-          | <bookmark name="add To List" href="#addToList">
+          | <bookmark name="addToListSummaryName" href="#addToListSummaryName">
           |  <bookmark name="addToListShortName" href="#addToListShortName0"/>
           |  <bookmark name="addToListShortName" href="#addToListShortName1"/>
           | </bookmark>

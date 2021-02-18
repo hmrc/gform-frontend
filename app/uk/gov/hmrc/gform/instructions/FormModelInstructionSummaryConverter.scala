@@ -112,7 +112,7 @@ object FormModelInstructionSummaryConverter {
     l: LangADT,
     lise: SmartStringEvaluator): List[AddToListData] = {
     def addToListTitle(addToList: AddToList[Visibility]): String =
-      addToList.source.title.value()
+      addToList.source.summaryName.value()
 
     def addToListSummary(addToList: AddToList[Visibility]): AddToListSummary = {
       val repeaters: NonEmptyList[Repeater[Visibility]] = addToList.repeaters
