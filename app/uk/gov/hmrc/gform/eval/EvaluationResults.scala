@@ -120,10 +120,17 @@ case class EvaluationResults(
         NumberResult.apply)
 
     def addToListCount(formComponentId: FormComponentId) = {
-      val xs: Iterable[(ModelComponentId, VariadicValue)] =
-        recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
-      val zeros: Int = xs.map(_._2).count(_.contains(0.toString))
-      NumberResult(zeros + 1)
+      val firstQuestionFcId = formComponentId.modelComponentId.expandWithPrefix(1).toFormComponentId
+      val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
+      if (isHidden.contains(Hidden)) {
+        NumberResult(0)
+      } else {
+        val xs: Iterable[(ModelComponentId, VariadicValue)] =
+          recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
+        val zeros: Int = xs.map(_._2).count(_.contains(0.toString))
+
+        NumberResult(zeros + 1)
+      }
     }
 
     def loop(expr: Expr): ExpressionResult = expr match {
