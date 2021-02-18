@@ -105,9 +105,13 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
                     <bookmark name="@{title}" href="#@{p.id}"/>
                 }
             }
-            case a: AddToListData => {
-                @if(a.title.nonEmpty) {
-                    <bookmark name="@{a.title}" href="#@{a.id}"/>
+            case AddToListData(title, _, pageGroups, id) => {
+                @if(title.nonEmpty) {
+                    <bookmark name="@{title}" href="#@{id}">
+                        @for(pageGroup <- pageGroups) {
+                            <bookmark name="@{pageGroup.title}" href="#@{pageGroup.id}"/>
+                        }
+                    </bookmark>
                 }
             }
         }
@@ -135,14 +139,16 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
             case AddToListData(_, _, pageGroups, id) => {
                 <div id="@{id}">
                     @for(pageGroup <- pageGroups) {
-                        <div class="row">
-                            <div class="col-lg-12 heading-1">
-                                @{pageGroup.title}
+                        <div id="@{pageGroup.id}">
+                            <div class="row">
+                                <div class="col-lg-12 heading-1">
+                                    @{pageGroup.title}
+                                </div>
                             </div>
+                            @for(pageData <- pageGroup.pages) {
+                                @summaryInstructionPdf_page(pageData)
+                            }
                         </div>
-                        @for(pageData <- pageGroup.pages) {
-                            @summaryInstructionPdf_page(pageData)
-                        }
                     }
                 </div>
             }
