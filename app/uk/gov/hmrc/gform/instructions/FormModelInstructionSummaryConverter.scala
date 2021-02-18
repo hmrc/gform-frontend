@@ -40,11 +40,11 @@ object FormModelInstructionSummaryConverter {
   case class ChoiceElement(label: String, fields: List[PageField])
   case class RevealingChoiceField(label: Option[String], choiceElements: List[ChoiceElement]) extends PageField
 
-  case class PageData(title: Option[String], fields: List[PageField]) extends SummaryData
+  case class PageData(title: Option[String], fields: List[PageField], id: String) extends SummaryData
 
-  case class AddToListPageGroup(title: String, pages: List[PageData])
+  case class AddToListPageGroup(title: String, pages: List[PageData], id: String)
   case class AddToListSummary(title: String, values: List[String])
-  case class AddToListData(title: String, summary: AddToListSummary, pageGroups: List[AddToListPageGroup])
+  case class AddToListData(title: String, summary: AddToListSummary, pageGroups: List[AddToListPageGroup], id: String)
       extends SummaryData
 
   implicit val pageOrdering: Ordering[Page[Visibility]] = (x: Page[Visibility], y: Page[Visibility]) =>
@@ -112,7 +112,7 @@ object FormModelInstructionSummaryConverter {
     l: LangADT,
     lise: SmartStringEvaluator): List[AddToListData] = {
     def addToListTitle(addToList: AddToList[Visibility]): String =
-      addToList.source.summaryName.value()
+      addToList.source.title.value()
 
     def addToListSummary(addToList: AddToList[Visibility]): AddToListSummary = {
       val repeaters: NonEmptyList[Repeater[Visibility]] = addToList.repeaters
@@ -121,24 +121,31 @@ object FormModelInstructionSummaryConverter {
       AddToListSummary(repeaters.last.title.value(), values)
     }
 
-    val addToListPageGroups: List[AddToListPageGroup] = addToList.iterations.toList.flatMap { iteration =>
-      val addToListPages: List[PageData] = iteration.singletons.toList.sorted
-        .flatMap {
-          case SingletonWithNumber(singleton, sectionNumber) =>
-            InstructionPDFPageConverter
-              .convert(singleton.page, sectionNumber, cache, envelopeWithMapping, validationResult)
+    val addToListPageGroups: List[AddToListPageGroup] = addToList.iterations.toList.zipWithIndex.flatMap {
+      case (iteration, index) =>
+        val addToListPages: List[PageData] = iteration.singletons.toList.sorted
+          .flatMap {
+            case SingletonWithNumber(singleton, sectionNumber) =>
+              InstructionPDFPageConverter
+                .convert(singleton.page, sectionNumber, cache, envelopeWithMapping, validationResult)
+          }
+        if (addToListPages.isEmpty)
+          None
+        else {
+          val addToListIterationTitle = iteration.repeater.repeater.expandedShortName.value()
+          Some(AddToListPageGroup(addToListIterationTitle, addToListPages, toId(addToListIterationTitle) + index))
         }
-      if (addToListPages.isEmpty)
-        None
-      else
-        Some(AddToListPageGroup(iteration.repeater.repeater.expandedShortName.value(), addToListPages))
     }
 
-    if (addToListPageGroups.isEmpty)
+    if (addToListPageGroups.isEmpty) {
       List.empty
-    else
-      List(AddToListData(addToListTitle(addToList), addToListSummary(addToList), addToListPageGroups))
+    } else {
+      val title = addToListTitle(addToList)
+      List(AddToListData(title, addToListSummary(addToList), addToListPageGroups, toId(title)))
+    }
   }
 
   private def instructionOrderVal(i: Option[Instruction]): Int = i.flatMap(_.order).getOrElse(Integer.MAX_VALUE)
+
+  private def toId(value: String) = value.replaceAll("\\W", "")
 }

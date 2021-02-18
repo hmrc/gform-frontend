@@ -330,7 +330,7 @@ class InstructionsRenderingServiceSpec
       override lazy val formTemplate: FormTemplate = formTemplateWithInstructions(
         List(
           addToListSection(
-            "addToList",
+            "add To List",
             "addToListDesc",
             "addToListShortName",
             "addToListSummaryName",

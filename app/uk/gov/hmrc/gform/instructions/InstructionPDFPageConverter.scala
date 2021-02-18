@@ -47,7 +47,7 @@ object InstructionPDFPageConverter {
     if (pageFields.isEmpty)
       None
     else
-      Some(PageData(page.instruction.flatMap(_.name).map(_.value()), pageFields))
+      Some(PageData(page.instruction.flatMap(_.name).map(_.value()), pageFields, sectionNumber.value.toString))
   }
 
   def mapFormComponent(

@@ -23,7 +23,7 @@ trait InstructionsRenderingServiceSpecExpectations {
   val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
   val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
 
-  def htmlBase(summaryRows: String) =
+  def htmlBase(summaryRows: String, bookmarks: String = "") =
     s"""
        |<html>
        |	<head>
@@ -89,6 +89,7 @@ trait InstructionsRenderingServiceSpecExpectations {
        |         .heading-2 { font-size: 20px; font-weight: bold;}
        |         .heading-3 { font-size: 18px; font-weight: bold;}
        |      </style>
+       |      $bookmarks
        |	</head>
        |	<body>
        |		<div class="container-fluid">
@@ -109,128 +110,165 @@ trait InstructionsRenderingServiceSpecExpectations {
        |""".stripMargin
 
   def nonRepeatingSectionsHtml() =
-    trimLines(htmlBase(s"""
-                          |<div class="row">
-                          |    <div class="col-lg-12 heading-1">
-                          |        page2Instruction
-                          |    </div>
-                          |</div>
-                          |<div class="row">
-                          |    <div class="col-lg-4 label">
-                          |        page2Field2Instruction
-                          |    </div>
-                          |    <div class="col-lg-8">
-                          |        page2Field2Value
-                          |        <br/>
-                          |    </div>
-                          |</div>
-                          |<div class="row">
-                          |    <div class="col-lg-4 label">
-                          |        page2Field1Instruction
-                          |    </div>
-                          |    <div class="col-lg-8">
-                          |        page2Field1Value
-                          |        <br/>
-                          |    </div>
-                          |</div>
-                          |<div class="row">
-                          |    <div class="col-lg-12 heading-1">
-                          |        page1Instruction
-                          |    </div>
-                          |</div>
-                          |<div class="row">
-                          |    <div class="col-lg-4 label">
-                          |        page1Field1Instruction
-                          |    </div>
-                          |    <div class="col-lg-8">
-                          |        page1Field1Value
-                          |        <br/>
-                          |    </div>
-                          |</div>
-                          |<div class="row">
-                          |    <div class="col-lg-4 label">
-                          |        page1Field2Instruction
-                          |    </div>
-                          |    <div class="col-lg-8">
-                          |        page1Field2Value
-                          |        <br/>
-                          |    </div>
-                          |</div>
-                          |""".stripMargin))
+    trimLines(
+      htmlBase(
+        s"""
+           |<div id="1">
+           |<div class="row">
+           |    <div class="col-lg-12 heading-1">
+           |        page2Instruction
+           |    </div>
+           |</div>
+           |<div class="row">
+           |    <div class="col-lg-4 label">
+           |        page2Field2Instruction
+           |    </div>
+           |    <div class="col-lg-8">
+           |        page2Field2Value
+           |        <br/>
+           |    </div>
+           |</div>
+           |<div class="row">
+           |    <div class="col-lg-4 label">
+           |        page2Field1Instruction
+           |    </div>
+           |    <div class="col-lg-8">
+           |        page2Field1Value
+           |        <br/>
+           |    </div>
+           |</div>
+           |</div>
+           |<div id="0">
+           |<div class="row">
+           |    <div class="col-lg-12 heading-1">
+           |        page1Instruction
+           |    </div>
+           |</div>
+           |<div class="row">
+           |    <div class="col-lg-4 label">
+           |        page1Field1Instruction
+           |    </div>
+           |    <div class="col-lg-8">
+           |        page1Field1Value
+           |        <br/>
+           |    </div>
+           |</div>
+           |<div class="row">
+           |    <div class="col-lg-4 label">
+           |        page1Field2Instruction
+           |    </div>
+           |    <div class="col-lg-8">
+           |        page1Field2Value
+           |        <br/>
+           |    </div>
+           |</div>
+           |</div>
+           |""".stripMargin,
+        """
+          |<bookmarks>
+          |  <bookmark name="page2Instruction" href="#1"/>
+          |  <bookmark name="page1Instruction" href="#0"/>
+          |</bookmarks>
+          |""".stripMargin
+      ))
 
   def nonRepeatingSectionsWithGroupHtml() =
-    trimLines(htmlBase("""
-                         |<div class="row">
-                         |    <div class="col-lg-12 heading-1">
-                         |        page1Instruction
-                         |    </div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-12 heading-2">
-                         |        page1Field1Instruction
-                         |    </div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-4 label">
-                         |        page1Field1GroupElement2Instruction
-                         |    </div>
-                         |    <div class="col-lg-8">page1Field1GroupElement2Value1<br/></div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-4 label">
-                         |        page1Field1GroupElement1Instruction
-                         |    </div>
-                         |    <div class="col-lg-8">page1Field1GroupElement1Value1<br/></div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-12 heading-2">
-                         |        page1Field1Instruction
-                         |    </div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-4 label">
-                         |        page1Field1GroupElement2Instruction
-                         |    </div>
-                         |    <div class="col-lg-8">page1Field1GroupElement2Value2<br/></div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-4 label">
-                         |        page1Field1GroupElement1Instruction
-                         |    </div>
-                         |    <div class="col-lg-8">page1Field1GroupElement1Value2<br/></div>
-                         |</div>
-                         |""".stripMargin))
+    trimLines(
+      htmlBase(
+        """
+          |<div id="0">
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        page1Instruction
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-12 heading-2">
+          |        page1Field1Instruction
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        page1Field1GroupElement2Instruction
+          |    </div>
+          |    <div class="col-lg-8">page1Field1GroupElement2Value1<br/></div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        page1Field1GroupElement1Instruction
+          |    </div>
+          |    <div class="col-lg-8">page1Field1GroupElement1Value1<br/></div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-12 heading-2">
+          |        page1Field1Instruction
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        page1Field1GroupElement2Instruction
+          |    </div>
+          |    <div class="col-lg-8">page1Field1GroupElement2Value2<br/></div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        page1Field1GroupElement1Instruction
+          |    </div>
+          |    <div class="col-lg-8">page1Field1GroupElement1Value2<br/></div>
+          |</div>
+          |</div>
+          |""".stripMargin,
+        """
+          |<bookmarks>
+          |  <bookmark name="page1Instruction" href="#0"/>
+          |</bookmarks>
+          |""".stripMargin
+      ))
 
   def repeatingSectionHtml() =
-    trimLines(htmlBase("""
-                         |<div class="row">
-                         |    <div class="col-lg-12 heading-1">
-                         |        page1Instruction
-                         |    </div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-4 label">
-                         |        page1Field1Instruction
-                         |    </div>
-                         |    <div class="col-lg-8">page1Field1Value1<br/></div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-12 heading-1">
-                         |        page1Instruction
-                         |    </div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-4 label">
-                         |        page1Field1Instruction
-                         |    </div>
-                         |    <div class="col-lg-8">page1Field1Value2<br/></div>
-                         |</div>
-                         |""".stripMargin))
+    trimLines(
+      htmlBase(
+        """
+          |<div id="0">
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        page1Instruction
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        page1Field1Instruction
+          |    </div>
+          |    <div class="col-lg-8">page1Field1Value1<br/></div>
+          |</div>
+          |</div>
+          |<div id="1">
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        page1Instruction
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        page1Field1Instruction
+          |    </div>
+          |    <div class="col-lg-8">page1Field1Value2<br/></div>
+          |</div>
+          |</div>
+          |""".stripMargin,
+        """
+          |<bookmarks>
+          |  <bookmark name="page1Instruction" href="#0"/>
+          |  <bookmark name="page1Instruction" href="#1"/>
+          |</bookmarks>
+          |""".stripMargin
+      ))
 
   def addToListSectionHtml() =
     trimLines(
       htmlBase(
         """
+          |<div id="addToList">
           |<div class="row">
           |    <div class="col-lg-12 heading-1">
           |        addToListShortName
@@ -285,41 +323,57 @@ trait InstructionsRenderingServiceSpecExpectations {
           |    </div>
           |    <div class="col-lg-8">page1Field-value2<br/></div>
           |</div>
+          |</div>
+          |""".stripMargin,
+        """
+          |<bookmarks>
+          |  <bookmark name="add To List" href="#addToList"/>
+          |</bookmarks>
           |""".stripMargin
       ))
 
   def revealingChoiceSectionHtml =
-    trimLines(htmlBase("""
-                         |<div class="row">
-                         |    <div class="col-lg-12 heading-1">
-                         |        revealingChoicePageInstruction
-                         |    </div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-4 label">
-                         |        revealingChoiceFieldInstruction
-                         |    </div>
-                         |    <div class="col-lg-8">choice1</div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-4 label">
-                         |        revealingChoice1FieldInstruction
-                         |    </div>
-                         |    <div class="col-lg-8">value1<br/></div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-4 label">
-                         |        revealingChoiceFieldInstruction
-                         |    </div>
-                         |    <div class="col-lg-8">choice2</div>
-                         |</div>
-                         |<div class="row">
-                         |    <div class="col-lg-4 label">
-                         |        revealingChoice2FieldInstruction
-                         |    </div>
-                         |    <div class="col-lg-8">value2<br/></div>
-                         |</div>
-                         |""".stripMargin))
+    trimLines(
+      htmlBase(
+        """
+          |<div id="0">
+          |<div class="row">
+          |    <div class="col-lg-12 heading-1">
+          |        revealingChoicePageInstruction
+          |    </div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        revealingChoiceFieldInstruction
+          |    </div>
+          |    <div class="col-lg-8">choice1</div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        revealingChoice1FieldInstruction
+          |    </div>
+          |    <div class="col-lg-8">value1<br/></div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        revealingChoiceFieldInstruction
+          |    </div>
+          |    <div class="col-lg-8">choice2</div>
+          |</div>
+          |<div class="row">
+          |    <div class="col-lg-4 label">
+          |        revealingChoice2FieldInstruction
+          |    </div>
+          |    <div class="col-lg-8">value2<br/></div>
+          |</div>
+          |</div>
+          |""".stripMargin,
+        """
+          |<bookmarks>
+          |  <bookmark name="revealingChoicePageInstruction" href="#0"/>
+          |</bookmarks>
+          |""".stripMargin
+      ))
 
   def trimLines(input: String): String =
     input.split("\n").map(_.trim).mkString("")
