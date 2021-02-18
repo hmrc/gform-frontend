@@ -347,6 +347,7 @@ class InstructionsRenderingServiceSpec
 
       val pdfHtml =
         instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
+      println(pdfHtml)
       trimLines(pdfHtml.html) shouldBe addToListSectionHtml
     }
   }
