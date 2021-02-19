@@ -137,8 +137,16 @@ class FormController(
                 val lastRepeaterWithNumber = iterations.last.repeater
                 val lastRepeater = lastRepeaterWithNumber.repeater
                 val lastRepeaterSectionNumber = lastRepeaterWithNumber.sectionNumber
+
+                /**
+                  * When new page is added to AddToList bracket, we need to visits repeater which
+                  * has not been visited before, otherwise inflight users would be stuck in a loop.
+                  */
+                val hasBeenVisited: Boolean = cache.form.visitsIndex.contains(sectionNumber.value)
+
                 if (repeaterSectionNumber === sectionNumber) {
-                  if (sectionNumber === lastRepeaterSectionNumber) {
+
+                  if (sectionNumber === lastRepeaterSectionNumber || !hasBeenVisited) {
                     // display current (which happens to be last) repeater
                     val html = renderer.renderAddToList(
                       repeater,
