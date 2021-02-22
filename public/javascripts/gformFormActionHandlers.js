@@ -54,8 +54,7 @@
           .parent()
           .on('click', 'button.govuk-button', handleFormSubmit(null, true))
           .on('click', '.removeRepeatingSection, #addRepeatingGroup', handleFormSubmit(null, true))
-	  .on("click", "#editAddToList", handleFormSubmit(null, true))
-	  .on('click', '#removeAddToList', handleFormSubmit(null, true))
+	      .on("click", '.edit-add-to-list, .remove-add-to-list', handleFormSubmit(null, true))
           .on('click', '#backButton', handleFormSubmit('Back', true))
           .on('click', '#saveComeBackLater', handleFormSubmit('Save', true))
           .on('click', '#saveComeBackLaterExit', handleFormSubmit('Exit', true));
