@@ -278,7 +278,8 @@ class FormModelBuilder[E, F[_]: Functor](
     }
 
     val visibleTypedExprs: List[(FormComponentId, TypeInfo)] = visibilityFormModel.allFormComponents.collect {
-      case fc @ HasValueExpr(expr) if !fc.editable => (fc.id, visibilityFormModel.explicitTypedExpr(expr, fc.id))
+      case fc @ HasValueExpr(expr) if !fc.editable =>
+        (fc.id, visibilityFormModel.toFirstOperandTypeInfo(expr))
     }
 
     val visibleVariadicData: VariadicFormData[SourceOrigin.Current] =
