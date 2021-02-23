@@ -51,6 +51,9 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] =
     fold(_.page.fields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)
+
+  def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
+    fold(_.page.fields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)
 }
 
 case class Singleton[A <: PageMode](page: Page[A]) extends PageModel[A]
