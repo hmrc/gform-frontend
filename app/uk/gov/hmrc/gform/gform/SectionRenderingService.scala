@@ -180,6 +180,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val items = choice.options.zipWithIndex.map {
       case (option, index) =>
         RadioItem(
+          id = Some(formComponent.id.value + index),
           value = Some(index.toString),
           content = content.Text(option.value),
           checked = isChecked(index),
