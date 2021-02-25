@@ -208,7 +208,8 @@ class FormController(
             def validateAndUpdateData(
               cache: AuthCacheWithForm,
               processData: ProcessData,
-              sectionNumber: SectionNumber
+              sectionNumber: SectionNumber,
+              validationSectionNumber: SectionNumber
             )(
               toResult: Option[SectionNumber] => Result
             ): Future[Result] =
@@ -217,7 +218,7 @@ class FormController(
                 envelopeWithMapping = EnvelopeWithMapping(envelope, cache.form)
                 FormValidationOutcome(_, formData, validatorsResult) <- handler.handleFormValidation(
                                                                          processData.formModelOptics,
-                                                                         sectionNumber,
+                                                                         validationSectionNumber,
                                                                          cache.toCacheData,
                                                                          envelopeWithMapping,
                                                                          validationService.validatePageModel
@@ -253,7 +254,8 @@ class FormController(
                                            formModelOptics,
                                            gformConnector.getAllTaxPeriods,
                                            NoSpecificAction)
-                      result <- validateAndUpdateData(cacheUpd, newProcessData, sectionNumber)(toResult) // recursive call
+                      result <- validateAndUpdateData(cacheUpd, newProcessData, sectionNumber, validationSectionNumber)(
+                                 toResult) // recursive call
                     } yield result
                   } else {
                     fastForwardService
@@ -270,7 +272,7 @@ class FormController(
             def processSaveAndContinue(
               processData: ProcessData
             ): Future[Result] =
-              validateAndUpdateData(cache, processData, sectionNumber) {
+              validateAndUpdateData(cache, processData, sectionNumber, sectionNumber) {
                 case Some(sn) =>
                   val isFirstLanding = sectionNumber < sn
                   val sectionTitle4Ga = getSectionTitle4Ga(processData, sn)
@@ -288,7 +290,7 @@ class FormController(
               }
 
             def processSaveAndExit(processData: ProcessData): Future[Result] =
-              validateAndUpdateData(cache, processData, sectionNumber) { maybeSn =>
+              validateAndUpdateData(cache, processData, sectionNumber, sectionNumber) { maybeSn =>
                 val formTemplate = cache.formTemplate
                 val envelopeExpiryDate = cache.form.envelopeExpiryDate
                 maybeAccessCode match {
@@ -309,7 +311,7 @@ class FormController(
               }
 
             def processBack(processData: ProcessData, sn: SectionNumber): Future[Result] = {
-              def goBack = validateAndUpdateData(cache, processData, sn) { _ =>
+              def goBack = validateAndUpdateData(cache, processData, sn, browserSectionNumber) { _ =>
                 val sectionTitle4Ga = getSectionTitle4Ga(processData, sn)
                 Redirect(
                   routes.FormController
@@ -343,7 +345,7 @@ class FormController(
             }
 
             def handleGroup(cacheUpd: AuthCacheWithForm, processData: ProcessData, anchor: String): Future[Result] =
-              validateAndUpdateData(cacheUpd, processData, sectionNumber) { _ =>
+              validateAndUpdateData(cacheUpd, processData, sectionNumber, sectionNumber) { _ =>
                 val sectionTitle4Ga = getSectionTitle4Ga(processData, sectionNumber)
                 Redirect(
                   routes.FormController
@@ -457,7 +459,7 @@ class FormController(
                   form =
                     cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId))
 
-                validateAndUpdateData(cacheUpd, processDataUpd, sn) { _ =>
+                validateAndUpdateData(cacheUpd, processDataUpd, sn, sn) { _ =>
                   val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sn)
                   Redirect(
                     routes.FormController
