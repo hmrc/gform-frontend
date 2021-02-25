@@ -17,9 +17,8 @@
 package uk.gov.hmrc.gform.eval.smartstring
 
 import java.text.MessageFormat
-
-import org.intellij.markdown.html.entities.EntityConverter
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.commons.MarkDownUtil.escapeMarkdown
 import uk.gov.hmrc.gform.eval.TypeInfo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString }
@@ -46,9 +45,6 @@ trait SmartStringEvaluatorFactory {
 }
 
 class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
-
-  private val markdownControlCharacters =
-    List("""\""", "/", "`", "*", "_", "{", "}", "[", "]", "(", ")", "#", "+", "-", ".", "!")
 
   def apply(
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
@@ -129,13 +125,5 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
           .evalAndApplyTypeInfo(typeInfo)
           .optionRepresentation
           .fold(stringRepresentation(typeInfo))(f(_))
-
-      private def escapeMarkdown(s: String): String = {
-        val replacedEntities = EntityConverter.INSTANCE.replaceEntities(s.replace("\n", ""), true, false)
-        markdownControlCharacters.foldLeft(replacedEntities) {
-          case (escaped, specialChar) =>
-            escaped.replace(specialChar, "\\" + specialChar)
-        }
-      }
     }
 }
