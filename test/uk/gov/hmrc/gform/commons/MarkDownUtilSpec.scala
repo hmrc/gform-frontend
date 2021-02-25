@@ -50,4 +50,72 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
 
     }
   }
+
+  "markDownParser" should "convert markdown text to HTML, handling special characters" in {
+    val data = Table(
+      ("input", "expected"),
+      ("""## Heading (h2) #""", """<h2>Heading (h2)</h2>"""),
+      ("""## \#Heading (h2) #""", """<h2>#Heading (h2)</h2>"""),
+      (
+        """1. Total is 1\.00""",
+        """<ol>
+          | <li>Total is 1.00</li>
+          |</ol>""".stripMargin)
+    )
+    forAll(data) { (input, expected) =>
+      MarkDownUtil.markDownParser(toSmartString(input)) shouldBe Html(expected)
+    }
+  }
+
+  "escapeMarkdown" should "escape markdown special characters with backslash" in {
+    val data = Table(
+      ("input", "expected"),
+      ("""abc\def""", """abc\\def"""),
+      ("abc/def", """abc\/def"""),
+      ("abc`def", """abc\`def"""),
+      ("abc*def", """abc\*def"""),
+      ("abc_def", """abc\_def"""),
+      ("abc{def", """abc\{def"""),
+      ("abc}def", """abc\}def"""),
+      ("abc[def", """abc\[def"""),
+      ("abc]def", """abc\]def"""),
+      ("abc(def", """abc\(def"""),
+      ("abc)def", """abc\)def"""),
+      ("abc#def", """abc\#def"""),
+      ("abc+def", """abc\+def"""),
+      ("abc-def", """abc\-def"""),
+      ("abc.def", """abc\.def"""),
+      ("abc!def", """abc\!def""")
+    )
+
+    forAll(data) { (input, expected) =>
+      MarkDownUtil.escapeMarkdown(input) shouldBe expected
+    }
+  }
+
+  "unescapeMarkdownHtml" should "unescape markdown special characters escaped with backslash from input" in {
+    val data = Table(
+      ("expected", "input"),
+      ("""<div>abc\def</div>""", """<div>abc\\def</div>"""),
+      ("<div>abc/def</div>", """<div>abc\/def</div>"""),
+      ("<div>abc`def</div>", """<div>abc\`def</div>"""),
+      ("<div>abc*def</div>", """<div>abc\*def</div>"""),
+      ("<div>abc_def</div>", """<div>abc\_def</div>"""),
+      ("<div>abc{def</div>", """<div>abc\{def</div>"""),
+      ("<div>abc}def</div>", """<div>abc\}def</div>"""),
+      ("<div>abc[def</div>", """<div>abc\[def</div>"""),
+      ("<div>abc]def</div>", """<div>abc\]def</div>"""),
+      ("<div>abc(def</div>", """<div>abc\(def</div>"""),
+      ("<div>abc)def</div>", """<div>abc\)def</div>"""),
+      ("<div>abc#def</div>", """<div>abc\#def</div>"""),
+      ("<div>abc+def</div>", """<div>abc\+def</div>"""),
+      ("<div>abc-def</div>", """<div>abc\-def</div>"""),
+      ("<div>abc.def</div>", """<div>abc\.def</div>"""),
+      ("<div>abc!def</div>", """<div>abc\!def</div>""")
+    )
+
+    forAll(data) { (expected, input) =>
+      MarkDownUtil.unescapeMarkdownHtml(input) shouldBe expected
+    }
+  }
 }
