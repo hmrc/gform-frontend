@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.commons
 
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
+import org.intellij.markdown.html.entities.EntityConverter
 import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -26,6 +27,9 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString }
 
 object MarkDownUtil {
+
+  private val markdownControlCharacters =
+    List("\\", "/", "`", "*", "_", "{", "}", "[", "]", "(", ")", "#", "+", "-", ".", "!")
 
   private def addTargetToLinks(html: String): String = {
     val doc: Document = Jsoup.parse(html)
@@ -41,12 +45,25 @@ object MarkDownUtil {
   def markDownParser(ls: LocalisedString)(implicit l: LangADT): Html = markDownParser(ls.value)
 
   def markDownParser(ls: SmartString)(implicit sse: SmartStringEvaluator): Html =
-    markDownParser(ls.valueForMarkdown)
+    markDownParser(ls.valueForMarkdown())
 
   private def markDownParser(markDownText: String): Html = {
     val flavour = new GFMFlavourDescriptor
     val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
     val html = new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
-    Html(addTargetToLinks(html))
+    Html(unescapeMarkdownHtml(addTargetToLinks(html)))
   }
+
+  def escapeMarkdown(s: String): String = {
+    val replacedEntities = EntityConverter.INSTANCE.replaceEntities(s.replace("\n", ""), true, false)
+    markdownControlCharacters.foldLeft(replacedEntities) {
+      case (escaped, specialChar) =>
+        escaped.replace(specialChar, "\\" + specialChar)
+    }
+  }
+
+  def unescapeMarkdownHtml(html: String): String =
+    markdownControlCharacters.foldLeft(html) {
+      case (acc, specialChar) => acc.replace("\\" + specialChar, specialChar)
+    }
 }
