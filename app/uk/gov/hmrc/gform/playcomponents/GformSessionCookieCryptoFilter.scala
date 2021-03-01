@@ -80,8 +80,7 @@ class GformSessionCookieCryptoFilter(
       }
     }
 
-  private def decryptSession(rh: RequestHeader): Future[DecryptSessionResult] = {
-    println(s"===== Sandy : decryptSession : rh.attrs : ${rh.addAttr()}")
+  private def decryptSession(rh: RequestHeader): Future[DecryptSessionResult] =
     for {
       formTemplate <- getFormTemplate(rh.path.split("/").apply(3)) flatMap {
                        case ft @ Some(_) => Future.successful(ft)
@@ -106,7 +105,6 @@ class GformSessionCookieCryptoFilter(
 
       DecryptSessionResult(r, scBaker, formTemplate.map(_._id))
     }
-  }
 
   private def findSessionCookie(rh: RequestHeader, authConfig: AuthConfig): Option[Cookie] = {
     val sessionCookieName = authConfig match {
