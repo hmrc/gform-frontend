@@ -20,7 +20,6 @@ import cats.data.NonEmptyList
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.eval.{ AllPageModelExpressions, ExprMetadata, ExprType, RevealingChoiceInfo, StandaloneSumInfo, StaticTypeData, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId, MultiValueId }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 case class FormModel[A <: PageMode](
@@ -73,20 +72,6 @@ case class FormModel[A <: PageMode](
   }
 
   private val pageModelLookup: Map[SectionNumber, PageModel[A]] = pagesWithIndex.toList.map(_.swap).toMap
-
-  def stripHiddenFormComponents[O <: DataOrigin](
-    formModelVisibilityOptics: FormModelVisibilityOptics[O],
-    phase: Option[FormPhase]
-  ): FormModel[A] =
-    map[A] { singleton =>
-      val visibleFields: List[FormComponent] =
-        singleton.page.fields.filter { fc =>
-          fc.includeIf.fold(true) { includeIf =>
-            formModelVisibilityOptics.evalIncludeIfExpr(includeIf, phase)
-          }
-        }
-      singleton.copy(page = singleton.page.copy(fields = visibleFields))
-    }(identity)
 
   def map[B <: PageMode](f: Singleton[A] => Singleton[B])(g: Repeater[A] => Repeater[B]): FormModel[B] = FormModel(
     BracketsWithSectionNumber(brackets.brackets.map(_.map(f, g))),
