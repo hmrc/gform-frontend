@@ -18,4 +18,7 @@ package uk.gov.hmrc.gform.controllers
 
 object CookieNames {
   val formTemplateIdCookieName = "fid"
+  val formTemplateAuthConfigCookieName = "fac"
+  val mdtpFormSessionCookieName = "mdtp"
+  val anonymousFormSessionCookieName = "mdtpanonymous"
 }
