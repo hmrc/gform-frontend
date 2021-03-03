@@ -219,7 +219,7 @@ class FormModelBuilder[E, F[_]: Functor](
   ): FormModel[Visibility] = {
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
 
-    VisibilityFilter(formModelVisibilityOptics, phase)
+    FormComponentVisibilityFilter(formModelVisibilityOptics, phase)
       .stripHiddenFormComponents(formModel)
       .filter { pageModel =>
         pageModel.getIncludeIf.fold(true) { includeIf =>

@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.gform.models
 
+import com.softwaremill.quicklens._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormPhase, Group, IsGroup, IsRevealingChoice, RevealingChoice }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormPhase, Group, RevealingChoice }
 
-class VisibilityFilter[D <: DataOrigin, P <: PageMode](
+class FormComponentVisibilityFilter[D <: DataOrigin, P <: PageMode](
   formModelVisibilityOptics: FormModelVisibilityOptics[D],
   phase: Option[FormPhase]
 ) {
@@ -30,34 +31,29 @@ class VisibilityFilter[D <: DataOrigin, P <: PageMode](
     }
 
   private def stripHiddenFormComponentsFromRevealingCoice(rc: RevealingChoice): RevealingChoice =
-    rc.copy(
-      options = rc.options.map { rcElement =>
-        rcElement.copy(revealingFields = rcElement.revealingFields.filter(isVisible))
-      }
-    )
+    rc.modify(_.options.each.revealingFields)
+      .using(_.filter(isVisible))
 
   private def stripHiddenFormComponentsFromGroup(group: Group): Group =
-    group.copy(
-      fields = group.fields.filter(isVisible)
-    )
+    group.modify(_.fields).using(_.filter(isVisible))
 
   def stripHiddenFormComponents(formModel: FormModel[P]): FormModel[P] =
     formModel.map[P] { singleton =>
-      val visibleFields: List[FormComponent] =
-        singleton.page.fields
-          .map {
-            case fc @ IsRevealingChoice(rc) => fc.copy(`type` = stripHiddenFormComponentsFromRevealingCoice(rc))
-            case fc @ IsGroup(group)        => fc.copy(`type` = stripHiddenFormComponentsFromGroup(group))
-            case i                          => i
-          }
-          .filter(isVisible)
-      singleton.copy(page = singleton.page.copy(fields = visibleFields))
+      singleton
+        .modify(_.page.fields)
+        .using(_.filter(isVisible))
+        .modify(_.page.fields.each.`type`)
+        .using {
+          case rc: RevealingChoice => stripHiddenFormComponentsFromRevealingCoice(rc)
+          case group: Group        => stripHiddenFormComponentsFromGroup(group)
+          case i                   => i
+        }
     }(identity)
 }
 
-object VisibilityFilter {
+object FormComponentVisibilityFilter {
   def apply[D <: DataOrigin, P <: PageMode](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     phase: Option[FormPhase]
-  ) = new VisibilityFilter[D, P](formModelVisibilityOptics, phase)
+  ) = new FormComponentVisibilityFilter[D, P](formModelVisibilityOptics, phase)
 }
