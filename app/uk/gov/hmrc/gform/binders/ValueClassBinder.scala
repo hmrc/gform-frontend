@@ -58,45 +58,50 @@ object ValueClassBinder {
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value.toString
   }
 
-  implicit val formComponentActionBindable: PathBindable[Direction] =
-    new PathBindable[Direction] {
+  implicit val formComponentActionQueryBindable: QueryStringBindable[Direction] =
+    new QueryStringBindable[Direction] {
 
       val AddGroupR = "AddGroup-(.*)".r.unanchored
       val RemoveGroupR = "RemoveGroup-(.*)".r.unanchored
       val EditAddToListR = "EditAddToList-(\\d*)-(.*)".r.unanchored
       val RemoveAddToListR = "RemoveAddToList-(\\d*)-(.*)".r.unanchored
 
-      override def bind(key: String, value: String): Either[String, Direction] =
-        value match {
-          case "Save"            => Right(SaveAndExit)
-          case "Back"            => Right(Back)
-          case "SaveAndContinue" => Right(SaveAndContinue)
-          case "Exit"            => Right(Exit)
-          case "Continue"        => Right(uk.gov.hmrc.gform.controllers.Continue)
-          case "SummaryContinue" => Right(SummaryContinue)
-          case AddGroupR(x)      => Right(AddGroup(ExpandUtils.toModelComponentId(x)))
-          case RemoveGroupR(x)   => Right(RemoveGroup(ExpandUtils.toModelComponentId(x)))
-          case EditAddToListR(idx, fcId) =>
-            Right(EditAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
-          case RemoveAddToListR(idx, fcId) =>
-            Right(RemoveAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
-          case _ => Left("Unable to bind an action")
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Direction]] =
+        params.get(key).flatMap(_.headOption).map {
+          {
+            case "Save"            => Right(SaveAndExit)
+            case "Back"            => Right(Back)
+            case "SaveAndContinue" => Right(SaveAndContinue)
+            case "Exit"            => Right(Exit)
+            case "Continue"        => Right(uk.gov.hmrc.gform.controllers.Continue)
+            case "SummaryContinue" => Right(SummaryContinue)
+            case AddGroupR(x)      => Right(AddGroup(ExpandUtils.toModelComponentId(x)))
+            case RemoveGroupR(x)   => Right(RemoveGroup(ExpandUtils.toModelComponentId(x)))
+            case EditAddToListR(idx, fcId) =>
+              Right(EditAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
+            case RemoveAddToListR(idx, fcId) =>
+              Right(RemoveAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
+            case _ => Left("Unable to bind an action")
+          }
         }
 
-      override def unbind(key: String, direction: Direction): String = direction match {
-        case AddGroup(modelComponentId)    => s"AddGroup-${modelComponentId.toMongoIdentifier}"
-        case RemoveGroup(modelComponentId) => s"RemoveGroup-${modelComponentId.toMongoIdentifier}"
-        case EditAddToList(idx: Int, addToListId: AddToListId) =>
-          s"EditAddToList-$idx-${addToListId.formComponentId.value}"
-        case RemoveAddToList(idx: Int, addToListId: AddToListId) =>
-          s"RemoveAddToList-$idx-${addToListId.formComponentId.value}"
-        case SaveAndExit                            => "Save"
-        case SaveAndContinue                        => "SaveAndContinue"
-        case Exit                                   => "Exit"
-        case Back                                   => "Back"
-        case SummaryContinue                        => "SummaryContinue"
-        case uk.gov.hmrc.gform.controllers.Continue => "Continue"
-        case _                                      => "unknown"
+      override def unbind(key: String, direction: Direction): String = {
+        val value = direction match {
+          case AddGroup(modelComponentId)    => s"AddGroup-${modelComponentId.toMongoIdentifier}"
+          case RemoveGroup(modelComponentId) => s"RemoveGroup-${modelComponentId.toMongoIdentifier}"
+          case EditAddToList(idx: Int, addToListId: AddToListId) =>
+            s"EditAddToList-$idx-${addToListId.formComponentId.value}"
+          case RemoveAddToList(idx: Int, addToListId: AddToListId) =>
+            s"RemoveAddToList-$idx-${addToListId.formComponentId.value}"
+          case SaveAndExit                            => "Save"
+          case SaveAndContinue                        => "SaveAndContinue"
+          case Exit                                   => "Exit"
+          case Back                                   => "Back"
+          case SummaryContinue                        => "SummaryContinue"
+          case uk.gov.hmrc.gform.controllers.Continue => "Continue"
+          case _                                      => "unknown"
+        }
+        s"$key=$value"
       }
     }
 
