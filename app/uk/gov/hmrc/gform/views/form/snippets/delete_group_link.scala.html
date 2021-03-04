@@ -37,5 +37,5 @@
     @govukButton(Button(content = Text(messages("linkText.removeRepeatedGroup", label)),
         inputType=Some("submit"),
         attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, RemoveGroup(modelComponentId)).path),
-        classes="govuk-button--secondary"))
+        classes="link"))
 }

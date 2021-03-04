@@ -62,7 +62,7 @@
     @govukButton(Button(content = Text(groupField.repeatAddAnotherText.map(ls => ls.value).getOrElse(messages("linkText.addRepeatingGroup"))),
         inputType=Some("submit"),
         attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, AddGroup(modelComponentId)).path),
-        classes="govuk-button--secondary"))
+        classes="link"))
   }
 
 </div>
