@@ -23,7 +23,7 @@ import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request,
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra, Direction }
 import uk.gov.hmrc.gform.fileupload.{ Attachments, Envelope, EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.{ DataExpanded, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType, Singleton }
@@ -109,7 +109,10 @@ class DeclarationController(
       }
     }
 
-  def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+  def submitDeclaration(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    save: Direction): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.WithDeclaration](
       formTemplateId,
       maybeAccessCode,
@@ -124,8 +127,8 @@ class DeclarationController(
             val envelopeId = cache.form.envelopeId
 
             def processDeclaration(processData: ProcessData, envelope: EnvelopeWithMapping): Future[Result] =
-              (requestRelatedData.get("save"), cache.formTemplate.destinations) match {
-                case ("Continue", destinationList: DestinationList) =>
+              (save, cache.formTemplate.destinations) match {
+                case (uk.gov.hmrc.gform.controllers.Continue, destinationList: DestinationList) =>
                   continueToSubmitDeclaration[SectionSelectorType.WithDeclaration](
                     cache,
                     maybeAccessCode,
@@ -133,7 +136,7 @@ class DeclarationController(
                     envelope,
                     processData)
 
-                case ("Continue", _) =>
+                case (uk.gov.hmrc.gform.controllers.Continue, _) =>
                   Future.failed(new BadRequestException(s"Declaration Section is not defined for $formTemplateId"))
 
                 case _ =>

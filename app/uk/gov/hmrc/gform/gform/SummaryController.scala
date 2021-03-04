@@ -25,7 +25,7 @@ import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request,
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActionsAlgebra, ErrResponder }
+import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActionsAlgebra, Direction, ErrResponder, Exit, SummaryContinue }
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
@@ -67,7 +67,7 @@ class SummaryController(
             .map(Ok(_))
       }
 
-  def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+  def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], save: Direction): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
@@ -132,10 +132,10 @@ class SummaryController(
                   Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
               }
 
-            requestRelatedData.get("save") match {
-              case "Exit"            => handleExit.pure[Future]
-              case "SummaryContinue" => handleSummaryContinue
-              case _                 => BadRequest("Cannot determine action").pure[Future]
+            save match {
+              case Exit            => handleExit.pure[Future]
+              case SummaryContinue => handleSummaryContinue
+              case _               => BadRequest("Cannot determine action").pure[Future]
             }
         }
     }

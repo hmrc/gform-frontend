@@ -22,6 +22,8 @@
 @import uk.gov.hmrc.gform.gform.HasErrors
 @import uk.gov.hmrc.gform.views.html.{main_template, specimen}
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.gform.controllers.{SaveAndContinue, SaveAndExit, Continue, Back}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
 @(
   formTemplate: FormTemplate,
@@ -33,6 +35,8 @@
   frontendAppConfig: FrontendAppConfig,
   specimenNavigation: Html = HtmlFormat.empty,
   isDeclaration: Boolean = false,
+  maybeAccessCode: Option[AccessCode],
+  sectionNumber: SectionNumber
 )(
   implicit
   request: Request[_],
@@ -56,7 +60,7 @@
     if(isDeclaration) {
       (uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode).url, Map.empty[String, String])
     } else {
-      ("#", Map("id" -> "backButton"))
+      (uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, Back).path, Map("id" -> "backButton"))
     }
   new BackLink(attributes = attributes, href = href, content = new Text(messages("linkText.back")))
 }
@@ -100,16 +104,31 @@
 
       @{page.hiddenFieldsSnippets}
 
-      <input type="hidden" id="gform-action" name="save" value="Continue" />
-
-      @if(shouldDisplayContinue) {
-        @govukButton(Button(content = Text(buttonLabel), value=Some("Continue")))
-      }
-      @if(page.renderComeBackLater) {
-        <p class="govuk-body">
-          <a href="#" id="saveComeBackLater" class="govuk-link">@messages("linkText.saveAndComeBackLater")</a>
-        </p>
-      }
+      <div class="govuk-button-group">
+          @if(shouldDisplayContinue) {
+            @if(isDeclaration) {
+              @govukButton(Button(content = Text(buttonLabel),
+                                inputType=Some("submit"),
+                                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id, maybeAccessCode, Continue).path)
+                               )
+                         )
+            } else {
+              @govukButton(Button(content = Text(buttonLabel),
+                      inputType=Some("submit"),
+                      attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, SaveAndContinue).path)
+                  )
+              )
+            }
+          }
+          @if(page.renderComeBackLater) {
+            @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+                                inputType=Some("submit"),
+                                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, SaveAndExit).path),
+                                classes="govuk-button--secondary"
+                               )
+                        )
+          }
+      </div>
     }
 
     @specimenNavigation

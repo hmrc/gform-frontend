@@ -25,9 +25,8 @@
           : "";
       }
 
-      function setAction (e, action, submit) {
-        action = action || findAction($(e.target));
-        $('#gform-action').val(action);
+      function setAction (e, submit) {
+        $('#gf-form').attr('action', findAction($(e.target)))
         if (submit) {
           e.preventDefault();
           $('#gf-form').submit();
@@ -35,9 +34,9 @@
         }
       }
 
-      function handleFormSubmit(action, submit) {
+      function handleFormSubmit(submit) {
         return function (e) {
-          setAction(e, action, submit);
+          setAction(e, submit);
         };
       }
 
@@ -52,12 +51,7 @@
 
 	$("#main-content")
           .parent()
-          .on('click', 'button.govuk-button', handleFormSubmit(null, true))
-          .on('click', '.removeRepeatingSection, #addRepeatingGroup', handleFormSubmit(null, true))
-	      .on("click", '.edit-add-to-list, .remove-add-to-list', handleFormSubmit(null, true))
-          .on('click', '#backButton', handleFormSubmit('Back', true))
-          .on('click', '#saveComeBackLater', handleFormSubmit('Save', true))
-          .on('click', '#saveComeBackLaterExit', handleFormSubmit('Exit', true));
+          .on('click', '#backButton', handleFormSubmit(true));
 
        // update any character counters with ids and aria labels
         $('.char-counter-text').each(function (i, hint) {
