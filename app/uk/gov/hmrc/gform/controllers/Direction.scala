@@ -16,12 +16,11 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import uk.gov.hmrc.gform.models.{ Bracket, ExpandUtils, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.{ Bracket, Visibility }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.http.BadRequestException
 
 trait Navigation {
 
@@ -89,20 +88,6 @@ case class Navigator(
   require(
     sectionNumber <= maxSectionNumber,
     s"section number is too big: ${sectionNumber.value} is not <= $maxSectionNumber")
-
-  val AddGroupR = "AddGroup-(.*)".r.unanchored
-  val RemoveGroupR = "RemoveGroup-(.*)".r.unanchored
-
-  def navigate: Direction = actionValue match {
-    case "Save"          => SaveAndExit
-    case "Continue"      => SaveAndContinue
-    case "Back"          => Back
-    case AddGroupR(x)    => AddGroup(ExpandUtils.toModelComponentId(x))
-    case RemoveGroupR(x) => RemoveGroup(ExpandUtils.toModelComponentId(x))
-    case other           => throw new BadRequestException(s"Invalid action: $other")
-  }
-
-  private def actionValue: String = requestRelatedData.get("save")
 
   private lazy val maxSectionNumber: SectionNumber = availableSectionNumbers.max(Ordering.by((_: SectionNumber).value))
 

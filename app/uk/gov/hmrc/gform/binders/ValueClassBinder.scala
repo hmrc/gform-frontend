@@ -81,25 +81,23 @@ object ValueClassBinder {
               Right(EditAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
             case RemoveAddToListR(idx, fcId) =>
               Right(RemoveAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
-            case _ => Left("Unable to bind an action")
           }
         }
 
       override def unbind(key: String, direction: Direction): String = {
         val value = direction match {
-          case AddGroup(modelComponentId)    => s"AddGroup-${modelComponentId.toMongoIdentifier}"
-          case RemoveGroup(modelComponentId) => s"RemoveGroup-${modelComponentId.toMongoIdentifier}"
+          case SaveAndExit                            => "Save"
+          case Back                                   => "Back"
+          case SaveAndContinue                        => "SaveAndContinue"
+          case Exit                                   => "Exit"
+          case uk.gov.hmrc.gform.controllers.Continue => "Continue"
+          case SummaryContinue                        => "SummaryContinue"
+          case AddGroup(modelComponentId)             => s"AddGroup-${modelComponentId.toMongoIdentifier}"
+          case RemoveGroup(modelComponentId)          => s"RemoveGroup-${modelComponentId.toMongoIdentifier}"
           case EditAddToList(idx: Int, addToListId: AddToListId) =>
             s"EditAddToList-$idx-${addToListId.formComponentId.value}"
           case RemoveAddToList(idx: Int, addToListId: AddToListId) =>
             s"RemoveAddToList-$idx-${addToListId.formComponentId.value}"
-          case SaveAndExit                            => "Save"
-          case SaveAndContinue                        => "SaveAndContinue"
-          case Exit                                   => "Exit"
-          case Back                                   => "Back"
-          case SummaryContinue                        => "SummaryContinue"
-          case uk.gov.hmrc.gform.controllers.Continue => "Continue"
-          case _                                      => "unknown"
         }
         s"$key=$value"
       }
