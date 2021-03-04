@@ -63,6 +63,13 @@
 
     <script>window.GOVUKFrontend.initAll();</script>
     <script>window.HMRCFrontend.initAll();</script>
+    <noscript>
+        <style>
+            .jsonly {
+                display: none
+            }
+        </style>
+    </noscript>
 }
 
 @linkElement = {
@@ -167,7 +174,9 @@
     @hmrcBanner(Banner(language))
   }
   @languageSwitch
-  @backLink.map(govukBackLink.apply)
+  <p class="jsonly">
+    @backLink.map(govukBackLink.apply)
+  </p>
 }
 
 
