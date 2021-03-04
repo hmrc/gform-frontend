@@ -58,7 +58,7 @@ object ValueClassBinder {
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value.toString
   }
 
-  implicit val formComponentActionQueryBindable: QueryStringBindable[Direction] =
+  implicit val formDirectionQueryBindable: QueryStringBindable[Direction] =
     new QueryStringBindable[Direction] {
 
       val AddGroupR = "AddGroup-(.*)".r.unanchored
