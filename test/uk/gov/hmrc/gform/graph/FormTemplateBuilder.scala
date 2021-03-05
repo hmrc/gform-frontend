@@ -63,6 +63,7 @@ object FormTemplateBuilder {
       NonEmptyList.fromListUnsafe(formComponents.toList.map(page)),
       addToListQuestion(addAnotherQuestionName),
       None,
+      None,
       None
     )
 
