@@ -1,0 +1,94 @@
+@*
+ * Copyright 2021 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.models.Atom
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormComponent, OverseasAddress}
+@import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
+@import uk.gov.hmrc.gform.views.html.errorInline
+
+@(
+    overseasAddress: OverseasAddress,
+    formComponent: FormComponent,
+    validationResult: FormFieldValidationResult,
+    formLevelHeading: Boolean,
+    fetchValue: (HtmlFieldId, Atom) => String
+)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+)
+
+@safeId(atom: Atom) = @{
+    HtmlFieldId.Pure(formComponent.atomicFormComponentId(atom))
+}
+
+@label = {
+    @formComponent.label.value
+}
+
+@htmlId(id: HtmlFieldId.Pure) = @{
+    id.modelComponentId.toMongoIdentifier
+}
+
+@safeError(atom: Atom) = @{
+    val errors: Set[String] = validationResult.fieldErrorsWithSuffix(atom)
+
+    errors.map(e => errorInline(atom.value, e, Seq("error-message")))
+}
+
+<fieldset class="govuk-fieldset" id="@{formComponent.id.value}-fieldset" role="group" @if(formComponent.helpText.nonEmpty) { aria-describedby="@{formComponent.id.value}-hint" }>
+    @if(formLevelHeading) {
+        <legend class="govuk-fieldset__legend govuk-label--l">
+            <h1 class="govuk-fieldset__heading">
+                @label
+            </h1>
+        </legend>
+    } else {
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+            @label
+        </legend>
+    }
+
+        @defining(List(
+            (OverseasAddress.line1,    "overseasAddress.line1",    "govuk-input govuk-!-width-two-thirds"),
+            (OverseasAddress.line2,    "overseasAddress.line2",    "govuk-input govuk-!-width-two-thirds"),
+            (OverseasAddress.line3,    "overseasAddress.line3",    "govuk-input govuk-!-width-two-thirds"),
+            (OverseasAddress.city,     "overseasAddress.city",     "govuk-input govuk-!-width-two-thirds"),
+            (OverseasAddress.postcode, "overseasAddress.postcode", "govuk-input--width-10"),
+            (OverseasAddress.country,  "overseasAddress.country",  "")
+        )) { rows =>
+            @rows.map { case (row, messageKey, widthClass) =>
+
+                @defining(safeId(row), safeError(row)) { case (rowId, rowError) =>
+                    <div class="govuk-form-group@if(rowError.nonEmpty){ govuk-form-group--error }">
+                        <label class="govuk-label" for="@htmlId(rowId)">
+                            @messages(messageKey, if(overseasAddress.isOptional(row)) messages("overseasAddress.optional") else "")
+                        </label>
+
+                        @rowError
+
+                        <input type="text"
+                               class="govuk-input @widthClass@if(rowError.nonEmpty){ govuk-input--error }"
+                               name="@htmlId(rowId)"
+                               id="@htmlId(rowId)"
+                               value="@fetchValue(rowId, row)" />
+                    </div>
+                }
+            }
+        }
+
+</fieldset>
