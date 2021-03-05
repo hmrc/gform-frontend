@@ -284,7 +284,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         renderUnit =>
           htmlFor(
             renderUnit,
-            formTemplate,
+            formTemplate._id,
             ei,
             validationResult,
             obligations,
@@ -319,7 +319,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       specimenNavigation = specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics),
       isDeclaration = false,
       maybeAccessCode,
-      sectionNumber
+      sectionNumber,
+      fastForward
     )
 
   }
@@ -442,7 +443,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       renderUnit =>
         htmlFor(
           renderUnit,
-          formTemplate,
+          formTemplate._id,
           ei,
           validationResult,
           obligations = NotChecked,
@@ -477,7 +478,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       frontendAppConfig,
       isDeclaration = true,
       maybeAccessCode = maybeAccessCode,
-      sectionNumber = SectionNumber(0)
+      sectionNumber = SectionNumber(0),
+      fastForward = FastForward.Yes
     )
   }
 
@@ -545,7 +547,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       renderUnit =>
         htmlFor(
           renderUnit,
-          formTemplate,
+          formTemplate._id,
           ei,
           ValidationResult.empty,
           obligations = NotChecked,
@@ -607,7 +609,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       page.renderUnits.map { renderUnit =>
         htmlFor(
           renderUnit,
-          formTemplate,
+          formTemplate._id,
           ei,
           validationResult,
           obligations = NotChecked,
@@ -642,12 +644,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         true,
         frontendAppConfig,
         maybeAccessCode = maybeAccessCode,
-        sectionNumber = SectionNumber(0))
+        sectionNumber = SectionNumber(0),
+        fastForward = FastForward.Yes
+      )
   }
 
   private def htmlFor(
     renderUnit: RenderUnit,
-    formTemplate: FormTemplate,
+    formTemplateId: FormTemplateId,
     ei: ExtraInfo,
     validationResult: ValidationResult,
     obligations: Obligations,
@@ -702,7 +706,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             case RevealingChoice(options, multiValue) =>
               htmlForRevealingChoice(
                 formComponent,
-                formTemplate,
+                formTemplateId,
                 multiValue,
                 options,
                 validationResult,
@@ -711,7 +715,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
                 maybeAccessCode,
                 sectionNumber)
             case FileUpload() =>
-              htmlForFileUpload(formComponent, formTemplate._id, ei, ei.retrievals, validationResult)
+              htmlForFileUpload(formComponent, formTemplateId, ei, ei.retrievals, validationResult)
             case InformationMessage(infoType, infoText) =>
               htmlForInformationMessage(formComponent, infoType, infoText, ei)
             case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>
@@ -720,7 +724,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         }
     } {
       case r @ RenderUnit.Group(_, _) =>
-        htmlForGroup(r, formTemplate, ei, validationResult, obligations, maybeAccessCode, sectionNumber)
+        htmlForGroup(r, formTemplateId, ei, validationResult, obligations, maybeAccessCode, sectionNumber)
     }
 
   private def htmlForHmrcTaxPeriod(
@@ -1032,7 +1036,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
   private def htmlForRevealingChoice(
     formComponent: FormComponent,
-    formTemplate: FormTemplate,
+    formTemplateId: FormTemplateId,
     multiValue: Boolean,
     options: List[RevealingChoiceElement],
     validationResult: ValidationResult,
@@ -1070,7 +1074,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               .map(fc =>
                 htmlFor(
                   RenderUnit.pure(fc),
-                  formTemplate,
+                  formTemplateId,
                   nestedEi(controlledBy)(index),
                   validationResult,
                   obligations = obligations,
@@ -1715,7 +1719,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
   private def htmlForGroup(
     renderUnitGroup: RenderUnit.Group,
-    formTemplate: FormTemplate,
+    formTemplateId: FormTemplateId,
     ei: ExtraInfo,
     validationResult: ValidationResult,
     obligations: Obligations,
@@ -1742,7 +1746,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         case (group, formComponent) =>
           getGroupForRendering(
             formComponent,
-            formTemplate,
+            formTemplateId,
             group,
             validationResult,
             ei,
@@ -1757,14 +1761,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       renderUnitGroup.group,
       lhtml,
       canAddAnother,
-      formTemplate,
+      formTemplateId,
       maybeAccessCode,
       sectionNumber)
   }
 
   private def getGroupForRendering(
     formComponent: FormComponent,
-    formTemplate: FormTemplate,
+    formTemplateId: FormTemplateId,
     group: Group,
     validationResult: ValidationResult,
     ei: ExtraInfo,
@@ -1788,7 +1792,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         formComponent =>
           htmlFor(
             RenderUnit.pure(formComponent),
-            formTemplate,
+            formTemplateId,
             ei,
             validationResult,
             obligations = obligations,
@@ -1804,7 +1808,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       val label = group.repeatLabel.map(_.value).getOrElse("")
 
       val removeButtonHtml =
-        html.form.snippets.delete_group_link(formTemplate, label, removeButton, maybeAccessCode, sectionNumber)
+        html.form.snippets.delete_group_link(formTemplateId, label, removeButton, maybeAccessCode, sectionNumber)
 
       val dividerHtml = html.form.snippets.divider()
 
@@ -1826,7 +1830,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           formComponent =>
             htmlFor(
               RenderUnit.pure(formComponent),
-              formTemplate,
+              formTemplateId,
               ei,
               validationResult,
               obligations = obligations,

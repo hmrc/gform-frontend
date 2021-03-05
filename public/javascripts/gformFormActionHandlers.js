@@ -7,10 +7,8 @@
     function GformFormActionHandlers () {
       var self = this;
 
-      var submitButton = $('button.govuk-button')
-
-      function disableSubmitButton() {
-        submitButton.attr('disabled', true)
+      function disableSubmitButtons() {
+        $('button[type=submit]').attr('disabled', 'disabled')
       }
 
       function findAction ($el) {
@@ -25,19 +23,25 @@
           : "";
       }
 
-      function setAction (e, submit) {
-        $('#gf-form').attr('action', findAction($(e.target)))
-        if (submit) {
+      function submitForm(e) {
           e.preventDefault();
           $('#gf-form').submit();
-          disableSubmitButton();
-        }
+          disableSubmitButtons();
       }
 
-      function handleFormSubmit(submit) {
+      function handleSetActionAndFormSubmit(submit) {
         return function (e) {
-          setAction(e, submit);
+          $('#gf-form').attr('action', findAction($(e.target)))
+          if (submit) {
+            submitForm()
+          }
         };
+      }
+
+      function handleFormSubmit() {
+        return function (e) {
+          submitForm()
+        }
       }
 
       // Set up event handlers
@@ -51,8 +55,8 @@
 
 	$("#main-content")
           .parent()
-          .on('click', '#backButton', handleFormSubmit(true));
-
+          .on('click', 'button[type=submit]', handleFormSubmit())
+          .on('click', '#backButton', handleSetActionAndFormSubmit(true))
        // update any character counters with ids and aria labels
         $('.char-counter-text').each(function (i, hint) {
           var id = 'character-info-' + i;

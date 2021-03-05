@@ -15,13 +15,13 @@
  *@
 
 @import uk.gov.hmrc.gform.models.ids.ModelComponentId
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.controllers.RemoveGroup
 
 @(
-    formTemplate: FormTemplate,
+    formTemplateId: FormTemplateId,
     label: String,
     removeButton: Option[ModelComponentId],
     maybeAccessCode: Option[AccessCode],
@@ -36,6 +36,6 @@
 @removeButton.fold(HtmlFormat.empty) { modelComponentId =>
     @govukButton(Button(content = Text(messages("linkText.removeRepeatedGroup", label)),
         inputType=Some("submit"),
-        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, RemoveGroup(modelComponentId)).path),
+        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplateId, maybeAccessCode, sectionNumber, FastForward.Yes, RemoveGroup(modelComponentId)).path),
         classes="link"))
 }

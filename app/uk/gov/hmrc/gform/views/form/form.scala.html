@@ -36,7 +36,8 @@
   specimenNavigation: Html = HtmlFormat.empty,
   isDeclaration: Boolean = false,
   maybeAccessCode: Option[AccessCode],
-  sectionNumber: SectionNumber
+  sectionNumber: SectionNumber,
+  fastForward: FastForward
 )(
   implicit
   request: Request[_],
@@ -60,7 +61,7 @@
     if(isDeclaration) {
       (uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode).url, Map.empty[String, String])
     } else {
-      (uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, Back).path, Map("id" -> "backButton"))
+      (uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, Back).path, Map("id" -> "backButton"))
     }
   new BackLink(attributes = attributes, href = href, content = new Text(messages("linkText.back")))
 }
@@ -79,7 +80,7 @@
     } else {
         @govukButton(Button(content = Text(buttonLabel),
                 inputType=Some("submit"),
-                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, SaveAndContinue).path)
+                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue).path)
                 )
             )
         }
@@ -132,7 +133,7 @@
           @if(page.renderComeBackLater) {
             @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
                     inputType=Some("submit"),
-                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, SaveAndExit).path),
+                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndExit).path),
                     classes="govuk-button--secondary"
                 )
             )

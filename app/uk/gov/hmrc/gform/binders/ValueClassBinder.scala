@@ -68,20 +68,19 @@ object ValueClassBinder {
 
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Direction]] =
         params.get(key).flatMap(_.headOption).map {
-          {
-            case "Save"            => Right(SaveAndExit)
-            case "Back"            => Right(Back)
-            case "SaveAndContinue" => Right(SaveAndContinue)
-            case "Exit"            => Right(Exit)
-            case "Continue"        => Right(uk.gov.hmrc.gform.controllers.Continue)
-            case "SummaryContinue" => Right(SummaryContinue)
-            case AddGroupR(x)      => Right(AddGroup(ExpandUtils.toModelComponentId(x)))
-            case RemoveGroupR(x)   => Right(RemoveGroup(ExpandUtils.toModelComponentId(x)))
-            case EditAddToListR(idx, fcId) =>
-              Right(EditAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
-            case RemoveAddToListR(idx, fcId) =>
-              Right(RemoveAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
-          }
+          case "Save"            => Right(SaveAndExit)
+          case "Back"            => Right(Back)
+          case "SaveAndContinue" => Right(SaveAndContinue)
+          case "Exit"            => Right(Exit)
+          case "Continue"        => Right(uk.gov.hmrc.gform.controllers.Continue)
+          case "SummaryContinue" => Right(SummaryContinue)
+          case AddGroupR(x)      => Right(AddGroup(ExpandUtils.toModelComponentId(x)))
+          case RemoveGroupR(x)   => Right(RemoveGroup(ExpandUtils.toModelComponentId(x)))
+          case EditAddToListR(idx, fcId) =>
+            Right(EditAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
+          case RemoveAddToListR(idx, fcId) =>
+            Right(RemoveAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
+          case unknown => throw new IllegalArgumentException(s"Query param $key has invalid value $unknown")
         }
 
       override def unbind(key: String, direction: Direction): String = {
