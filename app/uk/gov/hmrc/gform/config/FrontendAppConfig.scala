@@ -22,8 +22,6 @@ import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
 case class FrontendAppConfig(
   albAdminIssuerUrl: String,
-  analyticsToken: String,
-  analyticsHost: String,
   reportAProblemPartialUrl: String,
   reportAProblemNonJSUrl: String,
   governmentGatewaySignInUrl: String,
@@ -36,8 +34,6 @@ case class FrontendAppConfig(
   footerHelpUrl: String,
   footerAccessibilityStatementUrl: String,
   whitelistEnabled: Boolean,
-  googleTagManagerIdAvailable: Boolean,
-  googleTagManagerId: String,
   authModule: AuthModule,
   availableLanguages: Map[String, Lang],
   routeToSwitchLanguage: String => play.api.mvc.Call,

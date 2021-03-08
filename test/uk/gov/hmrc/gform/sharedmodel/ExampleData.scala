@@ -803,8 +803,6 @@ import play.api.i18n.Lang
 trait ExampleFrontendAppConfig {
   val frontendAppConfig = FrontendAppConfig(
     albAdminIssuerUrl = "",
-    analyticsToken = "analyticsToken",
-    analyticsHost = "analyticsHost",
     reportAProblemPartialUrl = "http://reportProblem.url",
     reportAProblemNonJSUrl = "http://reportProblem.json.url",
     governmentGatewaySignInUrl = "http://gofernment.gateway.signin.url",
@@ -817,8 +815,6 @@ trait ExampleFrontendAppConfig {
     footerHelpUrl = "",
     footerAccessibilityStatementUrl = "",
     whitelistEnabled = true,
-    googleTagManagerIdAvailable = false,
-    googleTagManagerId = "",
     authModule = AuthModule(JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", "")),
     availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy")),
     routeToSwitchLanguage = uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage,

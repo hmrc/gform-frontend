@@ -75,9 +75,6 @@ class HtmlSanitiserSpec extends Spec {
   <div class="govuk-width-container">
   </div>
   <div class="govuk-width-container ">
-   <noscript> <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TSFTCWZ" height="0" width="0" style="display: none;
-          visibility: hidden"> </iframe>
-   </noscript>
    <div class="govuk-phase-banner">
     <p class="govuk-phase-banner__content"> <strong class="govuk-tag govuk-phase-banner__content__tag"> alpha </strong> <span class="govuk-phase-banner__text"> This is a new service - your <a class="govuk-link" href="/contact/beta-feedback-unauthenticated?service=GForm">feedback</a> will help us to improve it. </span> </p>
    </div>
@@ -160,7 +157,6 @@ class HtmlSanitiserSpec extends Spec {
    </div>
   </footer>
   <script src="/submissions/assets/javascripts/jquery.min.js"></script>
-  <script src="/submissions/assets/javascripts/gformGAEvents.js"></script>
   <script src="/submissions/assets/javascripts/gformFileUpload.js"></script>
   <script src="/submissions/assets/javascripts/gformRepeatingGroups.js"></script>
   <script src="/submissions/assets/javascripts/gformToggleAddressDivsAndLabels.js"></script>
