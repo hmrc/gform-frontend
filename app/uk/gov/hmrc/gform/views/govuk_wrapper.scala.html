@@ -27,6 +27,9 @@
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.{Cy, En, LanguageSelect}
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.reporttechnicalissue.ReportTechnicalIssue
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
+@import uk.gov.hmrc.gform.ApplicationLoaderHelper._
+@import uk.gov.hmrc.gform.HmrcTrackingConsentSnippet
+@import java.util.NoSuchElementException
 
 @(appConfig: FrontendAppConfig,
   serviceTitle: String,
@@ -46,7 +49,6 @@
 @scripts = {
     @scriptElem
     <script src='@routes.Assets.versioned("javascripts/jquery.min.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/gformGAEvents.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformFileUpload.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformRepeatingGroups.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformToggleAddressDivsAndLabels.js")'></script>
@@ -77,16 +79,18 @@
   <link href='@routes.Assets.versioned("stylesheets/gform.css")' rel="stylesheet" />
 }
 
+@getHmrctcs = @{
+    getAppMap(hmrctcsKey) match {
+        case Some(HmrcTrackingConsentSnippet(v)) => v
+        case _                                   => throw new NoSuchElementException(s"hmrctcsKey not found in appMap.")
+    }
+}
+
 @head = {
     @linkElement
+    @getHmrctcs()
     <!--[if lte IE 8]><link href='@controllers.routes.Assets.versioned("stylesheets/application-ie-8.css")' rel="stylesheet" type="text/css" /><![endif]-->
     <!--[if gt IE 8]><!--><link href='@controllers.routes.Assets.versioned("stylesheets/application.css")' media="screen" rel="stylesheet" type="text/css" /><!--<![endif]-->
-    @if(appConfig.googleTagManagerIdAvailable) {
-      <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','@{appConfig.googleTagManagerId}');</script>
-    }
-    @appConfig.optimizelyUrl.map{ url =>
-      <script src='@url' type='text/javascript'></script>
-    }
     <script>
           window.getCookie = function (name) {
             var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
@@ -99,15 +103,6 @@
     <meta name="format-detection" content="telephone=no" />
 }
 
-@afterHeader = {
-    @if(appConfig.googleTagManagerIdAvailable) {
-      <noscript>
-        <iframe src="https://www.googletagmanager.com/ns.html?id=@{appConfig.googleTagManagerId}" height="0" width="0" style="display: none;
-          visibility: hidden">
-        </iframe>
-      </noscript>
-    }
-}
 
 @size = @{formLanguages.languages.size}
 
@@ -168,7 +163,6 @@
 }
 
 @beforeContentBlock = {
-  @afterHeader
   @phaseBanner
   @if(displayHMRCLogo){
     @hmrcBanner(Banner(language))

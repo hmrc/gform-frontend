@@ -44,6 +44,11 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorConnector
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
+import uk.gov.hmrc.hmrcfrontend.config.TrackingConsentConfig
+import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
+import uk.gov.hmrc.gform.ApplicationLoaderHelper._
+
+import scala.collection.mutable
 
 class ApplicationLoader extends play.api.ApplicationLoader {
   def load(context: Context): Application = {
@@ -70,6 +75,10 @@ class ApplicationModule(context: Context)
 
   protected val configModule = new ConfigModule(context, playBuiltInsModule, wsClient)
   protected val auditingModule = new AuditingModule(configModule, akkaModule, applicationLifecycle)
+
+  addAppMap(
+    hmrctcsKey,
+    HmrcTrackingConsentSnippet(new hmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration))))
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
@@ -239,4 +248,20 @@ class ApplicationModule(context: Context)
     logger.info(
       s"Started Fronted $appName in mode ${environment.mode} at port ${application.configuration.getOptional[String]("http.port")}")
   }
+}
+
+sealed trait AppMap
+case class HmrcTrackingConsentSnippet(value: hmrcTrackingConsentSnippet) extends AppMap
+
+object ApplicationLoaderHelper {
+
+  val hmrctcsKey = "hmrctcs"
+
+  lazy val appMap = mutable.Map[String, AppMap]()
+
+  def addAppMap(key: String, value: AppMap) =
+    appMap(key) = value
+
+  def getAppMap(key: String): Option[AppMap] =
+    appMap.get(key)
 }

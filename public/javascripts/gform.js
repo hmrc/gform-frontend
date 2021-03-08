@@ -9,9 +9,6 @@
   var toggleAddressLabels = new GOVUK.GformToggleAddressLabels();
   toggleAddressLabels.init();
 
-  var gformGAEvents = new GOVUK.GformGAEvents();
-  gformGAEvents.init();
-
   var gformSummaryLayout = new GOVUK.GformSummaryLayout();
   gformSummaryLayout.init();
 

@@ -43,7 +43,6 @@ object HtmlSanitiser {
     doc.select(".hmrc-banner").remove()
     doc.getElementsByTag("link").remove()
     doc.getElementsByTag("meta").remove()
-    doc.getElementsByTag("noscript").remove()
     doc.getElementsByTag("script").remove()
     doc.getElementsByTag("a").remove()
     doc.getElementsByTag("header").remove()

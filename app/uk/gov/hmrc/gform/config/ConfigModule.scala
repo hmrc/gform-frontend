@@ -65,8 +65,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
     FrontendAppConfig(
       albAdminIssuerUrl =
         playConfiguration.getOptional[String]("albAdminIssuerUrl").getOrElse("idp-url-variable-not-set"),
-      analyticsToken = typesafeConfig.getString(s"google-analytics.token"),
-      analyticsHost = typesafeConfig.getString(s"google-analytics.host"),
       reportAProblemPartialUrl = s"/contact/problem_reports_ajax?service=$contactFormServiceIdentifier",
       reportAProblemNonJSUrl = s"/contact/problem_reports_nonjs?service=$contactFormServiceIdentifier",
       governmentGatewaySignInUrl = typesafeConfig.getString("government-gateway-sign-in-url"),
@@ -79,8 +77,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       footerAccessibilityStatementUrl = typesafeConfig.getString("footer-accessibility-statement-url"),
       betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier",
       whitelistEnabled = typesafeConfig.getString("whitelisting-enabled").toBoolean,
-      googleTagManagerIdAvailable = typesafeConfig.getString("google-tag-manager.id-available").toBoolean,
-      googleTagManagerId = typesafeConfig.getString(s"google-tag-manager.id"),
       authModule = AuthModule(
         getJSConfig("auth-module.hmrc"),
         getJSConfig("auth-module.anonymous"),
