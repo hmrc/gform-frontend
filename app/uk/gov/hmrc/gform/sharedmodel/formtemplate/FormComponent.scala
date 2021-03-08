@@ -156,6 +156,14 @@ object IsTime {
   def unapply(fc: FormComponent): Option[Time] = fc.`type`.cast[Time]
 }
 
+object IsTelephone {
+  def unapply(fc: FormComponent): Boolean =
+    fc.`type` match {
+      case Text(TelephoneNumber, _, _, _, _, _) => true
+      case _                                    => false
+    }
+}
+
 object IsEmailVerifier {
   def unapply(formComponent: FormComponent): Option[(EmailFieldId, EmailVerifiedBy)] =
     formComponent.`type` match {
