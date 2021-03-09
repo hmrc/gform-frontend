@@ -18,12 +18,11 @@ package uk.gov.hmrc.gform.config
 
 import play.api.i18n.{ Lang, Messages }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, FormTemplateId }
+import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
 case class FrontendAppConfig(
   albAdminIssuerUrl: String,
-  analyticsToken: String,
-  analyticsHost: String,
   reportAProblemPartialUrl: String,
   reportAProblemNonJSUrl: String,
   governmentGatewaySignInUrl: String,
@@ -36,13 +35,12 @@ case class FrontendAppConfig(
   footerHelpUrl: String,
   footerAccessibilityStatementUrl: String,
   whitelistEnabled: Boolean,
-  googleTagManagerIdAvailable: Boolean,
-  googleTagManagerId: String,
   authModule: AuthModule,
   availableLanguages: Map[String, Lang],
   routeToSwitchLanguage: String => play.api.mvc.Call,
   contactFormServiceIdentifier: String,
-  optimizelyUrl: Option[String]
+  optimizelyUrl: Option[String],
+  trackingConsentSnippet: hmrcTrackingConsentSnippet
 ) {
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {

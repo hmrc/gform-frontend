@@ -27,7 +27,6 @@ class AppConfigSpec extends Spec {
   it should "be loadable" in {
     val appConfig = AppConfig.loadOrThrow()
     appConfig.appName shouldBe "gform-frontend"
-    appConfig.`google-analytics` shouldBe GoogleAnalytics("N/A", "auto")
     appConfig.`government-gateway-sign-in-url` shouldBe "http://localhost:9949/auth-login-stub/gg-sign-in"
     appConfig.`gform-frontend-base-url` shouldBe "http://localhost"
   }

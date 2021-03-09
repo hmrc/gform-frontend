@@ -23,8 +23,6 @@ import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 
 case class AppConfig(
   appName: String,
-  `google-analytics`: GoogleAnalytics,
-  `google-tag-manager`: GoogleTagManager,
   `government-gateway-sign-in-url`: String,
   `gform-frontend-base-url`: String,
   `agent-subscription-frontend-base-url`: String,
@@ -50,16 +48,6 @@ object AppConfig {
 
   class AppConfigException(message: String) extends IllegalArgumentException(message)
 }
-
-case class GoogleAnalytics(
-  token: String,
-  host: String
-)
-
-case class GoogleTagManager(
-  id: String,
-  `id-available`: Boolean
-)
 
 case class AuthModule(
   hmrc: JSConfig,

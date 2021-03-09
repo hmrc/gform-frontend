@@ -23,6 +23,8 @@ import play.api.Mode
 import play.api.i18n.Lang
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
+import uk.gov.hmrc.hmrcfrontend.config.TrackingConsentConfig
+import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, ServicesConfig }
 
@@ -65,8 +67,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
     FrontendAppConfig(
       albAdminIssuerUrl =
         playConfiguration.getOptional[String]("albAdminIssuerUrl").getOrElse("idp-url-variable-not-set"),
-      analyticsToken = typesafeConfig.getString(s"google-analytics.token"),
-      analyticsHost = typesafeConfig.getString(s"google-analytics.host"),
       reportAProblemPartialUrl = s"/contact/problem_reports_ajax?service=$contactFormServiceIdentifier",
       reportAProblemNonJSUrl = s"/contact/problem_reports_nonjs?service=$contactFormServiceIdentifier",
       governmentGatewaySignInUrl = typesafeConfig.getString("government-gateway-sign-in-url"),
@@ -79,8 +79,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       footerAccessibilityStatementUrl = typesafeConfig.getString("footer-accessibility-statement-url"),
       betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier",
       whitelistEnabled = typesafeConfig.getString("whitelisting-enabled").toBoolean,
-      googleTagManagerIdAvailable = typesafeConfig.getString("google-tag-manager.id-available").toBoolean,
-      googleTagManagerId = typesafeConfig.getString(s"google-tag-manager.id"),
       authModule = AuthModule(
         getJSConfig("auth-module.hmrc"),
         getJSConfig("auth-module.anonymous"),
@@ -92,7 +90,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       optimizelyUrl = for {
         url       <- playConfiguration.getOptional[String]("optimizely.url")
         projectId <- playConfiguration.getOptional[String]("optimizely.projectId")
-      } yield s"$url$projectId.js"
+      } yield s"$url$projectId.js",
+      trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration))
     )
   }
 }
