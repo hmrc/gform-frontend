@@ -117,6 +117,15 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult)
 
+      case IsOverseasAddress(_) =>
+        getOverseasAddressSummaryListRows(
+          formComponent,
+          formTemplateId,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          formFieldValidationResult)
+
       case IsInformationMessage(_) =>
         List(SummaryListRow())
 
@@ -494,7 +503,8 @@ object FormComponentSummaryRenderer {
     implicit
     messages: Messages,
     lise: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[T]): List[SummaryListRow] = {
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
@@ -507,6 +517,60 @@ object FormComponentSummaryRenderer {
       errors.mkString(" ")
     } else {
       Address
+        .renderToString(formComponent, formFieldValidationResult)
+        .mkString("", "<br>", "<br>")
+    }
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        None,
+        keyClasses,
+        "",
+        "",
+        if (formComponent.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(
+                  formTemplateId,
+                  maybeAccessCode,
+                  sectionNumber,
+                  sectionTitle4Ga,
+                  SuppressErrors.Yes,
+                  FastForward.Yes),
+              if (formComponent.editable) messages("summary.change") else messages("summary.view")))
+      ))
+  }
+
+  private def getOverseasAddressSummaryListRows[T <: RenderType](
+    formComponent: FormComponent,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    formFieldValidationResult: FormFieldValidationResult,
+  )(
+    implicit
+    messages: Messages,
+    lise: SmartStringEvaluator,
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
+
+    val hasErrors = formFieldValidationResult.isNotOk
+
+    val errors = checkErrors(formComponent, formFieldValidationResult)
+    val label = fcrd.label(formComponent).capitalize
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    val value = if (hasErrors) {
+      errors.mkString(" ")
+    } else {
+      OverseasAddress
         .renderToString(formComponent, formFieldValidationResult)
         .mkString("", "<br>", "<br>")
     }

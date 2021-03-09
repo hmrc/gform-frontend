@@ -162,6 +162,22 @@ internationalAddress.country.label=gwlad
 # TODO Welsh translation
 internationalAddress.country.error.maxLength={0} country must be no more than {1} characters
 
+#Overseas Address
+overseasAddress.optional=(optional)
+overseasAddress.line1=Address line 1
+overseasAddress.line2=Address line 2 {0}
+overseasAddress.line3=Address line 3 (optional)
+overseasAddress.city=Town/City {0}
+overseasAddress.postcode=Postcode {0}
+overseasAddress.country=Country
+overseasAddress.line1.label=line 1
+overseasAddress.line2.label=line 2
+overseasAddress.line3.label=line 3
+overseasAddress.city.label=town/city
+overseasAddress.postcode.label=postcode
+overseasAddress.country.label=country
+overseasAddress.error.maxLength={0} {1} must be no more than {2} characters
+
 # Generic address
 address.isUK=Ai cyfeiriad yn y DU yw hwn?
 address.line4.error.maxLength=Rhaid i linell 4 {0} beidio â bod yn fwy na {1} o gymeriadau
