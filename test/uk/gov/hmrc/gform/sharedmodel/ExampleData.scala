@@ -829,6 +829,6 @@ trait ExampleFrontendAppConfig {
     routeToSwitchLanguage = uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage,
     contactFormServiceIdentifier = "",
     optimizelyUrl = None,
-    hmrctcs = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration))
+    trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration))
   )
 }

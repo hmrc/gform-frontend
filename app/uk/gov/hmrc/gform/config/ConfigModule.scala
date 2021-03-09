@@ -91,7 +91,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
         url       <- playConfiguration.getOptional[String]("optimizely.url")
         projectId <- playConfiguration.getOptional[String]("optimizely.projectId")
       } yield s"$url$projectId.js",
-      hmrctcs = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration))
+      trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration))
     )
   }
 }

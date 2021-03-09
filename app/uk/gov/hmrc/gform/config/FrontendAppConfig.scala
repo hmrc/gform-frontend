@@ -40,7 +40,7 @@ case class FrontendAppConfig(
   routeToSwitchLanguage: String => play.api.mvc.Call,
   contactFormServiceIdentifier: String,
   optimizelyUrl: Option[String],
-  hmrctcs: hmrcTrackingConsentSnippet
+  trackingConsentSnippet: hmrcTrackingConsentSnippet
 ) {
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {
