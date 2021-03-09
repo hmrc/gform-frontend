@@ -27,9 +27,6 @@
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.{Cy, En, LanguageSelect}
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.reporttechnicalissue.ReportTechnicalIssue
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
-@import uk.gov.hmrc.gform.ApplicationLoaderHelper._
-@import uk.gov.hmrc.gform.HmrcTrackingConsentSnippet
-@import java.util.NoSuchElementException
 
 @(appConfig: FrontendAppConfig,
   serviceTitle: String,
@@ -79,16 +76,9 @@
   <link href='@routes.Assets.versioned("stylesheets/gform.css")' rel="stylesheet" />
 }
 
-@getHmrctcs = @{
-    getAppMap(hmrctcsKey) match {
-        case Some(HmrcTrackingConsentSnippet(v)) => v
-        case _                                   => throw new NoSuchElementException(s"hmrctcsKey not found in appMap.")
-    }
-}
-
 @head = {
     @linkElement
-    @getHmrctcs()
+    @appConfig.hmrctcs()
     <!--[if lte IE 8]><link href='@controllers.routes.Assets.versioned("stylesheets/application-ie-8.css")' rel="stylesheet" type="text/css" /><![endif]-->
     <!--[if gt IE 8]><!--><link href='@controllers.routes.Assets.versioned("stylesheets/application.css")' media="screen" rel="stylesheet" type="text/css" /><!--<![endif]-->
     <script>

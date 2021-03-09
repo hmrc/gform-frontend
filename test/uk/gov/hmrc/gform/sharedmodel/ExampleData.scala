@@ -17,7 +17,11 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import java.time.{ LocalDateTime, LocalTime }
+
 import cats.data.NonEmptyList
+import play.api.ApplicationLoader.Context
+import play.api.i18n.Lang
+import play.api.{ Environment, Mode }
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
@@ -28,11 +32,13 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
 import uk.gov.hmrc.gform.models.{ Basic, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RevealingChoiceElement, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RevealingChoiceElement, _ }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
+import uk.gov.hmrc.hmrcfrontend.config.TrackingConsentConfig
+import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.immutable.List
@@ -798,9 +804,12 @@ trait ExampleAuthContext {
     Enrolments(Set())
 
 }
-import play.api.i18n.Lang
 
 trait ExampleFrontendAppConfig {
+
+  private val env: Environment = Environment.simple(mode = Mode.Test)
+  private val context = Context.create(env)
+
   val frontendAppConfig = FrontendAppConfig(
     albAdminIssuerUrl = "",
     reportAProblemPartialUrl = "http://reportProblem.url",
@@ -819,6 +828,7 @@ trait ExampleFrontendAppConfig {
     availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy")),
     routeToSwitchLanguage = uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage,
     contactFormServiceIdentifier = "",
-    optimizelyUrl = None
+    optimizelyUrl = None,
+    hmrctcs = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration))
   )
 }

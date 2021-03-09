@@ -47,12 +47,6 @@ import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, ValidationResult,
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.SessionId
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
-import play.api.ApplicationLoader.Context
-import play.api.{ Environment, Mode }
-import uk.gov.hmrc.gform.ApplicationLoaderHelper._
-import uk.gov.hmrc.gform.HmrcTrackingConsentSnippet
-import uk.gov.hmrc.hmrcfrontend.config.TrackingConsentConfig
-import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 
 import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -128,14 +122,6 @@ class SummaryRenderingServiceSpec
 
     val summaryRenderingService =
       new SummaryRenderingService(i18nSupport, mockFileUploadService, mockValidationService, frontendAppConfig)
-
-    private val env: Environment = Environment.simple(mode = Mode.Test)
-    private val context = Context.create(env)
-
-    addAppMap(
-      hmrctcsKey,
-      HmrcTrackingConsentSnippet(
-        new hmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration))))
   }
 
   "createHtmlForPdf" should {

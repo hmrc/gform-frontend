@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.config
 
 import play.api.i18n.{ Lang, Messages }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, FormTemplateId }
+import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
 case class FrontendAppConfig(
@@ -38,7 +39,8 @@ case class FrontendAppConfig(
   availableLanguages: Map[String, Lang],
   routeToSwitchLanguage: String => play.api.mvc.Call,
   contactFormServiceIdentifier: String,
-  optimizelyUrl: Option[String]
+  optimizelyUrl: Option[String],
+  hmrctcs: hmrcTrackingConsentSnippet
 ) {
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {

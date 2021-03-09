@@ -23,6 +23,8 @@ import play.api.Mode
 import play.api.i18n.Lang
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
+import uk.gov.hmrc.hmrcfrontend.config.TrackingConsentConfig
+import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, ServicesConfig }
 
@@ -88,7 +90,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       optimizelyUrl = for {
         url       <- playConfiguration.getOptional[String]("optimizely.url")
         projectId <- playConfiguration.getOptional[String]("optimizely.projectId")
-      } yield s"$url$projectId.js"
+      } yield s"$url$projectId.js",
+      hmrctcs = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration))
     )
   }
 }
