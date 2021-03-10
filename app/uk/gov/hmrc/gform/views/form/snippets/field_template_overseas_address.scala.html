@@ -63,32 +63,37 @@
         </legend>
     }
 
-        @defining(List(
-            (OverseasAddress.line1,    "overseasAddress.line1",    "govuk-input govuk-!-width-two-thirds"),
-            (OverseasAddress.line2,    "overseasAddress.line2",    "govuk-input govuk-!-width-two-thirds"),
-            (OverseasAddress.line3,    "overseasAddress.line3",    "govuk-input govuk-!-width-two-thirds"),
-            (OverseasAddress.city,     "overseasAddress.city",     "govuk-input govuk-!-width-two-thirds"),
-            (OverseasAddress.postcode, "overseasAddress.postcode", "govuk-input--width-10"),
-            (OverseasAddress.country,  "overseasAddress.country",  "")
-        )) { rows =>
-            @rows.map { case (row, messageKey, widthClass) =>
 
-                @defining(safeId(row), safeError(row)) { case (rowId, rowError) =>
-                    <div class="govuk-form-group@if(rowError.nonEmpty){ govuk-form-group--error }">
-                        <label class="govuk-label" for="@htmlId(rowId)">
-                            @messages(messageKey, if(overseasAddress.isOptional(row)) messages("overseasAddress.optional") else "")
-                        </label>
+    @if(formComponent.helpText.nonEmpty) {
+        <div class="govuk-hint" id="@{formComponent.id.value}-hint">@{formComponent.helpText.map(_.value).getOrElse("")}</div>
+    }
 
-                        @rowError
+    @defining(List(
+        (OverseasAddress.line1,    "overseasAddress.line1",    "govuk-input govuk-!-width-two-thirds"),
+        (OverseasAddress.line2,    "overseasAddress.line2",    "govuk-input govuk-!-width-two-thirds"),
+        (OverseasAddress.line3,    "overseasAddress.line3",    "govuk-input govuk-!-width-two-thirds"),
+        (OverseasAddress.city,     "overseasAddress.city",     "govuk-input govuk-!-width-two-thirds"),
+        (OverseasAddress.postcode, "overseasAddress.postcode", "govuk-input--width-10"),
+        (OverseasAddress.country,  "overseasAddress.country",  "")
+    )) { rows =>
+        @rows.map { case (row, messageKey, widthClass) =>
 
-                        <input type="text"
-                               class="govuk-input @widthClass@if(rowError.nonEmpty){ govuk-input--error }"
-                               name="@htmlId(rowId)"
-                               id="@htmlId(rowId)"
-                               value="@fetchValue(rowId, row)" />
-                    </div>
-                }
+            @defining(safeId(row), safeError(row)) { case (rowId, rowError) =>
+                <div class="govuk-form-group@if(rowError.nonEmpty){ govuk-form-group--error }">
+                    <label class="govuk-label" for="@htmlId(rowId)">
+                        @messages(messageKey, if(overseasAddress.isOptional(row)) messages("overseasAddress.optional") else "")
+                    </label>
+
+                    @rowError
+
+                    <input type="text"
+                           class="govuk-input @widthClass@if(rowError.nonEmpty){ govuk-input--error }"
+                           name="@htmlId(rowId)"
+                           id="@htmlId(rowId)"
+                           value="@fetchValue(rowId, row)" />
+                </div>
             }
         }
+    }
 
 </fieldset>
