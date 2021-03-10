@@ -111,7 +111,9 @@
 	}
       </ul>
         @for(infoMessage <- bracket.source.infoMessage) {
-           @markDownParser(infoMessage)
+           <div class="govuk-body">
+            @markDownParser(infoMessage)
+           </div>
         }
     </div>
 

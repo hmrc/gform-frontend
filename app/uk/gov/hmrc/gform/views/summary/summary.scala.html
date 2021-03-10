@@ -83,20 +83,22 @@
             @footer
         </div>
 
-        @govukButton(Button(content = Text(messages(continueLabelKey)),
-            inputType=Some("submit"),
-            value=Some("SummaryContinue"),
-            attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue).path)
-            )
-        )
-        @if(renderComeBackLater) {
-            @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+        <div class="govuk-button-group">
+            @govukButton(Button(content = Text(messages(continueLabelKey)),
                 inputType=Some("submit"),
-                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, Exit).path),
-                classes="govuk-button--secondary"
+                value=Some("SummaryContinue"),
+                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue).path)
                 )
             )
-        }
+            @if(renderComeBackLater) {
+                @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+                    inputType=Some("submit"),
+                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, Exit).path),
+                    classes="govuk-button--secondary"
+                    )
+                )
+            }
+        </div>
 
     }
 }

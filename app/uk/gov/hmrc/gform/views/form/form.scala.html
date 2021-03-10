@@ -119,7 +119,7 @@
 
     @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
-    <div class="no-display">
+    <div style="display:none">
         @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
         @displaySaveContinueButton()
     </div>
