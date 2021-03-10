@@ -1427,6 +1427,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           } else {
             val inputType = formComponent match {
               case IsTelephone() => "tel"
+              case IsEmail()     => "email"
               case _             => "text"
             }
             val input = Input(
