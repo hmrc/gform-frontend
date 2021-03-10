@@ -100,6 +100,14 @@ object IsText {
   def unapply(fc: FormComponent): Option[Text] = fc.`type`.cast[Text]
 }
 
+object IsEmail {
+  def unapply(fc: FormComponent): Boolean =
+    fc.`type` match {
+      case Text(Email, _, _, _, _, _) => true
+      case _                          => false
+    }
+}
+
 object IsCapitalised {
   def unapply(fc: FormComponent): Boolean =
     fc.`type` match {
