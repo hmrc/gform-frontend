@@ -223,7 +223,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
   def renderSection(
     maybeAccessCode: Option[AccessCode],
-    form: Form,
     sectionNumber: SectionNumber,
     formHandlerResult: FormHandlerResult,
     formTemplate: FormTemplate,
@@ -1426,8 +1425,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             new hmrcCurrencyInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
 
           } else {
+            val inputType = formComponent match {
+              case IsTelephone() => "tel"
+              case _             => "text"
+            }
             val input = Input(
               id = formComponent.id.value,
+              inputType = inputType,
               name = formComponent.id.value,
               label = label,
               hint = hint,

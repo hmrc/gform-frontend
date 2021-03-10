@@ -49,7 +49,7 @@ trait ExampleData
     extends ExampleFormTemplate with ExampleFieldId with ExampleFieldValue with ExampleFormField with ExampleValidator
     with ExampleSection with ExampleSectionNumber with ExampleForm with ExampleAuthConfig with ExampleFrontendAppConfig
     with ExampleAuthContext with ExampleInstruction with ExampleSubmissionRef with ExampleDmsMetaData
-    with ExampleSubmission with ExampleEvaluationContext
+    with ExampleSubmission with ExampleEvaluationContext with ExampleDestination
 
 trait ExampleEvaluationContext {
   self: ExampleFormTemplate with ExampleAuthContext with ExampleAuthConfig with ExampleSubmissionRef =>
@@ -90,7 +90,9 @@ trait ExampleInstruction {
     instruction.copy(name = Some(toSmartString(name)), order = order)
 }
 
-trait ExampleAuthConfig {
+trait ExampleDestination { self: ExampleAuthConfig =>
+
+  val formComponent = List(buildFormComponent("fieldInAcknowledgementSections", Value))
 
   val hmrcDms = HmrcDms(
     DestinationId("TestHmrcDmsId"),
@@ -105,8 +107,6 @@ trait ExampleAuthConfig {
     Some(true),
     false
   )
-
-  val formComponent = List(buildFormComponent("fieldInAcknowledgementSections", Value))
 
   val ackSection =
     AcknowledgementSection(
@@ -127,6 +127,11 @@ trait ExampleAuthConfig {
 
   val decSection =
     DeclarationSection(toSmartString("declaration section"), None, None, decFormComponent)
+
+  def destinationList = DestinationList(NonEmptyList.of(hmrcDms), ackSection, decSection)
+}
+
+trait ExampleAuthConfig {
 
   def buildFormComponent(name: String, expr: Expr, instruction: Option[Instruction] = None): FormComponent =
     buildFormComponent(name, Text(TextConstraint.default, expr), instruction)
@@ -150,8 +155,6 @@ trait ExampleAuthConfig {
       Nil,
       instruction
     )
-
-  def destinationList = DestinationList(NonEmptyList.of(hmrcDms), ackSection, decSection)
 
   def regimeId = RegimeId("TestRegimeId")
 
@@ -627,7 +630,7 @@ trait ExampleValidator {
 }
 
 trait ExampleFormTemplate {
-  dependsOn: ExampleAuthConfig with ExampleSection with ExampleFieldId with ExampleFieldValue =>
+  dependsOn: ExampleAuthConfig with ExampleSection with ExampleFieldId with ExampleFieldValue with ExampleDestination =>
 
   def formTemplateId = FormTemplateId("AAA999")
 
