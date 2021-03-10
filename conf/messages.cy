@@ -163,20 +163,20 @@ internationalAddress.country.label=gwlad
 internationalAddress.country.error.maxLength={0} country must be no more than {1} characters
 
 #Overseas Address
-overseasAddress.optional=(optional)
-overseasAddress.line1=Address line 1
-overseasAddress.line2=Address line 2 {0}
-overseasAddress.line3=Address line 3 (optional)
-overseasAddress.city=Town/City {0}
-overseasAddress.postcode=Postcode {0}
-overseasAddress.country=Country
-overseasAddress.line1.label=line 1
-overseasAddress.line2.label=line 2
-overseasAddress.line3.label=line 3
-overseasAddress.city.label=town/city
-overseasAddress.postcode.label=postcode
-overseasAddress.country.label=country
-overseasAddress.error.maxLength={0} {1} must be no more than {2} characters
+overseasAddress.optional=(dewisol)
+overseasAddress.line1=Llinell Cyfeiriad 1
+overseasAddress.line2=Llinell Cyfeiriad 2 {0}
+overseasAddress.line3=Llinell Cyfeiriad 3 (dewisol)
+overseasAddress.city=Tref/ddinas {0}
+overseasAddress.postcode=Cod post {0}
+overseasAddress.country=Gwlad
+overseasAddress.line1.label=llinell 1
+overseasAddress.line2.label=llinell 2
+overseasAddress.line3.label=llinell 3
+overseasAddress.city.label=tref/ddinas
+overseasAddress.postcode.label=cod post
+overseasAddress.country.label=gwlad
+overseasAddress.error.maxLength=Rhaid i {1} {0} fod yn ddim mwy na {2} nod
 
 # Generic address
 address.isUK=Ai cyfeiriad yn y DU yw hwn?
