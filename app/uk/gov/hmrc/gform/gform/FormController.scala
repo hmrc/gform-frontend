@@ -108,7 +108,6 @@ class FormController(
             def renderSingleton(singleton: Singleton[DataExpanded], sectionNumber: SectionNumber) = Ok {
               renderer.renderSection(
                 maybeAccessCode,
-                cache.form,
                 sectionNumber,
                 handlerResult,
                 cache.formTemplate,

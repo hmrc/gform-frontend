@@ -55,6 +55,7 @@ sealed trait ComponentType {
     case _: Date               => "date"
     case _: Time               => "time"
     case _: Address            => "address"
+    case _: OverseasAddress    => "overseasAddress"
     case _: Choice             => "choice"
     case _: RevealingChoice    => "revealingChoice"
     case _: HmrcTaxPeriod      => "hmrcTaxPeriod"
@@ -117,7 +118,7 @@ case class Date(
     Date.fields(indexedComponentId)
 }
 
-case object Date {
+object Date {
   val day: Atom = Atom("day")
   val month: Atom = Atom("month")
   val year: Atom = Atom("year")
@@ -134,7 +135,7 @@ case class Address(international: Boolean) extends ComponentType with MultiField
 
 }
 
-case object Address {
+object Address {
   val street1: Atom = Atom("street1")
   val street2: Atom = Atom("street2")
   val street3: Atom = Atom("street3")
@@ -160,6 +161,105 @@ case object Address {
     summaryPageFields(formComponent.modelComponentId.indexedComponentId)
       .map(modelComponentId => formFieldValidationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
       .filter(_.trim.nonEmpty)
+}
+
+case class OverseasAddress(
+  mandatoryFields: List[OverseasAddress.Configurable.Mandatory],
+  optionalFields: List[OverseasAddress.Configurable.Optional],
+  value: Option[OverseasAddress.Value]
+) extends ComponentType with MultiField {
+  override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
+    OverseasAddress.fields(indexedComponentId)
+
+  val configurableMandatoryAtoms: Set[Atom] = mandatoryFields.map(_.toAtom).toSet
+  val configurableOptionalAtoms: Set[Atom] = optionalFields.map(_.toAtom).toSet
+
+  val allOptionalAtoms: Set[Atom] =
+    configurableOptionalAtoms ++
+      Set(OverseasAddress.line2, OverseasAddress.postcode).filterNot(configurableMandatoryAtoms) +
+      OverseasAddress.line3 // Line3 is always optional
+
+  def isOptional(atom: Atom): Boolean = allOptionalAtoms(atom)
+}
+
+object OverseasAddress {
+
+  val line1: Atom = Atom("line1")
+  val line2: Atom = Atom("line2")
+  val line3: Atom = Atom("line3")
+  val city: Atom = Atom("city")
+  val postcode: Atom = Atom("postcode")
+  val country: Atom = Atom("country")
+
+  val allAtoms: NonEmptyList[Atom] = NonEmptyList.of(line1, line2, line3, city, postcode, country)
+
+  object Configurable {
+    sealed trait Mandatory {
+      def toAtom: Atom = this match {
+        case Mandatory.Line2    => line2
+        case Mandatory.Postcode => postcode
+      }
+    }
+    object Mandatory {
+      case object Line2 extends Mandatory
+      case object Postcode extends Mandatory
+      implicit val format: OFormat[Mandatory] = derived.oformat()
+    }
+
+    sealed trait Optional {
+      def toAtom: Atom = this match {
+        case Optional.City => city
+      }
+    }
+    object Optional {
+      case object City extends Optional
+      implicit val format: OFormat[Optional] = derived.oformat()
+    }
+  }
+
+  case class Value(
+    line1: SmartString,
+    line2: SmartString,
+    line3: SmartString,
+    city: SmartString,
+    postcode: SmartString,
+    country: SmartString
+  ) {
+    def getPrepopValue(atom: Atom)(
+      implicit
+      sse: SmartStringEvaluator
+    ): String = atom match {
+      case OverseasAddress.line1    => line1.value
+      case OverseasAddress.line2    => line2.value
+      case OverseasAddress.line3    => line3.value
+      case OverseasAddress.city     => city.value
+      case OverseasAddress.postcode => postcode.value
+      case OverseasAddress.country  => country.value
+      case _                        => ""
+    }
+  }
+
+  object Value {
+    implicit val format: OFormat[Value] = derived.oformat()
+  }
+
+  implicit val format: OFormat[OverseasAddress] = derived.oformat()
+
+  val fields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] =
+    indexedComponentId => {
+      NonEmptyList
+        .of(line1, line2, line3, city, postcode, country)
+        .map(ModelComponentId.atomicCurry(indexedComponentId))
+    }
+
+  private val summaryPageFields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
+    allAtoms.map(ModelComponentId.atomicCurry(indexedComponentId))
+
+  def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult): List[String] =
+    summaryPageFields(formComponent.modelComponentId.indexedComponentId)
+      .map(modelComponentId => formFieldValidationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
+      .filter(_.trim.nonEmpty)
+
 }
 
 object DisplayWidth extends Enumeration {

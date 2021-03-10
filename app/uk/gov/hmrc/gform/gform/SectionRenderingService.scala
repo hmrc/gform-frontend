@@ -224,7 +224,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
   def renderSection(
     maybeAccessCode: Option[AccessCode],
-    form: Form,
     sectionNumber: SectionNumber,
     formHandlerResult: FormHandlerResult,
     formTemplate: FormTemplate,
@@ -340,6 +339,26 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       specimen.navigation(formTemplate, sectionNumber, pages.toList)
     } else HtmlFormat.empty
 
+  private val toErrorLink: PartialFunction[(HtmlFieldId, FormFieldValidationResult), ErrorLink] = {
+    case (multiFieldId, ffvr) if ffvr.isNotOk =>
+      ErrorLink(
+        href = Some("#" + multiFieldId.toHtmlId),
+        content = content.Text(ffvr.fieldErrors.headOption.getOrElse(""))
+      )
+  }
+
+  private def addressFieldSorted(
+    fields: NonEmptyList[ModelComponentId.Atomic],
+    data: Map[HtmlFieldId, FormFieldValidationResult]
+  ) =
+    // We need to sort errors based on elements position on screen
+    fields.toList
+      .flatMap { modelComponentId =>
+        val multiFieldId = HtmlFieldId.pure(modelComponentId)
+        data.get(multiFieldId).map(multiFieldId -> _)
+      }
+      .collect(toErrorLink)
+
   private def generatePageLevelErrorHtml(
     listValidation: List[FormFieldValidationResult],
     globalErrors: List[ErrorLink]
@@ -347,28 +366,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     implicit messages: Messages
   ): HasErrors = {
 
-    val toErrorLink: PartialFunction[(HtmlFieldId, FormFieldValidationResult), ErrorLink] = {
-      case (multiFieldId, ffvr) if ffvr.isNotOk =>
-        ErrorLink(
-          href = Some("#" + multiFieldId.toHtmlId),
-          content = content.Text(ffvr.fieldErrors.headOption.getOrElse(""))
-        )
-    }
-
     val errorsHtml: List[ErrorLink] = globalErrors ++ listValidation
       .filter(_.isNotOk)
       .flatMap { formFieldValidationResult =>
         formFieldValidationResult match {
           case ComponentField(formComponent @ IsAddress(_), data) =>
-            // We need to sort errors based on elements position on screen
-            Address
-              .fields(formComponent.modelComponentId.indexedComponentId)
-              .toList
-              .flatMap { modelComponentId =>
-                val multiFieldId = HtmlFieldId.pure(modelComponentId)
-                data.get(multiFieldId).map(multiFieldId -> _)
-              }
-              .collect(toErrorLink)
+            addressFieldSorted(Address.fields(formComponent.modelComponentId.indexedComponentId), data)
+          case ComponentField(formComponent @ IsOverseasAddress(overseasAddress), data) =>
+            addressFieldSorted(OverseasAddress.fields(formComponent.modelComponentId.indexedComponentId), data)
           case ComponentField(_, data) => data.toList.collectFirst(toErrorLink)
           case otherwise =>
             otherwise.fieldErrors
@@ -686,6 +691,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             case t @ Time(_, _) =>
               renderTime(t, formComponent, validationResult, ei)
             case Address(international) => htmlForAddress(formComponent, international, validationResult, ei)
+            case o @ OverseasAddress(_, _, _) =>
+              htmlForOverseasAddress(formComponent, o, validationResult, ei)
             case Text(Lookup(register, _), _, _, _, _, _) =>
               renderLookup(formComponent, register, validationResult, ei)
             case t @ Text(_, _, _, _, _, _) =>
@@ -1479,8 +1486,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             new hmrcCurrencyInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
 
           } else {
+            val inputType = formComponent match {
+              case IsTelephone() => "tel"
+              case _             => "text"
+            }
             val input = Input(
               id = formComponent.id.value,
+              inputType = inputType,
               name = formComponent.id.value,
               label = label,
               hint = hint,
@@ -1534,6 +1546,33 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val formFieldValidationResult = validationResult(formComponent)
     html.form.snippets
       .field_template_address(international, formComponent, formFieldValidationResult, ei.formLevelHeading)
+  }
+
+  private def htmlForOverseasAddress(
+    formComponent: FormComponent,
+    overseasAddress: OverseasAddress,
+    validationResult: ValidationResult,
+    ei: ExtraInfo
+  )(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ) = {
+    val formFieldValidationResult = validationResult(formComponent)
+
+    def fetchValue(key: HtmlFieldId, atom: Atom): String =
+      formFieldValidationResult.getOptionalCurrentValue(key).getOrElse {
+        overseasAddress.value.fold("")(_.getPrepopValue(atom))
+      }
+
+    html.form.snippets
+      .field_template_overseas_address(
+        overseasAddress,
+        formComponent,
+        formFieldValidationResult,
+        ei.formLevelHeading,
+        fetchValue)
   }
 
   private def htmlForDate(

@@ -24,7 +24,7 @@ object Dependencies {
     "com.chuusai"                  %% "shapeless"                % "2.3.3",
     "uk.gov.hmrc"                  %% "emailaddress"             % "3.3.0",
     "org.scala-graph"              %% "graph-core"               % "1.12.5",
-    "com.softwaremill.quicklens"   %% "quicklens"                % "1.4.11",
+    "com.softwaremill.quicklens"   %% "quicklens"                % "1.6.1",
     "com.nrinaudo"                 %% "kantan.csv"               % "0.5.1",
     "com.miguelfonseca.completely" % "completely-core"           % "0.8.0",
     "org.jsoup"                    % "jsoup"                     % "1.13.1",

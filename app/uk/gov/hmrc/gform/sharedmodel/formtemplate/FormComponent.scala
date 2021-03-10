@@ -136,6 +136,10 @@ object IsAddress {
   def unapply(fc: FormComponent): Option[Address] = fc.`type`.cast[Address]
 }
 
+object IsOverseasAddress {
+  def unapply(fc: FormComponent): Option[OverseasAddress] = fc.`type`.cast[OverseasAddress]
+}
+
 object IsUkSortCode {
   def unapply(fc: FormComponent): Option[UkSortCode] = fc.`type`.cast[UkSortCode]
 }
@@ -154,6 +158,14 @@ object IsFileUpload {
 
 object IsTime {
   def unapply(fc: FormComponent): Option[Time] = fc.`type`.cast[Time]
+}
+
+object IsTelephone {
+  def unapply(fc: FormComponent): Boolean =
+    fc.`type` match {
+      case Text(TelephoneNumber, _, _, _, _, _) => true
+      case _                                    => false
+    }
 }
 
 object IsEmailVerifier {

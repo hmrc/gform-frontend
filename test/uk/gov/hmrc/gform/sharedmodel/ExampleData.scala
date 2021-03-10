@@ -17,7 +17,11 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import java.time.{ LocalDateTime, LocalTime }
+
 import cats.data.NonEmptyList
+import play.api.ApplicationLoader.Context
+import play.api.i18n.Lang
+import play.api.{ Environment, Mode }
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
@@ -28,11 +32,13 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
 import uk.gov.hmrc.gform.models.{ Basic, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RevealingChoiceElement, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RevealingChoiceElement, _ }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
+import uk.gov.hmrc.hmrcfrontend.config.TrackingConsentConfig
+import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.immutable.List
@@ -43,7 +49,7 @@ trait ExampleData
     extends ExampleFormTemplate with ExampleFieldId with ExampleFieldValue with ExampleFormField with ExampleValidator
     with ExampleSection with ExampleSectionNumber with ExampleForm with ExampleAuthConfig with ExampleFrontendAppConfig
     with ExampleAuthContext with ExampleInstruction with ExampleSubmissionRef with ExampleDmsMetaData
-    with ExampleSubmission with ExampleEvaluationContext
+    with ExampleSubmission with ExampleEvaluationContext with ExampleDestination
 
 trait ExampleEvaluationContext {
   self: ExampleFormTemplate with ExampleAuthContext with ExampleAuthConfig with ExampleSubmissionRef =>
@@ -84,7 +90,9 @@ trait ExampleInstruction {
     instruction.copy(name = Some(toSmartString(name)), order = order)
 }
 
-trait ExampleAuthConfig {
+trait ExampleDestination { self: ExampleAuthConfig =>
+
+  val formComponent = List(buildFormComponent("fieldInAcknowledgementSections", Value))
 
   val hmrcDms = HmrcDms(
     DestinationId("TestHmrcDmsId"),
@@ -99,8 +107,6 @@ trait ExampleAuthConfig {
     Some(true),
     false
   )
-
-  val formComponent = List(buildFormComponent("fieldInAcknowledgementSections", Value))
 
   val ackSection =
     AcknowledgementSection(
@@ -121,6 +127,11 @@ trait ExampleAuthConfig {
 
   val decSection =
     DeclarationSection(toSmartString("declaration section"), None, None, decFormComponent)
+
+  def destinationList = DestinationList(NonEmptyList.of(hmrcDms), ackSection, decSection)
+}
+
+trait ExampleAuthConfig {
 
   def buildFormComponent(name: String, expr: Expr, instruction: Option[Instruction] = None): FormComponent =
     buildFormComponent(name, Text(TextConstraint.default, expr), instruction)
@@ -144,8 +155,6 @@ trait ExampleAuthConfig {
       Nil,
       instruction
     )
-
-  def destinationList = DestinationList(NonEmptyList.of(hmrcDms), ackSection, decSection)
 
   def regimeId = RegimeId("TestRegimeId")
 
@@ -553,7 +562,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     addAnotherQuestion: FormComponent,
     instruction: Option[Instruction],
     pages: List[Page[Basic]],
-    presentationHint: Option[PresentationHint] = None): Section.AddToList =
+    presentationHint: Option[PresentationHint] = None,
+    infoMessage: Option[String] = None): Section.AddToList =
     Section.AddToList(
       toSmartString(title),
       toSmartString(description),
@@ -564,7 +574,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       NonEmptyList.fromListUnsafe(pages),
       addAnotherQuestion,
       instruction,
-      presentationHint
+      presentationHint,
+      infoMessage.map(toSmartString)
     )
 
   def toPage(
@@ -619,7 +630,7 @@ trait ExampleValidator {
 }
 
 trait ExampleFormTemplate {
-  dependsOn: ExampleAuthConfig with ExampleSection with ExampleFieldId with ExampleFieldValue =>
+  dependsOn: ExampleAuthConfig with ExampleSection with ExampleFieldId with ExampleFieldValue with ExampleDestination =>
 
   def formTemplateId = FormTemplateId("AAA999")
 
@@ -798,13 +809,14 @@ trait ExampleAuthContext {
     Enrolments(Set())
 
 }
-import play.api.i18n.Lang
 
 trait ExampleFrontendAppConfig {
+
+  private val env: Environment = Environment.simple(mode = Mode.Test)
+  private val context = Context.create(env)
+
   val frontendAppConfig = FrontendAppConfig(
     albAdminIssuerUrl = "",
-    analyticsToken = "analyticsToken",
-    analyticsHost = "analyticsHost",
     reportAProblemPartialUrl = "http://reportProblem.url",
     reportAProblemNonJSUrl = "http://reportProblem.json.url",
     governmentGatewaySignInUrl = "http://gofernment.gateway.signin.url",
@@ -817,12 +829,11 @@ trait ExampleFrontendAppConfig {
     footerHelpUrl = "",
     footerAccessibilityStatementUrl = "",
     whitelistEnabled = true,
-    googleTagManagerIdAvailable = false,
-    googleTagManagerId = "",
     authModule = AuthModule(JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", "")),
     availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy")),
     routeToSwitchLanguage = uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage,
     contactFormServiceIdentifier = "",
-    optimizelyUrl = None
+    optimizelyUrl = None,
+    trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration))
   )
 }

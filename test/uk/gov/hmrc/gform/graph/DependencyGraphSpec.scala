@@ -58,6 +58,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     NonEmptyList.one(emptyPage),
     mkFormComponent("choice", Value),
     None,
+    None,
     None
   )
 
