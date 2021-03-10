@@ -25,6 +25,7 @@
 @import uk.gov.hmrc.gform.views.html.{main_template, specimen}
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.gform.commons.MarkDownUtil._
 
 @(
     repeater: Repeater[DataExpanded],
@@ -104,6 +105,9 @@
           </li>
 	}
       </ul>
+        @for(infoMessage <- bracket.source.infoMessage) {
+           @markDownParser(infoMessage)
+        }
     </div>
 
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
