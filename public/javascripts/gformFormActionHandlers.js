@@ -7,10 +7,8 @@
     function GformFormActionHandlers () {
       var self = this;
 
-      var submitButton = $('button.govuk-button')
-
-      function disableSubmitButton() {
-        submitButton.attr('disabled', true)
+      function disableSubmitButtons() {
+        $('button[type=submit]').attr('disabled', 'disabled')
       }
 
       function findAction ($el) {
@@ -25,20 +23,25 @@
           : "";
       }
 
-      function setAction (e, action, submit) {
-        action = action || findAction($(e.target));
-        $('#gform-action').val(action);
-        if (submit) {
+      function submitForm(e) {
           e.preventDefault();
           $('#gf-form').submit();
-          disableSubmitButton();
-        }
+          disableSubmitButtons();
       }
 
-      function handleFormSubmit(action, submit) {
+      function handleSetActionAndFormSubmit(submit) {
         return function (e) {
-          setAction(e, action, submit);
+          $('#gf-form').attr('action', findAction($(e.target)))
+          if (submit) {
+            submitForm()
+          }
         };
+      }
+
+      function handleFormSubmit() {
+        return function (e) {
+          submitForm()
+        }
       }
 
       // Set up event handlers
@@ -52,13 +55,8 @@
 
 	$("#main-content")
           .parent()
-          .on('click', 'button.govuk-button', handleFormSubmit(null, true))
-          .on('click', '.removeRepeatingSection, #addRepeatingGroup', handleFormSubmit(null, true))
-	      .on("click", '.edit-add-to-list, .remove-add-to-list', handleFormSubmit(null, true))
-          .on('click', '#backButton', handleFormSubmit('Back', true))
-          .on('click', '#saveComeBackLater', handleFormSubmit('Save', true))
-          .on('click', '#saveComeBackLaterExit', handleFormSubmit('Exit', true));
-
+          .on('click', 'button[type=submit]', handleFormSubmit())
+          .on('click', '#backButton', handleSetActionAndFormSubmit(true))
        // update any character counters with ids and aria labels
         $('.char-counter-text').each(function (i, hint) {
           var id = 'character-info-' + i;

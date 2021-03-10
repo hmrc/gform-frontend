@@ -15,22 +15,30 @@
  *@
 
 @import play.twirl.api.HtmlFormat
+@import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.models.ids.ModelComponentId
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Group
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 @import uk.gov.hmrc.govukfrontend.views.html.components.govukHint
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
+@import uk.gov.hmrc.gform.controllers.AddGroup
 
 @(
   fieldValue: FormComponent,
   maybeHelpText: Option[Hint],
   groupField: Group,
   snippets: List[Html],
-  canAddAnother: Option[ModelComponentId]
+  canAddAnother: Option[ModelComponentId],
+  formTemplateId: FormTemplateId,
+  maybeAccessCode: Option[AccessCode],
+  sectionNumber: SectionNumber
 )(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @repeatCount = @{groupField.repeatsMin.getOrElse(0)}
+@govukButton = @{new govukButton()}
 
 @label = @{
   fieldValue.label.value
@@ -48,10 +56,13 @@
 
   @snippets
 
+  @formAction(prefix: String, mongoIdentifier: String) = @{ prefix + "-" + mongoIdentifier }
+
   @canAddAnother.fold(HtmlFormat.empty){ modelComponentId =>
-    <a id="addRepeatingGroup" class="govuk-link" href="AddGroup-@modelComponentId.toMongoIdentifier">
-      @groupField.repeatAddAnotherText.map(ls=>ls.value).getOrElse(messages("linkText.addRepeatingGroup"))
-    </a>
+    @govukButton(Button(content = Text(groupField.repeatAddAnotherText.map(ls => ls.value).getOrElse(messages("linkText.addRepeatingGroup"))),
+        inputType=Some("submit"),
+        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplateId, maybeAccessCode, sectionNumber, FastForward.Yes, AddGroup(modelComponentId)).path),
+        classes="link"))
   }
 
 </div>

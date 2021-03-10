@@ -16,12 +16,11 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import uk.gov.hmrc.gform.models.{ Bracket, ExpandUtils, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.{ Bracket, Visibility }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.http.BadRequestException
 
 trait Navigation {
 
@@ -68,8 +67,11 @@ case class Origin(formModelOptics: FormModelOptics[DataOrigin.Browser]) extends 
 sealed trait Direction
 
 case object SaveAndContinue extends Direction
-case class Back(sectionNumber: SectionNumber) extends Direction
+case object Back extends Direction
 case object SaveAndExit extends Direction
+case object Exit extends Direction
+case object SummaryContinue extends Direction
+case object Continue extends Direction
 case class AddGroup(modelComponentId: ModelComponentId) extends Direction
 case class RemoveGroup(modelComponentId: ModelComponentId) extends Direction
 case class RemoveAddToList(idx: Int, addToListId: AddToListId) extends Direction
@@ -87,27 +89,9 @@ case class Navigator(
     sectionNumber <= maxSectionNumber,
     s"section number is too big: ${sectionNumber.value} is not <= $maxSectionNumber")
 
-  val AddGroupR = "AddGroup-(.*)".r.unanchored
-  val RemoveGroupR = "RemoveGroup-(.*)".r.unanchored
-  val RemoveAddToListR = "RemoveAddToList-(\\d*)-(.*)".r.unanchored
-  val EditAddToListR = "EditAddToList-(\\d*)-(.*)".r.unanchored
-
-  def navigate: Direction = actionValue match {
-    case "Save"                   => SaveAndExit
-    case "Continue"               => SaveAndContinue
-    case "Back"                   => Back(previousOrCurrentSectionNumber)
-    case AddGroupR(x)             => AddGroup(ExpandUtils.toModelComponentId(x))
-    case RemoveGroupR(x)          => RemoveGroup(ExpandUtils.toModelComponentId(x))
-    case RemoveAddToListR(idx, x) => RemoveAddToList(idx.toInt, AddToListId(FormComponentId(x)))
-    case EditAddToListR(idx, x)   => EditAddToList(idx.toInt, AddToListId(FormComponentId(x)))
-    case other                    => throw new BadRequestException(s"Invalid action: $other")
-  }
-
-  private def actionValue: String = requestRelatedData.get("save")
-
   private lazy val maxSectionNumber: SectionNumber = availableSectionNumbers.max(Ordering.by((_: SectionNumber).value))
 
-  private val previousOrCurrentSectionNumber: SectionNumber =
+  val previousOrCurrentSectionNumber: SectionNumber =
     filteredSectionNumbers(sectionNumber).reverse
       .find(_ < sectionNumber)
       .getOrElse(sectionNumber)

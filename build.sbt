@@ -32,6 +32,7 @@ lazy val microservice = (project in file("."))
     evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
     routesImport ++= Seq(
       "uk.gov.hmrc.gform.binders.ValueClassBinder._",
+      "uk.gov.hmrc.gform.controllers.Direction",
       "uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations._",
       "uk.gov.hmrc.gform.sharedmodel.formtemplate._",
       "uk.gov.hmrc.gform.models.ids._",

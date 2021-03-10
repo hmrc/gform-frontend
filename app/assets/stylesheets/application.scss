@@ -62,3 +62,27 @@ $hmrc-assets-path: "/submissions/assets/lib/hmrc-frontend/hmrc/";
     width: 75%;
   }
 }
+
+button.link {
+    font-size: 1em;
+    text-align: left;
+    color: #1d70b8;
+    background: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    box-shadow: none;
+    text-decoration: underline;
+    -moz-user-select: text;
+}
+
+button.link:hover {
+    color: #002A6D;
+    background: none;
+    box-shadow: none;
+}
+
+.no-display {
+    display: none;
+}

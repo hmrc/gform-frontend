@@ -15,17 +15,27 @@
  *@
 
 @import uk.gov.hmrc.gform.models.ids.ModelComponentId
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.controllers.RemoveGroup
 
 @(
+    formTemplateId: FormTemplateId,
     label: String,
-    removeButton: Option[ModelComponentId]
+    removeButton: Option[ModelComponentId],
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber
 )(
     implicit
     messages: Messages
 )
 
-@removeButton.fold(HtmlFormat.empty){ modelComponentId =>
-  <a class="removeRepeatingSection govuk-link" href="RemoveGroup-@modelComponentId.toMongoIdentifier">
-    @messages("linkText.removeRepeatedGroup", label)
-  </a>
+@govukButton = @{new govukButton()}
+
+@removeButton.fold(HtmlFormat.empty) { modelComponentId =>
+    @govukButton(Button(content = Text(messages("linkText.removeRepeatedGroup", label)),
+        inputType=Some("submit"),
+        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplateId, maybeAccessCode, sectionNumber, FastForward.Yes, RemoveGroup(modelComponentId)).path),
+        classes="link"))
 }

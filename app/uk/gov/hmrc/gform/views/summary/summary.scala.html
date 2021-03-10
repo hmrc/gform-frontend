@@ -27,6 +27,7 @@
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.gform.controllers.{Exit, SummaryContinue}
 
 @(
     formTemplate: FormTemplate,
@@ -70,7 +71,7 @@
 
     @reviewerComments.map(c => alert(messages("summary.alert.title"), c))
 
-    @formWithCSRF(action = SummaryController.submit(formTemplate._id, maybeAccessCode), args =  'method -> "POST", 'class -> "js-form govuk-!-margin-bottom-9", 'autocomplete -> "off", 'novalidate -> "novalidate", 'id -> "gf-form") {
+    @formWithCSRF(action = SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue), args =  'method -> "POST", 'class -> "js-form govuk-!-margin-bottom-9", 'autocomplete -> "off", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
         @if(summaryPagePurpose.forUser) {
             @CSRF.formField
@@ -82,14 +83,19 @@
             @footer
         </div>
 
-        <input type="hidden" id="gform-action" name="save" value="" />
-
-        @govukButton(Button(content = Text(messages(continueLabelKey)), value=Some("SummaryContinue"), inputType = Some("submit")))
-
+        @govukButton(Button(content = Text(messages(continueLabelKey)),
+            inputType=Some("submit"),
+            value=Some("SummaryContinue"),
+            attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue).path)
+            )
+        )
         @if(renderComeBackLater) {
-            <p class="govuk-body">
-                <a href="#" id="saveComeBackLaterExit" class="govuk-link">@messages("linkText.saveAndComeBackLater")</a>
-            </p>
+            @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+                inputType=Some("submit"),
+                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, Exit).path),
+                classes="govuk-button--secondary"
+                )
+            )
         }
 
     }

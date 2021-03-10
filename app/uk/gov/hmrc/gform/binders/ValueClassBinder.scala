@@ -19,8 +19,9 @@ package uk.gov.hmrc.gform.binders
 import cats.implicits._
 import play.api.libs.json._
 import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
+import uk.gov.hmrc.gform.controllers.{ AddGroup, Back, Direction, EditAddToList, Exit, RemoveAddToList, RemoveGroup, SaveAndContinue, SaveAndExit, SummaryContinue }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.{ FastForward, LookupQuery }
+import uk.gov.hmrc.gform.models.{ ExpandUtils, FastForward, LookupQuery }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId, FormStatus }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
@@ -32,11 +33,9 @@ object ValueClassBinder {
   implicit val lookupQueryBinder: QueryStringBindable[LookupQuery] =
     new QueryStringBindable[LookupQuery] {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, LookupQuery]] =
-        params.get(key).flatMap(_.headOption).map { value =>
-          value match {
-            case "" => LookupQuery.Empty.asRight
-            case v  => LookupQuery.Value(v).asRight
-          }
+        params.get(key).flatMap(_.headOption).map {
+          case "" => LookupQuery.Empty.asRight
+          case v  => LookupQuery.Value(v).asRight
         }
 
       override def unbind(key: String, lookupQuery: LookupQuery): String =
@@ -58,6 +57,50 @@ object ValueClassBinder {
       Try { SectionNumber(value.toInt) }.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value.toString
   }
+
+  implicit val formDirectionQueryBindable: QueryStringBindable[Direction] =
+    new QueryStringBindable[Direction] {
+
+      val AddGroupR = "AddGroup-(.*)".r.unanchored
+      val RemoveGroupR = "RemoveGroup-(.*)".r.unanchored
+      val EditAddToListR = "EditAddToList-(\\d*)-(.*)".r.unanchored
+      val RemoveAddToListR = "RemoveAddToList-(\\d*)-(.*)".r.unanchored
+
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Direction]] =
+        params.get(key).flatMap(_.headOption).map {
+          case "Save"            => Right(SaveAndExit)
+          case "Back"            => Right(Back)
+          case "SaveAndContinue" => Right(SaveAndContinue)
+          case "Exit"            => Right(Exit)
+          case "Continue"        => Right(uk.gov.hmrc.gform.controllers.Continue)
+          case "SummaryContinue" => Right(SummaryContinue)
+          case AddGroupR(x)      => Right(AddGroup(ExpandUtils.toModelComponentId(x)))
+          case RemoveGroupR(x)   => Right(RemoveGroup(ExpandUtils.toModelComponentId(x)))
+          case EditAddToListR(idx, fcId) =>
+            Right(EditAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
+          case RemoveAddToListR(idx, fcId) =>
+            Right(RemoveAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
+          case unknown => throw new IllegalArgumentException(s"Query param $key has invalid value $unknown")
+        }
+
+      override def unbind(key: String, direction: Direction): String = {
+        val value = direction match {
+          case SaveAndExit                            => "Save"
+          case Back                                   => "Back"
+          case SaveAndContinue                        => "SaveAndContinue"
+          case Exit                                   => "Exit"
+          case uk.gov.hmrc.gform.controllers.Continue => "Continue"
+          case SummaryContinue                        => "SummaryContinue"
+          case AddGroup(modelComponentId)             => s"AddGroup-${modelComponentId.toMongoIdentifier}"
+          case RemoveGroup(modelComponentId)          => s"RemoveGroup-${modelComponentId.toMongoIdentifier}"
+          case EditAddToList(idx: Int, addToListId: AddToListId) =>
+            s"EditAddToList-$idx-${addToListId.formComponentId.value}"
+          case RemoveAddToList(idx: Int, addToListId: AddToListId) =>
+            s"RemoveAddToList-$idx-${addToListId.formComponentId.value}"
+        }
+        s"$key=$value"
+      }
+    }
 
   implicit val formStatusBinder: PathBindable[FormStatus] = new PathBindable[FormStatus] {
     override def bind(key: String, value: String): Either[String, FormStatus] =
@@ -104,12 +147,10 @@ object ValueClassBinder {
     new QueryStringBindable[SuppressErrors] {
 
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, SuppressErrors]] =
-        params.get(key).flatMap(_.headOption).map { value =>
-          value match {
-            case SuppressErrors.seYes => SuppressErrors.Yes.asRight
-            case SuppressErrors.seNo  => SuppressErrors.No.asRight
-            case _                    => s"No valid value in path $key: $value".asLeft
-          }
+        params.get(key).flatMap(_.headOption).map {
+          case SuppressErrors.seYes => SuppressErrors.Yes.asRight
+          case SuppressErrors.seNo  => SuppressErrors.No.asRight
+          case value                => s"No valid value in path $key: $value".asLeft
         }
 
       override def unbind(key: String, suppressErrors: SuppressErrors): String =
@@ -120,14 +161,12 @@ object ValueClassBinder {
     new QueryStringBindable[FastForward] {
 
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, FastForward]] =
-        params.get(key).flatMap(_.headOption).map { value =>
-          value match {
-            case FastForward.ffYes => FastForward.Yes.asRight
-            case maybeSectionNumber =>
-              Try(maybeSectionNumber.toInt).toOption
-                .fold[Either[String, FastForward]](s"No valid value in path $key: $value".asLeft)(sn =>
-                  FastForward.StopAt(SectionNumber(sn)).asRight)
-          }
+        params.get(key).flatMap(_.headOption).map {
+          case FastForward.ffYes => FastForward.Yes.asRight
+          case value @ maybeSectionNumber =>
+            Try(maybeSectionNumber.toInt).toOption
+              .fold[Either[String, FastForward]](s"No valid value in path $key: $value".asLeft)(sn =>
+                FastForward.StopAt(SectionNumber(sn)).asRight)
         }
 
       override def unbind(key: String, fastForward: FastForward): String =
