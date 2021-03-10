@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.ControllersModule
+import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.play.bootstrap.config.DefaultHttpAuditEvent
@@ -37,7 +38,22 @@ import uk.gov.hmrc.play.bootstrap.filters.{ CacheControlConfig, CacheControlFilt
 
 import scala.concurrent.ExecutionContext
 
+import uk.gov.hmrc.crypto._
+
+class AnonoymousSessionCookieCryptoFilter(
+  sessionCookieCrypto: SessionCookieCrypto,
+  val sessionBaker: SessionCookieBaker
+)(
+  implicit
+  override val mat: Materializer,
+  override val ec: ExecutionContext)
+    extends SessionCookieCryptoFilter {
+  override protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
+  override protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
+}
+
 class FrontendFiltersModule(
+  gformBackendModule: GformBackendModule,
   applicationCrypto: ApplicationCrypto,
   playBuiltInsModule: PlayBuiltInsModule,
   akkaModule: AkkaModule,
@@ -46,7 +62,8 @@ class FrontendFiltersModule(
   metricsModule: MetricsModule,
   controllersModule: ControllersModule,
   csrfComponents: CSRFComponents,
-  sessionCookieBaker: SessionCookieBaker
+  anonoymousSessionCookieBaker: SessionCookieBaker,
+  nonAnonoymousSessionCookieBaker: SessionCookieBaker
 )(implicit ec: ExecutionContext) { self =>
   private implicit val materializer: Materializer = akkaModule.materializer
 
@@ -58,11 +75,18 @@ class FrontendFiltersModule(
     override val maskedFormFields = Seq("password")
   }
 
-  private val cookieCryptoFilter: SessionCookieCryptoFilter = {
+  private val nonAnonoymousSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
     val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
 
-    new DefaultSessionCookieCryptoFilter(sessionCookieCrypto, sessionCookieBaker)
+    new DefaultSessionCookieCryptoFilter(sessionCookieCrypto, nonAnonoymousSessionCookieBaker)
+  }
+
+  private val anonoymousSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
+    val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
+    val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
+
+    new AnonoymousSessionCookieCryptoFilter(sessionCookieCrypto, anonoymousSessionCookieBaker)
   }
 
   private val cacheControlFilter: CacheControlFilter = {
@@ -89,7 +113,21 @@ class FrontendFiltersModule(
 
   private val allowListFilter = new AllowlistFilter(configModule.playConfiguration, materializer)
 
-  private val sessionIdFilter = new SessionIdFilter(materializer, ec, sessionCookieBaker)
+  private val sessionIdFilter = new SessionIdFilter(materializer, ec, nonAnonoymousSessionCookieBaker)
+
+  private val gformSessionCookieCryptoFilter = {
+    val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
+    val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
+
+    new GformSessionCookieCryptoFilter(
+      sessionCookieCrypto,
+      nonAnonoymousSessionCookieCryptoFilter,
+      anonoymousSessionCookieCryptoFilter,
+      nonAnonoymousSessionCookieBaker,
+      gformBackendModule.gformConnector,
+      configModule.typesafeConfig
+    )
+  }
 
   lazy val httpFilters: Seq[EssentialFilter] = new FrontendFilters(
     configModule.playConfiguration,
@@ -100,7 +138,7 @@ class FrontendFiltersModule(
     metricsModule.metricsFilter,
     deviceIdFilter,
     csrfComponents.csrfFilter,
-    cookieCryptoFilter,
+    gformSessionCookieCryptoFilter,
     sessionTimeoutFilter,
     cacheControlFilter,
     mdcFilter,
