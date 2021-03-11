@@ -86,10 +86,11 @@ class FormDataHelpersSpec extends Spec {
 
     val continuationFunction = (requestRelatedData: RequestRelatedData) =>
       (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
-        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](Map(
-          ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("formField1"))) -> VariadicValue.One("value1\n23")))
+        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+          Map(ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("formField1"))) -> VariadicValue.One(
+            "value1\n23")))
         Future.successful(Results.Ok)
-      }
+    }
 
     val future = FormDataHelpers.processResponseDataFromBody(request, formModel)(continuationFunction)
     future.futureValue shouldBe Results.Ok
@@ -112,8 +113,7 @@ class FormDataHelpersSpec extends Spec {
       StandaloneSumInfo.empty
     )
     lazy val requestBodyParams = Map("formField1" -> Seq("value1"), "actionField" -> Seq("save"))
-    lazy val request = FakeRequest().withBody(
-      AnyContentAsFormUrlEncoded(requestBodyParams))
+    lazy val request = FakeRequest().withBody(AnyContentAsFormUrlEncoded(requestBodyParams))
   }
 
 }
