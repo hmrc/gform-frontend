@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.playcomponents
 
 import _root_.akka.stream.Materializer
 import cats.syntax.eq._
-import com.typesafe.config.Config
 import play.api.mvc._
 import play.api.routing.Router.RequestImplicits._
 import uk.gov.hmrc.crypto.{ Crypted, Decrypter, Encrypter, PlainText }
@@ -32,13 +31,12 @@ import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.{ SessionCookieCrypto,
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class GformSessionCookieCryptoFilter(
+class SessionCookieDispatcherFilter(
   sessionCookieCrypto: SessionCookieCrypto,
-  nonanonymouscookieCryptoFilter: SessionCookieCryptoFilter,
+  hmrcCookieCryptoFilter: SessionCookieCryptoFilter,
   anonymousCookieCryptoFilter: SessionCookieCryptoFilter,
   val sessionBaker: SessionCookieBaker,
-  gformConnector: GformConnector,
-  config: Config
+  gformConnector: GformConnector
 )(implicit override val ec: ExecutionContext, override val mat: Materializer)
     extends SessionCookieCryptoFilter {
 
@@ -46,7 +44,7 @@ class GformSessionCookieCryptoFilter(
   override protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
 
   private val AnonymousAuthConfig = "anonymous"
-  private val NonAnonymousAuthConfig = "nonanonymous"
+  private val HmrcAuthConfig = "hmrc"
 
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
@@ -55,7 +53,7 @@ class GformSessionCookieCryptoFilter(
     val formTemplateIdParamIndex: Option[Int] = {
       val handlerDefPath = rh.handlerDef.map(_.path.replaceFirst("/submissions", "/submissions/"))
       val mayContainsFormTemplateId: Option[Array[Boolean]] =
-        handlerDefPath.map(_.split("/")).map(v => v.map(v2 => v2.containsSlice("$formTemplateId")))
+        handlerDefPath.map(_.split("/")).map(_.map(_.containsSlice("$formTemplateId")))
       mayContainsFormTemplateId.map(_.indexOf(true))
     }
 
@@ -78,8 +76,8 @@ class GformSessionCookieCryptoFilter(
                 encrypter.encrypt(PlainText(AnonymousAuthConfig)))
             case _ =>
               (
-                nonanonymouscookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
-                encrypter.encrypt(PlainText(NonAnonymousAuthConfig)))
+                hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
+                encrypter.encrypt(PlainText(HmrcAuthConfig)))
           }
         result.map(_.withCookies(Cookie(authConfigCookieName, cookieValue.value)))
 
@@ -87,7 +85,7 @@ class GformSessionCookieCryptoFilter(
         if (decrypter.decrypt(authconfigCookieValue).value === AnonymousAuthConfig)
           anonymousCookieCryptoFilter(next)(rh)
         else
-          nonanonymouscookieCryptoFilter(next)(rh)
+          hmrcCookieCryptoFilter(next)(rh)
     }
   }
 }

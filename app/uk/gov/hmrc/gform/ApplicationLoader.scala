@@ -111,7 +111,7 @@ class ApplicationModule(context: Context)
 
   private val lookupRegistry = new LookupRegistry(new uk.gov.hmrc.gform.LookupLoader().registerLookup)
 
-  private val nonAnonymousSessionCookieBaker: SessionCookieBaker = {
+  private val hmrcSessionCookieBaker: SessionCookieBaker = {
     val httpConfiguration: HttpConfiguration =
       new HttpConfiguration.HttpConfigurationProvider(configModule.playConfiguration, configModule.environment).get
 
@@ -139,7 +139,7 @@ class ApplicationModule(context: Context)
     playBuiltInsModule,
     auditingModule,
     this,
-    nonAnonymousSessionCookieBaker,
+    hmrcSessionCookieBaker,
     errResponder,
     graphModule,
     wSHttpModule
@@ -200,7 +200,7 @@ class ApplicationModule(context: Context)
     controllersModule,
     this,
     anonymousSessionCookieBaker,
-    nonAnonymousSessionCookieBaker
+    hmrcSessionCookieBaker
   )
 
   private val routingModule = new RoutingModule(

@@ -63,7 +63,7 @@ class FrontendFiltersModule(
   controllersModule: ControllersModule,
   csrfComponents: CSRFComponents,
   anonoymousSessionCookieBaker: SessionCookieBaker,
-  nonAnonoymousSessionCookieBaker: SessionCookieBaker
+  hmrcSessionCookieBaker: SessionCookieBaker
 )(implicit ec: ExecutionContext) { self =>
   private implicit val materializer: Materializer = akkaModule.materializer
 
@@ -75,11 +75,11 @@ class FrontendFiltersModule(
     override val maskedFormFields = Seq("password")
   }
 
-  private val nonAnonoymousSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
+  private val hmrcSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
     val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
 
-    new DefaultSessionCookieCryptoFilter(sessionCookieCrypto, nonAnonoymousSessionCookieBaker)
+    new DefaultSessionCookieCryptoFilter(sessionCookieCrypto, hmrcSessionCookieBaker)
   }
 
   private val anonoymousSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
@@ -113,19 +113,18 @@ class FrontendFiltersModule(
 
   private val allowListFilter = new AllowlistFilter(configModule.playConfiguration, materializer)
 
-  private val sessionIdFilter = new SessionIdFilter(materializer, ec, nonAnonoymousSessionCookieBaker)
+  private val sessionIdFilter = new SessionIdFilter(materializer, ec, hmrcSessionCookieBaker)
 
-  private val gformSessionCookieCryptoFilter = {
+  private val sessionCookieDispatcherFilter = {
     val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
 
-    new GformSessionCookieCryptoFilter(
+    new SessionCookieDispatcherFilter(
       sessionCookieCrypto,
-      nonAnonoymousSessionCookieCryptoFilter,
+      hmrcSessionCookieCryptoFilter,
       anonoymousSessionCookieCryptoFilter,
-      nonAnonoymousSessionCookieBaker,
-      gformBackendModule.gformConnector,
-      configModule.typesafeConfig
+      hmrcSessionCookieBaker,
+      gformBackendModule.gformConnector
     )
   }
 
@@ -138,7 +137,7 @@ class FrontendFiltersModule(
     metricsModule.metricsFilter,
     deviceIdFilter,
     csrfComponents.csrfFilter,
-    gformSessionCookieCryptoFilter,
+    sessionCookieDispatcherFilter,
     sessionTimeoutFilter,
     cacheControlFilter,
     mdcFilter,
