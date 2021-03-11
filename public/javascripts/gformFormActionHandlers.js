@@ -33,14 +33,14 @@
         return function (e) {
           $('#gf-form').attr('action', findAction($(e.target)))
           if (submit) {
-            submitForm()
+            submitForm(e)
           }
         };
       }
 
       function handleFormSubmit() {
         return function (e) {
-          submitForm()
+          submitForm(e)
         }
       }
 
