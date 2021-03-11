@@ -47,23 +47,26 @@ class GformSessionCookieCryptoFilter(
 
   private val AnonymousAuthConfig = "anonymous"
   private val NonAnonymousAuthConfig = "nonanonymous"
-  private val FormTemplateIdClass = "uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId"
 
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
     lazy val authconfigCookieValue = Crypted(rh.cookies.get(authConfigCookieName).fold("")(_.value))
 
-    val isPathParameterFormTemplateIdExists = rh.handlerDef.exists { hd =>
-      hd.parameterTypes.exists { _.getName() === FormTemplateIdClass }
+    val formTemplateIdParamIndex: Option[Int] = {
+      val handlerDefPath = rh.handlerDef.map(_.path.replaceFirst("/submissions", "/submissions/"))
+      val mayContainsFormTemplateId: Option[Array[Boolean]] =
+        handlerDefPath.map(_.split("/")).map(v => v.map(v2 => v2.containsSlice("$formTemplateId")))
+      mayContainsFormTemplateId.map(_.indexOf(true))
     }
 
-    val maybeFormTemplate: Future[Either[Unit, FormTemplate]] =
-      if (isPathParameterFormTemplateIdExists) {
-        val templateId = rh.uri.split("/")(3)
+    val maybeFormTemplate: Future[Either[Unit, FormTemplate]] = formTemplateIdParamIndex match {
+      case Some(i) if i =!= -1 =>
+        val templateId = rh.uri.split("/")(i)
         implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(rh.headers, Some(rh.session))
         gformConnector.getFormTemplate(FormTemplateId(templateId)).map(Right(_))
-      } else
+      case _ =>
         Future.successful(Left(()))
+    }
 
     maybeFormTemplate.flatMap {
       case Right(formTemplate) =>
