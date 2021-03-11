@@ -83,6 +83,13 @@ button.link:hover {
     box-shadow: none;
 }
 
-.no-display {
-    display: none;
+button.link:active {
+    color: #002A6D;
+    background: none;
+    box-shadow: none;
+}
+
+button.defaultsink {
+    position: absolute;
+    left: -100%;
 }
