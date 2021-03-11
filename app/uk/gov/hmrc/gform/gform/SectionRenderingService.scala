@@ -279,17 +279,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val originSection = Origin(DataOrigin.unSwapDataOrigin(formModelOptics)).minSectionNumber
     val renderUnits: List[RenderUnit] = page.renderUnits
     val snippetsForFields = renderUnits
-      .map(
-        renderUnit =>
-          htmlFor(
-            renderUnit,
-            formTemplate._id,
-            ei,
-            validationResult,
-            obligations,
-            formModelOptics,
-            maybeAccessCode,
-            sectionNumber))
+      .map(renderUnit => htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations))
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -444,17 +434,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val declarationPage = singleton.page
 
     val listResult = validationResult.formFieldValidationResults(singleton)
-    val snippets = declarationPage.renderUnits.map(
-      renderUnit =>
-        htmlFor(
-          renderUnit,
-          formTemplate._id,
-          ei,
-          validationResult,
-          obligations = NotChecked,
-          formModelOptics,
-          maybeAccessCode,
-          SectionNumber(0)))
+    val snippets = declarationPage.renderUnits.map(renderUnit =>
+      htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
@@ -548,17 +529,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       }
 
     val formCategory = formTemplate.formCategory
-    val snippets = destinationList.acknowledgementSection.toPage.renderUnits.map(
-      renderUnit =>
-        htmlFor(
-          renderUnit,
-          formTemplate._id,
-          ei,
-          ValidationResult.empty,
-          obligations = NotChecked,
-          formModelOptics,
-          maybeAccessCode,
-          SectionNumber(0)))
+    val snippets = destinationList.acknowledgementSection.toPage.renderUnits.map(renderUnit =>
+      htmlFor(renderUnit, formTemplate._id, ei, ValidationResult.empty, obligations = NotChecked))
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -612,15 +584,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val listResult = validationResult.formFieldValidationResults(singleton)
     val snippets =
       page.renderUnits.map { renderUnit =>
-        htmlFor(
-          renderUnit,
-          formTemplate._id,
-          ei,
-          validationResult,
-          obligations = NotChecked,
-          formModelOptics,
-          maybeAccessCode,
-          SectionNumber(0))
+        htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked)
       }
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, globalErrors)
     val renderingInfo = SectionRenderingInformation(
@@ -659,10 +623,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formTemplateId: FormTemplateId,
     ei: ExtraInfo,
     validationResult: ValidationResult,
-    obligations: Obligations,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    maybeAccessCode: Option[AccessCode],
-    sectionNumber: SectionNumber
+    obligations: Obligations
   )(
     implicit
     request: RequestHeader,
@@ -673,11 +634,11 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     renderUnit.fold {
       case RenderUnit.Pure(formComponent) =>
         val isVisible = formComponent.includeIf.fold(true) { includeIf =>
-          formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+          ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
         }
 
         if (!isVisible) {
-          val formField = formModelOptics.formModelRenderPageOptics.toFormField(formComponent.modelComponentId)
+          val formField = ei.formModelOptics.formModelRenderPageOptics.toFormField(formComponent.modelComponentId)
           html.form.snippets.hidden_field(formField)
         } else {
 
@@ -718,9 +679,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
                 options,
                 validationResult,
                 ei,
-                obligations,
-                maybeAccessCode,
-                sectionNumber)
+                obligations)
             case FileUpload() =>
               htmlForFileUpload(formComponent, formTemplateId, ei, ei.retrievals, validationResult)
             case InformationMessage(infoType, infoText) =>
@@ -731,7 +690,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         }
     } {
       case r @ RenderUnit.Group(_, _) =>
-        htmlForGroup(r, formTemplateId, ei, validationResult, obligations, maybeAccessCode, sectionNumber)
+        htmlForGroup(r, formTemplateId, ei, validationResult, obligations)
     }
 
   private def htmlForHmrcTaxPeriod(
@@ -1048,9 +1007,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     options: List[RevealingChoiceElement],
     validationResult: ValidationResult,
     extraInfo: ExtraInfo,
-    obligations: Obligations,
-    maybeAccessCode: Option[AccessCode],
-    sectionNumber: SectionNumber
+    obligations: Obligations
   )(
     implicit
     request: RequestHeader,
@@ -1078,17 +1035,15 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           index =>
             o.revealingFields
               .filterNot(_.onlyShowOnSummary)
-              .map(fc =>
-                htmlFor(
-                  RenderUnit.pure(fc),
-                  formTemplateId,
-                  nestedEi(controlledBy)(index),
-                  validationResult,
-                  obligations = obligations,
-                  extraInfo.formModelOptics,
-                  maybeAccessCode,
-                  sectionNumber
-              ))
+              .map(
+                fc =>
+                  htmlFor(
+                    RenderUnit.pure(fc),
+                    formTemplateId,
+                    nestedEi(controlledBy)(index),
+                    validationResult,
+                    obligations = obligations
+                ))
 
         val maybeRevealingFieldsHtml: FormComponentId => Int => Option[NonEmptyList[Html]] = controlledBy =>
           index =>
@@ -1762,9 +1717,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formTemplateId: FormTemplateId,
     ei: ExtraInfo,
     validationResult: ValidationResult,
-    obligations: Obligations,
-    maybeAccessCode: Option[AccessCode],
-    sectionNumber: SectionNumber
+    obligations: Obligations
   )(
     implicit
     request: RequestHeader,
@@ -1784,15 +1737,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val lhtml =
       renderUnitGroup.formComponents.toList.flatMap {
         case (group, formComponent) =>
-          getGroupForRendering(
-            formComponent,
-            formTemplateId,
-            group,
-            validationResult,
-            ei,
-            obligations,
-            maybeAccessCode,
-            sectionNumber)
+          getGroupForRendering(formComponent, formTemplateId, group, validationResult, ei, obligations)
       }
 
     html.form.snippets.group(
@@ -1802,8 +1747,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       lhtml,
       canAddAnother,
       formTemplateId,
-      maybeAccessCode,
-      sectionNumber)
+      ei.maybeAccessCode,
+      ei.sectionNumber)
   }
 
   private def getGroupForRendering(
@@ -1812,9 +1757,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     group: Group,
     validationResult: ValidationResult,
     ei: ExtraInfo,
-    obligations: Obligations,
-    maybeAccessCode: Option[AccessCode],
-    sectionNumber: SectionNumber
+    obligations: Obligations
   )(
     implicit
     request: RequestHeader,
@@ -1828,17 +1771,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
       val isLast = !ei.formModelOptics.pageOpticsData.contains(formComponent.modelComponentId.increment)
 
-      val lhtml = group.fields.map(
-        formComponent =>
-          htmlFor(
-            RenderUnit.pure(formComponent),
-            formTemplateId,
-            ei,
-            validationResult,
-            obligations = obligations,
-            ei.formModelOptics,
-            maybeAccessCode,
-            sectionNumber))
+      val lhtml = group.fields.map(formComponent =>
+        htmlFor(RenderUnit.pure(formComponent), formTemplateId, ei, validationResult, obligations = obligations))
 
       val removeButton: Option[ModelComponentId] =
         if (group.repeatsMax.getOrElse(0) === group.repeatsMin.getOrElse(0) ||
@@ -1848,7 +1782,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       val label = group.repeatLabel.map(_.value).getOrElse("")
 
       val removeButtonHtml =
-        html.form.snippets.delete_group_link(formTemplateId, label, removeButton, maybeAccessCode, sectionNumber)
+        html.form.snippets.delete_group_link(formTemplateId, label, removeButton, ei.maybeAccessCode, ei.sectionNumber)
 
       val dividerHtml = html.form.snippets.divider()
 
@@ -1866,17 +1800,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     } else {
       val htmls =
-        group.fields.map(
-          formComponent =>
-            htmlFor(
-              RenderUnit.pure(formComponent),
-              formTemplateId,
-              ei,
-              validationResult,
-              obligations = obligations,
-              ei.formModelOptics,
-              maybeAccessCode,
-              sectionNumber))
+        group.fields.map(formComponent =>
+          htmlFor(RenderUnit.pure(formComponent), formTemplateId, ei, validationResult, obligations = obligations))
       htmls
     }
 
