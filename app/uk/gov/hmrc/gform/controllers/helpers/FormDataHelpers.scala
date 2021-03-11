@@ -45,7 +45,7 @@ object FormDataHelpers {
           (field, values.map(value => {
             val matches = invisibleCharMatches(value)
             if (matches.isEmpty) {
-              value.trim
+              trimAndReplaceCRLFWithLF(value)
             } else {
               logger.info(
                 s"Found invisible characters in field $field. " +
@@ -64,6 +64,8 @@ object FormDataHelpers {
       case None =>
         Future.successful(BadRequest("Cannot parse body as FormUrlEncoded"))
     }
+
+  private def trimAndReplaceCRLFWithLF(value: String) = value.trim.replaceAll("\r\n", "\n")
 
   def get(data: Map[FormComponentId, Seq[String]], id: FormComponentId): List[String] =
     data.get(id).toList.flatten
