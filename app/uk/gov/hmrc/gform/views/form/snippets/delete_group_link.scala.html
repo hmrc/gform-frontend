@@ -36,6 +36,6 @@
 @removeButton.fold(HtmlFormat.empty) { modelComponentId =>
     @govukButton(Button(content = Text(messages("linkText.removeRepeatedGroup", label)),
         inputType=Some("submit"),
-        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplateId, maybeAccessCode, sectionNumber, FastForward.Yes, RemoveGroup(modelComponentId)).path),
+        attributes = Map("id" -> "deleteRepeatingGroup".concat(modelComponentId.toMongoIdentifier), "formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplateId, maybeAccessCode, sectionNumber, FastForward.Yes, RemoveGroup(modelComponentId)).path),
         classes="link"))
 }
