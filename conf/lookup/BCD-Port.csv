@@ -8654,7 +8654,6 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 23603,MX,2,LTO,,Loreto International Airport - LTO,,4,NULL,1
 23605,MX,2,SJD,,Los Cabos International Airport - SJD,,4,NULL,1
 23606,MX,2,LMM,,Federal del Valle del Fuerte International Airport - LMM,,4,NULL,1
-23607,MX,2,LAP,,Manuel Márquez de León International Airport - LAP,,4,NULL,1
 23616,MX,2,MTT,,Minatitlán/Coatzacoalcos National Airport - MTT,,4,NULL,1
 23618,MX,2,LOV,,Venustiano Carranza International Airport - LOV,,4,NULL,1
 23623,MX,3,MRE,,Morro Redondo Seaport - MRE,,4,NULL,1
@@ -14200,7 +14199,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46178,CN,2,HBQ,,Qilian Airport - HBQ,,4,NULL,1
 46179,CN,2,HCJ,,Hechi Jinchengjiang Airport - HCJ,,4,NULL,1
 46180,CN,3,HFE,,Hefei Seaport - HFE,,4,NULL,1
-46181,CN,2,HKG,,Hong Kong International Airport - HKG,,4,NULL,1
+46181,CN,2,HKG,,Hong Kong International Airport (China)  - HKG,,4,NULL,1
 46182,CN,2,HUO,,Holingol Huolinhe Airport - HUO,,4,NULL,1
 46183,CN,2,HPG,,Shennongjia Hongping Airport - HPG,,4,NULL,1
 46184,CN,3,HRB,,Harbin Seaport - HRB,,4,NULL,1
@@ -14221,7 +14220,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46199,CN,2,LNL,,Longnan Chengzhou Airport - LNL,,4,NULL,1
 46200,CN,2,LPF,,Liupanshui Yuezhao Airport - LPF,,4,NULL,1
 46201,CN,3,LYG,,Lianyungang Seaport - LYG,,4,NULL,1
-46202,CN,2,MFM,,Macau International Airport - MFM,,4,NULL,1
+46202,CN,2,MFM,,Macau International Airport (China) - MFM,,4,NULL,1
 46203,CN,3,MIG,,Mianyang Seaport - MIG,,4,NULL,1
 46204,CN,3,NGB,,Ningbo Seaport - NGB,,4,NULL,1
 46205,CN,3,NKG,,Nanjing Seaport - NKG,,4,NULL,1
@@ -14259,7 +14258,6 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Priority,Region,Location,Vali
 46237,CL,2,PUQ,,Presidente Carlos Ibáñez del Campo International Airport - PUQ,,4,NULL,1
 46238,CL,2,QRC,,Rancagua de la Independencia Airport - QRC,,4,NULL,1
 46239,CL,2,SSD,,Víctor Lafón Airport - SSD,,4,NULL,1
-46240,CL,2,SCL,,Comodoro Arturo Merino Benítez International Airport - SCL,,4,NULL,1
 46241,CL,2,ZBQ,,El Bosque Airport - ZBQ,,4,NULL,1
 46242,CL,2,TLX,,Panguilemo Airport - TLX,,4,NULL,1
 46243,CL,2,TTC,,Las Breas Airport - TTC,,4,NULL,1
