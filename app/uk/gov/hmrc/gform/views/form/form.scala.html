@@ -69,18 +69,20 @@
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
 
-@displaySaveContinueButton() = {
+@displaySaveContinueButton(classes: String = "") = {
     @if(shouldDisplayContinue) {
         @if(isDeclaration) {
             @govukButton(Button(content = Text(buttonLabel),
                 inputType=Some("submit"),
-                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id, maybeAccessCode, Continue).path)
+                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id, maybeAccessCode, Continue).path),
+                classes = classes
             )
         )
     } else {
         @govukButton(Button(content = Text(buttonLabel),
-                inputType=Some("submit"),
-                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue).path)
+                    inputType=Some("submit"),
+                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue).path),
+                    classes = classes
                 )
             )
         }
@@ -119,10 +121,8 @@
 
     @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
-    <div style="display:none">
-        @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
-        @displaySaveContinueButton()
-    </div>
+    @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
+    @displaySaveContinueButton("defaultsink")
 
       @{page.snippets}
 

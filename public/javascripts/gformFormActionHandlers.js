@@ -13,7 +13,7 @@
 
       function findAction ($el) {
         return $el.is("button")
-          ? $el.val()
+          ? $el.attr("formaction")
           : $el.is("a")
           ? $el.attr("href")
           : $el.is("span") &&
@@ -38,24 +38,18 @@
         };
       }
 
-      function handleFormSubmit() {
-        return function (e) {
-          submitForm(e)
-        }
-      }
-
       // Set up event handlers
       function init () {
         // Prevent form submissions while submit button is disabled (covers form submission by hitting Enter)
         $('form').submit(function(e) {
-          if ($(this).find('input[type=submit], button[type=submit]').prop('disabled')) {
+          if ($(this).find('button[type=submit]').prop('disabled')) {
             return false
           }
         })
 
 	$("#main-content")
           .parent()
-          .on('click', 'button[type=submit]', handleFormSubmit())
+          .on('click', 'button[type=submit]', handleSetActionAndFormSubmit(true))
           .on('click', '#backButton', handleSetActionAndFormSubmit(true))
        // update any character counters with ids and aria labels
         $('.char-counter-text').each(function (i, hint) {
