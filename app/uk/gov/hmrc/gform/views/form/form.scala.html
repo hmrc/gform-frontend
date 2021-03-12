@@ -75,17 +75,18 @@
             @govukButton(Button(content = Text(buttonLabel),
                 inputType=Some("submit"),
                 attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id, maybeAccessCode, Continue).path),
-                classes = classes
-            )
-        )
+                classes = classes))
+        } else {
+            @govukButton(Button(content = Text(buttonLabel),
+                inputType=Some("submit"),
+                attributes = Map("formaction" -> page.formAction.path),
+                classes = classes))
+        }
     } else {
         @govukButton(Button(content = Text(buttonLabel),
                     inputType=Some("submit"),
                     attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue).path),
-                    classes = classes
-                )
-            )
-        }
+                    classes = classes))
     }
 }
 
