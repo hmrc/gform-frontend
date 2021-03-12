@@ -31,7 +31,7 @@ import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
-import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
+import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, Direction }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.{ FormHandlerResult, FormValidator }
@@ -146,7 +146,7 @@ class EnrolmentController(
       .renderEnrolmentSection(formTemplate, singleton, retrievals, formModelOptics, globalErrors, validationResult)
   }
 
-  def submitEnrolment(formTemplateId: FormTemplateId) =
+  def submitEnrolment(formTemplateId: FormTemplateId, action: Direction) =
     auth.asyncGGAuth(formTemplateId) { implicit request => implicit l => cache =>
       import cache._
       val checkEnrolment: ServiceId => NonEmptyList[Identifier] => EnrolM[CheckEnrolmentsResult] =
@@ -214,8 +214,8 @@ class EnrolmentController(
                         .run(Env(formTemplate, retrievals, formModelVisibilityOptics))
               } yield res
             }
-            requestRelatedData.get("save") match {
-              case "Continue" =>
+            action match {
+              case uk.gov.hmrc.gform.controllers.Continue =>
                 formModelOpticsF.flatMap(handleContinueWithData)
               case _ => Future.successful(BadRequest("Cannot determine action"))
             }
