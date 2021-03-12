@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import cats.instances.int._
 import cats.instances.string._
 import cats.syntax.eq._
+import org.jsoup.Jsoup
 import shapeless.syntax.typeable._
 import play.api.i18n.Messages
 import play.api.mvc.{ Request, RequestHeader }
@@ -34,7 +35,7 @@ import uk.gov.hmrc.gform.controllers.{ Origin, SaveAndContinue }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
-import uk.gov.hmrc.gform.models.{ Atom, Bracket, DataExpanded, DateExpr, FastForward, FormModel, PageModel, Repeater, SectionRenderingInformation, Singleton }
+import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, DataExpanded, DateExpr, FastForward, FormModel, PageModel, Repeater, SectionRenderingInformation, Singleton }
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
@@ -144,8 +145,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val descriptions: NonEmptyList[SmartString] = bracket.repeaters.map(_.expandedDescription)
 
-    val recordTable: NonEmptyList[(Html, Int)] = descriptions.zipWithIndex.map {
-      case (description, index) => (markDownParser(description), index)
+    val recordTable: NonEmptyList[AddToListSummaryRecord] = descriptions.zipWithIndex.map {
+      case (description, index) =>
+        val html = markDownParser(description)
+        AddToListSummaryRecord(html, index, Jsoup.parse(html.body).text())
     }
 
     val choice = formComponent.`type`.cast[Choice].get
