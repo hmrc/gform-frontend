@@ -12,7 +12,13 @@ import org.irundaia.sbt.sass._
 val silencerVersion = "1.7.0"
 
 lazy val microservice = (project in file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
+  .enablePlugins(
+    play.sbt.PlayScala,
+    SbtAutoBuildPlugin,
+    SbtGitVersioning,
+    SbtDistributablesPlugin,
+    SbtArtifactory,
+    SbtWeb)
   .settings(
     SassKeys.cssStyle := Maxified,
     SassKeys.generateSourceMaps := true,
@@ -64,7 +70,9 @@ lazy val microservice = (project in file("."))
       "-P:silencer:pathFilters=target/.*",
       // Make sure you only exclude warnings for the project directories, i.e. make builds reproducible
       s"-P:silencer:sourceRoots=${baseDirectory.value.getCanonicalPath}"
-    )
+    ),
+    pipelineStages := Seq(digest),
+    pipelineStages in Assets := Seq(concat, uglify)
   )
   .configs(IntegrationTest)
   .settings(
