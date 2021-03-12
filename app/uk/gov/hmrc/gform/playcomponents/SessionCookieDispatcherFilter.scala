@@ -18,9 +18,10 @@ package uk.gov.hmrc.gform.playcomponents
 
 import _root_.akka.stream.Materializer
 import cats.syntax.eq._
+import com.typesafe.config.Config
 import play.api.mvc._
 import play.api.routing.Router.RequestImplicits._
-import uk.gov.hmrc.crypto.{ Crypted, Decrypter, Encrypter, PlainText }
+import uk.gov.hmrc.crypto.{ Crypted, CryptoGCMWithKeysFromConfig, PlainText }
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -35,15 +36,19 @@ class SessionCookieDispatcherFilter(
   sessionCookieCrypto: SessionCookieCrypto,
   hmrcCookieCryptoFilter: SessionCookieCryptoFilter,
   anonymousCookieCryptoFilter: SessionCookieCryptoFilter,
-  gformConnector: GformConnector
+  gformConnector: GformConnector,
+  config: Config
 )(implicit ec: ExecutionContext, override val mat: Materializer)
     extends Filter {
 
-  protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
-  protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
+  //protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
+  //protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
 
   private val AnonymousAuthConfig = "anonymous"
   private val HmrcAuthConfig = "hmrc"
+  private val CookieEncryptionKey = "cookie.encryption"
+
+  val crypto = new CryptoGCMWithKeysFromConfig(CookieEncryptionKey, config)
 
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
@@ -72,16 +77,16 @@ class SessionCookieDispatcherFilter(
             case Anonymous =>
               (
                 anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
-                encrypter.encrypt(PlainText(AnonymousAuthConfig)))
+                crypto.encrypt(PlainText(AnonymousAuthConfig)))
             case _ =>
               (
                 hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
-                encrypter.encrypt(PlainText(HmrcAuthConfig)))
+                crypto.encrypt(PlainText(HmrcAuthConfig)))
           }
         result.map(_.withCookies(Cookie(authConfigCookieName, cookieValue.value)))
 
       case Left(_) =>
-        if (decrypter.decrypt(authconfigCookieValue).value === AnonymousAuthConfig)
+        if (crypto.decrypt(authconfigCookieValue).value === AnonymousAuthConfig)
           anonymousCookieCryptoFilter(next)(rh)
         else
           hmrcCookieCryptoFilter(next)(rh)
