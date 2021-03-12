@@ -16,4 +16,9 @@
 
 package uk.gov.hmrc
 
-package object gform {}
+import _root_.play.api.libs.typedmap.TypedKey
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+
+package object gform {
+  val FormTemplateKey: TypedKey[FormTemplate] = TypedKey[FormTemplate]("form-template")
+}

@@ -44,6 +44,7 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorConnector
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
+import uk.gov.hmrc.gform.controllers.CookieNames._
 
 class ApplicationLoader extends play.api.ApplicationLoader {
   def load(context: Context): Application = {
@@ -110,11 +111,19 @@ class ApplicationModule(context: Context)
 
   private val lookupRegistry = new LookupRegistry(new uk.gov.hmrc.gform.LookupLoader().registerLookup)
 
-  private val sessionCookieBaker: SessionCookieBaker = {
+  private val hmrcSessionCookieBaker: SessionCookieBaker = {
     val httpConfiguration: HttpConfiguration =
       new HttpConfiguration.HttpConfigurationProvider(configModule.playConfiguration, configModule.environment).get
 
     val config: SessionConfiguration = httpConfiguration.session
+    new LegacySessionCookieBaker(config, cookieSigner)
+  }
+
+  private val anonymousSessionCookieBaker: SessionCookieBaker = {
+    val httpConfiguration: HttpConfiguration =
+      new HttpConfiguration.HttpConfigurationProvider(configModule.playConfiguration, configModule.environment).get
+
+    val config: SessionConfiguration = httpConfiguration.session.copy(cookieName = anonymousFormSessionCookieName)
     new LegacySessionCookieBaker(config, cookieSigner)
   }
 
@@ -130,7 +139,7 @@ class ApplicationModule(context: Context)
     playBuiltInsModule,
     auditingModule,
     this,
-    sessionCookieBaker,
+    hmrcSessionCookieBaker,
     errResponder,
     graphModule,
     wSHttpModule
@@ -181,6 +190,7 @@ class ApplicationModule(context: Context)
   applicationCrypto.verifyConfiguration()
 
   private val frontendFiltersModule = new FrontendFiltersModule(
+    gformBackendModule,
     applicationCrypto,
     playBuiltInsModule,
     akkaModule,
@@ -189,7 +199,8 @@ class ApplicationModule(context: Context)
     metricsModule,
     controllersModule,
     this,
-    sessionCookieBaker
+    anonymousSessionCookieBaker,
+    hmrcSessionCookieBaker
   )
 
   private val routingModule = new RoutingModule(
