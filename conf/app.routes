@@ -29,7 +29,7 @@ GET           /acknowledgement/pdf/:formTemplateId                              
 POST          /summary/:formTemplateId/:maybeAccessCode                                                          uk.gov.hmrc.gform.gform.SummaryController.submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], action: Direction)
 GET           /error/insufficient-enrolments                                                                     uk.gov.hmrc.gform.auth.ErrorController.insufficientEnrolments()
 GET           /enrolment/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.EnrolmentController.showEnrolment(formTemplateId: FormTemplateId)
-POST          /enrolment/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.EnrolmentController.submitEnrolment(formTemplateId: FormTemplateId)
+POST          /enrolment/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.EnrolmentController.submitEnrolment(formTemplateId: FormTemplateId, action: Direction)
 GET           /agent-enrolment/prologue/:formTemplateId                                                          uk.gov.hmrc.gform.auth.AgentEnrolmentController.prologue(formTemplateId: FormTemplateId, f: String)
 
 POST          /reviewAccepted/:formTemplateId/:maybeAccessCode                                                   uk.gov.hmrc.gform.gform.ReviewController.reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
