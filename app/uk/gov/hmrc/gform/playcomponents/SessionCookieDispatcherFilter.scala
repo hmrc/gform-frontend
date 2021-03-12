@@ -35,13 +35,12 @@ class SessionCookieDispatcherFilter(
   sessionCookieCrypto: SessionCookieCrypto,
   hmrcCookieCryptoFilter: SessionCookieCryptoFilter,
   anonymousCookieCryptoFilter: SessionCookieCryptoFilter,
-  val sessionBaker: SessionCookieBaker,
   gformConnector: GformConnector
-)(implicit override val ec: ExecutionContext, override val mat: Materializer)
-    extends SessionCookieCryptoFilter {
+)(implicit ec: ExecutionContext, override val mat: Materializer)
+    extends Filter {
 
-  override protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
-  override protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
+  protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
+  protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
 
   private val AnonymousAuthConfig = "anonymous"
   private val HmrcAuthConfig = "hmrc"

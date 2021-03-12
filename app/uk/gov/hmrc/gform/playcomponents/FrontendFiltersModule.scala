@@ -123,7 +123,6 @@ class FrontendFiltersModule(
       sessionCookieCrypto,
       hmrcSessionCookieCryptoFilter,
       anonoymousSessionCookieCryptoFilter,
-      hmrcSessionCookieBaker,
       gformBackendModule.gformConnector
     )
   }
@@ -137,11 +136,14 @@ class FrontendFiltersModule(
     metricsModule.metricsFilter,
     deviceIdFilter,
     csrfComponents.csrfFilter,
-    sessionCookieDispatcherFilter,
+    hmrcSessionCookieCryptoFilter,
     sessionTimeoutFilter,
     cacheControlFilter,
     mdcFilter,
     allowListFilter,
     sessionIdFilter
-  ).filters
+  ).filters map {
+    case _: SessionCookieCryptoFilter => sessionCookieDispatcherFilter
+    case other                        => other
+  }
 }
