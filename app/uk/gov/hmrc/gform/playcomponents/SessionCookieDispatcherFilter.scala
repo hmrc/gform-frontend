@@ -18,10 +18,11 @@ package uk.gov.hmrc.gform.playcomponents
 
 import _root_.akka.stream.Materializer
 import cats.syntax.eq._
-import com.typesafe.config.Config
+import org.slf4j.LoggerFactory
+import play.api.http.HeaderNames
 import play.api.mvc._
 import play.api.routing.Router.RequestImplicits._
-import uk.gov.hmrc.crypto.{ Crypted, CryptoGCMWithKeysFromConfig, PlainText }
+import uk.gov.hmrc.crypto.{ Crypted, Decrypter, Encrypter, PlainText }
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -36,23 +37,23 @@ class SessionCookieDispatcherFilter(
   sessionCookieCrypto: SessionCookieCrypto,
   hmrcCookieCryptoFilter: SessionCookieCryptoFilter,
   anonymousCookieCryptoFilter: SessionCookieCryptoFilter,
-  gformConnector: GformConnector,
-  config: Config
+  gformConnector: GformConnector
 )(implicit ec: ExecutionContext, override val mat: Materializer)
     extends Filter {
 
-  //protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
-  //protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
+  protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
 
   private val AnonymousAuthConfig = "anonymous"
   private val HmrcAuthConfig = "hmrc"
-  private val CookieEncryptionKey = "cookie.encryption"
-
-  val crypto = new CryptoGCMWithKeysFromConfig(CookieEncryptionKey, config)
 
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
-    lazy val authconfigCookieValue = Crypted(rh.cookies.get(authConfigCookieName).fold("")(_.value))
+    val decodeCookieHeader: String => Seq[Cookie] = Cookies.decodeCookieHeader
+
+    // lazy val authconfigCookieValue = Crypted(rh.cookies.get(authConfigCookieName).map(v => v).fold("")(_.value))
 
     val formTemplateIdParamIndex: Option[Int] = {
       val handlerDefPath = rh.handlerDef.map(_.path.replaceFirst("/submissions", "/submissions/"))
@@ -70,6 +71,12 @@ class SessionCookieDispatcherFilter(
         Future.successful(Left(()))
     }
 
+    def findSessionCookie(rh: RequestHeader): Option[Cookie] =
+      rh.headers
+        .getAll(HeaderNames.COOKIE)
+        .flatMap(decodeCookieHeader)
+        .find(_.name == authConfigCookieName)
+
     maybeFormTemplate.flatMap {
       case Right(formTemplate) =>
         val (result, cookieValue) =
@@ -77,19 +84,30 @@ class SessionCookieDispatcherFilter(
             case Anonymous =>
               (
                 anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
-                crypto.encrypt(PlainText(AnonymousAuthConfig)))
+                encrypter.encrypt(PlainText(AnonymousAuthConfig)))
             case _ =>
               (
                 hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
-                crypto.encrypt(PlainText(HmrcAuthConfig)))
+                encrypter.encrypt(PlainText(HmrcAuthConfig)))
           }
         result.map(_.withCookies(Cookie(authConfigCookieName, cookieValue.value)))
 
       case Left(_) =>
-        if (crypto.decrypt(authconfigCookieValue).value === AnonymousAuthConfig)
+        val a: Option[String] = findSessionCookie(rh).map(v => decrypter.decrypt(Crypted(v.value)).value)
+        logger.warn(s"========== Sandy : SessionCookieDispatcherFilter : authconfigCookieValue = $a")
+        if (a === Some(AnonymousAuthConfig)) {
+          println(s"======== Sandy ======= Inside if ")
+          anonymousCookieCryptoFilter(next)(rh)
+        } else
+          hmrcCookieCryptoFilter(next)(rh)
+
+      /*      case Left(_) =>
+        val b = decrypter.decrypt(authconfigCookieValue).value
+        logger.warn(s"========== Sandy : SessionCookieDispatcherFilter : authconfigCookieValue = $b")
+        if (b === AnonymousAuthConfig)
           anonymousCookieCryptoFilter(next)(rh)
         else
-          hmrcCookieCryptoFilter(next)(rh)
+          hmrcCookieCryptoFilter(next)(rh)*/
     }
   }
 }
