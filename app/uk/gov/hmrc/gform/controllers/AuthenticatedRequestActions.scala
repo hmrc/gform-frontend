@@ -51,6 +51,7 @@ import uk.gov.hmrc.auth.core.InsufficientEnrolments
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
+import uk.gov.hmrc.gform.FormTemplateKey
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -171,9 +172,9 @@ class AuthenticatedRequestActions(
     implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
 
+      val formTemplate = request.attrs(FormTemplateKey)
       for {
-        formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-        result       <- f(request)(l)(formTemplate)
+        result <- f(request)(l)(formTemplate)
       } yield result
   }
 
@@ -182,9 +183,9 @@ class AuthenticatedRequestActions(
     actionBuilder.async { implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
 
+      val formTemplate = request.attrs(FormTemplateKey)
       for {
-        _            <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
-        formTemplate <- gformConnector.getFormTemplate(formTemplateId)
+        _ <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
         authResult <- authService
                        .authenticateAndAuthorise(
                          formTemplate,
@@ -204,10 +205,10 @@ class AuthenticatedRequestActions(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] =
     actionBuilder.async { implicit request =>
       val predicate = AuthProviders(AuthProvider.GovernmentGateway)
+      val formTemplate = request.attrs(FormTemplateKey)
       for {
-        _            <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
-        formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-        authResult   <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
+        _          <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
+        authResult <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
         result <- authResult match {
                    case AuthSuccessful(retrievals, role) =>
                      f(request)(getCurrentLanguage(request))(AuthCacheWithoutForm(retrievals, formTemplate, role))
@@ -245,10 +246,10 @@ class AuthenticatedRequestActions(
     actionBuilder.async { implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
 
+      val formTemplate = request.attrs(FormTemplateKey)
       for {
-        _            <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
-        _            <- MDCHelpers.addAccessCodeToMdc(maybeAccessCode)
-        formTemplate <- gformConnector.getFormTemplate(formTemplateId)
+        _ <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
+        _ <- MDCHelpers.addAccessCodeToMdc(maybeAccessCode)
         authResult <- authService
                        .authenticateAndAuthorise(
                          formTemplate,
