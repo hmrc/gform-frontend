@@ -49,9 +49,8 @@ class SessionCookieDispatcherFilter(
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
     val formTemplateIdParamIndex: Option[Int] = {
-      val handlerDefPath = rh.handlerDef.map(_.path.replaceFirst("/submissions", "/submissions/"))
       val mayContainsFormTemplateId: Option[Array[Boolean]] =
-        handlerDefPath.map(_.split("/")).map(_.map(_.containsSlice("$formTemplateId")))
+        rh.handlerDef.map(_.path.split("/")).map(_.map(_.containsSlice("$formTemplateId")))
       mayContainsFormTemplateId.map(_.indexOf(true))
     }
 
