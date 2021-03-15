@@ -72,7 +72,8 @@ lazy val microservice = (project in file("."))
       s"-P:silencer:sourceRoots=${baseDirectory.value.getCanonicalPath}"
     ),
     pipelineStages := Seq(digest),
-    pipelineStages in Assets := Seq(concat, uglify)
+    pipelineStages in Assets := Seq(concat, uglify),
+    uglifyCompressOptions := Seq("warnings=false")
   )
   .configs(IntegrationTest)
   .settings(
