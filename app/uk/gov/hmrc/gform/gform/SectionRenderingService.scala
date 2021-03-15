@@ -216,6 +216,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       frontendAppConfig,
       actionForm,
       retrievals.renderSaveAndComeBackLater,
+      retrievals.continueLabelKey,
       shouldDisplayBack,
       addAnotherQuestion,
       hiddenSnippets,
