@@ -11,6 +11,9 @@ import org.irundaia.sbt.sass._
 
 val silencerVersion = "1.7.0"
 
+val turnoffJSUglifyWarningsTask = SettingKey[Seq[String]]("sbt-uglify turn off console output")
+turnoffJSUglifyWarningsTask := Seq("warnings=false")
+
 lazy val microservice = (project in file("."))
   .enablePlugins(
     play.sbt.PlayScala,
@@ -72,7 +75,8 @@ lazy val microservice = (project in file("."))
       s"-P:silencer:sourceRoots=${baseDirectory.value.getCanonicalPath}"
     ),
     pipelineStages := Seq(digest),
-    pipelineStages in Assets := Seq(concat, uglify)
+    pipelineStages in Assets := Seq(concat, uglify),
+    uglifyCompressOptions := turnoffJSUglifyWarningsTask.value
   )
   .configs(IntegrationTest)
   .settings(
