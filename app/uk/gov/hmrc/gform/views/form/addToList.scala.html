@@ -39,6 +39,7 @@
     frontendAppConfig: FrontendAppConfig,
     formAction: Call,
     renderComeBackLater: Boolean,
+    continueLabelKey: String,
     shouldDisplayBack: Boolean,
     snippets: Html,
     hiddenFieldsSnippets: List[Html],
@@ -57,10 +58,6 @@
 @govukButton = @{new govukButton()}
 
 @heading = @{repeater.title.value}
-
-@buttonLabel = @{
-    messages("button.saveAndContinue")
-}
 
 @backLink = @{
   new BackLink(attributes = Map("id" -> "backButton"), href = uk.gov.hmrc.gform.gform.routes.FormController
@@ -124,10 +121,18 @@
       @{hiddenFieldsSnippets}
 
         <div class="govuk-button-group">
-           @govukButton(Button(content = Text(buttonLabel), inputType=Some("submit"), value=Some("SaveAndContinue"), name=Some("save")))
+           @govukButton(Button(content = Text(messages(continueLabelKey)),
+                inputType=Some("submit"),
+                name=Some("save"))
+           )
 
            @if(renderComeBackLater) {
-              @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")), inputType=Some("submit"), value=Some("Save"), name=Some("save"), classes="govuk-button govuk-button--secondary"))
+              @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+                   inputType=Some("submit"),
+                   value=Some("Save"),
+                   name=Some("save"),
+                   classes="govuk-button govuk-button--secondary")
+              )
            }
         </div>
     }
