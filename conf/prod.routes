@@ -1,4 +1,4 @@
-->         /submissions                  app.Routes
+->         /submissions/                 app.Routes
 
 GET        /ping/ping                    uk.gov.hmrc.play.health.HealthController.ping
 
