@@ -22,7 +22,7 @@
 @import uk.gov.hmrc.gform.gform.HasErrors
 @import uk.gov.hmrc.gform.views.html.{main_template, specimen}
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
-@import uk.gov.hmrc.gform.controllers.{SaveAndContinue, SaveAndExit, Continue, Back}
+@import uk.gov.hmrc.gform.controllers.{ SaveAndExit, Back }
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
 @(
@@ -71,22 +71,10 @@
 
 @displaySaveContinueButton(classes: String = "") = {
     @if(shouldDisplayContinue) {
-        @if(isDeclaration) {
-            @govukButton(Button(content = Text(buttonLabel),
-                inputType=Some("submit"),
-                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id, maybeAccessCode, Continue).path),
-                classes = classes))
-        } else {
-            @govukButton(Button(content = Text(buttonLabel),
-                inputType=Some("submit"),
-                attributes = Map("formaction" -> page.formAction.path),
-                classes = classes))
-        }
-    } else {
         @govukButton(Button(content = Text(buttonLabel),
-                    inputType=Some("submit"),
-                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue).path),
-                    classes = classes))
+            inputType=Some("submit"),
+            attributes = Map("formaction" -> page.formAction.path),
+            classes = classes))
     }
 }
 
