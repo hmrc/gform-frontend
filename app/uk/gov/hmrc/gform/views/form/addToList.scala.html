@@ -42,7 +42,6 @@
     continueLabelKey: String,
     shouldDisplayBack: Boolean,
     snippets: Html,
-    hiddenFieldsSnippets: List[Html],
     specimenNavigation: Html,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber
@@ -117,8 +116,6 @@
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
       @{snippets}
-
-      @{hiddenFieldsSnippets}
 
         <div class="govuk-button-group">
            @govukButton(Button(content = Text(messages(continueLabelKey)),

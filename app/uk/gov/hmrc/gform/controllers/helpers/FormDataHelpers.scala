@@ -25,6 +25,7 @@ import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
 import uk.gov.hmrc.gform.controllers.helpers.InvisibleCharsHelper._
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics }
 import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
@@ -37,7 +38,9 @@ object FormDataHelpers {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def processResponseDataFromBody(request: Request[AnyContent], formModel: FormModel[DataExpanded])(
+  def processResponseDataFromBody(
+    request: Request[AnyContent],
+    formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo])(
     continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => Future[Result]): Future[Result] =
     request.body.asFormUrlEncoded
       .map(_.map {
@@ -59,8 +62,9 @@ object FormDataHelpers {
           }))
       }) match {
       case Some(requestData) =>
-        val (variadicFormData, requestRelatedData) = buildVariadicFormDataFromBrowserPostData(formModel, requestData)
-        continuation(requestRelatedData)(variadicFormData)
+        val (variadicFormData, requestRelatedData) =
+          buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, requestData)
+        continuation(requestRelatedData)(formModelRenderPageOptics.recData.variadicFormData ++ variadicFormData)
       case None =>
         Future.successful(BadRequest("Cannot parse body as FormUrlEncoded"))
     }

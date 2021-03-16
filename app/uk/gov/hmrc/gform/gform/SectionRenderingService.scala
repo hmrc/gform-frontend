@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, DataExpanded, DateExpr, FastForward, FormModel, PageModel, Repeater, SectionRenderingInformation, Singleton }
-import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
+import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics }
@@ -153,10 +153,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val choice = formComponent.`type`.cast[Choice].get
 
-    val hiddenTemplateFields =
-      Fields.getHiddenTemplateFields(repeater, formModelOptics, lookupRegistry.extractors)
-    val hiddenSnippets = hiddenTemplateFields.render(formModelOptics.formModelRenderPageOptics)
-
     val formFieldValidationResult = validationResult(formComponent)
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
@@ -219,7 +215,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       retrievals.continueLabelKey,
       shouldDisplayBack,
       addAnotherQuestion,
-      hiddenSnippets,
       specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics),
       maybeAccessCode,
       sectionNumber
@@ -273,11 +268,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val javascript =
       JavascriptMaker.generateJs(sectionNumber, formModelOptics)
 
-    val hiddenTemplateFields =
-      Fields.getHiddenTemplateFields(singleton, formModelOptics, lookupRegistry.extractors)
-
-    val hiddenSnippets = hiddenTemplateFields.render(formModelOptics.formModelRenderPageOptics)
-
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
 
     val originSection = Origin(DataOrigin.unSwapDataOrigin(formModelOptics)).minSectionNumber
@@ -290,7 +280,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       sectionNumber,
       page.title.value,
       page.description.map(ls => ls.value),
-      hiddenSnippets,
       snippetsForFields,
       javascript,
       envelopeId,
@@ -447,7 +436,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       declarationPage.title.value,
       declarationPage.description.map(ls => ls.value),
-      Nil,
       snippets,
       "",
       EnvelopeId(""),
@@ -541,7 +529,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       destinationList.acknowledgementSection.title.value,
       destinationList.acknowledgementSection.description.map(ls => ls.value),
-      Nil,
       snippets,
       "",
       envelopeId,
@@ -597,7 +584,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       page.title.value,
       None,
-      Nil,
       snippets,
       "",
       EnvelopeId(""),
@@ -642,9 +628,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
         }
 
-        if (!isVisible) {
-          val formField = ei.formModelOptics.formModelRenderPageOptics.toFormField(formComponent.modelComponentId)
-          html.form.snippets.hidden_field(formField)
+        if (!isVisible || formComponent.onlyShowOnSummary) {
+          HtmlFormat.empty
         } else {
 
           formComponent.`type` match {
@@ -1138,9 +1123,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
       new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
     }
-
   }
-  case class RevealingChoiceComponents(option: String, hiddenField: List[FormComponent])
 
   private def renderLookup(
     formComponent: FormComponent,
@@ -1187,69 +1170,64 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       )
     }
 
-    if (formComponent.onlyShowOnSummary)
-      html.form.snippets
-        .hidden_field_populated(
-          NonEmptyList.one(FormRender(formComponent.id.value, formComponent.id.value, prepopValue.getOrElse(""))))
-    else
-      lookupRegistry.get(register) match {
-        case None => Html("") // Ups
-        case Some(AjaxLookup(_, _, showAll)) =>
-          html.form.snippets.lookup_autosuggest(
-            label,
-            formComponent,
-            showAll,
-            register,
-            ei.formTemplate._id,
-            ei.maybeAccessCode,
-            prepopValue,
-            formFieldValidationResult,
-            hint,
-            errorMessage
-          )
-        case Some(RadioLookup(options)) =>
-          val isPageHeading = ei.formLevelHeading
-          val fieldset = Some(
-            Fieldset(
-              legend = Some(
-                Legend(
-                  content = content.Text(formComponent.label.value),
-                  isPageHeading = isPageHeading,
-                  classes = if (isPageHeading) s"govuk-label--l $hiddenClass" else hiddenClass
-                ))
-            ))
+    lookupRegistry.get(register) match {
+      case None => Html("") // Ups
+      case Some(AjaxLookup(_, _, showAll)) =>
+        html.form.snippets.lookup_autosuggest(
+          label,
+          formComponent,
+          showAll,
+          register,
+          ei.formTemplate._id,
+          ei.maybeAccessCode,
+          prepopValue,
+          formFieldValidationResult,
+          hint,
+          errorMessage
+        )
+      case Some(RadioLookup(options)) =>
+        val isPageHeading = ei.formLevelHeading
+        val fieldset = Some(
+          Fieldset(
+            legend = Some(
+              Legend(
+                content = content.Text(formComponent.label.value),
+                isPageHeading = isPageHeading,
+                classes = if (isPageHeading) s"govuk-label--l $hiddenClass" else hiddenClass
+              ))
+          ))
 
-          val currentValue = formFieldValidationResult.getCurrentValue
+        val currentValue = formFieldValidationResult.getCurrentValue
 
-          val selectedValue = prepopValue.orElse(currentValue).getOrElse("")
+        val selectedValue = prepopValue.orElse(currentValue).getOrElse("")
 
-          def renderOption(lookupLabel: LookupLabel, index: Int) = RadioItem(
-            id = Some(formComponent.id.value + index),
-            value = Some(lookupLabel.label),
-            content = content.Text(lookupLabel.label),
-            checked = lookupLabel.label === selectedValue,
-            attributes = dataLabelAttribute(lookupLabel.label)
-          )
+        def renderOption(lookupLabel: LookupLabel, index: Int) = RadioItem(
+          id = Some(formComponent.id.value + index),
+          value = Some(lookupLabel.label),
+          content = content.Text(lookupLabel.label),
+          checked = lookupLabel.label === selectedValue,
+          attributes = dataLabelAttribute(lookupLabel.label)
+        )
 
-          val lookupLabels: List[LookupLabel] = options.process(_.sortLookupByIdx)
+        val lookupLabels: List[LookupLabel] = options.process(_.sortLookupByIdx)
 
-          val items = lookupLabels.zipWithIndex.map {
-            case (lookupLabel, index) => renderOption(lookupLabel, index)
-          }
+        val items = lookupLabels.zipWithIndex.map {
+          case (lookupLabel, index) => renderOption(lookupLabel, index)
+        }
 
-          val radios = Radios(
-            idPrefix = Some(formComponent.id.value),
-            fieldset = fieldset,
-            hint = hint,
-            errorMessage = errorMessage,
-            classes = hiddenClass,
-            name = formComponent.id.value,
-            items = items
-          )
+        val radios = Radios(
+          idPrefix = Some(formComponent.id.value),
+          fieldset = fieldset,
+          hint = hint,
+          errorMessage = errorMessage,
+          classes = hiddenClass,
+          name = formComponent.id.value,
+          items = items
+        )
 
-          new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+        new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
-      }
+    }
   }
 
   private def renderTextArea(
@@ -1264,93 +1242,87 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 
-    if (formComponent.onlyShowOnSummary)
-      html.form.snippets
-        .hidden_field_populated(
-          NonEmptyList.one(FormRender(formComponent.id.value, formComponent.id.value, prepopValue.getOrElse(""))))
-    else {
-      val labelContent = content.Text(formComponent.label.value)
+    val labelContent = content.Text(formComponent.label.value)
 
-      val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
+    val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
-      val errorMessage: Option[ErrorMessage] = errors.map(
-        error =>
-          ErrorMessage(
-            content = content.Text(error)
-        ))
+    val errorMessage: Option[ErrorMessage] = errors.map(
+      error =>
+        ErrorMessage(
+          content = content.Text(error)
+      ))
 
-      val hint: Option[Hint] = formComponent.helpText.map { ls =>
-        Hint(
-          content = content.Text(ls.value)
-        )
-      }
-
-      val characterMaxLength = text.constraint match {
-        case ShortText(_, max)            => Some(max)
-        case TextWithRestrictions(_, max) => Some(max)
-        case _                            => None
-      }
-
-      val maybeCurrentValue: Option[String] = prepopValue.orElse(formFieldValidationResult.getCurrentValue)
-
-      val sizeClasses = text.displayWidth match {
-        case DisplayWidth.XS      => "govuk-input--width-3"
-        case DisplayWidth.S       => "govuk-input--width-10"
-        case DisplayWidth.M       => "govuk-input--width-20"
-        case DisplayWidth.L       => "govuk-input--width-30"
-        case DisplayWidth.XL      => "govuk-input--width-40"
-        case DisplayWidth.XXL     => "govuk-input--width-50"
-        case DisplayWidth.DEFAULT => "govuk-input--width-30"
-      }
-
-      val isPageHeading = ei.formLevelHeading
-
-      val label = Label(
-        isPageHeading = isPageHeading,
-        classes = if (isPageHeading) "govuk-label--l" else "",
-        content = labelContent
+    val hint: Option[Hint] = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
       )
+    }
 
-      val govukTextarea = new components.govukTextarea(govukErrorMessage, govukHint, govukLabel)
+    val characterMaxLength = text.constraint match {
+      case ShortText(_, max)            => Some(max)
+      case TextWithRestrictions(_, max) => Some(max)
+      case _                            => None
+    }
 
-      val attributes =
-        if (formComponent.editable)
-          Map.empty[String, String]
-        else
-          Map("readonly" -> "")
+    val maybeCurrentValue: Option[String] = prepopValue.orElse(formFieldValidationResult.getCurrentValue)
 
-      (characterMaxLength, text.displayCharCount) match {
-        case (Some(maxLength), true) =>
-          val characterCount = CharacterCount(
-            id = formComponent.id.value,
-            name = formComponent.id.value,
-            rows = text.rows,
-            label = label,
-            hint = hint,
-            value = maybeCurrentValue,
-            maxLength = Some(maxLength),
-            errorMessage = errorMessage,
-            classes = sizeClasses,
-            attributes = attributes
-          )
+    val sizeClasses = text.displayWidth match {
+      case DisplayWidth.XS      => "govuk-input--width-3"
+      case DisplayWidth.S       => "govuk-input--width-10"
+      case DisplayWidth.M       => "govuk-input--width-20"
+      case DisplayWidth.L       => "govuk-input--width-30"
+      case DisplayWidth.XL      => "govuk-input--width-40"
+      case DisplayWidth.XXL     => "govuk-input--width-50"
+      case DisplayWidth.DEFAULT => "govuk-input--width-30"
+    }
 
-          new components.govukCharacterCount(govukTextarea, govukHint)(characterCount)
+    val isPageHeading = ei.formLevelHeading
 
-        case _ =>
-          val textArea = Textarea(
-            id = formComponent.id.value,
-            name = formComponent.id.value,
-            rows = text.rows,
-            label = label,
-            hint = hint,
-            value = maybeCurrentValue,
-            errorMessage = errorMessage,
-            classes = sizeClasses,
-            attributes = attributes
-          )
+    val label = Label(
+      isPageHeading = isPageHeading,
+      classes = if (isPageHeading) "govuk-label--l" else "",
+      content = labelContent
+    )
 
-          govukTextarea(textArea)
-      }
+    val govukTextarea = new components.govukTextarea(govukErrorMessage, govukHint, govukLabel)
+
+    val attributes =
+      if (formComponent.editable)
+        Map.empty[String, String]
+      else
+        Map("readonly" -> "")
+
+    (characterMaxLength, text.displayCharCount) match {
+      case (Some(maxLength), true) =>
+        val characterCount = CharacterCount(
+          id = formComponent.id.value,
+          name = formComponent.id.value,
+          rows = text.rows,
+          label = label,
+          hint = hint,
+          value = maybeCurrentValue,
+          maxLength = Some(maxLength),
+          errorMessage = errorMessage,
+          classes = sizeClasses,
+          attributes = attributes
+        )
+
+        new components.govukCharacterCount(govukTextarea, govukHint)(characterCount)
+
+      case _ =>
+        val textArea = Textarea(
+          id = formComponent.id.value,
+          name = formComponent.id.value,
+          rows = text.rows,
+          label = label,
+          hint = hint,
+          value = maybeCurrentValue,
+          errorMessage = errorMessage,
+          classes = sizeClasses,
+          attributes = attributes
+        )
+
+        govukTextarea(textArea)
     }
   }
 
@@ -1367,107 +1339,100 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val formFieldValidationResult = validationResult(formComponent)
 
-    if (formComponent.onlyShowOnSummary)
-      html.form.snippets
-        .hidden_field_populated(
-          NonEmptyList.one(FormRender(formComponent.id.value, formComponent.id.value, prepopValue)))
-    else {
+    val maybeUnit = TextFormatter.appendUnit(text.constraint)
+    val labelContent = content.Text(formComponent.label.value)
 
-      val maybeUnit = TextFormatter.appendUnit(text.constraint)
-      val labelContent = content.Text(formComponent.label.value)
+    val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
-      val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
+    val errorMessage: Option[ErrorMessage] = errors.map(
+      error =>
+        ErrorMessage(
+          content = content.Text(error)
+      ))
 
-      val errorMessage: Option[ErrorMessage] = errors.map(
-        error =>
-          ErrorMessage(
-            content = content.Text(error)
-        ))
+    val hint: Option[Hint] = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
+      )
+    }
 
-      val hint: Option[Hint] = formComponent.helpText.map { ls =>
-        Hint(
-          content = content.Text(ls.value)
+    val maybeCurrentValue: Option[String] =
+      formFieldValidationResult.getCurrentValue
+        .orElse(Some(prepopValue))
+        .map { cv =>
+          TextFormatter
+            .componentTextForRendering(cv, text.constraint, formComponent.presentationHint, formComponent.editable)
+        }
+
+    formComponent.presentationHint match {
+      case Some(xs) if xs.contains(TotalValue) =>
+        val totalText = new TotalText(formComponent, labelContent, maybeUnit, hint, errorMessage, maybeCurrentValue)
+
+        html.form.snippets.field_template_text_total(totalText)
+
+      case _ =>
+        val sizeClasses = TextConstraint.getSizeClass(text.constraint, text.displayWidth)
+
+        val hiddenClass =
+          if (formComponent.derived)
+            "govuk-visually-hidden"
+          else
+            ""
+
+        val hiddenErrorMessage = errorMessage.map(e => e.copy(classes = e.classes + hiddenClass))
+
+        val isPageHeading = ei.formLevelHeading
+        val label = Label(
+          isPageHeading = isPageHeading,
+          classes = if (isPageHeading) s"govuk-label--l $hiddenClass" else hiddenClass,
+          content = labelContent
         )
-      }
 
-      val maybeCurrentValue: Option[String] =
-        formFieldValidationResult.getCurrentValue
-          .orElse(Some(prepopValue))
-          .map { cv =>
-            TextFormatter
-              .componentTextForRendering(cv, text.constraint, formComponent.presentationHint, formComponent.editable)
-          }
+        val attributes =
+          if (formComponent.editable)
+            Map.empty[String, String]
+          else
+            Map("readonly" -> "")
 
-      formComponent.presentationHint match {
-        case Some(xs) if xs.contains(TotalValue) =>
-          val totalText = new TotalText(formComponent, labelContent, maybeUnit, hint, errorMessage, maybeCurrentValue)
+        val maybeSuffix: Option[SmartString] =
+          text.suffix.orElse(maybeUnit.map(u => SmartString(u, Nil)))
 
-          html.form.snippets.field_template_text_total(totalText)
-
-        case _ =>
-          val sizeClasses = TextConstraint.getSizeClass(text.constraint, text.displayWidth)
-
-          val hiddenClass =
-            if (formComponent.derived)
-              "govuk-visually-hidden"
-            else
-              ""
-
-          val hiddenErrorMessage = errorMessage.map(e => e.copy(classes = e.classes + hiddenClass))
-
-          val isPageHeading = ei.formLevelHeading
-          val label = Label(
-            isPageHeading = isPageHeading,
-            classes = if (isPageHeading) s"govuk-label--l $hiddenClass" else hiddenClass,
-            content = labelContent
+        if (formComponent.isSterling) {
+          val currencyInput = CurrencyInput(
+            id = formComponent.id.value,
+            name = formComponent.id.value,
+            label = label,
+            hint = hint,
+            value = maybeCurrentValue,
+            errorMessage = hiddenErrorMessage,
+            classes = s"$hiddenClass $sizeClasses",
+            attributes = ei.specialAttributes ++ attributes
           )
 
-          val attributes =
-            if (formComponent.editable)
-              Map.empty[String, String]
-            else
-              Map("readonly" -> "")
+          new hmrcCurrencyInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
 
-          val maybeSuffix: Option[SmartString] =
-            text.suffix.orElse(maybeUnit.map(u => SmartString(u, Nil)))
-
-          if (formComponent.isSterling) {
-            val currencyInput = CurrencyInput(
-              id = formComponent.id.value,
-              name = formComponent.id.value,
-              label = label,
-              hint = hint,
-              value = maybeCurrentValue,
-              errorMessage = hiddenErrorMessage,
-              classes = s"$hiddenClass $sizeClasses",
-              attributes = ei.specialAttributes ++ attributes
-            )
-
-            new hmrcCurrencyInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
-
-          } else {
-            val inputType = formComponent match {
-              case IsTelephone() => "tel"
-              case IsEmail()     => "email"
-              case _             => "text"
-            }
-            val input = Input(
-              id = formComponent.id.value,
-              inputType = inputType,
-              name = formComponent.id.value,
-              label = label,
-              hint = hint,
-              value = maybeCurrentValue,
-              errorMessage = hiddenErrorMessage,
-              classes = s"$hiddenClass $sizeClasses",
-              attributes = ei.specialAttributes ++ attributes,
-              prefix = text.prefix.map(s => PrefixOrSuffix(content = content.Text(s.value))),
-              suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value)))
-            )
-
-            new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
+        } else {
+          val inputType = formComponent match {
+            case IsTelephone() => "tel"
+            case IsEmail()     => "email"
+            case _             => "text"
           }
-      }
+          val input = Input(
+            id = formComponent.id.value,
+            inputType = inputType,
+            name = formComponent.id.value,
+            label = label,
+            hint = hint,
+            value = maybeCurrentValue,
+            errorMessage = hiddenErrorMessage,
+            classes = s"$hiddenClass $sizeClasses",
+            attributes = ei.specialAttributes ++ attributes,
+            prefix = text.prefix.map(s => PrefixOrSuffix(content = content.Text(s.value))),
+            suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value)))
+          )
+
+          new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
+        }
     }
   }
 
@@ -1481,15 +1446,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     l: LangADT,
     sse: SmartStringEvaluator
   ) = {
-    val prepopValue: String = ""
     val formFieldValidationResult = validationResult(formComponent)
-    if (formComponent.onlyShowOnSummary)
-      html.form.snippets
-        .hidden_field_populated(
-          NonEmptyList.one(FormRender(formComponent.id.value, formComponent.id.value, prepopValue)))
-    else
-      html.form.snippets
-        .field_template_sort_code(formComponent, formFieldValidationResult, ei.formLevelHeading)
+    html.form.snippets
+      .field_template_sort_code(formComponent, formFieldValidationResult, ei.formLevelHeading)
 
   }
 
@@ -1549,90 +1508,76 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   ) = {
     val prepopValues: Option[DateExpr] = dateValue.map(DateExpr.fromDateValue).map(DateExpr.withOffset(offset, _))
 
-    if (formComponent.onlyShowOnSummary) {
-      html.form.snippets.hidden_field_populated(
-        Date
-          .fields(formComponent.modelComponentId.indexedComponentId)
-          .map { modelComponentId =>
-            FormRender(
-              modelComponentId.toMongoIdentifier,
-              modelComponentId.toMongoIdentifier,
-              prepopValues.map(_.valueForAtom(modelComponentId.atom)).getOrElse(""))
-          }
+    val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
+
+    val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
+
+    val errorMessage: Option[ErrorMessage] = errors.map(
+      error =>
+        ErrorMessage(
+          content = content.Text(error)
+      ))
+
+    val hint: Option[Hint] = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
       )
-    } else {
-
-      val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
-
-      val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
-
-      val errorMessage: Option[ErrorMessage] = errors.map(
-        error =>
-          ErrorMessage(
-            content = content.Text(error)
-        ))
-
-      val hint: Option[Hint] = formComponent.helpText.map { ls =>
-        Hint(
-          content = content.Text(ls.value)
-        )
-      }
-
-      val hasErrors = formFieldValidationResult.isNotOk
-
-      val inputClasses = if (hasErrors) "govuk-input--error" else ""
-
-      val attributes =
-        if (formComponent.editable)
-          Map.empty[String, String]
-        else
-          Map("readonly" -> "")
-
-      def sizeForAtom(atom: Atom): String = atom match {
-        case Date.year => "govuk-input--width-4"
-        case _         => "govuk-input--width-2"
-      }
-
-      val items =
-        Date
-          .fields(formComponent.modelComponentId.indexedComponentId)
-          .map { modelComponentId =>
-            val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
-            val atom = modelComponentId.atom
-            InputItem(
-              id = modelComponentId.toMongoIdentifier,
-              name = modelComponentId.toMongoIdentifier,
-              label = Some(messages("date." + atom.value.capitalize)),
-              value = formFieldValidationResult
-                .getOptionalCurrentValue(HtmlFieldId.pure(modelComponentId))
-                .orElse(prepopValues.map(_.valueForAtom(atom)))
-                .orElse(prepop),
-              classes = s"$inputClasses ${sizeForAtom(atom)}",
-              attributes = attributes
-            )
-          }
-
-      val isPageHeading = ei.formLevelHeading
-
-      val fieldset = Fieldset(
-        legend = Some(
-          Legend(
-            content = content.Text(formComponent.label.value),
-            classes = if (isPageHeading) "govuk-label--l" else "",
-            isPageHeading = isPageHeading
-          ))
-      )
-
-      val dateInput = DateInput(
-        id = formComponent.id.value,
-        items = items.toList,
-        hint = hint,
-        errorMessage = errorMessage,
-        fieldset = Some(fieldset)
-      )
-
-      new components.govukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
     }
+
+    val hasErrors = formFieldValidationResult.isNotOk
+
+    val inputClasses = if (hasErrors) "govuk-input--error" else ""
+
+    val attributes =
+      if (formComponent.editable)
+        Map.empty[String, String]
+      else
+        Map("readonly" -> "")
+
+    def sizeForAtom(atom: Atom): String = atom match {
+      case Date.year => "govuk-input--width-4"
+      case _         => "govuk-input--width-2"
+    }
+
+    val items =
+      Date
+        .fields(formComponent.modelComponentId.indexedComponentId)
+        .map { modelComponentId =>
+          val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
+          val atom = modelComponentId.atom
+          InputItem(
+            id = modelComponentId.toMongoIdentifier,
+            name = modelComponentId.toMongoIdentifier,
+            label = Some(messages("date." + atom.value.capitalize)),
+            value = formFieldValidationResult
+              .getOptionalCurrentValue(HtmlFieldId.pure(modelComponentId))
+              .orElse(prepopValues.map(_.valueForAtom(atom)))
+              .orElse(prepop),
+            classes = s"$inputClasses ${sizeForAtom(atom)}",
+            attributes = attributes
+          )
+        }
+
+    val isPageHeading = ei.formLevelHeading
+
+    val fieldset = Fieldset(
+      legend = Some(
+        Legend(
+          content = content.Text(formComponent.label.value),
+          classes = if (isPageHeading) "govuk-label--l" else "",
+          isPageHeading = isPageHeading
+        ))
+    )
+
+    val dateInput = DateInput(
+      id = formComponent.id.value,
+      items = items.toList,
+      hint = hint,
+      errorMessage = errorMessage,
+      fieldset = Some(fieldset)
+    )
+
+    new components.govukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
   }
 
   private def renderTime(
@@ -1643,78 +1588,72 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   )(implicit sse: SmartStringEvaluator) = {
     val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
     val formFieldValidationResult = validationResult(formComponent)
-    if (formComponent.onlyShowOnSummary)
-      html.form.snippets
-        .hidden_field_populated(
-          NonEmptyList.one(FormRender(formComponent.id.value, formComponent.id.value, prepopValue.getOrElse(""))))
-    else {
 
-      val labelContent = content.Text(formComponent.label.value)
+    val labelContent = content.Text(formComponent.label.value)
 
-      val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
+    val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
-      val errorMessage: Option[ErrorMessage] = errors.map(
-        error =>
-          ErrorMessage(
-            content = content.Text(error)
-        ))
+    val errorMessage: Option[ErrorMessage] = errors.map(
+      error =>
+        ErrorMessage(
+          content = content.Text(error)
+      ))
 
-      val hint: Option[Hint] = formComponent.helpText.map { ls =>
-        Hint(
-          content = content.Text(ls.value)
-        )
-      }
-
-      val hiddenClass =
-        if (formComponent.derived)
-          "govuk-visually-hidden"
-        else
-          ""
-
-      val hiddenErrorMessage = errorMessage.map(e => e.copy(classes = e.classes + hiddenClass))
-
-      val isPageHeading = ei.formLevelHeading
-      val label = Label(
-        isPageHeading = isPageHeading,
-        classes = if (isPageHeading) s"govuk-label--l $hiddenClass" else hiddenClass,
-        content = labelContent
+    val hint: Option[Hint] = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
       )
-
-      val attributes =
-        if (formComponent.editable)
-          Map.empty[String, String]
-        else
-          Map("readonly" -> "")
-
-      val maybeCurrentValue: String = prepopValue.orElse(formFieldValidationResult.getCurrentValue).getOrElse("")
-
-      val emptySelectItem = SelectItem(
-        value = Some(""),
-        text = "",
-        selected = "" === maybeCurrentValue
-      )
-
-      val selectItems = Range.timeSlots(time) map { t =>
-        SelectItem(
-          value = Some(t),
-          text = t,
-          selected = t === maybeCurrentValue
-        )
-      }
-
-      val select = Select(
-        id = formComponent.id.value,
-        name = formComponent.id.value,
-        items = emptySelectItem +: selectItems,
-        label = label,
-        hint = hint,
-        errorMessage = hiddenErrorMessage,
-        classes = s"$hiddenClass",
-        attributes = attributes
-      )
-
-      new components.govukSelect(govukErrorMessage, govukHint, govukLabel)(select)
     }
+
+    val hiddenClass =
+      if (formComponent.derived)
+        "govuk-visually-hidden"
+      else
+        ""
+
+    val hiddenErrorMessage = errorMessage.map(e => e.copy(classes = e.classes + hiddenClass))
+
+    val isPageHeading = ei.formLevelHeading
+    val label = Label(
+      isPageHeading = isPageHeading,
+      classes = if (isPageHeading) s"govuk-label--l $hiddenClass" else hiddenClass,
+      content = labelContent
+    )
+
+    val attributes =
+      if (formComponent.editable)
+        Map.empty[String, String]
+      else
+        Map("readonly" -> "")
+
+    val maybeCurrentValue: String = prepopValue.orElse(formFieldValidationResult.getCurrentValue).getOrElse("")
+
+    val emptySelectItem = SelectItem(
+      value = Some(""),
+      text = "",
+      selected = "" === maybeCurrentValue
+    )
+
+    val selectItems = Range.timeSlots(time) map { t =>
+      SelectItem(
+        value = Some(t),
+        text = t,
+        selected = t === maybeCurrentValue
+      )
+    }
+
+    val select = Select(
+      id = formComponent.id.value,
+      name = formComponent.id.value,
+      items = emptySelectItem +: selectItems,
+      label = label,
+      hint = hint,
+      errorMessage = hiddenErrorMessage,
+      classes = s"$hiddenClass",
+      attributes = attributes
+    )
+
+    new components.govukSelect(govukErrorMessage, govukHint, govukLabel)(select)
   }
 
   private def htmlForGroup(
