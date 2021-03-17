@@ -118,7 +118,7 @@ class DeclarationController(
       maybeAccessCode,
       OperationWithForm.SubmitDeclaration) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics.formModel) {
+        processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
           requestRelatedData => declarationOnlyVariadicFormData =>
             val sectionsData = formModelOptics.formModelRenderPageOptics.recData.variadicFormData
               .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]]

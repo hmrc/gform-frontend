@@ -36,7 +36,8 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.{ FormHandlerResult, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
-import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
+import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
@@ -156,7 +157,10 @@ class EnrolmentController(
         case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev)) =>
           val genesisFormModel: FormModel[DataExpanded] = FormModel.fromEnrolmentSection(enrolmentSection)
 
-          processResponseDataFromBody(request, genesisFormModel) { requestRelatedData => variadicFormData =>
+          val formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo] =
+            FormModelRenderPageOptics(genesisFormModel, RecData.empty)
+
+          processResponseDataFromBody(request, formModelRenderPageOptics) { requestRelatedData => variadicFormData =>
             val formModelOpticsF = FormModelOptics
               .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.EnrolmentOnly](
                 variadicFormData,

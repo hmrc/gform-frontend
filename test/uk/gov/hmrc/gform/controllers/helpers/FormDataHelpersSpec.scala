@@ -23,8 +23,10 @@ import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.Bracket.NonRepeatingPage
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded, FormModel, Singleton }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -76,7 +78,8 @@ class FormDataHelpersSpec extends Spec {
         Future.successful(Results.Ok)
     }
 
-    val future = FormDataHelpers.processResponseDataFromBody(request, formModel)(continuationFunction)
+    val future = FormDataHelpers
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(continuationFunction)
     future.futureValue shouldBe Results.Ok
   }
 
@@ -92,7 +95,8 @@ class FormDataHelpersSpec extends Spec {
         Future.successful(Results.Ok)
     }
 
-    val future = FormDataHelpers.processResponseDataFromBody(request, formModel)(continuationFunction)
+    val future = FormDataHelpers
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(continuationFunction)
     future.futureValue shouldBe Results.Ok
   }
 

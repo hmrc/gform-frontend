@@ -29,7 +29,6 @@ case class SectionRenderingInformation(
   sectionNumber: SectionNumber,
   sectionTitle: String,
   sectionDescription: Option[String],
-  hiddenFieldsSnippets: List[Html],
   snippets: List[Html],
   javascripts: String,
   envelopeId: EnvelopeId,
