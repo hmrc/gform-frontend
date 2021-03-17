@@ -30,9 +30,10 @@ trait JsonUtils {
   def reads[T: Reads: TypeTag]: Reads[NonEmptyList[T]] =
     Reads
       .of[List[T]]
-      .collect(JsonValidationError(
-        s"expected a NonEmptyList of ${implicitly[TypeTag[T]].tpe} but got an empty list instead")) {
-        case head :: tail => NonEmptyList(head, tail)
+      .collect(
+        JsonValidationError(s"expected a NonEmptyList of ${implicitly[TypeTag[T]].tpe} but got an empty list instead")
+      ) { case head :: tail =>
+        NonEmptyList(head, tail)
       }
 
   def writes[T: Writes]: Writes[NonEmptyList[T]] =
@@ -53,18 +54,24 @@ trait JsonUtils {
     Format(valueClassReads(construct), valueClassWrites(extract))
 
   def formatMap[A, B: Format](stringToA: String => A, aToString: A => String): Format[Map[A, B]] =
-    implicitly[Format[Map[String, B]]].inmap(_.map {
-      case (k, v) => stringToA(k) -> v
-    }, _.map {
-      case (k, v) => aToString(k) -> v
-    })
+    implicitly[Format[Map[String, B]]].inmap(
+      _.map { case (k, v) =>
+        stringToA(k) -> v
+      },
+      _.map { case (k, v) =>
+        aToString(k) -> v
+      }
+    )
 
   def formatMapO[A, B: Format](stringToA: String => Option[A], aToString: A => String): Format[Map[A, B]] =
-    implicitly[Format[Map[String, B]]].inmap(_.flatMap {
-      case (k, v) => stringToA(k).fold(Map.empty[A, B])(s => Map(s -> v))
-    }, _.map {
-      case (k, v) => aToString(k) -> v
-    })
+    implicitly[Format[Map[String, B]]].inmap(
+      _.flatMap { case (k, v) =>
+        stringToA(k).fold(Map.empty[A, B])(s => Map(s -> v))
+      },
+      _.map { case (k, v) =>
+        aToString(k) -> v
+      }
+    )
 
   def safeCast[A, B >: A](reads: Reads[A]): Reads[B] = reads.asInstanceOf[Reads[B]]
 }

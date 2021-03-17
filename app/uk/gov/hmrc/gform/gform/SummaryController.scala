@@ -71,88 +71,91 @@ class SummaryController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.AcceptSummary) {
-      implicit request: Request[AnyContent] => implicit l => cache => implicit sse => formModelOptics =>
-        processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
-          requestRelatedData => variadicFormData =>
-            val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
+      OperationWithForm.AcceptSummary
+    ) { implicit request: Request[AnyContent] => implicit l => cache => implicit sse => formModelOptics =>
+      processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
+        requestRelatedData => variadicFormData =>
+          val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
-            val isFormValidF = for {
-              envelope <- envelopeF
-              validationResult <- validationService
-                                   .validateFormModel(
-                                     cache.toCacheData,
-                                     EnvelopeWithMapping(envelope, cache.form),
-                                     formModelOptics.formModelVisibilityOptics)
-            } yield validationResult.isFormValid
+          val isFormValidF = for {
+            envelope <- envelopeF
+            validationResult <- validationService
+                                  .validateFormModel(
+                                    cache.toCacheData,
+                                    EnvelopeWithMapping(envelope, cache.form),
+                                    formModelOptics.formModelVisibilityOptics
+                                  )
+          } yield validationResult.isFormValid
 
-            val redirectToDeclarationOrPrint = gformConnector
-              .updateUserData(
-                FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
-                UserData(
-                  cache.form.formData,
-                  Validated,
-                  cache.form.visitsIndex,
-                  cache.form.thirdPartyData,
-                  cache.form.componentIdToFileId
-                )
+          val redirectToDeclarationOrPrint = gformConnector
+            .updateUserData(
+              FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
+              UserData(
+                cache.form.formData,
+                Validated,
+                cache.form.visitsIndex,
+                cache.form.thirdPartyData,
+                cache.form.componentIdToFileId
               )
-              .map { _ =>
-                cache.formTemplate.destinations match {
-                  case _: DestinationList =>
-                    Redirect(
-                      routes.DeclarationController
-                        .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes))
+            )
+            .map { _ =>
+              cache.formTemplate.destinations match {
+                case _: DestinationList =>
+                  Redirect(
+                    routes.DeclarationController
+                      .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes)
+                  )
 
-                  case _: DestinationPrint =>
-                    Redirect(
-                      routes.PrintSectionController
-                        .showPrintSection(formTemplateId, maybeAccessCode))
-                }
-
+                case _: DestinationPrint =>
+                  Redirect(
+                    routes.PrintSectionController
+                      .showPrintSection(formTemplateId, maybeAccessCode)
+                  )
               }
 
-            val redirectToSummary =
-              Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
-            val handleSummaryContinue = for {
-              result <- isFormValidF.ifM(
-                         redirectToDeclarationOrPrint,
-                         redirectToSummary.pure[Future]
-                       )
-            } yield result
-
-            def handleExit: Result =
-              maybeAccessCode match {
-                case Some(accessCode) =>
-                  val saveWithAccessCode = new SaveWithAccessCode(cache.formTemplate, accessCode)
-                  Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
-                case _ =>
-                  val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
-                  val saveAcknowledgement = new SaveAcknowledgement(cache.formTemplate, cache.form.envelopeExpiryDate)
-                  Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
-              }
-
-            save match {
-              case Exit            => handleExit.pure[Future]
-              case SummaryContinue => handleSummaryContinue
-              case _               => BadRequest("Cannot determine action").pure[Future]
             }
-        }
+
+          val redirectToSummary =
+            Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
+          val handleSummaryContinue = for {
+            result <- isFormValidF.ifM(
+                        redirectToDeclarationOrPrint,
+                        redirectToSummary.pure[Future]
+                      )
+          } yield result
+
+          def handleExit: Result =
+            maybeAccessCode match {
+              case Some(accessCode) =>
+                val saveWithAccessCode = new SaveWithAccessCode(cache.formTemplate, accessCode)
+                Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
+              case _ =>
+                val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
+                val saveAcknowledgement = new SaveAcknowledgement(cache.formTemplate, cache.form.envelopeExpiryDate)
+                Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
+            }
+
+          save match {
+            case Exit            => handleExit.pure[Future]
+            case SummaryContinue => handleSummaryContinue
+            case _               => BadRequest("Cannot determine action").pure[Future]
+          }
+      }
     }
 
   def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.DownloadSummaryPdf) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        pdfService
-          .generateSummaryPDF(maybeAccessCode, cache, SummaryPagePurpose.ForUser, formModelOptics)
-          .map { pdfStream =>
-            Result(
-              header = ResponseHeader(200, Map.empty),
-              body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
-            )
-          }
+      OperationWithForm.DownloadSummaryPdf
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      pdfService
+        .generateSummaryPDF(maybeAccessCode, cache, SummaryPagePurpose.ForUser, formModelOptics)
+        .map { pdfStream =>
+          Result(
+            header = ResponseHeader(200, Map.empty),
+            body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+          )
+        }
     }
 }

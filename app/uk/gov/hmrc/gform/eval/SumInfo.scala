@@ -33,7 +33,7 @@ case class SumInfo(lookup: Map[Sum, Set[FormComponentId]]) extends AnyVal {
 
     val res: Set[FormComponentId] = lookup.toList
       .collect {
-        case (Sum(FormCtx(fcId)), dependeesFcId) if (fcId.baseComponentId === formComponentId.baseComponentId) =>
+        case (Sum(FormCtx(fcId)), dependeesFcId) if fcId.baseComponentId === formComponentId.baseComponentId =>
           dependeesFcId
       }
       .toSet

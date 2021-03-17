@@ -40,7 +40,8 @@ case class ThirdPartyData(
           emailVerification ++ m,
           queryParams,
           reviewData,
-          booleanExprCache)
+          booleanExprCache
+        )
       case Some(ValidatorsResult(None, m)) =>
         ThirdPartyData(
           desRegistrationResponse,
@@ -48,7 +49,8 @@ case class ThirdPartyData(
           emailVerification ++ m,
           queryParams,
           reviewData,
-          booleanExprCache)
+          booleanExprCache
+        )
       case _ => this
     }
 

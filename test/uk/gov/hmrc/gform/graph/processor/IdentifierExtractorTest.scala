@@ -44,22 +44,29 @@ class IdentifierExtractorTest extends Spec {
 
   lazy val enrolmentWithMultipleIdentifier = Enrolments(
     Set(
-      Enrolment("HMRC-ORG-OBTDS").copy(identifiers = List(
-        EnrolmentIdentifier("EtmpRegistrationNumber", "12XX567890"),
-        EnrolmentIdentifier("EtmpRegistrationNumber", "AABB567890"),
-        EnrolmentIdentifier("UTR", "XXXXXXX"),
-        EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890")
-      ))))
+      Enrolment("HMRC-ORG-OBTDS").copy(identifiers =
+        List(
+          EnrolmentIdentifier("EtmpRegistrationNumber", "12XX567890"),
+          EnrolmentIdentifier("EtmpRegistrationNumber", "AABB567890"),
+          EnrolmentIdentifier("UTR", "XXXXXXX"),
+          EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890")
+        )
+      )
+    )
+  )
 
   lazy val multiEnrolments = Enrolments(
     Set(
       Enrolment("HMRC-ORG-OBTDS").copy(
         identifiers = List(
           EnrolmentIdentifier("EtmpRegistrationNumber", "12BB567890")
-        )),
+        )
+      ),
       Enrolment("HMRC-ORG-OBTDS").copy(
         identifiers = List(
           EnrolmentIdentifier("EtmpRegistranntionNumber", "12AA567890")
-        ))
-    ))
+        )
+      )
+    )
+  )
 }

@@ -46,7 +46,8 @@ object TextFormatter {
     currentValue: String,
     textConstraint: TextConstraint,
     presentationHint: Option[List[PresentationHint]],
-    editable: Boolean)(implicit l: LangADT): String =
+    editable: Boolean
+  )(implicit l: LangADT): String =
     (textConstraint, presentationHint, editable) match {
       // format: off
       case (IsPositiveNumberOrNumber(_, _, _), _, true)                               => stripTrailingZeros(currentValue)
@@ -62,8 +63,9 @@ object TextFormatter {
     currentValue: String,
     textConstraint: TextConstraint,
     prefix: Option[SmartString],
-    suffix: Option[SmartString])(
-    implicit l: LangADT,
+    suffix: Option[SmartString]
+  )(implicit
+    l: LangADT,
     sse: SmartStringEvaluator
   ): String =
     (textConstraint, prefix, suffix) match {
@@ -82,15 +84,15 @@ object TextFormatter {
 
   private def prependPrefix(
     prefix: Option[SmartString]
-  )(
-    implicit sse: SmartStringEvaluator
+  )(implicit
+    sse: SmartStringEvaluator
   ): String =
     prefix.fold("")(_.value + " ")
 
   private def appendSuffix(
     suffix: Option[SmartString]
-  )(
-    implicit sse: SmartStringEvaluator
+  )(implicit
+    sse: SmartStringEvaluator
   ): String =
     suffix.fold("")(" " + _.value)
 
@@ -99,8 +101,8 @@ object TextFormatter {
     maxFractionalDigits: Int,
     rm: RoundingMode,
     unit: Option[LocalisedString]
-  )(
-    implicit l: LangADT
+  )(implicit
+    l: LangADT
   ): String = {
     val un = unit.fold("")(" " + _.value)
     val maybeBigDecimal = toBigDecimalSafe(currentValue)
@@ -115,8 +117,8 @@ object TextFormatter {
     envelope: EnvelopeWithMapping,
     prefix: Option[SmartString] = None,
     suffix: Option[SmartString] = None
-  )(
-    implicit l: LangADT,
+  )(implicit
+    l: LangADT,
     messages: Messages,
     evaluator: SmartStringEvaluator
   ): String = {
@@ -146,7 +148,8 @@ object TextFormatter {
         date
           .fields(formComponent.modelComponentId.indexedComponentId)
           .map(modelComponentId =>
-            monthToString(modelComponentId.atom, validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId))))
+            monthToString(modelComponentId.atom, validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
+          )
           .toList
           .mkString(" ")
       case _ => currentValue

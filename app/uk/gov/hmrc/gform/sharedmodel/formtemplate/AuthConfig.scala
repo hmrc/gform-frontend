@@ -97,8 +97,9 @@ object HasEnrolmentSection {
       case HmrcEnrolmentModule(EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check))) =>
         Some((serviceId, es, check, enrolmentAction))
       case HmrcAgentWithEnrolmentModule(
-          _,
-          EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check))) =>
+            _,
+            EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check))
+          ) =>
         Some((serviceId, es, check, enrolmentAction))
       case _ => None
     }
@@ -117,7 +118,8 @@ object AuthConfig {
     maybeRegimeId: Option[RegimeId],
     maybeEnrolmentCheck: Option[EnrolmentCheckVerb],
     maybeEnrolmentSection: Option[EnrolmentSection],
-    maybeEnrolmentAction: Option[EnrolmentAction]): EnrolmentAuth =
+    maybeEnrolmentAction: Option[EnrolmentAction]
+  ): EnrolmentAuth =
     (maybeEnrolmentCheck, maybeEnrolmentSection) match {
       case (Some(AlwaysVerb), Some(enrolmentSection)) =>
         EnrolmentAuth(
@@ -125,14 +127,18 @@ object AuthConfig {
           DoCheck(
             Always,
             RequireEnrolment(enrolmentSection, enrolmentActionMatch(maybeEnrolmentAction)),
-            toEnrolmentPostCheck(maybeRegimeId)))
+            toEnrolmentPostCheck(maybeRegimeId)
+          )
+        )
       case (Some(ForNonAgentsVerb), Some(enrolmentSection)) =>
         EnrolmentAuth(
           serviceId,
           DoCheck(
             ForNonAgents,
             RequireEnrolment(enrolmentSection, enrolmentActionMatch(maybeEnrolmentAction)),
-            toEnrolmentPostCheck(maybeRegimeId)))
+            toEnrolmentPostCheck(maybeRegimeId)
+          )
+        )
       case (Some(AlwaysVerb), None) =>
         EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)))
       case (Some(ForNonAgentsVerb), None) =>
@@ -179,7 +185,8 @@ object AgentAccess {
 
   implicit val format: Format[AgentAccess] = ADTFormat.formatEnumerationWithDefault(
     RequireMTDAgentEnrolment,
-    Seq(RequireMTDAgentEnrolment, DenyAnyAgentAffinityUser, AllowAnyAgentAffinityUser).map(t => (asString(t) -> t)): _*)
+    Seq(RequireMTDAgentEnrolment, DenyAnyAgentAffinityUser, AllowAnyAgentAffinityUser).map(t => (asString(t) -> t)): _*
+  )
 
   def asString(access: AgentAccess): String = access match {
     case RequireMTDAgentEnrolment  => requireMTDAgentEnrolment

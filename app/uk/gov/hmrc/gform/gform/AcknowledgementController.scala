@@ -60,65 +60,67 @@ class AcknowledgementController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.ViewAcknowledgement) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        import i18nSupport._
+      OperationWithForm.ViewAcknowledgement
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      import i18nSupport._
 
-        cache.formTemplate.destinations match {
-          case destinationList: DestinationList =>
-            Future.successful(
-              Ok(
-                renderer
-                  .renderAcknowledgementSection(
-                    maybeAccessCode,
-                    cache.formTemplate,
-                    destinationList,
-                    cache.retrievals,
-                    cache.form.envelopeId,
-                    formModelOptics
-                  )))
-          case _ =>
-            Future.failed(new BadRequestException(s"Acknowledgement is not defined for $formTemplateId"))
-        }
+      cache.formTemplate.destinations match {
+        case destinationList: DestinationList =>
+          Future.successful(
+            Ok(
+              renderer
+                .renderAcknowledgementSection(
+                  maybeAccessCode,
+                  cache.formTemplate,
+                  destinationList,
+                  cache.retrievals,
+                  cache.form.envelopeId,
+                  formModelOptics
+                )
+            )
+          )
+        case _ =>
+          Future.failed(new BadRequestException(s"Acknowledgement is not defined for $formTemplateId"))
+      }
     }
 
   def downloadPDF(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.WithAcknowledgement](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.ViewAcknowledgement) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        val formString = nonRepudiationHelpers.formDataToJson(cache.form)
-        val hashedValue = nonRepudiationHelpers.computeHash(formString)
+      OperationWithForm.ViewAcknowledgement
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      val formString = nonRepudiationHelpers.formDataToJson(cache.form)
+      val hashedValue = nonRepudiationHelpers.computeHash(formString)
 
-        val customerId = CustomerIdRecalculation
-          .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
-            cache,
-            formModelOptics.formModelVisibilityOptics)
+      val customerId = CustomerIdRecalculation
+        .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
+          cache,
+          formModelOptics.formModelVisibilityOptics
+        )
 
-        val eventId = auditService
-          .calculateSubmissionEvent(cache.form, formModelOptics.formModelVisibilityOptics, cache.retrievals, customerId)
-          .eventId
+      val eventId = auditService
+        .calculateSubmissionEvent(cache.form, formModelOptics.formModelVisibilityOptics, cache.retrievals, customerId)
+        .eventId
 
-        import i18nSupport._
-        for {
+      import i18nSupport._
+      for {
 
-          _          <- nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
-          submission <- gformConnector.submissionDetails(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
-          htmlForPDF <- summaryRenderingService
-                         .createHtmlForPdf[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
-                           maybeAccessCode,
-                           cache,
-                           Some(SubmissionDetails(submission, hashedValue)),
-                           SummaryPagePurpose.ForUser,
-                           formModelOptics
-                         )
-          pdfStream <- pdfService.generatePDF(htmlForPDF)
-        } yield
-          Result(
-            header = ResponseHeader(200, Map.empty),
-            body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
-          )
+        _          <- nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
+        submission <- gformConnector.submissionDetails(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
+        htmlForPDF <- summaryRenderingService
+                        .createHtmlForPdf[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
+                          maybeAccessCode,
+                          cache,
+                          Some(SubmissionDetails(submission, hashedValue)),
+                          SummaryPagePurpose.ForUser,
+                          formModelOptics
+                        )
+        pdfStream <- pdfService.generatePDF(htmlForPDF)
+      } yield Result(
+        header = ResponseHeader(200, Map.empty),
+        body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+      )
     }
 
   def exitSurvey(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =

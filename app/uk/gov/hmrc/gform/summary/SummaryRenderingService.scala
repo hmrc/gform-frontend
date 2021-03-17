@@ -55,7 +55,8 @@ class SummaryRenderingService(
   i18nSupport: I18nSupport,
   fileUploadAlgebra: FileUploadAlgebra[Future],
   validationService: ValidationService,
-  frontendAppConfig: FrontendAppConfig) {
+  frontendAppConfig: FrontendAppConfig
+) {
 
   def createHtmlForPdf[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     maybeAccessCode: Option[AccessCode],
@@ -63,8 +64,7 @@ class SummaryRenderingService(
     submissionDetails: Option[SubmissionDetails],
     summaryPagePurpose: SummaryPagePurpose,
     formModelOptics: FormModelOptics[D]
-  )(
-    implicit
+  )(implicit
     request: Request[_],
     messages: Messages,
     l: LangADT,
@@ -84,7 +84,8 @@ class SummaryRenderingService(
               document.title(s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}")
               HtmlSanitiser.acknowledgementPdf(document, submissionDetailsString, cache.formTemplate)
             }
-          ))
+          )
+      )
     }
 
   def createHtmlForPrintPdf(
@@ -93,8 +94,8 @@ class SummaryRenderingService(
     summaryPagePurpose: SummaryPagePurpose,
     pdf: PrintSection.Pdf,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(
-    implicit request: Request[_],
+  )(implicit
+    request: Request[_],
     messages: Messages,
     l: LangADT,
     hc: HeaderCarrier,
@@ -113,7 +114,8 @@ class SummaryRenderingService(
               document.title(s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}")
               HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)
             }
-          ))
+          )
+      )
     }
 
   def createHtmlForNotificationPdf(
@@ -122,8 +124,8 @@ class SummaryRenderingService(
     summaryPagePurpose: SummaryPagePurpose,
     pdfNotification: PdfNotification,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(
-    implicit request: Request[_],
+  )(implicit
+    request: Request[_],
     messages: Messages,
     l: LangADT,
     hc: HeaderCarrier,
@@ -136,12 +138,13 @@ class SummaryRenderingService(
 
     for {
       pdfHtml <- getNotificationPdfHTML(
-                  cache.form.formTemplateId,
-                  maybeAccessCode,
-                  cache,
-                  summaryPagePurpose,
-                  pdfFieldIds,
-                  formModelOptics)
+                   cache.form.formTemplateId,
+                   maybeAccessCode,
+                   cache,
+                   summaryPagePurpose,
+                   pdfFieldIds,
+                   formModelOptics
+                 )
     } yield {
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdfHeader, pdfFooter)
       PdfHtml(
@@ -152,15 +155,15 @@ class SummaryRenderingService(
               document.title(s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}")
               HtmlSanitiser.printSectionPdf(document, headerStr, footerStr)
             }
-          ))
+          )
+      )
     }
   }
 
   private def addDataToPrintPdfHTML(
     pdfHeader: SmartString,
     pdfFooter: SmartString
-  )(
-    implicit
+  )(implicit
     lise: SmartStringEvaluator
   ): (String, String) = {
 
@@ -176,13 +179,13 @@ class SummaryRenderingService(
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
     formModelOptics: FormModelOptics[D]
-  )(
-    implicit
+  )(implicit
     request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    lise: SmartStringEvaluator): Future[Html] = {
+    lise: SmartStringEvaluator
+  ): Future[Html] = {
     val envelopeF = fileUploadAlgebra.getEnvelope(cache.form.envelopeId).map(EnvelopeWithMapping(_, cache.form))
 
     import i18nSupport._
@@ -190,19 +193,18 @@ class SummaryRenderingService(
     for {
       envelope <- envelopeF
       validationResult <- validationService
-                           .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics)
-    } yield
-      SummaryRenderingService.renderSummary(
-        cache.formTemplate,
-        validationResult,
-        formModelOptics,
-        maybeAccessCode,
-        envelope,
-        cache.retrievals,
-        frontendAppConfig,
-        cache.form.thirdPartyData.obligations,
-        summaryPagePurpose
-      )
+                            .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics)
+    } yield SummaryRenderingService.renderSummary(
+      cache.formTemplate,
+      validationResult,
+      formModelOptics,
+      maybeAccessCode,
+      envelope,
+      cache.retrievals,
+      frontendAppConfig,
+      cache.form.thirdPartyData.obligations,
+      summaryPagePurpose
+    )
 
   }
 
@@ -213,8 +215,7 @@ class SummaryRenderingService(
     summaryPagePurpose: SummaryPagePurpose,
     pdfFieldIds: List[FormComponentId],
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(
-    implicit
+  )(implicit
     request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
@@ -229,20 +230,19 @@ class SummaryRenderingService(
     for {
       envelope <- envelopeF
       validationResult <- validationService
-                           .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics)
-    } yield
-      SummaryRenderingService.renderNotificationPdfSummary(
-        cache.formTemplate,
-        validationResult,
-        formModelOptics.formModelVisibilityOptics,
-        maybeAccessCode,
-        envelope,
-        cache.retrievals,
-        frontendAppConfig,
-        cache.form.thirdPartyData.obligations,
-        summaryPagePurpose,
-        pdfFieldIds
-      )
+                            .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics)
+    } yield SummaryRenderingService.renderNotificationPdfSummary(
+      cache.formTemplate,
+      validationResult,
+      formModelOptics.formModelVisibilityOptics,
+      maybeAccessCode,
+      envelope,
+      cache.retrievals,
+      frontendAppConfig,
+      cache.form.thirdPartyData.obligations,
+      summaryPagePurpose,
+      pdfFieldIds
+    )
   }
 }
 
@@ -258,12 +258,7 @@ object SummaryRenderingService {
     frontendAppConfig: FrontendAppConfig,
     obligations: Obligations,
     summaryPagePurpose: SummaryPagePurpose
-  )(
-    implicit
-    request: Request[_],
-    messages: Messages,
-    l: LangADT,
-    lise: SmartStringEvaluator): Html = {
+  )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
 
@@ -304,8 +299,7 @@ object SummaryRenderingService {
     obligations: Obligations,
     summaryPagePurpose: SummaryPagePurpose,
     pdfFieldIds: List[FormComponentId]
-  )(
-    implicit
+  )(implicit
     request: Request[_],
     messages: Messages,
     l: LangADT,
@@ -344,9 +338,8 @@ object SummaryRenderingService {
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
     envelope: EnvelopeWithMapping,
-    obligations: Obligations,
-  )(
-    implicit
+    obligations: Obligations
+  )(implicit
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator
@@ -354,8 +347,9 @@ object SummaryRenderingService {
 
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
-    def renderHtmls(singleton: Singleton[Visibility], sectionNumber: SectionNumber, source: Section)(
-      implicit l: LangADT): List[Html] = {
+    def renderHtmls(singleton: Singleton[Visibility], sectionNumber: SectionNumber, source: Section)(implicit
+      l: LangADT
+    ): List[Html] = {
       val page = singleton.page
       val sectionTitle4Ga = sectionTitle4GaFactory(page.title, sectionNumber)
       val pageTitle = page.shortName.getOrElse(page.title)
@@ -380,18 +374,17 @@ object SummaryRenderingService {
 
       val middleRows: List[SummaryListRow] = page.fields
         .filterNot(_.hideOnSummary)
-        .flatMap(
-          formComponent =>
-            FormComponentSummaryRenderer.summaryListRows[D, SummaryRender](
-              formComponent,
-              formTemplate._id,
-              formModelOptics.formModelVisibilityOptics,
-              maybeAccessCode,
-              sectionNumber,
-              sectionTitle4Ga,
-              obligations,
-              validationResult,
-              envelope
+        .flatMap(formComponent =>
+          FormComponentSummaryRenderer.summaryListRows[D, SummaryRender](
+            formComponent,
+            formTemplate._id,
+            formModelOptics.formModelVisibilityOptics,
+            maybeAccessCode,
+            sectionNumber,
+            sectionTitle4Ga,
+            obligations,
+            validationResult,
+            envelope
           )
         )
 
@@ -466,27 +459,23 @@ object SummaryRenderingService {
     envelope: EnvelopeWithMapping,
     obligations: Obligations,
     pdfFieldIds: List[FormComponentId]
-  )(
-    implicit
-    messages: Messages,
-    l: LangADT,
-    lise: SmartStringEvaluator): List[Html] = {
+  )(implicit messages: Messages, l: LangADT, lise: SmartStringEvaluator): List[Html] = {
 
     def renderHtmls(fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
       val rows = fields
-        .flatMap(
-          formComponent =>
-            FormComponentSummaryRenderer.summaryListRows[DataOrigin.Mongo, SummaryRender](
-              formComponent,
-              formTemplate._id,
-              formModelVisibilityOptics,
-              maybeAccessCode,
-              SectionNumber(0),
-              SectionTitle4Ga(""),
-              obligations,
-              validationResult,
-              envelope
-          ))
+        .flatMap(formComponent =>
+          FormComponentSummaryRenderer.summaryListRows[DataOrigin.Mongo, SummaryRender](
+            formComponent,
+            formTemplate._id,
+            formModelVisibilityOptics,
+            maybeAccessCode,
+            SectionNumber(0),
+            SectionTitle4Ga(""),
+            obligations,
+            validationResult,
+            envelope
+          )
+        )
 
       List(new govukSummaryList()(SummaryList(rows)))
     }
@@ -508,14 +497,14 @@ object SummaryRenderingService {
   def addSubmissionDetailsToDocument[U <: SectionSelectorType: SectionSelector](
     submissionDetails: Option[SubmissionDetails],
     cache: AuthCacheWithForm
-  )(
-    implicit
+  )(implicit
     messages: Messages
   ): String = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val formattedTime = submissionDetails.map(sd =>
-      s"""${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}""")
+      s"""${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}"""
+    )
 
     val rows = List(
       formattedTime.map(ft => cya_row(messages("submission.date"), ft)),

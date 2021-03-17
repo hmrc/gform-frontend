@@ -37,7 +37,8 @@ class WebChatSpec extends Spec {
               |  "chatRoomId": "1001",
               |  "templateName": "hmrc6"
               |}""".stripMargin
-        ))
+        )
+      )
       .get shouldBe WebChat(ChatRoomId("1001"), TemplateName("hmrc6"))
   }
 
@@ -49,7 +50,8 @@ class WebChatSpec extends Spec {
           s"""|{
               |  "chatRoomId": "1001"
               |}""".stripMargin
-        ))
+        )
+      )
       .get shouldBe WebChat(ChatRoomId("1001"), TemplateName("hmrc7"))
   }
 

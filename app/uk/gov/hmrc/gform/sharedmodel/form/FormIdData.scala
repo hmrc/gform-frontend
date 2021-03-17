@@ -56,12 +56,14 @@ object FormIdData {
   def apply(
     retrievals: MaterialisedRetrievals,
     formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode]): FormIdData = apply(UserId(retrievals), formTemplateId, maybeAccessCode)
+    maybeAccessCode: Option[AccessCode]
+  ): FormIdData = apply(UserId(retrievals), formTemplateId, maybeAccessCode)
 
   def apply(
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    maybeAccessCode: Option[AccessCode]): FormIdData = apply(UserId(retrievals), formTemplate._id, maybeAccessCode)
+    maybeAccessCode: Option[AccessCode]
+  ): FormIdData = apply(UserId(retrievals), formTemplate._id, maybeAccessCode)
 
   def apply(userId: UserId, formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): FormIdData =
     maybeAccessCode.fold[FormIdData](FormIdData.Plain(userId, formTemplateId)) { accessCode =>

@@ -61,7 +61,8 @@ private case object EnrolmentFormNotValid extends SubmitEnrolmentError
 case class Env(
   formTemplate: FormTemplate,
   retrievals: MaterialisedRetrievals,
-  formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo])
+  formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
+)
 
 class EnrolmentController(
   i18nSupport: I18nSupport,
@@ -76,8 +77,8 @@ class EnrolmentController(
   frontendAppConfig: FrontendAppConfig,
   messagesControllerComponents: MessagesControllerComponents,
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory
-)(
-  implicit ec: ExecutionContext
+)(implicit
+  ec: ExecutionContext
 ) extends FrontendController(messagesControllerComponents) {
 
   type Ctx[A] = ReaderT[Future, Env, A]
@@ -93,7 +94,8 @@ class EnrolmentController(
       def enrolGGUser(
         request: TaxEnrolment,
         service: ServiceId,
-        retrievals: MaterialisedRetrievals): EnrolM[ServiceCallResponse[TaxEnrolmentsResponse]] =
+        retrievals: MaterialisedRetrievals
+      ): EnrolM[ServiceCallResponse[TaxEnrolmentsResponse]] =
         liftEM(taxEnrolmentConnector.enrolGGUser(request, service, retrievals))
     }
 
@@ -132,14 +134,16 @@ class EnrolmentController(
     enrolmentSection: EnrolmentSection,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     globalErrors: List[ErrorLink],
-    validationResult: ValidationResult)(implicit request: Request[_], l: LangADT) = {
+    validationResult: ValidationResult
+  )(implicit request: Request[_], l: LangADT) = {
     implicit val sse = smartStringEvaluatorFactory(
       formModelOptics.formModelVisibilityOptics,
       retrievals,
       ThirdPartyData.empty,
       None,
       EnvelopeId("empty"),
-      formTemplate)
+      formTemplate
+    )
 
     val singleton = toSingleton(enrolmentSection)
 
@@ -168,7 +172,8 @@ class EnrolmentController(
                 cache.toCacheData,
                 recalculation,
                 None,
-                FormComponentIdToFileIdMapping.empty)
+                FormComponentIdToFileIdMapping.empty
+              )
             def handleContinueWithData(formModelOptics: FormModelOptics[DataOrigin.Mongo]) = {
               val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
 
@@ -179,7 +184,8 @@ class EnrolmentController(
                   ThirdPartyData.empty,
                   None,
                   EnvelopeId(""),
-                  formTemplate)
+                  formTemplate
+                )
 
               implicit val EC = enrolmentConnect
               implicit val GGC = ggConnect
@@ -191,7 +197,8 @@ class EnrolmentController(
                   SectionNumber(0),
                   cache.toCacheData,
                   EnvelopeWithMapping.empty,
-                  validationService.validatePageModel)
+                  validationService.validatePageModel
+                )
 
               val enrolmentResultProcessor = new EnrolmentResultProcessor(
                 renderEnrolmentSection,
@@ -199,23 +206,25 @@ class EnrolmentController(
                 retrievals,
                 enrolmentSection,
                 formModelOptics,
-                frontendAppConfig)
+                frontendAppConfig
+              )
               for {
                 formHandlerResult <- formHandlerResultF
                 res <- processValidation(
-                        serviceId,
-                        enrolmentSection,
-                        postCheck,
-                        checkEnrolment(serviceId),
-                        formHandlerResult,
-                        lfcev,
-                        retrievals)
-                        .fold(
-                          enrolmentResultProcessor
-                            .recoverEnrolmentError(formHandlerResult.validationResult),
-                          enrolmentResultProcessor.processEnrolmentResult
-                        )
-                        .run(Env(formTemplate, retrievals, formModelVisibilityOptics))
+                         serviceId,
+                         enrolmentSection,
+                         postCheck,
+                         checkEnrolment(serviceId),
+                         formHandlerResult,
+                         lfcev,
+                         retrievals
+                       )
+                         .fold(
+                           enrolmentResultProcessor
+                             .recoverEnrolmentError(formHandlerResult.validationResult),
+                           enrolmentResultProcessor.processEnrolmentResult
+                         )
+                         .run(Env(formTemplate, retrievals, formModelVisibilityOptics))
               } yield res
             }
             action match {
@@ -256,24 +265,21 @@ class EnrolmentController(
     formHandlerResult: FormHandlerResult,
     enrolmentAction: EnrolmentAction,
     retrievals: MaterialisedRetrievals
-  )(
-    implicit
-    AA: Ask[F, Env],
-    FR: Raise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] = {
+  )(implicit AA: Ask[F, Env], FR: Raise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] = {
 
     def tryEnrolment(verifiers: List[Verifier], identifiers: NonEmptyList[Identifier]): F[CheckEnrolmentsResult] =
       for {
         enrolmentResponse <- enrolmentService.enrolUser[F](serviceId, identifiers, verifiers, retrievals)
         result <- enrolmentResponse match {
-                   case ServiceResponse(TaxEnrolmentsResponse.Success)  => checkEnrolment(identifiers)
-                   case ServiceResponse(TaxEnrolmentsResponse.Conflict) => CheckEnrolmentsResult.Conflict.pure[F]
-                   case ServiceResponse(TaxEnrolmentsResponse.InvalidIdentifiers) =>
-                     CheckEnrolmentsResult.InvalidIdentifiers.pure[F]
-                   case ServiceResponse(TaxEnrolmentsResponse.InvalidCredentials) =>
-                     CheckEnrolmentsResult.InvalidCredentials.pure[F]
-                   case _ =>
-                     CheckEnrolmentsResult.Failed.pure[F]
-                 }
+                    case ServiceResponse(TaxEnrolmentsResponse.Success)  => checkEnrolment(identifiers)
+                    case ServiceResponse(TaxEnrolmentsResponse.Conflict) => CheckEnrolmentsResult.Conflict.pure[F]
+                    case ServiceResponse(TaxEnrolmentsResponse.InvalidIdentifiers) =>
+                      CheckEnrolmentsResult.InvalidIdentifiers.pure[F]
+                    case ServiceResponse(TaxEnrolmentsResponse.InvalidCredentials) =>
+                      CheckEnrolmentsResult.InvalidCredentials.pure[F]
+                    case _ =>
+                      CheckEnrolmentsResult.Failed.pure[F]
+                  }
       } yield result
 
     if (formHandlerResult.validationResult.isFormValid) {
@@ -284,11 +290,11 @@ class EnrolmentController(
         _             <- validateIdentifiers[F](identifierss, postCheck)
         initialResult <- tryEnrolment(verifiers, identifiers)
         reattemptResult <- (initialResult, enrolmentAction) match {
-                            case (CheckEnrolmentsResult.InvalidIdentifiers, LegacyFcEnrolmentVerifier(value)) =>
-                              tryEnrolment(List(Verifier(value, "FC")), identifiers)
-                            case _ =>
-                              initialResult.pure[F]
-                          }
+                             case (CheckEnrolmentsResult.InvalidIdentifiers, LegacyFcEnrolmentVerifier(value)) =>
+                               tryEnrolment(List(Verifier(value, "FC")), identifiers)
+                             case _ =>
+                               initialResult.pure[F]
+                           }
       } yield reattemptResult
     } else {
       FR.raise(EnrolmentFormNotValid)
@@ -297,8 +303,8 @@ class EnrolmentController(
 
   private def purgeEmpty[F[_]: Applicative](
     xs: NonEmptyList[(IdentifierRecipe, Identifier)]
-  )(
-    implicit FR: Raise[F, SubmitEnrolmentError]
+  )(implicit
+    FR: Raise[F, SubmitEnrolmentError]
   ): F[NonEmptyList[(IdentifierRecipe, Identifier)]] =
     xs.toList.filterNot(_._2.value.isEmpty) match {
       case Nil    => FR.raise(NoIdentifierProvided)
@@ -307,25 +313,26 @@ class EnrolmentController(
 
   private def extractIdentifiersAndVerifiers[F[_]: Monad](
     enrolmentSection: EnrolmentSection
-  )(
-    implicit
+  )(implicit
     AA: Ask[F, Env],
-    FR: Raise[F, SubmitEnrolmentError]): F[(NonEmptyList[(IdentifierRecipe, Identifier)], List[Verifier])] = {
+    FR: Raise[F, SubmitEnrolmentError]
+  ): F[(NonEmptyList[(IdentifierRecipe, Identifier)], List[Verifier])] = {
     def evaluate[A, B, G[_]: Traverse](xs: G[A])(g: A => FormCtx, f: A => String => B): F[G[B]] =
       for {
         env <- AA.ask
         res <- xs.traverse { x =>
-                val value = env.formModelVisibilityOptics
-                  .evalAndApplyTypeInfoFirst(g(x))
-                  .stringRepresentation
-                f(x)(value).pure[F]
-              }
+                 val value = env.formModelVisibilityOptics
+                   .evalAndApplyTypeInfoFirst(g(x))
+                   .stringRepresentation
+                 f(x)(value).pure[F]
+               }
       } yield res
 
     val allIdentifiers: F[NonEmptyList[(IdentifierRecipe, Identifier)]] =
       evaluate(enrolmentSection.identifiers)(
         _.value,
-        identifier => value => (identifier, Identifier(identifier.key, value)))
+        identifier => value => (identifier, Identifier(identifier.key, value))
+      )
 
     val allVerifiers: F[List[Verifier]] =
       evaluate(enrolmentSection.verifiers)(
@@ -334,7 +341,8 @@ class EnrolmentController(
           value =>
             if (value.nonEmpty)
               List(Verifier(verifier.key, value))
-            else Nil).map(_.flatten)
+            else Nil
+      ).map(_.flatten)
 
     for {
       identifiers       <- allIdentifiers

@@ -76,11 +76,13 @@ class SessionCookieDispatcherFilter(
             case Anonymous =>
               (
                 anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
-                encrypter.encrypt(PlainText(AnonymousAuthConfig)))
+                encrypter.encrypt(PlainText(AnonymousAuthConfig))
+              )
             case _ =>
               (
                 hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
-                encrypter.encrypt(PlainText(HmrcAuthConfig)))
+                encrypter.encrypt(PlainText(HmrcAuthConfig))
+              )
           }
         result.map(_.withCookies(Cookie(authConfigCookieName, cookieValue.value)))
 

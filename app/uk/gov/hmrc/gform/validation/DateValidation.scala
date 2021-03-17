@@ -37,8 +37,8 @@ import scala.util.{ Failure, Success, Try }
 
 case class SomeDate(year: Int, month: Int, day: Int)
 
-class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D])(
-  implicit messages: Messages,
+class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D])(implicit
+  messages: Messages,
   sse: SmartStringEvaluator
 ) {
 
@@ -59,10 +59,13 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
     vars: Option[List[String]]
   ): ValidatedType[T] =
     Map[ModelComponentId, Set[String]](
-      formComponent.firstAtomModelComponentId -> errors(formComponent, messageKey, vars)).invalid
+      formComponent.firstAtomModelComponentId -> errors(formComponent, messageKey, vars)
+    ).invalid
 
   private def requiredError(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] =
-    Map[ModelComponentId, Set[String]](modelComponentId -> errors(formComponent, "field.error.required", None, "")).invalid
+    Map[ModelComponentId, Set[String]](
+      modelComponentId -> errors(formComponent, "field.error.required", None, "")
+    ).invalid
 
   private def validateDateRequiredField(
     fieldValue: FormComponent
@@ -91,27 +94,25 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
         ).andThen(lDate => validationSuccess)
 
       case DateConstraints(dateConstraintList) =>
-        val result = dateConstraintList.map {
-
-          case DateConstraint(beforeOrAfterOrPrecisely, dateConstrInfo, offset) =>
-            dateConstrInfo match {
-              case _: Today.type =>
-                validateTodayWithMessages(fieldValue, beforeOrAfterOrPrecisely, offset)
-              case concreteDate: ConcreteDate =>
-                validateConcreteDateWithMessages(
-                  fieldValue,
-                  beforeOrAfterOrPrecisely,
-                  concreteDate,
-                  offset
-                )
-              case dateField: DateField =>
-                validateDateFieldWithMessages(
-                  fieldValue,
-                  beforeOrAfterOrPrecisely,
-                  dateField,
-                  offset
-                )
-            }
+        val result = dateConstraintList.map { case DateConstraint(beforeOrAfterOrPrecisely, dateConstrInfo, offset) =>
+          dateConstrInfo match {
+            case _: Today.type =>
+              validateTodayWithMessages(fieldValue, beforeOrAfterOrPrecisely, offset)
+            case concreteDate: ConcreteDate =>
+              validateConcreteDateWithMessages(
+                fieldValue,
+                beforeOrAfterOrPrecisely,
+                concreteDate,
+                offset
+              )
+            case dateField: DateField =>
+              validateDateFieldWithMessages(
+                fieldValue,
+                beforeOrAfterOrPrecisely,
+                dateField,
+                offset
+              )
+          }
         }
         Monoid[ValidatedType[Unit]].combineAll(result)
     }
@@ -148,7 +149,8 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
 
     val otherFieldValue = formModelVisibilityOptics.fcLookup.getOrElse(
       dateField.value,
-      throw new IllegalArgumentException(s"Cannot find ${dateField.value} in visibility model."))
+      throw new IllegalArgumentException(s"Cannot find ${dateField.value} in visibility model.")
+    )
 
     val validateOtherDate = validateInputDate(otherFieldValue)
     val validatedThisDate = validateInputDate(fieldValue)
@@ -214,8 +216,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
     offset: OffsetDate
   )(
     date: LocalDate
-  )(
-    implicit
+  )(implicit
     now: Now[LocalDate]
   ): ValidatedType[Unit] = {
     val nowWithOffset = now.apply().plusDays(offset.value.toLong)
@@ -231,12 +232,11 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
 
     fieldIdList match {
       case Some(day) :: Some(month) :: Some(year) :: Nil =>
-        validateLocalDate(formComponent, day, month, year).andThen {
-          case SomeDate(concYear, concMonth, concDay) =>
-            Try(LocalDate.of(concYear, concMonth, concDay)) match {
-              case Success(date) => Valid(date)
-              case Failure(ex)   => validationFailed(formComponent, "date.invalid", None)
-            }
+        validateLocalDate(formComponent, day, month, year).andThen { case SomeDate(concYear, concMonth, concDay) =>
+          Try(LocalDate.of(concYear, concMonth, concDay)) match {
+            case Success(date) => Valid(date)
+            case Failure(ex)   => validationFailed(formComponent, "date.invalid", None)
+          }
         }
 
       case _ =>

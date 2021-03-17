@@ -42,18 +42,16 @@ trait ObligationValidator extends TaxSelectionNavigator {
   ): FormModelOptics[DataOrigin.Browser] = {
     val toRemove: List[ModelComponentId] = cachedObligation.toList
       .zip(desObligation.toList)
-      .map {
-        case (cached, taxResponse) =>
-          (cached.obligation, taxResponse)
+      .map { case (cached, taxResponse) =>
+        (cached.obligation, taxResponse)
       }
-      .map {
-        case (obligation, taxResponse) =>
-          val taxSelectionNavigation = taxSelectionNavigator(formModelOptics, obligation, taxResponse)
+      .map { case (obligation, taxResponse) =>
+        val taxSelectionNavigation = taxSelectionNavigator(formModelOptics, obligation, taxResponse)
 
-          taxSelectionNavigation match {
-            case GoBackToTaxPeriodSelection      => Some(taxResponse.id.recalculatedTaxPeriodKey.fcId.modelComponentId)
-            case DoNotGoBackToTaxPeriodSelection => None
-          }
+        taxSelectionNavigation match {
+          case GoBackToTaxPeriodSelection      => Some(taxResponse.id.recalculatedTaxPeriodKey.fcId.modelComponentId)
+          case DoNotGoBackToTaxPeriodSelection => None
+        }
       }
       .flatten
 

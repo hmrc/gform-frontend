@@ -42,7 +42,8 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
 
   def mkHtmlFieldId(value: String): HtmlFieldId =
     HtmlFieldId.pure(
-      ModelComponentId.atomic(IndexedComponentId.pure(BaseComponentId(mockDateFieldValue.id.value)), Atom(value)))
+      ModelComponentId.atomic(IndexedComponentId.pure(BaseComponentId(mockDateFieldValue.id.value)), Atom(value))
+    )
 
   "getOptionalCurrentValue" should "return current value when validation returns FieldError" in {
     val testFieldComponent = ComponentField(
@@ -62,7 +63,8 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             true,
             true,
             false,
-            None),
+            None
+          ),
           "1"
         ),
         mkHtmlFieldId("month") -> FieldOk(
@@ -79,7 +81,8 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             true,
             true,
             false,
-            None),
+            None
+          ),
           "1"
         ),
         mkHtmlFieldId("year") -> FieldError(
@@ -96,7 +99,8 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             true,
             true,
             false,
-            None),
+            None
+          ),
           "NOT_RIGHT",
           Set("NAN")
         )
@@ -125,7 +129,8 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             true,
             true,
             false,
-            None),
+            None
+          ),
           "1"
         ),
         mkHtmlFieldId("month") -> FieldOk(
@@ -142,7 +147,8 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             true,
             true,
             false,
-            None),
+            None
+          ),
           "1"
         ),
         mkHtmlFieldId("year") -> FieldOk(
@@ -159,7 +165,8 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             true,
             true,
             false,
-            None),
+            None
+          ),
           "2017"
         )
       )

@@ -117,7 +117,8 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   }
 
   private def ukAddressLineValidation(fieldValue: FormComponent, atomicFcId: ModelComponentId.Atomic)(
-    xs: Seq[String]): ValidatedType[Unit] = {
+    xs: Seq[String]
+  ): ValidatedType[Unit] = {
     def combineErrors(str: String, vars: List[String]) = mkErrors(fieldValue, atomicFcId)(str, vars)
     val First = "[1]$".r.unanchored
     val Second = "[2]$".r.unanchored
@@ -155,7 +156,8 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
     xs: Seq[String]
   ): ValidatedType[Unit] =
     lengthLimitValidation(fieldValue, atomicFcId, ValidationValues.postcodeLimit, "ukAddress.postcode.error.maxLength")(
-      xs)
+      xs
+    )
 
   private def countryValidation(
     fieldValue: FormComponent,
@@ -167,7 +169,8 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
       fieldValue,
       atomicFcId,
       ValidationValues.countryLimit,
-      "internationalAddress.country.error.maxLength")(xs)
+      "internationalAddress.country.error.maxLength"
+    )(xs)
 
   private def lengthLimitValidation(
     fieldValue: FormComponent,

@@ -18,52 +18,52 @@ package uk.gov.hmrc.gform
 
 package object formtemplate {
   /* implicit class SectionSyntax(section: Section) {
- *   def page(): Page[Basic] =
- *     section match {
- *       case s: Section.NonRepeatingPage => s.page
- *       case s: Section.RepeatingPage    => s.page
- *       case s: Section.AddToList        => throw new Exception("Cannot get page of a Section.AddToList")
- *     }
- *
- *   def updateTitle(title: SmartString): Section =
- *     section match {
- *       case s: Section.NonRepeatingPage => s.copy(page = s.page.copy(title = title))
- *       case s: Section.RepeatingPage    => s.copy(page = s.page.copy(title = title))
- *       case s: Section.AddToList        => s.copy(title = title)
- *     }
- *
- *   def updateShortName(shortName: Option[SmartString]): Section =
- *     section match {
- *       case s: Section.NonRepeatingPage => s.copy(page = s.page.copy(shortName = shortName))
- *       case s: Section.RepeatingPage    => s.copy(page = s.page.copy(shortName = shortName))
- *       case s: Section.AddToList        => s.copy(shortName = shortName)
- *     }
- *
- *   def updateFields(fields: List[FormComponent]): Section =
- *     section match {
- *       case s: Section.NonRepeatingPage => s.copy(page = s.page.copy(fields = fields))
- *       case s: Section.RepeatingPage    => s.copy(page = s.page.copy(fields = fields))
- *       case _: Section.AddToList        => throw new Exception("Cannot update fields of a Section.AddToList")
- *     }
- *
- *   def updateProgressIndicator(progressIndicator: Option[SmartString]): Section =
- *     section match {
- *       case s: Section.NonRepeatingPage => s.copy(page = s.page.copy(progressIndicator = progressIndicator))
- *       case s: Section.RepeatingPage    => s.copy(page = s.page.copy(progressIndicator = progressIndicator))
- *       case _: Section.AddToList        => throw new Exception("Cannot update fields of a Section.AddToList")
- *     }
- *
- *   def updateIncludeIf(includeIf: Option[IncludeIf]): Section =
- *     section match {
- *       case s: Section.NonRepeatingPage => s.copy(page = s.page.copy(includeIf = includeIf))
- *       case s: Section.RepeatingPage    => s.copy(page = s.page.copy(includeIf = includeIf))
- *       case _: Section.AddToList        => throw new Exception("Cannot update fields of a Section.AddToList")
- *     }
- *   def fields(): List[FormComponent] =
- *     section match {
- *       case s: Section.NonRepeatingPage => s.page.fields
- *       case s: Section.RepeatingPage    => s.page.fields
- *       case _: Section.AddToList        => throw new Exception("Cannot get fields of a Section.AddToList")
- *     }
- * } */
+   *   def page(): Page[Basic] =
+   *     section match {
+   *       case s: Section.NonRepeatingPage => s.page
+   *       case s: Section.RepeatingPage    => s.page
+   *       case s: Section.AddToList        => throw new Exception("Cannot get page of a Section.AddToList")
+   *     }
+   *
+   *   def updateTitle(title: SmartString): Section =
+   *     section match {
+   *       case s: Section.NonRepeatingPage => s.copy(page = s.page.copy(title = title))
+   *       case s: Section.RepeatingPage    => s.copy(page = s.page.copy(title = title))
+   *       case s: Section.AddToList        => s.copy(title = title)
+   *     }
+   *
+   *   def updateShortName(shortName: Option[SmartString]): Section =
+   *     section match {
+   *       case s: Section.NonRepeatingPage => s.copy(page = s.page.copy(shortName = shortName))
+   *       case s: Section.RepeatingPage    => s.copy(page = s.page.copy(shortName = shortName))
+   *       case s: Section.AddToList        => s.copy(shortName = shortName)
+   *     }
+   *
+   *   def updateFields(fields: List[FormComponent]): Section =
+   *     section match {
+   *       case s: Section.NonRepeatingPage => s.copy(page = s.page.copy(fields = fields))
+   *       case s: Section.RepeatingPage    => s.copy(page = s.page.copy(fields = fields))
+   *       case _: Section.AddToList        => throw new Exception("Cannot update fields of a Section.AddToList")
+   *     }
+   *
+   *   def updateProgressIndicator(progressIndicator: Option[SmartString]): Section =
+   *     section match {
+   *       case s: Section.NonRepeatingPage => s.copy(page = s.page.copy(progressIndicator = progressIndicator))
+   *       case s: Section.RepeatingPage    => s.copy(page = s.page.copy(progressIndicator = progressIndicator))
+   *       case _: Section.AddToList        => throw new Exception("Cannot update fields of a Section.AddToList")
+   *     }
+   *
+   *   def updateIncludeIf(includeIf: Option[IncludeIf]): Section =
+   *     section match {
+   *       case s: Section.NonRepeatingPage => s.copy(page = s.page.copy(includeIf = includeIf))
+   *       case s: Section.RepeatingPage    => s.copy(page = s.page.copy(includeIf = includeIf))
+   *       case _: Section.AddToList        => throw new Exception("Cannot update fields of a Section.AddToList")
+   *     }
+   *   def fields(): List[FormComponent] =
+   *     section match {
+   *       case s: Section.NonRepeatingPage => s.page.fields
+   *       case s: Section.RepeatingPage    => s.page.fields
+   *       case _: Section.AddToList        => throw new Exception("Cannot get fields of a Section.AddToList")
+   *     }
+   * } */
 }

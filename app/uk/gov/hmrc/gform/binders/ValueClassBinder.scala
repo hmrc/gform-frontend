@@ -43,7 +43,8 @@ object ValueClassBinder {
     }
   implicit val registerBinder: PathBindable[Register] = mkPathBindable(
     lookup => Register.fromString(lookup).fold[Either[String, Register]](Left(s"Unknown lookup: $lookup"))(Right.apply),
-    _.asString)
+    _.asString
+  )
   implicit val formTemplateIdBinder: PathBindable[FormTemplateId] = valueClassBinder(_.value)
   implicit val formIdBinder: PathBindable[FormId] = valueClassBinder(_.value)
   implicit val fileIdBinder: PathBindable[FileId] = valueClassBinder(_.value)
@@ -54,7 +55,7 @@ object ValueClassBinder {
   implicit val sectionTitle4GaBinder: PathBindable[SectionTitle4Ga] = valueClassBinder(_.value)
   implicit val sectionNumberBinder: PathBindable[SectionNumber] = new PathBindable[SectionNumber] {
     override def bind(key: String, value: String): Either[String, SectionNumber] =
-      Try { SectionNumber(value.toInt) }.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
+      Try(SectionNumber(value.toInt)).map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value.toString
   }
 
@@ -134,7 +135,7 @@ object ValueClassBinder {
 
     override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, SectionNumber]] =
       params.get(key).flatMap(_.headOption).map { value =>
-        Try { SectionNumber(value.toInt) }
+        Try(SectionNumber(value.toInt))
           .map(_.asRight)
           .getOrElse(s"No valid value in path $key: $value".asLeft)
       }
@@ -166,7 +167,8 @@ object ValueClassBinder {
           case value @ maybeSectionNumber =>
             Try(maybeSectionNumber.toInt).toOption
               .fold[Either[String, FastForward]](s"No valid value in path $key: $value".asLeft)(sn =>
-                FastForward.StopAt(SectionNumber(sn)).asRight)
+                FastForward.StopAt(SectionNumber(sn)).asRight
+              )
         }
 
       override def unbind(key: String, fastForward: FastForward): String =
@@ -198,8 +200,9 @@ object ValueClassBinder {
       _.value
     )
 
-  private def valueClassQueryBinder[A: Reads](fromAtoString: A => String)(
-    implicit stringBinder: QueryStringBindable[String]) =
+  private def valueClassQueryBinder[A: Reads](
+    fromAtoString: A => String
+  )(implicit stringBinder: QueryStringBindable[String]) =
     new QueryStringBindable[A] {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, A]] =
         stringBinder.bind(key, params).map(_.flatMap(parseString[A]))
@@ -217,8 +220,9 @@ object ValueClassBinder {
   private def valueClassBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: PathBindable[String]) =
     mkPathBindable(parseString[A], fromAtoString)
 
-  private def mkPathBindable[A](fromStringToA: String => Either[String, A], fromAtoString: A => String)(
-    implicit stringBinder: PathBindable[String]) =
+  private def mkPathBindable[A](fromStringToA: String => Either[String, A], fromAtoString: A => String)(implicit
+    stringBinder: PathBindable[String]
+  ) =
     new PathBindable[A] {
       override def bind(key: String, value: String): Either[String, A] =
         stringBinder.bind(key, value).flatMap(fromStringToA)

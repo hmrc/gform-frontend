@@ -57,8 +57,8 @@ class ValidationService(
     envelope: EnvelopeWithMapping,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
-  )(
-    implicit hc: HeaderCarrier,
+  )(implicit
+    hc: HeaderCarrier,
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
@@ -82,8 +82,7 @@ class ValidationService(
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(
-    implicit
+  )(implicit
     hc: HeaderCarrier,
     messages: Messages,
     l: LangADT,
@@ -97,16 +96,16 @@ class ValidationService(
 
     for {
       v1 <- formModel.pages
-             .traverse(
-               pageModel =>
-                 validatePageModel(
-                   pageModel,
-                   cache,
-                   envelope,
-                   formModelVisibilityOptics,
-                   emailCodeMatcher
-               ))
-             .map(Monoid[ValidatedType[ValidatorsResult]].combineAll)
+              .traverse(pageModel =>
+                validatePageModel(
+                  pageModel,
+                  cache,
+                  envelope,
+                  formModelVisibilityOptics,
+                  emailCodeMatcher
+                )
+              )
+              .map(Monoid[ValidatedType[ValidatorsResult]].combineAll)
     } yield {
       val v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
       ValidationUtil.evaluateValidationResult(allFields, v, formModelVisibilityOptics, envelope)
@@ -119,11 +118,7 @@ class ValidationService(
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
-  )(
-    implicit
-    messages: Messages,
-    l: LangADT,
-    sse: SmartStringEvaluator): Future[ValidatedType[Unit]] =
+  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator): Future[ValidatedType[Unit]] =
     pageModel.allFormComponents
       .traverse(fv => validateFormComponent(fv, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
       .map(res => Monoid[ValidatedType[Unit]].combineAll(res))
@@ -132,22 +127,21 @@ class ValidationService(
     cache: CacheData,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     envelope: EnvelopeWithMapping
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[ValidationResult] =
     formModelVisibilityOptics.formModel.allFormComponents
-      .traverse(
-        fv =>
-          validateFormComponent(
-            fv,
-            formModelVisibilityOptics,
-            cache,
-            envelope,
-            GetEmailCodeFieldMatcher.noop
-        ))
+      .traverse(fv =>
+        validateFormComponent(
+          fv,
+          formModelVisibilityOptics,
+          cache,
+          envelope,
+          GetEmailCodeFieldMatcher.noop
+        )
+      )
       .map { res =>
         val validatedType: ValidatedType[ValidatorsResult] =
           Monoid[ValidatedType[Unit]].combineAll(res).map(_ => ValidatorsResult.empty)
@@ -161,8 +155,7 @@ class ValidationService(
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
@@ -180,8 +173,7 @@ class ValidationService(
     pageModel: PageModel[Visibility],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     thirdPartyData: ThirdPartyData
-  )(
-    implicit
+  )(implicit
     hc: HeaderCarrier
   ): Future[ValidatedType[Map[EmailFieldId, EmailAndCode]]] = {
 
@@ -193,21 +185,19 @@ class ValidationService(
       thirdPartyData.emailVerification.get(formComponentId).fold(false)(_.email === email)
 
     val emailAddressedToBeVerified: List[Option[(EmailFieldId, EmailAndCode, EmailVerifierService)]] =
-      emailFields.map {
-        case (ef, emailVerifierService) =>
-          val maybeEmail = formModelVisibilityOptics.data.one(ef.modelComponentId)
+      emailFields.map { case (ef, emailVerifierService) =>
+        val maybeEmail = formModelVisibilityOptics.data.one(ef.modelComponentId)
 
-          maybeEmail.collect {
-            case email if !emailExist(ef, email) =>
-              (ef, EmailAndCode.emailVerificationCode(email), emailVerifierService)
-          }
+        maybeEmail.collect {
+          case email if !emailExist(ef, email) =>
+            (ef, EmailAndCode.emailVerificationCode(email), emailVerifierService)
+        }
       }
     emailAddressedToBeVerified.flatten
-      .traverse {
-        case (emailFieldId, eac @ EmailAndCode(email, code), emailVerifierService) =>
-          gformConnector
-            .sendEmail(ConfirmationCodeWithEmailService(NotifierEmailAddress(email), code, emailVerifierService))
-            .map(_ => (emailFieldId, eac))
+      .traverse { case (emailFieldId, eac @ EmailAndCode(email, code), emailVerifierService) =>
+        gformConnector
+          .sendEmail(ConfirmationCodeWithEmailService(NotifierEmailAddress(email), code, emailVerifierService))
+          .map(_ => (emailFieldId, eac))
       }
       .map(_.toMap.valid)
   }
@@ -215,8 +205,8 @@ class ValidationService(
   private def validateUsingValidators[D <: DataOrigin](
     pageModel: PageModel[Visibility],
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(
-    implicit hc: HeaderCarrier,
+  )(implicit
+    hc: HeaderCarrier,
     sse: SmartStringEvaluator
   ): Future[ValidatedType[ValidatorsResult]] = {
     val valid = ValidatorsResult.empty.valid.pure[Future]
@@ -229,9 +219,8 @@ class ValidationService(
 
   private def validateUsingSectionValidators[D <: DataOrigin](
     v: Validator,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D])(
-    implicit hc: HeaderCarrier,
-    sse: SmartStringEvaluator): Future[ValidatedType[ValidatorsResult]] = {
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  )(implicit hc: HeaderCarrier, sse: SmartStringEvaluator): Future[ValidatedType[ValidatorsResult]] = {
 
     def compare(postCode: String)(drr: DesRegistrationResponse): Boolean = {
       val maybePostalCode = drr.address match {

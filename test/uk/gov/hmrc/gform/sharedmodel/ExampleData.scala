@@ -118,7 +118,9 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       Some(
         AcknowledgementSectionPdf(
           Some(toSmartString("It's a Acknowledgement Section Pdf header.")),
-          Some(toSmartString("It's a Acknowledgement Section Pdf footer.")))),
+          Some(toSmartString("It's a Acknowledgement Section Pdf footer."))
+        )
+      ),
       None,
       true
     )
@@ -163,7 +165,8 @@ trait ExampleAuthConfig {
   def authConfig =
     HmrcAgentWithEnrolmentModule(
       AllowAnyAgentAffinityUser,
-      EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck)))
+      EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck))
+    )
 }
 
 trait ExampleFieldId {
@@ -406,14 +409,16 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
       Text(TextConstraint.default, Constant("value1")),
       fcId = FormComponentId("text1"),
       label = "text1",
-      instruction = instruction("text1 - instruction"))
+      instruction = instruction("text1 - instruction")
+    )
 
   def `fieldValue - text2` =
     fieldValue(
       Text(TextConstraint.default, Constant("value2")),
       fcId = FormComponentId("text2"),
       label = "text2",
-      instruction = instruction("text2 - instruction"))
+      instruction = instruction("text2 - instruction")
+    )
 
   def `fieldValue - revealingChoice` =
     FormComponent(
@@ -424,8 +429,9 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
             toSmartString("choice1"),
             List(`fieldValue - text1`, `fieldValue - text2`),
             None,
-            true),
-          RevealingChoiceElement(toSmartString("choice2"), List(`fieldValue - address`), None, true),
+            true
+          ),
+          RevealingChoiceElement(toSmartString("choice2"), List(`fieldValue - address`), None, true)
         ),
         true
       ),
@@ -447,7 +453,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     text: Text,
     fcId: FormComponentId = default,
     label: String = "sample label",
-    instruction: Option[Instruction] = None) = FormComponent(
+    instruction: Option[Instruction] = None
+  ) = FormComponent(
     fcId,
     text,
     toSmartString(label),
@@ -493,7 +500,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     fields: List[FormComponent] = List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`),
     includeIf: Option[IncludeIf] = None,
     instruction: Option[Instruction] = None,
-    presentationHint: Option[PresentationHint] = None) =
+    presentationHint: Option[PresentationHint] = None
+  ) =
     Section.NonRepeatingPage(
       Page(
         toSmartString(title),
@@ -507,19 +515,22 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         instruction,
         presentationHint
-      ))
+      )
+    )
 
   def `section - about you`: Section =
     nonRepeatingPageSection(
       fields =
         List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`, `fieldValue - timeOfCall`),
-      validators = None)
+      validators = None
+    )
 
   def `section - businessDetails` =
     nonRepeatingPageSection(
       title = "Business details",
       validators = None,
-      fields = List(`fieldValue - businessName`, `fieldValue - startDate`, `fieldValue - iptRegNum`))
+      fields = List(`fieldValue - businessName`, `fieldValue - startDate`, `fieldValue - iptRegNum`)
+    )
 
   def `repeating section` =
     repeatingSection("Repeating section", List(`fieldValue - surname`), None, FormCtx(`fieldId - firstName`))
@@ -536,7 +547,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     fields: List[FormComponent],
     instruction: Option[Instruction] = None,
     repeatsExpr: Expr,
-    presentationHint: Option[PresentationHint] = None) =
+    presentationHint: Option[PresentationHint] = None
+  ) =
     Section.RepeatingPage(
       Page(
         toSmartString(title),
@@ -563,7 +575,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     instruction: Option[Instruction],
     pages: List[Page[Basic]],
     presentationHint: Option[PresentationHint] = None,
-    infoMessage: Option[String] = None): Section.AddToList =
+    infoMessage: Option[String] = None
+  ): Section.AddToList =
     Section.AddToList(
       toSmartString(title),
       toSmartString(description),
@@ -582,14 +595,16 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     title: String,
     instruction: Option[Instruction],
     formComponents: List[FormComponent],
-    presentationHint: Option[PresentationHint] = None): Page[Basic] =
+    presentationHint: Option[PresentationHint] = None
+  ): Page[Basic] =
     mkPage[Basic](title, instruction, formComponents, presentationHint)
 
   def mkPage[T <: PageMode](
     title: String,
     instruction: Option[Instruction],
     formComponents: List[FormComponent],
-    presentationHint: Option[PresentationHint] = None): Page[T] = Page[T](
+    presentationHint: Option[PresentationHint] = None
+  ): Page[T] = Page[T](
     toSmartString(title),
     None,
     None,
@@ -625,7 +640,8 @@ trait ExampleValidator {
     BankAccountModulusCheck(
       toSmartString("This is an error message for Bank"),
       FormCtx(FormComponentId("accountNumber")),
-      FormCtx(FormComponentId("sortCode")))
+      FormCtx(FormComponentId("sortCode"))
+    )
   //todo other example validators
 }
 
@@ -643,7 +659,9 @@ trait ExampleFormTemplate {
       NonEmptyList
         .of(
           EmailParameter("fullNameVariable", FormCtx(FormComponentId("fullName"))),
-          EmailParameter("emailVariable", FormCtx(FormComponentId("email")))))
+          EmailParameter("emailVariable", FormCtx(FormComponentId("email")))
+        )
+    )
 
   def webChat = None
 
@@ -736,7 +754,7 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
 //  def rawDataFromBrowser: Map[FormComponentId, Seq[String]] = data.mapValues(x => Seq(x.value))
   //def rawDataFromBrowser: VariadicFormData = VariadicFormData(data.mapValues(x => VariadicValue.One(x.value)))
   /* def formDataRecalculated: FormDataRecalculated =
- *   FormDataRecalculated.empty.copy(recData = RecData.fromData(rawDataFromBrowser)) */
+   *   FormDataRecalculated.empty.copy(recData = RecData.fromData(rawDataFromBrowser)) */
 }
 
 trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
@@ -829,7 +847,8 @@ trait ExampleFrontendAppConfig {
     footerHelpUrl = "",
     footerAccessibilityStatementUrl = "",
     whitelistEnabled = true,
-    authModule = AuthModule(JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", "")),
+    authModule =
+      AuthModule(JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", "")),
     availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy")),
     routeToSwitchLanguage = uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage,
     contactFormServiceIdentifier = "",

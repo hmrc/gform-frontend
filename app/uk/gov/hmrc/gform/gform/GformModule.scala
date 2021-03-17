@@ -52,8 +52,8 @@ class GformModule(
   graphModule: GraphModule,
   lookupRegistry: LookupRegistry,
   errorResponder: ErrResponder
-)(
-  implicit ec: ExecutionContext
+)(implicit
+  ec: ExecutionContext
 ) {
 
   private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(
@@ -132,7 +132,8 @@ class GformModule(
   val instructionsRenderingService = new InstructionsRenderingService(
     playBuiltInsModule.i18nSupport,
     fileUploadModule.fileUploadService,
-    validationModule.validationService)
+    validationModule.validationService
+  )
 
   val pdfGeneratorService = new PdfGeneratorService(
     playBuiltInsModule.i18nSupport,

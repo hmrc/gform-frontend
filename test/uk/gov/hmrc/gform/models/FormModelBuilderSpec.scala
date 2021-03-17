@@ -44,7 +44,7 @@ class FormModelBuilderSpec extends FlatSpec with Matchers with FormModelSupport 
 
     val sections = List(
       section1,
-      section2,
+      section2
     )
     val fmb = mkFormModelFromSections(sections)
 
@@ -56,7 +56,7 @@ class FormModelBuilderSpec extends FlatSpec with Matchers with FormModelSupport 
     val staticTypeInfo = StaticTypeInfoBuilder.simple(
       "a" -> ExprType.String,
       "b" -> ExprType.String,
-      "c" -> ExprType.String,
+      "c" -> ExprType.String
     )
 
     val table = Table(
@@ -66,7 +66,7 @@ class FormModelBuilderSpec extends FlatSpec with Matchers with FormModelSupport 
         variadicFormData[SourceOrigin.Current]("a"   -> "NotX", "b" -> "B", "c" -> "C"),
         NonEmptyList.of(
           Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPageB1), SectionNumber(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB1), SectionNumber(1), section2)
         )
       ),
       (
@@ -74,23 +74,22 @@ class FormModelBuilderSpec extends FlatSpec with Matchers with FormModelSupport 
         variadicFormData[SourceOrigin.Current]("a"   -> "X", "b" -> "B", "c" -> "C"),
         NonEmptyList.of(
           Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPageB2), SectionNumber(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB2), SectionNumber(1), section2)
         )
       )
     )
 
-    forAll(table) {
-      case (data, expectedData, expectedPages) =>
-        val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
-          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+    forAll(table) { case (data, expectedData, expectedPages) =>
+      val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 
-        val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-          fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, None)
+      val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
+        fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, None)
 
-        val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
+      val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
-        formModelOptics.formModelVisibilityOptics.formModel shouldBe expected
-        visibilityOptics.recData.variadicFormData shouldBe expectedData
+      formModelOptics.formModelVisibilityOptics.formModel shouldBe expected
+      visibilityOptics.recData.variadicFormData shouldBe expectedData
     }
 
   }

@@ -43,10 +43,7 @@ import uk.gov.hmrc.crypto._
 class AnonoymousSessionCookieCryptoFilter(
   sessionCookieCrypto: SessionCookieCrypto,
   val sessionBaker: SessionCookieBaker
-)(
-  implicit
-  override val mat: Materializer,
-  override val ec: ExecutionContext)
+)(implicit override val mat: Materializer, override val ec: ExecutionContext)
     extends SessionCookieCryptoFilter {
   override protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
   override protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
@@ -71,7 +68,8 @@ class FrontendFiltersModule(
     configModule.controllerConfigs,
     auditingModule.auditConnector,
     new DefaultHttpAuditEvent(configModule.appConfig.appName),
-    materializer) {
+    materializer
+  ) {
     override val maskedFormFields = Seq("password")
   }
 
@@ -98,12 +96,14 @@ class FrontendFiltersModule(
     new MDCFilter(materializer, configModule.playConfiguration, configModule.appConfig.appName)
 
   private val sessionTimeoutFilter = new SessionTimeoutFilter(
-    SessionTimeoutFilterConfig.fromConfig(configModule.playConfiguration))
+    SessionTimeoutFilterConfig.fromConfig(configModule.playConfiguration)
+  )
 
   private val deviceIdFilter = new DefaultDeviceIdFilter(
     configModule.appConfig.appName,
     configModule.playConfiguration,
-    auditingModule.auditConnector)
+    auditingModule.auditConnector
+  )
 
   private val securityHeadersFilter = SecurityHeadersFilter(configModule.playConfiguration)
 

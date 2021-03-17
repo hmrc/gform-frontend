@@ -18,7 +18,8 @@ lazy val microservice = (project in file("."))
     SbtGitVersioning,
     SbtDistributablesPlugin,
     SbtArtifactory,
-    SbtWeb)
+    SbtWeb
+  )
   .settings(
     SassKeys.cssStyle := Maxified,
     SassKeys.generateSourceMaps := true,
@@ -83,16 +84,17 @@ lazy val microservice = (project in file("."))
   .configs(IntegrationTest)
   .settings(
     inConfig(IntegrationTest)(Defaults.itSettings),
-    inConfig(IntegrationTest)(scalafmtCoreSettings),
     Keys.fork in IntegrationTest := false,
-    unmanagedSourceDirectories in IntegrationTest := { (baseDirectory in IntegrationTest)(base => Seq(base / "it")) }.value,
+    unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
     addTestReportOption(IntegrationTest, "int-test-reports"),
     parallelExecution in IntegrationTest := false
   )
-  .settings(resolvers ++= Seq(
-    Resolver.bintrayRepo("jetbrains", "markdown"),
-    Resolver.jcenterRepo,
-    "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven",
-    "hmrc-releases" at "https://artefacts.tax.service.gov.uk/artifactory/hmrc-releases/",
-    "bintray" at "https://dl.bintray.com/webjars/maven"
-  ))
+  .settings(
+    resolvers ++= Seq(
+      Resolver.bintrayRepo("jetbrains", "markdown"),
+      Resolver.jcenterRepo,
+      "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven",
+      "hmrc-releases" at "https://artefacts.tax.service.gov.uk/artifactory/hmrc-releases/",
+      "bintray" at "https://dl.bintray.com/webjars/maven"
+    )
+  )

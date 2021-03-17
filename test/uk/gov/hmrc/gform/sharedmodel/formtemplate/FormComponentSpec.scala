@@ -89,13 +89,15 @@ class FormComponentSpec extends Spec {
         "anything",
         Text(TextConstraint.default, Value, DisplayWidth.DEFAULT, IsUpperCase),
         "anything",
-        "anything")
+        "anything"
+      )
     val toNotBeCapitalised =
       mkFormComponent(
         "anything",
         Text(TextConstraint.default, Value, DisplayWidth.DEFAULT, IsNotUpperCase),
         "anything",
-        "anything")
+        "anything"
+      )
     val upperCaseresult = IsCapitalised.unapply(toBeCapitalised)
     val lowerCaseResult = IsCapitalised.unapply(toNotBeCapitalised)
 

@@ -27,10 +27,8 @@ sealed trait MultiValueId extends Product with Serializable {
     toModelComponentIds.map(_ -> formComponent).toMap
 
   def toModelComponentIds: List[ModelComponentId] =
-    fold[List[ModelComponentId]](
-      pure => List(pure.modelComponentId)
-    )(
-      multiple => multiple.modelComponentId :: multiple.atoms.toList
+    fold[List[ModelComponentId]](pure => List(pure.modelComponentId))(multiple =>
+      multiple.modelComponentId :: multiple.atoms.toList
     )
 
   def atomsModelComponentIds: List[ModelComponentId] =
@@ -38,7 +36,8 @@ sealed trait MultiValueId extends Product with Serializable {
 
   def firstAtomModelComponentId: ModelComponentId.Atomic =
     fold[ModelComponentId.Atomic](pure =>
-      throw new IllegalArgumentException(s"Cannot ask for atom for pure value: $pure"))(_.atoms.head)
+      throw new IllegalArgumentException(s"Cannot ask for atom for pure value: $pure")
+    )(_.atoms.head)
 
   def fold[B](
     f: MultiValueId.Pure => B

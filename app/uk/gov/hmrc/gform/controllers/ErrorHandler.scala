@@ -44,7 +44,8 @@ class ErrorHandler(
   override protected def onOtherClientError(
     requestHeader: RequestHeader,
     statusCode: Int,
-    message: String): Future[Result] = errResponder.onOtherClientError(requestHeader, statusCode, message)
+    message: String
+  ): Future[Result] = errResponder.onOtherClientError(requestHeader, statusCode, message)
 
   override def onServerError(requestHeader: RequestHeader, exception: Throwable): Future[Result] = exception match {
     case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == BadRequest.intValue =>

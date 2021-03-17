@@ -21,9 +21,8 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 
 case class FormData(fields: List[FormField]) {
 
-  val toData: Map[ModelComponentId, String] = {
+  val toData: Map[ModelComponentId, String] =
     fields.map(x => x.id -> x.value).toMap
-  }
 
   def find(id: ModelComponentId): Option[String] = toData.get(id)
 

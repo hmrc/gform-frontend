@@ -242,15 +242,15 @@ final case class Number(
   maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
   maxFractionalDigits: Int = TextConstraint.defaultFractionalDigits,
   roundingMode: RoundingMode = RoundingMode.defaultRoundingMode,
-  unit: Option[LocalisedString] = None)
-    extends TextConstraint
+  unit: Option[LocalisedString] = None
+) extends TextConstraint
 
 final case class PositiveNumber(
   maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
   maxFractionalDigits: Int = TextConstraint.defaultFractionalDigits,
   roundingMode: RoundingMode = RoundingMode.defaultRoundingMode,
-  unit: Option[LocalisedString] = None)
-    extends TextConstraint
+  unit: Option[LocalisedString] = None
+) extends TextConstraint
 
 case class ShortText(min: Int, max: Int) extends TextConstraint
 object ShortText { val default = ShortText(0, 1000) }
@@ -310,7 +310,8 @@ object TextConstraint {
 
   private def getSizeClassForDisplayWidthForNumber(
     constraint: TextConstraint,
-    displayWidth: DisplayWidth.DisplayWidth): String =
+    displayWidth: DisplayWidth.DisplayWidth
+  ): String =
     (constraint, displayWidth) match {
       case (Sterling(_, _), DisplayWidth.XS) => CssClassSize._3
       case (_, DisplayWidth.XS)              => CssClassSize._2
@@ -328,8 +329,9 @@ object TextConstraint {
         constraint.defaultCssClassName
 
       case (
-          Number(_, _, _, _) | PositiveNumber(_, _, _, _) | Sterling(_, _) | UkBankAccountNumber | UkSortCodeFormat,
-          displayWidth) =>
+            Number(_, _, _, _) | PositiveNumber(_, _, _, _) | Sterling(_, _) | UkBankAccountNumber | UkSortCodeFormat,
+            displayWidth
+          ) =>
         getSizeClassForDisplayWidthForNumber(constraint, displayWidth)
 
       case (_, displayWidth) =>
@@ -454,14 +456,14 @@ object SimplifiedSelectionCriteria {
     lsc: List[SelectionCriteria],
     lookupRegistry: LookupRegistry,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(
-    implicit
+  )(implicit
     l: LangADT
   ): List[SimplifiedSelectionCriteria] = lsc map {
     case SelectionCriteria(c, SelectionCriteriaExpr(expr)) =>
       SimplifiedSelectionCriteria(
         c,
-        List(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation))
+        List(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation)
+      )
 
     case SelectionCriteria(c, SelectionCriteriaSimpleValue(v)) =>
       SimplifiedSelectionCriteria(c, v)
@@ -475,7 +477,8 @@ object SimplifiedSelectionCriteria {
         lookupRegistry.get(r) match {
           case Some(AjaxLookup(options, _, _)) =>
             val oLi = options.lookupInfo(
-              LookupLabel(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation))
+              LookupLabel(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation)
+            )
             oLi.flatMap(getLookupValue(_, cName.column.toLowerCase)).toList
           case _ => Nil
         }

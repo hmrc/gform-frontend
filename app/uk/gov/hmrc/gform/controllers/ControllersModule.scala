@@ -40,8 +40,8 @@ class ControllersModule(
   errResponder: ErrResponder,
   graphModule: GraphModule,
   wSHttpModule: WSHttpModule
-)(
-  implicit ec: ExecutionContext
+)(implicit
+  ec: ExecutionContext
 ) {
 
   private implicit val messagesApi = builtInComponents.messagesApi

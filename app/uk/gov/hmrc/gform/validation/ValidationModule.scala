@@ -29,8 +29,8 @@ class ValidationModule(
   graphModule: GraphModule,
   lookupRegistry: LookupRegistry,
   playBuiltInsModule: PlayBuiltInsModule
-)(
-  implicit ec: ExecutionContext
+)(implicit
+  ec: ExecutionContext
 ) {
 
   val validationService = new ValidationService(

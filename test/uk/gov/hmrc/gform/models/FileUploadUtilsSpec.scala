@@ -43,16 +43,16 @@ class FileUploadUtilsSpec extends FlatSpec with Matchers with FormModelSupport w
 
     val mapping1 = FormComponentIdToFileIdMapping.empty
     val expectedMapping1 = Map("file" -> "file").toMapping
-    val mapping2 = Map("file"         -> "x_file").toMapping
+    val mapping2 = Map("file" -> "x_file").toMapping
     val expectedMapping2 = Map("file" -> "x_file").toMapping
-    val mapping3 = Map("file"         -> "x_file").toMapping
+    val mapping3 = Map("file" -> "x_file").toMapping
     val expectedMapping3 = Map("file" -> "x_file").toMapping
 
     val variations = Table(
       ("formComponentId", "fileId", "mapping", "envelopeFiles", "expectedFileId", "expectedMapping"),
       (FormComponentId("file"), FileId.empty, mapping1, List.empty[String], FileId("file"), expectedMapping1),
       (FormComponentId("file"), FileId.empty, mapping2, List.empty[String], FileId("x_file"), expectedMapping2),
-      (FormComponentId("file"), FileId("dummy"), mapping3, List("x_file"), FileId("x_file"), expectedMapping3),
+      (FormComponentId("file"), FileId("dummy"), mapping3, List("x_file"), FileId("x_file"), expectedMapping3)
     )
 
     forAll(variations) {
@@ -85,7 +85,7 @@ class FileUploadUtilsSpec extends FlatSpec with Matchers with FormModelSupport w
      * val expectedMapping1 = Map("file" -> "file").toMapping */
     val mapping2 = Map("file" -> "x_file").toMapping
     val expectedMapping2 = FormComponentIdToFileIdMapping.empty
-    val mapping3 = Map("file"          -> "x_file", "fileB" -> "x_fileB").toMapping
+    val mapping3 = Map("file" -> "x_file", "fileB" -> "x_fileB").toMapping
     val expectedMapping3 = Map("fileB" -> "x_fileB").toMapping
 
     val variations = Table(
@@ -96,24 +96,27 @@ class FileUploadUtilsSpec extends FlatSpec with Matchers with FormModelSupport w
         Map("file" -> "invoice_pdf").toFormData,
         FileId("x_file"),
         expectedMapping2,
-        Map.empty[String, String].toFormData),
+        Map.empty[String, String].toFormData
+      ),
       (
         FormComponentId("file"),
         mapping3,
         Map("file" -> "invoice_pdf", "unrelated" -> "abc").toFormData,
         FileId("x_file"),
         expectedMapping3,
-        Map("unrelated" -> "abc").toFormData),
+        Map("unrelated" -> "abc").toFormData
+      )
     )
 
     forAll(variations) {
       case (
-          formComponentId,
-          componentIdToFileId,
-          formData,
-          expectedFileId,
-          expectedComponentIdToFileId,
-          expectedFormData) ⇒
+            formComponentId,
+            componentIdToFileId,
+            formData,
+            expectedFileId,
+            expectedComponentIdToFileId,
+            expectedFormData
+          ) ⇒
         val form: Form = mkForm(componentIdToFileId, formData)
 
         val (realFileId, userData) = FileUploadUtils.prepareDeleteFile(formComponentId, form)

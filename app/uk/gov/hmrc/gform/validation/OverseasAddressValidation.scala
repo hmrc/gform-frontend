@@ -31,8 +31,7 @@ import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 class OverseasAddressValidation[D <: DataOrigin](
   formComponent: FormComponent,
   formModelVisibilityOptics: FormModelVisibilityOptics[D]
-)(
-  implicit
+)(implicit
   messages: Messages,
   sse: SmartStringEvaluator
 ) {

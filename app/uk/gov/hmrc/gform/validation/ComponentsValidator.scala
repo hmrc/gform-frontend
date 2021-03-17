@@ -70,8 +70,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   envelope: EnvelopeWithMapping,
   lookupRegistry: LookupRegistry,
   booleanExprEval: BooleanExprEval[F]
-)(
-  implicit
+)(implicit
   messages: Messages,
   l: LangADT,
   sse: SmartStringEvaluator
@@ -133,8 +132,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
 
   def validate(
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
-  )(
-    implicit
+  )(implicit
     messages: Messages
   ): F[ValidatedType[Unit]] = {
 
@@ -144,7 +142,8 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
       case UkSortCode(_) =>
         validIf(
           SortCodeValidation
-            .validateSortCode(formComponent)(formModelVisibilityOptics))
+            .validateSortCode(formComponent)(formModelVisibilityOptics)
+        )
       case date @ Date(_, _, _) =>
         validIf(
           dateValidation.validateDate(
@@ -156,22 +155,26 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
           if formTemplate.parentFormSubmissionRefs.contains(formComponent.id) =>
         validIf(
           ComponentValidator
-            .validateParentSubmissionRef(formComponent, SubmissionRef(envelopeId))(formModelVisibilityOptics))
+            .validateParentSubmissionRef(formComponent, SubmissionRef(envelopeId))(formModelVisibilityOptics)
+        )
       case emailCodeFieldMatcher.EmailCodeField(emailField) =>
         validIf(
-          ComponentValidator.validateEmailCode(formComponent, emailField, formModelVisibilityOptics, thirdPartyData))
+          ComponentValidator.validateEmailCode(formComponent, emailField, formModelVisibilityOptics, thirdPartyData)
+        )
       case Text(constraint, _, _, _, _, _) =>
         validIf(ComponentValidator.validateText(formComponent, constraint)(formModelVisibilityOptics, lookupRegistry))
       case TextArea(constraint, _, _, _, _) =>
         validIf(
           ComponentValidator
-            .validateText(formComponent, constraint)(formModelVisibilityOptics, lookupRegistry))
+            .validateText(formComponent, constraint)(formModelVisibilityOptics, lookupRegistry)
+        )
       case address @ Address(_) =>
         validIf(new AddressValidation[D]().validateAddress(formComponent, address)(formModelVisibilityOptics))
       case overseasAddress @ OverseasAddress(_, _, _) =>
         validIf(
           new OverseasAddressValidation[D](formComponent, formModelVisibilityOptics)
-            .validateOverseasAddress(overseasAddress))
+            .validateOverseasAddress(overseasAddress)
+        )
       case c @ Choice(_, _, _, _, _, _) =>
         validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
       case _: RevealingChoice =>
@@ -217,7 +220,8 @@ class ComponentsValidatorHelper(implicit messages: Messages, sse: SmartStringEva
       case Nil =>
         Map[ModelComponentId, Set[String]](
           atomicFcId -> ComponentsValidatorHelper
-            .errors(formComponent, "field.error.required", None, errorPrefix.getOrElse(""))).invalid
+            .errors(formComponent, "field.error.required", None, errorPrefix.getOrElse(""))
+        ).invalid
       case value :: Nil  => validationSuccess
       case value :: rest => validationSuccess // we don't support multiple values yet
     }
@@ -230,7 +234,8 @@ class ComponentsValidatorHelper(implicit messages: Messages, sse: SmartStringEva
   ): ValidatedType[Unit] = {
     val res = Map[ModelComponentId, Set[String]](
       atomicFcId -> ComponentsValidatorHelper
-        .errors(formComponent, "generic.error.forbidden", None)).invalid
+        .errors(formComponent, "generic.error.forbidden", None)
+    ).invalid
     xs.filterNot(_.isEmpty()) match {
       case Nil           => validationSuccess
       case value :: Nil  => res
@@ -244,8 +249,7 @@ object ComponentsValidatorHelper {
   def fieldDescriptor(
     formComponent: FormComponent,
     partLabel: String
-  )(
-    implicit
+  )(implicit
     sse: SmartStringEvaluator,
     messages: Messages
   ): String =
@@ -258,8 +262,7 @@ object ComponentsValidatorHelper {
     messageKey: String,
     vars: Option[List[String]],
     partLabel: String = ""
-  )(
-    implicit
+  )(implicit
     sse: SmartStringEvaluator,
     messages: Messages
   ): Set[String] = {

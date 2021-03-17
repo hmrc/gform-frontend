@@ -35,8 +35,8 @@ class TestOnlyModule(
   lookupRegistry: LookupRegistry,
   ahcWSComponents: AhcWSComponents,
   fileUploadModule: FileUploadModule
-)(
-  implicit ec: ExecutionContext
+)(implicit
+  ec: ExecutionContext
 ) {
 
   private val proxyActions = new ProxyActions(ahcWSComponents.wsClient)(controllersModule.messagesControllerComponents)

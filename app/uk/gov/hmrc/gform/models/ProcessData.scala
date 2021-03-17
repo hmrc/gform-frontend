@@ -42,7 +42,8 @@ case class ProcessData(
 
 class ProcessDataService[F[_]: Monad](
   recalculation: Recalculation[F, Throwable],
-  taxPeriodStateChecker: TaxPeriodStateChecker[F, Throwable]) {
+  taxPeriodStateChecker: TaxPeriodStateChecker[F, Throwable]
+) {
 
   def hmrcTaxPeriodWithId(
     hmrcTaxPeriodWithEvaluatedIds: List[Option[HmrcTaxPeriodWithEvaluatedId]]
@@ -56,14 +57,13 @@ class ProcessDataService[F[_]: Monad](
     browserFormModelOptics: FormModelOptics[DataOrigin.Browser]
   ): List[Option[HmrcTaxPeriodWithEvaluatedId]] = {
     val fmvo = browserFormModelOptics.formModelVisibilityOptics
-    fmvo.allFormComponents.collect {
-      case fc @ IsHmrcTaxPeriod(hmrcTaxPeriod) =>
-        val idNumber = fmvo.evalAndApplyTypeInfoFirst(hmrcTaxPeriod.idNumber).stringRepresentation
-        if (idNumber.isEmpty) {
-          None
-        } else {
-          Some(HmrcTaxPeriodWithEvaluatedId(RecalculatedTaxPeriodKey(fc.id, hmrcTaxPeriod), IdNumberValue(idNumber)))
-        }
+    fmvo.allFormComponents.collect { case fc @ IsHmrcTaxPeriod(hmrcTaxPeriod) =>
+      val idNumber = fmvo.evalAndApplyTypeInfoFirst(hmrcTaxPeriod.idNumber).stringRepresentation
+      if (idNumber.isEmpty) {
+        None
+      } else {
+        Some(HmrcTaxPeriodWithEvaluatedId(RecalculatedTaxPeriodKey(fc.id, hmrcTaxPeriod), IdNumberValue(idNumber)))
+      }
     }
   }
 
@@ -73,8 +73,8 @@ class ProcessDataService[F[_]: Monad](
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[ServiceCallResponse[TaxResponse]]],
     obligationsAction: ObligationsAction
-  )(
-    implicit hc: HeaderCarrier,
+  )(implicit
+    hc: HeaderCarrier,
     me: MonadError[F, Throwable]
   ): F[ProcessData] = {
 
@@ -84,14 +84,14 @@ class ProcessDataService[F[_]: Monad](
     for {
 
       browserFormModelOptics <- FormModelOptics
-                                 .mkFormModelOptics[DataOrigin.Browser, F, U](dataRaw, cache, recalculation)
+                                  .mkFormModelOptics[DataOrigin.Browser, F, U](dataRaw, cache, recalculation)
 
       obligations <- taxPeriodStateChecker.callDesIfNeeded(
-                      getAllTaxPeriods,
-                      hmrcTaxPeriodWithId(hmrcTaxPeriodWithEvaluatedIds(browserFormModelOptics)),
-                      cachedObligations,
-                      obligationsAction
-                    )
+                       getAllTaxPeriods,
+                       hmrcTaxPeriodWithId(hmrcTaxPeriodWithEvaluatedIds(browserFormModelOptics)),
+                       cachedObligations,
+                       obligationsAction
+                     )
 
     } yield {
 
@@ -102,13 +102,15 @@ class ProcessDataService[F[_]: Monad](
         VisitIndex.updateSectionVisits(
           browserFormModelOptics.formModelRenderPageOptics.formModel,
           mongoData.formModelRenderPageOptics.formModel,
-          cache.form.visitsIndex)
+          cache.form.visitsIndex
+        )
 
       ProcessData(
         dataUpd,
         VisitIndex(newVisitIndex),
         obligations,
-        browserFormModelOptics.formModelVisibilityOptics.booleanExprCache)
+        browserFormModelOptics.formModelVisibilityOptics.booleanExprCache
+      )
     }
   }
 }

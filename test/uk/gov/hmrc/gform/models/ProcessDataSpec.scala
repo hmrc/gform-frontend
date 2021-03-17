@@ -24,81 +24,81 @@ import org.scalatest.prop.TableDrivenPropertyChecks
  */
 class ProcessDataSpec extends FlatSpec with Matchers with TableDrivenPropertyChecks with FormModelSupport {
   /*
- *   "updateSectionVisits" should "reindex visits when repeated section shrinked" in {
- *
- *     val sections = List(
- *       mkSection(mkFormComponent("a", Value) :: Nil),
- *       mkSection(mkFormComponent("1_repeated", Value) :: Nil),
- *       mkSection(mkFormComponent("d", Value) :: Nil)
- *     )
- *
- *     val mongoSections = List(
- *       mkSection(mkFormComponent("a", Value) :: Nil),
- *       mkSection(mkFormComponent("1_repeated", Value) :: Nil),
- *       mkSection(mkFormComponent("2_repeated", Value) :: Nil),
- *       mkSection(mkFormComponent("d", Value) :: Nil)
- *     )
- *
- *     val visibilityIndices = Table(
- *       // format: off
- *       ("input",  "expected"),
- *       (Set(0),       Set(0)),
- *       (Set(0,1),     Set(0,1)),
- *       (Set(0,1,2),   Set(0,1)),
- *       (Set(0,1,2,3), Set(0,1,2)),
- *       (Set(1,2,3),   Set(1,2)),
- *       (Set(2,3),     Set(2)),
- *       (Set(3),       Set(2)),
- *       (Set(3,100),   Set(2))
- *       // format: on
- *     )
- *
- *     val formModel = mkFormModel(sections)
- *     val mongoFormModel = mkFormModel(mongoSections)
- *
- *     forAll(visibilityIndices) { (input, expectedOuput) ⇒
- *       val res = VisitIndex.updateSectionVisits(formModel, mongoFormModel, VisitIndex(input))
- *       res shouldBe expectedOuput
- *     }
- *   }
- *
- *   it should "reindex visits when repeated section grows" in {
- *
- *     val sections = List(
- *       mkSection(mkFormComponent("a", Value) :: Nil),
- *       mkSection(mkFormComponent("1_repeated", Value) :: Nil),
- *       mkSection(mkFormComponent("2_repeated", Value) :: Nil),
- *       mkSection(mkFormComponent("3_repeated", Value) :: Nil),
- *       mkSection(mkFormComponent("d", Value) :: Nil)
- *     )
- *
- *     val mongoSections = List(
- *       mkSection(mkFormComponent("a", Value) :: Nil),
- *       mkSection(mkFormComponent("1_repeated", Value) :: Nil),
- *       mkSection(mkFormComponent("2_repeated", Value) :: Nil),
- *       mkSection(mkFormComponent("d", Value) :: Nil)
- *     )
- *
- *     val visibilityIndices = Table(
- *       // format: off
- *       ("input",  "expected"),
- *       (Set(0),       Set(0)),
- *       (Set(0,1),     Set(0,1)),
- *       (Set(0,1,2),   Set(0,1,2)),
- *       (Set(0,1,2,3), Set(0,1,2,4)),
- *       (Set(1,2,3),   Set(1,2,4)),
- *       (Set(2,3),     Set(2,4)),
- *       (Set(3),       Set(4))
- *       // format: on
- *     )
- *
- *     val formModel = mkFormModel(sections)
- *     val mongoFormModel = mkFormModel(mongoSections)
- *
- *     forAll(visibilityIndices) { (input, expectedOuput) ⇒
- *       val res = VisitIndex.updateSectionVisits(formModel, mongoFormModel, VisitIndex(input))
- *       res shouldBe expectedOuput
- *     }
- *   }
- */
+   *   "updateSectionVisits" should "reindex visits when repeated section shrinked" in {
+   *
+   *     val sections = List(
+   *       mkSection(mkFormComponent("a", Value) :: Nil),
+   *       mkSection(mkFormComponent("1_repeated", Value) :: Nil),
+   *       mkSection(mkFormComponent("d", Value) :: Nil)
+   *     )
+   *
+   *     val mongoSections = List(
+   *       mkSection(mkFormComponent("a", Value) :: Nil),
+   *       mkSection(mkFormComponent("1_repeated", Value) :: Nil),
+   *       mkSection(mkFormComponent("2_repeated", Value) :: Nil),
+   *       mkSection(mkFormComponent("d", Value) :: Nil)
+   *     )
+   *
+   *     val visibilityIndices = Table(
+   *       // format: off
+   *       ("input",  "expected"),
+   *       (Set(0),       Set(0)),
+   *       (Set(0,1),     Set(0,1)),
+   *       (Set(0,1,2),   Set(0,1)),
+   *       (Set(0,1,2,3), Set(0,1,2)),
+   *       (Set(1,2,3),   Set(1,2)),
+   *       (Set(2,3),     Set(2)),
+   *       (Set(3),       Set(2)),
+   *       (Set(3,100),   Set(2))
+   *       // format: on
+   *     )
+   *
+   *     val formModel = mkFormModel(sections)
+   *     val mongoFormModel = mkFormModel(mongoSections)
+   *
+   *     forAll(visibilityIndices) { (input, expectedOuput) ⇒
+   *       val res = VisitIndex.updateSectionVisits(formModel, mongoFormModel, VisitIndex(input))
+   *       res shouldBe expectedOuput
+   *     }
+   *   }
+   *
+   *   it should "reindex visits when repeated section grows" in {
+   *
+   *     val sections = List(
+   *       mkSection(mkFormComponent("a", Value) :: Nil),
+   *       mkSection(mkFormComponent("1_repeated", Value) :: Nil),
+   *       mkSection(mkFormComponent("2_repeated", Value) :: Nil),
+   *       mkSection(mkFormComponent("3_repeated", Value) :: Nil),
+   *       mkSection(mkFormComponent("d", Value) :: Nil)
+   *     )
+   *
+   *     val mongoSections = List(
+   *       mkSection(mkFormComponent("a", Value) :: Nil),
+   *       mkSection(mkFormComponent("1_repeated", Value) :: Nil),
+   *       mkSection(mkFormComponent("2_repeated", Value) :: Nil),
+   *       mkSection(mkFormComponent("d", Value) :: Nil)
+   *     )
+   *
+   *     val visibilityIndices = Table(
+   *       // format: off
+   *       ("input",  "expected"),
+   *       (Set(0),       Set(0)),
+   *       (Set(0,1),     Set(0,1)),
+   *       (Set(0,1,2),   Set(0,1,2)),
+   *       (Set(0,1,2,3), Set(0,1,2,4)),
+   *       (Set(1,2,3),   Set(1,2,4)),
+   *       (Set(2,3),     Set(2,4)),
+   *       (Set(3),       Set(4))
+   *       // format: on
+   *     )
+   *
+   *     val formModel = mkFormModel(sections)
+   *     val mongoFormModel = mkFormModel(mongoSections)
+   *
+   *     forAll(visibilityIndices) { (input, expectedOuput) ⇒
+   *       val res = VisitIndex.updateSectionVisits(formModel, mongoFormModel, VisitIndex(input))
+   *       res shouldBe expectedOuput
+   *     }
+   *   }
+   */
 }

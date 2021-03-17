@@ -183,28 +183,29 @@ class AddToListUtilsSpec extends FlatSpec with Matchers with FormModelSupport wi
     val sections: List[Section] =
       mkSection(
         mkFormComponent("regular", Text(ShortText.default, Value)) ::
-          mkFormComponent("regularFile", FileUpload()) :: Nil) ::
+          mkFormComponent("regularFile", FileUpload()) :: Nil
+      ) ::
         mkAddToListSection(
-        "owner",
-        List(
-          mkFormComponent("a", Text(ShortText.default, Value)),
-          mkFormComponent("b", Text(ShortText.default, Value)),
-          mkFormComponent("c", Text(ShortText.default, Value))
-        ),
-        List(
-          mkFormComponent("d", Text(ShortText.default, Value)),
-          mkFormComponent("e", Text(ShortText.default, Value)),
-          mkFormComponent("f", FileUpload())
-        )
-      ) :: mkAddToListSection(
-        "fruit",
-        List(
-          mkFormComponent("fruitA", Text(ShortText.default, Value))
-        ),
-        List(
-          mkFormComponent("fruitB", Text(ShortText.default, Value))
-        )
-      ) :: Nil
+          "owner",
+          List(
+            mkFormComponent("a", Text(ShortText.default, Value)),
+            mkFormComponent("b", Text(ShortText.default, Value)),
+            mkFormComponent("c", Text(ShortText.default, Value))
+          ),
+          List(
+            mkFormComponent("d", Text(ShortText.default, Value)),
+            mkFormComponent("e", Text(ShortText.default, Value)),
+            mkFormComponent("f", FileUpload())
+          )
+        ) :: mkAddToListSection(
+          "fruit",
+          List(
+            mkFormComponent("fruitA", Text(ShortText.default, Value))
+          ),
+          List(
+            mkFormComponent("fruitB", Text(ShortText.default, Value))
+          )
+        ) :: Nil
 
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(mkFormTemplate(sections), data)
 
@@ -233,16 +234,15 @@ class AddToListUtilsSpec extends FlatSpec with Matchers with FormModelSupport wi
       (1, fruitAddToListId, (expectedData5, originalMapping.mapping, Set.empty[FileId]))
     )
 
-    forAll(variations) {
-      case (index, addToListId, (expectedVariadicData, expectedMapping, expectedFilesToDelete)) ⇒
-        val bracket: Bracket.AddToList[DataExpanded] =
-          formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
-        val (updatedVariadicData, updatedMapping, filesToDelete) =
-          AddToListUtils.removeRecord(processData, bracket, index, originalMapping)
+    forAll(variations) { case (index, addToListId, (expectedVariadicData, expectedMapping, expectedFilesToDelete)) ⇒
+      val bracket: Bracket.AddToList[DataExpanded] =
+        formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
+      val (updatedVariadicData, updatedMapping, filesToDelete) =
+        AddToListUtils.removeRecord(processData, bracket, index, originalMapping)
 
-        updatedMapping shouldBe expectedMapping
-        filesToDelete shouldBe expectedFilesToDelete
-        updatedVariadicData shouldBe expectedVariadicData
+      updatedMapping shouldBe expectedMapping
+      filesToDelete shouldBe expectedFilesToDelete
+      updatedVariadicData shouldBe expectedVariadicData
 
     }
   }

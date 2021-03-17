@@ -42,9 +42,10 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def enrolGGUser(request: TaxEnrolment, service: ServiceId, retrievals: MaterialisedRetrievals)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[ServiceCallResponse[TaxEnrolmentsResponse]] = {
+  def enrolGGUser(request: TaxEnrolment, service: ServiceId, retrievals: MaterialisedRetrievals)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[ServiceCallResponse[TaxEnrolmentsResponse]] = {
     val groupId = retrievals.groupId
     val identifiers = request.identifiers.sortBy(_.key)
 
@@ -77,10 +78,9 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
             CannotRetrieveResponse
         }
       }
-      .recover {
-        case ex =>
-          logger.error("Unknown problem when calling tax enrolment", ex)
-          CannotRetrieveResponse
+      .recover { case ex =>
+        logger.error("Unknown problem when calling tax enrolment", ex)
+        CannotRetrieveResponse
       }
 
   }

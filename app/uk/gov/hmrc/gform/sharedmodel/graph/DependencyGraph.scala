@@ -46,7 +46,8 @@ object DependencyGraph {
         case AllFormComponentExpressions(exprsMetadata) =>
           exprsMetadata.flatMap {
             case SelfReferenceProjection(
-                IsSelfReferring.No(AuthCtx(_) | UserCtx(_) | FormTemplateCtx(_) | HmrcRosmRegistrationCheck(_))) =>
+                  IsSelfReferring.No(AuthCtx(_) | UserCtx(_) | FormTemplateCtx(_) | HmrcRosmRegistrationCheck(_))
+                ) =>
               (fc.id :: Nil).map(fcId => GraphNode.Simple(fc.id) ~> GraphNode.Simple(fcId))
             case SelfReferenceProjection(IsSelfReferring.No(expr)) =>
               toDiEdge(fc, expr, _ => false)
@@ -82,7 +83,8 @@ object DependencyGraph {
     def boolenExprDeps(
       booleanExpr: BooleanExpr,
       dependingFCs: List[FormComponent],
-      cycleBreaker: GraphNode.Expr => Boolean): List[DiEdge[GraphNode]] = {
+      cycleBreaker: GraphNode.Expr => Boolean
+    ): List[DiEdge[GraphNode]] = {
 
       val allExprGNs: List[GraphNode.Expr] =
         booleanExpr.allExpressions.flatMap(_.leafs).map(GraphNode.Expr.apply)
@@ -101,10 +103,8 @@ object DependencyGraph {
       deps1 ++ deps2
     }
 
-    val validIfs: List[DiEdge[GraphNode]] = formModel.allValidIfs.flatMap {
-      case (validIfs, fc) =>
-        validIfs.flatMap(validIf =>
-          boolenExprDeps(validIf.booleanExpr, fc :: Nil, _ === GraphNode.Expr(FormCtx(fc.id))))
+    val validIfs: List[DiEdge[GraphNode]] = formModel.allValidIfs.flatMap { case (validIfs, fc) =>
+      validIfs.flatMap(validIf => boolenExprDeps(validIf.booleanExpr, fc :: Nil, _ === GraphNode.Expr(FormCtx(fc.id))))
     }
     val componentIncludeIfs: List[DiEdge[GraphNode]] = formModel.allComponentIncludeIfs.flatMap {
       case (includeIf, fc) =>
@@ -133,14 +133,15 @@ object DependencyGraph {
   }
 
   def constructDependencyGraph(
-    graph: Graph[GraphNode, DiEdge]): Either[graph.NodeT, Traversable[(Int, List[GraphNode])]] = {
+    graph: Graph[GraphNode, DiEdge]
+  ): Either[graph.NodeT, Traversable[(Int, List[GraphNode])]] = {
     def sortedOuterNodes(items: Iterable[graph.NodeT]) =
       items.toList
         .map(_.toOuter)
 
     graph.topologicalSort
-      .map(_.toLayered.map {
-        case (index, items) => (index, sortedOuterNodes(items))
+      .map(_.toLayered.map { case (index, items) =>
+        (index, sortedOuterNodes(items))
       })
   }
 }

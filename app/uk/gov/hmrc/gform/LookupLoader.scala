@@ -54,13 +54,14 @@ class LookupLoader {
   private def getLocalisedLookupOptions[A](
     fileName: String,
     headerDecoder: HeaderDecoder[A],
-    f: A => Int => (LookupDetails, LookupDetails)): LocalisedLookupOptions = {
+    f: A => Int => (LookupDetails, LookupDetails)
+  ): LocalisedLookupOptions = {
 
     val csvData: List[A] = readCsv(fileName, headerDecoder)
 
     val (enOptions, cyOptions): (List[LookupDetails], List[LookupDetails]) =
-      csvData.zipWithIndex.map {
-        case (a, idx) => f(a)(idx)
+      csvData.zipWithIndex.map { case (a, idx) =>
+        f(a)(idx)
       }.unzip
 
     LocalisedLookupOptions {
@@ -76,7 +77,8 @@ class LookupLoader {
     id: String,
     englishLabel: String,
     welshLabel: String,
-    mkLookupType: LocalisedLookupOptions => LookupType): LookupType = {
+    mkLookupType: LocalisedLookupOptions => LookupType
+  ): LookupType = {
 
     type ColumnData = (LookupLabel, LookupLabel, LookupId)
 
@@ -100,13 +102,15 @@ class LookupLoader {
     keywords: String,
     priority: String,
     region: String,
-    mkLookupType: LocalisedLookupOptions => LookupType): LookupType = {
+    mkLookupType: LocalisedLookupOptions => LookupType
+  ): LookupType = {
 
     type ColumnData = (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority, LookupRegion)
 
     val headerDecoder: HeaderDecoder[ColumnData] =
       HeaderDecoder.decoder(englishLabel, welshLabel, id, keywords, priority, region)(
-        (_: LookupLabel, _: LookupLabel, _: LookupId, _: LookupKeywords, _: LookupPriority, _: LookupRegion))
+        (_: LookupLabel, _: LookupLabel, _: LookupId, _: LookupKeywords, _: LookupPriority, _: LookupRegion)
+      )
 
     def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
       val (enLabel, cyLabel, id, keywords, priority, region) = columnData
@@ -125,13 +129,15 @@ class LookupLoader {
     keywords: String,
     priority: String,
     countryCode: String,
-    mkLookupType: LocalisedLookupOptions => LookupType): LookupType = {
+    mkLookupType: LocalisedLookupOptions => LookupType
+  ): LookupType = {
 
     type ColumnData = (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority, LookupCountryCode)
 
     val headerDecoder: HeaderDecoder[ColumnData] =
       HeaderDecoder.decoder(englishLabel, welshLabel, id, keywords, priority, countryCode)(
-        (_: LookupLabel, _: LookupLabel, _: LookupId, _: LookupKeywords, _: LookupPriority, _: LookupCountryCode))
+        (_: LookupLabel, _: LookupLabel, _: LookupId, _: LookupKeywords, _: LookupPriority, _: LookupCountryCode)
+      )
 
     def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
       val (enLabel, cyLabel, id, keywords, priority, countryCode) = columnData
@@ -153,7 +159,8 @@ class LookupLoader {
     portType: String,
     countryCode: String,
     portCode: String,
-    mkLookupType: LocalisedLookupOptions => LookupType): LookupType = {
+    mkLookupType: LocalisedLookupOptions => LookupType
+  ): LookupType = {
 
     type ColumnData = (
       LookupLabel,
@@ -164,7 +171,8 @@ class LookupLoader {
       LookupRegion,
       LookupPortType,
       LookupCountryCode,
-      LookupPortCode)
+      LookupPortCode
+    )
 
     val headerDecoder: HeaderDecoder[ColumnData] =
       HeaderDecoder.decoder(englishLabel, welshLabel, id, keywords, priority, region, portType, countryCode, portCode)(
@@ -177,7 +185,9 @@ class LookupLoader {
           _: LookupRegion,
           _: LookupPortType,
           _: LookupCountryCode,
-          _: LookupPortCode))
+          _: LookupPortCode
+        )
+      )
 
     def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
       val (enLabel, cyLabel, id, keywords, priority, region, portType, countryCode, portCode) = columnData
@@ -236,21 +246,20 @@ class LookupLoader {
 
 object LookupLoader {
   def mkAutocomplete(options: LocalisedLookupOptions): Map[LangADT, AutocompleteEngine[LookupRecord]] =
-    options.m.map {
-      case (l, m) =>
-        val engine: AutocompleteEngine[LookupRecord] = new AutocompleteEngine.Builder[LookupRecord]()
-          .setIndex(new LookupAdapter[LookupRecord]())
-          .setAnalyzers(new LowerCaseTransformer(), new CustomWordTokenizer())
-          .build()
+    options.m.map { case (l, m) =>
+      val engine: AutocompleteEngine[LookupRecord] = new AutocompleteEngine.Builder[LookupRecord]()
+        .setIndex(new LookupAdapter[LookupRecord]())
+        .setAnalyzers(new LowerCaseTransformer(), new CustomWordTokenizer())
+        .build()
 
-        m.options map {
-          case (ll, DefaultLookupInfo(_, _)) =>
-            engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
-          case (ll, CountryLookupInfo(_, _, k, p, _))       => engine.add(new LookupRecord(ll.label, p, k))
-          case (ll, CurrencyLookupInfo(_, _, k, p, _))      => engine.add(new LookupRecord(ll.label, p, k))
-          case (ll, PortLookupInfo(_, _, k, p, _, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
-        }
+      m.options map {
+        case (ll, DefaultLookupInfo(_, _)) =>
+          engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
+        case (ll, CountryLookupInfo(_, _, k, p, _))       => engine.add(new LookupRecord(ll.label, p, k))
+        case (ll, CurrencyLookupInfo(_, _, k, p, _))      => engine.add(new LookupRecord(ll.label, p, k))
+        case (ll, PortLookupInfo(_, _, k, p, _, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
+      }
 
-        l -> engine
+      l -> engine
     }
 }

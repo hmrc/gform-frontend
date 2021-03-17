@@ -43,8 +43,7 @@ object FormModelBuilder {
     cacheData: CacheData,
     recalculation: Recalculation[F, E],
     componentIdToFileId: FormComponentIdToFileIdMapping
-  )(
-    implicit
+  )(implicit
     hc: HeaderCarrier,
     me: MonadError[F, E]
   ): FormModelBuilder[E, F] =
@@ -80,14 +79,16 @@ object FormModelBuilder {
     def compareDate(
       dateExprLHS: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr,
       dateExprRHS: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr,
-      f: (DateResult, DateResult) => Boolean): Boolean = {
+      f: (DateResult, DateResult) => Boolean
+    ): Boolean = {
       val evalFunc: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr => Option[DateResult] =
         DateExprEval
           .eval(
             formModel,
             recData.asInstanceOf[RecData[OutOfDate]],
             recalculationResult.evaluationContext,
-            recalculationResult.evaluationResults)
+            recalculationResult.evaluationResults
+          )
       val exprResultLHS = evalFunc(dateExprLHS)
       val exprResultRHS = evalFunc(dateExprRHS)
       (exprResultLHS, exprResultRHS) match {
@@ -155,8 +156,7 @@ class FormModelBuilder[E, F[_]: Functor](
   maybeAccessCode: Option[AccessCode],
   recalculation: Recalculation[F, E],
   componentIdToFileId: FormComponentIdToFileIdMapping
-)(
-  implicit
+)(implicit
   hc: HeaderCarrier,
   me: MonadError[F, E]
 ) {
@@ -265,7 +265,8 @@ class FormModelBuilder[E, F[_]: Functor](
     data: VariadicFormData[OutOfDate],
     formModel: FormModel[Interim],
     recalculationResult: RecalculationResult,
-    phase: Option[FormPhase]): FormModelVisibilityOptics[D] = {
+    phase: Option[FormPhase]
+  ): FormModelVisibilityOptics[D] = {
     val evaluationResults = recalculationResult.evaluationResults
     val visibilityFormModel: FormModel[Visibility] = formModel.filter[Visibility] { pageModel =>
       pageModel.getIncludeIf.fold(true) { includeIf =>
@@ -274,7 +275,8 @@ class FormModelBuilder[E, F[_]: Functor](
           recalculationResult,
           RecData(data).asInstanceOf[RecData[SourceOrigin.Current]],
           formModel,
-          phase)
+          phase
+        )
       }
     }
 
@@ -283,14 +285,13 @@ class FormModelBuilder[E, F[_]: Functor](
     }
 
     val visibleVariadicData: VariadicFormData[SourceOrigin.Current] =
-      visibleTypedExprs.foldMap {
-        case (fcId, typeInfo) =>
-          val expressionResult =
-            evaluationResults
-              .evalExpr(typeInfo, RecData(data), recalculationResult.evaluationContext)
-              .applyTypeInfo(typeInfo)
+      visibleTypedExprs.foldMap { case (fcId, typeInfo) =>
+        val expressionResult =
+          evaluationResults
+            .evalExpr(typeInfo, RecData(data), recalculationResult.evaluationContext)
+            .applyTypeInfo(typeInfo)
 
-          FormModelBuilder.toCurrentData(fcId.modelComponentId, expressionResult)
+        FormModelBuilder.toCurrentData(fcId.modelComponentId, expressionResult)
       }
 
     val currentData = data ++ visibleVariadicData
@@ -318,7 +319,8 @@ class FormModelBuilder[E, F[_]: Functor](
       s.includeIf,
       fc,
       index,
-      s.instruction)
+      s.instruction
+    )
   }
 
   private def mkSingleton(page: Page[Basic], index: Int): Section.AddToList => Page[Basic] =
@@ -368,8 +370,8 @@ class FormModelBuilder[E, F[_]: Functor](
         case s: Section.AddToList =>
           basicAddToList(s, 1, data).map(atl => BracketPlain.AddToList(NonEmptyList.one(atl), s))
       }
-      .collect {
-        case Some(bracket) => bracket
+      .collect { case Some(bracket) =>
+        bracket
       }
 
     val sumInfo: SumInfo = allSections.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)

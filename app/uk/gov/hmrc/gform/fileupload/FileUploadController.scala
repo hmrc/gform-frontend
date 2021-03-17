@@ -48,9 +48,7 @@ class FileUploadController(
         envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
         (resolvedFileId, userData) = FileUploadUtils.updateMapping(formComponentId, fileId, cache.form, envelope)
         _ <- gformConnector.updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)
-      } yield {
-        Ok(Json.toJson(resolvedFileId))
-      }
+      } yield Ok(Json.toJson(resolvedFileId))
   }
 
   def deleteFile(
@@ -64,9 +62,7 @@ class FileUploadController(
       for {
         _ <- fileUploadService.deleteFile(cache.form.envelopeId, fileToDelete)
         _ <- gformConnector.updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)
-      } yield {
-        NoContent
-      }
+      } yield NoContent
   }
 
 }

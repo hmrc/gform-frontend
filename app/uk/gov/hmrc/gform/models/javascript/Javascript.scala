@@ -41,8 +41,8 @@ object Javascript {
         val maybeExpr: Option[Expr] = HasValueExpr.unapply(formComponent)
         maybeExpr
           .map { expr =>
-            val leafs: Set[BaseComponentId] = expr.leafs.collect {
-              case FormCtx(fcId) => fcId.baseComponentId
+            val leafs: Set[BaseComponentId] = expr.leafs.collect { case FormCtx(fcId) =>
+              fcId.baseComponentId
             }.toSet
             val modelComponentIds =
               pageModel.allModelComponentIds.filter(modelComponentId => leafs(modelComponentId.baseComponentId))
@@ -50,19 +50,21 @@ object Javascript {
             formComponent -> modelComponentIds
           }
       }
-      .filter { case (fc, set) => set.nonEmpty } // Ignore if there are no successors (for example ${form.submissionReference})
+      .filter { case (fc, set) =>
+        set.nonEmpty
+      } // Ignore if there are no successors (for example ${form.submissionReference})
 
-    val successorLookup
-      : Map[FormComponentId, Set[ModelComponentId]] = fcWithSuccessors.map { case (k, v) => k.id -> v }.toMap
+    val successorLookup: Map[FormComponentId, Set[ModelComponentId]] = fcWithSuccessors.map { case (k, v) =>
+      k.id -> v
+    }.toMap
 
     val fcWithExprs: List[(FormComponent, Expr)] = fcWithSuccessors.map(_._1).collect {
       case fc @ HasExpr(expr) if fc.editable || fc.submissible => fc -> expr
     }
 
     fcWithExprs
-      .map {
-        case (formComponent, expr) =>
-          toJavascriptFn(formComponent, expr, successorLookup, formModelOptics)
+      .map { case (formComponent, expr) =>
+        toJavascriptFn(formComponent, expr, successorLookup, formModelOptics)
       }
       .mkString("\n") +
       """|function getValue(elementId, isHidden) {

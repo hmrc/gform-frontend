@@ -90,7 +90,8 @@ class SummaryRenderingServiceSpec
         *[HeaderCarrier],
         *[Messages],
         *[LangADT],
-        *[SmartStringEvaluator]) returns Future.successful(validationResult)
+        *[SmartStringEvaluator]
+      ) returns Future.successful(validationResult)
     mockRecalculation.recalculateFormDataNew(
       *[VariadicFormData[SourceOrigin.OutOfDate]],
       *[FormModel[Interim]],
@@ -99,23 +100,27 @@ class SummaryRenderingServiceSpec
       *[ThirdPartyData],
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
-      RecalculationResult.empty(new EvaluationContext(
-        formTemplate._id,
-        submissionRef,
-        maybeAccessCode,
-        retrievals,
-        ThirdPartyData.empty,
-        authConfig,
-        headerCarrier,
-        Option.empty[FormPhase],
-        FileIdsWithMapping.empty
-      )))
+      RecalculationResult.empty(
+        new EvaluationContext(
+          formTemplate._id,
+          submissionRef,
+          maybeAccessCode,
+          retrievals,
+          ThirdPartyData.empty,
+          authConfig,
+          headerCarrier,
+          Option.empty[FormPhase],
+          FileIdsWithMapping.empty
+        )
+      )
+    )
 
     val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
       .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
         cache,
-        mockRecalculation)
+        mockRecalculation
+      )
       .futureValue
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
       .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
@@ -150,7 +155,8 @@ class SummaryRenderingServiceSpec
             HeaderElement("declaration section"),
             SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", ""))),
             SummaryListElement(List())
-          )),
+          )
+        ),
         (
           Some(InvisibleInSummary),
           List(
@@ -159,7 +165,8 @@ class SummaryRenderingServiceSpec
             HeaderElement("declaration section"),
             SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", ""))),
             SummaryListElement(List())
-          )),
+          )
+        ),
         (
           Some(InvisiblePageTitle),
           List(
@@ -167,7 +174,8 @@ class SummaryRenderingServiceSpec
             HeaderElement("declaration section"),
             SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", ""))),
             SummaryListElement(List())
-          ))
+          )
+        )
       )
 
       forAll(table) { (presentationHint, expectedSummaryElements) =>
@@ -180,14 +188,16 @@ class SummaryRenderingServiceSpec
                 fields = List(page1Field),
                 presentationHint = presentationHint
               )
-            ))
+            )
+          )
           override lazy val form: Form =
             buildForm(FormData(List(FormField(page1Field.modelComponentId, "page1Field-value"))))
           override lazy val validationResult: ValidationResult = new ValidationResult(
             Map(
               page1Field.id -> FieldOk(page1Field, "page1Field-value")
             ),
-            None)
+            None
+          )
         }
         import testFixture._
         val pdfHtml = summaryRenderingService
@@ -208,7 +218,8 @@ class SummaryRenderingServiceSpec
             cache,
             SummaryPagePurpose.ForDms,
             PrintSection.Pdf(toSmartString("header"), toSmartString("footer")),
-            formModelOptics)
+            formModelOptics
+          )
           .futureValue
 
       Html(pdfHtml.html).title shouldBe "Acknowledgement PDF - AAA999 dev test template"
@@ -225,7 +236,8 @@ class SummaryRenderingServiceSpec
             cache,
             SummaryPagePurpose.ForDms,
             PdfNotification(toSmartString("header"), toSmartString("footer"), List.empty),
-            formModelOptics)
+            formModelOptics
+          )
           .futureValue
 
       Html(pdfHtml.html).title shouldBe "Acknowledgement PDF - AAA999 dev test template"
@@ -246,7 +258,8 @@ class SummaryRenderingServiceSpec
               SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
               HeaderElement("declaration section"),
               SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
-            )),
+            )
+          ),
           (
             Some(InvisibleInSummary),
             List(
@@ -254,14 +267,16 @@ class SummaryRenderingServiceSpec
               SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
               HeaderElement("declaration section"),
               SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
-            )),
+            )
+          ),
           (
             Some(InvisiblePageTitle),
             List(
               SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
               HeaderElement("declaration section"),
               SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
-            ))
+            )
+          )
         )
 
         forAll(table) { (presentationHint, expectedSummaryElements) =>
@@ -274,14 +289,16 @@ class SummaryRenderingServiceSpec
                   fields = List(page1Field),
                   presentationHint = presentationHint
                 )
-              ))
+              )
+            )
             override lazy val form: Form =
               buildForm(FormData(List(FormField(page1Field.modelComponentId, "page1Field-value"))))
             override lazy val validationResult: ValidationResult = new ValidationResult(
               Map(
                 page1Field.id -> FieldOk(page1Field, "page1Field-value")
               ),
-              None)
+              None
+            )
           }
           import testFixture._
           summaryRenderingService
@@ -305,7 +322,8 @@ class SummaryRenderingServiceSpec
               SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
               HeaderElement("declaration section"),
               SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
-            )),
+            )
+          ),
           (
             Some(InvisibleInSummary),
             List(
@@ -313,14 +331,16 @@ class SummaryRenderingServiceSpec
               SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
               HeaderElement("declaration section"),
               SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
-            )),
+            )
+          ),
           (
             Some(InvisiblePageTitle),
             List(
               SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value"))),
               HeaderElement("declaration section"),
               SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
-            ))
+            )
+          )
         )
 
         forAll(table) { (presentationHint, expectedSummaryElements) =>
@@ -342,7 +362,8 @@ class SummaryRenderingServiceSpec
               Map(
                 page1Field.withIndex(1).id -> FieldOk(page1Field.withIndex(1), "page1Field-value")
               ),
-              None)
+              None
+            )
           }
           import testFixture._
           summaryRenderingService
@@ -368,7 +389,7 @@ class SummaryRenderingServiceSpec
               None,
               List(
                 toPage("page1", None, List(page1Field)),
-                toPage("page2", None, List(page2Field)),
+                toPage("page2", None, List(page2Field))
               ),
               Some(InvisiblePageTitle)
             )
@@ -377,14 +398,17 @@ class SummaryRenderingServiceSpec
 
         override lazy val form: Form =
           buildForm(
-            FormData(List(
-              FormField(page1Field.withIndex(1).modelComponentId, "page1Field-value1"),
-              FormField(page1Field.withIndex(2).modelComponentId, "page1Field-value2"),
-              FormField(page2Field.withIndex(1).modelComponentId, "page2Field-value1"),
-              FormField(page2Field.withIndex(2).modelComponentId, "page2Field-value2"),
-              FormField(addToListQuestionComponent.withIndex(1).modelComponentId, "0"),
-              FormField(addToListQuestionComponent.withIndex(2).modelComponentId, "1"),
-            )))
+            FormData(
+              List(
+                FormField(page1Field.withIndex(1).modelComponentId, "page1Field-value1"),
+                FormField(page1Field.withIndex(2).modelComponentId, "page1Field-value2"),
+                FormField(page2Field.withIndex(1).modelComponentId, "page2Field-value1"),
+                FormField(page2Field.withIndex(2).modelComponentId, "page2Field-value2"),
+                FormField(addToListQuestionComponent.withIndex(1).modelComponentId, "0"),
+                FormField(addToListQuestionComponent.withIndex(2).modelComponentId, "1")
+              )
+            )
+          )
 
         override lazy val validationResult: ValidationResult = new ValidationResult(
           Map(
@@ -397,14 +421,18 @@ class SummaryRenderingServiceSpec
               Map(
                 Indexed(addToListQuestionComponent.withIndex(1).id, 0) -> FieldOk(
                   addToListQuestionComponent.withIndex(1),
-                  "1"))
+                  "1"
+                )
+              )
             ),
             addToListQuestionComponent.withIndex(2).id -> ComponentField(
               addToListQuestionComponent.withIndex(2),
               Map(
                 Indexed(addToListQuestionComponent.withIndex(2).id, 1) -> FieldOk(
                   addToListQuestionComponent.withIndex(2),
-                  "0"))
+                  "0"
+                )
+              )
             )
           ),
           None
@@ -445,7 +473,7 @@ class SummaryRenderingServiceSpec
               None,
               List(
                 toPage("page1", None, List(page1Field)),
-                toPage("page2", None, List(page2Field)),
+                toPage("page2", None, List(page2Field))
               ),
               None
             )
@@ -454,14 +482,17 @@ class SummaryRenderingServiceSpec
 
         override lazy val form: Form =
           buildForm(
-            FormData(List(
-              FormField(page1Field.withIndex(1).modelComponentId, "page1Field-value1"),
-              FormField(page1Field.withIndex(2).modelComponentId, "page1Field-value2"),
-              FormField(page2Field.withIndex(1).modelComponentId, "page2Field-value1"),
-              FormField(page2Field.withIndex(2).modelComponentId, "page2Field-value2"),
-              FormField(addToListQuestionComponent.withIndex(1).modelComponentId, "0"),
-              FormField(addToListQuestionComponent.withIndex(2).modelComponentId, "1"),
-            )))
+            FormData(
+              List(
+                FormField(page1Field.withIndex(1).modelComponentId, "page1Field-value1"),
+                FormField(page1Field.withIndex(2).modelComponentId, "page1Field-value2"),
+                FormField(page2Field.withIndex(1).modelComponentId, "page2Field-value1"),
+                FormField(page2Field.withIndex(2).modelComponentId, "page2Field-value2"),
+                FormField(addToListQuestionComponent.withIndex(1).modelComponentId, "0"),
+                FormField(addToListQuestionComponent.withIndex(2).modelComponentId, "1")
+              )
+            )
+          )
 
         override lazy val validationResult: ValidationResult = new ValidationResult(
           Map(
@@ -474,14 +505,18 @@ class SummaryRenderingServiceSpec
               Map(
                 Indexed(addToListQuestionComponent.withIndex(1).id, 0) -> FieldOk(
                   addToListQuestionComponent.withIndex(1),
-                  "1"))
+                  "1"
+                )
+              )
             ),
             addToListQuestionComponent.withIndex(2).id -> ComponentField(
               addToListQuestionComponent.withIndex(2),
               Map(
                 Indexed(addToListQuestionComponent.withIndex(2).id, 1) -> FieldOk(
                   addToListQuestionComponent.withIndex(2),
-                  "0"))
+                  "0"
+                )
+              )
             )
           ),
           None

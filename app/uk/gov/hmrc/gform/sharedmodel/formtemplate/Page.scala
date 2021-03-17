@@ -50,14 +50,12 @@ case class Page[A <: PageMode](
 
   val revealingChoiceInfo: RevealingChoiceInfo = RevealingChoiceInfo {
     fields
-      .collect {
-        case fc @ IsRevealingChoice(revealingChoice) =>
-          revealingChoice.options.zipWithIndex.flatMap {
-            case (revealingChoiceElement, index) =>
-              revealingChoiceElement.revealingFields.map { rf =>
-                rf.id.baseComponentId -> RevealingChoiceData(index, fc.id.baseComponentId)
-              }
-          }.toMap
+      .collect { case fc @ IsRevealingChoice(revealingChoice) =>
+        revealingChoice.options.zipWithIndex.flatMap { case (revealingChoiceElement, index) =>
+          revealingChoiceElement.revealingFields.map { rf =>
+            rf.id.baseComponentId -> RevealingChoiceData(index, fc.id.baseComponentId)
+          }
+        }.toMap
       }
       .foldLeft(Map.empty[BaseComponentId, RevealingChoiceData])(_ ++ _)
   }

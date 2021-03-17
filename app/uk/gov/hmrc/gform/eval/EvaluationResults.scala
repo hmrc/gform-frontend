@@ -61,7 +61,8 @@ case class EvaluationResults(
       expr,
       recData.variadicFormData
         .get(modelComponentId)
-        .fold(ExpressionResult.empty)(fromVariadicValue))
+        .fold(ExpressionResult.empty)(fromVariadicValue)
+    )
     if (fileIdsWithMapping.isFileField(modelComponentId))
       stripFileName(expressionResult, modelComponentId, fileIdsWithMapping.mapping)
     else expressionResult
@@ -131,7 +132,8 @@ case class EvaluationResults(
 
     def toNumberResult(value: String): ExpressionResult =
       toBigDecimalSafe(value).fold(ExpressionResult.invalid(s"Number - cannot convert '$value' to number"))(
-        NumberResult.apply)
+        NumberResult.apply
+      )
 
     def loop(expr: Expr): ExpressionResult = expr match {
       case Add(field1: Expr, field2: Expr)            => loop(field1) + loop(field2)
@@ -167,7 +169,8 @@ case class EvaluationResults(
 
     def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
       variadicValue.fold[ExpressionResult](one => nonEmpty(StringResult(one.value)))(many =>
-        ExpressionResult.OptionResult(many.value.map(_.toInt)))
+        ExpressionResult.OptionResult(many.value.map(_.toInt))
+      )
 
     def loop(expr: Expr): ExpressionResult = expr match {
       case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
@@ -185,7 +188,9 @@ case class EvaluationResults(
         nonEmpty(
           StringResult(
             UserCtxEvaluatorProcessor
-              .processEvaluation(evaluationContext.retrievals, value, evaluationContext.authConfig)))
+              .processEvaluation(evaluationContext.retrievals, value, evaluationContext.authConfig)
+          )
+        )
       case Constant(value: String) => nonEmpty(StringResult(value))
       case HmrcRosmRegistrationCheck(value: RosmProp) =>
         nonEmpty(StringResult(UserCtxEvaluatorProcessor.evalRosm(evaluationContext.thirdPartyData, value)))

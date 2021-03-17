@@ -27,8 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 import scala.concurrent.Future
 
-/**
-  * This object suppose to render responses if something unexpected happened.
+/** This object suppose to render responses if something unexpected happened.
   * It as well does a bunch of side effects:
   *  - sends audit events
   *  - does logging so please use it just before returning
@@ -39,8 +38,7 @@ class ErrResponder(
   httpAuditingService: HttpAuditingService,
   i18nSupport: I18nSupport,
   langs: Langs
-)(
-  implicit
+)(implicit
   messagesApi: MessagesApi
 ) {
 

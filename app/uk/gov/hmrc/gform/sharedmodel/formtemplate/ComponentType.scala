@@ -225,8 +225,7 @@ object OverseasAddress {
     postcode: SmartString,
     country: SmartString
   ) {
-    def getPrepopValue(atom: Atom)(
-      implicit
+    def getPrepopValue(atom: Atom)(implicit
       sse: SmartStringEvaluator
     ): String = atom match {
       case OverseasAddress.line1    => line1.value
@@ -278,15 +277,14 @@ case class Choice(
   hints: Option[NonEmptyList[SmartString]],
   optionHelpText: Option[NonEmptyList[SmartString]]
 ) extends ComponentType {
-  def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult)(
-    implicit
-    evaluator: SmartStringEvaluator): List[String] =
+  def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult)(implicit
+    evaluator: SmartStringEvaluator
+  ): List[String] =
     options.toList.zipWithIndex
-      .map {
-        case (option, index) =>
-          formFieldValidationResult
-            .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
-            .map(_ => option.value)
+      .map { case (option, index) =>
+        formFieldValidationResult
+          .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
+          .map(_ => option.value)
       }
       .collect { case Some(selection) => selection }
 }
@@ -306,7 +304,8 @@ case class RevealingChoiceElement(
   choice: SmartString,
   revealingFields: List[FormComponent],
   hint: Option[SmartString],
-  selected: Boolean)
+  selected: Boolean
+)
 object RevealingChoiceElement {
   implicit val format: OFormat[RevealingChoiceElement] = derived.oformat()
 }
@@ -325,7 +324,7 @@ object RevealingChoice {
         val rcElements: List[RevealingChoiceElement] = indices.map(revealingChoice.options)
 
         revealingChoice.copy(options = rcElements)
-    }
+      }
 }
 
 case class IdType(value: String) extends AnyVal
@@ -405,8 +404,10 @@ object Range {
   @tailrec
   def getTimeSlots(sTime: LocalTime, eTime: LocalTime, iMins: Int, acc: List[LocalTime]): List[LocalTime] = {
     val t = sTime.plusMinutes(iMins.toLong)
-    if (t.isAfter(eTime) || (0 until iMins contains MINUTES
-          .between(LocalTime.parse("00:00"), t)))
+    if (
+      t.isAfter(eTime) || (0 until iMins contains MINUTES
+        .between(LocalTime.parse("00:00"), t))
+    )
       acc
     else
       getTimeSlots(t, eTime, iMins, acc :+ t)
@@ -415,7 +416,8 @@ object Range {
   def timeSlots(time: Time): List[String] =
     time.ranges
       .flatMap(t =>
-        getTimeSlots(t.startTime.time, t.endTime.time, time.intervalMins.intervalMins, List(t.startTime.time)))
+        getTimeSlots(t.startTime.time, t.endTime.time, time.intervalMins.intervalMins, List(t.startTime.time))
+      )
       .distinct
       .map(_.format(twelveHoursFormat))
 }

@@ -20,8 +20,7 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, Model
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
-/**
-  * This is static information derived from form template.
+/** This is static information derived from form template.
   * It contains mapping from child of revealing choice to its parent
   * together with index it lies at.
   */

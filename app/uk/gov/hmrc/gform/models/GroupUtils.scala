@@ -35,7 +35,8 @@ object GroupUtils {
   ): (VariadicFormData[SourceOrigin.Current], FormComponentIdToFileIdMapping, Set[FileId]) = {
 
     val removingIndex = modelComponentId.maybeIndex.getOrElse(
-      throw new IllegalArgumentException(s"Attempting to delete group, but no index found $modelComponentId"))
+      throw new IllegalArgumentException(s"Attempting to delete group, but no index found $modelComponentId")
+    )
 
     val formModelRenderPageOptics = processData.formModelOptics.formModelRenderPageOptics
     val formModel = formModelRenderPageOptics.formModel
@@ -50,8 +51,8 @@ object GroupUtils {
       }
 
     val allGroupFileUploadIds: Set[FormComponentId] = currentGroups
-      .flatMap(_.fields.collect {
-        case fc @ IsFileUpload() => fc.id
+      .flatMap(_.fields.collect { case fc @ IsFileUpload() =>
+        fc.id
       })
       .toSet
 
@@ -92,12 +93,12 @@ object GroupUtils {
       groupFileUploadIdToRemoves.flatMap(ff => formComponentIdToFileIdMapping.find(ff))
 
     // We need to keep mapping for fileuploads which are not in this Group
-    val unrelatedMapping = formComponentIdToFileIdMapping.mapping.filterNot {
-      case (k, _) => allGroupFileUploadIds(k)
+    val unrelatedMapping = formComponentIdToFileIdMapping.mapping.filterNot { case (k, _) =>
+      allGroupFileUploadIds(k)
     }
 
-    val unchangedMapping = formComponentIdToFileIdMapping.mapping.filter {
-      case (key, _) => groupFileUploadIdToKeep(key)
+    val unchangedMapping = formComponentIdToFileIdMapping.mapping.filter { case (key, _) =>
+      groupFileUploadIdToKeep(key)
     }
 
     val decrementedMapping = formComponentIdToFileIdMapping.mapping.collect {

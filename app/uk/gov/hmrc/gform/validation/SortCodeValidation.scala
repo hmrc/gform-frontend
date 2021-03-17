@@ -32,8 +32,7 @@ object SortCodeValidation {
     fieldValue: FormComponent
   )(
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
@@ -55,8 +54,7 @@ object SortCodeValidation {
     modelComponentId: ModelComponentId,
     value: String,
     desiredLength: Int
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
@@ -72,8 +70,7 @@ object SortCodeValidation {
   private def requiredError(
     formComponent: FormComponent,
     modelComponentId: ModelComponentId
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = error(formComponent, modelComponentId, "generic.error.sortcode")
@@ -81,8 +78,7 @@ object SortCodeValidation {
   private def lengthError(
     formComponent: FormComponent,
     modelComponentId: ModelComponentId
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = error(formComponent, modelComponentId, genericErrorWholeNumber)
@@ -91,8 +87,7 @@ object SortCodeValidation {
     formComponent: FormComponent,
     modelComponentId: ModelComponentId,
     messageKey: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =

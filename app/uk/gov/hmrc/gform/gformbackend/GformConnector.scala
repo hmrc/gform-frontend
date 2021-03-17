@@ -45,24 +45,23 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   implicit val legacyRawReads: HttpReads[HttpResponse] =
     HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
 
-  /******form*******/
+  /** ****form******
+    */
   //TODO: remove userId since this information will be passed using HeaderCarrier
   def newForm(
     formTemplateId: FormTemplateId,
     userId: UserId,
     affinityGroup: Option[AffinityGroup],
     queryParams: QueryParams
-  )(
-    implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext): Future[FormIdData] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormIdData] = {
     val ag = affinityGroup.map(a => "/" + AffinityGroupUtil.affinityGroupName(a)).getOrElse("")
     ws.POST[QueryParams, FormIdData](s"$baseUrl/new-form/${formTemplateId.value}/${userId.value}$ag", queryParams)
   }
 
-  def getAllForms(userId: UserId, formTemplateId: FormTemplateId)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[List[FormOverview]] =
+  def getAllForms(userId: UserId, formTemplateId: FormTemplateId)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[List[FormOverview]] =
     ws.GET[List[FormOverview]](s"$baseUrl/forms/all/${userId.value}/${formTemplateId.value}")
 
   def getForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] =
@@ -84,9 +83,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => None
     }
 
-  def updateUserData(formIdData: FormIdData, userData: UserData)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Unit] = {
+  def updateUserData(formIdData: FormIdData, userData: UserData)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
     val url =
       formIdData match {
         case FormIdData.Plain(userId, formTemplateId) =>
@@ -97,21 +97,24 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.PUT[UserData, HttpResponse](url, userData).void
   }
 
-  def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Unit] =
+  def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] =
     ws.PUT[String, HttpResponse](s"$baseUrl/formBundles/${urlFragment(formId)}/$status/forceStatus", "").void
 
   def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").void
 
-  /******submission*******/
+  /** ****submission******
+    */
   def createSubmission(
     formId: FormId,
     formTemplateId: FormTemplateId,
     envelopeId: EnvelopeId,
     customerId: String,
-    noOfAttachments: Int)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
+    noOfAttachments: Int
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
     ws.POST[String, Submission](
       baseUrl + s"/forms/${formId.value}/${formTemplateId.value}/${envelopeId.value}/$noOfAttachments/createSubmission",
       "",
@@ -122,7 +125,8 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     formIdData: FormIdData,
     customerId: CustomerId,
     submissionData: SubmissionData,
-    affinityGroup: Option[AffinityGroup])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    affinityGroup: Option[AffinityGroup]
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
     val url =
       formIdData match {
         case FormIdData.Plain(userId, formTemplateId) =>
@@ -133,35 +137,43 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     mkPost(customerId, submissionData, affinityGroup)(url)
   }
 
-  /******test-only*******/
+  /** ****test-only******
+    */
   def renderHandlebarPayload(
     formTemplateId: FormTemplateId,
     formId: FormId,
     destinationId: DestinationId,
     customerId: CustomerId,
     submissionData: SubmissionData,
-    affinityGroup: Option[AffinityGroup])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
+    affinityGroup: Option[AffinityGroup]
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
     mkPost(customerId, submissionData, affinityGroup)(
-      s"$baseUrl/test-only/${formTemplateId.value}/${formId.value}/${destinationId.id}")
+      s"$baseUrl/test-only/${formTemplateId.value}/${formId.value}/${destinationId.id}"
+    )
 
   def renderHandlebarModel(
     formTemplateId: FormTemplateId,
     formId: FormId,
     customerId: CustomerId,
     submissionData: SubmissionData,
-    affinityGroup: Option[AffinityGroup])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
+    affinityGroup: Option[AffinityGroup]
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
     mkPost(customerId, submissionData, affinityGroup)(
-      s"$baseUrl/test-only/handlebars-model/${formTemplateId.value}/${formId.value}")
+      s"$baseUrl/test-only/handlebars-model/${formTemplateId.value}/${formId.value}"
+    )
 
   private def mkPost(customerId: CustomerId, submissionData: SubmissionData, affinityGroup: Option[AffinityGroup])(
-    url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
+    url: String
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
     ws.POST[SubmissionData, HttpResponse](
       url,
       submissionData,
-      Seq("customerId" -> customerId.id, "affinityGroup" -> affinityGroupNameO(affinityGroup)))
+      Seq("customerId" -> customerId.id, "affinityGroup" -> affinityGroupNameO(affinityGroup))
+    )
 
   def submissionDetails(
-    formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] = {
+    formIdData: FormIdData
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] = {
     val url =
       formIdData match {
         case FormIdData.Plain(userId, formTemplateId) =>
@@ -172,33 +184,40 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.GET[Submission](url)
   }
 
-  /******formTemplate*******/
+  /** ****formTemplate******
+    */
   def upsertTemplate(template: JsValue)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.POST[JsValue, HttpResponse](
-        s"$baseUrl/formtemplates",
-        template,
-        Seq("Content-Type" -> ContentType.`application/json`.value))
-      .void
+      s"$baseUrl/formtemplates",
+      template,
+      Seq("Content-Type" -> ContentType.`application/json`.value)
+    ).void
 
   def getFormTemplate(
-    formTemplateId: FormTemplateId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}")
 
-  /******file-upload*******/
+  /** ****file-upload******
+    */
   def deleteFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.DELETE[HttpResponse](s"$baseUrl/forms/${formId.value}/deleteFile/${fileId.value}").void
 
-  /********Validators******/
-  def validatePostCodeUtr(utr: String, desRegistrationRequest: DesRegistrationRequest)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[ServiceCallResponse[DesRegistrationResponse]] =
+  /** ******Validators*****
+    */
+  def validatePostCodeUtr(utr: String, desRegistrationRequest: DesRegistrationRequest)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[ServiceCallResponse[DesRegistrationResponse]] =
     ws.POST[DesRegistrationRequest, ServiceCallResponse[DesRegistrationResponse]](
       s"$baseUrl/validate/des/$utr",
-      desRegistrationRequest)
+      desRegistrationRequest
+    )
 
-  def validateBankModulus(accountNumber: String, sortCode: String)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Boolean] =
+  def validateBankModulus(accountNumber: String, sortCode: String)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Boolean] =
     ws.POST[Account, HttpResponse](s"$baseUrl/validate/bank", Account(sortCode, accountNumber)).map(_ => true).recover {
       case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => false
     }
@@ -206,48 +225,53 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   //TODO other formTemplate endpoints
   //TODO move this file to gform and make it's origin there
 
-  /****** Tax Period ******/
-  def getAllTaxPeriods(htps: NonEmptyList[HmrcTaxPeriodWithEvaluatedId])(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[NonEmptyList[ServiceCallResponse[TaxResponse]]] = {
+  /** **** Tax Period *****
+    */
+  def getAllTaxPeriods(
+    htps: NonEmptyList[HmrcTaxPeriodWithEvaluatedId]
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NonEmptyList[ServiceCallResponse[TaxResponse]]] = {
     import JsonUtils._
     ws.POST[NonEmptyList[HmrcTaxPeriodWithEvaluatedId], NonEmptyList[ServiceCallResponse[TaxResponse]]](
       s"$baseUrl/obligation/tax-period",
-      htps)
+      htps
+    )
   }
 
-  /****** Form Bundles ******/
+  /** **** Form Bundles *****
+    */
   def getFormBundle(
-    rootFormId: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NonEmptyList[FormIdData]] = {
+    rootFormId: FormIdData
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NonEmptyList[FormIdData]] = {
     import JsonUtils._
     ws.GET[NonEmptyList[FormIdData]](show"$baseUrl/formBundles/${urlFragment(rootFormId)}")
   }
 
-  def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Unit] = {
+  def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
     import JsonUtils._
     ws.POST[NonEmptyList[BundledFormSubmissionData], HttpResponse](
-        show"$baseUrl/formBundles/${urlFragment(rootFormId)}/submitAfterReview",
-        bundle)
-      .void
+      show"$baseUrl/formBundles/${urlFragment(rootFormId)}/submitAfterReview",
+      bundle
+    ).void
   }
 
   def sendEmail(
     notifierConfirmationCode: ConfirmationCodeWithEmailService
-  )(
-    implicit
+  )(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Unit] =
     ws.POST[ConfirmationCodeWithEmailService, HttpResponse](
-        show"$baseUrl/email",
-        notifierConfirmationCode,
-        Seq("Content-Type" -> ContentType.`application/json`.value))
-      .void
+      show"$baseUrl/email",
+      notifierConfirmationCode,
+      Seq("Content-Type" -> ContentType.`application/json`.value)
+    ).void
 
-  def dbLookup(id: String, collectionName: CollectionName, hc: HeaderCarrier)(
-    implicit ec: ExecutionContext): Future[Boolean] = {
+  def dbLookup(id: String, collectionName: CollectionName, hc: HeaderCarrier)(implicit
+    ec: ExecutionContext
+  ): Future[Boolean] = {
     implicit val hc_ = hc
 
     val url = s"$baseUrl/dblookup/$id/${collectionName.name}"

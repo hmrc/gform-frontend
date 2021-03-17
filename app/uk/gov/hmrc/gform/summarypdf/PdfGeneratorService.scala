@@ -35,7 +35,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 class PdfGeneratorService(
   i18nSupport: I18nSupport,
   pdfGeneratorConnector: PdfGeneratorConnector,
-  summaryRenderingService: SummaryRenderingService) {
+  summaryRenderingService: SummaryRenderingService
+) {
 
   def generatePDF(html: PdfHtml)(implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {
     val headers = Seq((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
@@ -48,8 +49,7 @@ class PdfGeneratorService(
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(
-    implicit
+  )(implicit
     request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
@@ -58,9 +58,10 @@ class PdfGeneratorService(
   ): Future[Source[ByteString, _]] =
     for {
       summaryHtml <- summaryRenderingService
-                      .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForUser, formModelOptics)
-      htmlForPDF = HtmlSanitiser
-        .sanitiseHtmlForPDF(summaryHtml, document => HtmlSanitiser.summaryPagePdf(document, cache.formTemplate))
+                       .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForUser, formModelOptics)
+      htmlForPDF =
+        HtmlSanitiser
+          .sanitiseHtmlForPDF(summaryHtml, document => HtmlSanitiser.summaryPagePdf(document, cache.formTemplate))
       pdfStream <- generatePDF(PdfHtml(htmlForPDF))
     } yield pdfStream
 

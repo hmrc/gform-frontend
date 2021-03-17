@@ -86,8 +86,7 @@ object ComponentValidator {
     lookup: Lookup,
     lookupLabel: LookupLabel,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
@@ -144,8 +143,7 @@ object ComponentValidator {
   )(
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     lookupRegistry: LookupRegistry
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
@@ -168,7 +166,8 @@ object ComponentValidator {
           value,
           ValidationValues.sterlingLength,
           TextConstraint.defaultFractionalDigits,
-          s.positiveOnly)
+          s.positiveOnly
+        )
       case (_, Some(value), ReferenceNumber(min, max)) => referenceNumberConstraints(fieldValue, value, min, max)
       case (_, Some(value), UkBankAccountNumber)       => validateBankAccountFormat(fieldValue, value)
       case (_, Some(value), SubmissionRefFormat)       => validateSubmissionRefFormat(fieldValue, value)
@@ -185,7 +184,8 @@ object ComponentValidator {
       case (_, Some(value), Email | EmailVerifiedBy(_, _)) =>
         Monoid.combine(
           email(fieldValue, value),
-          textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit))
+          textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit)
+        )
       case (_, Some(value), Number(maxWhole, maxFractional, _, _)) =>
         validateNumber(fieldValue, value, maxWhole, maxFractional, false)
       case (_, Some(value), PositiveNumber(maxWhole, maxFractional, _, _)) =>
@@ -199,8 +199,7 @@ object ComponentValidator {
     thisFormSubmissionRef: SubmissionRef
   )(
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
@@ -219,8 +218,7 @@ object ComponentValidator {
   private def validateBankAccountFormat(
     fieldValue: FormComponent,
     value: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
@@ -237,8 +235,7 @@ object ComponentValidator {
   private def validateSubmissionRefFormat(
     fieldValue: FormComponent,
     value: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
@@ -253,8 +250,8 @@ object ComponentValidator {
     maxWhole: Int,
     maxFractional: Int,
     mustBePositive: Boolean
-  )(
-    implicit messages: Messages,
+  )(implicit
+    messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
@@ -297,8 +294,7 @@ object ComponentValidator {
     value: String,
     min: Int,
     max: Int
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
@@ -311,8 +307,7 @@ object ComponentValidator {
       }
   }
 
-  private def referenceNumberConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int)(
-    implicit
+  private def referenceNumberConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int)(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
@@ -324,8 +319,7 @@ object ComponentValidator {
   private def email(
     fieldValue: FormComponent,
     value: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) =
@@ -335,8 +329,7 @@ object ComponentValidator {
   private def checkVrn(
     fieldValue: FormComponent,
     value: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
@@ -363,8 +356,7 @@ object ComponentValidator {
   private def checkCompanyRegistrationNumber(
     fieldValue: FormComponent,
     value: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
@@ -376,8 +368,7 @@ object ComponentValidator {
   private def checkEORI(
     fieldValue: FormComponent,
     value: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
@@ -389,8 +380,7 @@ object ComponentValidator {
   private def checkUkEORI(
     fieldValue: FormComponent,
     value: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
@@ -398,9 +388,10 @@ object ComponentValidator {
     val str = value.replace(" ", "")
     sharedTextComponentValidator(fieldValue, str, 14, 14, ValidUkEORI, genericUkEoriErrorPattern)
   }
-  private def checkChildBenefitNumber(fieldValue: FormComponent, value: String)(
-    implicit messages: Messages,
-    sse: SmartStringEvaluator) = {
+  private def checkChildBenefitNumber(fieldValue: FormComponent, value: String)(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ) = {
     val ValidChildBenefitNumber = "^CHB[0-9]{8}[A-Z]{2}$".r
     val str = value.replace(" ", "")
     sharedTextComponentValidator(
@@ -409,14 +400,14 @@ object ComponentValidator {
       13,
       13,
       ValidChildBenefitNumber,
-      genericChildBenefitNumberErrorPattern)
+      genericChildBenefitNumberErrorPattern
+    )
   }
 
   private def checkNonUkCountryCode(
     fieldValue: FormComponent,
     value: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
@@ -428,8 +419,7 @@ object ComponentValidator {
   private def checkCountryCode(
     fieldValue: FormComponent,
     value: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
@@ -437,9 +427,10 @@ object ComponentValidator {
     sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, genericCountryCodeErrorPattern)
   }
 
-  private def checkUtr(fieldValue: FormComponent, value: String)(
-    implicit messages: Messages,
-    sse: SmartStringEvaluator) = {
+  private def checkUtr(fieldValue: FormComponent, value: String)(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ) = {
     val UTRFormat = "[0-9]{10}".r
 
     value match {
@@ -452,9 +443,10 @@ object ComponentValidator {
     }
   }
 
-  private def checkNino(fieldValue: FormComponent, value: String)(
-    implicit messages: Messages,
-    sse: SmartStringEvaluator) =
+  private def checkNino(fieldValue: FormComponent, value: String)(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ) =
     value match {
       case x if Nino.isValid(x) => validationSuccess
       case _                    => validationFailure(fieldValue, genericGovernmentIdErrorPattern, None)
@@ -463,8 +455,7 @@ object ComponentValidator {
   def validatePhoneNumber(
     fieldValue: FormComponent,
     value: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
@@ -474,15 +465,15 @@ object ComponentValidator {
       TelephoneNumber.minimumLength,
       TelephoneNumber.maximumLength,
       TelephoneNumber.phoneNumberValidation,
-      genericErrorTelephoneNumber)
+      genericErrorTelephoneNumber
+    )
 
   private[validation] def shortTextValidation(
     fieldValue: FormComponent,
     value: String,
     min: Int,
     max: Int
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
@@ -494,8 +485,7 @@ object ComponentValidator {
     fieldValue: FormComponent
   )(
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
@@ -524,8 +514,7 @@ object ComponentValidator {
     maxChars: Int,
     regex: Regex,
     messageKey: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) =
@@ -545,8 +534,7 @@ object ComponentValidator {
     emailFieldId: EmailFieldId,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     thirdPartyData: ThirdPartyData
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
@@ -563,8 +551,7 @@ object ComponentValidator {
     formComponent: FormComponent,
     time: Time,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
@@ -575,12 +562,14 @@ object ComponentValidator {
         validationFailure(
           formComponent,
           messages(genericErrorInvalid, formComponent.shortName.getOrElse(formComponent.label).value),
-          None)
+          None
+        )
       case (true, None) =>
         validationFailure(
           formComponent,
           messages(timeErrorRequired, formComponent.shortName.getOrElse(formComponent.label).value),
-          None)
+          None
+        )
       case _ => validationSuccess
     }
   }
@@ -590,8 +579,7 @@ object ComponentValidator {
     value: String,
     regex: Regex,
     messageKey: String
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {

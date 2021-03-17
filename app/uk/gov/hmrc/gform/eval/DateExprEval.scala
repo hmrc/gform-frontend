@@ -34,18 +34,21 @@ object DateExprEval {
     formModel: FormModel[T],
     recData: RecData[OutOfDate],
     evaluationContext: EvaluationContext,
-    evaluationResults: EvaluationResults)(dateExpr: DateExpr): Option[DateResult] =
+    evaluationResults: EvaluationResults
+  )(dateExpr: DateExpr): Option[DateResult] =
     dateExpr match {
       case DateValueExpr(value) => Some(DateResult(fromValue(value)))
       case DateFormCtxVar(formCtx) =>
         fromFormCtx(formModel, recData, evaluationResults, evaluationContext, formCtx)
       case DateExprWithOffset(dExpr, offset, offsetUnit) =>
         eval(formModel, recData, evaluationContext, evaluationResults)(dExpr).map(r =>
-          DateResult(addOffset(r.value, offset, offsetUnit)))
+          DateResult(addOffset(r.value, offset, offsetUnit))
+        )
     }
 
   def evalDateExpr(recData: RecData[OutOfDate], evaluationResults: EvaluationResults)(
-    dateExpr: DateExpr): ExpressionResult =
+    dateExpr: DateExpr
+  ): ExpressionResult =
     dateExpr match {
       case DateValueExpr(value) => DateResult(fromValue(value))
       case DateFormCtxVar(formCtx @ FormCtx(formComponentId)) =>
@@ -65,7 +68,8 @@ object DateExprEval {
       case DateExprWithOffset(dExpr, offset, offsetUnit) =>
         val exprResult = evalDateExpr(recData, evaluationResults)(dExpr)
         exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => exprResult)(identity)(identity)(identity)(d =>
-          d.copy(value = addOffset(d.value, offset, offsetUnit)))
+          d.copy(value = addOffset(d.value, offset, offsetUnit))
+        )
     }
 
   private def fromFormCtx[T <: PageMode](
@@ -73,14 +77,15 @@ object DateExprEval {
     recData: RecData[OutOfDate],
     evaluationResults: EvaluationResults,
     evaluationContext: EvaluationContext,
-    formCtx: FormCtx): Option[DateResult] = {
+    formCtx: FormCtx
+  ): Option[DateResult] = {
     val typeInfo: TypeInfo = formModel.explicitTypedExpr(formCtx, formCtx.formComponentId)
     val expressionResult =
       evaluationResults.evalExpr(typeInfo, recData, evaluationContext)
-    expressionResult.fold(_ => Option.empty[DateResult])(_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(
-      dateResult => {
+    expressionResult.fold(_ => Option.empty[DateResult])(_ => None)(_ => None)(_ => None)(_ => None)(_ => None) {
+      dateResult =>
         Some(dateResult)
-      })
+    }
   }
 
   private def addOffset(d: LocalDate, offset: Int, offsetUnit: OffsetUnit) =

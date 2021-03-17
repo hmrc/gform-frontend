@@ -25,28 +25,33 @@ import uk.gov.hmrc.http.hooks.HttpHook
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
-/**
-  * Stubbed WSHttp which responses always with the same HttpResponse. Use it for test purposes
+/** Stubbed WSHttp which responses always with the same HttpResponse. Use it for test purposes
   */
 class StubbedWSHttp(response: HttpResponse) extends WSHttp {
-  override def doGet(url: String, headers: Seq[(String, String)] = Seq.empty)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[HttpResponse] = Future.successful(response)
-  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
-    implicit rds: Writes[A],
+  override def doGet(url: String, headers: Seq[(String, String)] = Seq.empty)(implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext) = Future.successful(response)
+    ec: ExecutionContext
+  ): Future[HttpResponse] = Future.successful(response)
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit
+    rds: Writes[A],
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ) = Future.successful(response)
   override def doFormPost(url: String, body: Map[String, Seq[String]], headers: Seq[(String, String)] = Seq.empty)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext) =
+    implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ) =
     Future.successful(response)
-  override def doPostString(url: String, body: String, headers: Seq[(String, String)] = Seq.empty)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext) =
+  override def doPostString(url: String, body: String, headers: Seq[(String, String)] = Seq.empty)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ) =
     Future.successful(response)
-  override def doEmptyPost[A](url: String, headers: Seq[(String, String)] = Seq.empty)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext) = Future.successful(response)
+  override def doEmptyPost[A](url: String, headers: Seq[(String, String)] = Seq.empty)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ) = Future.successful(response)
   //TODO: PUT, PATCH, DELETE
 
   override val hooks: Seq[HttpHook] = Seq.empty

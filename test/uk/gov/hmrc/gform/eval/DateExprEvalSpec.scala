@@ -31,14 +31,17 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks {
 
   "evalDateExpr" should "evaluate a date expression with TodayDateExprValue" in {
     val expressionResult = evalDateExpr(RecData[OutOfDate](VariadicFormData.empty), EvaluationResults.empty)(
-      DateValueExpr(TodayDateExprValue))
+      DateValueExpr(TodayDateExprValue)
+    )
     expressionResult shouldBe DateResult(LocalDate.now())
   }
 
   it should "evaluate a date expression with ExactDateExprValue" in {
     val expressionResult = evalDateExpr(RecData[OutOfDate](VariadicFormData.empty), EvaluationResults.empty)(
       DateValueExpr(
-        ExactDateExprValue(LocalDate.now().getYear, LocalDate.now().getMonthValue, LocalDate.now().getDayOfMonth)))
+        ExactDateExprValue(LocalDate.now().getYear, LocalDate.now().getMonthValue, LocalDate.now().getDayOfMonth)
+      )
+    )
     expressionResult shouldBe DateResult(LocalDate.now())
   }
 
@@ -50,7 +53,8 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks {
           (dateField.toAtomicFormComponentId(Date.year), VariadicValue.One("1970")),
           (dateField.toAtomicFormComponentId(Date.month), VariadicValue.One("1")),
           (dateField.toAtomicFormComponentId(Date.day), VariadicValue.One("11"))
-        )),
+        )
+      ),
       EvaluationResults.empty
     )(DateFormCtxVar(FormCtx(dateField)))
     expressionResult shouldBe DateResult(LocalDate.of(1970, 1, 11))
@@ -73,19 +77,22 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks {
           RecData[OutOfDate](VariadicFormData.empty),
           EvaluationResults.empty
         )(DateExprWithOffset(DateValueExpr(TodayDateExprValue), 1, OffsetUnitDay)),
-        DateResult(LocalDate.now().plusDays(1))),
+        DateResult(LocalDate.now().plusDays(1))
+      ),
       (
         evalDateExpr(
           RecData[OutOfDate](VariadicFormData.empty),
           EvaluationResults.empty
         )(DateExprWithOffset(DateValueExpr(TodayDateExprValue), 1, OffsetUnitMonth)),
-        DateResult(LocalDate.now().plusMonths(1))),
+        DateResult(LocalDate.now().plusMonths(1))
+      ),
       (
         evalDateExpr(
           RecData[OutOfDate](VariadicFormData.empty),
           EvaluationResults.empty
         )(DateExprWithOffset(DateValueExpr(TodayDateExprValue), 1, OffsetUnitYear)),
-        DateResult(LocalDate.now().plusYears(1)))
+        DateResult(LocalDate.now().plusYears(1))
+      )
     )
     forAll(table) { (actual: ExpressionResult, expected: ExpressionResult) =>
       actual shouldBe expected

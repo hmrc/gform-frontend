@@ -41,14 +41,16 @@ class EnrolmentStoreProxyConnector(baseUrl: String, http: WSHttp) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def hasDelegatedEnrolment(delegatedEnrolment: DelegatedEnrolment, identifierValue: IdentifierValue)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[ServiceCallResponse[DelegatedUserIds]] =
+  def hasDelegatedEnrolment(delegatedEnrolment: DelegatedEnrolment, identifierValue: IdentifierValue)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[ServiceCallResponse[DelegatedUserIds]] =
     if (identifierValue.isEmpty) {
       ServiceResponse(DelegatedUserIds.empty).pure[Future]
     } else {
 
-      val delegatedEnrolmentKey = delegatedEnrolment.serviceName.value :: delegatedEnrolment.identifierName.value :: identifierValue.value :: Nil mkString ("~")
+      val delegatedEnrolmentKey =
+        delegatedEnrolment.serviceName.value :: delegatedEnrolment.identifierName.value :: identifierValue.value :: Nil mkString "~"
 
       val url = s"$baseUrl/enrolment-store-proxy/enrolment-store/enrolments/$delegatedEnrolmentKey/users?type=delegated"
 
@@ -67,14 +69,14 @@ class EnrolmentStoreProxyConnector(baseUrl: String, http: WSHttp) {
               CannotRetrieveResponse
             case other =>
               logger.error(
-                s"Problem when calling enrolment store proxy. Http status: $other, body: ${httpResponse.body}")
+                s"Problem when calling enrolment store proxy. Http status: $other, body: ${httpResponse.body}"
+              )
               CannotRetrieveResponse
           }
         }
-        .recover {
-          case ex =>
-            logger.error("Unknown problem when calling enrolment store proxy", ex)
-            CannotRetrieveResponse
+        .recover { case ex =>
+          logger.error("Unknown problem when calling enrolment store proxy", ex)
+          CannotRetrieveResponse
         }
     }
 }

@@ -26,22 +26,22 @@ package uk.gov.hmrc.gform.graph
 import org.scalatest.{ FlatSpec, Matchers }
 class EmailParameterRecalculationSpec extends FlatSpec with Matchers {
   /*
- *   val cache: AuthCacheWithForm =
- *     AuthCacheWithoutForm(ExampleData.materialisedRetrievals, ExampleData.formTemplate, Role.Customer)
- *       .toAuthCacheWithForm(ExampleData.form)
- *
- *   val emailParameterRecalculation: EmailParameterRecalculation = EmailParameterRecalculation(cache)
- *
- *   "parameter format with list of email parameters" should "convert it to a Map[EmailTemplateVariable, EmailParameterValue]" in {
- *
- *     val emailParameters = List(EmailParameter("templateVarId", FormCtx("${fieldId}")))
- *
- *     val data: VariadicFormData =
- *       VariadicFormData(Map(FormComponentId("templateVarIdUniqueEmailParameter") -> VariadicValue.One("value")))
- *
- *     emailParameterRecalculation
- *       .parameterFormat(emailParameters, FormDataRecalculated.empty.copy(recData = RecData.fromData(data))) shouldBe Map(
- *       EmailTemplateVariable("templateVarId") -> EmailParameterValue("value"))
- *   }
- */
+   *   val cache: AuthCacheWithForm =
+   *     AuthCacheWithoutForm(ExampleData.materialisedRetrievals, ExampleData.formTemplate, Role.Customer)
+   *       .toAuthCacheWithForm(ExampleData.form)
+   *
+   *   val emailParameterRecalculation: EmailParameterRecalculation = EmailParameterRecalculation(cache)
+   *
+   *   "parameter format with list of email parameters" should "convert it to a Map[EmailTemplateVariable, EmailParameterValue]" in {
+   *
+   *     val emailParameters = List(EmailParameter("templateVarId", FormCtx("${fieldId}")))
+   *
+   *     val data: VariadicFormData =
+   *       VariadicFormData(Map(FormComponentId("templateVarIdUniqueEmailParameter") -> VariadicValue.One("value")))
+   *
+   *     emailParameterRecalculation
+   *       .parameterFormat(emailParameters, FormDataRecalculated.empty.copy(recData = RecData.fromData(data))) shouldBe Map(
+   *       EmailTemplateVariable("templateVarId") -> EmailParameterValue("value"))
+   *   }
+   */
 }

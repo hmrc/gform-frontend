@@ -58,7 +58,7 @@ trait Navigation {
           excludesAddToListNonRepeaterSectionNumbers.filterNot(l.toSet)
         }
     } else
-    availableSectionNumbers
+      availableSectionNumbers
 }
 
 // TODO: Origin should not be in controllers, but Navigator probably should!
@@ -84,10 +84,12 @@ case class Navigator(
 ) extends Navigation {
   require(
     sectionNumber >= minSectionNumber,
-    s"section number is too low: ${sectionNumber.value} is not >= $minSectionNumber")
+    s"section number is too low: ${sectionNumber.value} is not >= $minSectionNumber"
+  )
   require(
     sectionNumber <= maxSectionNumber,
-    s"section number is too big: ${sectionNumber.value} is not <= $maxSectionNumber")
+    s"section number is too big: ${sectionNumber.value} is not <= $maxSectionNumber"
+  )
 
   private lazy val maxSectionNumber: SectionNumber = availableSectionNumbers.max(Ordering.by((_: SectionNumber).value))
 

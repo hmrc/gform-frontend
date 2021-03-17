@@ -47,20 +47,21 @@ class PrintSectionController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.ViewPrintSection) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        cache.formTemplate.destinations match {
-          case destinationPrint: DestinationPrint =>
-            Future.successful(Ok(renderPrintSection(cache, maybeAccessCode, destinationPrint)))
-          case _ =>
-            Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
-        }
+      OperationWithForm.ViewPrintSection
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      cache.formTemplate.destinations match {
+        case destinationPrint: DestinationPrint =>
+          Future.successful(Ok(renderPrintSection(cache, maybeAccessCode, destinationPrint)))
+        case _ =>
+          Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
+      }
     }
 
   private def renderPrintSection(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    destinationPrint: DestinationPrint)(implicit request: Request[_], l: LangADT, sse: SmartStringEvaluator) = {
+    destinationPrint: DestinationPrint
+  )(implicit request: Request[_], l: LangADT, sse: SmartStringEvaluator) = {
     import i18nSupport._
     renderer.renderPrintSection(maybeAccessCode, cache.formTemplate, destinationPrint)
   }
@@ -69,60 +70,59 @@ class PrintSectionController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.DownloadPrintSectionPdf) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        cache.formTemplate.destinations match {
-          case DestinationPrint(_, pdf, _) =>
-            import i18nSupport._
-            for {
-              htmlForPDF <- summaryRenderingService
-                             .createHtmlForPrintPdf(
-                               maybeAccessCode,
-                               cache,
-                               SummaryPagePurpose.ForUser,
-                               pdf,
-                               formModelOptics
-                             )
-              pdfStream <- pdfService.generatePDF(htmlForPDF)
-            } yield
-              Result(
-                header = ResponseHeader(200, Map.empty),
-                body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
-              )
+      OperationWithForm.DownloadPrintSectionPdf
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      cache.formTemplate.destinations match {
+        case DestinationPrint(_, pdf, _) =>
+          import i18nSupport._
+          for {
+            htmlForPDF <- summaryRenderingService
+                            .createHtmlForPrintPdf(
+                              maybeAccessCode,
+                              cache,
+                              SummaryPagePurpose.ForUser,
+                              pdf,
+                              formModelOptics
+                            )
+            pdfStream <- pdfService.generatePDF(htmlForPDF)
+          } yield Result(
+            header = ResponseHeader(200, Map.empty),
+            body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+          )
 
-          case _ => Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
-        }
+        case _ => Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
+      }
     }
 
   def downloadNotificationPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.DownloadPrintSectionPdf) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        cache.formTemplate.destinations match {
-          case DestinationPrint(_, _, Some(pdfNotification)) =>
-            import i18nSupport._
-            for {
-              htmlForPDF <- summaryRenderingService
-                             .createHtmlForNotificationPdf(
-                               maybeAccessCode,
-                               cache,
-                               SummaryPagePurpose.ForUser,
-                               pdfNotification,
-                               formModelOptics)
-              pdfStream <- pdfService.generatePDF(htmlForPDF)
-            } yield
-              Result(
-                header = ResponseHeader(200, Map.empty),
-                body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
-              )
+      OperationWithForm.DownloadPrintSectionPdf
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      cache.formTemplate.destinations match {
+        case DestinationPrint(_, _, Some(pdfNotification)) =>
+          import i18nSupport._
+          for {
+            htmlForPDF <- summaryRenderingService
+                            .createHtmlForNotificationPdf(
+                              maybeAccessCode,
+                              cache,
+                              SummaryPagePurpose.ForUser,
+                              pdfNotification,
+                              formModelOptics
+                            )
+            pdfStream <- pdfService.generatePDF(htmlForPDF)
+          } yield Result(
+            header = ResponseHeader(200, Map.empty),
+            body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+          )
 
-          case DestinationPrint(_, _, None) =>
-            Future.failed(new BadRequestException(s"Pdf in print section is not defined for $formTemplateId"))
+        case DestinationPrint(_, _, None) =>
+          Future.failed(new BadRequestException(s"Pdf in print section is not defined for $formTemplateId"))
 
-          case _ => Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
-        }
+        case _ => Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
+      }
     }
 
 }

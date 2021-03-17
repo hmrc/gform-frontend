@@ -56,14 +56,13 @@ object MarkDownUtil {
 
   def escapeMarkdown(s: String): String = {
     val replacedEntities = EntityConverter.INSTANCE.replaceEntities(s.replace("\n", ""), true, false)
-    markdownControlCharacters.foldLeft(replacedEntities) {
-      case (escaped, specialChar) =>
-        escaped.replace(specialChar, "\\" + specialChar)
+    markdownControlCharacters.foldLeft(replacedEntities) { case (escaped, specialChar) =>
+      escaped.replace(specialChar, "\\" + specialChar)
     }
   }
 
   def unescapeMarkdownHtml(html: String): String =
-    markdownControlCharacters.foldLeft(html) {
-      case (acc, specialChar) => acc.replace("\\" + specialChar, specialChar)
+    markdownControlCharacters.foldLeft(html) { case (acc, specialChar) =>
+      acc.replace("\\" + specialChar, specialChar)
     }
 }

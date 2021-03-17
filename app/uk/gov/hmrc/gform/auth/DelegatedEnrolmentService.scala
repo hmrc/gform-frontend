@@ -31,8 +31,7 @@ class DelegatedEnrolmentService(
   private def processDelegatedEnrolmentResponse(
     governmentGatewayId: GovernmentGatewayId,
     delegatedUserIds: ServiceCallResponse[DelegatedUserIds]
-  )(
-    implicit
+  )(implicit
     ec: ExecutionContext
   ): Future[Boolean] = delegatedUserIds match {
     case ServiceResponse(DelegatedUserIds(ids)) => ids.contains(governmentGatewayId.ggId).pure[Future]
@@ -45,8 +44,7 @@ class DelegatedEnrolmentService(
     delegatedEnrolment: DelegatedEnrolment,
     identifierValue: IdentifierValue,
     hc: HeaderCarrier
-  )(
-    implicit
+  )(implicit
     ec: ExecutionContext
   ): Future[Boolean] = {
     implicit val _hc = hc

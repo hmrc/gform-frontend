@@ -20,7 +20,7 @@ import cats.{ Id, MonadError, StackSafeMonad }
 
 package object typeclasses {
   implicit val identityThrowableMonadError: MonadError[Id, Throwable] = new MonadError[Id, Throwable]
-  with StackSafeMonad[Id] {
+    with StackSafeMonad[Id] {
     override def pure[A](x: A): Id[A] = x
 
     override def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = f(fa)

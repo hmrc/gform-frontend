@@ -20,8 +20,8 @@ import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, IsRevealingChoice }
 
 class RevealingChoiceLookup(formComponents: List[FormComponent]) {
-  val revealingChoiceChildren: List[FormComponentId] = formComponents.collect {
-    case IsRevealingChoice(rc) => rc.options.toList.flatMap(_.revealingFields.map(_.id))
+  val revealingChoiceChildren: List[FormComponentId] = formComponents.collect { case IsRevealingChoice(rc) =>
+    rc.options.toList.flatMap(_.revealingFields.map(_.id))
   }.flatten
   def isRevealingChoiceChild(fcId: FormComponentId): Boolean = revealingChoiceChildren.contains(fcId)
 }

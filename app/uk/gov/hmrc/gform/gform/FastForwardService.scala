@@ -51,8 +51,7 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     hc: HeaderCarrier,
     l: LangADT
@@ -64,8 +63,7 @@ class FastForwardService(
     maybeAccessCode: Option[AccessCode],
     fastForward: FastForward,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     hc: HeaderCarrier,
     l: LangADT
@@ -86,12 +84,10 @@ class FastForwardService(
         )
         for {
           envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
-          res <- updateUserData(
-                  cache,
-                  processData,
-                  maybeAccessCode,
-                  fastForward,
-                  EnvelopeWithMapping(envelope, cache.form))(redirectResult(cache, maybeAccessCode, processData, _))
+          res <-
+            updateUserData(cache, processData, maybeAccessCode, fastForward, EnvelopeWithMapping(envelope, cache.form))(
+              redirectResult(cache, maybeAccessCode, processData, _)
+            )
         } yield res
 
       }
@@ -108,7 +104,8 @@ class FastForwardService(
         val sectionTitle4Ga = sectionTitle4GaFactory(pageModel.title, sn)
         Redirect(
           routes.FormController
-            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes))
+            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+        )
       case None =>
         Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode))
     }
@@ -116,8 +113,7 @@ class FastForwardService(
   def deleteForm(
     cache: AuthCacheWithForm,
     queryParams: QueryParams
-  )(
-    implicit
+  )(implicit
     hc: HeaderCarrier
   ): Future[Result] = {
     val formTemplateId = cache.formTemplate._id
@@ -134,8 +130,7 @@ class FastForwardService(
     envelope: EnvelopeWithMapping
   )(
     toResult: Option[SectionNumber] => Result
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     hc: HeaderCarrier,
     l: LangADT,
@@ -143,26 +138,26 @@ class FastForwardService(
   ): Future[Result] =
     for {
       maybeSn <- handler.handleFastForwardValidate(
-                  processData,
-                  cache.toCacheData,
-                  envelope,
-                  validationService.validatePageModel,
-                  fastForward
-                )
+                   processData,
+                   cache.toCacheData,
+                   envelope,
+                   validationService.validatePageModel,
+                   fastForward
+                 )
       userData = UserData(
-        cache.form.formData,
-        maybeSn.fold[FormStatus](Summary)(_ => InProgress),
-        processData.visitsIndex,
-        cache.form.thirdPartyData
-          .modify(_.obligations)
-          .setTo(processData.obligations)
-          .modify(_.booleanExprCache)
-          .setTo(processData.booleanExprCache),
-        cache.form.componentIdToFileId
-      )
+                   cache.form.formData,
+                   maybeSn.fold[FormStatus](Summary)(_ => InProgress),
+                   processData.visitsIndex,
+                   cache.form.thirdPartyData
+                     .modify(_.obligations)
+                     .setTo(processData.obligations)
+                     .modify(_.booleanExprCache)
+                     .setTo(processData.booleanExprCache),
+                   cache.form.componentIdToFileId
+                 )
       res <- gformConnector
-              .updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)
-              .map(_ => toResult(maybeSn))
+               .updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)
+               .map(_ => toResult(maybeSn))
     } yield res
 
 }

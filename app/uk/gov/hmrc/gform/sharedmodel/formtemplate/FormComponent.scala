@@ -57,15 +57,12 @@ case class FormComponent(
 
   def lookupFor: Map[ModelComponentId, FormComponent] = multiValueId.lookupFor(this)
 
-  val multiValueId: MultiValueId = modelComponentId.fold(
-    pure =>
-      this match {
-        case IsMultiField(multifield) => MultiValueId.multiValue(pure, multifield.fields(pure.indexedComponentId))
-        case _                        => MultiValueId.pure(pure)
+  val multiValueId: MultiValueId = modelComponentId.fold(pure =>
+    this match {
+      case IsMultiField(multifield) => MultiValueId.multiValue(pure, multifield.fields(pure.indexedComponentId))
+      case _                        => MultiValueId.pure(pure)
     }
-  )(
-    atomic => throw new IllegalArgumentException(s"$atomic cannot be broken into multiValues")
-  )
+  )(atomic => throw new IllegalArgumentException(s"$atomic cannot be broken into multiValues"))
 
   def firstAtomModelComponentId: ModelComponentId.Atomic = multiValueId.firstAtomModelComponentId
 

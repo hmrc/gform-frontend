@@ -41,7 +41,8 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
           fromOption(
             page.description,
             page.shortName
-          ))
+          )
+        )
 
     def fromAuth: List[ExprMetadata] = formTemplate.authConfig match {
       case HasEnrolmentSection(_, enrolmentSection, _, _) =>

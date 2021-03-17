@@ -209,8 +209,7 @@ object ValidationUtil {
   def validateFileUploadHasScannedFiles(
     formComponents: List[FormComponent],
     e: EnvelopeWithMapping
-  )(
-    implicit
+  )(implicit
     sse: SmartStringEvaluator
   ): Validated[GformError, ValidatorsResult] = {
 
@@ -238,13 +237,15 @@ object ValidationUtil {
           logger.error(message)
           (f, message)
       }
-      .map {
-        case (file, errorMessage) =>
-          val formComponent = formComponents
-            .find(_.id == file.fileId.toFieldId)
-            .getOrElse(throw new UnexpectedStateException(
-              s"Looks like there are more files in the envelope than we expected to have. Could not find 'FormComponent' to corresponding file: $file, message: $errorMessage"))
-          getError(formComponent, errorMessage)
+      .map { case (file, errorMessage) =>
+        val formComponent = formComponents
+          .find(_.id == file.fileId.toFieldId)
+          .getOrElse(
+            throw new UnexpectedStateException(
+              s"Looks like there are more files in the envelope than we expected to have. Could not find 'FormComponent' to corresponding file: $file, message: $errorMessage"
+            )
+          )
+        getError(formComponent, errorMessage)
       }
     Monoid[ValidatedType[ValidatorsResult]].combineAll(flakies)
   }

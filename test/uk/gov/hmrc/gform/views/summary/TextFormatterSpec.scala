@@ -39,9 +39,11 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks {
   private val positiveNumberWithUnit = positiveNumber.copy(unit = Some(unit))
   private val simpleNumberWithUnit = simpleNumber.copy(unit = Some(unit))
   private val prefixSmartString = Some(
-    SmartString(LocalisedString(Map(LangADT.En -> "enPrefix", LangADT.Cy -> "cyPrefix")), Nil))
+    SmartString(LocalisedString(Map(LangADT.En -> "enPrefix", LangADT.Cy -> "cyPrefix")), Nil)
+  )
   private val suffixSmartString = Some(
-    SmartString(LocalisedString(Map(LangADT.En -> "enSuffix", LangADT.Cy -> "cySuffix")), Nil))
+    SmartString(LocalisedString(Map(LangADT.En -> "enSuffix", LangADT.Cy -> "cySuffix")), Nil)
+  )
 
   private val langADTForEn: LangADT = LangADT.En
   private val langADTForCy: LangADT = LangADT.Cy

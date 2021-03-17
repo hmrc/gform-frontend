@@ -21,14 +21,13 @@ import cats.syntax.eq._
 import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, Sum }
 
-/**
-  * This represents \${abc.sum} expression, where this expression
+/** This represents \${abc.sum} expression, where this expression
   * is used only in SmartText.
   */
 case class StandaloneSumInfo(sums: Set[Sum]) extends AnyVal {
   def dependees(formComponentId: FormComponentId): Option[FormComponentId] =
     sums.collectFirst {
-      case Sum(FormCtx(fcId)) if (fcId.baseComponentId === formComponentId.baseComponentId) => formComponentId
+      case Sum(FormCtx(fcId)) if fcId.baseComponentId === formComponentId.baseComponentId => formComponentId
     }
 }
 
@@ -40,8 +39,8 @@ object StandaloneSumInfo {
     brackets: NonEmptyList[BracketPlain[A]],
     sumInfo: SumInfo
   ): StandaloneSumInfo = {
-    val allSums: List[Set[Sum]] = brackets.collect {
-      case AllPageModelSums(sums) => sums
+    val allSums: List[Set[Sum]] = brackets.collect { case AllPageModelSums(sums) =>
+      sums
     }
     val sums = sumInfo.keys
     val standaloneSums: Set[Sum] = allSums.toSet.flatten.filterNot(sums)

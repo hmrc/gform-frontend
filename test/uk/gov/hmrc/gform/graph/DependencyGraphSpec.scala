@@ -103,7 +103,9 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
       mkSection(mkFormComponent("a", Value)),
       mkSection(
         mkFormComponent("b", Value).copy(
-          errorMessage = Some(toSmartStringExpression("", Else(FormCtx("a"), FormCtx("b"))))))
+          errorMessage = Some(toSmartStringExpression("", Else(FormCtx("a"), FormCtx("b"))))
+        )
+      )
     )
 
     val res = layers(sections)
@@ -198,26 +200,25 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     )
   }
 
-  forAll(groupPropTable) {
-    case (prop, propSetter) =>
-      it should s"support group's $prop" in {
+  forAll(groupPropTable) { case (prop, propSetter) =>
+    it should s"support group's $prop" in {
 
-        val fcA = mkFormComponent("a", Value)
+      val fcA = mkFormComponent("a", Value)
 
-        val group = propSetter(Group(fcA :: Nil, None, None, None, None))
+      val group = propSetter(Group(fcA :: Nil, None, None, None, None))
 
-        val sections = List(
-          mkSection(mkFormComponent("group", group))
-        )
+      val sections = List(
+        mkSection(mkFormComponent("group", group))
+      )
 
-        val res = layers(sections)
+      val res = layers(sections)
 
-        res shouldBe List(
-          (0, Set(Simple("group"))),
-          (1, Set(Expr(FormCtx("a")))),
-          (2, Set(Simple("a")))
-        )
-      }
+      res shouldBe List(
+        (0, Set(Simple("group"))),
+        (1, Set(Expr(FormCtx("a")))),
+        (2, Set(Simple("a")))
+      )
+    }
   }
 
   val choicePropTable = {
@@ -229,24 +230,23 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     )
   }
 
-  forAll(choicePropTable) {
-    case (prop, propSetter) =>
-      it should s"support choice's $prop" in {
+  forAll(choicePropTable) { case (prop, propSetter) =>
+    it should s"support choice's $prop" in {
 
-        val choice = propSetter(emptyChoice)
+      val choice = propSetter(emptyChoice)
 
-        val sections = List(
-          mkSection(mkFormComponent("choice", choice))
-        )
+      val sections = List(
+        mkSection(mkFormComponent("choice", choice))
+      )
 
-        val res = layers(sections)
+      val res = layers(sections)
 
-        res shouldBe List(
-          (0, Set(Simple("choice"))),
-          (1, Set(Expr(FormCtx("a")))),
-          (2, Set(Simple("a")))
-        )
-      }
+      res shouldBe List(
+        (0, Set(Simple("choice"))),
+        (1, Set(Expr(FormCtx("a")))),
+        (2, Set(Simple("a")))
+      )
+    }
   }
 
   val infomationPropTable = {
@@ -257,24 +257,23 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     )
   }
 
-  forAll(infomationPropTable) {
-    case (prop, propSetter) =>
-      it should s"support infomationMessage's $prop" in {
+  forAll(infomationPropTable) { case (prop, propSetter) =>
+    it should s"support infomationMessage's $prop" in {
 
-        val information = propSetter(emptyInformationMessage)
+      val information = propSetter(emptyInformationMessage)
 
-        val sections = List(
-          mkSection(mkFormComponent("info", information))
-        )
+      val sections = List(
+        mkSection(mkFormComponent("info", information))
+      )
 
-        val res = layers(sections)
+      val res = layers(sections)
 
-        res shouldBe List(
-          (0, Set(Simple("info"))),
-          (1, Set(Expr(FormCtx("a")))),
-          (2, Set(Simple("a")))
-        )
-      }
+      res shouldBe List(
+        (0, Set(Simple("info"))),
+        (1, Set(Expr(FormCtx("a")))),
+        (2, Set(Simple("a")))
+      )
+    }
   }
 
   val propTable = {
@@ -287,26 +286,26 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
       ("errorMessage", (fc: FormComponent) => fc.copy(errorMessage = Some(stringWithElseExpr))),
       (
         "validators.errorMessage",
-        (fc: FormComponent) => fc.copy(validators = FormComponentValidator(ValidIf(IsTrue), stringWithElseExpr) :: Nil))
+        (fc: FormComponent) => fc.copy(validators = FormComponentValidator(ValidIf(IsTrue), stringWithElseExpr) :: Nil)
+      )
     )
   }
 
-  forAll(propTable) {
-    case (prop, propSetter) =>
-      it should s"support expression in $prop" in {
-        val sections = List(
-          mkSection(mkFormComponent("a", Value)),
-          mkSection(propSetter(mkFormComponent("b", Value)))
-        )
+  forAll(propTable) { case (prop, propSetter) =>
+    it should s"support expression in $prop" in {
+      val sections = List(
+        mkSection(mkFormComponent("a", Value)),
+        mkSection(propSetter(mkFormComponent("b", Value)))
+      )
 
-        val res = layers(sections)
+      val res = layers(sections)
 
-        res shouldBe List(
-          (0, Set(Simple("b"))),
-          (1, Set(Expr(FormCtx("a")))),
-          (2, Set(Simple("a")))
-        )
-      }
+      res shouldBe List(
+        (0, Set(Simple("b"))),
+        (1, Set(Expr(FormCtx("a")))),
+        (2, Set(Simple("a")))
+      )
+    }
   }
 
   val selfReferenceDissalowedPropTable = {
@@ -329,44 +328,44 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
       (
         "validators.errorMessage",
         (fc: FormComponent) =>
-          fc.copy(validators = FormComponentValidator(ValidIf(IsTrue), stringWithCycleElseExpr) :: Nil)),
+          fc.copy(validators = FormComponentValidator(ValidIf(IsTrue), stringWithCycleElseExpr) :: Nil)
+      ),
       (
         "validators.validIf",
         (fc: FormComponent) =>
-          fc.copy(validators = FormComponentValidator(ValidIf(selfReferenceBooleanExpr), toSmartString("")) :: Nil))
+          fc.copy(validators = FormComponentValidator(ValidIf(selfReferenceBooleanExpr), toSmartString("")) :: Nil)
+      )
     )
   }
 
-  forAll(selfReferenceDissalowedPropTable) {
-    case (prop, propSetter) =>
-      it should s"reject expression with self reference in $prop" in {
-        val sections = List(
-          mkSection(propSetter(mkFormComponent("a", Value)))
-        )
+  forAll(selfReferenceDissalowedPropTable) { case (prop, propSetter) =>
+    it should s"reject expression with self reference in $prop" in {
+      val sections = List(
+        mkSection(propSetter(mkFormComponent("a", Value)))
+      )
 
-        val thrown = the[CycleDetectedException] thrownBy layers(sections)
+      val thrown = the[CycleDetectedException] thrownBy layers(sections)
 
-        thrown.graphNode shouldBe GraphNode.Expr(FormCtx("a"))
-      }
+      thrown.graphNode shouldBe GraphNode.Expr(FormCtx("a"))
+    }
   }
 
-  forAll(selfReferenceAllowedPropTable) {
-    case (prop, propSetter) =>
-      it should s"support expression with self reference in $prop" in {
-        val sections = List(
-          mkSection(mkFormComponent("a", Value)),
-          mkSection(propSetter(mkFormComponent("b", Value)))
-        )
+  forAll(selfReferenceAllowedPropTable) { case (prop, propSetter) =>
+    it should s"support expression with self reference in $prop" in {
+      val sections = List(
+        mkSection(mkFormComponent("a", Value)),
+        mkSection(propSetter(mkFormComponent("b", Value)))
+      )
 
-        val res = layers(sections)
+      val res = layers(sections)
 
-        res shouldBe List(
-          (0, Set(Expr(FormCtx("b")))),
-          (1, Set(Simple("b"))),
-          (2, Set(Expr(FormCtx("a")))),
-          (3, Set(Simple("a")))
-        )
-      }
+      res shouldBe List(
+        (0, Set(Expr(FormCtx("b")))),
+        (1, Set(Simple("b"))),
+        (2, Set(Expr(FormCtx("a")))),
+        (3, Set(Simple("a")))
+      )
+    }
   }
 
   it should "support RevealingChoiceElement choice" in {
@@ -398,58 +397,56 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
 
   }
 
-  forAll(selfReferenceDissalowedPropTable) {
-    case (prop, propSetter) =>
-      it should s"reject expression with self reference in $prop of revealingChoice component" in {
+  forAll(selfReferenceDissalowedPropTable) { case (prop, propSetter) =>
+    it should s"reject expression with self reference in $prop of revealingChoice component" in {
 
-        val fcA = propSetter(mkFormComponent("a", Value))
+      val fcA = propSetter(mkFormComponent("a", Value))
 
-        val revealingChoice =
-          RevealingChoice(
-            List(
-              RevealingChoiceElement(toSmartString(""), fcA :: Nil, None, false)
-            ),
-            true
-          )
-
-        val sections = List(
-          mkSection(mkFormComponent("rc", revealingChoice))
+      val revealingChoice =
+        RevealingChoice(
+          List(
+            RevealingChoiceElement(toSmartString(""), fcA :: Nil, None, false)
+          ),
+          true
         )
 
-        val thrown = the[CycleDetectedException] thrownBy layers(sections)
+      val sections = List(
+        mkSection(mkFormComponent("rc", revealingChoice))
+      )
 
-        thrown.graphNode shouldBe GraphNode.Expr(FormCtx("a"))
-      }
+      val thrown = the[CycleDetectedException] thrownBy layers(sections)
+
+      thrown.graphNode shouldBe GraphNode.Expr(FormCtx("a"))
+    }
   }
 
-  forAll(selfReferenceAllowedPropTable) {
-    case (prop, propSetter) =>
-      it should s"support expression with self reference in $prop of revealingChoice component" in {
+  forAll(selfReferenceAllowedPropTable) { case (prop, propSetter) =>
+    it should s"support expression with self reference in $prop of revealingChoice component" in {
 
-        val fcA = mkFormComponent("a", Value)
-        val fcB = propSetter(mkFormComponent("b", Value))
+      val fcA = mkFormComponent("a", Value)
+      val fcB = propSetter(mkFormComponent("b", Value))
 
-        val revealingChoice =
-          RevealingChoice(
-            List(
-              RevealingChoiceElement(toSmartString(""), fcA :: fcB :: Nil, None, false)
-            ),
-            true
-          )
-
-        val sections = List(
-          mkSection(mkFormComponent("rc", revealingChoice))
+      val revealingChoice =
+        RevealingChoice(
+          List(
+            RevealingChoiceElement(toSmartString(""), fcA :: fcB :: Nil, None, false)
+          ),
+          true
         )
 
-        val res = layers(sections)
+      val sections = List(
+        mkSection(mkFormComponent("rc", revealingChoice))
+      )
 
-        res shouldBe List(
-          (0, Set(Expr(FormCtx("b")))),
-          (1, Set(Simple("b"))),
-          (2, Set(Expr(FormCtx("a")))),
-          (3, Set(Simple("a")))
-        )
-      }
+      val res = layers(sections)
+
+      res shouldBe List(
+        (0, Set(Expr(FormCtx("b")))),
+        (1, Set(Simple("b"))),
+        (2, Set(Expr(FormCtx("a")))),
+        (3, Set(Simple("a")))
+      )
+    }
   }
 
   val nonRepeatedSectionValidators: TableFor2[String, Page[Basic]] = {
@@ -500,42 +497,40 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     )
   }
 
-  forAll(nonRepeatedSectionExpressionTable) {
-    case (prop, page) =>
-      it should s"support NonRepeated section with expression in $prop" in {
+  forAll(nonRepeatedSectionExpressionTable) { case (prop, page) =>
+    it should s"support NonRepeated section with expression in $prop" in {
 
-        val section: Section.NonRepeatingPage = Section.NonRepeatingPage(page)
+      val section: Section.NonRepeatingPage = Section.NonRepeatingPage(page)
 
-        val sections = List(
-          section
-        )
+      val sections = List(
+        section
+      )
 
-        val res = layers(sections)
+      val res = layers(sections)
 
-        res shouldBe List(
-          (0, Set(Expr(FormCtx("a")))),
-          (1, Set(Simple("a")))
-        )
-      }
+      res shouldBe List(
+        (0, Set(Expr(FormCtx("a")))),
+        (1, Set(Simple("a")))
+      )
+    }
   }
 
-  forAll(nonRepeatedSectionValidators) {
-    case (prop, page) =>
-      it should s"support NonRepeated section with expression in $prop" in {
+  forAll(nonRepeatedSectionValidators) { case (prop, page) =>
+    it should s"support NonRepeated section with expression in $prop" in {
 
-        val section: Section.NonRepeatingPage = Section.NonRepeatingPage(page)
+      val section: Section.NonRepeatingPage = Section.NonRepeatingPage(page)
 
-        val sections = List(
-          section
-        )
+      val sections = List(
+        section
+      )
 
-        val res = layers(sections)
+      val res = layers(sections)
 
-        res shouldBe List(
-          (0, Set(Expr(FormCtx("a")), Expr(FormCtx("")))),
-          (1, Set(Simple("a"), Simple("")))
-        )
-      }
+      res shouldBe List(
+        (0, Set(Expr(FormCtx("a")), Expr(FormCtx("")))),
+        (1, Set(Simple("a"), Simple("")))
+      )
+    }
   }
 
   val addToListSectionExpressionTable = {
@@ -561,16 +556,15 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     )
   }
 
-  forAll(addToListSectionExpressionTable) {
-    case (prop, expected, addToList) =>
-      it should s"support AddToList section with expression in $prop" in {
+  forAll(addToListSectionExpressionTable) { case (prop, expected, addToList) =>
+    it should s"support AddToList section with expression in $prop" in {
 
-        val sections = List(addToList)
+      val sections = List(addToList)
 
-        val res = layers(sections)
+      val res = layers(sections)
 
-        res shouldBe expected
-      }
+      res shouldBe expected
+    }
   }
 
   it should s"support Repeated section with expression in repeats" in {
@@ -679,17 +673,16 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     )
   }
 
-  forAll(formTemplateExpressionTable) {
-    case (prop, formTemplate) =>
-      it should s"support expression in formTemplate $prop property" in {
+  forAll(formTemplateExpressionTable) { case (prop, formTemplate) =>
+    it should s"support expression in formTemplate $prop property" in {
 
-        val res = layers(formTemplate)
+      val res = layers(formTemplate)
 
-        res shouldBe List(
-          (0, Set(Expr(FormCtx("a")))),
-          (1, Set(Simple("a")))
-        )
-      }
+      res shouldBe List(
+        (0, Set(Expr(FormCtx("a")))),
+        (1, Set(Simple("a")))
+      )
+    }
   }
 
   private def layers(sections: List[Section]): List[(Int, Set[GraphNode])] =
@@ -703,7 +696,8 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     val formTemplateExprs: List[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
     DependencyGraph.constructDependencyGraph(
-      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs)) match {
+      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs)
+    ) match {
 
       case Left(node) => throw new CycleDetectedException(node.toOuter)
       case Right(topOrder) =>

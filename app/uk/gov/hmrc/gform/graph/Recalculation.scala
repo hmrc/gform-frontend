@@ -92,7 +92,8 @@ class Recalculation[F[_]: Monad, E](
       def compareDate(
         dateExprLHS: DateExpr,
         dateExprRHS: DateExpr,
-        f: (DateResult, DateResult) => Boolean): StateT[F, RecalculationState, Boolean] = {
+        f: (DateResult, DateResult) => Boolean
+      ): StateT[F, RecalculationState, Boolean] = {
         val evalFunc: DateExpr => Option[DateResult] =
           DateExprEval.eval(formModel, recData, evaluationContext, evaluationResults)
         val exprResultLHS = evalFunc(dateExprLHS)
@@ -194,14 +195,12 @@ class Recalculation[F[_]: Monad, E](
       includeIf.fold(noStateChange(false)) { includeIf =>
         for {
           b <- evalIncludeIf(includeIf.booleanExpr, evaluationResults, recData, evaluationContext)
-        } yield {
-          !b
-        }
+        } yield !b
       }
 
     def isHiddenByRevealingChoice(
       fcId: FormComponentId,
-      recData: RecData[SourceOrigin.OutOfDate],
+      recData: RecData[SourceOrigin.OutOfDate]
     ): StateT[F, RecalculationState, Boolean] = {
 
       val isHidden = formModel.revealingChoiceInfo.isHiddenByParentId(fcId, recData.variadicFormData)
@@ -234,19 +233,18 @@ class Recalculation[F[_]: Monad, E](
               isHiddenIncludeIf          <- isHiddenByIncludeIf(fcId, evResult, recData, evaluationContext)
               isHiddenComponentIncludeIf <- isHiddenByComponentIncludeIf(fcId, evResult, recData, evaluationContext)
               isHiddenRevealingChoice    <- isHiddenByRevealingChoice(fcId, recData)
-            } yield {
+            } yield
               if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf) {
                 evResult + (FormCtx(fcId), ExpressionResult.Hidden)
               } else {
                 evResult
               }
-            }
 
           case GraphNode.Expr(formCtx @ FormCtx(formComponentId)) =>
             val expr: Expr = formModel.fcLookup
               .get(formComponentId)
-              .collect {
-                case HasValueExpr(expr) => expr
+              .collect { case HasValueExpr(expr) =>
+                expr
               }
               .getOrElse(formCtx)
             val typeInfo: TypeInfo = formModel.explicitTypedExpr(expr, formComponentId)
@@ -278,11 +276,14 @@ class Recalculation[F[_]: Monad, E](
     val contextE: Context =
       (
         StateT[F, RecalculationState, EvaluationResults](s => (s, EvaluationResults.empty).pure[F]),
-        RecData.fromData(data))
+        RecData.fromData(data)
+      )
 
-    val res: Either[
-      GraphException,
-      StateT[F, RecalculationState, (EvaluationResults, Traversable[(Int, List[GraphNode])])]] =
+    val res: Either[GraphException, StateT[
+      F,
+      RecalculationState,
+      (EvaluationResults, Traversable[(Int, List[GraphNode])])
+    ]] =
       for {
         graphTopologicalOrder <- orderedGraph
       } yield {
@@ -311,7 +312,8 @@ class Recalculation[F[_]: Monad, E](
               finalEvaluationResults,
               GraphData(graphTopologicalOrder, graph),
               cacheUpdate.booleanExprCache,
-              evaluationContext)
+              evaluationContext
+            )
 
         }
     }

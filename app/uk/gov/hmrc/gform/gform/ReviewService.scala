@@ -44,8 +44,7 @@ class ReviewService[F[_]: Monad](
   gformBackEnd: GformBackEndAlgebra[F],
   lookupRegistry: LookupRegistry,
   recalculation: Recalculation[F, Throwable]
-)(
-  implicit
+)(implicit
   me: MonadError[F, Throwable]
 ) {
   def forceUpdateFormStatus(
@@ -53,8 +52,7 @@ class ReviewService[F[_]: Monad](
     status: FormStatus,
     reviewData: Map[String, String],
     maybeAccessCode: Option[AccessCode]
-  )(
-    implicit
+  )(implicit
     hc: HeaderCarrier
   ): F[Unit] =
     gformBackEnd.updateUserData(updateWithReviewData(cache, reviewData).form, maybeAccessCode) >>
@@ -65,8 +63,7 @@ class ReviewService[F[_]: Monad](
     maybeAccessCode: Option[AccessCode],
     reviewData: Map[String, String],
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(
-    implicit
+  )(implicit
     request: Request[AnyContent],
     messages: Messages,
     headerCarrier: HeaderCarrier,
@@ -80,8 +77,7 @@ class ReviewService[F[_]: Monad](
     maybeAccessCode: Option[AccessCode],
     reviewData: Map[String, String],
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(
-    implicit
+  )(implicit
     request: Request[AnyContent],
     messages: Messages,
     headerCarrier: HeaderCarrier,
@@ -99,8 +95,7 @@ class ReviewService[F[_]: Monad](
     cache: AuthCacheWithForm,
     reviewData: Map[String, String],
     maybeAccessCode: Option[AccessCode]
-  )(
-    implicit
+  )(implicit
     headerCarrier: HeaderCarrier,
     l: LangADT
   ): F[Unit] =
@@ -119,8 +114,8 @@ class ReviewService[F[_]: Monad](
     maybeAccessCode: Option[AccessCode],
     formStatus: FormStatus,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(
-    implicit request: Request[AnyContent],
+  )(implicit
+    request: Request[AnyContent],
     messages: Messages,
     headerCarrier: HeaderCarrier,
     l: LangADT,
@@ -130,20 +125,19 @@ class ReviewService[F[_]: Monad](
       submission <- gformBackEnd.submissionDetails(FormIdData.fromForm(cache.form, maybeAccessCode))
       customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
       result <- gformBackEnd.submitWithUpdatedFormStatus(
-                 formStatus,
-                 cache,
-                 maybeAccessCode,
-                 Some(SubmissionDetails(submission, "")),
-                 customerId,
-                 Attachments.empty,
-                 formModelOptics
-               )
+                  formStatus,
+                  cache,
+                  maybeAccessCode,
+                  Some(SubmissionDetails(submission, "")),
+                  customerId,
+                  Attachments.empty,
+                  formModelOptics
+                )
     } yield result._1
 
   private def buildFormDataToSubmit(
     formIds: NonEmptyList[FormIdData]
-  )(
-    implicit
+  )(implicit
     hc: HeaderCarrier,
     l: LangADT
   ): F[NonEmptyList[BundledFormSubmissionData]] =
@@ -156,8 +150,7 @@ class ReviewService[F[_]: Monad](
   private def buildBundledFormSubmissionData[D <: DataOrigin](
     forms: NonEmptyList[Form],
     formTemplates: Map[FormTemplateId, FormTemplate]
-  )(
-    implicit
+  )(implicit
     l: LangADT
   ): F[NonEmptyList[BundledFormSubmissionData]] =
     forms.traverse { form =>
@@ -165,19 +158,22 @@ class ReviewService[F[_]: Monad](
       StructuredFormDataBuilder[D, F](
         formModelVisibilityOptics,
         formTemplates(form.formTemplateId).destinations,
-        lookupRegistry)
+        lookupRegistry
+      )
         .map { sfd =>
           BundledFormSubmissionData(
             FormIdData.fromForm(form, Some(AccessCode.fromSubmissionRef(SubmissionRef(form.envelopeId)))),
-            sfd)
+            sfd
+          )
         }
     }
 
   private def getForms(formIds: NonEmptyList[FormIdData])(implicit hc: HeaderCarrier): F[NonEmptyList[Form]] =
     formIds.traverse(gformBackEnd.getForm)
 
-  private def getFormTemplates(forms: NonEmptyList[Form])(
-    implicit hc: HeaderCarrier): F[Map[FormTemplateId, FormTemplate]] =
+  private def getFormTemplates(
+    forms: NonEmptyList[Form]
+  )(implicit hc: HeaderCarrier): F[Map[FormTemplateId, FormTemplate]] =
     forms
       .map(_.formTemplateId)
       .toList

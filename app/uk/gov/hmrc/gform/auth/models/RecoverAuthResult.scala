@@ -33,10 +33,9 @@ object RecoverAuthResult {
       authRedirect
   }
 
-  val rejectInsufficientEnrolments: PartialFunction[Throwable, AuthResult] = {
-    case _: InsufficientEnrolments =>
-      logger.debug("Auth Failed")
-      AuthRedirectFlashingFormName(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
+  val rejectInsufficientEnrolments: PartialFunction[Throwable, AuthResult] = { case _: InsufficientEnrolments =>
+    logger.debug("Auth Failed")
+    AuthRedirectFlashingFormName(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
   }
 
   def basicRecover(request: Request[AnyContent], appConfig: AppConfig): PartialFunction[Throwable, AuthResult] =
@@ -45,18 +44,16 @@ object RecoverAuthResult {
   def recoverNoActiveSession(
     request: Request[AnyContent],
     appConfig: AppConfig
-  ): PartialFunction[Throwable, AuthResult] = {
-    case _: NoActiveSession =>
-      logger.debug("No Active Session")
-      val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
-      val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
-      val url = s"$ggLoginUrl?continue=$continueUrl"
-      AuthRedirectFlashingFormName(url)
+  ): PartialFunction[Throwable, AuthResult] = { case _: NoActiveSession =>
+    logger.debug("No Active Session")
+    val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
+    val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
+    val url = s"$ggLoginUrl?continue=$continueUrl"
+    AuthRedirectFlashingFormName(url)
   }
 
-  val logAndRethrow: PartialFunction[Throwable, AuthResult] = {
-    case otherException =>
-      logger.debug(s"Exception thrown on authorization with message : ${otherException.getMessage}")
-      throw otherException
+  val logAndRethrow: PartialFunction[Throwable, AuthResult] = { case otherException =>
+    logger.debug(s"Exception thrown on authorization with message : ${otherException.getMessage}")
+    throw otherException
   }
 }

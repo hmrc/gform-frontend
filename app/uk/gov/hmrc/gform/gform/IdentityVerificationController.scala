@@ -56,10 +56,14 @@ class IdentityVerificationController(
                 MarkDownUtil.markDownParser(f(hmrcVerified)),
                 "identity.verification",
                 formTemplate,
-                frontendAppConfig)))
+                frontendAppConfig
+              )
+            )
+          )
         case otherwise =>
           logger.warn(
-            s"Illegal page access with $formTemplateId. It has $otherwise, but 'HmrcVerified(...)' was expected instead")
+            s"Illegal page access with $formTemplateId. It has $otherwise, but 'HmrcVerified(...)' was expected instead"
+          )
           Future.failed(new BadRequestException(s"HmrcVerified is not defined for $formTemplateId"))
       }
     }

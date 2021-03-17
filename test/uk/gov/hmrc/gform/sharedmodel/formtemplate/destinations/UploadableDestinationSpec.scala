@@ -74,7 +74,8 @@ class UploadableDestinationSpec extends Spec {
 
   private def createUploadable(
     destination: Destination.HandlebarsHttpApi,
-    convertSingleQuotes: Option[Boolean]): UploadableHandlebarsHttpApiDestination = {
+    convertSingleQuotes: Option[Boolean]
+  ): UploadableHandlebarsHttpApiDestination = {
     import destination._
     UploadableHandlebarsHttpApiDestination(
       id,
@@ -91,7 +92,8 @@ class UploadableDestinationSpec extends Spec {
 
   private def createUploadable(
     destination: Destination.HmrcDms,
-    convertSingleQuotes: Option[Boolean]): UploadableHmrcDmsDestination = {
+    convertSingleQuotes: Option[Boolean]
+  ): UploadableHmrcDmsDestination = {
     import destination._
     UploadableHmrcDmsDestination(
       id,

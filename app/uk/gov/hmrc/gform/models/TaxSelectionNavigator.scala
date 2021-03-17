@@ -31,7 +31,8 @@ trait TaxSelectionNavigator {
   def taxSelectionNavigator(
     formModelOptics: FormModelOptics[DataOrigin.Browser],
     cachedObligation: Obligation,
-    taxResponse: TaxResponse): TaxSelectionNavigation = {
+    taxResponse: TaxResponse
+  ): TaxSelectionNavigation = {
     val obligationsMatch = obligationsMatchTaxResponseObligations(cachedObligation, taxResponse)
     val stillAvailable = selectedPeriodStillAvailable(formModelOptics, taxResponse)
 
@@ -47,13 +48,15 @@ trait TaxSelectionNavigator {
 
   private def obligationsMatchTaxResponseObligations(
     cachedObligation: Obligation,
-    taxResponse: TaxResponse): TaxSelectionNavigation =
+    taxResponse: TaxResponse
+  ): TaxSelectionNavigation =
     if (cachedObligation.obligations === taxResponse.obligation.obligations) DoNotGoBackToTaxPeriodSelection
     else GoBackToTaxPeriodSelection
 
   private def selectedPeriodStillAvailable(
     formModelOptics: FormModelOptics[DataOrigin.Browser],
-    taxResponse: TaxResponse): TaxSelectionNavigation = {
+    taxResponse: TaxResponse
+  ): TaxSelectionNavigation = {
     val desPeriods: List[String] = taxResponse.obligation.obligations.flatMap(_.obligationDetails).map(_.periodKey)
     formModelOptics.pageOpticsData
       .one(taxResponse.id.recalculatedTaxPeriodKey.fcId.modelComponentId)

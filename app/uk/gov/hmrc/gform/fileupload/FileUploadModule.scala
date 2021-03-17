@@ -27,8 +27,8 @@ class FileUploadModule(
   configModule: ConfigModule,
   controllersModule: ControllersModule,
   gformBackendModule: GformBackendModule
-)(
-  implicit ec: ExecutionContext
+)(implicit
+  ec: ExecutionContext
 ) {
 
   val fileUploadService = new FileUploadService(fileUploadConnector)

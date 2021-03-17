@@ -32,8 +32,8 @@ object TextFormatter {
     envelopeWithMapping: EnvelopeWithMapping,
     prefix: Option[SmartString] = None,
     suffix: Option[SmartString] = None
-  )(
-    implicit l: LangADT,
+  )(implicit
+    l: LangADT,
     messages: Messages,
     evaluator: SmartStringEvaluator
   ): List[String] = {
@@ -50,7 +50,8 @@ object TextFormatter {
             .fields(formComponent.modelComponentId.indexedComponentId)
             .map(modelComponentId => validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
             .toList
-            .mkString("-"))
+            .mkString("-")
+        )
       case IsAddress(_) =>
         Address
           .renderToString(formComponent, validationResult)
@@ -61,12 +62,15 @@ object TextFormatter {
             messages(s"date.$monthValue")
           case _ => s
         }
-        List(date
-          .fields(formComponent.modelComponentId.indexedComponentId)
-          .map(modelComponentId =>
-            monthToString(modelComponentId.atom, validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId))))
-          .toList
-          .mkString(" "))
+        List(
+          date
+            .fields(formComponent.modelComponentId.indexedComponentId)
+            .map(modelComponentId =>
+              monthToString(modelComponentId.atom, validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
+            )
+            .toList
+            .mkString(" ")
+        )
       case _ => List(currentValue)
     }
 

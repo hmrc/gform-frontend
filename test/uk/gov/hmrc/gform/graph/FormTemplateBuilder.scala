@@ -90,7 +90,8 @@ object FormTemplateBuilder {
         None,
         None,
         None
-      ))
+      )
+    )
 
   val ls = toSmartString("Label")
 
@@ -156,7 +157,8 @@ object FormTemplateBuilder {
   def mkFormComponentEditable(
     fcId: String,
     expr: Expr,
-    constraint: TextConstraint = TextConstraint.default): FormComponent =
+    constraint: TextConstraint = TextConstraint.default
+  ): FormComponent =
     mkFormComponentEditable(fcId, Text(constraint, expr))
 
   def mkFormTemplate(sections: Section*): FormTemplate = mkFormTemplate(sections.toList)
@@ -188,7 +190,8 @@ object FormTemplateBuilder {
   def addToListQuestion(addAnotherQuestionName: String): FormComponent =
     mkFormComponent(
       addAnotherQuestionName,
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None))
+      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None)
+    )
 
   def mkPage(formComponents: List[FormComponent]): Page[Visibility] = Page[Visibility](
     toSmartString("Section Name"),
@@ -221,7 +224,8 @@ object FormTemplateBuilder {
 
   def fromPagesWithIndex[A <: PageMode](
     brackets: NonEmptyList[Bracket[A]],
-    staticTypeInfo: StaticTypeInfo): FormModel[A] =
+    staticTypeInfo: StaticTypeInfo
+  ): FormModel[A] =
     FormModel(
       BracketsWithSectionNumber(brackets),
       staticTypeInfo,

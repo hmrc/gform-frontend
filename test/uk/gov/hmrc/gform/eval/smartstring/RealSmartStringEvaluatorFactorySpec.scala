@@ -65,10 +65,13 @@ class RealSmartStringEvaluatorFactorySpec
           FormData(
             List(
               FormField(textField.modelComponentId, "textValue")
-            )))
+            )
+          )
+        )
       override lazy val formTemplate: FormTemplate = buildFormTemplate(
         destinationList,
-        sections = List(nonRepeatingPageSection(title = "page1", fields = List(textField))))
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(textField)))
+      )
 
       val result: String = smartStringEvaluator
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("textField"))), false)
@@ -86,10 +89,13 @@ class RealSmartStringEvaluatorFactorySpec
           FormData(
             List(
               FormField(textField.modelComponentId, "textValue")
-            )))
+            )
+          )
+        )
       override lazy val formTemplate: FormTemplate = buildFormTemplate(
         destinationList,
-        sections = List(nonRepeatingPageSection(title = "page1", fields = List(textField))))
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(textField)))
+      )
 
       val result: String = smartStringEvaluator
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("textFieldInvisible"))), false)
@@ -109,10 +115,13 @@ class RealSmartStringEvaluatorFactorySpec
           FormData(
             List(
               FormField(choiceField.modelComponentId, "0")
-            )))
+            )
+          )
+        )
       override lazy val formTemplate: FormTemplate = buildFormTemplate(
         destinationList,
-        sections = List(nonRepeatingPageSection(title = "page1", fields = List(choiceField))))
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(choiceField)))
+      )
 
       val result: String = smartStringEvaluator
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("choiceField"))), false)
@@ -133,7 +142,8 @@ class RealSmartStringEvaluatorFactorySpec
           Radio,
           NonEmptyList.of(
             toSmartStringExpression("Yes {0}", FormCtx(FormComponentId("textField"))),
-            toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))),
+            toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))
+          ),
           Horizontal,
           List.empty,
           None,
@@ -147,10 +157,13 @@ class RealSmartStringEvaluatorFactorySpec
             List(
               FormField(choiceField.modelComponentId, "0"),
               FormField(textField.modelComponentId, "textValue")
-            )))
+            )
+          )
+        )
       override lazy val formTemplate: FormTemplate = buildFormTemplate(
         destinationList,
-        sections = List(nonRepeatingPageSection(title = "page1", fields = List(textField, choiceField))))
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(textField, choiceField)))
+      )
 
       val result: String = smartStringEvaluator
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("choiceField"))), false)
@@ -168,7 +181,8 @@ class RealSmartStringEvaluatorFactorySpec
           Horizontal,
           List.empty,
           None,
-          None),
+          None
+        ),
         None
       )
       override lazy val form: Form =
@@ -176,10 +190,13 @@ class RealSmartStringEvaluatorFactorySpec
           FormData(
             List(
               FormField(multiChoiceField.modelComponentId, "0,1")
-            )))
+            )
+          )
+        )
       override lazy val formTemplate: FormTemplate = buildFormTemplate(
         destinationList,
-        sections = List(nonRepeatingPageSection(title = "page1", fields = List(multiChoiceField))))
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(multiChoiceField)))
+      )
 
       val result: String = smartStringEvaluator
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("multiChoiceField"))), false)
@@ -197,7 +214,8 @@ class RealSmartStringEvaluatorFactorySpec
           Horizontal,
           List.empty,
           None,
-          None),
+          None
+        ),
         None
       )
       override lazy val form: Form =
@@ -205,10 +223,13 @@ class RealSmartStringEvaluatorFactorySpec
           FormData(
             List(
               FormField(multiChoiceField.modelComponentId, "1")
-            )))
+            )
+          )
+        )
       override lazy val formTemplate: FormTemplate = buildFormTemplate(
         destinationList,
-        sections = List(nonRepeatingPageSection(title = "page1", fields = List(multiChoiceField))))
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(multiChoiceField)))
+      )
 
       val result: String = smartStringEvaluator
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("multiChoiceField"))), false)
@@ -233,14 +254,18 @@ class RealSmartStringEvaluatorFactorySpec
       )
       override lazy val form: Form =
         buildForm(
-          FormData(List(
-            FormField(revealingChoiceField.modelComponentId, "0,1"),
-            FormField(choice1TextField.modelComponentId, "choice1TextFieldValue"),
-            FormField(choice2TextField.modelComponentId, "choice2TextFieldValue")
-          )))
+          FormData(
+            List(
+              FormField(revealingChoiceField.modelComponentId, "0,1"),
+              FormField(choice1TextField.modelComponentId, "choice1TextFieldValue"),
+              FormField(choice2TextField.modelComponentId, "choice2TextFieldValue")
+            )
+          )
+        )
       override lazy val formTemplate: FormTemplate = buildFormTemplate(
         destinationList,
-        sections = List(nonRepeatingPageSection(title = "page1", fields = List(revealingChoiceField))))
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(revealingChoiceField)))
+      )
 
       val result: String = smartStringEvaluator
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("revealingChoiceField"))), false)
@@ -265,14 +290,18 @@ class RealSmartStringEvaluatorFactorySpec
       )
       override lazy val form: Form =
         buildForm(
-          FormData(List(
-            FormField(revealingChoiceField.modelComponentId, "1"),
-            FormField(choice1TextField.modelComponentId, "choice1TextFieldValue"),
-            FormField(choice2TextField.modelComponentId, "choice2TextFieldValue")
-          )))
+          FormData(
+            List(
+              FormField(revealingChoiceField.modelComponentId, "1"),
+              FormField(choice1TextField.modelComponentId, "choice1TextFieldValue"),
+              FormField(choice2TextField.modelComponentId, "choice2TextFieldValue")
+            )
+          )
+        )
       override lazy val formTemplate: FormTemplate = buildFormTemplate(
         destinationList,
-        sections = List(nonRepeatingPageSection(title = "page1", fields = List(revealingChoiceField))))
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(revealingChoiceField)))
+      )
 
       val result: String = smartStringEvaluator
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("revealingChoiceField"))), false)
@@ -305,23 +334,27 @@ class RealSmartStringEvaluatorFactorySpec
       *[ThirdPartyData],
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
-      RecalculationResult.empty(new EvaluationContext(
-        formTemplate._id,
-        submissionRef,
-        maybeAccessCode,
-        retrievals,
-        ThirdPartyData.empty,
-        authConfig,
-        headerCarrier,
-        Option.empty[FormPhase],
-        FileIdsWithMapping.empty
-      )))
+      RecalculationResult.empty(
+        new EvaluationContext(
+          formTemplate._id,
+          submissionRef,
+          maybeAccessCode,
+          retrievals,
+          ThirdPartyData.empty,
+          authConfig,
+          headerCarrier,
+          Option.empty[FormPhase],
+          FileIdsWithMapping.empty
+        )
+      )
+    )
 
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
       .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
         cache,
-        mockRecalculation)
+        mockRecalculation
+      )
       .futureValue
 
     lazy val factory = new RealSmartStringEvaluatorFactory()

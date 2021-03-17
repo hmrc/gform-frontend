@@ -46,7 +46,8 @@ class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode)
     messages("accessCode.new.validFor", accessCodeName)
       + "." +
       messages("accessCode.new.willExpire", formCat, accessCodeName),
-    "govuk-body")
+    "govuk-body"
+  )
 
   private val warningText = WarningText(content = Text(messages("accessCode.mustSubmit", formCat)))
 

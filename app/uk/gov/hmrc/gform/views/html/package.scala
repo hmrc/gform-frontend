@@ -29,8 +29,8 @@ package object html {
     val escaped = HtmlFormat.escape(str).body
 
     // https://stackoverflow.com/a/14217315/2522894
-    val replaced = List("\r\n", "\r", "\n").foldLeft(escaped) {
-      case (acc, seq) => acc.replaceAll(seq, replaceBy)
+    val replaced = List("\r\n", "\r", "\n").foldLeft(escaped) { case (acc, seq) =>
+      acc.replaceAll(seq, replaceBy)
     }
 
     Html(replaced)

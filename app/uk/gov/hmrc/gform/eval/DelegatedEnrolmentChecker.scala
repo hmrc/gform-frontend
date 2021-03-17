@@ -23,17 +23,15 @@ import uk.gov.hmrc.gform.auth.models.{ GovernmentGatewayId, IdentifierValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.DelegatedEnrolment
 import uk.gov.hmrc.http.HeaderCarrier
 
-class DelegatedEnrolmentChecker[F[_]](delegatedEnrolmentCheckStatus: (
-  GovernmentGatewayId,
-  DelegatedEnrolment,
-  IdentifierValue,
-  HeaderCarrier) => F[Boolean])
-    extends Function4[GovernmentGatewayId, DelegatedEnrolment, IdentifierValue, HeaderCarrier, F[Boolean]] {
+class DelegatedEnrolmentChecker[F[_]](
+  delegatedEnrolmentCheckStatus: (GovernmentGatewayId, DelegatedEnrolment, IdentifierValue, HeaderCarrier) => F[Boolean]
+) extends Function4[GovernmentGatewayId, DelegatedEnrolment, IdentifierValue, HeaderCarrier, F[Boolean]] {
   def apply(
     governmentGatewayId: GovernmentGatewayId,
     delegatedEnrolment: DelegatedEnrolment,
     identifierValue: IdentifierValue,
-    hc: HeaderCarrier): F[Boolean] =
+    hc: HeaderCarrier
+  ): F[Boolean] =
     delegatedEnrolmentCheckStatus(governmentGatewayId, delegatedEnrolment, identifierValue, hc)
 }
 

@@ -31,5 +31,6 @@ package object processor {
     EnrolmentSection,
     FormModelOptics[DataOrigin.Mongo],
     List[ErrorLink],
-    ValidationResult) => Html
+    ValidationResult
+  ) => Html
 }

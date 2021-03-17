@@ -31,8 +31,7 @@ object ValidationServiceHelper {
     fieldValue: FormComponent,
     messageKey: String,
     vars: Option[List[String]]
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[A] = validationFailure(fieldValue.modelComponentId, fieldValue, messageKey, vars)
@@ -42,8 +41,7 @@ object ValidationServiceHelper {
     fieldValue: FormComponent,
     messageKey: String,
     vars: Option[List[String]]
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[A] =
