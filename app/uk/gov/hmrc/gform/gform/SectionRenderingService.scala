@@ -781,14 +781,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formComponent: FormComponent,
     infoType: InfoType,
     infoText: SmartString,
-    ei: ExtraInfo)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
-    val parsedContent = markDownParser(infoText)
-    // remove top level <p> tag if exits, as default browser stylesheet for <p> applies margins (top and bottom)
-    html.form.snippets.field_template_info(
-      formComponent,
-      infoType,
-      Html(parsedContent.body.replaceAll("^<p>", "").replaceAll("</p>$", "")))
-  }
+    ei: ExtraInfo)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) =
+    html.form.snippets.field_template_info(formComponent, infoType, markDownParser(infoText))
 
   private def htmlForFileUpload(
     formComponent: FormComponent,
