@@ -87,7 +87,8 @@ class RoutingModule(
     new HealthController(
       configModule.playConfiguration,
       configModule.environment,
-      controllersModule.messagesControllerComponents),
+      controllersModule.messagesControllerComponents
+    ),
     metricsModule.metricsController
   )
 
@@ -112,7 +113,8 @@ class RoutingModule(
         testOnlyDoNotUseInAppConfRoutes
       case _ =>
         logger.error(
-          s"The option $key has unsupported value: $property. We support only prod.Routes and testOnlyDoNotUseInAppConf.Routes . Using prod.Routes .")
+          s"The option $key has unsupported value: $property. We support only prod.Routes and testOnlyDoNotUseInAppConf.Routes . Using prod.Routes ."
+        )
         prodRoutes
     }
   }

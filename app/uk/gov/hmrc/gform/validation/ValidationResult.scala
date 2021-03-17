@@ -37,10 +37,9 @@ class ValidationResult(
   def toError(formComponentId: FormComponentId, error: String): ValidationResult =
     lookup
       .get(formComponentId)
-      .fold(this) {
-        case FieldOk(formComponent, currentValue) =>
-          val fieldError = FieldError(formComponent, currentValue, Set(error))
-          new ValidationResult(lookup + (formComponentId -> fieldError), validatorsResult)
+      .fold(this) { case FieldOk(formComponent, currentValue) =>
+        val fieldError = FieldError(formComponent, currentValue, Set(error))
+        new ValidationResult(lookup + (formComponentId -> fieldError), validatorsResult)
       }
 
   def formFieldValidationResults: List[FormFieldValidationResult] = lookup.values.toList

@@ -28,8 +28,8 @@ import scala.concurrent.Future
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
-class FileUploadConnector(wSHttp: WSHttp, baseUrl: String)(
-  implicit ec: ExecutionContext
+class FileUploadConnector(wSHttp: WSHttp, baseUrl: String)(implicit
+  ec: ExecutionContext
 ) {
   private val logger = LoggerFactory.getLogger(getClass)
 

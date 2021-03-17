@@ -36,12 +36,13 @@ object InstructionPDFPageConverter {
     sectionNumber: SectionNumber,
     cache: AuthCacheWithForm,
     envelopeWithMapping: EnvelopeWithMapping,
-    validationResult: ValidationResult)(
-    implicit
+    validationResult: ValidationResult
+  )(implicit
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator,
-    fieldOrdering: Ordering[FormComponent]): Option[PageData] = {
+    fieldOrdering: Ordering[FormComponent]
+  ): Option[PageData] = {
     val pageFields = filteredAndSorted(page.fields)
       .map(c => mapFormComponent(c, cache, sectionNumber, validationResult, envelopeWithMapping))
     if (pageFields.isEmpty)
@@ -55,12 +56,13 @@ object InstructionPDFPageConverter {
     cache: AuthCacheWithForm,
     sectionNumber: SectionNumber,
     validationResult: ValidationResult,
-    envelopeWithMapping: EnvelopeWithMapping)(
-    implicit
+    envelopeWithMapping: EnvelopeWithMapping
+  )(implicit
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator,
-    fieldOrdering: Ordering[FormComponent]): PageField =
+    fieldOrdering: Ordering[FormComponent]
+  ): PageField =
     formComponent match {
       case IsText(Text(_, _, _, _, prefix, suffix)) =>
         SimpleField(
@@ -79,12 +81,15 @@ object InstructionPDFPageConverter {
           formComponent.instruction.flatMap(_.name.map(_.value())),
           List(
             UkSortCode
-              .fields(formComponent.modelComponentId.indexedComponentId) // TODO JoVl, this is weird, let's use MultiValueId instead
+              .fields(
+                formComponent.modelComponentId.indexedComponentId
+              ) // TODO JoVl, this is weird, let's use MultiValueId instead
               .toList
               .map { fieldId =>
                 validationResult(formComponent).getCurrentValue(HtmlFieldId.pure(fieldId))
               }
-              .mkString("-"))
+              .mkString("-")
+          )
         )
 
       case IsDate(_) =>
@@ -94,13 +99,13 @@ object InstructionPDFPageConverter {
 
         SimpleField(
           formComponent.instruction.flatMap(_.name.map(_.value())),
-          List({
+          List {
             val day = renderMonth(validationResult(formComponent).getCurrentValue(safeId(Date.day)))
             val month = messages(s"date.$monthKey")
             val year = validationResult(formComponent).getCurrentValue(safeId(Date.year))
 
             s"$day $month $year"
-          })
+          }
         )
 
       case IsTime(_) =>
@@ -152,15 +157,14 @@ object InstructionPDFPageConverter {
       case IsRevealingChoice(rc) =>
         val selections: List[ChoiceElement] = rc.options
           .zip(validationResult(formComponent).getComponentFieldIndices(formComponent.id))
-          .flatMap {
-            case (element, index) =>
-              validationResult(formComponent)
-                .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
-                .map { _ =>
-                  val revealingFields = filteredAndSorted(element.revealingFields).map(f =>
-                    mapFormComponent(f, cache, sectionNumber, validationResult, envelopeWithMapping))
-                  ChoiceElement(element.choice.value(), revealingFields)
-                }
+          .flatMap { case (element, index) =>
+            validationResult(formComponent)
+              .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
+              .map { _ =>
+                val revealingFields = filteredAndSorted(element.revealingFields)
+                  .map(f => mapFormComponent(f, cache, sectionNumber, validationResult, envelopeWithMapping))
+                ChoiceElement(element.choice.value(), revealingFields)
+              }
           }
         RevealingChoiceField(
           formComponent.instruction.flatMap(_.name.map(_.value())),
@@ -175,8 +179,9 @@ object InstructionPDFPageConverter {
         GroupField(formComponent.instruction.flatMap(_.name.map(_.value())), fields)
     }
 
-  private def filteredAndSorted(fields: List[FormComponent])(
-    implicit fieldOrdering: Ordering[FormComponent]): List[FormComponent] =
+  private def filteredAndSorted(
+    fields: List[FormComponent]
+  )(implicit fieldOrdering: Ordering[FormComponent]): List[FormComponent] =
     fields
       .filter(f => !f.hideOnSummary && f.instruction.isDefined)
       .sorted

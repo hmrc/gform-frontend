@@ -248,6 +248,7 @@ class ApplicationModule(context: Context)
     val loggerDateFormat: Option[String] = configuration.getOptional[String]("logger.json.dateformat")
     loggerDateFormat.foreach(str => MDC.put("logger.json.dateformat", str))
     logger.info(
-      s"Started Fronted $appName in mode ${environment.mode} at port ${application.configuration.getOptional[String]("http.port")}")
+      s"Started Fronted $appName in mode ${environment.mode} at port ${application.configuration.getOptional[String]("http.port")}"
+    )
   }
 }

@@ -71,11 +71,12 @@ object Section {
     }
 
     val addToListTypeInfo = StaticTypeInfo(
-      Map(addAnotherQuestion.baseComponentId -> StaticTypeData(ExprType.number, None)))
+      Map(addAnotherQuestion.baseComponentId -> StaticTypeData(ExprType.number, None))
+    )
 
     val staticInfo: StaticTypeInfo =
-      pages.toList.foldLeft(addToListTypeInfo) {
-        case (acc, page) => acc ++ page.staticTypeInfo
+      pages.toList.foldLeft(addToListTypeInfo) { case (acc, page) =>
+        acc ++ page.staticTypeInfo
       }
 
     val allRevealingChoiceInfo: RevealingChoiceInfo =

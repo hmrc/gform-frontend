@@ -22,8 +22,8 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-class FileUploadService(fileUploadConnector: FileUploadConnector)(
-  implicit ec: ExecutionContext
+class FileUploadService(fileUploadConnector: FileUploadConnector)(implicit
+  ec: ExecutionContext
 ) extends FileUploadAlgebra[Future] {
 
   override def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] =

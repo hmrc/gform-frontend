@@ -40,7 +40,7 @@ class GroupUtilsSpec extends FlatSpec with Matchers with FormModelSupport with V
       "3_f"     -> One("f_3"),
       "1_group" -> One(""),
       "2_group" -> One(""),
-      "3_group" -> One(""),
+      "3_group" -> One("")
     )
 
     val expectedData1: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
@@ -50,7 +50,7 @@ class GroupUtilsSpec extends FlatSpec with Matchers with FormModelSupport with V
       "2_a"     -> One("a_3"),
       "2_f"     -> One("f_3"),
       "1_group" -> One(""),
-      "2_group" -> One(""),
+      "2_group" -> One("")
     )
 
     val expectedData2: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
@@ -60,7 +60,7 @@ class GroupUtilsSpec extends FlatSpec with Matchers with FormModelSupport with V
       "2_a"     -> One("a_3"),
       "2_f"     -> One("f_3"),
       "1_group" -> One(""),
-      "2_group" -> One(""),
+      "2_group" -> One("")
     )
 
     val expectedData3: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
@@ -70,25 +70,26 @@ class GroupUtilsSpec extends FlatSpec with Matchers with FormModelSupport with V
       "2_a"     -> One("a_2"),
       "2_f"     -> One("f_2"),
       "1_group" -> One(""),
-      "2_group" -> One(""),
+      "2_group" -> One("")
     )
 
     val sections: List[Section] =
       mkSection(
         mkFormComponent("regular", Text(ShortText.default, Value)) ::
-          mkFormComponent("regularFile", FileUpload()) :: Nil) ::
+          mkFormComponent("regularFile", FileUpload()) :: Nil
+      ) ::
         mkSection(
-        mkFormComponent(
-          "group",
-          mkGroup(
-            5,
-            List(
-              mkFormComponent("a", Text(ShortText.default, Value)),
-              mkFormComponent("f", FileUpload())
+          mkFormComponent(
+            "group",
+            mkGroup(
+              5,
+              List(
+                mkFormComponent("a", Text(ShortText.default, Value)),
+                mkFormComponent("f", FileUpload())
+              )
             )
-          )
+          ) :: Nil
         ) :: Nil
-      ) :: Nil
 
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(mkFormTemplate(sections), data)
 
@@ -105,18 +106,17 @@ class GroupUtilsSpec extends FlatSpec with Matchers with FormModelSupport with V
       ("index", "expected"),
       (1, (expectedData1, expectedMapping1, Set(FileId("1_f")))),
       (2, (expectedData2, expectedMapping2, Set(FileId("2_f")))),
-      (3, (expectedData3, expectedMapping3, Set(FileId("3_f")))),
+      (3, (expectedData3, expectedMapping3, Set(FileId("3_f"))))
     )
 
-    forAll(variations) {
-      case (index, (expectedVariadicData, expectedMapping, expectedFilesToDelete)) ⇒
-        val modelComponentId: ModelComponentId = FormComponentId(index + "_group").modelComponentId
-        val (updatedVariadicData, updatedMapping, filesToDelete) =
-          GroupUtils.removeRecord(processData, modelComponentId, SectionNumber(1), originalMapping)
+    forAll(variations) { case (index, (expectedVariadicData, expectedMapping, expectedFilesToDelete)) ⇒
+      val modelComponentId: ModelComponentId = FormComponentId(index + "_group").modelComponentId
+      val (updatedVariadicData, updatedMapping, filesToDelete) =
+        GroupUtils.removeRecord(processData, modelComponentId, SectionNumber(1), originalMapping)
 
-        updatedMapping shouldBe expectedMapping
-        filesToDelete shouldBe expectedFilesToDelete
-        updatedVariadicData shouldBe expectedVariadicData
+      updatedMapping shouldBe expectedMapping
+      filesToDelete shouldBe expectedFilesToDelete
+      updatedVariadicData shouldBe expectedVariadicData
     }
   }
 

@@ -131,13 +131,13 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
   def contains(id: ModelComponentId): Boolean = data.contains(id)
 
   def mapKeys(f: ModelComponentId => ModelComponentId): VariadicFormData[S] =
-    VariadicFormData[S](data.map {
-      case (k, v) => (f(k), v)
+    VariadicFormData[S](data.map { case (k, v) =>
+      (f(k), v)
     })
 
   def mapValues(f: (ModelComponentId, VariadicValue) => VariadicValue): VariadicFormData[S] =
-    VariadicFormData[S](data.map {
-      case (k, v) => (k, f(k, v))
+    VariadicFormData[S](data.map { case (k, v) =>
+      (k, f(k, v))
     })
 
   def one(id: ModelComponentId): Option[String] =
@@ -146,7 +146,8 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
         case VariadicValue.One(v) => v
         case notOne =>
           throw new IllegalArgumentException(
-            show"""Expected VariadicValue.One for form component ID "$id". Got $notOne""")
+            show"""Expected VariadicValue.One for form component ID "$id". Got $notOne"""
+          )
       }
 
   def oneOrElse(id: ModelComponentId, dflt: => String): String = one(id).getOrElse(dflt)
@@ -157,7 +158,8 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
         case VariadicValue.Many(vs) => vs
         case notMany =>
           throw new IllegalArgumentException(
-            show"""Expected VariadicValue.Many for form component ID "$id". Got $notMany""")
+            show"""Expected VariadicValue.Many for form component ID "$id". Got $notMany"""
+          )
       }
 
   def toFormField(modelComponentId: ModelComponentId): FormField = {
@@ -214,11 +216,10 @@ object VariadicFormData {
     val multiValueIds: Set[BaseComponentId] = formModel.allMultiSelectionIds.map(_.baseComponentId)
 
     VariadicFormData[S](
-      data.map {
-        case (id, s) =>
-          if (multiValueIds(id.baseComponentId))
-            (id, VariadicValue.Many(s.split(",").map(_.trim).filterNot(_.isEmpty).toSeq))
-          else (id, VariadicValue.One(s))
+      data.map { case (id, s) =>
+        if (multiValueIds(id.baseComponentId))
+          (id, VariadicValue.Many(s.split(",").map(_.trim).filterNot(_.isEmpty).toSeq))
+        else (id, VariadicValue.One(s))
       }
     )
   }

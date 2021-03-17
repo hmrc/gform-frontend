@@ -47,20 +47,20 @@ trait DestinationGen {
       formdataXml           <- PrimitiveGen.booleanGen
       backscan              <- Gen.option(PrimitiveGen.booleanGen)
       includeInstructionPdf <- PrimitiveGen.booleanGen
-    } yield
-      Destination
-        .HmrcDms(
-          id,
-          dmsFormId,
-          customerId,
-          classificationType,
-          businessArea,
-          includeIf,
-          failOnError,
-          roboticsXml,
-          formdataXml,
-          backscan,
-          includeInstructionPdf)
+    } yield Destination
+      .HmrcDms(
+        id,
+        dmsFormId,
+        customerId,
+        classificationType,
+        businessArea,
+        includeIf,
+        failOnError,
+        roboticsXml,
+        formdataXml,
+        backscan,
+        includeInstructionPdf
+      )
 
   def submissionConsolidatorGen: Gen[Destination.SubmissionConsolidator] =
     for {
@@ -90,7 +90,8 @@ trait DestinationGen {
 
   def handlebarsHttpApiGen(
     includeIf: Option[String] = None,
-    failOnError: Option[Boolean] = None): Gen[Destination.HandlebarsHttpApi] =
+    failOnError: Option[Boolean] = None
+  ): Gen[Destination.HandlebarsHttpApi] =
     handlebarsHttpApiGen.map { g =>
       g.copy(includeIf = includeIf.getOrElse(g.includeIf), failOnError = failOnError.getOrElse(g.failOnError))
     }
@@ -113,12 +114,14 @@ trait DestinationGen {
   def stateTransitionGen(
     includeIf: Option[String] = None,
     failOnError: Option[Boolean] = None,
-    requiredState: Option[FormStatus] = None): Gen[Destination.StateTransition] =
+    requiredState: Option[FormStatus] = None
+  ): Gen[Destination.StateTransition] =
     stateTransitionGen.map { st =>
       st.copy(
         requiredState = requiredState.getOrElse(st.requiredState),
         includeIf = includeIf.getOrElse(st.includeIf),
-        failOnError = failOnError.getOrElse(st.failOnError))
+        failOnError = failOnError.getOrElse(st.failOnError)
+      )
     }
 
   def logGen: Gen[Destination.Log] =
@@ -133,8 +136,9 @@ trait DestinationGen {
       includeIf       <- includeIfGen
       to              <- FormComponentGen.formComponentIdGen
       personalisation <- PrimitiveGen.possiblyEmptyMapGen(
-                          PrimitiveGen.nonEmptyAlphaNumStrGen.map(NotifierPersonalisationFieldId(_)),
-                          FormComponentGen.formComponentIdGen)
+                           PrimitiveGen.nonEmptyAlphaNumStrGen.map(NotifierPersonalisationFieldId(_)),
+                           FormComponentGen.formComponentIdGen
+                         )
       failOnError <- PrimitiveGen.booleanGen
     } yield Destination.Email(id, emailTemplateId, includeIf, failOnError, to, personalisation)
 

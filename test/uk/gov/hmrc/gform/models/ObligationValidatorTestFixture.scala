@@ -24,37 +24,37 @@ package uk.gov.hmrc.gform.models
 
 trait ObligationValidatorTestFixture {
   /*
- *   val formComponentId = FormComponentId("1")
- *   val cachedData: VariadicFormData = VariadicFormData.ones(formComponentId -> "16AZ", FormComponentId("2") -> "17BB")
- *   val taxPeriod = HmrcTaxPeriod(IdType("id"), FormCtx("ctx"), RegimeType("AAA"))
- *   val recalculatedTaxPeriodKey: RecalculatedTaxPeriodKey = RecalculatedTaxPeriodKey(formComponentId, taxPeriod)
- *   val recalculatedTaxPeriod = Map(recalculatedTaxPeriodKey -> IdNumberValue("2"))
- *   val date = LocalDate.now
- *   val detailOne = ObligationDetail("0", date, date, date, "15BB")
- *   val detailTwo = ObligationDetail("0", date, date, date, "16AZ")
- *   val detailThree = ObligationDetail("0", date, date, date, "17AZ")
- *   val details: List[ObligationDetail] = detailOne :: detailTwo :: Nil
- *   val obligationDetails: List[ObligationDetails] = ObligationDetails(details) :: Nil
- *   val obligation = Obligation(obligationDetails)
- *
- *   val taxResponse =
- *     TaxResponse(HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriodKey, IdNumberValue("1")), obligation)
- *
- *   val moreObligationsAvailable =
- *     obligation.modify(_.obligations).setTo(List(ObligationDetails(List(detailOne, detailTwo, detailThree))))
- *   val lessObligationsUnavailable =
- *     obligation.modify(_.obligations).setTo(List(ObligationDetails(List(detailOne))))
- *   val lessObligationsAvailable = obligation.modify(_.obligations).setTo(List(ObligationDetails(List(detailTwo))))
- *
- *   val differentObligationsAvailable =
- *     obligation
- *       .modify(_.obligations)
- *       .setTo(
- *         obligationDetails.tail ::: ObligationDetails(ObligationDetail("0", date, date, date, "different") :: Nil) :: Nil)
- *
- *   implicit class ResponseWithObligations(taxResponse: TaxResponse) {
- *     def withObligations(obligation: Obligation): TaxResponse =
- *       taxResponse.modify(_.obligation).setTo(obligation)
- *   }
- */
+   *   val formComponentId = FormComponentId("1")
+   *   val cachedData: VariadicFormData = VariadicFormData.ones(formComponentId -> "16AZ", FormComponentId("2") -> "17BB")
+   *   val taxPeriod = HmrcTaxPeriod(IdType("id"), FormCtx("ctx"), RegimeType("AAA"))
+   *   val recalculatedTaxPeriodKey: RecalculatedTaxPeriodKey = RecalculatedTaxPeriodKey(formComponentId, taxPeriod)
+   *   val recalculatedTaxPeriod = Map(recalculatedTaxPeriodKey -> IdNumberValue("2"))
+   *   val date = LocalDate.now
+   *   val detailOne = ObligationDetail("0", date, date, date, "15BB")
+   *   val detailTwo = ObligationDetail("0", date, date, date, "16AZ")
+   *   val detailThree = ObligationDetail("0", date, date, date, "17AZ")
+   *   val details: List[ObligationDetail] = detailOne :: detailTwo :: Nil
+   *   val obligationDetails: List[ObligationDetails] = ObligationDetails(details) :: Nil
+   *   val obligation = Obligation(obligationDetails)
+   *
+   *   val taxResponse =
+   *     TaxResponse(HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriodKey, IdNumberValue("1")), obligation)
+   *
+   *   val moreObligationsAvailable =
+   *     obligation.modify(_.obligations).setTo(List(ObligationDetails(List(detailOne, detailTwo, detailThree))))
+   *   val lessObligationsUnavailable =
+   *     obligation.modify(_.obligations).setTo(List(ObligationDetails(List(detailOne))))
+   *   val lessObligationsAvailable = obligation.modify(_.obligations).setTo(List(ObligationDetails(List(detailTwo))))
+   *
+   *   val differentObligationsAvailable =
+   *     obligation
+   *       .modify(_.obligations)
+   *       .setTo(
+   *         obligationDetails.tail ::: ObligationDetails(ObligationDetail("0", date, date, date, "different") :: Nil) :: Nil)
+   *
+   *   implicit class ResponseWithObligations(taxResponse: TaxResponse) {
+   *     def withObligations(obligation: Obligation): TaxResponse =
+   *       taxResponse.modify(_.obligation).setTo(obligation)
+   *   }
+   */
 }

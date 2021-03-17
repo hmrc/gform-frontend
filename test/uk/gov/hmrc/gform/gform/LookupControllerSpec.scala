@@ -61,7 +61,8 @@ class LookupControllerSpec
         BaseComponentId("country"),
         Register.Country,
         None,
-        LookupQuery.Empty)
+        LookupQuery.Empty
+      )
       .apply(request)
 
     whenReady(future) { result =>
@@ -81,7 +82,8 @@ class LookupControllerSpec
         BaseComponentId("country"),
         Register.Country,
         None,
-        LookupQuery.Empty)
+        LookupQuery.Empty
+      )
       .apply(request)
 
     whenReady(future) { result =>
@@ -98,7 +100,8 @@ class LookupControllerSpec
         BaseComponentId("country"),
         Register.Country,
         None,
-        LookupQuery.Value("States"))
+        LookupQuery.Value("States")
+      )
       .apply(request)
 
     whenReady(future) { result =>
@@ -117,7 +120,8 @@ class LookupControllerSpec
         BaseComponentId("country"),
         Register.Country,
         None,
-        LookupQuery.Value("States"))
+        LookupQuery.Value("States")
+      )
       .apply(request)
 
     whenReady(future) { result =>
@@ -137,7 +141,8 @@ class LookupControllerSpec
         BaseComponentId("country"),
         Register.Country,
         None,
-        LookupQuery.Value("United"))
+        LookupQuery.Value("United")
+      )
       .apply(request)
 
     whenReady(future) { result =>
@@ -150,10 +155,11 @@ class LookupControllerSpec
 
     override lazy val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] =
       VariadicFormData[SourceOrigin.OutOfDate](
-        Map(ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("country"))) -> VariadicValue.One("US")))
-    override lazy val portLookupSelectionCriteria: Option[List[SelectionCriteria]] = Some(SelectionCriteria(
-      CsvColumnName("countrycode"),
-      SelectionCriteriaExpr(FormCtx(FormComponentId("country")))) :: Nil)
+        Map(ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("country"))) -> VariadicValue.One("US"))
+      )
+    override lazy val portLookupSelectionCriteria: Option[List[SelectionCriteria]] = Some(
+      SelectionCriteria(CsvColumnName("countrycode"), SelectionCriteriaExpr(FormCtx(FormComponentId("country")))) :: Nil
+    )
 
     val future = lookupController
       .lookupWithSelectionCriteria(
@@ -161,7 +167,8 @@ class LookupControllerSpec
         BaseComponentId("port"),
         Register.Port,
         None,
-        LookupQuery.Value("Port"))
+        LookupQuery.Value("Port")
+      )
       .apply(request)
 
     whenReady(future) { result =>
@@ -174,12 +181,18 @@ class LookupControllerSpec
 
     override lazy val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] =
       VariadicFormData[SourceOrigin.OutOfDate](
-        Map(ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("country"))) -> VariadicValue.One(
-          "United Kingdom")))
+        Map(
+          ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("country"))) -> VariadicValue.One(
+            "United Kingdom"
+          )
+        )
+      )
     override lazy val portLookupSelectionCriteria: Option[List[SelectionCriteria]] = Some(
       SelectionCriteria(
         CsvColumnName("region"),
-        SelectionCriteriaReference(FormCtx(FormComponentId("country")), CsvColumnName("region"))) :: Nil)
+        SelectionCriteriaReference(FormCtx(FormComponentId("country")), CsvColumnName("region"))
+      ) :: Nil
+    )
 
     val future = lookupController
       .lookupWithSelectionCriteria(
@@ -187,7 +200,8 @@ class LookupControllerSpec
         BaseComponentId("port"),
         Register.Port,
         None,
-        LookupQuery.Value("Port"))
+        LookupQuery.Value("Port")
+      )
       .apply(request)
 
     whenReady(future) { result =>
@@ -203,7 +217,8 @@ class LookupControllerSpec
         BaseComponentId("port"),
         Register.Port,
         None,
-        LookupQuery.Value("Port"))
+        LookupQuery.Value("Port")
+      )
       .apply(request)
 
     whenReady(future) { result =>
@@ -224,65 +239,75 @@ class LookupControllerSpec
 
     lazy val countryLookupOptions: LocalisedLookupOptions = LocalisedLookupOptions(
       Map(
-        LangADT.En -> LookupOptions(Map(
-          LookupLabel("United Kingdom") -> CountryLookupInfo(
-            LookupId("GB"),
-            0,
-            LookupKeywords(Some("England Great Britain")),
-            LookupPriority(1),
-            LookupRegion("1")),
-          LookupLabel("United States") -> CountryLookupInfo(
-            LookupId("US"),
-            1,
-            LookupKeywords(Some("USA")),
-            LookupPriority(1),
-            LookupRegion("2"))
-        ))))
+        LangADT.En -> LookupOptions(
+          Map(
+            LookupLabel("United Kingdom") -> CountryLookupInfo(
+              LookupId("GB"),
+              0,
+              LookupKeywords(Some("England Great Britain")),
+              LookupPriority(1),
+              LookupRegion("1")
+            ),
+            LookupLabel("United States") -> CountryLookupInfo(
+              LookupId("US"),
+              1,
+              LookupKeywords(Some("USA")),
+              LookupPriority(1),
+              LookupRegion("2")
+            )
+          )
+        )
+      )
+    )
 
     lazy val portLookupOptions: LocalisedLookupOptions = LocalisedLookupOptions(
       Map(
-        LangADT.En -> LookupOptions(Map(
-          LookupLabel("London Heathrow") -> PortLookupInfo(
-            LookupId("1"),
-            0,
-            LookupKeywords(Some("London Heathrow Port")),
-            LookupPriority(3),
-            LookupRegion("1"),
-            LookupPortType("AIR"),
-            LookupCountryCode("GB"),
-            LookupPortCode("LHR")
-          ),
-          LookupLabel("Dover Seaport") -> PortLookupInfo(
-            LookupId("2"),
-            1,
-            LookupKeywords(Some("Dover Seaport Port")),
-            LookupPriority(3),
-            LookupRegion("1"),
-            LookupPortType("SEA"),
-            LookupCountryCode("GB"),
-            LookupPortCode("DOV")
-          ),
-          LookupLabel("New York Airport") -> PortLookupInfo(
-            LookupId("3"),
-            2,
-            LookupKeywords(Some("New York Airport Port")),
-            LookupPriority(2),
-            LookupRegion("2"),
-            LookupPortType("AIR"),
-            LookupCountryCode("US"),
-            LookupPortCode("NYC")
-          ),
-          LookupLabel("Leland Seaport") -> PortLookupInfo(
-            LookupId("4"),
-            3,
-            LookupKeywords(Some("Leland Seaport Port")),
-            LookupPriority(1),
-            LookupRegion("2"),
-            LookupPortType("SEA"),
-            LookupCountryCode("US"),
-            LookupPortCode("LLC")
+        LangADT.En -> LookupOptions(
+          Map(
+            LookupLabel("London Heathrow") -> PortLookupInfo(
+              LookupId("1"),
+              0,
+              LookupKeywords(Some("London Heathrow Port")),
+              LookupPriority(3),
+              LookupRegion("1"),
+              LookupPortType("AIR"),
+              LookupCountryCode("GB"),
+              LookupPortCode("LHR")
+            ),
+            LookupLabel("Dover Seaport") -> PortLookupInfo(
+              LookupId("2"),
+              1,
+              LookupKeywords(Some("Dover Seaport Port")),
+              LookupPriority(3),
+              LookupRegion("1"),
+              LookupPortType("SEA"),
+              LookupCountryCode("GB"),
+              LookupPortCode("DOV")
+            ),
+            LookupLabel("New York Airport") -> PortLookupInfo(
+              LookupId("3"),
+              2,
+              LookupKeywords(Some("New York Airport Port")),
+              LookupPriority(2),
+              LookupRegion("2"),
+              LookupPortType("AIR"),
+              LookupCountryCode("US"),
+              LookupPortCode("NYC")
+            ),
+            LookupLabel("Leland Seaport") -> PortLookupInfo(
+              LookupId("4"),
+              3,
+              LookupKeywords(Some("Leland Seaport Port")),
+              LookupPriority(1),
+              LookupRegion("2"),
+              LookupPortType("SEA"),
+              LookupCountryCode("US"),
+              LookupPortCode("LLC")
+            )
           )
-        ))))
+        )
+      )
+    )
 
     lazy val lookupOptions: LocalisedLookupOptions = LocalisedLookupOptions(Map.empty)
     lazy val showAll: ShowAll = ShowAll.Disabled
@@ -299,22 +324,25 @@ class LookupControllerSpec
         .mkFormModelOptics[DataOrigin.Mongo, Id, SectionSelectorType.Normal](
           variadicFormData,
           authCacheWithForm,
-          recalculation)
+          recalculation
+        )
 
     val messagesControllerComponents: MessagesControllerComponents = stubMessagesControllerComponents()
     mockAuth
       .authAndRetrieveForm[SectionSelectorType.Normal](*[FormTemplateId], *[Option[AccessCode]], *[OperationWithForm])(
         *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
-          DataOrigin.Mongo] => Future[Result]]) answers (
+          DataOrigin.Mongo
+        ] => Future[Result]]
+      ) answers (
       (
-        _: FormTemplateId,
-        _: Option[AccessCode],
-        _: OperationWithForm,
-        f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
-          DataOrigin.Mongo] => Future[Result]) =>
+        _: FormTemplateId, _: Option[AccessCode], _: OperationWithForm, f: Request[
+          AnyContent
+        ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[Result]
+      ) =>
         messagesControllerComponents.actionBuilder.async { request =>
           f(request)(LangADT.En)(authCacheWithForm)(null)(formModelOptics)
-        })
+        }
+    )
     lazy val lookupRegistry = new LookupRegistry(
       Map(
         Register.Country -> AjaxLookup(
@@ -327,7 +355,8 @@ class LookupControllerSpec
           mkAutocomplete(portLookupOptions),
           showAll
         )
-      ))
+      )
+    )
     lazy val lookupController = new LookupController(mockAuth, lookupRegistry, messagesControllerComponents)
   }
 }

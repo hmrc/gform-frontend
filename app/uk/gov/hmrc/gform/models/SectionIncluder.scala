@@ -43,7 +43,8 @@ object SectionSelector {
 
     def getSections(formTemplate: FormTemplate): List[Section] = {
       val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
-        destinationList.declarationSection.toSection :: Nil)(destinationPrint => Nil)
+        destinationList.declarationSection.toSection :: Nil
+      )(destinationPrint => Nil)
 
       formTemplate.sections ::: destinationSections
     }
@@ -63,10 +64,10 @@ object SectionSelector {
   implicit val withAcknowledgement = new SectionSelector[SectionSelectorType.WithAcknowledgement] {
 
     def getSections(formTemplate: FormTemplate): List[Section] = {
-      val destinationSections: List[Section] = formTemplate.destinations.fold(
-        destinationList =>
-          destinationList.declarationSection.toSection ::
-            destinationList.acknowledgementSection.toSection :: Nil)(destinationPrint => Nil)
+      val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
+        destinationList.declarationSection.toSection ::
+          destinationList.acknowledgementSection.toSection :: Nil
+      )(destinationPrint => Nil)
       formTemplate.sections ::: destinationSections
     }
 

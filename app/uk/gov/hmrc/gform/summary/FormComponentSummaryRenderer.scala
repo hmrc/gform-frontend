@@ -46,8 +46,7 @@ object FormComponentSummaryRenderer {
     obligations: Obligations,
     validationResult: ValidationResult,
     envelope: EnvelopeWithMapping
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator,
@@ -88,7 +87,8 @@ object FormComponentSummaryRenderer {
           maybeAccessCode,
           sectionNumber,
           sectionTitle4Ga,
-          formFieldValidationResult)
+          formFieldValidationResult
+        )
 
       case IsDate(_) =>
         getDateSummaryListRows(
@@ -97,7 +97,8 @@ object FormComponentSummaryRenderer {
           maybeAccessCode,
           sectionNumber,
           sectionTitle4Ga,
-          formFieldValidationResult)
+          formFieldValidationResult
+        )
 
       case IsTime(_) =>
         getTimeSummaryListRows(
@@ -106,7 +107,8 @@ object FormComponentSummaryRenderer {
           maybeAccessCode,
           sectionNumber,
           sectionTitle4Ga,
-          formFieldValidationResult)
+          formFieldValidationResult
+        )
 
       case IsAddress(_) =>
         getAddressSummaryListRows(
@@ -115,7 +117,8 @@ object FormComponentSummaryRenderer {
           maybeAccessCode,
           sectionNumber,
           sectionTitle4Ga,
-          formFieldValidationResult)
+          formFieldValidationResult
+        )
 
       case IsOverseasAddress(_) =>
         getOverseasAddressSummaryListRows(
@@ -124,7 +127,8 @@ object FormComponentSummaryRenderer {
           maybeAccessCode,
           sectionNumber,
           sectionTitle4Ga,
-          formFieldValidationResult)
+          formFieldValidationResult
+        )
 
       case IsInformationMessage(_) =>
         List(SummaryListRow())
@@ -161,7 +165,8 @@ object FormComponentSummaryRenderer {
           sectionNumber,
           sectionTitle4Ga,
           formFieldValidationResult,
-          choice)
+          choice
+        )
 
       case IsRevealingChoice(rc) =>
         getRevealingChoiceSummaryListRows(
@@ -219,8 +224,7 @@ object FormComponentSummaryRenderer {
     envelope: EnvelopeWithMapping,
     prefix: Option[SmartString],
     suffix: Option[SmartString]
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator,
@@ -259,9 +263,13 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
-      ))
+                  FastForward.Yes
+                ),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+            )
+          )
+      )
+    )
 
   }
 
@@ -273,12 +281,12 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[T]): List[SummaryListRow] = {
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
@@ -320,9 +328,13 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
-      ))
+                  FastForward.Yes
+                ),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+            )
+          )
+      )
+    )
   }
 
   private def getUkSortCodeSummaryListRows[T <: RenderType](
@@ -332,11 +344,11 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[T]): List[SummaryListRow] = {
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
@@ -349,7 +361,9 @@ object FormComponentSummaryRenderer {
     val keyClasses = getKeyClasses(hasErrors)
 
     val currentValue = UkSortCode
-      .fields(fieldValue.modelComponentId.indexedComponentId) // TODO JoVl, this is weird, let's use MultiValueId instead
+      .fields(
+        fieldValue.modelComponentId.indexedComponentId
+      ) // TODO JoVl, this is weird, let's use MultiValueId instead
       .toList
       .map { fieldId =>
         formFieldValidationResult.getCurrentValue(HtmlFieldId.pure(fieldId))
@@ -378,9 +392,13 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
-      ))
+                  FastForward.Yes
+                ),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+            )
+          )
+      )
+    )
   }
 
   private def getDateSummaryListRows[T <: RenderType](
@@ -390,11 +408,11 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[T]): List[SummaryListRow] = {
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
@@ -439,9 +457,13 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
-      ))
+                  FastForward.Yes
+                ),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+            )
+          )
+      )
+    )
   }
 
   private def getTimeSummaryListRows[T <: RenderType](
@@ -451,11 +473,11 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[T]): List[SummaryListRow] = {
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
@@ -487,9 +509,13 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
-      ))
+                  FastForward.Yes
+                ),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+            )
+          )
+      )
+    )
   }
 
   private def getAddressSummaryListRows[T <: RenderType](
@@ -498,9 +524,8 @@ object FormComponentSummaryRenderer {
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
-    formFieldValidationResult: FormFieldValidationResult,
-  )(
-    implicit
+    formFieldValidationResult: FormFieldValidationResult
+  )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
     fcrd: FormComponentRenderDetails[T]
@@ -541,9 +566,13 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes),
-              if (formComponent.editable) messages("summary.change") else messages("summary.view")))
-      ))
+                  FastForward.Yes
+                ),
+              if (formComponent.editable) messages("summary.change") else messages("summary.view")
+            )
+          )
+      )
+    )
   }
 
   private def getOverseasAddressSummaryListRows[T <: RenderType](
@@ -552,9 +581,8 @@ object FormComponentSummaryRenderer {
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
-    formFieldValidationResult: FormFieldValidationResult,
-  )(
-    implicit
+    formFieldValidationResult: FormFieldValidationResult
+  )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
     fcrd: FormComponentRenderDetails[T]
@@ -595,9 +623,13 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes),
-              if (formComponent.editable) messages("summary.change") else messages("summary.view")))
-      ))
+                  FastForward.Yes
+                ),
+              if (formComponent.editable) messages("summary.change") else messages("summary.view")
+            )
+          )
+      )
+    )
   }
 
   private def getFileUploadSummaryListRows[T <: RenderType](
@@ -608,11 +640,11 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[T]): List[SummaryListRow] = {
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
@@ -646,9 +678,13 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes),
-              if (formComponent.editable) messages("summary.change") else messages("summary.view")))
-      ))
+                  FastForward.Yes
+                ),
+              if (formComponent.editable) messages("summary.change") else messages("summary.view")
+            )
+          )
+      )
+    )
   }
 
   private def getHmrcTaxPeriodSummaryListRows[T <: RenderType](
@@ -661,12 +697,12 @@ object FormComponentSummaryRenderer {
     obligations: Obligations,
     h: HmrcTaxPeriod,
     envelope: EnvelopeWithMapping
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[T]): List[SummaryListRow] = {
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
@@ -710,9 +746,13 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
-      ))
+                  FastForward.Yes
+                ),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+            )
+          )
+      )
+    )
   }
 
   private def getChoiceSummaryListRows[T <: RenderType](
@@ -723,11 +763,11 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     choice: Choice
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[T]): List[SummaryListRow] = {
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
@@ -765,9 +805,13 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes),
-              if (formComponent.editable) messages("summary.change") else messages("summary.view")))
-      ))
+                  FastForward.Yes
+                ),
+              if (formComponent.editable) messages("summary.change") else messages("summary.view")
+            )
+          )
+      )
+    )
   }
 
   private def getRevealingChoiceSummaryListRows[D <: DataOrigin, T <: RenderType](
@@ -782,75 +826,78 @@ object FormComponentSummaryRenderer {
     rc: RevealingChoice,
     obligations: Obligations,
     envelope: EnvelopeWithMapping
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[T]): List[SummaryListRow] = {
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
 
     val indices = formFieldValidationResult.getComponentFieldIndices(fieldValue.id)
 
     val selections: List[Option[List[SummaryListRow]]] = rc.options
       .zip(indices)
-      .map {
-        case (element, index) =>
-          val hasErrors = formFieldValidationResult.isNotOk
+      .map { case (element, index) =>
+        val hasErrors = formFieldValidationResult.isNotOk
 
-          val errors = formFieldValidationResult.fieldErrors.toList.map { e =>
-            errorInline("summary", e, Seq())
-          }
+        val errors = formFieldValidationResult.fieldErrors.toList.map { e =>
+          errorInline("summary", e, Seq())
+        }
 
-          val label = fcrd.label(fieldValue)
+        val label = fcrd.label(fieldValue)
 
-          val keyClasses = getKeyClasses(hasErrors)
+        val keyClasses = getKeyClasses(hasErrors)
 
-          val value =
-            if (hasErrors)
-              errors.mkString(" ")
-            else
-              element.choice.value()
+        val value =
+          if (hasErrors)
+            errors.mkString(" ")
+          else
+            element.choice.value()
 
-          formFieldValidationResult
-            .getOptionalCurrentValue(HtmlFieldId.indexed(fieldValue.id, index))
-            .map { _ =>
-              val revealingFields = fcrd.prepareRenderables(element.revealingFields).flatMap {
-                summaryListRows(
-                  _,
-                  formTemplateId,
-                  formModelVisibilityOptics,
-                  maybeAccessCode,
-                  sectionNumber,
-                  sectionTitle4Ga,
-                  obligations,
-                  validationResult,
-                  envelope
-                )
-              }
-
-              summaryListRow(
-                label,
-                value,
-                None,
-                keyClasses,
-                "",
-                "",
-                if (fieldValue.onlyShowOnSummary)
-                  Nil
-                else
-                  List(
-                    (
-                      uk.gov.hmrc.gform.gform.routes.FormController
-                        .form(
-                          formTemplateId,
-                          maybeAccessCode,
-                          sectionNumber,
-                          sectionTitle4Ga,
-                          SuppressErrors.Yes,
-                          FastForward.Yes),
-                      if (fieldValue.editable) messages("summary.change") else messages("summary.view")))
-              ) +: revealingFields
+        formFieldValidationResult
+          .getOptionalCurrentValue(HtmlFieldId.indexed(fieldValue.id, index))
+          .map { _ =>
+            val revealingFields = fcrd.prepareRenderables(element.revealingFields).flatMap {
+              summaryListRows(
+                _,
+                formTemplateId,
+                formModelVisibilityOptics,
+                maybeAccessCode,
+                sectionNumber,
+                sectionTitle4Ga,
+                obligations,
+                validationResult,
+                envelope
+              )
             }
+
+            summaryListRow(
+              label,
+              value,
+              None,
+              keyClasses,
+              "",
+              "",
+              if (fieldValue.onlyShowOnSummary)
+                Nil
+              else
+                List(
+                  (
+                    uk.gov.hmrc.gform.gform.routes.FormController
+                      .form(
+                        formTemplateId,
+                        maybeAccessCode,
+                        sectionNumber,
+                        sectionTitle4Ga,
+                        SuppressErrors.Yes,
+                        FastForward.Yes
+                      ),
+                    if (fieldValue.editable) messages("summary.change")
+                    else messages("summary.view")
+                  )
+                )
+            ) +: revealingFields
+          }
       }
 
     selections.collect { case Some(v) => v }.flatten
@@ -868,8 +915,7 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     validationResult: ValidationResult,
     envelope: EnvelopeWithMapping
-  )(
-    implicit
+  )(implicit
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator,
@@ -921,8 +967,11 @@ object FormComponentSummaryRenderer {
                         sectionNumber,
                         sectionTitle4Ga,
                         SuppressErrors.Yes,
-                        FastForward.Yes),
-                    if (formComponent.editable) messages("summary.change") else messages("summary.view")))
+                        FastForward.Yes
+                      ),
+                    if (formComponent.editable) messages("summary.change") else messages("summary.view")
+                  )
+                )
             )
           )
 

@@ -39,10 +39,8 @@ sealed trait ModelComponentId extends Product with Serializable {
   def decrement: ModelComponentId = map(_.decrement)
 
   private def map(f: IndexedComponentId => IndexedComponentId): ModelComponentId =
-    fold(
-      pure => ModelComponentId.pure(f(pure.indexedComponentId))
-    )(
-      atomic => ModelComponentId.atomic(f(atomic.indexedComponentId), atomic.atom)
+    fold(pure => ModelComponentId.pure(f(pure.indexedComponentId)))(atomic =>
+      ModelComponentId.atomic(f(atomic.indexedComponentId), atomic.atom)
     )
 
   def toFormComponentId: FormComponentId = FormComponentId(toMongoIdentifier)

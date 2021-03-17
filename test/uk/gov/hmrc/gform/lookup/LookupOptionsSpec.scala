@@ -30,13 +30,15 @@ class LookupOptionsSpec extends FlatSpecLike with Matchers {
       0,
       LookupKeywords(Some("Britain")),
       LookupPriority(1),
-      LookupRegion("1")),
+      LookupRegion("1")
+    ),
     LookupLabel("France") -> CountryLookupInfo(
       LookupId("FR"),
       1,
       LookupKeywords(Some("France")),
       LookupPriority(1),
-      LookupRegion("2"))
+      LookupRegion("2")
+    )
   )
 
   val portLookupOptions = Map(
@@ -68,7 +70,8 @@ class LookupOptionsSpec extends FlatSpecLike with Matchers {
       LookupRegion("2"),
       LookupPortType("T2"),
       LookupCountryCode("FR"),
-      LookupPortCode("CDG"))
+      LookupPortCode("CDG")
+    )
   )
 
   "filterBySelectionCriteria" should "return options unchanged when selectionCriteria is empty" in {
@@ -84,21 +87,24 @@ class LookupOptionsSpec extends FlatSpecLike with Matchers {
   it should "return empty options when no selection field exists in lookupOptions" in {
     val result = LookupOptions.filterBySelectionCriteria(
       List(SimplifiedSelectionCriteria(CsvColumnName("other"), List("other-value"))),
-      countryLookupOptions)
+      countryLookupOptions
+    )
     result shouldBe Map.empty
   }
 
   it should "return empty options when no selection field does not match any value in lookupOptions" in {
     val result = LookupOptions.filterBySelectionCriteria(
       List(SimplifiedSelectionCriteria(CsvColumnName("region"), List("region-value"))),
-      countryLookupOptions)
+      countryLookupOptions
+    )
     result shouldBe Map.empty
   }
 
   it should "return matching options, when selection field matches corresponding field in given option" in {
     val result = LookupOptions.filterBySelectionCriteria(
       List(SimplifiedSelectionCriteria(CsvColumnName("region"), List("1"))),
-      countryLookupOptions)
+      countryLookupOptions
+    )
     result shouldBe countryLookupOptions.toList.take(1).toMap
   }
 

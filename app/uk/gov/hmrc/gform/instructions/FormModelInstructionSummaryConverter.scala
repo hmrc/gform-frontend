@@ -52,13 +52,12 @@ object FormModelInstructionSummaryConverter {
 
   implicit val bracketOrdering: Ordering[Bracket[Visibility]] = (x: Bracket[Visibility], y: Bracket[Visibility]) =>
     x.fold(a => instructionOrderVal(a.source.page.instruction))(a => instructionOrderVal(a.source.page.instruction))(
+      a => instructionOrderVal(a.source.instruction)
+    ).compareTo(
+      y.fold(a => instructionOrderVal(a.source.page.instruction))(a => instructionOrderVal(a.source.page.instruction))(
         a => instructionOrderVal(a.source.instruction)
       )
-      .compareTo(
-        y.fold(a => instructionOrderVal(a.source.page.instruction))(a =>
-          instructionOrderVal(a.source.page.instruction))(
-          a => instructionOrderVal(a.source.instruction)
-        ))
+    )
 
   implicit val singletonWithNumberOrdering: Ordering[SingletonWithNumber[Visibility]] =
     (x: SingletonWithNumber[Visibility], y: SingletonWithNumber[Visibility]) =>
@@ -71,11 +70,8 @@ object FormModelInstructionSummaryConverter {
     formModelOptics: FormModelOptics[D],
     cache: AuthCacheWithForm,
     envelopeWithMapping: EnvelopeWithMapping,
-    validationResult: ValidationResult)(
-    implicit
-    messages: Messages,
-    l: LangADT,
-    lise: SmartStringEvaluator): List[SummaryData] = {
+    validationResult: ValidationResult
+  )(implicit messages: Messages, l: LangADT, lise: SmartStringEvaluator): List[SummaryData] = {
 
     val sortedBrackets: List[Bracket[Visibility]] =
       formModelOptics.formModelVisibilityOptics.formModel.brackets.brackets.toList.sorted
@@ -88,13 +84,13 @@ object FormModelInstructionSummaryConverter {
             nonRepeatingPage.sectionNumber,
             cache,
             envelopeWithMapping,
-            validationResult)
+            validationResult
+          )
           .toList: List[SummaryData]
       } { repeatingPage =>
-        repeatingPage.singletons.toList.flatMap {
-          case SingletonWithNumber(singleton, sectionNumber) =>
-            InstructionPDFPageConverter
-              .convert(singleton.page, sectionNumber, cache, envelopeWithMapping, validationResult)
+        repeatingPage.singletons.toList.flatMap { case SingletonWithNumber(singleton, sectionNumber) =>
+          InstructionPDFPageConverter
+            .convert(singleton.page, sectionNumber, cache, envelopeWithMapping, validationResult)
         }
       } { addToList =>
         convertAddToList(cache, envelopeWithMapping, validationResult, addToList)
@@ -106,11 +102,8 @@ object FormModelInstructionSummaryConverter {
     cache: AuthCacheWithForm,
     envelopeWithMapping: EnvelopeWithMapping,
     validationResult: ValidationResult,
-    addToList: AddToList[Visibility])(
-    implicit
-    messages: Messages,
-    l: LangADT,
-    lise: SmartStringEvaluator): List[AddToListData] = {
+    addToList: AddToList[Visibility]
+  )(implicit messages: Messages, l: LangADT, lise: SmartStringEvaluator): List[AddToListData] = {
     def addToListTitle(addToList: AddToList[Visibility]): String =
       addToList.source.summaryName.value()
 
@@ -124,10 +117,9 @@ object FormModelInstructionSummaryConverter {
     val addToListPageGroups: List[AddToListPageGroup] = addToList.iterations.toList.zipWithIndex.flatMap {
       case (iteration, index) =>
         val addToListPages: List[PageData] = iteration.singletons.toList.sorted
-          .flatMap {
-            case SingletonWithNumber(singleton, sectionNumber) =>
-              InstructionPDFPageConverter
-                .convert(singleton.page, sectionNumber, cache, envelopeWithMapping, validationResult)
+          .flatMap { case SingletonWithNumber(singleton, sectionNumber) =>
+            InstructionPDFPageConverter
+              .convert(singleton.page, sectionNumber, cache, envelopeWithMapping, validationResult)
           }
         if (addToListPages.isEmpty)
           None

@@ -26,11 +26,7 @@ sealed trait HtmlFieldId extends Product with Serializable {
   }
 
   def toHtmlId: String =
-    fold(
-      pure => pure.modelComponentId.toMongoIdentifier
-    )(
-      indexed => indexed.formComponentId.value + indexed.index
-    )
+    fold(pure => pure.modelComponentId.toMongoIdentifier)(indexed => indexed.formComponentId.value + indexed.index)
 }
 
 object HtmlFieldId {

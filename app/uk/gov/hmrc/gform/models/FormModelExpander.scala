@@ -27,12 +27,14 @@ trait FormModelExpander[T <: PageMode] {
   def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[T]
   def liftRepeating(
     section: Section.RepeatingPage,
-    data: VariadicFormData[SourceOrigin.OutOfDate]): Option[BracketPlain.RepeatingPage[T]]
+    data: VariadicFormData[SourceOrigin.OutOfDate]
+  ): Option[BracketPlain.RepeatingPage[T]]
 }
 
 object FormModelExpander {
 
-  private val repeatsLimit = 99 // Repeated section must be limited since repeatsMax expression has not been validated at this point
+  private val repeatsLimit =
+    99 // Repeated section must be limited since repeatsMax expression has not been validated at this point
 
   implicit def dataExpanded[D <: DataOrigin](implicit fmvo: FormModelVisibilityOptics[D]) =
     new FormModelExpander[DataExpanded] {
@@ -48,7 +50,8 @@ object FormModelExpander {
       // Perfect we have access to FormModelVisibilityOptics, so we can evaluate 'section.repeats' expression
       def liftRepeating(
         section: Section.RepeatingPage,
-        data: VariadicFormData[SourceOrigin.OutOfDate]): Option[BracketPlain.RepeatingPage[DataExpanded]] = {
+        data: VariadicFormData[SourceOrigin.OutOfDate]
+      ): Option[BracketPlain.RepeatingPage[DataExpanded]] = {
         val repeats = section.repeats
         val bdRepeats: Option[BigDecimal] = fmvo.evalAndApplyTypeInfoFirst(repeats).numberRepresentation
         val repeatCount = Math.min(bdRepeats.fold(0)(_.toInt), repeatsLimit)
@@ -73,10 +76,10 @@ object FormModelExpander {
     // Expand by data, we don't know value of 'section.repeats' expression here
     def liftRepeating(
       section: Section.RepeatingPage,
-      data: VariadicFormData[SourceOrigin.OutOfDate]): Option[BracketPlain.RepeatingPage[Interim]] = {
-      val baseIds: Set[BaseComponentId] = {
-        section.allIds.map(_.baseComponentId)
-      }.toSet
+      data: VariadicFormData[SourceOrigin.OutOfDate]
+    ): Option[BracketPlain.RepeatingPage[Interim]] = {
+      val baseIds: Set[BaseComponentId] =
+        section.allIds.map(_.baseComponentId).toSet
 
       val indexes: Set[Int] = data
         .keySet()
@@ -108,8 +111,10 @@ object FormModelExpander {
       }
       page.copy(fields = expanded).asInstanceOf[Page[DependencyGraphVerification]]
     }
-    def liftRepeating(section: Section.RepeatingPage, data: VariadicFormData[SourceOrigin.OutOfDate])
-      : Option[BracketPlain.RepeatingPage[DependencyGraphVerification]] = {
+    def liftRepeating(
+      section: Section.RepeatingPage,
+      data: VariadicFormData[SourceOrigin.OutOfDate]
+    ): Option[BracketPlain.RepeatingPage[DependencyGraphVerification]] = {
       val pageBasic = mkSingleton(section.page, 1)(section)
       val singletons = NonEmptyList.one(Singleton(pageBasic.asInstanceOf[Page[DependencyGraphVerification]]))
       Some(BracketPlain.RepeatingPage(singletons, section))

@@ -23,97 +23,97 @@ package uk.gov.hmrc.gform.models
 import org.scalatest.{ FlatSpec, Matchers }
 class FormModelBasicSpec extends FlatSpec with Matchers with FormModelSupport {
   /*
- *   val expectedFc = addToListQuestion.copy(id = FormComponentId("1_ownerFc"))
- *
- *   "FormModel.basic" should "expand from formTemplate" in {
- *     val formModel = mkFormModelBasic(List.empty[Section])
- *
- *     formModel shouldBe FormModel[Basic](List.empty[PageModel[Basic]])
- *   }
- *
- *   it should "expand Section.NonRepeatingPage" in {
- *     val nonRepeatingPage: Section.NonRepeatingPage = mkSection(List.empty[FormComponent])
- *     val formModel = mkFormModelBasic(List(nonRepeatingPage))
- *
- *     val expected = FormModel(List(Singleton(nonRepeatingPage.page, nonRepeatingPage)))
- *
- *     formModel shouldBe expected
- *   }
- *
- *   it should "expand Section.RepeatingPage" in {
- *     val repeatingPage: Section.RepeatingPage = mkRepeatingPageSection(List.empty[FormComponent])
- *     val formModel = mkFormModelBasic(List(repeatingPage))
- *
- *     val expected = FormModel(List(Singleton(repeatingPage.page, repeatingPage)))
- *
- *     formModel shouldBe expected
- *   }
- *
- *   it should "expand Section.AddToList with one list-filler page" in {
- *     val addToList: Section.AddToList = mkAddToListSection(List.empty[FormComponent])
- *     val formModel = mkFormModelBasic(List(addToList))
- *
- *     val expected = FormModel[Basic](
- *       List(
- *         Singleton(addToList.pages.toList.head, addToList),
- *         Repeater(
- *           toSmartString("Pet owner"),
- *           Some(toSmartString("Pet owner description")),
- *           None,
- *           None,
- *           expectedFc,
- *           1,
- *           addToList)
- *       )
- *     )
- *     formModel shouldBe expected
- *   }
- *   it should "expand Section.AddToList with two list-filler pages" in {
- *     val addToList: Section.AddToList = mkAddToListSection(List.empty[FormComponent], List.empty[FormComponent])
- *     val formModel = mkFormModelBasic(List(addToList))
- *
- *     val expected = FormModel[Basic](
- *       List(
- *         Singleton(addToList.pages.toList(0), addToList),
- *         Singleton(addToList.pages.toList(1), addToList),
- *         Repeater(
- *           toSmartString("Pet owner"),
- *           Some(toSmartString("Pet owner description")),
- *           None,
- *           None,
- *           expectedFc,
- *           1,
- *           addToList)
- *       )
- *     )
- *
- *     formModel shouldBe expected
- *   }
- *
- *   it should "expand Section.AddToList with three list-filler pages" in {
- *     val addToList: Section.AddToList =
- *       mkAddToListSection(List.empty[FormComponent], List.empty[FormComponent], List.empty[FormComponent])
- *
- *     val formModel = mkFormModelBasic(List(addToList))
- *
- *     val expected = FormModel[Basic](
- *       List(
- *         Singleton(addToList.pages.toList(0), addToList),
- *         Singleton(addToList.pages.toList(1), addToList),
- *         Singleton(addToList.pages.toList(2), addToList),
- *         Repeater(
- *           toSmartString("Pet owner"),
- *           Some(toSmartString("Pet owner description")),
- *           None,
- *           None,
- *           expectedFc,
- *           1,
- *           addToList)
- *       )
- *     )
- *
- *     formModel shouldBe expected
- *   }
- *
- */
+   *   val expectedFc = addToListQuestion.copy(id = FormComponentId("1_ownerFc"))
+   *
+   *   "FormModel.basic" should "expand from formTemplate" in {
+   *     val formModel = mkFormModelBasic(List.empty[Section])
+   *
+   *     formModel shouldBe FormModel[Basic](List.empty[PageModel[Basic]])
+   *   }
+   *
+   *   it should "expand Section.NonRepeatingPage" in {
+   *     val nonRepeatingPage: Section.NonRepeatingPage = mkSection(List.empty[FormComponent])
+   *     val formModel = mkFormModelBasic(List(nonRepeatingPage))
+   *
+   *     val expected = FormModel(List(Singleton(nonRepeatingPage.page, nonRepeatingPage)))
+   *
+   *     formModel shouldBe expected
+   *   }
+   *
+   *   it should "expand Section.RepeatingPage" in {
+   *     val repeatingPage: Section.RepeatingPage = mkRepeatingPageSection(List.empty[FormComponent])
+   *     val formModel = mkFormModelBasic(List(repeatingPage))
+   *
+   *     val expected = FormModel(List(Singleton(repeatingPage.page, repeatingPage)))
+   *
+   *     formModel shouldBe expected
+   *   }
+   *
+   *   it should "expand Section.AddToList with one list-filler page" in {
+   *     val addToList: Section.AddToList = mkAddToListSection(List.empty[FormComponent])
+   *     val formModel = mkFormModelBasic(List(addToList))
+   *
+   *     val expected = FormModel[Basic](
+   *       List(
+   *         Singleton(addToList.pages.toList.head, addToList),
+   *         Repeater(
+   *           toSmartString("Pet owner"),
+   *           Some(toSmartString("Pet owner description")),
+   *           None,
+   *           None,
+   *           expectedFc,
+   *           1,
+   *           addToList)
+   *       )
+   *     )
+   *     formModel shouldBe expected
+   *   }
+   *   it should "expand Section.AddToList with two list-filler pages" in {
+   *     val addToList: Section.AddToList = mkAddToListSection(List.empty[FormComponent], List.empty[FormComponent])
+   *     val formModel = mkFormModelBasic(List(addToList))
+   *
+   *     val expected = FormModel[Basic](
+   *       List(
+   *         Singleton(addToList.pages.toList(0), addToList),
+   *         Singleton(addToList.pages.toList(1), addToList),
+   *         Repeater(
+   *           toSmartString("Pet owner"),
+   *           Some(toSmartString("Pet owner description")),
+   *           None,
+   *           None,
+   *           expectedFc,
+   *           1,
+   *           addToList)
+   *       )
+   *     )
+   *
+   *     formModel shouldBe expected
+   *   }
+   *
+   *   it should "expand Section.AddToList with three list-filler pages" in {
+   *     val addToList: Section.AddToList =
+   *       mkAddToListSection(List.empty[FormComponent], List.empty[FormComponent], List.empty[FormComponent])
+   *
+   *     val formModel = mkFormModelBasic(List(addToList))
+   *
+   *     val expected = FormModel[Basic](
+   *       List(
+   *         Singleton(addToList.pages.toList(0), addToList),
+   *         Singleton(addToList.pages.toList(1), addToList),
+   *         Singleton(addToList.pages.toList(2), addToList),
+   *         Repeater(
+   *           toSmartString("Pet owner"),
+   *           Some(toSmartString("Pet owner description")),
+   *           None,
+   *           None,
+   *           expectedFc,
+   *           1,
+   *           addToList)
+   *       )
+   *     )
+   *
+   *     formModel shouldBe expected
+   *   }
+   *
+   */
 }

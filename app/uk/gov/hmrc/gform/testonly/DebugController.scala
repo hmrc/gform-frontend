@@ -33,8 +33,8 @@ class DebugController(
   auth: AuthenticatedRequestActions,
   fileUploadService: FileUploadService,
   messagesControllerComponents: MessagesControllerComponents
-)(
-  implicit ec: ExecutionContext
+)(implicit
+  ec: ExecutionContext
 ) extends FrontendController(messagesControllerComponents) {
 
   def model(formTemplateId: FormTemplateId) =
@@ -198,7 +198,9 @@ object InspectedBooleanExpr {
   ) extends InspectedBooleanExpr {
     val isOk = fieldInspectedExpr.typeInfos.head.staticTypeData.exprType == ExprType.ChoiceSelection &&
       inspectedExpr.typeInfos.head.staticTypeData.exprType == ExprType.Number &&
-      (CompatibilityRules.isWholeNumberConstant(inspectedExpr.typeInfos.head.expr) || inspectedExpr.typeInfos.head.staticTypeData.textConstraint
+      (CompatibilityRules.isWholeNumberConstant(
+        inspectedExpr.typeInfos.head.expr
+      ) || inspectedExpr.typeInfos.head.staticTypeData.textConstraint
         .fold(true) {
           case Number(_, 0, _, _)         => true
           case PositiveNumber(_, 0, _, _) => true
@@ -265,8 +267,9 @@ object CompatibilityRules {
   def compatibleTypeInfos(typeInfo1: TypeInfo, typeInfo2: TypeInfo): Boolean =
     (typeInfo1.staticTypeData, typeInfo2.staticTypeData) match {
       case (
-          StaticTypeData(ExprType.Number, Some(textConstraint1)),
-          StaticTypeData(ExprType.Number, Some(textConstraint2))) =>
+            StaticTypeData(ExprType.Number, Some(textConstraint1)),
+            StaticTypeData(ExprType.Number, Some(textConstraint2))
+          ) =>
         CompatibilityRules.compatibleTextConstraint(textConstraint1, textConstraint2)
       case (StaticTypeData(ExprType.String, _), StaticTypeData(ExprType.String, _)) => true
       case (a, b)                                                                   => a == b

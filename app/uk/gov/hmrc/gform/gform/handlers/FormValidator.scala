@@ -43,19 +43,20 @@ class FormValidator(implicit ec: ExecutionContext) {
 
     for {
       v <- validatePageModel(
-            visibilityPageModel,
-            cache,
-            envelope,
-            formModelOptics.formModelVisibilityOptics,
-            GetEmailCodeFieldMatcher(formModelOptics.formModelVisibilityOptics.formModel)
-          )
+             visibilityPageModel,
+             cache,
+             envelope,
+             formModelOptics.formModelVisibilityOptics,
+             GetEmailCodeFieldMatcher(formModelOptics.formModelVisibilityOptics.formModel)
+           )
     } yield {
       val validationResult: ValidationResult =
         ValidationUtil.evaluateValidationResult(
           visibilityPageModel.allFormComponents,
           v,
           formModelOptics.formModelVisibilityOptics,
-          envelope)
+          envelope
+        )
       FormHandlerResult(validationResult, envelope)
     }
 
@@ -79,27 +80,25 @@ class FormValidator(implicit ec: ExecutionContext) {
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
 
     val availableSectionNumbers: List[SectionNumber] = Origin(formModelOptics).availableSectionNumbers
-    availableSectionNumbers.foldLeft(Future.successful(None: Option[SectionNumber])) {
-      case (accF, currentSn) =>
-        accF.flatMap {
-          case Some(sn) => Future.successful(Some(sn))
-          case None =>
-            validatePageModelBySectionNumber(
-              formModelOptics,
-              currentSn,
-              cache,
-              envelope,
-              validatePageModel
-            ).map(toFormValidationOutcome).map {
-              case FormValidationOutcome(isValid, _, _) =>
-                val page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
-                val hasBeenVisited = processData.visitsIndex.contains(currentSn.value)
+    availableSectionNumbers.foldLeft(Future.successful(None: Option[SectionNumber])) { case (accF, currentSn) =>
+      accF.flatMap {
+        case Some(sn) => Future.successful(Some(sn))
+        case None =>
+          validatePageModelBySectionNumber(
+            formModelOptics,
+            currentSn,
+            cache,
+            envelope,
+            validatePageModel
+          ).map(toFormValidationOutcome).map { case FormValidationOutcome(isValid, _, _) =>
+            val page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
+            val hasBeenVisited = processData.visitsIndex.contains(currentSn.value)
 
-                val stop = page.isTerminationPage || !hasBeenVisited
+            val stop = page.isTerminationPage || !hasBeenVisited
 
-                if (isValid && !stop && fastForward.goOn(currentSn)) None else Some(currentSn)
-            }
-        }
+            if (isValid && !stop && fastForward.goOn(currentSn)) None else Some(currentSn)
+          }
+      }
     }
   }
 }

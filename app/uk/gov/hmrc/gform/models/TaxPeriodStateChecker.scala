@@ -36,8 +36,7 @@ trait TaxPeriodStateChecker[F[_], E] {
     evaluatedTaxPeriod: Option[NonEmptyList[HmrcTaxPeriodWithEvaluatedId]],
     cachedObligations: Obligations,
     obligationsAction: ObligationsAction
-  )(
-    implicit
+  )(implicit
     me: MonadError[F, E]
   ): F[Obligations] = {
 
@@ -70,17 +69,18 @@ trait TaxPeriodStateChecker[F[_], E] {
       val newStateMap = toMap(newState)
       val oldStateMap = toMap(oldState)
       newStateMap
-        .exists {
-          case (hmrcTaxPeriod, idNumberValue) =>
-            oldStateMap.get(hmrcTaxPeriod).fold(true)(_ =!= idNumberValue)
+        .exists { case (hmrcTaxPeriod, idNumberValue) =>
+          oldStateMap.get(hmrcTaxPeriod).fold(true)(_ =!= idNumberValue)
         }
     }
 
-  private def toMap(hmrcTaxPeriodWithEvaluatedIds: NonEmptyList[HmrcTaxPeriodWithEvaluatedId])
-    : Map[RecalculatedTaxPeriodKey, IdNumberValue] =
+  private def toMap(
+    hmrcTaxPeriodWithEvaluatedIds: NonEmptyList[HmrcTaxPeriodWithEvaluatedId]
+  ): Map[RecalculatedTaxPeriodKey, IdNumberValue] =
     hmrcTaxPeriodWithEvaluatedIds
       .map(hmrcTaxPeriodWithEvaluatedId =>
-        hmrcTaxPeriodWithEvaluatedId.recalculatedTaxPeriodKey -> hmrcTaxPeriodWithEvaluatedId.idNumberValue)
+        hmrcTaxPeriodWithEvaluatedId.recalculatedTaxPeriodKey -> hmrcTaxPeriodWithEvaluatedId.idNumberValue
+      )
       .toList
       .toMap
 

@@ -63,8 +63,10 @@ class ContinueFormPage(val formTemplate: FormTemplate, form: Form[String])(impli
             content = Text(messages("continueDelete.title", formCat)),
             isPageHeading = true,
             classes = "govuk-label--l"
-          ))
-      ))
+          )
+        )
+      )
+    )
 
     val continue = RadioItem(
       value = Some("continue"),

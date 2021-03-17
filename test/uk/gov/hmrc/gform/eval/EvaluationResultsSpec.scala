@@ -41,38 +41,48 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         (toModelComponentId("dateFieldId2-day"), VariadicValue.One("11")),
         (toModelComponentId("textFieldEmpty"), VariadicValue.One("")),
         (toModelComponentId("textField"), VariadicValue.One("textFieldValue"))
-      ))
+      )
+    )
 
     val table = Table(
       ("typeInfo", "recData", "expectedResult"),
       (
         TypeInfo(
           DateCtx(DateFormCtxVar(FormCtx(FormComponentId("dateFieldId1")))),
-          StaticTypeData(ExprType.dateString, None)),
+          StaticTypeData(ExprType.dateString, None)
+        ),
         recData,
-        DateResult(LocalDate.of(1970, 1, 11))),
+        DateResult(LocalDate.of(1970, 1, 11))
+      ),
       (
         TypeInfo(FormCtx(FormComponentId("dateFieldId1")), StaticTypeData(ExprType.dateString, None)),
         recData,
-        DateResult(LocalDate.of(1970, 1, 11))),
+        DateResult(LocalDate.of(1970, 1, 11))
+      ),
       (
         TypeInfo(
           Else(FormCtx(FormComponentId("dateFieldId1")), FormCtx(FormComponentId("dateFieldId2"))),
-          StaticTypeData(ExprType.dateString, None)),
+          StaticTypeData(ExprType.dateString, None)
+        ),
         recData,
-        DateResult(LocalDate.of(1970, 1, 11))),
+        DateResult(LocalDate.of(1970, 1, 11))
+      ),
       (
         TypeInfo(
           Else(FormCtx(FormComponentId("textFieldEmpty")), FormCtx(FormComponentId("dateFieldId2"))),
-          StaticTypeData(ExprType.dateString, None)),
+          StaticTypeData(ExprType.dateString, None)
+        ),
         recData,
-        DateResult(LocalDate.of(1971, 1, 11))),
+        DateResult(LocalDate.of(1971, 1, 11))
+      ),
       (
         TypeInfo(
           Else(FormCtx(FormComponentId("textFieldEmpty")), Constant("someConstant")),
-          StaticTypeData(ExprType.dateString, None)),
+          StaticTypeData(ExprType.dateString, None)
+        ),
         recData,
-        StringResult("someConstant"))
+        StringResult("someConstant")
+      )
     )
 
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
@@ -87,16 +97,19 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       (
         TypeInfo(
           DateCtx(DateFormCtxVar(FormCtx(FormComponentId("dateFieldId1")))),
-          StaticTypeData(ExprType.string, None)),
+          StaticTypeData(ExprType.string, None)
+        ),
         RecData[OutOfDate](
           VariadicFormData.create(
             (toModelComponentId("dateFieldId1-year"), VariadicValue.One("1970")),
             (toModelComponentId("dateFieldId1-month"), VariadicValue.One("1")),
             (toModelComponentId("dateFieldId1-day"), VariadicValue.One("11")),
             (toModelComponentId("dateFieldId1"), VariadicValue.One("11 January 1970"))
-          )),
+          )
+        ),
         StringResult("11 January 1970"),
-        "DateCtx expression converted to type 'string'"),
+        "DateCtx expression converted to type 'string'"
+      ),
       (
         TypeInfo(FormCtx(FormComponentId("dateFieldId1")), StaticTypeData(ExprType.string, None)),
         RecData[OutOfDate](
@@ -105,9 +118,11 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             (toModelComponentId("dateFieldId1-month"), VariadicValue.One("1")),
             (toModelComponentId("dateFieldId1-day"), VariadicValue.One("11")),
             (toModelComponentId("dateFieldId1"), VariadicValue.One("11 January 1970"))
-          )),
+          )
+        ),
         StringResult("11 January 1970"),
-        "FormCtx Expression converted to type 'string'"),
+        "FormCtx Expression converted to type 'string'"
+      ),
       (
         TypeInfo(Count(FormComponentId("addToListQuestion")), StaticTypeData(ExprType.string, None)),
         RecData[OutOfDate](
@@ -116,7 +131,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             (toModelComponentId("2_addToListQuestion"), VariadicValue.One("1")),
             (toModelComponentId("1_addToListField1"), VariadicValue.One("Hello")),
             (toModelComponentId("2_addToListField1"), VariadicValue.One("World"))
-          )),
+          )
+        ),
         StringResult("2"),
         "Eval Count(addToListComponent) as string"
       )
@@ -133,7 +149,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         (toModelComponentId("2_addToListQuestion"), VariadicValue.One("1")),
         (toModelComponentId("1_addToListField1"), VariadicValue.One("Hello")),
         (toModelComponentId("2_addToListField1"), VariadicValue.One("World"))
-      ))
+      )
+    )
 
     val table = Table(
       ("typeInfo", "recData", "expectedResult", "scenario"),
@@ -141,7 +158,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         TypeInfo(Count(FormComponentId("addToListQuestion")), StaticTypeData(ExprType.number, None)),
         recData,
         NumberResult(2),
-        "Ref to AddToList count in number field")
+        "Ref to AddToList count in number field"
+      )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>
       EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult

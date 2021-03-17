@@ -499,7 +499,8 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
       HtmlSanitiser
         .sanitiseHtmlForPDF(
           Html(input),
-          doc => HtmlSanitiser.acknowledgementPdf(doc, submissionDetails, buildFormTemplate))
+          doc => HtmlSanitiser.acknowledgementPdf(doc, submissionDetails, buildFormTemplate)
+        )
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdf)
 
@@ -520,7 +521,8 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
           HtmlSanitiser.acknowledgementPdf(
             doc,
             submissionDetails,
-            buildFormTemplate.copy(destinations = destinationListWithNoAckSectionHeaderAndFooter))
+            buildFormTemplate.copy(destinations = destinationListWithNoAckSectionHeaderAndFooter)
+          )
       )
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdfWithNoHeaderAndFooter)
@@ -530,7 +532,8 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
     val submissionDetails = "<h2>Extra Data £</h2>"
 
     val ackSectionWithNoFooter = ackSection.copy(
-      pdf = Some(AcknowledgementSectionPdf(Some(toSmartString("It's a Acknowledgement Section Pdf header.")), None)))
+      pdf = Some(AcknowledgementSectionPdf(Some(toSmartString("It's a Acknowledgement Section Pdf header.")), None))
+    )
 
     val destinationListWithNoAckSectionFooter =
       destinationList.copy(acknowledgementSection = ackSectionWithNoFooter)
@@ -543,7 +546,8 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
             .acknowledgementPdf(
               doc,
               submissionDetails,
-              buildFormTemplate.copy(destinations = destinationListWithNoAckSectionFooter))
+              buildFormTemplate.copy(destinations = destinationListWithNoAckSectionFooter)
+            )
       )
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdfWithNoFooter)
@@ -553,7 +557,8 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
     val submissionDetails = "<h2>Extra Data £</h2>"
 
     val ackSectionWithNoHeader = ackSection.copy(
-      pdf = Some(AcknowledgementSectionPdf(None, Some(toSmartString("It's a Acknowledgement Section Pdf footer.")))))
+      pdf = Some(AcknowledgementSectionPdf(None, Some(toSmartString("It's a Acknowledgement Section Pdf footer."))))
+    )
 
     val destinationListWithNoAckSectionHeader =
       destinationList.copy(acknowledgementSection = ackSectionWithNoHeader)
@@ -566,7 +571,8 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
             .acknowledgementPdf(
               doc,
               submissionDetails,
-              buildFormTemplate.copy(destinations = destinationListWithNoAckSectionHeader))
+              buildFormTemplate.copy(destinations = destinationListWithNoAckSectionHeader)
+            )
       )
 
     noWhitespace(res) shouldBe noWhitespace(expectedAcknowledgementPdfWithNoHeader)

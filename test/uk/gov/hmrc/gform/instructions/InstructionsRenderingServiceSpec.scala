@@ -66,22 +66,26 @@ class InstructionsRenderingServiceSpec
       lazy val page1Field1 = buildFormComponent(
         "page1Field1",
         Constant("page1Field2Text"),
-        Some(buildInstruction("page1Field1Instruction", Some(1))))
+        Some(buildInstruction("page1Field1Instruction", Some(1)))
+      )
 
       lazy val page1Field2 = buildFormComponent(
         "page1Field2",
         Constant("page1Field2Text"),
-        Some(buildInstruction("page1Field2Instruction", Some(2))))
+        Some(buildInstruction("page1Field2Instruction", Some(2)))
+      )
 
       lazy val page2Field1 = buildFormComponent(
         "page2Field1",
         Constant("page2Field1Text"),
-        Some(buildInstruction("page2Field1Instruction", Some(2))))
+        Some(buildInstruction("page2Field1Instruction", Some(2)))
+      )
 
       lazy val page2Field2 = buildFormComponent(
         "page2Field2",
         Constant("page2Field2Text"),
-        Some(buildInstruction("page2Field2Instruction", Some(1))))
+        Some(buildInstruction("page2Field2Instruction", Some(1)))
+      )
 
       override lazy val validationResult: ValidationResult = new ValidationResult(
         Map(
@@ -95,24 +99,30 @@ class InstructionsRenderingServiceSpec
 
       override lazy val form: Form =
         buildForm(
-          FormData(List(
-            FormField(page1Field1.id.modelComponentId, "page1Field1Value"),
-            FormField(page1Field2.id.modelComponentId, "page1Field2Value"),
-            FormField(page2Field1.id.modelComponentId, "page2Field1Value"),
-            FormField(page2Field2.id.modelComponentId, "page2Field2Value"),
-          )))
+          FormData(
+            List(
+              FormField(page1Field1.id.modelComponentId, "page1Field1Value"),
+              FormField(page1Field2.id.modelComponentId, "page1Field2Value"),
+              FormField(page2Field1.id.modelComponentId, "page2Field1Value"),
+              FormField(page2Field2.id.modelComponentId, "page2Field2Value")
+            )
+          )
+        )
 
       override lazy val formTemplate: FormTemplate = formTemplateWithInstructions(
         List(
           nonRepeatingPageSection(
             title = "page1",
             instruction = Some(buildInstruction("page1Instruction", Some(2))),
-            fields = List(page1Field1, page1Field2)),
+            fields = List(page1Field1, page1Field2)
+          ),
           nonRepeatingPageSection(
             title = "page2",
             instruction = Some(buildInstruction("page2Instruction", Some(1))),
-            fields = List(page2Field1, page2Field2))
-        ))
+            fields = List(page2Field1, page2Field2)
+          )
+        )
+      )
 
       val pdfHtml =
         instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
@@ -124,12 +134,14 @@ class InstructionsRenderingServiceSpec
       lazy val page1Field1GroupElement1 = buildFormComponent(
         "page1Field1GroupElement1",
         Constant("page1FieldGroupElement1Text"),
-        Some(buildInstruction("page1Field1GroupElement1Instruction", Some(2))))
+        Some(buildInstruction("page1Field1GroupElement1Instruction", Some(2)))
+      )
 
       lazy val page1Field1GroupElement2 = buildFormComponent(
         "page1Field1GroupElement2",
         Constant("page1FieldGroupElement2Text"),
-        Some(buildInstruction("page1Field1GroupElement2Instruction", Some(1))))
+        Some(buildInstruction("page1Field1GroupElement2Instruction", Some(1)))
+      )
 
       lazy val page1Field1 =
         buildFormComponent(
@@ -140,29 +152,36 @@ class InstructionsRenderingServiceSpec
 
       override lazy val form: Form =
         buildForm(
-          FormData(List(
-            FormField(page1Field1.withIndex(1).modelComponentId, ""),
-            FormField(page1Field1.withIndex(2).modelComponentId, ""),
-            FormField(page1Field1GroupElement1.withIndex(1).modelComponentId, "page1Field1GroupElement1Value1"),
-            FormField(page1Field1GroupElement1.withIndex(2).modelComponentId, "page1Field1GroupElement1Value2"),
-            FormField(page1Field1GroupElement2.withIndex(1).modelComponentId, "page1Field1GroupElement2Value1"),
-            FormField(page1Field1GroupElement2.withIndex(2).modelComponentId, "page1Field1GroupElement2Value2")
-          )))
+          FormData(
+            List(
+              FormField(page1Field1.withIndex(1).modelComponentId, ""),
+              FormField(page1Field1.withIndex(2).modelComponentId, ""),
+              FormField(page1Field1GroupElement1.withIndex(1).modelComponentId, "page1Field1GroupElement1Value1"),
+              FormField(page1Field1GroupElement1.withIndex(2).modelComponentId, "page1Field1GroupElement1Value2"),
+              FormField(page1Field1GroupElement2.withIndex(1).modelComponentId, "page1Field1GroupElement2Value1"),
+              FormField(page1Field1GroupElement2.withIndex(2).modelComponentId, "page1Field1GroupElement2Value2")
+            )
+          )
+        )
 
       override lazy val validationResult: ValidationResult = new ValidationResult(
         Map(
           page1Field1GroupElement1.withIndex(1).id -> FieldOk(
             page1Field1GroupElement1.withIndex(1),
-            "page1Field1GroupElement1Value1"),
+            "page1Field1GroupElement1Value1"
+          ),
           page1Field1GroupElement1.withIndex(2).id -> FieldOk(
             page1Field1GroupElement1.withIndex(2),
-            "page1Field1GroupElement1Value2"),
+            "page1Field1GroupElement1Value2"
+          ),
           page1Field1GroupElement2.withIndex(1).id -> FieldOk(
             page1Field1GroupElement2.withIndex(1),
-            "page1Field1GroupElement2Value1"),
+            "page1Field1GroupElement2Value1"
+          ),
           page1Field1GroupElement2.withIndex(2).id -> FieldOk(
             page1Field1GroupElement2.withIndex(2),
-            "page1Field1GroupElement2Value2")
+            "page1Field1GroupElement2Value2"
+          )
         ),
         None
       )
@@ -172,7 +191,10 @@ class InstructionsRenderingServiceSpec
           nonRepeatingPageSection(
             title = "page1",
             instruction = Some(buildInstruction("page1Instruction", Some(1))),
-            fields = List(page1Field1))))
+            fields = List(page1Field1)
+          )
+        )
+      )
 
       val pdfHtml =
         instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
@@ -184,15 +206,18 @@ class InstructionsRenderingServiceSpec
       lazy val page1Field1 = buildFormComponent(
         "page1Field1",
         Constant("page1Field2Text"),
-        Some(buildInstruction("page1Field1Instruction", Some(1))))
+        Some(buildInstruction("page1Field1Instruction", Some(1)))
+      )
 
       override lazy val form: Form =
         buildForm(
           FormData(
             List(
               FormField(page1Field1.withIndex(1).modelComponentId, ""),
-              FormField(page1Field1.withIndex(2).modelComponentId, ""),
-            )))
+              FormField(page1Field1.withIndex(2).modelComponentId, "")
+            )
+          )
+        )
 
       override lazy val validationResult: ValidationResult = new ValidationResult(
         Map(
@@ -208,7 +233,10 @@ class InstructionsRenderingServiceSpec
             title = "page1",
             fields = List(page1Field1),
             instruction = Some(buildInstruction("page1Instruction", Some(1))),
-            repeatsExpr = Constant("2"))))
+            repeatsExpr = Constant("2")
+          )
+        )
+      )
 
       val pdfHtml =
         instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
@@ -220,11 +248,13 @@ class InstructionsRenderingServiceSpec
       lazy val revealingChoice1Field: FormComponent = buildFormComponent(
         "revealingChoice1Field",
         Constant("value1"),
-        Some(buildInstruction("revealingChoice1FieldInstruction", Some(1))))
+        Some(buildInstruction("revealingChoice1FieldInstruction", Some(1)))
+      )
       lazy val revealingChoice2Field: FormComponent = buildFormComponent(
         "revealingChoice2Field",
         Constant("value2"),
-        Some(buildInstruction("revealingChoice2FieldInstruction", Some(1))))
+        Some(buildInstruction("revealingChoice2FieldInstruction", Some(1)))
+      )
       lazy val revealingChoiceField: FormComponent = buildFormComponent(
         name = "revealingChoiceField",
         componentType = RevealingChoice(
@@ -249,11 +279,14 @@ class InstructionsRenderingServiceSpec
 
       override lazy val form: Form =
         buildForm(
-          FormData(List(
-            FormField(revealingChoiceField.modelComponentId, "0,1"),
-            FormField(revealingChoice1Field.modelComponentId, "value1"),
-            FormField(revealingChoice2Field.modelComponentId, "value2")
-          )))
+          FormData(
+            List(
+              FormField(revealingChoiceField.modelComponentId, "0,1"),
+              FormField(revealingChoice1Field.modelComponentId, "value1"),
+              FormField(revealingChoice2Field.modelComponentId, "value2")
+            )
+          )
+        )
 
       override lazy val validationResult: ValidationResult = new ValidationResult(
         Map(
@@ -277,7 +310,8 @@ class InstructionsRenderingServiceSpec
             instruction = Some(buildInstruction("revealingChoicePageInstruction", Some(1))),
             fields = List(revealingChoiceField)
           )
-        ))
+        )
+      )
 
       val pdfHtml =
         instructionRenderingService.createInstructionPDFHtml(cache, submissionDetails, formModelOptics).futureValue
@@ -294,14 +328,17 @@ class InstructionsRenderingServiceSpec
 
       override lazy val form: Form =
         buildForm(
-          FormData(List(
-            FormField(page1Field.withIndex(1).modelComponentId, "page1Field-value1"),
-            FormField(page1Field.withIndex(2).modelComponentId, "page1Field-value2"),
-            FormField(page2Field.withIndex(1).modelComponentId, "page2Field-value1"),
-            FormField(page2Field.withIndex(2).modelComponentId, "page2Field-value2"),
-            FormField(addToListQuestionComponent.withIndex(1).modelComponentId, "0"),
-            FormField(addToListQuestionComponent.withIndex(2).modelComponentId, "1"),
-          )))
+          FormData(
+            List(
+              FormField(page1Field.withIndex(1).modelComponentId, "page1Field-value1"),
+              FormField(page1Field.withIndex(2).modelComponentId, "page1Field-value2"),
+              FormField(page2Field.withIndex(1).modelComponentId, "page2Field-value1"),
+              FormField(page2Field.withIndex(2).modelComponentId, "page2Field-value2"),
+              FormField(addToListQuestionComponent.withIndex(1).modelComponentId, "0"),
+              FormField(addToListQuestionComponent.withIndex(2).modelComponentId, "1")
+            )
+          )
+        )
 
       override lazy val validationResult: ValidationResult = new ValidationResult(
         Map(
@@ -314,14 +351,18 @@ class InstructionsRenderingServiceSpec
             Map(
               Indexed(addToListQuestionComponent.withIndex(1).id, 0) -> FieldOk(
                 addToListQuestionComponent.withIndex(1),
-                "1"))
+                "1"
+              )
+            )
           ),
           addToListQuestionComponent.withIndex(2).id -> ComponentField(
             addToListQuestionComponent.withIndex(2),
             Map(
               Indexed(addToListQuestionComponent.withIndex(2).id, 1) -> FieldOk(
                 addToListQuestionComponent.withIndex(2),
-                "0"))
+                "0"
+              )
+            )
           )
         ),
         None
@@ -338,7 +379,7 @@ class InstructionsRenderingServiceSpec
             Some(buildInstruction("addToListInstruction", Some(1))),
             List(
               toPage("page1", Some(buildInstruction("page1Instruction", Some(2))), List(page1Field)),
-              toPage("page2", Some(buildInstruction("page2Instruction", Some(1))), List(page2Field)),
+              toPage("page2", Some(buildInstruction("page2Instruction", Some(1))), List(page2Field))
             ),
             None
           )
@@ -357,11 +398,14 @@ class InstructionsRenderingServiceSpec
       val hmrcDmsDest = hmrcDms.copy(includeInstructionPdf = true)
       val acknowledgementSection = ackSection.copy(
         instructionPdf = Some(
-          AcknowledgementSectionPdf(Some(toSmartString("some-pdf-header")), Some(toSmartString("some-pdf-footer")))))
+          AcknowledgementSectionPdf(Some(toSmartString("some-pdf-header")), Some(toSmartString("some-pdf-footer")))
+        )
+      )
       buildFormTemplate(
         destinationList
           .copy(destinations = NonEmptyList.of(hmrcDmsDest), acknowledgementSection = acknowledgementSection),
-        sections = sectionList)
+        sections = sectionList
+      )
     }
 
     val i18nSupport: I18nSupport = new I18nSupport {
@@ -398,7 +442,8 @@ class InstructionsRenderingServiceSpec
         *[HeaderCarrier],
         *[Messages],
         *[LangADT],
-        *[SmartStringEvaluator]) returns Future.successful(validationResult)
+        *[SmartStringEvaluator]
+      ) returns Future.successful(validationResult)
     mockRecalculation.recalculateFormDataNew(
       *[VariadicFormData[SourceOrigin.OutOfDate]],
       *[FormModel[Interim]],
@@ -407,23 +452,27 @@ class InstructionsRenderingServiceSpec
       *[ThirdPartyData],
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
-      RecalculationResult.empty(new EvaluationContext(
-        formTemplate._id,
-        submissionRef,
-        maybeAccessCode,
-        retrievals,
-        ThirdPartyData.empty,
-        authConfig,
-        headerCarrier,
-        Option.empty[FormPhase],
-        FileIdsWithMapping.empty
-      )))
+      RecalculationResult.empty(
+        new EvaluationContext(
+          formTemplate._id,
+          submissionRef,
+          maybeAccessCode,
+          retrievals,
+          ThirdPartyData.empty,
+          authConfig,
+          headerCarrier,
+          Option.empty[FormPhase],
+          FileIdsWithMapping.empty
+        )
+      )
+    )
 
     val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
       .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.Normal](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
         cache,
-        mockRecalculation)
+        mockRecalculation
+      )
       .futureValue
     val submissionDetails = Some(
       SubmissionDetails(
@@ -432,8 +481,11 @@ class InstructionsRenderingServiceSpec
           LocalDateTime.now(),
           submissionRef,
           EnvelopeId("some-envelope-id"),
-          DmsMetaData(form.formTemplateId)),
-        ""))
+          DmsMetaData(form.formTemplateId)
+        ),
+        ""
+      )
+    )
 
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
       .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)

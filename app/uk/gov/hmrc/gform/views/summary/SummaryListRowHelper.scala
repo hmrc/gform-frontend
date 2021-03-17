@@ -29,7 +29,8 @@ object SummaryListRowHelper {
     keyClasses: String,
     valueClasses: String,
     actionClasses: String,
-    actions: List[(Call, String)]): SummaryListRow =
+    actions: List[(Call, String)]
+  ): SummaryListRow =
     SummaryListRow(
       key = Key(
         content = Text(label),
@@ -41,15 +42,15 @@ object SummaryListRowHelper {
       ),
       actions = Some(
         Actions(
-          items = actions.map {
-            case (call, linkText) =>
-              ActionItem(
-                href = call.url,
-                content = Text(linkText),
-                visuallyHiddenText = visuallyHiddenText
-              )
+          items = actions.map { case (call, linkText) =>
+            ActionItem(
+              href = call.url,
+              content = Text(linkText),
+              visuallyHiddenText = visuallyHiddenText
+            )
           },
           classes = actionClasses
-        ))
+        )
+      )
     )
 }

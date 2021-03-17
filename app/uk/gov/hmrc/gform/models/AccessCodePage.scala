@@ -43,7 +43,8 @@ object AccessCodePage {
       mapping(
         key → (verification onlyWhen (optionMapping is optionAccess)),
         optionMapping
-      )(AccessCodeForm.apply)(AccessCodeForm.unapply))
+      )(AccessCodeForm.apply)(AccessCodeForm.unapply)
+    )
   }
 
   private def verificationFor(i: Int): Mapping[String] =

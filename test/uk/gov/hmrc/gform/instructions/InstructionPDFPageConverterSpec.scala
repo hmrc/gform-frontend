@@ -86,25 +86,31 @@ class InstructionPDFPageConverterSpec
           authConfig,
           headerCarrier,
           None,
-          FileIdsWithMapping.empty)))
+          FileIdsWithMapping.empty
+        )
+      )
+    )
     val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
       .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.Normal](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
         cache,
-        mockRecalculation)
+        mockRecalculation
+      )
       .futureValue
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
       .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
 
     val textComponent = fieldValue(
       Text(TextConstraint.default, Constant("some text value")),
-      instruction = Some(Instruction(Some(toSmartString("sample label - instruction")), None)))
+      instruction = Some(Instruction(Some(toSmartString("sample label - instruction")), None))
+    )
     val textComponentPrefixSuffix = fieldValue(
       Text(
         TextConstraint.default,
         Constant("some text value"),
         prefix = Some(toSmartString("PREFIX")),
-        suffix = Some(toSmartString("SUFFIX"))),
+        suffix = Some(toSmartString("SUFFIX"))
+      ),
       instruction = Some(Instruction(Some(toSmartString("sample label - instruction")), None))
     )
   }
@@ -121,7 +127,8 @@ class InstructionPDFPageConverterSpec
       mkPage[Visibility](
         "Some Page Title",
         instruction = Some(buildInstruction("Some Page Title Instruction")),
-        formComponents = List(textComponent)),
+        formComponents = List(textComponent)
+      ),
       sectionNumber0,
       cache,
       envelopeWithMapping,
@@ -131,7 +138,9 @@ class InstructionPDFPageConverterSpec
       PageData(
         Some("Some Page Title Instruction"),
         List(SimpleField(Some("sample label - instruction"), List("some text value"))),
-        sectionNumber0.value.toString))
+        sectionNumber0.value.toString
+      )
+    )
   }
 
   it should "return empty when no fields have instruction defined" in new Fixture {
@@ -146,7 +155,8 @@ class InstructionPDFPageConverterSpec
       mkPage[Visibility](
         "Some Page Title",
         instruction = Some(buildInstruction("Some Page Title Instruction")),
-        formComponents = List(textComponent.copy(instruction = None))),
+        formComponents = List(textComponent.copy(instruction = None))
+      ),
       sectionNumber0,
       cache,
       envelopeWithMapping,
@@ -202,7 +212,8 @@ class InstructionPDFPageConverterSpec
           Map(
             HtmlFieldId.pure(`fieldValue - address`.atomicFormComponentId(street1)) -> FieldOk(
               `fieldValue - address`,
-              "street1-value"),
+              "street1-value"
+            ),
             HtmlFieldId
               .pure(`fieldValue - address`.atomicFormComponentId(street2)) -> FieldOk(`fieldValue - address`, ""),
             HtmlFieldId
@@ -211,10 +222,12 @@ class InstructionPDFPageConverterSpec
               .pure(`fieldValue - address`.atomicFormComponentId(street4)) -> FieldOk(`fieldValue - address`, ""),
             HtmlFieldId.pure(`fieldValue - address`.atomicFormComponentId(postcode)) -> FieldOk(
               `fieldValue - address`,
-              "postcode-value"),
+              "postcode-value"
+            ),
             HtmlFieldId.pure(`fieldValue - address`.atomicFormComponentId(country)) -> FieldOk(
               `fieldValue - address`,
-              "country-value"),
+              "country-value"
+            ),
             HtmlFieldId
               .pure(`fieldValue - address`.atomicFormComponentId(uk))    -> FieldOk(`fieldValue - address`, "true"),
             HtmlFieldId.pure(`fieldValue - address`.id.modelComponentId) -> FieldGlobalOk(`fieldValue - address`, "")
@@ -234,12 +247,15 @@ class InstructionPDFPageConverterSpec
           "choice1",
           List(
             SimpleField(Some("text1 - instruction"), List("value1")),
-            SimpleField(Some("text2 - instruction"), List("value2")))),
+            SimpleField(Some("text2 - instruction"), List("value2"))
+          )
+        ),
         ChoiceElement(
           "choice2",
           List(
             SimpleField(Some("Address - instruction"), List("street1-value", "postcode-value", "country-value"))
-          ))
+          )
+        )
       )
     )
 

@@ -33,62 +33,62 @@ import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormTemplateGen
 class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
   /*   forAll(formTemplateGen) { template =>
- *     it should s"Build a data structure with valid key value pair for ${template._id}" in new IdentifierExtractor {
- *       val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserField.EnrolledIdentifier)
- *       val enrolledIdType: ComponentType = Text(BasicText, userCtx)
- *       val retrievals: AuthenticatedRetrievals =
- *         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
- *       val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
- *
- *       val actual = FrontEndSubmissionVariablesBuilder(
- *         retrievals,
- *         template
- *           .copy(
- *             sections = template.sections.map(s => s.updateFields(s.fields.map(_.copy(`type` = enrolledIdType)))),
- *             authConfig = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)
- *           ),
- *         CustomerId("cid")
- *       )
- *
- *       processContext(retrievals, HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)) shouldBe "SA value"
- *       actual shouldBe FrontEndSubmissionVariables(
- *         Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
- *     }
- *   }
- *
- *   forAll(formTemplateGen, formComponentGen(), formComponentGen()) { (template, cmp1, cmp2) =>
- *     it should s"Build a data structure with valid key value pair for ${template._id} with multiple fields type" in new IdentifierExtractor {
- *       val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserField.EnrolledIdentifier)
- *       val enrolledId: ComponentType = Text(BasicText, userCtx)
- *       val valueComponentType: ComponentType = Text(BasicText, Value)
- *       val retrievals: AuthenticatedRetrievals =
- *         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
- *       val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
- *
- *       val usrCtxComponent = cmp1.modify(_.`type`).setTo(enrolledId)
- *       val valueComponent = cmp2.modify(_.`type`).setTo(valueComponentType)
- *
- *       val templateWithAtLeastTwoFields =
- *         template
- *           .copy(
- *             sections = template.sections.map(s => s.updateFields(List(valueComponent, usrCtxComponent))),
- *             authConfig = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)
- *           )
- *
- *       val actual = FrontEndSubmissionVariablesBuilder(retrievals, templateWithAtLeastTwoFields, CustomerId("cid"))
- *       actual shouldBe FrontEndSubmissionVariables(
- *         Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
- *     }
- *   }
- *
- *   val irsaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "SA value")))
- *
- *   val materialisedRetrievalsAgent = AuthenticatedRetrievals(
- *     GovernmentGatewayId(""),
- *     Enrolments(Set(irsaEnrolment)),
- *     AffinityGroup.Individual,
- *     "TestGroupId",
- *     None
- *   )
- */
+   *     it should s"Build a data structure with valid key value pair for ${template._id}" in new IdentifierExtractor {
+   *       val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserField.EnrolledIdentifier)
+   *       val enrolledIdType: ComponentType = Text(BasicText, userCtx)
+   *       val retrievals: AuthenticatedRetrievals =
+   *         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
+   *       val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
+   *
+   *       val actual = FrontEndSubmissionVariablesBuilder(
+   *         retrievals,
+   *         template
+   *           .copy(
+   *             sections = template.sections.map(s => s.updateFields(s.fields.map(_.copy(`type` = enrolledIdType)))),
+   *             authConfig = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)
+   *           ),
+   *         CustomerId("cid")
+   *       )
+   *
+   *       processContext(retrievals, HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)) shouldBe "SA value"
+   *       actual shouldBe FrontEndSubmissionVariables(
+   *         Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
+   *     }
+   *   }
+   *
+   *   forAll(formTemplateGen, formComponentGen(), formComponentGen()) { (template, cmp1, cmp2) =>
+   *     it should s"Build a data structure with valid key value pair for ${template._id} with multiple fields type" in new IdentifierExtractor {
+   *       val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserField.EnrolledIdentifier)
+   *       val enrolledId: ComponentType = Text(BasicText, userCtx)
+   *       val valueComponentType: ComponentType = Text(BasicText, Value)
+   *       val retrievals: AuthenticatedRetrievals =
+   *         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
+   *       val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
+   *
+   *       val usrCtxComponent = cmp1.modify(_.`type`).setTo(enrolledId)
+   *       val valueComponent = cmp2.modify(_.`type`).setTo(valueComponentType)
+   *
+   *       val templateWithAtLeastTwoFields =
+   *         template
+   *           .copy(
+   *             sections = template.sections.map(s => s.updateFields(List(valueComponent, usrCtxComponent))),
+   *             authConfig = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)
+   *           )
+   *
+   *       val actual = FrontEndSubmissionVariablesBuilder(retrievals, templateWithAtLeastTwoFields, CustomerId("cid"))
+   *       actual shouldBe FrontEndSubmissionVariables(
+   *         Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
+   *     }
+   *   }
+   *
+   *   val irsaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "SA value")))
+   *
+   *   val materialisedRetrievalsAgent = AuthenticatedRetrievals(
+   *     GovernmentGatewayId(""),
+   *     Enrolments(Set(irsaEnrolment)),
+   *     AffinityGroup.Individual,
+   *     "TestGroupId",
+   *     None
+   *   )
+   */
 }

@@ -28,8 +28,8 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
 
   def sortLookupByIdx: List[LookupLabel] =
     options.toList
-      .sortBy {
-        case (_, lookupInfo) => lookupInfo.index
+      .sortBy { case (_, lookupInfo) =>
+        lookupInfo.index
       }
       .map(_._1)
 
@@ -64,7 +64,8 @@ object LookupOptions {
 
   def filterBySelectionCriteria(
     selectionCriteria: List[SimplifiedSelectionCriteria],
-    lookupOptions: Map[LookupLabel, LookupInfo]): Map[LookupLabel, LookupInfo] =
+    lookupOptions: Map[LookupLabel, LookupInfo]
+  ): Map[LookupLabel, LookupInfo] =
     if (lookupOptions.isEmpty) lookupOptions
     else
       selectionCriteria match {
@@ -73,7 +74,8 @@ object LookupOptions {
           val (column, values) = (head.column.column.toLowerCase, head.value)
           filterBySelectionCriteria(
             tail,
-            lookupOptions.filter(r => values.contains(getLookupValue(r._2, column).getOrElse(""))))
+            lookupOptions.filter(r => values.contains(getLookupValue(r._2, column).getOrElse("")))
+          )
       }
 
 }

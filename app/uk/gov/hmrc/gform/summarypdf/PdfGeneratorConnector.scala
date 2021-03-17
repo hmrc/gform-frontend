@@ -28,13 +28,14 @@ import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp)(
-  implicit ec: ExecutionContext
+class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp)(implicit
+  ec: ExecutionContext
 ) {
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def generatePDF(payload: Map[String, Seq[PdfHtml]], headers: Seq[(String, String)])(
-    implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {
+  def generatePDF(payload: Map[String, Seq[PdfHtml]], headers: Seq[(String, String)])(implicit
+    hc: HeaderCarrier
+  ): Future[Source[ByteString, _]] = {
     val url = s"$baseURL/pdf-generator-service/generate"
 
     val payloadMap: Map[String, Seq[String]] = payload.mapValues(_.map(_.html))

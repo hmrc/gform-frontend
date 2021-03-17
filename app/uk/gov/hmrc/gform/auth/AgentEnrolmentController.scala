@@ -49,7 +49,8 @@ class AgentEnrolmentController(
       Future.successful(
         Ok(
           uk.gov.hmrc.gform.views.html.hardcoded.pages
-            .agent_enrolment_prologue(agentEnrolmentProlog, frontendAppConfig))
+            .agent_enrolment_prologue(agentEnrolmentProlog, frontendAppConfig)
+        )
       )
     }
 }

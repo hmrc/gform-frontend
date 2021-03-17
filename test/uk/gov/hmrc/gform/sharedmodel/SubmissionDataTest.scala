@@ -30,11 +30,14 @@ class SubmissionDataTest extends Spec {
       None,
       FrontEndSubmissionVariables(Json.parse("""{"user":{"enrolledIdentifier":"ITC"}}""")),
       StructuredFormValue.ObjectStructure(
-        List(Field(FieldName("foo"), StructuredFormValue.TextNode("fooValue"), Map.empty))),
+        List(Field(FieldName("foo"), StructuredFormValue.TextNode("fooValue"), Map.empty))
+      ),
       EmailParametersRecalculated(
         Map(
           EmailTemplateVariable("variable1") -> EmailParameterValue("value1"),
-          EmailTemplateVariable("variable2") -> EmailParameterValue("value2"))),
+          EmailTemplateVariable("variable2") -> EmailParameterValue("value2")
+        )
+      ),
       Attachments(FormComponentId("proof") :: Nil)
     )
 

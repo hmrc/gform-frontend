@@ -49,8 +49,9 @@ case class FrontendAppConfig(
     case None            => JSConfig(timeoutEnabled = false, 0, 0, "", "")
   }
 
-  def timeoutDialog(templateId: FormTemplateId, authConfig: Option[AuthConfig])(
-    implicit messages: Messages): Option[TimeoutDialog] = {
+  def timeoutDialog(templateId: FormTemplateId, authConfig: Option[AuthConfig])(implicit
+    messages: Messages
+  ): Option[TimeoutDialog] = {
     val authTimeout = jsConfig(authConfig)
     if (authTimeout.timeoutEnabled) {
       Some(
@@ -63,7 +64,8 @@ case class FrontendAppConfig(
           signOutButtonText = Some(messages("timeout.dialog.signOutButton")),
           title = Some(messages("timeout.dialog.title")),
           message = Some(messages("timeout.dialog.message"))
-        ))
+        )
+      )
     } else {
       None
     }

@@ -34,11 +34,13 @@ class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHtt
   private val logger = LoggerFactory.getLogger(getClass)
 
   private def getUtrEligibility(
-    request: UtrEligibilityRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
+    request: UtrEligibilityRequest
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
     http.doPost(s"$baseUrl/self-employed-income-support-eligibility/utr-eligibility", request)
 
-  def eligibilityStatus(request: UtrEligibilityRequest, hc: HeaderCarrier)(
-    implicit ec: ExecutionContext): Future[Boolean] = {
+  def eligibilityStatus(request: UtrEligibilityRequest, hc: HeaderCarrier)(implicit
+    ec: ExecutionContext
+  ): Future[Boolean] = {
     implicit val hc_ = hc
 
     request match {
@@ -53,12 +55,17 @@ class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHtt
                 logger.info(s"The person with the given UTR is not eligible to use the SEISS service")
                 Future.successful(false)
               case 400 =>
-                Future.failed(new BadRequestException(
-                  s"SEISS response description : The UTR could not be read from the request body, or was not a valid UTR"))
+                Future.failed(
+                  new BadRequestException(
+                    s"SEISS response description : The UTR could not be read from the request body, or was not a valid UTR"
+                  )
+                )
               case 500 =>
                 Future.failed(
                   new InternalServerException(
-                    s"SEISS response description : Something went wrong processing your request - it was our fault"))
+                    s"SEISS response description : Something went wrong processing your request - it was our fault"
+                  )
+                )
               case _ =>
                 Future.failed(new Exception(s"Unexpected SEISS response"))
             }

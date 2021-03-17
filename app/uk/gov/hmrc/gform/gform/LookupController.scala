@@ -35,7 +35,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 class LookupController(
   auth: AuthenticatedRequestActionsAlgebra[Future],
   lookupRegistry: LookupRegistry,
-  messagesControllerComponents: MessagesControllerComponents)(implicit ec: ExecutionContext)
+  messagesControllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
   def lookupWithSelectionCriteria(
@@ -43,7 +44,8 @@ class LookupController(
     baseComponentId: BaseComponentId,
     register: Register,
     maybeAccessCode: Option[AccessCode],
-    lookupQuery: LookupQuery): Action[AnyContent] =
+    lookupQuery: LookupQuery
+  ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       request => implicit l => cache => sse => formModelOptics =>
         val aFormComponents: Seq[FormComponent] = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
@@ -77,7 +79,8 @@ class LookupController(
               autocomplete
                 .get(l)
                 .fold(List.empty[LookupLabel])(
-                  _.search(query).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel))
+                  _.search(query).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel)
+                )
             options.m
               .get(l)
               .map(r => LookupOptions(filterBySelectionCriteria(sc, r.options)))
@@ -92,7 +95,8 @@ class LookupController(
               autocomplete
                 .get(l)
                 .fold(List.empty[LookupLabel])(
-                  _.search(query).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel))
+                  _.search(query).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel)
+                )
             showAll match {
               case ShowAll.Enabled =>
                 options.process(_.sortLookupByPriorityAndLabel.filter(labels.contains)).map(_.label)

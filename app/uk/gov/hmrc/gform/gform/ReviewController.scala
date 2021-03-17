@@ -37,7 +37,8 @@ class ReviewController(
   auth: AuthenticatedRequestActionsAlgebra[Future],
   gformBackEnd: GformBackEndAlgebra[Future],
   reviewService: ReviewService[Future],
-  messagesControllerComponents: MessagesControllerComponents)(implicit ec: ExecutionContext)
+  messagesControllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
   import i18nSupport._
@@ -49,27 +50,32 @@ class ReviewController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.ReviewAccepted) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      OperationWithForm.ReviewAccepted
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       asyncToResult(
         reviewService
-          .acceptForm[SectionSelectorType.Normal](cache, maybeAccessCode, extractReviewData(request), formModelOptics))
+          .acceptForm[SectionSelectorType.Normal](cache, maybeAccessCode, extractReviewData(request), formModelOptics)
+      )
     }
 
   def reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.ReviewReturned) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      OperationWithForm.ReviewReturned
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       asyncToResult(
         reviewService
-          .returnForm[SectionSelectorType.Normal](cache, maybeAccessCode, extractReviewData(request), formModelOptics))
+          .returnForm[SectionSelectorType.Normal](cache, maybeAccessCode, extractReviewData(request), formModelOptics)
+      )
     }
 
   def reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.ReviewSubmitted) { implicit request => implicit l => cache => sse => formModelOptics =>
+      OperationWithForm.ReviewSubmitted
+    ) { implicit request => implicit l => cache => sse => formModelOptics =>
       asyncToResult(reviewService.submitFormBundle(cache, extractReviewData(request), maybeAccessCode))
     }
 
@@ -77,7 +83,8 @@ class ReviewController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.UpdateFormField) { implicit request => l => cache => sse => formModelOptics =>
+      OperationWithForm.UpdateFormField
+    ) { implicit request => l => cache => sse => formModelOptics =>
       val maybeUpdatedForm: Option[Form] = for {
         body  <- request.body.asJson
         field <- body.asOpt[FormField]
@@ -103,10 +110,12 @@ class ReviewController(
   private def asyncToResult[A](async: Future[A])(implicit ec: ExecutionContext): Future[Result] =
     async
       .map(_ => Ok)
-      .recoverWith {
-        case e: Exception =>
-          logger.warn("Caught exception", e)
-          Future.successful(BadRequest(
-            s"Caught an exception while attempting the operation. The exception message was:\n----\n${e.getMessage}\n----"))
+      .recoverWith { case e: Exception =>
+        logger.warn("Caught exception", e)
+        Future.successful(
+          BadRequest(
+            s"Caught an exception while attempting the operation. The exception message was:\n----\n${e.getMessage}\n----"
+          )
+        )
       }
 }

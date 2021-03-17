@@ -28,7 +28,10 @@ case class FieldError(formComponent: FormComponent, currentValue: String, errors
     extends FormFieldValidationResult
 case class FieldGlobalError(formComponent: FormComponent, currentValue: String, errors: Set[String])
     extends FormFieldValidationResult
-case class ComponentField(formComponent: FormComponent, data: Map[HtmlFieldId, FormFieldValidationResult]) // Used by multivalue fields ie. date, address, sortcode but also choice and revealingChoice
+case class ComponentField(
+  formComponent: FormComponent,
+  data: Map[HtmlFieldId, FormFieldValidationResult]
+) // Used by multivalue fields ie. date, address, sortcode but also choice and revealingChoice
     extends FormFieldValidationResult
 
 trait FormFieldValidationResult {
@@ -116,8 +119,8 @@ trait FormFieldValidationResult {
     case FieldGlobalError(formComponent, cv, _) => List(FormField(formComponent.modelComponentId, cv))
     case FieldGlobalOk(formComponent, cv)       => List(FormField(formComponent.modelComponentId, cv))
     case ComponentField(formComponent, data) =>
-      val indexed: List[HtmlFieldId.Indexed] = data.collect {
-        case (htmlFieldId: HtmlFieldId.Indexed, _) => htmlFieldId
+      val indexed: List[HtmlFieldId.Indexed] = data.collect { case (htmlFieldId: HtmlFieldId.Indexed, _) =>
+        htmlFieldId
       }.toList
       val indices = indexed.map(_.index)
       val xs1: List[FormField] =
@@ -128,9 +131,8 @@ trait FormFieldValidationResult {
       }
 
       val xs2: List[FormField] =
-        pures.flatMap {
-          case (htmlFieldId, ffvr) =>
-            ffvr.convertToFormField.map(withId(_, htmlFieldId.modelComponentId))
+        pures.flatMap { case (htmlFieldId, ffvr) =>
+          ffvr.convertToFormField.map(withId(_, htmlFieldId.modelComponentId))
         }.toList
 
       xs1 ++ xs2

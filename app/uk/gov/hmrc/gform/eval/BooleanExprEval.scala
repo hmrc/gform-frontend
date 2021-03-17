@@ -30,8 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, 
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 
-/**
-  * Evaluates Boolean expressions in context where they do not participate to overall FormModel.
+/** Evaluates Boolean expressions in context where they do not participate to overall FormModel.
   * For example Boolean expressions from validIf expressions.
   */
 class BooleanExprEval[F[_]: Monad] {
@@ -117,7 +116,8 @@ class BooleanExprEval[F[_]: Monad] {
     left: DateExpr,
     right: DateExpr,
     f: (DateResult, DateResult) => Boolean,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]) = {
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  ) = {
     val evalFunc: DateExpr => Option[ExpressionResult.DateResult] = DateExprEval.eval(
       formModelVisibilityOptics.formModel,
       formModelVisibilityOptics.recData.asInstanceOf[RecData[OutOfDate]],

@@ -34,8 +34,8 @@ object AddToListUtils {
 
     val addToListFileUploadIds: Set[FormComponentId] = bracket.toPageModel.toList
       .flatMap(_.allFormComponents)
-      .collect {
-        case fc @ IsFileUpload() => fc.id
+      .collect { case fc @ IsFileUpload() =>
+        fc.id
       }
       .toSet
 
@@ -69,13 +69,13 @@ object AddToListUtils {
 
     val decrementedMapping =
       fileIdsWithMapping.mapping.mapping
-        .filter {
-          case (key, _) => onlyFileIds(key.modelComponentId)
+        .filter { case (key, _) =>
+          onlyFileIds(key.modelComponentId)
         }
         .map { case (k, v) => k.modelComponentId.decrement.toFormComponentId -> v }
 
-    val unchangedMapping = fileIdsWithMapping.mapping.mapping.filter {
-      case (key, _) => toKeep(key.modelComponentId)
+    val unchangedMapping = fileIdsWithMapping.mapping.mapping.filter { case (key, _) =>
+      toKeep(key.modelComponentId)
     }
 
     val componentIdToFileIdMapping = FormComponentIdToFileIdMapping {
@@ -93,7 +93,8 @@ object AddToListUtils {
     (
       variadicFormData -- toBeRemovedIds -- variadicFormDataToModify ++ variadicFormDataToModified - lastAddAnotherQuestionId,
       componentIdToFileIdMapping,
-      filesToBeDeletedFromFileUpload)
+      filesToBeDeletedFromFileUpload
+    )
 
   }
 

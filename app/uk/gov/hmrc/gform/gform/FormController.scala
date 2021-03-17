@@ -175,7 +175,9 @@ class FormController(
                           lastRepeaterSectionNumber,
                           sectionTitle4Ga,
                           suppressErrors,
-                          FastForward.Yes))
+                          FastForward.Yes
+                        )
+                    )
                   }
                 } else {
                   // display current singleton
@@ -211,12 +213,12 @@ class FormController(
       envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
       envelopeWithMapping = EnvelopeWithMapping(envelope, cache.form)
       FormValidationOutcome(_, formData, validatorsResult) <- handler.handleFormValidation(
-                                                               processData.formModelOptics,
-                                                               validationSectionNumber,
-                                                               cache.toCacheData,
-                                                               envelopeWithMapping,
-                                                               validationService.validatePageModel
-                                                             )
+                                                                processData.formModelOptics,
+                                                                validationSectionNumber,
+                                                                cache.toCacheData,
+                                                                envelopeWithMapping,
+                                                                validationService.validatePageModel
+                                                              )
       res <- {
 
         val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
@@ -236,26 +238,30 @@ class FormController(
               .copy(
                 thirdPartyData = after.copy(obligations = processData.obligations),
                 formData = formDataU,
-                visitsIndex = visitsIndex))
+                visitsIndex = visitsIndex
+              )
+          )
 
         if (needsSecondPhaseRecalculation.getOrElse(false)) {
           val newDataRaw = cache.variadicFormData[SectionSelectorType.Normal]
           for {
             newProcessData <- processDataService
-                               .getProcessData[SectionSelectorType.Normal](
-                                 newDataRaw,
-                                 cacheUpd,
-                                 formModelOptics,
-                                 gformConnector.getAllTaxPeriods,
-                                 NoSpecificAction)
+                                .getProcessData[SectionSelectorType.Normal](
+                                  newDataRaw,
+                                  cacheUpd,
+                                  formModelOptics,
+                                  gformConnector.getAllTaxPeriods,
+                                  NoSpecificAction
+                                )
             result <- validateAndUpdateData(
-                       cacheUpd,
-                       newProcessData,
-                       sectionNumber,
-                       validationSectionNumber,
-                       maybeAccessCode,
-                       fastForward,
-                       formModelOptics)(toResult) // recursive call
+                        cacheUpd,
+                        newProcessData,
+                        sectionNumber,
+                        validationSectionNumber,
+                        maybeAccessCode,
+                        fastForward,
+                        formModelOptics
+                      )(toResult) // recursive call
           } yield result
         } else {
           fastForwardService
@@ -264,7 +270,8 @@ class FormController(
               processData.copy(visitsIndex = visitsIndex),
               maybeAccessCode,
               fastForward,
-              envelopeWithMapping)(toResult)
+              envelopeWithMapping
+            )(toResult)
         }
       }
     } yield res
@@ -274,7 +281,8 @@ class FormController(
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     ff: FastForward,
-    direction: Direction) =
+    direction: Direction
+  ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         def processEditAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
@@ -293,7 +301,9 @@ class FormController(
                 firstAddToListPage,
                 sectionTitle4Ga,
                 SuppressErrors.Yes,
-                FastForward.StopAt(next)))
+                FastForward.StopAt(next)
+              )
+          )
             .pure[Future]
         }
 
@@ -316,13 +326,15 @@ class FormController(
             )
 
             val cacheUpd = cache.copy(
-              form = cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId))
+              form = cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId)
+            )
 
             validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) { _ =>
               val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sn)
               Redirect(
                 routes.FormController
-                  .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes))
+                  .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+              )
             }
           }
 
@@ -333,14 +345,16 @@ class FormController(
               processData,
               bracket,
               idx,
-              FileIdsWithMapping(formModel.allFileIds, cache.form.componentIdToFileId))
+              FileIdsWithMapping(formModel.allFileIds, cache.form.componentIdToFileId)
+            )
 
           for {
             updFormModelOptics <- FormModelOptics
-                                   .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
-                                     updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                     cache,
-                                     recalculation)
+                                    .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
+                                      updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+                                      cache,
+                                      recalculation
+                                    )
             redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping)
             _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
           } yield redirect
@@ -348,19 +362,19 @@ class FormController(
 
         for {
           processData <- processDataService
-                          .getProcessData[SectionSelectorType.Normal](
-                            formModelOptics.formModelVisibilityOptics.recData.variadicFormData
-                              .asInstanceOf[VariadicFormData[OutOfDate]],
-                            cache,
-                            formModelOptics,
-                            gformConnector.getAllTaxPeriods,
-                            NoSpecificAction
-                          )
+                           .getProcessData[SectionSelectorType.Normal](
+                             formModelOptics.formModelVisibilityOptics.recData.variadicFormData
+                               .asInstanceOf[VariadicFormData[OutOfDate]],
+                             cache,
+                             formModelOptics,
+                             gformConnector.getAllTaxPeriods,
+                             NoSpecificAction
+                           )
           res <- direction match {
-                  case EditAddToList(idx, addToListId)   => processEditAddToList(processData, idx, addToListId)
-                  case RemoveAddToList(idx, addToListId) => processRemoveAddToList(processData, idx, addToListId)
-                  case _                                 => throw new IllegalArgumentException(s"Direction $direction is not supported here")
-                }
+                   case EditAddToList(idx, addToListId)   => processEditAddToList(processData, idx, addToListId)
+                   case RemoveAddToList(idx, addToListId) => processRemoveAddToList(processData, idx, addToListId)
+                   case _                                 => throw new IllegalArgumentException(s"Direction $direction is not supported here")
+                 }
         } yield res
     }
 
@@ -388,7 +402,8 @@ class FormController(
                 sectionNumber,
                 maybeAccessCode,
                 fastForward,
-                formModelOptics) {
+                formModelOptics
+              ) {
                 case Some(sn) =>
                   val isFirstLanding = sectionNumber < sn
                   val sectionTitle4Ga = getSectionTitle4Ga(processData, sn)
@@ -400,7 +415,9 @@ class FormController(
                         sn,
                         sectionTitle4Ga,
                         SuppressErrors(isFirstLanding),
-                        if (isFirstLanding) fastForward.next else fastForward))
+                        if (isFirstLanding) fastForward.next else fastForward
+                      )
+                  )
                 case None =>
                   Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
               }
@@ -413,7 +430,8 @@ class FormController(
                 sectionNumber,
                 maybeAccessCode,
                 fastForward,
-                formModelOptics) { maybeSn =>
+                formModelOptics
+              ) { maybeSn =>
                 val formTemplate = cache.formTemplate
                 val envelopeExpiryDate = cache.form.envelopeExpiryDate
                 maybeAccessCode match {
@@ -442,11 +460,13 @@ class FormController(
                   browserSectionNumber,
                   maybeAccessCode,
                   fastForward,
-                  formModelOptics) { _ =>
+                  formModelOptics
+                ) { _ =>
                   val sectionTitle4Ga = getSectionTitle4Ga(processData, sn)
                   Redirect(
                     routes.FormController
-                      .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes))
+                      .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+                  )
                 }
 
               val formModel = formModelOptics.formModelRenderPageOptics.formModel
@@ -458,7 +478,9 @@ class FormController(
                 case bracket @ Bracket.AddToList(iterations, _) =>
                   val iteration: Bracket.AddToListIteration[DataExpanded] = bracket.iterationForSectionNumber(sn)
                   val lastIteration: Bracket.AddToListIteration[DataExpanded] = iterations.last
-                  if (iteration.repeater.sectionNumber === sn && iteration.repeater.sectionNumber < lastIteration.repeater.sectionNumber) {
+                  if (
+                    iteration.repeater.sectionNumber === sn && iteration.repeater.sectionNumber < lastIteration.repeater.sectionNumber
+                  ) {
                     val isCommited =
                       formModelOptics.formModelVisibilityOptics.formModel.bracket(sectionNumber).withAddToListBracket {
                         addToListBracket =>
@@ -483,7 +505,8 @@ class FormController(
                 sectionNumber,
                 maybeAccessCode,
                 fastForward,
-                formModelOptics) { _ =>
+                formModelOptics
+              ) { _ =>
                 val sectionTitle4Ga = getSectionTitle4Ga(processData, sectionNumber)
                 Redirect(
                   routes.FormController
@@ -493,7 +516,8 @@ class FormController(
                       sectionNumber,
                       sectionTitle4Ga,
                       SuppressErrors.Yes,
-                      FastForward.Yes)
+                      FastForward.Yes
+                    )
                     .url + anchor
                 )
               }
@@ -527,15 +551,17 @@ class FormController(
               val updatedVariadicFormData = variadicFormData.addOne(incremented -> "")
               for {
                 updFormModelOptics <- FormModelOptics
-                                       .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
-                                         updatedVariadicFormData
-                                           .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                         cache,
-                                         recalculation)
+                                        .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
+                                          updatedVariadicFormData
+                                            .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+                                          cache,
+                                          recalculation
+                                        )
                 res <- handleGroup(
-                        cache,
-                        processData.copy(formModelOptics = updFormModelOptics),
-                        anchor(updFormModelOptics).map("#" + _.toHtmlId).getOrElse(""))
+                         cache,
+                         processData.copy(formModelOptics = updFormModelOptics),
+                         anchor(updFormModelOptics).map("#" + _.toHtmlId).getOrElse("")
+                       )
               } yield res
 
             }
@@ -546,10 +572,11 @@ class FormController(
               val cacheUpd = cache.copy(form = cache.form.copy(componentIdToFileId = componentIdToFileId))
               for {
                 updFormModelOptics <- FormModelOptics
-                                       .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
-                                         updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                         cache,
-                                         recalculation)
+                                        .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
+                                          updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+                                          cache,
+                                          recalculation
+                                        )
                 res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
                 _   <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
               } yield res
@@ -575,13 +602,16 @@ class FormController(
 
                 val cacheUpd = cache.copy(
                   form =
-                    cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId))
+                    cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId)
+                )
 
                 validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, fastForward, formModelOptics) {
                   _ =>
                     val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sn)
-                    Redirect(routes.FormController
-                      .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes))
+                    Redirect(
+                      routes.FormController
+                        .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+                    )
                 }
               }
 
@@ -592,14 +622,16 @@ class FormController(
                   processData,
                   bracket,
                   idx,
-                  FileIdsWithMapping(formModel.allFileIds, cache.form.componentIdToFileId))
+                  FileIdsWithMapping(formModel.allFileIds, cache.form.componentIdToFileId)
+                )
 
               for {
                 updFormModelOptics <- FormModelOptics
-                                       .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
-                                         updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                         cache,
-                                         recalculation)
+                                        .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
+                                          updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+                                          cache,
+                                          recalculation
+                                        )
                 redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping)
                 _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
               } yield redirect
@@ -607,23 +639,29 @@ class FormController(
 
             for {
               processData <- processDataService
-                              .getProcessData[SectionSelectorType.Normal](
-                                variadicFormData,
-                                cache,
-                                formModelOptics,
-                                gformConnector.getAllTaxPeriods,
-                                NoSpecificAction)
+                               .getProcessData[SectionSelectorType.Normal](
+                                 variadicFormData,
+                                 cache,
+                                 formModelOptics,
+                                 gformConnector.getAllTaxPeriods,
+                                 NoSpecificAction
+                               )
               res <- save match {
-                      case SaveAndContinue => processSaveAndContinue(processData)
-                      case SaveAndExit     => processSaveAndExit(processData)
-                      case Back =>
-                        processBack(
-                          processData,
-                          Navigator(sectionNumber, requestRelatedData, processData.formModelOptics).previousOrCurrentSectionNumber)
-                      case AddGroup(modelComponentId)    => processAddGroup(processData, modelComponentId)
-                      case RemoveGroup(modelComponentId) => processRemoveGroup(processData, modelComponentId)
-                      case _                             => throw new IllegalArgumentException(s"Direction $save is not supported here")
-                    }
+                       case SaveAndContinue => processSaveAndContinue(processData)
+                       case SaveAndExit     => processSaveAndExit(processData)
+                       case Back =>
+                         processBack(
+                           processData,
+                           Navigator(
+                             sectionNumber,
+                             requestRelatedData,
+                             processData.formModelOptics
+                           ).previousOrCurrentSectionNumber
+                         )
+                       case AddGroup(modelComponentId)    => processAddGroup(processData, modelComponentId)
+                       case RemoveGroup(modelComponentId) => processRemoveGroup(processData, modelComponentId)
+                       case _                             => throw new IllegalArgumentException(s"Direction $save is not supported here")
+                     }
             } yield res
         }
     }

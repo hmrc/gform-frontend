@@ -31,16 +31,20 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
       ("", ""),
       (
         "link [making a claim](/submissions/new-form/)",
-        """<p>link <a href="/submissions/new-form/" class="govuk-link">making a claim</a></p>"""),
+        """<p>link <a href="/submissions/new-form/" class="govuk-link">making a claim</a></p>"""
+      ),
       (
         "link [making a claim](/some/relative/path)",
-        """<p>link <a href="/some/relative/path" target="_blank" class="govuk-link">making a claim</a></p>"""),
+        """<p>link <a href="/some/relative/path" target="_blank" class="govuk-link">making a claim</a></p>"""
+      ),
       (
         "link [making a claim](https://www.gov.uk/government)",
-        """<p>link <a href="https://www.gov.uk/government" target="_blank" class="govuk-link">making a claim</a></p>"""),
+        """<p>link <a href="https://www.gov.uk/government" target="_blank" class="govuk-link">making a claim</a></p>"""
+      ),
       (
         "link [print pdf](/submissions/acknowledgement/pdf/test-form)",
-        """<p>link <a href="/submissions/acknowledgement/pdf/test-form" target="_blank" class="govuk-link print-link">print pdf</a></p>""")
+        """<p>link <a href="/submissions/acknowledgement/pdf/test-form" target="_blank" class="govuk-link print-link">print pdf</a></p>"""
+      )
     )
 
     forAll(dataAndExpectations) { (input, expected) =>
@@ -60,7 +64,8 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
         """1. Total is 1\.00 and 2\.00""",
         """<ol>
           | <li>Total is 1.00 and 2.00</li>
-          |</ol>""".stripMargin)
+          |</ol>""".stripMargin
+      )
     )
     forAll(data) { (input, expected) =>
       MarkDownUtil.markDownParser(toSmartString(input)) shouldBe Html(expected)

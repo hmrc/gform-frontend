@@ -36,14 +36,14 @@ import scala.concurrent.{ ExecutionContext, Future }
 class InstructionsRenderingService(
   i18nSupport: I18nSupport,
   fileUploadAlgebra: FileUploadAlgebra[Future],
-  validationService: ValidationService) {
+  validationService: ValidationService
+) {
 
   def createInstructionPDFHtml[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
     maybeSubmissionDetails: Option[SubmissionDetails],
     formModelOptics: FormModelOptics[D]
-  )(
-    implicit
+  )(implicit
     request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
@@ -53,13 +53,11 @@ class InstructionsRenderingService(
     import i18nSupport._
     for {
       envelopeWithMapping <- fileUploadAlgebra
-                              .getEnvelope(cache.form.envelopeId)
-                              .map(EnvelopeWithMapping(_, cache.form))
-      validationResult <- validationService
-                           .validateFormModel(
-                             cache.toCacheData,
-                             envelopeWithMapping,
-                             formModelOptics.formModelVisibilityOptics)
+                               .getEnvelope(cache.form.envelopeId)
+                               .map(EnvelopeWithMapping(_, cache.form))
+      validationResult <-
+        validationService
+          .validateFormModel(cache.toCacheData, envelopeWithMapping, formModelOptics.formModelVisibilityOptics)
     } yield {
       val mayBeInstructionPdf = cache.formTemplate.destinations match {
         case DestinationList(_, acknowledgementSection, _) =>
@@ -72,7 +70,8 @@ class InstructionsRenderingService(
           maybeSubmissionDetails,
           mayBeInstructionPdf,
           cache.formTemplate
-        ).toString)
+        ).toString
+      )
     }
   }
 }

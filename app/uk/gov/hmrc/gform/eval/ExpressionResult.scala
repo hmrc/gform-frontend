@@ -46,10 +46,12 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: Empty.type  => this
     case t: NumberResult =>
       fold[ExpressionResult](identity)(_ => t)(_ => t)(_ + t)(s => StringResult(s.value + t.value.toString))(
-        invalidAdd)(invalidAdd)
+        invalidAdd
+      )(invalidAdd)
     case t: StringResult =>
       fold[ExpressionResult](identity)(_ => t)(_ => t)(n => StringResult(n.value.toString + t.value))(_ + t)(
-        invalidAdd)(invalidAdd)
+        invalidAdd
+      )(invalidAdd)
     case t: OptionResult => Invalid(s"Unsupported operation, cannot add options a OptionResult $t")
     case t: DateResult   => Invalid(s"Unsupported operation, cannot add options a OptionResult $t")
   }
@@ -185,7 +187,8 @@ sealed trait ExpressionResult extends Product with Serializable {
 
   def convertNumberToString: ExpressionResult =
     fold[ExpressionResult](identity)(identity)(identity)(r => StringResult(r.value.toString))(identity)(identity)(
-      identity)
+      identity
+    )
 
   def applyTextConstraint(textConstraint: TextConstraint): ExpressionResult = textConstraint match {
     // format: off

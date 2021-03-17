@@ -26,12 +26,14 @@ class AgentEnrolmentProlog(val formTemplate: FormTemplate, url: String)(implicit
   val inset = new govukInsetText()(
     InsetText(
       content = Text(messages("agentsPrologue.p2") + ".")
-    ))
+    )
+  )
 
   val button = new govukButton()(
     Button(
       href = Some(url),
       isStartButton = true,
       content = Text(messages("agentsPrologue.linkText"))
-    ))
+    )
+  )
 }

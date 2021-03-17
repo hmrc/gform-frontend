@@ -67,12 +67,12 @@ object DateHelperFunctions {
     Try(str.toInt) match {
       case Success(month) => month.toString
       case Failure(_)     => ""
-  }
+    }
 
   val getMonthValue: String => String = (str: String) =>
     Try(str.toInt) match {
       case Success(month) => toCamelCase(Month.values().apply(month - 1).toString)
       case Failure(_)     => ""
-  }
+    }
 
 }

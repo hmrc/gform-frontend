@@ -53,7 +53,8 @@ class TestOnlyController(
   lookupRegistry: LookupRegistry,
   auth: AuthenticatedRequestActions,
   servicesConfig: ServicesConfig,
-  controllerComponents: MessagesControllerComponents)(implicit ec: ExecutionContext)
+  controllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
@@ -97,16 +98,13 @@ class TestOnlyController(
           CustomerIdRecalculation
             .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
               cache,
-              formModelOptics.formModelVisibilityOptics)
+              formModelOptics.formModelVisibilityOptics
+            )
 
         withHandlebarPayload {
           for {
-            res <- fetchHandlebarModel(
-                    form,
-                    formTemplate,
-                    formModelOptics.formModelVisibilityOptics,
-                    customerId,
-                    retrievals)
+            res <-
+              fetchHandlebarModel(form, formTemplate, formModelOptics.formModelVisibilityOptics, customerId, retrievals)
           } yield res
         }
     }
@@ -117,8 +115,7 @@ class TestOnlyController(
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     customerId: CustomerId,
     retrievals: MaterialisedRetrievals
-  )(
-    implicit
+  )(implicit
     l: LangADT,
     hc: HeaderCarrier
   ): EitherT[Future, UnexpectedState, Result] = {
@@ -128,29 +125,37 @@ class TestOnlyController(
 
     for {
       structuredFormData <- fromFutureA(
-                             StructuredFormDataBuilder[DataOrigin.Mongo, Future](
-                               formModelVisibilityOptics,
-                               formTemplate.destinations,
-                               lookupRegistry))
+                              StructuredFormDataBuilder[DataOrigin.Mongo, Future](
+                                formModelVisibilityOptics,
+                                formTemplate.destinations,
+                                lookupRegistry
+                              )
+                            )
 
       submissionData = SubmissionData(
-        PdfHtml("htmlForPDF"),
-        None,
-        FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, formModelVisibilityOptics, customerId),
-        structuredFormData,
-        emailParameters,
-        Attachments.empty
-      )
+                         PdfHtml("htmlForPDF"),
+                         None,
+                         FrontEndSubmissionVariablesBuilder(
+                           retrievals,
+                           formTemplate,
+                           formModelVisibilityOptics,
+                           customerId
+                         ),
+                         structuredFormData,
+                         emailParameters,
+                         Attachments.empty
+                       )
 
       httpResponse <- recov(
-                       gformConnector
-                         .renderHandlebarModel(
-                           formTemplate._id,
-                           form._id,
-                           customerId,
-                           submissionData,
-                           affinityGroup
-                         ))("Error when calling gform service.")
+                        gformConnector
+                          .renderHandlebarModel(
+                            formTemplate._id,
+                            form._id,
+                            customerId,
+                            submissionData,
+                            affinityGroup
+                          )
+                      )("Error when calling gform service.")
 
     } yield Ok(httpResponse.body)
 
@@ -168,17 +173,19 @@ class TestOnlyController(
           CustomerIdRecalculation
             .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
               cache,
-              formModelOptics.formModelVisibilityOptics)
+              formModelOptics.formModelVisibilityOptics
+            )
 
         withHandlebarPayload {
           for {
             res <- fetchHandlebarPayload(
-                    form,
-                    formTemplate,
-                    formModelOptics.formModelVisibilityOptics,
-                    customerId,
-                    destinationId,
-                    retrievals)
+                     form,
+                     formTemplate,
+                     formModelOptics.formModelVisibilityOptics,
+                     customerId,
+                     destinationId,
+                     retrievals
+                   )
           } yield res
         }
     }
@@ -195,8 +202,7 @@ class TestOnlyController(
     customerId: CustomerId,
     destinationId: DestinationId,
     retrievals: MaterialisedRetrievals
-  )(
-    implicit
+  )(implicit
     l: LangADT,
     hc: HeaderCarrier
   ): EitherT[Future, UnexpectedState, Result] = {
@@ -206,30 +212,38 @@ class TestOnlyController(
 
     for {
       structuredFormData <- fromFutureA(
-                             StructuredFormDataBuilder[DataOrigin.Mongo, Future](
-                               formModelVisibilityOptics,
-                               formTemplate.destinations,
-                               lookupRegistry))
+                              StructuredFormDataBuilder[DataOrigin.Mongo, Future](
+                                formModelVisibilityOptics,
+                                formTemplate.destinations,
+                                lookupRegistry
+                              )
+                            )
 
       submissionData = SubmissionData(
-        PdfHtml("htmlForPDF"),
-        None,
-        FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, formModelVisibilityOptics, customerId),
-        structuredFormData,
-        emailParameters,
-        Attachments.empty
-      )
+                         PdfHtml("htmlForPDF"),
+                         None,
+                         FrontEndSubmissionVariablesBuilder(
+                           retrievals,
+                           formTemplate,
+                           formModelVisibilityOptics,
+                           customerId
+                         ),
+                         structuredFormData,
+                         emailParameters,
+                         Attachments.empty
+                       )
 
       httpResponse <- recov(
-                       gformConnector
-                         .renderHandlebarPayload(
-                           formTemplate._id,
-                           form._id,
-                           destinationId,
-                           customerId,
-                           submissionData,
-                           affinityGroup
-                         ))("Error when calling gform service.")
+                        gformConnector
+                          .renderHandlebarPayload(
+                            formTemplate._id,
+                            form._id,
+                            destinationId,
+                            customerId,
+                            submissionData,
+                            affinityGroup
+                          )
+                      )("Error when calling gform service.")
 
     } yield Ok(httpResponse.body)
 

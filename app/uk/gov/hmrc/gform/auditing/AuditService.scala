@@ -36,22 +36,24 @@ trait AuditService {
     form: Form,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   ): Map[String, String] =
-    formModelVisibilityOptics.data.all.map {
-      case (modelComponentId, variadicValue) => modelComponentId.toMongoIdentifier -> variadicValue.toSeq.mkString(",")
+    formModelVisibilityOptics.data.all.map { case (modelComponentId, variadicValue) =>
+      modelComponentId.toMongoIdentifier -> variadicValue.toSeq.mkString(",")
     }.toMap
 
   def sendSubmissionEvent(
     form: Form,
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId)(implicit ec: ExecutionContext, hc: HeaderCarrier) =
+    customerId: CustomerId
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier) =
     sendEvent(form, formToMap(form, formModelVisibilityOptics), retrievals, customerId)
 
   private def sendEvent(
     form: Form,
     detail: Map[String, String],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId)(implicit ec: ExecutionContext, hc: HeaderCarrier): String = {
+    customerId: CustomerId
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier): String = {
     val event = eventFor(form, detail, retrievals, customerId)
     auditConnector.sendExtendedEvent(event)
     event.eventId
@@ -61,14 +63,16 @@ trait AuditService {
     form: Form,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId)(implicit hc: HeaderCarrier): ExtendedDataEvent =
+    customerId: CustomerId
+  )(implicit hc: HeaderCarrier): ExtendedDataEvent =
     eventFor(form, formToMap(form, formModelVisibilityOptics), retrievals, customerId)
 
   private def eventFor(
     form: Form,
     detail: Map[String, String],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId)(implicit hc: HeaderCarrier) =
+    customerId: CustomerId
+  )(implicit hc: HeaderCarrier) =
     ExtendedDataEvent(
       auditSource = "Gform-Frontend",
       auditType = "formSubmitted",
@@ -80,7 +84,8 @@ trait AuditService {
     form: Form,
     detail: Map[String, String],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId)(implicit hc: HeaderCarrier) = {
+    customerId: CustomerId
+  )(implicit hc: HeaderCarrier) = {
 
     val userInfo =
       retrievals match {
@@ -92,18 +97,21 @@ trait AuditService {
               "saUtr"    -> mr.getTaxIdValue(IRSA()),
               "ctUtr"    -> mr.getTaxIdValue(IRCT()),
               "deviceId" -> hc.deviceID.getOrElse("")
-            ).filter(values => values._2.nonEmpty))
+            ).filter(values => values._2.nonEmpty)
+          )
         case r: VerifyRetrievals =>
           Json.toJson(
             Map(
               "nino"     -> r.getTaxIdValue(NINO()),
               "deviceId" -> hc.deviceID.getOrElse("")
-            ).filter(values => values._2.nonEmpty))
+            ).filter(values => values._2.nonEmpty)
+          )
         case AnonymousRetrievals(_) =>
           Json.toJson(
             Map(
               "deviceId" -> hc.deviceID.getOrElse("")
-            ).filter(values => values._2.nonEmpty))
+            ).filter(values => values._2.nonEmpty)
+          )
       }
 
     val userValues = Json.toJson(detail.filter(values => values._2.nonEmpty))
@@ -118,14 +126,16 @@ trait AuditService {
     )
   }
 
-  def sendSubmissionEventHashed(hashedValue: String, formAsString: String, eventId: String)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext) =
+  def sendSubmissionEventHashed(hashedValue: String, formAsString: String, eventId: String)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ) =
     sendHashedValues(hashedValue, formAsString, eventId)
 
-  private def sendHashedValues(hash: String, formAsString: String, eventId: String)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext) = auditConnector.sendEvent(hashedValueEvent(hash, formAsString, eventId))
+  private def sendHashedValues(hash: String, formAsString: String, eventId: String)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ) = auditConnector.sendEvent(hashedValueEvent(hash, formAsString, eventId))
 
   private def hashedValueEvent(hashedValue: String, formString: String, eventId: String)(implicit hc: HeaderCarrier) =
     DataEvent(

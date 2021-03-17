@@ -33,7 +33,8 @@ trait SmartStringEvaluatorFactory {
     retrievals: MaterialisedRetrievals,
     maybeAccessCode: Option[AccessCode],
     form: Form,
-    formTemplate: FormTemplate)(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
+    formTemplate: FormTemplate
+  )(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
 
   def apply(
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
@@ -41,7 +42,8 @@ trait SmartStringEvaluatorFactory {
     thirdPartyData: ThirdPartyData,
     maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
-    formTemplate: FormTemplate)(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
+    formTemplate: FormTemplate
+  )(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
 }
 
 class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
@@ -52,8 +54,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
     maybeAccessCode: Option[AccessCode],
     form: Form,
     formTemplate: FormTemplate
-  )(
-    implicit
+  )(implicit
     l: LangADT,
     hc: HeaderCarrier
   ): SmartStringEvaluator =
@@ -66,8 +67,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
     maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
     formTemplate: FormTemplate
-  )(
-    implicit
+  )(implicit
     l: LangADT,
     hc: HeaderCarrier
   ): SmartStringEvaluator =
@@ -82,7 +82,8 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
                 formatExpr(interpolation, markDown)
               }
               .asJava
-              .toArray)
+              .toArray
+          )
 
       }
 

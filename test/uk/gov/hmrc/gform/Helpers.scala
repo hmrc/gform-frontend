@@ -21,13 +21,13 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId }
 
 object Helpers {
   def mkData[A <: SourceOrigin](fields: (String, String)*): VariadicFormData[A] =
-    fields.foldLeft(VariadicFormData.empty[A]) {
-      case (acc, (fcId, value)) => acc addOne (FormComponentId(fcId).modelComponentId -> value)
+    fields.foldLeft(VariadicFormData.empty[A]) { case (acc, (fcId, value)) =>
+      acc addOne (FormComponentId(fcId).modelComponentId -> value)
     }
 
   def mkDataMany[A <: SourceOrigin](fields: (String, Seq[String])*): VariadicFormData[A] =
-    fields.foldLeft(VariadicFormData.empty[A]) {
-      case (acc, (fcId, value)) => acc addMany (FormComponentId(fcId).modelComponentId -> value)
+    fields.foldLeft(VariadicFormData.empty[A]) { case (acc, (fcId, value)) =>
+      acc addMany (FormComponentId(fcId).modelComponentId -> value)
     }
 
   def mkDataCurrent(fields: (String, String)*): VariadicFormData[SourceOrigin.Current] =

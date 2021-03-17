@@ -32,7 +32,8 @@ class CustomHttpRequestHandler(
       router,
       httpErrorHandler,
       httpConfiguration,
-      httpFilters) {
+      httpFilters
+    ) {
 
   override def routeRequest(request: RequestHeader): Option[Handler] =
     router

@@ -36,8 +36,8 @@ import scala.concurrent.Future
 
 class FormDataHelpersSpec extends Spec {
 
-  private def toFormFields(xs: List[(String, String)]): List[FormField] = xs.map {
-    case (fcId, value) => FormField(FormComponentId(fcId).modelComponentId, value)
+  private def toFormFields(xs: List[(String, String)]): List[FormField] = xs.map { case (fcId, value) =>
+    FormField(FormComponentId(fcId).modelComponentId, value)
   }
 
   "updateFormField" should "update FormField in form data" in {
@@ -46,7 +46,8 @@ class FormDataHelpersSpec extends Spec {
         "1" -> "one",
         "2" -> "two",
         "3" -> "three"
-      ))
+      )
+    )
 
     val existingForm = Form(
       FormId("666"),
@@ -73,10 +74,13 @@ class FormDataHelpersSpec extends Spec {
     val continuationFunction = (requestRelatedData: RequestRelatedData) =>
       (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
         requestRelatedData shouldBe RequestRelatedData(Map("actionField" -> List("save")))
-        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](Map(
-          ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("formField1"))) -> VariadicValue.One("value1")))
+        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+          Map(
+            ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("formField1"))) -> VariadicValue.One("value1")
+          )
+        )
         Future.successful(Results.Ok)
-    }
+      }
 
     val future = FormDataHelpers
       .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(continuationFunction)
@@ -90,10 +94,14 @@ class FormDataHelpersSpec extends Spec {
     val continuationFunction = (requestRelatedData: RequestRelatedData) =>
       (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
         variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
-          Map(ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("formField1"))) -> VariadicValue.One(
-            "value1\n23")))
+          Map(
+            ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("formField1"))) -> VariadicValue.One(
+              "value1\n23"
+            )
+          )
+        )
         Future.successful(Results.Ok)
-    }
+      }
 
     val future = FormDataHelpers
       .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(continuationFunction)
@@ -109,7 +117,9 @@ class FormDataHelpersSpec extends Spec {
           NonRepeatingPage[DataExpanded](
             Singleton(section.page.asInstanceOf[Page[DataExpanded]]),
             SectionNumber(0),
-            section))
+            section
+          )
+        )
       ),
       StaticTypeInfo.empty,
       RevealingChoiceInfo.empty,

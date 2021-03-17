@@ -40,12 +40,13 @@ object FormDataHelpers {
 
   def processResponseDataFromBody(
     request: Request[AnyContent],
-    formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo])(
-    continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => Future[Result]): Future[Result] =
+    formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo]
+  )(continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => Future[Result]): Future[Result] =
     request.body.asFormUrlEncoded
-      .map(_.map {
-        case (field, values) =>
-          (field, values.map(value => {
+      .map(_.map { case (field, values) =>
+        (
+          field,
+          values.map { value =>
             val matches = invisibleCharMatches(value)
             if (matches.isEmpty) {
               trimAndReplaceCRLFWithLF(value)
@@ -53,13 +54,15 @@ object FormDataHelpers {
               logger.info(
                 s"Found invisible characters in field $field. " +
                   s"Matches are [${matches
-                    .map {
-                      case (m, count) => s"${getUnicode(m)}:${getDesc(m)}($count)"
+                    .map { case (m, count) =>
+                      s"${getUnicode(m)}:${getDesc(m)}($count)"
                     }
-                    .mkString(", ")}]")
+                    .mkString(", ")}]"
+              )
               replaceInvisibleChars(value).trim
             }
-          }))
+          }
+        )
       }) match {
       case Some(requestData) =>
         val (variadicFormData, requestRelatedData) =
@@ -105,8 +108,11 @@ object FormDataHelpers {
             (
               Some(
                 modelComponentId -> VariadicValue.Many(
-                  s.toList.mkString(",").split(",").map(_.trim).filterNot(_.isEmpty))),
-              None)
+                  s.toList.mkString(",").split(",").map(_.trim).filterNot(_.isEmpty)
+                )
+              ),
+              None
+            )
           case (true, false) =>
             s.toList match {
               case first :: _ =>
@@ -117,7 +123,8 @@ object FormDataHelpers {
                 (Some(modelComponentId -> VariadicValue.One(firstUpdated)), None)
               case _ =>
                 throw new IllegalArgumentException(
-                  show"""Got a single value form component ID "$id", with an empty list of values""")
+                  show"""Got a single value form component ID "$id", with an empty list of values"""
+                )
             }
           case (false, _) => (None, Some(RequestRelatedData(Map(id -> s))))
         }
@@ -127,7 +134,8 @@ object FormDataHelpers {
       case ((variadicFormDataAcc, requestRelatedDataAcc), (maybeVar, maybeReq)) =>
         (
           maybeVar.fold(variadicFormDataAcc)(variadicFormDataAcc addValue _),
-          maybeReq.fold(requestRelatedDataAcc)(requestRelatedDataAcc + _))
+          maybeReq.fold(requestRelatedDataAcc)(requestRelatedDataAcc + _)
+        )
     }
   }
 }

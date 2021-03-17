@@ -37,7 +37,8 @@ class CommonAgentPageProperties(formTemplate: FormTemplate, accessCode: AccessCo
             p(messages("accessCode.new.keepNote", accessCodeName)),
             acStrong,
             p(messages("accessCode.new.youWillBeAsked", formCat) + ".")
-          ))
+          )
+        )
       )
     )
 

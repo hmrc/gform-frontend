@@ -50,13 +50,13 @@ object Submission {
       DmsMetaData.format
   )(Submission.apply _)
 
-  private val writes: OWrites[Submission] = OWrites[Submission](
-    s =>
-      FormId.format.writes(s._id) ++
-        Json.obj("submittedDate" -> Writes.DefaultLocalDateTimeWrites.writes(s.submittedDate)) ++
-        SubmissionRef.oformat.writes(s.submissionRef) ++
-        EnvelopeId.format.writes(s.envelopeId) ++
-        DmsMetaData.format.writes(s.dmsMetaData))
+  private val writes: OWrites[Submission] = OWrites[Submission](s =>
+    FormId.format.writes(s._id) ++
+      Json.obj("submittedDate" -> Writes.DefaultLocalDateTimeWrites.writes(s.submittedDate)) ++
+      SubmissionRef.oformat.writes(s.submissionRef) ++
+      EnvelopeId.format.writes(s.envelopeId) ++
+      DmsMetaData.format.writes(s.dmsMetaData)
+  )
 
   implicit val format: OFormat[Submission] = OFormat[Submission](reads, writes)
 }

@@ -27,7 +27,8 @@ class ExpressionResultSpec extends Spec {
   "stringRepresentation" should "format DateResult as 'dd MMMM yyyy'" in {
     val dateResult = DateResult(LocalDate.of(1970, 1, 1))
     val result = dateResult.stringRepresentation(
-      TypeInfo(DateCtx(DateValueExpr(TodayDateExprValue)), StaticTypeData(ExprType.dateString, None)))
+      TypeInfo(DateCtx(DateValueExpr(TodayDateExprValue)), StaticTypeData(ExprType.dateString, None))
+    )
 
     result shouldBe "01 January 1970"
   }

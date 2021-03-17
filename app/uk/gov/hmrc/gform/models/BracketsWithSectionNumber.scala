@@ -30,14 +30,14 @@ case class BracketsWithSectionNumber[A <: PageMode](brackets: NonEmptyList[Brack
       }
       .getOrElse(throw new IllegalArgumentException(s"Invalid addToListId $addToListId"))
 
-  def addToListBrackets: List[Bracket.AddToList[A]] = brackets.collect {
-    case x: Bracket.AddToList[A] => x
+  def addToListBrackets: List[Bracket.AddToList[A]] = brackets.collect { case x: Bracket.AddToList[A] =>
+    x
   }
   def nonRepeatingPageBrackets: List[Bracket.NonRepeatingPage[A]] = brackets.collect {
     case x: Bracket.NonRepeatingPage[A] => x
   }
-  def repeatingPageBrackets: List[Bracket.RepeatingPage[A]] = brackets.collect {
-    case x: Bracket.RepeatingPage[A] => x
+  def repeatingPageBrackets: List[Bracket.RepeatingPage[A]] = brackets.collect { case x: Bracket.RepeatingPage[A] =>
+    x
   }
 
   def withSectionNumber(sectionNumber: SectionNumber): Bracket[A] =

@@ -45,11 +45,13 @@ sealed trait Bracket[A <: PageMode] extends Product with Serializable {
 
   def toPageModelWithNumber: NonEmptyList[(PageModel[A], SectionNumber)] =
     fold[NonEmptyList[(PageModel[A], SectionNumber)]](a => NonEmptyList.one((a.singleton, a.sectionNumber)))(
-      _.singletons.map(_.toPageModelWithNumber))(_.iterations.flatMap(_.toPageModelWithNumber))
+      _.singletons.map(_.toPageModelWithNumber)
+    )(_.iterations.flatMap(_.toPageModelWithNumber))
 
   def toPageModel: NonEmptyList[PageModel[A]] =
     fold[NonEmptyList[PageModel[A]]](a => NonEmptyList.one(a.singleton))(_.singletons.map(_.singleton))(
-      _.iterations.flatMap(_.toPageModel))
+      _.iterations.flatMap(_.toPageModel)
+    )
 
   def filter(predicate: PageModel[A] => Boolean): Option[Bracket[A]] = this match {
     case Bracket.AddToList(iterations, source) =>
@@ -148,12 +150,15 @@ object Bracket {
             singletonWithNumber.singleton
         }
         .getOrElse(
-          throw new IllegalArgumentException(s"Invalid sectionNumber: $sectionNumber for Bracket.RepeatingPage"))
+          throw new IllegalArgumentException(s"Invalid sectionNumber: $sectionNumber for Bracket.RepeatingPage")
+        )
 
   }
 
   case class AddToList[A <: PageMode](
-    iterations: NonEmptyList[AddToListIteration[A]], // There must be at least one iteration for Add-to-list to make sense
+    iterations: NonEmptyList[
+      AddToListIteration[A]
+    ], // There must be at least one iteration for Add-to-list to make sense
     source: Section.AddToList
   ) extends Bracket[A] {
 
@@ -166,7 +171,8 @@ object Bracket {
 
     def hasSectionNumber(sectionNumber: SectionNumber): Boolean = iterations.exists { iteration =>
       iteration.repeater.sectionNumber === sectionNumber || iteration.singletons.exists(
-        _.sectionNumber === sectionNumber)
+        _.sectionNumber === sectionNumber
+      )
     }
 
     def iterationForSectionNumber(sectionNumber: SectionNumber): Bracket.AddToListIteration[A] =
@@ -175,7 +181,8 @@ object Bracket {
           case iteration if iteration.hasSectionNumber(sectionNumber) => iteration
         }
         .getOrElse(
-          throw new IllegalArgumentException(s"Invalid sectionNumber: $sectionNumber for Bracket.AddToListIteration"))
+          throw new IllegalArgumentException(s"Invalid sectionNumber: $sectionNumber for Bracket.AddToListIteration")
+        )
 
     def repeaters: NonEmptyList[Repeater[A]] = iterations.map(_.repeater.repeater)
 
@@ -191,7 +198,8 @@ object Bracket {
             Bracket
               .AddToListIteration(
                 it.singletons.map(singleton => SingletonWithNumber(singleton, iterator.next)),
-                RepeaterWithNumber(it.repeater, iterator.next))
+                RepeaterWithNumber(it.repeater, iterator.next)
+              )
           },
           source
         )

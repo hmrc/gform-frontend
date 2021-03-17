@@ -175,7 +175,7 @@ class VariadicFormDataSpec extends FlatSpec with Matchers with FormModelSupport 
       manys(bFormComponentId         -> Seq("y"))
 
     data -- Set(aFormComponentId) shouldBe manys(bFormComponentId -> Seq("y"))
-    data -- Set(bFormComponentId) shouldBe ones(aFormComponentId  -> "x")
+    data -- Set(bFormComponentId) shouldBe ones(aFormComponentId -> "x")
   }
 
   it should "do nothing if the key doesn't have a binding" in {
@@ -215,7 +215,10 @@ class VariadicFormDataSpec extends FlatSpec with Matchers with FormModelSupport 
       mkSection(
         mkFormComponent(
           "a",
-          Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None))))
+          Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None)
+        )
+      )
+    )
     val fmb = mkFormModelBuilder(formTemplate)
 
     val formModel: FormModel[DependencyGraphVerification] = fmb.dependencyGraphValidation[SectionSelectorType.Normal]
@@ -223,6 +226,7 @@ class VariadicFormDataSpec extends FlatSpec with Matchers with FormModelSupport 
       formModel,
       Map(aFormComponentId -> "1, 2, ", bFormComponentId -> "3, 4, 5, ")
     ) shouldBe (VariadicFormData.manys(aFormComponentId -> Seq("1", "2")) ++ VariadicFormData.ones(
-      bFormComponentId                                  -> "3, 4, 5, "))
+      bFormComponentId                                  -> "3, 4, 5, "
+    ))
   }
 }

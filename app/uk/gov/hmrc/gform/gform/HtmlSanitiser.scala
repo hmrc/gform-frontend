@@ -76,23 +76,26 @@ object HtmlSanitiser {
 
   }
 
-  def summaryPagePdf(doc: Document, formTemplate: FormTemplate)(
-    implicit l: LangADT,
-    sse: SmartStringEvaluator): Unit = {
+  def summaryPagePdf(doc: Document, formTemplate: FormTemplate)(implicit
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Unit = {
     val headerHtml = markDownParser(formTemplate.summarySection.header).toString
 
     val form = doc.getElementsByTag("form")
     form.prepend(
       h1(formTemplate.formName.value) +
         h1(formTemplate.summarySection.title.value) +
-        headerHtml)
+        headerHtml
+    )
 
     ()
   }
 
-  def acknowledgementPdf(doc: Document, submissionDetails: String, formTemplate: FormTemplate)(
-    implicit l: LangADT,
-    sse: SmartStringEvaluator): Unit = {
+  def acknowledgementPdf(doc: Document, submissionDetails: String, formTemplate: FormTemplate)(implicit
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Unit = {
 
     val pdf = formTemplate.destinations match {
       case d: DestinationList => d.acknowledgementSection.pdf.map(p => (p.header, p.footer))

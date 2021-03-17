@@ -170,7 +170,8 @@ trait InstructionsRenderingServiceSpecExpectations {
           |  <bookmark name="page1Instruction" href="#0"/>
           |</bookmarks>
           |""".stripMargin
-      ))
+      )
+    )
 
   def nonRepeatingSectionsWithGroupHtml() =
     trimLines(
@@ -223,7 +224,8 @@ trait InstructionsRenderingServiceSpecExpectations {
           |  <bookmark name="page1Instruction" href="#0"/>
           |</bookmarks>
           |""".stripMargin
-      ))
+      )
+    )
 
   def repeatingSectionHtml() =
     trimLines(
@@ -262,7 +264,8 @@ trait InstructionsRenderingServiceSpecExpectations {
           |  <bookmark name="page1Instruction" href="#1"/>
           |</bookmarks>
           |""".stripMargin
-      ))
+      )
+    )
 
   def addToListSectionHtml() =
     trimLines(
@@ -337,7 +340,8 @@ trait InstructionsRenderingServiceSpecExpectations {
           | </bookmark>
           |</bookmarks>
           |""".stripMargin
-      ))
+      )
+    )
 
   def revealingChoiceSectionHtml =
     trimLines(
@@ -380,7 +384,8 @@ trait InstructionsRenderingServiceSpecExpectations {
           |  <bookmark name="revealingChoicePageInstruction" href="#0"/>
           |</bookmarks>
           |""".stripMargin
-      ))
+      )
+    )
 
   def trimLines(input: String): String =
     input.split("\n").map(_.trim).mkString("")

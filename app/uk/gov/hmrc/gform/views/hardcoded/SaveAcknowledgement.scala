@@ -25,13 +25,14 @@ import uk.gov.hmrc.gform.views.html.localisedDateString
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ p, pWithBreak }
 
-class SaveAcknowledgement(val formTemplate: FormTemplate, envelopeExpiryDate: Option[EnvelopeExpiryDate])(
-  implicit messages: Messages)
-    extends CommonPageProperties(formTemplate) {
+class SaveAcknowledgement(val formTemplate: FormTemplate, envelopeExpiryDate: Option[EnvelopeExpiryDate])(implicit
+  messages: Messages
+) extends CommonPageProperties(formTemplate) {
 
   private val formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
   private val expiryDate = envelopeExpiryDate.fold(messages("save4later.for30days"))(exD =>
-    messages("save4later.until") + " " + localisedDateString(exD.ldt.format(formatter)))
+    messages("save4later.until") + " " + localisedDateString(exD.ldt.format(formatter))
+  )
 
   val heading = messages("save4later.saved.title", formCat)
 

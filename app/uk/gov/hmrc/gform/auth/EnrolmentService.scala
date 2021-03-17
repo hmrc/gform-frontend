@@ -32,7 +32,8 @@ trait EnrolmentConnect[F[_]] {
   def enrolGGUser(
     request: TaxEnrolment,
     service: ServiceId,
-    retrievals: MaterialisedRetrievals): F[ServiceCallResponse[TaxEnrolmentsResponse]]
+    retrievals: MaterialisedRetrievals
+  ): F[ServiceCallResponse[TaxEnrolmentsResponse]]
 }
 
 trait GGConnect[F[_]] {
@@ -49,8 +50,7 @@ class EnrolmentService(
     identifiers: NonEmptyList[Identifier],
     verifiers: List[Verifier],
     retrievals: MaterialisedRetrievals
-  )(
-    implicit
+  )(implicit
     EC: EnrolmentConnect[F],
     GGC: GGConnect[F]
   ): F[ServiceCallResponse[TaxEnrolmentsResponse]] =
@@ -69,7 +69,8 @@ class EnrolmentService(
     serviceId: ServiceId,
     friendlyName: String,
     identifiers: NonEmptyList[Identifier],
-    knownFacts: List[Verifier]) =
+    knownFacts: List[Verifier]
+  ) =
     GGEnrolmentRequest(
       portalId = portalId,
       serviceName = serviceId.value,

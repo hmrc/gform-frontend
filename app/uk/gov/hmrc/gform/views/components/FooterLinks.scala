@@ -43,8 +43,9 @@ object FooterLinks {
     Some(appConfig.footerHelpUrl)
   )
 
-  def accessibilityStatementLink(appConfig: FrontendAppConfig, templateId: FormTemplateId)(
-    implicit messages: Messages) =
+  def accessibilityStatementLink(appConfig: FrontendAppConfig, templateId: FormTemplateId)(implicit
+    messages: Messages
+  ) =
     FooterItem(
       Some(messages("footer.links.accessibility.text")),
       Some(s"${appConfig.footerAccessibilityStatementUrl}/${templateId.value.toLowerCase}"),

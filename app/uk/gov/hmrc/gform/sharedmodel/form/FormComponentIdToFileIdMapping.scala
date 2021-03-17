@@ -21,8 +21,7 @@ import play.api.libs.json.Format
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, JsonUtils }
 
-/**
-  * Keeps maping between FileUpload component and it's associated FileId in file-upload microservice.
+/** Keeps maping between FileUpload component and it's associated FileId in file-upload microservice.
   *
   * When removing add-to-list iterations we
   * are reindexing FormComponentIds of the components accross all iteration so there

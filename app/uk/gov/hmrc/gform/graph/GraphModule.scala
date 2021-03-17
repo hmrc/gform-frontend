@@ -27,12 +27,13 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 class GraphModule(
   authModule: AuthModule,
   gformBackendModule: GformBackendModule
-)(
-  implicit ec: ExecutionContext
+)(implicit
+  ec: ExecutionContext
 ) {
 
   val seissEligibilityChecker = new SeissEligibilityChecker(
-    authModule.selfEmployedIncomeSupportEligibilityConnector.eligibilityStatus)
+    authModule.selfEmployedIncomeSupportEligibilityConnector.eligibilityStatus
+  )
 
   val delegatedEnrolmentCheckStatus =
     new DelegatedEnrolmentChecker(authModule.delegatedEnrolmentService.checkDelegatedEnrolment)

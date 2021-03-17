@@ -70,8 +70,10 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
             content = Text(messages("accessCode.p3", formCat)),
             isPageHeading = false,
             classes = "govuk-label--m"
-          ))
-      ))
+          )
+        )
+      )
+    )
 
     val accessCodeValue = form(AccessCodePage.key).value.getOrElse("")
     val optionValue = form(AccessCodePage.optionKey).value.getOrElse("")

@@ -74,32 +74,32 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       (variadicFormDataMany("rc" -> List(0, 1)), rc :: Nil)
     )
 
-    forAll(table) {
-      case (data, expectedFcs) =>
-        val expectedPage = Page[Visibility](
-          toSmartString("Section Name"),
-          None,
-          None,
-          None,
-          None,
-          None,
-          expectedFcs,
-          None,
-          None,
-          None,
-          None
-        )
+    forAll(table) { case (data, expectedFcs) =>
+      val expectedPage = Page[Visibility](
+        toSmartString("Section Name"),
+        None,
+        None,
+        None,
+        None,
+        None,
+        expectedFcs,
+        None,
+        None,
+        None,
+        None
+      )
 
-        val expected: FormModel[Visibility] = FormModel.fromPages(
-          NonEmptyList.one(BracketPlain.NonRepeatingPage(Singleton(expectedPage), section1)),
-          expectedStaticTypeInfo,
-          expectedRevealinChoiceInfo,
-          SumInfo.empty)
+      val expected: FormModel[Visibility] = FormModel.fromPages(
+        NonEmptyList.one(BracketPlain.NonRepeatingPage(Singleton(expectedPage), section1)),
+        expectedStaticTypeInfo,
+        expectedRevealinChoiceInfo,
+        SumInfo.empty
+      )
 
-        val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+      val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 
-        res.formModel shouldBe expected
+      res.formModel shouldBe expected
     }
   }
 
@@ -140,11 +140,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       )
     )
 
-    forAll(table) {
-      case (data, expected) =>
-        val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
-        res.evaluationResults.exprMap shouldBe expected
+    forAll(table) { case (data, expected) =>
+      val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+      res.evaluationResults.exprMap shouldBe expected
     }
   }
 
@@ -185,11 +184,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       )
     )
 
-    forAll(table) {
-      case (data, expected) =>
-        val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
-        res.evaluationResults.exprMap shouldBe expected
+    forAll(table) { case (data, expected) =>
+      val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+      res.evaluationResults.exprMap shouldBe expected
     }
   }
 
@@ -259,19 +257,18 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       )
     )
 
-    forAll(table) {
-      case (expression, expected) =>
-        val fcA = mkFormComponent("a", Value).copy(label = toSmartStringExpression("", expression))
-        val section1 = mkSection(fcA)
-        val sections = List(
-          section1
-        )
-        val fmb = mkFormModelFromSections(sections)
-        val data = variadicFormData[SourceOrigin.OutOfDate]()
-        val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+    forAll(table) { case (expression, expected) =>
+      val fcA = mkFormComponent("a", Value).copy(label = toSmartStringExpression("", expression))
+      val section1 = mkSection(fcA)
+      val sections = List(
+        section1
+      )
+      val fmb = mkFormModelFromSections(sections)
+      val data = variadicFormData[SourceOrigin.OutOfDate]()
+      val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 
-        res.evaluationResults.exprMap shouldBe expected
+      res.evaluationResults.exprMap shouldBe expected
     }
   }
 
@@ -298,25 +295,24 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       )
     )
 
-    forAll(table) {
-      case (textConstraint, expected, expectedVariadicData) =>
-        val fcA = mkFormComponent("a", Text(textConstraint, Constant("123")))
-        val fcB =
-          mkFormComponent("b", Value).copy(label = toSmartStringExpression("", Add(FormCtx("a"), Constant("456"))))
-        val section1 = mkSection(fcA)
-        val section2 = mkSection(fcB)
-        val sections = List(
-          section1,
-          section2
-        )
-        val fmb = mkFormModelFromSections(sections)
-        val data = variadicFormData[SourceOrigin.OutOfDate]("a" -> "123")
+    forAll(table) { case (textConstraint, expected, expectedVariadicData) =>
+      val fcA = mkFormComponent("a", Text(textConstraint, Constant("123")))
+      val fcB =
+        mkFormComponent("b", Value).copy(label = toSmartStringExpression("", Add(FormCtx("a"), Constant("456"))))
+      val section1 = mkSection(fcA)
+      val section2 = mkSection(fcB)
+      val sections = List(
+        section1,
+        section2
+      )
+      val fmb = mkFormModelFromSections(sections)
+      val data = variadicFormData[SourceOrigin.OutOfDate]("a" -> "123")
 
-        val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+      val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 
-        res.evaluationResults.exprMap shouldBe expected
-        res.recData.variadicFormData shouldBe expectedVariadicData
+      res.evaluationResults.exprMap shouldBe expected
+      res.recData.variadicFormData shouldBe expectedVariadicData
 
     }
 
@@ -328,7 +324,8 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
     val fcA2 =
       mkFormComponent(
         "a2",
-        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None))
+        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None)
+      )
     val fcB = mkFormComponent("b", Text(TextConstraint.default, Constant("456")))
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
     val fcD = mkFormComponent("d", Text(TextConstraint.default, FormCtx("c")))
@@ -396,15 +393,14 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       )
     )
 
-    forAll(table) {
-      case (data, expected, expectedPages) =>
-        val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
+    forAll(table) { case (data, expected, expectedPages) =>
+      val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
-        val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+      val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 
-        res.evaluationResults.exprMap shouldBe expected
-        res.formModel shouldBe expectedFormModel
+      res.evaluationResults.exprMap shouldBe expected
+      res.formModel shouldBe expectedFormModel
     }
   }
 
@@ -414,7 +410,8 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
     val fcB =
       mkFormComponent(
         "b",
-        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None))
+        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None)
+      )
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
     val fcD = mkFormComponent("d", Text(TextConstraint.default, Value))
 
@@ -473,15 +470,14 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       )
     )
 
-    forAll(table) {
-      case (data, expected, expectedPages) =>
-        val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
+    forAll(table) { case (data, expected, expectedPages) =>
+      val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
-        val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+      val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 
-        res.evaluationResults.exprMap shouldBe expected
-        res.formModel shouldBe expectedFormModel
+      res.evaluationResults.exprMap shouldBe expected
+      res.formModel shouldBe expectedFormModel
     }
   }
 
@@ -491,7 +487,8 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
     val fcB =
       mkFormComponent(
         "b",
-        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None))
+        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None)
+      )
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
     val fcD = mkFormComponent("d", Text(TextConstraint.default, Value))
 
@@ -537,15 +534,14 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       )
     )
 
-    forAll(table) {
-      case (data, expected, expectedPages) =>
-        val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
+    forAll(table) { case (data, expected, expectedPages) =>
+      val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
-        val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+      val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 
-        res.evaluationResults.exprMap shouldBe expected
-        res.formModel shouldBe expectedFormModel
+      res.evaluationResults.exprMap shouldBe expected
+      res.formModel shouldBe expectedFormModel
     }
   }
 
@@ -616,11 +612,10 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       )
     )
 
-    forAll(table) {
-      case (data, expected) =>
-        val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
-        res.evaluationResults.exprMap shouldBe expected
+    forAll(table) { case (data, expected) =>
+      val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+      res.evaluationResults.exprMap shouldBe expected
     }
   }
 
@@ -757,15 +752,14 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
       )
     )
 
-    forAll(table) {
-      case (data, expectedData, expectedPages) =>
-        val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
-          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+    forAll(table) { case (data, expectedData, expectedPages) =>
+      val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 
-        val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
+      val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
-        visibilityOptics.formModel shouldBe expected
-        visibilityOptics.recData.variadicFormData shouldBe expectedData
+      visibilityOptics.formModel shouldBe expected
+      visibilityOptics.recData.variadicFormData shouldBe expectedData
     }
   }
 
@@ -773,24 +767,21 @@ class FormModelSpec extends FlatSpec with Matchers with FormModelSupport with Va
 
 object StaticTypeInfoBuilder {
   def simple(ts: (String, ExprType)*): StaticTypeInfo = StaticTypeInfo {
-    ts.map {
-      case (baseComponentId, exprType) =>
-        BaseComponentId(baseComponentId) -> StaticTypeData(exprType, None)
+    ts.map { case (baseComponentId, exprType) =>
+      BaseComponentId(baseComponentId) -> StaticTypeData(exprType, None)
     }.toMap
   }
   def apply(ts: (String, (ExprType, Option[TextConstraint]))*): StaticTypeInfo = StaticTypeInfo {
-    ts.map {
-      case (baseComponentId, (exprType, textConstraint)) =>
-        BaseComponentId(baseComponentId) -> StaticTypeData(exprType, textConstraint)
+    ts.map { case (baseComponentId, (exprType, textConstraint)) =>
+      BaseComponentId(baseComponentId) -> StaticTypeData(exprType, textConstraint)
     }.toMap
   }
 }
 
 object RevealingChoiceInfoBuilder {
   def apply(ts: (String, (Int, String))*): RevealingChoiceInfo = RevealingChoiceInfo {
-    ts.map {
-      case (baseComponentId, (index, parent)) =>
-        BaseComponentId(baseComponentId) -> RevealingChoiceData(index, BaseComponentId(parent))
+    ts.map { case (baseComponentId, (index, parent)) =>
+      BaseComponentId(baseComponentId) -> RevealingChoiceData(index, BaseComponentId(parent))
     }.toMap
   }
 }

@@ -55,7 +55,8 @@ trait GformBackEndAlgebra[F[_]] {
     formTemplateId: FormTemplateId,
     envelopeId: EnvelopeId,
     customerId: String,
-    noOfAttachments: Int)(implicit hc: HeaderCarrier): F[Submission]
+    noOfAttachments: Int
+  )(implicit hc: HeaderCarrier): F[Submission]
 
   def submissionDetails(formIdData: FormIdData)(implicit hc: HeaderCarrier): F[Submission]
 
@@ -67,8 +68,7 @@ trait GformBackEndAlgebra[F[_]] {
     customerId: CustomerId,
     attachments: Attachments,
     formModelOptics: FormModelOptics[D]
-  )(
-    implicit
+  )(implicit
     request: Request[_],
     messages: Messages,
     l: LangADT,
@@ -80,8 +80,9 @@ trait GformBackEndAlgebra[F[_]] {
 
   def getFormBundle(rootFormId: FormIdData)(implicit hc: HeaderCarrier): F[NonEmptyList[FormIdData]]
 
-  def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(
-    implicit hc: HeaderCarrier): F[Unit]
+  def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(implicit
+    hc: HeaderCarrier
+  ): F[Unit]
 
   def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(implicit hc: HeaderCarrier): F[Unit]
 }
@@ -92,7 +93,8 @@ class GformBackEndService(
   instructionsRenderingService: InstructionsRenderingService,
   lookupRegistry: LookupRegistry,
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
-  recalculation: Recalculation[Future, Throwable])(implicit ec: ExecutionContext)
+  recalculation: Recalculation[Future, Throwable]
+)(implicit ec: ExecutionContext)
     extends GformBackEndAlgebra[Future] {
 
   def getForm(id: FormIdData)(implicit hc: HeaderCarrier): Future[Form] = gformConnector.getForm(id)
@@ -108,11 +110,13 @@ class GformBackEndService(
     formTemplateId: FormTemplateId,
     envelopeId: EnvelopeId,
     customerId: String,
-    noOfAttachments: Int)(implicit hc: HeaderCarrier): Future[Submission] =
+    noOfAttachments: Int
+  )(implicit hc: HeaderCarrier): Future[Submission] =
     gformConnector.createSubmission(formId, formTemplateId, envelopeId, customerId, noOfAttachments)
 
-  def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(
-    implicit hc: HeaderCarrier): Future[Unit] =
+  def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(implicit
+    hc: HeaderCarrier
+  ): Future[Unit] =
     gformConnector.submitFormBundle(rootFormId, bundle)
 
   def submissionDetails(formIdData: FormIdData)(implicit hc: HeaderCarrier): Future[Submission] =
@@ -126,8 +130,7 @@ class GformBackEndService(
     customerId: CustomerId,
     attachments: Attachments,
     formModelOptics: FormModelOptics[D]
-  )(
-    implicit
+  )(implicit
     request: Request[_],
     messages: Messages,
     l: LangADT,
@@ -149,56 +152,51 @@ class GformBackEndService(
     submissionDetails: Option[SubmissionDetails],
     attachments: Attachments,
     formModelOptics: FormModelOptics[D]
-  )(
-    implicit
+  )(implicit
     request: Request[_],
     messages: Messages,
     l: LangADT,
     hc: HeaderCarrier,
-    lise: SmartStringEvaluator): Future[HttpResponse] =
+    lise: SmartStringEvaluator
+  ): Future[HttpResponse] =
     for {
-      htmlForPDF <- summaryRenderingService
-                     .createHtmlForPdf(
-                       maybeAccessCode,
-                       cache,
-                       submissionDetails,
-                       SummaryPagePurpose.ForDms,
-                       formModelOptics)
+      htmlForPDF <-
+        summaryRenderingService
+          .createHtmlForPdf(maybeAccessCode, cache, submissionDetails, SummaryPagePurpose.ForDms, formModelOptics)
       htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate))
-                                createHTMLForInstructionPDF[SectionSelectorType.Normal, D](
-                                  maybeAccessCode,
-                                  cache,
-                                  submissionDetails,
-                                  formModelOptics)
-                              else
-                                Future.successful(None)
+                                 createHTMLForInstructionPDF[SectionSelectorType.Normal, D](
+                                   maybeAccessCode,
+                                   cache,
+                                   submissionDetails,
+                                   formModelOptics
+                                 )
+                               else
+                                 Future.successful(None)
       structuredFormData <- StructuredFormDataBuilder(
-                             formModelOptics.formModelVisibilityOptics,
-                             cache.formTemplate.destinations,
-                             lookupRegistry)
+                              formModelOptics.formModelVisibilityOptics,
+                              cache.formTemplate.destinations,
+                              lookupRegistry
+                            )
       response <- handleSubmission(
-                   cache.retrievals,
-                   cache.formTemplate,
-                   emailParameter(cache.formTemplate, formModelOptics.formModelVisibilityOptics),
-                   maybeAccessCode,
-                   customerId,
-                   htmlForPDF,
-                   htmlForInstructionPDF,
-                   structuredFormData,
-                   attachments,
-                   formModelOptics.formModelVisibilityOptics
-                 )
+                    cache.retrievals,
+                    cache.formTemplate,
+                    emailParameter(cache.formTemplate, formModelOptics.formModelVisibilityOptics),
+                    maybeAccessCode,
+                    customerId,
+                    htmlForPDF,
+                    htmlForInstructionPDF,
+                    structuredFormData,
+                    attachments,
+                    formModelOptics.formModelVisibilityOptics
+                  )
     } yield response
 
   private def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, D <: DataOrigin](
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     submissionDetails: Option[SubmissionDetails],
-    formModelOptics: FormModelOptics[D])(
-    implicit
-    request: Request[_],
-    l: LangADT,
-    hc: HeaderCarrier) = {
+    formModelOptics: FormModelOptics[D]
+  )(implicit request: Request[_], l: LangADT, hc: HeaderCarrier) = {
 
     val formModelOpticsUpdatedF = FormModelOptics.mkFormModelOptics(
       formModelOptics.formModelVisibilityOptics.recData.variadicFormData
@@ -230,13 +228,13 @@ class GformBackEndService(
 
   def emailParameter[D <: DataOrigin](
     formTemplate: FormTemplate,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]): EmailParametersRecalculated =
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  ): EmailParametersRecalculated =
     formTemplate.emailParameters.fold(EmailParametersRecalculated.empty) { emailParameters =>
       val emailParametersRecalculated: Map[EmailTemplateVariable, EmailParameterValue] = emailParameters
-        .map {
-          case EmailParameter(emailTemplateVariable, expr) =>
-            val emailParameterValue = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
-            EmailTemplateVariable(emailTemplateVariable) -> EmailParameterValue(emailParameterValue)
+        .map { case EmailParameter(emailTemplateVariable, expr) =>
+          val emailParameterValue = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
+          EmailTemplateVariable(emailTemplateVariable) -> EmailParameterValue(emailParameterValue)
         }
         .toList
         .toMap
@@ -280,7 +278,8 @@ class GformBackEndService(
         emailParameters,
         structuredFormData,
         attachments,
-        formModelVisibilityOptics),
+        formModelVisibilityOptics
+      ),
       AffinityGroupUtil.fromRetrievals(retrievals)
     )
 
@@ -308,9 +307,8 @@ class GformBackEndService(
     formTemplate.destinations match {
       case DestinationList(destinations, _, _) =>
         destinations
-          .collect {
-            case HmrcDms(_, _, _, _, _, _, _, _, _, _, includeInstructionPdf) =>
-              includeInstructionPdf
+          .collect { case HmrcDms(_, _, _, _, _, _, _, _, _, _, includeInstructionPdf) =>
+            includeInstructionPdf
           }
           .contains(true)
       case _ => false

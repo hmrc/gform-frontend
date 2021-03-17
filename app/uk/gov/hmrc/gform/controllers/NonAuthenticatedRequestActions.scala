@@ -32,8 +32,7 @@ trait NonAuthenticatedRequestActionsAlgebra[F[_]] {
 class NonAuthenticatedRequestActions(
   langs: Langs,
   actionBuilder: ActionBuilder[Request, AnyContent]
-)(
-  implicit
+)(implicit
   messagesApi: MessagesApi
 ) extends NonAuthenticatedRequestActionsAlgebra[Future] {
 

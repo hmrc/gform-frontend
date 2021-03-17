@@ -50,8 +50,9 @@ case class FormModelOptics[D <: DataOrigin](
 
 object FormModelOptics {
 
-  def fromEnrolmentSection[D <: DataOrigin](enrolmentSection: EnrolmentSection, cache: AuthCacheWithoutForm)(
-    implicit hc: HeaderCarrier) = {
+  def fromEnrolmentSection[D <: DataOrigin](enrolmentSection: EnrolmentSection, cache: AuthCacheWithoutForm)(implicit
+    hc: HeaderCarrier
+  ) = {
     val evaluationContext =
       new EvaluationContext(
         cache.formTemplate._id,
@@ -81,8 +82,7 @@ object FormModelOptics {
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping
-  )(
-    implicit
+  )(implicit
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
   ): F[FormModelOptics[D]] = {
@@ -98,8 +98,7 @@ object FormModelOptics {
     cache: AuthCacheWithForm,
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase] = None
-  )(
-    implicit
+  )(implicit
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
   ): F[FormModelOptics[D]] =

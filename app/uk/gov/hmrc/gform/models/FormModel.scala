@@ -47,8 +47,8 @@ case class FormModel[A <: PageMode](
   val allModelComponentIds: Set[ModelComponentId] = allMultiValueIds.flatMap(_.toModelComponentIds).toSet
 
   def allUpperCaseIds: Set[ModelComponentId] =
-    allFormComponents.collect {
-      case fc @ IsCapitalised() => fc.modelComponentId
+    allFormComponents.collect { case fc @ IsCapitalised() =>
+      fc.modelComponentId
     }.toSet
 
   val allMultiSelectionIds: Set[ModelComponentId] = allFormComponents
@@ -60,8 +60,8 @@ case class FormModel[A <: PageMode](
     .toSet
 
   val allFileIds: Set[ModelComponentId] = allFormComponents
-    .collect {
-      case fc @ IsFileUpload() => fc.id
+    .collect { case fc @ IsFileUpload() =>
+      fc.id
     }
     .map(_.modelComponentId)
     .toSet
@@ -84,7 +84,8 @@ case class FormModel[A <: PageMode](
   def flatMapRepeater(
     f: (
       NonEmptyList[BracketPlain.AddToListIteration[A]],
-      Section.AddToList) => NonEmptyList[BracketPlain.AddToListIteration[A]]
+      Section.AddToList
+    ) => NonEmptyList[BracketPlain.AddToListIteration[A]]
   ): FormModel[A] = {
     val bracketPlains = brackets.toBrackets.map {
       case BracketPlain.AddToList(iterations, source) => BracketPlain.AddToList(f(iterations, source), source)
@@ -106,8 +107,8 @@ case class FormModel[A <: PageMode](
   def isDefinedAt(modelComponentId: ModelComponentId): Boolean = allModelComponentIds(modelComponentId)
 
   def filter[B <: PageMode](predicate: PageModel[A] => Boolean): FormModel[B] = {
-    val filtered: List[Bracket[A]] = brackets.brackets.map(_.filter(predicate)).collect {
-      case Some(bracket) => bracket
+    val filtered: List[Bracket[A]] = brackets.brackets.map(_.filter(predicate)).collect { case Some(bracket) =>
+      bracket
     }
     NonEmptyList
       .fromList(filtered)

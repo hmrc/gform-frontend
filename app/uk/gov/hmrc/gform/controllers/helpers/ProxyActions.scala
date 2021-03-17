@@ -25,12 +25,11 @@ import play.api.mvc._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponents)(
-  implicit ec: ExecutionContext
+class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponents)(implicit
+  ec: ExecutionContext
 ) {
 
-  /**
-    * This creates actions which proxies incoming request to remote service.
+  /** This creates actions which proxies incoming request to remote service.
     */
   def apply(remoteServiceBaseUrl: String)(path: String): Action[Source[ByteString, _]] =
     controllerComponents.actionBuilder.async(streamedBodyParser(ec)) {
@@ -45,7 +44,8 @@ class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponent
           Result(
             ResponseHeader(
               streamedResponse.status,
-              streamedResponse.headers.mapValues(_.head).filter(filterOutContentHeaders)),
+              streamedResponse.headers.mapValues(_.head).filter(filterOutContentHeaders)
+            ),
             Streamed(streamedResponse.bodyAsSource, contentLength, contentType)
           )
         }
@@ -53,12 +53,13 @@ class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponent
 
   private lazy val contentTypeHeaderKey = "Content-Type"
   private lazy val contentLengthHeaderKey = "Content-Length"
-  private lazy val filterOutContentHeaders: ((String, String)) => Boolean = {
-    case (key, _) => !key.equalsIgnoreCase(contentTypeHeaderKey) && !key.equalsIgnoreCase(contentLengthHeaderKey)
+  private lazy val filterOutContentHeaders: ((String, String)) => Boolean = { case (key, _) =>
+    !key.equalsIgnoreCase(contentTypeHeaderKey) && !key.equalsIgnoreCase(contentLengthHeaderKey)
   }
 
-  private def proxyRequest(path: String, inboundRequest: Request[Source[ByteString, _]])(
-    implicit ec: ExecutionContext): Future[WSRequest] = Future(
+  private def proxyRequest(path: String, inboundRequest: Request[Source[ByteString, _]])(implicit
+    ec: ExecutionContext
+  ): Future[WSRequest] = Future(
     wsClient
       .url(s"$path")
       .withFollowRedirects(false)

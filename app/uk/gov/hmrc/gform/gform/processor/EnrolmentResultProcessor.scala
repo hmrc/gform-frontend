@@ -53,9 +53,9 @@ class EnrolmentResultProcessor(
       )
     )
 
-  def recoverEnrolmentError(validationResult: ValidationResult)(
-    implicit
-    messages: Messages): SubmitEnrolmentError => Result =
+  def recoverEnrolmentError(
+    validationResult: ValidationResult
+  )(implicit messages: Messages): SubmitEnrolmentError => Result =
     enrolmentError => {
 
       def convertEnrolmentError(see: SubmitEnrolmentError): (ValidationResult, List[ErrorLink]) =
@@ -77,7 +77,8 @@ class EnrolmentResultProcessor(
     }
 
   def processEnrolmentResult(
-    authRes: CheckEnrolmentsResult)(implicit request: Request[AnyContent], messages: Messages, l: LangADT): Result =
+    authRes: CheckEnrolmentsResult
+  )(implicit request: Request[AnyContent], messages: Messages, l: LangADT): Result =
     authRes match {
       case CheckEnrolmentsResult.Conflict =>
         Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.error_enrolment_conflict(formTemplate, frontendAppConfig))
@@ -86,7 +87,8 @@ class EnrolmentResultProcessor(
       case CheckEnrolmentsResult.InvalidIdentifiers | CheckEnrolmentsResult.InvalidCredentials |
           CheckEnrolmentsResult.InsufficientEnrolments =>
         val globalError: ErrorLink = ErrorLink(
-          content = content.HtmlContent(html.form.errors.error_global_enrolment(formTemplate._id)))
+          content = content.HtmlContent(html.form.errors.error_global_enrolment(formTemplate._id))
+        )
 
         val globalErrors = globalError :: Nil
         val validationResult = ValidationResult.empty

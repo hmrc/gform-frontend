@@ -35,7 +35,8 @@ trait GraphSpec {
     governmentGatewayId: GovernmentGatewayId,
     delegatedEnrolment: DelegatedEnrolment,
     identifierValue: IdentifierValue,
-    hc: HeaderCarrier): F[Boolean] = true.pure[F]
+    hc: HeaderCarrier
+  ): F[Boolean] = true.pure[F]
 
   def booleanExprEval[F[_]: Monad]: BooleanExprEval[F] = new BooleanExprEval[F]()
 

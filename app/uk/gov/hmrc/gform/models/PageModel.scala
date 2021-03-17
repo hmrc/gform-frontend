@@ -42,9 +42,8 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def allModelComponentIds: Set[ModelComponentId] = allMultiValueIds.flatMap(_.toModelComponentIds).toSet
 
   def pageLookup: Map[FormComponentId, PageModel[A]] =
-    allFormComponents.foldLeft(Map.empty[FormComponentId, PageModel[A]]) {
-      case (acc, fc) =>
-        acc + (fc.id -> this)
+    allFormComponents.foldLeft(Map.empty[FormComponentId, PageModel[A]]) { case (acc, fc) =>
+      acc + (fc.id -> this)
     }
 
   def getIncludeIf: Option[IncludeIf] = fold(_.page.includeIf)(_.includeIf)

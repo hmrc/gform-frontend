@@ -53,12 +53,14 @@ object DateValidationLogic {
     ConcreteDate(
       Year.Exact(localDate.getYear),
       Month.Exact(localDate.getMonthValue),
-      Day.Exact(localDate.getDayOfMonth))
+      Day.Exact(localDate.getDayOfMonth)
+    )
 
   def incorrectDateMessage(
     beforeAfterPrecisely: BeforeAfterPrecisely,
     concreteDate: ConcreteDate,
-    offsetDate: OffsetDate)(implicit messages: Messages): MessageKeyWithVars = {
+    offsetDate: OffsetDate
+  )(implicit messages: Messages): MessageKeyWithVars = {
 
     val govDateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy")
     val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) =>
@@ -109,8 +111,9 @@ object DateValidationLogic {
     vars: Option[List[String]]
   )
 
-  def hasMaximumLength(str: String, maximumLength: Int, label: String)(
-    implicit messages: Messages): Validated[String, String] =
+  def hasMaximumLength(str: String, maximumLength: Int, label: String)(implicit
+    messages: Messages
+  ): Validated[String, String] =
     if (str.length > maximumLength) Invalid(messages(genericErrorMaxLength, label, maximumLength))
     else Valid(str)
 
@@ -135,7 +138,8 @@ object DateValidationLogic {
     }
 
   def parallelWithApplicative[E: Semigroup, A](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(
-    f: (Int, Int, Int) => A): Validated[E, A] = (v3, v2, v1).mapN(f)
+    f: (Int, Int, Int) => A
+  ): Validated[E, A] = (v3, v2, v1).mapN(f)
 }
 
 object HasYear {
@@ -160,7 +164,9 @@ object HasDay {
     case Day.Exact(y) => toLocalDate(y).some
     case Day.First    => toLocalDate(1).some
     case Day.Last =>
-      ((year: Int) => (month: Int) => LocalDate.of(year, month, DateValidationLogic.getLastDayOfMonth(year, month))).some
+      (
+        (year: Int) => (month: Int) => LocalDate.of(year, month, DateValidationLogic.getLastDayOfMonth(year, month))
+      ).some
     case Day.Any => none
   }
 }

@@ -38,8 +38,8 @@ import scala.util.{ Failure, Success, Try }
 
 class AuthService(
   appConfig: AppConfig
-)(
-  implicit ec: ExecutionContext
+)(implicit
+  ec: ExecutionContext
 ) {
 
   private val logger = LoggerFactory.getLogger(getClass)
@@ -48,15 +48,17 @@ class AuthService(
     formTemplate: FormTemplate,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
     ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult],
-    assumedIdentity: Option[Cookie])(
-    implicit hc: HeaderCarrier,
+    assumedIdentity: Option[Cookie]
+  )(implicit
+    hc: HeaderCarrier,
     l: LangADT
   ): Future[AuthResult] =
     formTemplate.authConfig match {
       case Anonymous =>
         hc.sessionId
           .fold[AuthResult](AuthAnonymousSession(gform.routes.NewFormController.dashboard(formTemplate._id)))(
-            sessionId => AuthSuccessful(AnonymousRetrievals(sessionId), Role.Customer))
+            sessionId => AuthSuccessful(AnonymousRetrievals(sessionId), Role.Customer)
+          )
           .pure[Future]
       case AWSALBAuth => performAWSALBAuth(assumedIdentity).pure[Future]
       case HmrcAny    => performHmrcAny(ggAuthorised(RecoverAuthResult.noop))
@@ -99,18 +101,21 @@ class AuthService(
                     case Some(cookie) =>
                       if (jwtPayload.iss === appConfig.albAdminIssuerUrl) {
                         logger.info(
-                          s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]")
+                          s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]"
+                        )
                         AuthSuccessful(awsAlbAuthenticatedRetrieval(AffinityGroup.Agent, cookie.value), Role.Reviewer)
                       } else {
                         logger.error(
-                          s"ALB-AUTH: Attempted unauthorized access with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]")
+                          s"ALB-AUTH: Attempted unauthorized access with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]"
+                        )
                         notAuthorized
                       }
                     case None =>
                       logger.info(s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}]")
                       AuthSuccessful(
                         awsAlbAuthenticatedRetrieval(AffinityGroup.Individual, jwtPayload.username),
-                        Role.Customer)
+                        Role.Customer
+                      )
                   }
                 case JsError(_) => AuthBlocked("Not authorized")
               }
@@ -166,27 +171,27 @@ class AuthService(
         for {
           predicate <- predicateF
           result <- ggAuthorised(recoverPF)(predicate).map { authResult =>
-                     (authResult, enrolmentPostCheck) match {
-                       case (AuthSuccessful(retrievals: AuthenticatedRetrievals, _), RegimeIdCheck(regimeId)) =>
-                         enrolmentCheckPredicate match {
-                           case ForNonAgents if retrievals.affinityGroup == AffinityGroup.Agent => authResult
-                           case ForNonAgents | Always =>
-                             val serviceEnrolments =
-                               retrievals.enrolments.enrolments.filter(_.key === enrolmentAuth.serviceId.value)
-                             val enrolmentIdentifiers = serviceEnrolments.flatMap(_.identifiers.map(_.value))
-                             val isRegimeIdEnrolled = enrolmentIdentifiers.exists(_.drop(2).startsWith(regimeId.value))
+                      (authResult, enrolmentPostCheck) match {
+                        case (AuthSuccessful(retrievals: AuthenticatedRetrievals, _), RegimeIdCheck(regimeId)) =>
+                          enrolmentCheckPredicate match {
+                            case ForNonAgents if retrievals.affinityGroup == AffinityGroup.Agent => authResult
+                            case ForNonAgents | Always =>
+                              val serviceEnrolments =
+                                retrievals.enrolments.enrolments.filter(_.key === enrolmentAuth.serviceId.value)
+                              val enrolmentIdentifiers = serviceEnrolments.flatMap(_.identifiers.map(_.value))
+                              val isRegimeIdEnrolled = enrolmentIdentifiers.exists(_.drop(2).startsWith(regimeId.value))
 
-                             if (isRegimeIdEnrolled) authResult
-                             else
-                               needEnrolment match {
-                                 case RequireEnrolment(_, _) => showEnrolment
-                                 case RejectAccess =>
-                                   AuthBlocked(s"Enrolment for regimeId: ${regimeId.value} required.")
-                               }
-                         }
-                       case _ => authResult
-                     }
-                   }
+                              if (isRegimeIdEnrolled) authResult
+                              else
+                                needEnrolment match {
+                                  case RequireEnrolment(_, _) => showEnrolment
+                                  case RejectAccess =>
+                                    AuthBlocked(s"Enrolment for regimeId: ${regimeId.value} required.")
+                                }
+                          }
+                        case _ => authResult
+                      }
+                    }
         } yield result
       case Never =>
         // From the spec 'never' seems to be the same as not providing ServiceId in the first place.
@@ -207,7 +212,8 @@ class AuthService(
     agentAccess: AgentAccess,
     formTemplate: FormTemplate,
     ggAuthorised: Predicate => Future[AuthResult],
-    continuation: AuthResult => Future[AuthResult])(implicit l: LangADT): Future[AuthResult] =
+    continuation: AuthResult => Future[AuthResult]
+  )(implicit l: LangADT): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .map {
         case ggSuccessfulAuth @ AuthSuccessful(ar @ AuthenticatedRetrievals(_, enrolments, _, _, _), _)
@@ -229,7 +235,8 @@ class AuthService(
         val failureUrl =
           URLEncoder.encode(gform.routes.IdentityVerificationController.failure(formTemplate._id).url, "UTF-8")
         AuthRedirect(
-          s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=200")
+          s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=200"
+        )
       case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Organisation, _, None), _) =>
         val irsa = IRSA()
         val maybeEnrolmentId: Option[EnrolmentIdentifier] =
@@ -238,7 +245,8 @@ class AuthService(
         maybeEnrolmentId.fold[AuthResult](
           AuthRedirect(
             gform.routes.IdentityVerificationController.enrolmentsNeeded(formTemplate._id).url
-          ))(_ => authResult)
+          )
+        )(_ => authResult)
 
       case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Agent, _, _), _) =>
         AuthBlocked("Agents cannot access this form")
@@ -246,8 +254,9 @@ class AuthService(
 
     }
 
-  private def ggAgentAuthorise(agentAccess: AgentAccess, formTemplate: FormTemplate, enrolments: Enrolments)(
-    implicit l: LangADT): HMRCAgentAuthorisation =
+  private def ggAgentAuthorise(agentAccess: AgentAccess, formTemplate: FormTemplate, enrolments: Enrolments)(implicit
+    l: LangADT
+  ): HMRCAgentAuthorisation =
     agentAccess match {
       case RequireMTDAgentEnrolment if enrolments.getEnrolment("HMRC-AS-AGENT").isDefined =>
         HMRCAgentAuthorisationSuccessful
@@ -255,7 +264,8 @@ class AuthService(
       case AllowAnyAgentAffinityUser => HMRCAgentAuthorisationSuccessful
       case _ =>
         HMRCAgentAuthorisationFailed(
-          routes.AgentEnrolmentController.prologue(formTemplate._id, formTemplate.formName.value).url)
+          routes.AgentEnrolmentController.prologue(formTemplate._id, formTemplate.formName.value).url
+        )
     }
 }
 

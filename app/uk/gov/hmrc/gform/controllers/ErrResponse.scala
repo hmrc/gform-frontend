@@ -22,7 +22,8 @@ import play.api.libs.json.{ JsValue, Json, OFormat }
 case class ErrResponse(
   error: String,
   details: Option[JsValue] = None,
-  occurrenceId: String = UUID.randomUUID().toString)
+  occurrenceId: String = UUID.randomUUID().toString
+)
 
 object ErrResponse {
   implicit val format: OFormat[ErrResponse] = Json.format[ErrResponse]

@@ -77,7 +77,8 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   val materialisedRetrievalsEnrolledAgent =
     materialisedRetrievalsBuilder(
       uk.gov.hmrc.auth.core.AffinityGroup.Agent,
-      Enrolments(Set(Enrolment("HMRC-AS-AGENT"))))
+      Enrolments(Set(Enrolment("HMRC-AS-AGENT")))
+    )
 
   val materialisedRetrievalsOrganisation =
     materialisedRetrievalsBuilder(uk.gov.hmrc.auth.core.AffinityGroup.Organisation, enrolments)
@@ -89,8 +90,12 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     materialisedRetrievalsBuilder(
       uk.gov.hmrc.auth.core.AffinityGroup.Individual,
       Enrolments(
-        Set(Enrolment("HMRC-ORG-OBTDS").copy(
-          identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890")))))
+        Set(
+          Enrolment("HMRC-ORG-OBTDS").copy(
+            identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890"))
+          )
+        )
+      )
     )
 
   //val requestUri = "/submissions/test"
@@ -172,7 +177,8 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
           formTemplateRequireMTDAgentEnrolment,
           getAffinityGroup,
           ggAuthorisedSuccessfulEnrolledAgent,
-          None)
+          None
+        )
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolledAgent, Role.Customer))
   }
 

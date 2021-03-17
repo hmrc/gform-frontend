@@ -110,28 +110,31 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
 
   it should "handle group component" in {
 
-    val formComponentIds: TableFor3[
-      VariadicFormData[SourceOrigin.OutOfDate],
-      VariadicFormData[SourceOrigin.Current],
-      Map[Expr, ExpressionResult]] = Table(
+    val formComponentIds: TableFor3[VariadicFormData[SourceOrigin.OutOfDate], VariadicFormData[
+      SourceOrigin.Current
+    ], Map[Expr, ExpressionResult]] = Table(
       ("input", "output", "expectedExprMap"),
       (mkDataOutOfDate(), mkDataCurrent(), Map(ctx("a") -> Empty)),
       (
         mkDataOutOfDate("a"                  -> "2"),
         mkDataCurrent("a"                    -> "2"),
-        Map[Expr, ExpressionResult](ctx("a") -> StringResult("2"))),
+        Map[Expr, ExpressionResult](ctx("a") -> StringResult("2"))
+      ),
       (
         mkDataOutOfDate("a" -> "2", "1_b" -> "", "1_c" -> ""),
         mkDataCurrent("a"   -> "2", "1_b" -> "", "1_c" -> ""),
-        Map(ctx("a")        -> StringResult("2"))),
+        Map(ctx("a")        -> StringResult("2"))
+      ),
       (
         mkDataOutOfDate("a" -> "2", "1_b" -> "2", "2_b" -> "", "1_c" -> "", "2_c" -> ""),
         mkDataCurrent("a"   -> "2", "1_b" -> "2", "2_b" -> "", "1_c" -> "", "2_c" -> ""),
-        Map(ctx("a")        -> StringResult("2"))),
+        Map(ctx("a")        -> StringResult("2"))
+      ),
       (
         mkDataOutOfDate("a" -> "2", "1_b" -> "2", "2_b" -> "2", "1_c" -> "3", "2_c" -> "3"),
         mkDataCurrent("a"   -> "2", "1_b" -> "2", "2_b" -> "2", "1_c" -> "3", "2_c" -> "3"),
-        Map(ctx("a")        -> StringResult("2")))
+        Map(ctx("a")        -> StringResult("2"))
+      )
     )
     val sections = List(
       mkSection(
@@ -139,7 +142,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
           mkFormComponent("a", Value),
           mkFormComponent(
             "group",
-            mkGroup(5, List(mkFormComponentEditable("b", ctx("a")), mkFormComponent("c", Value))))
+            mkGroup(5, List(mkFormComponentEditable("b", ctx("a")), mkFormComponent("c", Value)))
+          )
         )
       )
     )
@@ -325,7 +329,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
     val expectedExprMap = Map(
       FormCtx(FormComponentId("a")) -> NumberResult(1),
       Constant("0")                 -> NumberResult(0),
-      FormCtx(FormComponentId("b")) -> Hidden)
+      FormCtx(FormComponentId("b")) -> Hidden
+    )
 
     verify(inputData, expectedOutputData, expectedExprMap, sections)
 
@@ -347,7 +352,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
           ctx("d")   -> Hidden,
           const("0") -> NumberResult(0),
           const("1") -> NumberResult(1)
-        )),
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "0", "b" -> "1", "c" -> "100", "d" -> "200"),
         mkDataManyCurrent("a"   -> "0", "b" -> "1", "c" -> "100", "d" -> "200"),
@@ -357,7 +363,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
           ctx("c")   -> Hidden,
           const("0") -> NumberResult(0),
           const("1") -> NumberResult(1)
-        )),
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "1", "b" -> "0", "c" -> "100", "d" -> "200"),
         mkDataManyCurrent("a"   -> "1", "b" -> "0", "c" -> "100", "d" -> "200"),
@@ -368,7 +375,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
           ctx("d")   -> Hidden,
           const("0") -> NumberResult(0),
           const("1") -> NumberResult(1)
-        )),
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "1", "b" -> "1", "c" -> "100", "d" -> "200"),
         mkDataManyCurrent("a"   -> "1", "b" -> "1", "c" -> "100", "d" -> "200"),
@@ -379,7 +387,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
           ctx("d")   -> Hidden,
           const("0") -> NumberResult(0),
           const("1") -> NumberResult(1)
-        ))
+        )
+      )
     )
 
     val includeIf1 = IncludeIf(Contains(FormCtx(FormComponentId("a")), Constant("0")))
@@ -392,10 +401,12 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
         mkSectionIncludeIf(List(mkFormComponent("b", choice)), includeIf1),
         mkSectionIncludeIf(
           List(mkFormComponent("c", Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))))),
-          includeIf2),
+          includeIf2
+        ),
         mkSectionIncludeIf(
           List(mkFormComponent("d", Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))))),
-          includeIf3)
+          includeIf3
+        )
       )
 
       verify(input, expectedOutput, expectedExprMap, sections)
@@ -411,41 +422,46 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
       ("input", "output", "expectedExprMap"),
       (
         mkDataManyOutOfDate("a" -> "0", "c" -> "0") ++ mkDataOutOfDate("b" -> "Your class"),
-        mkDataManyCurrent("a"   -> "0", "c" -> "0") ++ mkDataCurrent("b"   -> "your client"),
+        mkDataManyCurrent("a" -> "0", "c" -> "0") ++ mkDataCurrent("b" -> "your client"),
         Map(
           ctx("a")             -> OptionResult(List(0)),
           ctx("b")             -> StringResult("your client"),
           const("0")           -> NumberResult(0),
           const("you")         -> StringResult("you"),
-          const("your client") -> StringResult("your client"),
-        )),
+          const("your client") -> StringResult("your client")
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "1", "c" -> "0") ++ mkDataOutOfDate("b" -> "Your class"),
-        mkDataManyCurrent("a"   -> "1", "c" -> "0") ++ mkDataCurrent("b"   -> "Your class"),
+        mkDataManyCurrent("a" -> "1", "c" -> "0") ++ mkDataCurrent("b" -> "Your class"),
         Map(
           ctx("a")             -> OptionResult(List(1)),
           ctx("b")             -> Hidden,
           const("0")           -> NumberResult(0),
           const("you")         -> StringResult("you"),
-          const("your client") -> StringResult("your client"),
-        )),
+          const("your client") -> StringResult("your client")
+        )
+      )
     )
 
     val includeIf1 = IncludeIf(Contains(ctx("a"), Constant("0")))
 
-    for (i <- 0 to 100) {
+    for (i <- 0 to 100)
       forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
         val sections = List(
           mkSection(List(mkFormComponent("a", choice))),
           mkSectionIncludeIf(List(mkFormComponent("b", const("your client"))), includeIf1),
           mkSection(
-            List(mkFormComponent("c", choice).copy(
-              label = SmartString(LocalisedString.empty, List(Else(ctx("b"), const("you"))))))),
+            List(
+              mkFormComponent("c", choice).copy(
+                label = SmartString(LocalisedString.empty, List(Else(ctx("b"), const("you"))))
+              )
+            )
+          )
         )
 
         verify(input, expectedOutput, expectedExprMap, sections)
       }
-    }
   }
 
   it should "handle String addition" in {
@@ -463,7 +479,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
 
     val expectedExprMap: Map[Expr, ExpressionResult] = Map(
       ctx("a") -> StringResult("1"),
-      ctx("b") -> StringResult("10"),
+      ctx("b") -> StringResult("10")
     )
 
     val sections =
@@ -480,40 +496,55 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
     val data = Table(
       ("input", "output"),
       (
-        mkDataManyOutOfDate("c" -> "0") ++ mkDataOutOfDate("a" -> "1", "b" -> "1", "d" -> "0", "e"    -> "0"),
-        mkDataManyCurrent("c"   -> "0") ++ mkDataCurrent("a"   -> "1", "b" -> "1", "d" -> "2.00", "e" -> "0")),
+        mkDataManyOutOfDate("c" -> "0") ++ mkDataOutOfDate("a" -> "1", "b" -> "1", "d" -> "0", "e" -> "0"),
+        mkDataManyCurrent("c" -> "0") ++ mkDataCurrent("a" -> "1", "b" -> "1", "d" -> "2.00", "e" -> "0")
+      ),
       (
         mkDataManyOutOfDate("c" -> "1") ++ mkDataOutOfDate("a" -> "1", "b" -> "1", "d" -> "0", "e" -> "0"),
-        mkDataManyCurrent("c"   -> "1") ++ mkDataCurrent("a"   -> "1", "b" -> "1", "d" -> "0", "e" -> "2.00"))
+        mkDataManyCurrent("c" -> "1") ++ mkDataCurrent("a" -> "1", "b" -> "1", "d" -> "0", "e" -> "2.00")
+      )
     )
 
     val expectedExprMap: Map[Expr, ExpressionResult] = Map(
       ctx("a") -> NumberResult(1.00),
-      ctx("b") -> NumberResult(1.00),
+      ctx("b") -> NumberResult(1.00)
     )
 
     val sections =
       mkSection(List(mkFormComponent("a", Value, sterling))) ::
         mkSection(List(mkFormComponent("b", Value, sterling))) ::
         mkSection(
-        List(mkFormComponent(
-          "c",
-          RevealingChoice(
-            List(
-              RevealingChoiceElement(
-                toSmartString("Yes"),
-                mkFormComponent("d", Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))), sterling) :: Nil,
-                None,
-                false),
-              RevealingChoiceElement(
-                toSmartString("No"),
-                mkFormComponent("e", Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))), sterling) :: Nil,
-                None,
-                false)
-            ),
-            true
+          List(
+            mkFormComponent(
+              "c",
+              RevealingChoice(
+                List(
+                  RevealingChoiceElement(
+                    toSmartString("Yes"),
+                    mkFormComponent(
+                      "d",
+                      Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))),
+                      sterling
+                    ) :: Nil,
+                    None,
+                    false
+                  ),
+                  RevealingChoiceElement(
+                    toSmartString("No"),
+                    mkFormComponent(
+                      "e",
+                      Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))),
+                      sterling
+                    ) :: Nil,
+                    None,
+                    false
+                  )
+                ),
+                true
+              )
+            )
           )
-        ))) :: Nil
+        ) :: Nil
 
     forAll(data) { (input, expectedOutput) ⇒
       verify(input, expectedOutput, expectedExprMap, sections)
@@ -522,46 +553,52 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
   }
 
   it should "detect non-selected fields on revealing choice component" in {
-    val data: TableFor3[
-      VariadicFormData[SourceOrigin.OutOfDate],
-      VariadicFormData[SourceOrigin.Current],
-      Map[Expr, ExpressionResult]] = Table(
+    val data: TableFor3[VariadicFormData[SourceOrigin.OutOfDate], VariadicFormData[SourceOrigin.Current], Map[
+      Expr,
+      ExpressionResult
+    ]] = Table(
       ("input", "output", "expectedExprMap"),
       (
         mkDataManyOutOfDate("rc" -> "0") ++ mkDataOutOfDate("a" -> "10", "b" -> "11"),
-        mkDataManyCurrent("rc"   -> "0") ++ mkDataCurrent("a"   -> "10", "b" -> "11", "res" -> "10.00"),
+        mkDataManyCurrent("rc" -> "0") ++ mkDataCurrent("a" -> "10", "b" -> "11", "res" -> "10.00"),
         Map(
           ctx("a") -> NumberResult(10.00),
-          ctx("b") -> Hidden,
-        )),
+          ctx("b") -> Hidden
+        )
+      ),
       (
         mkDataManyOutOfDate("rc" -> "1") ++ mkDataOutOfDate("a" -> "10", "b" -> "11"),
-        mkDataManyCurrent("rc"   -> "1") ++ mkDataCurrent("a"   -> "10", "b" -> "11", "res" -> "11.00"),
+        mkDataManyCurrent("rc" -> "1") ++ mkDataCurrent("a" -> "10", "b" -> "11", "res" -> "11.00"),
         Map(
           ctx("a") -> Hidden,
-          ctx("b") -> NumberResult(11.00),
-        )),
+          ctx("b") -> NumberResult(11.00)
+        )
+      ),
       (
         mkDataManyOutOfDate("rc" -> "0,1") ++ mkDataOutOfDate("a" -> "10", "b" -> "11"),
-        mkDataManyCurrent("rc"   -> "0,1") ++ mkDataCurrent("a"   -> "10", "b" -> "11", "res" -> "21.00"),
+        mkDataManyCurrent("rc" -> "0,1") ++ mkDataCurrent("a" -> "10", "b" -> "11", "res" -> "21.00"),
         Map(
           ctx("a") -> NumberResult(10.00),
-          ctx("b") -> NumberResult(11.00),
-        ))
+          ctx("b") -> NumberResult(11.00)
+        )
+      )
     )
 
     val sections =
       mkSection(
-        List(mkFormComponent(
-          "rc",
-          RevealingChoice(
-            List(
-              RevealingChoiceElement(toSmartString("Yes"), mkFormComponent("a", Value, sterling) :: Nil, None, false),
-              RevealingChoiceElement(toSmartString("No"), mkFormComponent("b", Value, sterling) :: Nil, None, false)
-            ),
-            true
+        List(
+          mkFormComponent(
+            "rc",
+            RevealingChoice(
+              List(
+                RevealingChoiceElement(toSmartString("Yes"), mkFormComponent("a", Value, sterling) :: Nil, None, false),
+                RevealingChoiceElement(toSmartString("No"), mkFormComponent("b", Value, sterling) :: Nil, None, false)
+              ),
+              true
+            )
           )
-        ))) ::
+        )
+      ) ::
         mkSection(List(mkFormComponent("res", Add(ctx("a"), ctx("b")), sterling))) ::
         Nil
 
@@ -572,39 +609,42 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
 
   it should "not recalculate editable field" in {
 
-    val formComponentIds: TableFor3[
-      VariadicFormData[SourceOrigin.OutOfDate],
-      VariadicFormData[SourceOrigin.Current],
-      Map[Expr, ExpressionResult]] = Table(
+    val formComponentIds: TableFor3[VariadicFormData[SourceOrigin.OutOfDate], VariadicFormData[
+      SourceOrigin.Current
+    ], Map[Expr, ExpressionResult]] = Table(
       ("input", "output", "expectedExprMap"),
       (
         mkDataOutOfDate("a" -> "1"),
         mkDataCurrent("a"   -> "1"),
         Map(
           ctx("a") -> NumberResult(1.00),
-          ctx("b") -> Empty,
-        )),
+          ctx("b") -> Empty
+        )
+      ),
       (
         mkDataOutOfDate("a" -> "1", "b" -> ""),
         mkDataCurrent("a"   -> "1", "b" -> ""),
         Map(
           ctx("a") -> NumberResult(1.00),
-          ctx("b") -> Invalid("Number - cannot convert '' to number"),
-        )),
+          ctx("b") -> Invalid("Number - cannot convert '' to number")
+        )
+      ),
       (
         mkDataOutOfDate("a" -> "1", "b" -> "10"),
         mkDataCurrent("a"   -> "1", "b" -> "10"),
         Map(
           ctx("a") -> NumberResult(1.00),
-          ctx("b") -> NumberResult(10.00),
-        )),
+          ctx("b") -> NumberResult(10.00)
+        )
+      ),
       (
         mkDataOutOfDate("a" -> "1", "b" -> "10", "c" -> "12"),
         mkDataCurrent("a"   -> "1", "b" -> "10", "c" -> "12"),
         Map(
           ctx("a") -> NumberResult(1.00),
-          ctx("b") -> NumberResult(10.00),
-        ))
+          ctx("b") -> NumberResult(10.00)
+        )
+      )
     )
 
     val sections =
@@ -628,58 +668,64 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
           ctx("a")   -> OptionResult(List(1)),
           ctx("b")   -> Hidden,
           ctx("c")   -> Hidden,
-          ctx("d")   -> Hidden,
-        )),
+          ctx("d")   -> Hidden
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "0"),
-        mkDataManyCurrent("a"   -> "0") ++ mkDataCurrent("e" -> ""),
+        mkDataManyCurrent("a" -> "0") ++ mkDataCurrent("e" -> ""),
         Map(
           const("0") -> NumberResult(0),
           ctx("a")   -> OptionResult(List(0)),
           ctx("b")   -> Empty,
           ctx("c")   -> Empty,
-          ctx("d")   -> Hidden,
-        )),
+          ctx("d")   -> Hidden
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "0", "b" -> "1"),
-        mkDataManyCurrent("a"   -> "0", "b" -> "1") ++ mkDataCurrent("e" -> ""),
+        mkDataManyCurrent("a" -> "0", "b" -> "1") ++ mkDataCurrent("e" -> ""),
         Map(
           const("0") -> NumberResult(0),
           ctx("a")   -> OptionResult(List(0)),
           ctx("b")   -> OptionResult(List(1)),
           ctx("c")   -> Empty,
-          ctx("d")   -> Hidden,
-        )),
+          ctx("d")   -> Hidden
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "0", "b" -> "1") ++ mkDataOutOfDate("c" -> "10"),
-        mkDataManyCurrent("a"   -> "0", "b" -> "1") ++ mkDataCurrent("c"   -> "10", "e" -> "10.00"),
+        mkDataManyCurrent("a" -> "0", "b" -> "1") ++ mkDataCurrent("c" -> "10", "e" -> "10.00"),
         Map(
           const("0") -> NumberResult(0),
           ctx("a")   -> OptionResult(List(0)),
           ctx("b")   -> OptionResult(List(1)),
           ctx("c")   -> NumberResult(10.00),
-          ctx("d")   -> Hidden,
-        )),
+          ctx("d")   -> Hidden
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "0", "b" -> "0"),
-        mkDataManyCurrent("a"   -> "0", "b" -> "0") ++ mkDataCurrent("e" -> ""),
+        mkDataManyCurrent("a" -> "0", "b" -> "0") ++ mkDataCurrent("e" -> ""),
         Map(
           const("0") -> NumberResult(0),
           ctx("a")   -> OptionResult(List(0)),
           ctx("b")   -> OptionResult(List(0)),
           ctx("c")   -> Empty,
-          ctx("d")   -> Empty,
-        )),
+          ctx("d")   -> Empty
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "0", "b" -> "0") ++ mkDataOutOfDate("c" -> "10", "d" -> "11"),
-        mkDataManyCurrent("a"   -> "0", "b" -> "0") ++ mkDataCurrent("c"   -> "10", "d" -> "11", "e" -> "21.00"),
+        mkDataManyCurrent("a" -> "0", "b" -> "0") ++ mkDataCurrent("c" -> "10", "d" -> "11", "e" -> "21.00"),
         Map(
           const("0") -> NumberResult(0),
           ctx("a")   -> OptionResult(List(0)),
           ctx("b")   -> OptionResult(List(0)),
           ctx("c")   -> NumberResult(10.00),
-          ctx("d")   -> NumberResult(11.00),
-        ))
+          ctx("d")   -> NumberResult(11.00)
+        )
+      )
     )
 
     val choice =
@@ -705,83 +751,94 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
       ("input", "output", "expectedExprMap"),
       (
         mkDataManyOutOfDate("a" -> "1", "b" -> "1") ++ mkDataOutOfDate("bb" -> "10", "d" -> "10"),
-        mkDataManyCurrent("a"   -> "1", "b" -> "1") ++ mkDataCurrent("bb"   -> "10", "d" -> "10", "e" -> ""),
+        mkDataManyCurrent("a" -> "1", "b" -> "1") ++ mkDataCurrent("bb" -> "10", "d" -> "10", "e" -> ""),
         Map(
           const("1") -> NumberResult(1),
           ctx("a")   -> OptionResult(List(1)),
           ctx("b")   -> OptionResult(List(1)),
           ctx("c")   -> Empty,
           ctx("cc")  -> Empty,
-          ctx("d")   -> Hidden,
-        )),
+          ctx("d")   -> Hidden
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "1", "b" -> "1") ++ mkDataOutOfDate("bb" -> "10", "cc" -> "10", "d" -> "10"),
-        mkDataManyCurrent("a"   -> "1", "b" -> "1") ++ mkDataCurrent(
-          "bb"                  -> "10",
-          "cc"                  -> "10",
-          "d"                   -> "10",
-          "e"                   -> "10.00"),
+        mkDataManyCurrent("a" -> "1", "b" -> "1") ++ mkDataCurrent(
+          "bb"                -> "10",
+          "cc"                -> "10",
+          "d"                 -> "10",
+          "e"                 -> "10.00"
+        ),
         Map(
           const("1") -> NumberResult(1),
           ctx("a")   -> OptionResult(List(1)),
           ctx("b")   -> OptionResult(List(1)),
           ctx("c")   -> Empty,
           ctx("cc")  -> NumberResult(10.00),
-          ctx("d")   -> Hidden,
-        )),
+          ctx("d")   -> Hidden
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "1", "b" -> "0") ++ mkDataOutOfDate("bb" -> "10", "d" -> "10"),
-        mkDataManyCurrent("a"   -> "1", "b" -> "0") ++ mkDataCurrent("bb"   -> "10", "d" -> "10"),
+        mkDataManyCurrent("a" -> "1", "b" -> "0") ++ mkDataCurrent("bb" -> "10", "d" -> "10"),
         Map(
           const("1") -> NumberResult(1),
           ctx("a")   -> OptionResult(List(1)),
           ctx("b")   -> OptionResult(List(0)),
           ctx("c")   -> Hidden,
           ctx("cc")  -> Hidden,
-          ctx("d")   -> Hidden,
-        )),
+          ctx("d")   -> Hidden
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "1", "b" -> "1", "c" -> "0") ++ mkDataOutOfDate(
           "bb"                  -> "10",
           "cc"                  -> "10",
-          "d"                   -> "10"),
-        mkDataManyCurrent("a"   -> "1", "b" -> "1", "c" -> "0") ++ mkDataCurrent(
-          "bb"                  -> "10",
-          "cc"                  -> "10",
-          "d"                   -> "10",
-          "e"                   -> "10.00"),
+          "d"                   -> "10"
+        ),
+        mkDataManyCurrent("a" -> "1", "b" -> "1", "c" -> "0") ++ mkDataCurrent(
+          "bb"                -> "10",
+          "cc"                -> "10",
+          "d"                 -> "10",
+          "e"                 -> "10.00"
+        ),
         Map(
           const("1") -> NumberResult(1),
           ctx("a")   -> OptionResult(List(1)),
           ctx("b")   -> OptionResult(List(1)),
           ctx("c")   -> OptionResult(List(0)),
           ctx("cc")  -> NumberResult(10.00),
-          ctx("d")   -> Hidden,
-        )),
+          ctx("d")   -> Hidden
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "1", "b" -> "1", "c" -> "1") ++ mkDataOutOfDate(
           "bb"                  -> "10",
           "cc"                  -> "10",
-          "d"                   -> "10"),
-        mkDataManyCurrent("a"   -> "1", "b" -> "1", "c" -> "1") ++ mkDataCurrent(
-          "bb"                  -> "10",
-          "cc"                  -> "10",
-          "d"                   -> "10",
-          "e"                   -> "20.00"),
+          "d"                   -> "10"
+        ),
+        mkDataManyCurrent("a" -> "1", "b" -> "1", "c" -> "1") ++ mkDataCurrent(
+          "bb"                -> "10",
+          "cc"                -> "10",
+          "d"                 -> "10",
+          "e"                 -> "20.00"
+        ),
         Map(
           const("1") -> NumberResult(1),
           ctx("a")   -> OptionResult(List(1)),
           ctx("b")   -> OptionResult(List(1)),
           ctx("c")   -> OptionResult(List(1)),
           ctx("cc")  -> NumberResult(10.00),
-          ctx("d")   -> NumberResult(10.00),
-        )),
+          ctx("d")   -> NumberResult(10.00)
+        )
+      ),
       (
         mkDataManyOutOfDate("a" -> "0", "b" -> "1", "c" -> "1") ++ mkDataOutOfDate(
           "bb"                  -> "10",
           "cc"                  -> "10",
-          "d"                   -> "10"),
-        mkDataManyCurrent("a"   -> "0", "b" -> "1", "c" -> "1") ++ mkDataCurrent("bb" -> "10", "cc" -> "10", "d" -> "10"),
+          "d"                   -> "10"
+        ),
+        mkDataManyCurrent("a" -> "0", "b" -> "1", "c" -> "1") ++ mkDataCurrent("bb" -> "10", "cc" -> "10", "d" -> "10"),
         Map(
           const("1") -> NumberResult(1),
           ctx("a")   -> OptionResult(List(0)),
@@ -789,8 +846,9 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
           ctx("bb")  -> Hidden,
           ctx("c")   -> Hidden,
           ctx("cc")  -> Hidden,
-          ctx("d")   -> Hidden,
-        ))
+          ctx("d")   -> Hidden
+        )
+      )
     )
 
     val choice =
@@ -813,10 +871,9 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
   }
 
   it should "handle else expression" in {
-    val formComponentIds: TableFor3[
-      VariadicFormData[SourceOrigin.OutOfDate],
-      VariadicFormData[SourceOrigin.Current],
-      Map[Expr, ExpressionResult]] = Table(
+    val formComponentIds: TableFor3[VariadicFormData[SourceOrigin.OutOfDate], VariadicFormData[
+      SourceOrigin.Current
+    ], Map[Expr, ExpressionResult]] = Table(
       ("input", "output", "expectedExprMap"),
       (
         mkDataOutOfDate("a" -> "A", "b" -> "B", "c" -> "C"),
@@ -824,48 +881,54 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
         Map(
           ctx("a") -> StringResult("A"),
           ctx("b") -> StringResult("B"),
-          ctx("c") -> StringResult("C"),
-        )),
+          ctx("c") -> StringResult("C")
+        )
+      ),
       (
         mkDataOutOfDate("b" -> "B", "c" -> "C"),
         mkDataCurrent("b"   -> "B", "c" -> "C", "z" -> "B"),
         Map(
           ctx("a") -> Empty,
           ctx("b") -> StringResult("B"),
-          ctx("c") -> StringResult("C"),
-        )),
+          ctx("c") -> StringResult("C")
+        )
+      ),
       (
         mkDataOutOfDate("c" -> "C"),
         mkDataCurrent("c"   -> "C", "z" -> "C"),
         Map(
           ctx("a") -> Empty,
           ctx("b") -> Empty,
-          ctx("c") -> StringResult("C"),
-        )),
+          ctx("c") -> StringResult("C")
+        )
+      ),
       (
         mkDataOutOfDate("a" -> "A", "b" -> "B", "c" -> "C"),
         mkDataCurrent("a"   -> "A", "b" -> "B", "c" -> "C", "z" -> "A"),
         Map(
           ctx("a") -> StringResult("A"),
           ctx("b") -> StringResult("B"),
-          ctx("c") -> StringResult("C"),
-        )),
+          ctx("c") -> StringResult("C")
+        )
+      ),
       (
         mkDataOutOfDate("a" -> "", "b" -> "B", "c" -> "C"),
         mkDataCurrent("a"   -> "", "b" -> "B", "c" -> "C", "z" -> "B"),
         Map(
           ctx("a") -> Empty,
           ctx("b") -> StringResult("B"),
-          ctx("c") -> StringResult("C"),
-        )),
+          ctx("c") -> StringResult("C")
+        )
+      ),
       (
         mkDataOutOfDate("a" -> "", "b" -> "", "c" -> "C"),
         mkDataCurrent("a"   -> "", "b" -> "", "c" -> "C", "z" -> "C"),
         Map(
           ctx("a") -> Empty,
           ctx("b") -> Empty,
-          ctx("c") -> StringResult("C"),
-        ))
+          ctx("c") -> StringResult("C")
+        )
+      )
     )
 
     val sections =
@@ -878,10 +941,9 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
   }
 
   it should "handle invisible fields in else expression" in {
-    val formComponentIds: TableFor3[
-      VariadicFormData[SourceOrigin.OutOfDate],
-      VariadicFormData[SourceOrigin.Current],
-      Map[Expr, ExpressionResult]] = Table(
+    val formComponentIds: TableFor3[VariadicFormData[SourceOrigin.OutOfDate], VariadicFormData[
+      SourceOrigin.Current
+    ], Map[Expr, ExpressionResult]] = Table(
       ("input", "output", "expectedExprMap"),
       (
         mkDataOutOfDate("a" -> "A", "b" -> "B", "c" -> "C"),
@@ -890,11 +952,14 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
           const("A") -> StringResult("A"),
           ctx("a")   -> StringResult("A"),
           ctx("b")   -> StringResult("B"),
-          ctx("c")   -> StringResult("C"))),
+          ctx("c")   -> StringResult("C")
+        )
+      ),
       (
         mkDataOutOfDate("b" -> "B", "c"                    -> "C"),
-        mkDataCurrent("b"   -> "B", "c"                    -> "C", "z" -> "C"),
-        Map(const("A")      -> StringResult("A"), ctx("a") -> Empty, ctx("b") -> Hidden, ctx("c") -> StringResult("C")))
+        mkDataCurrent("b"   -> "B", "c"                    -> "C", "z"        -> "C"),
+        Map(const("A")      -> StringResult("A"), ctx("a") -> Empty, ctx("b") -> Hidden, ctx("c") -> StringResult("C"))
+      )
     )
 
     val includeIf1 = IncludeIf(Equals(FormCtx(FormComponentId("a")), Constant("A")))
@@ -911,15 +976,15 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
   }
 
   it should "strip uniqueness identifier from fileUpload component" in {
-    val formComponentIds: TableFor3[
-      VariadicFormData[SourceOrigin.OutOfDate],
-      VariadicFormData[SourceOrigin.Current],
-      Map[Expr, ExpressionResult]] = Table(
+    val formComponentIds: TableFor3[VariadicFormData[SourceOrigin.OutOfDate], VariadicFormData[
+      SourceOrigin.Current
+    ], Map[Expr, ExpressionResult]] = Table(
       ("input", "output", "expectedExprMap"),
       (
         mkDataOutOfDate("uploadInvoice" -> "uploadInvoice_userFileName"),
         mkDataCurrent("uploadInvoice"   -> "uploadInvoice_userFileName"),
-        Map(ctx("uploadInvoice")        -> StringResult("userFileName")))
+        Map(ctx("uploadInvoice")        -> StringResult("userFileName"))
+      )
     )
 
     val fileUpload = FileUpload()
@@ -927,8 +992,10 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
     val sections =
       mkSection(List(mkFormComponent("uploadInvoice", fileUpload))) ::
         mkSection(
-        List(mkFormComponent("dummy", Value).copy(
-          label = SmartString(LocalisedString.empty, List(ctx("uploadInvoice")))))) :: Nil
+          List(
+            mkFormComponent("dummy", Value).copy(label = SmartString(LocalisedString.empty, List(ctx("uploadInvoice"))))
+          )
+        ) :: Nil
 
     forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
       verify(input, expectedOutput, expectedExprMap, sections)
@@ -958,7 +1025,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
     val expectedExprMap: Map[Expr, ExpressionResult] = Map(
       ctx("sec1Date1")  -> DateResult(LocalDate.of(2020, 1, 1)),
       ctx("sec1Date2")  -> DateResult(LocalDate.of(2020, 1, 2)),
-      ctx("sec2Field1") -> ExpressionResult.Hidden)
+      ctx("sec2Field1") -> ExpressionResult.Hidden
+    )
 
     val sections = List(
       mkSection(
@@ -969,13 +1037,13 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
       ),
       mkSectionIncludeIf(
         List(
-          mkFormComponent("sec2Field1", Value),
+          mkFormComponent("sec2Field1", Value)
         ),
         IncludeIf(DateAfter(DateFormCtxVar(ctx("sec1Date1")), DateFormCtxVar(ctx("sec1Date2"))))
       ),
       mkSection(
         List(
-          mkFormComponent("sec3Field1", ctx("sec2Field1")),
+          mkFormComponent("sec3Field1", ctx("sec2Field1"))
         )
       )
     )
@@ -1006,7 +1074,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
       "sec1Date2-month" -> "01",
       "sec1Date2-day"   -> "02",
       "sec2Field1"      -> "sec2Field1Value",
-      "sec3Field1"      -> "sec2Field1Value",
+      "sec3Field1"      -> "sec2Field1Value"
     )
 
     val expectedExprMap: Map[Expr, ExpressionResult] = Map(
@@ -1025,13 +1093,13 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
       ),
       mkSectionIncludeIf(
         List(
-          mkFormComponent("sec2Field1", Constant("sec2Field1Value")),
+          mkFormComponent("sec2Field1", Constant("sec2Field1Value"))
         ),
         IncludeIf(DateBefore(DateFormCtxVar(ctx("sec1Date1")), DateFormCtxVar(ctx("sec1Date2"))))
       ),
       mkSection(
         List(
-          mkFormComponent("sec3Field1", ctx("sec2Field1")),
+          mkFormComponent("sec3Field1", ctx("sec2Field1"))
         )
       )
     )
@@ -1048,8 +1116,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
     expectedOutput: VariadicFormData[SourceOrigin.Current],
     expectedExprMap: Map[Expr, ExpressionResult],
     sections: List[Section]
-  )(
-    implicit position: Position
+  )(implicit
+    position: Position
   ) = {
     val formTemplate: FormTemplate = mkFormTemplate(sections)
     val formModelOptics = mkFormModelOptics(formTemplate, input)

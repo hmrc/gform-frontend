@@ -30,8 +30,8 @@ class StaticPagesController(
   auth: AuthenticatedRequestActions,
   i18nSupport: I18nSupport,
   frontendAppConfig: FrontendAppConfig,
-  messagesControllerComponents: MessagesControllerComponents)
-    extends FrontendController(messagesControllerComponents) {
+  messagesControllerComponents: MessagesControllerComponents
+) extends FrontendController(messagesControllerComponents) {
 
   def helpWithRegistrationPage(formTemplateId: FormTemplateId) =
     auth.asyncNoAuth(formTemplateId) { implicit request => implicit l => formTemplate =>
