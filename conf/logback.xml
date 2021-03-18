@@ -66,6 +66,8 @@
 
     <logger name="org.asynchttpclient.netty.channel.DefaultChannelPool" level="WARN"/>
 
+    <logger name="play.api.mvc.LegacySessionCookieBaker" level="OFF"/>
+
     <logger name="connector" level="TRACE">
         <appender-ref ref="STDOUT"/>
     </logger>
