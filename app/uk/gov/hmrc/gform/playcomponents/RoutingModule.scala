@@ -62,6 +62,7 @@ class RoutingModule(
     errorHandler,
     govukRoutes,
     hmrcfrontendRoutes,
+    gformModule.emailAuthController,
     gformModule.newFormController,
     gformModule.formController,
     gformModule.summaryController,

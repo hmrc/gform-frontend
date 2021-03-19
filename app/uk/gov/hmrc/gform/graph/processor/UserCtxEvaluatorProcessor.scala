@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.graph.processor
 
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals, VerifyRetrievals }
+import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, EmailRetrievals, MaterialisedRetrievals, VerifyRetrievals }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil.affinityGroupNameO
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
@@ -37,6 +37,7 @@ object UserCtxEvaluatorProcessor extends IdentifierExtractor {
       case (_, UserField.AffinityGroup) =>
         affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals))
       case (AnonymousRetrievals(_), _) => ""
+      case (EmailRetrievals(_), _)     => ""
       case (VerifyRetrievals(_, _), _) => ""
     }
 

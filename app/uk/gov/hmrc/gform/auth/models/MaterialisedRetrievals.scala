@@ -26,6 +26,7 @@ import uk.gov.hmrc.http.logging.SessionId
 sealed trait MaterialisedRetrievals extends Product with Serializable {
   def groupId = this match {
     case AnonymousRetrievals(sessionId)                       => sessionId.value
+    case EmailRetrievals(sessionId)                           => sessionId.value
     case AuthenticatedRetrievals(_, _, _, groupIdentifier, _) => groupIdentifier
     case VerifyRetrievals(verifyId, _)                        => verifyId.id
   }
@@ -52,6 +53,7 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
 
   def getTaxIdValue(taxIdName: ServiceNameAndTaxId) = this match {
     case AnonymousRetrievals(_) => ""
+    case EmailRetrievals(_)     => ""
     case VerifyRetrievals(_, Nino(nino)) =>
       taxIdName match {
         case NINO(_) => nino
@@ -75,6 +77,7 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
   def enrolmentExists(serviceName: ServiceName, identifierName: IdentifierName, identifierValue: String): Boolean =
     this match {
       case AnonymousRetrievals(_) => false
+      case EmailRetrievals(_)     => false
       case VerifyRetrievals(_, _) => false
       case AuthenticatedRetrievals(_, enrolments, _, _, _) =>
         val maybeEnrolment: Option[Enrolment] = enrolments.getEnrolment(serviceName.value)
@@ -95,6 +98,8 @@ case class GovernmentGatewayId(ggId: String) extends AnyVal
 case class VerifyId(id: String) extends AnyVal
 
 case class AnonymousRetrievals(sessionId: SessionId) extends MaterialisedRetrievals
+
+case class EmailRetrievals(sessionId: SessionId) extends MaterialisedRetrievals
 
 case class VerifyRetrievals(verifyIde: VerifyId, nino: Nino) extends MaterialisedRetrievals
 

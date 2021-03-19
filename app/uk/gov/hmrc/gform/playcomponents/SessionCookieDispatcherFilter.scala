@@ -25,7 +25,7 @@ import uk.gov.hmrc.crypto.{ Crypted, Decrypter, Encrypter, PlainText }
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.{ SessionCookieCrypto, SessionCookieCryptoFilter }
@@ -73,7 +73,7 @@ class SessionCookieDispatcherFilter(
       case Right(formTemplate) =>
         val (result, cookieValue) =
           formTemplate.authConfig match {
-            case Anonymous =>
+            case Anonymous | EmailAuthConfig(_) =>
               (
                 anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
                 encrypter.encrypt(PlainText(AnonymousAuthConfig))

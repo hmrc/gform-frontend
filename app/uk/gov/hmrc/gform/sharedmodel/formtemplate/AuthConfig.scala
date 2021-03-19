@@ -90,6 +90,7 @@ case class HmrcEnrolmentModule(enrolmentAuth: EnrolmentAuth) extends AuthConfig
 case class HmrcAgentModule(agentAccess: AgentAccess) extends AuthConfig
 case class HmrcAgentWithEnrolmentModule(agentAccess: AgentAccess, enrolmentAuth: EnrolmentAuth) extends AuthConfig
 case object AWSALBAuth extends AuthConfig
+case class EmailAuthConfig(emailCodeTemplate: EmailCodeTemplate) extends AuthConfig
 
 object HasEnrolmentSection {
   def unapply(ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck, EnrolmentAction)] =
@@ -158,6 +159,11 @@ object ServiceId {
 case class RegimeId(value: String) extends AnyVal
 object RegimeId {
   implicit val format: Format[RegimeId] = ValueClassFormat.oformat("regimeId", RegimeId.apply, _.value)
+}
+
+case class EmailCodeTemplate(value: String) extends AnyVal
+object EmailCodeTemplate {
+  implicit val format: Format[EmailCodeTemplate] = ValueClassFormat.simpleFormat(EmailCodeTemplate.apply)(_.value)
 }
 
 sealed trait EnrolmentAction
