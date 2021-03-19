@@ -20,10 +20,10 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
-import play.api.libs.ws.{DefaultWSCookie, WSClient, WSRequest}
+import play.api.libs.ws.{ DefaultWSCookie, WSClient, WSRequest }
 import play.api.mvc._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponents)(implicit
   ec: ExecutionContext
@@ -61,8 +61,8 @@ class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponent
     ec: ExecutionContext
   ): Future[WSRequest] = {
 
-    val wsCookies = inboundRequest.cookies.toList.map {
-      c => DefaultWSCookie(c.name, c.value, c.domain, Some(c.path), c.maxAge.map(_.toLong), c.secure, c.httpOnly)
+    val wsCookies = inboundRequest.cookies.toSeq.map { c =>
+      DefaultWSCookie(c.name, c.value, c.domain, Some(c.path), c.maxAge.map(_.toLong), c.secure, c.httpOnly)
     }
 
     Future(
