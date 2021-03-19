@@ -20,10 +20,10 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
-import play.api.libs.ws.{ WSClient, WSRequest }
+import play.api.libs.ws.{DefaultWSCookie, WSClient, WSRequest}
 import play.api.mvc._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponents)(implicit
   ec: ExecutionContext
@@ -59,15 +59,23 @@ class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponent
 
   private def proxyRequest(path: String, inboundRequest: Request[Source[ByteString, _]])(implicit
     ec: ExecutionContext
-  ): Future[WSRequest] = Future(
-    wsClient
-      .url(s"$path")
-      .withFollowRedirects(false)
-      .withMethod(inboundRequest.method)
-      .withHttpHeaders(processHeaders(inboundRequest.headers, extraHeaders = Nil): _*)
-      .withQueryStringParameters(inboundRequest.queryString.mapValues(_.head).toSeq: _*)
-      .withBody(inboundRequest.body)
-  )
+  ): Future[WSRequest] = {
+
+    val wsCookies = inboundRequest.cookies.toList.map {
+      c => DefaultWSCookie(c.name, c.value, c.domain, Some(c.path), c.maxAge.map(_.toLong), c.secure, c.httpOnly)
+    }
+
+    Future(
+      wsClient
+        .url(s"$path")
+        .withFollowRedirects(false)
+        .withMethod(inboundRequest.method)
+        .withHttpHeaders(processHeaders(inboundRequest.headers, extraHeaders = Nil): _*)
+        .withQueryStringParameters(inboundRequest.queryString.mapValues(_.head).toSeq: _*)
+        .withBody(inboundRequest.body)
+        .addCookies(wsCookies: _*)
+    )
+  }
 
   private def processHeaders(inboundHeaders: Headers, extraHeaders: Seq[(String, String)]): Seq[(String, String)] =
     (inboundHeaders.toSimpleMap.filter(headerKeyValue => !headerKeyValue._1.equals("Host")) ++ extraHeaders.toMap).toSeq
