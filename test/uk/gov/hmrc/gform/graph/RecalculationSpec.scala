@@ -51,7 +51,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
       formTemplate.authConfig,
       hc,
       Option.empty[FormPhase],
-      FileIdsWithMapping.empty
+      FileIdsWithMapping.empty,
+      Map.empty
     )
 
   "recalculation" should "recalculate single dependency" in {

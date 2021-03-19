@@ -79,7 +79,6 @@ object DateValidationLogic {
     }
     // format: on
 
-    // format: off
     val monthString = concreteDate.month match {
       case Month.Exact(month) if concreteDate.day.isAny             => messages("date.inMonth", getMonthName(month))
       case Month.Exact(month) if concreteDate.day.isExact           => messages("date.ofMonth", getMonthName(month))
@@ -87,7 +86,6 @@ object DateValidationLogic {
       case _ if concreteDate.day.isFirst || concreteDate.day.isLast => messages("date.ofTheMonth")
       case _                                                        => ""
     }
-    // format: on
 
     val dayString = concreteDate.day match {
       case Day.Exact(day) => messages("date.exactDay", s"$day${messages(s"date.ordinal.$day")}")

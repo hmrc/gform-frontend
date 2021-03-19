@@ -20,7 +20,7 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormCtx, OffsetUnit, OffsetUnitDay, OffsetUnitMonth, OffsetUnitYear, TodayDateExprValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, OffsetUnit, OffsetUnitDay, OffsetUnitMonth, OffsetUnitYear, TodayDateExprValue }
 import java.time.LocalDate
 
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -46,7 +46,11 @@ object DateExprEval {
         )
     }
 
-  def evalDateExpr(recData: RecData[OutOfDate], evaluationResults: EvaluationResults)(
+  def evalDateExpr(
+    recData: RecData[OutOfDate],
+    evaluationContext: EvaluationContext,
+    evaluationResults: EvaluationResults
+  )(
     dateExpr: DateExpr
   ): ExpressionResult =
     dateExpr match {
@@ -61,16 +65,25 @@ object DateExprEval {
             (year, month, day) match {
               case (Some(VariadicValue.One(y)), Some(VariadicValue.One(m)), Some(VariadicValue.One(d))) =>
                 Try(LocalDate.of(y.toInt, m.toInt, d.toInt))
-                  .fold(_ => ExpressionResult.empty, localDate => DateResult(localDate))
-              case _ => ExpressionResult.empty
+                  .fold(
+                    _ => fromValue(evaluationContext, formComponentId),
+                    localDate => DateResult(localDate)
+                  )
+              case _ => fromValue(evaluationContext, formComponentId)
             }
           }
       case DateExprWithOffset(dExpr, offset, offsetUnit) =>
-        val exprResult = evalDateExpr(recData, evaluationResults)(dExpr)
+        val exprResult = evalDateExpr(recData, evaluationContext, evaluationResults)(dExpr)
         exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => exprResult)(identity)(identity)(identity)(d =>
           d.copy(value = addOffset(d.value, offset, offsetUnit))
         )
     }
+
+  // for "submitMode": "summaryinfoonly" fields, since they don't exist in form data.
+  private def fromValue(evaluationContext: EvaluationContext, formComponentId: FormComponentId): ExpressionResult =
+    evaluationContext.dateLookup
+      .get(formComponentId.modelComponentId)
+      .fold(ExpressionResult.empty)(value => DateResult(value.toLocalDate))
 
   private def fromFormCtx[T <: PageMode](
     formModel: FormModel[T],

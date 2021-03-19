@@ -176,7 +176,8 @@ class FormModelBuilder[E, F[_]: Functor](
         formTemplate.authConfig,
         hc,
         formPhase,
-        FileIdsWithMapping(formModel.allFileIds, componentIdToFileId)
+        FileIdsWithMapping(formModel.allFileIds, componentIdToFileId),
+        formModel.dateLookup
       )
 
     recalculation

@@ -120,6 +120,7 @@ class ValidationService(
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator): Future[ValidatedType[Unit]] =
     pageModel.allFormComponents
+      .filterNot(_.onlyShowOnSummary)
       .traverse(fv => validateFormComponent(fv, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
       .map(res => Monoid[ValidatedType[Unit]].combineAll(res))
 

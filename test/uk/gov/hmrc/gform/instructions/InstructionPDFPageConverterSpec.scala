@@ -86,7 +86,8 @@ class InstructionPDFPageConverterSpec
           authConfig,
           headerCarrier,
           None,
-          FileIdsWithMapping.empty
+          FileIdsWithMapping.empty,
+          Map.empty
         )
       )
     )
