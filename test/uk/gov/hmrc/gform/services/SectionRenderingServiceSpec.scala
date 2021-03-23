@@ -144,6 +144,34 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     phoneField.attr("type") shouldBe "tel"
   }
 
+  "renderDeclarationSection" should "render Declaration page with Button with text 'ContinueLabel'" in new TestFixture {
+
+    import i18nSupport._
+
+    override lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
+      .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
+        cache.variadicFormData[SectionSelectorType.WithDeclaration],
+        cache,
+        mockRecalculation
+      )
+      .futureValue
+
+    val generatedHtml = testService
+      .renderDeclarationSection(
+        Some(accessCode),
+        form,
+        formTemplate,
+        formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton[DataExpanded]],
+        authContext,
+        ValidationResult.empty,
+        formModelOptics
+      )
+
+    val declarationPageButton = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button").first
+
+    declarationPageButton.text shouldBe "ContinueLabel"
+  }
+
   /* "SectionRenderingService" should "set a field to hidden if is onlyShowOnSummary is set to true" in {
    * val generatedHtml = testService
    *     .renderSection(

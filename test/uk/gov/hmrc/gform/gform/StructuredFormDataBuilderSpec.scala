@@ -853,7 +853,15 @@ class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormMode
           "field"    -> "fieldValue",
           "decField" -> "decFieldValue"
         ),
-        Some(DeclarationSection(toSmartString("Declaration"), None, None, List(createNonGroupField("decField"))))
+        Some(
+          DeclarationSection(
+            toSmartString("Declaration"),
+            None,
+            None,
+            None,
+            List(createNonGroupField("decField"))
+          )
+        )
       ),
       objectStructure(
         field("field", textNode("fieldValue")),
