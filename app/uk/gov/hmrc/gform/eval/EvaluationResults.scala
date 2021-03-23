@@ -217,11 +217,13 @@ case class EvaluationResults(
 
           }
         nonEmpty(StringResult(link.url))
-      case DateCtx(dateExpr) => StringResult(evalDateExpr(recData, this)(dateExpr).stringRepresentation(typeInfo))
+      case DateCtx(dateExpr) =>
+        StringResult(evalDateExpr(recData, evaluationContext, this)(dateExpr).stringRepresentation(typeInfo))
     }
 
     loop(typeInfo.expr)
   }
+
   private def evalDateString(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -230,11 +232,11 @@ case class EvaluationResults(
 
     def loop(expr: Expr): ExpressionResult = expr match {
       case ctx @ FormCtx(_) =>
-        evalDateExpr(recData, this)(DateFormCtxVar(ctx))
+        evalDateExpr(recData, evaluationContext, this)(DateFormCtxVar(ctx))
       case Else(field1: Expr, field2: Expr) =>
         loop(field1) orElse loop(field2)
       case DateCtx(dateExpr) =>
-        evalDateExpr(recData, this)(dateExpr)
+        evalDateExpr(recData, evaluationContext, this)(dateExpr)
       case _ => ExpressionResult.empty
     }
 

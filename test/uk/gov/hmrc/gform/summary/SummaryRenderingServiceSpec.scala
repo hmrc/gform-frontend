@@ -110,7 +110,8 @@ class SummaryRenderingServiceSpec
           authConfig,
           headerCarrier,
           Option.empty[FormPhase],
-          FileIdsWithMapping.empty
+          FileIdsWithMapping.empty,
+          Map.empty
         )
       )
     )
