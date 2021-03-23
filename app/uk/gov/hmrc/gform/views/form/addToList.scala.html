@@ -26,7 +26,7 @@
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{SectionNumber, AddToListId}
 @import play.filters.csrf.CSRF
-@import uk.gov.hmrc.gform.controllers.{EditAddToList, RemoveAddToList}
+@import uk.gov.hmrc.gform.controllers.{EditAddToList, RemoveAddToList, SaveAndExit}
 @import uk.gov.hmrc.gform.controllers.Back
 @import uk.gov.hmrc.gform.commons.MarkDownUtil._
 
@@ -119,16 +119,19 @@
 
         <div class="govuk-button-group">
            @govukButton(Button(content = Text(messages(continueLabelKey)),
-                inputType=Some("submit"),
-                name=Some("save"))
-           )
+                    inputType=Some("submit"),
+                    name=Some("save"),
+                    attributes = Map("formaction" -> formAction.path)
+                )
+            )
 
            @if(renderComeBackLater) {
               @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
                    inputType=Some("submit"),
-                   value=Some("Save"),
                    name=Some("save"),
-                   classes="govuk-button govuk-button--secondary")
+                   classes="govuk-button--secondary",
+                   attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, SaveAndExit).path)
+                )
               )
            }
         </div>
