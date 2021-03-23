@@ -24,8 +24,9 @@ import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExprValue
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleEvaluationContext, VariadicFormData, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, OffsetUnitDay, OffsetUnitMonth, OffsetUnitYear, TodayDateExprValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, OffsetUnit, OffsetYMD, TodayDateExprValue }
 
 class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleEvaluationContext {
 
@@ -76,34 +77,56 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleE
   it should "evaluate a date expression with offset" in {
     val table = Table(
       ("actual", "expected"),
-      (
-        evalDateExpr(
-          RecData[OutOfDate](VariadicFormData.empty),
-          evaluationContext,
-          EvaluationResults.empty
-        )(DateExprWithOffset(DateValueExpr(TodayDateExprValue), 1, OffsetUnitDay)),
-        DateResult(LocalDate.now().plusDays(1))
-      ),
-      (
-        evalDateExpr(
-          RecData[OutOfDate](VariadicFormData.empty),
-          evaluationContext,
-          EvaluationResults.empty
-        )(DateExprWithOffset(DateValueExpr(TodayDateExprValue), 1, OffsetUnitMonth)),
-        DateResult(LocalDate.now().plusMonths(1))
-      ),
-      (
-        evalDateExpr(
-          RecData[OutOfDate](VariadicFormData.empty),
-          evaluationContext,
-          EvaluationResults.empty
-        )(DateExprWithOffset(DateValueExpr(TodayDateExprValue), 1, OffsetUnitYear)),
-        DateResult(LocalDate.now().plusYears(1))
-      )
+      (OffsetYMD(OffsetUnit.Day(1) :: Nil), LocalDate.now().plusDays(1)),
+      (OffsetYMD(OffsetUnit.Month(1) :: Nil), LocalDate.now().plusMonths(1)),
+      (OffsetYMD(OffsetUnit.Year(1) :: Nil), LocalDate.now().plusYears(1)),
+      (OffsetYMD(OffsetUnit.Year(1) :: OffsetUnit.Month(1) :: Nil), LocalDate.now().plusYears(1).plusMonths(1))
     )
-    forAll(table) { (actual: ExpressionResult, expected: ExpressionResult) =>
+    forAll(table) { (offset: OffsetYMD, localDate: LocalDate) =>
+      val actual = evalDateExpr(
+        RecData[OutOfDate](VariadicFormData.empty),
+        evaluationContext,
+        EvaluationResults.empty
+      )(DateExprWithOffset(DateValueExpr(TodayDateExprValue), offset))
+
+      val expected = DateResult(localDate)
       actual shouldBe expected
     }
+  }
 
+  it should "evaluate a date expression with multiple offsets (offsets are not commutative)" in {
+    val table = Table(
+      ("exactDate", "actual", "localData"),
+      (
+        ExactDateExprValue(2020, 5, 31),
+        OffsetYMD(OffsetUnit.Day(-1) :: OffsetUnit.Month(-1) :: Nil),
+        LocalDate.of(2020, 4, 30)
+      ),
+      (
+        ExactDateExprValue(2020, 5, 31),
+        OffsetYMD(OffsetUnit.Month(-1) :: OffsetUnit.Day(-1) :: Nil),
+        LocalDate.of(2020, 4, 29)
+      ),
+      (
+        ExactDateExprValue(2020, 4, 30),
+        OffsetYMD(OffsetUnit.Month(1) :: OffsetUnit.Day(1) :: Nil),
+        LocalDate.of(2020, 5, 31)
+      ),
+      (
+        ExactDateExprValue(2020, 4, 30),
+        OffsetYMD(OffsetUnit.Day(1) :: OffsetUnit.Month(1) :: Nil),
+        LocalDate.of(2020, 6, 1)
+      )
+    )
+    forAll(table) { (exactDate: DateExprValue, offset: OffsetYMD, localDate: LocalDate) =>
+      val actual = evalDateExpr(
+        RecData[OutOfDate](VariadicFormData.empty),
+        evaluationContext,
+        EvaluationResults.empty
+      )(DateExprWithOffset(DateValueExpr(exactDate), offset))
+
+      val expected = DateResult(localDate)
+      actual shouldBe expected
+    }
   }
 }

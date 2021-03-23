@@ -37,11 +37,13 @@ class BooleanExprSpec extends Spec with GraphSpec with TableDrivenPropertyChecks
       ),
       (
         DateBefore(
-          DateExprWithOffset(DateFormCtxVar(FormCtx(FormComponentId("someId"))), 1, OffsetUnitDay),
+          DateExprWithOffset(DateFormCtxVar(FormCtx(FormComponentId("someId"))), OffsetYMD(OffsetUnit.Day(1) :: Nil)),
           DateFormCtxVar(FormCtx(FormComponentId("someId")))
         ).allExpressions,
         List(
-          DateCtx(DateExprWithOffset(DateFormCtxVar(FormCtx(FormComponentId("someId"))), 1, OffsetUnitDay)),
+          DateCtx(
+            DateExprWithOffset(DateFormCtxVar(FormCtx(FormComponentId("someId"))), OffsetYMD(OffsetUnit.Day(1) :: Nil))
+          ),
           DateCtx(DateFormCtxVar(FormCtx(FormComponentId("someId"))))
         )
       )

@@ -20,7 +20,7 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, OffsetUnit, OffsetUnitDay, OffsetUnitMonth, OffsetUnitYear, TodayDateExprValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, OffsetUnit, OffsetYMD, TodayDateExprValue }
 import java.time.LocalDate
 
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -40,9 +40,9 @@ object DateExprEval {
       case DateValueExpr(value) => Some(DateResult(fromValue(value)))
       case DateFormCtxVar(formCtx) =>
         fromFormCtx(formModel, recData, evaluationResults, evaluationContext, formCtx)
-      case DateExprWithOffset(dExpr, offset, offsetUnit) =>
+      case DateExprWithOffset(dExpr, offset) =>
         eval(formModel, recData, evaluationContext, evaluationResults)(dExpr).map(r =>
-          DateResult(addOffset(r.value, offset, offsetUnit))
+          DateResult(addOffset(r.value, offset))
         )
     }
 
@@ -72,10 +72,10 @@ object DateExprEval {
               case _ => fromValue(evaluationContext, formComponentId)
             }
           }
-      case DateExprWithOffset(dExpr, offset, offsetUnit) =>
+      case DateExprWithOffset(dExpr, offset) =>
         val exprResult = evalDateExpr(recData, evaluationContext, evaluationResults)(dExpr)
         exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => exprResult)(identity)(identity)(identity)(d =>
-          d.copy(value = addOffset(d.value, offset, offsetUnit))
+          d.copy(value = addOffset(d.value, offset))
         )
     }
 
@@ -101,11 +101,13 @@ object DateExprEval {
     }
   }
 
-  private def addOffset(d: LocalDate, offset: Int, offsetUnit: OffsetUnit) =
-    offsetUnit match {
-      case OffsetUnitDay   => d.plusDays(offset.toLong)
-      case OffsetUnitYear  => d.plusYears(offset.toLong)
-      case OffsetUnitMonth => d.plusMonths(offset.toLong)
+  private def addOffset(d: LocalDate, offset: OffsetYMD): LocalDate =
+    offset.offsets.foldLeft(d) { (acc, offset) =>
+      offset match {
+        case OffsetUnit.Year(n)  => acc.plusYears(n.toLong)
+        case OffsetUnit.Month(n) => acc.plusMonths(n.toLong)
+        case OffsetUnit.Day(n)   => acc.plusDays(n.toLong)
+      }
     }
 
   private def fromValue(value: DateExprValue) =
