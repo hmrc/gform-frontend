@@ -1,0 +1,85 @@
+@*
+ * Copyright 2021 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.gform.{HasErrors, NoErrors}
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.views.html.main_template
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import play.filters.csrf.CSRF
+
+@(
+    formTemplate: FormTemplate,
+    frontendAppConfig: FrontendAppConfig,
+    formAction: Call,
+    pageLevelError: HasErrors = NoErrors,
+    maybeEmailFieldError: Option[ErrorMessage] = None
+)(
+    implicit
+    request: Request[_],
+    messages: Messages,
+    l:LangADT
+)
+
+@formWithCSRF = @{new formWithCSRF()}
+@govukButton = @{new govukButton()}
+@govukErrorMessage = @{new govukErrorMessage()}
+@govukHint = @{new govukHint()}
+@govukLabel = @{new govukLabel()}
+@govukInput = @{new govukInput(govukErrorMessage, govukHint, govukLabel)}
+@heading = @{messages("emailAuth.enterYourEmailAddress")}
+
+@main_template(
+    title = heading,
+    serviceName = formTemplate.formName.value,
+    frontendAppConfig = frontendAppConfig,
+    authConfig = Some(formTemplate.authConfig),
+    webChat = formTemplate.webChat,
+    formCategory = formTemplate.formCategory,
+    displayHMRCLogo = formTemplate.displayHMRCLogo,
+    languages = formTemplate.languages,
+    templateId = formTemplate._id,
+    backLink = None
+) {
+
+    @pageLevelError.render
+
+    <header class="hmrc-page-heading">
+        <h1 class="govuk-heading-l">@heading</h1>
+    </header>
+
+    @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
+        <div class="govuk-body govuk-!-font-size-19">
+            <p>@{messages("emailAuth.weWillSendCodeToEmail")}</p>
+        </div>
+
+        @govukInput(Input(id = "email",
+            name = "email",
+            label = Label(content = content.Text(heading)),
+            errorMessage = maybeEmailFieldError,
+            classes = "govuk-input--width-30"
+        ))
+
+        @govukButton(Button(
+            name = Some("submitButton"),
+            content = Text(messages("button.continue")),
+            inputType=Some("submit"))
+        )
+    }
+}

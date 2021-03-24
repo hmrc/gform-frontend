@@ -16,13 +16,11 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import play.api.mvc.Call
+import play.api.libs.json.{ Format, Json }
+import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 
-sealed trait AuthResult
-final case class AuthSuccessful(retrievals: MaterialisedRetrievals, role: Role) extends AuthResult
-final case class AuthRedirect(loginUrl: String, flashing: Seq[(String, String)] = Seq.empty) extends AuthResult
-final case class AuthAnonymousSession(redirectUrl: Call) extends AuthResult
-final case class AuthEmailRedirect(redirectUrl: Call) extends AuthResult
-final case class AuthRedirectFlashingFormName(loginUrl: String) extends AuthResult
-final case class AuthBlocked(message: String) extends AuthResult
-final case class AuthForbidden(message: String) extends AuthResult
+case class EmailCodeConfirmation(emailAndCode: EmailAndCode, confirmed: Boolean = false)
+
+object EmailCodeConfirmation {
+  implicit val format: Format[EmailCodeConfirmation] = Json.format[EmailCodeConfirmation]
+}

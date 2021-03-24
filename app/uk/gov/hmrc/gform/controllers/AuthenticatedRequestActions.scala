@@ -354,7 +354,12 @@ class AuthenticatedRequestActions(
         onSuccess(retrievals)(role)
       case AuthSuccessful(retrievals: AuthenticatedRetrievals, role) =>
         onSuccess(retrievals)(role)
+      case AuthSuccessful(retrievals: EmailRetrievals, role) =>
+        onSuccess(retrievals)(role)
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
+      case AuthEmailRedirect(redirectUrl) =>
+        Redirect(redirectUrl.url, request.queryString)
+          .pure[Future]
       case AuthAnonymousSession(redirectUrl) =>
         Redirect(redirectUrl.url, request.queryString)
           .withSession(SessionKeys.sessionId -> s"anonymous-session-${UUID.randomUUID()}")

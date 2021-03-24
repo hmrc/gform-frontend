@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.config
 
 import play.api.i18n.{ Lang, Messages }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EmailAuthConfig, FormTemplateId }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
@@ -44,9 +44,10 @@ case class FrontendAppConfig(
 ) {
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {
-    case Some(Anonymous) => authModule.anonymous
-    case Some(_)         => authModule.hmrc
-    case None            => JSConfig(timeoutEnabled = false, 0, 0, "", "")
+    case Some(Anonymous)          => authModule.anonymous
+    case Some(EmailAuthConfig(_)) => authModule.email
+    case Some(_)                  => authModule.hmrc
+    case None                     => JSConfig(timeoutEnabled = false, 0, 0, "", "")
   }
 
   def timeoutDialog(templateId: FormTemplateId, authConfig: Option[AuthConfig])(implicit

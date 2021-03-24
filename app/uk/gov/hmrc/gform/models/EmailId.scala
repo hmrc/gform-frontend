@@ -14,14 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.structuredform
+package uk.gov.hmrc.gform.models
 
-import play.api.libs.json.Format
-import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
-
-case class FieldName(name: String) extends AnyVal
-
-object FieldName {
-  implicit val format: Format[FieldName] =
-    ValueClassFormat.simpleFormat(FieldName.apply)(_.name)
-}
+case class EmailId(value: String) extends AnyVal

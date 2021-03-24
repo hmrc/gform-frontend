@@ -52,7 +52,8 @@ object AppConfig {
 case class AuthModule(
   hmrc: JSConfig,
   anonymous: JSConfig,
-  awsAlbAuth: JSConfig
+  awsAlbAuth: JSConfig,
+  email: JSConfig
 )
 case class JSConfig(
   timeoutEnabled: Boolean,

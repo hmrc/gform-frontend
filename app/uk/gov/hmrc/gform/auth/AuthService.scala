@@ -21,13 +21,15 @@ import java.util.Base64
 import cats.implicits._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{ JsError, JsSuccess, Json }
-import play.api.mvc.Cookie
+import play.api.mvc.{ AnyContent, Cookie, Request }
 import uk.gov.hmrc.auth.core.EnrolmentIdentifier
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.gform
+import uk.gov.hmrc.gform.gform.EmailAuthUtils.isEmailConfirmed
+import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.mappings.IRSA
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -50,6 +52,7 @@ class AuthService(
     ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult],
     assumedIdentity: Option[Cookie]
   )(implicit
+    request: Request[AnyContent],
     hc: HeaderCarrier,
     l: LangADT
   ): Future[AuthResult] =
@@ -68,13 +71,21 @@ class AuthService(
       case HmrcEnrolmentModule(enrolmentAuth) =>
         performEnrolment(formTemplate, enrolmentAuth, getAffinityGroup, ggAuthorised)
       case HmrcAgentModule(agentAccess) =>
-        performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), Future.successful(_))
+        performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), Future.successful)
       case HmrcAgentWithEnrolmentModule(agentAccess, enrolmentAuth) =>
         def ifSuccessPerformEnrolment(authResult: AuthResult) = authResult match {
           case AuthSuccessful(_, _) => performEnrolment(formTemplate, enrolmentAuth, getAffinityGroup, ggAuthorised)
           case authUnsuccessful     => Future.successful(authUnsuccessful)
         }
         performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
+      case EmailAuthConfig(_) =>
+        isEmailConfirmed(formTemplate._id) match {
+          case Some(email) =>
+            AuthSuccessful(EmailRetrievals(EmailId(email)), Role.Customer)
+              .pure[Future]
+          case None =>
+            AuthEmailRedirect(gform.routes.EmailAuthController.emailIdForm(formTemplate._id)).pure[Future]
+        }
     }
 
   private val notAuthorized: AuthResult = AuthBlocked("You are not authorized to access this service")

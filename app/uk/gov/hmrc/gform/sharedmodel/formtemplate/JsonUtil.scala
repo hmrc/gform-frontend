@@ -74,6 +74,9 @@ trait JsonUtils {
     )
 
   def safeCast[A, B >: A](reads: Reads[A]): Reads[B] = reads.asInstanceOf[Reads[B]]
+
+  def toJsonStr[T: Writes](obj: T): String =
+    Json.toJson(obj).toString
 }
 
 object JsonUtils extends JsonUtils
