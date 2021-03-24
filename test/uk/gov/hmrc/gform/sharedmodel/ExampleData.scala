@@ -64,7 +64,8 @@ trait ExampleEvaluationContext {
       authConfig,
       HeaderCarrier(),
       Option.empty[FormPhase],
-      FileIdsWithMapping.empty
+      FileIdsWithMapping.empty,
+      Map.empty
     )
 }
 
@@ -128,7 +129,13 @@ trait ExampleDestination { self: ExampleAuthConfig =>
   val decFormComponent = List(buildFormComponent("fieldInDeclarationSections", Value))
 
   val decSection =
-    DeclarationSection(toSmartString("declaration section"), None, None, decFormComponent)
+    DeclarationSection(
+      toSmartString("declaration section"),
+      None,
+      None,
+      Some(toSmartString("ContinueLabel")),
+      decFormComponent
+    )
 
   def destinationList = DestinationList(NonEmptyList.of(hmrcDms), ackSection, decSection)
 }
@@ -682,11 +689,17 @@ trait ExampleFormTemplate {
       toSmartString("Declaration"),
       None,
       None,
+      Some(toSmartString("ContinueLabel")),
       Nil
     )
 
   def summarySection =
-    SummarySection(toSmartString("Summary Title"), toSmartString("Summary Header"), toSmartString("Summary Footer"))
+    SummarySection(
+      toSmartString("Summary Title"),
+      toSmartString("Summary Header"),
+      toSmartString("Summary Footer"),
+      Some(toSmartString("Summary ContinueLabel"))
+    )
 
   def buildFormTemplate: FormTemplate = buildFormTemplate(destinationList, allSections)
 

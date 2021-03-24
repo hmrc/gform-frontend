@@ -173,7 +173,9 @@ object FormTemplateBuilder {
         Log(DestinationId("TestHmrcDmsId"))
       ),
       ackSection,
-      declarationSection.getOrElse(DeclarationSection(toSmartString("Declaration"), None, None, Nil))
+      declarationSection.getOrElse(
+        DeclarationSection(toSmartString("Declaration"), None, None, None, Nil)
+      )
     ),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
     "randd_confirmation_submission",
@@ -183,7 +185,12 @@ object FormTemplateBuilder {
     Nil,
     AvailableLanguages.default,
     None,
-    SummarySection(toSmartString("Title"), toSmartString("Header"), toSmartString("Footer")),
+    SummarySection(
+      toSmartString("Title"),
+      toSmartString("Header"),
+      toSmartString("Footer"),
+      Some(toSmartString("ContinueLabel"))
+    ),
     true
   )
 

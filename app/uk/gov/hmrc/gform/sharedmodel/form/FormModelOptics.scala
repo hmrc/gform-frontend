@@ -63,7 +63,8 @@ object FormModelOptics {
         cache.formTemplate.authConfig,
         hc,
         Option.empty[FormPhase],
-        FileIdsWithMapping.empty
+        FileIdsWithMapping.empty,
+        Map.empty
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),

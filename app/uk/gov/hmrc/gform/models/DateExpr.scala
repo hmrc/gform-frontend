@@ -29,6 +29,8 @@ final case class DateExpr(year: Int, month: Int, day: Int) {
     case Date.year  => year.toString
     case _          => ""
   }
+
+  def toLocalDate: LocalDate = LocalDate.of(year, month, day)
 }
 
 object DateExpr {

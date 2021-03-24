@@ -16,588 +16,342 @@
 
 package uk.gov.hmrc.gform.validation
 
-/* import cats.instances.future._
- * import cats.scalatest.ValidatedValues._
- * import java.time.LocalDate
- * import org.scalatest.mockito.MockitoSugar.mock
- * import play.api.i18n.Messages
- * import uk.gov.hmrc.gform.Helpers.toSmartString
- * import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
- * import uk.gov.hmrc.gform.fileupload.Envelope
- * import uk.gov.hmrc.gform.lookup.LookupRegistry
- * import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, SmartString, VariadicFormData }
- * import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
- * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
- * import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
- * import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
- * import uk.gov.hmrc.http.HeaderCarrier
- * import scala.concurrent.ExecutionContext.Implicits.global
- */
-import uk.gov.hmrc.gform.GraphSpec
-import org.scalatest.concurrent.ScalaFutures
-import cats.scalatest.EitherMatchers
-import org.scalatest.{ FlatSpec, Matchers }
-class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
-  /*   val retrievals = mock[MaterialisedRetrievals]
-   *
-   *   private val lookupRegistry = new LookupRegistry(Map.empty)
-   *
-   *   implicit lazy val hc = HeaderCarrier()
-   *
-   *   implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
-   *     override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
-   *   }
-   *
-   *   private def mkComponentsValidator(data: FormDataRecalculated): ComponentsValidator =
-   *     new ComponentsValidator(
-   *       data,
-   *       EnvelopeId("whatever"),
-   *       Envelope.empty,
-   *       retrievals,
-   *       booleanExprEval,
-   *       ThirdPartyData.empty,
-   *       ExampleData.formTemplate,
-   *       lookupRegistry)
-   *
-   *   private def mkFormComponent(date: Date) =
-   *     FormComponent(
-   *       FormComponentId("accPeriodStartDate"),
-   *       date,
-   *       toSmartString("sample label"),
-   *       None,
-   *       None,
-   *       None,
-   *       true,
-   *       false,
-   *       false,
-   *       true,
-   *       false,
-   *       None)
-   *
-   *   "After Today 1" should "accepts dates after tomorrow" in {
-   *     val dateConstraint = List(DateConstraint(After, Today, OffsetDate(1)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val speccedDate = mkFormComponent(date)
-   *     val speccedDateList = List(speccedDate)
-   *
-   *     val acceptedAfter = LocalDate.now().plusDays(2)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedDate, speccedDateList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value shouldBe (())
-   *   }
-   *
-   *   "After Today 0" should "accepts dates after today" in {
-   *     val dateConstraint = List(DateConstraint(After, Today, OffsetDate(0)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val acceptedAfter = LocalDate.now().plusDays(1)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beRight(())
-   *   }
-   *
-   *   "After 2017-06-16 5" should "accepts dates after 2017-06-21" in {
-   *     val dateConstraint = List(DateConstraint(After, ConcreteDate(2017, 6, 16), OffsetDate(5)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(6)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value shouldBe (())
-   *   }
-   *
-   *   "validation for After 2017-06-16 5" should "return invalid for dates that aren't after 2017-06-21" in {
-   *     val dateConstraint = List(DateConstraint(After, ConcreteDate(2017, 6, 16), OffsetDate(5)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(2)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be after 21 June 2017")))
-   *   }
-   *
-   *   "After Today -1" should "accepts today and dates in future" in {
-   *     val dateConstraint = List(DateConstraint(After, Today, OffsetDate(-1)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val acceptedAfter = LocalDate.now()
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value shouldBe (())
-   *   }
-   *
-   *   "After 2017-06-16 -5" should "accepts dates after 2017-06-11" in {
-   *     val dateConstraint = List(DateConstraint(After, ConcreteDate(2017, 6, 16), OffsetDate(-5)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-4)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value shouldBe (())
-   *   }
-   *
-   *   "Before Today 1" should "accepts today and dates in past" in {
-   *     val dateConstraint = List(DateConstraint(Before, Today, OffsetDate(1)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val acceptedAfter = LocalDate.now()
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value shouldBe (())
-   *   }
-   *
-   *   "Before Today 0" should "accepts dates before today" in {
-   *     val dateConstraint = List(DateConstraint(Before, Today, OffsetDate(0)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val acceptedAfter = LocalDate.now().plusDays(-1)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value shouldBe (())
-   *   }
-   *
-   *   "Before Today -1" should "accepts dates before yesterday" in {
-   *     val dateConstraint = List(DateConstraint(Before, Today, OffsetDate(-1)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val acceptedAfter = LocalDate.now().plusDays(-2)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value shouldBe (())
-   *   }
-   *
-   *   "Before 2017-06-16 -5" should "accepts dates before 2017-06-11" in {
-   *     val dateConstraint = List(DateConstraint(Before, ConcreteDate(2017, 6, 16), OffsetDate(-5)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-6)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value shouldBe (())
-   *   }
-   *
-   *   "Precisely YYYY-04-DD" should "accept any date that in April" in {
-   *     val dateConstraint = List(DateConstraint(Precisely, ConcreteDate(Year.Any, Month.Exact(4), Day.Any), OffsetDate(0)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val accepted = LocalDate.of(2017, 4, 16)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> accepted.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> accepted.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> accepted.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value shouldBe (())
-   *   }
-   *
-   *   "Precisely YYYY-MM-lastDay" should "accept any date that is the last day of the given month" in {
-   *     val dateConstraint = List(DateConstraint(Precisely, ConcreteDate(Year.Any, Month.Any, Day.Last), OffsetDate(0)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val accepted = LocalDate.of(2020, 2, 29)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> accepted.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> accepted.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> accepted.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value shouldBe (())
-   *   }
-   *
-   *   "Precisely next-MM-DD" should "accept any date that is next year" in {
-   *     val dateConstraint = List(DateConstraint(Precisely, ConcreteDate(Next, Month.Any, Day.Any), OffsetDate(0)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val accepted = LocalDate.of(LocalDate.now().getYear + 1, 2, 29)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> accepted.getDayOfMonth.toString,
-   *         FormComponentId("accPeriodStartDate-month") -> accepted.getMonthValue.toString,
-   *         FormComponentId("accPeriodStartDate-year")  -> accepted.getYear.toString
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value shouldBe (())
-   *   }
-   *
-   *   "Date 26-02-2020" should "return Is not Valid when lastDay validation is applied" in {
-   *     val dateConstraint = List(DateConstraint(Precisely, ConcreteDate(Year.Any, Month.Any, Day.Last), OffsetDate(0)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> "26",
-   *         FormComponentId("accPeriodStartDate-month") -> "02",
-   *         FormComponentId("accPeriodStartDate-year")  -> "2020"
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(Map(fieldValue.id -> Set(s"sample label must be the last day of the month")))
-   *   }
-   *
-   *   "Date 26-02-2020" should "return Is not Valid when firstDay validation is applied" in {
-   *     val dateConstraint = List(DateConstraint(Precisely, ConcreteDate(Year.Any, Month.Any, Day.First), OffsetDate(0)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> "26",
-   *         FormComponentId("accPeriodStartDate-month") -> "02",
-   *         FormComponentId("accPeriodStartDate-year")  -> "2020"
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(Map(fieldValue.id -> Set(s"sample label must be the first day of the month")))
-   *   }
-   *
-   *   "Date 35-12-2017" should "return Is not Valid" in {
-   *     val dateConstraint = List(DateConstraint(Before, ConcreteDate(2017, 6, 16), OffsetDate(-5)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> "35",
-   *         FormComponentId("accPeriodStartDate-month") -> "12",
-   *         FormComponentId("accPeriodStartDate-year")  -> "2017"
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(
-   *       Map(fieldValue.id.withSuffix("day") -> Set(s"sample label day must not be greater than 31")))
-   *   }
-   *
-   *   "Date 15-5-222017" should "Invalid number of digits" in {
-   *     val dateConstraint = List(DateConstraint(Before, ConcreteDate(2017, 6, 16), OffsetDate(-5)))
-   *     val constraints = DateConstraints(dateConstraint)
-   *     val date = Date(constraints, Offset(0), None)
-   *
-   *     val fieldValue = mkFormComponent(date)
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> "15",
-   *         FormComponentId("accPeriodStartDate-month") -> "5",
-   *         FormComponentId("accPeriodStartDate-year")  -> "222017"
-   *       ))
-   *
-   *     val result =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(
-   *       Map(fieldValue.id.withSuffix("year") -> Set(s"sample label year must be a 4 digit number")))
-   *   }
-   *
-   *   /\**
-   *     * Without Date Constraints
-   *     *\/
-   *   "Date validations" should "be applied apparently from mandatory field" in {
-   *     val date = Date(AnyDate, Offset(0), None)
-   *
-   *     val fieldValue = FormComponent(
-   *       FormComponentId("accPeriodStartDate"),
-   *       date,
-   *       toSmartString("sample label"),
-   *       None,
-   *       None,
-   *       None,
-   *       false,
-   *       false,
-   *       false,
-   *       true,
-   *       false,
-   *       None)
-   *
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> "Tuesday",
-   *         FormComponentId("accPeriodStartDate-month") -> "Jan",
-   *         FormComponentId("accPeriodStartDate-year")  -> LocalDate.now().getYear.toString
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(
-   *       Map(
-   *         fieldValue.id.withSuffix("day")   -> Set("sample label day must be numeric"),
-   *         fieldValue.id.withSuffix("month") -> Set("sample label month must be numeric")
-   *       ))
-   *   }
-   *
-   *   "Date validations" should "return suitable error if empty" in {
-   *     val date = Date(AnyDate, Offset(0), None)
-   *
-   *     val fieldValue = FormComponent(
-   *       FormComponentId("accPeriodStartDate"),
-   *       date,
-   *       toSmartString("sample label"),
-   *       None,
-   *       None,
-   *       None,
-   *       false,
-   *       false,
-   *       false,
-   *       true,
-   *       false,
-   *       None)
-   *
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate-day")   -> "",
-   *         FormComponentId("accPeriodStartDate-month") -> "",
-   *         FormComponentId("accPeriodStartDate-year")  -> ""
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(
-   *       Map(
-   *         fieldValue.id.withSuffix("day")   -> Set("sample label must be entered"),
-   *         fieldValue.id.withSuffix("month") -> Set("sample label must be entered"),
-   *         fieldValue.id.withSuffix("year")  -> Set("sample label must be entered")
-   *       ))
-   *   }
-   *
-   *   "Date validations" should "fail if field ids are using wrong separator" in {
-   *     val date = Date(AnyDate, Offset(0), None)
-   *
-   *     val fieldValue = FormComponent(
-   *       FormComponentId("accPeriodStartDate"),
-   *       date,
-   *       toSmartString("sample label"),
-   *       None,
-   *       None,
-   *       None,
-   *       false,
-   *       false,
-   *       false,
-   *       true,
-   *       false,
-   *       None)
-   *
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate.day")   -> "01",
-   *         FormComponentId("accPeriodStartDate.month") -> "01",
-   *         FormComponentId("accPeriodStartDate.year")  -> "1970"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("sample label is missing")))
-   *   }
-   *
-   *   "Date validations" should "return supplied error message" in {
-   *     val date = Date(AnyDate, Offset(0), None)
-   *
-   *     val fieldValue = FormComponent(
-   *       FormComponentId("accPeriodStartDate"),
-   *       date,
-   *       toSmartString("sample label"),
-   *       None,
-   *       None,
-   *       None,
-   *       false,
-   *       false,
-   *       false,
-   *       true,
-   *       false,
-   *       Some(toSmartString("New error message"))
-   *     )
-   *
-   *     val fieldValues = List(fieldValue)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("accPeriodStartDate.day")   -> "01",
-   *         FormComponentId("accPeriodStartDate.month") -> "01",
-   *         FormComponentId("accPeriodStartDate.year")  -> "1970"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("New error message")))
-   *   }
-   */
+import cats.data.Validated.{ Invalid, Valid }
+import cats.implicits._
+import java.time.LocalDate
+import munit.FunSuite
+import play.api.i18n.Messages
+import play.api.test.Helpers
+import scala.concurrent.Future
+import uk.gov.hmrc.gform.controllers.CacheData
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.Atom
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import scala.concurrent.ExecutionContext.Implicits.global
+
+class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport {
+
+  implicit val l: LangADT = LangADT.En
+
+  private val lookupRegistry = new LookupRegistry(Map.empty)
+
+  implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
+    override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
+  }
+
+  implicit val messages: Messages = Helpers.stubMessages(
+    Helpers.stubMessagesApi(
+      Map(
+        "en" -> Map(
+          "date.June"                  -> "June",
+          "date.after"                 -> "{0} must be after {1}",
+          "date.day"                   -> "day",
+          "date.month"                 -> "month",
+          "date.year"                  -> "year",
+          "date.firstDay"              -> "the first day",
+          "date.lastDay"               -> "the last day",
+          "date.ofTheMonth"            -> "of the month",
+          "date.precisely"             -> "{0} must be {1}",
+          "field.error.exactDigits"    -> "{0} must be a {1} digit number",
+          "field.error.notGreaterThan" -> "{0} must not be greater than {1}",
+          "field.error.number"         -> "{0} must be a number",
+          "field.error.required"       -> "{0} must be entered",
+          "generic.error.maxLength"    -> "{0} must be no more than {1} characters",
+          "helper.order"               -> "{1} {0}"
+        )
+      )
+    )
+  )
+
+  private def mkComponentsValidator(
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    formComponent: FormComponent,
+    cacheData: CacheData
+  ): ComponentsValidator[DataOrigin.Mongo, Future] =
+    new ComponentsValidator(
+      formModelVisibilityOptics,
+      formComponent,
+      cacheData,
+      EnvelopeWithMapping.empty,
+      lookupRegistry,
+      booleanExprEval
+    )
+
+  private def componentsValidator(formComponent: FormComponent, data: VariadicFormData[SourceOrigin.OutOfDate]) = {
+    val section1 = mkSection(List(formComponent))
+
+    val sections = List(section1)
+
+    val formTemplate = mkFormTemplate(sections)
+
+    val fmb = mkFormModelFromSections(sections)
+
+    val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+
+    val cacheData = new CacheData(
+      EnvelopeId(""),
+      ThirdPartyData.empty,
+      formTemplate
+    )
+
+    mkComponentsValidator(fmvo, formComponent, cacheData)
+  }
+
+  val table1: List[(DateConstraint, LocalDate, ValidatedType[Unit], String)] = List(
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      LocalDate.now().plusDays(2),
+      Valid(()),
+      "After Today 1 should accepts dates after tomorrow"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(0)),
+      LocalDate.now().plusDays(1),
+      Valid(()),
+      "After Today 0 should accepts dates after today"
+    ),
+    (
+      DateConstraint(After, ConcreteDate(Year.Exact(2017), Month.Exact(6), Day.Exact(16)), OffsetDate(5)),
+      LocalDate.of(2017, 6, 16).plusDays(6),
+      Valid(()),
+      "After 2017-06-16 5 should accepts dates after 2017-06-21"
+    ),
+    (
+      DateConstraint(After, ConcreteDate(Year.Exact(2017), Month.Exact(6), Day.Exact(16)), OffsetDate(5)),
+      LocalDate.of(2017, 6, 16).plusDays(2),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+            "Label must be after 21 June 2017"
+          )
+        )
+      ),
+      "validation for After 2017-06-16 5 should return invalid for dates that aren't after 2017-06-21"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(-1)),
+      LocalDate.now(),
+      Valid(()),
+      "After Today -1 should accepts today and dates in future"
+    ),
+    (
+      DateConstraint(After, ConcreteDate(Year.Exact(2017), Month.Exact(6), Day.Exact(16)), OffsetDate(-5)),
+      LocalDate.of(2017, 6, 16).plusDays(-4),
+      Valid(()),
+      "After 2017-06-16 -5 should accepts dates after 2017-06-11"
+    ),
+    (
+      DateConstraint(Before, Today, OffsetDate(1)),
+      LocalDate.now(),
+      Valid(()),
+      "Before Today 1 should accepts today and dates in past"
+    ),
+    (
+      DateConstraint(Before, Today, OffsetDate(0)),
+      LocalDate.now().plusDays(-1),
+      Valid(()),
+      "Before Today 0 should accepts dates before today"
+    ),
+    (
+      DateConstraint(Before, Today, OffsetDate(-1)),
+      LocalDate.now().plusDays(-2),
+      Valid(()),
+      "Before Today -1 should accepts dates before yesterday"
+    ),
+    (
+      DateConstraint(Before, ConcreteDate(Year.Exact(2017), Month.Exact(6), Day.Exact(16)), OffsetDate(-5)),
+      LocalDate.of(2017, 6, 16).plusDays(-6),
+      Valid(()),
+      "Before 2017-06-16 -5 should accepts dates before 2017-06-11"
+    ),
+    (
+      DateConstraint(Precisely, ConcreteDate(Year.Any, Month.Exact(4), Day.Any), OffsetDate(0)),
+      LocalDate.of(2017, 4, 16),
+      Valid(()),
+      "Precisely YYYY-04-DD should accept any date that in April"
+    ),
+    (
+      DateConstraint(Precisely, ConcreteDate(Year.Any, Month.Any, Day.Last), OffsetDate(0)),
+      LocalDate.of(2020, 2, 29),
+      Valid(()),
+      "Precisely YYYY-MM-lastDay should accept any date that is the last day of the given month"
+    ),
+    (
+      DateConstraint(Precisely, ConcreteDate(Year.Next, Month.Any, Day.Any), OffsetDate(0)),
+      LocalDate.of(LocalDate.now().getYear + 1, 2, 28),
+      Valid(()),
+      "Precisely next-MM-DD should accept any date that is next year"
+    ),
+    (
+      DateConstraint(Precisely, ConcreteDate(Year.Any, Month.Any, Day.Last), OffsetDate(0)),
+      LocalDate.of(2020, 2, 26),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+            "Label must be the last day of the month "
+          )
+        )
+      ),
+      "Date 26-02-2020 should return Is not Valid when lastDay validation is applied"
+    ),
+    (
+      DateConstraint(Precisely, ConcreteDate(Year.Any, Month.Any, Day.First), OffsetDate(0)),
+      LocalDate.of(2020, 2, 26),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+            "Label must be the first day of the month "
+          )
+        )
+      ),
+      "Date 26-02-2020 should return Is not Valid when firstDay validation is applied"
+    )
+  )
+
+  table1.zipWithIndex.traverse[Future, Unit] { case ((dateConstraint, acceptedAfter, expected, description), index) =>
+    val dateConstraints = List(dateConstraint)
+    val constraints = DateConstraints(dateConstraints)
+    val date = Date(constraints, Offset(0), None)
+
+    val fieldValue = mkFormComponent("accPeriodStartDate", date)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "accPeriodStartDate-day"   -> acceptedAfter.getDayOfMonth.toString,
+      "accPeriodStartDate-month" -> acceptedAfter.getMonthValue.toString,
+      "accPeriodStartDate-year"  -> acceptedAfter.getYear.toString
+    )
+
+    val obtainedF: Future[ValidatedType[Unit]] =
+      componentsValidator(fieldValue, data).validate(GetEmailCodeFieldMatcher.noop)
+
+    obtainedF.map { obtained =>
+      test(index + ". " + description) {
+        assertEquals(obtained, expected)
+      }
+    }
+  }
+
+  val table2: List[(DateConstraint, (String, String, String), ValidatedType[Unit], String)] = List(
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("35", "12", "2017"),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+            " Label day must not be greater than 31"
+          )
+        )
+      ),
+      "Date 35-12-2017 should return Is not Valid"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("15", "5", "222017"),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+            " Label year must be no more than 4 characters"
+          )
+        )
+      ),
+      "Date 15-5-222017 should Invalid number of digits"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("15", "5", "202"),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+            " Label year must be a 4 digit number"
+          )
+        )
+      ),
+      "Date 15-5-202 should Invalid number of digits"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("Tuesday", "Jan", "2020"),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+            " Label day must be no more than 2 characters"
+          ),
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+            " Label month must be no more than 2 characters"
+          )
+        )
+      ),
+      "Date Tuesday-Jan-202- should Invalid no more than 2 characters"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("Tu", "Ja", "2020"),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+            " Label day must be a number"
+          ),
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+            " Label month must be a number"
+          )
+        )
+      ),
+      "Date Tu-Ja-2020 Invalid must be numeric"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("", "", ""),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+            "Label must be entered",
+            " Label must be entered"
+          ),
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+            "Label must be entered",
+            " Label must be entered"
+          ),
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+            "Label must be entered",
+            " Label must be entered"
+          )
+        )
+      ),
+      "Date validations should return suitable error if empty"
+    )
+  )
+
+  table2.zipWithIndex.traverse[Future, Unit] {
+    case ((dateConstraint, (day, month, year), expected, description), index) =>
+      val dateConstraints = List(dateConstraint)
+      val constraints = DateConstraints(dateConstraints)
+      val date = Date(constraints, Offset(0), None)
+
+      val fieldValue = mkFormComponent("accPeriodStartDate", date)
+
+      val data = variadicFormData[SourceOrigin.OutOfDate](
+        "accPeriodStartDate-day"   -> day,
+        "accPeriodStartDate-month" -> month,
+        "accPeriodStartDate-year"  -> year
+      )
+
+      val obtainedF: Future[ValidatedType[Unit]] =
+        componentsValidator(fieldValue, data).validate(GetEmailCodeFieldMatcher.noop)
+
+      obtainedF.map { obtained =>
+        test(index + ". " + description) {
+          assertEquals(obtained, expected)
+        }
+      }
+  }
 }

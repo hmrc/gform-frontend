@@ -414,13 +414,15 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       specialAttributes = Map.empty
     )
 
-    val confirm = formTemplate.formCategory match {
-      case HMRCReturnForm => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
-      case HMRCClaimForm  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
-      case _              => messages("button.acceptAndSubmit")
-    }
-
     val declarationPage = singleton.page
+
+    val continueLabel = declarationPage.continueLabel.map(_.value()).getOrElse {
+      formTemplate.formCategory match {
+        case HMRCReturnForm => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
+        case HMRCClaimForm  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
+        case _              => messages("button.acceptAndSubmit")
+      }
+    }
 
     val listResult = validationResult.formFieldValidationResults(singleton)
     val snippets = declarationPage.renderUnits.map(renderUnit =>
@@ -439,7 +441,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       uk.gov.hmrc.gform.gform.routes.DeclarationController
         .submitDeclaration(formTemplate._id, maybeAccessCode, uk.gov.hmrc.gform.controllers.Continue),
       false,
-      confirm,
+      continueLabel,
       0,
       Nil
     )

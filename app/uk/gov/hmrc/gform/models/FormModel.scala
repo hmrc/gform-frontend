@@ -66,6 +66,10 @@ case class FormModel[A <: PageMode](
     .map(_.modelComponentId)
     .toSet
 
+  val dateLookup: Map[ModelComponentId, DateValue] = allFormComponents.collect {
+    case fc @ IsDate(Date(_, _, Some(value))) => fc.id.modelComponentId -> value
+  }.toMap
+
   val exprsMetadata: List[ExprMetadata] = brackets.toBrackets.toList.flatMap {
     case AllPageModelExpressions(exprMetadatas) => exprMetadatas
     case _                                      => Nil

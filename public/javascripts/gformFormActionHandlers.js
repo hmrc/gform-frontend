@@ -7,14 +7,14 @@
     function GformFormActionHandlers () {
       var self = this;
 
+      var submitButtons = $('button[type=submit]')
+
       function disableSubmitButtons() {
-        $('button[type=submit]').attr('disabled', 'disabled')
+        submitButtons.attr('disabled', true)
       }
 
       function findAction ($el) {
-        return $el.is("button")
-          ? $el.attr("formaction")
-          : $el.is("a")
+        return $el.is("a")
           ? $el.attr("href")
           : $el.is("span") &&
             $el.attr("aria-hidden") == "true" &&
@@ -23,18 +23,12 @@
           : "";
       }
 
-      function submitForm(e) {
+      function setFormActionAndSubmit() {
+        return function (e) {
+          $('#gf-form').attr('action', findAction($(e.target)))
           e.preventDefault();
           $('#gf-form').submit();
           disableSubmitButtons();
-      }
-
-      function handleSetActionAndFormSubmit(submit) {
-        return function (e) {
-          $('#gf-form').attr('action', findAction($(e.target)))
-          if (submit) {
-            submitForm(e)
-          }
         };
       }
 
@@ -45,13 +39,15 @@
           if ($(this).find('button[type=submit]').prop('disabled')) {
             return false
           }
+          disableSubmitButtons()
+          return true
         })
 
-	$("#main-content")
+	    $("#main-content")
           .parent()
-          .on('click', 'button[type=submit]', handleSetActionAndFormSubmit(true))
-          .on('click', '#backButton', handleSetActionAndFormSubmit(true))
-       // update any character counters with ids and aria labels
+          .on('click', '#backButton', setFormActionAndSubmit())
+
+        // update any character counters with ids and aria labels
         $('.char-counter-text').each(function (i, hint) {
           var id = 'character-info-' + i;
           var $hint = $(hint);

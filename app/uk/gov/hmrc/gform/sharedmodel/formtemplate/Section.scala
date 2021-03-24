@@ -94,6 +94,7 @@ case class DeclarationSection(
   title: SmartString,
   description: Option[SmartString],
   shortName: Option[SmartString],
+  continueLabel: Option[SmartString],
   fields: List[FormComponent]
 ) {
   def toSection = Section.NonRepeatingPage(toPage)
@@ -107,7 +108,7 @@ case class DeclarationSection(
       includeIf = None,
       validators = None,
       fields = fields,
-      continueLabel = None,
+      continueLabel = continueLabel,
       continueIf = None,
       instruction = None,
       presentationHint = None
