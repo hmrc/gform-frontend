@@ -22,6 +22,7 @@ import org.slf4j.{ Logger, LoggerFactory }
 import play.api.data
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
+import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auth.models.{ EmailAuthDetails, EmailCodeConfirmation }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -85,19 +86,50 @@ class EmailAuthController(
     }
 
   def sendEmail(formTemplateId: FormTemplateId): Action[AnyContent] =
-    nonAutheticatedRequestActions.async { implicit request => _ =>
+    nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val emailId = EmailId(emailForm.bindFromRequest().get)
       val formTemplate = request.attrs(FormTemplateKey)
-      sendEmailWithConfirmationCode(formTemplate, emailId).map { emailAndCode =>
-        val emailAuthDetails: EmailAuthDetails =
-          fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
-        Redirect(
-          uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId)
-        ).addingToSession(
-          EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
-            emailAuthDetails + (formTemplateId -> EmailCodeConfirmation(emailAndCode))
+
+      if (EmailAddress.isValid(emailId.value)) {
+        sendEmailWithConfirmationCode(formTemplate, emailId).map { emailAndCode =>
+          val emailAuthDetails: EmailAuthDetails =
+            fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
+          Redirect(
+            uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId)
+          ).addingToSession(
+            EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
+              emailAuthDetails + (formTemplateId -> EmailCodeConfirmation(emailAndCode))
+            )
+          )
+        }
+      } else {
+        val pageErrors: HasErrors = Errors(
+          new components.govukErrorSummary()(
+            ErrorSummary(
+              errorList = List(
+                ErrorLink(
+                  href = Some("#email"),
+                  content = content.Text("Email address is not valid")
+                )
+              ),
+              title = content.Text(request.messages.messages("error.summary.heading"))
+            )
           )
         )
+        val maybeEmailFieldError = Some(
+          ErrorMessage(
+            content = content.Text("Email address is not valid")
+          )
+        )
+        Ok(
+          html.auth.enter_email(
+            formTemplate,
+            frontendAppConfig,
+            uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId),
+            pageErrors,
+            maybeEmailFieldError
+          )
+        ).pure[Future]
       }
     }
 

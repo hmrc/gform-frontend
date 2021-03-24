@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.gform.{HasErrors, NoErrors}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.html.main_template
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content
@@ -26,7 +27,9 @@
 @(
     formTemplate: FormTemplate,
     frontendAppConfig: FrontendAppConfig,
-    formAction: Call
+    formAction: Call,
+    pageLevelError: HasErrors = NoErrors,
+    maybeEmailFieldError: Option[ErrorMessage] = None
 )(
     implicit
     request: Request[_],
@@ -55,6 +58,8 @@
     backLink = None
 ) {
 
+    @pageLevelError.render
+
     <header class="hmrc-page-heading">
         <h1 class="govuk-heading-l">@heading</h1>
     </header>
@@ -67,6 +72,7 @@
         @govukInput(Input(id = "email",
             name = "email",
             label = Label(content = content.Text(heading)),
+            errorMessage = maybeEmailFieldError,
             classes = "govuk-input--width-30"
         ))
 
