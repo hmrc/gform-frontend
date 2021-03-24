@@ -39,7 +39,7 @@ object Dependencies {
     "com.typesafe.play"      %% "play-test"                % PlayVersion.current % scope,
     "org.scalatestplus.play" %% "scalatestplus-play"       % "4.0.3"             % scope,
     "org.mockito"            %% "mockito-scala-scalatest"  % "1.7.0"             % scope,
-    "com.github.tomakehurst"  % "wiremock-jre8"            % "2.27.1"            % scope
+    "com.github.tomakehurst"  % "wiremock-jre8"            % "2.27.1"            % scope,
     "org.scalameta"          %% "munit"                    % "0.7.22"            % scope
   )
 }

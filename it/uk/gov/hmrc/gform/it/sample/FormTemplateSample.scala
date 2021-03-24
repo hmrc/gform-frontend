@@ -23,7 +23,8 @@ trait FormTemplateSample {
     summarySection = SummarySection(
       toSmartString("Check your answers"),
       toSmartString("Make sure the information you have given is correct"),
-      toSmartString("Now send your form")
+      toSmartString("Now send your form"),
+      Some(toSmartString("Continue"))
     ),
     authConfig = EmailAuthConfig(EmailCodeTemplate("code_template")),
     displayHMRCLogo = true,
@@ -91,6 +92,7 @@ trait FormTemplateSample {
         title = toSmartString("Declaration Page"),
         description = None,
         shortName = None,
+        continueLabel = None,
         fields = List.empty
       )
     ),
