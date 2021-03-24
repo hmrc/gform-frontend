@@ -23,11 +23,11 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 object EmailAuthUtils {
 
-  val EMAIL_CODES_SESSION_KEY = "emailCodes"
+  val EMAIL_AUTH_DETAILS_SESSION_KEY = "emailAuthDetails"
 
-  def isEmailConfirmed(request: Request[AnyContent], formTemplateId: FormTemplateId): Boolean = {
-    val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_CODES_SESSION_KEY, EmailAuthDetails())
-    emailAuthDetails.isConfirmed(formTemplateId)
+  def isEmailConfirmed(formTemplateId: FormTemplateId)(implicit request: Request[AnyContent]): Option[String] = {
+    val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
+    emailAuthDetails.get(formTemplateId).filter(_.confirmed).map(_.emailAndCode.email)
   }
 
   def fromSession[T: Reads](request: Request[AnyContent], key: String, default: T): T =

@@ -35,8 +35,6 @@ case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailCodeConfirmation]
         None
       }
     }
-
-  def isConfirmed(formTemplateId: FormTemplateId) = get(formTemplateId).exists(_.confirmed)
 }
 
 object EmailAuthDetails {

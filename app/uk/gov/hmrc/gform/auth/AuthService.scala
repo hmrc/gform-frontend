@@ -70,7 +70,7 @@ class AuthService(
       case HmrcEnrolmentModule(enrolmentAuth) =>
         performEnrolment(formTemplate, enrolmentAuth, getAffinityGroup, ggAuthorised)
       case HmrcAgentModule(agentAccess) =>
-        performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), Future.successful(_))
+        performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), Future.successful)
       case HmrcAgentWithEnrolmentModule(agentAccess, enrolmentAuth) =>
         def ifSuccessPerformEnrolment(authResult: AuthResult) = authResult match {
           case AuthSuccessful(_, _) => performEnrolment(formTemplate, enrolmentAuth, getAffinityGroup, ggAuthorised)
@@ -78,14 +78,12 @@ class AuthService(
         }
         performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
       case EmailAuthConfig(_) =>
-        if (isEmailConfirmed(request, formTemplate._id)) {
-          hc.sessionId
-            .fold[AuthResult](AuthEmailRedirect(gform.routes.EmailAuthController.emailIdForm(formTemplate._id)))(
-              sessionId => AuthSuccessful(EmailRetrievals(sessionId), Role.Customer)
-            )
-            .pure[Future]
-        } else {
-          AuthEmailRedirect(gform.routes.EmailAuthController.emailIdForm(formTemplate._id)).pure[Future]
+        isEmailConfirmed(formTemplate._id) match {
+          case Some(email) =>
+            AuthSuccessful(EmailRetrievals(email), Role.Customer)
+              .pure[Future]
+          case None =>
+            AuthEmailRedirect(gform.routes.EmailAuthController.emailIdForm(formTemplate._id)).pure[Future]
         }
     }
 

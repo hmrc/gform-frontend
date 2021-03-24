@@ -359,7 +359,6 @@ class AuthenticatedRequestActions(
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
       case AuthEmailRedirect(redirectUrl) =>
         Redirect(redirectUrl.url, request.queryString)
-          .withSession(SessionKeys.sessionId -> s"email-session-${UUID.randomUUID()}")
           .pure[Future]
       case AuthAnonymousSession(redirectUrl) =>
         Redirect(redirectUrl.url, request.queryString)

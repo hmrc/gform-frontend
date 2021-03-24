@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auth.models.{ EmailAuthDetails, EmailCodeConfirmation }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActions
-import uk.gov.hmrc.gform.gform.EmailAuthUtils.{ EMAIL_CODES_SESSION_KEY, fromSession }
+import uk.gov.hmrc.gform.gform.EmailAuthUtils.{ EMAIL_AUTH_DETAILS_SESSION_KEY, fromSession }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -89,11 +89,12 @@ class EmailAuthController(
       val emailId = EmailId(emailForm.bindFromRequest().get)
       val formTemplate = request.attrs(FormTemplateKey)
       sendEmailWithConfirmationCode(formTemplate, emailId).map { emailAndCode =>
-        val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_CODES_SESSION_KEY, EmailAuthDetails())
+        val emailAuthDetails: EmailAuthDetails =
+          fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
         Redirect(
           uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId)
         ).addingToSession(
-          EMAIL_CODES_SESSION_KEY -> toJsonStr(
+          EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
             emailAuthDetails + (formTemplateId -> EmailCodeConfirmation(emailAndCode))
           )
         )
@@ -103,7 +104,7 @@ class EmailAuthController(
   def confirmCodeForm(formTemplateId: FormTemplateId): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplate = request.attrs(FormTemplateKey)
-      val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_CODES_SESSION_KEY, EmailAuthDetails())
+      val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
 
       emailAuthDetails.get(formTemplateId) match {
         case Some(authDetails) =>
@@ -125,7 +126,7 @@ class EmailAuthController(
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplate = request.attrs(FormTemplateKey)
       val (email, code) = confirmCodeForm.bindFromRequest().get
-      val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_CODES_SESSION_KEY, EmailAuthDetails())
+      val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
       emailAuthDetails
         .checkCodeAndConfirm(formTemplateId, EmailAndCode(email, EmailConfirmationCode(code)))
         .fold {
@@ -161,7 +162,7 @@ class EmailAuthController(
           Redirect(
             uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplateId)
           ).addingToSession(
-            EMAIL_CODES_SESSION_KEY -> toJsonStr(
+            EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
               confirmedEmailAuthDetails
             )
           )

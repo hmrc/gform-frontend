@@ -23,10 +23,12 @@ import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IdentifierName, ServiceName }
 import uk.gov.hmrc.http.logging.SessionId
 
+import java.security.MessageDigest
+
 sealed trait MaterialisedRetrievals extends Product with Serializable {
   def groupId = this match {
     case AnonymousRetrievals(sessionId)                       => sessionId.value
-    case EmailRetrievals(sessionId)                           => sessionId.value
+    case EmailRetrievals(email)                               => "email-" + MessageDigest.getInstance("SHA-1").digest(email.getBytes).mkString
     case AuthenticatedRetrievals(_, _, _, groupIdentifier, _) => groupIdentifier
     case VerifyRetrievals(verifyId, _)                        => verifyId.id
   }
@@ -99,7 +101,7 @@ case class VerifyId(id: String) extends AnyVal
 
 case class AnonymousRetrievals(sessionId: SessionId) extends MaterialisedRetrievals
 
-case class EmailRetrievals(sessionId: SessionId) extends MaterialisedRetrievals
+case class EmailRetrievals(emailId: String) extends MaterialisedRetrievals
 
 case class VerifyRetrievals(verifyIde: VerifyId, nino: Nino) extends MaterialisedRetrievals
 

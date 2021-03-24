@@ -38,6 +38,7 @@ object Dependencies {
     "com.ironcorelabs"       %% "cats-scalatest"           % "2.4.0"             % scope,
     "com.typesafe.play"      %% "play-test"                % PlayVersion.current % scope,
     "org.scalatestplus.play" %% "scalatestplus-play"       % "4.0.3"             % scope,
-    "org.mockito"            %% "mockito-scala-scalatest"  % "1.7.0"             % scope
+    "org.mockito"            %% "mockito-scala-scalatest"  % "1.7.0"             % scope,
+    "com.github.tomakehurst"  % "wiremock-jre8"               % "2.27.1"            % scope
   )
 }

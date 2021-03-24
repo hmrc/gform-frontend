@@ -11,6 +11,8 @@ import org.irundaia.sbt.sass._
 
 val silencerVersion = "1.7.0"
 
+lazy val IntegrationTest = config("it") extend Test
+
 lazy val microservice = (project in file("."))
   .enablePlugins(
     play.sbt.PlayScala,
@@ -84,10 +86,12 @@ lazy val microservice = (project in file("."))
   .configs(IntegrationTest)
   .settings(
     inConfig(IntegrationTest)(Defaults.itSettings),
+    inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
     Keys.fork in IntegrationTest := false,
     unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
     addTestReportOption(IntegrationTest, "int-test-reports"),
-    parallelExecution in IntegrationTest := false
+    parallelExecution in IntegrationTest := false,
+    scalafmtOnCompile := true
   )
   .settings(
     resolvers ++= Seq(

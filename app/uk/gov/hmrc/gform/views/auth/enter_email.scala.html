@@ -70,7 +70,9 @@
             classes = "govuk-input--width-30"
         ))
 
-        @govukButton(Button(content = Text(messages("button.continue")),
+        @govukButton(Button(
+            name = Some("submitButton"),
+            content = Text(messages("button.continue")),
             inputType=Some("submit"))
         )
     }
