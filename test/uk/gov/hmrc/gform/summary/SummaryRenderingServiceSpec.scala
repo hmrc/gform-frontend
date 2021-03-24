@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.summary
 
 import cats.MonadError
+import org.jsoup.Jsoup
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.concurrent.ScalaFutures
@@ -246,6 +247,42 @@ class SummaryRenderingServiceSpec
   }
 
   "getSummaryHTML" when {
+
+    "summary page" should {
+
+      "show a Button with text 'Summary ContinueLabel'" in {
+        val testFixture: TestFixture = new TestFixture {
+          override lazy val formTemplate: FormTemplate = buildFormTemplate(
+            destinationList,
+            List(
+              nonRepeatingPageSection(
+                title = "Some page title",
+                fields = List(page1Field),
+                presentationHint = None
+              )
+            )
+          )
+          override lazy val form: Form =
+            buildForm(FormData(List(FormField(page1Field.modelComponentId, "page1Field-value"))))
+          override lazy val validationResult: ValidationResult = new ValidationResult(
+            Map(
+              page1Field.id -> FieldOk(page1Field, "page1Field-value")
+            ),
+            None
+          )
+        }
+
+        import testFixture._
+
+        val generatedHtml = summaryRenderingService
+          .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForDms, formModelOptics)
+          .futureValue
+
+        val pageButton = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button").first
+
+        pageButton.text shouldBe "Summary ContinueLabel"
+      }
+    }
 
     "non-repeating page" should {
 

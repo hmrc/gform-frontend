@@ -30,8 +30,11 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
   def apply(formTemplate: FormTemplate): List[ExprMetadata] = {
     val emailExprs: List[Expr] = fromOptionF(formTemplate.emailParameters)(_.toList.map(_.value))
     val summarySectionExprs: List[Expr] = {
-      val SummarySection(title, header, footer) = formTemplate.summarySection
-      fromSmartStrings(title, header, footer)
+      val SummarySection(title, header, footer, continueLabel) = formTemplate.summarySection
+
+      continueLabel.fold(fromSmartStrings(title, header, footer)) { cl =>
+        fromSmartStrings(title, header, footer, cl)
+      }
     }
 
     def fromPage(page: Page[Basic]): List[ExprMetadata] =
@@ -40,7 +43,8 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
           fromSmartStrings(page.title),
           fromOption(
             page.description,
-            page.shortName
+            page.shortName,
+            page.continueLabel
           )
         )
 
