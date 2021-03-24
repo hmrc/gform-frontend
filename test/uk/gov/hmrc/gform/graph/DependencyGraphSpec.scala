@@ -632,12 +632,12 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     val emptySS = toSmartString("")
     val ctx = FormCtx("a")
     val stringExpr = toSmartStringExpression("", ctx)
-    val emptySummarySection = SummarySection(emptySS, emptySS, emptySS)
+    val emptySummarySection = SummarySection(emptySS, emptySS, emptySS, None)
     val emptyPrintSectionPage = PrintSection.Page(emptySS, emptySS)
     val emptyPrintSectionPdf = PrintSection.Pdf(emptySS, emptySS)
     val emptyPrintSectionPdfNotification = PrintSection.PdfNotification(emptySS, emptySS, List.empty[FormComponentId])
     val emptyDestinationPrint = DestinationPrint(emptyPrintSectionPage, emptyPrintSectionPdf, None)
-    val emptyDeclarationSection = DeclarationSection(emptySS, None, None, List.empty[FormComponent])
+    val emptyDeclarationSection = DeclarationSection(emptySS, None, None, None, List.empty[FormComponent])
     val emptyAcknowledgementSection =
       AcknowledgementSection(emptySS, None, None, List.empty[FormComponent], true, None, None, true)
     val emptyHmrcDms =
@@ -653,6 +653,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
       ("summarySection.title",                dummyFormTemplate.copy(summarySection = emptySummarySection.copy(title = stringExpr))),
       ("summarySection.header",               dummyFormTemplate.copy(summarySection = emptySummarySection.copy(header = stringExpr))),
       ("summarySection.footer",               dummyFormTemplate.copy(summarySection = emptySummarySection.copy(footer = stringExpr))),
+      ("summarySection.continueLabel",        dummyFormTemplate.copy(summarySection = emptySummarySection.copy(continueLabel = Some(stringExpr)))),
       ("printSection.page.title",             dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(page = emptyPrintSectionPage.copy(title = stringExpr)))),
       ("printSection.page.instructions",      dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(page = emptyPrintSectionPage.copy(instructions = stringExpr)))),
       ("printSection.pdf.header",             dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdf = emptyPrintSectionPdf.copy(header = stringExpr)))),
@@ -666,6 +667,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
       ("declarationSection.title",            dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(title = stringExpr)))),
       ("declarationSection.description",      dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(description = Some(stringExpr))))),
       ("declarationSection.shortName",        dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(shortName = Some(stringExpr))))),
+      ("declarationSection.continueLabel",    dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(continueLabel = Some(stringExpr))))),
       ("declarationSection.fields",           dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(fields = field :: Nil)))),
       ("destination.hmrcDms.customerId",      dummyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx))))),
       ("destination.composite.destinations",  dummyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyCompositeDestination.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx)))))))

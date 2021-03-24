@@ -279,7 +279,7 @@ object SummaryRenderingService {
       maybeAccessCode,
       formTemplate.formCategory,
       retrievals.renderSaveAndComeBackLater,
-      retrievals.continueLabelKey,
+      formTemplate.summarySection.continueLabel.map(_.value()).getOrElse(retrievals.continueLabelKey),
       frontendAppConfig,
       summaryPagePurpose,
       None,

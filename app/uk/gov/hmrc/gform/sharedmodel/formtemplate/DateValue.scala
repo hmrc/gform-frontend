@@ -16,10 +16,13 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import java.time.LocalDate
 import julienrf.json.derived
 import play.api.libs.json._
 
-sealed trait DateValue
+sealed trait DateValue {
+  def toLocalDate: LocalDate = uk.gov.hmrc.gform.models.DateExpr.fromDateValue(this).toLocalDate
+}
 final case object TodayDateValue extends DateValue
 final case class ExactDateValue(year: Int, month: Int, day: Int) extends DateValue
 final case class NextDateValue(month: Int, day: Int) extends DateValue
