@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.auth.models
 
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
+import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.mappings._
 import uk.gov.hmrc.gform.models.userdetails.Nino
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
@@ -27,8 +28,9 @@ import java.security.MessageDigest
 
 sealed trait MaterialisedRetrievals extends Product with Serializable {
   def groupId = this match {
-    case AnonymousRetrievals(sessionId)                       => sessionId.value
-    case EmailRetrievals(email)                               => "email-" + MessageDigest.getInstance("SHA-1").digest(email.getBytes).mkString
+    case AnonymousRetrievals(sessionId) => sessionId.value
+    case EmailRetrievals(EmailId(email)) =>
+      "email-" + MessageDigest.getInstance("SHA-1").digest(email.getBytes).mkString
     case AuthenticatedRetrievals(_, _, _, groupIdentifier, _) => groupIdentifier
     case VerifyRetrievals(verifyId, _)                        => verifyId.id
   }
@@ -101,7 +103,7 @@ case class VerifyId(id: String) extends AnyVal
 
 case class AnonymousRetrievals(sessionId: SessionId) extends MaterialisedRetrievals
 
-case class EmailRetrievals(emailId: String) extends MaterialisedRetrievals
+case class EmailRetrievals(emailId: EmailId) extends MaterialisedRetrievals
 
 case class VerifyRetrievals(verifyIde: VerifyId, nino: Nino) extends MaterialisedRetrievals
 
