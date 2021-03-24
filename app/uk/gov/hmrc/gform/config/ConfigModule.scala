@@ -82,7 +82,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       authModule = AuthModule(
         getJSConfig("auth-module.hmrc"),
         getJSConfig("auth-module.anonymous"),
-        getJSConfig("auth-module.awsAlbAuth")
+        getJSConfig("auth-module.awsAlbAuth"),
+        getJSConfig("auth-module.email")
       ),
       availableLanguages = availableLanguages,
       routeToSwitchLanguage = routeToSwitchLanguage,
