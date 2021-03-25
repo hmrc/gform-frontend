@@ -87,7 +87,10 @@ class EmailAuthController(
                   errorList = List(
                     ErrorLink(
                       href = Some("#email"),
-                      content = content.Text("Email address is not valid")
+                      content = content.Text(
+                        request.messages
+                          .messages("generic.error.invalid", request.messages.messages("emailAuth.emailAddress"))
+                      )
                     )
                   ),
                   title = content.Text(request.messages.messages("error.summary.heading"))
@@ -96,7 +99,10 @@ class EmailAuthController(
             ),
             Some(
               ErrorMessage(
-                content = content.Text("Email address is not valid")
+                content = content.Text(
+                  request.messages
+                    .messages("generic.error.invalid", request.messages.messages("emailAuth.emailAddress"))
+                )
               )
             ),
             Some(value)
@@ -161,7 +167,7 @@ class EmailAuthController(
                       errorList = List(
                         ErrorLink(
                           href = Some("#code"),
-                          content = content.Text("Enter the code we emailed you. This is 4 letters, like DNLC")
+                          content = content.Text(request.messages.messages("emailAuth.confirmCodeError"))
                         )
                       ),
                       title = content.Text(request.messages.messages("error.summary.heading"))
@@ -170,7 +176,7 @@ class EmailAuthController(
                 ),
                 Some(
                   ErrorMessage(
-                    content = content.Text("Enter the code we emailed you. This is 4 letters, like DNLC")
+                    content = content.Text(request.messages.messages("emailAuth.confirmCodeError"))
                   )
                 )
               )
