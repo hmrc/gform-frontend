@@ -27,5 +27,6 @@ object AuthContextPrepop {
     case SaUtr                  => retrievals.getTaxIdValue(IRSA())
     case CtUtr                  => retrievals.getTaxIdValue(IRCT())
     case EtmpRegistrationNumber => retrievals.getTaxIdValue(HMRCOBTDSORG())
+    case EmailId                => retrievals.getEmail
   }
 }

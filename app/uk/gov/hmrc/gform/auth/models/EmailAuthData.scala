@@ -16,11 +16,21 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import play.api.libs.json.{ Format, Json }
+import julienrf.json.derived
+import play.api.libs.json.OFormat
+import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 
-case class EmailCodeConfirmation(emailAndCode: EmailAndCode, confirmed: Boolean = false)
+sealed trait EmailAuthData {
+  def email = this match {
+    case InvalidEmail(EmailId(email))          => email
+    case ValidEmail(EmailAndCode(email, _), _) => email
+  }
+}
 
-object EmailCodeConfirmation {
-  implicit val format: Format[EmailCodeConfirmation] = Json.format[EmailCodeConfirmation]
+case class InvalidEmail(emailId: EmailId) extends EmailAuthData
+case class ValidEmail(emailAndCode: EmailAndCode, confirmed: Boolean = false) extends EmailAuthData
+
+object EmailAuthData {
+  implicit val format: OFormat[EmailAuthData] = derived.oformat()
 }

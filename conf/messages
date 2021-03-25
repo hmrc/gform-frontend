@@ -16,9 +16,11 @@ emailAuth.browserAccessEmailNewWindow=If you use a browser to access your email,
 emailAuth.confirmCode=Confirmation code
 emailAuth.confirmCodeExample=For example, DNXL.
 emailAuth.cannotFindEmail=I cannot find the email
-emailAuth.emailTakesFewMins=The email may take a few minutes to arrive. The subject line is: 'Confirm your email address - {0} - HMRC'.
+emailAuth.emailTakesFewMins=The email may take a few minutes to arrive. The subject line is: "Confirm your email address - {0} - HMRC".
 emailAuth.checkYourSpam=Check your spam or junk folder – if it still has not arrived, you will need to
 emailAuth.startAgain=start again
+emailAuth.emailAddress=Email address
+emailAuth.confirmCodeError=Enter the code we emailed you. This is 4 letters, like DNLC
 
 linkText.saveAndComeBackLater=Save and come back later
 linkText.back=Back

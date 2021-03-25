@@ -20,26 +20,26 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, JsonUtils }
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 
-case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailCodeConfirmation] = Map.empty) {
-  def +(values: (FormTemplateId, EmailCodeConfirmation)*): EmailAuthDetails =
+case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.empty) {
+  def +(values: (FormTemplateId, EmailAuthData)*): EmailAuthDetails =
     EmailAuthDetails(mappings ++ values)
 
-  def get(formTemplateId: FormTemplateId): Option[EmailCodeConfirmation] =
+  def get(formTemplateId: FormTemplateId): Option[EmailAuthData] =
     mappings.get(formTemplateId)
 
   def checkCodeAndConfirm(formTemplateId: FormTemplateId, emailAndCode: EmailAndCode): Option[EmailAuthDetails] =
     get(formTemplateId).flatMap { emailCodeConfirmation =>
-      if (emailCodeConfirmation.emailAndCode == emailAndCode) {
-        Some(EmailAuthDetails(mappings + (formTemplateId -> emailCodeConfirmation.copy(confirmed = true))))
-      } else {
-        None
+      emailCodeConfirmation match {
+        case v @ ValidEmail(e, _) if e == emailAndCode =>
+          Some(EmailAuthDetails(mappings + (formTemplateId -> v.copy(confirmed = true))))
+        case _ => None
       }
     }
 }
 
 object EmailAuthDetails {
 
-  val formatMap: Format[Map[FormTemplateId, EmailCodeConfirmation]] =
+  val formatMap: Format[Map[FormTemplateId, EmailAuthData]] =
     JsonUtils.formatMap(FormTemplateId.apply, _.value)
 
   implicit val format: Format[EmailAuthDetails] = Format(

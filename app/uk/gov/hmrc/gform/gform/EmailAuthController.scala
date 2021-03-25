@@ -24,7 +24,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.FormTemplateKey
-import uk.gov.hmrc.gform.auth.models.{ EmailAuthDetails, EmailCodeConfirmation }
+import uk.gov.hmrc.gform.auth.models.{ EmailAuthDetails, InvalidEmail, ValidEmail }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActions
 import uk.gov.hmrc.gform.gform.EmailAuthUtils.{ EMAIL_AUTH_DETAILS_SESSION_KEY, fromSession }
@@ -76,76 +76,120 @@ class EmailAuthController(
   def emailIdForm(formTemplateId: FormTemplateId): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplate = request.attrs(FormTemplateKey)
+      val emailAuthDetails: EmailAuthDetails =
+        fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
+      val (pageErrors, maybeEmailFieldError, maybeEmailFieldValue) = emailAuthDetails.get(formTemplateId) match {
+        case Some(InvalidEmail(EmailId(value))) =>
+          (
+            Errors(
+              new components.govukErrorSummary()(
+                ErrorSummary(
+                  errorList = List(
+                    ErrorLink(
+                      href = Some("#email"),
+                      content = content.Text(
+                        request.messages
+                          .messages("generic.error.invalid", request.messages.messages("emailAuth.emailAddress"))
+                      )
+                    )
+                  ),
+                  title = content.Text(request.messages.messages("error.summary.heading"))
+                )
+              )
+            ),
+            Some(
+              ErrorMessage(
+                content = content.Text(
+                  request.messages
+                    .messages("generic.error.invalid", request.messages.messages("emailAuth.emailAddress"))
+                )
+              )
+            ),
+            Some(value)
+          )
+        case _ => (NoErrors, None, None)
+      }
+
       Ok(
         html.auth.enter_email(
           formTemplate,
           frontendAppConfig,
-          uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId)
+          uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId),
+          maybeEmailFieldValue,
+          pageErrors,
+          maybeEmailFieldError
         )
       ).pure[Future]
     }
 
   def sendEmail(formTemplateId: FormTemplateId): Action[AnyContent] =
-    nonAutheticatedRequestActions.async { implicit request => implicit lang =>
+    nonAutheticatedRequestActions.async { implicit request => _ =>
       val emailId = EmailId(emailForm.bindFromRequest().get)
       val formTemplate = request.attrs(FormTemplateKey)
+      val emailAuthDetails: EmailAuthDetails =
+        fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
 
-      if (EmailAddress.isValid(emailId.value)) {
-        sendEmailWithConfirmationCode(formTemplate, emailId).map { emailAndCode =>
-          val emailAuthDetails: EmailAuthDetails =
-            fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
+      EmailAddress.isValid(emailId.value) match {
+        case true =>
+          sendEmailWithConfirmationCode(formTemplate, emailId).map { emailAndCode =>
+            Redirect(
+              uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId, None)
+            ).addingToSession(
+              EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
+                emailAuthDetails + (formTemplateId -> ValidEmail(emailAndCode))
+              )
+            )
+          }
+        case false =>
           Redirect(
-            uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId)
+            uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailIdForm(formTemplateId)
           ).addingToSession(
             EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
-              emailAuthDetails + (formTemplateId -> EmailCodeConfirmation(emailAndCode))
+              emailAuthDetails + (formTemplateId -> InvalidEmail(emailId))
             )
-          )
-        }
-      } else {
-        val pageErrors: HasErrors = Errors(
-          new components.govukErrorSummary()(
-            ErrorSummary(
-              errorList = List(
-                ErrorLink(
-                  href = Some("#email"),
-                  content = content.Text("Email address is not valid")
-                )
-              ),
-              title = content.Text(request.messages.messages("error.summary.heading"))
-            )
-          )
-        )
-        val maybeEmailFieldError = Some(
-          ErrorMessage(
-            content = content.Text("Email address is not valid")
-          )
-        )
-        Ok(
-          html.auth.enter_email(
-            formTemplate,
-            frontendAppConfig,
-            uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId),
-            pageErrors,
-            maybeEmailFieldError
-          )
-        ).pure[Future]
+          ).pure[Future]
       }
     }
 
-  def confirmCodeForm(formTemplateId: FormTemplateId): Action[AnyContent] =
+  def confirmCodeForm(formTemplateId: FormTemplateId, error: Option[Boolean]): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplate = request.attrs(FormTemplateKey)
       val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
 
       emailAuthDetails.get(formTemplateId) match {
-        case Some(authDetails) =>
+        case Some(emailAuthData) =>
+          val (pageErrors, maybeCodeFieldError) = error match {
+            case Some(true) =>
+              (
+                Errors(
+                  new components.govukErrorSummary()(
+                    ErrorSummary(
+                      errorList = List(
+                        ErrorLink(
+                          href = Some("#code"),
+                          content = content.Text(request.messages.messages("emailAuth.confirmCodeError"))
+                        )
+                      ),
+                      title = content.Text(request.messages.messages("error.summary.heading"))
+                    )
+                  )
+                ),
+                Some(
+                  ErrorMessage(
+                    content = content.Text(request.messages.messages("emailAuth.confirmCodeError"))
+                  )
+                )
+              )
+            case _ => (NoErrors, None)
+          }
           Ok(
             html.auth.confirm_code(
               formTemplate,
               frontendAppConfig,
-              EmailId(authDetails.emailAndCode.email),
-              uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCode(formTemplateId)
+              EmailId(emailAuthData.email),
+              uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCode(formTemplateId),
+              pageErrors,
+              maybeCodeFieldError
             )
           ).pure[Future]
         case None =>
@@ -155,40 +199,14 @@ class EmailAuthController(
     }
 
   def confirmCode(formTemplateId: FormTemplateId): Action[AnyContent] =
-    nonAutheticatedRequestActions.async { implicit request => implicit lang =>
-      val formTemplate = request.attrs(FormTemplateKey)
+    nonAutheticatedRequestActions.async { implicit request => _ =>
       val (email, code) = confirmCodeForm.bindFromRequest().get
       val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
       emailAuthDetails
         .checkCodeAndConfirm(formTemplateId, EmailAndCode(email, EmailConfirmationCode(code)))
         .fold {
-          val pageErrors: HasErrors = Errors(
-            new components.govukErrorSummary()(
-              ErrorSummary(
-                errorList = List(
-                  ErrorLink(
-                    href = Some("#code"),
-                    content = content.Text("Enter the code we emailed you. This is 4 letters, like DNLC")
-                  )
-                ),
-                title = content.Text(request.messages.messages("error.summary.heading"))
-              )
-            )
-          )
-          val maybeCodeFieldError = Some(
-            ErrorMessage(
-              content = content.Text("Enter the code we emailed you. This is 4 letters, like DNLC")
-            )
-          )
-          Ok(
-            html.auth.confirm_code(
-              formTemplate,
-              frontendAppConfig,
-              EmailId(email),
-              uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCode(formTemplateId),
-              pageErrors,
-              maybeCodeFieldError
-            )
+          Redirect(
+            uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId, Some(true))
           )
         } { confirmedEmailAuthDetails =>
           Redirect(

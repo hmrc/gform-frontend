@@ -5,7 +5,7 @@
 
 GET           /email-auth/email-form/:formTemplateId                                                             uk.gov.hmrc.gform.gform.EmailAuthController.emailIdForm(formTemplateId: FormTemplateId)
 POST          /email-auth/send-email/:formTemplateId                                                             uk.gov.hmrc.gform.gform.EmailAuthController.sendEmail(formTemplateId: FormTemplateId)
-GET           /email-auth/confirm-code-form/:formTemplateId                                                      uk.gov.hmrc.gform.gform.EmailAuthController.confirmCodeForm(formTemplateId: FormTemplateId)
+GET           /email-auth/confirm-code-form/:formTemplateId                                                      uk.gov.hmrc.gform.gform.EmailAuthController.confirmCodeForm(formTemplateId: FormTemplateId, error: Option[Boolean])
 POST          /email-auth/confirm-code/:formTemplateId                                                           uk.gov.hmrc.gform.gform.EmailAuthController.confirmCode(formTemplateId: FormTemplateId)
 
 GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.dashboard(formTemplateId: FormTemplateId)
