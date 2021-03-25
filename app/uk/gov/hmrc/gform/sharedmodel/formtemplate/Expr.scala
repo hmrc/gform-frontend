@@ -120,6 +120,7 @@ object IdentifierName {
 sealed trait AuthInfo
 final case object GG extends AuthInfo
 final case object PayeNino extends AuthInfo
+final case object EmailId extends AuthInfo
 final case object SaUtr extends AuthInfo
 final case object CtUtr extends AuthInfo
 final case object EtmpRegistrationNumber extends AuthInfo
