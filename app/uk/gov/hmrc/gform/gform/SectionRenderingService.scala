@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.{ Origin, SaveAndContinue }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
+import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, DataExpanded, DateExpr, FastForward, FormModel, PageModel, Repeater, SectionRenderingInformation, Singleton }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -46,6 +46,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.validation.HtmlFieldId
@@ -1173,7 +1174,40 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     lookupRegistry.get(register) match {
       case None => Html("") // Ups
-      case Some(AjaxLookup(_, _, showAll)) =>
+      case Some(AjaxLookup(options, _, showAll)) =>
+        val aFormComponents = ei.formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
+
+        val oFormComponent = aFormComponents.find(_.id.baseComponentId === formComponent.id.baseComponentId)
+
+        val selectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
+          case IsText(Text(Lookup(_, sc), _, _, _, _, _)) => sc
+          case _                                          => None
+        } map {
+          SimplifiedSelectionCriteria
+            .convertToSimplifiedSelectionCriteria(_, lookupRegistry, ei.formModelOptics.formModelVisibilityOptics)
+        }
+
+        val oLookupLabels: Option[List[LookupLabel]] = selectionCriteria match {
+          case Some(sc) =>
+            options.m
+              .get(l)
+              .map(r => LookupOptions(filterBySelectionCriteria(sc, r.options)))
+              .map(_.options.keys.toList.sortBy(_.label))
+
+          case None =>
+            options.m.get(l).map(_.options.keys.toList.sortBy(_.label))
+        }
+
+        val selectItems: Option[List[SelectItem]] =
+          oLookupLabels.map { lookupLabels =>
+            SelectItem(None, s"select a ${register.asString}") +: lookupLabels.map { lookupLabel =>
+              if (prepopValue.contains(lookupLabel.label))
+                SelectItem(Some(lookupLabel.label), lookupLabel.label, true)
+              else
+                SelectItem(Some(lookupLabel.label), lookupLabel.label)
+            }
+          }
+
         html.form.snippets.lookup_autosuggest(
           label,
           formComponent,
@@ -1184,6 +1218,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           prepopValue,
           formFieldValidationResult,
           hint,
+          selectItems,
           errorMessage
         )
       case Some(RadioLookup(options)) =>

@@ -19,8 +19,9 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
-@import uk.gov.hmrc.govukfrontend.views.html.components.{ govukHint, govukLabel }
+@import uk.gov.hmrc.govukfrontend.views.html.components.{ govukHint, govukLabel, govukErrorMessage, govukSelect }
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.lookup.LookupLabel
 
 @(
   label: Label,
@@ -32,11 +33,16 @@
   prepop: Option[String],
   validationResult: FormFieldValidationResult,
   hint: Option[Hint],
+  selectItems: Option[List[SelectItem]],
   errorMessage: Option[ErrorMessage]
 )
 
 @currentValue = @{validationResult.getCurrentValue}
 @accessCode = @{maybeAccessCode.fold("-")(_.value)}
+@govukLabel = @{new govukLabel()}
+@govukHint  = @{new govukHint()}
+@govukErrorMessage = @{new govukErrorMessage()}
+@govukSelect = @{new govukSelect(govukErrorMessage, govukHint, govukLabel)}
 
 @form_group(validationResult) { hasErrors =>
   @defining(fieldValue.id.value, prepop.orElse(currentValue).getOrElse("")) { case (fcId, prepopValue) =>
@@ -44,11 +50,9 @@
     @if(!fieldValue.editable) {
       <input type="hidden" id="@fcId" name="@fcId" value="@prepopValue" />
     } else {
-
-      @{new govukLabel()(label)}
-
-      @hint.map{ h => @{new govukHint()(h)} }
-      @errorMessage.map{ e => @{new govukErrorMessage()(e)} }
+      @govukLabel(label)
+      @hint.map{ h => @govukHint(h) }
+      @errorMessage.map{ e => @govukErrorMessage(e) }
 
       <div
       class="lookup @{if(hasErrors) "gform-lookup-error"}"
@@ -60,6 +64,11 @@
       data-show-all="@showAll.enabled"
       data-accessCode="@accessCode">
       </div>
+      <noscript>
+          @selectItems.map { items =>
+            @govukSelect(Select(id = fcId, name = fcId,  items = items))
+          }
+      </noscript>
     }
   }
 }
