@@ -1817,10 +1817,11 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SelectItem(None, s"${messages("lookup.select.default.option.text")} ${register.asString}") +: lookupLabels
         .sortBy(_.label)
         .map { lookupLabel =>
-          if (prepopValue.contains(lookupLabel.label))
-            SelectItem(Some(lookupLabel.label), lookupLabel.label, true)
-          else
-            SelectItem(Some(lookupLabel.label), lookupLabel.label)
+          SelectItem(
+            Some(lookupLabel.label),
+            lookupLabel.label,
+            if (prepopValue.contains(lookupLabel.label)) true else false
+          )
         }
     }
   }
