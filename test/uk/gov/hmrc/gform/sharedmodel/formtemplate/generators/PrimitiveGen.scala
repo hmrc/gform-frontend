@@ -15,7 +15,7 @@
  */
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
-import java.time.{ LocalDate, LocalDateTime }
+import java.time.{ Instant, LocalDate, LocalDateTime }
 
 import cats.data.NonEmptyList
 import org.scalacheck.Gen
@@ -101,6 +101,11 @@ trait PrimitiveGen {
       month      <- Gen.chooseNum(1, 12)
       dayOfMonth <- Gen.chooseNum(1, 28)
     } yield LocalDate.of(year, month, dayOfMonth)
+
+  def instantGen: Gen[Instant] =
+    for {
+      long <- Gen.chooseNum(0L, 2208988800000L) // 1.1.2040
+    } yield Instant.ofEpochMilli(long)
 
   // This is taken from DES API
   def desInternationalCountryCodeGen: Gen[String] =

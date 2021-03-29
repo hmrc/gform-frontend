@@ -54,6 +54,8 @@ trait ExprGen {
   def sumGen(maxDepth: Int): Gen[Sum] =
     exprGen(maxDepth - 1).map(Sum)
 
+  def dateCtxGen: Gen[DateCtx] = DateExprGen.dateExprGen.map(DateCtx.apply)
+
   def formCtxGen: Gen[FormCtx] = FormComponentGen.formComponentIdGen.map(FormCtx(_))
 
   def authCtxGen: Gen[AuthCtx] = authInfoGen.map(AuthCtx)
@@ -63,7 +65,7 @@ trait ExprGen {
   def constantGen: Gen[Constant] = Gen.alphaNumStr.map(Constant)
 
   def nonRecursiveExprGen: Gen[Expr] =
-    Gen.oneOf(formCtxGen, authCtxGen, userCtxGen, constantGen, Gen.const(Value))
+    Gen.oneOf(formCtxGen, authCtxGen, userCtxGen, constantGen, Gen.const(Value), dateCtxGen)
 
   def recursiveExprGen(maxDepth: Int = 3): Gen[Expr] =
     Gen.oneOf(addGen(maxDepth), multiplyGen(maxDepth), subtractionGen(maxDepth), sumGen(maxDepth))
