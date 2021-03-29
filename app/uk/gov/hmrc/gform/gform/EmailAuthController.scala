@@ -73,7 +73,7 @@ class EmailAuthController(
     )
   )
 
-  def emailIdForm(formTemplateId: FormTemplateId): Action[AnyContent] =
+  def emailIdForm(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplate = request.attrs(FormTemplateKey)
       val emailAuthDetails: EmailAuthDetails =
@@ -114,7 +114,7 @@ class EmailAuthController(
         html.auth.enter_email(
           formTemplate,
           frontendAppConfig,
-          uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId),
+          uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId, continue),
           maybeEmailFieldValue,
           pageErrors,
           maybeEmailFieldError
@@ -122,7 +122,7 @@ class EmailAuthController(
       ).pure[Future]
     }
 
-  def sendEmail(formTemplateId: FormTemplateId): Action[AnyContent] =
+  def sendEmail(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => _ =>
       val emailId = EmailId(emailForm.bindFromRequest().get)
       val formTemplate = request.attrs(FormTemplateKey)
@@ -133,7 +133,7 @@ class EmailAuthController(
         case true =>
           sendEmailWithConfirmationCode(formTemplate, emailId).map { emailAndCode =>
             Redirect(
-              uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId, None)
+              uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId, None, continue)
             ).addingToSession(
               EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
                 emailAuthDetails + (formTemplateId -> ValidEmail(emailAndCode))
@@ -142,7 +142,7 @@ class EmailAuthController(
           }
         case false =>
           Redirect(
-            uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailIdForm(formTemplateId)
+            uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailIdForm(formTemplateId, continue)
           ).addingToSession(
             EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
               emailAuthDetails + (formTemplateId -> InvalidEmail(emailId))
@@ -151,7 +151,7 @@ class EmailAuthController(
       }
     }
 
-  def confirmCodeForm(formTemplateId: FormTemplateId, error: Option[Boolean]): Action[AnyContent] =
+  def confirmCodeForm(formTemplateId: FormTemplateId, error: Option[Boolean], continue: String): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplate = request.attrs(FormTemplateKey)
       val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
@@ -187,7 +187,8 @@ class EmailAuthController(
               formTemplate,
               frontendAppConfig,
               EmailId(emailAuthData.email),
-              uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCode(formTemplateId),
+              uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCode(formTemplateId, continue),
+              continue,
               pageErrors,
               maybeCodeFieldError
             )
@@ -198,7 +199,7 @@ class EmailAuthController(
       }
     }
 
-  def confirmCode(formTemplateId: FormTemplateId): Action[AnyContent] =
+  def confirmCode(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => _ =>
       val (email, code) = confirmCodeForm.bindFromRequest().get
       val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
@@ -206,12 +207,10 @@ class EmailAuthController(
         .checkCodeAndConfirm(formTemplateId, EmailAndCode(email, EmailConfirmationCode(code)))
         .fold {
           Redirect(
-            uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId, Some(true))
+            uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId, Some(true), continue)
           )
         } { confirmedEmailAuthDetails =>
-          Redirect(
-            uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplateId)
-          ).addingToSession(
+          Redirect(continue).addingToSession(
             EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
               confirmedEmailAuthDetails
             )

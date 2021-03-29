@@ -56,7 +56,7 @@ class SessionCookieDispatcherFilter(
 
     val maybeFormTemplate: Future[Either[Unit, FormTemplate]] = formTemplateIdParamIndex match {
       case Some(i) if i =!= -1 =>
-        val templateId = rh.uri.split("/")(i)
+        val templateId = rh.uri.split("\\?")(0).split("/")(i)
         implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(rh.headers, Some(rh.session))
         gformConnector.getFormTemplate(FormTemplateId(templateId)).map(Right(_))
       case _ =>
