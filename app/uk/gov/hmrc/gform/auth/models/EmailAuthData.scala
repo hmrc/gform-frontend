@@ -23,12 +23,12 @@ import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 
 sealed trait EmailAuthData {
   def email = this match {
-    case InvalidEmail(EmailId(email))          => email
+    case InvalidEmail(EmailId(email), _)       => email
     case ValidEmail(EmailAndCode(email, _), _) => email
   }
 }
 
-case class InvalidEmail(emailId: EmailId) extends EmailAuthData
+case class InvalidEmail(emailId: EmailId, message: String) extends EmailAuthData
 case class ValidEmail(emailAndCode: EmailAndCode, confirmed: Boolean = false) extends EmailAuthData
 
 object EmailAuthData {

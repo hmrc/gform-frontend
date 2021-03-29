@@ -23,12 +23,14 @@
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 @import play.filters.csrf.CSRF
+@import uk.gov.hmrc.gform.gform.routes.EmailAuthController
 
 @(
     formTemplate: FormTemplate,
     frontendAppConfig: FrontendAppConfig,
     emailId: EmailId,
     formAction: Call,
+    continue: String,
     pageLevelError: HasErrors = NoErrors,
     maybeCodeFieldError: Option[ErrorMessage] = None
 )(
@@ -73,7 +75,7 @@
 
         <div>
             <p>
-                <a href="/submissions/new-form/@{formTemplate._id.value}/session" class="govuk-link">@{messages("emailAuth.provideDifferentEmailAddress")}</a>
+                <a href="@{EmailAuthController.emailIdForm(formTemplate._id, continue)}" class="govuk-link">@{messages("emailAuth.provideDifferentEmailAddress")}</a>
             </p>
         </div>
 
@@ -98,7 +100,7 @@
             </summary>
             <div class="govuk-details__text">
                 <p>@{messages("emailAuth.emailTakesFewMins", formTemplate.formName.value)}</p>
-                <p>@{messages("emailAuth.checkYourSpam")} <a href="/submissions/new-form/@{formTemplate._id.value}/session" class="govuk-link">@{messages("emailAuth.startAgain")}</a>.</p>
+                <p>@{messages("emailAuth.checkYourSpam")} <a href="@{EmailAuthController.emailIdForm(formTemplate._id, continue)}" class="govuk-link">@{messages("emailAuth.startAgain")}</a>.</p>
             </div>
         </details>
 

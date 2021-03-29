@@ -40,7 +40,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     newFormResponse.status shouldBe 200
     val responseBody = Jsoup.parse(newFormResponse.body)
     val form = responseBody.getElementById("gf-form")
-    form.attr("action") shouldBe "/submissions/email-auth/send-email/form-template-with-email-auth"
+    form.attr(
+      "action"
+    ) shouldBe "/submissions/email-auth/send-email/form-template-with-email-auth?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth"
     form.attr("method") shouldBe "POST"
     val emailInput = form.getElementById("email")
     emailInput.nodeName() shouldBe "input"
@@ -72,7 +74,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     Then("The 'confirm code' page is presented")
     val responseBody = Jsoup.parse(confirmCodeForm.body)
     val form = responseBody.getElementById("gf-form")
-    form.attr("action") shouldBe "/submissions/email-auth/confirm-code/form-template-with-email-auth"
+    form.attr(
+      "action"
+    ) shouldBe "/submissions/email-auth/confirm-code/form-template-with-email-auth?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth"
     form.attr("method") shouldBe "POST"
     val emailInput = form.getElementById("email")
     emailInput.nodeName() shouldBe "input"

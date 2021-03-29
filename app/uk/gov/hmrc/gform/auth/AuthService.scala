@@ -84,7 +84,7 @@ class AuthService(
             AuthSuccessful(EmailRetrievals(EmailId(email)), Role.Customer)
               .pure[Future]
           case None =>
-            AuthEmailRedirect(gform.routes.EmailAuthController.emailIdForm(formTemplate._id)).pure[Future]
+            AuthEmailRedirect(gform.routes.EmailAuthController.emailIdForm(formTemplate._id, request.uri)).pure[Future]
         }
     }
 
