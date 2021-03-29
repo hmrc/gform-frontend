@@ -416,3 +416,6 @@ identity.verification=Identity verification
 
 # Page Heading
 this.section.is=Teitl yr adran hon yw
+
+# Lookup Select component
+lookup.select.default.option.text=Dewiswch a

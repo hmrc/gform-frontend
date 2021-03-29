@@ -1134,6 +1134,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     validationResult: ValidationResult,
     ei: ExtraInfo
   )(implicit
+    message: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
   ): Html = {
@@ -1175,39 +1176,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     lookupRegistry.get(register) match {
       case None => Html("") // Ups
       case Some(AjaxLookup(options, _, showAll)) =>
-        val aFormComponents = ei.formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
-
-        val oFormComponent = aFormComponents.find(_.id.baseComponentId === formComponent.id.baseComponentId)
-
-        val selectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
-          case IsText(Text(Lookup(_, sc), _, _, _, _, _)) => sc
-          case _                                          => None
-        } map {
-          SimplifiedSelectionCriteria
-            .convertToSimplifiedSelectionCriteria(_, lookupRegistry, ei.formModelOptics.formModelVisibilityOptics)
-        }
-
-        val oLookupLabels: Option[List[LookupLabel]] = selectionCriteria match {
-          case Some(sc) =>
-            options.m
-              .get(l)
-              .map(r => LookupOptions(filterBySelectionCriteria(sc, r.options)))
-              .map(_.options.keys.toList.sortBy(_.label))
-
-          case None =>
-            options.m.get(l).map(_.options.keys.toList.sortBy(_.label))
-        }
-
-        val selectItems: Option[List[SelectItem]] =
-          oLookupLabels.map { lookupLabels =>
-            SelectItem(None, s"select a ${register.asString}") +: lookupLabels.map { lookupLabel =>
-              if (prepopValue.contains(lookupLabel.label))
-                SelectItem(Some(lookupLabel.label), lookupLabel.label, true)
-              else
-                SelectItem(Some(lookupLabel.label), lookupLabel.label)
-            }
-          }
-
         html.form.snippets.lookup_autosuggest(
           label,
           formComponent,
@@ -1218,7 +1186,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           prepopValue,
           formFieldValidationResult,
           hint,
-          selectItems,
+          getSelectItemsForLookup(formComponent, register, ei, options, prepopValue),
           errorMessage
         )
       case Some(RadioLookup(options)) =>
@@ -1811,6 +1779,51 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     dataLabelAttribute(label.localised.value(LangADT.En))
   private def dataLabelAttribute(label: String): Map[String, String] =
     Map("data-label" -> label.replaceAll("''", "'")) // Unescape single-quote
+
+  private def getSelectItemsForLookup(
+    formComponent: FormComponent,
+    register: Register,
+    ei: ExtraInfo,
+    options: LocalisedLookupOptions,
+    prepopValue: Option[String]
+  )(implicit
+    messages: Messages,
+    l: LangADT
+  ): Option[List[SelectItem]] = {
+    val aFormComponents = ei.formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
+
+    val oFormComponent = aFormComponents.find(_.id.baseComponentId === formComponent.id.baseComponentId)
+
+    val selectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
+      case IsText(Text(Lookup(_, sc), _, _, _, _, _)) => sc
+      case _                                          => None
+    } map {
+      SimplifiedSelectionCriteria
+        .convertToSimplifiedSelectionCriteria(_, lookupRegistry, ei.formModelOptics.formModelVisibilityOptics)
+    }
+
+    val oLookupLabels: Option[List[LookupLabel]] = selectionCriteria match {
+      case Some(sc) =>
+        options.m
+          .get(l)
+          .map(r => LookupOptions(filterBySelectionCriteria(sc, r.options)))
+          .map(_.options.keys.toList)
+
+      case None =>
+        options.m.get(l).map(_.options.keys.toList)
+    }
+
+    oLookupLabels.map { lookupLabels =>
+      SelectItem(None, s"${messages("lookup.select.default.option.text")} ${register.asString}") +: lookupLabels
+        .sortBy(_.label)
+        .map { lookupLabel =>
+          if (prepopValue.contains(lookupLabel.label))
+            SelectItem(Some(lookupLabel.label), lookupLabel.label, true)
+          else
+            SelectItem(Some(lookupLabel.label), lookupLabel.label)
+        }
+    }
+  }
 
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
   private val govukFieldset: components.govukFieldset = new components.govukFieldset()
