@@ -449,3 +449,6 @@ identity.verification=Identity verification
 
 # Page Heading
 this.section.is=This section is
+
+# Lookup Select component
+lookup.select.default.option.text=Select a
