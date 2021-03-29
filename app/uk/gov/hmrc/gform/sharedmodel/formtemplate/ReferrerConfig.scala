@@ -16,19 +16,18 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.data.NonEmptyList
 import play.api.libs.json.{ Format, Json }
 
-case class ReferrerConfig(allowedReferrerUrls: List[ReferrerUrlPattern], exitMessage: String) {
+case class ReferrerConfig(allowedReferrerUrls: NonEmptyList[ReferrerUrlPattern], exitMessage: String) {
   def isAllowed(referrer: String): Boolean =
-    if (allowedReferrerUrls.isEmpty)
-      true
-    else
-      allowedReferrerUrls.exists(a => patternMatch(a.urlPattern, referrer))
+    allowedReferrerUrls.exists(a => patternMatch(a.urlPattern, referrer))
 
   private def patternMatch(pattern: String, source: String): Boolean =
     pattern.replace("*", ".+").r.findFirstIn(source).isDefined
 }
 
 object ReferrerConfig {
+  import JsonUtils._
   implicit val format: Format[ReferrerConfig] = Json.format[ReferrerConfig]
 }

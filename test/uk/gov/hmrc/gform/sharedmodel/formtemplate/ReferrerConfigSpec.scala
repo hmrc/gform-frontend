@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.data.NonEmptyList
 import munit.{ FunSuite, Location }
 
 class ReferrerConfigSpec extends FunSuite {
 
-  def check(referrerUrlPatterns: List[String], referrer: String, expectedResult: Boolean, description: String)(implicit
-    loc: Location
+  def check(referrerUrlPatterns: NonEmptyList[String], referrer: String, expectedResult: Boolean, description: String)(
+    implicit loc: Location
   ) =
     test("isAllowed should" + description) {
       assertEquals(
@@ -31,49 +32,48 @@ class ReferrerConfigSpec extends FunSuite {
       )
     }
 
-  check(List.empty, "http://host", true, "return true when allowedReferrerUrls is empty")
   check(
-    List("http://host"),
+    NonEmptyList.of("http://host"),
     "http://host",
     true,
     "return true when exact match"
   )
   check(
-    List("http://*.host.com"),
+    NonEmptyList.of("http://*.host.com"),
     "http://www.host.com",
     true,
     "return true pattern match (host)"
   )
   check(
-    List("http://host.com/*"),
+    NonEmptyList.of("http://host.com/*"),
     "http://host.com/path",
     true,
     "return true when pattern matches path"
   )
 
   check(
-    List("http://host.com/*"),
+    NonEmptyList.of("http://host.com/*"),
     "http://host.com/path1/path2",
     true,
     "return true when pattern matches path(multi path)"
   )
 
   check(
-    List("http://host-other.com/*", "http://host.com/*"),
+    NonEmptyList.of("http://host-other.com/*", "http://host.com/*"),
     "http://host.com/path",
     true,
     "return true when pattern match path on at-least one pattern"
   )
 
   check(
-    List("http://host1.com", "http://host2.com"),
+    NonEmptyList.of("http://host1.com", "http://host2.com"),
     "http://host.com",
     false,
     "return false when no match (exact)"
   )
 
   check(
-    List("http://host1.com/*", "http://host2.com/*"),
+    NonEmptyList.of("http://host1.com/*", "http://host2.com/*"),
     "http://host.com/path",
     false,
     "return false when no match (pattern)"
