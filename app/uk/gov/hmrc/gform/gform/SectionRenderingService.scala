@@ -283,7 +283,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       javascript,
       envelopeId,
       actionForm,
-      retrievals.renderSaveAndComeBackLater,
+      retrievals.renderSaveAndComeBackLater && page.continueIf.contains(Continue),
       page.continueLabel.map(ls => ls.value).getOrElse(messages(retrievals.continueLabelKey)),
       formMaxAttachmentSizeMB,
       contentTypes,
