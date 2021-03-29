@@ -22,12 +22,17 @@
   pageTitle: String,
   heading: String,
   message: String,
+  maybeMessageHtml: Option[Html] = None,
   frontendAppConfig: FrontendAppConfig
 )(implicit messages: Messages, l: LangADT)
 
 @mainContent = {
   <h1 class="govuk-heading-l">@heading</h1>
-  <p class="govuk-body">@message</p>
+  @maybeMessageHtml.fold {
+    <p class="govuk-body">@message</p>
+  } { mHtml =>
+    @mHtml
+  }
 }
 
 @govuk_wrapper(

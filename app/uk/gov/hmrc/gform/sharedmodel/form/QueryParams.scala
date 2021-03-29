@@ -22,6 +22,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ JsonUtils, QueryParam }
 
 case class QueryParams(params: Map[QueryParam, QueryParamValue]) extends AnyVal {
 
+  def +(newParams: (QueryParam, QueryParamValue)*): QueryParams =
+    QueryParams(params ++ newParams)
+
   def toPlayQueryParams: Map[String, Seq[String]] = params.map { case (param, value) =>
     param.value -> Seq(value.value)
   }

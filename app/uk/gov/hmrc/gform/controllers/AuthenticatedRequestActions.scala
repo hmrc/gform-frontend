@@ -22,45 +22,45 @@ import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
 import org.slf4j.LoggerFactory
-
-import java.util.UUID
 import play.api.i18n.{ I18nSupport, Langs, MessagesApi }
 import play.api.mvc.Results._
 import play.api.mvc._
-
-import scala.concurrent.ExecutionContext
-import scala.language.higherKinds
-import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
-import uk.gov.hmrc.gform.auth._
-import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
-import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadConnector }
-import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.GraphException
-import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.userdetails.Nino
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormComponentIdToFileIdMapping, FormIdData, FormModelOptics, ThirdPartyData, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.http.SessionKeys
+import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.retrieve.v2._
-import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.InsufficientEnrolments
-import uk.gov.hmrc.gform.graph.Recalculation
-import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.auth.core.{ AffinityGroup, InsufficientEnrolments, AuthConnector => _, _ }
+import uk.gov.hmrc.gform.auth._
+import uk.gov.hmrc.gform.auth.models._
+import uk.gov.hmrc.gform.commons.MarkDownUtil
+import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.REFERRER_CHECK_DETAILS
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
-import uk.gov.hmrc.gform.FormTemplateKey
-
-import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadConnector }
+import uk.gov.hmrc.gform.gform.EmailAuthUtils.fromSession
+import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.userdetails.Nino
+import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, _ }
+import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 import uk.gov.hmrc.play.HeaderCarrierConverter
+
+import java.util.UUID
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.language.higherKinds
 
 trait AuthenticatedRequestActionsAlgebra[F[_]] {
   def keepAlive(): Action[AnyContent]
 
   def authWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
+    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => F[Result]
+  ): Action[AnyContent]
+
+  def authWithOptReferrerCheckWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => F[Result]
   ): Action[AnyContent]
 
@@ -147,7 +147,7 @@ class AuthenticatedRequestActions(
       authResult <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
       result <- authResult match {
                   case _: AuthSuccessful => Future.successful(Ok("success"))
-                  case _                 => errResponder.forbidden(request, "Access denied")
+                  case _                 => errResponder.forbidden("Access denied")
                 }
     } yield result
   }
@@ -157,21 +157,75 @@ class AuthenticatedRequestActions(
   private def getCaseWorkerIdentity(request: Request[AnyContent]): Option[Cookie] =
     request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`)
 
-  private def authWithoutRetrievingForm(formTemplateId: FormTemplateId)(
-    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
-  ): Action[AnyContent] =
-    async(formTemplateId)(f)
-
   override def authWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
   ): Action[AnyContent] =
-    authWithoutRetrievingForm(formTemplateId) { request => lang => cache =>
-      Permissions.apply(operation, cache.role) match {
-        case PermissionResult.Permitted     => f(request)(lang)(cache)
-        case PermissionResult.NotPermitted  => errResponder.forbidden(request, "Access denied")
-        case PermissionResult.FormSubmitted => errResponder.forbidden(request, "Access denied")
+    actionBuilder.async { implicit request =>
+      authenticateAndProceed(formTemplateId, operation, f)
+    }
+
+  def authWithOptReferrerCheckWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
+    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
+  ): Action[AnyContent] =
+    actionBuilder.async { implicit request =>
+      val formTemplate = request.attrs(FormTemplateKey)
+      formTemplate.referrerConfig match {
+        case Some(referrerConfig: ReferrerConfig) =>
+          val referrerCheckDetails: ReferrerCheckDetails =
+            fromSession(request, REFERRER_CHECK_DETAILS, ReferrerCheckDetails())
+          def isRequestAllowedViaReferrer: Boolean =
+            request.headers.get("Referer") match {
+              case Some(referrer) => referrerConfig.isAllowed(referrer)
+              case None           => false
+            }
+          if (referrerCheckDetails.checkDone(formTemplateId) || isRequestAllowedViaReferrer) {
+            authenticateAndProceed(formTemplateId, operation, f).map(
+              _.addingToSession(
+                GformSessionKeys.REFERRER_CHECK_DETAILS -> JsonUtils.toJsonStr(referrerCheckDetails + formTemplateId)
+              )
+            )
+          } else {
+            errResponder.forbidden(
+              "Restricted by referrer config",
+              Some(MarkDownUtil.markDownParser(referrerConfig.exitMessage))
+            )
+          }
+        case None =>
+          authenticateAndProceed(formTemplateId, operation, f)
       }
     }
+
+  private def authenticateAndProceed(
+    formTemplateId: FormTemplateId,
+    operation: OperationWithoutForm,
+    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
+  )(implicit request: Request[AnyContent]): Future[Result] = {
+    val formTemplate = request.attrs(FormTemplateKey)
+    implicit val lang: LangADT = getCurrentLanguage(request)
+    for {
+      _ <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
+      authResult <- authService
+                      .authenticateAndAuthorise(
+                        formTemplate,
+                        getAffinityGroup,
+                        ggAuthorised(request),
+                        getCaseWorkerIdentity(request)
+                      )
+      result <- handleAuthResults(
+                  authResult,
+                  formTemplate,
+                  onSuccess = retrievals =>
+                    role => {
+                      val cache = AuthCacheWithoutForm(retrievals, formTemplate, role)
+                      Permissions.apply(operation, cache.role) match {
+                        case PermissionResult.Permitted     => f(request)(lang)(cache)
+                        case PermissionResult.NotPermitted  => errResponder.forbidden("Access denied")
+                        case PermissionResult.FormSubmitted => errResponder.forbidden("Access denied")
+                      }
+                    }
+                )
+    } yield result
+  }
 
   def asyncNoAuth(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => LangADT => FormTemplate => Future[Result]
@@ -183,32 +237,6 @@ class AuthenticatedRequestActions(
       result <- f(request)(l)(formTemplate)
     } yield result
   }
-
-  private def async(
-    formTemplateId: FormTemplateId
-  )(f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] =
-    actionBuilder.async { implicit request =>
-      implicit val l: LangADT = getCurrentLanguage(request)
-
-      val formTemplate = request.attrs(FormTemplateKey)
-      for {
-        _ <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
-        authResult <- authService
-                        .authenticateAndAuthorise(
-                          formTemplate,
-                          getAffinityGroup,
-                          ggAuthorised(request),
-                          getCaseWorkerIdentity(request)
-                        )
-        result <- handleAuthResults(
-                    authResult,
-                    formTemplate,
-                    request,
-                    onSuccess =
-                      retrievals => role => f(request)(l)(AuthCacheWithoutForm(retrievals, formTemplate, role))
-                  )
-      } yield result
-    }
 
   def asyncGGAuth(
     formTemplateId: FormTemplateId
@@ -222,7 +250,7 @@ class AuthenticatedRequestActions(
         result <- authResult match {
                     case AuthSuccessful(retrievals, role) =>
                       f(request)(getCurrentLanguage(request))(AuthCacheWithoutForm(retrievals, formTemplate, role))
-                    case _ => errResponder.forbidden(request, "Access denied")
+                    case _ => errResponder.forbidden("Access denied")
                   }
       } yield result
     }
@@ -236,16 +264,17 @@ class AuthenticatedRequestActions(
       DataOrigin.Mongo
     ] => Future[Result]
   ): Action[AnyContent] =
-    async(formTemplateId, maybeAccessCode) { request => lang => cache => smartStringEvaluator => formModelOptics =>
-      Permissions.apply(operation, cache.role, cache.form.status) match {
-        case PermissionResult.Permitted    => f(request)(lang)(cache)(smartStringEvaluator)(formModelOptics)
-        case PermissionResult.NotPermitted => errResponder.forbidden(request, "Access denied")
-        case PermissionResult.FormSubmitted =>
-          Redirect(
-            uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-              .showAcknowledgement(maybeAccessCode, formTemplateId)
-          ).pure[Future]
-      }
+    async(formTemplateId, maybeAccessCode) {
+      implicit request => lang => cache => smartStringEvaluator => formModelOptics =>
+        Permissions.apply(operation, cache.role, cache.form.status) match {
+          case PermissionResult.Permitted    => f(request)(lang)(cache)(smartStringEvaluator)(formModelOptics)
+          case PermissionResult.NotPermitted => errResponder.forbidden("Access denied")
+          case PermissionResult.FormSubmitted =>
+            Redirect(
+              uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+                .showAcknowledgement(maybeAccessCode, formTemplateId)
+            ).pure[Future]
+        }
     }
 
   def async[U <: SectionSelectorType: SectionSelector](
@@ -273,7 +302,6 @@ class AuthenticatedRequestActions(
         result <- handleAuthResults(
                     authResult,
                     formTemplate,
-                    request,
                     onSuccess = withForm[U](f(request)(l))(maybeAccessCode, formTemplate)
                   )
       } yield result
@@ -342,9 +370,9 @@ class AuthenticatedRequestActions(
   private def handleAuthResults(
     result: AuthResult,
     formTemplate: FormTemplate,
-    request: Request[_],
     onSuccess: MaterialisedRetrievals => Role => Future[Result]
   )(implicit
+    request: Request[_],
     l: LangADT
   ): Future[Result] =
     result match {
@@ -358,7 +386,7 @@ class AuthenticatedRequestActions(
         onSuccess(retrievals)(role)
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
       case AuthEmailRedirect(redirectUrl) =>
-        Redirect(redirectUrl.url, request.queryString)
+        Redirect(redirectUrl.url)
           .pure[Future]
       case AuthAnonymousSession(redirectUrl) =>
         Redirect(redirectUrl.url, request.queryString)
@@ -367,9 +395,9 @@ class AuthenticatedRequestActions(
       case AuthRedirectFlashingFormName(loginUrl) =>
         Redirect(loginUrl).flashing("formTitle" -> formTemplate.formName.value).pure[Future]
       case AuthBlocked(message) =>
-        errResponder.forbiddenWithReason(request, message)
+        errResponder.forbiddenWithReason(message)
       case AuthForbidden(message) =>
-        errResponder.forbidden(request, message)
+        errResponder.forbidden(message)
     }
 
   val defaultRetrievals = Retrievals.credentials and
