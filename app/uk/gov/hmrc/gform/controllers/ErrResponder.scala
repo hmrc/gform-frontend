@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results.{ BadRequest, Forbidden, InternalServerError, NotFound }
 import play.api.mvc.{ RequestHeader, Result }
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.auditing.HttpAuditingService
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.sharedmodel.LangADT
@@ -60,16 +61,27 @@ class ErrResponder(
     Future.successful(InternalServerError.apply(renderInternalServerError(requestHeader)))
   }
 
-  def forbidden(requestHeader: RequestHeader, message: String): Future[Result] =
-    forbiddenReason(requestHeader, message, restricted)
+  def forbidden(message: String, messageHtml: Option[Html] = None)(implicit request: RequestHeader): Future[Result] =
+    forbiddenReason(message, restricted, messageHtml)
 
-  def forbiddenWithReason(requestHeader: RequestHeader, reason: String): Future[Result] =
-    forbiddenReason(requestHeader, reason, reason)
+  def forbiddenWithReason(reason: String)(implicit request: RequestHeader): Future[Result] =
+    forbiddenReason(reason, reason)
 
-  private def forbiddenReason(requestHeader: RequestHeader, message: String, reason: String): Future[Result] = {
+  private def forbiddenReason(message: String, reason: String, reasonHtml: Option[Html] = None)(implicit
+    request: RequestHeader
+  ): Future[Result] = {
     logger.info(s"Trying to access forbidden resource: $message")
-    httpAuditingService.auditForbidden(requestHeader)
-    Future.successful(Forbidden(renderForbidden(reason)(requestHeader)))
+    httpAuditingService.auditForbidden(request)
+    Future.successful(
+      Forbidden(
+        renderErrorPage(
+          "Access forbidden",
+          restricted,
+          reason,
+          reasonHtml
+        )
+      )
+    )
   }
 
   def badRequest(requestHeader: RequestHeader, message: String): Future[Result] = {
@@ -90,12 +102,6 @@ class ErrResponder(
     message = Messages("global.error.InternalServerError500.message")
   )
 
-  private def renderForbidden(reason: String)(implicit request: RequestHeader) = renderErrorPage(
-    "Access forbidden",
-    restricted,
-    reason
-  )
-
   private def renderNotFound(implicit request: RequestHeader) = renderErrorPage(
     pageTitle = Messages("global.error.pageNotFound404.title"),
     heading = Messages("global.error.pageNotFound404.heading"),
@@ -111,9 +117,10 @@ class ErrResponder(
   private def renderErrorPage(
     pageTitle: String,
     heading: String,
-    message: String
+    message: String,
+    maybeMessageHtml: Option[Html] = None
   )(implicit requestHeader: RequestHeader) = {
     implicit val l = LangADT.fromRequest(requestHeader, langs)
-    views.html.error_template(pageTitle, heading, message, frontendAppConfig)
+    views.html.error_template(pageTitle, heading, message, maybeMessageHtml, frontendAppConfig)
   }
 }

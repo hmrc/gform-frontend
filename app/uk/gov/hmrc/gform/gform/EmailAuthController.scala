@@ -26,8 +26,9 @@ import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auth.models.{ EmailAuthDetails, InvalidEmail, ValidEmail }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.EMAIL_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActions
-import uk.gov.hmrc.gform.gform.EmailAuthUtils.{ EMAIL_AUTH_DETAILS_SESSION_KEY, fromSession }
+import uk.gov.hmrc.gform.gform.EmailAuthUtils.fromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.optics.DataOrigin

@@ -19,11 +19,10 @@ package uk.gov.hmrc.gform.gform
 import play.api.libs.json.{ Json, Reads }
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auth.models.{ EmailAuthDetails, ValidEmail }
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.EMAIL_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 object EmailAuthUtils {
-
-  val EMAIL_AUTH_DETAILS_SESSION_KEY = "emailAuthDetails"
 
   def isEmailConfirmed(formTemplateId: FormTemplateId)(implicit request: Request[AnyContent]): Option[String] = {
     val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())

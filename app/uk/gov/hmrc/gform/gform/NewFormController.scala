@@ -65,7 +65,7 @@ class NewFormController(
     Cookie(CookieNames.formTemplateIdCookieName, formTemplateId.value)
 
   def dashboard(formTemplateId: FormTemplateId) =
-    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ViewDashboard) {
+    auth.authWithOptReferrerCheckWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ViewDashboard) {
       implicit request => implicit lang => cache =>
         val cookie = formTemplateIdCookie(formTemplateId)
 

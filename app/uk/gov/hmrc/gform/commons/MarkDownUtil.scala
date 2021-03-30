@@ -47,7 +47,7 @@ object MarkDownUtil {
   def markDownParser(ls: SmartString)(implicit sse: SmartStringEvaluator): Html =
     markDownParser(ls.valueForMarkdown())
 
-  private def markDownParser(markDownText: String): Html = {
+  def markDownParser(markDownText: String): Html = {
     val flavour = new GFMFlavourDescriptor
     val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
     val html = new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml

@@ -36,7 +36,7 @@ class ErrorHandler(
     errResponder.badRequest(requestHeader, message)
 
   override protected def onForbidden(requestHeader: RequestHeader, message: String): Future[Result] =
-    errResponder.forbidden(requestHeader, message)
+    errResponder.forbidden(message)(requestHeader)
 
   override protected def onNotFound(requestHeader: RequestHeader, message: String): Future[Result] =
     errResponder.notFound(requestHeader, message)
@@ -53,8 +53,8 @@ class ErrorHandler(
     case e: BadRequestException => onBadRequest(requestHeader, e.message)
     //    case e: UnauthorizedException => TODO redirect to login page
     case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == Forbidden.intValue =>
-      errResponder.forbidden(requestHeader, e.message)
-    case e: ForbiddenException => errResponder.forbidden(requestHeader, e.message)
+      errResponder.forbidden(e.message)(requestHeader)
+    case e: ForbiddenException => errResponder.forbidden(e.message)(requestHeader)
     case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == NotFound.intValue =>
       errResponder.notFound(requestHeader, e.message)
     case e: NotFoundException => errResponder.notFound(requestHeader, e.message)
