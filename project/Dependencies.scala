@@ -31,6 +31,8 @@ object Dependencies {
     "org.webjars.npm"              % "govuk-frontend"             % "3.11.0"
   )
 
+  val munitVersion = "0.7.22"
+
   def test(scope: String = "test") = Seq(
     "uk.gov.hmrc"            %% "service-integration-test" % "0.13.0-play-27"    % scope,
     "org.scalacheck"         %% "scalacheck"               % "1.14.3"            % scope,
@@ -40,6 +42,7 @@ object Dependencies {
     "org.scalatestplus.play" %% "scalatestplus-play"       % "4.0.3"             % scope,
     "org.mockito"            %% "mockito-scala-scalatest"  % "1.7.0"             % scope,
     "com.github.tomakehurst"  % "wiremock-jre8"            % "2.27.1"            % scope,
-    "org.scalameta"          %% "munit"                    % "0.7.22"            % scope
+    "org.scalameta"          %% "munit"                    % munitVersion        % scope,
+    "org.scalameta"          %% "munit-scalacheck"         % munitVersion        % scope,
   )
 }
