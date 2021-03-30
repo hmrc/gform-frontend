@@ -30,7 +30,8 @@ case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.e
   def checkCodeAndConfirm(formTemplateId: FormTemplateId, emailAndCode: EmailAndCode): Option[EmailAuthDetails] =
     get(formTemplateId).flatMap { emailCodeConfirmation =>
       emailCodeConfirmation match {
-        case v @ ValidEmail(e, _) if e == emailAndCode =>
+        case v @ ValidEmail(cached, _)
+            if cached.email == emailAndCode.email && cached.code.code.toLowerCase == emailAndCode.code.code.toLowerCase =>
           Some(EmailAuthDetails(mappings + (formTemplateId -> v.copy(confirmed = true))))
         case _ => None
       }
