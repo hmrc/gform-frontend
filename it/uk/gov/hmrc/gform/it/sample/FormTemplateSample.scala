@@ -7,7 +7,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, AuthCtx, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, EmailCodeTemplate, FormComponent, FormComponentId, FormTemplate, FormTemplateId, GG, OnePerUser, Page, SummarySection, TextConstraint }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anonymous, AuthCtx, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, EmailCodeTemplate, FormComponent, FormComponentId, FormTemplate, FormTemplateId, GG, OnePerUser, Page, SummarySection, TextConstraint }
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedString }
 
 trait FormTemplateSample {
@@ -100,5 +100,12 @@ trait FormTemplateSample {
     emailParameters = None,
     save4LaterInfoText = None
   )
+
+  val formTemplateAuthAnonymous = formTemplateEmailAuth
+    .copy(
+      _id = FormTemplateId("form-template-anonymous"),
+      formName = LocalisedString(Map(LangADT.En -> "Form with anonymous auth")),
+      authConfig = Anonymous
+    )
 
 }

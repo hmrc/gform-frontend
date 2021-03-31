@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.validation
 import cats.data._
 import cats.implicits._
 import cats.Monoid
+import org.typelevel.ci.CIString
 import play.api.i18n.{ I18nSupport, Messages }
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.fileupload._
@@ -183,7 +184,7 @@ class ValidationService(
     }
 
     def emailExist(formComponentId: EmailFieldId, email: String): Boolean =
-      thirdPartyData.emailVerification.get(formComponentId).fold(false)(_.email === email)
+      thirdPartyData.emailVerification.get(formComponentId).fold(false)(_.email === CIString(email))
 
     val emailAddressedToBeVerified: List[Option[(EmailFieldId, EmailAndCode, EmailVerifierService)]] =
       emailFields.map { case (ef, emailVerifierService) =>
@@ -197,7 +198,7 @@ class ValidationService(
     emailAddressedToBeVerified.flatten
       .traverse { case (emailFieldId, eac @ EmailAndCode(email, code), emailVerifierService) =>
         gformConnector
-          .sendEmail(ConfirmationCodeWithEmailService(NotifierEmailAddress(email), code, emailVerifierService))
+          .sendEmail(ConfirmationCodeWithEmailService(NotifierEmailAddress(email.toString), code, emailVerifierService))
           .map(_ => (emailFieldId, eac))
       }
       .map(_.toMap.valid)

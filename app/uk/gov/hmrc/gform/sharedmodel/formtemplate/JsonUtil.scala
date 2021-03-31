@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.data.NonEmptyList
+import org.typelevel.ci.CIString
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads
@@ -77,6 +78,14 @@ trait JsonUtils {
 
   def toJsonStr[T: Writes](obj: T): String =
     Json.toJson(obj).toString
+
+  implicit val formatCIString: Format[CIString] = Format(
+    {
+      case JsString(value) => JsSuccess(CIString(value))
+      case other           => JsError("Invalid value, should be a string: " + other)
+    },
+    (o: CIString) => JsString(o.toString)
+  )
 }
 
 object JsonUtils extends JsonUtils

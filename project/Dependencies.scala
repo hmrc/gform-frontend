@@ -19,6 +19,7 @@ object Dependencies {
     "org.julienrf"                %% "play-json-derived-codecs"   % "4.0.1",
     "org.typelevel"               %% "cats-core"                  % "2.2.0",
     "org.typelevel"               %% "cats-mtl"                   % "1.0.0",
+    "org.typelevel"               %% "case-insensitive"           % "1.1.0",
     "com.github.pureconfig"       %% "pureconfig"                 % "0.14.0",
     "org.jetbrains"                % "markdown"                   % "0.1.41",
     "com.chuusai"                 %% "shapeless"                  % "2.3.3",

@@ -120,7 +120,8 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     val confirmCodeFormBody = Jsoup.parse(confirmCodeForm.body)
     val code = getRequestBody[ConfirmationCodeWithEmailService]("/gform/email").code.code
     val confirmCodeFormResponse = post(
-      s"email=${confirmCodeFormBody.fieldValue("email")}&code=$code&csrfToken=${confirmCodeFormBody.fieldValue("csrfToken")}",
+      s"email=${confirmCodeFormBody.fieldValue("email")}&code=${code.toString.toLowerCase}&csrfToken=${confirmCodeFormBody
+        .fieldValue("csrfToken")}",
       Seq("Content-Type" -> "application/x-www-form-urlencoded")
     ).to(confirmCodeFormBody.getElementById("gf-form").attr("action")).send()
 

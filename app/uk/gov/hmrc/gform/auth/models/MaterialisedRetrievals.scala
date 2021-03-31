@@ -30,7 +30,7 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
   def groupId = this match {
     case AnonymousRetrievals(sessionId) => sessionId.value
     case EmailRetrievals(EmailId(email)) =>
-      "email-" + MessageDigest.getInstance("SHA-1").digest(email.getBytes).mkString
+      "email-" + MessageDigest.getInstance("SHA-1").digest(email.toString.getBytes).mkString
     case AuthenticatedRetrievals(_, _, _, groupIdentifier, _) => groupIdentifier
     case VerifyRetrievals(verifyId, _)                        => verifyId.id
   }
