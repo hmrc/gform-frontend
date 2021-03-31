@@ -9,7 +9,7 @@ branding.hmrc=Cyllid a Thollau EM
 
 emailAuth.weWillSendCodeToEmail=Byddwn yn anfon cod atoch i gadarnhau mai’ch cyfeiriad e-bost chi yw hwn. Ar y sgrin nesaf, gofynnir i chi nodi’r cod.
 emailAuth.enterYourEmailAddress=Nodwch eich cyfeiriad e-bost
-emailAuth.weHaveSendCodeTo=Rydym wedi anfon cod i:
+emailAuth.weHaveSendCodeTo=Rydym wedi anfon cod i
 emailAuth.provideDifferentEmailAddress=Rhowch gyfeiriad e-bost gwahanol
 emailAuth.browserAccessEmailNewWindow=Bydd angen i chi gadw'r dudalen hon ar agor pan fyddwch yn mynd at eich e-byst, a hynny fel y gallwch ddod yn ôl a nodi'r cod.
 emailAuth.confirmCode=Cod cadarnhau
