@@ -14,6 +14,7 @@
  * limitations under the License.
  *@
 
+@import cats.syntax.eq._
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.models._
@@ -69,11 +70,18 @@
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
 
-@displaySaveContinueButton(classes: String = "") = {
-    @if(shouldDisplayContinue) {
-        @govukButton(Button(content = Text(buttonLabel),
+@displaySaveContinueButton(classes: String = "") = @{
+    val attributes =
+      if(classes === "defaultsink") {
+        Map("formaction" -> page.formAction.path, "tabindex" -> "-1")
+      } else {
+        Map("formaction" -> page.formAction.path)
+      }
+
+    if(shouldDisplayContinue) {
+        govukButton(Button(content = Text(buttonLabel),
             inputType=Some("submit"),
-            attributes = Map("formaction" -> page.formAction.path),
+            attributes = attributes,
             classes = classes))
     }
 }
