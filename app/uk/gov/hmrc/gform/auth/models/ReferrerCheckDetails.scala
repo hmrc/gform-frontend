@@ -27,5 +27,8 @@ case class ReferrerCheckDetails(completed: Set[FormTemplateId] = Set.empty) {
 }
 
 object ReferrerCheckDetails {
+
+  val empty = ReferrerCheckDetails()
+
   implicit val format: Format[ReferrerCheckDetails] = Json.format[ReferrerCheckDetails]
 }

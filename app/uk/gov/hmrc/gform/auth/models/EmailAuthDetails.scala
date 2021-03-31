@@ -16,11 +16,16 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, JsonUtils }
+import cats.Eq
+import cats.syntax.eq._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, JsonUtils }
 
 case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.empty) {
+
+  implicit val equal: Eq[EmailAndCode] = Eq.fromUniversalEquals
+
   def +(values: (FormTemplateId, EmailAuthData)*): EmailAuthDetails =
     EmailAuthDetails(mappings ++ values)
 
@@ -30,7 +35,7 @@ case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.e
   def checkCodeAndConfirm(formTemplateId: FormTemplateId, emailAndCode: EmailAndCode): Option[EmailAuthDetails] =
     get(formTemplateId).flatMap { emailCodeConfirmation =>
       emailCodeConfirmation match {
-        case v @ ValidEmail(e, _) if e == emailAndCode =>
+        case v @ ValidEmail(cached, _) if cached === emailAndCode =>
           Some(EmailAuthDetails(mappings + (formTemplateId -> v.copy(confirmed = true))))
         case _ => None
       }
@@ -38,6 +43,8 @@ case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.e
 }
 
 object EmailAuthDetails {
+
+  val empty = EmailAuthDetails()
 
   val formatMap: Format[Map[FormTemplateId, EmailAuthData]] =
     JsonUtils.formatMap(FormTemplateId.apply, _.value)

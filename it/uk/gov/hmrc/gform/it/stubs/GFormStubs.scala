@@ -9,6 +9,7 @@ import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, E
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
+import org.typelevel.ci._
 
 trait GFormStubs extends FormTemplateSample {
 
@@ -59,7 +60,7 @@ trait GFormStubs extends FormTemplateSample {
               .toJsonStr(
                 ConfirmationCodeWithEmailService(
                   NotifierEmailAddress("test@test.com"),
-                  EmailConfirmationCode("[A-Z]+"),
+                  EmailConfirmationCode(ci"[A-Z]+"),
                   DigitalContact(EmailTemplateId("code_template"))
                 )
               )

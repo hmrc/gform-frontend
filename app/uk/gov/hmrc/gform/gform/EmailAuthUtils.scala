@@ -16,25 +16,21 @@
 
 package uk.gov.hmrc.gform.gform
 
-import play.api.libs.json.{ Json, Reads }
+import org.typelevel.ci.CIString
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auth.models.{ EmailAuthDetails, ValidEmail }
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.EMAIL_AUTH_DETAILS_SESSION_KEY
+import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 object EmailAuthUtils {
 
-  def isEmailConfirmed(formTemplateId: FormTemplateId)(implicit request: Request[AnyContent]): Option[String] = {
-    val emailAuthDetails: EmailAuthDetails = fromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails())
+  def isEmailConfirmed(formTemplateId: FormTemplateId)(implicit request: Request[AnyContent]): Option[CIString] = {
+    val emailAuthDetails: EmailAuthDetails =
+      jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
     emailAuthDetails.get(formTemplateId) match {
       case Some(ValidEmail(emailAndCode, confirmed)) if confirmed => Some(emailAndCode.email)
       case _                                                      => None
     }
   }
-
-  def fromSession[T: Reads](request: Request[AnyContent], key: String, default: T): T =
-    request.session
-      .get(key)
-      .map(json => Json.fromJson[T](Json.parse(json)).get)
-      .getOrElse(default)
 }

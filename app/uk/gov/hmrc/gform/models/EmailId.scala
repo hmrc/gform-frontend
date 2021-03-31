@@ -16,11 +16,13 @@
 
 package uk.gov.hmrc.gform.models
 
+import org.typelevel.ci.CIString
 import play.api.libs.json.Format
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 
-case class EmailId(value: String) extends AnyVal
+case class EmailId(value: CIString) extends AnyVal
 
 object EmailId {
-  implicit val format: Format[EmailId] = JsonUtils.valueClassFormat[EmailId, String](EmailId.apply, _.value)
+  import JsonUtils._
+  implicit val format: Format[EmailId] = JsonUtils.valueClassFormat[EmailId, CIString](EmailId.apply, _.value)
 }

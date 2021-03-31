@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.validation
 
 import cats.Monoid
 import cats.implicits._
+import org.typelevel.ci._
 import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
@@ -539,7 +540,8 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val expectedCode = thirdPartyData.emailVerification.get(emailFieldId).map(_.code)
-    val maybeCode: Option[String] = formModelVisibilityOptics.data.one(formComponent.modelComponentId)
+    val maybeCode: Option[CIString] =
+      formModelVisibilityOptics.data.one(formComponent.modelComponentId).map(c => ci"$c")
 
     val emailError = validationFailure(formComponent, genericErrorEmail, None)
 

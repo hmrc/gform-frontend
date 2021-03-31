@@ -21,12 +21,13 @@ import uk.gov.hmrc.gform.sharedmodel.email.EmailConfirmationCode
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.PrimitiveGen
 
+import org.typelevel.ci._
 trait EmailVerificationCodeGen {
   def emailVerificationCodeGen: Gen[EmailAndCode] =
     for {
       email <- PrimitiveGen.nonEmptyAsciiPrintableString
       code  <- PrimitiveGen.nonEmptyAsciiPrintableString
-    } yield EmailAndCode(email, EmailConfirmationCode(code))
+    } yield EmailAndCode(ci"$email", EmailConfirmationCode(ci"$code"))
 }
 
 object EmailVerificationCodeGen extends EmailVerificationCodeGen

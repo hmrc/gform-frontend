@@ -21,10 +21,12 @@ import julienrf.json.derived
 import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.sharedmodel.email.EmailConfirmationCode
 import uk.gov.hmrc.gform.typeclasses.Rnd
+import org.typelevel.ci._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 
-case class EmailAndCode(email: String, code: EmailConfirmationCode)
+case class EmailAndCode(email: CIString, code: EmailConfirmationCode)
 
-object EmailAndCode {
+object EmailAndCode extends JsonUtils {
 
   private def random(implicit rnd: Rnd[Int]): String = {
 
@@ -50,7 +52,7 @@ object EmailAndCode {
   }
 
   def emailVerificationCode(email: String): EmailAndCode =
-    EmailAndCode(email, EmailConfirmationCode(random))
+    EmailAndCode(ci"$email", EmailConfirmationCode(ci"$random"))
 
   implicit val format: OFormat[EmailAndCode] = derived.oformat()
 }

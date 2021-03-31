@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.controllers.GformSessionKeys.REFERRER_CHECK_DETAILS
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadConnector }
-import uk.gov.hmrc.gform.gform.EmailAuthUtils.fromSession
+import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -172,7 +172,7 @@ class AuthenticatedRequestActions(
       formTemplate.referrerConfig match {
         case Some(referrerConfig: ReferrerConfig) =>
           val referrerCheckDetails: ReferrerCheckDetails =
-            fromSession(request, REFERRER_CHECK_DETAILS, ReferrerCheckDetails())
+            jsonFromSession(request, REFERRER_CHECK_DETAILS, ReferrerCheckDetails.empty)
           def isRequestAllowedViaReferrer: Boolean =
             request.headers.get("Referer") match {
               case Some(referrer) => referrerConfig.isAllowed(referrer)

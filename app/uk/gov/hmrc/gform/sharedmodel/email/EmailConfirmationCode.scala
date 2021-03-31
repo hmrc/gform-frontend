@@ -16,12 +16,14 @@
 
 package uk.gov.hmrc.gform.sharedmodel.email
 
+import org.typelevel.ci.CIString
 import play.api.libs.json.Format
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 
-case class EmailConfirmationCode(code: String) extends AnyVal
+case class EmailConfirmationCode(code: CIString) extends AnyVal
 
 object EmailConfirmationCode {
+  import JsonUtils._
   implicit val format: Format[EmailConfirmationCode] =
-    JsonUtils.valueClassFormat[EmailConfirmationCode, String](EmailConfirmationCode.apply, _.code)
+    JsonUtils.valueClassFormat[EmailConfirmationCode, CIString](EmailConfirmationCode.apply, _.code)
 }
