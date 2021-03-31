@@ -21,6 +21,7 @@ import cats.instances.option._
 import cats.syntax.applicative._
 import cats.syntax.apply._
 import cats.syntax.eq._
+import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
@@ -69,6 +70,8 @@ class FormController(
   messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
+
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   import i18nSupport._
 
@@ -371,9 +374,26 @@ class FormController(
                              NoSpecificAction
                            )
           res <- direction match {
-                   case EditAddToList(idx, addToListId)   => processEditAddToList(processData, idx, addToListId)
-                   case RemoveAddToList(idx, addToListId) => processRemoveAddToList(processData, idx, addToListId)
-                   case _                                 => throw new IllegalArgumentException(s"Direction $direction is not supported here")
+                   case EditAddToList(idx, addToListId)      => processEditAddToList(processData, idx, addToListId)
+                   case RemoveAddToList(idx, addToListId)    => processRemoveAddToList(processData, idx, addToListId)
+                   case SaveAndContinue | SaveAndExit | Back =>
+                     // This request should have been a POST, with user data. However we have sporadically seen GET requests sent instead of POST to this endpoint
+                     // the cause of which is not known yet. We redirect the user the page he/she is currently on, instead of throwing an error page
+                     // e.g: GET /submissions/form/XXXX/-/0?ff=t&action=SaveAndContinue
+                     logger.warn(s"Received GET request with direction $direction. Doing a redirect!")
+                     val sectionTitle4Ga = getSectionTitle4Ga(processData, sectionNumber)
+                     Redirect(
+                       routes.FormController
+                         .form(
+                           formTemplateId,
+                           maybeAccessCode,
+                           sectionNumber,
+                           sectionTitle4Ga,
+                           SuppressErrors.Yes,
+                           ff
+                         )
+                     ).pure[Future]
+                   case _ => throw new IllegalArgumentException(s"Direction $direction is not supported here")
                  }
         } yield res
     }
