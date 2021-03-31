@@ -14,7 +14,6 @@
  * limitations under the License.
  *@
 
-@import cats.syntax.eq._
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.models._
@@ -70,18 +69,11 @@
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
 
-@displaySaveContinueButton(classes: String = "") = @{
-    val attributes =
-      if(classes === "defaultsink") {
-        Map("formaction" -> page.formAction.path, "tabindex" -> "-1")
-      } else {
-        Map("formaction" -> page.formAction.path)
-      }
-
+@displaySaveContinueButton(classes: String = "", otherAttributes: Map[String, String] = Map.empty) = @{
     if(shouldDisplayContinue) {
         govukButton(Button(content = Text(buttonLabel),
             inputType=Some("submit"),
-            attributes = attributes,
+            attributes = Map("formaction" -> page.formAction.path) ++ otherAttributes,
             classes = classes))
     }
 }
@@ -119,7 +111,7 @@
     @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
     @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
-    @displaySaveContinueButton("defaultsink")
+    @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1"))
 
       @{page.snippets}
 
