@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.Eq
 import play.api.libs.json._
 import julienrf.json.derived
 
@@ -24,5 +25,6 @@ case object Continue extends ContinueIf
 case object Stop extends ContinueIf
 
 object ContinueIf {
+  implicit val catsEq: Eq[ContinueIf] = Eq.fromUniversalEquals
   implicit val format: OFormat[ContinueIf] = derived.oformat()
 }
