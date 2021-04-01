@@ -11,7 +11,7 @@ emailAuth.weWillSendCodeToEmail=Byddwn yn anfon cod atoch i gadarnhau mai’ch c
 emailAuth.enterYourEmailAddress=Nodwch eich cyfeiriad e-bost
 emailAuth.weHaveSendCodeTo=Rydym wedi anfon cod i
 emailAuth.provideDifferentEmailAddress=Rhowch gyfeiriad e-bost gwahanol
-emailAuth.browserAccessEmailNewWindow=Bydd angen i chi gadw'r dudalen hon ar agor pan fyddwch yn mynd at eich e-byst, a hynny fel y gallwch ddod yn ôl a nodi'r cod.
+emailAuth.browserAccessEmailNewWindow=Bydd angen i chi gadw’r dudalen hon ar agor pan fyddwch yn mynd at eich e-byst, a hynny fel y gallwch ddod yn ôl a nodi’r cod.
 emailAuth.confirmCode=Cod cadarnhau
 emailAuth.confirmCodeExample=Er enghraifft, DNXL
 emailAuth.cannotFindEmail=Ni allaf ddod o hyd i’r e-bost
@@ -48,7 +48,7 @@ error.summary.heading=Mae problem wedi codi
 # BETA Banner
 feedback.before =Mae hwn yn wasanaeth newydd – bydd eich
 feedback.link =adborth
-feedback.after =yn ein helpu i'w wella.
+feedback.after =yn ein helpu i’w wella.
 
 # Generic words
 generic.From=O
@@ -116,14 +116,14 @@ enrolment.error.failed.step1=gwirio’ch manylion a rhoi cynnig arall arni
 enrolment.error.failed.step2=cael help gyda mewngofnodi i’r gwasanaeth hwn (yn agor ffenestr neu dab newydd)
 enrolment.error.regimeId=Mae’r rhif cofrestru a nodwyd gennych ar gyfer gwasanaeth dreth wahanol
 enrolment.error.missingIdentifier=Rhaid nodi rhif cofrestru
-enrolment.error.conflict=Mae angen i chi ofyn am fynediad i ddefnyddio'r gwasanaeth hwn
+enrolment.error.conflict=Mae angen i chi ofyn am fynediad i ddefnyddio’r gwasanaeth hwn
 
 enrolment.help.title=Help gyda’ch manylion cofrestru
 enrolment.help.description=Cysylltwch â CThEM am help gyda’ch manylion cofrestru er mwyn i chi allu mewngofnodi i’r gwasanaeth rydych wedi cofrestru ar ei gyfer.
 enrolment.help.contact.title=Ffôn
 enrolment.help.contact.telephone=Ffôn:
 enrolment.help.contact.textphone=Ffôn testun:
-enrolment.help.contact.outside=Y tu allan i'r DU:
+enrolment.help.contact.outside=Y tu allan i’r DU:
 enrolment.help.opening.times=Oriau agor:
 enrolment.help.open.days=Dydd Llun i Ddydd Gwener, 08:00 i 18:00
 enrolment.help.closed.days=Ar gau ar benwythnosau a gwyliau’r banc.
@@ -415,7 +415,7 @@ accessibility.subheading7=Gwybodaeth dechnegol am hygyrchedd y gwasanaeth hwn
 accessibility.content.block7.p1=Mae CThEM wedi ymrwymo i wneud y gwasanaeth hwn yn hygyrch, yn unol â Rheoliadau Hygyrchedd Cyrff Sector Cyhoeddus (Gwefannau a Chymwysiadau Symudol) (Rhif 2) 2018.
 accessibility.content.block7.p2=Mae’r gwasanaeth hwn yn un o grŵp o wasanaethau sy’n cael eu hadeiladu mewn ffordd debyg ac sydd â rhai problemau hygyrchedd cyffredin. Mae’r gwasanaethau hyn yn cydymffurfio’n rhannol â <a class="govuk-link" href="https://www.w3.org/TR/WCAG21/">safon ‘AA’ Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1</a>, oherwydd y diffyg cydymffurfio a restrir isod.
 accessibility.content.block7.h21=Non-Cynnwys nad yw’n hygyrch
-accessibility.content.block7.h21.p=Gall y cynnwys a restrir isod, nad yw’n hygyrch oherwydd y rhesymau a ganlyn, fod yn rhan o'r gwasanaeth hwn.
+accessibility.content.block7.h21.p=Gall y cynnwys a restrir isod, nad yw’n hygyrch oherwydd y rhesymau a ganlyn, fod yn rhan o’r gwasanaeth hwn.
 accessibility.content.block7.h22=Diffyg cydymffurfio â’r rheoliadau hygyrchedd
 accessibility.content.block7.h22.p1=Mae’n bosibl na fydd darllenydd sgrin yn darllen yn awtomatig rannau bach o wybodaeth sydd i’w gweld ar y tudalennau. Nid yw hyn yn bodloni maen prawf llwyddiant 3.3.2 (labels or instructions) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
 accessibility.content.block7.h22.p2=Mae’n bosibl y bydd rhywfaint o wybodaeth wedi ei threfnu mewn ffordd sy’n anoddach ei defnyddio i bobl sy’n defnyddio darllenydd sgrin. Nid yw hyn yn bodloni maen prawf llwyddiant 1.3.2 (meaningful sequence) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
