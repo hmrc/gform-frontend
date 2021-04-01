@@ -17,12 +17,13 @@
 package uk.gov.hmrc.gform.auth.models
 
 import julienrf.json.derived
+import org.typelevel.ci.CIString
 import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 
 sealed trait EmailAuthData {
-  def email = this match {
+  def email: CIString = this match {
     case InvalidEmail(EmailId(email), _)       => email
     case ValidEmail(EmailAndCode(email, _), _) => email
   }
