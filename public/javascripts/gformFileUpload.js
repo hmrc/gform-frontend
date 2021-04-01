@@ -366,14 +366,20 @@
 
     // Handle file deletion
     function handleFileDelete(e) {
+
+      var t = $(e.currentTarget);
+
+      if(t.attr("aria-busy") == "true") {
+        // to prevent duplicate requests via double click
+        return false
+      }
+      t.attr("aria-busy", "true");
+
       e.preventDefault();
 
       disableSubmitButton();
 
-      var t = $(e.currentTarget);
       var d = e.currentTarget.dataset;
-
-      t.attr("aria-busy", "true");
 
       if (!d.formComponentId) {
         handleError($("#" + d.formId), strings.invalidFileToDelete[lang]);
