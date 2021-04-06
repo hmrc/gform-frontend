@@ -34,7 +34,7 @@ object EmailAndCode extends JsonUtils {
     val consonants = ('A' to 'Z').filterNot(vowels.contains)
 
     def mkStream(chars: IndexedSeq[Char]) = {
-      def next: Char = chars.charAt(rnd.random(chars.length))
+      def next: Char = chars(rnd.random(chars.length))
       Stream continually next
     }
 
