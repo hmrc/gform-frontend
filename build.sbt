@@ -36,12 +36,10 @@ lazy val microservice = (project in file("."))
     // Hmrc sbt-settings overrides Test / fork to false: https://github.com/hmrc/sbt-settings/blob/80fa3dcb6d6fedd2917d7d492646dd0f380ad421/src/main/scala/uk/gov/hmrc/DefaultBuildSettings.scala#L65
     // But when it set to false, some tests start to fail while on sbt 1.4.x
     // Let's set it back to play framework default.
-    // Note. Once we can move to sbt 1.5.x or scala 2.13.x any settings should work.
     Test / fork := true,
     scalafmtOnCompile := true,
     scalaVersion := "2.12.12",
-    testFrameworks += new TestFramework("munit.Framework"),
-    testOptions in Test := (testOptions in Test).value
+    Test / testOptions := (Test / testOptions).value
       .map {
         // Default Argument added by https://github.com/hmrc/sbt-settings
         // are clashing with munit arguments, so we scope them to ScalaTest instead.
@@ -90,17 +88,17 @@ lazy val microservice = (project in file("."))
       s"-P:silencer:sourceRoots=${baseDirectory.value.getCanonicalPath}"
     ),
     pipelineStages := Seq(digest),
-    pipelineStages in Assets := Seq(concat, uglify),
+    Assets / pipelineStages := Seq(concat, uglify),
     uglifyCompressOptions := Seq("warnings=false")
   )
   .configs(IntegrationTest)
   .settings(
     inConfig(IntegrationTest)(Defaults.itSettings),
     inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
-    Keys.fork in IntegrationTest := false,
-    unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
+    IntegrationTest / Keys.fork := false,
+    IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
     addTestReportOption(IntegrationTest, "int-test-reports"),
-    parallelExecution in IntegrationTest := false,
+    IntegrationTest / parallelExecution := false,
     scalafmtOnCompile := true
   )
   .settings(
