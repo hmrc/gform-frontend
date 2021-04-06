@@ -84,7 +84,7 @@ class SessionCookieDispatcherFilter(
                 encrypter.encrypt(PlainText(HmrcAuthConfig))
               )
           }
-        result.map(_.withCookies(Cookie(authConfigCookieName, cookieValue.value)))
+        result.map(_.withCookies(Cookie(authConfigCookieName, cookieValue.value, secure = true)))
 
       case Left(_) =>
         findAuthConfigCookie(rh).map(v => decrypter.decrypt(Crypted(v.value)).value) match {

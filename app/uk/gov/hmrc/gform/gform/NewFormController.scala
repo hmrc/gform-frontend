@@ -62,7 +62,7 @@ class NewFormController(
   private val noAccessCode = Option.empty[AccessCode]
 
   private def formTemplateIdCookie(formTemplateId: FormTemplateId) =
-    Cookie(CookieNames.formTemplateIdCookieName, formTemplateId.value)
+    Cookie(CookieNames.formTemplateIdCookieName, formTemplateId.value, secure = true)
 
   def dashboard(formTemplateId: FormTemplateId) =
     auth.authWithOptReferrerCheckWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ViewDashboard) {
