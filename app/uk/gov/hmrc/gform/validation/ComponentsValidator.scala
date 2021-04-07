@@ -116,8 +116,8 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   private def produceValidationError(
     message: SmartString
   ): ValidatedType[Unit] =
-    formComponent.`type` match {
-      case _: Date =>
+    formComponent match {
+      case IsMultiField(_) =>
         Map[ModelComponentId, Set[String]](
           formComponent.multiValueId.firstAtomModelComponentId -> Set(message.value)
         ).invalid
