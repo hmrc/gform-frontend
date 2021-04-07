@@ -116,7 +116,15 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   private def produceValidationError(
     message: SmartString
   ): ValidatedType[Unit] =
-    Map(formComponent.modelComponentId -> Set(message.value)).invalid
+    formComponent.`type` match {
+      case _: Date =>
+        Map[ModelComponentId, Set[String]](
+          formComponent.multiValueId.firstAtomModelComponentId -> Set(message.value)
+        ).invalid
+
+      case _ =>
+        Map[ModelComponentId, Set[String]](formComponent.modelComponentId -> Set(message.value)).invalid
+    }
 
   private def defaultFormComponentValidIf(
     validationResult: ValidatedType[Unit]
