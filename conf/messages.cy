@@ -278,6 +278,10 @@ taxPeriod.noResults.getHelp=Cysylltwch â CThEM i gael help.
 file.upload=Uwchlwytho ffeil
 file.delete=Dileu
 file.delete.file=Dileu {0}
+file.error.upload.one.only=Only one file at a time can be uploaded
+file.error.empty=Mae'r ffeil hon yn wag
+file.error.size=Mae’r ffeil hon yn fwy na maint y ffeil fwyaf a ganiateir sef {0}MB
+file.error.type=The file type {0} is not permitted. You can only upload {1}
 
 # Sort code
 sortcode.part=Cod didoli rhan {0}

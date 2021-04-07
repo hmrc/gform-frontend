@@ -259,11 +259,14 @@
           interpolate(strings.maxSizeError[lang], [maxFileSize])
         );
       }
-
-      updateMapping($input.attr("id"), fileId, formTemplateId, accessCode)
+      uploadFile(file, fileId)
         .then(function(response) {
-          const realFileId = response.fileId;
-          return uploadFile(file, realFileId);
+          return updateMapping(
+            $input.attr("id"),
+            fileId,
+            formTemplateId,
+            accessCode
+          );
         }, onError)
         .then(function(response) {
           fileUploadSuccess(
@@ -345,10 +348,20 @@
 
     // Display the uploaded file name and delete button
     function makeFileEntry(name, formComponentId, formTemplateId, accessCode) {
+      var deleteUrl =
+        "/submissions/api/forms/" +
+        formTemplateId +
+        "/" +
+        accessCode +
+        "/" +
+        formComponentId;
+
       return $(
         "<span>" +
           name +
-          '</span> <a href="#" class="delete-file govuk-link" data-form-component-id="' +
+          '</span> <a href="' +
+          deleteUrl +
+          '" class="govuk-link" data-form-component-id="' +
           formComponentId +
           '" data-form-id="' +
           formTemplateId +
@@ -366,12 +379,11 @@
 
     // Handle file deletion
     function handleFileDelete(e) {
-
       var t = $(e.currentTarget);
 
-      if(t.attr("aria-busy") == "true") {
+      if (t.attr("aria-busy") == "true") {
         // to prevent duplicate requests via double click
-        return false
+        return false;
       }
       t.attr("aria-busy", "true");
 
@@ -396,7 +408,7 @@
 
       return fileDelete(deleteUrl).then(
         function(response) {
-          fileDeleteSuccess(d.formComponentId, t);
+          fileDeleteSuccess(d.formComponentId);
         },
         function(err) {
           t.removeAttr("aria-busy");
@@ -423,7 +435,6 @@
       enableSubmitButton();
       $("#" + formComponentId + "-files").empty();
       $("#" + formComponentId).val("");
-      $("#" + formComponentId).attr("data-file-id", "-");
     }
 
     // Set up file upload

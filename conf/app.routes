@@ -47,6 +47,8 @@ GET           /assets/*file                                                     
 
 GET           /keep-alive                                                                                        uk.gov.hmrc.gform.gform.FormController.keepAlive()
 
+GET           /no-js/success-callback/:formTemplateId/:maybeAccessCode/:formComponentId/:fileId                  uk.gov.hmrc.gform.fileupload.FileUploadController.noJsSuccessCallback(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], formComponentId: FormComponentId, fileId: FileId)
+GET           /no-js/error-callback/:formTemplateId/:maybeAccessCode/:formComponentId/:fileId                    uk.gov.hmrc.gform.fileupload.FileUploadController.noJsErrorCallback(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], formComponentId: FormComponentId, fileId: FileId)
 GET           /api/add-file/:formTemplateId/:maybeAccessCode/:formComponentId/:fileId                            uk.gov.hmrc.gform.fileupload.FileUploadController.addFileId(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], formComponentId: FormComponentId, fileId: FileId)
 GET           /api/forms/:formTemplateId/:maybeAccessCode/:formComponentId                                       uk.gov.hmrc.gform.fileupload.FileUploadController.deleteFile(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], formComponentId: FormComponentId)
 

@@ -47,7 +47,7 @@ class FastForwardService(
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory
 )(implicit ec: ExecutionContext) {
 
-  def redirectContinue2[U <: SectionSelectorType: SectionSelector](
+  def redirectFastForward[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     formModelOptics: FormModelOptics[DataOrigin.Mongo]

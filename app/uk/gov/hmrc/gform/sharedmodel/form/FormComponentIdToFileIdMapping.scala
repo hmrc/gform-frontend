@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-import cats.syntax.eq._
 import play.api.libs.json.Format
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, JsonUtils }
 
 /** Keeps maping between FileUpload component and it's associated FileId in file-upload microservice.
   *
-  * When removing add-to-list iterations we
+  * When removing add-to-list iterations (or groups) we
   * are reindexing FormComponentIds of the components accross all iteration so there
   * are not gaps in indexes. This has unfortunate effect on uploaded files, which contains
   * FormComponentId as a prefix (to guaranee uniqueness of names in zip file later on).
@@ -39,19 +38,17 @@ case class FormComponentIdToFileIdMapping(mapping: Map[FormComponentId, FileId])
     inverseMapping.keySet.map(fileId => FormComponentId(fileId.value).modelComponentId)
 
   def fileIdFor(formComponentId: FormComponentId): FileId = {
-    val modelComponentId: ModelComponentId = formComponentId.modelComponentId
 
-    def nextAvailable = modelComponentId.maybeIndex.fold(formComponentId.value) { index =>
-      val existingIndices: Set[Int] =
-        modelComponentIds.filter(_.baseComponentId === modelComponentId.baseComponentId).flatMap(_.maybeIndex)
-
-      val maxIndex = if (existingIndices.isEmpty) 1 else 1 + existingIndices.max
-      val allIndices: Set[Int] = (1 to maxIndex).toSet
-      val diff = allIndices -- existingIndices
-      if (diff.isEmpty) formComponentId.value else diff.min + "_" + modelComponentId.baseComponentId.value
+    def loop(fileId: FileId): Option[FileId] = {
+      val inverse: Option[FileId] = inverseMapping.get(fileId).map(_.value).map(FileId.apply)
+      inverse.map { fileId =>
+        loop(fileId).getOrElse(fileId)
+      }
     }
-    FileId(mapping.get(formComponentId).fold(nextAvailable)(_.value))
 
+    FileId(
+      mapping.get(formComponentId).orElse(loop(FileId(formComponentId.value))).fold(formComponentId.value)(_.value)
+    )
   }
 
   def +(formComponentId: FormComponentId, fileId: FileId): FormComponentIdToFileIdMapping =

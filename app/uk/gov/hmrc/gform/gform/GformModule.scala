@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrResponder }
-import uk.gov.hmrc.gform.fileupload.FileUploadModule
+import uk.gov.hmrc.gform.fileupload.{ FileUploadController, FileUploadModule }
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormValidator }
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndService, GformBackendModule }
 import uk.gov.hmrc.gform.graph.GraphModule
@@ -100,6 +100,16 @@ class GformModule(
     controllersModule.nonAuthenticatedRequestActions,
     configModule.frontendAppConfig,
     gformBackendModule.gformConnector
+  )
+
+  val fileUploadController = new FileUploadController(
+    configModule.appConfig,
+    fileUploadModule.fileUploadService,
+    controllersModule.authenticatedRequestActions,
+    gformBackendModule.gformConnector,
+    fastForwardService,
+    playBuiltInsModule.i18nSupport,
+    controllersModule.messagesControllerComponents
   )
 
   val newFormController: NewFormController = new NewFormController(

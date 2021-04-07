@@ -286,6 +286,10 @@ taxPeriod.noResults.getHelp=Contact HMRC to get help.
 file.upload=Upload a file
 file.delete=Delete
 file.delete.file=Delete {0}
+file.error.upload.one.only=Only one file at a time can be uploaded
+file.error.empty=This file is empty
+file.error.size=This file is larger than the maximum file size of {0}MB
+file.error.type=The file type {0} is not permitted. You can only upload {1}
 
 # Sort code
 sortcode.part=Sort code part {0}

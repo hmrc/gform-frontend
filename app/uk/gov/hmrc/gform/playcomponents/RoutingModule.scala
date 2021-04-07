@@ -73,7 +73,7 @@ class RoutingModule(
     gformModule.agentEnrolmentController,
     gformModule.reviewController,
     assetsComponents.assets,
-    fileUploadModule.fileUploadController,
+    gformModule.fileUploadController,
     gformModule.languageSwitchController,
     gformModule.lookupController,
     gformModule.signOutController,
