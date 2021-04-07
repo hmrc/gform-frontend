@@ -224,6 +224,7 @@ date.after={0} must be after {1}
 date.precisely={0} must be {1}
 date.isMissing={0} is missing
 date.invalid={0} must be a valid date
+date.dayMonthCombo.invalid={0} must have valid values for day and month
 
 #Months
 date.January=January

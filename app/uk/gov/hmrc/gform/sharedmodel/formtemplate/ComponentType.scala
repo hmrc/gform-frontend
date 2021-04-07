@@ -53,6 +53,7 @@ sealed trait ComponentType {
     case _: TextArea           => "textArea"
     case _: UkSortCode         => "ukSortCode"
     case _: Date               => "date"
+    case _: CalendarDate.type  => "calendarDate"
     case _: Time               => "time"
     case _: Address            => "address"
     case _: OverseasAddress    => "overseasAddress"
@@ -124,6 +125,15 @@ object Date {
   val year: Atom = Atom("year")
   val fields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = (indexedComponentId: IndexedComponentId) =>
     NonEmptyList.of(day, month, year).map(ModelComponentId.atomicCurry(indexedComponentId))
+}
+
+case object CalendarDate extends ComponentType with MultiField {
+  val day: Atom = Atom("day")
+  val month: Atom = Atom("month")
+  val componentFields: NonEmptyList[Atom] = NonEmptyList.of(day, month)
+
+  override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
+    componentFields.map(ModelComponentId.atomicCurry(indexedComponentId))
 }
 
 case class Address(international: Boolean) extends ComponentType with MultiField {

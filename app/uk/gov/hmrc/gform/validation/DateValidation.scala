@@ -240,7 +240,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
         }
 
       case _ =>
-        validationFailure(formComponent.firstAtomModelComponentId, formComponent, "date.isMissing", None)
+        validationFailure(formComponent.firstAtomModelComponentId, formComponent, "date.isMissing", None, "")
     }
   }
 
