@@ -20,6 +20,7 @@ import cats.instances.string._
 import cats.syntax.eq._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
@@ -35,6 +36,9 @@ object Attachments {
 case class Envelope(
   files: List[File]
 ) {
+  def find(fileId: FileId): Option[File] =
+    files.find(_.fileId === fileId)
+
   def find(modelComponentId: ModelComponentId): Option[File] =
     files.find(_.fileId.value === modelComponentId.toMongoIdentifier)
 
@@ -57,7 +61,9 @@ case class EnvelopeRaw(files: Option[List[File]])
 case class File(
   fileId: FileId,
   status: Status,
-  fileName: String
+  fileName: String,
+  contentType: ContentType,
+  length: Long
 )
 
 object File {
@@ -66,19 +72,24 @@ object File {
 
   //TIP: look for FileStatus trait in https://github.com/hmrc/file-upload/blob/master/app/uk/gov/hmrc/fileupload/read/envelope/model.scala
   implicit val format: Reads[File] = fileRawReads.map {
-    // format: OFF
-    case FileRaw(id, name, "QUARANTINED", _)        => File(FileId(id), Quarantined, name)
-    case FileRaw(id, name, "CLEANED", _)            => File(FileId(id), Cleaned, name)
-    case FileRaw(id, name, "AVAILABLE", _)          => File(FileId(id), Available, name)
-    case FileRaw(id, name, "INFECTED", _)           => File(FileId(id), Infected, name)
-    case FileRaw(id, name, ERROR, reason)           => File(FileId(id), Error(reason), name)
-    case FileRaw(id, name, other, reason)           => File(FileId(id), Other(other, reason), name)
-    // format: ON
+    case FileRaw(id, name, "QUARANTINED", _, cType, length) => File(FileId(id), Quarantined, name, cType, length)
+    case FileRaw(id, name, "CLEANED", _, cType, length)     => File(FileId(id), Cleaned, name, cType, length)
+    case FileRaw(id, name, "AVAILABLE", _, cType, length)   => File(FileId(id), Available, name, cType, length)
+    case FileRaw(id, name, "INFECTED", _, cType, length)    => File(FileId(id), Infected, name, cType, length)
+    case FileRaw(id, name, ERROR, reason, cType, length)    => File(FileId(id), Error(reason), name, cType, length)
+    case FileRaw(id, name, other, reason, cType, length)    => File(FileId(id), Other(other, reason), name, cType, length)
   }
   private val ERROR = "UnKnownFileStatusERROR"
 }
 
-case class FileRaw(id: String, name: String, status: String, reason: Option[String])
+case class FileRaw(
+  id: String,
+  name: String,
+  status: String,
+  reason: Option[String],
+  contentType: ContentType,
+  length: Long
+)
 
 sealed trait Status
 case object Quarantined extends Status

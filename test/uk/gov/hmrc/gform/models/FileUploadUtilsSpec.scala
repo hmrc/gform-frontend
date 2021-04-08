@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.models
 
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.{ FlatSpec, Matchers }
-import uk.gov.hmrc.gform.fileupload.{ Available, Envelope, File }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormField, QueryParams }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, NotChecked, UserId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, EnvelopeId, FileId, Form, FormData, FormId, ThirdPartyData, VisitIndex }
@@ -45,25 +44,18 @@ class FileUploadUtilsSpec extends FlatSpec with Matchers with FormModelSupport w
     val expectedMapping1 = Map("file" -> "file").toMapping
     val mapping2 = Map("file" -> "x_file").toMapping
     val expectedMapping2 = Map("file" -> "x_file").toMapping
-    val mapping3 = Map("file" -> "x_file").toMapping
-    val expectedMapping3 = Map("file" -> "x_file").toMapping
 
     val variations = Table(
-      ("formComponentId", "fileId", "mapping", "envelopeFiles", "expectedFileId", "expectedMapping"),
-      (FormComponentId("file"), FileId.empty, mapping1, List.empty[String], FileId("file"), expectedMapping1),
-      (FormComponentId("file"), FileId.empty, mapping2, List.empty[String], FileId("x_file"), expectedMapping2),
-      (FormComponentId("file"), FileId("dummy"), mapping3, List("x_file"), FileId("x_file"), expectedMapping3)
+      ("formComponentId", "fileId", "mapping", "expectedMapping"),
+      (FormComponentId("file"), FileId("file"), mapping1, expectedMapping1),
+      (FormComponentId("file"), FileId("x_file"), mapping2, expectedMapping2)
     )
 
-    forAll(variations) {
-      case (formComponentId, fileId, componentIdToFileId, envelopeFiles, expectedFileId, expectedComponentIdToFileId) ⇒
-        val envelope: Envelope =
-          Envelope(envelopeFiles.map(fileId => File(FileId(fileId), Available, fileId + "_invoice.pdf")))
-        val form: Form = mkForm(componentIdToFileId)
-        val (realFileId, userData) = FileUploadUtils.updateMapping(formComponentId, fileId, form, envelope)
+    forAll(variations) { case (formComponentId, fileId, componentIdToFileId, expectedComponentIdToFileId) ⇒
+      val form: Form = mkForm(componentIdToFileId)
+      val userData = FileUploadUtils.updateMapping(formComponentId, fileId, form)
 
-        realFileId shouldBe expectedFileId
-        userData.componentIdToFileId shouldBe expectedComponentIdToFileId
+      userData.componentIdToFileId shouldBe expectedComponentIdToFileId
     }
   }
 
@@ -81,8 +73,6 @@ class FileUploadUtilsSpec extends FlatSpec with Matchers with FormModelSupport w
       mapping
     )
 
-    /* val mapping1 = FormComponentIdToFileIdMapping.empty
-     * val expectedMapping1 = Map("file" -> "file").toMapping */
     val mapping2 = Map("file" -> "x_file").toMapping
     val expectedMapping2 = FormComponentIdToFileIdMapping.empty
     val mapping3 = Map("file" -> "x_file", "fileB" -> "x_fileB").toMapping
@@ -112,18 +102,23 @@ class FileUploadUtilsSpec extends FlatSpec with Matchers with FormModelSupport w
       case (
             formComponentId,
             componentIdToFileId,
-            formData,
+            inputFormData,
             expectedFileId,
             expectedComponentIdToFileId,
             expectedFormData
           ) ⇒
-        val form: Form = mkForm(componentIdToFileId, formData)
+        val form: Form = mkForm(componentIdToFileId, inputFormData)
 
-        val (realFileId, userData) = FileUploadUtils.prepareDeleteFile(formComponentId, form)
+        val tuple = FileUploadUtils.prepareDeleteFile(formComponentId, form)
 
-        realFileId shouldBe expectedFileId
-        userData.componentIdToFileId shouldBe expectedComponentIdToFileId
-        userData.formData shouldBe expectedFormData
+        tuple match {
+          case Some((fileId, formData, mapping)) =>
+            fileId shouldBe expectedFileId
+            mapping shouldBe expectedComponentIdToFileId
+            formData shouldBe expectedFormData
+          case _ => fail
+        }
+
     }
   }
 

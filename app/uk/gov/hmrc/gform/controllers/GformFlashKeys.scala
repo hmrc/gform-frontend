@@ -14,22 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.form
+package uk.gov.hmrc.gform.controllers
 
-import cats.{ Eq, Show }
-import play.api.libs.json.OFormat
-import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
-
-case class FileId(value: String) {
-  def toFieldId: FormComponentId = FormComponentId(value)
-}
-
-object FileId {
-
-  implicit val equal: Eq[FileId] = Eq.fromUniversalEquals
-
-  implicit val format: OFormat[FileId] = ValueClassFormat.oformat("fileId", FileId.apply, _.value)
-
-  implicit val show: Show[FileId] = Show.show(_.value)
+object GformFlashKeys {
+  val FileUploadError = "FileUploadError"
+  val FileUploadFileId = "FileUploadFileId"
 }

@@ -201,13 +201,13 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
     val file: Option[File] = envelope.find(formComponent.id.modelComponentId)
 
     file match {
-      case Some(File(fileId, Error(Some(reason)), _)) =>
+      case Some(File(fileId, Error(Some(reason)), _, _, _)) =>
         validationFailure(formComponent, "generic.error.unknownUpload", None)
-      case Some(File(fileId, Error(None), _)) =>
+      case Some(File(fileId, Error(None), _, _, _)) =>
         validationFailure(formComponent, "generic.error.unknownUpload", None)
-      case Some(File(fileId, Infected, _)) =>
+      case Some(File(fileId, Infected, _, _, _)) =>
         validationFailure(formComponent, "generic.error.virus", None)
-      case Some(File(fileId, _, _)) => validationSuccess
+      case Some(File(fileId, _, _, _, _)) => validationSuccess
       case None if formComponent.mandatory =>
         validationFailure(formComponent, "generic.error.upload", None)
       case None => validationSuccess

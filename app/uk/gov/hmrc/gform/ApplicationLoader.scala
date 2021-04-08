@@ -147,9 +147,7 @@ class ApplicationModule(context: Context)
 
   private val fileUploadModule = new FileUploadModule(
     wSHttpModule,
-    configModule,
-    controllersModule,
-    gformBackendModule
+    configModule
   )
 
   private val validationModule = new ValidationModule(

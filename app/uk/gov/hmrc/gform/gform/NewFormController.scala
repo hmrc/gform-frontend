@@ -165,7 +165,7 @@ class NewFormController(
             },
             {
               case "continue" =>
-                fastForwardService.redirectContinue2[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics)
+                fastForwardService.redirectFastForward[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics)
               case "delete" => fastForwardService.deleteForm(cache, queryParams)
               case _        => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
             }
@@ -362,7 +362,7 @@ class NewFormController(
                            cacheWithForm,
                            recalculation
                          )
-      res <- fastForwardService.redirectContinue2(cacheWithForm, accessCode, formModelOptics)
+      res <- fastForwardService.redirectFastForward(cacheWithForm, accessCode, formModelOptics)
     } yield res
 
   }

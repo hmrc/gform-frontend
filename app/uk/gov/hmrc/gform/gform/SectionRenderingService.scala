@@ -31,7 +31,8 @@ import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.{ Origin, SaveAndContinue }
+import uk.gov.hmrc.gform.controllers.{ GformFlashKeys, Origin, SaveAndContinue }
+import uk.gov.hmrc.gform.fileupload.routes.FileUploadController
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup._
@@ -56,6 +57,7 @@ import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.views.html.specimen
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
+import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 import uk.gov.hmrc.govukfrontend.views.viewmodels.charactercount.CharacterCount
 import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
@@ -102,6 +104,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     sectionNumber: SectionNumber,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     formTemplate: FormTemplate,
+    envelopeId: EnvelopeId,
     envelope: EnvelopeWithMapping,
     formMaxAttachmentSizeMB: Int,
     retrievals: MaterialisedRetrievals,
@@ -251,6 +254,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       sectionNumber,
       formModelOptics,
       formTemplate,
+      envelopeId,
       envelope,
       formMaxAttachmentSizeMB,
       retrievals,
@@ -267,7 +271,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val javascript =
       JavascriptMaker.generateJs(sectionNumber, formModelOptics)
 
-    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
+    val pageLevelErrorHtml = request.flash.get(GformFlashKeys.FileUploadError) match {
+      case Some(message) => noJSFileUploadError(message, request.flash.get(GformFlashKeys.FileUploadFileId))
+      case None          => generatePageLevelErrorHtml(listResult, List.empty)
+    }
 
     val originSection = Origin(DataOrigin.unSwapDataOrigin(formModelOptics)).minSectionNumber
     val renderUnits: List[RenderUnit] = page.renderUnits
@@ -340,6 +347,19 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       }
       .collect(toErrorLink)
 
+  private def noJSFileUploadError(message: String, fileId: Option[String])(implicit messages: Messages): HasErrors = {
+    val errorSummary = ErrorSummary(
+      errorList = List(
+        ErrorLink(href = fileId.map("#" + _), content = content.Text(message))
+      ),
+      title = content.Text(messages("error.summary.heading"))
+    )
+
+    val errorHtml: Html = new components.govukErrorSummary()(errorSummary)
+
+    Errors(errorHtml)
+  }
+
   private def generatePageLevelErrorHtml(
     listValidation: List[FormFieldValidationResult],
     globalErrors: List[ErrorLink]
@@ -408,6 +428,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       formModelOptics,
       formTemplate,
+      EnvelopeId(""),
       EnvelopeWithMapping.empty,
       0,
       retrievals,
@@ -499,6 +520,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       formModelOptics,
       formTemplate,
+      envelopeId,
       EnvelopeWithMapping.empty,
       0,
       retrievals,
@@ -560,6 +582,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       formModelOptics,
       formTemplate,
+      EnvelopeId(""),
       EnvelopeWithMapping.empty,
       0,
       emptyRetrievals,
@@ -666,7 +689,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               obligations
             )
           case FileUpload() =>
-            htmlForFileUpload(formComponent, formTemplateId, ei, ei.retrievals, validationResult)
+            htmlForFileUpload(formComponent, formTemplateId, ei, validationResult)
           case InformationMessage(infoType, infoText) =>
             htmlForInformationMessage(formComponent, infoType, infoText, ei)
           case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>
@@ -793,13 +816,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
     ei: ExtraInfo,
-    materialisedRetrievals: MaterialisedRetrievals,
     validationResult: ValidationResult
   )(implicit
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
   ) = {
+
     val formFieldValidationResult = validationResult(formComponent)
 
     val hint = formComponent.helpText.map { ls =>
@@ -828,28 +851,75 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       content = labelContent
     )
 
-    val realFileId: FileId =
-      ei.envelope.find(formComponent.modelComponentId).map(_.fileId).getOrElse(FileId.empty)
+    val fileId: FileId =
+      ei.envelope
+        .find(formComponent.modelComponentId)
+        .map(_.fileId)
+        .getOrElse(ei.envelope.mapping.fileIdFor(formComponent.id))
 
     val fileUpload: fileupload.FileUpload = fileupload.FileUpload(
       id = formComponent.id.value,
       name = formComponent.id.value,
-      value = currentValue,
       label = label,
       hint = hint,
       errorMessage = errorMessage,
       attributes = Map(
-        "data-file-id"          -> realFileId.value,
+        "data-file-id"          -> fileId.value,
         "data-form-template-id" -> formTemplateId.value,
         "data-max-file-size-MB" -> ei.formMaxAttachmentSizeMB.toString,
         "data-access-code"      -> ei.maybeAccessCode.fold("-")(_.value)
       )
     )
 
+    val successUrl =
+      frontendAppConfig.gformFrontendBaseUrl + FileUploadController.noJsSuccessCallback(
+        formTemplateId,
+        ei.sectionNumber,
+        ei.maybeAccessCode,
+        formComponent.id,
+        fileId
+      )
+
+    val errorUrl =
+      frontendAppConfig.gformFrontendBaseUrl + FileUploadController.noJsErrorCallback(
+        formTemplateId,
+        ei.sectionNumber,
+        ei.maybeAccessCode,
+        formComponent.id,
+        fileId
+      )
+
+    val deleteUrl =
+      frontendAppConfig.gformFrontendBaseUrl + FileUploadController.deleteFile(
+        formTemplateId,
+        ei.maybeAccessCode,
+        formComponent.id
+      )
+
     val fileInput: Html = new components.govukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
 
+    val noJsButton: Button = Button(
+      content = content.Text(messages("file.upload")),
+      inputType = Some("submit"),
+      classes = "govuk-button--secondary",
+      attributes = Map(
+        "formaction"  -> s"/file-upload/upload/envelopes/${ei.envelopeId.value}/files/${fileId.value}?redirect-success-url=$successUrl&redirect-error-url=$errorUrl",
+        "formenctype" -> "multipart/form-data"
+      ),
+      preventDoubleClick = true
+    )
+
     val uploadedFiles: Html =
-      html.form.snippets.uploaded_files(ei.maybeAccessCode, formTemplateId, formComponent.id, realFileId, currentValue)
+      html.form.snippets
+        .uploaded_files(
+          ei.maybeAccessCode,
+          formTemplateId,
+          formComponent.id,
+          fileId,
+          currentValue,
+          noJsButton,
+          deleteUrl
+        )
 
     HtmlFormat.fill(List(fileInput, uploadedFiles))
 

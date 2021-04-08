@@ -23,17 +23,21 @@
   formTemplateId: FormTemplateId,
   formComponentId: FormComponentId,
   fileId: FileId,
-  maybeCurrentValue: Option[String]
+  maybeCurrentValue: Option[String],
+  noJsButton: Button,
+  deleteUrl: String
 )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
-@defining(formComponentId.value, formTemplateId.value, maybeAccessCode.getOrElse("-")) { case (formComponentId, templateId, accessCode) =>
+@govukButton = @{new govukButton()}
+
+@defining(formTemplateId.value, maybeAccessCode.getOrElse("-")) { case (templateId, accessCode) =>
   <div id="@formComponentId-files" class="govuk-body uploaded-files">
     @maybeCurrentValue.map { currentValue =>
       <span>@{currentValue.replace(fileId.value + "_", "")}</span>
       <a
-        href="#"
+        href="@deleteUrl"
         class="govuk-link"
-        data-form-component-id="@formComponentId"
+        data-form-component-id="@formComponentId.value"
         data-form-id="@templateId"
         data-access-code="@accessCode">
         <span aria-hidden="true">@messages("file.delete")</span>
@@ -41,4 +45,9 @@
       </a>
     }
   </div>
+  <noscript>
+    <div>
+      @govukButton(noJsButton)
+    </div>
+  </noscript>
 }
