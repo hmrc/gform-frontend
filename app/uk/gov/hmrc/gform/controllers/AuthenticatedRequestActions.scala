@@ -168,6 +168,7 @@ class AuthenticatedRequestActions(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
   ): Action[AnyContent] =
     actionBuilder.async { implicit request =>
+      implicit val lang: LangADT = getCurrentLanguage(request)
       val formTemplate = request.attrs(FormTemplateKey)
       formTemplate.referrerConfig match {
         case Some(referrerConfig: ReferrerConfig) =>
@@ -187,7 +188,7 @@ class AuthenticatedRequestActions(
           } else {
             errResponder.forbidden(
               "Restricted by referrer config",
-              Some(MarkDownUtil.markDownParser(referrerConfig.exitMessage))
+              Some(MarkDownUtil.markDownParser(referrerConfig.exitMessage.value))
             )
           }
         case None =>
