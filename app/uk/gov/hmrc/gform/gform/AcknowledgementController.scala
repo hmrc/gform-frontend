@@ -21,7 +21,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, ResponseHeader, Result }
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActionsAlgebra, GformSessionSupport }
+import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActionsAlgebra, GformSessionSyntax }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.SectionSelectorType
@@ -51,7 +51,7 @@ class AcknowledgementController(
   recalculation: Recalculation[Future, Throwable],
   auditService: AuditService
 )(implicit ec: ExecutionContext)
-    extends FrontendController(messagesControllerComponents) with GformSessionSupport {
+    extends FrontendController(messagesControllerComponents) with GformSessionSyntax {
 
   def showAcknowledgement(
     maybeAccessCode: Option[AccessCode],
@@ -77,7 +77,7 @@ class AcknowledgementController(
                   cache.form.envelopeId,
                   formModelOptics
                 )
-            ).clearAuthFromSession()
+            ).clearAuthFromSession
           )
         case _ =>
           Future.failed(new BadRequestException(s"Acknowledgement is not defined for $formTemplateId"))

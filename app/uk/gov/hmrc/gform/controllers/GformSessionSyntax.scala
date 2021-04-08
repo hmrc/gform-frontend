@@ -18,10 +18,12 @@ package uk.gov.hmrc.gform.controllers
 
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.{ EMAIL_AUTH_DETAILS_SESSION_KEY, REFERRER_CHECK_DETAILS }
+import scala.language.implicitConversions
 
-trait GformSessionSupport {
-  implicit class ResultOps(result: Result)(implicit request: Request[AnyContent]) {
-    def clearAuthFromSession() =
-      result.removingFromSession(EMAIL_AUTH_DETAILS_SESSION_KEY).removingFromSession(REFERRER_CHECK_DETAILS)
-  }
+trait GformSessionSyntax {
+  implicit final def syntaxResultOps(result: Result): ResultOps = new ResultOps(result)
+}
+final class ResultOps(private val result: Result) extends AnyVal {
+  def clearAuthFromSession(implicit request: Request[AnyContent]) =
+    result.removingFromSession(EMAIL_AUTH_DETAILS_SESSION_KEY).removingFromSession(REFERRER_CHECK_DETAILS)
 }
