@@ -30,12 +30,14 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CalendarDate, FormComponent, FormComponentId, FormTemplate }
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
-class CalendarDateValidationSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport with ExampleData {
+class CalendarDateValidationSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport {
 
   private val dateComponent: FormComponent = mkFormComponent("date", CalendarDate)
   private val dateDayAtom = FormComponentId("date-day").modelComponentId
   private val dateMonthAtom = FormComponentId("date-month").modelComponentId
-  private val formTemplate: FormTemplate = mkFormTemplate(nonRepeatingPageSection(fields = List(dateComponent)))
+  private val formTemplate: FormTemplate = mkFormTemplate(
+    ExampleData.nonRepeatingPageSection(fields = List(dateComponent))
+  )
 
   implicit val smartStringEvaluator: SmartStringEvaluator = (s: SmartString, _: Boolean) => s.rawValue(LangADT.En)
 
@@ -46,6 +48,7 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
           "date.day"                   -> "day",
           "date.month"                 -> "month",
           "helper.order"               -> "{0} {1}",
+          "generic.error.maxLength"    -> "{0} must be no more than {1} characters",
           "field.error.number"         -> "{0} must be a number",
           "field.error.required"       -> "{0} must be entered",
           "date.dayMonthCombo.invalid" -> "{0} must have valid values for day and month"
@@ -92,7 +95,33 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
     )
   }
 
+  test("validate should return invalid when some calendarDate atoms have length > 2") {
+
+    val data = VariadicFormData[OutOfDate](
+      Map(
+        dateDayAtom   -> VariadicValue.One("111"),
+        dateMonthAtom -> VariadicValue.One("222")
+      )
+    )
+    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+
+    assertEquals(
+      new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+      Invalid(
+        Map(
+          dateDayAtom -> Set(
+            "Label  day must be no more than 2 characters"
+          ),
+          dateMonthAtom -> Set(
+            "Label  month must be no more than 2 characters"
+          )
+        )
+      )
+    )
+  }
+
   test("validate should return invalid when some calendarDate atoms are not integers") {
+
     val data = VariadicFormData[OutOfDate](
       Map(
         dateDayAtom   -> VariadicValue.One("a"),
@@ -105,9 +134,11 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
       new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
       Invalid(
         Map(
-          dateComponent.modelComponentId -> Set(
-            "Label day must be a number",
-            "Label month must be a number"
+          dateDayAtom -> Set(
+            "Label  day must be a number"
+          ),
+          dateMonthAtom -> Set(
+            "Label  month must be a number"
           )
         )
       )

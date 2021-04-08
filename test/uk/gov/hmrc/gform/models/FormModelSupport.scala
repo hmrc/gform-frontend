@@ -43,7 +43,7 @@ trait FormModelSupport extends GraphSpec {
 
   val retrievals: MaterialisedRetrievals = AnonymousRetrievals(SessionId("dummy-sessionId"))
   val thirdPartyData: ThirdPartyData = ThirdPartyData.empty
-  val someEnvelopeId: EnvelopeId = EnvelopeId("dummy")
+  val envelopeId: EnvelopeId = EnvelopeId("dummy")
 
   private def eligibilityStatusTrue[F[_]: Monad]: SeissEligibilityChecker[F] =
     new SeissEligibilityChecker[F]((_, _) => true.pure[F])
@@ -71,7 +71,7 @@ trait FormModelSupport extends GraphSpec {
 
   def mkForm(formTemplateId: FormTemplateId): Form = Form(
     _id = FormId("form-id"),
-    envelopeId = someEnvelopeId,
+    envelopeId = envelopeId,
     userId = UserId("user-id"),
     formTemplateId = formTemplateId,
     formData = FormData(List.empty[FormField]),
@@ -95,7 +95,7 @@ trait FormModelSupport extends GraphSpec {
       retrievals,
       formTemplate,
       thirdPartyData,
-      someEnvelopeId,
+      envelopeId,
       maybeAccessCode,
       recalculation,
       FormComponentIdToFileIdMapping.empty

@@ -20,15 +20,16 @@ import cats.Monoid
 import cats.implicits.{ catsSyntaxValidatedId, _ }
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.{ errors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CalendarDate, FormComponent }
+import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.{ errors, fieldDescriptor }
+import uk.gov.hmrc.gform.validation.DateValidationLogic.{ hasMaximumLength, isNumeric }
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import java.time.Month
-import scala.util.Try
 
 class CalendarDateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D])(implicit
   messages: Messages,
@@ -36,21 +37,29 @@ class CalendarDateValidation[D <: DataOrigin](formModelVisibilityOptics: FormMod
 ) {
 
   def validate(formComponent: FormComponent): ValidatedType[Unit] =
-    validateRequiredField(formComponent)
-      .andThen(_ => validateDayMonthAreNumbers(formComponent))
+    validateRequired(formComponent)
+      .andThen(_ => validateDayMonth(formComponent))
       .andThen(validateDayMonthCombo(formComponent, _))
 
-  private def validateDayMonthAreNumbers(formComponent: FormComponent): ValidatedType[(Int, Int)] =
+  private def validateDayMonth(formComponent: FormComponent): ValidatedType[(Int, Int)] = {
+
+    def errorGranularity(suffix: Atom): ModelComponentId =
+      formComponent.atomicFormComponentId(suffix)
+
     formComponent.multiValueId.atomsModelComponentIds.map(formModelVisibilityOptics.data.one) match {
       case Some(day) :: Some(month) :: Nil =>
-        (validInt(formComponent, day, messages("date.day")), validInt(formComponent, month, messages("date.month")))
-          .mapN((day, month) => (day, month))
+        val label = fieldDescriptor(formComponent, "")
+        val dayValidated = hasMaximumLength(day, 2, label + " " + messages("date.day"))
+          .andThen(_ => isNumeric(day, label + " " + messages("date.day"), label))
+          .leftMap(error => Map(errorGranularity(CalendarDate.day) -> Set(error)))
+        val monthValidated = hasMaximumLength(month, 2, label + " " + messages("date.month"))
+          .andThen(_ => isNumeric(month, label + " " + messages("date.month"), label))
+          .leftMap(error => Map(errorGranularity(CalendarDate.month) -> Set(error)))
+        (dayValidated, monthValidated).mapN((day, month) => (day, month))
       case _ =>
         validationFailure(formComponent.firstAtomModelComponentId, formComponent, "date.isMissing", None, "")
     }
-
-  private def validInt(formComponent: FormComponent, value: String, timeUnitLabel: String): ValidatedType[Int] =
-    Try(value.toInt).fold(_ => validationFailure(formComponent, "field.error.number", None, timeUnitLabel), _.valid)
+  }
 
   private def validateDayMonthCombo(formComponent: FormComponent, dayMonth: (Int, Int)): ValidatedType[Unit] = {
     val (day, month) = dayMonth
@@ -60,18 +69,25 @@ class CalendarDateValidation[D <: DataOrigin](formModelVisibilityOptics: FormMod
       validationFailure(formComponent, "date.dayMonthCombo.invalid", None)
   }
 
-  private def validateRequiredField(
+  private def validateRequired(
     formComponent: FormComponent
   ): ValidatedType[Unit] = {
 
-    val validatedResult =
-      if (formComponent.mandatory) {
-        formComponent.multiValueId.atomsModelComponentIds.map { modelComponentId =>
-          val answer = formModelVisibilityOptics.data.one(modelComponentId)
-          answer.filterNot(_.isEmpty()).fold(requiredError(formComponent, modelComponentId))(_ => validationSuccess)
-        }
-      } else List(validationSuccess)
+    case class ModelComponentIdValue(modelComponentId: ModelComponentId, value: Option[String])
 
+    val atomsWithValues: List[ModelComponentIdValue] = formComponent.multiValueId.atomsModelComponentIds.map(m =>
+      ModelComponentIdValue(m, formModelVisibilityOptics.data.one(m))
+    )
+
+    val validatedResult = if (formComponent.mandatory) {
+      atomsWithValues.map { mcv =>
+        mcv.value
+          .filter(_.nonEmpty)
+          .fold(requiredError(formComponent, mcv.modelComponentId))(_ => validationSuccess)
+      }
+    } else {
+      List(validationSuccess)
+    }
     Monoid[ValidatedType[Unit]].combineAll(validatedResult)
   }
 
