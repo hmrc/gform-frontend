@@ -46,9 +46,8 @@ case class FormComponentIdToFileIdMapping(mapping: Map[FormComponentId, FileId])
       }
     }
 
-    FileId(
-      mapping.get(formComponentId).orElse(loop(FileId(formComponentId.value))).fold(formComponentId.value)(_.value)
-    )
+    mapping.getOrElse(formComponentId, loop(FileId(formComponentId.value)).getOrElse(FileId(formComponentId.value)))
+
   }
 
   def +(formComponentId: FormComponentId, fileId: FileId): FormComponentIdToFileIdMapping =

@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.{ FileUploadUtils, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormIdData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.gform.FastForwardService
@@ -59,6 +59,7 @@ class FileUploadController(
 
   def noJsSuccessCallback(
     formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
     fileId: FileId
@@ -73,7 +74,12 @@ class FileUploadController(
           envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
           flash    <- checkFile(fileId, envelope, cache.form.envelopeId)
           res <- fastForwardService
-                   .redirectFastForward[SectionSelectorType.Normal](cacheUpd, maybeAccessCode, formModelOptics)
+                   .redirectStopAt[SectionSelectorType.Normal](
+                     sectionNumber,
+                     cacheUpd,
+                     maybeAccessCode,
+                     formModelOptics
+                   )
         } yield res.flashing(flash)
 
     }
@@ -119,6 +125,7 @@ class FileUploadController(
 
   def noJsErrorCallback(
     formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
     fileId: FileId
@@ -142,7 +149,7 @@ class FileUploadController(
         }
 
         fastForwardService
-          .redirectFastForward[SectionSelectorType.Normal](cache, maybeAccessCode, formModelOptics)
+          .redirectStopAt[SectionSelectorType.Normal](sectionNumber, cache, maybeAccessCode, formModelOptics)
           .map(_.flashing(flashWithFileId(flash, fileId)))
     }
 

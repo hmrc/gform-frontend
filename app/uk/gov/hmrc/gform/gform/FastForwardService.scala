@@ -58,6 +58,18 @@ class FastForwardService(
   ): Future[Result] =
     redirectWithRecalculation(cache, maybeAccessCode, FastForward.Yes, formModelOptics)
 
+  def redirectStopAt[U <: SectionSelectorType: SectionSelector](
+    sectionNumber: SectionNumber,
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(implicit
+    messages: Messages,
+    hc: HeaderCarrier,
+    l: LangADT
+  ): Future[Result] =
+    redirectWithRecalculation(cache, maybeAccessCode, FastForward.StopAt(sectionNumber), formModelOptics)
+
   private def redirectWithRecalculation[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],

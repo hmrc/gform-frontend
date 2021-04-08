@@ -874,6 +874,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val successUrl =
       frontendAppConfig.gformFrontendBaseUrl + FileUploadController.noJsSuccessCallback(
         formTemplateId,
+        ei.sectionNumber,
         ei.maybeAccessCode,
         formComponent.id,
         fileId
@@ -882,6 +883,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val errorUrl =
       frontendAppConfig.gformFrontendBaseUrl + FileUploadController.noJsErrorCallback(
         formTemplateId,
+        ei.sectionNumber,
         ei.maybeAccessCode,
         formComponent.id,
         fileId
