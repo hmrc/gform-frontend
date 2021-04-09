@@ -655,6 +655,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             throw new IllegalArgumentException(s"Group '${formComponent.id}' cannot be rendered as RenderUnit.Pure")
           case Date(_, offset, dateValue) =>
             htmlForDate(formComponent, offset, dateValue, validationResult, ei)
+          case CalendarDate =>
+            htmlForCalendarDate(formComponent, validationResult, ei)
           case t @ Time(_, _) =>
             renderTime(t, formComponent, validationResult, ei)
           case Address(international) => htmlForAddress(formComponent, international, validationResult, ei)
@@ -1566,6 +1568,82 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         ei.formLevelHeading,
         fetchValue
       )
+  }
+
+  private def htmlForCalendarDate(
+    formComponent: FormComponent,
+    validationResult: ValidationResult,
+    ei: ExtraInfo
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ) = {
+
+    val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
+
+    val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
+
+    val errorMessage: Option[ErrorMessage] = errors.map(error =>
+      ErrorMessage(
+        content = content.Text(error)
+      )
+    )
+
+    val hint: Option[Hint] = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
+      )
+    }
+
+    val hasErrors = formFieldValidationResult.isNotOk
+
+    val inputClasses = if (hasErrors) "govuk-input--error" else ""
+
+    val attributes =
+      if (formComponent.editable)
+        Map.empty[String, String]
+      else
+        Map("readonly" -> "")
+
+    val items =
+      CalendarDate
+        .fields(formComponent.modelComponentId.indexedComponentId)
+        .map { modelComponentId =>
+          val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
+          val atom = modelComponentId.atom
+          InputItem(
+            id = modelComponentId.toMongoIdentifier,
+            name = modelComponentId.toMongoIdentifier,
+            value = formFieldValidationResult
+              .getOptionalCurrentValue(HtmlFieldId.pure(modelComponentId))
+              .orElse(prepop),
+            label = Some(messages("date." + atom.value.capitalize)),
+            classes = s"$inputClasses govuk-input--width-2",
+            attributes = attributes
+          )
+        }
+
+    val isPageHeading = ei.formLevelHeading
+
+    val fieldset = Fieldset(
+      legend = Some(
+        Legend(
+          content = content.Text(formComponent.label.value),
+          classes = if (isPageHeading) "govuk-label--l" else "",
+          isPageHeading = isPageHeading
+        )
+      )
+    )
+
+    val dateInput = DateInput(
+      id = formComponent.id.value,
+      items = items.toList,
+      hint = hint,
+      errorMessage = errorMessage,
+      fieldset = Some(fieldset)
+    )
+
+    new components.govukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
   }
 
   private def htmlForDate(

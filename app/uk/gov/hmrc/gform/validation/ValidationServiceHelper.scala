@@ -30,21 +30,23 @@ object ValidationServiceHelper {
   def validationFailure[A](
     fieldValue: FormComponent,
     messageKey: String,
-    vars: Option[List[String]]
+    vars: Option[List[String]],
+    partLabel: String = ""
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ): ValidatedType[A] = validationFailure(fieldValue.modelComponentId, fieldValue, messageKey, vars)
+  ): ValidatedType[A] = validationFailure(fieldValue.modelComponentId, fieldValue, messageKey, vars, partLabel)
 
   def validationFailure[A](
     modelComponentId: ModelComponentId,
     fieldValue: FormComponent,
     messageKey: String,
-    vars: Option[List[String]]
+    vars: Option[List[String]],
+    partLabel: String
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[A] =
-    Map(modelComponentId -> ComponentsValidatorHelper.errors(fieldValue, messageKey, vars)).invalid
+    Map(modelComponentId -> ComponentsValidatorHelper.errors(fieldValue, messageKey, vars, partLabel)).invalid
 
 }

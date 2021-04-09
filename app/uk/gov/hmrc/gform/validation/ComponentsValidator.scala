@@ -81,6 +81,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   private val formTemplate: FormTemplate = cache.formTemplate
 
   private val dateValidation = new DateValidation[D](formModelVisibilityOptics)
+  private val calendarDateValidation = new CalendarDateValidation[D](formModelVisibilityOptics)
 
   private[validation] def validIf(
     validationResult: ValidatedType[Unit]
@@ -157,6 +158,12 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
           dateValidation.validateDate(
             formComponent,
             date
+          )
+        )
+      case CalendarDate =>
+        validIf(
+          calendarDateValidation.validate(
+            formComponent
           )
         )
       case Text(SubmissionRefFormat, _, _, _, _, _)

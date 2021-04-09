@@ -129,6 +129,13 @@ object IsDate {
   def unapply(fc: FormComponent): Option[Date] = fc.`type`.cast[Date]
 }
 
+object IsCalendarDate {
+  def unapply(fc: FormComponent): Boolean = fc.`type` match {
+    case CalendarDate => true
+    case _            => false
+  }
+}
+
 object IsChoice {
   def unapply(fc: FormComponent): Option[Choice] = fc.`type`.cast[Choice]
 }

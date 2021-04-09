@@ -100,6 +100,15 @@ object FormComponentSummaryRenderer {
           formFieldValidationResult
         )
 
+      case IsCalendarDate() =>
+        getCalendarDateSummaryListRows(
+          formComponent,
+          formTemplateId,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          formFieldValidationResult
+        )
       case IsTime(_) =>
         getTimeSummaryListRows(
           formComponent,
@@ -435,6 +444,70 @@ object FormComponentSummaryRenderer {
         val year = formFieldValidationResult.getCurrentValue(safeId(Date.year))
 
         s"$day $month $year"
+      }
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        None,
+        keyClasses,
+        "",
+        "",
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(
+                  formTemplateId,
+                  maybeAccessCode,
+                  sectionNumber,
+                  sectionTitle4Ga,
+                  SuppressErrors.Yes,
+                  FastForward.Yes
+                ),
+              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+            )
+          )
+      )
+    )
+  }
+
+  private def getCalendarDateSummaryListRows[T <: RenderType](
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    formFieldValidationResult: FormFieldValidationResult
+  )(implicit
+    messages: Messages,
+    lise: SmartStringEvaluator,
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
+
+    val hasErrors = formFieldValidationResult.isNotOk
+
+    val errors = checkErrors(fieldValue, formFieldValidationResult)
+
+    val label = fcrd.label(fieldValue)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    def safeId(atom: Atom) = HtmlFieldId.pure(fieldValue.atomicFormComponentId(atom))
+
+    def monthKey = getMonthValue(formFieldValidationResult.getCurrentValue(safeId(CalendarDate.month)))
+
+    val value =
+      if (hasErrors)
+        errors.head.toString
+      else {
+        val day = renderMonth(formFieldValidationResult.getCurrentValue(safeId(CalendarDate.day)))
+        val month = messages(s"date.$monthKey")
+
+        s"$day $month"
       }
 
     List(

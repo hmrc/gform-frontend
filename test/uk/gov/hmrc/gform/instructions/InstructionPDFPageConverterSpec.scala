@@ -35,6 +35,8 @@ import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.instructions.FormModelInstructionSummaryConverter.{ ChoiceElement, RevealingChoiceField, SimpleField }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormComponentWithInstr
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CalendarDate, FormComponent }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ExampleData, LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormTemplate, Instruction, Text, TextConstraint }
@@ -105,6 +107,7 @@ class InstructionPDFPageConverterSpec
       Text(TextConstraint.default, Constant("some text value")),
       instruction = Some(Instruction(Some(toSmartString("sample label - instruction")), None))
     )
+
     val textComponentPrefixSuffix = fieldValue(
       Text(
         TextConstraint.default,
@@ -193,6 +196,41 @@ class InstructionPDFPageConverterSpec
         .mapFormComponent(textComponentPrefixSuffix, cache, sectionNumber0, validationResult, envelopeWithMapping)
 
     pageFieldData shouldBe SimpleField(Some("sample label - instruction"), List("PREFIX some text value SUFFIX"))
+  }
+
+  it should "return PageField for calendarDate component" in new Fixture {
+
+    val calendarDateComponent: FormComponent = mkFormComponentWithInstr(
+      "date",
+      CalendarDate,
+      Some(Instruction(Some(toSmartString("CalendarDate - instruction")), None))
+    )
+
+    val validationResult: ValidationResult = new ValidationResult(
+      Map(
+        calendarDateComponent.id -> ComponentField(
+          calendarDateComponent,
+          Map(
+            HtmlFieldId
+              .pure(calendarDateComponent.atomicFormComponentId(CalendarDate.day)) -> FieldOk(
+              calendarDateComponent,
+              "01"
+            ),
+            HtmlFieldId
+              .pure(calendarDateComponent.atomicFormComponentId(CalendarDate.month)) -> FieldOk(
+              calendarDateComponent,
+              "02"
+            )
+          )
+        )
+      ),
+      None
+    )
+    val pageFieldData =
+      InstructionPDFPageConverter
+        .mapFormComponent(calendarDateComponent, cache, sectionNumber0, validationResult, envelopeWithMapping)
+
+    pageFieldData shouldBe SimpleField(Some("CalendarDate - instruction"), List("1 date.February"))
   }
 
   it should "return RevealingChoiceField for revealing choice component, when validation result is OK" in new Fixture {

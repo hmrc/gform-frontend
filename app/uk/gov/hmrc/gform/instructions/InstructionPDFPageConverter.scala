@@ -108,6 +108,20 @@ object InstructionPDFPageConverter {
           }
         )
 
+      case IsCalendarDate() =>
+        def safeId(atom: Atom) = HtmlFieldId.pure(formComponent.atomicFormComponentId(atom))
+
+        def monthKey = getMonthValue(validationResult(formComponent).getCurrentValue(safeId(CalendarDate.month)))
+
+        SimpleField(
+          formComponent.instruction.flatMap(_.name.map(_.value())),
+          List {
+            val day = renderMonth(validationResult(formComponent).getCurrentValue(safeId(CalendarDate.day)))
+            val month = messages(s"date.$monthKey")
+            s"$day $month"
+          }
+        )
+
       case IsTime(_) =>
         SimpleField(
           formComponent.instruction.flatMap(_.name.map(_.value())),

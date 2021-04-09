@@ -95,6 +95,24 @@ object FormTemplateBuilder {
 
   val ls = toSmartString("Label")
 
+  def mkFormComponentWithInstr(fcId: String, ct: ComponentType, instruction: Option[Instruction] = None) =
+    FormComponent(
+      FormComponentId(fcId),
+      ct,
+      ls,
+      None,
+      None,
+      None,
+      None,
+      true,
+      false,
+      true,
+      false,
+      false,
+      None,
+      instruction = instruction
+    )
+
   def mkFormComponent(fcId: String, ct: ComponentType) =
     FormComponent(
       FormComponentId(fcId),
