@@ -133,6 +133,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
         0,
         Nil,
+        Nil,
         authContext,
         NotChecked,
         FastForward.Yes,

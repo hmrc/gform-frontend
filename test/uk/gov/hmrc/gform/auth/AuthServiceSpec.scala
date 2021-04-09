@@ -49,6 +49,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     `auth-module` = null,
     /*we can't override list in app-config-base:*/
     contentTypesSeparatedByPipe = "csv|txt",
+    restrictedFileExtensionsSeparatedByPipe = "jfif",
     albAdminIssuerUrl = "",
     `case-worker-assumed-identity-cookie` = "caseworker-assumed-identity"
   )
