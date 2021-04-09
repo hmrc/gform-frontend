@@ -66,7 +66,7 @@ class CalendarDateValidation[D <: DataOrigin](formModelVisibilityOptics: FormMod
     if (Month.values().filter(_.getValue == month).exists(m => day >= 1 && day <= m.maxLength()))
       validationSuccess
     else
-      validationFailure(formComponent, "date.dayMonthCombo.invalid", None)
+      validationFailure(formComponent.firstAtomModelComponentId, formComponent, "date.dayMonthCombo.invalid", None, "")
   }
 
   private def validateRequired(
