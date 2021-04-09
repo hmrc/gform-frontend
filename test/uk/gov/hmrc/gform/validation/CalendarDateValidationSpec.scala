@@ -182,7 +182,7 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
         new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
         Invalid(
           Map(
-            dateComponent.modelComponentId -> Set(
+            dateDayAtom -> Set(
               "Label must have valid values for day and month"
             )
           )
