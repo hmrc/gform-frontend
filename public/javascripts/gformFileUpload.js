@@ -290,7 +290,7 @@
       formData.append(
         fileId,
         file,
-        fileId + "_" + file.name.replace(/\\/g, "/").replace(/.*\//, "")
+        file.name.replace(/\\/g, "/").replace(/.*\//, "")
       );
       return $.ajax({
         url:
