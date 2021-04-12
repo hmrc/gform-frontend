@@ -87,7 +87,7 @@ class FormDataHelpersSpec extends Spec {
     future.futureValue shouldBe Results.Ok
   }
 
-  it should "replace currency symbol in value for formComponent with type Text(Sterling)" in new TestFixture {
+  it should "remove currency symbol in value for formComponent with type Text(Sterling)" in new TestFixture {
 
     override lazy val fields = List(mkFormComponent("amountField", Text(Sterling(RoundingMode.Up, false), Value)))
     override lazy val requestBodyParams = Map("amountField" -> Seq("£111"))
