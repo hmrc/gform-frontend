@@ -30,7 +30,8 @@ import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, Group }
+import uk.gov.hmrc.gform.ops.FormComponentOps
 
 import scala.concurrent.Future
 
@@ -120,7 +121,14 @@ object FormDataHelpers {
                   if (upperCaseIds(modelComponentId)) {
                     first.toUpperCase()
                   } else first
-                (Some(modelComponentId -> VariadicValue.One(firstUpdated)), None)
+                (
+                  Some(
+                    modelComponentId -> VariadicValue.One(
+                      removeCurrencySymbolIfSterling(firstUpdated, modelComponentId.toFormComponentId, formModel)
+                    )
+                  ),
+                  None
+                )
               case _ =>
                 throw new IllegalArgumentException(
                   show"""Got a single value form component ID "$id", with an empty list of values"""
@@ -133,9 +141,20 @@ object FormDataHelpers {
     xs.foldLeft((VariadicFormData.empty[SourceOrigin.OutOfDate], RequestRelatedData.empty)) {
       case ((variadicFormDataAcc, requestRelatedDataAcc), (maybeVar, maybeReq)) =>
         (
-          maybeVar.fold(variadicFormDataAcc)(variadicFormDataAcc addValue _),
+          maybeVar.fold(variadicFormDataAcc)(variadicFormDataAcc.addValue),
           maybeReq.fold(requestRelatedDataAcc)(requestRelatedDataAcc + _)
         )
     }
+  }
+
+  private def removeCurrencySymbolIfSterling(
+    value: String,
+    formComponentId: FormComponentId,
+    formModel: FormModel[DataExpanded]
+  ): String = {
+    val formComponent: FormComponent = formModel.fcLookup(formComponentId)
+    if (formComponent.isSterling)
+      value.replace("£", "")
+    else value
   }
 }
