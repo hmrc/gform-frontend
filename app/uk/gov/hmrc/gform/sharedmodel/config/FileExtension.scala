@@ -16,4 +16,4 @@
 
 package uk.gov.hmrc.gform.sharedmodel.config
 
-case class FileExtension(value: String)
+case class FileExtension(value: String) extends AnyVal

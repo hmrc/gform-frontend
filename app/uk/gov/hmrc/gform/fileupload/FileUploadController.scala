@@ -106,17 +106,34 @@ class FileUploadController(
 
   private def validateFile(fileId: FileId, envelope: Envelope)(implicit messages: Messages): Validated[Flash, Unit] =
     envelope.find(fileId).fold[Validated[Flash, Unit]](Valid(())) { file =>
+      val fileExtension = getFileExtension(file.fileName)
+      val fileExtensionCheck = fileExtension.fold(false) { v =>
+        !appConfig.restrictedFileExtensions.map(_.value).contains(v.toUpperCase)
+      }
+      val fileTypeCheck = appConfig.contentTypes.exists(_ === file.contentType)
+
       Valid(file)
         .ensure(mkFlash("file.error.empty"))(_.length =!= 0)
         .ensure(
-          mkFlash("file.error.type", file.contentType.value, "ODS, XLSX, DOCX, ODT, PPTX, ODP, PDF, JPEG")
-        )(file => appConfig.contentTypes.exists(_ === file.contentType))
+          mkFlash(
+            "file.error.type",
+            if (!fileExtensionCheck) fileExtension.getOrElse("UNKNOWN") else file.contentType.value,
+            "PDF, JPEG, XLSX, ODS, DOCX, ODT, PPTX, ODP"
+          )
+        )(_ => fileExtensionCheck && fileTypeCheck)
         .map(_ => ())
     }
 
   private def mkFlash(s: String, params: String*)(implicit messages: Messages): Flash = Flash(
     Map(GformFlashKeys.FileUploadError -> messages(s, params: _*))
   )
+
+  private def getFileExtension(fileName: String): Option[String] = {
+    val fa = fileName.split('.')
+    if (fa.length > 1)
+      Some(fa.last)
+    else None
+  }
 
   case class FileUploadError(
     errorCode: String,
