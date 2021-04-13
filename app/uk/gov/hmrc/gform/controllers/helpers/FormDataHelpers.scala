@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, Group }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group }
 import uk.gov.hmrc.gform.ops.FormComponentOps
 
 import scala.concurrent.Future
@@ -124,7 +124,7 @@ object FormDataHelpers {
                 (
                   Some(
                     modelComponentId -> VariadicValue.One(
-                      removeCurrencySymbolIfSterling(firstUpdated, modelComponentId.toFormComponentId, formModel)
+                      removeCurrencySymbolIfNumericType(firstUpdated, modelComponentId.toFormComponentId, formModel)
                     )
                   ),
                   None
@@ -147,14 +147,13 @@ object FormDataHelpers {
     }
   }
 
-  private def removeCurrencySymbolIfSterling(
+  private def removeCurrencySymbolIfNumericType(
     value: String,
     formComponentId: FormComponentId,
     formModel: FormModel[DataExpanded]
-  ): String = {
-    val formComponent: FormComponent = formModel.fcLookup(formComponentId)
-    if (formComponent.isSterling)
-      value.replace("£", "")
-    else value
-  }
+  ): String =
+    formModel.fcLookup.get(formComponentId) match {
+      case Some(formComponent) if formComponent.isNumeric => value.replace("£", "")
+      case _                                              => value
+    }
 }

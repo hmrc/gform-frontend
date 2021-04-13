@@ -42,5 +42,7 @@ package object ops {
       case TextArea(_: ReferenceNumber, _, _, _, _) => true
       case _                                        => false
     }
+
+    def isNumeric = formComponent.isNumber || formComponent.isPositiveNumber || formComponent.isSterling
   }
 }
