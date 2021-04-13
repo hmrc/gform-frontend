@@ -199,6 +199,15 @@
     );
   }
 
+  function getFileExtension(fileName) {
+    var fa = fileName.split('.');
+    if (fa.length > 1) {
+        return fa.pop();
+    } else {
+       return "unknown";
+    }
+  }
+
   function GformFileUpload() {
     var self = this;
 
@@ -233,17 +242,20 @@
         $input.data("maxFileSizeMB") || window.gform.formMaxAttachmentSizeMB,
         10
       );
+      var fileExtension = getFileExtension(file.name);
+      var fileExtensionCheck = file.type === "" || window.gform.restrictedFileExtensions.includes(fileExtension.toLowerCase());
+      var fileTypeCheck = window.gform.contentTypes.indexOf(file.type) === -1;
+      var fileTypeInError = (fileExtensionCheck) ? fileExtension : transformMimeTypes(file.type);
 
       $input.attr("aria-busy", true);
 
       if (
-        file.type === "" ||
-        window.gform.contentTypes.indexOf(file.type) === -1
+        fileExtensionCheck || fileTypeCheck
       ) {
         return handleError(
           $input,
           interpolate(strings.fileTypeError[lang], [
-            transformMimeTypes(file.type),
+            fileTypeInError,
             transformMimeTypes(window.gform.contentTypes)
           ])
         );

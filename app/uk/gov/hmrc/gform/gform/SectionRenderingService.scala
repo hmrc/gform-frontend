@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.config.ContentType
+import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, FileExtension }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
@@ -233,6 +233,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     singleton: Singleton[DataExpanded],
     formMaxAttachmentSizeMB: Int,
     contentTypes: List[ContentType],
+    restrictedFileExtensions: List[FileExtension],
     retrievals: MaterialisedRetrievals,
     obligations: Obligations,
     fastForward: FastForward,
@@ -294,6 +295,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       page.continueLabel.map(ls => ls.value).getOrElse(messages(retrievals.continueLabelKey)),
       formMaxAttachmentSizeMB,
       contentTypes,
+      restrictedFileExtensions,
       page.progressIndicator.map(ls => ls.value)
     )
     html.form.form(
@@ -465,6 +467,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       false,
       continueLabel,
       0,
+      Nil,
       Nil
     )
     html.form.form(
@@ -555,6 +558,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       false,
       "Confirm and send",
       0,
+      Nil,
       Nil
     )
     uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
@@ -610,6 +614,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       false,
       messages("button.confirmAndSend"),
       0,
+      Nil,
       Nil
     )
     html.form

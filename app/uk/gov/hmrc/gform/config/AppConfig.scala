@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.gform.config
 
+import org.typelevel.ci.CIString
 import pureconfig._
 import pureconfig.generic.auto._
 import pureconfig.generic.ProductHint
-import uk.gov.hmrc.gform.sharedmodel.config.ContentType
+import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, FileExtension }
 
 case class AppConfig(
   appName: String,
@@ -31,10 +32,14 @@ case class AppConfig(
   formMaxAttachmentSizeMB: Int,
   /*we can't override list in app-config-base:*/
   contentTypesSeparatedByPipe: String,
+  restrictedFileExtensionList: List[String],
   albAdminIssuerUrl: String,
   `case-worker-assumed-identity-cookie`: String
 ) {
   def contentTypes: List[ContentType] = contentTypesSeparatedByPipe.split('|').toList.map(ContentType.apply)
+
+  def restrictedFileExtensions: List[FileExtension] =
+    restrictedFileExtensionList.map(v => FileExtension(CIString(v)))
 }
 
 object AppConfig {

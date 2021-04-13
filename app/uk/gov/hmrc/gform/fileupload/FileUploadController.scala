@@ -22,6 +22,7 @@ import cats.data.Validated
 import cats.data.Validated.{ Invalid, Valid }
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
+import org.typelevel.ci.CIString
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Flash, MessagesControllerComponents }
 import scala.concurrent.Future
@@ -109,14 +110,30 @@ class FileUploadController(
       Valid(file)
         .ensure(mkFlash("file.error.empty"))(_.length =!= 0)
         .ensure(
-          mkFlash("file.error.type", file.contentType.value, "ODS, XLSX, DOCX, ODT, PPTX, ODP, PDF, JPEG")
-        )(file => appConfig.contentTypes.exists(_ === file.contentType))
+          mkFlash(
+            "file.error.type",
+            if (!validateFileExtension(file)) getFileExtension(file.fileName).getOrElse("unknown")
+            else file.contentType.value,
+            "PDF, JPEG, XLSX, ODS, DOCX, ODT, PPTX, ODP"
+          )
+        )(_ => validateFileExtension(file) && validateFileType(file))
         .map(_ => ())
     }
 
   private def mkFlash(s: String, params: String*)(implicit messages: Messages): Flash = Flash(
     Map(GformFlashKeys.FileUploadError -> messages(s, params: _*))
   )
+
+  private def getFileExtension(fileName: String): Option[String] =
+    fileName.split("\\.").tail.lastOption
+
+  private def validateFileExtension(file: File): Boolean =
+    getFileExtension(file.fileName).fold(false) { v =>
+      !appConfig.restrictedFileExtensions.map(_.value).contains(CIString(v))
+    }
+
+  private def validateFileType(file: File): Boolean =
+    appConfig.contentTypes.exists(_ === file.contentType)
 
   case class FileUploadError(
     errorCode: String,
