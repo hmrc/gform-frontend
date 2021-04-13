@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded, FormModel, Singleton }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponentId, FormTemplateId, Page, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponentId, FormTemplateId, Page, RoundingMode, SectionNumber, Sterling, Text, Value }
 
 import scala.concurrent.Future
 
@@ -77,6 +77,26 @@ class FormDataHelpersSpec extends Spec {
         variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
           Map(
             ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("formField1"))) -> VariadicValue.One("value1")
+          )
+        )
+        Future.successful(Results.Ok)
+      }
+
+    val future = FormDataHelpers
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(continuationFunction)
+    future.futureValue shouldBe Results.Ok
+  }
+
+  it should "remove currency symbol in value for formComponent with type Text(Sterling)" in new TestFixture {
+
+    override lazy val fields = List(mkFormComponent("amountField", Text(Sterling(RoundingMode.Up, false), Value)))
+    override lazy val requestBodyParams = Map("amountField" -> Seq("£111"))
+
+    val continuationFunction = (_: RequestRelatedData) =>
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
+        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+          Map(
+            ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("amountField"))) -> VariadicValue.One("111")
           )
         )
         Future.successful(Results.Ok)
