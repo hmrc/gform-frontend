@@ -34,7 +34,6 @@ case class FrontendAppConfig(
   footerTermsConditionsUrl: String,
   footerHelpUrl: String,
   footerAccessibilityStatementUrl: String,
-  whitelistEnabled: Boolean,
   authModule: AuthModule,
   availableLanguages: Map[String, Lang],
   routeToSwitchLanguage: String => play.api.mvc.Call,

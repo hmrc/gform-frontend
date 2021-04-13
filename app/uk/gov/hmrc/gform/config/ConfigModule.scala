@@ -78,7 +78,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       footerHelpUrl = typesafeConfig.getString("footer-help-url"),
       footerAccessibilityStatementUrl = typesafeConfig.getString("footer-accessibility-statement-url"),
       betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier",
-      whitelistEnabled = typesafeConfig.getString("whitelisting-enabled").toBoolean,
       authModule = AuthModule(
         getJSConfig("auth-module.hmrc"),
         getJSConfig("auth-module.anonymous"),
