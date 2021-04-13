@@ -16,4 +16,6 @@
 
 package uk.gov.hmrc.gform.sharedmodel.config
 
-case class FileExtension(value: String) extends AnyVal
+import org.typelevel.ci.CIString
+
+case class FileExtension(value: CIString) extends AnyVal

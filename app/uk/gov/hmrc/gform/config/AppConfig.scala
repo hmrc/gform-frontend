@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.config
 
+import org.typelevel.ci.CIString
 import pureconfig._
 import pureconfig.generic.auto._
 import pureconfig.generic.ProductHint
@@ -38,7 +39,7 @@ case class AppConfig(
   def contentTypes: List[ContentType] = contentTypesSeparatedByPipe.split('|').toList.map(ContentType.apply)
 
   def restrictedFileExtensions: List[FileExtension] =
-    restrictedFileExtensionList.map(FileExtension)
+    restrictedFileExtensionList.map(v => FileExtension(CIString(v)))
 }
 
 object AppConfig {

@@ -22,6 +22,7 @@ import cats.data.Validated
 import cats.data.Validated.{ Invalid, Valid }
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
+import org.typelevel.ci.CIString
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Flash, MessagesControllerComponents }
 import scala.concurrent.Future
@@ -106,21 +107,16 @@ class FileUploadController(
 
   private def validateFile(fileId: FileId, envelope: Envelope)(implicit messages: Messages): Validated[Flash, Unit] =
     envelope.find(fileId).fold[Validated[Flash, Unit]](Valid(())) { file =>
-      val fileExtension = getFileExtension(file.fileName)
-      val fileExtensionCheck = fileExtension.fold(false) { v =>
-        !appConfig.restrictedFileExtensions.map(_.value).contains(v.toUpperCase)
-      }
-      val fileTypeCheck = appConfig.contentTypes.exists(_ === file.contentType)
-
       Valid(file)
         .ensure(mkFlash("file.error.empty"))(_.length =!= 0)
         .ensure(
           mkFlash(
             "file.error.type",
-            if (!fileExtensionCheck) fileExtension.getOrElse("UNKNOWN") else file.contentType.value,
+            if (!validateFileExtension(file)) getFileExtension(file.fileName).getOrElse("unknown")
+            else file.contentType.value,
             "PDF, JPEG, XLSX, ODS, DOCX, ODT, PPTX, ODP"
           )
-        )(_ => fileExtensionCheck && fileTypeCheck)
+        )(_ => validateFileExtension(file) && validateFileType(file))
         .map(_ => ())
     }
 
@@ -128,12 +124,16 @@ class FileUploadController(
     Map(GformFlashKeys.FileUploadError -> messages(s, params: _*))
   )
 
-  private def getFileExtension(fileName: String): Option[String] = {
-    val fa = fileName.split('.')
-    if (fa.length > 1)
-      Some(fa.last)
-    else None
-  }
+  private def getFileExtension(fileName: String): Option[String] =
+    fileName.split("\\.").tail.lastOption
+
+  private def validateFileExtension(file: File): Boolean =
+    getFileExtension(file.fileName).fold(false) { v =>
+      !appConfig.restrictedFileExtensions.map(_.value).contains(CIString(v))
+    }
+
+  private def validateFileType(file: File): Boolean =
+    appConfig.contentTypes.exists(_ === file.contentType)
 
   case class FileUploadError(
     errorCode: String,

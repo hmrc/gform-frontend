@@ -202,9 +202,9 @@
   function getFileExtension(fileName) {
     var fa = fileName.split('.');
     if (fa.length > 1) {
-        return fa.pop().toUpperCase();
+        return fa.pop();
     } else {
-       return "UNKNOWN"
+       return "unknown";
     }
   }
 
@@ -243,7 +243,7 @@
         10
       );
       var fileExtension = getFileExtension(file.name);
-      var fileExtensionCheck = file.type === "" || window.gform.restrictedFileExtensions.includes(fileExtension);
+      var fileExtensionCheck = file.type === "" || window.gform.restrictedFileExtensions.includes(fileExtension.toLowerCase());
       var fileTypeCheck = window.gform.contentTypes.indexOf(file.type) === -1;
       var fileTypeInError = (fileExtensionCheck) ? fileExtension : transformMimeTypes(file.type);
 
