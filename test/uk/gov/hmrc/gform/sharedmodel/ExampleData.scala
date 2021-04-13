@@ -859,7 +859,6 @@ trait ExampleFrontendAppConfig {
     footerTermsConditionsUrl = "",
     footerHelpUrl = "",
     footerAccessibilityStatementUrl = "",
-    whitelistEnabled = true,
     authModule = AuthModule(
       JSConfig(false, 0, 0, "", ""),
       JSConfig(false, 0, 0, "", ""),
