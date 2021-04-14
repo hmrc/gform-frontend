@@ -36,7 +36,7 @@ GET           /error/insufficient-enrolments                                    
 GET           /enrolment/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.EnrolmentController.showEnrolment(formTemplateId: FormTemplateId)
 POST          /enrolment/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.EnrolmentController.submitEnrolment(formTemplateId: FormTemplateId, action: Direction)
 GET           /agent-enrolment/prologue/:formTemplateId                                                          uk.gov.hmrc.gform.auth.AgentEnrolmentController.prologue(formTemplateId: FormTemplateId, f: String)
-
+GET           /save-acknowledgement/:formTemplateId                                                              uk.gov.hmrc.gform.gform.SaveAcknowledgementController.show(formTemplateId: FormTemplateId)
 POST          /reviewAccepted/:formTemplateId/:maybeAccessCode                                                   uk.gov.hmrc.gform.gform.ReviewController.reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 POST          /reviewReturned/:formTemplateId/:maybeAccessCode                                                   uk.gov.hmrc.gform.gform.ReviewController.reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 POST          /reviewSubmitted/:formTemplateId/:maybeAccessCode                                                  uk.gov.hmrc.gform.gform.ReviewController.reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])

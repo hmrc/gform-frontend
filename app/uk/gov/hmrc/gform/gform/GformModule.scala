@@ -140,6 +140,13 @@ class GformModule(
     controllersModule.messagesControllerComponents
   )
 
+  val saveAcknowledgementController = new SaveAcknowledgementController(
+    playBuiltInsModule.i18nSupport,
+    configModule.frontendAppConfig,
+    controllersModule.authenticatedRequestActions,
+    controllersModule.messagesControllerComponents
+  )
+
   val summaryRenderingService = new SummaryRenderingService(
     playBuiltInsModule.i18nSupport,
     fileUploadModule.fileUploadService,
