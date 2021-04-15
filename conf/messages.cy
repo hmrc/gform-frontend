@@ -101,6 +101,7 @@ generic.error.sortcode=Rhaid nodi {0} fel 3 set o rifau 2 ddigid, er enghraifft 
 generic.error.exactNumbers=Rhaid i {0} fod yn rhif {1} digid
 generic.error.lookup=Rhaid i {0} gyd-fynd ag un o’r awgrymiadau o’r rhestr
 generic.error.email=Rhaid i {0} gyd-fynd â’r cod rydych wedi ei gael drwy e-bost
+generic.error.mustBeBetween={0} must be between {1} and {2}
 
 generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau, cysylltnodau, ampersandau a chollnodau
 generic.longText.error.pattern=Ni all {0} gynnwys y cymeriadau {1}
@@ -217,7 +218,6 @@ date.after=Rhaid i {0} fod ar ôl {1}
 date.precisely=Rhaid i {0} fod {1}
 date.isMissing=ar goll
 date.invalid=Rhaid i’r {0} fod yn ddyddiad dilys
-date.dayMonthCombo.invalid={0} must have valid values for day and month
 
 #Months
 date.January=Ionawr
