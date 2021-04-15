@@ -22,6 +22,7 @@ import play.api.i18n.Messages
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModelSupport, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
@@ -45,13 +46,13 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
     Helpers.stubMessagesApi(
       Map(
         "en" -> Map(
-          "date.day"                   -> "day",
-          "date.month"                 -> "month",
-          "helper.order"               -> "{0} {1}",
-          "generic.error.maxLength"    -> "{0} must be no more than {1} characters",
-          "field.error.number"         -> "{0} must be a number",
-          "field.error.required"       -> "{0} must be entered",
-          "date.dayMonthCombo.invalid" -> "{0} must have valid values for day and month"
+          "date.day"                    -> "day",
+          "date.month"                  -> "month",
+          "helper.order"                -> "{0} {1}",
+          "generic.error.maxLength"     -> "{0} must be no more than {1} characters",
+          "field.error.number"          -> "{0} must be a number",
+          "field.error.required"        -> "{0} must be entered",
+          "generic.error.mustBeBetween" -> "{0} must be between {1} and {2}"
         )
       )
     )
@@ -145,7 +146,7 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
     )
   }
 
-  val table: List[(VariadicFormData[OutOfDate], String)] = List(
+  val table: List[(VariadicFormData[OutOfDate], ModelComponentId, String, String)] = List(
     (
       VariadicFormData[OutOfDate](
         Map(
@@ -153,16 +154,20 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
           dateMonthAtom -> VariadicValue.One("1")
         )
       ),
-      "Invalid day value"
+      dateDayAtom,
+      "Label  day must be between 1 and 31",
+      "Day outside range"
     ),
     (
       VariadicFormData[OutOfDate](
         Map(
           dateDayAtom   -> VariadicValue.One("1"),
-          dateMonthAtom -> VariadicValue.One("13")
+          dateMonthAtom -> VariadicValue.One("0")
         )
       ),
-      "Invalid month value"
+      dateMonthAtom,
+      "Label  month must be between 1 and 12",
+      "Month outside range"
     ),
     (
       VariadicFormData[OutOfDate](
@@ -171,19 +176,32 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
           dateMonthAtom -> VariadicValue.One("2")
         )
       ),
-      "Invalid day for the month"
+      dateDayAtom,
+      "Label  day must be between 1 and 29",
+      "February day outside range"
+    ),
+    (
+      VariadicFormData[OutOfDate](
+        Map(
+          dateDayAtom   -> VariadicValue.One("0"),
+          dateMonthAtom -> VariadicValue.One("0")
+        )
+      ),
+      dateMonthAtom,
+      "Label  month must be between 1 and 12",
+      "Both day and month outside range"
     )
   )
 
-  table.zipWithIndex.foreach { case ((data, description), index) =>
+  table.zipWithIndex.foreach { case ((data, atom, message, description), index) =>
     test(index + ". " + description) {
       val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
       assertEquals(
         new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
         Invalid(
           Map(
-            dateDayAtom -> Set(
-              "Label must have valid values for day and month"
+            atom -> Set(
+              message
             )
           )
         )

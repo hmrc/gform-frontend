@@ -41,32 +41,46 @@ class CalendarDateValidation[D <: DataOrigin](formModelVisibilityOptics: FormMod
       .andThen(_ => validateDayMonth(formComponent))
       .andThen(validateDayMonthCombo(formComponent, _))
 
-  private def validateDayMonth(formComponent: FormComponent): ValidatedType[(Int, Int)] = {
-
-    def errorGranularity(suffix: Atom): ModelComponentId =
-      formComponent.atomicFormComponentId(suffix)
-
+  private def validateDayMonth(formComponent: FormComponent): ValidatedType[(Int, Int)] =
     formComponent.multiValueId.atomsModelComponentIds.map(formModelVisibilityOptics.data.one) match {
       case Some(day) :: Some(month) :: Nil =>
         val label = fieldDescriptor(formComponent, "")
         val dayValidated = hasMaximumLength(day, 2, label + " " + messages("date.day"))
           .andThen(_ => isNumeric(day, label + " " + messages("date.day"), label))
-          .leftMap(error => Map(errorGranularity(CalendarDate.day) -> Set(error)))
+          .leftMap(error => Map(errorGranularity(formComponent)(CalendarDate.day) -> Set(error)))
         val monthValidated = hasMaximumLength(month, 2, label + " " + messages("date.month"))
           .andThen(_ => isNumeric(month, label + " " + messages("date.month"), label))
-          .leftMap(error => Map(errorGranularity(CalendarDate.month) -> Set(error)))
+          .leftMap(error => Map(errorGranularity(formComponent)(CalendarDate.month) -> Set(error)))
         (dayValidated, monthValidated).mapN((day, month) => (day, month))
       case _ =>
         validationFailure(formComponent.firstAtomModelComponentId, formComponent, "date.isMissing", None, "")
     }
-  }
 
   private def validateDayMonthCombo(formComponent: FormComponent, dayMonth: (Int, Int)): ValidatedType[Unit] = {
+    val label = fieldDescriptor(formComponent, "")
+    val dayLabel = label + " " + messages("date.day")
+    val monthLabel = label + " " + messages("date.month")
     val (day, month) = dayMonth
-    if (Month.values().filter(_.getValue == month).exists(m => day >= 1 && day <= m.maxLength()))
-      validationSuccess
-    else
-      validationFailure(formComponent.firstAtomModelComponentId, formComponent, "date.dayMonthCombo.invalid", None, "")
+    validationSuccess
+      .ensure(
+        Map(
+          errorGranularity(formComponent)(CalendarDate.month) -> Set(
+            messages("generic.error.mustBeBetween", monthLabel, 1, 12)
+          )
+        )
+      )(_ => month >= 1 && month <= 12)
+      .ensure(
+        Map(
+          errorGranularity(formComponent)(CalendarDate.day) -> Set(
+            messages(
+              "generic.error.mustBeBetween",
+              dayLabel,
+              1,
+              Month.values().find(_.getValue == month).fold(31)(_.maxLength())
+            )
+          )
+        )
+      )(_ => Month.values().find(_.getValue == month).exists(m => day >= 1 && day <= m.maxLength()))
   }
 
   private def validateRequired(
@@ -95,4 +109,7 @@ class CalendarDateValidation[D <: DataOrigin](formModelVisibilityOptics: FormMod
     Map[ModelComponentId, Set[String]](
       modelComponentId -> errors(formComponent, "field.error.required", None)
     ).invalid
+
+  def errorGranularity(formComponent: FormComponent)(suffix: Atom): ModelComponentId =
+    formComponent.atomicFormComponentId(suffix)
 }

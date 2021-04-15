@@ -109,7 +109,7 @@ generic.error.exactNumbers={0} must be {1} numbers
 generic.error.lookup={0} must match one of the suggestions from the list
 generic.error.register={0} must be from a valid list, {1} is not a valid list
 generic.error.email={0} must match code you received by email
-
+generic.error.mustBeBetween={0} must be between {1} and {2}
 generic.shortText.error.pattern={0} can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
 generic.longText.error.pattern={0} cannot include the characters {1}
 generic.referenceNumber.error.pattern={0} can only include numbers
@@ -224,7 +224,6 @@ date.after={0} must be after {1}
 date.precisely={0} must be {1}
 date.isMissing={0} is missing
 date.invalid={0} must be a valid date
-date.dayMonthCombo.invalid={0} must have valid values for day and month
 
 #Months
 date.January=January
