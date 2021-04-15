@@ -3,12 +3,13 @@ package uk.gov.hmrc.gform.it.sample
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.models.Basic
+import uk.gov.hmrc.gform.sharedmodel.email.EmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anonymous, AuthCtx, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, EmailCodeTemplate, FormComponent, FormComponentId, FormTemplate, FormTemplateId, GG, OnePerUser, Page, SummarySection, TextConstraint }
-import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anonymous, AuthCtx, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, FormComponent, FormComponentId, FormTemplate, FormTemplateId, GG, OnePerUser, Page, SummarySection, TextConstraint }
+import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, EmailVerifierService, LangADT, LocalisedString }
 
 trait FormTemplateSample {
   val formTemplateEmailAuth = FormTemplate(
@@ -26,7 +27,7 @@ trait FormTemplateSample {
       toSmartString("Now send your form"),
       Some(toSmartString("Continue"))
     ),
-    authConfig = EmailAuthConfig(EmailCodeTemplate("code_template")),
+    authConfig = EmailAuthConfig(EmailVerifierService.digitalContact(EmailTemplateId("code_template"))),
     displayHMRCLogo = true,
     sections = List(
       NonRepeatingPage(
