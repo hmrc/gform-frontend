@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
+import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
@@ -460,15 +461,18 @@ class FormController(
                     val saveWithAccessCode = new SaveWithAccessCode(formTemplate, accessCode)
                     Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
                   case None =>
-                    val call = maybeSn match {
-                      case Some(sn) =>
-                        val sectionTitle4Ga = getSectionTitle4Ga(processData, sn)
-                        routes.FormController
-                          .form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
-                      case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode)
+                    if (formTemplate.authConfig.isEmailAuthConfig) {
+                      Redirect(gform.routes.SaveAcknowledgementController.show(formTemplateId))
+                    } else {
+                      showAcknowledgementPage(
+                        formTemplateId,
+                        maybeAccessCode,
+                        processData,
+                        maybeSn,
+                        formTemplate,
+                        envelopeExpiryDate
+                      )
                     }
-                    val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)
-                    Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
                 }
               }
 
@@ -686,6 +690,25 @@ class FormController(
             } yield res
         }
     }
+
+  private def showAcknowledgementPage(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    processData: ProcessData,
+    maybeSn: Option[SectionNumber],
+    formTemplate: FormTemplate,
+    envelopeExpiryDate: Option[EnvelopeExpiryDate]
+  )(implicit request: Request[AnyContent], lang: LangADT) = {
+    val call = maybeSn match {
+      case Some(sn) =>
+        val sectionTitle4Ga = getSectionTitle4Ga(processData, sn)
+        routes.FormController
+          .form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+      case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode)
+    }
+    val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)
+    Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
+  }
 
   private val formMaxAttachmentSizeMB = appConfig.formMaxAttachmentSizeMB
   private val contentTypes = appConfig.contentTypes

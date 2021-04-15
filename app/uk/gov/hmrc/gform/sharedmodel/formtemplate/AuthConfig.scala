@@ -81,7 +81,13 @@ object EnrolmentCheckVerb {
   }
 }
 
-sealed trait AuthConfig extends Product with Serializable
+sealed trait AuthConfig extends Product with Serializable {
+  def isEmailAuthConfig = this match {
+    case EmailAuthConfig(_) => true
+    case _                  => false
+  }
+}
+
 case object Anonymous extends AuthConfig
 case object HmrcAny extends AuthConfig
 case class HmrcVerified(ivFailure: LocalisedString, notAllowedIn: LocalisedString) extends AuthConfig

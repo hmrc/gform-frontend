@@ -1,0 +1,57 @@
+@*
+ * Copyright 2021 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import play.api.mvc.Call
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.gform.routes.FormController
+@import uk.gov.hmrc.gform.views.hardcoded.SaveAcknowledgement
+
+@(
+  formTemplate: FormTemplate,
+  emailId: EmailId,
+  frontendAppConfig: FrontendAppConfig
+)(implicit request: Request[_], messages: Messages, l: LangADT)
+
+@heading = @{ messages("save4later.saved.title", messages("formCategory.form")) }
+
+@uk.gov.hmrc.gform.views.html.main_template(
+   title = heading,
+   serviceName = formTemplate.formName.value,
+   developmentPhase = formTemplate.developmentPhase,
+   frontendAppConfig = frontendAppConfig,
+   authConfig = Some(formTemplate.authConfig),
+   formCategory = formTemplate.formCategory,
+   displayHMRCLogo = formTemplate.displayHMRCLogo,
+   languages = formTemplate.languages,
+   templateId = formTemplate._id
+) {
+
+<header class="hmrc-page-heading">
+    <h1 class="govuk-heading-l">@heading</h1>
+</header>
+
+<p class="govuk-body">@messages("save4later.saved.title", messages("formCategory.form")). @messages("save4later.hasNotBeenSubmitted")</p>
+
+<p class="govuk-body">@messages("save4later.toContinueForm", emailId.value)</p>
+
+<p class="govuk-body">@messages("save4later.youWillBeAskedIf")</p>
+
+<p class="govuk-body">@messages("save4later.weWillKeepYourAnswersFor", "28")</p>
+
+<p class="govuk-body"><a href="https://www.gov.uk/" class="govuk-link">@messages("save4later.backTo") GOV.UK</a></p>
+}
