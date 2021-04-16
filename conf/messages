@@ -8,7 +8,7 @@ global.lang=en
 branding.hmrc=HM Revenue & Customs
 branding.ofsted=Ofsted
 
-emailAuth.weWillSendCodeToEmail=We will send you a code to confirm your email address. On the next screen, you'll be asked to enter the code.
+emailAuth.weWillSendCodeToEmail=We will send you a code to confirm your email address. On the next screen, you'''ll be asked to enter the code.
 emailAuth.enterYourEmailAddress=Enter your email address
 emailAuth.weHaveSendCodeTo=We sent a code to
 emailAuth.provideDifferentEmailAddress=Provide a different email address
@@ -16,7 +16,7 @@ emailAuth.browserAccessEmailNewWindow=If you use a browser to access your email,
 emailAuth.confirmCode=Confirmation code
 emailAuth.confirmCodeExample=For example, DNXL.
 emailAuth.cannotFindEmail=I cannot find the email
-emailAuth.emailTakesFewMins=It can take a few minutes to arrive. Search your emails for "Confirm your email address - {0} - HMRC"
+emailAuth.emailTakesFewMins=It can take a few minutes to arrive. Search your emails for '''Confirm your email address - {0} - HMRC'''
 emailAuth.checkYourSpam=Check your spam or junk folder – if it still has not arrived, you will need to
 emailAuth.startAgain=start again
 emailAuth.emailAddress=Email address

@@ -33,12 +33,13 @@ import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService.digitalContact
+import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
+import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService.{ DigitalContact, Notify }
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode, EmailTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailAuthConfig, FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
+import uk.gov.hmrc.gform.sharedmodel.notifier.{ NotifierEmailAddress, NotifierTemplateId }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
@@ -258,14 +259,20 @@ class EmailAuthController(
     me: MonadError[Future, Throwable]
   ): Future[EmailAndCode] =
     formTemplate.authConfig match {
-      case EmailAuthConfig(emailCodeTemplate) =>
+      case emailAuthConfig: EmailAuthConfig =>
         val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
+        val emailVerifierService = emailAuthConfig.service match {
+          case Notify(notifierTemplateId) =>
+            EmailVerifierService.notify(NotifierTemplateId(notifierTemplateId.value))
+          case DigitalContact(emailTemplateId) =>
+            EmailVerifierService.digitalContact(EmailTemplateId(emailTemplateId.value))
+        }
         gformConnector
           .sendEmail(
             ConfirmationCodeWithEmailService(
               NotifierEmailAddress(emailId.value.toString),
               emailAndCode.code,
-              digitalContact(EmailTemplateId(emailCodeTemplate.value))
+              emailVerifierService
             )
           )
           .map(_ => emailAndCode)

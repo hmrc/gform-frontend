@@ -3,9 +3,8 @@ package uk.gov.hmrc.gform.it.stubs
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.gform.it.sample.FormTemplateSample
-import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService.DigitalContact
-import uk.gov.hmrc.gform.sharedmodel.UserId
-import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode, EmailTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, UserId }
+import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
@@ -50,7 +49,7 @@ trait GFormStubs extends FormTemplateSample {
       .willReturn(ok(JsonUtils.toJsonStr(FormIdData.Plain(UserId(""), formTemplate._id))))
   )
 
-  def gformEmailStub() =
+  def gformEmailStub(emailVerifierService: EmailVerifierService) =
     stubFor(
       WireMock
         .post("/gform/email")
@@ -61,7 +60,7 @@ trait GFormStubs extends FormTemplateSample {
                 ConfirmationCodeWithEmailService(
                   NotifierEmailAddress("test@test.com"),
                   EmailConfirmationCode(ci"[A-Z]+"),
-                  DigitalContact(EmailTemplateId("code_template"))
+                  emailVerifierService
                 )
               )
               .replaceAllLiterally("{", "\\{")

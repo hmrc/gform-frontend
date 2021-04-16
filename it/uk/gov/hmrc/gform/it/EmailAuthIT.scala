@@ -19,7 +19,8 @@ import org.jsoup.Jsoup
 import org.scalatest.time.{ Millis, Seconds, Span }
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
 import uk.gov.hmrc.gform.it.stubs.{ FileUploadStubs, GFormStubs }
-import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
+import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService.DigitalContact
+import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailTemplateId }
 
 class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
 
@@ -61,7 +62,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     gformFormTemplateStub(formTemplateEmailAuth)
 
     And("Gform email notification service returns 204 NoContent")
-    gformEmailStub()
+    gformEmailStub(DigitalContact(EmailTemplateId("code_template")))
 
     When("I request for a new form and POST the 'enter email' form with an email id")
     val emailForm = get("/submissions/new-form/form-template-with-email-auth").send()
@@ -100,7 +101,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     gformFormTemplateStub(formTemplateEmailAuth)
 
     And("Gform email notification service returns 204 NoContent")
-    gformEmailStub()
+    gformEmailStub(DigitalContact(EmailTemplateId("code_template")))
 
     And("Gform get form returns 200 OK")
     gformFormStub(formTemplateEmailAuth)
