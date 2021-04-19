@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.REFERRER_CHECK_DETAILS
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadConnector }
+import uk.gov.hmrc.gform.fileupload.FileUploadConnector
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
@@ -334,38 +334,8 @@ class AuthenticatedRequestActions(
         smartStringEvaluatorFactory
           .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
       envelope <- fileUploadConnector.getEnvelope(cache.form.envelopeId)
-      _        <- updateMappingIfInFlight(envelope, formIdData, form) // Delete after 28 days of deployment of this change
       result   <- f(cache)(smartStringEvaluator)(formModelOptics)
     } yield result
-  }
-
-  /** This is compatibility layer for forms without `componentIdToFileId` fields. Once this
-    * field will be long enough in production, we can remove this.
-    */
-  private def updateMappingIfInFlight(envelope: Envelope, formIdData: FormIdData, form: Form)(implicit
-    hc: HeaderCarrier
-  ): Future[Unit] = {
-    val componentIdToFileId: FormComponentIdToFileIdMapping = form.componentIdToFileId
-    if (envelope.files.nonEmpty && componentIdToFileId.mapping.isEmpty) {
-      // If some file exists in envelope and mapping is empty,
-      // it means we are in-flight when we deployed form.componentIdToFileId feature
-      val mapping = envelope.files.map { file =>
-        file.fileId.toFieldId -> file.fileId
-      }.toMap
-
-      val userData: UserData = UserData(
-        form.formData,
-        form.status,
-        form.visitsIndex,
-        form.thirdPartyData,
-        FormComponentIdToFileIdMapping(mapping)
-      )
-
-      logger.warn("Adding fileupload-component <-> fileId mapping for form " + formIdData.toFormId)
-      gformConnector.updateUserData(formIdData, userData)
-    } else {
-      ().pure[Future]
-    }
   }
 
   private def handleAuthResults(
