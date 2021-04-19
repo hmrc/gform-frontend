@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActionsAlgebra, Direction, ErrResponder, Exit, SummaryContinue }
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
+import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
@@ -124,19 +125,23 @@ class SummaryController(
                       )
           } yield result
 
-          def handleExit: Result =
+          def handleExit(formTemplate: FormTemplate): Result =
             maybeAccessCode match {
               case Some(accessCode) =>
                 val saveWithAccessCode = new SaveWithAccessCode(cache.formTemplate, accessCode)
                 Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
               case _ =>
-                val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
-                val saveAcknowledgement = new SaveAcknowledgement(cache.formTemplate, cache.form.envelopeExpiryDate)
-                Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
+                if (formTemplate.authConfig.isEmailAuthConfig) {
+                  Redirect(gform.routes.SaveAcknowledgementController.show(formTemplateId))
+                } else {
+                  val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
+                  val saveAcknowledgement = new SaveAcknowledgement(cache.formTemplate, cache.form.envelopeExpiryDate)
+                  Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
+                }
             }
 
           save match {
-            case Exit            => handleExit.pure[Future]
+            case Exit            => handleExit(cache.formTemplate).pure[Future]
             case SummaryContinue => handleSummaryContinue
             case _               => BadRequest("Cannot determine action").pure[Future]
           }
