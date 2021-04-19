@@ -108,7 +108,7 @@ case class EvaluationResults(
   }
 
   private def addToListCount(formComponentId: FormComponentId, recData: RecData[SourceOrigin.OutOfDate]) = {
-    val firstQuestionFcId = formComponentId.modelComponentId.expandWithPrefix(1).toFormComponentId
+    val firstQuestionFcId = formComponentId.withFirstIndex
     val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
     if (isHidden.contains(Hidden)) {
       NumberResult(0)

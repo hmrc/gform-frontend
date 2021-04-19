@@ -567,7 +567,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     }
   }
 
-  it should s"support Repeated section with expression in repeats" in {
+  it should "support Repeated section with expression in repeats" in {
 
     val repeating = Section.RepeatingPage(emptyPage, FormCtx("a"))
 
@@ -580,6 +580,72 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
     res shouldBe List(
       (0, Set(Expr(FormCtx("a")))),
       (1, Set(Simple("a")))
+    )
+  }
+
+  it should "support .count function" in {
+    val sections: List[Section] = List(
+      Section.NonRepeatingPage(
+        emptyPage.copy(fields =
+          List(
+            mkFormComponent("whatToAdd", emptyChoice)
+          )
+        )
+      ),
+      emptyAddToList.copy(
+        addAnotherQuestion = mkFormComponent("animal", Value),
+        includeIf = Some(
+          IncludeIf(
+            Contains(FormCtx(FormComponentId("whatToAdd")), Constant("0"))
+          )
+        )
+      ),
+      emptyAddToList.copy(
+        addAnotherQuestion = mkFormComponent("vehicle", Value),
+        includeIf = Some(
+          IncludeIf(
+            Contains(FormCtx(FormComponentId("whatToAdd")), Constant("1"))
+          )
+        )
+      ),
+      Section.NonRepeatingPage(
+        emptyPage.copy(fields =
+          List(
+            mkFormComponent("alreadyInUKAnimal", Value)
+              .copy(includeIf =
+                Some(
+                  IncludeIf(
+                    And(
+                      Equals(Count(FormComponentId("animal")), Constant("1")),
+                      Equals(Count(FormComponentId("vehicle")), Constant("0"))
+                    )
+                  )
+                )
+              )
+          )
+        )
+      ),
+      Section.NonRepeatingPage(
+        emptyPage.copy(fields =
+          List(
+            mkFormComponent("shipmentDateAnimal", Value).copy(includeIf =
+              Some(IncludeIf(Contains(FormCtx("alreadyInUKAnimal"), Constant("0"))))
+            )
+          )
+        )
+      )
+    )
+
+    val res = layers(sections)
+
+    res shouldBe List(
+      (0, Set(Simple("shipmentDateAnimal"))),
+      (1, Set(Expr(FormCtx("alreadyInUKAnimal")))),
+      (2, Set(Simple("alreadyInUKAnimal"))),
+      (3, Set(Expr(FormCtx("1_vehicle")), Expr(FormCtx("1_animal")))),
+      (4, Set(Simple("1_vehicle"), Simple("1_animal"))),
+      (5, Set(Expr(Constant("1")), Expr(Constant("0")), Expr(FormCtx("whatToAdd")))),
+      (6, Set(Simple("whatToAdd")))
     )
   }
 
