@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.auth.models.EmailAuthDetails
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.ViewSaveAcknowledgement
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.EMAIL_AUTH_DETAILS_SESSION_KEY
-import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, GformSessionSyntax }
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailAuthConfig, FormTemplateId }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement_email_auth
@@ -38,7 +38,7 @@ class SaveAcknowledgementController(
   auth: AuthenticatedRequestActions,
   messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
-    extends FrontendController(messagesControllerComponents) with GformSessionSyntax {
+    extends FrontendController(messagesControllerComponents) {
 
   import i18nSupport._
 
@@ -63,7 +63,7 @@ class SaveAcknowledgementController(
                     uk.gov.hmrc.gform.models.EmailId(emailAuthDetails.email),
                     frontendAppConfig
                   )
-                ).clearAuthFromSession
+                )
               }
               .pure[Future]
           case _ =>
