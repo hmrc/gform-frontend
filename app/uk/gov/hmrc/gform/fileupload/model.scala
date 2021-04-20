@@ -63,7 +63,8 @@ case class File(
   status: Status,
   fileName: String,
   contentType: ContentType,
-  length: Long
+  length: Long,
+  metadata: Map[String, List[String]]
 )
 
 object File {
@@ -72,12 +73,18 @@ object File {
 
   //TIP: look for FileStatus trait in https://github.com/hmrc/file-upload/blob/master/app/uk/gov/hmrc/fileupload/read/envelope/model.scala
   implicit val format: Reads[File] = fileRawReads.map {
-    case FileRaw(id, name, "QUARANTINED", _, cType, length) => File(FileId(id), Quarantined, name, cType, length)
-    case FileRaw(id, name, "CLEANED", _, cType, length)     => File(FileId(id), Cleaned, name, cType, length)
-    case FileRaw(id, name, "AVAILABLE", _, cType, length)   => File(FileId(id), Available, name, cType, length)
-    case FileRaw(id, name, "INFECTED", _, cType, length)    => File(FileId(id), Infected, name, cType, length)
-    case FileRaw(id, name, ERROR, reason, cType, length)    => File(FileId(id), Error(reason), name, cType, length)
-    case FileRaw(id, name, other, reason, cType, length)    => File(FileId(id), Other(other, reason), name, cType, length)
+    case FileRaw(id, name, "QUARANTINED", _, cType, length, metatadata) =>
+      File(FileId(id), Quarantined, name, cType, length, metatadata)
+    case FileRaw(id, name, "CLEANED", _, cType, length, metatadata) =>
+      File(FileId(id), Cleaned, name, cType, length, metatadata)
+    case FileRaw(id, name, "AVAILABLE", _, cType, length, metatadata) =>
+      File(FileId(id), Available, name, cType, length, metatadata)
+    case FileRaw(id, name, "INFECTED", _, cType, length, metatadata) =>
+      File(FileId(id), Infected, name, cType, length, metatadata)
+    case FileRaw(id, name, ERROR, reason, cType, length, metatadata) =>
+      File(FileId(id), Error(reason), name, cType, length, metatadata)
+    case FileRaw(id, name, other, reason, cType, length, metatadata) =>
+      File(FileId(id), Other(other, reason), name, cType, length, metatadata)
   }
   private val ERROR = "UnKnownFileStatusERROR"
 }
@@ -88,7 +95,8 @@ case class FileRaw(
   status: String,
   reason: Option[String],
   contentType: ContentType,
-  length: Long
+  length: Long,
+  metadata: Map[String, List[String]]
 )
 
 sealed trait Status

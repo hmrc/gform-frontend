@@ -76,6 +76,8 @@ button.link {
     box-shadow: none;
     text-decoration: underline;
     -moz-user-select: text;
+    line-height: 1;
+    vertical-align: inherit;
 }
 
 button.link:hover {

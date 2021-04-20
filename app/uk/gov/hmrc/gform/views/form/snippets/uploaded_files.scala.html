@@ -16,7 +16,7 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, FormComponentId}
 
 @(
   maybeAccessCode: Option[AccessCode],
@@ -33,16 +33,10 @@
 @defining(formTemplateId.value, maybeAccessCode.getOrElse("-")) { case (templateId, accessCode) =>
   <div id="@formComponentId-files" class="govuk-body uploaded-files">
     @maybeCurrentValue.map { currentValue =>
-      <span>@{currentValue.replace(fileId.value + "_", "")}</span>
-      <a
-        href="@deleteUrl"
-        class="govuk-link"
-        data-form-component-id="@formComponentId.value"
-        data-form-id="@templateId"
-        data-access-code="@accessCode">
-        <span aria-hidden="true">@messages("file.delete")</span>
-        <span class="govuk-visually-hidden">@messages("file.delete.file", currentValue)</span>
-      </a>
+      <span>@{currentValue.replace(fileId.value + "_", "")} @govukButton(Button(content = Text(messages("file.delete")),
+          inputType=Some("submit"),
+          attributes = Map("id" -> "fileDelete", "formaction" -> uk.gov.hmrc.gform.fileupload.routes.FileUploadController.deleteFile(formTemplateId, maybeAccessCode, formComponentId).path),
+          classes="govuk-button link"))</span>
     }
   </div>
   <noscript>

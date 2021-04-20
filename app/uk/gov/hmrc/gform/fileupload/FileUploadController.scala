@@ -29,15 +29,17 @@ import scala.concurrent.Future
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.EditForm
 import uk.gov.hmrc.gform.config.AppConfig
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, GformFlashKeys }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.{ FileUploadUtils, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormIdData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormData, FormField, FormIdData, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.gform.FastForwardService
+import uk.gov.hmrc.gform.models.optics.DataOrigin
 
 import scala.concurrent.ExecutionContext
 
@@ -66,14 +68,15 @@ class FileUploadController(
     fileId: FileId
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => sse => formModelOptics =>
-        val cacheUpd = cache
-          .modify(_.form.componentIdToFileId)
-          .using(_ + (formComponentId, fileId))
-
+      implicit request => implicit l => cache => _ => implicit formModelOptics =>
         for {
           envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
           flash    <- checkFile(fileId, envelope, cache.form.envelopeId)
+          cacheUpd = cache
+                       .modify(_.form.componentIdToFileId)
+                       .using(_ + (formComponentId, fileId))
+                       .modify(_.form.formData)
+                       .using(updateFormDataWithFileUploadMetadata(_, sectionNumber, fileId, envelope))
           res <- fastForwardService
                    .redirectStopAt[SectionSelectorType.Normal](
                      sectionNumber,
@@ -84,6 +87,29 @@ class FileUploadController(
         } yield res.flashing(flash)
 
     }
+
+  private def updateFormDataWithFileUploadMetadata(
+    formData: FormData,
+    sectionNumber: SectionNumber,
+    fileId: FileId,
+    envelope: Envelope
+  )(implicit formModelOptics: FormModelOptics[DataOrigin.Mongo]): FormData =
+    envelope
+      .find(fileId)
+      .map { file =>
+        val indexedComponentIds = formModelOptics.formModelRenderPageOptics
+          .formModel(sectionNumber)
+          .allFormComponentIds
+          .map(_.modelComponentId.indexedComponentId)
+        val fileMetadataParams = file.metadata.collect {
+          case (key, values)
+              if indexedComponentIds
+                .contains(FormComponentId(key).modelComponentId.indexedComponentId) =>
+            FormField(FormComponentId(key).modelComponentId, values.mkString(","))
+        }
+        formData.copy(fields = formData.fields ++ fileMetadataParams.toList)
+      }
+      .getOrElse(formData)
 
   private def checkFile(fileId: FileId, envelope: Envelope, envelopeId: EnvelopeId)(implicit
     messages: Messages,
@@ -200,28 +226,40 @@ class FileUploadController(
     formComponentId: FormComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => implicit l => cache => _ => formModelOptics =>
-      val data = FileUploadUtils.prepareDeleteFile(formComponentId, cache.form)
+      processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) { _ => variadicFormData =>
+        val cacheU = cache
+          .modify(_.form.formData)
+          .using(_ ++ variadicFormData.toFormData)
+        val data = FileUploadUtils.prepareDeleteFile(formComponentId, cacheU.form)
 
-      data match {
-        case None =>
-          logger.warn(
-            s"Attempt to delete file associated with component $formComponentId from envelope. But file is not registered in mapping: ${cache.form.componentIdToFileId.mapping}"
-          )
-          fastForwardService.redirectFastForward[SectionSelectorType.Normal](cache, maybeAccessCode, formModelOptics)
-        case Some((fileToDelete, formDataUpd, mappingUpd)) =>
-          logger.info(s"Deleting file ${fileToDelete.value} from envelope associated with component $formComponentId.")
-          val cacheUpd = cache
-            .modify(_.form.formData)
-            .setTo(formDataUpd)
-            .modify(_.form.componentIdToFileId)
-            .setTo(mappingUpd)
+        data match {
+          case None =>
+            logger.warn(
+              s"Attempt to delete file associated with component $formComponentId from envelope. But file is not registered in mapping: ${cacheU.form.componentIdToFileId.mapping}"
+            )
+            fastForwardService
+              .redirectFastForward[SectionSelectorType.Normal](cacheU, maybeAccessCode, formModelOptics)
+          case Some((fileToDelete, formDataUpd, mappingUpd)) =>
+            logger.info(
+              s"Deleting file ${fileToDelete.value} from envelope associated with component $formComponentId."
+            )
+            val cacheWithFileRemoved = cacheU
+              .modify(_.form.formData)
+              .setTo(formDataUpd)
+              .modify(_.form.componentIdToFileId)
+              .setTo(mappingUpd)
 
-          for {
-            _ <- fileUploadService.deleteFile(cache.form.envelopeId, fileToDelete)
-            res <-
-              fastForwardService
-                .redirectFastForward[SectionSelectorType.Normal](cacheUpd, maybeAccessCode, formModelOptics)
-          } yield res // This value will be used only by non-js journey, ajax calls should ignore it.
+            for {
+              _ <- fileUploadService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)
+              res <-
+                fastForwardService
+                  .redirectFastForward[SectionSelectorType.Normal](
+                    cacheWithFileRemoved,
+                    maybeAccessCode,
+                    formModelOptics
+                  )
+            } yield res // This value will be used only by non-js journey, ajax calls should ignore it.
+        }
       }
   }
 }

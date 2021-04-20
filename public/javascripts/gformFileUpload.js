@@ -369,23 +369,13 @@
         formComponentId;
 
       return $(
-        "<span>" +
+          "<span>" +
           name +
-          '</span> <a href="' +
-          deleteUrl +
-          '" class="govuk-link" data-form-component-id="' +
-          formComponentId +
-          '" data-form-id="' +
-          formTemplateId +
-          '" data-access-code="' +
-          accessCode +
-          '"><span aria-hidden="true">' +
+          " <button type='submit' class='link' data-module='govuk-button' id='fileDelete' formaction='/submissions/form/delete-file/" +
+          formTemplateId + "/-/" + formComponentId + "'> " +
           strings.deleteLabel[lang] +
-          '</span><span class="govuk-visually-hidden">' +
-          strings.deleteLabel[lang] +
-          " " +
-          name +
-          "</span></a>"
+          "</button>" +
+          "</span>"
       );
     }
 
