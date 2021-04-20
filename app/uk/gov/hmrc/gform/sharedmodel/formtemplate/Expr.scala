@@ -28,7 +28,7 @@ sealed trait Expr extends Product with Serializable {
     case Else(field1: Expr, field2: Expr)           => field1.leafs ++ field2.leafs
     case FormCtx(formComponentId: FormComponentId)  => this :: Nil
     case Sum(field1: Expr)                          => field1.leafs
-    case Count(formComponentId: FormComponentId)    => FormCtx(formComponentId) :: Nil
+    case Count(formComponentId: FormComponentId)    => FormCtx(formComponentId.withFirstIndex) :: Nil
     case AuthCtx(value: AuthInfo)                   => this :: Nil
     case UserCtx(value: UserField)                  => this :: Nil
     case Constant(value: String)                    => this :: Nil
