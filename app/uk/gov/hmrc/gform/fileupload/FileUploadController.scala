@@ -107,7 +107,7 @@ class FileUploadController(
                 .contains(FormComponentId(key).modelComponentId.indexedComponentId) =>
             FormField(FormComponentId(key).modelComponentId, values.mkString(","))
         }
-        formData.copy(fields = formData.fields ++ fileMetadataParams.toList)
+        formData ++ FormData(fileMetadataParams.toList)
       }
       .getOrElse(formData)
 
