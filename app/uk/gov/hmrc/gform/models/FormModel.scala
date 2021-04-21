@@ -77,6 +77,12 @@ case class FormModel[A <: PageMode](
 
   private val pageModelLookup: Map[SectionNumber, PageModel[A]] = pagesWithIndex.toList.map(_.swap).toMap
 
+  val fcIdRepeatsExprLookup: Map[FormComponentId, Expr] = brackets.repeatingPageBrackets.flatMap { repeatingBracket =>
+    repeatingBracket.singletons.toList.flatMap(
+      _.singleton.page.fields.map(fc => (fc.id, repeatingBracket.source.repeats))
+    )
+  }.toMap
+
   def map[B <: PageMode](f: Singleton[A] => Singleton[B])(g: Repeater[A] => Repeater[B]): FormModel[B] = FormModel(
     BracketsWithSectionNumber(brackets.brackets.map(_.map(f, g))),
     staticTypeInfo,

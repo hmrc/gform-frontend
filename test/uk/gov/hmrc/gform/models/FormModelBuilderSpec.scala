@@ -93,4 +93,38 @@ class FormModelBuilderSpec extends FlatSpec with Matchers with FormModelSupport 
     }
 
   }
+
+  it should "expand repeated sections" in {
+    val fcA = mkFormComponent("a", Value, Number())
+    val fcB = mkFormComponent("b", Value)
+    val fcC = mkFormComponent("c", Date(AnyDate, Offset(0), None))
+
+    val section1 = mkSection(List(fcA))
+    val section2 = mkRepeatingPageSection(List(fcB, fcC), FormCtx(FormComponentId("a")))
+
+    val sections = List(
+      section1,
+      section2
+    )
+    val fmb = mkFormModelFromSections(sections)
+    val variadicData = variadicFormData[SourceOrigin.OutOfDate]("a" -> "2")
+    val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
+      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](variadicData, None)
+    val formModelOptics = fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, None)
+
+    formModelOptics.formModelRenderPageOptics.formModel.allFormComponentIds shouldBe List(
+      FormComponentId("a"),
+      FormComponentId("1_b"),
+      FormComponentId("1_c"),
+      FormComponentId("2_b"),
+      FormComponentId("2_c")
+    )
+
+    formModelOptics.formModelRenderPageOptics.formModel.fcIdRepeatsExprLookup shouldBe Map(
+      FormComponentId("1_b") -> FormCtx(FormComponentId("a")),
+      FormComponentId("2_b") -> FormCtx(FormComponentId("a")),
+      FormComponentId("1_c") -> FormCtx(FormComponentId("a")),
+      FormComponentId("2_c") -> FormCtx(FormComponentId("a"))
+    )
+  }
 }

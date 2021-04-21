@@ -569,17 +569,23 @@ class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport w
 
   it should s"support Repeated section with expression in repeats" in {
 
-    val repeating = Section.RepeatingPage(emptyPage, FormCtx("a"))
+    val fcA = mkFormComponent("a", Value, Number())
+    val fcB = mkFormComponent("b", Value)
+
+    val section1 = mkSection(List(fcA))
+    val section2 = mkRepeatingPageSection(List(fcB), FormCtx(FormComponentId("a")))
 
     val sections = List(
-      repeating
+      section1,
+      section2
     )
 
     val res = layers(sections)
 
     res shouldBe List(
-      (0, Set(Expr(FormCtx("a")))),
-      (1, Set(Simple("a")))
+      (0, Set(Simple("1_b"))),
+      (1, Set(Expr(FormCtx("a")))),
+      (2, Set(Simple("a")))
     )
   }
 

@@ -117,14 +117,18 @@ object DependencyGraph {
     }
 
     val sections = {
-      val exprs = (formTemplateExprs ++ formModel.exprsMetadata).map(_.expr)
+      val templateAndPageExprs: List[Expr] = (formTemplateExprs ++ formModel.exprsMetadata).map(_.expr)
 
-      val allExprGNs: List[GraphNode.Expr] = exprs.flatMap(_.leafs).map(GraphNode.Expr.apply)
-
-      val deps: List[DiEdge[GraphNode]] =
+      val allExprGNs: List[GraphNode.Expr] = templateAndPageExprs.flatMap(_.leafs).map(GraphNode.Expr.apply)
+      val allSectionDeps: List[DiEdge[GraphNode]] =
         allExprGNs.flatMap(exprGN => toFormComponentId(exprGN.expr).map(fcId => exprGN ~> GraphNode.Simple(fcId)))
 
-      deps
+      val allRepeatExprDeps: List[DiEdge[GraphNode]] =
+        formModel.fcIdRepeatsExprLookup.map { case (fcId, repeatsExpr) =>
+          GraphNode.Simple(fcId) ~> GraphNode.Expr(repeatsExpr)
+        }.toList
+
+      allSectionDeps ++ allRepeatExprDeps
     }
 
     formModel.allFormComponents
