@@ -198,6 +198,22 @@ class Recalculation[F[_]: Monad, E](
         } yield !b
       }
 
+    def isHiddenByRepeatsExpr(
+      fcId: FormComponentId,
+      evResult: EvaluationResults,
+      recData: RecData[SourceOrigin.OutOfDate]
+    ): StateT[F, RecalculationState, Boolean] =
+      formModel.fcIdRepeatsExprLookup.get(fcId).fold(noStateChange(false)) { repeatsExpr =>
+        val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(repeatsExpr)
+        val exprResult: ExpressionResult =
+          evResult.evalExpr(typeInfo, recData, evaluationContext)
+        noStateChange(
+          fcId.modelComponentId.maybeIndex.fold(false)(fcIndex =>
+            exprResult.numberRepresentation.fold(true)(fcIndex > _.intValue())
+          )
+        )
+      }
+
     def isHiddenByRevealingChoice(
       fcId: FormComponentId,
       recData: RecData[SourceOrigin.OutOfDate]
@@ -233,8 +249,9 @@ class Recalculation[F[_]: Monad, E](
               isHiddenIncludeIf          <- isHiddenByIncludeIf(fcId, evResult, recData, evaluationContext)
               isHiddenComponentIncludeIf <- isHiddenByComponentIncludeIf(fcId, evResult, recData, evaluationContext)
               isHiddenRevealingChoice    <- isHiddenByRevealingChoice(fcId, recData)
+              isHiddenRepeatsExpr        <- isHiddenByRepeatsExpr(fcId, evResult, recData)
             } yield
-              if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf) {
+              if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
                 evResult + (FormCtx(fcId), ExpressionResult.Hidden)
               } else {
                 evResult

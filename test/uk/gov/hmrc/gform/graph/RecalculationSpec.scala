@@ -24,12 +24,13 @@ import uk.gov.hmrc.gform.Helpers._
 import uk.gov.hmrc.gform.eval.ExpressionResult._
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.models.FormModelSupport
+import uk.gov.hmrc.gform.models.{ FormModelSupport, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.GraphSpec
 import org.scalatest.{ FlatSpec, Matchers }
+import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 
 import java.time.LocalDate
 
@@ -1110,6 +1111,38 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
     formModelOptics.formModelVisibilityOptics.recData.variadicFormData shouldBe expectedOutputData
     formModelOptics.formModelVisibilityOptics.recalculationResult.evaluationResults.exprMap shouldBe expectedExprMap
     formModelOptics.formModelVisibilityOptics.formModel.pages.size shouldBe 3
+  }
+
+  it should "hide fields in repeated pages, when field index exceeds the max repeats count" in {
+    val fcA = mkFormComponent("a", Text(Number(), Value))
+    val fcB = mkFormComponent("b", Value)
+
+    val sectionA = mkSection(List(fcA))
+    val sectionB = mkRepeatingPageSection(List(fcB), FormCtx(FormComponentId("a")))
+
+    val formTemplate = mkFormTemplate(sectionA, sectionB)
+
+    val data =
+      VariadicFormData[SourceOrigin.OutOfDate](
+        Map(
+          FormComponentId("a").modelComponentId   -> VariadicValue.One("1"),
+          FormComponentId("1_b").modelComponentId -> VariadicValue.One("b1Value"),
+          FormComponentId("2_b").modelComponentId -> VariadicValue.One("b2Value"),
+          FormComponentId("3_b").modelComponentId -> VariadicValue.One("b3Value")
+        )
+      )
+    val formModel = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](data)
+    val recalculationResult = recalculation.recalculateFormDataNew(
+      data,
+      formModel,
+      formTemplate,
+      retrievals,
+      thirdPartyData,
+      evaluationContext(formTemplate)
+    )
+
+    recalculationResult.evaluationResults.get(FormCtx(FormComponentId("2_b"))) shouldBe Some(Hidden)
+    recalculationResult.evaluationResults.get(FormCtx(FormComponentId("3_b"))) shouldBe Some(Hidden)
   }
 
   private def verify(

@@ -302,7 +302,7 @@ class FormModelBuilder[E, F[_]: Functor](
     FormModelVisibilityOptics[D](visibilityFormModel, recData, recalculationResult)
   }
 
-  private def expand[T <: PageMode: FormModelExpander, U <: SectionSelectorType: SectionSelector](
+  def expand[T <: PageMode: FormModelExpander, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate]
   ): FormModel[T] = {
     val basicFm: FormModel[T] = basic(data)
