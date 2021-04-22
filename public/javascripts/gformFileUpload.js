@@ -360,19 +360,11 @@
 
     // Display the uploaded file name and delete button
     function makeFileEntry(name, formComponentId, formTemplateId, accessCode) {
-      var deleteUrl =
-        "/submissions/api/forms/" +
-        formTemplateId +
-        "/" +
-        accessCode +
-        "/" +
-        formComponentId;
-
+      var deleteUrl = "/submissions/form/delete-file/" + formTemplateId + "/" + accessCode + "/" + formComponentId
       return $(
           "<span>" +
           name +
-          " <button type='submit' class='link' data-module='govuk-button' id='fileDelete' formaction='/submissions/form/delete-file/" +
-          formTemplateId + "/-/" + formComponentId + "'> " +
+          " <button type='submit' class='link' data-module='govuk-button' id='fileDelete' formaction='" + deleteUrl + "'> " +
           strings.deleteLabel[lang] +
           "</button>" +
           "</span>"
