@@ -127,6 +127,14 @@ class ApplicationModule(context: Context)
     new LegacySessionCookieBaker(config, cookieSigner)
   }
 
+  private val emailSessionCookieBaker: SessionCookieBaker = {
+    val httpConfiguration: HttpConfiguration =
+      new HttpConfiguration.HttpConfigurationProvider(configModule.playConfiguration, configModule.environment).get
+
+    val config: SessionConfiguration = httpConfiguration.session.copy(cookieName = emailFormSessionCookieName)
+    new LegacySessionCookieBaker(config, cookieSigner)
+  }
+
   private val graphModule = new GraphModule(
     authModule,
     gformBackendModule
@@ -197,6 +205,7 @@ class ApplicationModule(context: Context)
     metricsModule,
     controllersModule,
     this,
+    emailSessionCookieBaker,
     anonymousSessionCookieBaker,
     hmrcSessionCookieBaker
   )

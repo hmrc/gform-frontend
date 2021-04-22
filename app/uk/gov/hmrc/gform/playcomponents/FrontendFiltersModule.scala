@@ -49,6 +49,15 @@ class AnonoymousSessionCookieCryptoFilter(
   override protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
 }
 
+class EmailSessionCookieCryptoFilter(
+  sessionCookieCrypto: SessionCookieCrypto,
+  val sessionBaker: SessionCookieBaker
+)(implicit override val mat: Materializer, override val ec: ExecutionContext)
+    extends SessionCookieCryptoFilter {
+  override protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
+  override protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
+}
+
 class FrontendFiltersModule(
   gformBackendModule: GformBackendModule,
   applicationCrypto: ApplicationCrypto,
@@ -59,6 +68,7 @@ class FrontendFiltersModule(
   metricsModule: MetricsModule,
   controllersModule: ControllersModule,
   csrfComponents: CSRFComponents,
+  emailSessionCookieBaker: SessionCookieBaker,
   anonoymousSessionCookieBaker: SessionCookieBaker,
   hmrcSessionCookieBaker: SessionCookieBaker
 )(implicit ec: ExecutionContext) { self =>
@@ -85,6 +95,13 @@ class FrontendFiltersModule(
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
 
     new AnonoymousSessionCookieCryptoFilter(sessionCookieCrypto, anonoymousSessionCookieBaker)
+  }
+
+  private val emailSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
+    val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
+    val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
+
+    new EmailSessionCookieCryptoFilter(sessionCookieCrypto, emailSessionCookieBaker)
   }
 
   private val cacheControlFilter: CacheControlFilter = {
@@ -123,6 +140,7 @@ class FrontendFiltersModule(
       sessionCookieCrypto,
       hmrcSessionCookieCryptoFilter,
       anonoymousSessionCookieCryptoFilter,
+      emailSessionCookieCryptoFilter,
       gformBackendModule.gformConnector
     )
   }

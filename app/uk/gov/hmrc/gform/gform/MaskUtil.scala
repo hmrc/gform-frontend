@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.controllers
+package uk.gov.hmrc.gform.gform
 
-object CookieNames {
-  val formTemplateIdCookieName = "fid"
-  val authConfigCookieName = "authconfig"
-  val anonymousFormSessionCookieName = "mdtpanonymous"
-  val emailFormSessionCookieName = "mdtpemail"
+object MaskUtil {
+  def maskEmail(emailId: String): String = emailId.split("@").toList match {
+    case head :: tail :: Nil =>
+      val maskFrom = head.length / 2
+      head.zipWithIndex
+        .map { case (char, index) =>
+          if (index >= maskFrom) '*' else char
+        }
+        .mkString("") + "@" + tail
+    case _ => emailId
+  }
 }
