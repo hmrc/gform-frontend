@@ -243,15 +243,13 @@
         10
       );
       var fileExtension = getFileExtension(file.name);
-      var fileExtensionCheck = file.type === "" || window.gform.restrictedFileExtensions.includes(fileExtension.toLowerCase());
+      var fileExtensionCheck = file.type === "" || window.gform.restrictedFileExtensions.indexOf(fileExtension.toLowerCase()) >= 0;
       var fileTypeCheck = window.gform.contentTypes.indexOf(file.type) === -1;
-      var fileTypeInError = (fileExtensionCheck) ? fileExtension : transformMimeTypes(file.type);
 
       $input.attr("aria-busy", true);
 
-      if (
-        fileExtensionCheck || fileTypeCheck
-      ) {
+      if ( fileExtensionCheck || fileTypeCheck ) {
+        var fileTypeInError = (fileExtensionCheck) ? fileExtension : transformMimeTypes(file.type);
         return handleError(
           $input,
           interpolate(strings.fileTypeError[lang], [
@@ -271,6 +269,12 @@
           interpolate(strings.maxSizeError[lang], [maxFileSize])
         );
       }
+
+      function onError(err) {
+        $input.removeAttr("aria-busy");
+        handleError($input, err.statusText);
+      }
+
       uploadFile(file, fileId)
         .then(function(response) {
           return updateMapping(
@@ -289,11 +293,6 @@
             accessCode
           );
         }, onError);
-    }
-
-    function onError(err) {
-      $input.removeAttr("aria-busy");
-      handleError($input, err.statusText);
     }
 
     // Handle file upload request
