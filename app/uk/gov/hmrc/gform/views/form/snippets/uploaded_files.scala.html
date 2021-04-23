@@ -33,10 +33,14 @@
 @defining(formTemplateId.value, maybeAccessCode.getOrElse("-")) { case (templateId, accessCode) =>
   <div id="@formComponentId-files" class="govuk-body uploaded-files">
     @maybeCurrentValue.map { currentValue =>
-      <span>@{currentValue.replace(fileId.value + "_", "")} @govukButton(Button(content = Text(messages("file.delete")),
-          inputType=Some("submit"),
-          attributes = Map("id" -> "fileDelete", "formaction" -> uk.gov.hmrc.gform.fileupload.routes.FileUploadController.deleteFile(formTemplateId, maybeAccessCode, formComponentId).path),
-          classes="govuk-button link"))</span>
+      @defining(currentValue.replace(fileId.value + "_", "")) { deleteLabel =>
+          @defining(deleteLabel + " " + messages("file.delete")) { ariaLabel =>
+              <span>@{deleteLabel} @govukButton(Button(content = Text(messages("file.delete")),
+                  inputType=Some("submit"),
+                  attributes = Map("id" -> "fileDelete", "aria-label" -> ariaLabel, "formaction" -> uk.gov.hmrc.gform.fileupload.routes.FileUploadController.deleteFile(formTemplateId, maybeAccessCode, formComponentId).path),
+                  classes="link"))</span>
+          }
+      }
     }
   </div>
   <noscript>
