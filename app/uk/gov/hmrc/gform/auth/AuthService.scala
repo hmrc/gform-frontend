@@ -78,7 +78,7 @@ class AuthService(
           case authUnsuccessful     => Future.successful(authUnsuccessful)
         }
         performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
-      case EmailAuthConfig(_) =>
+      case EmailAuthConfig(_, _, _, _) =>
         isEmailConfirmed(formTemplate._id) match {
           case Some(email) =>
             AuthSuccessful(EmailRetrievals(EmailId(email)), Role.Customer)

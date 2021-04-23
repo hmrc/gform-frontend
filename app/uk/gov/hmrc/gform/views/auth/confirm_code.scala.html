@@ -29,6 +29,7 @@
     formTemplate: FormTemplate,
     frontendAppConfig: FrontendAppConfig,
     emailId: EmailId,
+    maybeEmailCodeHelp: Option[String] = None,
     formAction: Call,
     continue: String,
     pageLevelError: HasErrors = NoErrors,
@@ -46,14 +47,15 @@
 @govukHint = @{new govukHint()}
 @govukLabel = @{new govukLabel()}
 @govukInput = @{new govukInput(govukErrorMessage, govukHint, govukLabel)}
-@heading = @{"Enter code to confirm your email address"}
+@heading = @{messages("emailAuth.enterYourCode")}
 
+@* We have customised authConfig as None to hide Sign out link and disable Timeout for Email authConfig  *@
 @main_template(
     title = heading,
     serviceName = formTemplate.formName.value,
     containsErrors = pageLevelError.hasErrors,
     frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig),
+    authConfig = None,
     webChat = formTemplate.webChat,
     formCategory = formTemplate.formCategory,
     displayHMRCLogo = formTemplate.displayHMRCLogo,
@@ -99,7 +101,7 @@
                     </span>
             </summary>
             <div class="govuk-details__text">
-                <p>@{messages("emailAuth.emailTakesFewMins", formTemplate.formName.value)}</p>
+                <p>@{messages("emailAuth.emailTakesFewMins", maybeEmailCodeHelp.getOrElse(formTemplate.formName.value))}</p>
                 <p>@{messages("emailAuth.checkYourSpam")} <a href="@{EmailAuthController.emailIdForm(formTemplate._id, continue)}" class="govuk-link">@{messages("emailAuth.startAgain")}</a>.</p>
             </div>
         </details>

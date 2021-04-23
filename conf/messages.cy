@@ -9,17 +9,19 @@ branding.hmrc=Cyllid a Thollau EM
 
 emailAuth.weWillSendCodeToEmail=Byddwn yn anfon cod atoch i gadarnhau mai’ch cyfeiriad e-bost chi yw hwn. Ar y sgrin nesaf, gofynnir i chi nodi’r cod.
 emailAuth.enterYourEmailAddress=Nodwch eich cyfeiriad e-bost
+emailAuth.enterYourCode=Nodwch y cod i gadarnhau'ch cyfeiriad e-bost
 emailAuth.weHaveSendCodeTo=Rydym wedi anfon cod i
 emailAuth.provideDifferentEmailAddress=Rhowch gyfeiriad e-bost gwahanol
 emailAuth.browserAccessEmailNewWindow=Bydd angen i chi gadw’r dudalen hon ar agor pan fyddwch yn mynd at eich e-byst, a hynny fel y gallwch ddod yn ôl a nodi’r cod.
 emailAuth.confirmCode=Cod cadarnhau
 emailAuth.confirmCodeExample=Er enghraifft, DNXL
 emailAuth.cannotFindEmail=Ni allaf ddod o hyd i’r e-bost
-emailAuth.emailTakesFewMins=Gall gymryd ychydig o funudau i’w gyrraedd.\n\n Chwiliwch drwy’ch e-byst am ‘Cadarnhau’ch cyfeiriad e-bost – Rhoi gwybod am alwad ffôn amheus sy’n honni ei fod gan CThEM’ neu ''Confirm your email address – {0} - HMRC''
+emailAuth.emailTakesFewMins=Gall gymryd ychydig o funudau i’w gyrraedd.\n\n Chwiliwch drwy’ch e-byst am ‘Cadarnhau’ch cyfeiriad e-bost – Rhoi gwybod am alwad ffôn amheus sy’n honni ei fod gan CThEM’ neu ''Cadarnhau eich cyfeiriad e-bost – {0} - HMRC''
 emailAuth.checkYourSpam=Os na allwch ddod o hyd iddo, bydd angen i chi
 emailAuth.startAgain=gael cod newydd drwy ddechrau eto
 emailAuth.emailAddress=Cyfeiriad e-bost
 emailAuth.confirmCodeError=Nodwch y cod y gwnaethom ei anfon atoch drwy e-bost. Mae hwn yn 4 llythyren megis DNLC
+emailAuth.emailConfirmation=Cyfeiriad e-bost wedi'i gadarnhau
 
 linkText.saveAndComeBackLater=Cadw a dod yn ôl yn hwyrach
 linkText.back=Yn ôl

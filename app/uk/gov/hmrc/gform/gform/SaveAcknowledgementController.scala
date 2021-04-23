@@ -47,7 +47,7 @@ class SaveAcknowledgementController(
       implicit request => implicit lang => cache => _ => _ =>
         val formTemplate = cache.formTemplate
         formTemplate.authConfig match {
-          case EmailAuthConfig(_) =>
+          case EmailAuthConfig(_, _, _, _) =>
             val emailAuthDetails: EmailAuthDetails =
               jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
             emailAuthDetails

@@ -7,6 +7,8 @@ GET           /email-auth/email-form/:formTemplateId                            
 POST          /email-auth/send-email/:formTemplateId                                                             uk.gov.hmrc.gform.gform.EmailAuthController.sendEmail(formTemplateId: FormTemplateId, continue: String)
 GET           /email-auth/confirm-code-form/:formTemplateId                                                      uk.gov.hmrc.gform.gform.EmailAuthController.confirmCodeForm(formTemplateId: FormTemplateId, error: Option[Boolean], continue: String)
 POST          /email-auth/confirm-code/:formTemplateId                                                           uk.gov.hmrc.gform.gform.EmailAuthController.confirmCode(formTemplateId: FormTemplateId, continue: String)
+GET           /email-auth/email-confirmation-form/:formTemplateId                                                uk.gov.hmrc.gform.gform.EmailAuthController.emailConfirmationForm(formTemplateId: FormTemplateId, continue: String)
+POST          /email-auth/email-confirmation                                                                     uk.gov.hmrc.gform.gform.EmailAuthController.emailConfirmation(continue: String)
 
 GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.dashboard(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/session                                                                  uk.gov.hmrc.gform.gform.NewFormController.dashboardWithNewSession(formTemplateId: FormTemplateId)

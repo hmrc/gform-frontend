@@ -83,8 +83,8 @@ object EnrolmentCheckVerb {
 
 sealed trait AuthConfig extends Product with Serializable {
   def isEmailAuthConfig = this match {
-    case EmailAuthConfig(_) => true
-    case _                  => false
+    case EmailAuthConfig(_, _, _, _) => true
+    case _                           => false
   }
 }
 
@@ -96,7 +96,12 @@ case class HmrcEnrolmentModule(enrolmentAuth: EnrolmentAuth) extends AuthConfig
 case class HmrcAgentModule(agentAccess: AgentAccess) extends AuthConfig
 case class HmrcAgentWithEnrolmentModule(agentAccess: AgentAccess, enrolmentAuth: EnrolmentAuth) extends AuthConfig
 case object AWSALBAuth extends AuthConfig
-case class EmailAuthConfig(service: EmailVerifierService) extends AuthConfig
+case class EmailAuthConfig(
+  service: EmailVerifierService,
+  emailUseInfo: Option[LocalisedString],
+  emailCodeHelp: Option[LocalisedString],
+  emailConfirmation: Option[LocalisedString]
+) extends AuthConfig
 
 object HasEnrolmentSection {
   def unapply(ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck, EnrolmentAction)] =

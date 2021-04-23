@@ -43,10 +43,10 @@ case class FrontendAppConfig(
 ) {
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {
-    case Some(Anonymous)          => authModule.anonymous
-    case Some(EmailAuthConfig(_)) => authModule.email
-    case Some(_)                  => authModule.hmrc
-    case None                     => JSConfig(timeoutEnabled = false, 0, 0, "", "")
+    case Some(Anonymous)                   => authModule.anonymous
+    case Some(EmailAuthConfig(_, _, _, _)) => authModule.email
+    case Some(_)                           => authModule.hmrc
+    case None                              => JSConfig(timeoutEnabled = false, 0, 0, "", "")
   }
 
   def timeoutDialog(templateId: FormTemplateId, authConfig: Option[AuthConfig])(implicit
