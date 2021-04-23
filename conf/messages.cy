@@ -27,6 +27,7 @@ linkText.removeRepeatedGroup=Dileu {0}
 linkText.addRepeatingGroup=Ychwanegwch un arall
 linkText.signOut=Allgofnodi
 linkText.signBackIn=Mewngofnodi eto
+linkText.signInWithEmailAgain=Sign in with your email again
 
 button.continue=Yn eich blaen
 button.saveAndContinue=Cadw ac yn eich blaen
@@ -438,3 +439,5 @@ this.section.is=Teitl yr adran hon yw
 
 # Lookup Select component
 lookup.select.default.option.text=Dewiswch a
+
+signOut.toContinueSignBackInWithEmail=To continue sign back in with your email

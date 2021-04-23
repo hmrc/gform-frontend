@@ -28,6 +28,7 @@ linkText.removeRepeatedGroup=Remove {0}
 linkText.addRepeatingGroup=Add another
 linkText.signOut=Sign out
 linkText.signBackIn=Sign back in
+linkText.signInWithEmailAgain=Sign in with your email again
 
 addToList.change=Change
 addToList.change.visually.hidden=Change {0}
@@ -461,3 +462,5 @@ this.section.is=This section is
 
 # Lookup Select component
 lookup.select.default.option.text=Select a
+
+signOut.toContinueSignBackInWithEmail=To continue sign back in with your email

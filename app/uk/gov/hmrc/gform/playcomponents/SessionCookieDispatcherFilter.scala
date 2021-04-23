@@ -36,6 +36,7 @@ class SessionCookieDispatcherFilter(
   sessionCookieCrypto: SessionCookieCrypto,
   hmrcCookieCryptoFilter: SessionCookieCryptoFilter,
   anonymousCookieCryptoFilter: SessionCookieCryptoFilter,
+  emailCookieCryptoFilter: SessionCookieCryptoFilter,
   gformConnector: GformConnector
 )(implicit ec: ExecutionContext, override val mat: Materializer)
     extends Filter {
@@ -43,8 +44,9 @@ class SessionCookieDispatcherFilter(
   protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
   protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
 
-  private val AnonymousAuthConfig = "anonymous"
-  private val HmrcAuthConfig = "hmrc"
+  private val AnonymousAuth = "anonymous"
+  private val EmailAuth = "email"
+  private val HmrcAuth = "hmrc"
 
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
@@ -73,23 +75,30 @@ class SessionCookieDispatcherFilter(
       case Right(formTemplate) =>
         val (result, cookieValue) =
           formTemplate.authConfig match {
-            case Anonymous | EmailAuthConfig(_) =>
+            case Anonymous =>
               (
                 anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
-                encrypter.encrypt(PlainText(AnonymousAuthConfig))
+                encrypter.encrypt(PlainText(AnonymousAuth))
+              )
+            case EmailAuthConfig(_) =>
+              (
+                emailCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
+                encrypter.encrypt(PlainText(EmailAuth))
               )
             case _ =>
               (
                 hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
-                encrypter.encrypt(PlainText(HmrcAuthConfig))
+                encrypter.encrypt(PlainText(HmrcAuth))
               )
           }
         result.map(_.withCookies(Cookie(authConfigCookieName, cookieValue.value, secure = true)))
 
       case Left(_) =>
         findAuthConfigCookie(rh).map(v => decrypter.decrypt(Crypted(v.value)).value) match {
-          case Some(AnonymousAuthConfig) =>
+          case Some(AnonymousAuth) =>
             anonymousCookieCryptoFilter(next)(rh)
+          case Some(EmailAuth) =>
+            emailCookieCryptoFilter(next)(rh)
           case _ =>
             hmrcCookieCryptoFilter(next)(rh)
         }
