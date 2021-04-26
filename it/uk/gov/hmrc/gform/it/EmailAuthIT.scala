@@ -48,7 +48,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     val emailInput = form.getElementById("email")
     emailInput.nodeName() shouldBe "input"
     emailInput.attr("name") shouldBe "email"
-    emailInput.attr("type") shouldBe "text"
+    emailInput.attr("type") shouldBe "email"
     val submitButton = form.getElementsByAttributeValue("name", "submitButton").get(0)
     submitButton.nodeName() shouldBe "button"
     submitButton.attr("type") shouldBe "submit"
