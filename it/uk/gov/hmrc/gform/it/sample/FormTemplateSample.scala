@@ -27,7 +27,8 @@ trait FormTemplateSample {
       toSmartString("Now send your form"),
       Some(toSmartString("Continue"))
     ),
-    authConfig = EmailAuthConfig(EmailVerifierService.digitalContact(EmailTemplateId("code_template"))),
+    authConfig =
+      EmailAuthConfig(EmailVerifierService.digitalContact(EmailTemplateId("code_template")), None, None, None),
     displayHMRCLogo = true,
     sections = List(
       NonRepeatingPage(
@@ -100,6 +101,15 @@ trait FormTemplateSample {
     emailTemplateId = "some_email_template",
     emailParameters = None,
     save4LaterInfoText = None
+  )
+
+  val formTemplateEmailAuthWithOptionalDetails = formTemplateEmailAuth.copy(authConfig =
+    EmailAuthConfig(
+      EmailVerifierService.digitalContact(EmailTemplateId("code_template")),
+      Some(LocalisedString(Map(LangADT.En -> "EmailUseInfo"))),
+      Some(LocalisedString(Map(LangADT.En -> "EmailCodeHelp"))),
+      Some(LocalisedString(Map(LangADT.En -> "EmailConfirmation")))
+    )
   )
 
   val formTemplateAuthAnonymous = formTemplateEmailAuth

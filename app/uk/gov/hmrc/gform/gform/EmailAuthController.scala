@@ -26,6 +26,7 @@ import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auth.models.{ EmailAuthDetails, InvalidEmail, ValidEmail }
+import uk.gov.hmrc.gform.commons.MarkDownUtil
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.EMAIL_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActions
@@ -113,16 +114,23 @@ class EmailAuthController(
         case _ => (NoErrors, None, None)
       }
 
-      Ok(
-        html.auth.enter_email(
-          formTemplate,
-          frontendAppConfig,
-          uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId, continue),
-          maybeEmailFieldValue.map(_.toString),
-          pageErrors,
-          maybeEmailFieldError
-        )
-      ).pure[Future]
+      formTemplate.authConfig match {
+        case EmailAuthConfig(_, emailUseInfo, _, _) =>
+          Ok(
+            html.auth.enter_email(
+              formTemplate,
+              frontendAppConfig,
+              uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId, continue),
+              maybeEmailFieldValue.map(_.toString),
+              emailUseInfo.map(MarkDownUtil.markDownParser _),
+              pageErrors,
+              maybeEmailFieldError
+            )
+          ).pure[Future]
+        case _ =>
+          logger.warn(s"AuthModule for formTemplate $formTemplateId is not set to email")
+          BadRequest(s"Unable to accept Email for formTemplate $formTemplateId").pure[Future]
+      }
     }
 
   def sendEmail(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
@@ -175,8 +183,8 @@ class EmailAuthController(
       val emailAuthDetails: EmailAuthDetails =
         jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
 
-      emailAuthDetails.get(formTemplateId) match {
-        case Some(emailAuthData) =>
+      (emailAuthDetails.get(formTemplateId), formTemplate.authConfig) match {
+        case (Some(emailAuthData), EmailAuthConfig(_, _, emailCodeHelp, emailConfirmation)) =>
           val (pageErrors, maybeCodeFieldError) = error match {
             case Some(true) =>
               (
@@ -206,20 +214,27 @@ class EmailAuthController(
               formTemplate,
               frontendAppConfig,
               EmailId(emailAuthData.email),
-              uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCode(formTemplateId, continue),
+              emailCodeHelp.map(_.value),
+              uk.gov.hmrc.gform.gform.routes.EmailAuthController
+                .confirmCode(formTemplateId, continue),
               continue,
               pageErrors,
               maybeCodeFieldError
             )
           ).pure[Future]
-        case None =>
+        case _ =>
           logger.warn(s"Could not find emailAuthDetails in session for formTemplate $formTemplateId")
           BadRequest(s"Unable to confirm code for formTemplate $formTemplateId").pure[Future]
       }
     }
 
-  def confirmCode(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
+  def confirmCode(
+    formTemplateId: FormTemplateId,
+    continue: String
+  ): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => _ =>
+      val formTemplate = request.attrs(FormTemplateKey)
+
       confirmCodeForm
         .bindFromRequest()
         .fold(
@@ -239,16 +254,54 @@ class EmailAuthController(
                     .confirmCodeForm(formTemplateId, Some(true), continue)
                 )
               } { confirmedEmailAuthDetails =>
-                Redirect(continue).addingToSession(
-                  EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
-                    confirmedEmailAuthDetails
-                  )
-                )
+                val confirmedEmailAuthDetailsStr = toJsonStr(confirmedEmailAuthDetails)
+
+                formTemplate.authConfig match {
+                  case EmailAuthConfig(_, _, _, Some(_)) =>
+                    Redirect(
+                      uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailConfirmedForm(formTemplateId, continue)
+                    ).addingToSession(
+                      EMAIL_AUTH_DETAILS_SESSION_KEY -> confirmedEmailAuthDetailsStr
+                    )
+                  case _ =>
+                    Redirect(continue).addingToSession(
+                      EMAIL_AUTH_DETAILS_SESSION_KEY -> confirmedEmailAuthDetailsStr
+                    )
+                }
+
               }
               .pure[Future]
           }
         )
 
+    }
+
+  def emailConfirmedForm(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
+    nonAutheticatedRequestActions.async { implicit request => implicit lang =>
+      val formTemplate = request.attrs(FormTemplateKey)
+      formTemplate.authConfig match {
+        case EmailAuthConfig(_, _, _, Some(emailConfirmation)) =>
+          Ok(
+            html.auth.email_confirmation(
+              formTemplate,
+              frontendAppConfig,
+              uk.gov.hmrc.gform.gform.routes.EmailAuthController
+                .emailConfirmedContinue(continue),
+              MarkDownUtil.markDownParser(emailConfirmation)
+            )
+          ).pure[Future]
+        case _ =>
+          logger.warn(s"AuthModule for formTemplate $formTemplateId doesn't have email confirmation")
+          BadRequest(s"Unable to provide email confirmation for formTemplate $formTemplateId").pure[Future]
+      }
+    }
+
+  def emailConfirmedContinue(
+    continue: String
+  ): Action[AnyContent] =
+    nonAutheticatedRequestActions.async { _ => _ =>
+      Redirect(continue)
+        .pure[Future]
     }
 
   private def sendEmailWithConfirmationCode[D <: DataOrigin](

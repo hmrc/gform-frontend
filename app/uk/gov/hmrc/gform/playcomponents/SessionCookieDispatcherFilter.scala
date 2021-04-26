@@ -80,7 +80,7 @@ class SessionCookieDispatcherFilter(
                 anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
                 encrypter.encrypt(PlainText(AnonymousAuth))
               )
-            case EmailAuthConfig(_) =>
+            case EmailAuthConfig(_, _, _, _) =>
               (
                 emailCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
                 encrypter.encrypt(PlainText(EmailAuth))
