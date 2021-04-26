@@ -314,7 +314,6 @@ class EmailAuthController(
     formTemplate.authConfig match {
       case emailAuthConfig: EmailAuthConfig =>
         val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
-        println(s"========= Sandy ======= emailAndCode = ${emailAndCode.code}")
         val emailVerifierService = emailAuthConfig.service match {
           case Notify(notifierTemplateId) =>
             EmailVerifierService.notify(NotifierTemplateId(notifierTemplateId.value))
