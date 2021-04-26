@@ -238,7 +238,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     val form = responseBody.getElementById("gf-form")
     form.attr(
       "action"
-    ) shouldBe "/submissions/email-auth/email-confirmation?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth"
+    ) shouldBe "/submissions/email-auth/email-confirmed-continue?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth"
     form.attr("method") shouldBe "POST"
     form.getElementsByClass("govuk-body").text should include("EmailConfirmation")
     val submitButton = form.getElementsByAttributeValue("name", "submitButton").get(0)

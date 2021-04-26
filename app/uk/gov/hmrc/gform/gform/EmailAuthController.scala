@@ -259,7 +259,7 @@ class EmailAuthController(
                 formTemplate.authConfig match {
                   case EmailAuthConfig(_, _, _, Some(_)) =>
                     Redirect(
-                      uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailConfirmationForm(formTemplateId, continue)
+                      uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailConfirmedForm(formTemplateId, continue)
                     ).addingToSession(
                       EMAIL_AUTH_DETAILS_SESSION_KEY -> confirmedEmailAuthDetailsStr
                     )
@@ -276,7 +276,7 @@ class EmailAuthController(
 
     }
 
-  def emailConfirmationForm(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
+  def emailConfirmedForm(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplate = request.attrs(FormTemplateKey)
       formTemplate.authConfig match {
@@ -286,7 +286,7 @@ class EmailAuthController(
               formTemplate,
               frontendAppConfig,
               uk.gov.hmrc.gform.gform.routes.EmailAuthController
-                .emailConfirmation(continue),
+                .emailConfirmedContinue(continue),
               MarkDownUtil.markDownParser(emailConfirmation)
             )
           ).pure[Future]
@@ -296,7 +296,7 @@ class EmailAuthController(
       }
     }
 
-  def emailConfirmation(
+  def emailConfirmedContinue(
     continue: String
   ): Action[AnyContent] =
     nonAutheticatedRequestActions.async { _ => _ =>
@@ -314,6 +314,7 @@ class EmailAuthController(
     formTemplate.authConfig match {
       case emailAuthConfig: EmailAuthConfig =>
         val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
+        println(s"========= Sandy ======= emailAndCode = ${emailAndCode.code}")
         val emailVerifierService = emailAuthConfig.service match {
           case Notify(notifierTemplateId) =>
             EmailVerifierService.notify(NotifierTemplateId(notifierTemplateId.value))

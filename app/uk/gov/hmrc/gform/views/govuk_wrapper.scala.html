@@ -38,10 +38,11 @@
   displayHMRCLogo: Boolean,
   formLanguages: AvailableLanguages = AvailableLanguages.default,
   templateId: FormTemplateId,
-  backLink: Option[BackLink]
+  backLink: Option[BackLink],
+  displayTimeoutDialog: Boolean
 )(implicit messages: Messages, l: LangADT)
 
-@timeoutDialog = @{appConfig.timeoutDialog(templateId, authConfig)}
+@timeoutDialog = @{appConfig.timeoutDialog(templateId, authConfig, displayTimeoutDialog)}
 
 @scripts = {
     @scriptElem
