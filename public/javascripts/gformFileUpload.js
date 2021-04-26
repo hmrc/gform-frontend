@@ -353,38 +353,20 @@
         .append(
           makeFileEntry(name, formComponentId, formTemplateId, accessCode)
         )
-        .attr("tabIndex", "-1")
         .trigger("focus");
     }
 
     // Display the uploaded file name and delete button
     function makeFileEntry(name, formComponentId, formTemplateId, accessCode) {
-      var deleteUrl =
-        "/submissions/api/forms/" +
-        formTemplateId +
-        "/" +
-        accessCode +
-        "/" +
-        formComponentId;
-
+      var deleteUrl = "/submissions/form/delete-file/" + formTemplateId + "/" + accessCode + "/" + formComponentId
+      var ariaLabel = name + " " + strings.deleteLabel[lang]
       return $(
-        "<span>" +
+          "<span>" +
           name +
-          '</span> <a href="' +
-          deleteUrl +
-          '" class="govuk-link" data-form-component-id="' +
-          formComponentId +
-          '" data-form-id="' +
-          formTemplateId +
-          '" data-access-code="' +
-          accessCode +
-          '"><span aria-hidden="true">' +
+          " <button type='submit' class='govuk-button link' data-module='govuk-button' id='fileDelete' aria-label='" + ariaLabel + "' formaction='" + deleteUrl + "'> " +
           strings.deleteLabel[lang] +
-          '</span><span class="govuk-visually-hidden">' +
-          strings.deleteLabel[lang] +
-          " " +
-          name +
-          "</span></a>"
+          "</button>" +
+          "</span>"
       );
     }
 
