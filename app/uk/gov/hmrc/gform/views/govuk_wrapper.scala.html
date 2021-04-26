@@ -42,7 +42,13 @@
   displayTimeoutDialog: Boolean
 )(implicit messages: Messages, l: LangADT)
 
-@timeoutDialog = @{appConfig.timeoutDialog(templateId, authConfig, displayTimeoutDialog)}
+@timeoutDialog = @{
+                    if(displayTimeoutDialog) {
+                        appConfig.timeoutDialog(templateId, authConfig)
+                    } else {
+                        None
+                    }
+}
 
 @scripts = {
     @scriptElem

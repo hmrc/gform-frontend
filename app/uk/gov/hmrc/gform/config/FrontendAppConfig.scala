@@ -49,11 +49,11 @@ case class FrontendAppConfig(
     case None                              => JSConfig(timeoutEnabled = false, 0, 0, "", "")
   }
 
-  def timeoutDialog(templateId: FormTemplateId, authConfig: Option[AuthConfig], displayTimeoutDialog: Boolean)(implicit
+  def timeoutDialog(templateId: FormTemplateId, authConfig: Option[AuthConfig])(implicit
     messages: Messages
   ): Option[TimeoutDialog] = {
     val authTimeout = jsConfig(authConfig)
-    if (displayTimeoutDialog && authTimeout.timeoutEnabled) {
+    if (authTimeout.timeoutEnabled) {
       Some(
         TimeoutDialog(
           timeout = Some(authTimeout.timeout),
