@@ -55,7 +55,7 @@
     serviceName = formTemplate.formName.value,
     containsErrors = pageLevelError.hasErrors,
     frontendAppConfig = frontendAppConfig,
-    authConfig = None,
+    authConfig = Some(formTemplate.authConfig),
     webChat = formTemplate.webChat,
     formCategory = formTemplate.formCategory,
     displayHMRCLogo = formTemplate.displayHMRCLogo,
