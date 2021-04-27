@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory
 import org.typelevel.ci.CIString
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Flash, MessagesControllerComponents }
+import uk.gov.hmrc.gform.gform
+
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.EditForm
@@ -32,14 +34,15 @@ import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, GformFlashKeys }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ FileUploadUtils, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ FastForward, FileUploadUtils, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormData, FormField, FormIdData, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormData, FormField, FormIdData, FormModelOptics, UserData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber, SuppressErrors }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.gform.FastForwardService
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 
 import scala.concurrent.ExecutionContext
 
@@ -223,6 +226,7 @@ class FileUploadController(
   def deleteFile(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
     formComponentId: FormComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => implicit l => cache => _ => formModelOptics =>
@@ -251,14 +255,34 @@ class FileUploadController(
 
             for {
               _ <- fileUploadService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)
-              res <-
-                fastForwardService
-                  .redirectFastForward[SectionSelectorType.Normal](
-                    cacheWithFileRemoved,
+              _ <- gformConnector
+                     .updateUserData(
+                       FormIdData.fromForm(cacheWithFileRemoved.form, maybeAccessCode),
+                       UserData(
+                         cacheWithFileRemoved.form.formData,
+                         cacheWithFileRemoved.form.status,
+                         cacheWithFileRemoved.form.visitsIndex,
+                         cacheWithFileRemoved.form.thirdPartyData,
+                         cacheWithFileRemoved.form.componentIdToFileId
+                       )
+                     )
+            } yield {
+              val sectionTitle4Ga = sectionTitle4GaFactory(
+                formModelOptics.formModelRenderPageOptics.formModel(sectionNumber).title,
+                sectionNumber
+              )
+              Redirect(
+                gform.routes.FormController
+                  .form(
+                    formTemplateId,
                     maybeAccessCode,
-                    formModelOptics
+                    sectionNumber,
+                    sectionTitle4Ga,
+                    SuppressErrors.Yes,
+                    FastForward.Yes
                   )
-            } yield res // This value will be used only by non-js journey, ajax calls should ignore it.
+              )
+            } // This value will be used only by non-js journey, ajax calls should ignore it.
         }
       }
   }

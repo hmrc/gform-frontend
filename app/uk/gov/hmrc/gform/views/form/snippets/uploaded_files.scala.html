@@ -16,7 +16,7 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, FormComponentId}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormComponentId, SectionNumber }
 
 @(
   maybeAccessCode: Option[AccessCode],
@@ -25,7 +25,8 @@
   fileId: FileId,
   maybeCurrentValue: Option[String],
   noJsButton: Button,
-  deleteUrl: String
+  deleteUrl: String,
+  sectionNumber: SectionNumber
 )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
 @govukButton = @{new govukButton()}
@@ -37,7 +38,7 @@
           @defining(deleteLabel + " " + messages("file.delete")) { ariaLabel =>
               <span>@{deleteLabel} @govukButton(Button(content = Text(messages("file.delete")),
                   inputType=Some("submit"),
-                  attributes = Map("id" -> "fileDelete", "aria-label" -> ariaLabel, "formaction" -> uk.gov.hmrc.gform.fileupload.routes.FileUploadController.deleteFile(formTemplateId, maybeAccessCode, formComponentId).path),
+                  attributes = Map("id" -> "fileDelete", "aria-label" -> ariaLabel, "formaction" -> uk.gov.hmrc.gform.fileupload.routes.FileUploadController.deleteFile(formTemplateId, maybeAccessCode, sectionNumber, formComponentId).path),
                   classes="link"))</span>
           }
       }

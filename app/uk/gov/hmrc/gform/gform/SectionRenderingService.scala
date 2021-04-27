@@ -900,6 +900,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       frontendAppConfig.gformFrontendBaseUrl + FileUploadController.deleteFile(
         formTemplateId,
         ei.maybeAccessCode,
+        ei.sectionNumber,
         formComponent.id
       )
 
@@ -925,7 +926,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           fileId,
           currentValue,
           noJsButton,
-          deleteUrl
+          deleteUrl,
+          ei.sectionNumber
         )
 
     HtmlFormat.fill(List(fileInput, uploadedFiles))
