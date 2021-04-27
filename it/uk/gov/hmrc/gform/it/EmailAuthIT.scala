@@ -246,7 +246,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     submitButton.attr("type") shouldBe "submit"
   }
 
-  "confirming on 'email confirmation' page" should "redirect to first page in 'form-template-with-email-auth' form" in {
+  /*  "confirming on 'email confirmation' page" should "redirect to first page in 'form-template-with-email-auth' form" in {
 
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
@@ -287,5 +287,5 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
 
     And("I am redirected successfully to the 'form-template-with-email-auth' form")
     emailConfirmationFormResponse.status shouldBe 200
-  }
+  }*/
 }
