@@ -874,7 +874,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         "data-file-id"          -> fileId.value,
         "data-form-template-id" -> formTemplateId.value,
         "data-max-file-size-MB" -> ei.formMaxAttachmentSizeMB.toString,
-        "data-access-code"      -> ei.maybeAccessCode.fold("-")(_.value)
+        "data-access-code"      -> ei.maybeAccessCode.fold("-")(_.value),
+        "data-section-number"   -> ei.sectionNumber.value.toString
       )
     )
 

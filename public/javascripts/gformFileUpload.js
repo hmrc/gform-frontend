@@ -238,6 +238,7 @@
       var formTemplateId = dataset.formTemplateId;
       var accessCode = dataset.accessCode;
       var fileId = dataset.fileId;
+      var sectionNumber = dataset.sectionNumber;
       var maxFileSize = parseInt(
         $input.data("maxFileSizeMB") || window.gform.formMaxAttachmentSizeMB,
         10
@@ -290,7 +291,8 @@
             file.name,
             formTemplateId,
             $input,
-            accessCode
+            accessCode,
+            sectionNumber
           );
         }, onError);
     }
@@ -343,7 +345,8 @@
       name,
       formTemplateId,
       input,
-      accessCode
+      accessCode,
+      sectionNumber
     ) {
       enableSubmitButton();
       input.removeAttr("aria-busy");
@@ -351,14 +354,14 @@
       $("#" + formComponentId + "-files")
         .empty()
         .append(
-          makeFileEntry(name, formComponentId, formTemplateId, accessCode)
+          makeFileEntry(name, formComponentId, formTemplateId, accessCode, sectionNumber)
         )
         .trigger("focus");
     }
 
     // Display the uploaded file name and delete button
-    function makeFileEntry(name, formComponentId, formTemplateId, accessCode) {
-      var deleteUrl = "/submissions/form/delete-file/" + formTemplateId + "/" + accessCode + "/" + formComponentId
+    function makeFileEntry(name, formComponentId, formTemplateId, accessCode, sectionNumber) {
+      var deleteUrl = "/submissions/form/delete-file/" + formTemplateId + "/" + accessCode + "/" + sectionNumber + "/" + formComponentId
       var ariaLabel = name + " " + strings.deleteLabel[lang]
       return $(
           "<span>" +
