@@ -257,13 +257,13 @@ class FileUploadController(
               _ <- fileUploadService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)
               _ <- gformConnector
                      .updateUserData(
-                       FormIdData.fromForm(cache.form, maybeAccessCode),
+                       FormIdData.fromForm(cacheWithFileRemoved.form, maybeAccessCode),
                        UserData(
-                         cache.form.formData,
-                         cache.form.status,
-                         cache.form.visitsIndex,
-                         cache.form.thirdPartyData,
-                         cache.form.componentIdToFileId
+                         cacheWithFileRemoved.form.formData,
+                         cacheWithFileRemoved.form.status,
+                         cacheWithFileRemoved.form.visitsIndex,
+                         cacheWithFileRemoved.form.thirdPartyData,
+                         cacheWithFileRemoved.form.componentIdToFileId
                        )
                      )
             } yield {
