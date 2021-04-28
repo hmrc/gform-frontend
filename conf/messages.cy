@@ -354,6 +354,7 @@ submission.details=Manylion y cyflwyniad
 
 # Save4later
 save4later.saved.title=Cadwyd eich {0}
+save4later.weWillKeepYourAnswersFor=We will keep your answers for {0} days
 save4later.mustSubmit=Er mwyn i ni ystyried eich {0}, bydd angen i chi ei gyflwyno
 save4later.retrieve=Bydd yn rhaid i chi fewngofnodi i’r dudalen fewngofnodi er mwyn adalw eich {0}
 save4later.youCan=Gallwch wneud y canlynol:
@@ -362,6 +363,9 @@ save4later.continue=Yn eich blaen gyda’r {0}
 save4later.infoHeld=Caiff eich gwybodaeth ei dal
 save4later.for30days=am 30 diwrnod
 save4later.until=tan
+save4later.backTo=Back to
+save4later.weSavedYourAnswers=We saved your answers
+save4later.toContinueSignInWithEmail=To continue, sign in again and confirm your email address
 
 # Helper for grammatical order
 helper.order={1} {0}
