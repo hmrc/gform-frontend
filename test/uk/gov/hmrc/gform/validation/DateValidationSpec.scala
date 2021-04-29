@@ -45,15 +45,15 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
 
   private val lookupRegistry = new LookupRegistry(Map.empty)
 
-  implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
-    override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
-  }
+  implicit val smartStringEvaluator: SmartStringEvaluator = (s: SmartString, markDown: Boolean) =>
+    s.rawValue(LangADT.En)
 
   implicit val messages: Messages = Helpers.stubMessages(
     Helpers.stubMessagesApi(
       Map(
         "en" -> Map(
           "date.June"                  -> "June",
+          "date.January"               -> "January",
           "date.after"                 -> "{0} must be after {1}",
           "date.day"                   -> "day",
           "date.month"                 -> "month",
@@ -87,14 +87,13 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
       booleanExprEval
     )
 
-  private def componentsValidator(formComponent: FormComponent, data: VariadicFormData[SourceOrigin.OutOfDate]) = {
-    val section1 = mkSection(List(formComponent))
+  private def componentsValidator(
+    formTemplate: FormTemplate,
+    formComponent: FormComponent,
+    data: VariadicFormData[SourceOrigin.OutOfDate]
+  ) = {
 
-    val sections = List(section1)
-
-    val formTemplate = mkFormTemplate(sections)
-
-    val fmb = mkFormModelFromSections(sections)
+    val fmb = mkFormModelFromSections(formTemplate.sections)
 
     val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 
@@ -232,7 +231,8 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
     )
 
     val obtainedF: Future[ValidatedType[Unit]] =
-      componentsValidator(fieldValue, data).validate(GetEmailCodeFieldMatcher.noop)
+      componentsValidator(mkFormTemplate(mkSection(fieldValue)), fieldValue, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
 
     obtainedF.map { obtained =>
       test(index + ". " + description) {
@@ -346,12 +346,92 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
       )
 
       val obtainedF: Future[ValidatedType[Unit]] =
-        componentsValidator(fieldValue, data).validate(GetEmailCodeFieldMatcher.noop)
+        componentsValidator(mkFormTemplate(mkSection(fieldValue)), fieldValue, data)
+          .validate(GetEmailCodeFieldMatcher.noop)
 
       obtainedF.map { obtained =>
         test(index + ". " + description) {
           assertEquals(obtained, expected)
         }
       }
+  }
+
+  private def mkDateComponentWithConstraint(id: String, dependentId: String) =
+    mkFormComponent(
+      id,
+      Date(
+        DateConstraints(List(DateConstraint(After, DateField(FormComponentId(dependentId)), OffsetDate(0)))),
+        Offset(0),
+        None
+      )
+    )
+
+  val table3: List[(String, FormTemplate, FormComponent, ValidatedType[Unit])] = List(
+    (
+      "validateDate should validate dates in component type group, with dependency on another date in the group", {
+        val startDateFc = mkFormComponent("startDate", Date(AnyDate, Offset(0), None))
+        val endDateFc = mkDateComponentWithConstraint("endDate", startDateFc.id.value)
+        val groupComponent = mkFormComponent("groupFcId", Group(List(startDateFc, endDateFc), Some(1), Some(1)))
+        mkFormTemplate(mkSection(groupComponent))
+      },
+      mkDateComponentWithConstraint("1_endDate", "startDate"),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Indexed(BaseComponentId("endDate"), 1), Atom("day")) -> Set(
+            "Label must be after 01 January 2020"
+          )
+        )
+      )
+    ),
+    (
+      "validateDate should validate dates in repeating pages, with dependency on another date in same iteration", {
+        val startDateFc = mkFormComponent("startDate", Date(AnyDate, Offset(0), None))
+        val endDateFc = mkDateComponentWithConstraint("endDate", startDateFc.id.value)
+        mkFormTemplate(mkRepeatingPageSection(List(startDateFc, endDateFc), Constant("1")))
+      },
+      mkDateComponentWithConstraint("1_endDate", "startDate"),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Indexed(BaseComponentId("endDate"), 1), Atom("day")) -> Set(
+            "Label must be after 01 January 2020"
+          )
+        )
+      )
+    ),
+    (
+      "validateDate should validate dates in add-to-list pages, with dependency on another date in same iteration", {
+        val startDateFc = mkFormComponent("startDate", Date(AnyDate, Offset(0), None))
+        val endDateFc = mkDateComponentWithConstraint("endDate", startDateFc.id.value)
+        mkFormTemplate(mkAddToListSection("Add another date?", List(startDateFc, endDateFc)))
+      },
+      mkDateComponentWithConstraint("1_endDate", "startDate"),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Indexed(BaseComponentId("endDate"), 1), Atom("day")) -> Set(
+            "Label must be after 01 January 2020"
+          )
+        )
+      )
+    )
+  )
+
+  table3.traverse[Future, Unit] { case (description, formTemplate, formComponentToValidate, expected) =>
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "1_startDate-day"   -> "1",
+      "1_startDate-month" -> "1",
+      "1_startDate-year"  -> "2020",
+      "1_endDate-day"     -> "1",
+      "1_endDate-month"   -> "1",
+      "1_endDate-year"    -> "2020"
+    )
+    val validationResultF: Future[ValidatedType[Unit]] =
+      componentsValidator(formTemplate, formComponentToValidate, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+
+    validationResultF.map { validationResult =>
+      test(description) {
+        validationResult shouldBe expected
+      }
+    }
   }
 }

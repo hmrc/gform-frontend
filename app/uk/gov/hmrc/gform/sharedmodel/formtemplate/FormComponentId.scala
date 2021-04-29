@@ -32,7 +32,9 @@ case class FormComponentId(value: String) {
 
   val baseComponentId: BaseComponentId = modelComponentId.baseComponentId
 
-  def withFirstIndex = modelComponentId.expandWithPrefix(1).toFormComponentId
+  def withFirstIndex = withIndex(1)
+
+  def withIndex(index: Int) = modelComponentId.expandWithPrefix(index).toFormComponentId
 
   def toAtomicFormComponentId(atom: Atom): ModelComponentId.Atomic = modelComponentId.toAtomicFormComponentId(atom)
 

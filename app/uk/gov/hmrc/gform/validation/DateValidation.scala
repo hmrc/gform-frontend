@@ -147,8 +147,11 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
     offset: OffsetDate
   ): ValidatedType[Unit] = {
 
+    val dateFieldValue = fieldValue.modelComponentId.indexedComponentId
+      .fold(_ => dateField.value)(indexed => dateField.value.withIndex(indexed.index))
+
     val otherFieldValue = formModelVisibilityOptics.fcLookup.getOrElse(
-      dateField.value,
+      dateFieldValue,
       throw new IllegalArgumentException(s"Cannot find ${dateField.value} in visibility model.")
     )
 
