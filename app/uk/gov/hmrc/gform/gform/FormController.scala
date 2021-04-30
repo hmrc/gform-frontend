@@ -437,7 +437,10 @@ class FormController(
                         sn,
                         sectionTitle4Ga,
                         SuppressErrors(isFirstLanding),
-                        if (isFirstLanding) fastForward.next else fastForward
+                        if (isFirstLanding)
+                          fastForward.next(processData.formModelOptics.formModelVisibilityOptics.formModel)
+                        else
+                          fastForward
                       )
                   )
                 case None =>
