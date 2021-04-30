@@ -94,18 +94,25 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: DateResult => false
   }
 
-  def identical(er: ExpressionResult): Boolean = this match {
-    case t: Invalid     => false
-    case t: Hidden.type => false
-    case t: Empty.type  => er.isEmpty
-    case t: NumberResult =>
+  def identical(er: ExpressionResult): Boolean = (this, er) match {
+    case (t: Invalid, _) =>
+      false
+    case (t: Hidden.type, _) =>
+      false
+    case (t: Empty.type, _) =>
+      er.isEmpty
+    case (t: NumberResult, _) =>
       er.ifNumberResult(_ === t.value) ||
         er.ifStringResult(_ === t.value.toString)
-    case t: StringResult =>
+    case (t: StringResult, _) =>
       er.ifStringResult(_ === t.value) ||
         er.ifNumberResult(_.toString === t.value)
-    case t: OptionResult => er.ifOptionResult(_.toSet.diff(t.value.toSet).isEmpty)
-    case t: DateResult   => false
+    case (t: OptionResult, _: NumberResult) =>
+      er.ifNumberResult(v => t.value.headOption.fold(false)(v === BigDecimal(_)))
+    case (t: OptionResult, _) =>
+      er.ifOptionResult(_.toSet.diff(t.value.toSet).isEmpty)
+    case (t: DateResult, _) =>
+      false
   }
 
   def >(er: ExpressionResult): Boolean = this match {
