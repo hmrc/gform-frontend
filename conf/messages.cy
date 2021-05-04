@@ -363,7 +363,7 @@ save4later.continue=Yn eich blaen gyda’r {0}
 save4later.infoHeld=Caiff eich gwybodaeth ei dal
 save4later.for30days=am 30 diwrnod
 save4later.until=tan
-save4later.backTo=Back to
+save4later.backTo=Yn ôl i
 save4later.weSavedYourAnswers=Gwnaethom gadw’ch atebion
 save4later.toContinueSignInWithEmail=I fynd yn eich blaen, mewngofnodwch eto a chadarnhewch eich cyfeiriad e-bost
 
