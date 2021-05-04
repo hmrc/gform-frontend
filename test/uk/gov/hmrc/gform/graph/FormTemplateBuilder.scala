@@ -38,15 +38,29 @@ object FormTemplateBuilder {
       None
     )
 
-  private def page(formComponents: List[FormComponent]): Page[Basic] = Page(
+  def page(formComponents: List[FormComponent], includeIf: Option[IncludeIf] = None): Page[Basic] = Page(
     toSmartString("Section Name"),
     None,
     None,
     None,
-    None,
+    includeIf,
     None,
     formComponents,
     None,
+    None,
+    None,
+    None
+  )
+
+  def mkAddToListSection(pages: Page[Basic]*): Section.AddToList = Section.AddToList(
+    toSmartString("Pet owner title"),
+    toSmartString("Pet owner description"),
+    toSmartString("Pet owner shortName"),
+    toSmartString("Pet owner summaryName"),
+    None,
+    None,
+    NonEmptyList.fromListUnsafe(pages.toList),
+    addToListQuestion("addToListQuestion"),
     None,
     None,
     None
@@ -60,7 +74,7 @@ object FormTemplateBuilder {
       toSmartString("Pet owner summaryName"),
       None,
       None,
-      NonEmptyList.fromListUnsafe(formComponents.toList.map(page)),
+      NonEmptyList.fromListUnsafe(formComponents.toList.map(fc => page(fc))),
       addToListQuestion(addAnotherQuestionName),
       None,
       None,

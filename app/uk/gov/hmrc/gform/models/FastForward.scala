@@ -17,12 +17,18 @@
 package uk.gov.hmrc.gform.models
 
 import cats.Eq
+import uk.gov.hmrc.gform.models.FastForward.StopAt
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
 sealed trait FastForward extends Product with Serializable {
   def asString: String = fold(_ => FastForward.ffYes)(_.stopAt.value.toString)
 
-  def next: FastForward = fold[FastForward](identity)(st => FastForward.StopAt(st.stopAt + 1))
+  def next(formModel: FormModel[Visibility]): FastForward = fold[FastForward](identity) { st =>
+    formModel.availableSectionNumbers
+      .find(_ >= st.stopAt)
+      .map(availableSectionNumber => StopAt(availableSectionNumber.increment))
+      .getOrElse(st)
+  }
 
   def goOn(sectionNumber: SectionNumber): Boolean = fold(_ => true)(_.stopAt > sectionNumber)
 
