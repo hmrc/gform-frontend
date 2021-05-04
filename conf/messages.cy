@@ -29,7 +29,7 @@ linkText.removeRepeatedGroup=Dileu {0}
 linkText.addRepeatingGroup=Ychwanegwch un arall
 linkText.signOut=Allgofnodi
 linkText.signBackIn=Mewngofnodi eto
-linkText.signInWithEmailAgain=Sign in with your email again
+linkText.signInWithEmailAgain=Mewngofnodwch eto gyda’ch cyfeiriad e-bost
 
 button.continue=Yn eich blaen
 button.saveAndContinue=Cadw ac yn eich blaen
@@ -354,7 +354,7 @@ submission.details=Manylion y cyflwyniad
 
 # Save4later
 save4later.saved.title=Cadwyd eich {0}
-save4later.weWillKeepYourAnswersFor=We will keep your answers for {0} days
+save4later.weWillKeepYourAnswersFor=Byddwn yn cadw’ch atebion am {0} o ddiwrnodau
 save4later.mustSubmit=Er mwyn i ni ystyried eich {0}, bydd angen i chi ei gyflwyno
 save4later.retrieve=Bydd yn rhaid i chi fewngofnodi i’r dudalen fewngofnodi er mwyn adalw eich {0}
 save4later.youCan=Gallwch wneud y canlynol:
@@ -364,8 +364,8 @@ save4later.infoHeld=Caiff eich gwybodaeth ei dal
 save4later.for30days=am 30 diwrnod
 save4later.until=tan
 save4later.backTo=Back to
-save4later.weSavedYourAnswers=We saved your answers
-save4later.toContinueSignInWithEmail=To continue, sign in again and confirm your email address
+save4later.weSavedYourAnswers=Gwnaethom gadw’ch atebion
+save4later.toContinueSignInWithEmail=I fynd yn eich blaen, mewngofnodwch eto a chadarnhewch eich cyfeiriad e-bost
 
 # Helper for grammatical order
 helper.order={1} {0}
@@ -446,4 +446,4 @@ this.section.is=Teitl yr adran hon yw
 # Lookup Select component
 lookup.select.default.option.text=Dewiswch a
 
-signOut.toContinueSignBackInWithEmail=To continue sign back in with your email
+signOut.toContinueSignBackInWithEmail=I fynd yn eich blaen, mewngofnodwch eto gyda’ch cyfeiriad e-bost
