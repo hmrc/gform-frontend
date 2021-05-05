@@ -27,7 +27,7 @@
   frontendAppConfig: FrontendAppConfig
 )(implicit request: Request[_], messages: Messages, l: LangADT)
 
-@heading = @{ messages("save4later.saved.title", messages("formCategory.form")) }
+@heading = @{ messages("save4later.weSavedYourAnswers") }
 
 @uk.gov.hmrc.gform.views.html.main_template(
    title = heading,
@@ -45,11 +45,7 @@
     <h1 class="govuk-heading-l">@heading</h1>
 </header>
 
-<p class="govuk-body">@messages("save4later.saved.title", messages("formCategory.form")). @messages("save4later.hasNotBeenSubmitted")</p>
-
-<p class="govuk-body">@messages("save4later.toContinueForm", emailId.value)</p>
-
-<p class="govuk-body">@messages("save4later.youWillBeAskedIf")</p>
+<p class="govuk-body">@messages("save4later.toContinueSignInWithEmail") <strong>@{emailId.value}</strong></p>
 
 <p class="govuk-body">@messages("save4later.weWillKeepYourAnswersFor", "28")</p>
 
