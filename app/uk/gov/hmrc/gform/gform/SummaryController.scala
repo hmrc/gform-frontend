@@ -74,7 +74,7 @@ class SummaryController(
       maybeAccessCode,
       OperationWithForm.AcceptSummary
     ) { implicit request: Request[AnyContent] => implicit l => cache => implicit sse => formModelOptics =>
-      processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
+      processResponseDataFromBody(request, None, formModelOptics.formModelRenderPageOptics) {
         requestRelatedData => variadicFormData =>
           val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 

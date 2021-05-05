@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber }
 import uk.gov.hmrc.gform.ops.FormComponentOps
 
 import scala.concurrent.Future
@@ -41,8 +41,13 @@ object FormDataHelpers {
 
   def processResponseDataFromBody(
     request: Request[AnyContent],
+    sectionNumber: Option[SectionNumber],
     formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo]
-  )(continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => Future[Result]): Future[Result] =
+  )(
+    continuation: RequestRelatedData => VariadicFormData[
+      SourceOrigin.OutOfDate
+    ] => Future[Result]
+  ): Future[Result] =
     request.body.asFormUrlEncoded
       .map(_.map { case (field, values) =>
         (
@@ -66,9 +71,11 @@ object FormDataHelpers {
         )
       }) match {
       case Some(requestData) =>
-        val (variadicFormData, requestRelatedData) =
-          buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, requestData)
-        continuation(requestRelatedData)(formModelRenderPageOptics.recData.variadicFormData ++ variadicFormData)
+        val (variadicFormData, idsToRemove, requestRelatedData) =
+          buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, requestData, sectionNumber)
+        continuation(requestRelatedData)(
+          formModelRenderPageOptics.recData.variadicFormData ++ variadicFormData -- idsToRemove
+        )
       case None =>
         Future.successful(BadRequest("Cannot parse body as FormUrlEncoded"))
     }
@@ -93,8 +100,9 @@ object FormDataHelpers {
 
   private def buildVariadicFormDataFromBrowserPostData(
     formModel: FormModel[DataExpanded],
-    requestData: Map[String, Seq[String]]
-  ): (VariadicFormData[SourceOrigin.OutOfDate], RequestRelatedData) = {
+    requestData: Map[String, Seq[String]],
+    maybeSectionNumber: Option[SectionNumber]
+  ): (VariadicFormData[SourceOrigin.OutOfDate], Seq[ModelComponentId], RequestRelatedData) = {
 
     val upperCaseIds: Set[ModelComponentId] = formModel.allUpperCaseIds
     val variadicFormComponentIds: Set[ModelComponentId] = formModel.allModelComponentIds
@@ -138,14 +146,39 @@ object FormDataHelpers {
         }
     }
 
-    xs.foldLeft((VariadicFormData.empty[SourceOrigin.OutOfDate], RequestRelatedData.empty)) {
-      case ((variadicFormDataAcc, requestRelatedDataAcc), (maybeVar, maybeReq)) =>
-        (
-          maybeVar.fold(variadicFormDataAcc)(variadicFormDataAcc.addValue),
-          maybeReq.fold(requestRelatedDataAcc)(requestRelatedDataAcc + _)
-        )
-    }
+    val (variadicFormData, requestRelatedData) =
+      xs.foldLeft((VariadicFormData.empty[SourceOrigin.OutOfDate], RequestRelatedData.empty)) {
+        case ((variadicFormDataAcc, requestRelatedDataAcc), (maybeVar, maybeReq)) =>
+          (
+            maybeVar.fold(variadicFormDataAcc)(variadicFormDataAcc.addValue),
+            maybeReq.fold(requestRelatedDataAcc)(requestRelatedDataAcc + _)
+          )
+      }
+
+    (
+      variadicFormData,
+      missingChoiceFieldIds(maybeSectionNumber, formModel, requestData),
+      requestRelatedData
+    )
   }
+  /*
+   * Checkbox fields are not sent from the browser in the POST body, if none of values is
+   * selected. To ensure that mandatory validation is applied and error shown, we must remove the
+   * respective fields from the persistent form data
+   */
+  private def missingChoiceFieldIds(
+    maybeSectionNumber: Option[SectionNumber],
+    formModel: FormModel[DataExpanded],
+    requestData: Map[String, Seq[String]]
+  ) =
+    maybeSectionNumber.fold(Seq.empty[ModelComponentId]) { sectionNumber =>
+      formModel(sectionNumber).allFormComponents.collect {
+        case f @ IsChoice(_) if f.mandatory && !requestData.contains(f.id.value) =>
+          f.modelComponentId
+        case f @ IsRevealingChoice(_) if f.mandatory && !requestData.contains(f.id.value) =>
+          f.modelComponentId
+      }
+    }
 
   private def removeCurrencySymbolIfNumericType(
     value: String,
