@@ -84,7 +84,7 @@ class FormDataHelpersSpec extends Spec {
       }
 
     val future = FormDataHelpers
-      .processResponseDataFromBody(request, None, FormModelRenderPageOptics(formModel, RecData.empty))(
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
         continuationFunction
       )
     future.futureValue shouldBe Results.Ok
@@ -106,7 +106,7 @@ class FormDataHelpersSpec extends Spec {
       }
 
     val future = FormDataHelpers
-      .processResponseDataFromBody(request, None, FormModelRenderPageOptics(formModel, RecData.empty))(
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
         continuationFunction
       )
     future.futureValue shouldBe Results.Ok
@@ -127,7 +127,7 @@ class FormDataHelpersSpec extends Spec {
       }
 
     val future = FormDataHelpers
-      .processResponseDataFromBody(request, None, FormModelRenderPageOptics(formModel, RecData.empty))(
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
         continuationFunction
       )
     future.futureValue shouldBe Results.Ok
@@ -195,11 +195,11 @@ class FormDataHelpersSpec extends Spec {
     val future = FormDataHelpers
       .processResponseDataFromBody(
         request,
-        Some(SectionNumber(0)),
         FormModelRenderPageOptics(
           formModel,
           persistedData
-        )
+        ),
+        Some(SectionNumber(0))
       )(
         continuationFunction
       )

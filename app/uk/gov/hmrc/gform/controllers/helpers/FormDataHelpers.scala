@@ -26,7 +26,7 @@ import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
 import uk.gov.hmrc.gform.controllers.helpers.InvisibleCharsHelper._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics }
-import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel }
+import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel, PageModel }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
@@ -41,8 +41,8 @@ object FormDataHelpers {
 
   def processResponseDataFromBody(
     request: Request[AnyContent],
-    sectionNumber: Option[SectionNumber],
-    formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo]
+    formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo],
+    maybeSectionNumber: Option[SectionNumber] = None
   )(
     continuation: RequestRelatedData => VariadicFormData[
       SourceOrigin.OutOfDate
@@ -74,11 +74,11 @@ object FormDataHelpers {
         val (variadicFormData, requestRelatedData) =
           buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, requestData)
         continuation(requestRelatedData)(
-          formModelRenderPageOptics.recData.variadicFormData ++ variadicFormData -- unselectedChoiceElements(
-            sectionNumber,
-            formModelRenderPageOptics.formModel,
-            requestData
-          )
+          formModelRenderPageOptics.recData.variadicFormData ++
+            variadicFormData --
+            maybeSectionNumber.toSeq.flatMap(s =>
+              unselectedChoiceElements(formModelRenderPageOptics.formModel(s), requestData)
+            )
         )
       case None =>
         Future.successful(BadRequest("Cannot parse body as FormUrlEncoded"))
@@ -163,18 +163,15 @@ object FormDataHelpers {
    * identify and remove them
    */
   private def unselectedChoiceElements(
-    maybeSectionNumber: Option[SectionNumber],
-    formModel: FormModel[DataExpanded],
+    pageModel: PageModel[DataExpanded],
     requestData: Map[String, Seq[String]]
   ): Seq[ModelComponentId] =
-    maybeSectionNumber.fold(Seq.empty[ModelComponentId]) { sectionNumber =>
-      formModel(sectionNumber).allFormComponents.collect {
-        case f @ IsChoice(_) if !requestData.contains(f.id.value) =>
-          Set(f.modelComponentId)
-        case f @ IsRevealingChoice(revealingChoice) if !requestData.contains(f.id.value) =>
-          revealingChoice.options.flatMap(_.revealingFields).map(_.modelComponentId).toSet + f.modelComponentId
-      }.flatten
-    }
+    pageModel.allFormComponents.collect {
+      case f @ IsChoice(_) if !requestData.contains(f.id.value) =>
+        Set(f.modelComponentId)
+      case f @ IsRevealingChoice(revealingChoice) if !requestData.contains(f.id.value) =>
+        revealingChoice.options.flatMap(_.revealingFields).map(_.modelComponentId).toSet + f.modelComponentId
+    }.flatten
 
   private def removeCurrencySymbolIfNumericType(
     value: String,
