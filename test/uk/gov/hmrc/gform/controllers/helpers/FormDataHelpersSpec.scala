@@ -176,9 +176,6 @@ class FormDataHelpersSpec extends Spec {
           Map(
             purePure("formField1") -> VariadicValue.One(
               "value1"
-            ),
-            purePure("revealingChoiceField1") -> VariadicValue.One(
-              "revealingChoiceFieldValue1"
             )
           )
         )

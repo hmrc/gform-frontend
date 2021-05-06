@@ -71,10 +71,14 @@ object FormDataHelpers {
         )
       }) match {
       case Some(requestData) =>
-        val (variadicFormData, idsToRemove, requestRelatedData) =
-          buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, requestData, sectionNumber)
+        val (variadicFormData, requestRelatedData) =
+          buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, requestData)
         continuation(requestRelatedData)(
-          formModelRenderPageOptics.recData.variadicFormData ++ variadicFormData -- idsToRemove
+          formModelRenderPageOptics.recData.variadicFormData ++ variadicFormData -- unselectedChoiceElements(
+            sectionNumber,
+            formModelRenderPageOptics.formModel,
+            requestData
+          )
         )
       case None =>
         Future.successful(BadRequest("Cannot parse body as FormUrlEncoded"))
@@ -100,9 +104,8 @@ object FormDataHelpers {
 
   private def buildVariadicFormDataFromBrowserPostData(
     formModel: FormModel[DataExpanded],
-    requestData: Map[String, Seq[String]],
-    maybeSectionNumber: Option[SectionNumber]
-  ): (VariadicFormData[SourceOrigin.OutOfDate], Seq[ModelComponentId], RequestRelatedData) = {
+    requestData: Map[String, Seq[String]]
+  ): (VariadicFormData[SourceOrigin.OutOfDate], RequestRelatedData) = {
 
     val upperCaseIds: Set[ModelComponentId] = formModel.allUpperCaseIds
     val variadicFormComponentIds: Set[ModelComponentId] = formModel.allModelComponentIds
@@ -146,38 +149,31 @@ object FormDataHelpers {
         }
     }
 
-    val (variadicFormData, requestRelatedData) =
-      xs.foldLeft((VariadicFormData.empty[SourceOrigin.OutOfDate], RequestRelatedData.empty)) {
-        case ((variadicFormDataAcc, requestRelatedDataAcc), (maybeVar, maybeReq)) =>
-          (
-            maybeVar.fold(variadicFormDataAcc)(variadicFormDataAcc.addValue),
-            maybeReq.fold(requestRelatedDataAcc)(requestRelatedDataAcc + _)
-          )
-      }
-
-    (
-      variadicFormData,
-      missingChoiceFieldIds(maybeSectionNumber, formModel, requestData),
-      requestRelatedData
-    )
+    xs.foldLeft((VariadicFormData.empty[SourceOrigin.OutOfDate], RequestRelatedData.empty)) {
+      case ((variadicFormDataAcc, requestRelatedDataAcc), (maybeVar, maybeReq)) =>
+        (
+          maybeVar.fold(variadicFormDataAcc)(variadicFormDataAcc.addValue),
+          maybeReq.fold(requestRelatedDataAcc)(requestRelatedDataAcc + _)
+        )
+    }
   }
   /*
-   * Checkbox fields are not sent from the browser in the POST body, if none of values is
-   * selected. To ensure that mandatory validation is applied and error shown, we must remove the
-   * respective fields from the persistent form data
+   * Choice and RevealingChoice fields are not sent from the browser in the POST body, if value is not
+   * selected. To ensure form data persisted in mongo is up-to-date, we need to
+   * identify and remove them
    */
-  private def missingChoiceFieldIds(
+  private def unselectedChoiceElements(
     maybeSectionNumber: Option[SectionNumber],
     formModel: FormModel[DataExpanded],
     requestData: Map[String, Seq[String]]
-  ) =
+  ): Seq[ModelComponentId] =
     maybeSectionNumber.fold(Seq.empty[ModelComponentId]) { sectionNumber =>
       formModel(sectionNumber).allFormComponents.collect {
-        case f @ IsChoice(_) if f.mandatory && !requestData.contains(f.id.value) =>
-          f.modelComponentId
-        case f @ IsRevealingChoice(_) if f.mandatory && !requestData.contains(f.id.value) =>
-          f.modelComponentId
-      }
+        case f @ IsChoice(_) if !requestData.contains(f.id.value) =>
+          Set(f.modelComponentId)
+        case f @ IsRevealingChoice(revealingChoice) if !requestData.contains(f.id.value) =>
+          revealingChoice.options.flatMap(_.revealingFields).map(_.modelComponentId).toSet + f.modelComponentId
+      }.flatten
     }
 
   private def removeCurrencySymbolIfNumericType(
