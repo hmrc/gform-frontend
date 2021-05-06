@@ -26,11 +26,11 @@ import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
 import uk.gov.hmrc.gform.controllers.helpers.InvisibleCharsHelper._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics }
-import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel }
+import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel, PageModel }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber }
 import uk.gov.hmrc.gform.ops.FormComponentOps
 
 import scala.concurrent.Future
@@ -41,8 +41,13 @@ object FormDataHelpers {
 
   def processResponseDataFromBody(
     request: Request[AnyContent],
-    formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo]
-  )(continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => Future[Result]): Future[Result] =
+    formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo],
+    maybeSectionNumber: Option[SectionNumber] = None
+  )(
+    continuation: RequestRelatedData => VariadicFormData[
+      SourceOrigin.OutOfDate
+    ] => Future[Result]
+  ): Future[Result] =
     request.body.asFormUrlEncoded
       .map(_.map { case (field, values) =>
         (
@@ -68,7 +73,13 @@ object FormDataHelpers {
       case Some(requestData) =>
         val (variadicFormData, requestRelatedData) =
           buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, requestData)
-        continuation(requestRelatedData)(formModelRenderPageOptics.recData.variadicFormData ++ variadicFormData)
+        continuation(requestRelatedData)(
+          formModelRenderPageOptics.recData.variadicFormData ++
+            variadicFormData --
+            maybeSectionNumber.toSeq.flatMap(s =>
+              unselectedChoiceElements(formModelRenderPageOptics.formModel(s), requestData)
+            )
+        )
       case None =>
         Future.successful(BadRequest("Cannot parse body as FormUrlEncoded"))
     }
@@ -146,6 +157,21 @@ object FormDataHelpers {
         )
     }
   }
+  /*
+   * Choice and RevealingChoice fields are not sent from the browser in the POST body, if value is not
+   * selected. To ensure form data persisted in mongo is up-to-date, we need to
+   * identify and remove them
+   */
+  private def unselectedChoiceElements(
+    pageModel: PageModel[DataExpanded],
+    requestData: Map[String, Seq[String]]
+  ): Seq[ModelComponentId] =
+    pageModel.allFormComponents.collect {
+      case f @ IsChoice(_) if !requestData.contains(f.id.value) =>
+        Set(f.modelComponentId)
+      case f @ IsRevealingChoice(revealingChoice) if !requestData.contains(f.id.value) =>
+        revealingChoice.options.flatMap(_.revealingFields).map(_.modelComponentId).toSet + f.modelComponentId
+    }.flatten
 
   private def removeCurrencySymbolIfNumericType(
     value: String,

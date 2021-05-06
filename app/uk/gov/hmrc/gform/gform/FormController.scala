@@ -409,7 +409,7 @@ class FormController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
+        processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics, Some(browserSectionNumber)) {
           requestRelatedData => variadicFormData =>
             val sectionNumber: SectionNumber =
               formModelOptics.formModelVisibilityOptics.formModel.visibleSectionNumber(browserSectionNumber)

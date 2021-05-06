@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.controllers.helpers
 import cats.data.NonEmptyList
 import play.api.mvc.{ AnyContentAsFormUrlEncoded, Results }
 import play.api.test.FakeRequest
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
@@ -30,7 +31,7 @@ import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded, FormModel, Singleton }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponentId, FormTemplateId, Page, RoundingMode, SectionNumber, Sterling, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponentId, FormTemplateId, Horizontal, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SectionNumber, Sterling, Text, Value }
 
 import scala.concurrent.Future
 
@@ -76,14 +77,16 @@ class FormDataHelpersSpec extends Spec {
         requestRelatedData shouldBe RequestRelatedData(Map("actionField" -> List("save")))
         variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
           Map(
-            ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("formField1"))) -> VariadicValue.One("value1")
+            purePure("formField1") -> VariadicValue.One("value1")
           )
         )
         Future.successful(Results.Ok)
       }
 
     val future = FormDataHelpers
-      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(continuationFunction)
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
+        continuationFunction
+      )
     future.futureValue shouldBe Results.Ok
   }
 
@@ -96,14 +99,16 @@ class FormDataHelpersSpec extends Spec {
       (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
         variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
           Map(
-            ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("amountField"))) -> VariadicValue.One("111")
+            purePure("amountField") -> VariadicValue.One("111")
           )
         )
         Future.successful(Results.Ok)
       }
 
     val future = FormDataHelpers
-      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(continuationFunction)
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
+        continuationFunction
+      )
     future.futureValue shouldBe Results.Ok
   }
 
@@ -115,16 +120,89 @@ class FormDataHelpersSpec extends Spec {
       (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
         variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
           Map(
-            ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("formField1"))) -> VariadicValue.One(
-              "value1\n23"
-            )
+            purePure("formField1") -> VariadicValue.One("value1\n23")
           )
         )
         Future.successful(Results.Ok)
       }
 
     val future = FormDataHelpers
-      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(continuationFunction)
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
+        continuationFunction
+      )
+    future.futureValue shouldBe Results.Ok
+  }
+
+  it should "remove choice(Choice, RevealingChoice) fields from VariadicFormData, if missing in request" in new TestFixture {
+
+    override lazy val fields = List(
+      mkFormComponent("formField1", Value),
+      mkFormComponent(
+        "choice1",
+        Choice(
+          Checkbox,
+          NonEmptyList.of(toSmartString("Label1"), toSmartString("Label2")),
+          Horizontal,
+          List.empty,
+          None,
+          None
+        )
+      ),
+      mkFormComponent(
+        "revealingChoice1",
+        RevealingChoice(
+          List(
+            RevealingChoiceElement(
+              toSmartString("Label1"),
+              List(mkFormComponent("revealingChoiceField1", Value)),
+              None,
+              false
+            ),
+            RevealingChoiceElement(
+              toSmartString("Label2"),
+              List(mkFormComponent("revealingChoiceField2", Value)),
+              None,
+              false
+            )
+          ),
+          true
+        )
+      )
+    )
+
+    val continuationFunction = (requestRelatedData: RequestRelatedData) =>
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
+        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+          Map(
+            purePure("formField1") -> VariadicValue.One(
+              "value1"
+            )
+          )
+        )
+        Future.successful(Results.Ok)
+      }
+
+    val persistedData: RecData[SourceOrigin.Current] = RecData.fromData(
+      VariadicFormData[SourceOrigin.Current](
+        Map(
+          purePure("formField1")            -> VariadicValue.One("value1"),
+          purePure("choice1")               -> VariadicValue.Many(Seq("0", "1")),
+          purePure("revealingChoice1")      -> VariadicValue.Many(Seq("0")),
+          purePure("revealingChoiceField1") -> VariadicValue.One("revealingChoiceFieldValue1")
+        )
+      )
+    )
+    val future = FormDataHelpers
+      .processResponseDataFromBody(
+        request,
+        FormModelRenderPageOptics(
+          formModel,
+          persistedData
+        ),
+        Some(SectionNumber(0))
+      )(
+        continuationFunction
+      )
     future.futureValue shouldBe Results.Ok
   }
 
@@ -150,4 +228,6 @@ class FormDataHelpersSpec extends Spec {
     lazy val request = FakeRequest().withBody(AnyContentAsFormUrlEncoded(requestBodyParams))
   }
 
+  private def purePure(fieldId: String) =
+    ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId(fieldId)))
 }
