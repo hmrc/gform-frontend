@@ -19,15 +19,23 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.Eq
 import julienrf.json.derived
 import play.api.libs.json._
+import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 
 sealed trait Expr extends Product with Serializable {
-  def leafs: List[Expr] = this match {
-    case Add(field1: Expr, field2: Expr)            => field1.leafs ++ field2.leafs
-    case Multiply(field1: Expr, field2: Expr)       => field1.leafs ++ field2.leafs
-    case Subtraction(field1: Expr, field2: Expr)    => field1.leafs ++ field2.leafs
-    case Else(field1: Expr, field2: Expr)           => field1.leafs ++ field2.leafs
-    case FormCtx(formComponentId: FormComponentId)  => this :: Nil
-    case Sum(field1: Expr)                          => field1.leafs
+  def leafs[T <: PageMode](formModel: FormModel[T]): List[Expr] = this match {
+    case Add(field1: Expr, field2: Expr)           => field1.leafs(formModel) ++ field2.leafs(formModel)
+    case Multiply(field1: Expr, field2: Expr)      => field1.leafs(formModel) ++ field2.leafs(formModel)
+    case Subtraction(field1: Expr, field2: Expr)   => field1.leafs(formModel) ++ field2.leafs(formModel)
+    case Else(field1: Expr, field2: Expr)          => field1.leafs(formModel) ++ field2.leafs(formModel)
+    case FormCtx(formComponentId: FormComponentId) => this :: Nil
+    case Sum(field1: Expr) =>
+      field1 match {
+        case FormCtx(formComponentId) =>
+          formModel.allFormComponents.collect {
+            case fc if fc.baseComponentId == formComponentId.baseComponentId => FormCtx(fc.id)
+          }
+        case _ => field1.leafs(formModel)
+      }
     case Count(formComponentId: FormComponentId)    => FormCtx(formComponentId.withFirstIndex) :: Nil
     case AuthCtx(value: AuthInfo)                   => this :: Nil
     case UserCtx(value: UserField)                  => this :: Nil

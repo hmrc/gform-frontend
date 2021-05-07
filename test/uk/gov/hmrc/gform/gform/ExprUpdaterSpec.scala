@@ -17,13 +17,19 @@
 package uk.gov.hmrc.gform.gform
 
 import munit.ScalaCheckSuite
-import org.scalacheck.{ Arbitrary, Gen, Shrink }
 import org.scalacheck.Prop._
+import org.scalacheck.{ Arbitrary, Gen, Shrink }
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkSection }
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId, FormCtx }
+import uk.gov.hmrc.gform.models.{ FormModelSupport, Interim, SectionSelectorType, VariadicFormDataSupport }
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.ExprGen
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId, FormCtx, Value }
 
-class ExprUpdaterSpec extends ScalaCheckSuite {
+class ExprUpdaterSpec extends ScalaCheckSuite with FormModelSupport with VariadicFormDataSupport {
+
+  val formModel = mkFormModelFromSections(List(mkSection(mkFormComponent("a", Value))))
+    .expand[Interim, SectionSelectorType.Normal](VariadicFormData.empty)
 
   implicit val noShrink: Shrink[Int] = Shrink.shrinkAny
 
@@ -34,7 +40,7 @@ class ExprUpdaterSpec extends ScalaCheckSuite {
     super.scalaCheckTestParameters
       .withMinSuccessfulTests(2000)
 
-  private def fetchBaseIds(expr: Expr) = expr.leafs.collect { case FormCtx(fcId) =>
+  private def fetchBaseIds(expr: Expr) = expr.leafs(formModel).collect { case FormCtx(fcId) =>
     fcId
   }
 
