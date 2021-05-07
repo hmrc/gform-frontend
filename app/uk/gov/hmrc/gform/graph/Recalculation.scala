@@ -55,8 +55,6 @@ class Recalculation[F[_]: Monad, E](
   val error: GraphException => E
 ) {
 
-  type Context = StateT[F, RecalculationState, EvaluationResults]
-
   def recalculateFormDataNew(
     data: VariadicFormData[SourceOrigin.OutOfDate],
     formModel: FormModel[Interim],
@@ -76,7 +74,7 @@ class Recalculation[F[_]: Monad, E](
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
-    val contextE: Context = StateT[F, RecalculationState, EvaluationResults](s => (s, EvaluationResults.empty).pure[F])
+    val startState = StateT[F, RecalculationState, EvaluationResults](s => (s, EvaluationResults.empty).pure[F])
 
     val res: Either[GraphException, StateT[
       F,
@@ -86,9 +84,8 @@ class Recalculation[F[_]: Monad, E](
       for {
         graphTopologicalOrder <- orderedGraph
       } yield {
-        val recalc: Context = graphTopologicalOrder.toList.reverse.foldLeft(contextE) {
-          case (context, (_, graphLayer)) =>
-            recalculateGraphLayer(graphLayer, context, retrievals, RecData.fromData(data), evaluationContext)
+        val recalc = graphTopologicalOrder.toList.reverse.foldLeft(startState) { case (state, (_, graphLayer)) =>
+          recalculateGraphLayer(graphLayer, state, retrievals, RecData.fromData(data), evaluationContext)
         }
 
         recalc.map { evResult =>
@@ -116,12 +113,12 @@ class Recalculation[F[_]: Monad, E](
 
   private def recalculateGraphLayer(
     graphLayer: List[GraphNode],
-    context: Context,
+    state: StateT[F, RecalculationState, EvaluationResults],
     retrievals: MaterialisedRetrievals,
     recData: RecData[OutOfDate],
     evaluationContext: EvaluationContext
-  )(implicit formModel: FormModel[Interim]): Context =
-    context.flatMap { evResult =>
+  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
+    state.flatMap { evResult =>
       graphLayer.foldMapM {
 
         case GraphNode.Simple(fcId) =>

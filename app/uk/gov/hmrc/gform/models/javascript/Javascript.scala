@@ -41,9 +41,12 @@ object Javascript {
         val maybeExpr: Option[Expr] = HasValueExpr.unapply(formComponent)
         maybeExpr
           .map { expr =>
-            val leafs: Set[BaseComponentId] = expr.leafs.collect { case FormCtx(fcId) =>
-              fcId.baseComponentId
-            }.toSet
+            val leafs: Set[BaseComponentId] = expr
+              .leafs(formModelOptics.formModelRenderPageOptics.formModel)
+              .collect { case FormCtx(fcId) =>
+                fcId.baseComponentId
+              }
+              .toSet
             val modelComponentIds =
               pageModel.allModelComponentIds.filter(modelComponentId => leafs(modelComponentId.baseComponentId))
 

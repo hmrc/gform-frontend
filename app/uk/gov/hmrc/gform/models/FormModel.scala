@@ -138,7 +138,7 @@ case class FormModel[A <: PageMode](
 
   def toFirstOperandTypeInfo(expr: Expr): TypeInfo = {
     def illegal = TypeInfo.illegal(expr)
-    val first: Option[Expr] = expr.leafs.headOption
+    val first: Option[Expr] = expr.leafs(this).headOption
     first.fold(illegal) {
       case FormCtx(formComponentId) => explicitTypedExpr(expr, formComponentId)
       case DateCtx(_)               => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))

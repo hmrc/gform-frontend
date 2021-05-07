@@ -83,7 +83,7 @@ case class EvaluationResults(
   // Sum field may be hidden by AddToList or by Revealing choice
   private def isSumHidden(modelComponentId: ModelComponentId): Boolean = {
     val expr = FormCtx(modelComponentId.toFormComponentId)
-    exprMap.get(expr).fold(false)(_ === Hidden)
+    exprMap.get(expr).fold(true)(_ === Hidden)
   }
 
   private def calculateSum(

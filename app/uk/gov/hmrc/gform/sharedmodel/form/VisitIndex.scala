@@ -31,17 +31,16 @@ case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {
 object VisitIndex {
 
   def updateSectionVisits(
-    formModel: FormModel[DataExpanded],
+    browserFormModel: FormModel[DataExpanded],
     mongoFormModel: FormModel[DataExpanded],
     visitsIndex: VisitIndex
   ): Set[Int] =
     visitsIndex.visitsIndex
       .map { index =>
-        Try(mongoFormModel(index)).toOption.fold(-1) { page =>
-          page.allFormComponents.headOption.fold(-1) { mongoHead =>
-            val firstComponentId = mongoHead.id
-            formModel.pages.indexWhere { pageModel =>
-              pageModel.allFormComponents.headOption.fold(false)(_.id === firstComponentId)
+        Try(mongoFormModel(index)).toOption.fold(-1) { mongoPageModel =>
+          mongoPageModel.allFormComponents.headOption.fold(-1) { mongoPageModelFirstFc =>
+            browserFormModel.pages.indexWhere { browserPageModel =>
+              browserPageModel.allFormComponents.headOption.fold(false)(_.id === mongoPageModelFirstFc.id)
             }
           }
         }
