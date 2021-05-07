@@ -144,6 +144,8 @@ object FormModelBuilder {
         VariadicFormData.many[SourceOrigin.Current](modelComponentId, value.map(_.toString))
       case d @ ExpressionResult.DateResult(_) =>
         VariadicFormData.one[SourceOrigin.Current](modelComponentId, d.asString)
+      case d @ ExpressionResult.AddressResult(_) =>
+        VariadicFormData.empty[SourceOrigin.Current]
     }
 
 }
@@ -177,7 +179,8 @@ class FormModelBuilder[E, F[_]: Functor](
         hc,
         formPhase,
         FileIdsWithMapping(formModel.allFileIds, componentIdToFileId),
-        formModel.dateLookup
+        formModel.dateLookup,
+        formModel.addressLookup
       )
 
     recalculation

@@ -80,6 +80,13 @@ case class EvaluationResults(
     }
   }
 
+  private def whenVisible(formComponentId: FormComponentId)(body: => ExpressionResult) = {
+    val isHidden = exprMap.get(FormCtx(formComponentId)).fold(false)(_ === Hidden)
+    if (isHidden) {
+      ExpressionResult.Hidden
+    } else body
+  }
+
   // Sum field may be hidden by AddToList or by Revealing choice
   private def isSumHidden(modelComponentId: ModelComponentId): Boolean = {
     val expr = FormCtx(modelComponentId.toFormComponentId)
@@ -153,6 +160,7 @@ case class EvaluationResults(
       case ParamCtx(_)                                => unsupportedOperation("Number")(expr)
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
       case DateCtx(_)                                 => unsupportedOperation("Number")(expr)
+      case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -177,6 +185,17 @@ case class EvaluationResults(
       case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
       case Subtraction(field1: Expr, field2: Expr) => unsupportedOperation("String")(expr)
       case Else(field1: Expr, field2: Expr)        => loop(field1) orElse loop(field2)
+      case ctx @ FormCtx(formComponentId: FormComponentId)
+          if evaluationContext.addressLookup(formComponentId.baseComponentId) =>
+        whenVisible(formComponentId) {
+          val indexedComponentId = formComponentId.modelComponentId.indexedComponentId
+          val addressAtoms: List[ModelComponentId.Atomic] =
+            Address.fields(indexedComponentId).filter(_.atom != Address.uk)
+
+          val variadicValues: List[Option[VariadicValue]] = addressAtoms.map(atom => recData.variadicFormData.get(atom))
+          val addressLines = variadicValues.collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
+          ExpressionResult.AddressResult(addressLines)
+        }
       case ctx @ FormCtx(formComponentId: FormComponentId) =>
         get(ctx, recData, fromVariadicValue, evaluationContext.fileIdsWithMapping)
       case Sum(field1: Expr) => unsupportedOperation("String")(expr)
@@ -219,6 +238,18 @@ case class EvaluationResults(
         nonEmpty(StringResult(link.url))
       case DateCtx(dateExpr) =>
         StringResult(evalDateExpr(recData, evaluationContext, this)(dateExpr).stringRepresentation(typeInfo))
+      case AddressLens(formComponentId, details) =>
+        whenVisible(formComponentId) {
+          val atomic: ModelComponentId.Atomic = formComponentId.modelComponentId.toAtomicFormComponentId(details.toAtom)
+
+          recData.variadicFormData
+            .get(atomic)
+            .collectFirst {
+              case VariadicValue.One(value) if value.nonEmpty =>
+                ExpressionResult.StringResult(value)
+            }
+            .getOrElse(ExpressionResult.empty)
+        }
     }
 
     loop(typeInfo.expr)
@@ -262,6 +293,8 @@ case class EvaluationResults(
       evalString(typeInfo, recData, evaluationContext)
     } { dateString =>
       evalDateString(typeInfo, recData, evaluationContext)
+    } { addressString =>
+      evalString(typeInfo, recData, evaluationContext)
     } { illegal =>
       ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
     }
