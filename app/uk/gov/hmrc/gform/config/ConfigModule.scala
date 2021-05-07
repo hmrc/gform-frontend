@@ -91,7 +91,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
         url       <- playConfiguration.getOptional[String]("optimizely.url")
         projectId <- playConfiguration.getOptional[String]("optimizely.projectId")
       } yield s"$url$projectId.js",
-      trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration))
+      trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration)),
+      emailAuthEnabled = typesafeConfig.getBoolean("emailAuthEnabled")
     )
   }
 }

@@ -48,6 +48,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import org.typelevel.ci._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -61,6 +62,8 @@ class EmailAuthController(
     extends FrontendController(messagesControllerComponents) {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  private val emailConfirmationCode = "GEAD"
 
   import i18nSupport._
 
@@ -311,8 +314,8 @@ class EmailAuthController(
     hc: HeaderCarrier,
     me: MonadError[Future, Throwable]
   ): Future[EmailAndCode] =
-    formTemplate.authConfig match {
-      case emailAuthConfig: EmailAuthConfig =>
+    (formTemplate.authConfig, frontendAppConfig.emailAuthEnabled) match {
+      case (emailAuthConfig: EmailAuthConfig, true) =>
         val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
         val emailVerifierService = emailAuthConfig.service match {
           case Notify(notifierTemplateId) =>
@@ -329,6 +332,12 @@ class EmailAuthController(
             )
           )
           .map(_ => emailAndCode)
+
+      case (_: EmailAuthConfig, false) =>
+        Future.successful(
+          EmailAndCode(ci"${emailId.value.toString}", EmailConfirmationCode(ci"$emailConfirmationCode"))
+        )
+
       case _ => me.raiseError(new IllegalArgumentException(s"Unsupported auth config ${formTemplate.authConfig}"))
     }
 }
