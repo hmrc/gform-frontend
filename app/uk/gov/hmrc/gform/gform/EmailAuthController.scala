@@ -63,7 +63,7 @@ class EmailAuthController(
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  private val emailConfirmationCode = "GEAD"
+  private val emailConfirmationCode = ci"ABCD"
 
   import i18nSupport._
 
@@ -335,7 +335,7 @@ class EmailAuthController(
 
       case (_: EmailAuthConfig, false) =>
         Future.successful(
-          EmailAndCode(ci"${emailId.value.toString}", EmailConfirmationCode(ci"$emailConfirmationCode"))
+          EmailAndCode(ci"${emailId.value.toString}", EmailConfirmationCode(emailConfirmationCode))
         )
 
       case _ => me.raiseError(new IllegalArgumentException(s"Unsupported auth config ${formTemplate.authConfig}"))
