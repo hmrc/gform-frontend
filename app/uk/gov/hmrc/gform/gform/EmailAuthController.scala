@@ -314,29 +314,34 @@ class EmailAuthController(
     hc: HeaderCarrier,
     me: MonadError[Future, Throwable]
   ): Future[EmailAndCode] =
-    (formTemplate.authConfig, frontendAppConfig.emailAuthEnabled) match {
-      case (emailAuthConfig: EmailAuthConfig, true) =>
-        val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
-        val emailVerifierService = emailAuthConfig.service match {
-          case Notify(notifierTemplateId) =>
-            EmailVerifierService.notify(NotifierTemplateId(notifierTemplateId.value))
-          case DigitalContact(emailTemplateId) =>
-            EmailVerifierService.digitalContact(EmailTemplateId(emailTemplateId.value))
+    formTemplate.authConfig match {
+      case emailAuthConfig: EmailAuthConfig =>
+        val isDefaultEmailId = frontendAppConfig.emailAuthDefaultEmailIds.fold(false) {
+          _.map(id => ci"$id").contains(ci"${emailId.value.toString}")
         }
-        gformConnector
-          .sendEmail(
-            ConfirmationCodeWithEmailService(
-              NotifierEmailAddress(emailId.value.toString),
-              emailAndCode.code,
-              emailVerifierService
-            )
-          )
-          .map(_ => emailAndCode)
 
-      case (_: EmailAuthConfig, false) =>
-        Future.successful(
-          EmailAndCode(ci"${emailId.value.toString}", EmailConfirmationCode(emailConfirmationCode))
-        )
+        if (isDefaultEmailId) {
+          Future.successful(
+            EmailAndCode(ci"${emailId.value.toString}", EmailConfirmationCode(emailConfirmationCode))
+          )
+        } else {
+          val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
+          val emailVerifierService = emailAuthConfig.service match {
+            case Notify(notifierTemplateId) =>
+              EmailVerifierService.notify(NotifierTemplateId(notifierTemplateId.value))
+            case DigitalContact(emailTemplateId) =>
+              EmailVerifierService.digitalContact(EmailTemplateId(emailTemplateId.value))
+          }
+          gformConnector
+            .sendEmail(
+              ConfirmationCodeWithEmailService(
+                NotifierEmailAddress(emailId.value.toString),
+                emailAndCode.code,
+                emailVerifierService
+              )
+            )
+            .map(_ => emailAndCode)
+        }
 
       case _ => me.raiseError(new IllegalArgumentException(s"Unsupported auth config ${formTemplate.authConfig}"))
     }

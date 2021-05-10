@@ -871,6 +871,6 @@ trait ExampleFrontendAppConfig {
     contactFormServiceIdentifier = "",
     optimizelyUrl = None,
     trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration)),
-    emailAuthEnabled = true
+    emailAuthDefaultEmailIds = Some(Seq("test1@test.com", "test2@test.com"))
   )
 }
