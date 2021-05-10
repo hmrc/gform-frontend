@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.eval.smartstring
 import java.text.MessageFormat
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.MarkDownUtil.escapeMarkdown
-import uk.gov.hmrc.gform.eval.TypeInfo
+import uk.gov.hmrc.gform.eval.{ ExprType, TypeInfo }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, ThirdPartyData }
@@ -95,7 +95,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
           case FormCtx(formComponentId) =>
             formModelVisibilityOptics.formModel.fcLookup
               .get(formComponentId)
-              .map({
+              .map {
                 case IsChoice(choice) =>
                   val optionsList = choice.options.toList
                   mapChoiceSelectedIndexes(typeInfo, _.map(i => apply(optionsList(i), markDown)).mkString(","))
@@ -103,7 +103,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
                   revealingChoice.options.map(c => apply(c.choice, markDown)).mkString(",")
                 case _ =>
                   stringRepresentation(typeInfo)
-              })
+              }
               .getOrElse("")
         }
 
@@ -112,7 +112,10 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
         }
 
         if (markDown) {
-          escapeMarkdown(formatted)
+          typeInfo.staticTypeData.exprType match {
+            case ExprType.AddressString => addressRepresentation(typeInfo)
+            case _                      => escapeMarkdown(formatted)
+          }
         } else {
           formatted
         }
@@ -120,6 +123,9 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
 
       private def stringRepresentation(typeInfo: TypeInfo): String =
         formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation
+
+      private def addressRepresentation(typeInfo: TypeInfo): String =
+        formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).addressRepresentation
 
       private def mapChoiceSelectedIndexes(typeInfo: TypeInfo, f: Seq[Int] => String): String =
         formModelVisibilityOptics

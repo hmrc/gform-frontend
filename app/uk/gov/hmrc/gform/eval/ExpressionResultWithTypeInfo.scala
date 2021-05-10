@@ -19,7 +19,10 @@ package uk.gov.hmrc.gform.eval
 case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, typeInfo: TypeInfo) {
   def stringRepresentation: String = expressionResult.stringRepresentation(typeInfo)
 
+  def addressRepresentation: String = expressionResult.addressRepresentation(typeInfo)
+
   def numberRepresentation: Option[BigDecimal] = expressionResult.numberRepresentation
 
   def optionRepresentation: Option[Seq[Int]] = expressionResult.optionRepresentation
+
 }

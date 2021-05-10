@@ -89,7 +89,8 @@ class InstructionPDFPageConverterSpec
           headerCarrier,
           None,
           FileIdsWithMapping.empty,
-          Map.empty
+          Map.empty,
+          Set.empty
         )
       )
     )
