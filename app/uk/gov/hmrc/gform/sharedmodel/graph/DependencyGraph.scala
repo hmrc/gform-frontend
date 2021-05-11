@@ -73,7 +73,8 @@ object DependencyGraph {
       }
 
     def toDiEdge(fc: FormComponent, expr: Expr, cycleBreaker: FormComponentId => Boolean): List[DiEdge[GraphNode]] =
-      expr.leafs
+      expr
+        .leafs(formModel)
         .flatMap { e =>
           val fcNodes = toFormComponentId(e).map(fcId => GraphNode.Expr(e) ~> GraphNode.Simple(fcId))
           if (cycleBreaker(fc.id) && e === FormCtx(fc.id)) fcNodes
@@ -87,7 +88,7 @@ object DependencyGraph {
     ): List[DiEdge[GraphNode]] = {
 
       val allExprGNs: List[GraphNode.Expr] =
-        booleanExpr.allExpressions.flatMap(_.leafs).map(GraphNode.Expr.apply)
+        booleanExpr.allExpressions.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply)
 
       val dependingFCIds = dependingFCs.map(_.id)
 
@@ -119,7 +120,7 @@ object DependencyGraph {
     val sections = {
       val templateAndPageExprs: List[Expr] = (formTemplateExprs ++ formModel.exprsMetadata).map(_.expr)
 
-      val allExprGNs: List[GraphNode.Expr] = templateAndPageExprs.flatMap(_.leafs).map(GraphNode.Expr.apply)
+      val allExprGNs: List[GraphNode.Expr] = templateAndPageExprs.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply)
       val allSectionDeps: List[DiEdge[GraphNode]] =
         allExprGNs.flatMap(exprGN => toFormComponentId(exprGN.expr).map(fcId => exprGN ~> GraphNode.Simple(fcId)))
 
