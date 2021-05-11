@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
 import uk.gov.hmrc.hmrcfrontend.config.TrackingConsentConfig
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.http.HeaderCarrier
+import org.typelevel.ci._
 
 import scala.collection.immutable.List
 
@@ -871,6 +872,6 @@ trait ExampleFrontendAppConfig {
     contactFormServiceIdentifier = "",
     optimizelyUrl = None,
     trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration)),
-    emailAuthDefaultEmailIds = Some(Seq("test1@test.com", "test2@test.com"))
+    emailAuthDefaultEmailIds = Some(NonEmptyList.of(ci"test1@test.com", ci"test2@test.com"))
   )
 }

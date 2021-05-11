@@ -16,7 +16,9 @@
 
 package uk.gov.hmrc.gform.config
 
+import cats.data.NonEmptyList
 import com.typesafe.config.{ ConfigFactory, Config => TypeSafeConfig }
+import org.typelevel.ci.CIString
 import play.api.libs.ws.WSClient
 import play.api.{ ApplicationLoader, Configuration, Environment }
 import play.api.Mode
@@ -27,6 +29,7 @@ import uk.gov.hmrc.hmrcfrontend.config.TrackingConsentConfig
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, ServicesConfig }
+import org.typelevel.ci._
 
 class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: PlayBuiltInsModule, wsClient: WSClient) {
 
@@ -53,6 +56,9 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
   val availableLanguages: Map[String, Lang] = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
   def routeToSwitchLanguage: String => Call =
     (lang: String) => uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage(lang)
+
+  def getOptionalNonEmptyCIStringList(oIds: Option[Seq[String]]): Option[NonEmptyList[CIString]] =
+    oIds.flatMap(ids => NonEmptyList.fromList(ids.toList.map(id => ci"$id")))
 
   val frontendAppConfig: FrontendAppConfig = {
     def getJSConfig(path: String) =
@@ -92,7 +98,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
         projectId <- playConfiguration.getOptional[String]("optimizely.projectId")
       } yield s"$url$projectId.js",
       trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration)),
-      emailAuthDefaultEmailIds = playConfiguration.getOptional[Seq[String]]("emailAuth.defaultEmailIds")
+      emailAuthDefaultEmailIds =
+        getOptionalNonEmptyCIStringList(playConfiguration.getOptional[Seq[String]]("emailAuth.defaultEmailIds"))
     )
   }
 }

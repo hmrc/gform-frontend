@@ -49,7 +49,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, Erro
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import org.typelevel.ci._
-
+import uk.gov.hmrc.gform.typeclasses.Rnd
 import scala.concurrent.{ ExecutionContext, Future }
 
 class EmailAuthController(
@@ -62,8 +62,6 @@ class EmailAuthController(
     extends FrontendController(messagesControllerComponents) {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
-
-  private val emailConfirmationCode = ci"ABCD"
 
   import i18nSupport._
 
@@ -317,31 +315,31 @@ class EmailAuthController(
     formTemplate.authConfig match {
       case emailAuthConfig: EmailAuthConfig =>
         val isDefaultEmailId = frontendAppConfig.emailAuthDefaultEmailIds.fold(false) {
-          _.map(id => ci"$id").contains(ci"${emailId.value.toString}")
+          _.exists(_ === ci"${emailId.value.toString}")
         }
 
-        if (isDefaultEmailId) {
-          Future.successful(
-            EmailAndCode(ci"${emailId.value.toString}", EmailConfirmationCode(emailConfirmationCode))
-          )
+        implicit val rnd = if (isDefaultEmailId) {
+          Rnd.ConstantInt
         } else {
-          val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
-          val emailVerifierService = emailAuthConfig.service match {
-            case Notify(notifierTemplateId) =>
-              EmailVerifierService.notify(NotifierTemplateId(notifierTemplateId.value))
-            case DigitalContact(emailTemplateId) =>
-              EmailVerifierService.digitalContact(EmailTemplateId(emailTemplateId.value))
-          }
-          gformConnector
-            .sendEmail(
-              ConfirmationCodeWithEmailService(
-                NotifierEmailAddress(emailId.value.toString),
-                emailAndCode.code,
-                emailVerifierService
-              )
-            )
-            .map(_ => emailAndCode)
+          Rnd.RandomInt
         }
+
+        val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
+        val emailVerifierService = emailAuthConfig.service match {
+          case Notify(notifierTemplateId) =>
+            EmailVerifierService.notify(NotifierTemplateId(notifierTemplateId.value))
+          case DigitalContact(emailTemplateId) =>
+            EmailVerifierService.digitalContact(EmailTemplateId(emailTemplateId.value))
+        }
+        gformConnector
+          .sendEmail(
+            ConfirmationCodeWithEmailService(
+              NotifierEmailAddress(emailId.value.toString),
+              emailAndCode.code,
+              emailVerifierService
+            )
+          )
+          .map(_ => emailAndCode)
 
       case _ => me.raiseError(new IllegalArgumentException(s"Unsupported auth config ${formTemplate.authConfig}"))
     }

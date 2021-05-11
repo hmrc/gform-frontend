@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.config
 
+import cats.data.NonEmptyList
+import org.typelevel.ci.CIString
 import play.api.i18n.{ Lang, Messages }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EmailAuthConfig, FormTemplateId }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
@@ -40,7 +42,7 @@ case class FrontendAppConfig(
   contactFormServiceIdentifier: String,
   optimizelyUrl: Option[String],
   trackingConsentSnippet: hmrcTrackingConsentSnippet,
-  emailAuthDefaultEmailIds: Option[Seq[String]]
+  emailAuthDefaultEmailIds: Option[NonEmptyList[CIString]]
 ) {
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {
