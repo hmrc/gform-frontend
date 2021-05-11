@@ -38,6 +38,7 @@ import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, LangADT, NotFound, ServiceResponse }
+import uk.gov.hmrc.gform.typeclasses.Rnd
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -192,7 +193,7 @@ class ValidationService(
 
         maybeEmail.collect {
           case email if !emailExist(ef, email) =>
-            (ef, EmailAndCode.emailVerificationCode(email), emailVerifierService)
+            (ef, EmailAndCode.emailVerificationCode(email)(Rnd.RandomInt), emailVerifierService)
         }
       }
     emailAddressedToBeVerified.flatten

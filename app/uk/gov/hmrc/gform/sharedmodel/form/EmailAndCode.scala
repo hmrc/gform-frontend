@@ -51,7 +51,7 @@ object EmailAndCode extends JsonUtils {
     refGen.runA(rnd).value
   }
 
-  def emailVerificationCode(email: String): EmailAndCode =
+  def emailVerificationCode(email: String)(implicit rnd: Rnd[Int]): EmailAndCode =
     EmailAndCode(ci"$email", EmailConfirmationCode(ci"$random"))
 
   implicit val format: OFormat[EmailAndCode] = derived.oformat()
