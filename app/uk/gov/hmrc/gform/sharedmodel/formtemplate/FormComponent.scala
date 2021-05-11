@@ -73,6 +73,7 @@ case class FormComponent(
     case IsChoice(_)                                             => ExprType.ChoiceSelection
     case IsRevealingChoice(_)                                    => ExprType.ChoiceSelection
     case IsDate(_)                                               => ExprType.DateString
+    case IsAddress(_)                                            => ExprType.AddressString
     case _                                                       => ExprType.String
   }
 

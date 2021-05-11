@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.data.NonEmptyList
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.eval.{ AllPageModelExpressions, ExprMetadata, ExprType, RevealingChoiceInfo, StandaloneSumInfo, StaticTypeData, StaticTypeInfo, SumInfo, TypeInfo }
-import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId, MultiValueId }
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 case class FormModel[A <: PageMode](
@@ -69,6 +69,10 @@ case class FormModel[A <: PageMode](
   val dateLookup: Map[ModelComponentId, DateValue] = allFormComponents.collect {
     case fc @ IsDate(Date(_, _, Some(value))) => fc.id.modelComponentId -> value
   }.toMap
+
+  val addressLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsAddress(_) =>
+    fc.id.baseComponentId
+  }.toSet
 
   val exprsMetadata: List[ExprMetadata] = brackets.toBrackets.toList.flatMap {
     case AllPageModelExpressions(exprMetadatas) => exprMetadatas

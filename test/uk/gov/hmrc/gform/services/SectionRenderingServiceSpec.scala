@@ -96,7 +96,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
           hc,
           Option.empty[FormPhase],
           FileIdsWithMapping.empty,
-          Map.empty
+          Map.empty,
+          Set.empty
         )
       )
     )

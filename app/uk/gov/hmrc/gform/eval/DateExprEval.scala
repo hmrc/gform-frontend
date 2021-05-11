@@ -76,7 +76,7 @@ object DateExprEval {
         val exprResult = evalDateExpr(recData, evaluationContext, evaluationResults)(dExpr)
         exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => exprResult)(identity)(identity)(identity)(d =>
           d.copy(value = addOffset(d.value, offset))
-        )
+        )(identity)
     }
 
   // for "submitMode": "summaryinfoonly" fields, since they don't exist in form data.
@@ -95,10 +95,9 @@ object DateExprEval {
     val typeInfo: TypeInfo = formModel.explicitTypedExpr(formCtx, formCtx.formComponentId)
     val expressionResult =
       evaluationResults.evalExpr(typeInfo, recData, evaluationContext)
-    expressionResult.fold(_ => Option.empty[DateResult])(_ => None)(_ => None)(_ => None)(_ => None)(_ => None) {
-      dateResult =>
-        Some(dateResult)
-    }
+    expressionResult.fold(_ => Option.empty[DateResult])(_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(
+      dateResult => Some(dateResult)
+    )(_ => None)
   }
 
   private def addOffset(d: LocalDate, offset: OffsetYMD): LocalDate =

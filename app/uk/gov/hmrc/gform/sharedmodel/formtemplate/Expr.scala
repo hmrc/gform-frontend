@@ -20,6 +20,7 @@ import cats.Eq
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
+import uk.gov.hmrc.gform.models.Atom
 
 sealed trait Expr extends Product with Serializable {
   def leafs[T <: PageMode](formModel: FormModel[T]): List[Expr] = this match {
@@ -46,6 +47,7 @@ sealed trait Expr extends Product with Serializable {
     case ParamCtx(_)                                => this :: Nil
     case LinkCtx(_)                                 => this :: Nil
     case DateCtx(dateExpr)                          => dateExpr.leafExprs
+    case AddressLens(formComponentId, _)            => this :: Nil
   }
 
   def sums: List[Sum] = this match {
@@ -65,6 +67,7 @@ sealed trait Expr extends Product with Serializable {
     case ParamCtx(_)                                => Nil
     case LinkCtx(_)                                 => Nil
     case DateCtx(_)                                 => Nil
+    case AddressLens(_, _)                          => Nil
   }
 }
 
@@ -84,6 +87,29 @@ final case class HmrcRosmRegistrationCheck(value: RosmProp) extends Expr
 final case object Value extends Expr
 final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
 final case class DateCtx(value: DateExpr) extends Expr
+final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
+
+sealed trait AddressDetail {
+  def toAtom: Atom = this match {
+    case AddressDetail.Line1    => Address.street1
+    case AddressDetail.Line2    => Address.street2
+    case AddressDetail.Line3    => Address.street3
+    case AddressDetail.Line4    => Address.street4
+    case AddressDetail.Postcode => Address.postcode
+    case AddressDetail.Country  => Address.country
+  }
+}
+
+object AddressDetail {
+  case object Line1 extends AddressDetail
+  case object Line2 extends AddressDetail
+  case object Line3 extends AddressDetail
+  case object Line4 extends AddressDetail
+  case object Postcode extends AddressDetail
+  case object Country extends AddressDetail
+
+  implicit val format: OFormat[AddressDetail] = derived.oformat()
+}
 
 object FormCtx {
   implicit val format: OFormat[FormCtx] = derived.oformat()
