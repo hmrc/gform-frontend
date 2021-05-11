@@ -42,7 +42,7 @@ case class FrontendAppConfig(
   contactFormServiceIdentifier: String,
   optimizelyUrl: Option[String],
   trackingConsentSnippet: hmrcTrackingConsentSnippet,
-  emailAuthDefaultEmailIds: Option[NonEmptyList[CIString]]
+  emailAuthStaticCodeEmails: Option[NonEmptyList[CIString]]
 ) {
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {

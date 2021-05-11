@@ -314,11 +314,11 @@ class EmailAuthController(
   ): Future[EmailAndCode] =
     formTemplate.authConfig match {
       case emailAuthConfig: EmailAuthConfig =>
-        val isDefaultEmailId = frontendAppConfig.emailAuthDefaultEmailIds.fold(false) {
+        val isStaticCodeEmail = frontendAppConfig.emailAuthStaticCodeEmails.fold(false) {
           _.exists(_ === ci"${emailId.value.toString}")
         }
 
-        implicit val rnd = if (isDefaultEmailId) {
+        implicit val rnd = if (isStaticCodeEmail) {
           Rnd.ConstantInt
         } else {
           Rnd.RandomInt
