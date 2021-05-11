@@ -48,7 +48,8 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-
+import org.typelevel.ci._
+import uk.gov.hmrc.gform.typeclasses.Rnd
 import scala.concurrent.{ ExecutionContext, Future }
 
 class EmailAuthController(
@@ -313,6 +314,16 @@ class EmailAuthController(
   ): Future[EmailAndCode] =
     formTemplate.authConfig match {
       case emailAuthConfig: EmailAuthConfig =>
+        val isStaticCodeEmail = frontendAppConfig.emailAuthStaticCodeEmails.fold(false) {
+          _.exists(_ === ci"${emailId.value.toString}")
+        }
+
+        implicit val rnd = if (isStaticCodeEmail) {
+          Rnd.ConstantInt
+        } else {
+          Rnd.RandomInt
+        }
+
         val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
         val emailVerifierService = emailAuthConfig.service match {
           case Notify(notifierTemplateId) =>
@@ -329,6 +340,7 @@ class EmailAuthController(
             )
           )
           .map(_ => emailAndCode)
+
       case _ => me.raiseError(new IllegalArgumentException(s"Unsupported auth config ${formTemplate.authConfig}"))
     }
 }

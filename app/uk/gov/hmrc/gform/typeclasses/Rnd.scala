@@ -23,7 +23,11 @@ trait Rnd[T] {
 }
 
 object Rnd {
-  implicit object RandomInt extends Rnd[Int] {
+  object RandomInt extends Rnd[Int] {
     def random(i: Int) = Random.nextInt(i)
+  }
+
+  object ConstantInt extends Rnd[Int] {
+    def random(i: Int) = 18
   }
 }
