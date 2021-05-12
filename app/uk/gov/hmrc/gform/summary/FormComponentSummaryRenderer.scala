@@ -252,6 +252,8 @@ object FormComponentSummaryRenderer {
 
     val value = if (hasErrors) errors.mkString(" ") else formatText(formFieldValidationResult, envelope, prefix, suffix)
 
+    val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+
     List(
       summaryListRow(
         label,
@@ -274,7 +276,8 @@ object FormComponentSummaryRenderer {
                   SuppressErrors.Yes,
                   FastForward.Yes
                 ),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+              changeOrViewLabel,
+              changeOrViewLabel + " " + label
             )
           )
       )
@@ -327,7 +330,8 @@ object FormComponentSummaryRenderer {
         "",
         if (fieldValue.onlyShowOnSummary)
           Nil
-        else
+        else {
+          val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
           List(
             (
               uk.gov.hmrc.gform.gform.routes.FormController
@@ -339,9 +343,11 @@ object FormComponentSummaryRenderer {
                   SuppressErrors.Yes,
                   FastForward.Yes
                 ),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+              changeOrViewLabel,
+              changeOrViewLabel + " " + label
             )
           )
+        }
       )
     )
   }
@@ -391,7 +397,8 @@ object FormComponentSummaryRenderer {
         "",
         if (fieldValue.onlyShowOnSummary)
           Nil
-        else
+        else {
+          val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
           List(
             (
               uk.gov.hmrc.gform.gform.routes.FormController
@@ -403,9 +410,11 @@ object FormComponentSummaryRenderer {
                   SuppressErrors.Yes,
                   FastForward.Yes
                 ),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+              changeOrViewLabel,
+              changeOrViewLabel + " " + label
             )
           )
+        }
       )
     )
   }
@@ -456,7 +465,8 @@ object FormComponentSummaryRenderer {
         "",
         if (fieldValue.onlyShowOnSummary)
           Nil
-        else
+        else {
+          val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
           List(
             (
               uk.gov.hmrc.gform.gform.routes.FormController
@@ -468,9 +478,11 @@ object FormComponentSummaryRenderer {
                   SuppressErrors.Yes,
                   FastForward.Yes
                 ),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+              changeOrViewLabel,
+              changeOrViewLabel + " " + label
             )
           )
+        }
       )
     )
   }
@@ -520,7 +532,8 @@ object FormComponentSummaryRenderer {
         "",
         if (fieldValue.onlyShowOnSummary)
           Nil
-        else
+        else {
+          val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
           List(
             (
               uk.gov.hmrc.gform.gform.routes.FormController
@@ -532,9 +545,11 @@ object FormComponentSummaryRenderer {
                   SuppressErrors.Yes,
                   FastForward.Yes
                 ),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+              changeOrViewLabel,
+              changeOrViewLabel + " " + label
             )
           )
+        }
       )
     )
   }
@@ -572,7 +587,8 @@ object FormComponentSummaryRenderer {
         "",
         if (fieldValue.onlyShowOnSummary)
           Nil
-        else
+        else {
+          val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
           List(
             (
               uk.gov.hmrc.gform.gform.routes.FormController
@@ -584,9 +600,11 @@ object FormComponentSummaryRenderer {
                   SuppressErrors.Yes,
                   FastForward.Yes
                 ),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+              changeOrViewLabel,
+              changeOrViewLabel + " " + label
             )
           )
+        }
       )
     )
   }
@@ -629,7 +647,8 @@ object FormComponentSummaryRenderer {
         "",
         if (formComponent.onlyShowOnSummary)
           Nil
-        else
+        else {
+          val changeOrViewLabel = if (formComponent.editable) messages("summary.change") else messages("summary.view")
           List(
             (
               uk.gov.hmrc.gform.gform.routes.FormController
@@ -641,9 +660,11 @@ object FormComponentSummaryRenderer {
                   SuppressErrors.Yes,
                   FastForward.Yes
                 ),
-              if (formComponent.editable) messages("summary.change") else messages("summary.view")
+              changeOrViewLabel,
+              changeOrViewLabel + " " + label
             )
           )
+        }
       )
     )
   }
@@ -686,7 +707,8 @@ object FormComponentSummaryRenderer {
         "",
         if (formComponent.onlyShowOnSummary)
           Nil
-        else
+        else {
+          val changeOrViewLabel = if (formComponent.editable) messages("summary.change") else messages("summary.view")
           List(
             (
               uk.gov.hmrc.gform.gform.routes.FormController
@@ -698,9 +720,11 @@ object FormComponentSummaryRenderer {
                   SuppressErrors.Yes,
                   FastForward.Yes
                 ),
-              if (formComponent.editable) messages("summary.change") else messages("summary.view")
+              changeOrViewLabel,
+              changeOrViewLabel + " " + label
             )
           )
+        }
       )
     )
   }
@@ -741,7 +765,8 @@ object FormComponentSummaryRenderer {
         "",
         if (formComponent.onlyShowOnSummary)
           Nil
-        else
+        else {
+          val changeOrViewLabel = if (formComponent.editable) messages("summary.change") else messages("summary.view")
           List(
             (
               uk.gov.hmrc.gform.gform.routes.FormController
@@ -753,9 +778,11 @@ object FormComponentSummaryRenderer {
                   SuppressErrors.Yes,
                   FastForward.Yes
                 ),
-              if (formComponent.editable) messages("summary.change") else messages("summary.view")
+              changeOrViewLabel,
+              changeOrViewLabel + " " + label
             )
           )
+        }
       )
     )
   }
@@ -809,7 +836,8 @@ object FormComponentSummaryRenderer {
         "",
         if (fieldValue.onlyShowOnSummary)
           Nil
-        else
+        else {
+          val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
           List(
             (
               uk.gov.hmrc.gform.gform.routes.FormController
@@ -821,9 +849,11 @@ object FormComponentSummaryRenderer {
                   SuppressErrors.Yes,
                   FastForward.Yes
                 ),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+              changeOrViewLabel,
+              changeOrViewLabel + " " + label
             )
           )
+        }
       )
     )
   }
@@ -868,7 +898,8 @@ object FormComponentSummaryRenderer {
         "",
         if (formComponent.onlyShowOnSummary)
           Nil
-        else
+        else {
+          val changeOrViewLabel = if (formComponent.editable) messages("summary.change") else messages("summary.view")
           List(
             (
               uk.gov.hmrc.gform.gform.routes.FormController
@@ -880,9 +911,11 @@ object FormComponentSummaryRenderer {
                   SuppressErrors.Yes,
                   FastForward.Yes
                 ),
-              if (formComponent.editable) messages("summary.change") else messages("summary.view")
+              changeOrViewLabel,
+              changeOrViewLabel + " " + label
             )
           )
+        }
       )
     )
   }
@@ -953,7 +986,10 @@ object FormComponentSummaryRenderer {
               "",
               if (fieldValue.onlyShowOnSummary)
                 Nil
-              else
+              else {
+                val changeOrViewLabel =
+                  if (fieldValue.editable) messages("summary.change")
+                  else messages("summary.view")
                 List(
                   (
                     uk.gov.hmrc.gform.gform.routes.FormController
@@ -965,10 +1001,11 @@ object FormComponentSummaryRenderer {
                         SuppressErrors.Yes,
                         FastForward.Yes
                       ),
-                    if (fieldValue.editable) messages("summary.change")
-                    else messages("summary.view")
+                    changeOrViewLabel,
+                    changeOrViewLabel + " " + label
                   )
                 )
+              }
             ) +: revealingFields
           }
       }
@@ -1030,7 +1067,9 @@ object FormComponentSummaryRenderer {
               "",
               if (formComponent.onlyShowOnSummary)
                 Nil
-              else
+              else {
+                val changeOrViewLabel =
+                  if (formComponent.editable) messages("summary.change") else messages("summary.view")
                 List(
                   (
                     uk.gov.hmrc.gform.gform.routes.FormController
@@ -1042,9 +1081,11 @@ object FormComponentSummaryRenderer {
                         SuppressErrors.Yes,
                         FastForward.Yes
                       ),
-                    if (formComponent.editable) messages("summary.change") else messages("summary.view")
+                    changeOrViewLabel,
+                    changeOrViewLabel + " " + label
                   )
                 )
+              }
             )
           )
 

@@ -428,11 +428,19 @@ object SummaryRenderingService {
         repeater.title
           .value(), // This is weird to use, as it can have $n, but this list in shown only once. Should we have other property here?
         addToListSummary,
-        None,
+        Some(
+          repeater.title
+            .value()
+        ),
         "",
         "",
         "",
-        (url, messages("addToList.addOrRemove")) :: Nil
+        (
+          url,
+          messages("addToList.addOrRemove"),
+          messages("addToList.addOrRemove") + " " + repeater.title
+            .value()
+        ) :: Nil
       )
 
       new govukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-5")) :: htmls
