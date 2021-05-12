@@ -58,7 +58,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
     (lang: String) => uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage(lang)
 
   def getOptionalNonEmptyCIStringList(emails: Option[String]): Option[NonEmptyList[CIString]] =
-    emails.flatMap(v => NonEmptyList.fromList(v.split(":").toList.map(email => ci"$email")))
+    emails.flatMap(v => NonEmptyList.fromList(v.split(":").toList.filter(_.trim.nonEmpty).map(email => ci"$email")))
 
   val frontendAppConfig: FrontendAppConfig = {
     def getJSConfig(path: String) =
