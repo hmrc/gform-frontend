@@ -57,8 +57,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
   def routeToSwitchLanguage: String => Call =
     (lang: String) => uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage(lang)
 
-  def getOptionalNonEmptyCIStringList(oIds: Option[Seq[String]]): Option[NonEmptyList[CIString]] =
-    oIds.flatMap(ids => NonEmptyList.fromList(ids.toList.map(id => ci"$id")))
+  def getOptionalNonEmptyCIStringList(emails: Option[String]): Option[NonEmptyList[CIString]] =
+    emails.flatMap(v => NonEmptyList.fromList(v.split(":").toList.filter(_.trim.nonEmpty).map(email => ci"$email")))
 
   val frontendAppConfig: FrontendAppConfig = {
     def getJSConfig(path: String) =
@@ -99,7 +99,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       } yield s"$url$projectId.js",
       trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration)),
       emailAuthStaticCodeEmails =
-        getOptionalNonEmptyCIStringList(playConfiguration.getOptional[Seq[String]]("emailAuth.staticCodeEmails"))
+        getOptionalNonEmptyCIStringList(playConfiguration.getOptional[String]("emailAuth.staticCodeEmails"))
     )
   }
 }
