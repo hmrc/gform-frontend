@@ -40,7 +40,7 @@ import uk.gov.hmrc.gform.models.{ AddToListUtils, Bracket, DataExpanded, FastFor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
-import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
+import uk.gov.hmrc.gform.models.optics.DataOrigin.{ Browser, Mongo }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -109,7 +109,10 @@ class FormController(
               )
           }
           .map { handlerResult =>
-            def renderSingleton(singleton: Singleton[DataExpanded], sectionNumber: SectionNumber) = Ok {
+            def renderSingleton(
+              singleton: Singleton[DataExpanded],
+              sectionNumber: SectionNumber
+            ) = Ok {
               renderer.renderSection(
                 maybeAccessCode,
                 sectionNumber,
@@ -281,6 +284,138 @@ class FormController(
       }
     } yield res
 
+  def processRemoveAddToList(
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode],
+    ff: FastForward,
+    formModelOptics: FormModelOptics[Mongo],
+    processData: ProcessData,
+    idx: Int,
+    addToListId: AddToListId
+  )(implicit request: Request[AnyContent], lang: LangADT, sse: SmartStringEvaluator): Future[Result] = {
+
+    def saveAndRedirect(
+      updFormModelOptics: FormModelOptics[DataOrigin.Browser],
+      componentIdToFileId: FormComponentIdToFileIdMapping
+    ): Future[Result] = {
+      val updFormModel: FormModel[DataExpanded] = updFormModelOptics.formModelRenderPageOptics.formModel
+
+      val sn = updFormModel.brackets.addToListBracket(addToListId).lastSectionNumber
+
+      val visitsIndex = VisitIndex
+        .updateSectionVisits(updFormModel, processData.formModel, processData.visitsIndex)
+
+      val processDataUpd = processData.copy(
+        formModelOptics = updFormModelOptics,
+        visitsIndex = VisitIndex(visitsIndex)
+      )
+
+      val cacheUpd = cache.copy(
+        form = cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId)
+      )
+
+      validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) { _ =>
+        val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sn)
+        Redirect(
+          routes.FormController
+            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+        )
+      }
+    }
+
+    val formModel = formModelOptics.formModelRenderPageOptics.formModel
+    val bracket = formModel.brackets.addToListBracket(addToListId)
+    val (updData, componentIdToFileIdMapping, filesToDelete) =
+      AddToListUtils.removeRecord(
+        processData,
+        bracket,
+        idx,
+        FileIdsWithMapping(formModel.allFileIds, cache.form.componentIdToFileId)
+      )
+
+    for {
+      updFormModelOptics <- FormModelOptics
+                              .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
+                                updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+                                cache,
+                                recalculation
+                              )
+      redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping)
+      _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
+    } yield redirect
+  }
+
+  def backAction(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
+      implicit request => implicit lang => cache => implicit sse => formModelOptics =>
+        def goBack(toSectionNumber: SectionNumber) = {
+          val formModel = formModelOptics.formModelRenderPageOptics.formModel
+          val sectionTitle4Ga = sectionTitle4GaFactory(formModel(toSectionNumber).title, sectionNumber)
+          Redirect(
+            routes.FormController
+              .form(
+                formTemplateId,
+                maybeAccessCode,
+                toSectionNumber,
+                sectionTitle4Ga,
+                SuppressErrors.Yes,
+                FastForward.Yes
+              )
+          ).pure[Future]
+        }
+
+        val previousSectionNumber = Navigator(
+          sectionNumber,
+          formModelOptics.asInstanceOf[FormModelOptics[Browser]]
+        ).previousOrCurrentSectionNumber
+        val formModel = formModelOptics.formModelRenderPageOptics.formModel
+        val bracket = formModel.bracket(previousSectionNumber)
+
+        bracket match {
+          case Bracket.NonRepeatingPage(_, _, _) => goBack(previousSectionNumber)
+          case Bracket.RepeatingPage(_, _)       => goBack(previousSectionNumber)
+          case bracket @ Bracket.AddToList(iterations, _) =>
+            val iteration: Bracket.AddToListIteration[DataExpanded] =
+              bracket.iterationForSectionNumber(previousSectionNumber)
+            val lastIteration: Bracket.AddToListIteration[DataExpanded] = iterations.last
+            if (
+              iteration.repeater.sectionNumber === previousSectionNumber && iteration.repeater.sectionNumber < lastIteration.repeater.sectionNumber
+            ) {
+              val isCommited =
+                formModelOptics.formModelVisibilityOptics.formModel.bracket(sectionNumber).withAddToListBracket {
+                  addToListBracket =>
+                    addToListBracket.iterationForSectionNumber(sectionNumber).isCommited(cache.form.visitsIndex)
+                }
+              if (isCommited) {
+                goBack(previousSectionNumber)
+              } else {
+                for {
+                  processData <- processDataService
+                                   .getProcessData[SectionSelectorType.Normal](
+                                     formModelOptics.formModelRenderPageOptics.recData.variadicFormData
+                                       .asInstanceOf[VariadicFormData[OutOfDate]],
+                                     cache,
+                                     formModelOptics,
+                                     gformConnector.getAllTaxPeriods,
+                                     NoSpecificAction
+                                   )
+                  redirect <- processRemoveAddToList(
+                                cache,
+                                maybeAccessCode,
+                                FastForward.Yes,
+                                formModelOptics,
+                                processData,
+                                bracket.iterations.size - 1,
+                                bracket.source.id
+                              )
+                } yield redirect
+              }
+            } else {
+              goBack(previousSectionNumber)
+            }
+        }
+    }
+
   def addToListAction(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -312,59 +447,6 @@ class FormController(
             .pure[Future]
         }
 
-        def processRemoveAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
-
-          def saveAndRedirect(
-            updFormModelOptics: FormModelOptics[DataOrigin.Browser],
-            componentIdToFileId: FormComponentIdToFileIdMapping
-          ): Future[Result] = {
-            val updFormModel: FormModel[DataExpanded] = updFormModelOptics.formModelRenderPageOptics.formModel
-
-            val sn = updFormModel.brackets.addToListBracket(addToListId).lastSectionNumber
-
-            val visitsIndex = VisitIndex
-              .updateSectionVisits(updFormModel, processData.formModel, processData.visitsIndex)
-
-            val processDataUpd = processData.copy(
-              formModelOptics = updFormModelOptics,
-              visitsIndex = VisitIndex(visitsIndex)
-            )
-
-            val cacheUpd = cache.copy(
-              form = cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId)
-            )
-
-            validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) { _ =>
-              val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sn)
-              Redirect(
-                routes.FormController
-                  .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
-              )
-            }
-          }
-
-          val formModel = formModelOptics.formModelRenderPageOptics.formModel
-          val bracket = formModel.brackets.addToListBracket(addToListId)
-          val (updData, componentIdToFileIdMapping, filesToDelete) =
-            AddToListUtils.removeRecord(
-              processData,
-              bracket,
-              idx,
-              FileIdsWithMapping(formModel.allFileIds, cache.form.componentIdToFileId)
-            )
-
-          for {
-            updFormModelOptics <- FormModelOptics
-                                    .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
-                                      updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                      cache,
-                                      recalculation
-                                    )
-            redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping)
-            _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
-          } yield redirect
-        }
-
         for {
           processData <- processDataService
                            .getProcessData[SectionSelectorType.Normal](
@@ -376,9 +458,10 @@ class FormController(
                              NoSpecificAction
                            )
           res <- direction match {
-                   case EditAddToList(idx, addToListId)      => processEditAddToList(processData, idx, addToListId)
-                   case RemoveAddToList(idx, addToListId)    => processRemoveAddToList(processData, idx, addToListId)
-                   case SaveAndContinue | SaveAndExit | Back =>
+                   case EditAddToList(idx, addToListId) => processEditAddToList(processData, idx, addToListId)
+                   case RemoveAddToList(idx, addToListId) =>
+                     processRemoveAddToList(cache, maybeAccessCode, ff, formModelOptics, processData, idx, addToListId)
+                   case SaveAndContinue | SaveAndExit =>
                      // This request should have been a POST, with user data. However we have sporadically seen GET requests sent instead of POST to this endpoint
                      // the cause of which is not known yet. We redirect the user the page he/she is currently on, instead of throwing an error page
                      // e.g: GET /submissions/form/XXXX/-/0?ff=t&action=SaveAndContinue
@@ -517,7 +600,15 @@ class FormController(
                     if (isCommited) {
                       goBack
                     } else {
-                      processRemoveAddToList(processData, bracket.iterations.size - 1, bracket.source.id)
+                      processRemoveAddToList(
+                        cache,
+                        maybeAccessCode,
+                        fastForward,
+                        formModelOptics,
+                        processData,
+                        bracket.iterations.size - 1,
+                        bracket.source.id
+                      )
                     }
                   } else {
                     goBack
@@ -610,61 +701,6 @@ class FormController(
               } yield res
             }
 
-            def processRemoveAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
-
-              def saveAndRedirect(
-                updFormModelOptics: FormModelOptics[DataOrigin.Browser],
-                componentIdToFileId: FormComponentIdToFileIdMapping
-              ): Future[Result] = {
-                val updFormModel: FormModel[DataExpanded] = updFormModelOptics.formModelRenderPageOptics.formModel
-
-                val sn = updFormModel.brackets.addToListBracket(addToListId).lastSectionNumber
-
-                val visitsIndex = VisitIndex
-                  .updateSectionVisits(updFormModel, processData.formModel, processData.visitsIndex)
-
-                val processDataUpd = processData.copy(
-                  formModelOptics = updFormModelOptics,
-                  visitsIndex = VisitIndex(visitsIndex)
-                )
-
-                val cacheUpd = cache.copy(
-                  form =
-                    cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId)
-                )
-
-                validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, fastForward, formModelOptics) {
-                  _ =>
-                    val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sn)
-                    Redirect(
-                      routes.FormController
-                        .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
-                    )
-                }
-              }
-
-              val formModel = formModelOptics.formModelRenderPageOptics.formModel
-              val bracket = formModel.brackets.addToListBracket(addToListId)
-              val (updData, componentIdToFileIdMapping, filesToDelete) =
-                AddToListUtils.removeRecord(
-                  processData,
-                  bracket,
-                  idx,
-                  FileIdsWithMapping(formModel.allFileIds, cache.form.componentIdToFileId)
-                )
-
-              for {
-                updFormModelOptics <- FormModelOptics
-                                        .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
-                                          updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                          cache,
-                                          recalculation
-                                        )
-                redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping)
-                _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
-              } yield redirect
-            }
-
             for {
               processData <- processDataService
                                .getProcessData[SectionSelectorType.Normal](
@@ -682,7 +718,6 @@ class FormController(
                            processData,
                            Navigator(
                              sectionNumber,
-                             requestRelatedData,
                              processData.formModelOptics
                            ).previousOrCurrentSectionNumber
                          )

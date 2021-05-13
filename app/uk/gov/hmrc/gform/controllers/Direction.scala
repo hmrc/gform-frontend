@@ -79,7 +79,6 @@ case class EditAddToList(idx: Int, addToListId: AddToListId) extends Direction
 
 case class Navigator(
   sectionNumber: SectionNumber,
-  requestRelatedData: RequestRelatedData,
   formModelOptics: FormModelOptics[DataOrigin.Browser]
 ) extends Navigation {
   require(
