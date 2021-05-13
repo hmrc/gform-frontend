@@ -109,6 +109,7 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult
         )
+
       case IsTime(_) =>
         getTimeSummaryListRows(
           formComponent,
@@ -429,6 +430,8 @@ object FormComponentSummaryRenderer {
 
     val label = fcrd.label(fieldValue)
 
+    val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
+
     val keyClasses = getKeyClasses(hasErrors)
 
     def safeId(atom: Atom) = HtmlFieldId.pure(fieldValue.atomicFormComponentId(atom))
@@ -450,7 +453,7 @@ object FormComponentSummaryRenderer {
       summaryListRow(
         label,
         value,
-        None,
+        visuallyHiddenText,
         keyClasses,
         "",
         "",
@@ -494,6 +497,8 @@ object FormComponentSummaryRenderer {
 
     val label = fcrd.label(fieldValue)
 
+    val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
+
     val keyClasses = getKeyClasses(hasErrors)
 
     def safeId(atom: Atom) = HtmlFieldId.pure(fieldValue.atomicFormComponentId(atom))
@@ -514,7 +519,7 @@ object FormComponentSummaryRenderer {
       summaryListRow(
         label,
         value,
-        None,
+        visuallyHiddenText,
         keyClasses,
         "",
         "",
@@ -558,6 +563,8 @@ object FormComponentSummaryRenderer {
 
     val label = fcrd.label(fieldValue)
 
+    val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
+
     val keyClasses = getKeyClasses(hasErrors)
 
     val value = if (hasErrors) errors.head.toString else formFieldValidationResult.getCurrentValue.getOrElse("")
@@ -566,7 +573,7 @@ object FormComponentSummaryRenderer {
       summaryListRow(
         label,
         value,
-        None,
+        visuallyHiddenText,
         keyClasses,
         "",
         "",
@@ -609,6 +616,8 @@ object FormComponentSummaryRenderer {
     val errors = checkErrors(formComponent, formFieldValidationResult)
     val label = fcrd.label(formComponent).capitalize
 
+    val visuallyHiddenText = getVisuallyHiddenText(formComponent)
+
     val keyClasses = getKeyClasses(hasErrors)
 
     val value = if (hasErrors) {
@@ -623,7 +632,7 @@ object FormComponentSummaryRenderer {
       summaryListRow(
         label,
         value,
-        None,
+        visuallyHiddenText,
         keyClasses,
         "",
         "",
@@ -666,6 +675,8 @@ object FormComponentSummaryRenderer {
     val errors = checkErrors(formComponent, formFieldValidationResult)
     val label = fcrd.label(formComponent).capitalize
 
+    val visuallyHiddenText = getVisuallyHiddenText(formComponent)
+
     val keyClasses = getKeyClasses(hasErrors)
 
     val value = if (hasErrors) {
@@ -680,7 +691,7 @@ object FormComponentSummaryRenderer {
       summaryListRow(
         label,
         value,
-        None,
+        visuallyHiddenText,
         keyClasses,
         "",
         "",
@@ -727,6 +738,8 @@ object FormComponentSummaryRenderer {
 
     val label = fcrd.label(formComponent)
 
+    val visuallyHiddenText = getVisuallyHiddenText(formComponent)
+
     val keyClasses = getKeyClasses(hasErrors)
 
     val value = if (hasErrors) errors.mkString(" ") else envelope.userFileName(formComponent)
@@ -735,7 +748,7 @@ object FormComponentSummaryRenderer {
       summaryListRow(
         label,
         value,
-        None,
+        visuallyHiddenText,
         keyClasses,
         "",
         "",
@@ -785,6 +798,8 @@ object FormComponentSummaryRenderer {
 
     val label = fcrd.label(fieldValue)
 
+    val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
+
     val keyClasses = getKeyClasses(hasErrors)
     val periodId = TaxPeriodHelper.formatTaxPeriodOutput(formFieldValidationResult, envelope)
 
@@ -803,7 +818,7 @@ object FormComponentSummaryRenderer {
       summaryListRow(
         label,
         value,
-        None,
+        visuallyHiddenText,
         keyClasses,
         "",
         "",
@@ -850,6 +865,8 @@ object FormComponentSummaryRenderer {
 
     val label = fcrd.label(formComponent)
 
+    val visuallyHiddenText = getVisuallyHiddenText(formComponent)
+
     val keyClasses = getKeyClasses(hasErrors)
 
     val value =
@@ -862,7 +879,7 @@ object FormComponentSummaryRenderer {
       summaryListRow(
         label,
         value,
-        None,
+        visuallyHiddenText,
         keyClasses,
         "",
         "",
@@ -919,6 +936,8 @@ object FormComponentSummaryRenderer {
 
         val label = fcrd.label(fieldValue)
 
+        val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
+
         val keyClasses = getKeyClasses(hasErrors)
 
         val value =
@@ -947,7 +966,7 @@ object FormComponentSummaryRenderer {
             summaryListRow(
               label,
               value,
-              None,
+              visuallyHiddenText,
               keyClasses,
               "",
               "",
