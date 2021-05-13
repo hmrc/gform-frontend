@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.config
 import cats.data.NonEmptyList
 import org.typelevel.ci.CIString
 import play.api.i18n.{ Lang, Messages }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EmailAuthConfig, FormTemplateId }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
@@ -53,12 +54,15 @@ case class FrontendAppConfig(
   }
 
   def timeoutDialog(templateId: FormTemplateId, authConfig: Option[AuthConfig])(implicit
-    messages: Messages
+    messages: Messages,
+    lang: LangADT
   ): Option[TimeoutDialog] = {
     val authTimeout = jsConfig(authConfig)
     if (authTimeout.timeoutEnabled) {
       Some(
         TimeoutDialog(
+          name = "hmrc-timeout-dialog",
+          language = Some(lang.langADTToString),
           timeout = Some(authTimeout.timeout),
           countdown = Some(authTimeout.countdown),
           keepAliveUrl = Some(authTimeout.keepAliveUrl),

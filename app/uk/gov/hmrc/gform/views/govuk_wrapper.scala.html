@@ -42,6 +42,7 @@
   displayTimeoutDialog: Boolean
 )(implicit messages: Messages, l: LangADT)
 
+@hmrcTimeoutDialog = @{new components.hmrcTimeoutDialog()}
 @timeoutDialog = @{
                     if(displayTimeoutDialog) {
                         appConfig.timeoutDialog(templateId, authConfig)
