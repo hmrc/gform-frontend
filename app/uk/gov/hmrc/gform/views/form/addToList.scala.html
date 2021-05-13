@@ -90,14 +90,14 @@
               @record.summary
             </span>
             <span class="hmrc-add-to-a-list__change">
-              <a class="govuk-link edit-add-to-list" href="@{uk.gov.hmrc.gform.gform.routes.FormController.addToListAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, EditAddToList(record.index, AddToListId(bracket.source.id.formComponentId)))}">
+              <a class="govuk-link edit-add-to-list" aria-label='@messages("addToList.change.visually.hidden", record.summaryText)' href="@{uk.gov.hmrc.gform.gform.routes.FormController.addToListAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, EditAddToList(record.index, AddToListId(bracket.source.id.formComponentId)))}">
                 <span aria-hidden="true">@messages("addToList.change")</span>
                 <span class="govuk-visually-hidden">@messages("addToList.change.visually.hidden", record.summaryText)</span>
               </a>
             </span>
             <span class="hmrc-add-to-a-list__remove">
               @if(recordTable.size > 1) {
-                <a class="govuk-link remove-add-to-list" href="@{uk.gov.hmrc.gform.gform.routes.FormController.addToListAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, RemoveAddToList(record.index, AddToListId(bracket.source.id.formComponentId)))}  ">
+                <a class="govuk-link remove-add-to-list" aria-label='@messages("addToList.remove.visually.hidden", record.summaryText)' href="@{uk.gov.hmrc.gform.gform.routes.FormController.addToListAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, RemoveAddToList(record.index, AddToListId(bracket.source.id.formComponentId)))}  ">
                   <span aria-hidden="true">@messages("addToList.remove")</span>
                   <span class="govuk-visually-hidden">@messages("addToList.remove.visually.hidden", record.summaryText)</span>
                 </a>
