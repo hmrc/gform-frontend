@@ -116,7 +116,7 @@
     @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
     @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
-    @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1"))
+    @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1", "aria-hidden" -> "true"))
 
       @{page.snippets}
 
