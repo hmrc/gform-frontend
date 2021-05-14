@@ -435,14 +435,12 @@ object SummaryRenderingService {
 
       val addToListSummary = addToListItemSummaries.map(ss => markDownParser(ss).toString).toList.mkString("")
 
+      val label = repeater.title.value()
+
       val slr: SummaryListRow = summaryListRow(
-        repeater.title
-          .value(), // This is weird to use, as it can have $n, but this list in shown only once. Should we have other property here?
+        label, // This is weird to use, as it can have $n, but this list in shown only once. Should we have other property here?
         addToListSummary,
-        Some(
-          repeater.title
-            .value()
-        ),
+        Some(label),
         "",
         "",
         "",
