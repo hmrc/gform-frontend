@@ -23,13 +23,20 @@
           : "";
       }
 
-      function setFormActionAndSubmit() {
-        return function (e) {
-          $('#gf-form').attr('action', findAction($(e.target)))
+      function setFormActionAndSubmit(e, action) {
+          $('#gf-form').attr('action', action || findAction($(e.target)));
           e.preventDefault();
           $('#gf-form').submit();
           disableSubmitButtons();
-        };
+      }
+
+      function handleBackButton(e) {
+        var $input = $(e.currentTarget);
+        var dataset = $input[0].dataset;
+        var formTemplateId = dataset.formTemplateId;
+        var accessCode = dataset.accessCode;
+        var sectionNumber = dataset.sectionNumber;
+        setFormActionAndSubmit(e, "/submissions/form/" + formTemplateId + "/" + accessCode + "/" + sectionNumber + "?ff=t&action=Back");
       }
 
       // Set up event handlers
@@ -45,7 +52,7 @@
 
 	    $("#main-content")
           .parent()
-          .on('click', '#backButton', setFormActionAndSubmit())
+          .on('click', '#backButton', handleBackButton)
 
         // update any character counters with ids and aria labels
         $('.char-counter-text').each(function (i, hint) {

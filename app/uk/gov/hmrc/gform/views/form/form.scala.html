@@ -15,7 +15,7 @@
  *@
 
 @import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate,SuppressErrors,SectionTitle4Ga}
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -59,9 +59,14 @@
 @backLink = @{
   val (href, attributes) =
     if(isDeclaration) {
-      (uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode).url, Map.empty[String, String])
+      (uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode).url,
+        Map.empty[String, String])
     } else {
-      (uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, Back).path, Map("id" -> "backButton"))
+      (uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber).path,
+        Map("id" -> "backButton",
+            "data-form-template-id" -> formTemplate._id.value,
+            "data-access-code" -> maybeAccessCode.fold("-")(_.value),
+            "data-section-number" -> sectionNumber.value.toString))
     }
   new BackLink(attributes = attributes, href = href, content = new Text(messages("linkText.back")))
 }
