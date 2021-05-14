@@ -347,7 +347,12 @@ object SummaryRenderingService {
 
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
-    def renderHtmls(singleton: Singleton[Visibility], sectionNumber: SectionNumber, source: Section)(implicit
+    def renderHtmls(
+      singleton: Singleton[Visibility],
+      sectionNumber: SectionNumber,
+      source: Section,
+      iterationTitle: Option[String] = None
+    )(implicit
       l: LangADT
     ): List[Html] = {
       val page = singleton.page
@@ -384,7 +389,8 @@ object SummaryRenderingService {
             sectionTitle4Ga,
             obligations,
             validationResult,
-            envelope
+            envelope,
+            iterationTitle
           )
         )
 
@@ -405,7 +411,12 @@ object SummaryRenderingService {
       val htmls: List[Html] = bracket.iterations.toList.flatMap { iteration =>
         begin_section(iteration.repeater.repeater.expandedShortName) :: {
           iteration.singletons.toList.flatMap { singletonWithNumber =>
-            renderHtmls(singletonWithNumber.singleton, singletonWithNumber.sectionNumber, bracket.source)
+            renderHtmls(
+              singletonWithNumber.singleton,
+              singletonWithNumber.sectionNumber,
+              bracket.source,
+              Some(iteration.repeater.repeater.expandedShortName.value())
+            )
           }
         }
       }
