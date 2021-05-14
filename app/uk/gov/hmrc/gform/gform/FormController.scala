@@ -345,6 +345,28 @@ class FormController(
     } yield redirect
   }
 
+  def formSection(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
+      _ => _ => _ => _ => formModelOptics =>
+        val formModel = formModelOptics.formModelRenderPageOptics.formModel
+        val sectionTitle4Ga = sectionTitle4GaFactory(formModel(sectionNumber).title, sectionNumber)
+        Redirect(
+          routes.FormController
+            .form(
+              formTemplateId,
+              maybeAccessCode,
+              sectionNumber,
+              sectionTitle4Ga,
+              SuppressErrors.Yes,
+              FastForward.Yes
+            )
+        ).pure[Future]
+    }
+
   def backAction(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
@@ -364,22 +386,22 @@ class FormController(
           ).pure[Future]
         }
 
-        val previousSectionNumber = Navigator(
+        val toSectionNumber = Navigator(
           sectionNumber,
           formModelOptics.asInstanceOf[FormModelOptics[Browser]]
         ).previousOrCurrentSectionNumber
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
-        val bracket = formModel.bracket(previousSectionNumber)
+        val bracket = formModel.bracket(toSectionNumber)
 
         bracket match {
-          case Bracket.NonRepeatingPage(_, _, _) => goBack(previousSectionNumber)
-          case Bracket.RepeatingPage(_, _)       => goBack(previousSectionNumber)
+          case Bracket.NonRepeatingPage(_, _, _) => goBack(toSectionNumber)
+          case Bracket.RepeatingPage(_, _)       => goBack(toSectionNumber)
           case bracket @ Bracket.AddToList(iterations, _) =>
             val iteration: Bracket.AddToListIteration[DataExpanded] =
-              bracket.iterationForSectionNumber(previousSectionNumber)
+              bracket.iterationForSectionNumber(toSectionNumber)
             val lastIteration: Bracket.AddToListIteration[DataExpanded] = iterations.last
             if (
-              iteration.repeater.sectionNumber === previousSectionNumber && iteration.repeater.sectionNumber < lastIteration.repeater.sectionNumber
+              iteration.repeater.sectionNumber === toSectionNumber && iteration.repeater.sectionNumber < lastIteration.repeater.sectionNumber
             ) {
               val isCommited =
                 formModelOptics.formModelVisibilityOptics.formModel.bracket(sectionNumber).withAddToListBracket {
@@ -387,7 +409,7 @@ class FormController(
                     addToListBracket.iterationForSectionNumber(sectionNumber).isCommited(cache.form.visitsIndex)
                 }
               if (isCommited) {
-                goBack(previousSectionNumber)
+                goBack(toSectionNumber)
               } else {
                 for {
                   processData <- processDataService
@@ -411,7 +433,7 @@ class FormController(
                 } yield redirect
               }
             } else {
-              goBack(previousSectionNumber)
+              goBack(toSectionNumber)
             }
         }
     }
