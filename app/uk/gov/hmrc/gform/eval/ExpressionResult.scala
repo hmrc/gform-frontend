@@ -219,12 +219,12 @@ sealed trait ExpressionResult extends Product with Serializable {
 
   def stringRepresentation(typeInfo: TypeInfo) =
     fold(_ => "")(_ => typeInfo.defaultValue)(_ => "")(_.value.toString)(_.value)(_.value.mkString(","))(_.asString)(
-      _.address.mkString(",")
+      _.address.mkString(", ")
     )
 
   def addressRepresentation(typeInfo: TypeInfo) =
     fold(_ => "")(_ => "")(_ => "")(_ => "")(_ => "")(_ => "")(_ => "")(
-      _.address.mkString("<br>")
+      _.address.mkString(",<br>")
     )
 
   def numberRepresentation: Option[BigDecimal] =
