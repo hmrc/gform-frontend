@@ -116,6 +116,8 @@ generic.error.mustBeBetween={0} must be between {1} and {2}
 generic.shortText.error.pattern={0} can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
 generic.longText.error.pattern={0} cannot include the characters {1}
 generic.referenceNumber.error.pattern={0} can only include numbers
+generic.charactersRemaining=You have {0} character(s) remaining
+generic.charactersTooMany=You have {0} character(s) too many
 
 generic.error.telephoneNumber={0} can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens
 

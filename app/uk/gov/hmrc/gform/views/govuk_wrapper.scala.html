@@ -54,6 +54,7 @@
 @scripts = {
     @scriptElem
     <script src='@routes.Assets.versioned("javascripts/jquery.min.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/utils.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformFileUpload.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformRepeatingGroups.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformToggleAddressDivsAndLabels.js")'></script>
@@ -70,6 +71,9 @@
 
     <script>window.GOVUKFrontend.initAll();</script>
     <script>window.HMRCFrontend.initAll();</script>
+
+    @* the script below overrides window.GOVUKFrontend.CharacterCount.updateCountMessage method, to enable localized messages *@
+    <script src='@routes.Assets.versioned("javascripts/gformCharacterCount.js")'></script>
 }
 
 @linkElement = {
@@ -90,6 +94,10 @@
           window.gform = window.gform || {};
           window.gform.baseLookupUrl = "/submissions/lookup/";
           window.gform.lang = window.getCookie("PLAY_LANG") || "en";
+          window.gform.messages = {
+            "genericCharactersRemaining": "@{messages("generic.charactersRemaining")}",
+            "genericCharactersTooMany": "@{messages("generic.charactersTooMany")}"
+          }
     </script>
     <meta name="format-detection" content="telephone=no" />
 }
@@ -107,10 +115,10 @@
 @govukFooter = @{new govukFooter()}
 @govukBackLink = @{new govukBackLink()}
 @govukSkipLink = @{new govukSkipLink()}
-@govukTag = @{new govukTag()}
 @hmrcBanner = @{new components.hmrcBanner()}
-@hmrcHeader = @{new components.hmrcHeader(hmrcBanner)}
-@govukPhaseBanner = @{new govukPhaseBanner(govukTag)}
+@hmrcUserResearchBanner = @{new components.hmrcUserResearchBanner()}
+@govukPhaseBanner = @{new govukPhaseBanner(govukTag = new govukTag())}
+@hmrcHeader = @{new components.hmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner)}
 @govukTemplate = @{new govukTemplate(govukHeader, govukFooter, govukSkipLink)}
 @govukLayout = @{new govukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink)}
 @hmrcReportTechnicalIssue = @{new components.hmrcReportTechnicalIssue()}
