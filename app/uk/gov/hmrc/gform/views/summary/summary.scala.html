@@ -33,6 +33,7 @@
     formTemplate: FormTemplate,
     snippets: List[Html],
     maybeAccessCode: Option[AccessCode],
+    lastSectionNumber: SectionNumber,
     formCategory: FormCategory,
     renderComeBackLater: Boolean,
     continueLabelKey: String,
@@ -47,6 +48,10 @@
 
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
+@backLink = @{
+    val href = uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, lastSectionNumber).path
+    new BackLink(href = href, content = new Text(messages("linkText.back")))
+}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -58,7 +63,8 @@
   formCategory = formTemplate.formCategory,
   displayHMRCLogo = formTemplate.displayHMRCLogo,
   languages = formTemplate.languages,
-  templateId = formTemplate._id
+  templateId = formTemplate._id,
+  backLink = Some(backLink)
 ) {
 
 
