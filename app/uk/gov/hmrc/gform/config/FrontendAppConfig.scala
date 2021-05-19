@@ -61,7 +61,6 @@ case class FrontendAppConfig(
     if (authTimeout.timeoutEnabled) {
       Some(
         TimeoutDialog(
-          name = "hmrc-timeout-dialog",
           language = Some(lang.langADTToString),
           timeout = Some(authTimeout.timeout),
           countdown = Some(authTimeout.countdown),

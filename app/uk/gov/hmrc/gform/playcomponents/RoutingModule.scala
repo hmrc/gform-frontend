@@ -30,7 +30,9 @@ import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.play.health.HealthController
 import uk.gov.hmrc.govukfrontend.controllers.{ Assets => GovukAssets }
-import uk.gov.hmrc.hmrcfrontend.controllers.{ Assets => HmrcAssets }
+import uk.gov.hmrc.hmrcfrontend.config.LanguageConfig
+import uk.gov.hmrc.hmrcfrontend.controllers.{ KeepAliveController, LanguageController, Assets => HmrcAssets }
+import uk.gov.hmrc.play.language.LanguageUtils
 
 class RoutingModule(
   playBuiltInsModule: PlayBuiltInsModule,
@@ -54,9 +56,18 @@ class RoutingModule(
 
   val govukfrontendAssets = new GovukAssets(errorHandler, assetsMetadata)
   val hmrcfrontendAssets = new HmrcAssets(errorHandler, assetsMetadata)
-
   val govukRoutes: govuk.Routes = new govuk.Routes(errorHandler, govukfrontendAssets)
-  val hmrcfrontendRoutes: hmrcfrontend.Routes = new hmrcfrontend.Routes(errorHandler, hmrcfrontendAssets)
+  val hmrcfrontendRoutes: hmrcfrontend.Routes = new hmrcfrontend.Routes(
+    errorHandler,
+    hmrcfrontendAssets,
+    new KeepAliveController(controllersModule.messagesControllerComponents),
+    LanguageController(
+      configModule.playConfiguration,
+      new LanguageUtils(playBuiltInsModule.langs, configModule.playConfiguration)(playBuiltInsModule.messagesApi),
+      controllersModule.messagesControllerComponents,
+      new LanguageConfig(configModule.playConfiguration)
+    )
+  )
 
   private val appRoutes: app.Routes = new app.Routes(
     errorHandler,

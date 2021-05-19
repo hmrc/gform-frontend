@@ -27,7 +27,7 @@ class LanguageSwitchController(
   languageUtils: LanguageUtils,
   config: FrontendAppConfig,
   controllerComponents: ControllerComponents
-) extends LanguageController(configuration, languageUtils, controllerComponents) with I18nSupport {
+) extends LanguageController(languageUtils, controllerComponents) with I18nSupport {
 
   protected def fallbackURL: String = "/"
 
