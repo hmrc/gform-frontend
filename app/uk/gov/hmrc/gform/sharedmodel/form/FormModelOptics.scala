@@ -65,6 +65,7 @@ object FormModelOptics {
         Option.empty[FormPhase],
         FileIdsWithMapping.empty,
         Map.empty,
+        Set.empty[BaseComponentId],
         Set.empty[BaseComponentId]
       )
     FormModelOptics[D](

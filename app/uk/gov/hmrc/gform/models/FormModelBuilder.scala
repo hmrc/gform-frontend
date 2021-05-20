@@ -180,7 +180,8 @@ class FormModelBuilder[E, F[_]: Functor](
         formPhase,
         FileIdsWithMapping(formModel.allFileIds, componentIdToFileId),
         formModel.dateLookup,
-        formModel.addressLookup
+        formModel.addressLookup,
+        formModel.overseasAddressLookup
       )
 
     recalculation

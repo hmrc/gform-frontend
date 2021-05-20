@@ -54,6 +54,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormM
       Option.empty[FormPhase],
       FileIdsWithMapping.empty,
       Map.empty,
+      Set.empty,
       Set.empty
     )
 

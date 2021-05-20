@@ -74,6 +74,10 @@ case class FormModel[A <: PageMode](
     fc.id.baseComponentId
   }.toSet
 
+  val overseasAddressLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsOverseasAddress(_) =>
+    fc.id.baseComponentId
+  }.toSet
+
   val exprsMetadata: List[ExprMetadata] = brackets.toBrackets.toList.flatMap {
     case AllPageModelExpressions(exprMetadatas) => exprMetadatas
     case _                                      => Nil

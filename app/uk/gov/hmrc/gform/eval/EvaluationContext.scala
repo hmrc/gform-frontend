@@ -35,5 +35,6 @@ class EvaluationContext(
   val formPhase: Option[FormPhase],
   val fileIdsWithMapping: FileIdsWithMapping,
   val dateLookup: Map[ModelComponentId, DateValue],
-  val addressLookup: Set[BaseComponentId]
+  val addressLookup: Set[BaseComponentId],
+  val overseasAddressLookup: Set[BaseComponentId]
 )
