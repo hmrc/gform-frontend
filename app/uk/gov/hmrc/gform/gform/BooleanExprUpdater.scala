@@ -22,6 +22,11 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
 
   private def expandExpr(expr: Expr): Expr = ExprUpdater(expr, index, baseIds)
   private def expandFormCtx(formCtx: FormCtx): FormCtx = ExprUpdater.formCtx(formCtx, index, baseIds)
+  private def expandDateExpr(dateExpr: DateExpr): DateExpr = dateExpr match {
+    case de @ DateValueExpr(value: DateExprValue)               => de
+    case DateFormCtxVar(formCtx: FormCtx)                       => DateFormCtxVar(expandFormCtx(formCtx))
+    case DateExprWithOffset(dExpr: DateExpr, offset: OffsetYMD) => DateExprWithOffset(expandDateExpr(dExpr), offset)
+  }
 
   def apply(booleanExpr: BooleanExpr): BooleanExpr = booleanExpr match {
     case Equals(left, right)              => Equals(expandExpr(left), expandExpr(right))
@@ -34,6 +39,9 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case And(left, right)                 => And(apply(left), apply(right))
     case Contains(formCtx, expr)          => Contains(expandFormCtx(formCtx), expandExpr(expr))
     case In(expr, dataSource)             => In(expandExpr(expr), dataSource)
+    case MatchRegex(formCtx, regex)       => MatchRegex(expandFormCtx(formCtx), regex)
+    case DateAfter(left, right)           => DateAfter(expandDateExpr(left), expandDateExpr(right))
+    case DateBefore(left, right)          => DateBefore(expandDateExpr(left), expandDateExpr(right))
     case otherwise                        => otherwise
   }
 }
