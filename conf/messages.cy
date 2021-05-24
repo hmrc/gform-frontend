@@ -109,8 +109,8 @@ generic.error.mustBeBetween=mae’n rhaid i {0} bod rhwng {1} a {2}
 generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau, cysylltnodau, ampersandau a chollnodau
 generic.longText.error.pattern=Ni all {0} gynnwys y cymeriadau {1}
 generic.referenceNumber.error.pattern=Gall {0} ond cynnwys rhifau
-generic.charactersRemaining=Mae gennych {0} cymeriad (au) ar ôl
-generic.charactersTooMany=Mae gennych chi {0} cymeriad (au) gormod
+generic.charactersRemaining=Mae gennych {0} o gymeriadau yn weddill
+generic.charactersTooMany=Mae gennych {0} o gymeriadau yn ormod
 
 generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
 
