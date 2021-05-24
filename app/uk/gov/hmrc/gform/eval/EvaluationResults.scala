@@ -245,11 +245,12 @@ case class EvaluationResults(
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
           val atomic: ModelComponentId.Atomic =
-            if (evaluationContext.addressLookup(formComponentId.baseComponentId))
-              formComponentId.modelComponentId.toAtomicFormComponentId(details.toAddressAtom)
-            else
-              formComponentId.modelComponentId.toAtomicFormComponentId(details.toOverseasAddressAtom)
-
+            formComponentId.modelComponentId.toAtomicFormComponentId(
+              if (evaluationContext.addressLookup(formComponentId.baseComponentId))
+                details.toAddressAtom
+              else
+                details.toOverseasAddressAtom
+            )
           recData.variadicFormData
             .get(atomic)
             .collectFirst {
