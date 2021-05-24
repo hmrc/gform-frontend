@@ -90,13 +90,22 @@ final case class DateCtx(value: DateExpr) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
 
 sealed trait AddressDetail {
-  def toAtom: Atom = this match {
+  def toAddressAtom: Atom = this match {
     case AddressDetail.Line1    => Address.street1
     case AddressDetail.Line2    => Address.street2
     case AddressDetail.Line3    => Address.street3
     case AddressDetail.Line4    => Address.street4
     case AddressDetail.Postcode => Address.postcode
     case AddressDetail.Country  => Address.country
+  }
+
+  def toOverseasAddressAtom: Atom = this match {
+    case AddressDetail.Line1    => OverseasAddress.line1
+    case AddressDetail.Line2    => OverseasAddress.line2
+    case AddressDetail.Line3    => OverseasAddress.line3
+    case AddressDetail.Line4    => OverseasAddress.city
+    case AddressDetail.Postcode => OverseasAddress.postcode
+    case AddressDetail.Country  => OverseasAddress.country
   }
 }
 

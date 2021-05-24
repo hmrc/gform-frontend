@@ -186,11 +186,15 @@ case class EvaluationResults(
       case Subtraction(field1: Expr, field2: Expr) => unsupportedOperation("String")(expr)
       case Else(field1: Expr, field2: Expr)        => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId: FormComponentId)
-          if evaluationContext.addressLookup(formComponentId.baseComponentId) =>
+          if evaluationContext.addressLookup(formComponentId.baseComponentId) || evaluationContext
+            .overseasAddressLookup(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {
           val indexedComponentId = formComponentId.modelComponentId.indexedComponentId
           val addressAtoms: List[ModelComponentId.Atomic] =
-            Address.fields(indexedComponentId).filter(_.atom != Address.uk)
+            if (evaluationContext.addressLookup(formComponentId.baseComponentId))
+              Address.fields(indexedComponentId).filter(_.atom != Address.uk)
+            else
+              OverseasAddress.fields(indexedComponentId).toList
 
           val variadicValues: List[Option[VariadicValue]] = addressAtoms.map(atom => recData.variadicFormData.get(atom))
           val addressLines = variadicValues.collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
@@ -240,8 +244,13 @@ case class EvaluationResults(
         StringResult(evalDateExpr(recData, evaluationContext, this)(dateExpr).stringRepresentation(typeInfo))
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
-          val atomic: ModelComponentId.Atomic = formComponentId.modelComponentId.toAtomicFormComponentId(details.toAtom)
-
+          val atomic: ModelComponentId.Atomic =
+            formComponentId.modelComponentId.toAtomicFormComponentId(
+              if (evaluationContext.addressLookup(formComponentId.baseComponentId))
+                details.toAddressAtom
+              else
+                details.toOverseasAddressAtom
+            )
           recData.variadicFormData
             .get(atomic)
             .collectFirst {

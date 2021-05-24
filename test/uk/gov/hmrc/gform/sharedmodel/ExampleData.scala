@@ -67,6 +67,7 @@ trait ExampleEvaluationContext {
       Option.empty[FormPhase],
       FileIdsWithMapping.empty,
       Map.empty,
+      Set.empty,
       Set.empty
     )
 }
