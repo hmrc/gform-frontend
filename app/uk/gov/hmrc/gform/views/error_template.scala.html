@@ -23,7 +23,8 @@
   heading: String,
   message: String,
   maybeMessageHtml: Option[Html] = None,
-  frontendAppConfig: FrontendAppConfig
+  frontendAppConfig: FrontendAppConfig,
+  availableLanguages: AvailableLanguages = AvailableLanguages.default
 )(implicit messages: Messages, l: LangADT)
 
 @mainContent = {
@@ -44,5 +45,6 @@
     displayHMRCLogo = false,
     templateId = FormTemplateId(""),
     backLink = None,
-    displayTimeoutDialog = true
+    displayTimeoutDialog = true,
+    formLanguages = availableLanguages
 )

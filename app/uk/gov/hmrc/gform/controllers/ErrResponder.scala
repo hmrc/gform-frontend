@@ -24,7 +24,7 @@ import play.api.mvc.{ RequestHeader, Result }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auditing.HttpAuditingService
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT }
 
 import scala.concurrent.Future
 
@@ -47,8 +47,6 @@ class ErrResponder(
 
   import i18nSupport._
 
-  private val restricted = "We're sorry, but this page is restricted."
-
   def internalServerError(requestHeader: RequestHeader, e: Throwable) = {
     logger.error(s"Experienced internal server error", e)
     httpAuditingService.auditServerError(requestHeader)
@@ -61,24 +59,35 @@ class ErrResponder(
     Future.successful(InternalServerError.apply(renderInternalServerError(requestHeader)))
   }
 
-  def forbidden(message: String, messageHtml: Option[Html] = None)(implicit request: RequestHeader): Future[Result] =
-    forbiddenReason(message, restricted, messageHtml)
+  def forbidden(
+    message: String,
+    messageHtml: Option[Html] = None,
+    availableLanguages: Option[AvailableLanguages] = None
+  )(implicit request: RequestHeader): Future[Result] =
+    forbiddenReason(message, "generic.error.pageRestricted", messageHtml, availableLanguages)
 
   def forbiddenWithReason(reason: String)(implicit request: RequestHeader): Future[Result] =
     forbiddenReason(reason, reason)
 
-  private def forbiddenReason(message: String, reason: String, reasonHtml: Option[Html] = None)(implicit
-    request: RequestHeader
+  private def forbiddenReason(
+    message: String,
+    reason: String,
+    reasonHtml: Option[Html] = None,
+    availableLanguages: Option[AvailableLanguages] = None
+  )(implicit
+    request: RequestHeader,
+    messages: Messages
   ): Future[Result] = {
     logger.info(s"Trying to access forbidden resource: $message")
     httpAuditingService.auditForbidden(request)
     Future.successful(
       Forbidden(
         renderErrorPage(
-          "Access forbidden",
-          restricted,
-          reason,
-          reasonHtml
+          messages("generic.error.accessForbidden"),
+          messages("generic.error.pageRestricted"),
+          messages(reason),
+          reasonHtml,
+          availableLanguages
         )
       )
     )
@@ -118,9 +127,17 @@ class ErrResponder(
     pageTitle: String,
     heading: String,
     message: String,
-    maybeMessageHtml: Option[Html] = None
+    maybeMessageHtml: Option[Html] = None,
+    availableLanguages: Option[AvailableLanguages] = None
   )(implicit requestHeader: RequestHeader) = {
-    implicit val l = LangADT.fromRequest(requestHeader, langs)
-    views.html.error_template(pageTitle, heading, message, maybeMessageHtml, frontendAppConfig)
+    implicit val lang: LangADT = LangADT.fromRequest(requestHeader, langs)
+    views.html.error_template(
+      pageTitle,
+      heading,
+      message,
+      maybeMessageHtml,
+      frontendAppConfig,
+      availableLanguages.fold(AvailableLanguages.default)(identity)
+    )
   }
 }
