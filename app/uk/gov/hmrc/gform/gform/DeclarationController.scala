@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.instances.future._
 import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Messages }
-import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
+import play.api.mvc.{ Action, AnyContent, Call, MessagesControllerComponents, Request, Result }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
@@ -246,11 +246,23 @@ class DeclarationController(
     val form: Form = cache.form.copy(
       formData = variadicFormData.toFormData
     )
+
+    val declarationSectionFieldIds: List[FormComponentId] = cache.formTemplate.destinations match {
+      case DestinationList(_, _, ds) => ds.fields.map(_.id)
+      case _                         => Nil
+    }
+
     for {
       _ <- gformBackEnd.updateUserData(form, maybeAccessCode)
-    } yield Redirect(
-      routes.DeclarationController.showDeclaration(maybeAccessCode, cache.formTemplate._id, SuppressErrors.No)
-    )
+    } yield {
+      val call: Call =
+        if (validationResult.errorsFieldIds.exists(declarationSectionFieldIds.contains))
+          routes.DeclarationController.showDeclaration(maybeAccessCode, cache.formTemplate._id, SuppressErrors.No)
+        else
+          routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
+
+      Redirect(call)
+    }
   }
 
   private def processValid[U <: SectionSelectorType: SectionSelector](
