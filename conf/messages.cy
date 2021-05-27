@@ -111,9 +111,9 @@ generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylcha
 generic.longText.error.pattern=Ni all {0} gynnwys y cymeriadau {1}
 generic.referenceNumber.error.pattern=Gall {0} ond cynnwys rhifau
 generic.charactersRemaining=Mae gennych {0} o gymeriadau yn weddill
-generic.characterRemaining=You have {0} character remaining
+generic.characterRemaining=Mae gennych {0} o gymeriadau yn weddill
 generic.charactersTooMany=Mae gennych {0} o gymeriadau yn ormod
-generic.characterTooMany=You have {0} character too many
+generic.characterTooMany=Mae gennych {0} o gymeriadau yn ormod
 
 generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
 
