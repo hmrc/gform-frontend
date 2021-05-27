@@ -36,7 +36,10 @@
         }
 
         // Update message
-        var message = (remainingNumber < 0) ? window.gform.messages.genericCharactersTooMany : window.gform.messages.genericCharactersRemaining;
+        var message = remainingNumber < -1 ? window.gform.messages.genericCharactersTooMany :
+            (remainingNumber == -1 ? window.gform.messages.genericCharacterTooMany :
+               ((remainingNumber == 0 || remainingNumber > 1) ? window.gform.messages.genericCharactersRemaining :
+                    window.gform.messages.genericCharacterRemaining));
         var displayNumber = Math.abs(remainingNumber);
 
         countMessage.innerHTML = message.format(displayNumber);
