@@ -29,10 +29,10 @@ class ValidationResult(
 
   val isFormValid: Boolean = lookup.values.view.forall(_.isOk)
 
-  val errorsFieldIds: List[FormComponentId] = lookup.collect {
-    case (fcId, _: FieldError)       => fcId
-    case (fcId, _: FieldGlobalError) => fcId
-  }.toList
+  val errorsFieldIds: List[FormComponentId] =
+    lookup.collect {
+      case (fcId, ffvr) if ffvr.fieldErrors.nonEmpty => fcId
+    }.toList
 
   def forgetErrors: ValidationResult = new ValidationResult(lookup.mapValues(_.forgetErrors), validatorsResult)
 

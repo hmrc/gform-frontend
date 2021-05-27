@@ -248,7 +248,7 @@ class DeclarationController(
     )
 
     val declarationSectionFieldIds: List[FormComponentId] = cache.formTemplate.destinations match {
-      case DestinationList(_, _, ds) => ds.fields.map(_.id)
+      case DestinationList(_, _, ds) => ds.fields.map(_.id) ++ ds.fields.flatMap(_.childrenFormComponents.map(_.id))
       case _                         => Nil
     }
 
