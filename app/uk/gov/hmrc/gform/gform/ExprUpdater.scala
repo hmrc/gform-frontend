@@ -26,14 +26,15 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     if (baseIds.contains(fcId) && index =!= 0) FormComponentId(index + "_" + fcId.value) else fcId
 
   def expandExpr(expr: Expr): Expr = expr match {
-    case Add(field1, field2)         => Add(expandExpr(field1), expandExpr(field2))
-    case Multiply(field1, field2)    => Multiply(expandExpr(field1), expandExpr(field2))
-    case Subtraction(field1, field2) => Subtraction(expandExpr(field1), expandExpr(field2))
-    case Else(field1, field2)        => Else(expandExpr(field1), expandExpr(field2))
-    case FormCtx(formComponentId)    => FormCtx(expandFcId(formComponentId))
-    case Sum(expr)                   => Sum(expandExpr(expr))
-    case DateCtx(dateExpr)           => DateCtx(expandDateExpr(dateExpr))
-    case otherwise                   => otherwise
+    case Add(field1, field2)                  => Add(expandExpr(field1), expandExpr(field2))
+    case Multiply(field1, field2)             => Multiply(expandExpr(field1), expandExpr(field2))
+    case Subtraction(field1, field2)          => Subtraction(expandExpr(field1), expandExpr(field2))
+    case Else(field1, field2)                 => Else(expandExpr(field1), expandExpr(field2))
+    case FormCtx(formComponentId)             => FormCtx(expandFcId(formComponentId))
+    case Sum(expr)                            => Sum(expandExpr(expr))
+    case DateCtx(dateExpr)                    => DateCtx(expandDateExpr(dateExpr))
+    case AddressLens(formComponentId, detail) => AddressLens(expandFcId(formComponentId), detail)
+    case otherwise                            => otherwise
   }
 
   private def expandDateExpr(dateExpr: DateExpr): DateExpr = dateExpr match {
