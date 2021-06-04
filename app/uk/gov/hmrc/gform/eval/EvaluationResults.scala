@@ -32,6 +32,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
 
+import java.time.Period
+
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult]
 ) {
@@ -160,6 +162,8 @@ case class EvaluationResults(
       case ParamCtx(_)                                => unsupportedOperation("Number")(expr)
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
       case DateCtx(_)                                 => unsupportedOperation("Number")(expr)
+      case PeriodFun(_, _)                            => unsupportedOperation("Number")(expr)
+      case PeriodValue(_)                             => unsupportedOperation("Number")(expr)
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
     }
 
@@ -242,6 +246,13 @@ case class EvaluationResults(
         nonEmpty(StringResult(link.url))
       case DateCtx(dateExpr) =>
         StringResult(evalDateExpr(recData, evaluationContext, this)(dateExpr).stringRepresentation(typeInfo))
+      case PeriodFun(expr1, expr2) =>
+        (expr1, expr2) match {
+          case (DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
+            StringResult(periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2).toString)
+          case _ =>
+            Invalid(s"period(d1, d2) requires both d1 and d2 to be date expressions $expr")
+        }
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
           val atomic: ModelComponentId.Atomic =
@@ -283,6 +294,39 @@ case class EvaluationResults(
     loop(typeInfo.expr) orElse evalString(typeInfo, recData, evaluationContext)
   }
 
+  private def evalPeriodString(
+    typeInfo: TypeInfo,
+    recData: RecData[SourceOrigin.OutOfDate],
+    evaluationContext: EvaluationContext
+  ): ExpressionResult = {
+    def loop(expr: Expr): ExpressionResult = expr match {
+      case Else(field1: Expr, field2: Expr) =>
+        loop(field1) orElse loop(field2)
+      case PeriodValue(value) => PeriodResult(Period.parse(value))
+      case PeriodFun(expr1, expr2) =>
+        (expr1, expr2) match {
+          case (DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
+            PeriodResult(periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2))
+          case _ =>
+            Invalid(s"period(d1, d2) requires both d1 and d2 to be date expressions $expr")
+        }
+      case _ => ExpressionResult.empty
+    }
+    loop(typeInfo.expr)
+  }
+
+  private def periodBetween(
+    recData: RecData[SourceOrigin.OutOfDate],
+    evaluationContext: EvaluationContext
+  )(dateExpr1: DateExpr, dateExpr2: DateExpr): Period = {
+    val dateResult1 = evalDateExpr(recData, evaluationContext, this)(dateExpr1)
+    val dateResult2 = evalDateExpr(recData, evaluationContext, this)(dateExpr2)
+    (dateResult1, dateResult2) match {
+      case (DateResult(value1), DateResult(value2)) => Period.between(value1, value2)
+      case _                                        => Period.ZERO
+    }
+  }
+
   def evalExprCurrent(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.Current],
@@ -304,6 +348,8 @@ case class EvaluationResults(
       evalDateString(typeInfo, recData, evaluationContext)
     } { addressString =>
       evalString(typeInfo, recData, evaluationContext)
+    } { periodString =>
+      evalPeriodString(typeInfo, recData, evaluationContext)
     } { illegal =>
       ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
     }

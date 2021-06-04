@@ -24,7 +24,7 @@ import scala.util.matching.Regex
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Number, PositiveNumber, Sterling, TextConstraint }
 
-import java.time.LocalDate
+import java.time.{ LocalDate, Period }
 import java.time.format.DateTimeFormatter
 
 sealed trait ExpressionResult extends Product with Serializable {
@@ -46,11 +46,12 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: Hidden.type => this
     case t: Empty.type  => this
     case t: NumberResult =>
-      fold[ExpressionResult](identity)(_ => t)(_ => t)(_ + t)(s => StringResult(s.value + t.value.toString))(invalidAdd)(invalidAdd)(invalidAdd)
+      fold[ExpressionResult](identity)(_ => t)(_ => t)(_ + t)(s => StringResult(s.value + t.value.toString))(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)
     case t: StringResult =>
-      fold[ExpressionResult](identity)(_ => t)(_ => t)(n => StringResult(n.value.toString + t.value))(_ + t)(invalidAdd)(invalidAdd)(invalidAdd)
+      fold[ExpressionResult](identity)(_ => t)(_ => t)(n => StringResult(n.value.toString + t.value))(_ + t)(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)
     case t: OptionResult  => Invalid(s"Unsupported operation, cannot add OptionResult and $t")
     case t: DateResult    => Invalid(s"Unsupported operation, cannot add DateResult and $t")
+    case t: PeriodResult  => Invalid(s"Unsupported operation, cannot add PeriodResult and $t")
     case t: AddressResult => Invalid(s"Unsupported operation, cannot add AddressResult and $t")
     // format: on
   }
@@ -60,10 +61,11 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: Invalid      => t
     case t: Hidden.type  => this
     case t: Empty.type   => this
-    case t: NumberResult => fold[ExpressionResult](identity)(_ => t)(identity)(_ - t)(invalidSubstract)(invalidSubstract)(invalidSubstract)(invalidSubstract)
+    case t: NumberResult => fold[ExpressionResult](identity)(_ => t)(identity)(_ - t)(invalidSubstract)(invalidSubstract)(invalidSubstract)(invalidSubstract)(invalidSubstract)
     case t: StringResult => Invalid("Unsupported operation, cannot substract strings")
     case t: OptionResult => Invalid("Unsupported operation, cannot substract options")
     case t: DateResult => Invalid(s"Unsupported operation, cannot substract DateResult$t")
+    case t: PeriodResult => Invalid(s"Unsupported operation, cannot substract PeriodResult$t")
     case t: AddressResult => Invalid(s"Unsupported operation, cannot substract AddressResult$t")
     // format: on
   }
@@ -71,18 +73,19 @@ sealed trait ExpressionResult extends Product with Serializable {
   def *(er: ExpressionResult): ExpressionResult = er match {
     // format: off
     case t: Invalid      => t
-    case t: Hidden.type  => fold[ExpressionResult](identity)(identity)(identity)(_ => NumberResult(0))(invalidMult)(invalidMult)(invalidMult)(invalidMult)
+    case t: Hidden.type  => fold[ExpressionResult](identity)(identity)(identity)(_ => NumberResult(0))(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)
     case t: Empty.type   => this
-    case t: NumberResult => fold[ExpressionResult](identity)(_ => NumberResult(0))(identity)(_ * t)(invalidMult)(invalidMult)(invalidMult)(invalidMult)
+    case t: NumberResult => fold[ExpressionResult](identity)(_ => NumberResult(0))(identity)(_ * t)(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)
     case t: StringResult => Invalid("Unsupported operation, cannot multiply strings")
     case t: OptionResult => Invalid("Unsupported operation, cannot multiply options")
     case t: DateResult => Invalid("Unsupported operation, cannot multiply DateResult")
+    case t: PeriodResult => Invalid("Unsupported operation, cannot multiply PeriodResult")
     case t: AddressResult => Invalid("Unsupported operation, cannot multiply AddressResult")
     // format: on
   }
 
   def orElse(er: ExpressionResult): ExpressionResult =
-    fold[ExpressionResult](identity)(_ => er)(_ => er)(identity)(identity)(identity)(identity)(identity)
+    fold[ExpressionResult](identity)(_ => er)(_ => er)(identity)(identity)(identity)(identity)(identity)(identity)
 
   def contains(er: ExpressionResult): Boolean = this match {
     case t: Invalid      => false
@@ -93,8 +96,9 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: OptionResult =>
       er.fold[Boolean](_ => false)(_ => false)(_ => false)(n => t.contains(n.value))(_ => false)(_ => false)(_ =>
         false
-      )(_ => false)
+      )(_ => false)(_ => false)
     case t: DateResult    => false
+    case t: PeriodResult  => false
     case t: AddressResult => false
   }
 
@@ -110,6 +114,7 @@ sealed trait ExpressionResult extends Product with Serializable {
         er.ifNumberResult(_.toString === t.value)
     case t: OptionResult  => er.ifOptionResult(_.toSet.diff(t.value.toSet).isEmpty)
     case t: DateResult    => false
+    case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths == _.toTotalMonths)
     case t: AddressResult => false
   }
 
@@ -121,6 +126,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: StringResult  => er.ifStringResult(t.value > _)
     case t: OptionResult  => er.ifOptionResult(t.value.min > _.min)
     case t: DateResult    => false
+    case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths > _.toTotalMonths)
     case t: AddressResult => false
   }
 
@@ -132,6 +138,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: StringResult  => er.ifStringResult(t.value >= _)
     case t: OptionResult  => er.ifOptionResult(t.value.min >= _.min)
     case t: DateResult    => false
+    case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths >= _.toTotalMonths)
     case t: AddressResult => false
   }
 
@@ -143,6 +150,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: StringResult  => er.ifStringResult(t.value < _)
     case t: OptionResult  => er.ifOptionResult(t.value.min < _.min)
     case t: DateResult    => false
+    case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths < _.toTotalMonths)
     case t: AddressResult => false
   }
 
@@ -154,6 +162,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: StringResult  => er.ifStringResult(t.value <= _)
     case t: OptionResult  => er.ifOptionResult(t.value.min <= _.min)
     case t: DateResult    => false
+    case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths <= _.toTotalMonths)
     case t: AddressResult => false
   }
 
@@ -165,6 +174,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: StringResult  => false
     case t: OptionResult  => false
     case t: DateResult    => er.ifDateResult(t.value.isBefore(_))
+    case t: PeriodResult  => false
     case t: AddressResult => false
   }
 
@@ -176,34 +186,51 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: StringResult  => false
     case t: OptionResult  => false
     case t: DateResult    => er.ifDateResult(t.value.isAfter(_))
+    case t: PeriodResult  => false
     case t: AddressResult => false
   }
 
   private def isEmpty: Boolean =
-    fold[Boolean](_ => false)(_ => false)(_ => true)(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)
+    fold[Boolean](_ => false)(_ => false)(_ => true)(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(_ =>
+      false
+    )
   private def ifNumberResult(f: BigDecimal => Boolean): Boolean =
-    fold[Boolean](_ => false)(_ => false)(_ => false)(r => f(r.value))(_ => false)(_ => false)(_ => false)(_ => false)
+    fold[Boolean](_ => false)(_ => false)(_ => false)(r => f(r.value))(_ => false)(_ => false)(_ => false)(_ => false)(
+      _ => false
+    )
   private def ifStringResult(f: String => Boolean): Boolean =
-    fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(r => f(r.value))(_ => false)(_ => false)(_ => false)
+    fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(r => f(r.value))(_ => false)(_ => false)(_ => false)(
+      _ => false
+    )
   private def ifOptionResult(f: Seq[Int] => Boolean): Boolean =
-    fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(r => f(r.value))(_ => false)(_ => false)
+    fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(r => f(r.value))(_ => false)(_ => false)(
+      _ => false
+    )
   private def ifDateResult(f: LocalDate => Boolean): Boolean =
-    fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(r => f(r.value))(_ => false)
+    fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(r => f(r.value))(_ => false)(
+      _ => false
+    )
+  private def ifPeriodResult(f: Period => Boolean): Boolean =
+    fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(r => false)(_ => false)(r =>
+      f(r.value)
+    )
 
   def withNumberResult(f: BigDecimal => BigDecimal): ExpressionResult =
     fold[ExpressionResult](identity)(identity)(identity)(r => NumberResult(f(r.value)))(identity)(identity)(identity)(
+      identity
+    )(
       identity
     )
 
   def withStringResult[B](noString: B)(f: String => B): B =
     fold[B](_ => noString)(_ => noString)(_ => noString)(_ => noString)(r => f(r.value))(_ => noString)(_ => noString)(
       _ => noString
-    )
+    )(_ => noString)
 
   def convertNumberToString: ExpressionResult =
     fold[ExpressionResult](identity)(identity)(identity)(r => StringResult(r.value.toString))(identity)(identity)(
       identity
-    )(identity)
+    )(identity)(identity)
 
   def applyTextConstraint(textConstraint: TextConstraint): ExpressionResult = textConstraint match {
     // format: off
@@ -220,22 +247,22 @@ sealed trait ExpressionResult extends Product with Serializable {
   def stringRepresentation(typeInfo: TypeInfo) =
     fold(_ => "")(_ => typeInfo.defaultValue)(_ => "")(_.value.toString)(_.value)(_.value.mkString(","))(_.asString)(
       _.address.mkString(", ")
-    )
+    )(_.value.toString)
 
   def addressRepresentation(typeInfo: TypeInfo) =
     fold(_ => "")(_ => "")(_ => "")(_ => "")(_ => "")(_ => "")(_ => "")(
       _.address.mkString(",<br>")
-    )
+    )(_ => "")
 
   def numberRepresentation: Option[BigDecimal] =
     fold[Option[BigDecimal]](_ => None)(_ => None)(_ => None)(bd => Some(bd.value))(_ => None)(_ => None)(_ => None)(
       _ => None
-    )
+    )(_ => None)
 
   def optionRepresentation: Option[Seq[Int]] =
     fold[Option[Seq[Int]]](_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(o => Some(o.value))(_ => None)(_ =>
       None
-    )
+    )(_ => None)
 
   def matchRegex(regex: Regex): Boolean =
     fold { _ =>
@@ -248,6 +275,8 @@ sealed trait ExpressionResult extends Product with Serializable {
       regex.findFirstIn(number.value.toString).isDefined
     } { string =>
       regex.findFirstIn(string.value).isDefined
+    } { _ =>
+      false
     } { _ =>
       false
     } { _ =>
@@ -272,6 +301,8 @@ sealed trait ExpressionResult extends Product with Serializable {
     g: DateResult => B
   )(
     h: AddressResult => B
+  )(
+    i: PeriodResult => B
   ): B = this match {
     case t: Invalid       => a(t)
     case t: Hidden.type   => b(t)
@@ -281,6 +312,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: OptionResult  => f(t)
     case t: DateResult    => g(t)
     case t: AddressResult => h(t)
+    case t: PeriodResult  => i(t)
   }
 }
 
@@ -304,6 +336,9 @@ object ExpressionResult {
   case class DateResult(value: LocalDate) extends ExpressionResult {
     val DATE_DISPLAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
     def asString = value.format(DATE_DISPLAY_FORMAT)
+  }
+  case class PeriodResult(value: Period) extends ExpressionResult {
+    def asString = value.toString
   }
   case class OptionResult(value: Seq[Int]) extends ExpressionResult {
     def contains(bd: BigDecimal): Boolean = value.contains(bd.toInt)

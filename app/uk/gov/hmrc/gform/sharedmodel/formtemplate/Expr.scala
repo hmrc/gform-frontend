@@ -41,12 +41,14 @@ sealed trait Expr extends Product with Serializable {
     case AuthCtx(value: AuthInfo)                   => this :: Nil
     case UserCtx(value: UserField)                  => this :: Nil
     case Constant(value: String)                    => this :: Nil
+    case PeriodValue(value: String)                 => this :: Nil
     case HmrcRosmRegistrationCheck(value: RosmProp) => this :: Nil
     case Value                                      => this :: Nil
     case FormTemplateCtx(value: FormTemplateProp)   => this :: Nil
     case ParamCtx(_)                                => this :: Nil
     case LinkCtx(_)                                 => this :: Nil
     case DateCtx(dateExpr)                          => dateExpr.leafExprs
+    case PeriodFun(dateCtx1, dateCtx2)              => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
     case AddressLens(formComponentId, _)            => this :: Nil
   }
 
@@ -61,12 +63,14 @@ sealed trait Expr extends Product with Serializable {
     case AuthCtx(value: AuthInfo)                   => Nil
     case UserCtx(value: UserField)                  => Nil
     case Constant(value: String)                    => Nil
+    case PeriodValue(value: String)                 => Nil
     case HmrcRosmRegistrationCheck(value: RosmProp) => Nil
     case Value                                      => Nil
     case FormTemplateCtx(value: FormTemplateProp)   => Nil
     case ParamCtx(_)                                => Nil
     case LinkCtx(_)                                 => Nil
     case DateCtx(_)                                 => Nil
+    case PeriodFun(_, _)                            => Nil
     case AddressLens(_, _)                          => Nil
   }
 }
@@ -82,12 +86,14 @@ final case class ParamCtx(queryParam: QueryParam) extends Expr
 final case class AuthCtx(value: AuthInfo) extends Expr
 final case class UserCtx(value: UserField) extends Expr
 final case class Constant(value: String) extends Expr
+final case class PeriodValue(value: String) extends Expr
 final case class LinkCtx(link: InternalLink) extends Expr
 final case class HmrcRosmRegistrationCheck(value: RosmProp) extends Expr
 final case object Value extends Expr
 final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
 final case class DateCtx(value: DateExpr) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
+final case class PeriodFun(dateCtx1: Expr, dateCtx2: Expr) extends Expr
 
 sealed trait AddressDetail {
   def toAddressAtom: Atom = this match {
