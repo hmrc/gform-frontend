@@ -302,7 +302,7 @@ object ExpressionResult {
     def +(sr: StringResult): StringResult = StringResult(value + sr.value)
   }
   case class DateResult(value: LocalDate) extends ExpressionResult {
-    val DATE_DISPLAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
+    val DATE_DISPLAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
     def asString = value.format(DATE_DISPLAY_FORMAT)
   }
   case class OptionResult(value: Seq[Int]) extends ExpressionResult {
