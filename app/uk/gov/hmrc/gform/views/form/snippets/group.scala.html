@@ -34,7 +34,8 @@
   canAddAnother: Option[ModelComponentId],
   formTemplateId: FormTemplateId,
   maybeAccessCode: Option[AccessCode],
-  sectionNumber: SectionNumber
+  sectionNumber: SectionNumber,
+  classes: String
 )(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @repeatCount = @{groupField.repeatsMin.getOrElse(0)}
@@ -47,7 +48,7 @@
 <div class="gform-group">
 
   @if(label.nonEmpty) {
-    <label class="govuk-!-margin-bottom-7 govuk-label govuk-label--m">
+    <label class="govuk-!-margin-bottom-7 govuk-label govuk-label--m @classes">
         @label
     </label>
   }

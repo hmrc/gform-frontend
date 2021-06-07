@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormComponent
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models._
@@ -145,6 +145,45 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     val phoneField = Jsoup.parse(generatedHtml.body).getElementById("phoneNumber")
 
     phoneField.attr("type") shouldBe "tel"
+  }
+
+  it should "render text field with given labelsize" in new TestFixture {
+
+    import i18nSupport._
+
+    lazy val textField = mkFormComponentWithLabelSize("st", Text(ShortText.default, Value), Some(Medium))
+
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(textField.modelComponentId, "testLabelSize")
+          )
+        )
+      )
+
+    lazy val sections = List(nonRepeatingPageSection(fields = List(textField)))
+    override lazy val formTemplate = buildFormTemplate(destinationList, sections)
+
+    val generatedHtml = testService
+      .renderSection(
+        Some(accessCode),
+        SectionNumber(0),
+        FormHandlerResult(ValidationResult.empty, EnvelopeWithMapping.empty),
+        formTemplate,
+        envelopeId,
+        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
+        0,
+        Nil,
+        Nil,
+        authContext,
+        NotChecked,
+        FastForward.Yes,
+        formModelOptics
+      )
+
+    val textFieldHtml = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-label")
+    textFieldHtml.attr("class") should include("govuk-label--m")
   }
 
   "renderDeclarationSection" should "render Declaration page with Button with text 'ContinueLabel'" in new TestFixture {

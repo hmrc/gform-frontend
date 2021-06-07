@@ -145,6 +145,27 @@ object FormTemplateBuilder {
       None
     )
 
+  def mkFormComponentWithLabelSize(id: String, ct: ComponentType, labelSize: Option[LabelSize]) =
+    FormComponent(
+      FormComponentId(id),
+      ct,
+      toSmartString(id),
+      None,
+      None,
+      None,
+      None,
+      true,
+      true,
+      true,
+      false,
+      false,
+      None,
+      None,
+      Nil,
+      None,
+      labelSize
+    )
+
   def mkFormComponentValidIf(fcId: String, expr: Expr, validIf: ValidIf): FormComponent =
     mkFormComponentValidIf(fcId, Text(TextConstraint.default, expr), validIf)
   def mkFormComponentValidIf(fcId: String, ct: ComponentType, validIf: ValidIf) =

@@ -24,6 +24,7 @@
     formComponent: FormComponent,
     validationResult: FormFieldValidationResult,
     formLevelHeading: Boolean,
+    classes: String,
     fetchValue: (HtmlFieldId, Atom) => String
 )(
     implicit
@@ -52,13 +53,13 @@
 
 <fieldset class="govuk-fieldset" id="@{formComponent.id.value}-fieldset" role="group" @if(formComponent.helpText.nonEmpty) { aria-describedby="@{formComponent.id.value}-hint" }>
     @if(formLevelHeading) {
-        <legend class="govuk-fieldset__legend govuk-label--l">
+        <legend class="govuk-fieldset__legend govuk-label--l @classes">
             <h1 class="govuk-fieldset__heading">
                 @label
             </h1>
         </legend>
     } else {
-        <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--s @classes">
             @label
         </legend>
     }

@@ -24,7 +24,8 @@
 
 @(fieldValue: FormComponent,
   validationResult: FormFieldValidationResult,
-  formLevelHeading: Boolean)(
+  formLevelHeading: Boolean,
+  classes: String)(
   implicit
     messages: Messages,
     l: LangADT,
@@ -44,12 +45,12 @@
 
 @if(formLevelHeading) {
     <h1 class="govuk-label-wrapper">
-        <label class="govuk-label--l" for="@labelFor">
+        <label class="@classes" for="@labelFor">
             @label
         </label>
     </h1>
 } else {
-    <label class="govuk-label" for="@labelFor">
+    <label class="@classes" for="@labelFor">
         @label
     </label>
 }

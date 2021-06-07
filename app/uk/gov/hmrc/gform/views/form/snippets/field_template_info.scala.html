@@ -20,7 +20,8 @@
 
 @(fieldValue: FormComponent,
   infoType: InfoType,
-  text: Html
+  text: Html,
+  classes: String
 )(
   implicit
     messages: Messages,
@@ -37,7 +38,7 @@
     case LongInfo => {
       <details class="gform-details govuk-details" data-module="govuk-details">
         <summary class="govuk-details__summary">
-            <span class="govuk-details__summary-text">
+            <span class="govuk-details__summary-text @classes">
               @{fieldValue.label.value}
             </span>
         </summary>
@@ -59,7 +60,7 @@
 
     case BannerInfo => {
       <div class="govuk-panel govuk-panel--confirmation">
-        <h1 class="govuk-panel__title">
+        <h1 class="govuk-panel__title @classes">
             @{fieldValue.label.value}
         </h1>
         <div class="govuk-panel__body">
