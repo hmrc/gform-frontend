@@ -151,7 +151,7 @@ case class FormModel[A <: PageMode](
       case FormCtx(formComponentId)         => explicitTypedExpr(expr, formComponentId)
       case DateCtx(_)                       => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))
       case IsNumberConstant(_)              => TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-      case PeriodFun(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.periodString, None))
+      case PeriodFun(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
       case otherwise                        => TypeInfo(expr, StaticTypeData(ExprType.string, None))
     }
   }

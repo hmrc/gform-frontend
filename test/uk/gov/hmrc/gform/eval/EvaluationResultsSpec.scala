@@ -18,14 +18,14 @@ package uk.gov.hmrc.gform.eval
 
 import org.scalatest.prop.TableDrivenPropertyChecks
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, StringResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Count, DateCtx, DateFormCtxVar, Else, FormComponentId, FormCtx }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateFormCtxVar, Else, FormComponentId, FormCtx, PeriodFun, PeriodValue }
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 
-import java.time.LocalDate
+import java.time.{ LocalDate, Period }
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
@@ -162,6 +162,93 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>
+      EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
+    }
+  }
+
+  "evalExpr - type period" should "evaluate expressions" in {
+
+    val recData = RecData[OutOfDate](
+      VariadicFormData.create(
+        (toModelComponentId("startDate1-year"), VariadicValue.One("2000")),
+        (toModelComponentId("startDate1-month"), VariadicValue.One("1")),
+        (toModelComponentId("startDate1-day"), VariadicValue.One("1")),
+        (toModelComponentId("endDate1-year"), VariadicValue.One("2000")),
+        (toModelComponentId("endDate1-month"), VariadicValue.One("10")),
+        (toModelComponentId("endDate1-day"), VariadicValue.One("1")),
+        (toModelComponentId("startDate2-year"), VariadicValue.One("2001")),
+        (toModelComponentId("startDate2-month"), VariadicValue.One("1")),
+        (toModelComponentId("startDate2-day"), VariadicValue.One("1")),
+        (toModelComponentId("endDate2-year"), VariadicValue.One("2001")),
+        (toModelComponentId("endDate2-month"), VariadicValue.One("10")),
+        (toModelComponentId("endDate2-day"), VariadicValue.One("1"))
+      )
+    )
+
+    val table = Table(
+      ("typeInfo", "recData", "expectedResult"),
+      (
+        TypeInfo(
+          PeriodFun(
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
+          ),
+          StaticTypeData(ExprType.period, None)
+        ),
+        recData,
+        PeriodResult(Period.of(0, 9, 0))
+      ),
+      (
+        TypeInfo(
+          Add(
+            PeriodFun(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
+            ),
+            PeriodFun(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate2")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate2"))))
+            )
+          ),
+          StaticTypeData(ExprType.period, None)
+        ),
+        recData,
+        PeriodResult(Period.of(1, 6, 0))
+      ),
+      (
+        TypeInfo(
+          Add(
+            PeriodFun(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
+            ),
+            PeriodValue("P1Y")
+          ),
+          StaticTypeData(ExprType.period, None)
+        ),
+        recData,
+        PeriodResult(Period.of(1, 9, 0))
+      ),
+      (
+        TypeInfo(
+          Else(
+            PeriodFun(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate3")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate3"))))
+            ),
+            PeriodFun(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
+            )
+          ),
+          StaticTypeData(ExprType.period, None)
+        ),
+        recData,
+        PeriodResult(Period.of(0, 9, 0))
+      )
+    )
+
+    forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
       EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
     }
   }

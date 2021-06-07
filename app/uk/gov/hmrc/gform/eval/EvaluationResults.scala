@@ -294,7 +294,7 @@ case class EvaluationResults(
     loop(typeInfo.expr) orElse evalString(typeInfo, recData, evaluationContext)
   }
 
-  private def evalPeriodString(
+  private def evalPeriod(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
     evaluationContext: EvaluationContext
@@ -350,8 +350,8 @@ case class EvaluationResults(
       evalDateString(typeInfo, recData, evaluationContext)
     } { addressString =>
       evalString(typeInfo, recData, evaluationContext)
-    } { periodString =>
-      evalPeriodString(typeInfo, recData, evaluationContext)
+    } { period =>
+      evalPeriod(typeInfo, recData, evaluationContext)
     } { illegal =>
       ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
     }
