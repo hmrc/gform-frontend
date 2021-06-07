@@ -249,7 +249,7 @@ case class EvaluationResults(
       case PeriodFun(expr1, expr2) =>
         (expr1, expr2) match {
           case (DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
-            StringResult(periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2).toString)
+            StringResult(periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2).stringRepresentation(typeInfo))
           case _ =>
             Invalid(s"period(d1, d2) requires both d1 and d2 to be date expressions $expr")
         }
@@ -308,7 +308,7 @@ case class EvaluationResults(
       case PeriodFun(expr1, expr2) =>
         (expr1, expr2) match {
           case (DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
-            PeriodResult(periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2))
+            periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2)
           case _ =>
             Invalid(s"period(d1, d2) requires both d1 and d2 to be date expressions $expr")
         }
@@ -320,12 +320,12 @@ case class EvaluationResults(
   private def periodBetween(
     recData: RecData[SourceOrigin.OutOfDate],
     evaluationContext: EvaluationContext
-  )(dateExpr1: DateExpr, dateExpr2: DateExpr): Period = {
+  )(dateExpr1: DateExpr, dateExpr2: DateExpr): ExpressionResult = {
     val dateResult1 = evalDateExpr(recData, evaluationContext, this)(dateExpr1)
     val dateResult2 = evalDateExpr(recData, evaluationContext, this)(dateExpr2)
     (dateResult1, dateResult2) match {
-      case (DateResult(value1), DateResult(value2)) => Period.between(value1, value2)
-      case _                                        => Period.ZERO
+      case (DateResult(value1), DateResult(value2)) => PeriodResult(Period.between(value1, value2))
+      case _                                        => ExpressionResult.empty
     }
   }
 
