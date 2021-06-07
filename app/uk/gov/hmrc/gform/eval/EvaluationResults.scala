@@ -300,6 +300,8 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
     def loop(expr: Expr): ExpressionResult = expr match {
+      case Add(field1: Expr, field2: Expr) =>
+        loop(field1) + loop(field2)
       case Else(field1: Expr, field2: Expr) =>
         loop(field1) orElse loop(field2)
       case PeriodValue(value) => PeriodResult(Period.parse(value))

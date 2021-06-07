@@ -23,6 +23,39 @@ import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.models.Atom
 
 sealed trait Expr extends Product with Serializable {
+
+  def firstExprForTypeResolution[T <: PageMode](formModel: FormModel[T]): Option[Expr] = {
+    def loop(expr: Expr): List[Expr] = expr match {
+      case Add(field1: Expr, field2: Expr)         => loop(field1) ++ loop(field2)
+      case Multiply(field1: Expr, field2: Expr)    => loop(field1) ++ loop(field2)
+      case Subtraction(field1: Expr, field2: Expr) => loop(field1) ++ loop(field2)
+      case Else(field1: Expr, field2: Expr)        => loop(field1) ++ loop(field2)
+      case FormCtx(_)                              => expr :: Nil
+      case Sum(field1: Expr) =>
+        field1 match {
+          case FormCtx(formComponentId) =>
+            formModel.allFormComponents.collect {
+              case fc if fc.baseComponentId == formComponentId.baseComponentId => FormCtx(fc.id)
+            }
+          case _ => loop(field1)
+        }
+      case Count(formComponentId: FormComponentId) => FormCtx(formComponentId.withFirstIndex) :: Nil
+      case AuthCtx(_)                              => expr :: Nil
+      case UserCtx(_)                              => expr :: Nil
+      case Constant(_)                             => expr :: Nil
+      case PeriodValue(_)                          => expr :: Nil
+      case HmrcRosmRegistrationCheck(_)            => expr :: Nil
+      case Value                                   => expr :: Nil
+      case FormTemplateCtx(_)                      => expr :: Nil
+      case ParamCtx(_)                             => expr :: Nil
+      case LinkCtx(_)                              => expr :: Nil
+      case DateCtx(dateExpr)                       => dateExpr.leafExprs
+      case PeriodFun(_, _)                         => expr :: Nil
+      case AddressLens(_, _)                       => expr :: Nil
+    }
+    loop(this).headOption
+  }
+
   def leafs[T <: PageMode](formModel: FormModel[T]): List[Expr] = this match {
     case Add(field1: Expr, field2: Expr)           => field1.leafs(formModel) ++ field2.leafs(formModel)
     case Multiply(field1: Expr, field2: Expr)      => field1.leafs(formModel) ++ field2.leafs(formModel)

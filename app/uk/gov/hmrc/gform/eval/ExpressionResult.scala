@@ -51,7 +51,7 @@ sealed trait ExpressionResult extends Product with Serializable {
       fold[ExpressionResult](identity)(_ => t)(_ => t)(n => StringResult(n.value.toString + t.value))(_ + t)(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)
     case t: OptionResult  => Invalid(s"Unsupported operation, cannot add OptionResult and $t")
     case t: DateResult    => Invalid(s"Unsupported operation, cannot add DateResult and $t")
-    case t: PeriodResult  => Invalid(s"Unsupported operation, cannot add PeriodResult and $t")
+    case t: PeriodResult  => fold[ExpressionResult](identity)(_ => t)(_ => t)(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)(_ + t)
     case t: AddressResult => Invalid(s"Unsupported operation, cannot add AddressResult and $t")
     // format: on
   }
@@ -338,6 +338,7 @@ object ExpressionResult {
     def asString = value.format(DATE_DISPLAY_FORMAT)
   }
   case class PeriodResult(value: Period) extends ExpressionResult {
+    def +(pr: PeriodResult): PeriodResult = PeriodResult(pr.value.plus(value).normalized())
     def asString = value.toString
   }
   case class OptionResult(value: Seq[Int]) extends ExpressionResult {
