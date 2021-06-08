@@ -144,7 +144,9 @@ object FormModelBuilder {
         VariadicFormData.many[SourceOrigin.Current](modelComponentId, value.map(_.toString))
       case d @ ExpressionResult.DateResult(_) =>
         VariadicFormData.one[SourceOrigin.Current](modelComponentId, d.asString)
-      case d @ ExpressionResult.AddressResult(_) =>
+      case p @ ExpressionResult.PeriodResult(_) =>
+        VariadicFormData.one[SourceOrigin.Current](modelComponentId, p.asString)
+      case ExpressionResult.AddressResult(_) =>
         VariadicFormData.empty[SourceOrigin.Current]
     }
 

@@ -23,6 +23,39 @@ import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.models.Atom
 
 sealed trait Expr extends Product with Serializable {
+
+  def firstExprForTypeResolution[T <: PageMode](formModel: FormModel[T]): Option[Expr] = {
+    def loop(expr: Expr): List[Expr] = expr match {
+      case Add(field1: Expr, field2: Expr)         => loop(field1) ++ loop(field2)
+      case Multiply(field1: Expr, field2: Expr)    => loop(field1) ++ loop(field2)
+      case Subtraction(field1: Expr, field2: Expr) => loop(field1) ++ loop(field2)
+      case Else(field1: Expr, field2: Expr)        => loop(field1) ++ loop(field2)
+      case FormCtx(_)                              => expr :: Nil
+      case Sum(field1: Expr) =>
+        field1 match {
+          case FormCtx(formComponentId) =>
+            formModel.allFormComponents.collect {
+              case fc if fc.baseComponentId == formComponentId.baseComponentId => FormCtx(fc.id)
+            }
+          case _ => loop(field1)
+        }
+      case Count(formComponentId: FormComponentId) => FormCtx(formComponentId.withFirstIndex) :: Nil
+      case AuthCtx(_)                              => expr :: Nil
+      case UserCtx(_)                              => expr :: Nil
+      case Constant(_)                             => expr :: Nil
+      case PeriodValue(_)                          => expr :: Nil
+      case HmrcRosmRegistrationCheck(_)            => expr :: Nil
+      case Value                                   => expr :: Nil
+      case FormTemplateCtx(_)                      => expr :: Nil
+      case ParamCtx(_)                             => expr :: Nil
+      case LinkCtx(_)                              => expr :: Nil
+      case DateCtx(dateExpr)                       => dateExpr.leafExprs
+      case PeriodFun(_, _)                         => expr :: Nil
+      case AddressLens(_, _)                       => expr :: Nil
+    }
+    loop(this).headOption
+  }
+
   def leafs[T <: PageMode](formModel: FormModel[T]): List[Expr] = this match {
     case Add(field1: Expr, field2: Expr)           => field1.leafs(formModel) ++ field2.leafs(formModel)
     case Multiply(field1: Expr, field2: Expr)      => field1.leafs(formModel) ++ field2.leafs(formModel)
@@ -41,12 +74,14 @@ sealed trait Expr extends Product with Serializable {
     case AuthCtx(value: AuthInfo)                   => this :: Nil
     case UserCtx(value: UserField)                  => this :: Nil
     case Constant(value: String)                    => this :: Nil
+    case PeriodValue(value: String)                 => this :: Nil
     case HmrcRosmRegistrationCheck(value: RosmProp) => this :: Nil
     case Value                                      => this :: Nil
     case FormTemplateCtx(value: FormTemplateProp)   => this :: Nil
     case ParamCtx(_)                                => this :: Nil
     case LinkCtx(_)                                 => this :: Nil
     case DateCtx(dateExpr)                          => dateExpr.leafExprs
+    case PeriodFun(dateCtx1, dateCtx2)              => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
     case AddressLens(formComponentId, _)            => this :: Nil
   }
 
@@ -61,12 +96,14 @@ sealed trait Expr extends Product with Serializable {
     case AuthCtx(value: AuthInfo)                   => Nil
     case UserCtx(value: UserField)                  => Nil
     case Constant(value: String)                    => Nil
+    case PeriodValue(value: String)                 => Nil
     case HmrcRosmRegistrationCheck(value: RosmProp) => Nil
     case Value                                      => Nil
     case FormTemplateCtx(value: FormTemplateProp)   => Nil
     case ParamCtx(_)                                => Nil
     case LinkCtx(_)                                 => Nil
     case DateCtx(_)                                 => Nil
+    case PeriodFun(_, _)                            => Nil
     case AddressLens(_, _)                          => Nil
   }
 }
@@ -82,12 +119,14 @@ final case class ParamCtx(queryParam: QueryParam) extends Expr
 final case class AuthCtx(value: AuthInfo) extends Expr
 final case class UserCtx(value: UserField) extends Expr
 final case class Constant(value: String) extends Expr
+final case class PeriodValue(value: String) extends Expr
 final case class LinkCtx(link: InternalLink) extends Expr
 final case class HmrcRosmRegistrationCheck(value: RosmProp) extends Expr
 final case object Value extends Expr
 final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
 final case class DateCtx(value: DateExpr) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
+final case class PeriodFun(dateCtx1: Expr, dateCtx2: Expr) extends Expr
 
 sealed trait AddressDetail {
   def toAddressAtom: Atom = this match {
