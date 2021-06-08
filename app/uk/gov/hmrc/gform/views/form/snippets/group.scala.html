@@ -48,13 +48,11 @@
 <div class="gform-group">
   @(label.nonEmpty, classes.nonEmpty) match {
     case (true, true) => {
-        alert(1)
         <label class="govuk-!-margin-bottom-7 govuk-label @classes">
             @label
         </label>
     }
     case (true, false) => {
-        alert(2)
         <label class="govuk-!-margin-bottom-7 govuk-label govuk-label--m">
             @label
         </label>
