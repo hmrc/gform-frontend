@@ -30,6 +30,6 @@ class ExpressionResultSpec extends Spec {
       TypeInfo(DateCtx(DateValueExpr(TodayDateExprValue)), StaticTypeData(ExprType.dateString, None))
     )
 
-    result shouldBe "01 January 1970"
+    result shouldBe "1 January 1970"
   }
 }
