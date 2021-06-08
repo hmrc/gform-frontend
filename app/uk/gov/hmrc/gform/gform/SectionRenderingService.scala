@@ -168,6 +168,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       Fieldset(
         legend = Some(
           Legend(
+            classes = getLabelClasses(false, formComponent.labelSize),
             content = content.Text(formComponent.label.value)
           )
         )
@@ -664,7 +665,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             htmlForCalendarDate(formComponent, validationResult, ei)
           case t @ Time(_, _) =>
             renderTime(t, formComponent, validationResult, ei)
-          case Address(international) => htmlForAddress(formComponent, international, validationResult, ei)
+          case Address(international) =>
+            htmlForAddress(formComponent, international, validationResult, ei)
           case o @ OverseasAddress(_, _, _) =>
             htmlForOverseasAddress(formComponent, o, validationResult, ei)
           case Text(Lookup(register, _), _, _, _, _, _) =>
@@ -755,7 +757,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           Legend(
             content = content.Text(label),
             isPageHeading = isPageHeading,
-            classes = if (isPageHeading) "govuk-label--l" else ""
+            classes = getLabelClasses(isPageHeading, formComponent.labelSize)
           )
         )
       )
@@ -817,7 +819,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     infoText: SmartString,
     ei: ExtraInfo
   )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) =
-    html.form.snippets.field_template_info(formComponent, infoType, markDownParser(infoText))
+    html.form.snippets.field_template_info(
+      formComponent,
+      infoType,
+      markDownParser(infoText),
+      getLabelClasses(ei.formLevelHeading, formComponent.labelSize)
+    )
 
   private def htmlForFileUpload(
     formComponent: FormComponent,
@@ -854,7 +861,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val label = Label(
       isPageHeading = isPageHeading,
-      classes = if (isPageHeading) "govuk-label--l" else "",
+      classes = getLabelClasses(isPageHeading, formComponent.labelSize),
       content = labelContent
     )
 
@@ -998,7 +1005,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           Legend(
             content = content.Text(formComponent.label.value),
             isPageHeading = isPageHeading,
-            classes = if (isPageHeading) "govuk-label--l" else ""
+            classes = getLabelClasses(isPageHeading, formComponent.labelSize)
           )
         )
       )
@@ -1147,7 +1154,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           Legend(
             content = content.Text(formComponent.label.value),
             isPageHeading = isPageHeading,
-            classes = if (isPageHeading) "govuk-label--l" else ""
+            classes = getLabelClasses(isPageHeading, formComponent.labelSize)
           )
         )
       )
@@ -1236,7 +1243,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val label = Label(
       forAttr = Some(formComponent.id.value),
       isPageHeading = isPageHeading,
-      classes = if (isPageHeading) s"govuk-label--l" else "",
+      classes = getLabelClasses(isPageHeading, formComponent.labelSize),
       content = content.Text(labelString)
     )
 
@@ -1270,7 +1277,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               Legend(
                 content = content.Text(formComponent.label.value),
                 isPageHeading = isPageHeading,
-                classes = if (isPageHeading) s"govuk-label--l" else ""
+                classes = getLabelClasses(isPageHeading, formComponent.labelSize)
               )
             )
           )
@@ -1357,7 +1364,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val label = Label(
       isPageHeading = isPageHeading,
-      classes = if (isPageHeading) "govuk-label--l" else "",
+      classes = getLabelClasses(isPageHeading, formComponent.labelSize),
       content = labelContent
     )
 
@@ -1454,7 +1461,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         val isPageHeading = ei.formLevelHeading
         val label = Label(
           isPageHeading = isPageHeading,
-          classes = if (isPageHeading) s"govuk-label--l" else "",
+          classes = getLabelClasses(isPageHeading, formComponent.labelSize),
           content = labelContent
         )
 
@@ -1516,8 +1523,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     sse: SmartStringEvaluator
   ) = {
     val formFieldValidationResult = validationResult(formComponent)
+    val isPageHeading = ei.formLevelHeading
     html.form.snippets
-      .field_template_sort_code(formComponent, formFieldValidationResult, ei.formLevelHeading)
+      .field_template_sort_code(
+        formComponent,
+        formFieldValidationResult,
+        isPageHeading,
+        getLabelClasses(isPageHeading, formComponent.labelSize)
+      )
 
   }
 
@@ -1532,8 +1545,15 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     sse: SmartStringEvaluator
   ) = {
     val formFieldValidationResult = validationResult(formComponent)
+    val isPageHeading = ei.formLevelHeading
     html.form.snippets
-      .field_template_address(international, formComponent, formFieldValidationResult, ei.formLevelHeading)
+      .field_template_address(
+        international,
+        formComponent,
+        formFieldValidationResult,
+        isPageHeading,
+        getLabelClasses(isPageHeading, formComponent.labelSize)
+      )
   }
 
   private def htmlForOverseasAddress(
@@ -1547,6 +1567,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     sse: SmartStringEvaluator
   ) = {
     val formFieldValidationResult = validationResult(formComponent)
+    val isPageHeading = ei.formLevelHeading
 
     def fetchValue(key: HtmlFieldId, atom: Atom): String =
       formFieldValidationResult.getOptionalCurrentValue(key).getOrElse {
@@ -1558,7 +1579,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         overseasAddress,
         formComponent,
         formFieldValidationResult,
-        ei.formLevelHeading,
+        isPageHeading,
+        getLabelClasses(isPageHeading, formComponent.labelSize),
         fetchValue
       )
   }
@@ -1622,7 +1644,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       legend = Some(
         Legend(
           content = content.Text(formComponent.label.value),
-          classes = if (isPageHeading) "govuk-label--l" else "",
+          classes = getLabelClasses(isPageHeading, formComponent.labelSize),
           isPageHeading = isPageHeading
         )
       )
@@ -1707,7 +1729,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       legend = Some(
         Legend(
           content = content.Text(formComponent.label.value),
-          classes = if (isPageHeading) "govuk-label--l" else "",
+          classes = getLabelClasses(isPageHeading, formComponent.labelSize),
           isPageHeading = isPageHeading
         )
       )
@@ -1752,7 +1774,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val isPageHeading = ei.formLevelHeading
     val label = Label(
       isPageHeading = isPageHeading,
-      classes = if (isPageHeading) s"govuk-label--l" else "",
+      classes = getLabelClasses(isPageHeading, formComponent.labelSize),
       content = labelContent
     )
 
@@ -1826,7 +1848,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       canAddAnother,
       formTemplateId,
       ei.maybeAccessCode,
-      ei.sectionNumber
+      ei.sectionNumber,
+      getLabelClasses(false, formComponent.labelSize)
     )
   }
 
@@ -1957,6 +1980,17 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         }
     }
   }
+
+  private def getLabelClasses(isPageHeading: Boolean, labelSize: Option[LabelSize]): String =
+    (isPageHeading, labelSize) match {
+      case (_, Some(ExtraLarge)) => "govuk-label--xl"
+      case (_, Some(Large))      => "govuk-label--l"
+      case (_, Some(Medium))     => "govuk-label--m"
+      case (_, Some(Small))      => "govuk-label--s"
+      case (_, Some(ExtraSmall)) => "govuk-label--xs"
+      case (true, _)             => "govuk-label--l"
+      case _                     => ""
+    }
 
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
   private val govukFieldset: components.govukFieldset = new components.govukFieldset()

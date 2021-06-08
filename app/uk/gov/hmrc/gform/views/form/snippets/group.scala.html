@@ -34,7 +34,8 @@
   canAddAnother: Option[ModelComponentId],
   formTemplateId: FormTemplateId,
   maybeAccessCode: Option[AccessCode],
-  sectionNumber: SectionNumber
+  sectionNumber: SectionNumber,
+  classes: String
 )(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @repeatCount = @{groupField.repeatsMin.getOrElse(0)}
@@ -45,11 +46,17 @@
 }
 
 <div class="gform-group">
-
-  @if(label.nonEmpty) {
-    <label class="govuk-!-margin-bottom-7 govuk-label govuk-label--m">
-        @label
-    </label>
+  @(label.nonEmpty, classes.nonEmpty) match {
+    case (true, true) => {
+        <label class="govuk-!-margin-bottom-7 govuk-label @classes">
+            @label
+        </label>
+    }
+    case (true, false) => {
+        <label class="govuk-!-margin-bottom-7 govuk-label govuk-label--m">
+            @label
+        </label>
+    }
   }
 
   @maybeHelpText.map(hint => new govukHint()(hint))

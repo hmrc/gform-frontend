@@ -24,6 +24,7 @@
     formComponent: FormComponent,
     validationResult: FormFieldValidationResult,
     formLevelHeading: Boolean,
+    classes: String,
     fetchValue: (HtmlFieldId, Atom) => String
 )(
     implicit
@@ -51,18 +52,32 @@
 }
 
 <fieldset class="govuk-fieldset" id="@{formComponent.id.value}-fieldset" role="group" @if(formComponent.helpText.nonEmpty) { aria-describedby="@{formComponent.id.value}-hint" }>
-    @if(formLevelHeading) {
-        <legend class="govuk-fieldset__legend govuk-label--l">
-            <h1 class="govuk-fieldset__heading">
+    @(formLevelHeading, classes.nonEmpty) match {
+        case (true, true) => {
+            <legend class="govuk-fieldset__legend @classes">
+                <h1 class="govuk-fieldset__heading">
+                    @label
+                </h1>
+            </legend>
+        }
+        case (true, false) => {
+            <legend class="govuk-fieldset__legend govuk-label--l">
+                <h1 class="govuk-fieldset__heading">
+                    @label
+                </h1>
+            </legend>
+        }
+        case (false, true) => {
+            <legend class="govuk-fieldset__legend @classes">
                 @label
-            </h1>
-        </legend>
-    } else {
-        <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
-            @label
-        </legend>
+            </legend>
+        }
+        case (false, false) => {
+            <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+                @label
+            </legend>
+        }
     }
-
 
     @if(formComponent.helpText.nonEmpty) {
         <div class="govuk-hint" id="@{formComponent.id.value}-hint">@{formComponent.helpText.map(_.value).getOrElse("")}</div>

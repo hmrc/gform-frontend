@@ -40,7 +40,8 @@ case class FormComponent(
   errorMessage: Option[SmartString],
   presentationHint: Option[List[PresentationHint]] = None,
   validators: List[FormComponentValidator] = Nil,
-  instruction: Option[Instruction] = None
+  instruction: Option[Instruction] = None,
+  labelSize: Option[LabelSize] = None
 ) {
 
   val modelComponentId: ModelComponentId = id.modelComponentId
