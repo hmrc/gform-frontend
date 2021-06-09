@@ -823,7 +823,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       formComponent,
       infoType,
       markDownParser(infoText),
-      getLabelClasses(ei.formLevelHeading, formComponent.labelSize)
+      getLabelClasses(false, formComponent.labelSize)
     )
 
   private def htmlForFileUpload(
