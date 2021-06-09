@@ -46,18 +46,15 @@
 }
 
 <div class="gform-group">
-  @(label.nonEmpty, classes.nonEmpty) match {
-    case (true, true) => {
+    @if(label.nonEmpty && classes.nonEmpty) {
         <label class="govuk-!-margin-bottom-7 govuk-label @classes">
             @label
         </label>
-    }
-    case (true, false) => {
+    } else if(label.nonEmpty) {
         <label class="govuk-!-margin-bottom-7 govuk-label govuk-label--m">
             @label
         </label>
     }
-  }
 
   @maybeHelpText.map(hint => new govukHint()(hint))
 
