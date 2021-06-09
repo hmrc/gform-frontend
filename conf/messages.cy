@@ -151,7 +151,7 @@ user.recruitment.link.text=Cofrestrwch i gymryd rhan yn ein gweithgareddau ymchw
 user.recruitment.dismiss=Dim diolch
 
 # Continue or delete
-decision.error.required=Dewiswch p’un a hoffech barhau gyda’ch {0} sydd ohoni, neu ddileu a dechrau eto
+decision.error.required=Dewiswch ‘Iawn’ os ydych am fynd yn eich blaen gyda’r fersiwn a gadwyd gennych
 
 # UK Address
 ukAddress.line1=Adeilad a stryd
@@ -337,9 +337,9 @@ accessCode.exit=gadael y dudalen hon
 accessCode.workOnAnother=gweithio ar {0} arall
 
 # Continue or delete page
-continueDelete.title=A hoffech barhau â’ch {0} neu ddechrau eto?
-continueDelete.continue=Parhau â’m {0}
-continueDelete.delete=Dileu fy manylion a dechrau eto
+continueDelete.title=A hoffech fynd yn eich blaen gyda’r fersiwn a gadwyd gennych?
+continueDelete.continue=Iawn
+continueDelete.delete=Na, dilëwch y fersiwn a gadwyd gennyf a dechrau eto
 
 # Agent services prologue
 agentsPrologue.title=Creu cyfrif gwasanaethau asiant i gyrchu’r gwasanaeth hwn

@@ -159,7 +159,7 @@ user.recruitment.link.text=Sign up to participate in our research activities
 user.recruitment.dismiss=No thanks
 
 # Continue or delete
-decision.error.required=Select whether you would like to continue with your existing {0} or delete and start again
+decision.error.required=Select yes if you want to continue your saved version
 
 # UK Address
 ukAddress.line1=Building and street
@@ -355,9 +355,9 @@ accessCode.exit=exit this page
 accessCode.workOnAnother=work on another {0}
 
 # Continue or delete page
-continueDelete.title=Would you like to continue your {0} or start again?
-continueDelete.continue=Continue my {0}
-continueDelete.delete=Delete my details and start again
+continueDelete.title=Do you want to continue your saved version?
+continueDelete.continue=Yes
+continueDelete.delete=No, delete the saved version and start again
 
 # Agent services prologue
 agentsPrologue.title=Create an agent services account to access this service

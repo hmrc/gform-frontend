@@ -60,7 +60,7 @@ class ContinueFormPage(val formTemplate: FormTemplate, form: Form[String])(impli
       Fieldset(
         legend = Some(
           Legend(
-            content = Text(messages("continueDelete.title", formCat)),
+            content = Text(messages("continueDelete.title")),
             isPageHeading = true,
             classes = "govuk-label--l"
           )
@@ -70,7 +70,7 @@ class ContinueFormPage(val formTemplate: FormTemplate, form: Form[String])(impli
 
     val continue = RadioItem(
       value = Some("continue"),
-      content = Text(messages("continueDelete.continue", formCat))
+      content = Text(messages("continueDelete.continue"))
     )
 
     val delete = RadioItem(

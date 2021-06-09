@@ -95,7 +95,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
     Then("I am shown 'continue or start again' page")
     newFormResponse.status shouldBe 200
     val document = Jsoup.parse(newFormResponse.body)
-    document.title() shouldBe "Would you like to continue your form or start again? - Form with anonymous auth - GOV.UK"
+    document.title() shouldBe "Do you want to continue your saved version? - Form with anonymous auth - GOV.UK"
   }
 
   it should "allow access if 'Referer' header matches via pattern match" in {
@@ -122,6 +122,6 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
     Then("I am shown 'continue or start again' page")
     newFormResponse.status shouldBe 200
     val document = Jsoup.parse(newFormResponse.body)
-    document.title() shouldBe "Would you like to continue your form or start again? - Form with anonymous auth - GOV.UK"
+    document.title() shouldBe "Do you want to continue your saved version? - Form with anonymous auth - GOV.UK"
   }
 }
