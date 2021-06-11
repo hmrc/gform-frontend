@@ -19,7 +19,8 @@
 @import uk.gov.hmrc.gform.views.components.TotalText
 
 @(
-  totalText: TotalText
+  totalText: TotalText,
+  classes: String
 )
 @id = @{totalText.id}
 @govukHint = @{new govukHint()}
@@ -29,7 +30,7 @@
     @totalText.hint.fold(HtmlFormat.empty)(govukHint(_))
     @totalText.errorMessage.fold(HtmlFormat.empty)(govukErrorMessage(_))
 
-    <span class="govuk-label govuk-!-font-weight-bold" aria-live="polite">
+    <span class="govuk-label govuk-!-font-weight-bold @classes" aria-live="polite">
 	@totalText.label.asHtml
 	<span id="@id-total">@totalText.currentValue</span>
 	@totalText.unit
