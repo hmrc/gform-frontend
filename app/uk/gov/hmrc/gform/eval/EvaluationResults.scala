@@ -31,8 +31,6 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 
-import java.time.Period
-
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult]
 ) {
@@ -161,8 +159,8 @@ case class EvaluationResults(
       case ParamCtx(_)                                => unsupportedOperation("Number")(expr)
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
       case DateCtx(_)                                 => unsupportedOperation("Number")(expr)
-      case PeriodFun(_, _)                            => unsupportedOperation("Number")(expr)
-      case PeriodFunExt(_, _)                         => unsupportedOperation("Number")(expr)
+      case Period(_, _)                               => unsupportedOperation("Number")(expr)
+      case PeriodExt(_, _)                            => unsupportedOperation("Number")(expr)
       case PeriodValue(_)                             => unsupportedOperation("Number")(expr)
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
     }
@@ -246,9 +244,9 @@ case class EvaluationResults(
         nonEmpty(StringResult(link.url))
       case DateCtx(dateExpr) =>
         StringResult(evalDateExpr(recData, evaluationContext, this)(dateExpr).stringRepresentation(typeInfo))
-      case PeriodFun(_, _) =>
+      case Period(_, _) =>
         StringResult(evalPeriod(typeInfo, recData, evaluationContext).stringRepresentation(typeInfo))
-      case PeriodFunExt(_, _) =>
+      case PeriodExt(_, _) =>
         StringResult(evalPeriod(typeInfo, recData, evaluationContext).stringRepresentation(typeInfo))
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
@@ -301,10 +299,10 @@ case class EvaluationResults(
         loop(field1) + loop(field2)
       case Else(field1: Expr, field2: Expr) =>
         loop(field1) orElse loop(field2)
-      case PeriodValue(value) => PeriodResult(Period.parse(value))
-      case PeriodFun(DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
+      case PeriodValue(value) => PeriodResult(java.time.Period.parse(value))
+      case Period(DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
         periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2)
-      case PeriodFunExt(PeriodFun(DateCtx(dateExpr1), DateCtx(dateExpr2)), prop) =>
+      case PeriodExt(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)), prop) =>
         def doSum(mapper: PeriodResult => ExpressionResult): ExpressionResult =
           dateExpr1.maybeFormCtx.orElse(dateExpr2.maybeFormCtx).fold(ExpressionResult.empty) { formCtx =>
             val modelComponentIds = recData.variadicFormData
@@ -317,9 +315,9 @@ case class EvaluationResults(
               modelComponentIds
                 .flatMap(_.maybeIndex)
                 .toSet[Int]
-                .map(index => PeriodFun(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index))))
+                .map(index => Period(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index))))
             } else {
-              Set(PeriodFun(DateCtx(dateExpr1), DateCtx(dateExpr2)))
+              Set(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)))
             }
             periodFunctionExprs
               .map(p =>
@@ -335,14 +333,14 @@ case class EvaluationResults(
               )(mapper)
           }
         prop match {
-          case SumProp => doSum(identity)
-          case TotalMonthsProp =>
+          case PeriodFn.Sum => doSum(identity)
+          case PeriodFn.TotalMonths =>
             doSum(p => NumberResult(p.value.toTotalMonths))
-          case YearsProp =>
+          case PeriodFn.Years =>
             doSum(p => NumberResult(p.value.getYears))
-          case MonthsProp =>
+          case PeriodFn.Months =>
             doSum(p => NumberResult(p.value.getMonths))
-          case DaysProp =>
+          case PeriodFn.Days =>
             doSum(p => NumberResult(p.value.getDays))
         }
       case _ => ExpressionResult.empty
@@ -357,7 +355,7 @@ case class EvaluationResults(
     val dateResult1 = evalDateExpr(recData, evaluationContext, this)(dateExpr1)
     val dateResult2 = evalDateExpr(recData, evaluationContext, this)(dateExpr2)
     (dateResult1, dateResult2) match {
-      case (DateResult(value1), DateResult(value2)) => PeriodResult(Period.between(value1, value2))
+      case (DateResult(value1), DateResult(value2)) => PeriodResult(java.time.Period.between(value1, value2))
       case _                                        => ExpressionResult.empty
     }
   }

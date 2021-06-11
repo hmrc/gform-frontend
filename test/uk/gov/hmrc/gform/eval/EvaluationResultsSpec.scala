@@ -23,10 +23,10 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, DaysProp, Else, ExactDateExprValue, FormComponentId, FormCtx, MonthsProp, OffsetYMD, PeriodFun, PeriodFunExt, PeriodValue, SumProp, TotalMonthsProp, YearsProp }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, OffsetYMD, Period, PeriodExt, PeriodFn, PeriodValue }
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 
-import java.time.{ LocalDate, Period }
+import java.time.LocalDate
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
@@ -190,7 +190,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ("typeInfo", "recData", "expectedResult"),
       (
         TypeInfo(
-          PeriodFun(
+          Period(
             DateCtx(DateValueExpr(ExactDateExprValue(2001, 1, 1))),
             DateCtx(
               DateExprWithOffset(
@@ -202,11 +202,11 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(Period.of(1, 1, 1))
+        PeriodResult(java.time.Period.of(1, 1, 1))
       ),
       (
         TypeInfo(
-          PeriodFun(
+``          Period(
             DateCtx(
               DateExprWithOffset(DateFormCtxVar(FormCtx(FormComponentId("startDate1"))), OffsetYMD(List(Year(1))))
             ),
@@ -215,27 +215,27 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(Period.of(2, 1, 1))
+        PeriodResult(java.time.Period.of(2, 1, 1))
       ),
       (
         TypeInfo(
-          PeriodFun(
+          Period(
             DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
             DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
           ),
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(Period.of(1, 1, 1))
+        PeriodResult(java.time.Period.of(1, 1, 1))
       ),
       (
         TypeInfo(
-          PeriodFunExt(
-            PeriodFun(
+          PeriodExt(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
             ),
-            YearsProp
+            PeriodFn.Years
           ),
           StaticTypeData(ExprType.period, None)
         ),
@@ -245,11 +245,11 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       (
         TypeInfo(
           Add(
-            PeriodFun(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
             ),
-            PeriodFun(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate2")))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate2"))))
             )
@@ -257,12 +257,12 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(Period.of(2, 10, 1))
+        PeriodResult(java.time.Period.of(2, 10, 1))
       ),
       (
         TypeInfo(
           Add(
-            PeriodFun(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
             ),
@@ -271,16 +271,16 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(Period.of(2, 1, 1))
+        PeriodResult(java.time.Period.of(2, 1, 1))
       ),
       (
         TypeInfo(
           Else(
-            PeriodFun(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate3")))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate3"))))
             ),
-            PeriodFun(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
             )
@@ -288,7 +288,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(Period.of(1, 1, 1))
+        PeriodResult(java.time.Period.of(1, 1, 1))
       )
     )
 
@@ -321,54 +321,54 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ("typeInfo", "recData", "expectedResult"),
       (
         TypeInfo(
-          PeriodFunExt(
-            PeriodFun(
+          PeriodExt(
+            Period(
               DateCtx(DateValueExpr(ExactDateExprValue(2000, 1, 1))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
-            SumProp
+            PeriodFn.Sum
           ),
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(Period.of(2, 7, 10))
+        PeriodResult(java.time.Period.of(2, 7, 10))
       ),
       (
         TypeInfo(
-          PeriodFunExt(
-            PeriodFun(
+          PeriodExt(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
               DateCtx(DateValueExpr(ExactDateExprValue(2000, 1, 1)))
             ),
-            SumProp
+            PeriodFn.Sum
           ),
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(Period.of(-2, -7, -10))
+        PeriodResult(java.time.Period.of(-2, -7, -10))
       ),
       (
         TypeInfo(
-          PeriodFunExt(
-            PeriodFun(
+          PeriodExt(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
-            SumProp
+            PeriodFn.Sum
           ),
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(Period.of(1, 7, 10))
+        PeriodResult(java.time.Period.of(1, 7, 10))
       ),
       (
         TypeInfo(
-          PeriodFunExt(
-            PeriodFun(
+          PeriodExt(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
-            TotalMonthsProp
+            PeriodFn.TotalMonths
           ),
           StaticTypeData(ExprType.period, None)
         ),
@@ -377,12 +377,12 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          PeriodFunExt(
-            PeriodFun(
+          PeriodExt(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
-            YearsProp
+            PeriodFn.Years
           ),
           StaticTypeData(ExprType.period, None)
         ),
@@ -391,12 +391,12 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          PeriodFunExt(
-            PeriodFun(
+          PeriodExt(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
-            MonthsProp
+            PeriodFn.Months
           ),
           StaticTypeData(ExprType.period, None)
         ),
@@ -405,12 +405,12 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          PeriodFunExt(
-            PeriodFun(
+          PeriodExt(
+            Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
-            DaysProp
+            PeriodFn.Days
           ),
           StaticTypeData(ExprType.period, None)
         ),

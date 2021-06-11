@@ -34,7 +34,7 @@ class ExprSpec extends FlatSpecLike with Matchers with FormModelSupport with Sca
   }
 
   "firstExprForTypeResolution" should "return PeriodFun(d1, d2) expr for type resolution of PeriodFun(d1, d2) expr" in {
-    val expr = PeriodFun(
+    val expr = Period(
       DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
       DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
     )
@@ -78,7 +78,7 @@ class ExprSpec extends FlatSpecLike with Matchers with FormModelSupport with Sca
 
   it should "return period1 expr for type resolution of Add(period1, period2) expr" in {
     val expr = Add(
-      PeriodFun(
+      Period(
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
       ),
@@ -104,7 +104,7 @@ class ExprSpec extends FlatSpecLike with Matchers with FormModelSupport with Sca
     )
     val formModel = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](data)
     expr.firstExprForTypeResolution(formModel) shouldBe Some(
-      PeriodFun(
+      Period(
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
       )
@@ -113,7 +113,7 @@ class ExprSpec extends FlatSpecLike with Matchers with FormModelSupport with Sca
 
   it should "return period1 expr for type resolution of Else(period1, period2) expr" in {
     val expr = Else(
-      PeriodFun(
+      Period(
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
       ),
@@ -139,7 +139,7 @@ class ExprSpec extends FlatSpecLike with Matchers with FormModelSupport with Sca
     )
     val formModel = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](data)
     expr.firstExprForTypeResolution(formModel) shouldBe Some(
-      PeriodFun(
+      Period(
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
       )
