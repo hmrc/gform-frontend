@@ -43,17 +43,32 @@
 
 @labelFor = @{UkSortCode.fields(fieldValue.modelComponentId.indexedComponentId).head.toMongoIdentifier}
 
-@if(formLevelHeading) {
-    <h1 class="govuk-label-wrapper">
-        <label class="@classes" for="@labelFor">
-            @label
-        </label>
-    </h1>
-} else {
-    <label class="@classes" for="@labelFor">
-        @label
-    </label>
-}
+    @(formLevelHeading, classes.nonEmpty) match {
+        case (true, true) => {
+            <h1 class="govuk-label-wrapper">
+                <label class="@classes" for="@labelFor">
+                    @label
+                </label>
+            </h1>
+        }
+        case (true, false) => {
+            <h1 class="govuk-label-wrapper">
+                <label class="govuk-label--l" for="@labelFor">
+                    @label
+                </label>
+            </h1>
+        }
+        case (false, true) => {
+            <label class="@classes" for="@labelFor">
+                @label
+            </label>
+        }
+        case (false, false) => {
+            <label class="govuk-label" for="@labelFor">
+                @label
+            </label>
+        }
+    }
 
 @if(fieldValue.helpText.map(ls=>ls.value).nonEmpty) {
     <span class="govuk-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText.map(ls=>ls.value)}</span>

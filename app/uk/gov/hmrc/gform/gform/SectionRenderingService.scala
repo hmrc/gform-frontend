@@ -1452,7 +1452,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       case Some(xs) if xs.contains(TotalValue) =>
         val totalText = new TotalText(formComponent, labelContent, maybeUnit, hint, errorMessage, maybeCurrentValue)
 
-        html.form.snippets.field_template_text_total(totalText)
+        html.form.snippets.field_template_text_total(totalText, getLabelClasses(false, formComponent.labelSize))
 
       case _ if formComponent.derived => HtmlFormat.empty
       case _ =>
