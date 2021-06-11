@@ -50,7 +50,8 @@ sealed trait Expr extends Product with Serializable {
       case ParamCtx(_)                             => expr :: Nil
       case LinkCtx(_)                              => expr :: Nil
       case DateCtx(dateExpr)                       => dateExpr.leafExprs
-      case PeriodFun(_, _)                         => expr :: Nil
+      case Period(_, _)                            => expr :: Nil
+      case PeriodExt(_, _)                         => expr :: Nil
       case AddressLens(_, _)                       => expr :: Nil
     }
     loop(this).headOption
@@ -81,7 +82,8 @@ sealed trait Expr extends Product with Serializable {
     case ParamCtx(_)                                => this :: Nil
     case LinkCtx(_)                                 => this :: Nil
     case DateCtx(dateExpr)                          => dateExpr.leafExprs
-    case PeriodFun(dateCtx1, dateCtx2)              => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
+    case Period(dateCtx1, dateCtx2)                 => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
+    case PeriodExt(periodFun, _)                    => periodFun.leafs(formModel)
     case AddressLens(formComponentId, _)            => this :: Nil
   }
 
@@ -103,7 +105,8 @@ sealed trait Expr extends Product with Serializable {
     case ParamCtx(_)                                => Nil
     case LinkCtx(_)                                 => Nil
     case DateCtx(_)                                 => Nil
-    case PeriodFun(_, _)                            => Nil
+    case Period(_, _)                               => Nil
+    case PeriodExt(_, _)                            => Nil
     case AddressLens(_, _)                          => Nil
   }
 }
@@ -126,7 +129,17 @@ final case object Value extends Expr
 final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
 final case class DateCtx(value: DateExpr) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
-final case class PeriodFun(dateCtx1: Expr, dateCtx2: Expr) extends Expr
+final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
+sealed trait PeriodFn
+object PeriodFn {
+  case object Sum extends PeriodFn
+  case object TotalMonths extends PeriodFn
+  case object Years extends PeriodFn
+  case object Months extends PeriodFn
+  case object Days extends PeriodFn
+  implicit val format: OFormat[PeriodFn] = derived.oformat()
+}
+final case class PeriodExt(period: Expr, func: PeriodFn) extends Expr
 
 sealed trait AddressDetail {
   def toAddressAtom: Atom = this match {
