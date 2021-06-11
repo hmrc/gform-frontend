@@ -17,20 +17,19 @@
 package uk.gov.hmrc.gform.eval
 
 import cats.Monoid
-import cats.instances.list._
 import cats.instances.either._
+import cats.instances.list._
 import cats.syntax.eq._
 import cats.syntax.traverse._
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
+import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-
-import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 
 import java.time.Period
 
@@ -163,6 +162,7 @@ case class EvaluationResults(
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
       case DateCtx(_)                                 => unsupportedOperation("Number")(expr)
       case PeriodFun(_, _)                            => unsupportedOperation("Number")(expr)
+      case PeriodFunExt(_, _)                         => unsupportedOperation("Number")(expr)
       case PeriodValue(_)                             => unsupportedOperation("Number")(expr)
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
     }
@@ -246,13 +246,10 @@ case class EvaluationResults(
         nonEmpty(StringResult(link.url))
       case DateCtx(dateExpr) =>
         StringResult(evalDateExpr(recData, evaluationContext, this)(dateExpr).stringRepresentation(typeInfo))
-      case PeriodFun(expr1, expr2) =>
-        (expr1, expr2) match {
-          case (DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
-            StringResult(periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2).stringRepresentation(typeInfo))
-          case _ =>
-            Invalid(s"period(d1, d2) requires both d1 and d2 to be date expressions $expr")
-        }
+      case PeriodFun(_, _) =>
+        StringResult(evalPeriod(typeInfo, recData, evaluationContext).stringRepresentation(typeInfo))
+      case PeriodFunExt(_, _) =>
+        StringResult(evalPeriod(typeInfo, recData, evaluationContext).stringRepresentation(typeInfo))
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
           val atomic: ModelComponentId.Atomic =
@@ -305,12 +302,48 @@ case class EvaluationResults(
       case Else(field1: Expr, field2: Expr) =>
         loop(field1) orElse loop(field2)
       case PeriodValue(value) => PeriodResult(Period.parse(value))
-      case PeriodFun(expr1, expr2) =>
-        (expr1, expr2) match {
-          case (DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
-            periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2)
-          case _ =>
-            Invalid(s"period(d1, d2) requires both d1 and d2 to be date expressions $expr")
+      case PeriodFun(DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
+        periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2)
+      case PeriodFunExt(PeriodFun(DateCtx(dateExpr1), DateCtx(dateExpr2)), prop) =>
+        def doSum(mapper: PeriodResult => ExpressionResult): ExpressionResult =
+          dateExpr1.maybeFormCtx.orElse(dateExpr2.maybeFormCtx).fold(ExpressionResult.empty) { formCtx =>
+            val modelComponentIds = recData.variadicFormData
+              .forBaseComponentId(formCtx.formComponentId.baseComponentId)
+              .map { case (id, _) =>
+                id
+              }
+            val indexedCompExists = modelComponentIds.exists(_.indexedComponentId.fold(_ => false)(_ => true))
+            val periodFunctionExprs = if (indexedCompExists) {
+              modelComponentIds
+                .flatMap(_.maybeIndex)
+                .toSet[Int]
+                .map(index => PeriodFun(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index))))
+            } else {
+              Set(PeriodFun(DateCtx(dateExpr1), DateCtx(dateExpr2)))
+            }
+            periodFunctionExprs
+              .map(p =>
+                evalPeriod(
+                  typeInfo.copy(expr = p),
+                  recData,
+                  evaluationContext
+                )
+              )
+              .fold(ExpressionResult.empty)(_ + _)
+              .fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(identity)(
+                identity
+              )(mapper)
+          }
+        prop match {
+          case SumProp => doSum(identity)
+          case TotalMonthsProp =>
+            doSum(p => NumberResult(p.value.toTotalMonths))
+          case YearsProp =>
+            doSum(p => NumberResult(p.value.getYears))
+          case MonthsProp =>
+            doSum(p => NumberResult(p.value.getMonths))
+          case DaysProp =>
+            doSum(p => NumberResult(p.value.getDays))
         }
       case _ => ExpressionResult.empty
     }
