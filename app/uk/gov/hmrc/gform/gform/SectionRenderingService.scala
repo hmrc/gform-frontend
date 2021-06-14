@@ -215,8 +215,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       pageLevelErrorHtml,
       frontendAppConfig,
       actionForm,
-      retrievals.renderSaveAndComeBackLater,
-      retrievals.continueLabelKey,
+      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted,
+      if (formTemplate.draftRetrievalMethod.isNotPermitted) "button.continue" else retrievals.continueLabelKey,
       shouldDisplayBack,
       addAnotherQuestion,
       specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics),
@@ -292,8 +292,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       javascript,
       envelopeId,
       actionForm,
-      retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(_ === Continue),
-      page.continueLabel.map(ls => ls.value).getOrElse(messages(retrievals.continueLabelKey)),
+      retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
+        _ === Continue
+      ) && !formTemplate.draftRetrievalMethod.isNotPermitted,
+      (page.continueLabel, formTemplate.draftRetrievalMethod.isNotPermitted) match {
+        case (Some(cl), _) => cl.value
+        case (None, true)  => messages("button.continue")
+        case (None, false) => messages(retrievals.continueLabelKey)
+      },
       formMaxAttachmentSizeMB,
       contentTypes,
       restrictedFileExtensions,
@@ -557,7 +563,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       uk.gov.hmrc.gform.gform.routes.DeclarationController
         .submitDeclaration(formTemplate._id, maybeAccessCode, uk.gov.hmrc.gform.controllers.Continue),
       false,
-      "Confirm and send",
+      messages("button.confirmAndSend"),
       0,
       Nil,
       Nil

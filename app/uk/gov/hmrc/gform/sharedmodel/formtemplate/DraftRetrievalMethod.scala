@@ -19,11 +19,18 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import julienrf.json.derived
 import play.api.libs.json._
 
-sealed trait DraftRetrievalMethod
+sealed trait DraftRetrievalMethod {
+
+  def isNotPermitted = this match {
+    case NotPermitted => true
+    case _            => false
+  }
+}
 
 case class OnePerUser(continueOrDeletePage: ContinueOrDeletePage) extends DraftRetrievalMethod
 case class FormAccessCodeForAgents(continueOrDeletePage: ContinueOrDeletePage) extends DraftRetrievalMethod
 case object BySubmissionReference extends DraftRetrievalMethod
+case object NotPermitted extends DraftRetrievalMethod
 
 object DraftRetrievalMethod {
   implicit val format: OFormat[DraftRetrievalMethod] = derived.oformat()

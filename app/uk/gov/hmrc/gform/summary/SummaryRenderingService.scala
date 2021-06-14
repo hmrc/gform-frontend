@@ -279,8 +279,12 @@ object SummaryRenderingService {
       maybeAccessCode,
       formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers.reverse.head,
       formTemplate.formCategory,
-      retrievals.renderSaveAndComeBackLater,
-      formTemplate.summarySection.continueLabel.map(_.value()).getOrElse(retrievals.continueLabelKey),
+      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted,
+      (formTemplate.summarySection.continueLabel, formTemplate.draftRetrievalMethod.isNotPermitted) match {
+        case (Some(cl), _) => cl.value
+        case (None, true)  => messages("button.continue")
+        case (None, false) => messages(retrievals.continueLabelKey)
+      },
       frontendAppConfig,
       summaryPagePurpose,
       None,
@@ -324,8 +328,8 @@ object SummaryRenderingService {
       maybeAccessCode,
       SectionNumber(0),
       formTemplate.formCategory,
-      retrievals.renderSaveAndComeBackLater,
-      retrievals.continueLabelKey,
+      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted,
+      if (formTemplate.draftRetrievalMethod.isNotPermitted) "button.continue" else retrievals.continueLabelKey,
       frontendAppConfig,
       summaryPagePurpose,
       None,
