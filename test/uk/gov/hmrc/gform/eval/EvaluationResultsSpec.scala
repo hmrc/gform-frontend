@@ -206,7 +206,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-``          Period(
+          Period(
             DateCtx(
               DateExprWithOffset(DateFormCtxVar(FormCtx(FormComponentId("startDate1"))), OffsetYMD(List(Year(1))))
             ),
