@@ -25,6 +25,7 @@
       var value = $container.attr('data-value');
       var showAll = $container.attr('data-show-all');
       var maybeAccessCode = $container.attr('data-accessCode');
+      var displayWidth = $container.attr('data-displayWidth');
 
       // this is the method provided by accessible-autocomplete.min.js
       window.accessibleAutocomplete({
@@ -36,6 +37,26 @@
         defaultValue: value,
         showAllValues: showAll === "true"
       });
+
+      function getMaxWidth(displayWidth) {
+        var maxWidth = null;
+        switch(displayWidth) {
+            case "XS": maxWidth = "9ex"; break;
+            case "S": maxWidth = "10.8ex"; break;
+            case "M": maxWidth = "23ex"; break;
+            case "L": maxWidth = "41ex"; break;
+            case "XL": maxWidth = "59ex"; break;
+            case "XXL": break;
+            case "DEFAULT": maxWidth = "41ex"; break;
+        }
+        if(maxWidth) {
+           return {"max-width": maxWidth }
+        } else {
+           return {}
+        }
+      }
+
+      $('input#' + id).css(getMaxWidth(displayWidth))
 
       var checkInput = window.setInterval(function () {
         var $input = $('input#' + id);

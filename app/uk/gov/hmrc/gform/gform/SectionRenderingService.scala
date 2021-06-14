@@ -669,8 +669,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             htmlForAddress(formComponent, international, validationResult, ei)
           case o @ OverseasAddress(_, _, _) =>
             htmlForOverseasAddress(formComponent, o, validationResult, ei)
-          case Text(Lookup(register, _), _, _, _, _, _) =>
-            renderLookup(formComponent, register, validationResult, ei)
+          case t @ Text(Lookup(register, _), _, _, _, _, _) =>
+            renderLookup(t, formComponent, register, validationResult, ei)
           case t @ Text(_, _, _, _, _, _) =>
             renderText(t, formComponent, validationResult, ei)
           case t @ TextArea(_, _, _, _, _) =>
@@ -1216,6 +1216,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   }
 
   private def renderLookup(
+    text: Text,
     formComponent: FormComponent,
     register: Register,
     validationResult: ValidationResult,
@@ -1267,7 +1268,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           formFieldValidationResult,
           hint,
           getSelectItemsForLookup(formComponent, register, ei, options, prepopValue),
-          errorMessage
+          errorMessage,
+          text.displayWidth
         )
       case Some(RadioLookup(options)) =>
         val isPageHeading = ei.formLevelHeading

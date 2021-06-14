@@ -15,7 +15,8 @@
  *@
 
 @import uk.gov.hmrc.gform.lookup.ShowAll
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormComponent, Register }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormComponent, Register, DisplayWidth }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
@@ -34,7 +35,8 @@
   validationResult: FormFieldValidationResult,
   hint: Option[Hint],
   selectItems: Option[List[SelectItem]],
-  errorMessage: Option[ErrorMessage]
+  errorMessage: Option[ErrorMessage],
+  displayWidth: DisplayWidth
 )
 
 @currentValue = @{validationResult.getCurrentValue}
@@ -62,7 +64,8 @@
       data-lookup="@register.asString"
       data-formTemplateId="@formTemplateId.value"
       data-show-all="@showAll.enabled"
-      data-accessCode="@accessCode">
+      data-accessCode="@accessCode"
+      data-displayWidth="@displayWidth">
       </div>
       <noscript>
           @selectItems.map { items =>
