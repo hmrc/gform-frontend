@@ -32,10 +32,6 @@ input:focus, textarea:focus, select:focus, #global-header input:focus {
   width: 100%;
 }
 
-.lookup input[type="text"] {
-  width: 100%;
-}
-
 .autocomplete__wrapper {
   z-index: 1;
 }
