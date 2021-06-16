@@ -314,10 +314,11 @@ case class EvaluationResults(
             val periodFunctionExprs = if (indexedCompExists) {
               modelComponentIds
                 .flatMap(_.maybeIndex)
-                .toSet[Int]
+                .toList
+                .distinct
                 .map(index => Period(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index))))
             } else {
-              Set(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)))
+              List(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)))
             }
             periodFunctionExprs
               .map(p =>
@@ -327,7 +328,7 @@ case class EvaluationResults(
                   evaluationContext
                 )
               )
-              .fold(ExpressionResult.empty)(_ + _)
+              .reduce(_ + _)
               .fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(identity)(
                 identity
               )(mapper)
