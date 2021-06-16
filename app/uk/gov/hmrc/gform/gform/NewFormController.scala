@@ -186,8 +186,9 @@ class NewFormController(
         val formIdData = FormIdData.Plain(UserId(cache.retrievals), formTemplateId)
         handleForm(formIdData)(newForm(formTemplateId, cache, queryParams)) { form =>
           cache.formTemplate.draftRetrievalMethod match {
-            case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) |
-                NotPermitted =>
+            case NotPermitted =>
+              fastForwardService.deleteForm(cache.toAuthCacheWithForm(form, noAccessCode), queryParams)
+            case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
               redirectContinue[SectionSelectorType.Normal](cache, form, noAccessCode)
             case _ =>
               val continueFormPage = new ContinueFormPage(cache.formTemplate, choice)

@@ -207,6 +207,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         .sorted
         .exists(_ < sectionNumber)
 
+    val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
+
     html.form.addToList(
       repeater,
       bracket,
@@ -215,8 +217,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       pageLevelErrorHtml,
       frontendAppConfig,
       actionForm,
-      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted,
-      if (formTemplate.draftRetrievalMethod.isNotPermitted) "button.continue" else retrievals.continueLabelKey,
+      renderComeBackLater,
+      determineContinueLabelKey(retrievals.continueLabelKey, formTemplate.draftRetrievalMethod.isNotPermitted, None),
       shouldDisplayBack,
       addAnotherQuestion,
       specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics),
@@ -282,6 +284,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val renderUnits: List[RenderUnit] = page.renderUnits
     val snippetsForFields = renderUnits
       .map(renderUnit => htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations))
+    val renderComeBackLater = retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
+      _ === Continue
+    ) && !formTemplate.draftRetrievalMethod.isNotPermitted
+
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -292,14 +298,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       javascript,
       envelopeId,
       actionForm,
-      retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
-        _ === Continue
-      ) && !formTemplate.draftRetrievalMethod.isNotPermitted,
-      (page.continueLabel, formTemplate.draftRetrievalMethod.isNotPermitted) match {
-        case (Some(cl), _) => cl.value
-        case (None, true)  => messages("button.continue")
-        case (None, false) => messages(retrievals.continueLabelKey)
-      },
+      renderComeBackLater,
+      determineContinueLabelKey(
+        retrievals.continueLabelKey,
+        formTemplate.draftRetrievalMethod.isNotPermitted,
+        formTemplate.summarySection.continueLabel
+      ),
       formMaxAttachmentSizeMB,
       contentTypes,
       restrictedFileExtensions,
@@ -1998,6 +2002,17 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       case (_, Some(ExtraSmall)) => "govuk-label--xs"
       case (true, _)             => "govuk-label--l"
       case _                     => ""
+    }
+
+  private def determineContinueLabelKey(
+    continueLabelKey: String,
+    isNotPermitted: Boolean,
+    continueLabel: Option[SmartString]
+  )(implicit messages: Messages, lise: SmartStringEvaluator): String =
+    (continueLabel, isNotPermitted) match {
+      case (Some(cl), _) => cl.value
+      case (None, true)  => messages("button.continue")
+      case (None, false) => messages(continueLabelKey)
     }
 
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()

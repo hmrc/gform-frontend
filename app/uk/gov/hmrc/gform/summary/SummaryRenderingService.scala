@@ -264,6 +264,8 @@ object SummaryRenderingService {
 
     val envelopeUpd = envelope.byPurpose(summaryPagePurpose)
 
+    val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
+
     val sfr =
       summaryRowsForRender(
         validationResult,
@@ -279,12 +281,12 @@ object SummaryRenderingService {
       maybeAccessCode,
       formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers.reverse.head,
       formTemplate.formCategory,
-      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted,
-      (formTemplate.summarySection.continueLabel, formTemplate.draftRetrievalMethod.isNotPermitted) match {
-        case (Some(cl), _) => cl.value
-        case (None, true)  => messages("button.continue")
-        case (None, false) => messages(retrievals.continueLabelKey)
-      },
+      renderComeBackLater,
+      determineContinueLabelKey(
+        retrievals.continueLabelKey,
+        formTemplate.draftRetrievalMethod.isNotPermitted,
+        formTemplate.summarySection.continueLabel
+      ),
       frontendAppConfig,
       summaryPagePurpose,
       None,
@@ -312,6 +314,7 @@ object SummaryRenderingService {
   ): Html = {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
+    val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
     val sfr =
       summaryForNotificationPdf(
         validationResult,
@@ -328,8 +331,8 @@ object SummaryRenderingService {
       maybeAccessCode,
       SectionNumber(0),
       formTemplate.formCategory,
-      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted,
-      if (formTemplate.draftRetrievalMethod.isNotPermitted) "button.continue" else retrievals.continueLabelKey,
+      renderComeBackLater,
+      determineContinueLabelKey(retrievals.continueLabelKey, formTemplate.draftRetrievalMethod.isNotPermitted, None),
       frontendAppConfig,
       summaryPagePurpose,
       None,
@@ -538,5 +541,16 @@ object SummaryRenderingService {
     cya_section(messages("submission.details"), HtmlFormat.fill(rows)).toString()
 
   }
+
+  private def determineContinueLabelKey(
+    continueLabelKey: String,
+    isNotPermitted: Boolean,
+    continueLabel: Option[SmartString]
+  )(implicit messages: Messages, lise: SmartStringEvaluator): String =
+    (continueLabel, isNotPermitted) match {
+      case (Some(cl), _) => cl.value
+      case (None, true)  => messages("button.continue")
+      case (None, false) => messages(continueLabelKey)
+    }
 
 }
