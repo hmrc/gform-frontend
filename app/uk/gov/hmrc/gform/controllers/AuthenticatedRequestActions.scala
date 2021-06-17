@@ -47,7 +47,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, _ }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
@@ -108,7 +108,7 @@ class AuthenticatedRequestActions(
     }
 
   implicit def hc(implicit request: Request[_]): HeaderCarrier =
-    HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
   def checkEnrolment(serviceId: ServiceId, identifiers: NonEmptyList[Identifier])(implicit
     hc: HeaderCarrier
@@ -388,7 +388,7 @@ class AuthenticatedRequestActions(
     import uk.gov.hmrc.auth.core.retrieve.~
 
     implicit val hc: HeaderCarrier =
-      HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+      HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
     authorised(predicate)
       .retrieve(defaultRetrievals) {

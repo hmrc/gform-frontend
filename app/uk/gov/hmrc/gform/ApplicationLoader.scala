@@ -70,7 +70,10 @@ class ApplicationModule(context: Context)
   private val playBuiltInsModule = new PlayBuiltInsModule(self)
 
   protected val configModule = new ConfigModule(context, playBuiltInsModule, wsClient)
-  protected val auditingModule = new AuditingModule(configModule, akkaModule, applicationLifecycle)
+
+  private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
+
+  protected val auditingModule = new AuditingModule(configModule, akkaModule, metricsModule, applicationLifecycle)
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
@@ -95,8 +98,6 @@ class ApplicationModule(context: Context)
   )
 
   override lazy val csrfErrorHandler: CSRF.ErrorHandler = new CSRF.CSRFHttpErrorHandler(csrfHttpErrorHandler)
-
-  private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
 
   new GraphiteModule(environment, configuration, applicationLifecycle, metricsModule)
 

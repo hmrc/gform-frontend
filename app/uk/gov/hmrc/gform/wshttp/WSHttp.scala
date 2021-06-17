@@ -30,7 +30,7 @@ trait WSHttp extends HttpGet with WSGet with HttpPut with WSPut with HttpPost wi
 class WSHttpImpl(
   val appName: String,
   val auditConnector: AuditConnector,
-  val configuration: Option[Config],
+  val configuration: Config,
   val actorSystem: ActorSystem,
   val wsClient: WSClient
 ) extends WSHttp with HttpHooks with HttpAuditing {

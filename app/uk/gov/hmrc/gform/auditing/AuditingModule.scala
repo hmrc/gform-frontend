@@ -16,21 +16,43 @@
 
 package uk.gov.hmrc.gform.auditing
 
+import akka.actor.CoordinatedShutdown
 import play.api.inject.ApplicationLifecycle
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.audit.DefaultAuditConnector
+import uk.gov.hmrc.play.bootstrap.audit.{ DefaultAuditChannel, DefaultAuditConnector, DefaultAuditCounter, DefaultAuditCounterMetrics }
 
-class AuditingModule(configModule: ConfigModule, akkaModule: AkkaModule, applicationLifecycle: ApplicationLifecycle)(
-  implicit ec: ExecutionContext
+class AuditingModule(
+  configModule: ConfigModule,
+  akkaModule: AkkaModule,
+  metricsModule: MetricsModule,
+  applicationLifecycle: ApplicationLifecycle
+)(implicit
+  ec: ExecutionContext
 ) {
   self =>
 
+  private val defaultAuditChannel =
+    new DefaultAuditChannel(configModule.auditingConfig, akkaModule.materializer, applicationLifecycle)
+  private val coordinatedShutdown: CoordinatedShutdown = CoordinatedShutdown(akkaModule.actorSystem)
   lazy val auditConnector: AuditConnector =
-    new DefaultAuditConnector(configModule.auditingConfig, akkaModule.materializer, applicationLifecycle)
+    new DefaultAuditConnector(
+      configModule.auditingConfig,
+      defaultAuditChannel,
+      new DefaultAuditCounter(
+        akkaModule.actorSystem,
+        coordinatedShutdown,
+        configModule.auditingConfig,
+        defaultAuditChannel,
+        new DefaultAuditCounterMetrics(metricsModule.metrics),
+        ec
+      ),
+      applicationLifecycle
+    )
 
   lazy val auditService = new AuditService {
     override def auditConnector = self.auditConnector

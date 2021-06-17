@@ -38,6 +38,7 @@ import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
+
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
@@ -272,11 +273,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def dbLookup(id: String, collectionName: CollectionName, hc: HeaderCarrier)(implicit
     ec: ExecutionContext
   ): Future[Boolean] = {
-    implicit val hc_ = hc
-
     val url = s"$baseUrl/dblookup/$id/${collectionName.name}"
-    ws.doGet(url, hc.extraHeaders) map { response =>
-      response.status match {
+    implicit val _hc: HeaderCarrier = hc
+    ws.GET[HttpResponse](url).map {
+      _.status match {
         case 200 => true
         case _   => false
       }

@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.auth.models.IdentifierValue
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.DelegatedEnrolment
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse }
 
 case class DelegatedUserIds(delegatedUserIds: List[String])
 
@@ -40,6 +40,9 @@ object DelegatedUserIds {
 class EnrolmentStoreProxyConnector(baseUrl: String, http: WSHttp) {
 
   private val logger = LoggerFactory.getLogger(getClass)
+
+  implicit val legacyRawReads: HttpReads[HttpResponse] =
+    HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
 
   def hasDelegatedEnrolment(delegatedEnrolment: DelegatedEnrolment, identifierValue: IdentifierValue)(implicit
     hc: HeaderCarrier,
@@ -55,7 +58,7 @@ class EnrolmentStoreProxyConnector(baseUrl: String, http: WSHttp) {
       val url = s"$baseUrl/enrolment-store-proxy/enrolment-store/enrolments/$delegatedEnrolmentKey/users?type=delegated"
 
       http
-        .doGet(url)
+        .GET[HttpResponse](url)
         .map { httpResponse =>
           val status = httpResponse.status
           status match {

@@ -19,11 +19,12 @@ package uk.gov.hmrc.gform.auth
 import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{ HeaderCarrier }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -56,7 +57,8 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
     http
       .doPost(
         s"$baseUrl/tax-enrolments/groups/$groupId/enrolments/$enrolmentKey",
-        TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId, "gform-enrolment")
+        TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId, "gform-enrolment"),
+        HeaderCarrierUtil.allHeadersFromHC
       )
       .map { httpResponse =>
         val status = httpResponse.status

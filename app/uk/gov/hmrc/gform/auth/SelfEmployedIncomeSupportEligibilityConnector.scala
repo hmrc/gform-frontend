@@ -33,10 +33,16 @@ class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHtt
 
   private val logger = LoggerFactory.getLogger(getClass)
 
+  implicit val legacyRawReads: HttpReads[HttpResponse] =
+    HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
+
   private def getUtrEligibility(
     request: UtrEligibilityRequest
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
-    http.doPost(s"$baseUrl/self-employed-income-support-eligibility/utr-eligibility", request)
+    http.POST[UtrEligibilityRequest, HttpResponse](
+      s"$baseUrl/self-employed-income-support-eligibility/utr-eligibility",
+      request
+    )
 
   def eligibilityStatus(request: UtrEligibilityRequest, hc: HeaderCarrier)(implicit
     ec: ExecutionContext

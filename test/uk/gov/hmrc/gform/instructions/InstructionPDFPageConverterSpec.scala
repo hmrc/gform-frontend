@@ -41,8 +41,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormModelOptics, ThirdPartyDat
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ExampleData, LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormTemplate, Instruction, Text, TextConstraint }
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldError, FieldGlobalOk, FieldOk, HtmlFieldId, ValidationResult }
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.SessionId
+import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Address.{ country, postcode, street1, street2, street3, street4, uk }
 import FormModelInstructionSummaryConverter.{ PageData, fieldOrdering }
 
