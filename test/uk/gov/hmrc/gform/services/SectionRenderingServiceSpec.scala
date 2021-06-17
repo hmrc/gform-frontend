@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.services
 
 import cats.MonadError
 import org.jsoup.Jsoup
+import org.jsoup.select.Elements
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
 import play.api.i18n.{ I18nSupport, MessagesApi }
@@ -184,6 +185,45 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
 
     val textFieldHtml = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-label")
     textFieldHtml.attr("class") should include("govuk-label--m")
+  }
+
+  it should "render section without Save and come back later button for draftRetrievalMethod is NotPermitted " in new TestFixture {
+
+    import i18nSupport._
+
+    lazy val textField = mkFormComponentWithLabelSize("st", Text(ShortText.default, Value), Some(Medium))
+
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(textField.modelComponentId, "testLabelSize")
+          )
+        )
+      )
+
+    lazy val sections = List(nonRepeatingPageSection(fields = List(textField)))
+    override lazy val formTemplate = buildFormTemplate(destinationList, sections)
+
+    val generatedHtml = testService
+      .renderSection(
+        Some(accessCode),
+        SectionNumber(0),
+        FormHandlerResult(ValidationResult.empty, EnvelopeWithMapping.empty),
+        formTemplate.copy(draftRetrievalMethod = NotPermitted),
+        envelopeId,
+        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
+        0,
+        Nil,
+        Nil,
+        authContext,
+        NotChecked,
+        FastForward.Yes,
+        formModelOptics
+      )
+
+    val textFieldHtml: Elements = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button")
+    textFieldHtml.attr("class") shouldNot include("govuk-button--secondary")
   }
 
   "renderDeclarationSection" should "render Declaration page with Button with text 'ContinueLabel'" in new TestFixture {
