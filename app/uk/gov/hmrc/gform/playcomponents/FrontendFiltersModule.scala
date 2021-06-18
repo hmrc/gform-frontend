@@ -33,7 +33,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoFilter
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoProvider
 import uk.gov.hmrc.play.bootstrap.frontend.filters.deviceid.DefaultDeviceIdFilter
-import uk.gov.hmrc.play.bootstrap.frontend.filters.{ AllowlistFilter, DefaultFrontendAuditFilter, FrontendFilters, HeadersFilter, SessionIdFilter, SessionTimeoutFilter, SessionTimeoutFilterConfig }
+import uk.gov.hmrc.play.bootstrap.frontend.filters.{ DefaultFrontendAuditFilter, HeadersFilter, SessionTimeoutFilter, SessionTimeoutFilterConfig }
 import uk.gov.hmrc.play.bootstrap.filters.{ CacheControlConfig, CacheControlFilter, DefaultLoggingFilter, MDCFilter }
 
 import scala.concurrent.ExecutionContext
@@ -75,6 +75,7 @@ class FrontendFiltersModule(
   private implicit val materializer: Materializer = akkaModule.materializer
 
   private val frontendAuditFilter = new DefaultFrontendAuditFilter(
+    configModule.playConfiguration,
     configModule.controllerConfigs,
     auditingModule.auditConnector,
     new DefaultHttpAuditEvent(configModule.appConfig.appName),
@@ -128,10 +129,6 @@ class FrontendFiltersModule(
 
   private val loggingFilter = new DefaultLoggingFilter(configModule.controllerConfigs)
 
-  private val allowListFilter = new AllowlistFilter(configModule.playConfiguration, materializer)
-
-  private val sessionIdFilter = new SessionIdFilter(materializer, ec, hmrcSessionCookieBaker)
-
   private val sessionCookieDispatcherFilter = {
     val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
@@ -145,23 +142,17 @@ class FrontendFiltersModule(
     )
   }
 
-  lazy val httpFilters: Seq[EssentialFilter] = new FrontendFilters(
-    configModule.playConfiguration,
-    loggingFilter,
-    headersFilter,
+  lazy val httpFilters: Seq[EssentialFilter] = Seq(
     securityHeadersFilter,
-    frontendAuditFilter,
     metricsModule.metricsFilter,
+    sessionCookieDispatcherFilter,
+    headersFilter,
     deviceIdFilter,
-    csrfComponents.csrfFilter,
-    hmrcSessionCookieCryptoFilter,
+    loggingFilter,
+    frontendAuditFilter,
     sessionTimeoutFilter,
+    csrfComponents.csrfFilter,
     cacheControlFilter,
-    mdcFilter,
-    allowListFilter,
-    sessionIdFilter
-  ).filters map {
-    case _: SessionCookieCryptoFilter => sessionCookieDispatcherFilter
-    case other                        => other
-  }
+    mdcFilter
+  )
 }

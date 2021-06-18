@@ -27,8 +27,8 @@ import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.{ SessionCookieCrypto, SessionCookieCryptoFilter }
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -59,7 +59,7 @@ class SessionCookieDispatcherFilter(
     val maybeFormTemplate: Future[Either[Unit, FormTemplate]] = formTemplateIdParamIndex match {
       case Some(i) if i =!= -1 =>
         val templateId = rh.uri.split("\\?")(0).split("/")(i)
-        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(rh.headers, Some(rh.session))
+        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(rh, rh.session)
         gformConnector.getFormTemplate(FormTemplateId(templateId)).map(Right(_))
       case _ =>
         Future.successful(Left(()))

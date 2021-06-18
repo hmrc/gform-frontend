@@ -22,9 +22,8 @@ import uk.gov.hmrc.gform.models.mappings._
 import uk.gov.hmrc.gform.models.userdetails.Nino
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IdentifierName, ServiceName }
-import uk.gov.hmrc.http.logging.SessionId
-
 import java.security.MessageDigest
+import uk.gov.hmrc.http.SessionId
 
 sealed trait MaterialisedRetrievals extends Product with Serializable {
   def groupId = this match {

@@ -17,48 +17,45 @@
 package uk.gov.hmrc.gform.wshttp
 
 import akka.actor.ActorSystem
-import com.typesafe.config.Config
+import com.typesafe.config.{ Config, ConfigFactory }
 import play.api.libs.json.Writes
-import play.api.libs.ws.{ WSClient }
+import play.api.libs.ws.WSClient
 import uk.gov.hmrc.http.hooks.HttpHook
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.HttpResponse
 
 /** Stubbed WSHttp which responses always with the same HttpResponse. Use it for test purposes
   */
 class StubbedWSHttp(response: HttpResponse) extends WSHttp {
   override def doGet(url: String, headers: Seq[(String, String)] = Seq.empty)(implicit
-    hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[HttpResponse] = Future.successful(response)
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit
     rds: Writes[A],
-    hc: HeaderCarrier,
     ec: ExecutionContext
   ) = Future.successful(response)
   override def doFormPost(url: String, body: Map[String, Seq[String]], headers: Seq[(String, String)] = Seq.empty)(
-    implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
+    implicit ec: ExecutionContext
   ) =
     Future.successful(response)
   override def doPostString(url: String, body: String, headers: Seq[(String, String)] = Seq.empty)(implicit
-    hc: HeaderCarrier,
     ec: ExecutionContext
   ) =
     Future.successful(response)
-  override def doEmptyPost[A](url: String, headers: Seq[(String, String)] = Seq.empty)(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
-  ) = Future.successful(response)
+  override def doEmptyPost[A](url: String, headers: Seq[(String, String)] = Seq.empty)(implicit ec: ExecutionContext) =
+    Future.successful(response)
   //TODO: PUT, PATCH, DELETE
 
   override val hooks: Seq[HttpHook] = Seq.empty
 
   override protected def actorSystem: ActorSystem = null
 
-  override protected def configuration: Option[Config] = None
+  override protected def configuration: Config = ConfigFactory.parseString("""
+                                                                             |internalServiceHostPatterns = []
+                                                                             |bootstrap.http.headersAllowlist = []
+                                                                             |http-verbs.retries.intervals = []
+                                                                             |""".stripMargin)
 
   override val wsClient: WSClient = null
 }

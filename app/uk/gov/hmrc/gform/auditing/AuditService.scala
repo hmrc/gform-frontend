@@ -18,13 +18,14 @@ package uk.gov.hmrc.gform.auditing
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, EmailRetrievals, MaterialisedRetrievals, VerifyRetrievals }
+import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{ HeaderCarrier }
 
 import scala.concurrent.ExecutionContext
 
@@ -76,7 +77,7 @@ trait AuditService {
     ExtendedDataEvent(
       auditSource = "Gform-Frontend",
       auditType = "formSubmitted",
-      tags = hc.headers.toMap,
+      tags = HeaderCarrierUtil.allHeadersFromHC.toMap,
       detail = details(form, detail, retrievals, customerId)
     )
 
@@ -147,7 +148,7 @@ trait AuditService {
     DataEvent(
       auditSource = "GForm",
       auditType = "printedReturnNonrepudiation",
-      tags = hc.headers.toMap,
+      tags = HeaderCarrierUtil.allHeadersFromHC.toMap,
       eventId = eventId,
       detail = Map(
         "hashType"    -> "sha256",

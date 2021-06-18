@@ -45,8 +45,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ExampleData, LangADT, PdfHtml
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, ValidationResult, ValidationService }
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.SessionId
+import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 
 import scala.collection.immutable.List

@@ -189,7 +189,7 @@ class GformConnectorSpec extends Spec {
     )
 
     lazy val wSHttp = new StubbedWSHttp(r)
-    lazy val connector = new GformConnector(wSHttp, "baseUrl")
+    lazy val connector = new GformConnector(wSHttp, "http://localhost")
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }
 

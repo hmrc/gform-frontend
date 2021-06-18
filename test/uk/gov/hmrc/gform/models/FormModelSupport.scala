@@ -35,8 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, UserId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, Section }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.SessionId
+import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
 trait FormModelSupport extends GraphSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()

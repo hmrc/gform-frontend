@@ -33,8 +33,7 @@ import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSe
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, Horizontal, Radio, RevealingChoice, RevealingChoiceElement, Value }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.SessionId
+import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
 import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global

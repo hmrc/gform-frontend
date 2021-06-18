@@ -45,8 +45,7 @@ import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, HtmlFieldId, ValidationResult, ValidationService }
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.SessionId
+import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
 import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
