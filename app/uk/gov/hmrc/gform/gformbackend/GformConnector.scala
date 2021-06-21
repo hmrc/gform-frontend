@@ -170,7 +170,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       url,
       submissionData,
       Seq("customerId" -> customerId.id, "affinityGroup" -> affinityGroupNameO(affinityGroup))
-    )(SubmissionData.format, HttpReads.Implicits.readRaw, hc, ec)
+    )
 
   def submissionDetails(
     formIdData: FormIdData
