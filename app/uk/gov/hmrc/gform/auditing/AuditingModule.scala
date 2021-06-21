@@ -36,10 +36,12 @@ class AuditingModule(
 ) {
   self =>
 
-  private val defaultAuditChannel =
+  val defaultAuditChannel =
     new DefaultAuditChannel(configModule.auditingConfig, akkaModule.materializer, applicationLifecycle)
-  private val coordinatedShutdown: CoordinatedShutdown = CoordinatedShutdown(akkaModule.actorSystem)
-  lazy val auditConnector: AuditConnector =
+
+  val coordinatedShutdown: CoordinatedShutdown = CoordinatedShutdown(akkaModule.actorSystem)
+
+  val auditConnector: AuditConnector =
     new DefaultAuditConnector(
       configModule.auditingConfig,
       defaultAuditChannel,
@@ -54,7 +56,7 @@ class AuditingModule(
       applicationLifecycle
     )
 
-  lazy val auditService = new AuditService {
+  val auditService = new AuditService {
     override def auditConnector = self.auditConnector
   }
 

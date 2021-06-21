@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http._
-
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class UtrEligibilityRequest(utr: String) extends AnyVal
@@ -33,9 +33,6 @@ class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHtt
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  implicit val legacyRawReads: HttpReads[HttpResponse] =
-    HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
-
   private def getUtrEligibility(
     request: UtrEligibilityRequest
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
@@ -46,12 +43,10 @@ class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHtt
 
   def eligibilityStatus(request: UtrEligibilityRequest, hc: HeaderCarrier)(implicit
     ec: ExecutionContext
-  ): Future[Boolean] = {
-    implicit val hc_ = hc
-
+  ): Future[Boolean] =
     request match {
       case r if r.utr.trim.nonEmpty =>
-        getUtrEligibility(r)
+        getUtrEligibility(r)(hc, ec)
           .flatMap { response =>
             response.status match {
               case 200 =>
@@ -81,5 +76,4 @@ class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHtt
         logger.warn(s"An empty UTR is invalid.")
         Future.successful(false)
     }
-  }
 }

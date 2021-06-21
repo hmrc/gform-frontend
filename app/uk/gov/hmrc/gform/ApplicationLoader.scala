@@ -82,7 +82,7 @@ class ApplicationModule(context: Context)
     playBuiltInsModule.langs
   )(messagesApi)
 
-  override lazy val httpErrorHandler: ErrorHandler = new ErrorHandler(
+  val errorHandler: ErrorHandler = new ErrorHandler(
     configModule.environment,
     configModule.playConfiguration,
     configModule.context.devContext.map(_.sourceMapper),
@@ -223,7 +223,7 @@ class ApplicationModule(context: Context)
     frontendFiltersModule,
     controllersModule,
     this,
-    httpErrorHandler,
+    errorHandler,
     assetsMetadata
   )
 
@@ -241,7 +241,7 @@ class ApplicationModule(context: Context)
     configuration,
     requestFactory,
     httpRequestHandler,
-    httpErrorHandler,
+    errorHandler,
     actorSystem,
     materializer
   )

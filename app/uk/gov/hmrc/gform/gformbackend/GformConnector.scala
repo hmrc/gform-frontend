@@ -274,8 +274,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ec: ExecutionContext
   ): Future[Boolean] = {
     val url = s"$baseUrl/dblookup/$id/${collectionName.name}"
-    implicit val _hc: HeaderCarrier = hc
-    ws.GET[HttpResponse](url).map {
+    ws.GET[HttpResponse](url)(HttpReads.Implicits.readRaw, hc, ec).map {
       _.status match {
         case 200 => true
         case _   => false
