@@ -23,8 +23,8 @@ import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallRespon
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse }
-
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class TaxEnrolment(identifiers: List[Identifier], verifiers: List[Verifier])
@@ -41,9 +41,6 @@ object TaxEnrolment {
 class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
 
   private val logger = LoggerFactory.getLogger(getClass)
-
-  implicit val legacyRawReads: HttpReads[HttpResponse] =
-    HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
 
   def enrolGGUser(request: TaxEnrolment, service: ServiceId, retrievals: MaterialisedRetrievals)(implicit
     hc: HeaderCarrier,
