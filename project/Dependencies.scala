@@ -46,6 +46,6 @@ object Dependencies {
     "org.scalameta"          %% "munit"                    % munitVersion        % scope,
     "org.scalameta"          %% "munit-scalacheck"         % munitVersion        % scope,
     "com.typesafe.play"      %% "play-akka-http-server"    % "2.8.7"             % scope,
-    "com.vladsch.flexmark" % "flexmark-all" % "0.35.10"  % scope
+    "com.vladsch.flexmark"    % "flexmark-all"             % "0.35.10"           % scope
   )
 }
