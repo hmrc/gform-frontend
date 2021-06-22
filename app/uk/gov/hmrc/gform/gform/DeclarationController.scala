@@ -346,7 +346,7 @@ class DeclarationController(
     cache: AuthCacheWithForm,
     customerId: CustomerId,
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
-  )(implicit request: Request[_]) =
+  )(implicit request: Request[_]): Unit =
     auditService.sendSubmissionEvent(cache.form, formModelVisibilityOptics, cache.retrievals, customerId)
 
 }
