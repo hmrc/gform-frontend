@@ -20,7 +20,9 @@ import cats.Id
 import cats.data.NonEmptyList
 import cats.instances.either._
 import cats.syntax.either._
-import org.scalatest.{ Assertion, FlatSpec, Matchers }
+import org.scalatest.{ Assertion }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import org.scalactic.source.Position
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
@@ -36,7 +38,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform._
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 
-class StructuredFormDataBuilderSpec extends FlatSpec with Matchers with FormModelSupport with VariadicFormDataSupport {
+class StructuredFormDataBuilderSpec
+    extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
   private implicit val l: LangADT = LangADT.En
 
   type EitherEffect[A] = Either[Throwable, A]

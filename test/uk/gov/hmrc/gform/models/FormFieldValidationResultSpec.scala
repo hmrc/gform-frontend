@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.gform.models
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation._
 
-class FormFieldValidationResultSpec extends FlatSpec with Matchers {
+class FormFieldValidationResultSpec extends AnyFlatSpecLike with Matchers {
 
   val mockDateFieldValue = FormComponent(
     id = FormComponentId("StartDate"),

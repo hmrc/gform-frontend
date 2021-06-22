@@ -138,7 +138,8 @@ class FrontendFiltersModule(
       hmrcSessionCookieCryptoFilter,
       anonoymousSessionCookieCryptoFilter,
       emailSessionCookieCryptoFilter,
-      gformBackendModule.gformConnector
+      gformBackendModule.gformConnector,
+      configModule
     )
   }
 

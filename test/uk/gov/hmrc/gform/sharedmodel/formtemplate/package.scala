@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import org.scalatest.{ Assertion, Matchers }
+import org.scalatest.Assertion
+import org.scalatest.matchers.should.Matchers
 import play.api.libs.json._
 import uk.gov.hmrc.gform.JsResultMatcher
 

@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.gform.lookup
 
-import org.scalatest.{ FlatSpecLike, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvColumnName, SimplifiedSelectionCriteria }
 
-class LookupOptionsSpec extends FlatSpecLike with Matchers {
+class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
 
   val emptyLookupOptions = Map.empty[LookupLabel, LookupInfo]
 

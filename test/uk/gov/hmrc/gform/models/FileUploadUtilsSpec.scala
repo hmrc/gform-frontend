@@ -17,14 +17,15 @@
 package uk.gov.hmrc.gform.models
 
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormField, QueryParams }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, NotChecked, UserId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, EnvelopeId, FileId, Form, FormData, FormId, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 
-class FileUploadUtilsSpec extends FlatSpec with Matchers with FormModelSupport with VariadicFormDataSupport {
+class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
   "FileUploadUtils.updateMapping" should "update formComponentId <-> fileId mapping" in {
     def mkForm(mapping: FormComponentIdToFileIdMapping) = Form(

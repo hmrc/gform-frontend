@@ -16,17 +16,16 @@
 
 package uk.gov.hmrc.gform.validation
 
-import org.scalatest.Matchers
+import org.scalatest.matchers.should.Matchers
 import play.api.i18n.{ Lang, Messages }
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import org.scalatestplus.mockito._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormatExprGen
 
-class ComponentValidatorSpec extends Spec with Matchers with GraphSpec with MockitoSugar {
+class ComponentValidatorSpec extends Spec with Matchers with GraphSpec {
 
   implicit val langADT: LangADT = LangADT.En
   val lang = Lang(langADT.langADTToString)

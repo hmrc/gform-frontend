@@ -17,12 +17,16 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
-import julienrf.json.derived.{ DerivedOWrites, DerivedReads }
+import julienrf.json.derived.{ DerivedOWrites, DerivedReads, TypeTag }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{ OFormat, Reads }
+import shapeless.Lazy
 
 object OFormatWithTemplateReadFallback {
-  def apply[A: DerivedReads: DerivedOWrites](templateReads: Reads[A]): OFormat[A] = {
+  def apply[A](templateReads: Reads[A])(implicit
+    derivedReads: Lazy[DerivedReads[A, TypeTag.ShortClassName]],
+    derivedOWrites: Lazy[DerivedOWrites[A, TypeTag.ShortClassName]]
+  ): OFormat[A] = {
     val basic: OFormat[A] = derived.oformat()
     val reads = (basic: Reads[A]) | templateReads
     OFormat(reads, basic)

@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import cats.data.NonEmptyList
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, FormModelSupport, SectionSelectorType }
@@ -28,7 +29,7 @@ import VariadicFormData.{ manys, ones }
 
 import scala.util.{ Failure, Success, Try }
 
-class VariadicFormDataSpec extends FlatSpec with Matchers with FormModelSupport {
+class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelSupport {
 
   private def mkModelComponentId(value: String) =
     ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId(value)))
