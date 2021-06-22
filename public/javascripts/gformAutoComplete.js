@@ -56,7 +56,7 @@
         }
       }
 
-      $('input#' + id).css(getMaxWidth(displayWidth))
+      $container.css(getMaxWidth(displayWidth))
 
       var checkInput = window.setInterval(function () {
         var $input = $('input#' + id);
