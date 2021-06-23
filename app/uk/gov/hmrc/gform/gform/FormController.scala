@@ -291,7 +291,8 @@ class FormController(
     formModelOptics: FormModelOptics[Mongo],
     processData: ProcessData,
     idx: Int,
-    addToListId: AddToListId
+    addToListId: AddToListId,
+    isLastItem: Boolean = false
   )(implicit request: Request[AnyContent], lang: LangADT, sse: SmartStringEvaluator): Future[Result] = {
 
     def saveAndRedirect(
@@ -316,10 +317,17 @@ class FormController(
 
       validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) { _ =>
         val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sn)
-        Redirect(
-          routes.FormController
-            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
-        )
+
+        if (isLastItem)
+          Redirect(
+            routes.FormController
+              .backAction(cache.formTemplate._id, maybeAccessCode, sn)
+          )
+        else
+          Redirect(
+            routes.FormController
+              .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+          )
       }
     }
 
@@ -481,8 +489,17 @@ class FormController(
                            )
           res <- direction match {
                    case EditAddToList(idx, addToListId) => processEditAddToList(processData, idx, addToListId)
-                   case RemoveAddToList(idx, addToListId) =>
-                     processRemoveAddToList(cache, maybeAccessCode, ff, formModelOptics, processData, idx, addToListId)
+                   case RemoveAddToList(idx, addToListId, isLastItem) =>
+                     processRemoveAddToList(
+                       cache,
+                       maybeAccessCode,
+                       ff,
+                       formModelOptics,
+                       processData,
+                       idx,
+                       addToListId,
+                       isLastItem
+                     )
                    case SaveAndContinue | SaveAndExit =>
                      // This request should have been a POST, with user data. However we have sporadically seen GET requests sent instead of POST to this endpoint
                      // the cause of which is not known yet. We redirect the user the page he/she is currently on, instead of throwing an error page
