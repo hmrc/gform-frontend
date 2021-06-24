@@ -27,6 +27,9 @@ POST          /form/:formTemplateId/:maybeAccessCode/:sectionNumber             
 
 GET           /delete/:formTemplateId                                                                            uk.gov.hmrc.gform.gform.FormController.deleteOnExit(formTemplateId: FormTemplateId)
 
+GET           /form/addtolist/request-removal/:formTemplateId/:maybeAccessCode/:sectionNumber                    uk.gov.hmrc.gform.gform.FormAddToListController.requestRemoval(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber, index: Int, addToListId: AddToListId)
+POST          /form/addtolist/remove/:formTemplateId/:maybeAccessCode/:sectionNumber                             uk.gov.hmrc.gform.gform.FormAddToListController.confirmRemoval(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber, index: Int, addToListId: AddToListId)
+
 GET           /summary/pdf/:formTemplateId                                                                       uk.gov.hmrc.gform.gform.SummaryController.downloadPDF(formTemplateId: FormTemplateId, a: Option[AccessCode])
 GET           /summary/:formTemplateId/                                                                          uk.gov.hmrc.gform.gform.SummaryController.summaryById(formTemplateId: FormTemplateId, a: Option[AccessCode])
 GET           /summary/:formTemplateId/:maybeAccessCode                                                          uk.gov.hmrc.gform.gform.SummaryController.summaryById(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])

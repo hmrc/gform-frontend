@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrResponder }
 import uk.gov.hmrc.gform.fileupload.{ FileUploadController, FileUploadModule }
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormValidator }
+import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndService, GformBackendModule }
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.instructions.InstructionsRenderingService
@@ -123,6 +124,17 @@ class GformModule(
     controllersModule.messagesControllerComponents
   )
 
+  val addToListProcessor = new FormProcessor(
+    playBuiltInsModule.i18nSupport,
+    processDataService,
+    gformBackendModule.gformConnector,
+    validationModule.validationService,
+    fastForwardService,
+    graphModule.recalculation,
+    fileUploadModule.fileUploadService,
+    formControllerRequestHandler
+  )
+
   val formController: FormController = new FormController(
     configModule.appConfig,
     configModule.frontendAppConfig,
@@ -137,6 +149,17 @@ class GformModule(
     lookupRegistry.extractors,
     fastForwardService,
     graphModule.recalculation,
+    addToListProcessor,
+    controllersModule.messagesControllerComponents
+  )
+
+  val addToListController = new FormAddToListController(
+    configModule.frontendAppConfig,
+    playBuiltInsModule.i18nSupport,
+    controllersModule.authenticatedRequestActions,
+    processDataService,
+    gformBackendModule.gformConnector,
+    addToListProcessor,
     controllersModule.messagesControllerComponents
   )
 

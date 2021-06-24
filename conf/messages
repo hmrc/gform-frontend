@@ -37,6 +37,7 @@ addToList.change.visually.hidden=Change {0}
 addToList.remove=Remove
 addToList.remove.visually.hidden=Remove {0} from the list
 addToList.addOrRemove=Add or remove
+addToList.confirmRemoval=Are you sure you want to remove {0}?
 
 button.continue=Continue
 button.saveAndContinue=Save and continue

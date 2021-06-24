@@ -31,6 +31,13 @@ linkText.signOut=Allgofnodi
 linkText.signBackIn=Mewngofnodi eto
 linkText.signInWithEmailAgain=Mewngofnodwch eto gyda’ch cyfeiriad e-bost
 
+addToList.change=Newid
+addToList.change.visually.hidden=Change {0}
+addToList.remove=Remove
+addToList.remove.visually.hidden=Remove {0} from the list
+addToList.addOrRemove=Add or remove
+addToList.confirmRemoval=Are you sure you want to remove {0}?
+
 button.continue=Yn eich blaen
 button.saveAndContinue=Cadw ac yn eich blaen
 button.acceptAndSubmit=Derbyn a chyflwyno

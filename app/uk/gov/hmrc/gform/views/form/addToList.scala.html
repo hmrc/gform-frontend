@@ -26,7 +26,8 @@
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{SectionNumber, AddToListId}
 @import play.filters.csrf.CSRF
-@import uk.gov.hmrc.gform.controllers.{EditAddToList, RemoveAddToList, SaveAndExit}
+@import uk.gov.hmrc.gform.controllers.{EditAddToList, SaveAndExit}
+@import uk.gov.hmrc.gform.controllers.{EditAddToList, SaveAndExit}
 @import uk.gov.hmrc.gform.controllers.Back
 @import uk.gov.hmrc.gform.commons.MarkDownUtil._
 
@@ -101,7 +102,7 @@
               </a>
             </div>
             <div class="hmrc-add-to-a-list__remove">
-              <a class="govuk-link remove-add-to-list" aria-label='@messages("addToList.remove.visually.hidden", record.summaryText)' href="@{uk.gov.hmrc.gform.gform.routes.FormController.addToListAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, RemoveAddToList(record.index, AddToListId(bracket.source.id.formComponentId), recordTable.size == 1))}  ">
+              <a class="govuk-link remove-add-to-list" aria-label='@messages("addToList.remove.visually.hidden", record.summaryText)' href="@{uk.gov.hmrc.gform.gform.routes.FormAddToListController.requestRemoval(formTemplate._id, maybeAccessCode, sectionNumber, record.index, AddToListId(bracket.source.id.formComponentId))}">
                 <span aria-hidden="true">@messages("addToList.remove")</span>
                 <span class="govuk-visually-hidden">@messages("addToList.remove.visually.hidden", record.summaryText)</span>
               </a>
