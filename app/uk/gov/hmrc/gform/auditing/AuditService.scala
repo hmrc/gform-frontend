@@ -46,7 +46,7 @@ trait AuditService {
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId
-  )(implicit ec: ExecutionContext, hc: HeaderCarrier) =
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
     sendEvent(form, formToMap(form, formModelVisibilityOptics), retrievals, customerId)
 
   private def sendEvent(
@@ -54,11 +54,8 @@ trait AuditService {
     detail: Map[String, String],
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId
-  )(implicit ec: ExecutionContext, hc: HeaderCarrier): String = {
-    val event = eventFor(form, detail, retrievals, customerId)
-    auditConnector.sendExtendedEvent(event)
-    event.eventId
-  }
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+    auditConnector.sendExplicitAudit("formSubmitted", details(form, detail, retrievals, customerId))
 
   def calculateSubmissionEvent[D <: DataOrigin](
     form: Form,
@@ -77,7 +74,6 @@ trait AuditService {
     ExtendedDataEvent(
       auditSource = "Gform-Frontend",
       auditType = "formSubmitted",
-      tags = HeaderCarrierUtil.allHeadersFromHC.toMap,
       detail = details(form, detail, retrievals, customerId)
     )
 

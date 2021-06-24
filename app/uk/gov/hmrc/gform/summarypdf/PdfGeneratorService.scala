@@ -38,7 +38,7 @@ class PdfGeneratorService(
   summaryRenderingService: SummaryRenderingService
 ) {
 
-  def generatePDF(html: PdfHtml)(implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {
+  def generatePDF(html: PdfHtml): Future[Source[ByteString, _]] = {
     val headers = Seq((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
     val body = Map("html" -> Seq(html))
     pdfGeneratorConnector.generatePDF(body, headers)
