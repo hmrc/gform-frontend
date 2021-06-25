@@ -35,8 +35,9 @@ package uk.gov.hmrc.gform.validation
 import uk.gov.hmrc.gform.GraphSpec
 import org.scalatest.concurrent.ScalaFutures
 import cats.scalatest.EitherMatchers
-import org.scalatest.{ FlatSpec, Matchers }
-class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
+class AddressValidationSpec extends AnyFlatSpecLike with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
   /*   val retrievals = mock[MaterialisedRetrievals]
    *
    *   val baseAddress = Address(international = false)

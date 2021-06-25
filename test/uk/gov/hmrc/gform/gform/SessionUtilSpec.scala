@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.gform.gform
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import org.typelevel.ci.CIString
 import play.api.libs.json.{ Format, Json }
 import play.api.test.FakeRequest
@@ -24,7 +25,7 @@ import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import org.typelevel.ci._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 
-class SessionUtilSpec extends FlatSpec with Matchers with JsonUtils {
+class SessionUtilSpec extends AnyFlatSpecLike with Matchers with JsonUtils {
 
   case class SessionObject(value: CIString = ci"")
   object SessionObject {

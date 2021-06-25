@@ -16,11 +16,13 @@
 
 package uk.gov.hmrc.gform.models
 
-import org.scalatest.{ EitherValues, FlatSpec, Matchers, OptionValues }
+import org.scalatest.{ EitherValues, OptionValues }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Offset
 
-class DatePrepopSpec extends FlatSpec with Matchers with EitherValues with OptionValues {
+class DatePrepopSpec extends AnyFlatSpecLike with Matchers with EitherValues with OptionValues {
 
   "if offset is 0, date" should "be prepopulated with value" in {
     val value = Some(DateExpr(2017, 7, 4))

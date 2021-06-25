@@ -16,9 +16,10 @@
 
 package uk.gov.hmrc.gform.views.html
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 
-class ViewsHelperSpec extends FlatSpec with Matchers {
+class ViewsHelperSpec extends AnyFlatSpecLike with Matchers {
 
   "summaryTextArea method" should "handle escape html entities and replace new lines with <br/>" in {
     summaryTextArea("hello\r\nworld").body should be("hello<br/>world")

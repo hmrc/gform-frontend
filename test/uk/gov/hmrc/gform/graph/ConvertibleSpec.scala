@@ -24,8 +24,9 @@ package uk.gov.hmrc.gform.graph
  * import FormTemplateBuilder._
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.RoundingMode
  */
-import org.scalatest.{ FlatSpec, Matchers }
-class ConvertibleSpec extends FlatSpec with Matchers {
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
+class ConvertibleSpec extends AnyFlatSpecLike with Matchers {
   /*
    *   "Convertible" should "convert to String with respect to maxDecimalDigits" in {
    *

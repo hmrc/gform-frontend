@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.gform.models
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
 /* import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
  * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
  */
-class ProcessDataSpec extends FlatSpec with Matchers with TableDrivenPropertyChecks with FormModelSupport {
+class ProcessDataSpec extends AnyFlatSpecLike with Matchers with TableDrivenPropertyChecks with FormModelSupport {
   /*
    *   "updateSectionVisits" should "reindex visits when repeated section shrinked" in {
    *

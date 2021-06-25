@@ -180,11 +180,6 @@ object EnrolmentAction {
   implicit val format: Format[EnrolmentAction] = derived.oformat[EnrolmentAction]()
 }
 
-object LegacyFcEnrolmentVerifier {
-  implicit val format: Format[LegacyFcEnrolmentVerifier] =
-    ValueClassFormat.oformat("legacyFcEnrolmentVerifier", LegacyFcEnrolmentVerifier.apply, _.value)
-}
-
 sealed trait AgentAccess
 case object RequireMTDAgentEnrolment extends AgentAccess
 case object DenyAnyAgentAffinityUser extends AgentAccess

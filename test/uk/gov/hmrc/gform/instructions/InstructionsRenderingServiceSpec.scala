@@ -24,7 +24,8 @@ import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.wordspec.AnyWordSpecLike
+import org.scalatest.matchers.should.Matchers
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.test.{ FakeRequest, Helpers }
 import uk.gov.hmrc.gform.Helpers.toSmartString
@@ -52,8 +53,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class InstructionsRenderingServiceSpec
-    extends WordSpec with Matchers with ScalaFutures with ExampleData with InstructionsRenderingServiceSpecExpectations
-    with ArgumentMatchersSugar with IdiomaticMockito {
+    extends AnyWordSpecLike with Matchers with ScalaFutures with ExampleData
+    with InstructionsRenderingServiceSpecExpectations with ArgumentMatchersSugar with IdiomaticMockito {
 
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))

@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.models
 
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
-import org.scalatest.{ FreeSpec, Matchers }
+import org.scalatest.freespec.AnyFreeSpecLike
+import org.scalatest.matchers.should.Matchers
 import org.slf4j.{ Logger, LoggerFactory }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkAddToListSection, mkFormComponent, page }
 import uk.gov.hmrc.gform.models.FastForward.StopAt
@@ -25,7 +26,7 @@ import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponentId, FormCtx, IncludeIf, SectionNumber, Value }
 
-class FastForwardSpec extends FreeSpec with FormModelSupport with VariadicFormDataSupport with Matchers {
+class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with VariadicFormDataSupport with Matchers {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 

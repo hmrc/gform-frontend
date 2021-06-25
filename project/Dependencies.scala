@@ -8,15 +8,15 @@ object Dependencies {
 
   val compile = Seq(
     ws,
-    "uk.gov.hmrc"                 %% "bootstrap-frontend-play-27" % "4.3.0",
-    "uk.gov.hmrc"                 %% "play-language"              % "4.5.0-play-27",
-    "uk.gov.hmrc"                 %% "play-frontend-govuk"        % "0.71.0-play-27",
-    "uk.gov.hmrc"                 %% "play-frontend-hmrc"         % "0.64.0-play-27",
-    "uk.gov.hmrc"                 %% "auth-client"                % "3.2.0-play-27",
-    "uk.gov.hmrc"                 %% "domain"                     % "5.10.0-play-27",
-    "uk.gov.hmrc"                 %% "play-partials"              % "7.1.0-play-27",
-    "com.typesafe.play"           %% "play-json-joda"             % "2.7.4",
-    "org.julienrf"                %% "play-json-derived-codecs"   % "4.0.1",
+    "uk.gov.hmrc"                 %% "bootstrap-frontend-play-28" % "4.3.0",
+    "uk.gov.hmrc"                 %% "play-language"              % "5.1.0-play-28",
+    "uk.gov.hmrc"                 %% "play-frontend-govuk"        % "0.77.0-play-28",
+    "uk.gov.hmrc"                 %% "play-frontend-hmrc"         % "0.72.0-play-28",
+    "uk.gov.hmrc"                 %% "auth-client"                % "5.6.0-play-28",
+    "uk.gov.hmrc"                 %% "domain"                     % "5.11.0-play-27",
+    "uk.gov.hmrc"                 %% "play-partials"              % "8.1.0-play-28",
+    "com.typesafe.play"           %% "play-json-joda"             % "2.9.2",
+    "org.julienrf"                %% "play-json-derived-codecs"   % "10.0.2",
     "org.typelevel"               %% "cats-core"                  % "2.2.0",
     "org.typelevel"               %% "cats-mtl"                   % "1.0.0",
     "org.typelevel"               %% "case-insensitive"           % "1.1.0",
@@ -35,15 +35,17 @@ object Dependencies {
   val munitVersion = "0.7.22"
 
   def test(scope: String = "test") = Seq(
-    "uk.gov.hmrc"            %% "service-integration-test" % "0.13.0-play-27"    % scope,
-    "org.scalacheck"         %% "scalacheck"               % "1.14.3"            % scope,
+    "uk.gov.hmrc"            %% "service-integration-test" % "1.1.0-play-28"     % scope,
+    "org.scalatestplus"      %% "scalacheck-1-14"          % "3.1.1.0"           % scope,
     "org.pegdown"             % "pegdown"                  % "1.6.0"             % scope,
     "com.ironcorelabs"       %% "cats-scalatest"           % "2.4.0"             % scope,
     "com.typesafe.play"      %% "play-test"                % PlayVersion.current % scope,
-    "org.scalatestplus.play" %% "scalatestplus-play"       % "4.0.3"             % scope,
+    "org.scalatestplus.play" %% "scalatestplus-play"       % "5.1.0"             % scope,
     "org.mockito"            %% "mockito-scala-scalatest"  % "1.7.0"             % scope,
-    "com.github.tomakehurst"  % "wiremock-jre8"            % "2.27.1"            % scope,
+    "com.github.tomakehurst"  % "wiremock-jre8"            % "2.26.3"            % scope,
     "org.scalameta"          %% "munit"                    % munitVersion        % scope,
     "org.scalameta"          %% "munit-scalacheck"         % munitVersion        % scope,
+    "com.typesafe.play"      %% "play-akka-http-server"    % "2.8.7"             % scope,
+    "com.vladsch.flexmark"    % "flexmark-all"             % "0.35.10"           % scope
   )
 }

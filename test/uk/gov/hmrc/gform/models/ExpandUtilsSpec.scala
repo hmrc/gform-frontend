@@ -29,8 +29,9 @@ package uk.gov.hmrc.gform.models
  * import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
  * import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate._ */
-import org.scalatest.{ FlatSpec, Matchers }
-class ExpandUtilsSpec extends FlatSpec with Matchers with FormModelSupport {
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
+class ExpandUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport {
   /*
    *   private val lookupExtractors = new LookupExtractors(Map.empty)
    *

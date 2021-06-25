@@ -16,9 +16,10 @@
 
 package uk.gov.hmrc.gform.controllers.helpers
 
-import org.scalatest.{ FlatSpecLike, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 
-class InvisibleCharsHelperSpec extends FlatSpecLike with Matchers {
+class InvisibleCharsHelperSpec extends AnyFlatSpecLike with Matchers {
 
   "replaceInvisibleChars" should "replace invisible characters with space" in {
     val input =

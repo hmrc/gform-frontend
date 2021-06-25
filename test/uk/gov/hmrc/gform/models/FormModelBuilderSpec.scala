@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import scala.language.implicitConversions
 import uk.gov.hmrc.gform.eval.ExprType
@@ -27,7 +28,7 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-class FormModelBuilderSpec extends FlatSpec with Matchers with FormModelSupport with VariadicFormDataSupport {
+class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
   implicit def implicitToFormComponentId(str: String): FormComponentId = FormComponentId(str)
 
