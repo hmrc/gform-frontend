@@ -106,8 +106,11 @@ class AcknowledgementController(
       import i18nSupport._
       for {
 
-        _          <- nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
-        submission <- gformConnector.submissionDetails(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
+        _ <- nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
+        submission <- gformConnector.submissionDetails(
+                        FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
+                        cache.form.envelopeId
+                      )
         htmlForPDF <- summaryRenderingService
                         .createHtmlForPdf[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
                           maybeAccessCode,
