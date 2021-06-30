@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.implicits._
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
@@ -85,17 +86,21 @@ object AddToListUtils {
     val bracketPrefixes: Set[Int] =
       (variadicFormDataToKeep.keySet ++ variadicFormDataToModified.keySet).flatMap(_.maybeIndex)
 
-    val maxBracketPrefix = bracketPrefixes.max
-
-    val lastAddAnotherQuestionId =
-      bracket.source.id.formComponentId.modelComponentId.expandWithPrefix(maxBracketPrefix)
+    val updatedVariadicFormData = {
+      val initialVariadicFormData =
+        variadicFormData -- toBeRemovedIds -- variadicFormDataToModify ++ variadicFormDataToModified
+      if (bracketPrefixes.isEmpty)
+        initialVariadicFormData
+      else
+        initialVariadicFormData - bracket.source.id.formComponentId.modelComponentId
+          .expandWithPrefix(bracketPrefixes.max)
+    }
 
     (
-      variadicFormData -- toBeRemovedIds -- variadicFormDataToModify ++ variadicFormDataToModified - lastAddAnotherQuestionId,
+      updatedVariadicFormData,
       componentIdToFileIdMapping,
       filesToBeDeletedFromFileUpload
     )
-
   }
 
 }
