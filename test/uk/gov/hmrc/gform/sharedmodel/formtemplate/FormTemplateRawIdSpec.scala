@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.{ JsString, JsSuccess, Json }
 
-class FormTemplateRawIdSpec extends FlatSpec with Matchers {
+class FormTemplateRawIdSpec extends AnyFlatSpecLike with Matchers {
   "FormTemplateRawId" should "serialise to and from json" in {
     Json.toJson(FormTemplateRawId("12")) shouldBe JsString("12")
     Json.fromJson[FormTemplateRawId](JsString("12")) shouldBe JsSuccess(FormTemplateRawId("12"))

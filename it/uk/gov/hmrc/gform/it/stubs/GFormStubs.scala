@@ -46,7 +46,7 @@ trait GFormStubs extends FormTemplateSample {
   def gformNewFormStub(formTemplate: FormTemplate) = stubFor(
     WireMock
       .post(urlMatching(s"/gform/new-form/${formTemplate._id.value}/.*"))
-      .willReturn(ok(JsonUtils.toJsonStr(FormIdData.Plain(UserId(""), formTemplate._id))))
+      .willReturn(ok(JsonUtils.toJsonStr(FormIdData.Plain(UserId(""), formTemplate._id): FormIdData)))
   )
 
   def gformEmailStub(emailVerifierService: EmailVerifierService) =

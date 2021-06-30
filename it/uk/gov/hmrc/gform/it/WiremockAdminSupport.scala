@@ -25,9 +25,6 @@ trait WiremockAdminSupport {
   def getRequestBody[T: Reads](urlPatten: String)(implicit wireMockServer: WireMockServer): T = {
     val findResult = wireMockServer.findRequestsMatching(
       new RequestPattern(
-        null,
-        null,
-        null,
         new UrlPattern(WireMock.equalTo(urlPatten), false),
         RequestMethod.ANY,
         null,

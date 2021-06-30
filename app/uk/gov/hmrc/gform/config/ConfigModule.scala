@@ -30,10 +30,12 @@ import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, ServicesConfig }
 import org.typelevel.ci._
+import play.api.http.HttpConfiguration
 
 class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: PlayBuiltInsModule, wsClient: WSClient) {
 
   val playConfiguration: Configuration = context.initialConfiguration
+  val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(playConfiguration, context.environment)
   val typesafeConfig: TypeSafeConfig = ConfigFactory.load()
   val environment: Environment = context.environment
 

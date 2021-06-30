@@ -1,14 +1,15 @@
 package uk.gov.hmrc.gform.it
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.`extension`.responsetemplating.ResponseTemplateTransformer
 import com.github.tomakehurst.wiremock.client.WireMock.configureFor
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import com.typesafe.config.ConfigFactory
+import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach, GivenWhenThen }
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.play.{ BaseOneServerPerSuite, FakeApplicationFactory }
 import play.api.ApplicationLoader.Context
 import play.api.libs.json.{ Json, Reads }
@@ -21,12 +22,11 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 trait ITSpec
-    extends HTTPSupport with GivenWhenThen with FlatSpecLike with Matchers with BaseOneServerPerSuite
+    extends HTTPSupport with GivenWhenThen with AnyFlatSpecLike with Matchers with BaseOneServerPerSuite
     with BeforeAndAfterAll with FakeApplicationFactory with ScalaFutures with BeforeAndAfterEach
     with WiremockAdminSupport with DocumentSupport {
 
   implicit val system: ActorSystem = ActorSystem()
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   val wiremockPort: Int = 10000 + Random.nextInt(10000)
   implicit val wireMockServer: WireMockServer = new WireMockServer(

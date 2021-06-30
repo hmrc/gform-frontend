@@ -25,8 +25,9 @@ package uk.gov.hmrc.gform.models
  * import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Basic, FormComponent, FormComponentId, GroupExpanded, Page, Section, Value }
  */
-import org.scalatest.{ FlatSpec, Matchers }
-class FormModelGroupExpandedSpec extends FlatSpec with Matchers with FormModelSupport {
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
+class FormModelGroupExpandedSpec extends AnyFlatSpecLike with Matchers with FormModelSupport {
   /*   "FormModel.expandGroup" should "expand groups in Section.NonRepeatingPage" in {
    *     val fcA = mkFormComponent("a", Value)
    *     val fcB = mkFormComponent("b", Value)

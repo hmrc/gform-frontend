@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import org.scalatest.{ FlatSpecLike, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
@@ -25,7 +26,7 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.ExprGen
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 
-class ExprSpec extends FlatSpecLike with Matchers with FormModelSupport with ScalaCheckDrivenPropertyChecks {
+class ExprSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with ScalaCheckDrivenPropertyChecks {
 
   "Expr" should "round trip derived JSON" in {
     forAll(ExprGen.exprGen()) { obj =>

@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.gform.models
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
@@ -26,7 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormComponentIdToFileIdMappi
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FileUpload, FormComponentId, Section, ShortText, Text, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 
-class AddToListUtilsSpec extends FlatSpec with Matchers with FormModelSupport with VariadicFormDataSupport {
+class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
   "AddToListUtils.removeRecord" should "remove instance by its index" in {
     val data: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
       "regular" -> One("r"),

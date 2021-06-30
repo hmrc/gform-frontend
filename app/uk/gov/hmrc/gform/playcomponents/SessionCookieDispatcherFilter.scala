@@ -23,6 +23,7 @@ import play.api.mvc._
 import play.api.routing.Router.RequestImplicits._
 import uk.gov.hmrc.crypto.{ Crypted, Decrypter, Encrypter, PlainText }
 import uk.gov.hmrc.gform.FormTemplateKey
+import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplate, FormTemplateId }
@@ -37,7 +38,8 @@ class SessionCookieDispatcherFilter(
   hmrcCookieCryptoFilter: SessionCookieCryptoFilter,
   anonymousCookieCryptoFilter: SessionCookieCryptoFilter,
   emailCookieCryptoFilter: SessionCookieCryptoFilter,
-  gformConnector: GformConnector
+  gformConnector: GformConnector,
+  configModule: ConfigModule
 )(implicit ec: ExecutionContext, override val mat: Materializer)
     extends Filter {
 
@@ -47,6 +49,8 @@ class SessionCookieDispatcherFilter(
   private val AnonymousAuth = "anonymous"
   private val EmailAuth = "email"
   private val HmrcAuth = "hmrc"
+
+  private val cookieHeaderEncoding = new DefaultCookieHeaderEncoding(configModule.httpConfiguration.cookies)
 
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
@@ -68,7 +72,7 @@ class SessionCookieDispatcherFilter(
     def findAuthConfigCookie(rh: RequestHeader): Option[Cookie] =
       rh.headers
         .getAll(HeaderNames.COOKIE)
-        .flatMap(Cookies.decodeCookieHeader)
+        .flatMap(cookieHeaderEncoding.decodeCookieHeader)
         .find(_.name == authConfigCookieName)
 
     maybeFormTemplate.flatMap {

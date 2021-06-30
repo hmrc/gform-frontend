@@ -19,7 +19,8 @@ package uk.gov.hmrc.gform.graph
 import cats.data.NonEmptyList
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.prop.TableFor2
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExprMetadata }
@@ -31,7 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode._
 import FormTemplateBuilder._
 
-class DependencyGraphSpec extends FlatSpec with Matchers with FormModelSupport with VariadicFormDataSupport {
+class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
   implicit def simpleSyntax(s: String): FormComponentId = FormComponentId(s)
 

@@ -122,7 +122,8 @@
 @govukPhaseBanner = @{new govukPhaseBanner(govukTag = new govukTag())}
 @hmrcHeader = @{new components.hmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner)}
 @govukTemplate = @{new govukTemplate(govukHeader, govukFooter, govukSkipLink)}
-@govukLayout = @{new govukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink)}
+@twoThirdsMainContent = @{new twoThirdsMainContent}
+@govukLayout = @{new govukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink, twoThirdsMainContent)}
 @hmrcReportTechnicalIssue = @{new components.hmrcReportTechnicalIssue()}
 
 @language = @{l.toLanguage}

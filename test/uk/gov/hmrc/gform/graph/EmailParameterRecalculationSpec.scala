@@ -23,8 +23,9 @@ package uk.gov.hmrc.gform.graph
  * import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData, VariadicValue }
  *
  * import scala.concurrent.ExecutionContext */
-import org.scalatest.{ FlatSpec, Matchers }
-class EmailParameterRecalculationSpec extends FlatSpec with Matchers {
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
+class EmailParameterRecalculationSpec extends AnyFlatSpecLike with Matchers {
   /*
    *   val cache: AuthCacheWithForm =
    *     AuthCacheWithoutForm(ExampleData.materialisedRetrievals, ExampleData.formTemplate, Role.Customer)

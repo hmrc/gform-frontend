@@ -302,7 +302,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       determineContinueLabelKey(
         retrievals.continueLabelKey,
         formTemplate.draftRetrievalMethod.isNotPermitted,
-        formTemplate.summarySection.continueLabel
+        page.continueLabel
       ),
       formMaxAttachmentSizeMB,
       contentTypes,

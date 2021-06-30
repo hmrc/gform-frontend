@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.gform.gform
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.slf4j.{ Logger, LoggerFactory }
 import uk.gov.hmrc.gform.gform.MaskUtil.maskEmail
 
-class MaskUtilSpec extends FlatSpec with Matchers {
+class MaskUtilSpec extends AnyFlatSpecLike with Matchers {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 

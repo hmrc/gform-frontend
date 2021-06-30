@@ -29,12 +29,13 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.GraphSpec
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 
 import java.time.LocalDate
 
-class RecalculationSpec extends FlatSpec with Matchers with GraphSpec with FormModelSupport {
+class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec with FormModelSupport {
 
   type EitherEffect[A] = Either[GraphException, A]
 

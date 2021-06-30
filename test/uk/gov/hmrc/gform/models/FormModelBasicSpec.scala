@@ -20,8 +20,9 @@ package uk.gov.hmrc.gform.models
  * import uk.gov.hmrc.gform.Helpers.toSmartString
  * import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate._ */
-import org.scalatest.{ FlatSpec, Matchers }
-class FormModelBasicSpec extends FlatSpec with Matchers with FormModelSupport {
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
+class FormModelBasicSpec extends AnyFlatSpecLike with Matchers with FormModelSupport {
   /*
    *   val expectedFc = addToListQuestion.copy(id = FormComponentId("1_ownerFc"))
    *

@@ -22,7 +22,8 @@ import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import play.api.test.{ FakeRequest, Helpers }
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.models.Visibility
@@ -49,7 +50,8 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class InstructionPDFPageConverterSpec
-    extends FlatSpec with ScalaFutures with Matchers with ExampleData with ArgumentMatchersSugar with IdiomaticMockito {
+    extends AnyFlatSpecLike with ScalaFutures with Matchers with ExampleData with ArgumentMatchersSugar
+    with IdiomaticMockito {
 
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(3000, Millis)), interval = scaled(Span(15, Millis)))

@@ -17,11 +17,11 @@
 package uk.gov.hmrc.gform.gform
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import cats.Id
 import org.mockito.{ ArgumentMatchersSugar, IdiomaticMockito }
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ FlatSpecLike, Matchers }
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.{ Json, Reads }
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request, Result }
 import play.api.test.FakeRequest
@@ -46,11 +46,10 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 
 class LookupControllerSpec
-    extends FlatSpecLike with Matchers with IdiomaticMockito with ArgumentMatchersSugar with ScalaFutures
+    extends AnyFlatSpecLike with Matchers with IdiomaticMockito with ArgumentMatchersSugar with ScalaFutures
     with FormModelSupport with VariadicFormDataSupport with PlayStubSupport {
 
   implicit val sys = ActorSystem("LookupControllerSpec")
-  implicit val mat = ActorMaterializer()
 
   "lookupWithSelectionCriteria - showAll enabled" should "lookup options when no query provided and no selection criteria provided" in new TestFixture {
     override lazy val showAll: ShowAll = ShowAll.Enabled
