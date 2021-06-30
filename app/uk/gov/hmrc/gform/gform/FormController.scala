@@ -316,22 +316,18 @@ class FormController(
 
       validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) {
         maybeSectionNumber =>
-          val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sn)
+          val addToListBracket: Bracket.AddToList[DataExpanded] =
+            formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
 
           val sectionNumber =
-            if (
-              formModelOptics.formModelRenderPageOptics.formModel.brackets
-                .addToListBracket(addToListId)
-                .repeaters
-                .size === 1
-            )
+            if (addToListBracket.iterations.size === 1)
               maybeSectionNumber
-                .map {
-                  updFormModel.brackets.addToListBracket(addToListId).iterationForSectionNumber(_).firstSectionNumber
-                }
+                .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
                 .getOrElse(sn)
             else
               sn
+
+          val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sectionNumber)
 
           Redirect(
             routes.FormController

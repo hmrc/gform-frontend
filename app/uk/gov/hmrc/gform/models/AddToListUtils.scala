@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.implicits._
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
