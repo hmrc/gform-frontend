@@ -419,3 +419,7 @@ div.gform-date-input__item {
 .govuk-hint > p {
     margin: 0px;
 }
+
+.hmrc-add-to-a-list__identifier p {
+    margin: 0px;
+}
