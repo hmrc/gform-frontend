@@ -20,8 +20,8 @@ import cats.instances.future._
 import cats.instances.option._
 import cats.syntax.apply._
 import cats.syntax.eq._
-import controllers.Assets.Redirect
 import play.api.i18n.I18nSupport
+import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
@@ -64,8 +64,7 @@ class FormProcessor(
     formModelOptics: FormModelOptics[Mongo],
     processData: ProcessData,
     idx: Int,
-    addToListId: AddToListId,
-    isLastItem: Boolean = false
+    addToListId: AddToListId
   )(implicit
     request: Request[AnyContent],
     hc: HeaderCarrier,
@@ -93,18 +92,31 @@ class FormProcessor(
         form = cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId)
       )
 
-      validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) { _ =>
-        val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sn)
+      validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) {
+        maybeSectionNumber =>
+          val addToListBracket: Bracket.AddToList[DataExpanded] =
+            formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
 
-        if (isLastItem)
+          val sectionNumber =
+            if (addToListBracket.iterations.size === 1)
+              maybeSectionNumber
+                .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
+                .getOrElse(sn)
+            else
+              sn
+
+          val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sectionNumber)
+
           Redirect(
             routes.FormController
-              .backAction(cache.formTemplate._id, maybeAccessCode, sn)
-          )
-        else
-          Redirect(
-            routes.FormController
-              .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+              .form(
+                cache.formTemplate._id,
+                maybeAccessCode,
+                sectionNumber,
+                sectionTitle4Ga,
+                SuppressErrors.Yes,
+                FastForward.Yes
+              )
           )
       }
     }
