@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.implicits._
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
@@ -86,16 +85,18 @@ object AddToListUtils {
     val bracketPrefixes: Set[Int] =
       (variadicFormDataToKeep.keySet ++ variadicFormDataToModified.keySet).flatMap(_.maybeIndex)
 
-    val uVariadicFormData = {
-      val vfd = variadicFormData -- toBeRemovedIds -- variadicFormDataToModify ++ variadicFormDataToModified
+    val updatedVariadicFormData = {
+      val initialVariadicFormData =
+        variadicFormData -- toBeRemovedIds -- variadicFormDataToModify ++ variadicFormDataToModified
       if (bracketPrefixes.isEmpty)
-        vfd
+        initialVariadicFormData
       else
-        vfd - bracket.source.id.formComponentId.modelComponentId.expandWithPrefix(bracketPrefixes.max)
+        initialVariadicFormData - bracket.source.id.formComponentId.modelComponentId
+          .expandWithPrefix(bracketPrefixes.max)
     }
 
     (
-      uVariadicFormData,
+      updatedVariadicFormData,
       componentIdToFileIdMapping,
       filesToBeDeletedFromFileUpload
     )

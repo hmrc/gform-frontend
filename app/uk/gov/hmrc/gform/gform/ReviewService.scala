@@ -122,7 +122,8 @@ class ReviewService[F[_]: Monad](
     sse: SmartStringEvaluator
   ): F[HttpResponse] =
     for {
-      submission <- gformBackEnd.submissionDetails(FormIdData.fromForm(cache.form, maybeAccessCode))
+      submission <-
+        gformBackEnd.submissionDetails(FormIdData.fromForm(cache.form, maybeAccessCode), cache.form.envelopeId)
       customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
       result <- gformBackEnd.submitWithUpdatedFormStatus(
                   formStatus,

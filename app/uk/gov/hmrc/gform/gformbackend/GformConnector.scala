@@ -173,14 +173,15 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     )
 
   def submissionDetails(
-    formIdData: FormIdData
+    formIdData: FormIdData,
+    envelopeId: EnvelopeId
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] = {
     val url =
       formIdData match {
         case FormIdData.Plain(userId, formTemplateId) =>
-          s"$baseUrl/submissionDetails/${userId.value}/${formTemplateId.value}"
+          s"$baseUrl/submissionDetails/${userId.value}/${formTemplateId.value}/${envelopeId.value}"
         case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
-          s"$baseUrl/submissionDetails/${userId.value}/${formTemplateId.value}/${accessCode.value}"
+          s"$baseUrl/submissionDetails/${userId.value}/${formTemplateId.value}/${accessCode.value}/${envelopeId.value}"
       }
     ws.GET[Submission](url)
   }

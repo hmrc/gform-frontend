@@ -342,13 +342,28 @@ class FormModelBuilder[E, F[_]: Functor](
     index: Int,
     data: VariadicFormData[SourceOrigin.OutOfDate]
   ): Option[BracketPlain.AddToListIteration[T]] = {
-    val singletons: List[Singleton[T]] =
-      s.pages.map { page =>
+    val singletons: List[Singleton[T]] = {
+      val addToListPages: NonEmptyList[Page[Basic]] =
+        s.defaultPage.fold(s.pages) { dp =>
+          val defaultIncludeIf = IncludeIf(Equals(Constant("1"), Count(s.addAnotherQuestion.id)))
+          s.pages.prepend(
+            dp.copy(includeIf =
+              Some(
+                dp.includeIf.fold(defaultIncludeIf)(inIf =>
+                  IncludeIf(And(inIf.booleanExpr, defaultIncludeIf.booleanExpr))
+                )
+              )
+            )
+          )
+        }
+
+      addToListPages.map { page =>
         val page1: Page[Basic] = s.includeIf.fold(page)(includeIf => mergeIncludeIfs(includeIf, page))
         val page2: Page[Basic] = mkSingleton(page1, index)(s)
         val page3: Page[T] = implicitly[FormModelExpander[T]].lift(page2, data)
         Singleton[T](page3)
       }.toList
+    }
 
     val repeater: Repeater[T] = mkRepeater(s, index)
 

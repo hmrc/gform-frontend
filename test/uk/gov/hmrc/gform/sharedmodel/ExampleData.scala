@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import java.time.{ LocalDateTime, LocalTime }
-
 import cats.data.NonEmptyList
 import play.api.ApplicationLoader.Context
 import play.api.i18n.Lang
@@ -36,7 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcD
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RevealingChoiceElement, _ }
-import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
+import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
 import uk.gov.hmrc.hmrcfrontend.config.TrackingConsentConfig
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.http.HeaderCarrier
@@ -75,7 +74,7 @@ trait ExampleEvaluationContext {
 trait ExampleSubmission {
   self: ExampleForm with ExampleSubmissionRef with ExampleDmsMetaData =>
   def submission(implicit localDateTime: LocalDateTime) =
-    Submission(formId, localDateTime, submissionRef, envelopeId, dmsMetaData)
+    Submission(SubmissionId(formId, envelopeId), localDateTime, submissionRef, envelopeId, dmsMetaData)
 }
 
 trait ExampleDmsMetaData {

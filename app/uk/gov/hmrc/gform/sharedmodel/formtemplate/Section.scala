@@ -63,7 +63,8 @@ object Section {
     addAnotherQuestion: FormComponent,
     instruction: Option[Instruction],
     presentationHint: Option[PresentationHint],
-    infoMessage: Option[SmartString]
+    infoMessage: Option[SmartString],
+    defaultPage: Option[Page[Basic]] = None
   ) extends Section {
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
     val allIds: List[FormComponentId] = {
