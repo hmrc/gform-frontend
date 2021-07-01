@@ -190,12 +190,20 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       )
     }
 
+    val hint: Option[Hint] = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
+      )
+    }
+
     val radios = Radios(
       idPrefix = Some(formComponent.id.value),
       fieldset = fieldset,
       errorMessage = errorMessage,
       name = formComponent.id.value,
-      items = items.toList
+      items = items.toList,
+      hint = hint,
+      classes = "govuk-radios--inline"
     )
 
     val addAnotherQuestion: Html =
