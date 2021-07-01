@@ -1,0 +1,90 @@
+@*
+ * Copyright 2021 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, SectionNumber, AddToListId}
+@import play.filters.csrf.CSRF
+@import uk.gov.hmrc.gform.controllers.Back
+@import uk.gov.hmrc.gform.views.html.main_template
+@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+
+@(
+  formTemplate: FormTemplate,
+  repeater: Repeater[DataExpanded],
+  maybeAccessCode: Option[AccessCode],
+  sectionNumber: SectionNumber,
+  frontendAppConfig: FrontendAppConfig,
+  formAction: Call
+)(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
+
+@formWithCSRF = @{new formWithCSRF()}
+@govukButton = @{new govukButton()}
+
+@heading = @{messages("addToList.confirmRemoval", repeater.expandedDescription.value)}
+
+@backLink = @{
+    new BackLink(
+    attributes = Map("id" -> "backButton",
+        "data-form-template-id" -> formTemplate._id.value,
+        "data-access-code" -> maybeAccessCode.fold("-")(_.value),
+        "data-section-number" -> sectionNumber.value.toString
+    ),
+    href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber).path,
+    content = new Text(messages("linkText.back")))
+}
+
+@main_template(
+    title = heading,
+    serviceName = formTemplate.formName.value,
+    developmentPhase = formTemplate.developmentPhase,
+    frontendAppConfig = frontendAppConfig,
+    authConfig = Some(formTemplate.authConfig),
+    webChat = formTemplate.webChat,
+    formCategory = formTemplate.formCategory,
+    displayHMRCLogo = formTemplate.displayHMRCLogo,
+    languages = formTemplate.languages,
+    templateId = formTemplate._id,
+    backLink = Some(backLink)
+) {
+    @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
+        <div class="govuk-form-group">
+            <fieldset class="govuk-fieldset">
+                <legend class="govuk-fieldset__legend govuk-fieldset__legend--xl">
+                    <h1 class="govuk-fieldset__heading">@heading</h1>
+                </legend>
+                <div class="govuk-radios">
+                    <div class="govuk-radios__item">
+                        <input id="yes" type="radio" name="remove" class="govuk-radios__input" value="Yes">
+                        <label class="govuk-radios__label" for="yes">@{messages("generic.Yes")}</label>
+                    </div>
+                    <div class="govuk-radios__item">
+                        <input id="no" type="radio" name="remove" class="govuk-radios__input" value="No">
+                        <label class="govuk-radios__label" for="no">@{messages("generic.No")}</label>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        @govukButton(Button(content = Text(messages("button.continue")),
+                inputType=Some("submit"),
+                name=Some("save")
+            )
+        )
+    }
+
+}

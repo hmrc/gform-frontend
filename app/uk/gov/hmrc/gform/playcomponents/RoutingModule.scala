@@ -76,6 +76,7 @@ class RoutingModule(
     gformModule.emailAuthController,
     gformModule.newFormController,
     gformModule.formController,
+    gformModule.addToListController,
     gformModule.summaryController,
     gformModule.declarationController,
     gformModule.acknowledgementController,

@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.binders
 import cats.implicits._
 import play.api.libs.json._
 import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
-import uk.gov.hmrc.gform.controllers.{ AddGroup, Back, Direction, EditAddToList, Exit, RemoveAddToList, RemoveGroup, SaveAndContinue, SaveAndExit, SummaryContinue }
+import uk.gov.hmrc.gform.controllers.{ AddGroup, Back, Direction, EditAddToList, Exit, RemoveGroup, SaveAndContinue, SaveAndExit, SummaryContinue }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ ExpandUtils, FastForward, LookupQuery }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
@@ -59,13 +59,19 @@ object ValueClassBinder {
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value.toString
   }
 
+  implicit val addToListIdQueryBindable: QueryStringBindable[AddToListId] = new QueryStringBindable[AddToListId] {
+    override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, AddToListId]] =
+      params.get(key).flatMap(_.headOption).map(fcId => Right(AddToListId(FormComponentId(fcId))))
+
+    override def unbind(key: String, value: AddToListId): String = s"$key=${value.formComponentId.value}"
+  }
+
   implicit val formDirectionQueryBindable: QueryStringBindable[Direction] =
     new QueryStringBindable[Direction] {
 
       val AddGroupR = "AddGroup-(.*)".r.unanchored
       val RemoveGroupR = "RemoveGroup-(.*)".r.unanchored
       val EditAddToListR = "EditAddToList-(\\d*)-(.*)".r.unanchored
-      val RemoveAddToListR = "RemoveAddToList-(\\d*)-(.*)".r.unanchored
 
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Direction]] =
         params.get(key).flatMap(_.headOption).map {
@@ -79,8 +85,6 @@ object ValueClassBinder {
           case RemoveGroupR(x)   => Right(RemoveGroup(ExpandUtils.toModelComponentId(x)))
           case EditAddToListR(idx, fcId) =>
             Right(EditAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
-          case RemoveAddToListR(idx, fcId) =>
-            Right(RemoveAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
           case unknown => throw new IllegalArgumentException(s"Query param $key has invalid value $unknown")
         }
 
@@ -96,8 +100,6 @@ object ValueClassBinder {
           case RemoveGroup(modelComponentId)          => s"RemoveGroup-${modelComponentId.toMongoIdentifier}"
           case EditAddToList(idx: Int, addToListId: AddToListId) =>
             s"EditAddToList-$idx-${addToListId.formComponentId.value}"
-          case RemoveAddToList(idx: Int, addToListId: AddToListId) =>
-            s"RemoveAddToList-$idx-${addToListId.formComponentId.value}"
         }
         s"$key=$value"
       }

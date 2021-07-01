@@ -31,6 +31,13 @@ linkText.signOut=Allgofnodi
 linkText.signBackIn=Mewngofnodi eto
 linkText.signInWithEmailAgain=Mewngofnodwch eto gyda’ch cyfeiriad e-bost
 
+addToList.change=Newid
+addToList.change.visually.hidden=Newid {0}
+addToList.remove=Tynnu
+addToList.remove.visually.hidden=Tynnu {0} o’r rhestr
+addToList.addOrRemove=Ychwanegu neu dynnu
+addToList.confirmRemoval=A ydych yn siŵr eich bod am dynnu {0}?
+
 button.continue=Yn eich blaen
 button.saveAndContinue=Cadw ac yn eich blaen
 button.acceptAndSubmit=Derbyn a chyflwyno

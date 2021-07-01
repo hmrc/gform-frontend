@@ -74,7 +74,6 @@ case object SummaryContinue extends Direction
 case object Continue extends Direction
 case class AddGroup(modelComponentId: ModelComponentId) extends Direction
 case class RemoveGroup(modelComponentId: ModelComponentId) extends Direction
-case class RemoveAddToList(idx: Int, addToListId: AddToListId) extends Direction
 case class EditAddToList(idx: Int, addToListId: AddToListId) extends Direction
 
 case class Navigator(
