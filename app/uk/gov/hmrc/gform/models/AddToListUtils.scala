@@ -85,17 +85,21 @@ object AddToListUtils {
     val bracketPrefixes: Set[Int] =
       (variadicFormDataToKeep.keySet ++ variadicFormDataToModified.keySet).flatMap(_.maybeIndex)
 
-    val maxBracketPrefix = bracketPrefixes.max
-
-    val lastAddAnotherQuestionId =
-      bracket.source.id.formComponentId.modelComponentId.expandWithPrefix(maxBracketPrefix)
+    val updatedVariadicFormData = {
+      val initialVariadicFormData =
+        variadicFormData -- toBeRemovedIds -- variadicFormDataToModify ++ variadicFormDataToModified
+      if (bracketPrefixes.isEmpty)
+        initialVariadicFormData
+      else
+        initialVariadicFormData - bracket.source.id.formComponentId.modelComponentId
+          .expandWithPrefix(bracketPrefixes.max)
+    }
 
     (
-      variadicFormData -- toBeRemovedIds -- variadicFormDataToModify ++ variadicFormDataToModified - lastAddAnotherQuestionId,
+      updatedVariadicFormData,
       componentIdToFileIdMapping,
       filesToBeDeletedFromFileUpload
     )
-
   }
 
 }

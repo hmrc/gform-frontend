@@ -314,12 +314,32 @@ class FormController(
         form = cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId)
       )
 
-      validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) { _ =>
-        val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sn)
-        Redirect(
-          routes.FormController
-            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
-        )
+      validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) {
+        maybeSectionNumber =>
+          val addToListBracket: Bracket.AddToList[DataExpanded] =
+            formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
+
+          val sectionNumber =
+            if (addToListBracket.iterations.size === 1)
+              maybeSectionNumber
+                .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
+                .getOrElse(sn)
+            else
+              sn
+
+          val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sectionNumber)
+
+          Redirect(
+            routes.FormController
+              .form(
+                cache.formTemplate._id,
+                maybeAccessCode,
+                sectionNumber,
+                sectionTitle4Ga,
+                SuppressErrors.Yes,
+                FastForward.Yes
+              )
+          )
       }
     }
 
