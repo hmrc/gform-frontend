@@ -88,29 +88,29 @@
     @pageHeading(heading)
 
     <div class="govuk-form-group">
-      <ul class="hmrc-add-to-a-list hmrc-add-to-a-list--wide">
+      <dl class="hmrc-add-to-a-list hmrc-add-to-a-list--wide">
         @for(record <- recordTable.toList) {
-          <li class="hmrc-add-to-a-list__contents">
-            <div class="hmrc-add-to-a-list__identifier hmrc-add-to-a-list__identifier--light">
+          <div class="hmrc-add-to-a-list__contents">
+            <dt class="hmrc-add-to-a-list__identifier hmrc-add-to-a-list__identifier--light">
               @record.summary
-            </div>
-            <div class="hmrc-add-to-a-list__change">
+            </dt>
+            <dd class="hmrc-add-to-a-list__change">
               <a class="govuk-link edit-add-to-list" aria-label='@messages("addToList.change.visually.hidden", record.summaryText)' href="@{uk.gov.hmrc.gform.gform.routes.FormController.addToListAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, EditAddToList(record.index, AddToListId(bracket.source.id.formComponentId)))}">
                 <span aria-hidden="true">@messages("addToList.change")</span>
                 <span class="govuk-visually-hidden">@messages("addToList.change.visually.hidden", record.summaryText)</span>
               </a>
-            </div>
-            <div class="hmrc-add-to-a-list__remove">
+            </dd>
+            <dd class="hmrc-add-to-a-list__remove">
               @if(bracket.source.defaultPage.isDefined || recordTable.size > 1) {
                 <a class="govuk-link remove-add-to-list" aria-label='@messages("addToList.remove.visually.hidden", record.summaryText)' href="@{uk.gov.hmrc.gform.gform.routes.FormAddToListController.requestRemoval(formTemplate._id, maybeAccessCode, sectionNumber, record.index, AddToListId(bracket.source.id.formComponentId))}">
                   <span aria-hidden="true">@messages("addToList.remove")</span>
                   <span class="govuk-visually-hidden">@messages("addToList.remove.visually.hidden", record.summaryText)</span>
                 </a>
               }
-            </div>
-          </li>
+            </dd>
+          </div>
 	}
-      </ul>
+      </dl>
         @for(infoMessage <- bracket.source.infoMessage) {
            <div class="govuk-body">
             @markDownParser(infoMessage)
