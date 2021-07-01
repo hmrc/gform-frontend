@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSe
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSectionPdf, Constant, FormComponent, FormPhase, FormTemplate, RevealingChoice, RevealingChoiceElement, Section, Value }
-import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission }
+import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, HtmlFieldId, ValidationResult, ValidationService }
@@ -480,7 +480,7 @@ class InstructionsRenderingServiceSpec
     val submissionDetails = Some(
       SubmissionDetails(
         Submission(
-          form._id,
+          SubmissionId(form._id, EnvelopeId("some-envelope-id")),
           LocalDateTime.now(),
           submissionRef,
           EnvelopeId("some-envelope-id"),
