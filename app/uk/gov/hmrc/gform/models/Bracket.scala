@@ -106,6 +106,8 @@ object Bracket {
 
     def firstSectionNumber: SectionNumber = singletons.head.sectionNumber
 
+    def secondSectionNumber: SectionNumber = singletons.tail.head.sectionNumber
+
     def isCommited(visitsIndex: VisitIndex): Boolean =
       singletons.forall { singletonWithNumber =>
         visitsIndex.contains(singletonWithNumber.sectionNumber.value)
