@@ -306,7 +306,14 @@ class FormController(
 
           val addToListItration = processData.formModel.brackets.addToListById(addToListId, idx)
 
-          val firstAddToListPage = addToListItration.firstSectionNumber
+          val firstAddToListPage: SectionNumber = processData.formModel.brackets
+            .addToListBracket(addToListId)
+            .source
+            .defaultPage
+            .fold(addToListItration.firstSectionNumber) { _ =>
+              addToListItration.secondSectionNumber
+            }
+
           val next = firstAddToListPage.increment
 
           val sectionTitle4Ga = sectionTitle4GaFactory(processData.formModel(sectionNumber).title, sectionNumber)
