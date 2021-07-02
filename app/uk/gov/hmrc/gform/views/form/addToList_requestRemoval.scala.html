@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.gform.{HasErrors, NoErrors}
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, SectionNumber, AddToListId}
 @import play.filters.csrf.CSRF
@@ -30,22 +31,19 @@
   maybeAccessCode: Option[AccessCode],
   sectionNumber: SectionNumber,
   frontendAppConfig: FrontendAppConfig,
-  formAction: Call
+  formAction: Call,
+  pageLevelError: HasErrors = NoErrors,
+  fieldErrors: Map[String, ErrorMessage] = Map.empty
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
-
+@govukErrorSummary = @{new govukErrorSummary()}
 @heading = @{messages("addToList.confirmRemoval", repeater.expandedDescription.value)}
 
 @backLink = @{
     new BackLink(
-    attributes = Map("id" -> "backButton",
-        "data-form-template-id" -> formTemplate._id.value,
-        "data-access-code" -> maybeAccessCode.fold("-")(_.value),
-        "data-section-number" -> sectionNumber.value.toString
-    ),
-    href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber).path,
+    href = uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, sectionNumber).path,
     content = new Text(messages("linkText.back")))
 }
 
@@ -62,24 +60,30 @@
     templateId = formTemplate._id,
     backLink = Some(backLink)
 ) {
+
+    @pageLevelError.render
+
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
-        <div class="govuk-form-group">
-            <fieldset class="govuk-fieldset">
-                <legend class="govuk-fieldset__legend govuk-fieldset__legend--xl">
-                    <h1 class="govuk-fieldset__heading">@heading</h1>
-                </legend>
-                <div class="govuk-radios">
-                    <div class="govuk-radios__item">
-                        <input id="yes" type="radio" name="remove" class="govuk-radios__input" value="Yes">
-                        <label class="govuk-radios__label" for="yes">@{messages("generic.Yes")}</label>
-                    </div>
-                    <div class="govuk-radios__item">
-                        <input id="no" type="radio" name="remove" class="govuk-radios__input" value="No">
-                        <label class="govuk-radios__label" for="no">@{messages("generic.No")}</label>
-                    </div>
-                </div>
-            </fieldset>
-        </div>
+        @{new govukRadios(new govukErrorMessage(), new govukFieldset(), new govukHint(), new govukLabel())(Radios(
+            fieldset = Some(Fieldset(
+                legend = Some(Legend(
+                        content = Text(heading),
+                        isPageHeading = true,
+                        classes = "govuk-label--l"
+                    )
+                )
+            )),
+            errorMessage = fieldErrors.get("remove"),
+            name = "remove",
+            items = List( RadioItem(
+                        value = Some("Yes"),
+                        content = Text(messages("generic.Yes"))
+                    ),  RadioItem(
+                        value = Some("No"),
+                        content = Text(messages("generic.No"))
+                    )
+            )
+        ))}
         @govukButton(Button(content = Text(messages("button.continue")),
                 inputType=Some("submit"),
                 name=Some("save")

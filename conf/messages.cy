@@ -66,6 +66,7 @@ generic.to=hyd at
 generic.Yes=Iawn
 generic.No=Na
 generic.Warning=Rhybudd
+generic.Success=Success
 
 # Form categories
 formCategory.form=ffurflen
@@ -114,6 +115,7 @@ generic.error.email=Rhaid i {0} gyd-fynd â’r cod rydych wedi ei gael drwy e-b
 generic.error.mustBeBetween=mae’n rhaid i {0} bod rhwng {1} a {2}
 generic.error.pageRestricted=Mae’n ddrwg gennym – mae mynediad at y dudalen hon wedi’i gyfyngu.
 generic.error.accessForbidden=Dim mynediad
+generic.error.selectOption=Please select an option
 generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau, cysylltnodau, ampersandau a chollnodau
 generic.longText.error.pattern=Ni all {0} gynnwys y cymeriadau {1}
 generic.referenceNumber.error.pattern=Gall {0} ond cynnwys rhifau
@@ -121,7 +123,7 @@ generic.charactersRemaining=Mae gennych {0} o gymeriadau yn weddill
 generic.characterRemaining=Mae gennych {0} o gymeriadau yn weddill
 generic.charactersTooMany=Mae gennych {0} o gymeriadau yn ormod
 generic.characterTooMany=Mae gennych {0} o gymeriadau yn ormod
-
+generic.successfullyRemoved={0} successfully removed
 generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
 
 generic.error.submissionRef=Ni ellir dod o hyd i {0}. Nodwch {0} dilys yn y fformat cywir. Mae’n rhaid i hyn fod yn 14 o gymeriadau a chynnwys rhifau, cysylltnodau a phriflythrennau yn unig, er enghraifft ABCD-1234-1234

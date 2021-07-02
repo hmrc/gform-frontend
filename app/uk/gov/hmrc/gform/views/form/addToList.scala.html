@@ -55,7 +55,7 @@
 
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
-
+@govukNotificationBanner = @{new govukNotificationBanner()}
 @heading = @{repeater.title.value}
 
 @backLink = @{
@@ -84,6 +84,15 @@
 ) {
 
     @pageLevelError.render
+
+    @request.flash.get("success").fold(Html("")) { successMessage =>
+        @govukNotificationBanner(NotificationBanner(
+            title = Text(messages("generic.Success")),
+            content = Text(successMessage),
+            bannerType = Some("success"),
+            role=Some("alert"))
+        )
+    }
 
     @pageHeading(heading)
 

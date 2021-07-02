@@ -67,6 +67,7 @@ generic.to=to
 generic.Yes=Yes
 generic.No=No
 generic.Warning=Warning
+generic.Success=Success
 
 # Form categories
 formCategory.form=form
@@ -116,6 +117,7 @@ generic.error.email={0} must match code you received by email
 generic.error.mustBeBetween={0} must be between {1} and {2}
 generic.error.pageRestricted=We’re sorry, but this page is restricted.
 generic.error.accessForbidden=Access forbidden
+generic.error.selectOption=Please select an option
 generic.shortText.error.pattern={0} can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
 generic.longText.error.pattern={0} cannot include the characters {1}
 generic.referenceNumber.error.pattern={0} can only include numbers
@@ -123,7 +125,7 @@ generic.charactersRemaining=You have {0} characters remaining
 generic.characterRemaining=You have {0} character remaining
 generic.charactersTooMany=You have {0} characters too many
 generic.characterTooMany=You have {0} character too many
-
+generic.successfullyRemoved={0} successfully removed
 generic.error.telephoneNumber={0} can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens
 
 generic.error.submissionRef={0} not found. Enter a valid {0} in the correct format. This must be 14 characters and only include numbers, hyphens and upper case letters, for example ABCD-1234-1234
