@@ -73,6 +73,7 @@
 
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
+@govukNotificationBanner = @{new govukNotificationBanner()}
 
 @displaySaveContinueButton(classes: String = "", otherAttributes: Map[String, String] = Map.empty) = @{
     if(shouldDisplayContinue) {
@@ -99,6 +100,15 @@
 ) {
 
     @pageLevelError.render
+
+    @request.flash.get("success").fold(Html("")) { successMessage =>
+        @govukNotificationBanner(NotificationBanner(
+            title = Text(messages("generic.Success")),
+            content = Text(successMessage),
+            bannerType = Some("success"),
+            role=Some("alert"))
+        )
+    }
 
     @if(shouldDisplayHeading) {
       @pageHeading(heading, page.progressIndicator)

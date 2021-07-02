@@ -33,7 +33,12 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, VariadicFormData }
 import uk.gov.hmrc.gform.views.html
+import uk.gov.hmrc.govukfrontend.views.html.components
+import uk.gov.hmrc.govukfrontend.views.html.components.{ ErrorMessage, Text }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -67,6 +72,30 @@ class FormAddToListController(
         val bracket = formModel.bracket(sectionNumber)
         bracket match {
           case Bracket.AddToList(iterations, _) =>
+            val (pageError, fieldErrors) =
+              request.flash.get("removeParamMissing").fold((NoErrors: HasErrors, Map.empty[String, ErrorMessage])) {
+                _ =>
+                  (
+                    Errors(
+                      new components.govukErrorSummary()(
+                        ErrorSummary(
+                          errorList = List(
+                            ErrorLink(
+                              href = Some("#remove"),
+                              content = content.Text(request.messages.messages("generic.error.selectOption"))
+                            )
+                          ),
+                          title = content.Text(request.messages.messages("error.summary.heading"))
+                        )
+                      )
+                    ),
+                    Map(
+                      "remove" -> ErrorMessage(
+                        content = Text(request.messages.messages("generic.error.selectOption"))
+                      )
+                    )
+                  )
+              }
             Ok(
               html.form
                 .addToList_requestRemoval(
@@ -75,7 +104,9 @@ class FormAddToListController(
                   maybeAccessCode,
                   sectionNumber,
                   frontendAppConfig,
-                  formAction
+                  formAction,
+                  pageError,
+                  fieldErrors
                 )
             ).pure[Future]
           case _ =>
@@ -104,7 +135,13 @@ class FormAddToListController(
         form
           .bindFromRequest()
           .fold(
-            _ => throw new IllegalArgumentException("'remove' param missing in confirmRemoval request"),
+            _ =>
+              Redirect(
+                routes.FormAddToListController
+                  .requestRemoval(formTemplateId, maybeAccessCode, sectionNumber, index, addToListId)
+              )
+                .flashing("removeParamMissing" -> "true")
+                .pure[Future],
             {
               case "Yes" =>
                 for {
@@ -126,7 +163,14 @@ class FormAddToListController(
                                 index,
                                 addToListId
                               )
-                } yield redirect
+                } yield {
+                  val itemDescription =
+                    formModelOptics.formModelRenderPageOptics.formModel
+                      .bracket(sectionNumber)
+                      .fold(_ => "")(_ => "")(_.iterations.toList(index).repeater.repeater.expandedDescription.value())
+                  redirect
+                    .flashing("success" -> request.messages.messages("generic.successfullyRemoved", itemDescription))
+                }
               case "No" =>
                 Redirect(routes.FormController.formSection(formTemplateId, maybeAccessCode, sectionNumber)).pure[Future]
             }
