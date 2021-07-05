@@ -23,6 +23,7 @@ import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import play.twirl.api.Html
+import scala.collection.JavaConverters._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString }
 
@@ -34,8 +35,14 @@ object MarkDownUtil {
   private def addTargetToLinks(html: String): String = {
     val doc: Document = Jsoup.parse(html)
     val links = doc.getElementsByAttribute("href")
-    links.attr("target", "_blank")
-    links.attr("class", "govuk-link")
+    links.asScala.foreach { element =>
+      if (!element.hasAttr("target")) {
+        links.attr("target", "_blank")
+      }
+      if (!element.hasAttr("class")) {
+        links.attr("class", "govuk-link")
+      }
+    }
     doc.getElementsByAttributeValueStarting("href", "/submissions/new-form/").removeAttr("target")
     doc.getElementsByAttributeValueStarting("href", "/submissions/form/").removeAttr("target")
     doc.getElementsByAttributeValueStarting("href", "/submissions/acknowledgement/pdf/").addClass("print-link")

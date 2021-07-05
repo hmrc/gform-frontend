@@ -72,6 +72,24 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
     }
   }
 
+  it should "respect existing class attribute" in {
+    val input =
+      """<a href="#" role="button" draggable="false" class="govuk-button govuk-button--start" data-module="govuk-button">Start now</a>"""
+    val expected =
+      """<p><a href="#" role="button" draggable="false" class="govuk-button govuk-button--start" data-module="govuk-button" target="_blank">Start now</a></p>"""
+
+    MarkDownUtil.markDownParser(input) shouldBe Html(expected)
+  }
+
+  it should "respect existing target attribute" in {
+    val input =
+      """<a href="name?t=1" class="govuk-button" role="button" target="_self">Change amounts</a>"""
+    val expected =
+      """<p><a href="name?t=1" class="govuk-button" role="button" target="_self">Change amounts</a></p>"""
+
+    MarkDownUtil.markDownParser(input) shouldBe Html(expected)
+  }
+
   "escapeMarkdown" should "escape markdown special characters with backslash" in {
     val data = Table(
       ("input", "expected"),
