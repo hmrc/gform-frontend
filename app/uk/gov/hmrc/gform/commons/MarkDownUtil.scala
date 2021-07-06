@@ -37,10 +37,10 @@ object MarkDownUtil {
     val links = doc.getElementsByAttribute("href")
     links.asScala.foreach { element =>
       if (!element.hasAttr("target")) {
-        links.attr("target", "_blank")
+        element.attr("target", "_blank")
       }
       if (!element.hasAttr("class")) {
-        links.attr("class", "govuk-link")
+        element.attr("class", "govuk-link")
       }
     }
     doc.getElementsByAttributeValueStarting("href", "/submissions/new-form/").removeAttr("target")
