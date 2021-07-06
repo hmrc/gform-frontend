@@ -136,6 +136,7 @@ class ValidationService(
     sse: SmartStringEvaluator
   ): Future[ValidationResult] =
     formModelVisibilityOptics.formModel.allFormComponents
+      .filterNot(_.onlyShowOnSummary)
       .traverse(fv =>
         validateFormComponent(
           fv,
