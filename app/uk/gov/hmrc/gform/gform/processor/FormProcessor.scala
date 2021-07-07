@@ -80,25 +80,39 @@ class FormProcessor(
 
       val sn = updFormModel.brackets.addToListBracket(addToListId).lastSectionNumber
 
+      val addToListBracket: Bracket.AddToList[DataExpanded] =
+        formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
+
+      val isLastIteration = addToListBracket.iterations.size === 1
+
       val visitsIndex = VisitIndex
         .updateSectionVisits(updFormModel, processData.formModel, processData.visitsIndex)
 
+      val visitsIndexUpd =
+        if (isLastIteration) {
+          val visitsIndexForLastIteration = addToListBracket
+            .iterationForSectionNumber(sn)
+            .singletons
+            .map(_.sectionNumber.value)
+            .toList
+
+          visitsIndex -- visitsIndexForLastIteration
+        } else
+          visitsIndex
+
       val processDataUpd = processData.copy(
         formModelOptics = updFormModelOptics,
-        visitsIndex = VisitIndex(visitsIndex)
+        visitsIndex = VisitIndex(visitsIndexUpd)
       )
 
       val cacheUpd = cache.copy(
-        form = cache.form.copy(visitsIndex = VisitIndex(visitsIndex), componentIdToFileId = componentIdToFileId)
+        form = cache.form.copy(visitsIndex = VisitIndex(visitsIndexUpd), componentIdToFileId = componentIdToFileId)
       )
 
       validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) {
         maybeSectionNumber =>
-          val addToListBracket: Bracket.AddToList[DataExpanded] =
-            formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
-
           val sectionNumber =
-            if (addToListBracket.iterations.size === 1)
+            if (isLastIteration)
               maybeSectionNumber
                 .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
                 .getOrElse(sn)
