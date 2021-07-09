@@ -34,13 +34,12 @@ import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
-import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService.{ DigitalContact, Notify }
-import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode, EmailTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode }
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailAuthConfig, FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.sharedmodel.notifier.{ NotifierEmailAddress, NotifierTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
@@ -135,7 +134,7 @@ class EmailAuthController(
     }
 
   def sendEmail(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
-    nonAutheticatedRequestActions.async { implicit request => _ =>
+    nonAutheticatedRequestActions.async { implicit request => implicit l =>
       val emailAuthDetails: EmailAuthDetails =
         jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
       emailForm
@@ -310,7 +309,8 @@ class EmailAuthController(
     emailId: EmailId
   )(implicit
     hc: HeaderCarrier,
-    me: MonadError[Future, Throwable]
+    me: MonadError[Future, Throwable],
+    l: LangADT
   ): Future[EmailAndCode] =
     formTemplate.authConfig match {
       case emailAuthConfig: EmailAuthConfig =>
@@ -325,18 +325,13 @@ class EmailAuthController(
         }
 
         val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
-        val emailVerifierService = emailAuthConfig.service match {
-          case Notify(notifierTemplateId) =>
-            EmailVerifierService.notify(NotifierTemplateId(notifierTemplateId.value))
-          case DigitalContact(emailTemplateId) =>
-            EmailVerifierService.digitalContact(EmailTemplateId(emailTemplateId.value))
-        }
         gformConnector
           .sendEmail(
             ConfirmationCodeWithEmailService(
               NotifierEmailAddress(emailId.value.toString),
               emailAndCode.code,
-              emailVerifierService
+              emailAuthConfig.service,
+              l
             )
           )
           .map(_ => emailAndCode)

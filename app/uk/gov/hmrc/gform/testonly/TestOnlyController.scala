@@ -143,7 +143,8 @@ class TestOnlyController(
                          ),
                          structuredFormData,
                          emailParameters,
-                         Attachments.empty
+                         Attachments.empty,
+                         l
                        )
 
       httpResponse <- recov(
@@ -230,7 +231,8 @@ class TestOnlyController(
                          ),
                          structuredFormData,
                          emailParameters,
-                         Attachments.empty
+                         Attachments.empty,
+                         l
                        )
 
       httpResponse <- recov(

@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
+import cats.Show
+import cats.syntax.all._
 import julienrf.json.derived
 import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.sharedmodel.email.EmailTemplateId
@@ -25,12 +27,26 @@ sealed trait EmailVerifierService extends Product with Serializable
 
 object EmailVerifierService {
 
-  def notify(emailTemplateId: NotifierTemplateId) = Notify(emailTemplateId)
+  def notify(emailTemplateId: NotifierTemplateId, emailTemplateIdCy: Option[NotifierTemplateId]) =
+    Notify(emailTemplateId, emailTemplateIdCy)
   def digitalContact(emailTemplateId: EmailTemplateId) = DigitalContact(emailTemplateId)
 
-  case class Notify(emailTemplateId: NotifierTemplateId) extends EmailVerifierService
+  case class Notify(emailTemplateId: NotifierTemplateId, emailTemplateIdCy: Option[NotifierTemplateId])
+      extends EmailVerifierService {
+    def notifierTemplateId(l: LangADT): NotifierTemplateId = l match {
+      case LangADT.En => emailTemplateId
+      case LangADT.Cy => emailTemplateIdCy.getOrElse(emailTemplateId)
+    }
+  }
   case class DigitalContact(emailTemplateId: EmailTemplateId) extends EmailVerifierService
 
   implicit val format: OFormat[EmailVerifierService] = derived.oformat()
+
+  implicit val show: Show[EmailVerifierService] = Show.show {
+    case EmailVerifierService.Notify(emailTemplateId, Some(emailTemplateIdCy)) =>
+      show"""{"en": "$emailTemplateId", "cy": "$emailTemplateIdCy"}"""
+    case EmailVerifierService.Notify(emailTemplateId, None)   => show"$emailTemplateId"
+    case EmailVerifierService.DigitalContact(emailTemplateId) => show"$emailTemplateId"
+  }
 
 }
