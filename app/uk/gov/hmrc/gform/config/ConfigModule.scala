@@ -101,7 +101,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       } yield s"$url$projectId.js",
       trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration)),
       emailAuthStaticCodeEmails =
-        getOptionalNonEmptyCIStringList(playConfiguration.getOptional[String]("emailAuth.staticCodeEmails"))
+        getOptionalNonEmptyCIStringList(playConfiguration.getOptional[String]("emailAuth.staticCodeEmails:q"))
     )
   }
 }
