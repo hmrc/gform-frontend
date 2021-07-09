@@ -178,7 +178,8 @@ class ValidationService(
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     thirdPartyData: ThirdPartyData
   )(implicit
-    hc: HeaderCarrier
+    hc: HeaderCarrier,
+    l: LangADT
   ): Future[ValidatedType[Map[EmailFieldId, EmailAndCode]]] = {
 
     val emailFields: List[(EmailFieldId, EmailVerifierService)] = pageModel.allFormComponents.collect {
@@ -200,7 +201,9 @@ class ValidationService(
     emailAddressedToBeVerified.flatten
       .traverse { case (emailFieldId, eac @ EmailAndCode(email, code), emailVerifierService) =>
         gformConnector
-          .sendEmail(ConfirmationCodeWithEmailService(NotifierEmailAddress(email.toString), code, emailVerifierService))
+          .sendEmail(
+            ConfirmationCodeWithEmailService(NotifierEmailAddress(email.toString), code, emailVerifierService, l)
+          )
           .map(_ => (emailFieldId, eac))
       }
       .map(_.toMap.valid)

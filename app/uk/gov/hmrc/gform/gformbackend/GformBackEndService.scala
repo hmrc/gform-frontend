@@ -267,7 +267,7 @@ class GformBackEndService(
     structuredFormData: StructuredFormValue.ObjectStructure,
     attachments: Attachments,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(implicit hc: HeaderCarrier): Future[HttpResponse] =
+  )(implicit hc: HeaderCarrier, l: LangADT): Future[HttpResponse] =
     gformConnector.submitForm(
       FormIdData(retrievals, formTemplate._id, maybeAccessCode),
       customerId,
@@ -295,14 +295,15 @@ class GformBackEndService(
     structuredFormData: StructuredFormValue.ObjectStructure,
     attachments: Attachments,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  ): SubmissionData =
+  )(implicit l: LangADT): SubmissionData =
     SubmissionData(
       htmlForPDF,
       htmlForInstructionPDF,
       FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, formModelVisibilityOptics, customerId),
       structuredFormData,
       emailParameters,
-      attachments
+      attachments,
+      l
     )
 
   private def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Boolean =

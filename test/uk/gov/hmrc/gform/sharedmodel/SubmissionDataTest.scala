@@ -38,7 +38,8 @@ class SubmissionDataTest extends Spec {
           EmailTemplateVariable("variable2") -> EmailParameterValue("value2")
         )
       ),
-      Attachments(FormComponentId("proof") :: Nil)
+      Attachments(FormComponentId("proof") :: Nil),
+      LangADT.En
     )
 
     Json.toJson(submissionData) should be(expectedJson)
@@ -85,6 +86,10 @@ class SubmissionDataTest extends Spec {
           |    "files": [
           |      "proof"
           |    ]
+          |  },
+          |  "l": {
+          |     "En": {
+          |     }
           |  }
           |}""".stripMargin
     )
