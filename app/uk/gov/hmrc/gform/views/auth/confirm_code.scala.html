@@ -101,7 +101,8 @@
                     </span>
             </summary>
             <div class="govuk-details__text">
-                <p>@{messages("emailAuth.emailTakesFewMins", maybeEmailCodeHelp.getOrElse(formTemplate.formName.value))}</p>
+                <p>@{messages("emailAuth.itCantTakeFewMins")}</p>
+                <p>@{messages("emailAuth.searchYouEmails", maybeEmailCodeHelp.getOrElse(formTemplate.formName.value))}</p>
                 <p>@{messages("emailAuth.checkYourSpam")} <a href="@{EmailAuthController.emailIdForm(formTemplate._id, continue)}" class="govuk-link">@{messages("emailAuth.startAgain")}</a>.</p>
             </div>
         </details>
