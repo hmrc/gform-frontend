@@ -62,23 +62,31 @@ class ErrResponder(
   def forbidden(
     message: String,
     messageHtml: Option[Html] = None,
-    availableLanguages: Option[AvailableLanguages] = None
+    availableLanguages: Option[AvailableLanguages] = None,
+    isUpstreamError: Boolean = false
   )(implicit request: RequestHeader): Future[Result] =
-    forbiddenReason(message, "generic.error.pageRestricted", messageHtml, availableLanguages)
+    forbiddenReason(message, "generic.error.pageRestricted", isUpstreamError, messageHtml, availableLanguages)
 
-  def forbiddenWithReason(reason: String)(implicit request: RequestHeader): Future[Result] =
-    forbiddenReason(reason, reason)
+  def forbiddenWithReason(reason: String, isUpstreamError: Boolean = false)(implicit
+    request: RequestHeader
+  ): Future[Result] =
+    forbiddenReason(reason, reason, isUpstreamError)
 
   private def forbiddenReason(
     message: String,
     reason: String,
+    isUpstreamError: Boolean,
     reasonHtml: Option[Html] = None,
     availableLanguages: Option[AvailableLanguages] = None
   )(implicit
     request: RequestHeader,
     messages: Messages
   ): Future[Result] = {
-    logger.info(s"Trying to access forbidden resource: $message")
+    if (isUpstreamError)
+      logger.error(s"Trying to access forbidden resource: $message")
+    else
+      logger.info(s"Trying to access forbidden resource: $message")
+
     httpAuditingService.auditForbidden(request)
     Future.successful(
       Forbidden(
@@ -93,14 +101,22 @@ class ErrResponder(
     )
   }
 
-  def badRequest(requestHeader: RequestHeader, message: String): Future[Result] = {
-    logger.info(s"Bad request: $message")
+  def badRequest(requestHeader: RequestHeader, message: String, isUpstreamError: Boolean = false): Future[Result] = {
+    if (isUpstreamError)
+      logger.error(s"Bad request: $message")
+    else
+      logger.info(s"Bad request: $message")
+
     httpAuditingService.auditBadRequest(requestHeader, message)
     Future.successful(BadRequest(renderBadRequest(requestHeader)))
   }
 
-  def notFound(requestHeader: RequestHeader, message: String): Future[Result] = {
-    logger.info(s"Page NotFound: $message")
+  def notFound(requestHeader: RequestHeader, message: String, isUpstreamError: Boolean = false): Future[Result] = {
+    if (isUpstreamError)
+      logger.error(s"Page NotFound: $message")
+    else
+      logger.info(s"Page NotFound: $message")
+
     httpAuditingService.auditNotFound(requestHeader)
     Future.successful(NotFound(renderNotFound(requestHeader)))
   }
