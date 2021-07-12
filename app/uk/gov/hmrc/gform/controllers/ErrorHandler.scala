@@ -32,26 +32,7 @@ class ErrorHandler(
   errResponder: ErrResponder
 ) extends DefaultHttpErrorHandler(environment, configuration, sourceMapper, None) {
 
-  protected def onBadRequest(
-    requestHeader: RequestHeader,
-    message: String,
-    isUpstreamError: Boolean = false
-  ): Future[Result] =
-    errResponder.badRequest(requestHeader, message, isUpstreamError)
-
-  protected def onForbidden(
-    requestHeader: RequestHeader,
-    message: String,
-    isUpstreamError: Boolean = false
-  ): Future[Result] =
-    errResponder.forbidden(message, None, None, isUpstreamError)(requestHeader)
-
-  protected def onNotFound(
-    requestHeader: RequestHeader,
-    message: String,
-    isUpstreamError: Boolean = false
-  ): Future[Result] =
-    errResponder.notFound(requestHeader, message, isUpstreamError)
+  private val smartUpstreamLogger = SmartLogger.upstreamLogger
 
   override protected def onOtherClientError(
     requestHeader: RequestHeader,
@@ -61,16 +42,16 @@ class ErrorHandler(
 
   override def onServerError(requestHeader: RequestHeader, exception: Throwable): Future[Result] = exception match {
     case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == BadRequest.intValue =>
-      errResponder.badRequest(requestHeader, e.message, true)
+      errResponder.badRequest(requestHeader, e.message, smartUpstreamLogger)
     case e: BadRequestException =>
       errResponder.badRequest(requestHeader, e.message)
     //    case e: UnauthorizedException => TODO redirect to login page
     case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == Forbidden.intValue =>
-      errResponder.forbidden(e.message, None, None, true)(requestHeader)
+      errResponder.forbidden(e.message, None, None, smartUpstreamLogger)(requestHeader)
     case e: ForbiddenException =>
       errResponder.forbidden(e.message)(requestHeader)
     case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == NotFound.intValue =>
-      errResponder.notFound(requestHeader, e.message, true)
+      errResponder.notFound(requestHeader, e.message, smartUpstreamLogger)
     case e: NotFoundException => errResponder.notFound(requestHeader, e.message)
     case e                    => errResponder.internalServerError(requestHeader, e)
   }
