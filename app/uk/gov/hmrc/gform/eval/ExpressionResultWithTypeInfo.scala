@@ -16,7 +16,12 @@
 
 package uk.gov.hmrc.gform.eval
 
+import java.time.LocalDate
+
 case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, typeInfo: TypeInfo) {
+
+  def dateRepresentation: Option[LocalDate] = expressionResult.dateRepresentation(typeInfo)
+
   def stringRepresentation: String = expressionResult.stringRepresentation(typeInfo)
 
   def addressRepresentation: String = expressionResult.addressRepresentation(typeInfo)

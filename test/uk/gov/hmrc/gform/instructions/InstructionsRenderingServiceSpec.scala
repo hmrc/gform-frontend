@@ -408,8 +408,12 @@ class InstructionsRenderingServiceSpec
       )
     }
 
+    val mssgApi: MessagesApi = Helpers.stubMessagesApi()
+
+    implicit val messages: Messages = Helpers.stubMessages(mssgApi)
+
     val i18nSupport: I18nSupport = new I18nSupport {
-      override def messagesApi: MessagesApi = Helpers.stubMessagesApi()
+      override def messagesApi: MessagesApi = mssgApi
     }
 
     implicit val sectionSelectorNormal: SectionSelector[SectionSelectorType.Normal] =

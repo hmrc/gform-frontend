@@ -22,7 +22,7 @@ import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
 import org.slf4j.LoggerFactory
-import play.api.i18n.{ I18nSupport, Langs, MessagesApi }
+import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.authorise.Predicate
@@ -288,6 +288,7 @@ class AuthenticatedRequestActions(
     ] => Future[Result]
   ): Action[AnyContent] =
     actionBuilder.async { implicit request =>
+      import i18nSupport._
       implicit val l: LangADT = getCurrentLanguage(request)
 
       val formTemplate = request.attrs(FormTemplateKey)
@@ -319,6 +320,7 @@ class AuthenticatedRequestActions(
   )(
     role: Role
   )(implicit
+    messages: Messages,
     hc: HeaderCarrier,
     l: LangADT
   ): Future[Result] = {
