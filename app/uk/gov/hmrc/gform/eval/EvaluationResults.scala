@@ -158,6 +158,7 @@ case class EvaluationResults(
       case FormTemplateCtx(value: FormTemplateProp)   => unsupportedOperation("Number")(expr)
       case ParamCtx(_)                                => unsupportedOperation("Number")(expr)
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
+      case LangCtx                                    => unsupportedOperation("Number")(expr)
       case DateCtx(_)                                 => unsupportedOperation("Number")(expr)
       case Period(_, _)                               => unsupportedOperation("Number")(expr)
       case PeriodExt(_, _)                            => unsupportedOperation("Number")(expr)
@@ -265,6 +266,7 @@ case class EvaluationResults(
             }
             .getOrElse(ExpressionResult.empty)
         }
+      case LangCtx => StringResult(evaluationContext.lang.langADTToString)
     }
 
     loop(typeInfo.expr)

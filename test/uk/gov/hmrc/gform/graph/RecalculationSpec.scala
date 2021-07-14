@@ -42,6 +42,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
   private val sterling: TextConstraint = Sterling(RoundingMode.defaultRoundingMode, true)
   private def ctx(s: String): FormCtx = FormCtx(FormComponentId(s))
   private def const(s: String): Expr = Constant(s)
+  implicit val lang: LangADT = LangADT.En
 
   def evaluationContext(formTemplate: FormTemplate): EvaluationContext =
     new EvaluationContext(
@@ -56,7 +57,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       FileIdsWithMapping.empty,
       Map.empty,
       Set.empty,
-      Set.empty
+      Set.empty,
+      LangADT.En
     )
 
   "recalculation" should "recalculate single dependency" in {

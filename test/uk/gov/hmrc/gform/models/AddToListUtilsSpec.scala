@@ -25,9 +25,12 @@ import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.{ Many, One }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormComponentIdToFileIdMapping, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FileUpload, FormComponentId, Section, ShortText, Text, Value }
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
 
 class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
+
+  implicit val lang: LangADT = LangADT.En
+
   "AddToListUtils.removeRecord" should "remove instance by its index" in {
     val data: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
       "regular" -> One("r"),

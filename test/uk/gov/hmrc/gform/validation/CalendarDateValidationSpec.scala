@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CalendarDate, FormComponent,
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
 class CalendarDateValidationSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport {
+  implicit val lang: LangADT = LangADT.En
 
   private val dateComponent: FormComponent = mkFormComponent("date", CalendarDate)
   private val dateDayAtom = FormComponentId("date-day").modelComponentId

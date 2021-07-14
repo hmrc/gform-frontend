@@ -230,6 +230,7 @@ class LookupControllerSpec
     Json.parse(Await.result(result.body.consumeData, 5.seconds).decodeString("utf-8")).as[T]
 
   trait TestFixture {
+    implicit val lang: LangADT = LangADT.En
     val request = FakeRequest("GET", "/")
     val mockAuth: AuthenticatedRequestActionsAlgebra[Future] = mock[AuthenticatedRequestActionsAlgebra[Future]]
 

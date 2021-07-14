@@ -24,13 +24,14 @@ import scala.language.implicitConversions
 import uk.gov.hmrc.gform.eval.ExprType
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
   implicit def implicitToFormComponentId(str: String): FormComponentId = FormComponentId(str)
+  implicit val lang: LangADT = LangADT.En
 
   "FormModelBuilder.renderPageModel" should "return visibility model without components whose includeIf evaluates to false" in {
 

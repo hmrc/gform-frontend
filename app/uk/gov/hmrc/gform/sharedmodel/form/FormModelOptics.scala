@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, SubmissionRef, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormPhase }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -51,6 +51,7 @@ case class FormModelOptics[D <: DataOrigin](
 object FormModelOptics {
 
   def fromEnrolmentSection[D <: DataOrigin](enrolmentSection: EnrolmentSection, cache: AuthCacheWithoutForm)(implicit
+    lang: LangADT,
     hc: HeaderCarrier
   ) = {
     val evaluationContext =
@@ -66,7 +67,8 @@ object FormModelOptics {
         FileIdsWithMapping.empty,
         Map.empty,
         Set.empty[BaseComponentId],
-        Set.empty[BaseComponentId]
+        Set.empty[BaseComponentId],
+        lang
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
@@ -86,11 +88,13 @@ object FormModelOptics {
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping
   )(implicit
+    lang: LangADT,
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
   ): F[FormModelOptics[D]] = {
     val formModelBuilder = FormModelBuilder.fromCache(cache, cacheData, recalculation, componentIdToFileId)
-    val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] = formModelBuilder.visibilityModel(data, phase)
+    val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
+      formModelBuilder.visibilityModel(data, phase)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
       formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
     }
@@ -102,6 +106,7 @@ object FormModelOptics {
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase] = None
   )(implicit
+    lang: LangADT,
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
   ): F[FormModelOptics[D]] =

@@ -99,7 +99,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
           FileIdsWithMapping.empty,
           Map.empty,
           Set.empty,
-          Set.empty
+          Set.empty,
+          LangADT.En
         )
       )
     )
