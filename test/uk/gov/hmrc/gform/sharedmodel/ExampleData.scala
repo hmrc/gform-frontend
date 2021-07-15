@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RevealingChoiceElement, _ }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
-import uk.gov.hmrc.hmrcfrontend.config.TrackingConsentConfig
+import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, TrackingConsentConfig }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.http.HeaderCarrier
 import org.typelevel.ci._
@@ -873,6 +873,7 @@ trait ExampleFrontendAppConfig {
     contactFormServiceIdentifier = "",
     optimizelyUrl = None,
     trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration)),
-    emailAuthStaticCodeEmails = Some(NonEmptyList.of(ci"test1@test.com", ci"test2@test.com"))
+    emailAuthStaticCodeEmails = Some(NonEmptyList.of(ci"test1@test.com", ci"test2@test.com")),
+    accessibilityStatementConfig = new AccessibilityStatementConfig(context.initialConfiguration)
   )
 }

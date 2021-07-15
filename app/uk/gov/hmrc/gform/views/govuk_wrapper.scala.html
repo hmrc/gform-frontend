@@ -15,8 +15,6 @@
  *@
 
 @import play.twirl.api.HtmlFormat
-@import play.api.Configuration
-@import com.typesafe.config.ConfigFactory
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, LiveBanner, DevelopmentPhase, Anonymous, FormTemplateId }
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
@@ -128,7 +126,7 @@
 @hmrcHeader = @{new components.hmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner)}
 @hmrcStandardHeader = @{new helpers.hmrcStandardHeader(hmrcHeader)}
 @hmrcFooter = @{new components.hmrcFooter()}
-@hmrcStandardFooter = @{new helpers.hmrcStandardFooter(hmrcFooter, new HmrcFooterItems(new AccessibilityStatementConfig(Configuration(ConfigFactory.load))))}
+@hmrcStandardFooter = @{new helpers.hmrcStandardFooter(hmrcFooter, new HmrcFooterItems(appConfig.accessibilityStatementConfig))}
 @govukTemplate = @{new govukTemplate(govukHeader, govukFooter, govukSkipLink)}
 @twoThirdsMainContent = @{new twoThirdsMainContent}
 @govukLayout = @{new govukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink, twoThirdsMainContent)}
