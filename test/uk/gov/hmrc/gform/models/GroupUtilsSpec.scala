@@ -24,11 +24,13 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FormComponentId, Section, SectionNumber, ShortText, Text, Value }
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.One
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 
 class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
+
+  implicit val lang: LangADT = LangADT.En
 
   "GroupUtils.removeRecord" should "remove instance by its index" in {
     val data: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(

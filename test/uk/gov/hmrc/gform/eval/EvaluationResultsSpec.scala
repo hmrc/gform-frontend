@@ -18,13 +18,13 @@ package uk.gov.hmrc.gform.eval
 
 import org.scalatest.prop.TableDrivenPropertyChecks
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, PeriodResult, StringResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{DateResult, NumberResult, PeriodResult, StringResult}
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, OffsetYMD, Period, PeriodExt, PeriodFn, PeriodValue }
-import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{Day, Month, Year}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, LangCtx, OffsetYMD, Period, PeriodExt, PeriodFn, PeriodValue}
+import uk.gov.hmrc.gform.sharedmodel.{VariadicFormData, VariadicValue}
 
 import java.time.LocalDate
 
@@ -136,6 +136,14 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         StringResult("2"),
         "Eval Count(addToListComponent) as string"
+      ),
+      (
+        TypeInfo(LangCtx, StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.empty
+        ),
+        StringResult("en"),
+        "Eval LangCtx as string"
       )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>

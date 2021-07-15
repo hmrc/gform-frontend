@@ -74,6 +74,7 @@ class ProcessDataService[F[_]: Monad](
     getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[ServiceCallResponse[TaxResponse]]],
     obligationsAction: ObligationsAction
   )(implicit
+    lang: LangADT,
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
   ): F[ProcessData] = {

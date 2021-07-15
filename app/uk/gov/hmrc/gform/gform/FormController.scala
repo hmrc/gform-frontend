@@ -301,7 +301,7 @@ class FormController(
     direction: Direction
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => _ => cache => _ => formModelOptics =>
+      implicit request => implicit l => cache => _ => formModelOptics =>
         def processEditAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
 
           val addToListItration = processData.formModel.brackets.addToListById(addToListId, idx)

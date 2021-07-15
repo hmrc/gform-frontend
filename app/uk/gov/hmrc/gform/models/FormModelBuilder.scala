@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SmartString, SourceOrigin, SubmissionRef, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -168,7 +168,8 @@ class FormModelBuilder[E, F[_]: Functor](
   private def toRecalculationResults(
     data: VariadicFormData[SourceOrigin.OutOfDate],
     formModel: FormModel[Interim],
-    formPhase: Option[FormPhase]
+    formPhase: Option[FormPhase],
+    lang: LangADT
   ): F[RecalculationResult] = {
     val evaluationContext =
       new EvaluationContext(
@@ -183,7 +184,8 @@ class FormModelBuilder[E, F[_]: Functor](
         FileIdsWithMapping(formModel.allFileIds, componentIdToFileId),
         formModel.dateLookup,
         formModel.addressLookup,
-        formModel.overseasAddressLookup
+        formModel.overseasAddressLookup,
+        lang
       )
 
     recalculation
@@ -203,7 +205,7 @@ class FormModelBuilder[E, F[_]: Functor](
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
     val dataOutOfDate = data.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]]
     val formModel: FormModel[DataExpanded] = expand(dataOutOfDate)
-    val formModelVisibility: FormModel[Visibility] = visibilityModel(formModel, formModelVisibilityOptics, phase)
+    val formModelVisibility: FormModel[Visibility] = getVisibilityModel(formModel, formModelVisibilityOptics, phase)
 
     val formModelVisibilityOpticsFinal = new FormModelVisibilityOptics[D](
       formModelVisibility,
@@ -219,7 +221,7 @@ class FormModelBuilder[E, F[_]: Functor](
     FormModelOptics[D](formModelRenderPageOptics, formModelVisibilityOpticsFinal)
   }
 
-  private def visibilityModel[D <: DataOrigin](
+  private def getVisibilityModel[D <: DataOrigin](
     formModel: FormModel[DataExpanded],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     phase: Option[FormPhase]
@@ -253,10 +255,10 @@ class FormModelBuilder[E, F[_]: Functor](
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     phase: Option[FormPhase]
-  ): F[FormModelVisibilityOptics[D]] = {
+  )(implicit lang: LangADT): F[FormModelVisibilityOptics[D]] = {
     val formModel: FormModel[Interim] = expand(data)
 
-    val recalculationResultF: F[RecalculationResult] = toRecalculationResults(data, formModel, phase)
+    val recalculationResultF: F[RecalculationResult] = toRecalculationResults(data, formModel, phase, lang)
 
     recalculationResultF.map { recalculationResult =>
       buildFormModelVisibilityOptics(
