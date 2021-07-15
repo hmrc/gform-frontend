@@ -27,12 +27,13 @@ import uk.gov.hmrc.gform.eval.ExpressionResult._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
   implicit def implicitToFormComponentId(str: String): FormComponentId = FormComponentId(str)
+  implicit val lang: LangADT = LangADT.En
 
   "FormModel" should "handle revealing choice" in {
 

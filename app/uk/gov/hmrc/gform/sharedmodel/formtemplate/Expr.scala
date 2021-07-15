@@ -49,6 +49,7 @@ sealed trait Expr extends Product with Serializable {
       case FormTemplateCtx(_)                      => expr :: Nil
       case ParamCtx(_)                             => expr :: Nil
       case LinkCtx(_)                              => expr :: Nil
+      case LangCtx                                 => expr :: Nil
       case DateCtx(dateExpr)                       => dateExpr.leafExprs
       case Period(_, _)                            => expr :: Nil
       case PeriodExt(_, _)                         => expr :: Nil
@@ -78,6 +79,7 @@ sealed trait Expr extends Product with Serializable {
     case PeriodValue(value: String)                 => this :: Nil
     case HmrcRosmRegistrationCheck(value: RosmProp) => this :: Nil
     case Value                                      => this :: Nil
+    case LangCtx                                    => this :: Nil
     case FormTemplateCtx(value: FormTemplateProp)   => this :: Nil
     case ParamCtx(_)                                => this :: Nil
     case LinkCtx(_)                                 => this :: Nil
@@ -104,6 +106,7 @@ sealed trait Expr extends Product with Serializable {
     case FormTemplateCtx(value: FormTemplateProp)   => Nil
     case ParamCtx(_)                                => Nil
     case LinkCtx(_)                                 => Nil
+    case LangCtx                                    => Nil
     case DateCtx(_)                                 => Nil
     case Period(_, _)                               => Nil
     case PeriodExt(_, _)                            => Nil
@@ -130,6 +133,7 @@ final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
 final case class DateCtx(value: DateExpr) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
 final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
+final case object LangCtx extends Expr
 sealed trait PeriodFn
 object PeriodFn {
   case object Sum extends PeriodFn

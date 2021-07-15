@@ -32,14 +32,7 @@ class ErrorHandler(
   errResponder: ErrResponder
 ) extends DefaultHttpErrorHandler(environment, configuration, sourceMapper, None) {
 
-  override protected def onBadRequest(requestHeader: RequestHeader, message: String): Future[Result] =
-    errResponder.badRequest(requestHeader, message)
-
-  override protected def onForbidden(requestHeader: RequestHeader, message: String): Future[Result] =
-    errResponder.forbidden(message)(requestHeader)
-
-  override protected def onNotFound(requestHeader: RequestHeader, message: String): Future[Result] =
-    errResponder.notFound(requestHeader, message)
+  private val smartUpstreamLogger = SmartLogger.upstreamLogger
 
   override protected def onOtherClientError(
     requestHeader: RequestHeader,
@@ -49,14 +42,16 @@ class ErrorHandler(
 
   override def onServerError(requestHeader: RequestHeader, exception: Throwable): Future[Result] = exception match {
     case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == BadRequest.intValue =>
-      onBadRequest(requestHeader, e.message)
-    case e: BadRequestException => onBadRequest(requestHeader, e.message)
+      errResponder.badRequest(requestHeader, e.message, smartUpstreamLogger)
+    case e: BadRequestException =>
+      errResponder.badRequest(requestHeader, e.message)
     //    case e: UnauthorizedException => TODO redirect to login page
     case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == Forbidden.intValue =>
+      errResponder.forbidden(e.message, None, None, smartUpstreamLogger)(requestHeader)
+    case e: ForbiddenException =>
       errResponder.forbidden(e.message)(requestHeader)
-    case e: ForbiddenException => errResponder.forbidden(e.message)(requestHeader)
     case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == NotFound.intValue =>
-      errResponder.notFound(requestHeader, e.message)
+      errResponder.notFound(requestHeader, e.message, smartUpstreamLogger)
     case e: NotFoundException => errResponder.notFound(requestHeader, e.message)
     case e                    => errResponder.internalServerError(requestHeader, e)
   }

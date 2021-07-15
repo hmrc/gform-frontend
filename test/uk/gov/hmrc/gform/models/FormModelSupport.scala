@@ -27,11 +27,9 @@ import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, NotChecked, Obligations }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BooleanExprCache, LangADT, NotChecked, Obligations, SourceOrigin, UserId, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, InProgress, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, UserId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, Section }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
@@ -103,7 +101,7 @@ trait FormModelSupport extends GraphSpec {
   def mkFormModelOptics(
     formTemplate: FormTemplate,
     data: VariadicFormData[SourceOrigin.OutOfDate]
-  ): FormModelOptics[DataOrigin.Browser] = {
+  )(implicit lang: LangADT): FormModelOptics[DataOrigin.Browser] = {
     val authCache: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate)
     FormModelOptics
       .mkFormModelOptics[DataOrigin.Browser, Id, SectionSelectorType.Normal](data, authCache, recalculation)

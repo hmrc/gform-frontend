@@ -23,7 +23,7 @@ import org.slf4j.{ Logger, LoggerFactory }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkAddToListSection, mkFormComponent, page }
 import uk.gov.hmrc.gform.models.FastForward.StopAt
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponentId, FormCtx, IncludeIf, SectionNumber, Value }
 
 class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with VariadicFormDataSupport with Matchers {
@@ -32,6 +32,7 @@ class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with Variadi
 
   "StopAt.next" - {
     "should get the StopAt(number) for the next visible section" - {
+      implicit val lang: LangADT = LangADT.En
       val table = Table(
         ("description", "sections", "data", "currentStopAt", "expectedStopAt"),
         (
