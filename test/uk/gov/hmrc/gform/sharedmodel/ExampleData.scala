@@ -857,10 +857,6 @@ trait ExampleFrontendAppConfig {
     gformFrontendBaseUrl = "gform.frontend.base.url",
     betaFeedbackUrlNoAuth = "beta.feedback.url.no.auth",
     signOutUrl = "http://localhost:9025/loggedout",
-    footerCookiesUrl = "",
-    footerPrivacyPolicyUrl = "",
-    footerTermsConditionsUrl = "",
-    footerHelpUrl = "",
     footerAccessibilityStatementUrl = "",
     authModule = AuthModule(
       JSConfig(false, 0, 0, "", ""),

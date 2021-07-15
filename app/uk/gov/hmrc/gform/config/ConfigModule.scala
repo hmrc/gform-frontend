@@ -82,10 +82,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       governmentGatewaySignInUrl = typesafeConfig.getString("government-gateway-sign-in-url"),
       gformFrontendBaseUrl = typesafeConfig.getString("gform-frontend-base-url"),
       signOutUrl = typesafeConfig.getString("signout-url"),
-      footerCookiesUrl = typesafeConfig.getString("footer-cookies-url"),
-      footerPrivacyPolicyUrl = typesafeConfig.getString("footer-privacy-policy-url"),
-      footerTermsConditionsUrl = typesafeConfig.getString("footer-terms-conditions-url"),
-      footerHelpUrl = typesafeConfig.getString("footer-help-url"),
       footerAccessibilityStatementUrl = typesafeConfig.getString("footer-accessibility-statement-url"),
       betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier",
       authModule = AuthModule(
