@@ -34,6 +34,7 @@ trait FormTemplateSample {
       NonRepeatingPage(
         Page[Basic](
           title = toSmartString("Page1"),
+          documentTitle = None,
           description = None,
           shortName = None,
           fields = List(
@@ -82,6 +83,7 @@ trait FormTemplateSample {
       ),
       acknowledgementSection = AcknowledgementSection(
         title = toSmartString("Acknowledgement Page"),
+        documentTitle = None,
         description = None,
         shortName = None,
         fields = List.empty,
@@ -92,6 +94,7 @@ trait FormTemplateSample {
       ),
       declarationSection = DeclarationSection(
         title = toSmartString("Declaration Page"),
+        documentTitle = None,
         description = None,
         shortName = None,
         continueLabel = None,

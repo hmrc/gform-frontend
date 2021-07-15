@@ -117,6 +117,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       toSmartString("ack section with email param field"),
       None,
       None,
+      None,
       formComponent,
       true,
       Some(
@@ -134,6 +135,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
   val decSection =
     DeclarationSection(
       toSmartString("declaration section"),
+      None,
       None,
       None,
       Some(toSmartString("ContinueLabel")),
@@ -518,6 +520,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None,
         None,
+        None,
         includeIf,
         validators,
         fields,
@@ -562,6 +565,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     Section.RepeatingPage(
       Page(
         toSmartString(title),
+        None,
         None,
         None,
         None,
@@ -616,6 +620,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     presentationHint: Option[PresentationHint] = None
   ): Page[T] = Page[T](
     toSmartString(title),
+    None,
     None,
     None,
     None,
@@ -678,6 +683,7 @@ trait ExampleFormTemplate {
   def acknowledgementSection =
     AcknowledgementSection(
       toSmartString("Acknowledgement Page"),
+      None,
       Some(toSmartString("this page is to acknowledge submission")),
       Some(toSmartString("shortName for acknowledgement")),
       List(`fieldValue - info`),
@@ -690,6 +696,7 @@ trait ExampleFormTemplate {
   def declarationSection =
     DeclarationSection(
       toSmartString("Declaration"),
+      None,
       None,
       None,
       Some(toSmartString("ContinueLabel")),

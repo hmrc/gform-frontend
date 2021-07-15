@@ -28,6 +28,7 @@ case class SectionRenderingInformation(
   maybeAccessCode: Option[AccessCode],
   sectionNumber: SectionNumber,
   sectionTitle: String,
+  documentTitle: String,
   sectionDescription: Option[String],
   snippets: List[Html],
   javascripts: String,
