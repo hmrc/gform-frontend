@@ -24,6 +24,8 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
+import play.api.i18n.Messages
+import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers._
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -314,6 +316,26 @@ class RealSmartStringEvaluatorFactorySpec
   trait TestFixture {
 
     implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
+    implicit val messages: Messages = Helpers.stubMessages(
+      Helpers.stubMessagesApi(
+        Map(
+          "en" -> Map(
+            "date.January"   -> "January",
+            "date.February"  -> "February",
+            "date.March"     -> "March",
+            "date.April"     -> "April",
+            "date.May"       -> "May",
+            "date.June"      -> "June",
+            "date.July"      -> "July",
+            "date.August"    -> "August",
+            "date.September" -> "September",
+            "date.October"   -> "October",
+            "date.November"  -> "November",
+            "date.December"  -> "December"
+          )
+        )
+      )
+    )
     implicit val langADT: LangADT = LangADT.En
     implicit val sectionSelectorWithDeclaration: SectionSelector[SectionSelectorType.WithDeclaration] =
       SectionSelector.withDeclaration

@@ -16,16 +16,21 @@
 
 package uk.gov.hmrc.gform.eval.smartstring
 
-import java.text.MessageFormat
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.MarkDownUtil.escapeMarkdown
 import uk.gov.hmrc.gform.eval.{ ExprType, TypeInfo }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, FormTemplate, IsChoice, IsRevealingChoice }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.http.HeaderCarrier
+
+import java.text.MessageFormat
+import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 
 trait SmartStringEvaluatorFactory {
   def apply(
@@ -34,7 +39,7 @@ trait SmartStringEvaluatorFactory {
     maybeAccessCode: Option[AccessCode],
     form: Form,
     formTemplate: FormTemplate
-  )(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
+  )(implicit messages: Messages, l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
 
   def apply(
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
@@ -43,7 +48,7 @@ trait SmartStringEvaluatorFactory {
     maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
     formTemplate: FormTemplate
-  )(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
+  )(implicit messages: Messages, l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
 }
 
 class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
@@ -55,6 +60,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
     form: Form,
     formTemplate: FormTemplate
   )(implicit
+    messages: Messages,
     l: LangADT,
     hc: HeaderCarrier
   ): SmartStringEvaluator =
@@ -68,6 +74,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
     envelopeId: EnvelopeId,
     formTemplate: FormTemplate
   )(implicit
+    messages: Messages,
     l: LangADT,
     hc: HeaderCarrier
   ): SmartStringEvaluator =
@@ -91,20 +98,32 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
 
         val typeInfo: TypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(expr)
 
-        val interpolated = typeInfo.isChoiceSelection.fold(stringRepresentation(typeInfo)) {
-          case FormCtx(formComponentId) =>
-            formModelVisibilityOptics.formModel.fcLookup
-              .get(formComponentId)
-              .map {
-                case IsChoice(choice) =>
-                  val optionsList = choice.options.toList
-                  mapChoiceSelectedIndexes(typeInfo, _.map(i => apply(optionsList(i), markDown)).mkString(","))
-                case IsRevealingChoice(revealingChoice) =>
-                  revealingChoice.options.map(c => apply(c.choice, markDown)).mkString(",")
-                case _ =>
-                  stringRepresentation(typeInfo)
-              }
-              .getOrElse("")
+        val interpolated = typeInfo.staticTypeData.exprType match {
+          case ExprType.DateString =>
+            dateRepresentation(typeInfo).fold("") { date =>
+              val day = date.getDayOfMonth
+              val month = messages(s"date.${date.getMonth.getDisplayName(TextStyle.FULL, Locale.UK)}")
+              val year = date.getYear
+              s"$day $month $year"
+            }
+          case ExprType.ChoiceSelection =>
+            typeInfo.expr match {
+              case FormCtx(formComponentId) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
+                formModelVisibilityOptics.formModel.fcLookup
+                  .get(formComponentId)
+                  .map {
+                    case IsChoice(choice) =>
+                      val optionsList = choice.options.toList
+                      mapChoiceSelectedIndexes(typeInfo, _.map(i => apply(optionsList(i), markDown)).mkString(","))
+                    case IsRevealingChoice(revealingChoice) =>
+                      revealingChoice.options.map(c => apply(c.choice, markDown)).mkString(",")
+                    case _ =>
+                      stringRepresentation(typeInfo)
+                  }
+                  .getOrElse("")
+              case _ => stringRepresentation(typeInfo)
+            }
+          case _ => stringRepresentation(typeInfo)
         }
 
         val formatted = typeInfo.staticTypeData.textConstraint.fold(interpolated) { textConstraint =>
@@ -120,6 +139,9 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
           formatted
         }
       }
+
+      private def dateRepresentation(typeInfo: TypeInfo): Option[LocalDate] =
+        formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).dateRepresentation
 
       private def stringRepresentation(typeInfo: TypeInfo): String =
         formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation

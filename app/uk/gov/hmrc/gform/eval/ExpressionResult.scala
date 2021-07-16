@@ -254,6 +254,11 @@ sealed trait ExpressionResult extends Product with Serializable {
       _.address.mkString(",<br>")
     )(_ => "")
 
+  def dateRepresentation(typeInfo: TypeInfo): Option[LocalDate] =
+    fold[Option[LocalDate]](_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(d => Some(d.value))(_ =>
+      None
+    )(_ => None)
+
   def numberRepresentation: Option[BigDecimal] =
     fold[Option[BigDecimal]](_ => None)(_ => None)(_ => None)(bd => Some(bd.value))(_ => None)(_ => None)(_ => None)(
       _ => None

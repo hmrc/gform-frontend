@@ -21,7 +21,7 @@ import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
-import play.api.i18n.{ I18nSupport, MessagesApi }
+import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ AnyContentAsEmpty, Request }
 import play.api.test.{ FakeRequest, Helpers }
 import uk.gov.hmrc.gform.Spec
@@ -57,8 +57,12 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     implicit val request: Request[AnyContentAsEmpty.type] =
       FakeRequest()
 
+    val mssgApi: MessagesApi = Helpers.stubMessagesApi()
+
+    implicit val messages: Messages = Helpers.stubMessages(mssgApi)
+
     val i18nSupport: I18nSupport = new I18nSupport {
-      override def messagesApi: MessagesApi = Helpers.stubMessagesApi()
+      override def messagesApi: MessagesApi = mssgApi
     }
 
     implicit val langADT = LangADT.En
@@ -111,8 +115,6 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
 
   "renderSection" should "render text field with TelephoneNumber constraint as input field with type='tel'" in new TestFixture {
 
-    import i18nSupport._
-
     lazy val phoneNumberField = mkFormComponent("phoneNumber", Text(TelephoneNumber, Value))
 
     override lazy val form: Form =
@@ -151,8 +153,6 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
 
   it should "render text field with given labelsize" in new TestFixture {
 
-    import i18nSupport._
-
     lazy val textField = mkFormComponentWithLabelSize("st", Text(ShortText.default, Value), Some(Medium))
 
     override lazy val form: Form =
@@ -190,8 +190,6 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
 
   it should "render section without Save and come back later button for draftRetrievalMethod is NotPermitted " in new TestFixture {
 
-    import i18nSupport._
-
     lazy val textField = mkFormComponentWithLabelSize("st", Text(ShortText.default, Value), Some(Medium))
 
     override lazy val form: Form =
@@ -228,8 +226,6 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
   }
 
   "renderDeclarationSection" should "render Declaration page with Button with text 'ContinueLabel'" in new TestFixture {
-
-    import i18nSupport._
 
     override lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
       .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](

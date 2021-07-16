@@ -198,8 +198,7 @@ class GformBackEndService(
     cache: AuthCacheWithForm,
     submissionDetails: Option[SubmissionDetails],
     formModelOptics: FormModelOptics[D]
-  )(implicit request: Request[_], l: LangADT, hc: HeaderCarrier) = {
-
+  )(implicit messages: Messages, request: Request[_], l: LangADT, hc: HeaderCarrier) = {
     val formModelOpticsUpdatedF = FormModelOptics.mkFormModelOptics(
       formModelOptics.formModelVisibilityOptics.recData.variadicFormData
         .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
