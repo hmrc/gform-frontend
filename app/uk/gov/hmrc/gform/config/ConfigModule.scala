@@ -25,7 +25,7 @@ import play.api.Mode
 import play.api.i18n.Lang
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
-import uk.gov.hmrc.hmrcfrontend.config.TrackingConsentConfig
+import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, TrackingConsentConfig }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, ServicesConfig }
@@ -52,6 +52,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
   val controllerConfig: ControllerConfig = new ControllerConfig {
     //val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
   }
+
+  val accessibilityStatementConfig = new AccessibilityStatementConfig(playConfiguration)
 
   val auditingConfig: AuditingConfig = new AuditingConfigProvider(playConfiguration, appConfig.appName).get()
 
@@ -80,10 +82,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       governmentGatewaySignInUrl = typesafeConfig.getString("government-gateway-sign-in-url"),
       gformFrontendBaseUrl = typesafeConfig.getString("gform-frontend-base-url"),
       signOutUrl = typesafeConfig.getString("signout-url"),
-      footerCookiesUrl = typesafeConfig.getString("footer-cookies-url"),
-      footerPrivacyPolicyUrl = typesafeConfig.getString("footer-privacy-policy-url"),
-      footerTermsConditionsUrl = typesafeConfig.getString("footer-terms-conditions-url"),
-      footerHelpUrl = typesafeConfig.getString("footer-help-url"),
       footerAccessibilityStatementUrl = typesafeConfig.getString("footer-accessibility-statement-url"),
       betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier",
       authModule = AuthModule(
@@ -101,7 +99,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       } yield s"$url$projectId.js",
       trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration)),
       emailAuthStaticCodeEmails =
-        getOptionalNonEmptyCIStringList(playConfiguration.getOptional[String]("emailAuth.staticCodeEmails"))
+        getOptionalNonEmptyCIStringList(playConfiguration.getOptional[String]("emailAuth.staticCodeEmails")),
+      accessibilityStatementConfig = accessibilityStatementConfig
     )
   }
 }

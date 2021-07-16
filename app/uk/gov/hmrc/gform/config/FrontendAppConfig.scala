@@ -21,6 +21,7 @@ import org.typelevel.ci.CIString
 import play.api.i18n.{ Lang, Messages }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EmailAuthConfig, FormTemplateId }
+import uk.gov.hmrc.hmrcfrontend.config.AccessibilityStatementConfig
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
@@ -32,10 +33,6 @@ case class FrontendAppConfig(
   gformFrontendBaseUrl: String,
   betaFeedbackUrlNoAuth: String,
   signOutUrl: String,
-  footerCookiesUrl: String,
-  footerPrivacyPolicyUrl: String,
-  footerTermsConditionsUrl: String,
-  footerHelpUrl: String,
   footerAccessibilityStatementUrl: String,
   authModule: AuthModule,
   availableLanguages: Map[String, Lang],
@@ -43,7 +40,8 @@ case class FrontendAppConfig(
   contactFormServiceIdentifier: String,
   optimizelyUrl: Option[String],
   trackingConsentSnippet: hmrcTrackingConsentSnippet,
-  emailAuthStaticCodeEmails: Option[NonEmptyList[CIString]]
+  emailAuthStaticCodeEmails: Option[NonEmptyList[CIString]],
+  accessibilityStatementConfig: AccessibilityStatementConfig
 ) {
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {

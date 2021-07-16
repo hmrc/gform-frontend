@@ -25,7 +25,7 @@
   maybeMessageHtml: Option[Html] = None,
   frontendAppConfig: FrontendAppConfig,
   availableLanguages: AvailableLanguages = AvailableLanguages.default
-)(implicit messages: Messages, l: LangADT)
+)(implicit requestHeader: RequestHeader, messages: Messages, l: LangADT)
 
 @mainContent = {
   <h1 class="govuk-heading-l">@heading</h1>

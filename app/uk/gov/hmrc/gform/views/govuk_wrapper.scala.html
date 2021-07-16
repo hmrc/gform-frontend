@@ -22,11 +22,14 @@
 @import uk.gov.hmrc.govukfrontend.views.html.layouts._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.footer.FooterItem
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
+@import uk.gov.hmrc.hmrcfrontend.views.html.helpers
 @import uk.gov.hmrc.hmrcfrontend.views.html.components
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.Banner
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.{Cy, En, LanguageSelect}
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.reporttechnicalissue.ReportTechnicalIssue
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
+@import uk.gov.hmrc.hmrcfrontend.views.config.HmrcFooterItems
+@import uk.gov.hmrc.hmrcfrontend.config.AccessibilityStatementConfig
 
 @(appConfig: FrontendAppConfig,
   serviceTitle: String,
@@ -40,7 +43,7 @@
   templateId: FormTemplateId,
   backLink: Option[BackLink],
   displayTimeoutDialog: Boolean
-)(implicit messages: Messages, l: LangADT)
+)(implicit requestHeader: RequestHeader, messages: Messages, l: LangADT)
 
 @hmrcTimeoutDialog = @{new components.hmrcTimeoutDialog()}
 @timeoutDialog = @{
@@ -121,6 +124,9 @@
 @hmrcUserResearchBanner = @{new components.hmrcUserResearchBanner()}
 @govukPhaseBanner = @{new govukPhaseBanner(govukTag = new govukTag())}
 @hmrcHeader = @{new components.hmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner)}
+@hmrcStandardHeader = @{new helpers.hmrcStandardHeader(hmrcHeader)}
+@hmrcFooter = @{new components.hmrcFooter()}
+@hmrcStandardFooter = @{new helpers.hmrcStandardFooter(hmrcFooter, new HmrcFooterItems(appConfig.accessibilityStatementConfig))}
 @govukTemplate = @{new govukTemplate(govukHeader, govukFooter, govukSkipLink)}
 @twoThirdsMainContent = @{new twoThirdsMainContent}
 @govukLayout = @{new govukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink, twoThirdsMainContent)}
@@ -128,15 +134,32 @@
 
 @language = @{l.toLanguage}
 
+@feedbackContent = {
+  @messages("feedback.before")
+    <a class='govuk-link' href='@{appConfig.betaFeedbackUrlNoAuth}'>@messages("feedback.link")</a>
+  @messages("feedback.after")
+}
+
+@phaseBanner = @{
+  developmentPhase.fold(SiteBanner(Some(ResearchBanner.banner))){ dp =>
+    dp match {
+      case AlphaBanner | BetaBanner =>
+        SiteBanner(Some(dp.banner), HtmlContent(feedbackContent))
+      case ResearchBanner =>
+        SiteBanner(Some(dp.banner))
+      case LiveBanner => SiteBanner()
+    }
+  }
+}
+
 @headerBlock = {
-  @hmrcHeader(
-    components.Header(
-      homepageUrl = "https://www.gov.uk/",
-      language = language,
-      signOutHref = timeoutDialog.flatMap(_.signOutUrl),
-      serviceName = Some(serviceTitle),
-      serviceUrl = "#"
-    )
+  @hmrcStandardHeader(
+    serviceName = Some(serviceTitle),
+    serviceUrl = Some("#"),
+    signOutUrl = timeoutDialog.flatMap(_.signOutUrl),
+    userResearchBanner = None,
+    phaseBanner = Some(phaseBanner),
+    displayHmrcBanner = displayHMRCLogo
   )
 }
 
@@ -146,29 +169,8 @@
   } else HtmlFormat.empty
 }
 
-@feedbackContent = {
-   @messages("feedback.before")
-   <a class='govuk-link' href='@{appConfig.betaFeedbackUrlNoAuth}'>@messages("feedback.link")</a>
-   @messages("feedback.after")
-}
-
-@phaseBanner = @{
-  developmentPhase.fold(govukPhaseBanner(SiteBanner(ResearchBanner.banner))){ dp =>
-    dp match {
-      case AlphaBanner | BetaBanner =>
-        govukPhaseBanner(SiteBanner(dp.banner, HtmlContent(feedbackContent)))
-      case ResearchBanner =>
-        govukPhaseBanner(SiteBanner(dp.banner))
-      case LiveBanner => HtmlFormat.empty
-    }
-  }
-}
-
 @beforeContentBlock = {
-  @phaseBanner
-  @if(displayHMRCLogo){
-    @hmrcBanner(Banner(language))
-  } else {
+  @if(!displayHMRCLogo){
     <br/>
   }
   @languageSwitch
@@ -193,5 +195,5 @@
   beforeContentBlock = Some(beforeContentBlock),
   bodyEndBlock = None,
   scriptsBlock = Some(scripts),
-  footerBlock = Some(govukFooter(Footer(meta = Some(Meta(items = Some(FooterLinks.items(appConfig, templateId)))))))
+  footerBlock = Some(hmrcStandardFooter(accessibilityStatementUrl = Some(s"${appConfig.footerAccessibilityStatementUrl}/${templateId.value.toLowerCase}")))
 )(contentBlock)

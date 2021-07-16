@@ -23,11 +23,11 @@ import uk.gov.hmrc.govukfrontend.views.html.components.Empty
 
 object SiteBanner {
   def apply(
-    phase: String,
+    phase: Option[String] = None,
     feedbackBanner: Content = Empty
   ): PhaseBanner =
     PhaseBanner(
-      tag = Some(Tag(content = Text(phase))),
+      tag = phase.map(c => Tag(content = Text(c))),
       content = feedbackBanner
     )
 }
