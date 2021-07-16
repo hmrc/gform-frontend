@@ -124,7 +124,7 @@ generic.charactersRemaining=Mae gennych {0} o gymeriadau yn weddill
 generic.characterRemaining=Mae gennych {0} o gymeriadau yn weddill
 generic.charactersTooMany=Mae gennych {0} o gymeriadau yn ormod
 generic.characterTooMany=Mae gennych {0} o gymeriadau yn ormod
-generic.successfullyRemoved=Dilëwyd {0} yn llwyddiannus
+generic.successfullyRemoved=Tynnwyd {0} yn llwyddiannus
 generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
 
 generic.error.submissionRef=Ni ellir dod o hyd i {0}. Nodwch {0} dilys yn y fformat cywir. Mae’n rhaid i hyn fod yn 14 o gymeriadau a chynnwys rhifau, cysylltnodau a phriflythrennau yn unig, er enghraifft ABCD-1234-1234
