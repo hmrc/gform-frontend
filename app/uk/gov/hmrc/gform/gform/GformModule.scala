@@ -283,6 +283,7 @@ class GformModule(
     )
 
   val lookupController = new LookupController(
+    playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     lookupRegistry,
     controllersModule.messagesControllerComponents

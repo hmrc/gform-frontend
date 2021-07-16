@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.data.NonEmptyList
 import cats.{ Functor, MonadError }
 import cats.syntax.all._
+import play.api.i18n.Messages
 
 import scala.language.higherKinds
 import scala.util.matching.Regex
@@ -132,7 +133,7 @@ object FormModelBuilder {
   private def toCurrentData(
     modelComponentId: ModelComponentId,
     expressionResult: ExpressionResult
-  ): VariadicFormData[SourceOrigin.Current] =
+  )(implicit messages: Messages): VariadicFormData[SourceOrigin.Current] =
     expressionResult match {
       case ExpressionResult.Empty      => VariadicFormData.one[SourceOrigin.Current](modelComponentId, "")
       case ExpressionResult.Hidden     => VariadicFormData.empty[SourceOrigin.Current]
@@ -169,7 +170,8 @@ class FormModelBuilder[E, F[_]: Functor](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     formModel: FormModel[Interim],
     formPhase: Option[FormPhase],
-    lang: LangADT
+    lang: LangADT,
+    messages: Messages
   ): F[RecalculationResult] = {
     val evaluationContext =
       new EvaluationContext(
@@ -185,7 +187,8 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.dateLookup,
         formModel.addressLookup,
         formModel.overseasAddressLookup,
-        lang
+        lang,
+        messages
       )
 
     recalculation
@@ -255,10 +258,10 @@ class FormModelBuilder[E, F[_]: Functor](
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     phase: Option[FormPhase]
-  )(implicit lang: LangADT): F[FormModelVisibilityOptics[D]] = {
+  )(implicit messages: Messages, lang: LangADT): F[FormModelVisibilityOptics[D]] = {
     val formModel: FormModel[Interim] = expand(data)
 
-    val recalculationResultF: F[RecalculationResult] = toRecalculationResults(data, formModel, phase, lang)
+    val recalculationResultF: F[RecalculationResult] = toRecalculationResults(data, formModel, phase, lang, messages)
 
     recalculationResultF.map { recalculationResult =>
       buildFormModelVisibilityOptics(
@@ -275,7 +278,7 @@ class FormModelBuilder[E, F[_]: Functor](
     formModel: FormModel[Interim],
     recalculationResult: RecalculationResult,
     phase: Option[FormPhase]
-  ): FormModelVisibilityOptics[D] = {
+  )(implicit messages: Messages): FormModelVisibilityOptics[D] = {
     val evaluationResults = recalculationResult.evaluationResults
     val visibilityFormModel: FormModel[Visibility] = formModel.filter[Visibility] { pageModel =>
       pageModel.getIncludeIf.fold(true) { includeIf =>

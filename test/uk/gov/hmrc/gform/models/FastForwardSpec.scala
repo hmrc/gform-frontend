@@ -20,6 +20,8 @@ import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.freespec.AnyFreeSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.slf4j.{ Logger, LoggerFactory }
+import play.api.i18n.Messages
+import play.api.test.Helpers
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkAddToListSection, mkFormComponent, page }
 import uk.gov.hmrc.gform.models.FastForward.StopAt
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -29,10 +31,11 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormCompon
 class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with VariadicFormDataSupport with Matchers {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
+  implicit val lang: LangADT = LangADT.En
+  implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
   "StopAt.next" - {
     "should get the StopAt(number) for the next visible section" - {
-      implicit val lang: LangADT = LangADT.En
       val table = Table(
         ("description", "sections", "data", "currentStopAt", "expectedStopAt"),
         (

@@ -20,12 +20,15 @@ import cats.Eq
 import cats.instances.bigDecimal._
 import cats.instances.string._
 import cats.syntax.eq._
+import play.api.i18n.Messages
+
 import scala.util.matching.Regex
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Number, PositiveNumber, Sterling, TextConstraint }
 
 import java.time.{ LocalDate, Period }
-import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 sealed trait ExpressionResult extends Product with Serializable {
 
@@ -244,8 +247,10 @@ sealed trait ExpressionResult extends Product with Serializable {
   def applyTypeInfo(typeInfo: TypeInfo): ExpressionResult =
     typeInfo.staticTypeData.textConstraint.fold(this)(applyTextConstraint)
 
-  def stringRepresentation(typeInfo: TypeInfo) =
-    fold(_ => "")(_ => typeInfo.defaultValue)(_ => "")(_.value.toString)(_.value)(_.value.mkString(","))(_.asString)(
+  def stringRepresentation(typeInfo: TypeInfo, messages: Messages) =
+    fold(_ => "")(_ => typeInfo.defaultValue)(_ => "")(_.value.toString)(_.value)(_.value.mkString(","))(
+      _.asString(messages)
+    )(
       _.address.mkString(", ")
     )(_.value.toString)
 
@@ -339,8 +344,12 @@ object ExpressionResult {
     def +(sr: StringResult): StringResult = StringResult(value + sr.value)
   }
   case class DateResult(value: LocalDate) extends ExpressionResult {
-    val DATE_DISPLAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-    def asString = value.format(DATE_DISPLAY_FORMAT)
+    def asString(implicit messages: Messages) = {
+      val day = value.getDayOfMonth
+      val month = messages(s"date.${value.getMonth.getDisplayName(TextStyle.FULL, Locale.UK)}")
+      val year = value.getYear
+      s"$day $month $year"
+    }
   }
   case class PeriodResult(value: Period) extends ExpressionResult {
     def +(pr: PeriodResult): PeriodResult = PeriodResult(pr.value.plus(value).normalized())

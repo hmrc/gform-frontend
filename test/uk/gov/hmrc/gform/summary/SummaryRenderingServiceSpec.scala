@@ -115,7 +115,8 @@ class SummaryRenderingServiceSpec
           Map.empty,
           Set.empty,
           Set.empty,
-          LangADT.En
+          LangADT.En,
+          messages
         )
       )
     )

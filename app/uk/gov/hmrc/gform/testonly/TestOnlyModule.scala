@@ -26,8 +26,10 @@ import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
 class TestOnlyModule(
+  playBuiltInsModule: PlayBuiltInsModule,
   configModule: ConfigModule,
   gformBackendModule: GformBackendModule,
   controllersModule: ControllersModule,
@@ -42,6 +44,7 @@ class TestOnlyModule(
   private val proxyActions = new ProxyActions(ahcWSComponents.wsClient)(controllersModule.messagesControllerComponents)
 
   val testOnlyController = new TestOnlyController(
+    playBuiltInsModule.i18nSupport,
     proxyActions,
     gformBackendModule.gformConnector,
     lookupRegistry,

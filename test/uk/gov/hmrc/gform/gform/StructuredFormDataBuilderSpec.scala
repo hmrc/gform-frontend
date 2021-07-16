@@ -20,10 +20,12 @@ import cats.Id
 import cats.data.NonEmptyList
 import cats.instances.either._
 import cats.syntax.either._
-import org.scalatest.{ Assertion }
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalactic.source.Position
+import play.api.i18n.Messages
+import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup._
@@ -41,6 +43,7 @@ import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 class StructuredFormDataBuilderSpec
     extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
   private implicit val l: LangADT = LangADT.En
+  private implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
   type EitherEffect[A] = Either[Throwable, A]
 

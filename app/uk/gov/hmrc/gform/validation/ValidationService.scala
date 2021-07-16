@@ -213,6 +213,7 @@ class ValidationService(
     pageModel: PageModel[Visibility],
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
+    messages: Messages,
     hc: HeaderCarrier,
     sse: SmartStringEvaluator
   ): Future[ValidatedType[ValidatorsResult]] = {
@@ -227,7 +228,11 @@ class ValidationService(
   private def validateUsingSectionValidators[D <: DataOrigin](
     v: Validator,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(implicit hc: HeaderCarrier, sse: SmartStringEvaluator): Future[ValidatedType[ValidatorsResult]] = {
+  )(implicit
+    hc: HeaderCarrier,
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): Future[ValidatedType[ValidatorsResult]] = {
 
     def compare(postCode: String)(drr: DesRegistrationResponse): Boolean = {
       val maybePostalCode = drr.address match {

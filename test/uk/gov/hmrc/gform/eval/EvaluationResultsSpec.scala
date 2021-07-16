@@ -17,18 +17,46 @@
 package uk.gov.hmrc.gform.eval
 
 import org.scalatest.prop.TableDrivenPropertyChecks
+import play.api.test.Helpers
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, LangCtx, OffsetYMD, Period, PeriodExt, PeriodFn, PeriodValue }
-import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, LangCtx, OffsetYMD, Period, PeriodExt, PeriodFn, PeriodValue }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
+
+  private val evalContext: EvaluationContext = new EvaluationContext(
+    formTemplateId,
+    submissionRef,
+    None,
+    authContext,
+    ThirdPartyData.empty,
+    authConfig,
+    HeaderCarrier(),
+    Option.empty[FormPhase],
+    FileIdsWithMapping.empty,
+    Map.empty,
+    Set.empty,
+    Set.empty,
+    LangADT.En,
+    Helpers.stubMessages(
+      Helpers.stubMessagesApi(
+        Map(
+          "en" -> Map(
+            "date.January" -> "January"
+          )
+        )
+      )
+    )
+  )
 
   "evalExpr - type dateString" should "evaluate expressions" in {
 
@@ -87,7 +115,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
     )
 
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
-      EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
+      EvaluationResults.empty.evalExpr(typeInfo, recData, evalContext) shouldBe expectedResult
     }
   }
 
@@ -147,7 +175,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>
-      EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
+      EvaluationResults.empty.evalExpr(typeInfo, recData, evalContext) shouldBe expectedResult
     }
   }
 
@@ -171,7 +199,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>
-      EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
+      EvaluationResults.empty.evalExpr(typeInfo, recData, evalContext) shouldBe expectedResult
     }
   }
 
@@ -301,7 +329,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
     )
 
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
-      EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
+      EvaluationResults.empty.evalExpr(typeInfo, recData, evalContext) shouldBe expectedResult
     }
   }
 
@@ -427,7 +455,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
-      EvaluationResults.empty.evalExpr(typeInfo, recData, evaluationContext) shouldBe expectedResult
+      EvaluationResults.empty.evalExpr(typeInfo, recData, evalContext) shouldBe expectedResult
     }
   }
 }

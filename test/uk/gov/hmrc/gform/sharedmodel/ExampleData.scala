@@ -40,6 +40,7 @@ import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, TrackingC
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.http.HeaderCarrier
 import org.typelevel.ci._
+import play.api.test.Helpers
 
 import scala.collection.immutable.List
 
@@ -68,7 +69,8 @@ trait ExampleEvaluationContext {
       Map.empty,
       Set.empty,
       Set.empty,
-      LangADT.En
+      LangADT.En,
+      Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
     )
 }
 
