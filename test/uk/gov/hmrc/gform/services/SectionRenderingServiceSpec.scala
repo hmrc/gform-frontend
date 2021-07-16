@@ -104,7 +104,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
           Map.empty,
           Set.empty,
           Set.empty,
-          LangADT.En
+          LangADT.En,
+          messages
         )
       )
     )

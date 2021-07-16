@@ -318,22 +318,7 @@ class RealSmartStringEvaluatorFactorySpec
     implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
     implicit val messages: Messages = Helpers.stubMessages(
       Helpers.stubMessagesApi(
-        Map(
-          "en" -> Map(
-            "date.January"   -> "January",
-            "date.February"  -> "February",
-            "date.March"     -> "March",
-            "date.April"     -> "April",
-            "date.May"       -> "May",
-            "date.June"      -> "June",
-            "date.July"      -> "July",
-            "date.August"    -> "August",
-            "date.September" -> "September",
-            "date.October"   -> "October",
-            "date.November"  -> "November",
-            "date.December"  -> "December"
-          )
-        )
+        Map.empty
       )
     )
     implicit val langADT: LangADT = LangADT.En
@@ -371,7 +356,8 @@ class RealSmartStringEvaluatorFactorySpec
           Map.empty,
           Set.empty,
           Set.empty,
-          LangADT.En
+          LangADT.En,
+          messages
         )
       )
     )

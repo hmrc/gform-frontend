@@ -19,6 +19,8 @@ package uk.gov.hmrc.gform.models
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+import play.api.i18n.Messages
+import play.api.test.Helpers
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -31,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
   implicit val lang: LangADT = LangADT.En
+  implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
   "GroupUtils.removeRecord" should "remove instance by its index" in {
     val data: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(

@@ -184,6 +184,7 @@ class ApplicationModule(context: Context)
   )
 
   private val testOnlyModule = new TestOnlyModule(
+    playBuiltInsModule,
     configModule,
     gformBackendModule,
     controllersModule,

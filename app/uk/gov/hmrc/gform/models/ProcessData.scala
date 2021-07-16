@@ -20,6 +20,8 @@ import cats.data.NonEmptyList
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.{ Monad, MonadError }
+import play.api.i18n.Messages
+
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.graph.Recalculation
@@ -55,7 +57,7 @@ class ProcessDataService[F[_]: Monad](
 
   private def hmrcTaxPeriodWithEvaluatedIds(
     browserFormModelOptics: FormModelOptics[DataOrigin.Browser]
-  ): List[Option[HmrcTaxPeriodWithEvaluatedId]] = {
+  )(implicit messages: Messages): List[Option[HmrcTaxPeriodWithEvaluatedId]] = {
     val fmvo = browserFormModelOptics.formModelVisibilityOptics
     fmvo.allFormComponents.collect { case fc @ IsHmrcTaxPeriod(hmrcTaxPeriod) =>
       val idNumber = fmvo.evalAndApplyTypeInfoFirst(hmrcTaxPeriod.idNumber).stringRepresentation
@@ -75,6 +77,7 @@ class ProcessDataService[F[_]: Monad](
     obligationsAction: ObligationsAction
   )(implicit
     lang: LangADT,
+    messages: Messages,
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
   ): F[ProcessData] = {

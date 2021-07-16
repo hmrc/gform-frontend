@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
@@ -37,5 +38,6 @@ class EvaluationContext(
   val dateLookup: Map[ModelComponentId, DateValue],
   val addressLookup: Set[BaseComponentId],
   val overseasAddressLookup: Set[BaseComponentId],
-  val lang: LangADT
+  val lang: LangADT,
+  val messages: Messages
 )

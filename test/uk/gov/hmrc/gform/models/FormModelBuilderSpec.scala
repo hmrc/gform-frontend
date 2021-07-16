@@ -20,6 +20,9 @@ import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+import play.api.i18n.Messages
+import play.api.test.Helpers
+
 import scala.language.implicitConversions
 import uk.gov.hmrc.gform.eval.ExprType
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
@@ -32,6 +35,7 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
 
   implicit def implicitToFormComponentId(str: String): FormComponentId = FormComponentId(str)
   implicit val lang: LangADT = LangADT.En
+  implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
   "FormModelBuilder.renderPageModel" should "return visibility model without components whose includeIf evaluates to false" in {
 

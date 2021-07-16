@@ -19,9 +19,10 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.Eq
 import cats.instances.int._
 import cats.syntax.eq._
-import java.time.LocalDate
 
+import java.time.LocalDate
 import julienrf.json.derived
+import play.api.i18n.Messages
 import play.api.libs.json._
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry }
 import uk.gov.hmrc.gform.lookup.LookupOptions.getLookupValue
@@ -457,7 +458,8 @@ object SimplifiedSelectionCriteria {
     lookupRegistry: LookupRegistry,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
-    l: LangADT
+    l: LangADT,
+    messages: Messages
   ): List[SimplifiedSelectionCriteria] = lsc map {
     case SelectionCriteria(c, SelectionCriteriaExpr(expr)) =>
       SimplifiedSelectionCriteria(

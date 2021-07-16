@@ -20,6 +20,9 @@ import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+import play.api.i18n.Messages
+import play.api.test.Helpers
+
 import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.eval.{ ExprType, RevealingChoiceData, RevealingChoiceInfo, StaticTypeData, StaticTypeInfo, SumInfo }
@@ -34,6 +37,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
 
   implicit def implicitToFormComponentId(str: String): FormComponentId = FormComponentId(str)
   implicit val lang: LangADT = LangADT.En
+  implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
   "FormModel" should "handle revealing choice" in {
 

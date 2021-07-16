@@ -31,6 +31,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.GraphSpec
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+import play.api.i18n.Messages
+import play.api.test.Helpers
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 
 import java.time.LocalDate
@@ -43,6 +45,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
   private def ctx(s: String): FormCtx = FormCtx(FormComponentId(s))
   private def const(s: String): Expr = Constant(s)
   implicit val lang: LangADT = LangADT.En
+  implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
   def evaluationContext(formTemplate: FormTemplate): EvaluationContext =
     new EvaluationContext(
@@ -58,7 +61,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       Map.empty,
       Set.empty,
       Set.empty,
-      LangADT.En
+      lang,
+      messages
     )
 
   "recalculation" should "recalculate single dependency" in {

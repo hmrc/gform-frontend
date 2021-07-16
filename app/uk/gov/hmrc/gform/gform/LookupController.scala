@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.syntax.all._
+import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
@@ -33,6 +34,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 
 class LookupController(
+  i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
   lookupRegistry: LookupRegistry,
   messagesControllerComponents: MessagesControllerComponents
@@ -47,7 +49,8 @@ class LookupController(
     lookupQuery: LookupQuery
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      request => implicit l => cache => sse => formModelOptics =>
+      implicit request => implicit l => cache => sse => formModelOptics =>
+        import i18nSupport._
         val aFormComponents: Seq[FormComponent] = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
         val oFormComponent = aFormComponents.find(_.id.baseComponentId === baseComponentId)
 

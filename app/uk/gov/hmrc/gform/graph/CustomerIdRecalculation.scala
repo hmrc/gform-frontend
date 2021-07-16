@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.graph
 
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -28,7 +29,7 @@ object CustomerIdRecalculation {
   def evaluateCustomerId[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  ): CustomerId =
+  )(implicit messages: Messages): CustomerId =
     customerIdExpressions(cache.formTemplate.destinations)
       .map { expr =>
         CustomerId(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation.take(32))

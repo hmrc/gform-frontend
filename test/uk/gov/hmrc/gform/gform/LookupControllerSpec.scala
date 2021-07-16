@@ -22,9 +22,10 @@ import org.mockito.{ ArgumentMatchersSugar, IdiomaticMockito }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.libs.json.{ Json, Reads }
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request, Result }
-import play.api.test.FakeRequest
+import play.api.test.{ FakeRequest, Helpers }
 import uk.gov.hmrc.gform.LookupLoader.mkAutocomplete
 import uk.gov.hmrc.gform.PlayStubSupport
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
@@ -232,6 +233,19 @@ class LookupControllerSpec
   trait TestFixture {
     implicit val lang: LangADT = LangADT.En
     val request = FakeRequest("GET", "/")
+    private val msgesApi: MessagesApi = Helpers.stubMessagesApi(
+      Map(
+        "en" -> Map(
+          "date.January" -> "January"
+        )
+      )
+    )
+    implicit val messages: Messages = Helpers.stubMessages(
+      msgesApi
+    )
+    lazy val i18nSupport: I18nSupport = new I18nSupport {
+      override def messagesApi: MessagesApi = msgesApi
+    }
     val mockAuth: AuthenticatedRequestActionsAlgebra[Future] = mock[AuthenticatedRequestActionsAlgebra[Future]]
 
     lazy val countryLookupSelectionCriteria: Option[List[SelectionCriteria]] = None
@@ -357,6 +371,7 @@ class LookupControllerSpec
         )
       )
     )
-    lazy val lookupController = new LookupController(mockAuth, lookupRegistry, messagesControllerComponents)
+    lazy val lookupController =
+      new LookupController(i18nSupport, mockAuth, lookupRegistry, messagesControllerComponents)
   }
 }

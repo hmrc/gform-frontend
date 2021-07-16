@@ -145,7 +145,10 @@ object BooleanExprEval {
     val expressionResult = recalculationResult.evaluationResults
       .evalExprCurrent(typeInfo, recData, recalculationResult.evaluationContext)
     val maybeBoolean =
-      recalculationResult.booleanExprCache.get(in.dataSource, expressionResult.stringRepresentation(typeInfo))
+      recalculationResult.booleanExprCache.get(
+        in.dataSource,
+        expressionResult.stringRepresentation(typeInfo, recalculationResult.evaluationContext.messages)
+      )
     maybeBoolean.getOrElse(false)
   }
 }

@@ -25,7 +25,7 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.traverse._
 import cats.{ Applicative, Monad, Traverse }
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request }
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth._
@@ -265,7 +265,7 @@ class EnrolmentController(
     formHandlerResult: FormHandlerResult,
     enrolmentAction: EnrolmentAction,
     retrievals: MaterialisedRetrievals
-  )(implicit AA: Ask[F, Env], FR: Raise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] = {
+  )(implicit messages: Messages, AA: Ask[F, Env], FR: Raise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] = {
 
     def tryEnrolment(verifiers: List[Verifier], identifiers: NonEmptyList[Identifier]): F[CheckEnrolmentsResult] =
       for {
@@ -314,6 +314,7 @@ class EnrolmentController(
   private def extractIdentifiersAndVerifiers[F[_]: Monad](
     enrolmentSection: EnrolmentSection
   )(implicit
+    messages: Messages,
     AA: Ask[F, Env],
     FR: Raise[F, SubmitEnrolmentError]
   ): F[(NonEmptyList[(IdentifierRecipe, Identifier)], List[Verifier])] = {

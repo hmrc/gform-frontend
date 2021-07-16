@@ -230,7 +230,7 @@ class GformBackEndService(
   def emailParameter[D <: DataOrigin](
     formTemplate: FormTemplate,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  ): EmailParametersRecalculated =
+  )(implicit messages: Messages): EmailParametersRecalculated =
     formTemplate.emailParameters.fold(EmailParametersRecalculated.empty) { emailParameters =>
       val emailParametersRecalculated: Map[EmailTemplateVariable, EmailParameterValue] = emailParameters
         .map { case EmailParameter(emailTemplateVariable, expr) =>

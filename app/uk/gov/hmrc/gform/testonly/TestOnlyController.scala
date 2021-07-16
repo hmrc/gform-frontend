@@ -21,6 +21,7 @@ import akka.util.ByteString
 import cats.data.EitherT
 import cats.instances.future._
 import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
+import play.api.i18n.I18nSupport
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -48,6 +49,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 class TestOnlyController(
+  i18nSupport: I18nSupport,
   proxy: ProxyActions,
   gformConnector: GformConnector,
   lookupRegistry: LookupRegistry,
@@ -93,6 +95,7 @@ class TestOnlyController(
   ) =
     auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
       implicit request => implicit lang => cache => _ => formModelOptics =>
+        import i18nSupport._
         import cache._
         val customerId =
           CustomerIdRecalculation
@@ -169,6 +172,7 @@ class TestOnlyController(
   ) =
     auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
       implicit request => implicit lang => cache => _ => formModelOptics =>
+        import i18nSupport._
         import cache._
         val customerId =
           CustomerIdRecalculation

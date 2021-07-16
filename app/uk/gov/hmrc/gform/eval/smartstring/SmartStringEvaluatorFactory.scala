@@ -28,9 +28,6 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.text.MessageFormat
-import java.time.LocalDate
-import java.time.format.TextStyle
-import java.util.Locale
 
 trait SmartStringEvaluatorFactory {
   def apply(
@@ -99,13 +96,6 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
         val typeInfo: TypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(expr)
 
         val interpolated = typeInfo.staticTypeData.exprType match {
-          case ExprType.DateString =>
-            dateRepresentation(typeInfo).fold("") { date =>
-              val day = date.getDayOfMonth
-              val month = messages(s"date.${date.getMonth.getDisplayName(TextStyle.FULL, Locale.UK)}")
-              val year = date.getYear
-              s"$day $month $year"
-            }
           case ExprType.ChoiceSelection =>
             typeInfo.expr match {
               case FormCtx(formComponentId) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
@@ -140,11 +130,8 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
         }
       }
 
-      private def dateRepresentation(typeInfo: TypeInfo): Option[LocalDate] =
-        formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).dateRepresentation
-
       private def stringRepresentation(typeInfo: TypeInfo): String =
-        formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation
+        formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation(messages)
 
       private def addressRepresentation(typeInfo: TypeInfo): String =
         formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).addressRepresentation

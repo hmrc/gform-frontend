@@ -1435,7 +1435,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formComponent: FormComponent,
     validationResult: ValidationResult,
     ei: ExtraInfo
-  )(implicit l: LangADT, sse: SmartStringEvaluator) = {
+  )(implicit l: LangADT, messages: Messages, sse: SmartStringEvaluator) = {
     def prepopValue: String =
       ei.formModelOptics.formModelVisibilityOptics
         .evalAndApplyTypeInfoExplicit(text.value, formComponent.id)

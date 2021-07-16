@@ -18,6 +18,8 @@ package uk.gov.hmrc.gform.models
 
 import cats.{ Id, Monad }
 import cats.syntax.applicative._
+import play.api.i18n.Messages
+
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
@@ -101,7 +103,7 @@ trait FormModelSupport extends GraphSpec {
   def mkFormModelOptics(
     formTemplate: FormTemplate,
     data: VariadicFormData[SourceOrigin.OutOfDate]
-  )(implicit lang: LangADT): FormModelOptics[DataOrigin.Browser] = {
+  )(implicit messages: Messages, lang: LangADT): FormModelOptics[DataOrigin.Browser] = {
     val authCache: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate)
     FormModelOptics
       .mkFormModelOptics[DataOrigin.Browser, Id, SectionSelectorType.Normal](data, authCache, recalculation)

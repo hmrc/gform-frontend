@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import cats.{ Functor, MonadError }
 import cats.syntax.functor._
 import com.softwaremill.quicklens._
+import play.api.i18n.Messages
 
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
@@ -52,6 +53,7 @@ object FormModelOptics {
 
   def fromEnrolmentSection[D <: DataOrigin](enrolmentSection: EnrolmentSection, cache: AuthCacheWithoutForm)(implicit
     lang: LangADT,
+    messages: Messages,
     hc: HeaderCarrier
   ) = {
     val evaluationContext =
@@ -68,7 +70,8 @@ object FormModelOptics {
         Map.empty,
         Set.empty[BaseComponentId],
         Set.empty[BaseComponentId],
-        lang
+        lang,
+        messages
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
@@ -88,6 +91,7 @@ object FormModelOptics {
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping
   )(implicit
+    messages: Messages,
     lang: LangADT,
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
@@ -106,6 +110,7 @@ object FormModelOptics {
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase] = None
   )(implicit
+    messages: Messages,
     lang: LangADT,
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]

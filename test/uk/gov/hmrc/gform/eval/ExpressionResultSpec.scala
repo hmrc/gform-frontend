@@ -16,18 +16,31 @@
 
 package uk.gov.hmrc.gform.eval
 
-import java.time.LocalDate
+import play.api.i18n.Messages
+import play.api.test.Helpers
 
+import java.time.LocalDate
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateValueExpr, TodayDateExprValue }
 
 class ExpressionResultSpec extends Spec {
 
+  private val messages: Messages = Helpers.stubMessages(
+    Helpers.stubMessagesApi(
+      Map(
+        "en" -> Map(
+          "date.January" -> "January"
+        )
+      )
+    )
+  )
+
   "stringRepresentation" should "format DateResult as 'dd MMMM yyyy'" in {
     val dateResult = DateResult(LocalDate.of(1970, 1, 1))
     val result = dateResult.stringRepresentation(
-      TypeInfo(DateCtx(DateValueExpr(TodayDateExprValue)), StaticTypeData(ExprType.dateString, None))
+      TypeInfo(DateCtx(DateValueExpr(TodayDateExprValue)), StaticTypeData(ExprType.dateString, None)),
+      messages
     )
 
     result shouldBe "1 January 1970"

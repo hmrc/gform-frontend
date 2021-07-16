@@ -207,7 +207,11 @@ case class EvaluationResults(
         get(ctx, recData, fromVariadicValue, evaluationContext.fileIdsWithMapping)
       case Sum(field1: Expr) => unsupportedOperation("String")(expr)
       case Count(formComponentId) =>
-        nonEmpty(StringResult(addToListCount(formComponentId, recData).stringRepresentation(typeInfo)))
+        nonEmpty(
+          StringResult(
+            addToListCount(formComponentId, recData).stringRepresentation(typeInfo, evaluationContext.messages)
+          )
+        )
       case AuthCtx(value: AuthInfo) =>
         nonEmpty(StringResult(AuthContextPrepop.values(value, evaluationContext.retrievals)))
       case UserCtx(value: UserField) =>
@@ -244,11 +248,18 @@ case class EvaluationResults(
           }
         nonEmpty(StringResult(link.url))
       case DateCtx(dateExpr) =>
-        StringResult(evalDateExpr(recData, evaluationContext, this)(dateExpr).stringRepresentation(typeInfo))
+        StringResult(
+          evalDateExpr(recData, evaluationContext, this)(dateExpr)
+            .stringRepresentation(typeInfo, evaluationContext.messages)
+        )
       case Period(_, _) =>
-        StringResult(evalPeriod(typeInfo, recData, evaluationContext).stringRepresentation(typeInfo))
+        StringResult(
+          evalPeriod(typeInfo, recData, evaluationContext).stringRepresentation(typeInfo, evaluationContext.messages)
+        )
       case PeriodExt(_, _) =>
-        StringResult(evalPeriod(typeInfo, recData, evaluationContext).stringRepresentation(typeInfo))
+        StringResult(
+          evalPeriod(typeInfo, recData, evaluationContext).stringRepresentation(typeInfo, evaluationContext.messages)
+        )
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
           val atomic: ModelComponentId.Atomic =

@@ -90,6 +90,7 @@ class AcknowledgementController(
       maybeAccessCode,
       OperationWithForm.ViewAcknowledgement
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      import i18nSupport._
       val formString = nonRepudiationHelpers.formDataToJson(cache.form)
       val hashedValue = nonRepudiationHelpers.computeHash(formString)
 

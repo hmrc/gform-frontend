@@ -123,6 +123,7 @@ class DeclarationController(
       maybeAccessCode,
       OperationWithForm.SubmitDeclaration
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      import i18nSupport._
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
         requestRelatedData => declarationOnlyVariadicFormData =>
           val sectionsData = formModelOptics.formModelRenderPageOptics.recData.variadicFormData

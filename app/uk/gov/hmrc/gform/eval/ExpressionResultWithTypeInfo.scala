@@ -16,13 +16,12 @@
 
 package uk.gov.hmrc.gform.eval
 
-import java.time.LocalDate
+import play.api.i18n.Messages
 
 case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, typeInfo: TypeInfo) {
 
-  def dateRepresentation: Option[LocalDate] = expressionResult.dateRepresentation(typeInfo)
-
-  def stringRepresentation: String = expressionResult.stringRepresentation(typeInfo)
+  def stringRepresentation(implicit messages: Messages): String =
+    expressionResult.stringRepresentation(typeInfo, messages)
 
   def addressRepresentation: String = expressionResult.addressRepresentation(typeInfo)
 
