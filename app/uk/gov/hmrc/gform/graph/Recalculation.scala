@@ -21,14 +21,12 @@ import cats.syntax.all._
 import cats.data.StateT
 
 import scala.language.higherKinds
-import scala.util.matching.Regex
 import scalax.collection.Graph
 import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
-import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, DateExprEval, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, BooleanExprResolver, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
@@ -119,15 +117,21 @@ class Recalculation[F[_]: Monad, E](
     evaluationContext: EvaluationContext
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
     state.flatMap { evResult =>
+      val booleanExprResolver = BooleanExprResolver { booleanExpr =>
+        evalIncludeIfPure(booleanExpr, evResult, recData, retrievals, evaluationContext)
+      }
+
       graphLayer.foldMapM {
 
         case GraphNode.Simple(fcId) =>
           for {
-            isHiddenIncludeIf <- isHiddenByIncludeIf(fcId, evResult, recData, retrievals, evaluationContext)
+            isHiddenIncludeIf <-
+              isHiddenByIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
             isHiddenComponentIncludeIf <-
-              isHiddenByComponentIncludeIf(fcId, evResult, recData, retrievals, evaluationContext)
+              isHiddenByComponentIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
             isHiddenRevealingChoice <- isHiddenByRevealingChoice(fcId, recData)
-            isHiddenRepeatsExpr     <- isHiddenByRepeatsExpr(fcId, evResult, recData, evaluationContext)
+            isHiddenRepeatsExpr <-
+              isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
           } yield
             if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
               evResult + (FormCtx(fcId), ExpressionResult.Hidden)
@@ -146,7 +150,7 @@ class Recalculation[F[_]: Monad, E](
 
           val exprResult: ExpressionResult =
             evResult
-              .evalExpr(typeInfo, recData, evaluationContext)
+              .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
               .applyTypeInfo(typeInfo)
 
           noStateChange(evResult + (formCtx, evResult.get(formCtx).fold(exprResult) {
@@ -158,79 +162,99 @@ class Recalculation[F[_]: Monad, E](
           val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
 
           val exprResult: ExpressionResult =
-            evResult.evalExpr(typeInfo, recData, evaluationContext)
+            evResult.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
 
           noStateChange(evResult + (expr, exprResult))
       }
     }
+
+  private def evalIncludeIfPure(
+    booleanExpr: BooleanExpr,
+    evaluationResults: EvaluationResults,
+    recData: RecData[SourceOrigin.OutOfDate],
+    retrievals: MaterialisedRetrievals,
+    evaluationContext: EvaluationContext
+  )(implicit formModel: FormModel[Interim]): Boolean = {
+
+    val booleanExprResolver = BooleanExprResolver { booleanExpr =>
+      evalIncludeIfPure(booleanExpr, evaluationResults, recData, retrievals, evaluationContext)
+    }
+
+    val rr =
+      new RecalculationResolver(
+        formModel,
+        booleanExpr,
+        evaluationResults,
+        recData,
+        retrievals,
+        booleanExprResolver,
+        evaluationContext
+      )
+
+    def loop(booleanExpr: BooleanExpr): Boolean = booleanExpr match {
+      case Equals(field1, field2)              => rr.compare(field1, field2, _ identical _)
+      case GreaterThan(field1, field2)         => rr.compare(field1, field2, _ > _)
+      case DateAfter(field1, field2)           => rr.compareDate(field1, field2, _ after _)
+      case GreaterThanOrEquals(field1, field2) => rr.compare(field1, field2, _ >= _)
+      case LessThan(field1, field2)            => rr.compare(field1, field2, _ < _)
+      case DateBefore(field1, field2)          => rr.compareDate(field1, field2, _ before _)
+      case LessThanOrEquals(field1, field2)    => rr.compare(field1, field2, _ <= _)
+      case Not(invertedExpr)                   => !loop(invertedExpr)
+      case Or(expr1, expr2)                    => loop(expr1) | loop(expr2)
+      case And(expr1, expr2)                   => loop(expr1) & loop(expr2)
+      case IsTrue                              => true
+      case IsFalse                             => false
+      case Contains(field1, field2)            => rr.compare(field1, field2, _ contains _)
+      case MatchRegex(formCtx, regex)          => rr.matchRegex(formCtx, regex)
+      case FormPhase(value)                    => rr.compareFormPhase(value)
+      case In(expr, dataSource)                => false
+    }
+
+    loop(booleanExpr)
+  }
 
   private def evalIncludeIf(
     booleanExpr: BooleanExpr,
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] = {
 
-    def compare(
-      expr1: Expr,
-      expr2: Expr,
-      f: (ExpressionResult, ExpressionResult) => Boolean
-    ): StateT[F, RecalculationState, Boolean] = {
-      val typeInfo1: TypeInfo = formModel.toFirstOperandTypeInfo(expr1)
-      val typeInfo2: TypeInfo = formModel.toFirstOperandTypeInfo(expr2)
-      val exprRes1: ExpressionResult =
-        evaluationResults.evalExpr(typeInfo1, recData, evaluationContext).applyTypeInfo(typeInfo1)
-      val exprRes2: ExpressionResult =
-        evaluationResults.evalExpr(typeInfo2, recData, evaluationContext).applyTypeInfo(typeInfo2)
-      val res = f(exprRes1, exprRes2)
-      noStateChange(res)
-    }
-
-    def compareDate(
-      dateExprLHS: DateExpr,
-      dateExprRHS: DateExpr,
-      f: (DateResult, DateResult) => Boolean
-    ): StateT[F, RecalculationState, Boolean] = {
-      val evalFunc: DateExpr => Option[DateResult] =
-        DateExprEval.eval(formModel, recData, evaluationContext, evaluationResults)
-      val exprResultLHS = evalFunc(dateExprLHS)
-      val exprResultRHS = evalFunc(dateExprRHS)
-      val res = (exprResultLHS, exprResultRHS) match {
-        case (Some(left), Some(right)) => f(left, right)
-        case _                         => false
-      }
-      noStateChange(res)
-    }
-
-    def matchRegex(formCtx: FormCtx, regex: Regex): Boolean = {
-      val typeInfo1 = formModel.toFirstOperandTypeInfo(formCtx)
-      val exprRes1: ExpressionResult =
-        evaluationResults.evalExpr(typeInfo1, recData, evaluationContext).applyTypeInfo(typeInfo1)
-
-      exprRes1.matchRegex(regex)
-    }
+    val rr =
+      new RecalculationResolver(
+        formModel,
+        booleanExpr,
+        evaluationResults,
+        recData,
+        retrievals,
+        booleanExprResolver,
+        evaluationContext
+      )
 
     def loop(booleanExpr: BooleanExpr): StateT[F, RecalculationState, Boolean] = booleanExpr match {
-      case Equals(field1, field2)              => compare(field1, field2, _ identical _)
-      case GreaterThan(field1, field2)         => compare(field1, field2, _ > _)
-      case DateAfter(field1, field2)           => compareDate(field1, field2, _ after _)
-      case GreaterThanOrEquals(field1, field2) => compare(field1, field2, _ >= _)
-      case LessThan(field1, field2)            => compare(field1, field2, _ < _)
-      case DateBefore(field1, field2)          => compareDate(field1, field2, _ before _)
-      case LessThanOrEquals(field1, field2)    => compare(field1, field2, _ <= _)
+      case Equals(field1, field2)              => rr.compareF(field1, field2, _ identical _)
+      case GreaterThan(field1, field2)         => rr.compareF(field1, field2, _ > _)
+      case DateAfter(field1, field2)           => rr.compareDateF(field1, field2, _ after _)
+      case GreaterThanOrEquals(field1, field2) => rr.compareF(field1, field2, _ >= _)
+      case LessThan(field1, field2)            => rr.compareF(field1, field2, _ < _)
+      case DateBefore(field1, field2)          => rr.compareDateF(field1, field2, _ before _)
+      case LessThanOrEquals(field1, field2)    => rr.compareF(field1, field2, _ <= _)
       case Not(invertedExpr)                   => loop(invertedExpr).map(!_)
       case Or(expr1, expr2)                    => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 | e2
       case And(expr1, expr2)                   => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 & e2
       case IsTrue                              => noStateChange(true)
       case IsFalse                             => noStateChange(false)
-      case Contains(field1, field2)            => compare(field1, field2, _ contains _)
-      case MatchRegex(formCtx, regex)          => noStateChange(matchRegex(formCtx, regex))
-      case FormPhase(value)                    => noStateChange(evaluationContext.formPhase.fold(false)(_.value == value))
+      case Contains(field1, field2)            => rr.compareF(field1, field2, _ contains _)
+      case MatchRegex(formCtx, regex)          => rr.matchRegexF(formCtx, regex)
+      case FormPhase(value)                    => rr.compareFormPhaseF(value)
       case In(expr, dataSource) =>
         val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
         val expressionResult: ExpressionResult =
-          evaluationResults.evalExpr(typeInfo, recData, evaluationContext).applyTypeInfo(typeInfo)
+          evaluationResults
+            .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
+            .applyTypeInfo(typeInfo)
         val hc = evaluationContext.headerCarrier
 
         expressionResult.convertNumberToString.withStringResult(noStateChange(false)) { value =>
@@ -263,13 +287,21 @@ class Recalculation[F[_]: Monad, E](
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   )(
     includeIf: Option[IncludeIf]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
     includeIf.fold(noStateChange(false)) { includeIf =>
       for {
-        b <- evalIncludeIf(includeIf.booleanExpr, evaluationResults, recData, retrievals, evaluationContext)
+        b <- evalIncludeIf(
+               includeIf.booleanExpr,
+               evaluationResults,
+               recData,
+               retrievals,
+               booleanExprResolver,
+               evaluationContext
+             )
       } yield !b
     }
 
@@ -278,10 +310,11 @@ class Recalculation[F[_]: Monad, E](
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] = {
     val pageLookup: Map[FormComponentId, PageModel[Interim]] = formModel.pageLookup
-    evaluateIncludeIf(evaluationResults, recData, retrievals, evaluationContext) {
+    evaluateIncludeIf(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
       pageLookup
         .get(fcId)
         .flatMap(_.getIncludeIf)
@@ -293,9 +326,10 @@ class Recalculation[F[_]: Monad, E](
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
-    evaluateIncludeIf(evaluationResults, recData, retrievals, evaluationContext) {
+    evaluateIncludeIf(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
       formModel.fcLookup
         .get(fcId)
         .flatMap(_.includeIf)
@@ -305,12 +339,13 @@ class Recalculation[F[_]: Monad, E](
     fcId: FormComponentId,
     evResult: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
     formModel.fcIdRepeatsExprLookup.get(fcId).fold(noStateChange(false)) { repeatsExpr =>
       val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(repeatsExpr)
       val exprResult: ExpressionResult =
-        evResult.evalExpr(typeInfo, recData, evaluationContext)
+        evResult.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
       noStateChange(
         fcId.modelComponentId.maybeIndex.fold(false)(fcIndex =>
           exprResult.numberRepresentation.fold(true)(fcIndex > _.intValue())

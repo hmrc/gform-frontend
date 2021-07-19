@@ -34,14 +34,15 @@ object DateExprEval {
     formModel: FormModel[T],
     recData: RecData[OutOfDate],
     evaluationContext: EvaluationContext,
+    booleanExprResolver: BooleanExprResolver,
     evaluationResults: EvaluationResults
   )(dateExpr: DateExpr): Option[DateResult] =
     dateExpr match {
       case DateValueExpr(value) => Some(DateResult(fromValue(value)))
       case DateFormCtxVar(formCtx) =>
-        fromFormCtx(formModel, recData, evaluationResults, evaluationContext, formCtx)
+        fromFormCtx(formModel, recData, evaluationResults, booleanExprResolver, evaluationContext, formCtx)
       case DateExprWithOffset(dExpr, offset) =>
-        eval(formModel, recData, evaluationContext, evaluationResults)(dExpr).map(r =>
+        eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(dExpr).map(r =>
           DateResult(addOffset(r.value, offset))
         )
     }
@@ -89,12 +90,13 @@ object DateExprEval {
     formModel: FormModel[T],
     recData: RecData[OutOfDate],
     evaluationResults: EvaluationResults,
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext,
     formCtx: FormCtx
   ): Option[DateResult] = {
     val typeInfo: TypeInfo = formModel.explicitTypedExpr(formCtx, formCtx.formComponentId)
     val expressionResult =
-      evaluationResults.evalExpr(typeInfo, recData, evaluationContext)
+      evaluationResults.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
     expressionResult.fold(_ => Option.empty[DateResult])(_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(
       dateResult => Some(dateResult)
     )(_ => None)(_ => None)
