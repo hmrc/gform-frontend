@@ -117,7 +117,6 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       toSmartString("ack section with email param field"),
       None,
       None,
-      None,
       formComponent,
       true,
       Some(
@@ -136,6 +135,16 @@ trait ExampleDestination { self: ExampleAuthConfig =>
     DeclarationSection(
       toSmartString("declaration section"),
       None,
+      None,
+      None,
+      Some(toSmartString("ContinueLabel")),
+      decFormComponent
+    )
+
+  def mkDecSection(noPIITitle: Option[String] = None) =
+    DeclarationSection(
+      toSmartString("declaration section"),
+      noPIITitle.map(toSmartString),
       None,
       None,
       Some(toSmartString("ContinueLabel")),
@@ -174,10 +183,19 @@ trait ExampleAuthConfig {
 
   def serviceId = ServiceId("TestServiceId")
 
+  def enrolmentSection = EnrolmentSection(
+    toSmartString("Some enrolment section title"),
+    Some(toSmartString("Some noPII enrolment section title")),
+    None,
+    List.empty,
+    NonEmptyList.one(IdentifierRecipe("key", FormCtx(FormComponentId("field")))),
+    List.empty
+  )
+
   def authConfig =
     HmrcAgentWithEnrolmentModule(
       AllowAnyAgentAffinityUser,
-      EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck))
+      EnrolmentAuth(serviceId, DoCheck(Always, RequireEnrolment(enrolmentSection, NoAction), NoCheck))
     )
 }
 
@@ -508,6 +526,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
   def nonRepeatingPageSection(
     title: String = "About you",
+    noPIITitle: Option[String] = None,
     validators: Option[Validator] = None,
     fields: List[FormComponent] = List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`),
     includeIf: Option[IncludeIf] = None,
@@ -517,7 +536,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     Section.NonRepeatingPage(
       Page(
         toSmartString(title),
-        None,
+        noPIITitle.map(toSmartString),
         None,
         None,
         None,
@@ -683,7 +702,6 @@ trait ExampleFormTemplate {
   def acknowledgementSection =
     AcknowledgementSection(
       toSmartString("Acknowledgement Page"),
-      None,
       Some(toSmartString("this page is to acknowledge submission")),
       Some(toSmartString("shortName for acknowledgement")),
       List(`fieldValue - info`),

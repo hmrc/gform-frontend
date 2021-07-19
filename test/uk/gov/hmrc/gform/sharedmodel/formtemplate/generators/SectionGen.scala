@@ -37,18 +37,17 @@ trait SectionGen {
 
   def enrolmentSectionGen: Gen[EnrolmentSection] =
     for {
-      title         <- smartStringGen
-      documentTitle <- Gen.option(smartStringGen)
-      shortName     <- Gen.option(smartStringGen)
-      fields        <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
-      identifiers   <- PrimitiveGen.oneOrMoreGen(identifierRecipeGen)
-      verifiers     <- PrimitiveGen.zeroOrMoreGen(verifierRecipeGen)
-    } yield EnrolmentSection(title, documentTitle, shortName, fields.toList, identifiers, verifiers)
+      title       <- smartStringGen
+      noPIITitle  <- Gen.option(smartStringGen)
+      shortName   <- Gen.option(smartStringGen)
+      fields      <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
+      identifiers <- PrimitiveGen.oneOrMoreGen(identifierRecipeGen)
+      verifiers   <- PrimitiveGen.zeroOrMoreGen(verifierRecipeGen)
+    } yield EnrolmentSection(title, noPIITitle, shortName, fields.toList, identifiers, verifiers)
 
   def acknowledgementSectionGen: Gen[AcknowledgementSection] =
     for {
       title               <- smartStringGen
-      documentTitle       <- Gen.option(smartStringGen)
       description         <- Gen.option(smartStringGen)
       shortName           <- Gen.option(smartStringGen)
       fields              <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
@@ -58,7 +57,6 @@ trait SectionGen {
       displayFeedbackLink <- PrimitiveGen.booleanGen
     } yield AcknowledgementSection(
       title,
-      documentTitle,
       description,
       shortName,
       fields.toList,
@@ -77,17 +75,17 @@ trait SectionGen {
   def declarationSectionGen: Gen[DeclarationSection] =
     for {
       title         <- smartStringGen
-      documentTitle <- Gen.option(smartStringGen)
+      noPIITitle    <- Gen.option(smartStringGen)
       description   <- Gen.option(smartStringGen)
       shortName     <- Gen.option(smartStringGen)
       continueLabel <- Gen.option(smartStringGen)
       fields        <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
-    } yield DeclarationSection(title, documentTitle, description, shortName, continueLabel, fields.toList)
+    } yield DeclarationSection(title, noPIITitle, description, shortName, continueLabel, fields.toList)
 
   def pageGen: Gen[Page[Basic]] =
     for {
       title             <- smartStringGen
-      documentTitle     <- Gen.option(smartStringGen)
+      noPIITitle        <- Gen.option(smartStringGen)
       description       <- Gen.option(smartStringGen)
       progressIndicator <- Gen.option(smartStringGen)
       shortName         <- Gen.option(smartStringGen)
@@ -100,7 +98,7 @@ trait SectionGen {
       presentationHint  <- Gen.option(PresentationHintGen.presentationHintGen)
     } yield Page(
       title,
-      documentTitle,
+      noPIITitle,
       description,
       progressIndicator,
       shortName,
