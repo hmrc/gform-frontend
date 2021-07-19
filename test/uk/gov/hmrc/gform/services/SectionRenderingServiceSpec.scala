@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.services
 
 import cats.MonadError
+import cats.data.NonEmptyList
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import org.mockito.ArgumentMatchersSugar
@@ -39,6 +40,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.http.HeaderCarrier
@@ -226,6 +228,48 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     textFieldHtml.attr("class") shouldNot include("govuk-button--secondary")
   }
 
+  it should "render page with noPIITitle if defined in template" in new TestFixture {
+    import i18nSupport._
+
+    lazy val textField = mkFormComponent("someTextField", Value)
+
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List.empty
+        )
+      )
+    override lazy val formTemplate = buildFormTemplate(
+      destinationList,
+      List(
+        nonRepeatingPageSection(
+          title = "Some title",
+          noPIITitle = Some("Some title without PII"),
+          fields = List(textField)
+        )
+      )
+    )
+
+    val generatedHtml = testService
+      .renderSection(
+        Some(accessCode),
+        SectionNumber(0),
+        FormHandlerResult(ValidationResult.empty, EnvelopeWithMapping.empty),
+        formTemplate.copy(draftRetrievalMethod = NotPermitted),
+        envelopeId,
+        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
+        0,
+        Nil,
+        Nil,
+        authContext,
+        NotChecked,
+        FastForward.Yes,
+        formModelOptics
+      )
+
+    Jsoup.parse(generatedHtml.body).title() shouldBe "Some title without PII - AAA999 dev test template - GOV.UK"
+  }
+
   "renderDeclarationSection" should "render Declaration page with Button with text 'ContinueLabel'" in new TestFixture {
 
     override lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
@@ -250,6 +294,58 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     val declarationPageButton = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button").first
 
     declarationPageButton.text shouldBe "ContinueLabel"
+  }
+
+  it should "render Declaration page with noPIITitle when defined" in new TestFixture {
+
+    import i18nSupport._
+
+    override lazy val formTemplate = buildFormTemplate(
+      DestinationList(NonEmptyList.of(hmrcDms), ackSection, mkDecSection(Some("Some noPII dec section title"))),
+      List(
+        nonRepeatingPageSection(
+          title = "Some title",
+          fields = List(mkFormComponent("someTextField", Value))
+        )
+      )
+    )
+
+    override lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
+      .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
+        cache.variadicFormData[SectionSelectorType.WithDeclaration],
+        cache,
+        mockRecalculation
+      )
+      .futureValue
+
+    val generatedHtml = testService
+      .renderDeclarationSection(
+        Some(accessCode),
+        form,
+        formTemplate,
+        formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton[DataExpanded]],
+        authContext,
+        ValidationResult.empty,
+        formModelOptics
+      )
+
+    Jsoup.parse(generatedHtml.body).title() shouldBe "Some noPII dec section title - AAA999 dev test template - GOV.UK"
+  }
+
+  "renderEnrolmentSection" should "render Enrolment page with noPIITitle when defined" in new TestFixture {
+    import i18nSupport._
+
+    val generatedHtml = testService.renderEnrolmentSection(
+      formTemplate,
+      Singleton[DataExpanded](enrolmentSection.toSection.page.asInstanceOf[Page[DataExpanded]]),
+      authContext,
+      formModelOptics,
+      List.empty,
+      ValidationResult.empty
+    )
+    Jsoup
+      .parse(generatedHtml.body)
+      .title() shouldBe "Some noPII enrolment section title - AAA999 dev test template - GOV.UK"
   }
 
   /* "SectionRenderingService" should "set a field to hidden if is onlyShowOnSummary is set to true" in {

@@ -34,6 +34,7 @@ trait FormTemplateSample {
       NonRepeatingPage(
         Page[Basic](
           title = toSmartString("Page1"),
+          noPIITitle = None,
           description = None,
           shortName = None,
           fields = List(
@@ -92,6 +93,7 @@ trait FormTemplateSample {
       ),
       declarationSection = DeclarationSection(
         title = toSmartString("Declaration Page"),
+        noPIITitle = None,
         description = None,
         shortName = None,
         continueLabel = None,

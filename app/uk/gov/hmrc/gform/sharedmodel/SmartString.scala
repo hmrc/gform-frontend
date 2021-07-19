@@ -20,6 +20,8 @@ import play.api.libs.json.{ Format, Json }
 import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId }
 
+import java.text.MessageFormat
+
 case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
   def replace(toReplace: String, replaceWith: String): SmartString =
     copy(localised = localised.replace(toReplace, replaceWith))
@@ -29,6 +31,11 @@ case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
   def isEmpty(implicit l: LangADT): Boolean = rawValue.isEmpty
 
   def expand(index: Int, baseIds: List[FormComponentId]) = ExpandUtils.expandSmartString(this, index, baseIds)
+
+  def valueWithoutInterpolations(implicit l: LangADT): String = {
+    import scala.collection.JavaConverters._
+    new MessageFormat(rawValue(l)).format(interpolations.map(_ => "").asJava.toArray)
+  }
 }
 
 object SmartString {

@@ -138,6 +138,17 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       toSmartString("declaration section"),
       None,
       None,
+      None,
+      Some(toSmartString("ContinueLabel")),
+      decFormComponent
+    )
+
+  def mkDecSection(noPIITitle: Option[String] = None) =
+    DeclarationSection(
+      toSmartString("declaration section"),
+      noPIITitle.map(toSmartString),
+      None,
+      None,
       Some(toSmartString("ContinueLabel")),
       decFormComponent
     )
@@ -174,10 +185,19 @@ trait ExampleAuthConfig {
 
   def serviceId = ServiceId("TestServiceId")
 
+  def enrolmentSection = EnrolmentSection(
+    toSmartString("Some enrolment section title"),
+    Some(toSmartString("Some noPII enrolment section title")),
+    None,
+    List.empty,
+    NonEmptyList.one(IdentifierRecipe("key", FormCtx(FormComponentId("field")))),
+    List.empty
+  )
+
   def authConfig =
     HmrcAgentWithEnrolmentModule(
       AllowAnyAgentAffinityUser,
-      EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck))
+      EnrolmentAuth(serviceId, DoCheck(Always, RequireEnrolment(enrolmentSection, NoAction), NoCheck))
     )
 }
 
@@ -508,6 +528,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
   def nonRepeatingPageSection(
     title: String = "About you",
+    noPIITitle: Option[String] = None,
     validators: Option[Validator] = None,
     fields: List[FormComponent] = List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`),
     includeIf: Option[IncludeIf] = None,
@@ -517,6 +538,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     Section.NonRepeatingPage(
       Page(
         toSmartString(title),
+        noPIITitle.map(toSmartString),
         None,
         None,
         None,
@@ -564,6 +586,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     Section.RepeatingPage(
       Page(
         toSmartString(title),
+        None,
         None,
         None,
         None,
@@ -618,6 +641,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     presentationHint: Option[PresentationHint] = None
   ): Page[T] = Page[T](
     toSmartString(title),
+    None,
     None,
     None,
     None,
@@ -692,6 +716,7 @@ trait ExampleFormTemplate {
   def declarationSection =
     DeclarationSection(
       toSmartString("Declaration"),
+      None,
       None,
       None,
       Some(toSmartString("ContinueLabel")),

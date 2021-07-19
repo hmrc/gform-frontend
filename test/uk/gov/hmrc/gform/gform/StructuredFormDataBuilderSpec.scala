@@ -865,6 +865,7 @@ class StructuredFormDataBuilderSpec
             None,
             None,
             None,
+            None,
             List(createNonGroupField("decField"))
           )
         )
@@ -1064,6 +1065,7 @@ class StructuredFormDataBuilderSpec
         None,
         None,
         None,
+        None,
         fields.toList,
         None,
         None,
@@ -1074,7 +1076,7 @@ class StructuredFormDataBuilderSpec
 
   def createRepeatingSection(repeats: Int)(fields: FormComponent*): Section =
     Section.RepeatingPage(
-      Page(toSmartString("repeating-page"), None, None, None, None, None, fields.toList, None, None, None, None),
+      Page(toSmartString("repeating-page"), None, None, None, None, None, None, fields.toList, None, None, None, None),
       Constant(repeats.toString)
     )
 

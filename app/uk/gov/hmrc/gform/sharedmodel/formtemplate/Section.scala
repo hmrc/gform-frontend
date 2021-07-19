@@ -93,6 +93,7 @@ object Section {
 
 case class DeclarationSection(
   title: SmartString,
+  noPIITitle: Option[SmartString],
   description: Option[SmartString],
   shortName: Option[SmartString],
   continueLabel: Option[SmartString],
@@ -103,6 +104,7 @@ case class DeclarationSection(
   def toPage: Page[Basic] =
     Page(
       title = title,
+      noPIITitle = noPIITitle,
       description = description,
       shortName = shortName,
       progressIndicator = None,
@@ -136,6 +138,7 @@ case class AcknowledgementSection(
   def toPage: Page[Basic] =
     Page(
       title = title,
+      noPIITitle = None,
       description = description,
       shortName = shortName,
       progressIndicator = None,
@@ -161,6 +164,7 @@ object AcknowledgementSectionPdf {
 
 case class EnrolmentSection(
   title: SmartString,
+  noPIITitle: Option[SmartString],
   shortName: Option[SmartString],
   fields: List[FormComponent],
   identifiers: NonEmptyList[IdentifierRecipe],
@@ -171,6 +175,7 @@ case class EnrolmentSection(
   def toPage: Page[Basic] =
     Page(
       title = title,
+      noPIITitle = noPIITitle,
       description = None,
       shortName = shortName,
       progressIndicator = None,
