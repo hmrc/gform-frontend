@@ -229,7 +229,6 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
   }
 
   it should "render page with noPIITitle if defined in template" in new TestFixture {
-    import i18nSupport._
 
     lazy val textField = mkFormComponent("someTextField", Value)
 
@@ -298,8 +297,6 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
 
   it should "render Declaration page with noPIITitle when defined" in new TestFixture {
 
-    import i18nSupport._
-
     override lazy val formTemplate = buildFormTemplate(
       DestinationList(NonEmptyList.of(hmrcDms), ackSection, mkDecSection(Some("Some noPII dec section title"))),
       List(
@@ -333,7 +330,6 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
   }
 
   "renderEnrolmentSection" should "render Enrolment page with noPIITitle when defined" in new TestFixture {
-    import i18nSupport._
 
     val generatedHtml = testService.renderEnrolmentSection(
       formTemplate,
