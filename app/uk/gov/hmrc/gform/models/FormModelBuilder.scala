@@ -24,7 +24,7 @@ import play.api.i18n.Messages
 import scala.language.higherKinds
 import scala.util.matching.Regex
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
-import uk.gov.hmrc.gform.eval.{ BooleanExprEval, DateExprEval, EvaluationContext, ExpressionResult, FileIdsWithMapping, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ BooleanExprEval, BooleanExprResolver, DateExprEval, EvaluationContext, ExpressionResult, FileIdsWithMapping, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.gform.{ FormComponentUpdater, PageUpdater }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -65,14 +65,17 @@ object FormModelBuilder {
     formModel: FormModel[T],
     phase: Option[FormPhase]
   ): Boolean = {
+
+    def booleanExprResolver = BooleanExprResolver(loop)
+
     def compare(expr1: Expr, expr2: Expr, f: (ExpressionResult, ExpressionResult) => Boolean): Boolean = {
       val typeInfo1 = formModel.toFirstOperandTypeInfo(expr1)
       val typeInfo2 = formModel.toFirstOperandTypeInfo(expr2)
       val r = recalculationResult.evaluationResults
-        .evalExprCurrent(typeInfo1, recData, recalculationResult.evaluationContext)
+        .evalExprCurrent(typeInfo1, recData, booleanExprResolver, recalculationResult.evaluationContext)
         .applyTypeInfo(typeInfo1)
       val s = recalculationResult.evaluationResults
-        .evalExprCurrent(typeInfo2, recData, recalculationResult.evaluationContext)
+        .evalExprCurrent(typeInfo2, recData, booleanExprResolver, recalculationResult.evaluationContext)
         .applyTypeInfo(typeInfo2)
       f(r, s)
     }
@@ -88,6 +91,7 @@ object FormModelBuilder {
             formModel,
             recData.asInstanceOf[RecData[OutOfDate]],
             recalculationResult.evaluationContext,
+            booleanExprResolver,
             recalculationResult.evaluationResults
           )
       val exprResultLHS = evalFunc(dateExprLHS)
@@ -101,7 +105,7 @@ object FormModelBuilder {
     def matchRegex(formCtx: FormCtx, regex: Regex): Boolean = {
       val typeInfo1 = formModel.toFirstOperandTypeInfo(formCtx)
       val expressionResult = recalculationResult.evaluationResults
-        .evalExprCurrent(typeInfo1, recData, recalculationResult.evaluationContext)
+        .evalExprCurrent(typeInfo1, recData, booleanExprResolver, recalculationResult.evaluationContext)
         .applyTypeInfo(typeInfo1)
 
       expressionResult.matchRegex(regex)
@@ -121,7 +125,7 @@ object FormModelBuilder {
       case IsTrue                              => true
       case IsFalse                             => false
       case Contains(field1, field2)            => compare(field1, field2, _ contains _)
-      case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, formModel, recalculationResult, recData)
+      case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, formModel, recalculationResult, booleanExprResolver, recData)
       case MatchRegex(formCtx, regex)          => matchRegex(formCtx, regex)
       case FormPhase(value)                    => phase.fold(false)(_.value == value)
     }
@@ -280,12 +284,13 @@ class FormModelBuilder[E, F[_]: Functor](
     phase: Option[FormPhase]
   )(implicit messages: Messages): FormModelVisibilityOptics[D] = {
     val evaluationResults = recalculationResult.evaluationResults
+    val dataOld = RecData(data).asInstanceOf[RecData[SourceOrigin.Current]]
     val visibilityFormModel: FormModel[Visibility] = formModel.filter[Visibility] { pageModel =>
       pageModel.getIncludeIf.fold(true) { includeIf =>
         FormModelBuilder.evalIncludeIf(
           includeIf,
           recalculationResult,
-          RecData(data).asInstanceOf[RecData[SourceOrigin.Current]],
+          dataOld,
           formModel,
           phase
         )
@@ -296,11 +301,21 @@ class FormModelBuilder[E, F[_]: Functor](
       case fc @ HasValueExpr(expr) if !fc.editable => (fc.id, visibilityFormModel.explicitTypedExpr(expr, fc.id))
     }
 
+    val booleanExprResolver = BooleanExprResolver(booleanExpr =>
+      FormModelBuilder.evalIncludeIf(
+        IncludeIf(booleanExpr),
+        recalculationResult,
+        dataOld,
+        visibilityFormModel,
+        phase
+      )
+    )
+
     val visibleVariadicData: VariadicFormData[SourceOrigin.Current] =
       visibleTypedExprs.foldMap { case (fcId, typeInfo) =>
         val expressionResult =
           evaluationResults
-            .evalExpr(typeInfo, RecData(data), recalculationResult.evaluationContext)
+            .evalExpr(typeInfo, RecData(data), booleanExprResolver, recalculationResult.evaluationContext)
             .applyTypeInfo(typeInfo)
 
         FormModelBuilder.toCurrentData(fcId.modelComponentId, expressionResult)

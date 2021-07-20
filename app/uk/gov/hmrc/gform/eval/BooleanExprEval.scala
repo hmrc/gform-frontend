@@ -98,7 +98,9 @@ class BooleanExprEval[F[_]: Monad] {
         val recalculationResult = formModelVisibilityOptics.recalculationResult
         val recData = formModelVisibilityOptics.recData
         // TODO this doesn't work for BooleanExpr from ValidIf yet (they will need to be evaluated in Recalculation.scala).
-        BooleanExprEval.evalInExpr(in, formModel, recalculationResult, recData).pure[F]
+        BooleanExprEval
+          .evalInExpr(in, formModel, recalculationResult, formModelVisibilityOptics.booleanExprResolver, recData)
+          .pure[F]
 
       case MatchRegex(formCtx, regex) =>
         val expressionResult: ExpressionResult =
@@ -122,6 +124,7 @@ class BooleanExprEval[F[_]: Monad] {
       formModelVisibilityOptics.formModel,
       formModelVisibilityOptics.recData.asInstanceOf[RecData[OutOfDate]],
       formModelVisibilityOptics.recalculationResult.evaluationContext,
+      formModelVisibilityOptics.booleanExprResolver,
       formModelVisibilityOptics.evaluationResults
     )
     val l = evalFunc(left)
@@ -139,11 +142,12 @@ object BooleanExprEval {
     in: In,
     formModel: FormModel[T],
     recalculationResult: RecalculationResult,
+    booleanExprResolver: BooleanExprResolver,
     recData: RecData[SourceOrigin.Current]
   ): Boolean = {
     val typeInfo = formModel.toFirstOperandTypeInfo(in.value)
     val expressionResult = recalculationResult.evaluationResults
-      .evalExprCurrent(typeInfo, recData, recalculationResult.evaluationContext)
+      .evalExprCurrent(typeInfo, recData, booleanExprResolver, recalculationResult.evaluationContext)
     val maybeBoolean =
       recalculationResult.booleanExprCache.get(
         in.dataSource,

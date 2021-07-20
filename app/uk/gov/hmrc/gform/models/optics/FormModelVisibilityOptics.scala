@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.models.optics
 
-import uk.gov.hmrc.gform.eval.{ EvaluationResults, ExpressionResultWithTypeInfo, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationResults, ExpressionResultWithTypeInfo, TypeInfo }
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -54,10 +54,12 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
     evalAndApplyTypeInfo(typeInfo)
   }
 
+  val booleanExprResolver = BooleanExprResolver(booleanExpr => evalIncludeIfExpr(IncludeIf(booleanExpr), None))
+
   def evalAndApplyTypeInfo(typeInfo: TypeInfo): ExpressionResultWithTypeInfo =
     ExpressionResultWithTypeInfo(
       recalculationResult.evaluationResults
-        .evalExprCurrent(typeInfo, recData, recalculationResult.evaluationContext)
+        .evalExprCurrent(typeInfo, recData, booleanExprResolver, recalculationResult.evaluationContext)
         .applyTypeInfo(typeInfo),
       typeInfo
     )

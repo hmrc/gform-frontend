@@ -33,7 +33,9 @@ import java.time.LocalDate
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
-  private val evalContext: EvaluationContext = new EvaluationContext(
+  private val booleanExprResolver = BooleanExprResolver(_ => false)
+
+  override val evaluationContext: EvaluationContext = new EvaluationContext(
     formTemplateId,
     submissionRef,
     None,
@@ -115,7 +117,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
     )
 
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
-      EvaluationResults.empty.evalExpr(typeInfo, recData, evalContext) shouldBe expectedResult
+      EvaluationResults.empty
+        .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
 
@@ -175,7 +178,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>
-      EvaluationResults.empty.evalExpr(typeInfo, recData, evalContext) shouldBe expectedResult
+      EvaluationResults.empty
+        .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
 
@@ -199,7 +203,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>
-      EvaluationResults.empty.evalExpr(typeInfo, recData, evalContext) shouldBe expectedResult
+      EvaluationResults.empty
+        .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
 
@@ -329,7 +334,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
     )
 
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
-      EvaluationResults.empty.evalExpr(typeInfo, recData, evalContext) shouldBe expectedResult
+      EvaluationResults.empty
+        .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
 
@@ -455,7 +461,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
-      EvaluationResults.empty.evalExpr(typeInfo, recData, evalContext) shouldBe expectedResult
+      EvaluationResults.empty
+        .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
 }

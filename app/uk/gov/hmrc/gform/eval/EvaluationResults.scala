@@ -130,6 +130,7 @@ case class EvaluationResults(
   private def evalNumber(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
 
@@ -142,9 +143,11 @@ case class EvaluationResults(
       )
 
     def loop(expr: Expr): ExpressionResult = expr match {
-      case Add(field1: Expr, field2: Expr)            => loop(field1) + loop(field2)
-      case Multiply(field1: Expr, field2: Expr)       => loop(field1) * loop(field2)
-      case Subtraction(field1: Expr, field2: Expr)    => loop(field1) - loop(field2)
+      case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
+      case Multiply(field1: Expr, field2: Expr)    => loop(field1) * loop(field2)
+      case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
+      case IfElse(cond, field1: Expr, field2: Expr) =>
+        if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr)           => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId)             => get(ctx, recData, fromVariadicValue, evaluationContext.fileIdsWithMapping)
       case Sum(FormCtx(formComponentId))              => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
@@ -172,6 +175,7 @@ case class EvaluationResults(
   private def evalString(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
 
@@ -187,7 +191,9 @@ case class EvaluationResults(
       case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
       case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
       case Subtraction(field1: Expr, field2: Expr) => unsupportedOperation("String")(expr)
-      case Else(field1: Expr, field2: Expr)        => loop(field1) orElse loop(field2)
+      case IfElse(cond, field1: Expr, field2: Expr) =>
+        if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
+      case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId: FormComponentId)
           if evaluationContext.addressLookup(formComponentId.baseComponentId) || evaluationContext
             .overseasAddressLookup(formComponentId.baseComponentId) =>
@@ -254,11 +260,13 @@ case class EvaluationResults(
         )
       case Period(_, _) =>
         StringResult(
-          evalPeriod(typeInfo, recData, evaluationContext).stringRepresentation(typeInfo, evaluationContext.messages)
+          evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+            .stringRepresentation(typeInfo, evaluationContext.messages)
         )
       case PeriodExt(_, _) =>
         StringResult(
-          evalPeriod(typeInfo, recData, evaluationContext).stringRepresentation(typeInfo, evaluationContext.messages)
+          evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+            .stringRepresentation(typeInfo, evaluationContext.messages)
         )
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
@@ -286,33 +294,34 @@ case class EvaluationResults(
   private def evalDateString(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
 
     def loop(expr: Expr): ExpressionResult = expr match {
-      case ctx @ FormCtx(_) =>
-        evalDateExpr(recData, evaluationContext, this)(DateFormCtxVar(ctx))
-      case Else(field1: Expr, field2: Expr) =>
-        loop(field1) orElse loop(field2)
-      case DateCtx(dateExpr) =>
-        evalDateExpr(recData, evaluationContext, this)(dateExpr)
-      case _ => ExpressionResult.empty
+      case ctx @ FormCtx(_) => evalDateExpr(recData, evaluationContext, this)(DateFormCtxVar(ctx))
+      case IfElse(cond, field1: Expr, field2: Expr) =>
+        if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
+      case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
+      case DateCtx(dateExpr)                => evalDateExpr(recData, evaluationContext, this)(dateExpr)
+      case _                                => ExpressionResult.empty
     }
 
-    loop(typeInfo.expr) orElse evalString(typeInfo, recData, evaluationContext)
+    loop(typeInfo.expr) orElse evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
   }
 
   private def evalPeriod(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
     def loop(expr: Expr): ExpressionResult = expr match {
-      case Add(field1: Expr, field2: Expr) =>
-        loop(field1) + loop(field2)
-      case Else(field1: Expr, field2: Expr) =>
-        loop(field1) orElse loop(field2)
-      case PeriodValue(value) => PeriodResult(java.time.Period.parse(value))
+      case Add(field1: Expr, field2: Expr) => loop(field1) + loop(field2)
+      case IfElse(cond, field1: Expr, field2: Expr) =>
+        if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
+      case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
+      case PeriodValue(value)               => PeriodResult(java.time.Period.parse(value))
       case Period(DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
         periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2)
       case PeriodExt(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)), prop) =>
@@ -338,6 +347,7 @@ case class EvaluationResults(
                 evalPeriod(
                   typeInfo.copy(expr = p),
                   recData,
+                  booleanExprResolver,
                   evaluationContext
                 )
               )
@@ -377,26 +387,29 @@ case class EvaluationResults(
   def evalExprCurrent(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.Current],
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
-  ): ExpressionResult = evalExpr(typeInfo, recData.asInstanceOf[RecData[SourceOrigin.OutOfDate]], evaluationContext)
+  ): ExpressionResult =
+    evalExpr(typeInfo, recData.asInstanceOf[RecData[SourceOrigin.OutOfDate]], booleanExprResolver, evaluationContext)
 
   def evalExpr(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
+    booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   ): ExpressionResult =
     typeInfo.staticTypeData.exprType.fold { number =>
-      evalNumber(typeInfo, recData, evaluationContext)
+      evalNumber(typeInfo, recData, booleanExprResolver, evaluationContext)
     } { string =>
-      evalString(typeInfo, recData, evaluationContext)
+      evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
     } { choiceSelection =>
-      evalString(typeInfo, recData, evaluationContext)
+      evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
     } { dateString =>
-      evalDateString(typeInfo, recData, evaluationContext)
+      evalDateString(typeInfo, recData, booleanExprResolver, evaluationContext)
     } { addressString =>
-      evalString(typeInfo, recData, evaluationContext)
+      evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
     } { period =>
-      evalPeriod(typeInfo, recData, evaluationContext)
+      evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
     } { illegal =>
       ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
     }
