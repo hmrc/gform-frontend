@@ -183,10 +183,8 @@ class Recalculation[F[_]: Monad, E](
     val rr =
       new RecalculationResolver(
         formModel,
-        booleanExpr,
         evaluationResults,
         recData,
-        retrievals,
         booleanExprResolver,
         evaluationContext
       )
@@ -225,10 +223,8 @@ class Recalculation[F[_]: Monad, E](
     val rr =
       new RecalculationResolver(
         formModel,
-        booleanExpr,
         evaluationResults,
         recData,
-        retrievals,
         booleanExprResolver,
         evaluationContext
       )

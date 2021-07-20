@@ -54,7 +54,7 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
     evalAndApplyTypeInfo(typeInfo)
   }
 
-  def booleanExprResolver = BooleanExprResolver(booleanExpr => evalIncludeIfExpr(IncludeIf(booleanExpr), None))
+  val booleanExprResolver = BooleanExprResolver(booleanExpr => evalIncludeIfExpr(IncludeIf(booleanExpr), None))
 
   def evalAndApplyTypeInfo(typeInfo: TypeInfo): ExpressionResultWithTypeInfo =
     ExpressionResultWithTypeInfo(

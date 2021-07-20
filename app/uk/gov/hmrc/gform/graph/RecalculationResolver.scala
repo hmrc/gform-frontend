@@ -22,7 +22,6 @@ import cats.data.StateT
 
 import scala.language.higherKinds
 import scala.util.matching.Regex
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, DateExprEval, EvaluationContext, EvaluationResults, ExpressionResult, TypeInfo }
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.models.{ FormModel, Interim }
@@ -31,10 +30,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class RecalculationResolver[F[_]: Applicative](
   formModel: FormModel[Interim],
-  booleanExpr: BooleanExpr,
   evaluationResults: EvaluationResults,
   recData: RecData[SourceOrigin.OutOfDate],
-  retrievals: MaterialisedRetrievals,
   booleanExprResolver: BooleanExprResolver,
   evaluationContext: EvaluationContext
 ) {
