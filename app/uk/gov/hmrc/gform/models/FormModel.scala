@@ -161,7 +161,7 @@ case class FormModel[A <: PageMode](
     toStaticTypeData(fcId).fold(illegal)(staticTypeData => TypeInfo(expr, staticTypeData))
   }
 
-  def pageLookup: Map[FormComponentId, PageModel[A]] =
+  val pageLookup: Map[FormComponentId, PageModel[A]] =
     pages.foldLeft(Map.empty[FormComponentId, PageModel[A]])(_ ++ _.pageLookup)
 
   def find(modelComponentId: ModelComponentId): Option[FormComponent] =
