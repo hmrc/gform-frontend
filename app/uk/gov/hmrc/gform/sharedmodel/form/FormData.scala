@@ -24,6 +24,8 @@ case class FormData(fields: List[FormField]) {
   val toData: Map[ModelComponentId, String] =
     fields.map(x => x.id -> x.value).toMap
 
+  val valueBytesSize: Int = fields.map(f => f.value.getBytes("UTF-8").length).sum
+
   def find(id: ModelComponentId): Option[String] = toData.get(id)
 
   def ++(other: FormData): FormData =
