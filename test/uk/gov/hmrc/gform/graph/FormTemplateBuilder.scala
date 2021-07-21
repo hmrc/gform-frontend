@@ -55,6 +55,7 @@ object FormTemplateBuilder {
 
   def mkAddToListSection(pages: Page[Basic]*): Section.AddToList = Section.AddToList(
     toSmartString("Pet owner title"),
+    Some(toSmartString("Pet owner no PII title")),
     toSmartString("Pet owner description"),
     toSmartString("Pet owner shortName"),
     toSmartString("Pet owner summaryName"),
@@ -70,6 +71,7 @@ object FormTemplateBuilder {
   def mkAddToListSection(addAnotherQuestionName: String, formComponents: List[FormComponent]*): Section.AddToList =
     Section.AddToList(
       toSmartString("Pet owner title"),
+      Some(toSmartString("Pet owner no PII title")),
       toSmartString("Pet owner description"),
       toSmartString("Pet owner shortName"),
       toSmartString("Pet owner summaryName"),

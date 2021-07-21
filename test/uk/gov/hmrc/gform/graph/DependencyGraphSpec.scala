@@ -52,6 +52,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
   )
   private val emptyAddToList: Section.AddToList = Section.AddToList(
     toSmartString(""),
+    Some(toSmartString("")),
     toSmartString(""),
     toSmartString(""),
     toSmartString(""),

@@ -31,7 +31,8 @@
 @import uk.gov.hmrc.gform.commons.MarkDownUtil._
 
 @(
-    repeater: Repeater[DataExpanded],
+    title: String,
+    noPIITitle: String,
     bracket: Bracket.AddToList[DataExpanded],
     formTemplate: FormTemplate,
     recordTable: NonEmptyList[AddToListSummaryRecord],
@@ -56,7 +57,7 @@
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
 @govukNotificationBanner = @{new govukNotificationBanner()}
-@heading = @{repeater.title.value}
+@heading = @{title}
 
 @backLink = @{
   new BackLink(attributes = Map("id" -> "backButton",
@@ -69,7 +70,7 @@
 }
 
 @main_template(
-  title = heading,
+  title = noPIITitle,
   serviceName = formTemplate.formName.value,
   containsErrors = pageLevelError.hasErrors,
   developmentPhase = formTemplate.developmentPhase,
