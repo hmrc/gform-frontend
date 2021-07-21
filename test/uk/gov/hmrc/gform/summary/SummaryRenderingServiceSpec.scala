@@ -58,7 +58,7 @@ class SummaryRenderingServiceSpec
     with IdiomaticMockito with HtmlSupport {
 
   override implicit val patienceConfig =
-    PatienceConfig(timeout = scaled(Span(10000, Millis)), interval = scaled(Span(15, Millis)))
+    PatienceConfig(timeout = scaled(Span(15000, Millis)), interval = scaled(Span(15, Millis)))
 
   trait TestFixture {
     implicit val request = FakeRequest()

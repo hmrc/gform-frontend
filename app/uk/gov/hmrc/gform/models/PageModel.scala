@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, FormComponent, 
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedTitle)
+  def noPIITitle: Option[SmartString] = fold(_.page.noPIITitle)(_.expandedNoPIITitle)
 
   def isTerminationPage = fold(_.page.isTerminationPage)(_ => false)
 
@@ -58,6 +59,7 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
 case class Singleton[A <: PageMode](page: Page[A]) extends PageModel[A]
 case class Repeater[A <: PageMode](
   expandedTitle: SmartString,
+  expandedNoPIITitle: Option[SmartString],
   expandedDescription: SmartString,
   expandedShortName: SmartString,
   expandedSummaryName: SmartString,

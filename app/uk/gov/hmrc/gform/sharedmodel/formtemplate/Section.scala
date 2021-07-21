@@ -54,6 +54,7 @@ object Section {
 
   case class AddToList(
     title: SmartString,
+    noPIITitle: Option[SmartString],
     description: SmartString,
     shortName: SmartString,
     summaryName: SmartString,

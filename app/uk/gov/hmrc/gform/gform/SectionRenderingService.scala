@@ -218,7 +218,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
 
     html.form.addToList(
-      repeater,
+      repeater.title.value(),
+      repeater.noPIITitle.fold(repeater.title.valueWithoutInterpolations)(_.value()),
       bracket,
       formTemplate,
       recordTable,

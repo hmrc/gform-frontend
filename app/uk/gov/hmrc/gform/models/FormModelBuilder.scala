@@ -340,6 +340,7 @@ class FormModelBuilder[E, F[_]: Functor](
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds).updatedWithId
     Repeater[T](
       expand(s.title),
+      s.noPIITitle.map(expand),
       expand(s.description),
       expand(s.shortName),
       expand(s.summaryName),
