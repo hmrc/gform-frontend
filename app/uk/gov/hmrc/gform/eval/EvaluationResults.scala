@@ -164,7 +164,7 @@ case class EvaluationResults(
       case LangCtx                                    => unsupportedOperation("Number")(expr)
       case DateCtx(_)                                 => unsupportedOperation("Number")(expr)
       case Period(_, _)                               => unsupportedOperation("Number")(expr)
-      case PeriodExt(_, _)                            => unsupportedOperation("Number")(expr)
+      case PeriodExt(_, _)                            => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case PeriodValue(_)                             => unsupportedOperation("Number")(expr)
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
     }
