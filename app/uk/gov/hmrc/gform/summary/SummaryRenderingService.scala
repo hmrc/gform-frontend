@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import java.time.format.DateTimeFormatter
 
 import cats.syntax.eq._
+import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Call, Request }
 import play.twirl.api.{ Html, HtmlFormat }
@@ -58,6 +59,8 @@ class SummaryRenderingService(
   frontendAppConfig: FrontendAppConfig
 ) {
 
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
+
   def createHtmlForPdf[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
@@ -76,7 +79,7 @@ class SummaryRenderingService(
       summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics)
     } yield {
       val submissionDetailsString = SummaryRenderingService.addSubmissionDetailsToDocument(submissionDetails, cache)
-      PdfHtml(
+      val pdfHtml = PdfHtml(
         HtmlSanitiser
           .sanitiseHtmlForPDF(
             summaryHtml,
@@ -86,6 +89,10 @@ class SummaryRenderingService(
             }
           )
       )
+      logger.info(
+        s"Pdf HTML size is ${pdfHtml.html.getBytes("UTF-8").length}. Form value size is ${cache.form.formData.valueBytesSize}"
+      )
+      pdfHtml
     }
 
   def createHtmlForPrintPdf(
