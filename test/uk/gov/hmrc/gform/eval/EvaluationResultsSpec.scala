@@ -139,7 +139,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             (toModelComponentId("dateFieldId1"), VariadicValue.One("11 January 1970"))
           )
         ),
-        StringResult("11 January 1970"),
+        DateResult(LocalDate.of(1970, 1, 11)),
         "DateCtx expression converted to type 'string'"
       ),
       (

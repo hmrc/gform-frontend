@@ -22,6 +22,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
 
+  val beUpdater = new BooleanExprUpdater(index, baseIds)
+
   private def expandFcId(fcId: FormComponentId): FormComponentId =
     if (baseIds.contains(fcId) && index =!= 0) FormComponentId(index + "_" + fcId.value) else fcId
 
@@ -30,6 +32,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case Multiply(field1, field2)             => Multiply(expandExpr(field1), expandExpr(field2))
     case Subtraction(field1, field2)          => Subtraction(expandExpr(field1), expandExpr(field2))
     case Else(field1, field2)                 => Else(expandExpr(field1), expandExpr(field2))
+    case IfElse(cond, field1, field2)         => IfElse(beUpdater(cond), expandExpr(field1), expandExpr(field2))
     case FormCtx(formComponentId)             => FormCtx(expandFcId(formComponentId))
     case Sum(expr)                            => Sum(expandExpr(expr))
     case DateCtx(dateExpr)                    => DateCtx(expandDateExpr(dateExpr))
