@@ -253,21 +253,9 @@ case class EvaluationResults(
 
           }
         nonEmpty(StringResult(link.url))
-      case DateCtx(dateExpr) =>
-        StringResult(
-          evalDateExpr(recData, evaluationContext, this)(dateExpr)
-            .stringRepresentation(typeInfo, evaluationContext.messages)
-        )
-      case Period(_, _) =>
-        StringResult(
-          evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-            .stringRepresentation(typeInfo, evaluationContext.messages)
-        )
-      case PeriodExt(_, _) =>
-        StringResult(
-          evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-            .stringRepresentation(typeInfo, evaluationContext.messages)
-        )
+      case DateCtx(dateExpr) => evalDateExpr(recData, evaluationContext, this)(dateExpr)
+      case Period(_, _)      => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodExt(_, _)   => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
           val atomic: ModelComponentId.Atomic =

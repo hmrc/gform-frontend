@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.gform.eval
 
+import munit.FunSuite
 import play.api.i18n.Messages
 import play.api.test.Helpers
 
 import java.time.LocalDate
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, StringResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateValueExpr, TodayDateExprValue }
 
-class ExpressionResultSpec extends Spec {
+class ExpressionResultSpec extends FunSuite {
 
   private val messages: Messages = Helpers.stubMessages(
     Helpers.stubMessagesApi(
@@ -36,13 +36,25 @@ class ExpressionResultSpec extends Spec {
     )
   )
 
-  "stringRepresentation" should "format DateResult as 'dd MMMM yyyy'" in {
+  test("stringRepresentation should format DateResult as 'dd MMMM yyyy'") {
     val dateResult = DateResult(LocalDate.of(1970, 1, 1))
     val result = dateResult.stringRepresentation(
       TypeInfo(DateCtx(DateValueExpr(TodayDateExprValue)), StaticTypeData(ExprType.dateString, None)),
       messages
     )
 
-    result shouldBe "1 January 1970"
+    assertEquals(result, "1 January 1970")
+  }
+
+  test("identical need return true for Number(222.00) and Constant(222)") {
+    val stringResult = StringResult("222")
+
+    val numberResult = NumberResult(222.00)
+    val strNum = stringResult.identical(numberResult)
+    val numStr = numberResult.identical(stringResult)
+
+    assertEquals(numberResult.value.toString, "222.0")
+    assert(strNum)
+    assert(numStr)
   }
 }

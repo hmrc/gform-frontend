@@ -111,10 +111,12 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: Empty.type  => er.isEmpty
     case t: NumberResult =>
       er.ifNumberResult(_ === t.value) ||
-        er.ifStringResult(_ === t.value.toString)
+        er.ifStringResult(_ === t.value.toString) ||
+        er.ifStringResult(_ === t.value.underlying.stripTrailingZeros.toString)
     case t: StringResult =>
       er.ifStringResult(_ === t.value) ||
-        er.ifNumberResult(_.toString === t.value)
+        er.ifNumberResult(_.toString === t.value) ||
+        er.ifNumberResult(_.underlying.stripTrailingZeros.toString === t.value)
     case t: OptionResult  => er.ifOptionResult(_.toSet.diff(t.value.toSet).isEmpty)
     case t: DateResult    => false
     case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths == _.toTotalMonths)
