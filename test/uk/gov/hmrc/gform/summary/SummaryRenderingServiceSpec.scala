@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.summary
 
 import cats.MonadError
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.concurrent.ScalaFutures
@@ -39,9 +38,10 @@ import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, FormComponent, FormCtx, FormPhase, FormTemplate, InvisibleInSummary, InvisiblePageTitle, Text, TextConstraint, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormPhase
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormTemplate, InvisibleInSummary, InvisiblePageTitle, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ExampleData, LangADT, PdfHtml, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
@@ -73,11 +73,6 @@ class SummaryRenderingServiceSpec
     lazy val formTemplate: FormTemplate = buildFormTemplate
     lazy val addToListQuestionComponent = addToListQuestion("addToListQuestion")
     lazy val page1Field = buildFormComponent("page1Field", Value)
-    lazy val page1DerivedField = buildFormComponent(
-      "page1DerivedField",
-      Text(TextConstraint.default, Add(FormCtx(page1Field.id), Constant("abc"))),
-      None
-    ).copy(derived = true)
     lazy val page2Field = buildFormComponent("page2Field", Value)
 
     val submissionRef = SubmissionRef("some-submission-ref")
@@ -290,45 +285,6 @@ class SummaryRenderingServiceSpec
         val pageButton = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button").first
 
         pageButton.text shouldBe "Summary ContinueLabel"
-      }
-
-      "hide view link for derived fields" in new TestFixture {
-
-        override lazy val formTemplate: FormTemplate = buildFormTemplate(
-          destinationList,
-          List(
-            nonRepeatingPageSection(
-              title = "Some page title",
-              fields = List(page1Field, page1DerivedField),
-              presentationHint = None
-            )
-          )
-        )
-        override lazy val form: Form =
-          buildForm(
-            FormData(
-              List(
-                FormField(page1Field.modelComponentId, "page1Field-value"),
-                FormField(page1DerivedField.modelComponentId, "page1Field-value abc")
-              )
-            )
-          )
-        override lazy val validationResult: ValidationResult = new ValidationResult(
-          Map(
-            page1Field.id        -> FieldOk(page1Field, "page1Field-value"),
-            page1DerivedField.id -> FieldOk(page1Field, "page1Field-value abc")
-          ),
-          None
-        )
-
-        val generatedHtml = summaryRenderingService
-          .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForDms, formModelOptics)
-          .futureValue
-
-        val document: Document = Jsoup.parse(generatedHtml.body)
-        document
-          .select("dd.govuk-summary-list__actions a[aria-label='summary.view page1DerivedField']")
-          .isEmpty shouldBe true
       }
     }
 
