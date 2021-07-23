@@ -278,7 +278,7 @@ object FormComponentSummaryRenderer {
         keyClasses,
         "",
         "",
-        if (fieldValue.onlyShowOnSummary || fieldValue.derived)
+        if (fieldValue.onlyShowOnSummary)
           Nil
         else
           List(
@@ -345,7 +345,7 @@ object FormComponentSummaryRenderer {
         keyClasses,
         "",
         "",
-        if (fieldValue.onlyShowOnSummary || fieldValue.derived)
+        if (fieldValue.onlyShowOnSummary)
           Nil
         else {
           val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
@@ -413,7 +413,7 @@ object FormComponentSummaryRenderer {
         keyClasses,
         "",
         "",
-        if (fieldValue.onlyShowOnSummary || fieldValue.derived)
+        if (fieldValue.onlyShowOnSummary)
           Nil
         else {
           val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
@@ -484,7 +484,7 @@ object FormComponentSummaryRenderer {
         keyClasses,
         "",
         "",
-        if (fieldValue.onlyShowOnSummary || fieldValue.derived)
+        if (fieldValue.onlyShowOnSummary)
           Nil
         else {
           val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
@@ -554,7 +554,7 @@ object FormComponentSummaryRenderer {
         keyClasses,
         "",
         "",
-        if (fieldValue.onlyShowOnSummary || fieldValue.derived)
+        if (fieldValue.onlyShowOnSummary)
           Nil
         else {
           val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
@@ -612,7 +612,7 @@ object FormComponentSummaryRenderer {
         keyClasses,
         "",
         "",
-        if (fieldValue.onlyShowOnSummary || fieldValue.derived)
+        if (fieldValue.onlyShowOnSummary)
           Nil
         else {
           val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
@@ -675,7 +675,7 @@ object FormComponentSummaryRenderer {
         keyClasses,
         "",
         "",
-        if (formComponent.onlyShowOnSummary || formComponent.derived)
+        if (formComponent.onlyShowOnSummary)
           Nil
         else {
           val changeOrViewLabel = if (formComponent.editable) messages("summary.change") else messages("summary.view")
@@ -738,7 +738,7 @@ object FormComponentSummaryRenderer {
         keyClasses,
         "",
         "",
-        if (formComponent.onlyShowOnSummary || formComponent.derived)
+        if (formComponent.onlyShowOnSummary)
           Nil
         else {
           val changeOrViewLabel = if (formComponent.editable) messages("summary.change") else messages("summary.view")
@@ -799,7 +799,7 @@ object FormComponentSummaryRenderer {
         keyClasses,
         "",
         "",
-        if (formComponent.onlyShowOnSummary || formComponent.derived)
+        if (formComponent.onlyShowOnSummary)
           Nil
         else {
           val changeOrViewLabel = if (formComponent.editable) messages("summary.change") else messages("summary.view")
@@ -873,7 +873,7 @@ object FormComponentSummaryRenderer {
         keyClasses,
         "",
         "",
-        if (fieldValue.onlyShowOnSummary || fieldValue.derived)
+        if (fieldValue.onlyShowOnSummary)
           Nil
         else {
           val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
@@ -938,7 +938,7 @@ object FormComponentSummaryRenderer {
         keyClasses,
         "",
         "",
-        if (formComponent.onlyShowOnSummary || formComponent.derived)
+        if (formComponent.onlyShowOnSummary)
           Nil
         else {
           val changeOrViewLabel = if (formComponent.editable) messages("summary.change") else messages("summary.view")
@@ -1029,7 +1029,7 @@ object FormComponentSummaryRenderer {
               keyClasses,
               "",
               "",
-              if (fieldValue.onlyShowOnSummary || fieldValue.derived)
+              if (fieldValue.onlyShowOnSummary)
                 Nil
               else {
                 val changeOrViewLabel =
@@ -1112,7 +1112,7 @@ object FormComponentSummaryRenderer {
               keyClasses,
               "",
               "",
-              if (formComponent.onlyShowOnSummary || formComponent.derived)
+              if (formComponent.onlyShowOnSummary)
                 Nil
               else {
                 val changeOrViewLabel =
