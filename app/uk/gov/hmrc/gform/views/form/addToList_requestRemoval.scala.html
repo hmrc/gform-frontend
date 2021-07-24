@@ -16,6 +16,7 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.{HasErrors, NoErrors}
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
@@ -39,12 +40,12 @@
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
 @govukErrorSummary = @{new govukErrorSummary()}
-@heading = @{messages("addToList.confirmRemoval", repeater.expandedDescription.value)}
+@heading = @{messages("addToList.confirmRemoval")}
 
 @backLink = @{
     new BackLink(
-    href = uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, sectionNumber).path,
-    content = new Text(messages("linkText.back")))
+        href = uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, sectionNumber).path,
+        content = new Text(messages("linkText.back")))
 }
 
 @main_template(
@@ -67,22 +68,27 @@
         @{new govukRadios(new govukErrorMessage(), new govukFieldset(), new govukHint(), new govukLabel())(Radios(
             fieldset = Some(Fieldset(
                 legend = Some(Legend(
-                        content = Text(heading),
-                        isPageHeading = true,
-                        classes = "govuk-label--l"
-                    )
-                )
+                    content = Text(heading),
+                    isPageHeading = true,
+                    classes = "govuk-label--l"
+                ))
+            )),
+            hint = Some(Hint(
+               classes = "unhintify",
+               content = HtmlContent(markDownParser(repeater.expandedDescription))
             )),
             errorMessage = fieldErrors.get("remove"),
             name = "remove",
-            items = List( RadioItem(
-                        value = Some("Yes"),
-                        content = Text(messages("generic.Yes"))
-                    ),  RadioItem(
-                        value = Some("No"),
-                        content = Text(messages("generic.No"))
-                    )
-            )
+            items = List(RadioItem(
+                value = Some("Yes"),
+                content = Text(messages("generic.Yes"))
+              ),
+              RadioItem(
+                value = Some("No"),
+                content = Text(messages("generic.No"))
+              )
+            ),
+            classes = "govuk-radios--inline"
         ))}
         @govukButton(Button(content = Text(messages("button.continue")),
                 inputType=Some("submit"),

@@ -38,7 +38,6 @@ import uk.gov.hmrc.govukfrontend.views.html.components.{ ErrorMessage, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -163,14 +162,8 @@ class FormAddToListController(
                                 index,
                                 addToListId
                               )
-                } yield {
-                  val itemDescription =
-                    formModelOptics.formModelRenderPageOptics.formModel
-                      .bracket(sectionNumber)
-                      .fold(_ => "")(_ => "")(_.iterations.toList(index).repeater.repeater.expandedDescription.value())
-                  redirect
-                    .flashing("success" -> request.messages.messages("generic.successfullyRemoved", itemDescription))
-                }
+                } yield redirect
+                  .flashing("success" -> request.messages.messages("generic.successfullyRemoved"))
               case "No" =>
                 Redirect(routes.FormController.formSection(formTemplateId, maybeAccessCode, sectionNumber)).pure[Future]
             }
