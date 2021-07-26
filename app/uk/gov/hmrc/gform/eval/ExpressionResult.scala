@@ -43,7 +43,7 @@ sealed trait ExpressionResult extends Product with Serializable {
   private def invalidMult(er: ExpressionResult): ExpressionResult =
     Invalid(s"Unsupported operation, cannot multiply $this and $er")
 
-  def +(er: ExpressionResult): ExpressionResult = er match {
+  def +(er: ExpressionResult)(implicit messages: Messages): ExpressionResult = er match {
     // format: off
     case t: Invalid     => t // TODO we are loosing 'this' which can potentionally be invalid as well
     case t: Hidden.type => this
@@ -51,10 +51,12 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: NumberResult =>
       fold[ExpressionResult](identity)(_ => t)(_ => t)(_ + t)(s => StringResult(s.value + t.value.toString))(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)
     case t: StringResult =>
-      fold[ExpressionResult](identity)(_ => t)(_ => t)(n => StringResult(n.value.toString + t.value))(_ + t)(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)
+      fold[ExpressionResult](identity)(_ => t)(_ => t)(n => StringResult(n.value.toString + t.value))(_ + t)(invalidAdd)(d => StringResult(d.asString + t.value))(invalidAdd)(p => StringResult(p.asString + t.value))
     case t: OptionResult  => Invalid(s"Unsupported operation, cannot add OptionResult and $t")
-    case t: DateResult    => Invalid(s"Unsupported operation, cannot add DateResult and $t")
-    case t: PeriodResult  => fold[ExpressionResult](identity)(_ => t)(_ => t)(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)(_ + t)
+    case t: DateResult    =>
+      fold[ExpressionResult](identity)(_ => t)(_ => t)(invalidAdd)(_ + StringResult(t.asString))(invalidAdd)(d => StringResult(d.asString + t.asString))(invalidAdd)(invalidAdd)
+    case t: PeriodResult  =>
+      fold[ExpressionResult](identity)(_ => t)(_ => t)(invalidAdd)(_ + StringResult(t.asString))(invalidAdd)(invalidAdd)(invalidAdd)(_ + t)
     case t: AddressResult => Invalid(s"Unsupported operation, cannot add AddressResult and $t")
     // format: on
   }
