@@ -134,6 +134,8 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
 
+    implicit val m = evaluationContext.messages
+
     def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
       variadicValue.fold(one => toNumberResult(one.value))(unsupportedMany("Number"))
 
@@ -178,6 +180,8 @@ case class EvaluationResults(
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
+
+    implicit val m = evaluationContext.messages
 
     def nonEmpty(stringResult: StringResult): ExpressionResult =
       if (stringResult.value.trim.isEmpty) Empty else stringResult
@@ -304,6 +308,9 @@ case class EvaluationResults(
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
+
+    implicit val m = evaluationContext.messages
+
     def loop(expr: Expr): ExpressionResult = expr match {
       case Add(field1: Expr, field2: Expr) => loop(field1) + loop(field2)
       case IfElse(cond, field1: Expr, field2: Expr) =>

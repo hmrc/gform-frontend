@@ -16,21 +16,23 @@
 
 package uk.gov.hmrc.gform.eval
 
+import java.time.Period
 import munit.FunSuite
 import play.api.i18n.Messages
 import play.api.test.Helpers
 
 import java.time.LocalDate
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, StringResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateValueExpr, TodayDateExprValue }
 
 class ExpressionResultSpec extends FunSuite {
 
-  private val messages: Messages = Helpers.stubMessages(
+  private implicit val messages: Messages = Helpers.stubMessages(
     Helpers.stubMessagesApi(
       Map(
         "en" -> Map(
-          "date.January" -> "January"
+          "date.January" -> "January",
+          "date.May"     -> "May"
         )
       )
     )
@@ -56,5 +58,33 @@ class ExpressionResultSpec extends FunSuite {
     assertEquals(numberResult.value.toString, "222.0")
     assert(strNum)
     assert(numStr)
+  }
+
+  test("StringResult and DateResult concatenation") {
+    val stringResult = StringResult("Foo")
+
+    val dateResult = DateResult(LocalDate.of(2020, 5, 23))
+
+    val stringDate = stringResult + dateResult
+    val dateString = dateResult + stringResult
+    val dateDate = dateResult + dateResult
+
+    assertEquals(stringDate, StringResult("Foo23 May 2020"))
+    assertEquals(dateString, StringResult("23 May 2020Foo"))
+    assertEquals(dateDate, StringResult("23 May 202023 May 2020"))
+  }
+
+  test("StringResult and PeriodResult concatenation") {
+    val stringResult = StringResult("Foo")
+
+    val periodResult = PeriodResult(Period.of(1, 1, 1))
+
+    val stringPeriod = stringResult + periodResult
+    val periodString = periodResult + stringResult
+    val periodsDate = periodResult + periodResult
+
+    assertEquals(stringPeriod, StringResult("FooP1Y1M1D"))
+    assertEquals(periodString, StringResult("P1Y1M1DFoo"))
+    assertEquals(periodsDate, PeriodResult(Period.of(2, 2, 2)))
   }
 }
