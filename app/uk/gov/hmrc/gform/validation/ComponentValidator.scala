@@ -169,6 +169,14 @@ object ComponentValidator {
           TextConstraint.defaultFractionalDigits,
           s.positiveOnly
         )
+      case (_, Some(value), s: WholeSterling) =>
+        validateNumber(
+          fieldValue,
+          value,
+          ValidationValues.sterlingLength,
+          0,
+          s.positiveOnly
+        )
       case (_, Some(value), ReferenceNumber(min, max)) => referenceNumberConstraints(fieldValue, value, min, max)
       case (_, Some(value), UkBankAccountNumber)       => validateBankAccountFormat(fieldValue, value)
       case (_, Some(value), SubmissionRefFormat)       => validateSubmissionRefFormat(fieldValue, value)

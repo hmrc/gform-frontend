@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, Number, PositiveNumber, Sterling }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, Number, PositiveNumber, Sterling, WholeSterling }
 
 case class TypeInfo(expr: Expr, staticTypeData: StaticTypeData) {
   def defaultValue: String = staticTypeData.textConstraint.fold("") {
     case Sterling(_, _)             => "0"
+    case WholeSterling(_)           => "0"
     case Number(_, _, _, _)         => "0"
     case PositiveNumber(_, _, _, _) => "0"
     case _                          => ""

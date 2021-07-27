@@ -18,12 +18,13 @@ package uk.gov.hmrc.gform.eval
 
 import java.time.Period
 import munit.FunSuite
+import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.i18n.Messages
 import play.api.test.Helpers
 
 import java.time.LocalDate
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, PeriodResult, StringResult }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateValueExpr, TodayDateExprValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateValueExpr, FormComponentId, FormCtx, TodayDateExprValue, WholeSterling }
 
 class ExpressionResultSpec extends FunSuite {
 
@@ -86,5 +87,25 @@ class ExpressionResultSpec extends FunSuite {
     assertEquals(stringPeriod, StringResult("FooP1Y1M1D"))
     assertEquals(periodString, StringResult("P1Y1M1DFoo"))
     assertEquals(periodsDate, PeriodResult(Period.of(2, 2, 2)))
+  }
+
+  test("applyTypeInfo should return updated expression result based on the text constraint") {
+    val table = TableDrivenPropertyChecks.Table(
+      ("input", "staticTypeData", "expected"),
+      (
+        NumberResult(BigDecimal(1)),
+        StaticTypeData(ExprType.Number, Some(WholeSterling(true))),
+        NumberResult(BigDecimal(1))
+      ),
+      (
+        NumberResult(BigDecimal(1.1)),
+        StaticTypeData(ExprType.Number, Some(WholeSterling(true))),
+        NumberResult(BigDecimal(1))
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (input, staticTypeData, expected) =>
+      assertEquals(input.applyTypeInfo(TypeInfo(FormCtx(FormComponentId("a")), staticTypeData)), expected)
+    }
   }
 }

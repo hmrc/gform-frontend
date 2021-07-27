@@ -69,6 +69,7 @@ case class FormComponent(
 
   private val exprType: ExprType = this match {
     case IsText(Text(Sterling(_, _), _, _, _, _, _))             => ExprType.number
+    case IsText(Text(WholeSterling(_), _, _, _, _, _))           => ExprType.number
     case IsText(Text(Number(_, _, _, _), _, _, _, _, _))         => ExprType.number
     case IsText(Text(PositiveNumber(_, _, _, _), _, _, _, _, _)) => ExprType.number
     case IsChoice(_)                                             => ExprType.ChoiceSelection
@@ -80,6 +81,7 @@ case class FormComponent(
 
   private val textConstraint: Option[TextConstraint] = this match {
     case IsText(Text(tc @ Sterling(_, _), _, _, _, _, _))             => Some(tc)
+    case IsText(Text(tc @ WholeSterling(_), _, _, _, _, _))           => Some(tc)
     case IsText(Text(tc @ Number(_, _, _, _), _, _, _, _, _))         => Some(tc)
     case IsText(Text(tc @ PositiveNumber(_, _, _, _), _, _, _, _, _)) => Some(tc)
     case _                                                            => None

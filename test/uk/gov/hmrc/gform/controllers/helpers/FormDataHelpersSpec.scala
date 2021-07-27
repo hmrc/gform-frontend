@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded, FormModel, Singleton }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponentId, FormTemplateId, Horizontal, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SectionNumber, Sterling, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponentId, FormTemplateId, Horizontal, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SectionNumber, Sterling, Text, Value, WholeSterling }
 
 import scala.concurrent.Future
 
@@ -93,6 +93,28 @@ class FormDataHelpersSpec extends Spec {
   it should "remove currency symbol in value for formComponent with type Text(Sterling)" in new TestFixture {
 
     override lazy val fields = List(mkFormComponent("amountField", Text(Sterling(RoundingMode.Up, false), Value)))
+    override lazy val requestBodyParams = Map("amountField" -> Seq("£111"))
+
+    val continuationFunction = (_: RequestRelatedData) =>
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
+        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+          Map(
+            purePure("amountField") -> VariadicValue.One("111")
+          )
+        )
+        Future.successful(Results.Ok)
+      }
+
+    val future = FormDataHelpers
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
+        continuationFunction
+      )
+    future.futureValue shouldBe Results.Ok
+  }
+
+  it should "remove currency symbol in value for formComponent with type Text(WholeSterling(true/false))" in new TestFixture {
+
+    override lazy val fields = List(mkFormComponent("amountField", Text(WholeSterling(true), Value)))
     override lazy val requestBodyParams = Map("amountField" -> Seq("£111"))
 
     val continuationFunction = (_: RequestRelatedData) =>
