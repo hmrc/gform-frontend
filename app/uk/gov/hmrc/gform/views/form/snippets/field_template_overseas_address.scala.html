@@ -14,14 +14,20 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.gform.lookup.ShowAll
 @import uk.gov.hmrc.gform.models.Atom
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormComponent, OverseasAddress}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, OverseasAddress, FormTemplateId, Register, DisplayWidth }
 @import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 @import uk.gov.hmrc.gform.views.html.errorInline
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 
 @(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
     overseasAddress: OverseasAddress,
     formComponent: FormComponent,
+    selectItems: Option[List[SelectItem]],
     validationResult: FormFieldValidationResult,
     formLevelHeading: Boolean,
     classes: String,
@@ -45,10 +51,17 @@
     id.modelComponentId.toMongoIdentifier
 }
 
-@safeError(atom: Atom) = @{
+@safeErrorMessage(atom: Atom) = @{
     val errors: Set[String] = validationResult.fieldErrorsWithSuffix(atom)
+    errors.map(e => ErrorMessage(
+        id = Some(atom.value),
+        classes = "error-message",
+        content = Text(e)
+    ))
+}
 
-    errors.map(e => errorInline(atom.value, e, Seq("error-message")))
+@safeError(atom: Atom) = @{
+    safeErrorMessage(atom).map(e => new govukErrorMessage()(e))
 }
 
 <fieldset class="govuk-fieldset" id="@{formComponent.id.value}-fieldset" role="group" @if(formComponent.helpText.nonEmpty) { aria-describedby="@{formComponent.id.value}-hint" }>
@@ -88,8 +101,7 @@
         (OverseasAddress.line2,    "overseasAddress.line2",    "govuk-input govuk-!-width-two-thirds"),
         (OverseasAddress.line3,    "overseasAddress.line3",    "govuk-input govuk-!-width-two-thirds"),
         (OverseasAddress.city,     "overseasAddress.city",     "govuk-input govuk-!-width-two-thirds"),
-        (OverseasAddress.postcode, "overseasAddress.postcode", "govuk-input--width-10"),
-        (OverseasAddress.country,  "overseasAddress.country",  "")
+        (OverseasAddress.postcode, "overseasAddress.postcode", "govuk-input--width-10")
     )) { rows =>
         @rows.map { case (row, messageKey, widthClass) =>
 
@@ -111,4 +123,23 @@
         }
     }
 
+    @{lookup_autosuggest(
+        Label(
+            forAttr = Some(htmlId(safeId(OverseasAddress.country))),
+            isPageHeading = false,
+            content = content.Text(messages("overseasAddress.country"))
+        ),
+        formComponent.atomicFormComponentId(OverseasAddress.country).toFormComponentId,
+        true,
+        ShowAll.Disabled,
+        Register.Country,
+        formTemplateId,
+        maybeAccessCode,
+        Option(fetchValue(safeId(OverseasAddress.country), OverseasAddress.country)).filter(_.nonEmpty),
+        validationResult,
+        None,
+        selectItems,
+        safeErrorMessage(OverseasAddress.country).headOption,
+        DisplayWidth.DEFAULT
+    )}
 </fieldset>

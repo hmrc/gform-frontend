@@ -24,14 +24,18 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupRegistry }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
 class OverseasAddressValidation[D <: DataOrigin](
   formComponent: FormComponent,
-  formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  formModelVisibilityOptics: FormModelVisibilityOptics[D],
+  lookupRegistry: LookupRegistry
 )(implicit
+  langADT: LangADT,
   messages: Messages,
   sse: SmartStringEvaluator
 ) {
@@ -70,7 +74,7 @@ class OverseasAddressValidation[D <: DataOrigin](
   }
 
   private def validateLine1(): ValidatedType[Unit] =
-    validateMandatoryAndLenght(
+    validateMandatoryAndLength(
       OverseasAddress.line1,
       "overseasAddress.line1.label",
       true,
@@ -78,7 +82,7 @@ class OverseasAddressValidation[D <: DataOrigin](
     )
 
   private def validateLine2(configurableMandatoryFields: Set[Atom]): ValidatedType[Unit] =
-    validateMandatoryAndLenght(
+    validateMandatoryAndLength(
       OverseasAddress.line2,
       "overseasAddress.line2.label",
       configurableMandatoryFields(OverseasAddress.line2),
@@ -86,7 +90,7 @@ class OverseasAddressValidation[D <: DataOrigin](
     )
 
   private def validateLine3(): ValidatedType[Unit] =
-    validateMandatoryAndLenght(
+    validateMandatoryAndLength(
       OverseasAddress.line3,
       "overseasAddress.line3.label",
       false,
@@ -94,7 +98,7 @@ class OverseasAddressValidation[D <: DataOrigin](
     )
 
   private def validateCity(configurableOptionalFields: Set[Atom]): ValidatedType[Unit] =
-    validateMandatoryAndLenght(
+    validateMandatoryAndLength(
       OverseasAddress.city,
       "overseasAddress.city.label",
       !configurableOptionalFields(OverseasAddress.city),
@@ -102,7 +106,7 @@ class OverseasAddressValidation[D <: DataOrigin](
     )
 
   private def validatePostcode(configurableMandatoryFields: Set[Atom]): ValidatedType[Unit] =
-    validateMandatoryAndLenght(
+    validateMandatoryAndLength(
       OverseasAddress.postcode,
       "overseasAddress.postcode.label",
       configurableMandatoryFields(OverseasAddress.postcode),
@@ -110,14 +114,20 @@ class OverseasAddressValidation[D <: DataOrigin](
     )
 
   private def validateCountry(): ValidatedType[Unit] =
-    validateMandatoryAndLenght(
-      OverseasAddress.country,
-      "overseasAddress.country.label",
-      true,
-      ValidationValues.countryLimit
-    )
+    List(
+      validateMandatoryAndLength(
+        OverseasAddress.country,
+        "overseasAddress.country.label",
+        true,
+        ValidationValues.countryLimit
+      ),
+      validateCountryLookupValue()
+    ).combineAll
 
-  private def validateMandatoryAndLenght(
+  private def validateCountryLookupValue() =
+    runValidation(OverseasAddress.country, lookupCountryValidator)
+
+  private def validateMandatoryAndLength(
     atom: Atom,
     labelMessageKey: String,
     isMandatory: Boolean,
@@ -143,9 +153,10 @@ class OverseasAddressValidation[D <: DataOrigin](
     atomicFcId: ModelComponentId.Atomic
   )(
     str: String,
+    partLabel: String,
     vars: List[String]
   ): ValidatedType[Unit] =
-    Map[ModelComponentId, Set[String]](atomicFcId -> errors(formComponent, str, Some(vars))).invalid
+    Map[ModelComponentId, Set[String]](atomicFcId -> errors(formComponent, str, Some(vars), partLabel)).invalid
 
   private def lengthLimitValidation(
     atom: Atom,
@@ -158,8 +169,27 @@ class OverseasAddressValidation[D <: DataOrigin](
       case value :: Nil if value.length > limit =>
         val vars: List[String] = messages(labelMessageKey) :: limit.toString :: Nil
         val atomicFcId: ModelComponentId.Atomic = formComponent.atomicFormComponentId(atom)
-        mkErrors(atomicFcId)("overseasAddress.error.maxLength", vars)
+        mkErrors(atomicFcId)("overseasAddress.error.maxLength", "", vars)
       case _ => validationSuccess
+    }
+
+  private def lookupCountryValidator(
+    xs: Seq[String]
+  ): ValidatedType[Unit] =
+    xs.filterNot(_.isEmpty).headOption.fold(validationSuccess) { value =>
+      val atomicFcId: ModelComponentId.Atomic = formComponent.atomicFormComponentId(OverseasAddress.country)
+      ComponentValidator
+        .lookupValidation(
+          formComponent,
+          lookupRegistry,
+          Lookup(Register.Country, None),
+          LookupLabel(value),
+          formModelVisibilityOptics
+        )
+        .fold(
+          _ => mkErrors(atomicFcId)("generic.error.lookup", messages("overseasAddress.country.label"), List.empty),
+          _ => validationSuccess
+        )
     }
 
 }

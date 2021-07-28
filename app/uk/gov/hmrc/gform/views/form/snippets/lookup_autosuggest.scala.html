@@ -15,7 +15,7 @@
  *@
 
 @import uk.gov.hmrc.gform.lookup.ShowAll
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormComponent, Register, DisplayWidth }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormComponentId, FormComponent, Register, DisplayWidth }
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
@@ -26,7 +26,8 @@
 
 @(
   label: Label,
-  fieldValue: FormComponent,
+  formComponentId: FormComponentId,
+  isEditable: Boolean,
   showAll: ShowAll,
   register: Register,
   formTemplateId: FormTemplateId,
@@ -47,9 +48,9 @@
 @govukSelect = @{new govukSelect(govukErrorMessage, govukHint, govukLabel)}
 
 @form_group(validationResult) { hasErrors =>
-  @defining(fieldValue.id.value, prepop.orElse(currentValue).getOrElse("")) { case (fcId, prepopValue) =>
+  @defining(formComponentId.value, prepop.orElse(currentValue).getOrElse("")) { case (fcId, prepopValue) =>
 
-    @if(!fieldValue.editable) {
+    @if(!isEditable) {
       <input type="hidden" id="@fcId" name="@fcId" value="@prepopValue" />
     } else {
       @govukLabel(label)
@@ -57,9 +58,9 @@
       @errorMessage.map{ e => @govukErrorMessage(e) }
 
       <div
-      class="lookup @{if(hasErrors) "gform-lookup-error"}"
+      class='lookup @{if(hasErrors) "gform-lookup-error" else ""}'
       data-field-id="@fcId"
-      data-basefield-id="@{fieldValue.id.baseComponentId.value}"
+      data-basefield-id="@{formComponentId.baseComponentId.value}"
       data-value="@prepopValue"
       data-lookup="@register.asString"
       data-formTemplateId="@formTemplateId.value"
