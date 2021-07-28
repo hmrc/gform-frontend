@@ -16,15 +16,17 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, Number, PositiveNumber, ReferenceNumber, Sterling, Text, TextArea }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, Number, PositiveNumber, ReferenceNumber, Sterling, Text, TextArea, WholeSterling }
 
 package object ops {
 
   implicit class FormComponentOps(formComponent: FormComponent) {
     def isSterling = formComponent.`type` match {
-      case Text(_: Sterling, _, _, _, _, _)  => true
-      case TextArea(_: Sterling, _, _, _, _) => true
-      case _                                 => false
+      case Text(_: Sterling, _, _, _, _, _)       => true
+      case TextArea(_: Sterling, _, _, _, _)      => true
+      case Text(_: WholeSterling, _, _, _, _, _)  => true
+      case TextArea(_: WholeSterling, _, _, _, _) => true
+      case _                                      => false
     }
     def isNumber = formComponent.`type` match {
       case Text(Number(_, _, _, _), _, _, _, _, _)  => true

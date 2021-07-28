@@ -16,22 +16,31 @@
 
 package uk.gov.hmrc.gform.validation
 
+import cats.data.Validated.{ Invalid, Valid }
+import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.prop.TableDrivenPropertyChecks
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import play.api.i18n.{ Lang, Messages }
 import play.api.test.Helpers
-import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.{ GraphSpec, Spec }
+import uk.gov.hmrc.gform.Helpers.{ mkDataOutOfDate, toSmartString }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormTemplate, mkSection }
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.FormModelSupport
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormatExprGen
 
-class ComponentValidatorSpec extends Spec with Matchers with GraphSpec {
+class ComponentValidatorSpec
+    extends AnyFlatSpecLike with ScalaCheckDrivenPropertyChecks with Matchers with FormModelSupport {
 
   implicit val langADT: LangADT = LangADT.En
   val lang = Lang(langADT.langADTToString)
   val messagesApi = Helpers.stubMessagesApi(Map("en" -> Map("helper.order" -> "{0} {1}")))
   implicit val messages: Messages = Helpers.stubMessages(messagesApi)
-
+  implicit val smartStringEvaluator: SmartStringEvaluator = (s: SmartString, markDown: Boolean) =>
+    s.rawValue(LangADT.En)
   private val numberWithPlus = FormatExprGen.telephoneNumberGen(FormatExprGen.International)
   private val numberWithoutPlus = FormatExprGen.telephoneNumberGen(FormatExprGen.UK)
   private val telephoneConstraint = Text(TelephoneNumber, Value)
@@ -154,5 +163,29 @@ class ComponentValidatorSpec extends Spec with Matchers with GraphSpec {
 
     val result = ComponentValidator.textValidationWithConstraints(textComponent, textWithInvalidCharacters, 3, 100)
     result.isInvalid shouldBe true
+  }
+
+  "validateText" should "validate when FormComponent constraint is WholeSterling(true)" in {
+    val constraint = WholeSterling(true)
+    val fc = textComponent.copy(`type` = Text(constraint, Value))
+    val table = TableDrivenPropertyChecks.Table(
+      ("input", "expected"),
+      ("1", Valid(())),
+      ("-1", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.error.positiveNumber")))),
+      ("1.1", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.error.wholeNumber")))),
+      ("-1.1", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.error.wholeNumber"))))
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
+      val formModelOptics = mkFormModelOptics(
+        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
+        mkDataOutOfDate(textComponent.id.value -> inputData)
+      )
+      val result = ComponentValidator.validateText(fc, constraint)(
+        formModelOptics.formModelVisibilityOptics,
+        new LookupRegistry(Map.empty)
+      )
+      result shouldBe expected
+    }
   }
 }

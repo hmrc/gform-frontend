@@ -24,7 +24,7 @@ import play.api.i18n.Messages
 
 import scala.util.matching.Regex
 import uk.gov.hmrc.gform.commons.NumberSetScale
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Number, PositiveNumber, Sterling, TextConstraint }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Number, PositiveNumber, RoundingMode, Sterling, TextConstraint, WholeSterling }
 
 import java.time.{ LocalDate, Period }
 import java.time.format.TextStyle
@@ -239,9 +239,10 @@ sealed trait ExpressionResult extends Product with Serializable {
       identity
     )(identity)(identity)
 
-  def applyTextConstraint(textConstraint: TextConstraint): ExpressionResult = textConstraint match {
+  private def applyTextConstraint(textConstraint: TextConstraint): ExpressionResult = textConstraint match {
     // format: off
     case Sterling(rm, _)                 => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 2, rm))
+    case WholeSterling(_)                => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 0, RoundingMode.defaultRoundingMode))
     case Number(_, maxFD, rm, _)         => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, maxFD, rm))
     case PositiveNumber(_, maxFD, rm, _) => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, maxFD, rm))
     case _                               => this

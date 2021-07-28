@@ -191,6 +191,7 @@ sealed trait TextConstraint {
     case Lookup(_, _)                 => CssClassSize._30
     case TextWithRestrictions(_, max) => deriveCssClassNameForText(max)
     case Sterling(_, _)               => CssClassSize._10
+    case WholeSterling(_)             => CssClassSize._10
     case ReferenceNumber(_, max)      => deriveCssClassNameForText(max)
     case UkBankAccountNumber          => CssClassSize._10
     case UkSortCodeFormat             => CssClassSize._2
@@ -258,6 +259,7 @@ object ShortText { val default = ShortText(0, 1000) }
 case class Lookup(register: Register, selectionCriteria: Option[List[SelectionCriteria]]) extends TextConstraint
 case class TextWithRestrictions(min: Int, max: Int) extends TextConstraint
 case class Sterling(roundingMode: RoundingMode, positiveOnly: Boolean) extends TextConstraint
+case class WholeSterling(positiveOnly: Boolean) extends TextConstraint
 case class ReferenceNumber(min: Int, max: Int) extends TextConstraint
 case object UkBankAccountNumber extends TextConstraint
 case object UkSortCodeFormat extends TextConstraint
@@ -314,14 +316,15 @@ object TextConstraint {
     displayWidth: DisplayWidth.DisplayWidth
   ): String =
     (constraint, displayWidth) match {
-      case (Sterling(_, _), DisplayWidth.XS) => CssClassSize._3
-      case (_, DisplayWidth.XS)              => CssClassSize._2
-      case (_, DisplayWidth.S)               => CssClassSize._3
-      case (_, DisplayWidth.M)               => CssClassSize._4
-      case (_, DisplayWidth.L)               => CssClassSize._5
-      case (_, DisplayWidth.XL)              => CssClassSize._10
-      case (_, DisplayWidth.XXL)             => CssClassSize._20
-      case _                                 => CssClassSize._10
+      case (Sterling(_, _), DisplayWidth.XS)   => CssClassSize._3
+      case (WholeSterling(_), DisplayWidth.XS) => CssClassSize._3
+      case (_, DisplayWidth.XS)                => CssClassSize._2
+      case (_, DisplayWidth.S)                 => CssClassSize._3
+      case (_, DisplayWidth.M)                 => CssClassSize._4
+      case (_, DisplayWidth.L)                 => CssClassSize._5
+      case (_, DisplayWidth.XL)                => CssClassSize._10
+      case (_, DisplayWidth.XXL)               => CssClassSize._20
+      case _                                   => CssClassSize._10
     }
 
   def getSizeClass(constraint: TextConstraint, displayWidth: DisplayWidth.DisplayWidth): String =
@@ -330,7 +333,8 @@ object TextConstraint {
         constraint.defaultCssClassName
 
       case (
-            Number(_, _, _, _) | PositiveNumber(_, _, _, _) | Sterling(_, _) | UkBankAccountNumber | UkSortCodeFormat,
+            Number(_, _, _, _) | PositiveNumber(_, _, _, _) | Sterling(_, _) | WholeSterling(_) | UkBankAccountNumber |
+            UkSortCodeFormat,
             displayWidth
           ) =>
         getSizeClassForDisplayWidthForNumber(constraint, displayWidth)
