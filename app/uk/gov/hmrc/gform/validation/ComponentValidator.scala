@@ -81,7 +81,7 @@ object ComponentValidator {
       .one(fieldValue.modelComponentId)
       .filterNot(_.isEmpty())
 
-  private def lookupValidation[D <: DataOrigin](
+  def lookupValidation[D <: DataOrigin](
     fieldValue: FormComponent,
     lookupRegistry: LookupRegistry,
     lookup: Lookup,

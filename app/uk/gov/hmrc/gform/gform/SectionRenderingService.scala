@@ -1282,7 +1282,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       case Some(AjaxLookup(options, _, showAll)) =>
         html.form.snippets.lookup_autosuggest(
           label,
-          formComponent,
+          formComponent.id,
+          formComponent.editable,
           showAll,
           register,
           ei.formTemplate._id,
@@ -1599,10 +1600,29 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         overseasAddress.value.fold("")(_.getPrepopValue(atom))
       }
 
+    val lookupOptions = lookupRegistry.get(Register.Country).fold(LocalisedLookupOptions(Map.empty)) {
+      case AjaxLookup(options, autocomplete, showAll) => options
+      case RadioLookup(options)                       => options
+    }
+
     html.form.snippets
       .field_template_overseas_address(
+        ei.formTemplate._id,
+        ei.maybeAccessCode,
         overseasAddress,
         formComponent,
+        getSelectItemsForLookup(
+          formComponent,
+          Register.Country,
+          ei,
+          lookupOptions,
+          Option(
+            fetchValue(
+              HtmlFieldId.Pure(formComponent.atomicFormComponentId(OverseasAddress.country)),
+              OverseasAddress.country
+            )
+          ).filter(_.nonEmpty)
+        ),
         formFieldValidationResult,
         isPageHeading,
         getLabelClasses(isPageHeading, formComponent.labelSize),
