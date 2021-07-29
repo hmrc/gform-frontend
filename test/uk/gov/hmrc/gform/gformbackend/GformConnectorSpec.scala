@@ -97,7 +97,7 @@ class GformConnectorSpec extends Spec {
     val status = 200
     val responseJson = Some(Json.toJson(buildForm))
     connector
-      .getForm(formId)
+      .getForm(formIdData)
       .futureValue shouldBe buildForm
   }
 
@@ -107,7 +107,7 @@ class GformConnectorSpec extends Spec {
     val status = 404
     val responseJson = None
     val isUpstream404Response = connector
-      .getForm(formId)
+      .getForm(formIdData)
       .failed
       .futureValue match {
       case UpstreamErrorResponse.Upstream4xxResponse(e) if e.statusCode == 404 => true
@@ -120,7 +120,7 @@ class GformConnectorSpec extends Spec {
     val status = 500
     val responseJson = None
     val isUpstream5xxResponse: Boolean = connector
-      .getForm(formId)
+      .getForm(formIdData)
       .failed
       .futureValue match {
       case UpstreamErrorResponse.Upstream5xxResponse(_) => true
@@ -133,7 +133,7 @@ class GformConnectorSpec extends Spec {
     val status = 400
     val responseJson = None
     val isUpstream400Response: Boolean = connector
-      .getForm(formId)
+      .getForm(formIdData)
       .failed
       .futureValue match {
       case UpstreamErrorResponse.Upstream4xxResponse(e) if e.statusCode == 400 => true
@@ -146,7 +146,7 @@ class GformConnectorSpec extends Spec {
     val status = 401
     val responseJson = None
     val isUpstream4xxResponse: Boolean = connector
-      .getForm(formId)
+      .getForm(formIdData)
       .failed
       .futureValue match {
       case UpstreamErrorResponse.Upstream4xxResponse(_) => true
@@ -162,7 +162,7 @@ class GformConnectorSpec extends Spec {
     implicit val localDateTime = LocalDateTime.now()
     val responseJson = Some(Json.toJson(submission))
     connector
-      .createSubmission(formId, formTemplateId, envelopeId, "some-customer-id", 1)
+      .createSubmission(formIdData.toFormId, formTemplateId, envelopeId, "some-customer-id", 1)
       .futureValue shouldBe submission
   }
 
@@ -170,7 +170,7 @@ class GformConnectorSpec extends Spec {
     val status = 400
     val responseJson = None
     val isUpstream400Response = connector
-      .createSubmission(formId, formTemplateId, envelopeId, "some-customer-id", 1)
+      .createSubmission(formIdData.toFormId, formTemplateId, envelopeId, "some-customer-id", 1)
       .failed
       .futureValue match {
       case UpstreamErrorResponse.Upstream4xxResponse(_) => true

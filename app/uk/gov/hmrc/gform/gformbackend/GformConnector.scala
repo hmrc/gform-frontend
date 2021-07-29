@@ -65,9 +65,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   ): Future[List[FormOverview]] =
     ws.GET[List[FormOverview]](s"$baseUrl/forms/all/${userId.value}/${formTemplateId.value}")
 
-  def getForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] =
-    ws.GET[Form](s"$baseUrl/forms/${formId.value}")
-
   def getForm(formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] = {
     val url =
       formIdData match {

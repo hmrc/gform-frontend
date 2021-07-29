@@ -324,21 +324,36 @@ class AuthenticatedRequestActions(
     hc: HeaderCarrier,
     l: LangADT
   ): Future[Result] = {
+
+    /** When user access form having email auth via bookmark, it can happen that user's form doesn't exist
+      * and due to bookmark user didn't go via dashboard endpoint to create a new one, so we need to send him there.
+      */
+    def formNotFound(formIdData: FormIdData): Future[Result] = {
+      val url = uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplate._id).url
+      logger.info(s"Attempt to access form $formIdData, but form not found in MongoDB, redirecting user to $url")
+      Redirect(url).pure[Future]
+    }
+
+    def whenFormExists(form: Form): Future[Result] =
+      for {
+        _ <- MDCHelpers.addFormIdToMdc(form._id)
+        cache = AuthCacheWithForm(retrievals, form, formTemplate, role, maybeAccessCode)
+
+        formModelOptics <-
+          FormModelOptics
+            .mkFormModelOptics[DataOrigin.Mongo, Future, U](cache.variadicFormData, cache, recalculation)
+
+        smartStringEvaluator =
+          smartStringEvaluatorFactory
+            .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
+        envelope <- fileUploadConnector.getEnvelope(cache.form.envelopeId)
+        result   <- f(cache)(smartStringEvaluator)(formModelOptics)
+      } yield result
+
     val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
-    for {
-      form <- gformConnector.getForm(formIdData)
-      _    <- MDCHelpers.addFormIdToMdc(form._id)
-      cache = AuthCacheWithForm(retrievals, form, formTemplate, role, maybeAccessCode)
 
-      formModelOptics <- FormModelOptics
-                           .mkFormModelOptics[DataOrigin.Mongo, Future, U](cache.variadicFormData, cache, recalculation)
+    gformConnector.maybeForm(formIdData).flatMap(_.fold(formNotFound(formIdData))(whenFormExists))
 
-      smartStringEvaluator =
-        smartStringEvaluatorFactory
-          .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
-      envelope <- fileUploadConnector.getEnvelope(cache.form.envelopeId)
-      result   <- f(cache)(smartStringEvaluator)(formModelOptics)
-    } yield result
   }
 
   private def handleAuthResults(
