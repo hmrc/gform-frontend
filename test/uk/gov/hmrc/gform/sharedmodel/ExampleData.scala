@@ -77,7 +77,7 @@ trait ExampleEvaluationContext {
 trait ExampleSubmission {
   self: ExampleForm with ExampleSubmissionRef with ExampleDmsMetaData =>
   def submission(implicit localDateTime: LocalDateTime) =
-    Submission(SubmissionId(formId, envelopeId), localDateTime, submissionRef, envelopeId, dmsMetaData)
+    Submission(SubmissionId(formIdData.toFormId, envelopeId), localDateTime, submissionRef, envelopeId, dmsMetaData)
 }
 
 trait ExampleDmsMetaData {
@@ -808,7 +808,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
   def materialisedRetrievals =
     AuthenticatedRetrievals(GovernmentGatewayId(""), Enrolments(Set()), AffinityGroup.Individual, userId.value, None)
 
-  def formId = FormId(materialisedRetrievals, formTemplateId, None)
+  def formIdData = FormIdData(materialisedRetrievals, formTemplateId, None)
 
   def accessCode = AccessCode("1234-0000-ABCD")
 
@@ -829,7 +829,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
   def buildForm: Form = buildForm(formData)
 
   def buildForm(formData: FormData): Form = Form(
-    formId,
+    formIdData.toFormId,
     envelopeId,
     userId,
     formTemplateId,

@@ -41,7 +41,6 @@ import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.http.HeaderCarrier
@@ -76,10 +75,6 @@ class TestOnlyController(
   def config() = Action { r =>
     val result: JsValue = Json.parse(ConfigFactory.load().root().render(ConfigRenderOptions.concise()))
     Ok(result)
-  }
-
-  def getEnvelopeId(formId: FormId) = Action.async { implicit request =>
-    gformConnector.getForm(formId).map(form => Ok(form.envelopeId.value))
   }
 
   private lazy val gformBaseUrl = servicesConfig.baseUrl("gform")
