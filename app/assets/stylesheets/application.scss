@@ -100,3 +100,9 @@ button.defaultsink {
 .govuk-warning-text p {
     margin: 0;
 }
+
+.govuk-fieldset__legend + div.unhintify {
+    margin-top: 10px;
+    padding-bottom: 15px;
+    color: black;
+}

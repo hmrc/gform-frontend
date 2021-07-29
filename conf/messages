@@ -38,7 +38,7 @@ addToList.change.visually.hidden=Change {0}
 addToList.remove=Remove
 addToList.remove.visually.hidden=Remove {0} from the list
 addToList.addOrRemove=Add or remove
-addToList.confirmRemoval=Are you sure you want to remove {0}?
+addToList.confirmRemoval=Are you sure you want to remove this item?
 
 button.continue=Continue
 button.saveAndContinue=Save and continue
@@ -126,7 +126,7 @@ generic.charactersRemaining=You have {0} characters remaining
 generic.characterRemaining=You have {0} character remaining
 generic.charactersTooMany=You have {0} characters too many
 generic.characterTooMany=You have {0} character too many
-generic.successfullyRemoved={0} successfully removed
+generic.successfullyRemoved=Item removed
 generic.error.telephoneNumber={0} can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens
 
 generic.error.submissionRef={0} not found. Enter a valid {0} in the correct format. This must be 14 characters and only include numbers, hyphens and upper case letters, for example ABCD-1234-1234
