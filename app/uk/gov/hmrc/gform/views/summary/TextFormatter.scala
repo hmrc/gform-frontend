@@ -38,7 +38,7 @@ object TextFormatter {
       // format: off
       case IsPositiveNumberOrNumber(maxFractionalDigits, roundingMode, unit) => formatNumber(currentValue, maxFractionalDigits, roundingMode, unit)
       case _: Sterling                                                       => formatSterling(currentValue)
-      case _: WholeSterling                                                  => formatSterling(currentValue)
+      case _: WholeSterling                                                  => stripDecimal(formatSterling(currentValue))
       case _                                                                 => currentValue
       // format: on
     }
@@ -56,8 +56,8 @@ object TextFormatter {
       case (_: Sterling, Some(ph), _) if ph.contains(TotalValue)                      => formatSterling(stripTrailingZeros(currentValue))
       case (_: Sterling, _, true)                                                     => stripTrailingZeros(currentValue)
       case (_: Sterling, _, _)                                                        => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
-      case (_: WholeSterling, _, _)                                                        => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
-      case _                                                                          => currentValue
+      case (_: WholeSterling, _, _)                                                   => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
+      case _                                                                          => stripDecimal(formatSterling(currentValue))
       // format: on
     }
 
@@ -74,10 +74,17 @@ object TextFormatter {
       // format: off
       case (IsPositiveNumberOrNumber(maxFractionalDigits, roundingMode, unit), p, s) => prependPrefix(p) + formatNumber(currentValue, maxFractionalDigits, roundingMode, s.map(_.localised).orElse(unit))
       case (_: Sterling, _, _)                                                       => formatSterling(currentValue)
-      case (_: WholeSterling, _, _)                                                  => formatSterling(currentValue)
+      case (_: WholeSterling, _, _)                                                  => stripDecimal(formatSterling(currentValue))
       case (_, p, s)                                                                 => prependPrefix(p) + currentValue + appendSuffix(s)
       case _                                                                         => currentValue
       // format: on
+    }
+
+  private def stripDecimal(currentValue: String): String =
+    if (currentValue.contains(".")) {
+      currentValue.substring(0, currentValue.indexOf('.'))
+    } else {
+      currentValue
     }
 
   private def stripTrailingZeros(currentValue: String): String =
