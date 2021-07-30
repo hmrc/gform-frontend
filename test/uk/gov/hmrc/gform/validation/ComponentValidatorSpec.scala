@@ -171,9 +171,9 @@ class ComponentValidatorSpec
     val table = TableDrivenPropertyChecks.Table(
       ("input", "expected"),
       ("1", Valid(())),
-      ("-1", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.error.positiveNumber")))),
-      ("1.1", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.error.wholeNumber")))),
-      ("-1.1", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.error.wholeNumber"))))
+      ("-1", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.error.positiveWholeNumber")))),
+      ("1.1", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.error.positiveWholeNumber")))),
+      ("-1.1", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.error.positiveWholeNumber"))))
     )
 
     TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>

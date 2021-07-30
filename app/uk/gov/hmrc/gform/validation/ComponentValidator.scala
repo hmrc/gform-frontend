@@ -269,9 +269,13 @@ object ComponentValidator {
       case (WholeShape(_, whole, _), _, _) if surpassMaxLength(whole, maxWhole) =>
         val vars: List[String] = maxWhole.toString :: Nil
         validationFailure(fieldValue, genericErrorMaxWhole, Some(vars))
+      case (WholeShape("-", _, _), 0, true) =>
+        validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
       case (WholeShape("-", _, _), _, true) =>
         validationFailure(fieldValue, genericErrorPositiveNumber, None)
       case (WholeShape(_, _, _), _, _) => validationSuccess
+      case (FractionalShape(_, _, _, _), 0, true) =>
+        validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
       case (FractionalShape(_, whole, _, fractional), 0, _)
           if surpassMaxLength(whole, maxWhole) && lessThanMinLength(fractional, 0) =>
         val vars: List[String] = maxWhole.toString :: Nil
