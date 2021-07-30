@@ -56,6 +56,7 @@ object TextFormatter {
       case (_: Sterling, Some(ph), _) if ph.contains(TotalValue)                      => formatSterling(stripTrailingZeros(currentValue))
       case (_: Sterling, _, true)                                                     => stripTrailingZeros(currentValue)
       case (_: Sterling, _, _)                                                        => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
+      case (_: WholeSterling, _, true)                                                => stripTrailingZeros(currentValue)
       case (_: WholeSterling, _, _)                                                   => stripDecimal(formatSterling(stripTrailingZeros(currentValue), defaultFormat))
       case _                                                                          => currentValue
       // format: on
