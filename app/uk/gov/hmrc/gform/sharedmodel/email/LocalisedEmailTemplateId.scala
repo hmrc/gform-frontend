@@ -16,14 +16,17 @@
 
 package uk.gov.hmrc.gform.sharedmodel.email
 
-import play.api.libs.json.{ JsError, JsObject, JsString, JsSuccess, Reads }
+import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.OFormatWithTemplateReadFallback
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierTemplateId
 
 case class LocalisedEmailTemplateId(emailTemplateId: String, maybeEmailTemplateIdCy: Option[String]) {
   def toDigitalContact = EmailVerifierService.digitalContact(
-    EmailTemplateId(emailTemplateId)
+    EmailTemplateId(emailTemplateId),
+    maybeEmailTemplateIdCy.map(EmailTemplateId.apply)
   )
+
   def toNotify =
     EmailVerifierService.notify(
       NotifierTemplateId(emailTemplateId),
@@ -45,4 +48,6 @@ object LocalisedEmailTemplateId {
     case otherwise =>
       JsError("Invalid email template id definition. Expected json String or json Object, but got: " + otherwise)
   }
+
+  implicit val format: OFormat[LocalisedEmailTemplateId] = OFormatWithTemplateReadFallback(reads)
 }

@@ -3,7 +3,7 @@ package uk.gov.hmrc.gform.it.sample
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.models.Basic
-import uk.gov.hmrc.gform.sharedmodel.email.EmailTemplateId
+import uk.gov.hmrc.gform.sharedmodel.email.{ EmailTemplateId, LocalisedEmailTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
@@ -28,7 +28,7 @@ trait FormTemplateSample {
       Some(toSmartString("Continue"))
     ),
     authConfig =
-      EmailAuthConfig(EmailVerifierService.digitalContact(EmailTemplateId("code_template")), None, None, None),
+      EmailAuthConfig(EmailVerifierService.digitalContact(EmailTemplateId("code_template"), None), None, None, None),
     displayHMRCLogo = true,
     sections = List(
       NonRepeatingPage(
@@ -100,14 +100,14 @@ trait FormTemplateSample {
         fields = List.empty
       )
     ),
-    emailTemplateId = "some_email_template",
+    emailTemplateId = LocalisedEmailTemplateId("some_email_template", None),
     emailParameters = None,
     save4LaterInfoText = None
   )
 
   val formTemplateEmailAuthWithOptionalDetails = formTemplateEmailAuth.copy(authConfig =
     EmailAuthConfig(
-      EmailVerifierService.digitalContact(EmailTemplateId("code_template")),
+      EmailVerifierService.digitalContact(EmailTemplateId("code_template"), None),
       Some(LocalisedString(Map(LangADT.En -> "EmailUseInfo"))),
       Some(LocalisedString(Map(LangADT.En -> "EmailCodeHelp"))),
       Some(LocalisedString(Map(LangADT.En -> "EmailConfirmation")))
