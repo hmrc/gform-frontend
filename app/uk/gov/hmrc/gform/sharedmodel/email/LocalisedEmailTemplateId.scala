@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.gform.sharedmodel.email
 
+import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.OFormatWithTemplateReadFallback
-import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierTemplateId
 
 case class LocalisedEmailTemplateId(emailTemplateId: String, maybeEmailTemplateIdCy: Option[String]) {
@@ -35,19 +35,6 @@ case class LocalisedEmailTemplateId(emailTemplateId: String, maybeEmailTemplateI
 }
 
 object LocalisedEmailTemplateId {
-  implicit val reads: Reads[LocalisedEmailTemplateId] = Reads {
-    case JsString(emailTemplateId) => JsSuccess(LocalisedEmailTemplateId(emailTemplateId, None))
-    case obj @ JsObject(_) =>
-      obj.validate[LocalisedString].flatMap { localisedString =>
-        localisedString.m.get(LangADT.En) match {
-          case Some(emailTemplateId) =>
-            JsSuccess(LocalisedEmailTemplateId(emailTemplateId, localisedString.m.get(LangADT.Cy)))
-          case None => JsError("Invalid email template id definition. Missing 'en' field with english template id")
-        }
-      }
-    case otherwise =>
-      JsError("Invalid email template id definition. Expected json String or json Object, but got: " + otherwise)
-  }
 
-  implicit val format: OFormat[LocalisedEmailTemplateId] = OFormatWithTemplateReadFallback(reads)
+  implicit val format: Format[LocalisedEmailTemplateId] = derived.oformat()
 }
