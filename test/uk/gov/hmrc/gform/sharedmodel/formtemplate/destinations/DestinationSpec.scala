@@ -18,21 +18,11 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
 
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.DestinationGen
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.verifyRead
 
 class DestinationSpec extends Spec {
   "Destination" should "round trip derived JSON" in {
     forAll(DestinationGen.destinationGen) { obj =>
       Destination.format.reads(Destination.format.writes(obj)) should beJsSuccess(obj)
-    }
-  }
-
-  it should "read custom JSON for all destinations" in {
-    forAll(DestinationGen.destinationGen) { destination =>
-      verifyRead[Destination](
-        destination,
-        createUploadableJson(destination)
-      )
     }
   }
 }
