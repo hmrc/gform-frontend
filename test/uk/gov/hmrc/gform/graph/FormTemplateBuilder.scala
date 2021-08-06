@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.sharedmodel.AvailableLanguages
 import uk.gov.hmrc.gform.sharedmodel.ExampleData._
+import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.Log
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
@@ -235,7 +236,7 @@ object FormTemplateBuilder {
       )
     ),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
-    "randd_confirmation_submission",
+    LocalisedEmailTemplateId("randd_confirmation_submission", None),
     None,
     None,
     sections,

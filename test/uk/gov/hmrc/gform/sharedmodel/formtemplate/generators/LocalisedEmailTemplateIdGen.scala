@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
+package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.DestinationGen
+import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 
-class DestinationSpec extends Spec {
-  "Destination" should "round trip derived JSON" in {
-    forAll(DestinationGen.destinationGen) { obj =>
-      Destination.format.reads(Destination.format.writes(obj)) should beJsSuccess(obj)
-    }
-  }
+trait LocalisedEmailTemplateIdGen {
+  def localisedEmailTemplateIdGen: Gen[LocalisedEmailTemplateId] =
+    for {
+      emailTemplateIdEn <- PrimitiveGen.nonEmptyAlphaNumStrGen
+      emailTemplateIdCy <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen)
+    } yield LocalisedEmailTemplateId(emailTemplateIdEn, emailTemplateIdCy)
 }
+
+object LocalisedEmailTemplateIdGen extends LocalisedEmailTemplateIdGen

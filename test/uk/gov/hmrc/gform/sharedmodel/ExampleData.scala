@@ -41,6 +41,7 @@ import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
 import uk.gov.hmrc.http.HeaderCarrier
 import org.typelevel.ci._
 import play.api.test.Helpers
+import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 
 import scala.collection.immutable.List
 
@@ -689,7 +690,7 @@ trait ExampleFormTemplate {
 
   def formName = toLocalisedString("AAA999 dev test template")
 
-  def emailTemplateId = "test-email-template-id"
+  def emailTemplateId = LocalisedEmailTemplateId("test-email-template-id", None)
 
   def emailParameters =
     Some(

@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LocalisedString, formtemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
 
@@ -30,7 +31,7 @@ case class FormTemplate(
   draftRetrievalMethod: DraftRetrievalMethod,
   destinations: Destinations,
   authConfig: formtemplate.AuthConfig,
-  emailTemplateId: String,
+  emailTemplateId: LocalisedEmailTemplateId,
   emailParameters: Option[NonEmptyList[EmailParameter]],
   webChat: Option[WebChat],
   sections: List[Section],
