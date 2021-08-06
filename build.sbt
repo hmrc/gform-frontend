@@ -32,11 +32,6 @@ lazy val microservice = (project in file("."))
     scalaSettings,
     publishingSettings,
     defaultSettings(),
-    // Although Playframework sets Test / fork to true: https://github.com/playframework/playframework/blob/d09e2f0b1c7c211e8d00b926919338a72563bcd9/dev-mode/sbt-plugin/src/main/scala/play/sbt/PlaySettings.scala#L77
-    // Hmrc sbt-settings overrides Test / fork to false: https://github.com/hmrc/sbt-settings/blob/80fa3dcb6d6fedd2917d7d492646dd0f380ad421/src/main/scala/uk/gov/hmrc/DefaultBuildSettings.scala#L65
-    // But when it set to false, some tests start to fail while on sbt 1.4.x
-    // Let's set it back to play framework default.
-    Test / fork := true,
     scalafmtOnCompile := true,
     scalaVersion := "2.12.12",
     Test / testOptions := (Test / testOptions).value
