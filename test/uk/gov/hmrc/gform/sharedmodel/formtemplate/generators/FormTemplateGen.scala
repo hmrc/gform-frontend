@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
 import cats.data.NonEmptyList
 import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -35,7 +36,8 @@ trait FormTemplateGen {
           .oneOf(OnePerUser(continueOrDeletePage), FormAccessCodeForAgents(continueOrDeletePage), BySubmissionReference)
     } yield draftRetrievalMethod
 
-  def emailTemplateIdGen: Gen[String] = PrimitiveGen.nonEmptyAlphaNumStrGen
+  def emailTemplateIdGen: Gen[LocalisedEmailTemplateId] =
+    LocalisedEmailTemplateIdGen.localisedEmailTemplateIdGen
 
   def emailParameterGen: Gen[EmailParameter] =
     for {
