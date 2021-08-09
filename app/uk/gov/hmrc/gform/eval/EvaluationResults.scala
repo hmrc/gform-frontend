@@ -289,7 +289,7 @@ case class EvaluationResults(
 
   private def computePageLink(forPageId: PageId, evaluationContext: EvaluationContext) = {
     val forModelPageId = forPageId.modelPageId
-    evaluationContext.pageIdSectionNumberMap.get(forPageId.modelPageId) match {
+    evaluationContext.pageIdSectionNumberMap.get(forModelPageId) match {
       case Some(sectionNumber) =>
         uk.gov.hmrc.gform.gform.routes.FormController
           .formSection(evaluationContext.formTemplateId, evaluationContext.maybeAccessCode, sectionNumber)
@@ -297,7 +297,7 @@ case class EvaluationResults(
       case None =>
         evaluationContext.pageIdSectionNumberMap.toList
           .find { case (modelPageId, _) =>
-            modelPageId == forModelPageId || modelPageId.baseId == forModelPageId.baseId
+            modelPageId.baseId == forModelPageId.baseId
           }
           .fold("") { case (_, sectionNumber) =>
             uk.gov.hmrc.gform.gform.routes.FormController

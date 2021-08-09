@@ -45,6 +45,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     includeIf,
     None,
     formComponents,
