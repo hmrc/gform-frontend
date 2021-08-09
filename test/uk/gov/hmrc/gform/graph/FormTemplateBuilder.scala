@@ -102,6 +102,7 @@ object FormTemplateBuilder {
         None,
         None,
         None,
+        None,
         Some(includeIf),
         None,
         formComponents,
@@ -266,6 +267,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     formComponents,
     None,
     None,
@@ -276,6 +278,7 @@ object FormTemplateBuilder {
   def mkPageIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf): Page[Visibility] =
     Page[Visibility](
       toSmartString("Section Name"),
+      None,
       None,
       None,
       None,

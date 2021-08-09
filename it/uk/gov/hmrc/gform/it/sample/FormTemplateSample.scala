@@ -34,6 +34,7 @@ trait FormTemplateSample {
       NonRepeatingPage(
         Page[Basic](
           title = toSmartString("Page1"),
+          id = None,
           noPIITitle = None,
           description = None,
           shortName = None,

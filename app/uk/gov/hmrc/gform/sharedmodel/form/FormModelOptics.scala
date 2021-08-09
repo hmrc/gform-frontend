@@ -70,6 +70,7 @@ object FormModelOptics {
         Map.empty,
         Set.empty[BaseComponentId],
         Set.empty[BaseComponentId],
+        Map.empty,
         lang,
         messages
       )

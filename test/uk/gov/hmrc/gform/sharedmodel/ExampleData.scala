@@ -70,6 +70,7 @@ trait ExampleEvaluationContext {
       Map.empty,
       Set.empty,
       Set.empty,
+      Map.empty,
       LangADT.En,
       Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
     )
@@ -539,6 +540,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     Section.NonRepeatingPage(
       Page(
         toSmartString(title),
+        None,
         noPIITitle.map(toSmartString),
         None,
         None,
@@ -643,6 +645,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     presentationHint: Option[PresentationHint] = None
   ): Page[T] = Page[T](
     toSmartString(title),
+    None,
     None,
     None,
     None,

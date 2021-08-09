@@ -33,6 +33,7 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
   def updated: Page[A] =
     page.copy(
       title = expandSmartString(page.title),
+      id = page.id.map(id => id.withIndex(index)),
       description = page.description.map(expandSmartString),
       shortName = page.shortName.map(expandSmartString),
       progressIndicator = page.progressIndicator.map(expandSmartString),

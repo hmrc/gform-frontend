@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.models.{ Basic, PageMode }
 
 case class Page[A <: PageMode](
   title: SmartString,
+  id: Option[PageId],
   noPIITitle: Option[SmartString],
   description: Option[SmartString],
   shortName: Option[SmartString],

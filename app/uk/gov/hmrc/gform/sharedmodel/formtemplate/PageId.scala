@@ -16,18 +16,17 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import julienrf.json.derived
-import play.api.libs.json.OFormat
+import play.api.libs.json.{ Format, JsString }
+import uk.gov.hmrc.gform.models.ids.ModelPageId
+import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 
-sealed trait InternalLink extends Product with Serializable
+case class PageId(id: String) {
+  val modelPageId: ModelPageId = ModelPageId.fromPageId(this)
 
-object InternalLink {
-  case object PrintAcknowledgementPdf extends InternalLink
-  case object PrintSummaryPdf extends InternalLink
-  case class PageLink(id: PageId) extends InternalLink
+  def withIndex(index: Int) = PageId(index + "_" + id)
+}
 
-  val printAcknowledgementPdf: InternalLink = PrintAcknowledgementPdf
-  val printSummaryPdf: InternalLink = PrintSummaryPdf
-
-  implicit val format: OFormat[InternalLink] = derived.oformat()
+object PageId {
+  implicit val format: Format[PageId] =
+    ValueClassFormat.vformat("id", PageId.apply, p => JsString(p.id))
 }
