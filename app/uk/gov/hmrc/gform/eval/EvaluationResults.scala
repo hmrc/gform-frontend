@@ -296,6 +296,7 @@ case class EvaluationResults(
           .url
       case None =>
         evaluationContext.pageIdSectionNumberMap.toList
+          .sortBy(_._1.maybeIndex)(Ordering[Option[Int]].reverse)
           .find { case (modelPageId, _) =>
             modelPageId.baseId == forModelPageId.baseId
           }

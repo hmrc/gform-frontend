@@ -24,6 +24,11 @@ sealed trait ModelPageId {
     case ModelPageId.Indexed(_, _) => this
   }
 
+  def maybeIndex: Option[Int] = this match {
+    case ModelPageId.Pure(_)            => None
+    case ModelPageId.Indexed(id, index) => Some(index)
+  }
+
   def baseId: String = this match {
     case ModelPageId.Pure(id)       => id
     case ModelPageId.Indexed(id, _) => id
