@@ -16,16 +16,18 @@
 
 package uk.gov.hmrc.gform.eval
 
-import org.scalatest.prop.TableDrivenPropertyChecks
+import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, PeriodResult, StringResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, NumberResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
+import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, LangCtx, OffsetYMD, Period, PeriodExt, PeriodFn, PeriodValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -35,30 +37,34 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
   private val booleanExprResolver = BooleanExprResolver(_ => false)
 
-  override val evaluationContext: EvaluationContext = new EvaluationContext(
-    formTemplateId,
-    submissionRef,
-    None,
-    authContext,
-    ThirdPartyData.empty,
-    authConfig,
-    HeaderCarrier(),
-    Option.empty[FormPhase],
-    FileIdsWithMapping.empty,
-    Map.empty,
-    Set.empty,
-    Set.empty,
-    LangADT.En,
-    Helpers.stubMessages(
-      Helpers.stubMessagesApi(
-        Map(
-          "en" -> Map(
-            "date.January" -> "January"
+  def buildEvaluationContext(pageIdSectionNumberMap: Map[ModelPageId, SectionNumber] = Map.empty) =
+    new EvaluationContext(
+      formTemplateId,
+      submissionRef,
+      None,
+      authContext,
+      ThirdPartyData.empty,
+      authConfig,
+      HeaderCarrier(),
+      Option.empty[FormPhase],
+      FileIdsWithMapping.empty,
+      Map.empty,
+      Set.empty,
+      Set.empty,
+      pageIdSectionNumberMap,
+      LangADT.En,
+      Helpers.stubMessages(
+        Helpers.stubMessagesApi(
+          Map(
+            "en" -> Map(
+              "date.January" -> "January"
+            )
           )
         )
       )
     )
-  )
+
+  override val evaluationContext: EvaluationContext = buildEvaluationContext()
 
   "evalExpr - type dateString" should "evaluate expressions" in {
 
@@ -124,8 +130,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
   "evalExpr - type string" should "evaluate expressions" in {
 
-    val table = Table(
-      ("typeInfo", "recData", "expectedResult", "scenario"),
+    val table: TableFor5[TypeInfo, RecData[OutOfDate], EvaluationContext, ExpressionResult, String] = Table(
+      ("typeInfo", "recData", "evaluationContext", "expectedResult", "scenario"),
       (
         TypeInfo(
           DateCtx(DateFormCtxVar(FormCtx(FormComponentId("dateFieldId1")))),
@@ -139,6 +145,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             (toModelComponentId("dateFieldId1"), VariadicValue.One("11 January 1970"))
           )
         ),
+        evaluationContext,
         DateResult(LocalDate.of(1970, 1, 11)),
         "DateCtx expression converted to type 'string'"
       ),
@@ -152,6 +159,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             (toModelComponentId("dateFieldId1"), VariadicValue.One("11 January 1970"))
           )
         ),
+        evaluationContext,
         StringResult("11 January 1970"),
         "FormCtx Expression converted to type 'string'"
       ),
@@ -165,6 +173,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             (toModelComponentId("2_addToListField1"), VariadicValue.One("World"))
           )
         ),
+        evaluationContext,
         StringResult("2"),
         "Eval Count(addToListComponent) as string"
       ),
@@ -173,13 +182,57 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         RecData[OutOfDate](
           VariadicFormData.empty
         ),
+        evaluationContext,
         StringResult("en"),
         "Eval LangCtx as string"
+      ),
+      (
+        TypeInfo(LinkCtx(PageLink(PageId("unknown"))), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.empty
+        ),
+        evaluationContext,
+        Empty,
+        "Eval LinkCtx(PageLink(PageId(xxx))) as string (non-existent)"
+      ),
+      (
+        TypeInfo(LinkCtx(PageLink(PageId("page1"))), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.empty
+        ),
+        buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Pure("page1") -> SectionNumber(1))),
+        StringResult("/form/section/AAA999/-/1"),
+        "Eval LinkCtx(PageLink(PageId(xxx))) as string (exact match)"
+      ),
+      (
+        TypeInfo(LinkCtx(PageLink(PageId("1_page1"))), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.empty
+        ),
+        buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Pure("page1") -> SectionNumber(1))),
+        StringResult("/form/section/AAA999/-/1"),
+        "Eval LinkCtx(PageLink(PageId(xxx))) as string (link from repeating/add-to-list page to non-repeating page)"
+      ),
+      (
+        TypeInfo(LinkCtx(PageLink(PageId("page1"))), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.empty
+        ),
+        buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Indexed("page1", 1) -> SectionNumber(1))),
+        StringResult("/form/section/AAA999/-/1"),
+        "Eval LinkCtx(PageLink(PageId(xxx))) as string (link from non-repeating page to repeating page)"
       )
     )
-    forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>
-      EvaluationResults.empty
-        .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
+    forAll(table) {
+      (
+        typeInfo: TypeInfo,
+        recData: RecData[OutOfDate],
+        evaluationContext: EvaluationContext,
+        expectedResult: ExpressionResult,
+        _
+      ) =>
+        EvaluationResults.empty
+          .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
 

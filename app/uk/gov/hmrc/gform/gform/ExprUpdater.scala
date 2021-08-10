@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import cats.instances.int._
 import cats.syntax.eq._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
@@ -37,6 +38,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case Sum(expr)                            => Sum(expandExpr(expr))
     case DateCtx(dateExpr)                    => DateCtx(expandDateExpr(dateExpr))
     case AddressLens(formComponentId, detail) => AddressLens(expandFcId(formComponentId), detail)
+    case LinkCtx(PageLink(id))                => LinkCtx(PageLink(id.withIndex(index)))
     case otherwise                            => otherwise
   }
 

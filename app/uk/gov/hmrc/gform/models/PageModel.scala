@@ -18,11 +18,12 @@ package uk.gov.hmrc.gform.models
 
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, FormComponent, FormComponentId, IncludeIf, Instruction, Page, ValidIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, FormComponent, FormComponentId, IncludeIf, Instruction, Page, PageId, ValidIf }
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedTitle)
   def noPIITitle: Option[SmartString] = fold(_.page.noPIITitle)(_.expandedNoPIITitle)
+  def id: Option[PageId] = fold(_.page.id)(r => Some(r.expandedId))
 
   def isTerminationPage = fold(_.page.isTerminationPage)(_ => false)
 
@@ -59,6 +60,7 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
 case class Singleton[A <: PageMode](page: Page[A]) extends PageModel[A]
 case class Repeater[A <: PageMode](
   expandedTitle: SmartString,
+  expandedId: PageId,
   expandedNoPIITitle: Option[SmartString],
   expandedDescription: SmartString,
   expandedShortName: SmartString,

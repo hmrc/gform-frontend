@@ -191,6 +191,7 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.dateLookup,
         formModel.addressLookup,
         formModel.overseasAddressLookup,
+        formModel.pageIdSectionNumberMap,
         lang,
         messages
       )
@@ -340,6 +341,7 @@ class FormModelBuilder[E, F[_]: Functor](
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds).updatedWithId
     Repeater[T](
       expand(s.title),
+      s.pageId.withIndex(index),
       s.noPIITitle.map(expand),
       expand(s.description),
       expand(s.shortName),

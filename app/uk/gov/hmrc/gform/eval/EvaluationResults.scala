@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
 
@@ -251,12 +252,15 @@ case class EvaluationResults(
             case InternalLink.PrintSummaryPdf =>
               uk.gov.hmrc.gform.gform.routes.SummaryController
                 .downloadPDF(evaluationContext.formTemplateId, evaluationContext.maybeAccessCode)
+                .url
             case InternalLink.PrintAcknowledgementPdf =>
               uk.gov.hmrc.gform.gform.routes.AcknowledgementController
                 .downloadPDF(evaluationContext.maybeAccessCode, evaluationContext.formTemplateId)
-
+                .url
+            case PageLink(id) =>
+              computePageLink(id, evaluationContext)
           }
-        nonEmpty(StringResult(link.url))
+        nonEmpty(StringResult(link))
       case DateCtx(dateExpr) => evalDateExpr(recData, evaluationContext, this)(dateExpr)
       case Period(_, _)      => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case PeriodExt(_, _)   => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
@@ -281,6 +285,27 @@ case class EvaluationResults(
     }
 
     loop(typeInfo.expr)
+  }
+
+  private def computePageLink(forPageId: PageId, evaluationContext: EvaluationContext) = {
+    val forModelPageId = forPageId.modelPageId
+    evaluationContext.pageIdSectionNumberMap.get(forModelPageId) match {
+      case Some(sectionNumber) =>
+        uk.gov.hmrc.gform.gform.routes.FormController
+          .formSection(evaluationContext.formTemplateId, evaluationContext.maybeAccessCode, sectionNumber)
+          .url
+      case None =>
+        evaluationContext.pageIdSectionNumberMap.toList
+          .sortBy(_._1.maybeIndex)(Ordering[Option[Int]].reverse)
+          .find { case (modelPageId, _) =>
+            modelPageId.baseId == forModelPageId.baseId
+          }
+          .fold("") { case (_, sectionNumber) =>
+            uk.gov.hmrc.gform.gform.routes.FormController
+              .formSection(evaluationContext.formTemplateId, evaluationContext.maybeAccessCode, sectionNumber)
+              .url
+          }
+    }
   }
 
   private def evalDateString(

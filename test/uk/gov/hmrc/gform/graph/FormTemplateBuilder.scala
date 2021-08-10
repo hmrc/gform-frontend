@@ -45,6 +45,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     includeIf,
     None,
     formComponents,
@@ -98,6 +99,7 @@ object FormTemplateBuilder {
     Section.NonRepeatingPage(
       Page(
         toSmartString("Section Name"),
+        None,
         None,
         None,
         None,
@@ -266,6 +268,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     formComponents,
     None,
     None,
@@ -276,6 +279,7 @@ object FormTemplateBuilder {
   def mkPageIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf): Page[Visibility] =
     Page[Visibility](
       toSmartString("Section Name"),
+      None,
       None,
       None,
       None,

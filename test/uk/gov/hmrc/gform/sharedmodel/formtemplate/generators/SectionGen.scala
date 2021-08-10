@@ -82,9 +82,17 @@ trait SectionGen {
       fields        <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
     } yield DeclarationSection(title, noPIITitle, description, shortName, continueLabel, fields.toList)
 
+  def pageIdGen: Gen[PageId] =
+    for {
+      first                <- Gen.oneOf(Gen.const("_"), Gen.alphaChar.map(_.toString))
+      restBeforeUnderscore <- PrimitiveGen.nonEmptyAlphaNumStrGen
+      restAfterUnderscore  <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen).map(_.map("_" + _).getOrElse(""))
+    } yield PageId(first + restBeforeUnderscore + restAfterUnderscore)
+
   def pageGen: Gen[Page[Basic]] =
     for {
       title             <- smartStringGen
+      id                <- Gen.option(pageIdGen)
       noPIITitle        <- Gen.option(smartStringGen)
       description       <- Gen.option(smartStringGen)
       progressIndicator <- Gen.option(smartStringGen)
@@ -98,6 +106,7 @@ trait SectionGen {
       presentationHint  <- Gen.option(PresentationHintGen.presentationHintGen)
     } yield Page(
       title,
+      id,
       noPIITitle,
       description,
       progressIndicator,

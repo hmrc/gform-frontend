@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.data.NonEmptyList
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.eval.{ AllPageModelExpressions, ExprMetadata, ExprType, RevealingChoiceInfo, StandaloneSumInfo, StaticTypeData, StaticTypeInfo, SumInfo, TypeInfo }
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, MultiValueId }
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 case class FormModel[A <: PageMode](
@@ -31,6 +31,11 @@ case class FormModel[A <: PageMode](
 ) {
 
   val pagesWithIndex: NonEmptyList[(PageModel[A], SectionNumber)] = brackets.toPageModelWithNumber
+
+  val pageIdSectionNumberMap: Map[ModelPageId, SectionNumber] = pagesWithIndex.toList.flatMap {
+    case (pageModel, number) =>
+      pageModel.id.map(id => (id.modelPageId, number))
+  }.toMap
 
   val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
 

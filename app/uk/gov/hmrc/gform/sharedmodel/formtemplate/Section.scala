@@ -67,6 +67,7 @@ object Section {
     infoMessage: Option[SmartString],
     defaultPage: Option[Page[Basic]] = None
   ) extends Section {
+    val pageId: PageId = PageId(addAnotherQuestion.id.value)
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
     val allIds: List[FormComponentId] = {
       addAnotherQuestion.id :: pages.toList.flatMap(_.allIds)
@@ -105,6 +106,7 @@ case class DeclarationSection(
   def toPage: Page[Basic] =
     Page(
       title = title,
+      id = None,
       noPIITitle = noPIITitle,
       description = description,
       shortName = shortName,
@@ -139,6 +141,7 @@ case class AcknowledgementSection(
   def toPage: Page[Basic] =
     Page(
       title = title,
+      id = None,
       noPIITitle = None,
       description = description,
       shortName = shortName,
@@ -176,6 +179,7 @@ case class EnrolmentSection(
   def toPage: Page[Basic] =
     Page(
       title = title,
+      id = None,
       noPIITitle = noPIITitle,
       description = None,
       shortName = shortName,

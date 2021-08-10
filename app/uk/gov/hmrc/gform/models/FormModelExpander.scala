@@ -127,6 +127,7 @@ object FormModelExpander {
       val expand: SmartString => SmartString = _.expand(index, source.allIds).replace("$n", index.toString)
       page.copy(
         title = expand(page.title),
+        id = page.id.map(id => id.withIndex(index)),
         description = page.description.map(expand),
         shortName = page.shortName.map(expand),
         progressIndicator = page.progressIndicator.map(expand),
