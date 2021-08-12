@@ -8,7 +8,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anonymous, AuthCtx, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, FormComponent, FormComponentId, FormTemplate, FormTemplateId, GG, OnePerUser, Page, SummarySection, TextConstraint }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anonymous, AuthCtx, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, FormComponent, FormComponentId, FormTemplate, FormTemplateId, GG, OnePerUser, Page, SummarySection, TextConstraint, UserResearchUrl }
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, EmailVerifierService, LangADT, LocalisedString }
 
 trait FormTemplateSample {
@@ -103,7 +103,8 @@ trait FormTemplateSample {
     ),
     emailTemplateId = LocalisedEmailTemplateId("some_email_template", None),
     emailParameters = None,
-    save4LaterInfoText = None
+    save4LaterInfoText = None,
+    userResearchUrl = Some(UserResearchUrl("https://test.service.gov.uk"))
   )
 
   val formTemplateEmailAuthWithOptionalDetails = formTemplateEmailAuth.copy(authConfig =
@@ -121,5 +122,7 @@ trait FormTemplateSample {
       formName = LocalisedString(Map(LangADT.En -> "Form with anonymous auth")),
       authConfig = Anonymous
     )
+
+  val formTemplateEmailAuthWithoutUserResearchUrl = formTemplateEmailAuth.copy(userResearchUrl = None)
 
 }

@@ -39,7 +39,8 @@
   formCategory = agentEnrolmentProlog.formTemplate.formCategory,
   displayHMRCLogo = agentEnrolmentProlog.formTemplate.displayHMRCLogo,
   languages = agentEnrolmentProlog.formTemplate.languages,
-  templateId = agentEnrolmentProlog.formTemplate._id
+  templateId = agentEnrolmentProlog.formTemplate._id,
+  userResearchUrl = agentEnrolmentProlog.formTemplate.userResearchUrl.map(_.value)
 ) {
   <h1 class="govuk-label--l">
     @heading

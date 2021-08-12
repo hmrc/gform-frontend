@@ -36,7 +36,8 @@
   languages: AvailableLanguages = AvailableLanguages.default,
   templateId: FormTemplateId,
   backLink: Option[BackLink] = None,
-  displayTimeoutDialog: Boolean = true
+  displayTimeoutDialog: Boolean = true,
+  userResearchUrl: Option[String] = None
 )(content: Html)(implicit request: Request[_], messages: Messages, l: LangADT)
 
 @webChatRoomId = @{
@@ -93,5 +94,6 @@
   formLanguages = languages,
   templateId = templateId,
   backLink = backLink,
-  displayTimeoutDialog = displayTimeoutDialog
+  displayTimeoutDialog = displayTimeoutDialog,
+  userResearchUrl = userResearchUrl
 )

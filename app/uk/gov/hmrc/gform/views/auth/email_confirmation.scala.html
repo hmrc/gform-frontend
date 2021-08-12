@@ -66,7 +66,8 @@
     displayHMRCLogo = formTemplate.displayHMRCLogo,
     languages = formTemplate.languages,
     templateId = formTemplate._id,
-    backLink = None
+    backLink = None,
+    userResearchUrl = formTemplate.userResearchUrl.map(_.value)
 ) {
 
     <header class="hmrc-page-heading">

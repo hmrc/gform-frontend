@@ -44,7 +44,8 @@
   formCategory = displayAccessCode.formTemplate.formCategory,
   displayHMRCLogo = displayAccessCode.formTemplate.displayHMRCLogo,
   languages = displayAccessCode.formTemplate.languages,
-  templateId = displayAccessCode.formTemplate._id
+  templateId = displayAccessCode.formTemplate._id,
+  userResearchUrl = displayAccessCode.formTemplate.userResearchUrl.map(_.value)
 ) {
 
   @displayAccessCode.panelHtml

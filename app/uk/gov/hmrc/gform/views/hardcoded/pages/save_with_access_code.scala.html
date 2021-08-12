@@ -32,7 +32,8 @@
   formCategory = saveWithAccessCode.formTemplate.formCategory,
   displayHMRCLogo = saveWithAccessCode.formTemplate.displayHMRCLogo,
   languages = saveWithAccessCode.formTemplate.languages,
-  templateId = saveWithAccessCode.formTemplate._id
+  templateId = saveWithAccessCode.formTemplate._id,
+  userResearchUrl = saveWithAccessCode.formTemplate.userResearchUrl.map(_.value)
 ) {
 
   @saveWithAccessCode.panelHtml

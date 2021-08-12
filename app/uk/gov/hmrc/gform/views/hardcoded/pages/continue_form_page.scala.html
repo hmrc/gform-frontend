@@ -46,7 +46,8 @@
   formCategory = continueFormPage.formTemplate.formCategory,
   displayHMRCLogo = continueFormPage.formTemplate.displayHMRCLogo,
   languages = continueFormPage.formTemplate.languages,
-  templateId = continueFormPage.formTemplate._id
+  templateId = continueFormPage.formTemplate._id,
+  userResearchUrl = continueFormPage.formTemplate.userResearchUrl.map(_.value)
 ) {
 
   @if(continueFormPage.hasErrors) {
