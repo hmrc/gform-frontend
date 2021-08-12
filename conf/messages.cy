@@ -9,20 +9,20 @@ branding.hmrc=Cyllid a Thollau EM
 
 emailAuth.weWillSendCodeToEmail=Byddwn yn anfon cod atoch i gadarnhau mai’ch cyfeiriad e-bost chi yw hwn. Ar y sgrin nesaf, gofynnir i chi nodi’r cod.
 emailAuth.enterYourEmailAddress=Nodwch eich cyfeiriad e-bost
-emailAuth.enterYourCode=Nodwch y cod i gadarnhau'ch cyfeiriad e-bost
+emailAuth.enterYourCode=Nodwch y cod i gadarnhau’ch cyfeiriad e-bost
 emailAuth.weHaveSendCodeTo=Rydym wedi anfon cod i
 emailAuth.provideDifferentEmailAddress=Rhowch gyfeiriad e-bost gwahanol
 emailAuth.browserAccessEmailNewWindow=Os ydych yn defnyddio porwr i gael mynediad at eich e-byst, efallai y bydd angen i chi agor ffenestr neu dab newydd i weld y cod.
 emailAuth.confirmCode=Cod cadarnhau
-emailAuth.confirmCodeExample=Er enghraifft, DNXL
+emailAuth.confirmCodeExample=Er enghraifft, DNXL.
 emailAuth.cannotFindEmail=Ni allaf ddod o hyd i’r e-bost
 emailAuth.itCantTakeFewMins=Gall gymryd ychydig o funudau i gyrraedd.
-emailAuth.searchYouEmails=Chwiliwch drwy’ch e-byst am ‘Cadarnhau’ch cyfeiriad e-bost – Gwneud hawliad i gario colled yn ôl dros gyfnod estynedig - CThEM’ neu ''Confirm your email address – {0}''.
+emailAuth.searchYouEmails=Chwiliwch drwy’ch e-byst am ’Cadarnhau’ch cyfeiriad e-bost – {0}’.
 emailAuth.checkYourSpam=Gwiriwch eich ffolder sbam neu sothach – os nad yw wedi dod i law o hyd, bydd angen i chi
 emailAuth.startAgain=ddechrau eto
 emailAuth.emailAddress=Cyfeiriad e-bost
 emailAuth.confirmCodeError=Nodwch y cod y gwnaethom ei anfon atoch drwy e-bost. Mae hwn yn 4 llythyren megis DNLC
-emailAuth.emailConfirmation=Cyfeiriad e-bost wedi'i gadarnhau
+emailAuth.emailConfirmation=Cyfeiriad e-bost wedi’i gadarnhau
 
 linkText.saveAndComeBackLater=Cadw a dod yn ôl yn hwyrach
 linkText.back=Yn ôl
@@ -298,7 +298,7 @@ file.upload=Uwchlwytho ffeil
 file.delete=Dileu
 file.delete.file=Dileu {0}
 file.error.upload.one.only=Gallwch ond uwchlwytho un ffeil ar y tro
-file.error.empty=Mae'r ffeil hon yn wag
+file.error.empty=Mae’r ffeil hon yn wag
 file.error.size=Mae’r ffeil hon yn fwy na maint y ffeil fwyaf a ganiateir sef {0}MB
 file.error.type=Ni chaniateir y math o ffeil {0}. Gallwch ond uwchlwytho {1}
 
