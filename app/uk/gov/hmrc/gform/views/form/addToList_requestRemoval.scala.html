@@ -59,7 +59,8 @@
     displayHMRCLogo = formTemplate.displayHMRCLogo,
     languages = formTemplate.languages,
     templateId = formTemplate._id,
-    backLink = Some(backLink)
+    backLink = Some(backLink),
+    userResearchUrl = formTemplate.userResearchUrl.map(_.value)
 ) {
 
     @pageLevelError.render

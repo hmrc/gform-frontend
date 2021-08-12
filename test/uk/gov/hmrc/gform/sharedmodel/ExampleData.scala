@@ -737,6 +737,8 @@ trait ExampleFormTemplate {
       Some(toSmartString("Summary ContinueLabel"))
     )
 
+  def userResearchUrl = UserResearchUrl("https://test.service.gov.uk")
+
   def buildFormTemplate: FormTemplate = buildFormTemplate(destinationList, allSections)
 
   def buildFormTemplate(destinationList: DestinationList, sections: List[Section]): FormTemplate =
@@ -756,7 +758,8 @@ trait ExampleFormTemplate {
       AvailableLanguages.default,
       None,
       summarySection,
-      true
+      true,
+      Some(userResearchUrl)
     )
 }
 

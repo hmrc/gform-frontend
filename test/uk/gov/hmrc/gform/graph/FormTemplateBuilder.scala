@@ -251,7 +251,8 @@ object FormTemplateBuilder {
       toSmartString("Footer"),
       Some(toSmartString("ContinueLabel"))
     ),
-    true
+    true,
+    Some(UserResearchUrl("https://test.service.gov.uk"))
   )
 
   def addToListQuestion(addAnotherQuestionName: String): FormComponent =

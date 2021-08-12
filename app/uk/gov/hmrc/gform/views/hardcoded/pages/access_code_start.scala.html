@@ -47,7 +47,8 @@
   formCategory = accessCodeStart.formTemplate.formCategory,
   displayHMRCLogo = accessCodeStart.formTemplate.displayHMRCLogo,
   languages = accessCodeStart.formTemplate.languages,
-  templateId = accessCodeStart.formTemplate._id
+  templateId = accessCodeStart.formTemplate._id,
+  userResearchUrl = accessCodeStart.formTemplate.userResearchUrl.map(_.value)
 ) {
 
   @if(accessCodeStart.hasErrors) {

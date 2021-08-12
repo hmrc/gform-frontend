@@ -30,6 +30,7 @@
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 @import uk.gov.hmrc.hmrcfrontend.views.config.HmrcFooterItems
 @import uk.gov.hmrc.hmrcfrontend.config.AccessibilityStatementConfig
+@import uk.gov.hmrc.hmrcfrontend.views.Aliases.UserResearchBanner
 
 @(appConfig: FrontendAppConfig,
   serviceTitle: String,
@@ -42,7 +43,8 @@
   formLanguages: AvailableLanguages = AvailableLanguages.default,
   templateId: FormTemplateId,
   backLink: Option[BackLink],
-  displayTimeoutDialog: Boolean
+  displayTimeoutDialog: Boolean,
+  userResearchUrl: Option[String]
 )(implicit requestHeader: RequestHeader, messages: Messages, l: LangADT)
 
 @hmrcTimeoutDialog = @{new components.hmrcTimeoutDialog()}
@@ -157,7 +159,7 @@
     serviceName = Some(serviceTitle),
     serviceUrl = Some("#"),
     signOutUrl = timeoutDialog.flatMap(_.signOutUrl),
-    userResearchBanner = None,
+    userResearchBanner = userResearchUrl.map(url => UserResearchBanner(language, url)),
     phaseBanner = Some(phaseBanner),
     displayHmrcBanner = displayHMRCLogo
   )

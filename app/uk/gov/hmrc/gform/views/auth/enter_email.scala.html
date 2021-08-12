@@ -58,7 +58,8 @@
     languages = formTemplate.languages,
     templateId = formTemplate._id,
     backLink = None,
-    displayTimeoutDialog = false
+    displayTimeoutDialog = false,
+    userResearchUrl = formTemplate.userResearchUrl.map(_.value)
 ) {
 
     @pageLevelError.render

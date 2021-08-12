@@ -34,7 +34,8 @@
   formCategory = saveAcknowledgement.formTemplate.formCategory,
   displayHMRCLogo = saveAcknowledgement.formTemplate.displayHMRCLogo,
   languages = saveAcknowledgement.formTemplate.languages,
-  templateId = saveAcknowledgement.formTemplate._id
+  templateId = saveAcknowledgement.formTemplate._id,
+  userResearchUrl = saveAcknowledgement.formTemplate.userResearchUrl.map(_.value)
 ) {
 
 @saveAcknowledgement.panelHtml
