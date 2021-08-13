@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform
-import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
+import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormHandlerResult }
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
@@ -95,20 +95,10 @@ class FormController(
         fileUploadService
           .getEnvelope(cache.form.envelopeId)
           .flatMap { envelope =>
-            handler
-              .handleSuppressErrors(
-                formModelOptics,
-                sectionNumber,
-                cache.toCacheData,
-                EnvelopeWithMapping(envelope, cache.form),
-                validationService.validatePageModel,
-                suppressErrors
-              )
-          }
-          .map { handlerResult =>
             def renderSingleton(
               singleton: Singleton[DataExpanded],
-              sectionNumber: SectionNumber
+              sectionNumber: SectionNumber,
+              handlerResult: FormHandlerResult
             ) = Ok {
               renderer.renderSection(
                 maybeAccessCode,
@@ -127,69 +117,102 @@ class FormController(
               )
             }
 
+            def validateSections(suppressErrors: SuppressErrors, sectionNumbers: SectionNumber*)(
+              f: FormHandlerResult => Result
+            ) =
+              handler
+                .handleSuppressErrors(
+                  formModelOptics,
+                  sectionNumbers.toList,
+                  cache.toCacheData,
+                  EnvelopeWithMapping(envelope, cache.form),
+                  validationService.validatePageModel _,
+                  suppressErrors
+                )
+                .map(f)
+
             val formModel = formModelOptics.formModelRenderPageOptics.formModel
             val bracket = formModel.bracket(sectionNumber)
 
             bracket match {
               case Bracket.NonRepeatingPage(singleton, sectionNumber, _) =>
-                renderSingleton(singleton, sectionNumber)
+                validateSections(suppressErrors, sectionNumber)(renderSingleton(singleton, sectionNumber, _))
               case bracket @ Bracket.RepeatingPage(_, _) =>
-                val singleton = bracket.singletonForSectionNumber(sectionNumber)
-                renderSingleton(singleton, sectionNumber)
+                validateSections(suppressErrors, sectionNumber)(
+                  renderSingleton(bracket.singletonForSectionNumber(sectionNumber), sectionNumber, _)
+                )
               case bracket @ Bracket.AddToList(iterations, _) =>
                 val iteration: Bracket.AddToListIteration[DataExpanded] =
                   bracket.iterationForSectionNumber(sectionNumber)
-                val repeaterWithNumber = iteration.repeater
-                val repeater = repeaterWithNumber.repeater
-                val repeaterSectionNumber = repeaterWithNumber.sectionNumber
-                val lastRepeaterWithNumber = iterations.last.repeater
-                val lastRepeater = lastRepeaterWithNumber.repeater
-                val lastRepeaterSectionNumber = lastRepeaterWithNumber.sectionNumber
+                val (repeater, repeaterSectionNumber) = (iteration.repeater.repeater, iteration.repeater.sectionNumber)
+                val (lastRepeater, lastRepeaterSectionNumber) =
+                  (iterations.last.repeater.repeater, iterations.last.repeater.sectionNumber)
 
-                /*
-                 * When new page is added to AddToList bracket, we need to visits repeater which
-                 * has not been visited before, otherwise inflight users would be stuck in a loop.
-                 */
-                val hasBeenVisited: Boolean = cache.form.visitsIndex.contains(sectionNumber.value)
-
-                if (repeaterSectionNumber === sectionNumber) {
-
-                  if (sectionNumber === lastRepeaterSectionNumber || !hasBeenVisited) {
-                    // display current (which happens to be last) repeater
-                    val html = renderer.renderAddToList(
-                      repeater,
-                      bracket,
-                      formModel,
-                      maybeAccessCode,
-                      cache.form,
-                      sectionNumber,
-                      formModelOptics,
-                      cache.formTemplate,
-                      handlerResult.validationResult,
-                      cache.retrievals
-                    )
-                    Ok(html)
-                  } else {
-                    // We want to display last repeater
-                    val sectionTitle4Ga = sectionTitle4GaFactory(lastRepeater.expandedTitle, lastRepeaterSectionNumber)
-                    Redirect(
-                      routes.FormController
-                        .form(
-                          formTemplateId,
+                iteration.checkYourAnswers match {
+                  case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
+                    validateSections(SuppressErrors.No, iteration.allSingletonSectionNumbers: _*)(handlerResult =>
+                      Ok(
+                        renderer.renderAddToListCheckYourAnswers(
+                          checkYourAnswers.checkYourAnswers,
+                          cache.formTemplate,
                           maybeAccessCode,
-                          lastRepeaterSectionNumber,
-                          sectionTitle4Ga,
-                          suppressErrors,
-                          FastForward.Yes
+                          sectionNumber,
+                          iteration,
+                          formModelOptics,
+                          handlerResult.validationResult,
+                          cache,
+                          handlerResult.envelope
                         )
+                      )
                     )
-                  }
-                } else {
-                  // display current singleton
-                  val singleton = iteration.singleton(sectionNumber)
-                  renderSingleton(singleton, sectionNumber)
+                  case _ =>
+                    if (repeaterSectionNumber === sectionNumber) {
+                      /*
+                       * When new page is added to AddToList bracket, we need to visits repeater which
+                       * has not been visited before, otherwise inflight users would be stuck in a loop.
+                       */
+                      val hasBeenVisited: Boolean = cache.form.visitsIndex.contains(sectionNumber.value)
+                      if (sectionNumber === lastRepeaterSectionNumber || !hasBeenVisited) {
+                        // display current (which happens to be last) repeater
+                        validateSections(suppressErrors, sectionNumber)(handlerResult =>
+                          Ok(
+                            renderer.renderAddToList(
+                              repeater,
+                              bracket,
+                              formModel,
+                              maybeAccessCode,
+                              cache.form,
+                              sectionNumber,
+                              formModelOptics,
+                              cache.formTemplate,
+                              handlerResult.validationResult,
+                              cache.retrievals
+                            )
+                          )
+                        )
+                      } else {
+                        // We want to display last repeater
+                        val sectionTitle4Ga =
+                          sectionTitle4GaFactory(lastRepeater.expandedTitle, lastRepeaterSectionNumber)
+                        Redirect(
+                          routes.FormController
+                            .form(
+                              formTemplateId,
+                              maybeAccessCode,
+                              lastRepeaterSectionNumber,
+                              sectionTitle4Ga,
+                              suppressErrors,
+                              FastForward.Yes
+                            )
+                        ).pure[Future]
+                      }
+                    } else {
+                      // display current singleton
+                      validateSections(suppressErrors, sectionNumber)(
+                        renderSingleton(iteration.singleton(sectionNumber), sectionNumber, _)
+                      )
+                    }
                 }
-
             }
           }
     }
@@ -222,7 +245,12 @@ class FormController(
         ).pure[Future]
     }
 
-  def backAction(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber) =
+  def backAction(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    ff: FastForward
+  ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         def goBack(toSectionNumber: SectionNumber) = {
@@ -236,7 +264,7 @@ class FormController(
                 toSectionNumber,
                 sectionTitle4Ga,
                 SuppressErrors.Yes,
-                FastForward.Yes
+                ff
               )
           ).pure[Future]
         }
@@ -304,31 +332,37 @@ class FormController(
       implicit request => implicit l => cache => _ => formModelOptics =>
         def processEditAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
 
-          val addToListItration = processData.formModel.brackets.addToListById(addToListId, idx)
+          val addToListIteration = processData.formModel.brackets.addToListById(addToListId, idx)
 
-          val firstAddToListPage: SectionNumber = processData.formModel.brackets
-            .addToListBracket(addToListId)
-            .source
-            .defaultPage
-            .fold(addToListItration.firstSectionNumber) { _ =>
-              addToListItration.secondSectionNumber
-            }
-
-          val next = firstAddToListPage.increment
-
-          val sectionTitle4Ga = sectionTitle4GaFactory(processData.formModel(sectionNumber).title, sectionNumber)
+          def defaultNavigation(): (SectionNumber, FastForward) = {
+            val firstAddToListPageSN: SectionNumber = processData.formModel.brackets
+              .addToListBracket(addToListId)
+              .source
+              .defaultPage
+              .fold(addToListIteration.firstSectionNumber) { _ =>
+                addToListIteration.secondSectionNumber
+              }
+            (firstAddToListPageSN, FastForward.StopAt(firstAddToListPageSN.increment))
+          }
+          def checkYourAnswersNavigation(cya: CheckYourAnswersWithNumber[DataExpanded]): (SectionNumber, FastForward) =
+            (cya.sectionNumber, FastForward.Yes)
+          val (gotoSectionNumber, fastForward) =
+            addToListIteration.checkYourAnswers.fold(defaultNavigation())(checkYourAnswersNavigation)
+          val sectionTitle4Ga =
+            sectionTitle4GaFactory(processData.formModel(gotoSectionNumber).title, gotoSectionNumber)
           Redirect(
             routes.FormController
               .form(
                 formTemplateId,
                 maybeAccessCode,
-                firstAddToListPage,
+                gotoSectionNumber,
                 sectionTitle4Ga,
                 SuppressErrors.Yes,
-                FastForward.StopAt(next)
+                fastForward
               )
-          )
-            .pure[Future]
+              .url,
+            Map("edit" -> Seq("true"))
+          ).pure[Future]
         }
 
         for {
@@ -455,7 +489,7 @@ class FormController(
                 val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
                 val goBackLink = Redirect(
                   routes.FormController
-                    .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+                    .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, fastForward)
                 )
 
                 if (saveData) {

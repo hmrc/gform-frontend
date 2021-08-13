@@ -21,22 +21,23 @@ import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, FormComponent, FormComponentId, IncludeIf, Instruction, Page, PageId, ValidIf }
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
-  def title: SmartString = fold(_.page.title)(_.expandedTitle)
-  def noPIITitle: Option[SmartString] = fold(_.page.noPIITitle)(_.expandedNoPIITitle)
-  def id: Option[PageId] = fold(_.page.id)(r => Some(r.expandedId))
+  def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)
+  def noPIITitle: Option[SmartString] = fold(_.page.noPIITitle)(_.expandedNoPIIUpdateTitle)(_.expandedNoPIITitle)
+  def id: Option[PageId] = fold(_.page.id)(c => Some(c.expandedId))(r => Some(r.expandedId))
 
-  def isTerminationPage = fold(_.page.isTerminationPage)(_ => false)
+  def isTerminationPage = fold(_.page.isTerminationPage)(_ => false)(_ => false)
 
-  def fold[B](f: Singleton[A] => B)(g: Repeater[A] => B): B = this match {
-    case s: Singleton[A] => f(s)
-    case r: Repeater[A]  => g(r)
+  def fold[B](e: Singleton[A] => B)(f: CheckYourAnswers[A] => B)(g: Repeater[A] => B): B = this match {
+    case s: Singleton[A]        => e(s)
+    case c: CheckYourAnswers[A] => f(c)
+    case r: Repeater[A]         => g(r)
   }
 
   private def nestedFields(formComponent: FormComponent): List[FormComponent] =
     formComponent :: formComponent.childrenFormComponents
 
   def allFormComponents: List[FormComponent] =
-    fold(_.page.fields.flatMap(nestedFields))(r => r.addAnotherQuestion :: Nil)
+    fold(_.page.fields.flatMap(nestedFields))(_.formComponent :: Nil)(_.addAnotherQuestion :: Nil)
   def allFormComponentIds: List[FormComponentId] = allFormComponents.map(_.id)
 
   def allMultiValueIds: List[MultiValueId] = allFormComponents.map(_.multiValueId)
@@ -48,16 +49,23 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
       acc + (fc.id -> this)
     }
 
-  def getIncludeIf: Option[IncludeIf] = fold(_.page.includeIf)(_.includeIf)
+  def getIncludeIf: Option[IncludeIf] = fold(_.page.includeIf)(_ => None)(_.includeIf)
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] =
-    fold(_.page.fields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)
+    fold(_.page.fields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)(_ => Nil)
 
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
-    fold(_.page.fields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)
+    fold(_.page.fields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)(_ => Nil)
 }
 
 case class Singleton[A <: PageMode](page: Page[A]) extends PageModel[A]
+case class CheckYourAnswers[A <: PageMode](
+  expandedId: PageId,
+  expandedUpdateTitle: SmartString,
+  expandedNoPIIUpdateTitle: Option[SmartString],
+  formComponent: FormComponent,
+  index: Int
+) extends PageModel[A]
 case class Repeater[A <: PageMode](
   expandedTitle: SmartString,
   expandedId: PageId,

@@ -1,0 +1,84 @@
+@*
+* Copyright 2021 HM Revenue & Customs
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*@
+
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SectionNumber, FormTemplate }
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.gform.{HasErrors, NoErrors}
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList }
+@import uk.gov.hmrc.gform.views.html.main_template
+@import uk.gov.hmrc.gform.controllers.SaveAndContinue
+@import uk.gov.hmrc.gform.models.FastForward
+
+@(
+    title: String,
+    noPIITitle: String,
+    formTemplate: FormTemplate,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    summaryListRows: List[SummaryListRow],
+    isEditPage: Boolean,
+    frontendAppConfig: FrontendAppConfig,
+    pageLevelError: HasErrors = NoErrors
+)(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
+
+@formWithCSRF = @{new formWithCSRF()}
+@govukButton = @{new govukButton()}
+@govukSummaryList = @{new govukSummaryList()}
+@heading = @{ title }
+@formAction = @{ uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber.increment), SaveAndContinue) }
+
+@backLink = @{
+    new BackLink(attributes = Map("id" -> "backButton",
+            "data-form-template-id" -> formTemplate._id.value,
+            "data-access-code" -> maybeAccessCode.fold("-")(_.value),
+            "data-section-number" -> sectionNumber.value.toString,
+            "data-fast-forward" -> sectionNumber.value.toString
+        ),
+        href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber)).path,
+        content = new Text(messages("linkText.back"))
+    )
+}
+
+@main_template(
+    title = noPIITitle,
+    serviceName = formTemplate.formName.value,
+    containsErrors = pageLevelError.hasErrors,
+    developmentPhase = formTemplate.developmentPhase,
+    frontendAppConfig = frontendAppConfig,
+    authConfig = Some(formTemplate.authConfig),
+    webChat = formTemplate.webChat,
+    formCategory = formTemplate.formCategory,
+    displayHMRCLogo = formTemplate.displayHMRCLogo,
+    languages = formTemplate.languages,
+    templateId = formTemplate._id,
+    backLink = Some(backLink)
+) {
+    @pageHeading(heading)
+
+    @pageLevelError.render
+
+    @govukSummaryList(SummaryList(summaryListRows, "govuk-!-margin-bottom-5"))
+
+    @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
+        @govukButton(Button(content = Text(messages("button.continue")),
+                inputType=Some("submit"),
+                name=Some("save")
+            )
+        )
+    }
+}

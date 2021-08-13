@@ -64,7 +64,7 @@ class DeclarationController(
   private def getDeclarationPage(formModelOptics: FormModelOptics[DataOrigin.Mongo]): Option[Singleton[DataExpanded]] =
     for {
       declarationPage <- formModelOptics.formModelRenderPageOptics.formModel.pages.lastOption
-      singleton       <- declarationPage.fold[Option[Singleton[DataExpanded]]](Some.apply)(_ => None)
+      singleton       <- declarationPage.fold[Option[Singleton[DataExpanded]]](Some.apply)(_ => None)(_ => None)
     } yield singleton
 
   def showDeclaration(

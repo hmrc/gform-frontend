@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform.handlers
 
+import cats.Monoid
 import uk.gov.hmrc.gform.controllers.{ CacheData, Origin }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -29,6 +30,25 @@ import uk.gov.hmrc.gform.validation.ValidationUtil
 import scala.concurrent.{ ExecutionContext, Future }
 
 class FormValidator(implicit ec: ExecutionContext) {
+
+  def validatePageModelBySectionNumbers[D <: DataOrigin](
+    formModelOptics: FormModelOptics[D],
+    sectionNumbers: List[SectionNumber],
+    cache: CacheData,
+    envelope: EnvelopeWithMapping,
+    validatePageModel: ValidatePageModel[Future, D]
+  ): Future[FormHandlerResult] =
+    Future
+      .traverse(sectionNumbers) { sectionNumber =>
+        validatePageModelBySectionNumber(
+          formModelOptics,
+          sectionNumber,
+          cache,
+          envelope,
+          validatePageModel
+        ).map(_.validationResult)
+      }
+      .map(list => FormHandlerResult(Monoid[ValidationResult].combineAll(list), envelope))
 
   // This is abstract in DataOrigin, since this is used in FastForward logic and when we render a form page with a GET.
   def validatePageModelBySectionNumber[D <: DataOrigin](

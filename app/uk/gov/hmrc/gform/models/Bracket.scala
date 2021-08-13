@@ -24,7 +24,11 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Section, Sectio
 sealed trait Bracket[A <: PageMode] extends Product with Serializable {
   def toPlainBracket: BracketPlain[A]
   def hasSectionNumber(sectionNumber: SectionNumber): Boolean
-  def map[B <: PageMode](f: Singleton[A] => Singleton[B], g: Repeater[A] => Repeater[B]): Bracket[B]
+  def map[B <: PageMode](
+    e: Singleton[A] => Singleton[B],
+    f: CheckYourAnswers[A] => CheckYourAnswers[B],
+    g: Repeater[A] => Repeater[B]
+  ): Bracket[B]
 
   def fold[B](
     f: Bracket.NonRepeatingPage[A] => B
@@ -79,16 +83,27 @@ sealed trait Bracket[A <: PageMode] extends Product with Serializable {
 object Bracket {
   case class AddToListIteration[A <: PageMode](
     singletons: NonEmptyList[SingletonWithNumber[A]], // There must be at least one page in Add-to-list iteration
+    checkYourAnswers: Option[CheckYourAnswersWithNumber[A]],
     repeater: RepeaterWithNumber[A]
   ) {
 
+    def allSingletonSectionNumbers = singletons.map(_.sectionNumber).toList
+
     def toPageModelWithNumber: NonEmptyList[(PageModel[A], SectionNumber)] =
-      singletons.map(_.toPageModelWithNumber) ::: NonEmptyList.one(repeater.repeater -> repeater.sectionNumber)
+      singletons.map(_.toPageModelWithNumber) ++ checkYourAnswers.toList.map(c =>
+        c.checkYourAnswers -> c.sectionNumber
+      ) ::: NonEmptyList.one(repeater.repeater -> repeater.sectionNumber)
 
     def toPlainBracket: BracketPlain.AddToListIteration[A] =
-      BracketPlain.AddToListIteration(singletons.map(_.singleton), repeater.repeater)
+      BracketPlain.AddToListIteration(
+        singletons.map(_.singleton),
+        checkYourAnswers.map(_.checkYourAnswers),
+        repeater.repeater
+      )
     def hasSectionNumber(sectionNumber: SectionNumber): Boolean =
-      repeater.sectionNumber === sectionNumber || singletons.exists(_.sectionNumber === sectionNumber)
+      repeater.sectionNumber === sectionNumber || checkYourAnswers.exists(
+        _.sectionNumber == sectionNumber
+      ) || singletons.exists(_.sectionNumber === sectionNumber)
     def singleton(sectionNumber: SectionNumber): Singleton[A] =
       singletons.toList
         .collectFirst {
@@ -99,12 +114,16 @@ object Bracket {
 
     def toPageModel: NonEmptyList[PageModel[A]] = singletons.map(_.singleton) ::: NonEmptyList.one(repeater.repeater)
 
-    def map[B <: PageMode](f: Singleton[A] => Singleton[B], g: Repeater[A] => Repeater[B]): AddToListIteration[B] =
-      AddToListIteration(singletons.map(_.map(f)), repeater.map(g))
+    def map[B <: PageMode](
+      e: Singleton[A] => Singleton[B],
+      f: CheckYourAnswers[A] => CheckYourAnswers[B],
+      g: Repeater[A] => Repeater[B]
+    ): AddToListIteration[B] =
+      AddToListIteration(singletons.map(_.map(e)), checkYourAnswers.map(_.map(f)), repeater.map(g))
 
     def filter(predicate: PageModel[A] => Boolean): Option[AddToListIteration[A]] = {
       val filtered = singletons.filter(s => predicate(s.singleton))
-      NonEmptyList.fromList(filtered).map(AddToListIteration(_, repeater))
+      NonEmptyList.fromList(filtered).map(AddToListIteration(_, checkYourAnswers, repeater))
     }
 
     def firstSectionNumber: SectionNumber = singletons.head.sectionNumber
@@ -122,9 +141,13 @@ object Bracket {
     sectionNumber: SectionNumber,
     source: Section.NonRepeatingPage
   ) extends Bracket[A] {
-    def map[B <: PageMode](f: Singleton[A] => Singleton[B], g: Repeater[A] => Repeater[B]): NonRepeatingPage[B] =
+    def map[B <: PageMode](
+      e: Singleton[A] => Singleton[B],
+      f: CheckYourAnswers[A] => CheckYourAnswers[B],
+      g: Repeater[A] => Repeater[B]
+    ): NonRepeatingPage[B] =
       NonRepeatingPage(
-        f(singleton),
+        e(singleton),
         sectionNumber,
         source
       )
@@ -138,9 +161,13 @@ object Bracket {
     singletons: NonEmptyList[SingletonWithNumber[A]], // There must be at at least one page in repeating page bracket
     source: Section.RepeatingPage
   ) extends Bracket[A] {
-    def map[B <: PageMode](f: Singleton[A] => Singleton[B], g: Repeater[A] => Repeater[B]): RepeatingPage[B] =
+    def map[B <: PageMode](
+      e: Singleton[A] => Singleton[B],
+      f: CheckYourAnswers[A] => CheckYourAnswers[B],
+      g: Repeater[A] => Repeater[B]
+    ): RepeatingPage[B] =
       RepeatingPage(
-        singletons.map(_.map(f)),
+        singletons.map(_.map(e)),
         source
       )
 
@@ -167,15 +194,21 @@ object Bracket {
     source: Section.AddToList
   ) extends Bracket[A] {
 
-    def map[B <: PageMode](f: Singleton[A] => Singleton[B], g: Repeater[A] => Repeater[B]): AddToList[B] = AddToList(
-      iterations.map(_.map(f, g)),
+    def map[B <: PageMode](
+      e: Singleton[A] => Singleton[B],
+      f: CheckYourAnswers[A] => CheckYourAnswers[B],
+      g: Repeater[A] => Repeater[B]
+    ): AddToList[B] = AddToList(
+      iterations.map(_.map(e, f, g)),
       source
     )
 
     def toPlainBracket: BracketPlain[A] = BracketPlain.AddToList(iterations.map(_.toPlainBracket), source)
 
     def hasSectionNumber(sectionNumber: SectionNumber): Boolean = iterations.exists { iteration =>
-      iteration.repeater.sectionNumber === sectionNumber || iteration.singletons.exists(
+      iteration.repeater.sectionNumber === sectionNumber || iteration.checkYourAnswers.exists(
+        _.sectionNumber === sectionNumber
+      ) || iteration.singletons.exists(
         _.sectionNumber === sectionNumber
       )
     }
@@ -194,15 +227,16 @@ object Bracket {
     def lastSectionNumber: SectionNumber = iterations.last.repeater.sectionNumber
   }
 
-  def fromBrackets[A <: PageMode](brackets: NonEmptyList[BracketPlain[A]]): NonEmptyList[Bracket[A]] = {
+  def fromBracketsPlains[A <: PageMode](bracketPlains: NonEmptyList[BracketPlain[A]]): NonEmptyList[Bracket[A]] = {
     val iterator = Stream.from(0).map(SectionNumber(_)).iterator
-    brackets.map {
+    bracketPlains.map {
       case BracketPlain.AddToList(iterations, source) =>
         Bracket.AddToList(
           iterations.map { it =>
             Bracket
               .AddToListIteration(
                 it.singletons.map(singleton => SingletonWithNumber(singleton, iterator.next)),
+                it.checkYourAnswers.map(CheckYourAnswersWithNumber(_, iterator.next)),
                 RepeaterWithNumber(it.repeater, iterator.next)
               )
           },

@@ -83,7 +83,7 @@ case class FormModel[A <: PageMode](
     fc.id.baseComponentId
   }.toSet
 
-  val exprsMetadata: List[ExprMetadata] = brackets.toBrackets.toList.flatMap {
+  val exprsMetadata: List[ExprMetadata] = brackets.toBracketsPlains.toList.flatMap {
     case AllPageModelExpressions(exprMetadatas) => exprMetadatas
     case _                                      => Nil
   }
@@ -96,8 +96,10 @@ case class FormModel[A <: PageMode](
     )
   }.toMap
 
-  def map[B <: PageMode](f: Singleton[A] => Singleton[B])(g: Repeater[A] => Repeater[B]): FormModel[B] = FormModel(
-    BracketsWithSectionNumber(brackets.brackets.map(_.map(f, g))),
+  def map[B <: PageMode](
+    e: Singleton[A] => Singleton[B]
+  )(f: CheckYourAnswers[A] => CheckYourAnswers[B])(g: Repeater[A] => Repeater[B]): FormModel[B] = FormModel(
+    BracketsWithSectionNumber(brackets.brackets.map(_.map(e, f, g))),
     staticTypeInfo,
     revealingChoiceInfo,
     sumInfo,
@@ -110,7 +112,7 @@ case class FormModel[A <: PageMode](
       Section.AddToList
     ) => NonEmptyList[BracketPlain.AddToListIteration[A]]
   ): FormModel[A] = {
-    val bracketPlains = brackets.toBrackets.map {
+    val bracketPlains = brackets.toBracketsPlains.map {
       case BracketPlain.AddToList(iterations, source) => BracketPlain.AddToList(f(iterations, source), source)
       case o                                          => o
     }
@@ -185,8 +187,8 @@ case class FormModel[A <: PageMode](
   }
 
   def allIncludeIfsWithDependingFormComponents: List[(IncludeIf, List[FormComponent])] = pages.collect {
-    case (pm @ HasIncludeIf(includeIf)) =>
-      (includeIf, pm.fold(_.page.fields)(_.addAnotherQuestion :: Nil))
+    case pm @ HasIncludeIf(includeIf) =>
+      (includeIf, pm.fold(_.page.fields)(_ => Nil)(_.addAnotherQuestion :: Nil))
   }
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] = pages.flatMap(_.allValidIfs)
@@ -217,15 +219,15 @@ object FormModel {
   }
 
   def fromPages[A <: PageMode](
-    brackets: NonEmptyList[BracketPlain[A]],
+    bracketPlains: NonEmptyList[BracketPlain[A]],
     staticTypeInfo: StaticTypeInfo,
     revealingChoiceInfo: RevealingChoiceInfo,
     sumInfo: SumInfo
   ): FormModel[A] = {
 
-    val standaloneSumInfo = StandaloneSumInfo.from(brackets, sumInfo)
+    val standaloneSumInfo = StandaloneSumInfo.from(bracketPlains, sumInfo)
 
-    val bracketsWithSectionNumber = BracketsWithSectionNumber(Bracket.fromBrackets(brackets))
+    val bracketsWithSectionNumber = BracketsWithSectionNumber(Bracket.fromBracketsPlains(bracketPlains))
 
     FormModel(
       bracketsWithSectionNumber,
@@ -239,5 +241,5 @@ object FormModel {
 
 private object HasIncludeIf {
   def unapply(pageModel: PageModel[_ <: PageMode]): Option[IncludeIf] =
-    pageModel.fold(_.page.includeIf)(_.includeIf)
+    pageModel.fold(_.page.includeIf)(_ => None)(_.includeIf)
 }

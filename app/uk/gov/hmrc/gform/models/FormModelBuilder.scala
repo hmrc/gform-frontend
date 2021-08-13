@@ -255,6 +255,8 @@ class FormModelBuilder[E, F[_]: Functor](
           case otherwise                  => otherwise :: Nil
         }
         singleton.copy(page = singleton.page.copy(fields = updatedFields))
+      } { checkYourAnswers: CheckYourAnswers[DataExpanded] =>
+        checkYourAnswers.asInstanceOf[CheckYourAnswers[Visibility]]
       } { repeater: Repeater[DataExpanded] =>
         repeater.asInstanceOf[Repeater[Visibility]]
       }
@@ -336,6 +338,26 @@ class FormModelBuilder[E, F[_]: Functor](
     mkFormModel(basicFm, data)
   }
 
+  private def mkCheckYourAnswers[T <: PageMode](
+    c: CheckYourAnswersPage,
+    s: Section.AddToList,
+    index: Int
+  ): CheckYourAnswers[T] = {
+    // dummy FormComponentId so that CheckYourAnswers page model works as expected when computing visited indexes
+    val fc = new FormComponentUpdater(
+      s.addAnotherQuestion.copy(id = s.addAnotherQuestion.id.withSuffix("CYA")),
+      index,
+      s.allIds
+    ).updatedWithId.copy(mandatory = false, derived = true, submissible = false)
+    CheckYourAnswers[T](
+      s.pageId.withIndex(index).withSuffix("CYA"),
+      c.updateTitle.expand(index, s.allIds),
+      c.noPIIUpdateTitle.map(_.expand(index, s.allIds)),
+      fc,
+      index
+    )
+  }
+
   private def mkRepeater[T <: PageMode](s: Section.AddToList, index: Int): Repeater[T] = {
     val expand: SmartString => SmartString = _.expand(index, s.allIds)
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds).updatedWithId
@@ -390,8 +412,9 @@ class FormModelBuilder[E, F[_]: Functor](
 
     val repeater: Repeater[T] = mkRepeater(s, index)
 
-    NonEmptyList.fromList(singletons).map(BracketPlain.AddToListIteration(_, repeater))
+    val checkYourAnswers: Option[CheckYourAnswers[T]] = s.cyaPage.map(c => mkCheckYourAnswers(c, s, index))
 
+    NonEmptyList.fromList(singletons).map(BracketPlain.AddToListIteration(_, checkYourAnswers, repeater))
   }
 
   private def basic[T <: PageMode, U <: SectionSelectorType](

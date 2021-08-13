@@ -36,6 +36,8 @@ case class FormComponentId(value: String) {
 
   def withIndex(index: Int) = modelComponentId.expandWithPrefix(index).toFormComponentId
 
+  def withSuffix(suffix: String) = FormComponentId(value + suffix)
+
   def toAtomicFormComponentId(atom: Atom): ModelComponentId.Atomic = modelComponentId.toAtomicFormComponentId(atom)
 
 }

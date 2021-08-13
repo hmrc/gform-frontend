@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.gform.validation
 
+import cats.Monoid
 import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidatorsResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
-class ValidationResult(
+case class ValidationResult(
   lookup: Map[FormComponentId, FormFieldValidationResult],
   validatorsResult: Option[ValidatorsResult]
 ) {
@@ -81,5 +82,14 @@ class ValidationResult(
 }
 
 object ValidationResult {
-  val empty: ValidationResult = new ValidationResult(Map.empty, None)
+  val empty: ValidationResult = ValidationResult(Map.empty, None)
+
+  implicit val monoid: Monoid[ValidationResult] = new Monoid[ValidationResult] {
+    override def empty: ValidationResult = ValidationResult.empty
+
+    override def combine(x: ValidationResult, y: ValidationResult): ValidationResult = ValidationResult(
+      x.lookup ++ y.lookup,
+      Monoid[Option[ValidatorsResult]].combine(x.validatorsResult, y.validatorsResult)
+    )
+  }
 }

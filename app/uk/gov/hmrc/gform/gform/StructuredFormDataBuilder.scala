@@ -123,9 +123,9 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
       formModelVisibilityOptics.formModel.addToListBrackets
         .flatMap(bracket =>
           bracket.toPageModel.toList.map(
-            _.fold(singleton => bracket.source.id -> singleton.allMultiValueIds)(repeater =>
-              bracket.source.id -> repeater.allMultiValueIds
-            )
+            _.fold(singleton => bracket.source.id -> singleton.allMultiValueIds)(_ =>
+              bracket.source.id -> List.empty[MultiValueId]
+            )(repeater => bracket.source.id -> repeater.allMultiValueIds)
           )
         )
 

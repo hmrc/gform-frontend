@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ PageModel, Repeater, Singleton, Visibility }
+import uk.gov.hmrc.gform.models.{ CheckYourAnswers, PageModel, Repeater, Singleton, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
@@ -221,7 +221,8 @@ class ValidationService(
     pageModel match {
       case s: Singleton[_] =>
         s.page.validators.map(validateUsingSectionValidators(_, formModelVisibilityOptics)).getOrElse(valid)
-      case r: Repeater[_] => valid
+      case r: Repeater[_]         => valid
+      case c: CheckYourAnswers[_] => valid
     }
   }
 

@@ -35,7 +35,11 @@ sealed trait BracketPlain[A <: PageMode] extends Product with Serializable {
 }
 
 object BracketPlain {
-  case class AddToListIteration[A <: PageMode](singletons: NonEmptyList[Singleton[A]], repeater: Repeater[A])
+  case class AddToListIteration[A <: PageMode](
+    singletons: NonEmptyList[Singleton[A]],
+    checkYourAnswers: Option[CheckYourAnswers[A]],
+    repeater: Repeater[A]
+  )
 
   case class NonRepeatingPage[A <: PageMode](singleton: Singleton[A], source: Section.NonRepeatingPage)
       extends BracketPlain[A]

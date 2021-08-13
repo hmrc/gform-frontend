@@ -65,7 +65,8 @@ object Section {
     instruction: Option[Instruction],
     presentationHint: Option[PresentationHint],
     infoMessage: Option[SmartString],
-    defaultPage: Option[Page[Basic]] = None
+    defaultPage: Option[Page[Basic]] = None,
+    cyaPage: Option[CheckYourAnswersPage] = None
   ) extends Section {
     val pageId: PageId = PageId(addAnotherQuestion.id.value)
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
