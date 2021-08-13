@@ -444,30 +444,48 @@ class FormController(
                 }
               }
 
-            def processBack(processData: ProcessData, sn: SectionNumber): Future[Result] = {
-              def goBack =
-                formProcessor.validateAndUpdateData(
-                  cache,
-                  processData,
-                  sn,
-                  browserSectionNumber,
-                  maybeAccessCode,
-                  fastForward,
-                  formModelOptics
-                ) { _ =>
-                  val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
-                  Redirect(
-                    routes.FormController
-                      .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
-                  )
+            def processBack(
+              processData: ProcessData,
+              commingFromSn: SectionNumber,
+              sn: SectionNumber
+            ): Future[Result] = {
+
+              def goBack(saveData: Boolean) = {
+
+                val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
+                val goBackLink = Redirect(
+                  routes.FormController
+                    .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+                )
+
+                if (saveData) {
+                  formProcessor.validateAndUpdateData(
+                    cache,
+                    processData,
+                    sn,
+                    browserSectionNumber,
+                    maybeAccessCode,
+                    fastForward,
+                    formModelOptics
+                  )(_ => goBackLink)
+                } else {
+                  goBackLink.pure[Future]
                 }
+              }
 
               val formModel = formModelOptics.formModelRenderPageOptics.formModel
+              val commingFromBracket = formModel.bracket(commingFromSn)
+
               val bracket = formModel.bracket(sn)
 
+              val isAddToListRepeaterBackClick = commingFromBracket.whenAddToListBracket { addToList =>
+                val iteration = addToList.iterationForSectionNumber(commingFromSn)
+                iteration.repeater.sectionNumber === commingFromSn
+              }
+
               bracket match {
-                case Bracket.NonRepeatingPage(_, _, _) => goBack
-                case Bracket.RepeatingPage(_, _)       => goBack
+                case Bracket.NonRepeatingPage(_, _, _) => goBack(!isAddToListRepeaterBackClick)
+                case Bracket.RepeatingPage(_, _)       => goBack(!isAddToListRepeaterBackClick)
                 case bracket @ Bracket.AddToList(iterations, _) =>
                   val iteration: Bracket.AddToListIteration[DataExpanded] = bracket.iterationForSectionNumber(sn)
                   val lastIteration: Bracket.AddToListIteration[DataExpanded] = iterations.last
@@ -480,7 +498,7 @@ class FormController(
                           addToListBracket.iterationForSectionNumber(sectionNumber).isCommited(processData.visitsIndex)
                       }
                     if (isCommited) {
-                      goBack
+                      goBack(true)
                     } else {
                       formProcessor.processRemoveAddToList(
                         cache,
@@ -493,7 +511,7 @@ class FormController(
                       )
                     }
                   } else {
-                    goBack
+                    goBack(true)
                   }
               }
             }
@@ -598,6 +616,7 @@ class FormController(
                        case Back =>
                          processBack(
                            processData,
+                           sectionNumber,
                            Navigator(
                              sectionNumber,
                              processData.formModelOptics

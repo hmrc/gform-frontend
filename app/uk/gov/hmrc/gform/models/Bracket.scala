@@ -71,6 +71,9 @@ sealed trait Bracket[A <: PageMode] extends Product with Serializable {
     } {
       f
     }
+
+  def whenAddToListBracket(f: Bracket.AddToList[A] => Boolean): Boolean =
+    fold(_ => false)(_ => false)(f)
 }
 
 object Bracket {
