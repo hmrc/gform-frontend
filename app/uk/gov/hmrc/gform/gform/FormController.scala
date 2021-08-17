@@ -151,9 +151,11 @@ class FormController(
                 iteration.checkYourAnswers match {
                   case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
                     val maybeVisibleIteration: Option[Bracket.AddToListIteration[Visibility]] =
-                      formModelOptics.formModelVisibilityOptics.formModel.addToListBrackets.collectFirst {
-                        case b if b.hasSectionNumber(sectionNumber) => b.iterationForSectionNumber(sectionNumber)
-                      }
+                      formModelOptics.formModelVisibilityOptics.formModel
+                        .bracket(sectionNumber)
+                        .fold[Option[Bracket.AddToListIteration[Visibility]]](_ => None)(_ => None)(a =>
+                          Some(a.iterationForSectionNumber(sectionNumber))
+                        )
                     maybeVisibleIteration.fold(
                       throw new RuntimeException(
                         s"Failed to find matching visible iteration for AddToList ${bracket.source.id}"
