@@ -24,7 +24,7 @@ import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ AnyContentAsEmpty, Request }
-import play.api.test.{ FakeRequest, Helpers }
+import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -59,9 +59,9 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     implicit val request: Request[AnyContentAsEmpty.type] =
       FakeRequest()
 
-    val mssgApi: MessagesApi = Helpers.stubMessagesApi()
+    val mssgApi: MessagesApi = play.api.test.Helpers.stubMessagesApi()
 
-    implicit val messages: Messages = Helpers.stubMessages(mssgApi)
+    implicit val messages: Messages = play.api.test.Helpers.stubMessages(mssgApi)
 
     val i18nSupport: I18nSupport = new I18nSupport {
       override def messagesApi: MessagesApi = mssgApi
@@ -71,9 +71,11 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
+    lazy val addToListQuestionComponent = addToListQuestion("addToListQuestion")
+
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
-
+    lazy val validationResult = ValidationResult.empty
     lazy val cache = AuthCacheWithForm(authContext, form, formTemplate, Role.Customer, Some(accessCode))
 
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics

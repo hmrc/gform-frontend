@@ -314,6 +314,7 @@ assistive.text.sterling=in pounds sterling, do not enter the pound sign
 summary.change=Change
 summary.view=View
 summary.acknowledgement.pdf=Acknowledgement PDF
+summary.checkYourAnswers=Check your answers
 
 # Acknowledgement
 ack.title=Your {0} has been submitted

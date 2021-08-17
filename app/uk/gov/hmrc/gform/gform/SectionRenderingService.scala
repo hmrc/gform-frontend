@@ -31,12 +31,12 @@ import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.{ GformFlashKeys, Origin, SaveAndContinue }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, GformFlashKeys, Origin, SaveAndContinue }
 import uk.gov.hmrc.gform.fileupload.routes.FileUploadController
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, DataExpanded, DateExpr, FastForward, FormModel, PageModel, Repeater, SectionRenderingInformation, Singleton }
+import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
@@ -49,7 +49,9 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
 import uk.gov.hmrc.gform.ops.FormComponentOps
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
+import uk.gov.hmrc.gform.summary.{ AddToListCYARender, FormComponentSummaryRenderer }
 import uk.gov.hmrc.gform.validation.HtmlFieldId
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
@@ -73,10 +75,13 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.InputItem
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.html.components.hmrcCurrencyInput
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
+
+import scala.util.Try
 
 sealed trait HasErrors {
 
@@ -96,7 +101,10 @@ case class Errors(html: Html) extends HasErrors
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
-class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegistry: LookupRegistry) {
+class SectionRenderingService(
+  frontendAppConfig: FrontendAppConfig,
+  lookupRegistry: LookupRegistry
+) {
 
   case class ExtraInfo(
     singleton: Singleton[DataExpanded],
@@ -119,6 +127,67 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         .map(modelComponentId => (modelComponentId, formModelOptics.pageOpticsData.get(modelComponentId)))
         .toMap
 
+  }
+
+  def renderAddToListCheckYourAnswers[T <: PageMode](
+    checkYourAnswers: CheckYourAnswers[T],
+    formTemplate: FormTemplate,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    addToListIteration: Bracket.AddToListIteration[Visibility],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    validationResult: ValidationResult,
+    cache: AuthCacheWithForm,
+    envelope: EnvelopeWithMapping
+  )(implicit
+    request: Request[_],
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Html = {
+
+    val listResult = validationResult.formFieldValidationResults
+    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
+
+    val summaryListRecords: List[SummaryListRow] = addToListIteration.singletons.toList.flatMap { singletonWithNumber =>
+      val sectionTitle4Ga = sectionTitle4GaFactory(
+        formModelOptics.formModelVisibilityOptics.formModel(singletonWithNumber.sectionNumber).title,
+        singletonWithNumber.sectionNumber
+      )
+      singletonWithNumber.singleton.page.fields.flatMap { fc =>
+        FormComponentSummaryRenderer
+          .summaryListRows[DataOrigin.Mongo, AddToListCYARender](
+            fc,
+            formTemplate._id,
+            formModelOptics.formModelVisibilityOptics,
+            maybeAccessCode,
+            singletonWithNumber.sectionNumber,
+            sectionTitle4Ga,
+            cache.form.thirdPartyData.obligations,
+            validationResult,
+            envelope,
+            None,
+            FastForward.StopAt(sectionNumber)
+          )
+      }
+    }
+    val edit = request.getQueryString("edit").fold(false)(v => Try(v.toBoolean).getOrElse(false))
+
+    html.form.addToListCheckYourAnswers(
+      if (edit) checkYourAnswers.expandedUpdateTitle.value() else messages("summary.checkYourAnswers"),
+      if (edit)
+        checkYourAnswers.expandedNoPIIUpdateTitle.fold(checkYourAnswers.expandedUpdateTitle.valueWithoutInterpolations)(
+          _.value()
+        )
+      else messages("summary.checkYourAnswers"),
+      formTemplate,
+      maybeAccessCode,
+      sectionNumber,
+      summaryListRecords,
+      false,
+      frontendAppConfig,
+      pageLevelErrorHtml
+    )
   }
 
   def renderAddToList(

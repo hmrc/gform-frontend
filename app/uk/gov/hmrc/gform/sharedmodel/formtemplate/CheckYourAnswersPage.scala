@@ -16,19 +16,11 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import play.api.libs.json.{ Format, JsString }
-import uk.gov.hmrc.gform.models.ids.ModelPageId
-import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
+import play.api.libs.json.{ Format, Json }
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 
-case class PageId(id: String) {
-  val modelPageId: ModelPageId = ModelPageId.fromPageId(this)
+case class CheckYourAnswersPage(updateTitle: SmartString, noPIIUpdateTitle: Option[SmartString])
 
-  def withIndex(index: Int) = PageId(index + "_" + id)
-
-  def withSuffix(suffix: String) = PageId(id + suffix)
-}
-
-object PageId {
-  implicit val format: Format[PageId] =
-    ValueClassFormat.vformat("id", PageId.apply, p => JsString(p.id))
+object CheckYourAnswersPage {
+  implicit val format: Format[CheckYourAnswersPage] = Json.format[CheckYourAnswersPage]
 }

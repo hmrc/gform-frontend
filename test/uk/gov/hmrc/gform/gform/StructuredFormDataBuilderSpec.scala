@@ -1096,7 +1096,7 @@ class StructuredFormDataBuilderSpec
     )
 
   def createAddToListSection(addAnotherQuestionName: String, fields: List[FormComponent]*): Section =
-    mkAddToListSection(addAnotherQuestionName, fields: _*)
+    mkAddToListSection(addAnotherQuestionName, None, fields: _*)
 
   def createNonGroupField(id: String): FormComponent =
     createFormComponent(id, Text(TextConstraint.default, Value))

@@ -21,7 +21,7 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import play.api.i18n.Messages
-import play.api.test.Helpers
+import uk.gov.hmrc.gform.Helpers.toSmartString
 
 import scala.language.implicitConversions
 import uk.gov.hmrc.gform.eval.ExprType
@@ -35,7 +35,7 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
 
   implicit def implicitToFormComponentId(str: String): FormComponentId = FormComponentId(str)
   implicit val lang: LangADT = LangADT.En
-  implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
+  implicit val messages: Messages = play.api.test.Helpers.stubMessages(play.api.test.Helpers.stubMessagesApi(Map.empty))
 
   "FormModelBuilder.renderPageModel" should "return visibility model without components whose includeIf evaluates to false" in {
 
@@ -132,5 +132,62 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
       FormComponentId("1_c") -> FormCtx(FormComponentId("a")),
       FormComponentId("2_c") -> FormCtx(FormComponentId("a"))
     )
+  }
+
+  it should "create CheckoutYourAnswers page model when AddToList configured with CheckYourAnswersPage" in {
+
+    val fcA = mkFormComponent("a", Value)
+
+    val section1 = mkAddToListSection(
+      "someQuestion",
+      Some(
+        CheckYourAnswersPage(toSmartString("Update Title"), Some(toSmartString("No PII Update Title")))
+      ),
+      List(fcA)
+    )
+
+    val sections = List(
+      section1
+    )
+    val fmb = mkFormModelFromSections(sections)
+    val variadicData = variadicFormData[SourceOrigin.OutOfDate]("a" -> "1")
+
+    val fm = fmb.expand[Interim, SectionSelectorType.Normal](variadicData)
+    val addToListIterations = fm.brackets.addToListBracket(AddToListId(FormComponentId("someQuestion"))).iterations
+    addToListIterations.size shouldBe 1
+    addToListIterations.head.checkYourAnswers.isDefined shouldBe true
+    addToListIterations.head.checkYourAnswers.get.checkYourAnswers.expandedUpdateTitle shouldBe toSmartString(
+      "Update Title"
+    )
+    addToListIterations.head.checkYourAnswers.get.checkYourAnswers.expandedNoPIIUpdateTitle shouldBe Some(
+      toSmartString("No PII Update Title")
+    )
+    addToListIterations.head.checkYourAnswers.get.checkYourAnswers.index shouldBe 1
+    addToListIterations.head.checkYourAnswers.get.checkYourAnswers.expandedId shouldBe PageId("1_someQuestionCYA")
+    addToListIterations.head.checkYourAnswers.get.checkYourAnswers.formComponent.id shouldBe FormComponentId(
+      "1_someQuestionCYA"
+    )
+  }
+
+  it should "not create CheckoutYourAnswers page model when AddToList isn't configured with CheckYourAnswersPage" in {
+
+    val fcA = mkFormComponent("a", Value)
+
+    val section1 = mkAddToListSection(
+      "someQuestion",
+      None,
+      List(fcA)
+    )
+
+    val sections = List(
+      section1
+    )
+    val fmb = mkFormModelFromSections(sections)
+    val variadicData = variadicFormData[SourceOrigin.OutOfDate]("a" -> "1")
+
+    val fm = fmb.expand[Interim, SectionSelectorType.Normal](variadicData)
+    val addToListIterations = fm.brackets.addToListBracket(AddToListId(FormComponentId("someQuestion"))).iterations
+    addToListIterations.size shouldBe 1
+    addToListIterations.head.checkYourAnswers shouldBe empty
   }
 }

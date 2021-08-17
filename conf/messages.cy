@@ -312,6 +312,7 @@ assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt
 summary.change=Newid
 summary.view=Bwrw golwg
 summary.acknowledgement.pdf=Cydnabyddiaeth PDF
+summary.checkYourAnswers=Check your answers
 
 # Acknowledgement
 ack.title=Cyflwynwyd eich {0}

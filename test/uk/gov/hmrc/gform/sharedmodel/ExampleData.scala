@@ -614,7 +614,9 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     instruction: Option[Instruction],
     pages: List[Page[Basic]],
     presentationHint: Option[PresentationHint] = None,
-    infoMessage: Option[String] = None
+    infoMessage: Option[String] = None,
+    defaultPage: Option[Page[Basic]] = None,
+    cyaPage: Option[CheckYourAnswersPage] = None
   ): Section.AddToList =
     Section.AddToList(
       toSmartString(title),
@@ -628,7 +630,9 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       addAnotherQuestion,
       instruction,
       presentationHint,
-      infoMessage.map(toSmartString)
+      infoMessage.map(toSmartString),
+      defaultPage,
+      cyaPage
     )
 
   def toPage(

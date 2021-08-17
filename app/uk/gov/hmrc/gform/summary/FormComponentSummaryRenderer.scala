@@ -46,7 +46,8 @@ object FormComponentSummaryRenderer {
     obligations: Obligations,
     validationResult: ValidationResult,
     envelope: EnvelopeWithMapping,
-    iterationTitle: Option[String] = None
+    iterationTitle: Option[String] = None,
+    fastForward: FastForward = FastForward.Yes
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -68,7 +69,8 @@ object FormComponentSummaryRenderer {
           envelope,
           prefix,
           suffix,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsTextArea(_) =>
@@ -80,7 +82,8 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult,
           envelope,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsUkSortCode(_) =>
@@ -91,7 +94,8 @@ object FormComponentSummaryRenderer {
           sectionNumber,
           sectionTitle4Ga,
           formFieldValidationResult,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsDate(_) =>
@@ -102,7 +106,8 @@ object FormComponentSummaryRenderer {
           sectionNumber,
           sectionTitle4Ga,
           formFieldValidationResult,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsCalendarDate() =>
@@ -113,7 +118,8 @@ object FormComponentSummaryRenderer {
           sectionNumber,
           sectionTitle4Ga,
           formFieldValidationResult,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsTime(_) =>
@@ -124,7 +130,8 @@ object FormComponentSummaryRenderer {
           sectionNumber,
           sectionTitle4Ga,
           formFieldValidationResult,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsAddress(_) =>
@@ -135,7 +142,8 @@ object FormComponentSummaryRenderer {
           sectionNumber,
           sectionTitle4Ga,
           formFieldValidationResult,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsOverseasAddress(_) =>
@@ -146,7 +154,8 @@ object FormComponentSummaryRenderer {
           sectionNumber,
           sectionTitle4Ga,
           formFieldValidationResult,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsInformationMessage(_) =>
@@ -161,7 +170,8 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult,
           envelope,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsHmrcTaxPeriod(h) =>
@@ -175,7 +185,8 @@ object FormComponentSummaryRenderer {
           obligations,
           h,
           envelope,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsChoice(choice) =>
@@ -187,7 +198,8 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult,
           choice,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsRevealingChoice(rc) =>
@@ -203,7 +215,8 @@ object FormComponentSummaryRenderer {
           rc,
           obligations,
           envelope,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
 
       case IsGroup(group) =>
@@ -219,7 +232,8 @@ object FormComponentSummaryRenderer {
           formFieldValidationResult,
           validationResult,
           envelope,
-          iterationTitle
+          iterationTitle,
+          fastForward
         )
     }
   }
@@ -248,7 +262,8 @@ object FormComponentSummaryRenderer {
     envelope: EnvelopeWithMapping,
     prefix: Option[SmartString],
     suffix: Option[SmartString],
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -290,7 +305,7 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes
+                  fastForward
                 ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
@@ -309,7 +324,8 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -358,7 +374,7 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes
+                  fastForward
                 ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
@@ -376,7 +392,8 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -426,7 +443,7 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes
+                  fastForward
                 ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
@@ -444,7 +461,8 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -497,7 +515,7 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes
+                  fastForward
                 ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
@@ -515,7 +533,8 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -567,7 +586,7 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes
+                  fastForward
                 ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
@@ -585,7 +604,8 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -625,7 +645,7 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes
+                  fastForward
                 ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
@@ -643,7 +663,8 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -688,7 +709,7 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes
+                  fastForward
                 ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
@@ -706,7 +727,8 @@ object FormComponentSummaryRenderer {
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -751,7 +773,7 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes
+                  fastForward
                 ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
@@ -770,7 +792,8 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -812,7 +835,7 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes
+                  fastForward
                 ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
@@ -833,7 +856,8 @@ object FormComponentSummaryRenderer {
     obligations: Obligations,
     h: HmrcTaxPeriod,
     envelope: EnvelopeWithMapping,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -886,7 +910,7 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes
+                  fastForward
                 ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
@@ -905,7 +929,8 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     choice: Choice,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -951,7 +976,7 @@ object FormComponentSummaryRenderer {
                   sectionNumber,
                   sectionTitle4Ga,
                   SuppressErrors.Yes,
-                  FastForward.Yes
+                  fastForward
                 ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
@@ -974,7 +999,8 @@ object FormComponentSummaryRenderer {
     rc: RevealingChoice,
     obligations: Obligations,
     envelope: EnvelopeWithMapping,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -1044,7 +1070,7 @@ object FormComponentSummaryRenderer {
                         sectionNumber,
                         sectionTitle4Ga,
                         SuppressErrors.Yes,
-                        FastForward.Yes
+                        fastForward
                       ),
                     changeOrViewLabel,
                     iterationTitle
@@ -1071,7 +1097,8 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     validationResult: ValidationResult,
     envelope: EnvelopeWithMapping,
-    iterationTitle: Option[String]
+    iterationTitle: Option[String],
+    fastForward: FastForward
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -1126,7 +1153,7 @@ object FormComponentSummaryRenderer {
                         sectionNumber,
                         sectionTitle4Ga,
                         SuppressErrors.Yes,
-                        FastForward.Yes
+                        fastForward
                       ),
                     changeOrViewLabel,
                     iterationTitle.fold(changeOrViewLabel + " " + label)(it =>
@@ -1151,7 +1178,9 @@ object FormComponentSummaryRenderer {
             sectionTitle4Ga,
             obligations,
             validationResult,
-            envelope
+            envelope,
+            iterationTitle,
+            fastForward
           )
         }
 
@@ -1166,8 +1195,8 @@ object FormComponentSummaryRenderer {
 }
 
 sealed trait RenderType
-trait InstructionRender extends RenderType
 trait SummaryRender extends RenderType
+trait AddToListCYARender extends RenderType
 
 sealed trait FormComponentRenderDetails[T <: RenderType] {
   def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String
@@ -1184,5 +1213,13 @@ object FormComponentRenderDetails {
 
       override def prepareRenderables(fields: List[FormComponent]): List[FormComponent] =
         fields.filter(f => !f.hideOnSummary)
+    }
+
+  implicit val addToListCYARender: FormComponentRenderDetails[AddToListCYARender] =
+    new FormComponentRenderDetails[AddToListCYARender] {
+      override def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String =
+        formComponent.shortName.map(ls => ls.value()).getOrElse(formComponent.label.value())
+
+      override def prepareRenderables(fields: List[FormComponent]): List[FormComponent] = fields
     }
 }

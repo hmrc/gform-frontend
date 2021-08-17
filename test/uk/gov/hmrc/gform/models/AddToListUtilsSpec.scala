@@ -194,6 +194,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
       ) ::
         mkAddToListSection(
           "owner",
+          None,
           List(
             mkFormComponent("a", Text(ShortText.default, Value)),
             mkFormComponent("b", Text(ShortText.default, Value)),
@@ -206,6 +207,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
           )
         ) :: mkAddToListSection(
           "fruit",
+          None,
           List(
             mkFormComponent("fruitA", Text(ShortText.default, Value))
           ),

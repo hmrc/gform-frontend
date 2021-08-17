@@ -45,7 +45,7 @@ case class BracketsWithSectionNumber[A <: PageMode](brackets: NonEmptyList[Brack
       .find(_.hasSectionNumber(sectionNumber))
       .getOrElse(throw new IllegalArgumentException(s"Wrong sectionNumber $sectionNumber"))
 
-  val toBrackets: NonEmptyList[BracketPlain[A]] = brackets.map(_.toPlainBracket)
+  val toBracketsPlains: NonEmptyList[BracketPlain[A]] = brackets.map(_.toPlainBracket)
 
   def toPageModelWithNumber: NonEmptyList[(PageModel[A], SectionNumber)] = brackets.flatMap(_.toPageModelWithNumber)
 

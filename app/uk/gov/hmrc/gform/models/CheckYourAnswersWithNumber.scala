@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate
+package uk.gov.hmrc.gform.models
 
-import play.api.libs.json.{ Format, JsString }
-import uk.gov.hmrc.gform.models.ids.ModelPageId
-import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
-case class PageId(id: String) {
-  val modelPageId: ModelPageId = ModelPageId.fromPageId(this)
-
-  def withIndex(index: Int) = PageId(index + "_" + id)
-
-  def withSuffix(suffix: String) = PageId(id + suffix)
-}
-
-object PageId {
-  implicit val format: Format[PageId] =
-    ValueClassFormat.vformat("id", PageId.apply, p => JsString(p.id))
+case class CheckYourAnswersWithNumber[A <: PageMode](
+  checkYourAnswers: CheckYourAnswers[A],
+  sectionNumber: SectionNumber
+) {
+  def map[B <: PageMode](f: CheckYourAnswers[A] => CheckYourAnswers[B]): CheckYourAnswersWithNumber[B] =
+    CheckYourAnswersWithNumber(f(checkYourAnswers), sectionNumber)
 }

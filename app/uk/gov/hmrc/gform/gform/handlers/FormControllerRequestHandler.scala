@@ -31,16 +31,16 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
 
   def handleSuppressErrors(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    sectionNumber: SectionNumber,
+    sectionNumbers: List[SectionNumber],
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Mongo],
     suppressErrors: SuppressErrors
   ): Future[FormHandlerResult] =
     formValidator
-      .validatePageModelBySectionNumber(
+      .validatePageModelBySectionNumbers(
         formModelOptics,
-        sectionNumber,
+        sectionNumbers,
         cache,
         envelope,
         validatePageModel

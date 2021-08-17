@@ -70,7 +70,11 @@ object FormTemplateBuilder {
     None
   )
 
-  def mkAddToListSection(addAnotherQuestionName: String, formComponents: List[FormComponent]*): Section.AddToList =
+  def mkAddToListSection(
+    addAnotherQuestionName: String,
+    cyaPage: Option[CheckYourAnswersPage],
+    formComponents: List[FormComponent]*
+  ): Section.AddToList =
     Section.AddToList(
       toSmartString("Pet owner title"),
       Some(toSmartString("Pet owner no PII title")),
@@ -83,7 +87,9 @@ object FormTemplateBuilder {
       addToListQuestion(addAnotherQuestionName),
       None,
       None,
-      None
+      None,
+      None,
+      cyaPage
     )
 
   def mkRepeatingPageSection(formComponents: List[FormComponent]): Section.RepeatingPage =

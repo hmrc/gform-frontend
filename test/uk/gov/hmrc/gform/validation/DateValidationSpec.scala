@@ -402,7 +402,7 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
       "validateDate should validate dates in add-to-list pages, with dependency on another date in same iteration", {
         val startDateFc = mkFormComponent("startDate", Date(AnyDate, Offset(0), None))
         val endDateFc = mkDateComponentWithConstraint("endDate", startDateFc.id.value)
-        mkFormTemplate(mkAddToListSection("Add another date?", List(startDateFc, endDateFc)))
+        mkFormTemplate(mkAddToListSection("Add another date?", None, List(startDateFc, endDateFc)))
       },
       mkDateComponentWithConstraint("1_endDate", "startDate"),
       Invalid(
