@@ -150,36 +150,28 @@ class FormController(
 
                 iteration.checkYourAnswers match {
                   case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
-                    val maybeVisibleIteration: Option[Bracket.AddToListIteration[Visibility]] =
+                    val visibleIteration: Bracket.AddToListIteration[Visibility] =
                       formModelOptics.formModelVisibilityOptics.formModel
                         .bracket(sectionNumber)
-                        .fold[Option[Bracket.AddToListIteration[Visibility]]](_ => None)(_ => None)(a =>
-                          Some(a.iterationForSectionNumber(sectionNumber))
-                        )
-                    maybeVisibleIteration.fold(
-                      throw new RuntimeException(
-                        s"Failed to find matching visible iteration for AddToList ${bracket.source.id}"
-                      )
-                    ) { visibleIteration =>
-                      validateSections(
-                        SuppressErrors.No,
-                        visibleIteration.allSingletonSectionNumbers: _*
-                      )(handlerResult =>
-                        Ok(
-                          renderer.renderAddToListCheckYourAnswers(
-                            checkYourAnswers.checkYourAnswers,
-                            cache.formTemplate,
-                            maybeAccessCode,
-                            sectionNumber,
-                            visibleIteration,
-                            formModelOptics,
-                            handlerResult.validationResult,
-                            cache,
-                            handlerResult.envelope
-                          )
+                        .withAddToListBracket(a => a.iterationForSectionNumber(sectionNumber))
+                    validateSections(
+                      SuppressErrors.No,
+                      visibleIteration.allSingletonSectionNumbers: _*
+                    )(handlerResult =>
+                      Ok(
+                        renderer.renderAddToListCheckYourAnswers(
+                          checkYourAnswers.checkYourAnswers,
+                          cache.formTemplate,
+                          maybeAccessCode,
+                          sectionNumber,
+                          visibleIteration,
+                          formModelOptics,
+                          handlerResult.validationResult,
+                          cache,
+                          handlerResult.envelope
                         )
                       )
-                    }
+                    )
                   case _ =>
                     if (repeaterSectionNumber === sectionNumber) {
                       /*
