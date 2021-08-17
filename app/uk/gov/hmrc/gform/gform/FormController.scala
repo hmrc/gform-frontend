@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
@@ -150,14 +151,26 @@ class FormController(
 
                 iteration.checkYourAnswers match {
                   case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
-                    validateSections(SuppressErrors.No, iteration.allSingletonSectionNumbers: _*)(handlerResult =>
+                    validateSections(
+                      SuppressErrors.No,
+                      iteration.allSingletonSectionNumbers.filter(
+                        formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers.contains
+                      ): _*
+                    )(handlerResult =>
                       Ok(
                         renderer.renderAddToListCheckYourAnswers(
                           checkYourAnswers.checkYourAnswers,
                           cache.formTemplate,
                           maybeAccessCode,
                           sectionNumber,
-                          iteration,
+                          iteration.copy(singletons =
+                            NonEmptyList.fromListUnsafe(
+                              iteration.singletons.filter(s =>
+                                formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
+                                  .contains(s.sectionNumber)
+                              )
+                            )
+                          ),
                           formModelOptics,
                           handlerResult.validationResult,
                           cache,

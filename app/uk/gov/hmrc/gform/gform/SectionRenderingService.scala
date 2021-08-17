@@ -81,6 +81,8 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.html.components.hmrcCurrencyInput
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 
+import scala.util.Try
+
 sealed trait HasErrors {
 
   def hasErrors: Boolean = this match {
@@ -169,7 +171,7 @@ class SectionRenderingService(
           )
       }
     }
-    val edit = request.getQueryString("edit").fold(false)(_.toBoolean)
+    val edit = request.getQueryString("edit").fold(false)(v => Try(v.toBoolean).getOrElse(false))
 
     html.form.addToListCheckYourAnswers(
       if (edit) checkYourAnswers.expandedUpdateTitle.value() else messages("summary.checkYourAnswers"),
