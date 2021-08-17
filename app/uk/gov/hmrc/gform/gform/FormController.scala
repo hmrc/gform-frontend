@@ -151,11 +151,17 @@ class FormController(
 
                 iteration.checkYourAnswers match {
                   case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
+                    val visibleIteration = iteration.copy(singletons =
+                      NonEmptyList.fromListUnsafe(
+                        iteration.singletons.filter(s =>
+                          formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
+                            .contains(s.sectionNumber)
+                        )
+                      )
+                    )
                     validateSections(
                       SuppressErrors.No,
-                      iteration.allSingletonSectionNumbers.filter(
-                        formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers.contains
-                      ): _*
+                      visibleIteration.allSingletonSectionNumbers: _*
                     )(handlerResult =>
                       Ok(
                         renderer.renderAddToListCheckYourAnswers(
@@ -163,14 +169,7 @@ class FormController(
                           cache.formTemplate,
                           maybeAccessCode,
                           sectionNumber,
-                          iteration.copy(singletons =
-                            NonEmptyList.fromListUnsafe(
-                              iteration.singletons.filter(s =>
-                                formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
-                                  .contains(s.sectionNumber)
-                              )
-                            )
-                          ),
+                          visibleIteration,
                           formModelOptics,
                           handlerResult.validationResult,
                           cache,
