@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.fileupload.routes.FileUploadController
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton }
+import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
@@ -134,7 +134,7 @@ class SectionRenderingService(
     formTemplate: FormTemplate,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    addToListIteration: Bracket.AddToListIteration[DataExpanded],
+    addToListIteration: Bracket.AddToListIteration[Visibility],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     validationResult: ValidationResult,
     cache: AuthCacheWithForm,

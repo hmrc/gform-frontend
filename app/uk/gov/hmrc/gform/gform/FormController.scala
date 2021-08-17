@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
@@ -151,32 +150,34 @@ class FormController(
 
                 iteration.checkYourAnswers match {
                   case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
-                    val visibleIteration = iteration.copy(singletons =
-                      NonEmptyList.fromListUnsafe(
-                        iteration.singletons.filter(s =>
-                          formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
-                            .contains(s.sectionNumber)
+                    val maybeVisibleIteration: Option[Bracket.AddToListIteration[Visibility]] =
+                      formModelOptics.formModelVisibilityOptics.formModel.addToListBrackets.collectFirst {
+                        case b if b.hasSectionNumber(sectionNumber) => b.iterationForSectionNumber(sectionNumber)
+                      }
+                    maybeVisibleIteration.fold(
+                      throw new RuntimeException(
+                        s"Failed to find matching visible iteration for AddToList ${bracket.source.id}"
+                      )
+                    ) { visibleIteration =>
+                      validateSections(
+                        SuppressErrors.No,
+                        visibleIteration.allSingletonSectionNumbers: _*
+                      )(handlerResult =>
+                        Ok(
+                          renderer.renderAddToListCheckYourAnswers(
+                            checkYourAnswers.checkYourAnswers,
+                            cache.formTemplate,
+                            maybeAccessCode,
+                            sectionNumber,
+                            visibleIteration,
+                            formModelOptics,
+                            handlerResult.validationResult,
+                            cache,
+                            handlerResult.envelope
+                          )
                         )
                       )
-                    )
-                    validateSections(
-                      SuppressErrors.No,
-                      visibleIteration.allSingletonSectionNumbers: _*
-                    )(handlerResult =>
-                      Ok(
-                        renderer.renderAddToListCheckYourAnswers(
-                          checkYourAnswers.checkYourAnswers,
-                          cache.formTemplate,
-                          maybeAccessCode,
-                          sectionNumber,
-                          visibleIteration,
-                          formModelOptics,
-                          handlerResult.validationResult,
-                          cache,
-                          handlerResult.envelope
-                        )
-                      )
-                    )
+                    }
                   case _ =>
                     if (repeaterSectionNumber === sectionNumber) {
                       /*
