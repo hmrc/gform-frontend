@@ -25,16 +25,25 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, UserId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 sealed trait FormIdData {
-  def toFormId: FormId = this match {
-    case FormIdData.Plain(userId, formTemplateId) => FormId.direct(userId, formTemplateId)
-    case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
-      FormId.withAccessCode(userId, formTemplateId, accessCode)
+
+  def fold[A](f: FormIdData.Plain => A)(g: FormIdData.WithAccessCode => A): A = this match {
+    case p: FormIdData.Plain          => f(p)
+    case w: FormIdData.WithAccessCode => g(w)
   }
 
-  def maybeAccessCode: Option[AccessCode] = this match {
-    case FormIdData.Plain(_, _)                      => None
-    case FormIdData.WithAccessCode(_, _, accessCode) => Some(accessCode)
+  def toFormId: FormId = fold { p =>
+    FormId.direct(p.userId, p.formTemplateId)
+  } { w =>
+    FormId.withAccessCode(w.userId, w.formTemplateId, w.accessCode)
   }
+
+  def maybeAccessCode: Option[AccessCode] =
+    fold(_ => Option.empty[AccessCode])(withAccessCode => Some(withAccessCode.accessCode))
+
+  def withOriginalTemplateId(formTemplate: FormTemplate): FormIdData =
+    fold[FormIdData](_.copy(formTemplateId = formTemplate.originalId)) {
+      _.copy(formTemplateId = formTemplate.originalId)
+    }
 }
 
 object FormIdData {

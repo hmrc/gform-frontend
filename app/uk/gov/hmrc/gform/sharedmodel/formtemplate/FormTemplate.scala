@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
 
 case class FormTemplate(
   _id: FormTemplateId,
+  originalId: FormTemplateId,
   formName: LocalisedString,
   developmentPhase: Option[DevelopmentPhase],
   formCategory: FormCategory,

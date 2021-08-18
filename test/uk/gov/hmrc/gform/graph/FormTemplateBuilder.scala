@@ -230,6 +230,7 @@ object FormTemplateBuilder {
   def mkFormTemplate(sections: Section*): FormTemplate = mkFormTemplate(sections.toList)
   def mkFormTemplate(sections: List[Section], declarationSection: Option[DeclarationSection] = None) = FormTemplate(
     FormTemplateId("tst1"),
+    FormTemplateId("tst1"),
     toLocalisedString("Dependecy heavy experiment"),
     Some(BetaBanner),
     Default,

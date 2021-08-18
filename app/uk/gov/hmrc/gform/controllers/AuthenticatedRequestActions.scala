@@ -352,8 +352,7 @@ class AuthenticatedRequestActions(
 
     val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
 
-    gformConnector.maybeForm(formIdData).flatMap(_.fold(formNotFound(formIdData))(whenFormExists))
-
+    gformConnector.maybeForm(formIdData, formTemplate).flatMap(_.fold(formNotFound(formIdData))(whenFormExists))
   }
 
   private def handleAuthResults(
