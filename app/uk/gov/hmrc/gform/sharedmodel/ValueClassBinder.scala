@@ -26,7 +26,7 @@ import scala.util.Try
 
 object ValueClassBinder {
 
-  implicit val formTemplateIdBinder: PathBindable[FormTemplateId] = valueClassBinder(_.value)
+  implicit val formTemplateIdBinder: PathBindable[FormTemplateId] = valueClassBinder(_.value.toLowerCase)
   implicit val formTemplateRawIdBinder: PathBindable[FormTemplateRawId] = valueClassBinder(_.value)
 
   implicit val formIdBinder: PathBindable[FormId] = valueClassBinder(_.value)

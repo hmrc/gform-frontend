@@ -110,7 +110,7 @@ class NewFormController(
             .pure[Future]
       }
 
-    handleForm(formIdData)(showAccessCodePage) { form =>
+    handleForm(formIdData, cache.formTemplate)(showAccessCodePage) { form =>
       Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
     }
   }
@@ -184,7 +184,7 @@ class NewFormController(
         val queryParams: QueryParams = QueryParams.fromRequest(request)
 
         val formIdData = FormIdData.Plain(UserId(cache.retrievals), formTemplateId)
-        handleForm(formIdData)(newForm(formTemplateId, cache, queryParams)) { form =>
+        handleForm(formIdData, cache.formTemplate)(newForm(formTemplateId, cache, queryParams)) { form =>
           cache.formTemplate.draftRetrievalMethod match {
             case NotPermitted =>
               fastForwardService.deleteForm(cache.toAuthCacheWithForm(form, noAccessCode), queryParams)
@@ -207,7 +207,7 @@ class NewFormController(
 
     for {
       formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
-      res <- handleForm(formIdData)(notFound(formIdData)) { form =>
+      res <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
                redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode)
              }
     } yield res
@@ -241,7 +241,7 @@ class NewFormController(
       val maybeAccessCode: Option[AccessCode] = accessCodeForm.accessCode.map(a => AccessCode(a))
       maybeAccessCode.fold(noAccessCodeProvided) { accessCode =>
         val formIdData = FormIdData.WithAccessCode(UserId(cache.retrievals), formTemplateId, accessCode)
-        handleForm(formIdData)(notFound(cache.formTemplate).pure[Future]) { form =>
+        handleForm(formIdData, cache.formTemplate)(notFound(cache.formTemplate).pure[Future]) { form =>
           redirectContinue[SectionSelectorType.Normal](cache, form, maybeAccessCode)
         }
       }
@@ -309,14 +309,16 @@ class NewFormController(
 
         val accessCode = AccessCode.fromSubmissionRef(submissionRef)
         val formIdData = FormIdData.WithAccessCode(userId, formTemplateId, accessCode)
-        handleForm(formIdData)(notFound) { form =>
+        handleForm(formIdData, cache.formTemplate)(notFound) { form =>
           redirectContinue[SectionSelectorType.Normal](cache, form, Some(accessCode))
         }
     }
 
-  private def getForm(formIdData: FormIdData)(implicit hc: HeaderCarrier): Future[Option[Form]] =
+  private def getForm(formIdData: FormIdData, formTemplate: FormTemplate)(implicit
+    hc: HeaderCarrier
+  ): Future[Option[Form]] =
     for {
-      maybeForm <- gformConnector.maybeForm(formIdData)
+      maybeForm <- gformConnector.maybeForm(formIdData, formTemplate)
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
       maybeEnvelope <- maybeFormExceptSubmitted.fold(Option.empty[Envelope].pure[Future]) { f =>
                          fileUploadService.getMaybeEnvelope(f.envelopeId)
@@ -340,10 +342,11 @@ class NewFormController(
     } yield newFormData
 
   private def handleForm[A](
-    formIdData: FormIdData
+    formIdData: FormIdData,
+    formTemplate: FormTemplate
   )(notFound: => Future[A])(found: Form => Future[A])(implicit hc: HeaderCarrier): Future[A] =
     for {
-      maybeForm <- getForm(formIdData)
+      maybeForm <- getForm(formIdData, formTemplate)
       result    <- maybeForm.fold(notFound)(found)
     } yield result
 

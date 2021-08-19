@@ -694,8 +694,8 @@ trait ExampleValidator {
 trait ExampleFormTemplate {
   dependsOn: ExampleAuthConfig with ExampleSection with ExampleFieldId with ExampleFieldValue with ExampleDestination =>
 
-  def formTemplateId = FormTemplateId("AAA999")
-
+  def formTemplateOriginalId = FormTemplateId("AAA999")
+  def formTemplateId = FormTemplateId(formTemplateOriginalId.value.toLowerCase)
   def formName = toLocalisedString("AAA999 dev test template")
 
   def emailTemplateId = LocalisedEmailTemplateId("test-email-template-id", None)
@@ -748,6 +748,7 @@ trait ExampleFormTemplate {
   def buildFormTemplate(destinationList: DestinationList, sections: List[Section]): FormTemplate =
     FormTemplate(
       formTemplateId,
+      formTemplateOriginalId,
       formName,
       Some(ResearchBanner),
       Default,

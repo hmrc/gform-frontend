@@ -45,7 +45,8 @@ object ValueClassBinder {
     lookup => Register.fromString(lookup).fold[Either[String, Register]](Left(s"Unknown lookup: $lookup"))(Right.apply),
     _.asString
   )
-  implicit val formTemplateIdBinder: PathBindable[FormTemplateId] = valueClassBinder(_.value)
+
+  implicit val formTemplateIdBinder: PathBindable[FormTemplateId] = caseInsensitive(FormTemplateId.apply, _.value)
   implicit val formIdBinder: PathBindable[FormId] = valueClassBinder(_.value)
   implicit val fileIdBinder: PathBindable[FileId] = valueClassBinder(_.value)
 
@@ -232,5 +233,8 @@ object ValueClassBinder {
       override def unbind(key: String, a: A): String =
         stringBinder.unbind(key, fromAtoString(a))
     }
+
+  private def caseInsensitive[A: Reads](f: String => A, g: A => String) =
+    implicitly[PathBindable[String]].transform[A](s => f(s.toLowerCase), a => g(a).toLowerCase)
 
 }

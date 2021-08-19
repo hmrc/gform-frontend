@@ -22,6 +22,7 @@ import cats.instances.future._
 import cats.instances.string._
 import cats.syntax.functor._
 import cats.syntax.show._
+import org.slf4j.LoggerFactory
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.gform.CustomerId
@@ -42,6 +43,8 @@ import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   implicit val legacyRawReads: HttpReads[HttpResponse] =
     HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
@@ -65,7 +68,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   ): Future[List[FormOverview]] =
     ws.GET[List[FormOverview]](s"$baseUrl/forms/all/${userId.value}/${formTemplateId.value}")
 
-  def getForm(formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] = {
+  def getForm(formIdData: FormIdData)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Form] = {
     val url =
       formIdData match {
         case FormIdData.Plain(userId, formTemplateId) =>
@@ -76,9 +82,24 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.GET[Form](url)
   }
 
-  def maybeForm(formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Form]] =
-    getForm(formIdData).map(Some(_)).recover {
-      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => None
+  def maybeForm(formIdData: FormIdData, formTemplate: FormTemplate)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Option[Form]] =
+    getForm(formIdData).map(Some(_)).recoverWith {
+      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue =>
+        val formIdDataOriginal = formIdData.withOriginalTemplateId(formTemplate)
+        getForm(formIdDataOriginal)
+          .map { form =>
+            logger.info(
+              s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $formIdDataOriginal as a fallback succeeded."
+            )
+            Some(form)
+          }
+          .recover {
+            case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue =>
+              None
+          }
     }
 
   def updateUserData(formIdData: FormIdData, userData: UserData)(implicit

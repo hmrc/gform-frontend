@@ -201,7 +201,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           VariadicFormData.empty
         ),
         buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Pure("page1") -> SectionNumber(1))),
-        StringResult("/form/section/AAA999/-/1"),
+        StringResult("/form/section/aaa999/-/1"),
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (exact match)"
       ),
       (
@@ -210,7 +210,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           VariadicFormData.empty
         ),
         buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Pure("page1") -> SectionNumber(1))),
-        StringResult("/form/section/AAA999/-/1"),
+        StringResult("/form/section/aaa999/-/1"),
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (link from repeating/add-to-list page to non-repeating page)"
       ),
       (
@@ -219,7 +219,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           VariadicFormData.empty
         ),
         buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Indexed("page1", 1) -> SectionNumber(1))),
-        StringResult("/form/section/AAA999/-/1"),
+        StringResult("/form/section/aaa999/-/1"),
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (link from non-repeating page to repeating page)"
       )
     )

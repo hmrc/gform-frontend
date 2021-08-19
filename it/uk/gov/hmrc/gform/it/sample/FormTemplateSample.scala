@@ -12,8 +12,10 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anon
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, EmailVerifierService, LangADT, LocalisedString }
 
 trait FormTemplateSample {
+  val formTemplateId = FormTemplateId("form-template-with-email-auth")
   val formTemplateEmailAuth = FormTemplate(
-    _id = FormTemplateId("form-template-with-email-auth"),
+    _id = formTemplateId,
+    originalId = formTemplateId,
     formName = LocalisedString(Map(LangADT.En -> "Form with email auth")),
     developmentPhase = None,
     webChat = None,
