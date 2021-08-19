@@ -1044,7 +1044,9 @@ object FormComponentSummaryRenderer {
                 sectionTitle4Ga,
                 obligations,
                 validationResult,
-                envelope
+                envelope,
+                None,
+                fastForward
               )
             }
 
