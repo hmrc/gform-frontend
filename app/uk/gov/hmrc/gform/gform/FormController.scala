@@ -367,8 +367,7 @@ class FormController(
                 SuppressErrors.Yes,
                 fastForward
               )
-              .url,
-            Map("edit" -> Seq("true"))
+              .url
           ).pure[Future]
         }
 
