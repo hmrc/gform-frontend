@@ -81,8 +81,6 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.html.components.hmrcCurrencyInput
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 
-import scala.util.Try
-
 sealed trait HasErrors {
 
   def hasErrors: Boolean = this match {
@@ -148,44 +146,54 @@ class SectionRenderingService(
 
     val listResult = validationResult.formFieldValidationResults
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
+    val renderComeBackLater =
+      cache.retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
+    val isFirstVisit = !cache.form.visitsIndex.contains(sectionNumber.value)
 
     val summaryListRecords: List[SummaryListRow] = addToListIteration.singletons.toList.flatMap { singletonWithNumber =>
       val sectionTitle4Ga = sectionTitle4GaFactory(
         formModelOptics.formModelVisibilityOptics.formModel(singletonWithNumber.sectionNumber).title,
         singletonWithNumber.sectionNumber
       )
-      singletonWithNumber.singleton.page.fields.flatMap { fc =>
-        FormComponentSummaryRenderer
-          .summaryListRows[DataOrigin.Mongo, AddToListCYARender](
-            fc,
-            formTemplate._id,
-            formModelOptics.formModelVisibilityOptics,
-            maybeAccessCode,
-            singletonWithNumber.sectionNumber,
-            sectionTitle4Ga,
-            cache.form.thirdPartyData.obligations,
-            validationResult,
-            envelope,
-            None,
-            FastForward.StopAt(sectionNumber)
-          )
-      }
+      singletonWithNumber.singleton.page.fields
+        .filterNot(_.hideOnSummary)
+        .flatMap { fc =>
+          FormComponentSummaryRenderer
+            .summaryListRows[DataOrigin.Mongo, AddToListCYARender](
+              fc,
+              formTemplate._id,
+              formModelOptics.formModelVisibilityOptics,
+              maybeAccessCode,
+              singletonWithNumber.sectionNumber,
+              sectionTitle4Ga,
+              cache.form.thirdPartyData.obligations,
+              validationResult,
+              envelope,
+              None,
+              FastForward.StopAt(sectionNumber)
+            )
+        }
     }
-    val edit = request.getQueryString("edit").fold(false)(v => Try(v.toBoolean).getOrElse(false))
 
     html.form.addToListCheckYourAnswers(
-      if (edit) checkYourAnswers.expandedUpdateTitle.value() else messages("summary.checkYourAnswers"),
-      if (edit)
+      if (isFirstVisit) messages("summary.checkYourAnswers") else checkYourAnswers.expandedUpdateTitle.value(),
+      if (isFirstVisit)
+        messages("summary.checkYourAnswers")
+      else
         checkYourAnswers.expandedNoPIIUpdateTitle.fold(checkYourAnswers.expandedUpdateTitle.valueWithoutInterpolations)(
           _.value()
-        )
-      else messages("summary.checkYourAnswers"),
+        ),
       formTemplate,
       maybeAccessCode,
       sectionNumber,
       summaryListRecords,
-      false,
       frontendAppConfig,
+      determineContinueLabelKey(
+        cache.retrievals.continueLabelKey,
+        formTemplate.draftRetrievalMethod.isNotPermitted,
+        None
+      ),
+      renderComeBackLater,
       pageLevelErrorHtml
     )
   }

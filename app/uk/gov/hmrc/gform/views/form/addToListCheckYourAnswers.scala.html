@@ -21,7 +21,7 @@
 @import uk.gov.hmrc.gform.gform.{HasErrors, NoErrors}
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList }
 @import uk.gov.hmrc.gform.views.html.main_template
-@import uk.gov.hmrc.gform.controllers.SaveAndContinue
+@import uk.gov.hmrc.gform.controllers.{ SaveAndExit, SaveAndContinue }
 @import uk.gov.hmrc.gform.models.FastForward
 
 @(
@@ -31,8 +31,9 @@
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     summaryListRows: List[SummaryListRow],
-    isEditPage: Boolean,
     frontendAppConfig: FrontendAppConfig,
+    continueButtonLabel: String,
+    renderComeBackLater: Boolean,
     pageLevelError: HasErrors = NoErrors
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
@@ -70,15 +71,21 @@
 ) {
     @pageHeading(heading)
 
-    @pageLevelError.render
-
     @govukSummaryList(SummaryList(summaryListRows, "govuk-!-margin-bottom-5"))
 
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
-        @govukButton(Button(content = Text(messages("button.continue")),
+        @govukButton(Button(content = Text(continueButtonLabel),
                 inputType=Some("submit"),
                 name=Some("save")
             )
         )
+        @if(renderComeBackLater) {
+                @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+                    inputType=Some("submit"),
+                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, SaveAndExit).path),
+                    classes="govuk-button--secondary"
+                )
+            )
+        }
     }
 }

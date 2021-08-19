@@ -90,11 +90,11 @@ class FormProcessor(
 
       val visitsIndexUpd =
         if (isLastIteration) {
-          val visitsIndexForLastIteration = addToListBracket
+          val iterationForSectionNumber = addToListBracket
             .iterationForSectionNumber(sn)
-            .singletons
+          val visitsIndexForLastIteration = iterationForSectionNumber.singletons
             .map(_.sectionNumber.value)
-            .toList
+            .toList ++ iterationForSectionNumber.checkYourAnswers.map(_.sectionNumber.value)
 
           visitsIndex -- visitsIndexForLastIteration
         } else
