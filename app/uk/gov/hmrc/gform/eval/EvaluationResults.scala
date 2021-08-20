@@ -54,18 +54,35 @@ case class EvaluationResults(
     expr: FormCtx,
     recData: RecData[SourceOrigin.OutOfDate],
     fromVariadicValue: VariadicValue => ExpressionResult,
-    fileIdsWithMapping: FileIdsWithMapping
+    evaluationContext: EvaluationContext
   ): ExpressionResult = {
     val modelComponentId = expr.formComponentId.modelComponentId
-    val expressionResult = exprMap.getOrElse(
-      expr,
-      recData.variadicFormData
-        .get(modelComponentId)
-        .fold(ExpressionResult.empty)(fromVariadicValue)
+    val isModelFormComponentIdPure = modelComponentId.indexedComponentId.isPure
+    val isReferenceIndexed = evaluationContext.indexedComponentIds.exists(
+      _.baseComponentId == modelComponentId.baseComponentId
     )
-    if (fileIdsWithMapping.isFileField(modelComponentId))
-      stripFileName(expressionResult, modelComponentId, fileIdsWithMapping.mapping)
-    else expressionResult
+
+    if (isModelFormComponentIdPure && isReferenceIndexed) {
+      ListResult(
+        recData.variadicFormData
+          .forBaseComponentId(modelComponentId.baseComponentId)
+          .map { case (_, variadicValue) =>
+            fromVariadicValue(variadicValue)
+          }
+          .toList
+      )
+    } else {
+      val expressionResult = exprMap.getOrElse(
+        expr,
+        recData.variadicFormData
+          .get(modelComponentId)
+          .fold(ExpressionResult.empty)(fromVariadicValue)
+      )
+      if (evaluationContext.fileIdsWithMapping.isFileField(modelComponentId))
+        stripFileName(expressionResult, modelComponentId, evaluationContext.fileIdsWithMapping.mapping)
+      else
+        expressionResult
+    }
   }
 
   private def stripFileName(
@@ -152,7 +169,7 @@ case class EvaluationResults(
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr)           => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId)             => get(ctx, recData, fromVariadicValue, evaluationContext.fileIdsWithMapping)
+      case ctx @ FormCtx(formComponentId)             => get(ctx, recData, fromVariadicValue, evaluationContext)
       case Sum(FormCtx(formComponentId))              => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
       case Sum(_)                                     => unsupportedOperation("Number")(expr)
       case Count(formComponentId)                     => addToListCount(formComponentId, recData)
@@ -215,7 +232,7 @@ case class EvaluationResults(
           ExpressionResult.AddressResult(addressLines)
         }
       case ctx @ FormCtx(formComponentId: FormComponentId) =>
-        get(ctx, recData, fromVariadicValue, evaluationContext.fileIdsWithMapping)
+        get(ctx, recData, fromVariadicValue, evaluationContext)
       case Sum(field1: Expr) => unsupportedOperation("String")(expr)
       case Count(formComponentId) =>
         nonEmpty(
@@ -374,7 +391,7 @@ case class EvaluationResults(
               .reduce(_ + _)
               .fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(identity)(
                 identity
-              )(mapper)
+              )(mapper)(identity)
           }
         prop match {
           case PeriodFn.Sum => doSum(identity)

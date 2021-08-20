@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import play.api.test.Helpers
 
 import java.time.LocalDate
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, PeriodResult, StringResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateValueExpr, FormComponentId, FormCtx, TodayDateExprValue, WholeSterling }
 
 class ExpressionResultSpec extends FunSuite {
@@ -106,6 +106,24 @@ class ExpressionResultSpec extends FunSuite {
 
     TableDrivenPropertyChecks.forAll(table) { (input, staticTypeData, expected) =>
       assertEquals(input.applyTypeInfo(TypeInfo(FormCtx(FormComponentId("a")), staticTypeData)), expected)
+    }
+  }
+
+  test("contains should work for ListResult with StringResult, NumberResult or OptionResult types") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("listResult", "containsValue", "expected"),
+      (ListResult(List(StringResult("A"), StringResult("B"))), StringResult("A"), true),
+      (ListResult(List(StringResult("A"), StringResult("B"))), StringResult("C"), false),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(1), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), StringResult("1"), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), false),
+      (ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2, 3)))), NumberResult(1), true),
+      (ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2)))), NumberResult(3), false)
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (listResult, containsValue, expected) =>
+      assertEquals(listResult.contains(containsValue), expected)
     }
   }
 }

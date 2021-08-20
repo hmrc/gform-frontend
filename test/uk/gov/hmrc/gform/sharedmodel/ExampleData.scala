@@ -72,7 +72,8 @@ trait ExampleEvaluationContext {
       Set.empty,
       Map.empty,
       LangADT.En,
-      Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
+      Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty)),
+      List.empty
     )
 }
 

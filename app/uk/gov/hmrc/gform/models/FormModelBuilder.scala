@@ -153,6 +153,10 @@ object FormModelBuilder {
         VariadicFormData.one[SourceOrigin.Current](modelComponentId, p.asString)
       case ExpressionResult.AddressResult(_) =>
         VariadicFormData.empty[SourceOrigin.Current]
+      case ExpressionResult.ListResult(list) =>
+        list.foldLeft(VariadicFormData.empty[SourceOrigin.Current]) { case (acc, result) =>
+          acc ++ toCurrentData(modelComponentId, result)
+        }
     }
 
 }
@@ -193,7 +197,8 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.overseasAddressLookup,
         formModel.pageIdSectionNumberMap,
         lang,
-        messages
+        messages,
+        formModel.allIndexedComponentIds
       )
 
     recalculation
