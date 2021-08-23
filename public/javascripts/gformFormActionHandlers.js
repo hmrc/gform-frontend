@@ -36,7 +36,8 @@
         var formTemplateId = dataset.formTemplateId;
         var accessCode = dataset.accessCode;
         var sectionNumber = dataset.sectionNumber;
-        setFormActionAndSubmit(e, "/submissions/form/" + formTemplateId + "/" + accessCode + "/" + sectionNumber + "?ff=t&action=Back");
+        var fastForward = dataset.fastForward || 't';
+        setFormActionAndSubmit(e, "/submissions/form/" + formTemplateId + "/" + accessCode + "/" + sectionNumber + "?ff=" + fastForward + "&action=Back");
       }
 
       // Set up event handlers
