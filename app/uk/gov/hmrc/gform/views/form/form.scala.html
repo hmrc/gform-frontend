@@ -66,7 +66,8 @@
         Map("id" -> "backButton",
             "data-form-template-id" -> formTemplate._id.value,
             "data-access-code" -> maybeAccessCode.fold("-")(_.value),
-            "data-section-number" -> sectionNumber.value.toString))
+            "data-section-number" -> sectionNumber.value.toString,
+            "data-fast-forward" -> sectionNumber.value.toString))
     }
   new BackLink(attributes = attributes, href = href, content = new Text(messages("linkText.back")))
 }

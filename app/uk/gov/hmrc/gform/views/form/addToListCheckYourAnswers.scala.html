@@ -70,7 +70,7 @@
         @if(renderComeBackLater) {
                 @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
                     inputType=Some("submit"),
-                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, SaveAndExit).path),
+                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber), SaveAndExit).path),
                     classes="govuk-button--secondary"
                 )
             )

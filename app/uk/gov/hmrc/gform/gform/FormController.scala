@@ -478,7 +478,8 @@ class FormController(
                         processData,
                         maybeSn,
                         formTemplate,
-                        envelopeExpiryDate
+                        envelopeExpiryDate,
+                        fastForward
                       )
                     }
                 }
@@ -676,13 +677,14 @@ class FormController(
     processData: ProcessData,
     maybeSn: Option[SectionNumber],
     formTemplate: FormTemplate,
-    envelopeExpiryDate: Option[EnvelopeExpiryDate]
+    envelopeExpiryDate: Option[EnvelopeExpiryDate],
+    fastForward: FastForward
   )(implicit request: Request[AnyContent], lang: LangADT) = {
     val call = maybeSn match {
       case Some(sn) =>
         val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
         routes.FormController
-          .form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+          .form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, fastForward)
       case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode)
     }
     val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)
