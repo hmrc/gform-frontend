@@ -114,7 +114,7 @@ sealed trait ExpressionResult extends Product with Serializable {
       t.list.foldLeft(false) { case (acc, result) =>
         acc || result.fold[Boolean](_ => false)(_ => false)(_ => false)(_.identical(er))(_.identical(er))(
           _.contains(er)
-        )(_ => false)(_ => false)(_ => false)(_ => false)
+        )(_.identical(er))(_ => false)(_.identical(er))(_ => false)
       }
   }
 
