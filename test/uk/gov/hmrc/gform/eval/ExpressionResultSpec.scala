@@ -109,15 +109,10 @@ class ExpressionResultSpec extends FunSuite {
     }
   }
 
-  test("contains should work for ListResult with StringResult, NumberResult or OptionResult types") {
+  test("contains should work for ListResult with OptionResult (choice or revealing choice) types") {
 
     val table = TableDrivenPropertyChecks.Table(
       ("listResult", "containsValue", "expected"),
-      (ListResult(List(StringResult("A"), StringResult("B"))), StringResult("A"), true),
-      (ListResult(List(StringResult("A"), StringResult("B"))), StringResult("C"), false),
-      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(1), true),
-      (ListResult(List(NumberResult(1), NumberResult(2))), StringResult("1"), true),
-      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), false),
       (ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2, 3)))), NumberResult(1), true),
       (ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2)))), NumberResult(3), false)
     )

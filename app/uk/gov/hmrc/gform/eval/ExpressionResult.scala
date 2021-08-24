@@ -110,12 +110,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: DateResult    => false
     case t: PeriodResult  => false
     case t: AddressResult => false
-    case t: ListResult =>
-      t.list.foldLeft(false) { case (acc, result) =>
-        acc || result.fold[Boolean](_ => false)(_ => false)(_ => false)(_.identical(er))(_.identical(er))(
-          _.contains(er)
-        )(_.identical(er))(_ => false)(_.identical(er))(_ => false)
-      }
+    case t: ListResult    => t.list.exists(_.contains(er))
   }
 
   def identical(er: ExpressionResult): Boolean = this match {
