@@ -134,7 +134,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: DateResult    => false
     case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths == _.toTotalMonths)
     case t: AddressResult => false
-    case t: ListResult    => er.ifListResult(_ === t.list)
+    case t: ListResult    => er.ifListResult(_ === t.list) || t.list.exists(_ identical er)
   }
 
   def >(er: ExpressionResult): Boolean = this match {
