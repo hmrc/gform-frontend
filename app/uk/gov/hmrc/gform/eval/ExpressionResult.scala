@@ -147,7 +147,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: DateResult    => false
     case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths > _.toTotalMonths)
     case t: AddressResult => false
-    case t: ListResult    => er.ifNumberResult(n => t.list.exists(_.ifNumberResult(_ > n)))
+    case t: ListResult    => t.list.exists(_ > er)
   }
 
   def >=(er: ExpressionResult): Boolean = this match {
@@ -160,7 +160,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: DateResult    => false
     case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths >= _.toTotalMonths)
     case t: AddressResult => false
-    case t: ListResult    => er.ifNumberResult(n => t.list.exists(_.ifNumberResult(_ >= n)))
+    case t: ListResult    => t.list.exists(_ >= er)
   }
 
   def <(er: ExpressionResult): Boolean = this match {
@@ -173,7 +173,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: DateResult    => false
     case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths < _.toTotalMonths)
     case t: AddressResult => false
-    case t: ListResult    => er.ifNumberResult(n => t.list.exists(_.ifNumberResult(_ < n)))
+    case t: ListResult    => t.list.exists(_ < er)
   }
 
   def <=(er: ExpressionResult): Boolean = this match {
@@ -186,7 +186,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: DateResult    => false
     case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths <= _.toTotalMonths)
     case t: AddressResult => false
-    case t: ListResult    => er.ifNumberResult(n => t.list.exists(_.ifNumberResult(_ <= n)))
+    case t: ListResult    => t.list.exists(_ <= er)
   }
 
   def before(er: ExpressionResult): Boolean = this match {
@@ -199,7 +199,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: DateResult    => er.ifDateResult(t.value.isBefore(_))
     case t: PeriodResult  => false
     case t: AddressResult => false
-    case t: ListResult    => er.ifDateResult(d => t.list.exists(_.ifDateResult(_.isBefore(d))))
+    case t: ListResult    => t.list.exists(_ before er)
   }
 
   def after(er: ExpressionResult): Boolean = this match {
@@ -212,7 +212,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: DateResult    => er.ifDateResult(t.value.isAfter(_))
     case t: PeriodResult  => false
     case t: AddressResult => false
-    case t: ListResult    => er.ifDateResult(d => t.list.exists(_.ifDateResult(_.isAfter(d))))
+    case t: ListResult    => t.list.exists(_ after er)
   }
 
   private def isEmpty: Boolean =
