@@ -155,4 +155,98 @@ class ExpressionResultSpec extends FunSuite {
       assertEquals(lhs.identical(rhs), expected)
     }
   }
+
+  test("> (greater than) should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(2), false)
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs > rhs, expected)
+    }
+  }
+
+  test(">= (greater than or equals) should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(2), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), false)
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs >= rhs, expected)
+    }
+  }
+
+  test("< (less than) should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), false)
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs < rhs, expected)
+    }
+  }
+
+  test("<= (less than or equals) should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(1), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), false)
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs <= rhs, expected)
+    }
+  }
+
+  test("before should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (
+        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
+        DateResult(LocalDate.of(2022, 1, 1)),
+        true
+      ),
+      (
+        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
+        DateResult(LocalDate.of(2019, 1, 1)),
+        false
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs before rhs, expected)
+    }
+  }
+
+  test("after should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (
+        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
+        DateResult(LocalDate.of(2019, 1, 1)),
+        true
+      ),
+      (
+        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
+        DateResult(LocalDate.of(2022, 1, 1)),
+        false
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs after rhs, expected)
+    }
+  }
 }
