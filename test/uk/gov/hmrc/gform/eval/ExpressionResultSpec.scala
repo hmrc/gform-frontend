@@ -126,4 +126,33 @@ class ExpressionResultSpec extends FunSuite {
       assertEquals(listResult.contains(containsValue), expected)
     }
   }
+
+  test("identical should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (
+        ListResult(List(StringResult("A"), StringResult("B"))),
+        ListResult(List(StringResult("A"), StringResult("B"))),
+        true
+      ),
+      (ListResult(List(StringResult("A"), StringResult("B"))), ListResult(List(StringResult("A"))), false),
+      (ListResult(List(NumberResult(1), NumberResult(2))), ListResult(List(NumberResult(1), NumberResult(2))), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), false),
+      (
+        ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2, 3)))),
+        ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2, 3)))),
+        true
+      ),
+      (
+        ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2)))),
+        ListResult(List(OptionResult(Seq(0, 1)))),
+        false
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs.identical(rhs), expected)
+    }
+  }
 }

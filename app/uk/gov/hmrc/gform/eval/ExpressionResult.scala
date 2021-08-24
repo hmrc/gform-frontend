@@ -134,7 +134,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: DateResult    => false
     case t: PeriodResult  => er.ifPeriodResult(t.value.toTotalMonths == _.toTotalMonths)
     case t: AddressResult => false
-    case t: ListResult    => false
+    case t: ListResult    => er.ifListResult(_ === t.list)
   }
 
   def >(er: ExpressionResult): Boolean = this match {
@@ -239,6 +239,10 @@ sealed trait ExpressionResult extends Product with Serializable {
     fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(r => false)(_ => false)(r =>
       f(r.value)
     )(_ => false)
+  private def ifListResult(f: List[ExpressionResult] => Boolean): Boolean =
+    fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(r => false)(_ => false)(_ =>
+      false
+    )(r => f(r.list))
 
   def withNumberResult(f: BigDecimal => BigDecimal): ExpressionResult =
     fold[ExpressionResult](identity)(identity)(identity)(r => NumberResult(f(r.value)))(identity)(identity)(identity)(
@@ -275,7 +279,7 @@ sealed trait ExpressionResult extends Product with Serializable {
       _.asString(messages)
     )(
       _.address.mkString(", ")
-    )(_.value.toString)(_.list.map(_.stringRepresentation(typeInfo, messages)).mkString(","))
+    )(_.value.toString)(_.list.map(_.stringRepresentation(typeInfo, messages)).mkString(", "))
 
   def addressRepresentation(typeInfo: TypeInfo) =
     fold(_ => "")(_ => "")(_ => "")(_ => "")(_ => "")(_ => "")(_ => "")(

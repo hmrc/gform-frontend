@@ -59,17 +59,20 @@ case class EvaluationResults(
     val modelComponentId = expr.formComponentId.modelComponentId
     val isModelFormComponentIdPure = modelComponentId.indexedComponentId.isPure
     val isReferenceIndexed = evaluationContext.indexedComponentIds.exists(
-      _.baseComponentId == modelComponentId.baseComponentId
+      _.baseComponentId === modelComponentId.baseComponentId
     )
 
     if (isModelFormComponentIdPure && isReferenceIndexed) {
       ListResult(
         recData.variadicFormData
           .forBaseComponentId(modelComponentId.baseComponentId)
+          .toList
+          .sortBy { case (id, _) =>
+            id.maybeIndex
+          }
           .map { case (_, variadicValue) =>
             fromVariadicValue(variadicValue)
           }
-          .toList
       )
     } else {
       val expressionResult = exprMap.getOrElse(

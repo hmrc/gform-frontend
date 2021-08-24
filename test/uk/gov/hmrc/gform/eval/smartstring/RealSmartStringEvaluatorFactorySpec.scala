@@ -31,10 +31,11 @@ import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrieva
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, Horizontal, Radio, RevealingChoice, RevealingChoiceElement, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, Horizontal, Radio, RevealingChoice, RevealingChoiceElement, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
@@ -80,6 +81,33 @@ class RealSmartStringEvaluatorFactorySpec
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("textField"))), false)
 
       result shouldBe "Smart string textValue"
+    }
+
+    "evaluate SmartString with FormCtx (type indexed text values) interpolation" in new TestFixture {
+      lazy val textField: FormComponent = buildFormComponent(
+        "textField",
+        Value
+      )
+      override lazy val indexedComponentIds: List[ModelComponentId] =
+        List(textField.modelComponentId.expandWithPrefix(1), textField.modelComponentId.expandWithPrefix(2))
+      override lazy val form: Form =
+        buildForm(
+          FormData(
+            List(
+              FormField(textField.modelComponentId.expandWithPrefix(1), "value1"),
+              FormField(textField.modelComponentId.expandWithPrefix(2), "value2")
+            )
+          )
+        )
+      override lazy val formTemplate: FormTemplate = buildFormTemplate(
+        destinationList,
+        sections = List(repeatingSection(title = "page1", fields = List(textField), None, Constant("2")))
+      )
+
+      val result: String = smartStringEvaluator
+        .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("textField"))), false)
+
+      result shouldBe "Smart string value1, value2"
     }
 
     "evaluate SmartString with FormCtx, even when the component is not visible" in new TestFixture {
@@ -332,6 +360,7 @@ class RealSmartStringEvaluatorFactorySpec
     lazy val formTemplate: FormTemplate = buildFormTemplate
     lazy val cache: AuthCacheWithForm =
       AuthCacheWithForm(retrievals, form, formTemplate, Role.Customer, maybeAccessCode)
+    lazy val indexedComponentIds: List[ModelComponentId] = List.empty
 
     val mockRecalculation = mock[Recalculation[Future, Throwable]]
     mockRecalculation.recalculateFormDataNew(
@@ -359,7 +388,7 @@ class RealSmartStringEvaluatorFactorySpec
           Map.empty,
           LangADT.En,
           messages,
-          List.empty
+          indexedComponentIds
         )
       )
     )
