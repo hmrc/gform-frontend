@@ -18,28 +18,24 @@ package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
 import org.slf4j.LoggerFactory
-import play.api.i18n.{ I18nSupport, Messages }
-import play.api.mvc.{ Action, AnyContent, Call, MessagesControllerComponents, Request, Result }
-import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
+import play.api.i18n.I18nSupport
+import play.api.mvc._
+import uk.gov.hmrc.gform.auditing.loggingHelpers
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra, Direction }
-import uk.gov.hmrc.gform.fileupload.{ Attachments, Envelope, EnvelopeWithMapping, FileUploadService }
-import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ DataExpanded, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType, Singleton }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadService }
+import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.http.{ BadRequestException, HeaderCarrier }
-import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
-import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
-import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -47,14 +43,13 @@ import scala.concurrent.{ ExecutionContext, Future }
 class DeclarationController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
-  auditService: AuditService,
   fileUploadService: FileUploadService,
   validationService: ValidationService,
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
   processDataService: ProcessDataService[Future],
   gformBackEnd: GformBackEndAlgebra[Future],
-  nonRepudiationHelpers: NonRepudiationHelpers,
+  submissionService: SubmissionService,
   messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
@@ -138,7 +133,6 @@ class DeclarationController(
                 continueToSubmitDeclaration[SectionSelectorType.WithDeclaration](
                   cache,
                   maybeAccessCode,
-                  envelopeId,
                   envelope,
                   processData
                 )
@@ -173,65 +167,52 @@ class DeclarationController(
   private def continueToSubmitDeclaration[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId,
     envelope: EnvelopeWithMapping,
     processData: ProcessData
   )(implicit
-    request: Request[_],
+    request: Request[AnyContent],
     l: LangADT,
     lise: SmartStringEvaluator
   ): Future[Result] = {
 
     import i18nSupport._
 
-    val cacheData = cache.toCacheData
-    val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
-
     for {
       valRes <- validationService
-                  .validateDeclarationSection(cacheData, formModelVisibilityOptics, envelope)
-      response <- processValidation(valRes, maybeAccessCode, cache, envelopeId, envelope, processData)
+                  .validateDeclarationSection(
+                    cache.toCacheData,
+                    processData.formModelOptics.formModelVisibilityOptics,
+                    envelope
+                  )
+      response <-
+        if (valRes.isFormValid) {
+          processValid(cache, maybeAccessCode, envelope, processData)
+        } else {
+          processInvalid(maybeAccessCode, cache, valRes, processData)
+        }
     } yield response
   }
 
-  private def cleanseEnvelope(
-    envelopeId: EnvelopeId,
-    envelope: EnvelopeWithMapping,
-    attachments: Attachments
-  )(implicit
-    hc: HeaderCarrier
-  ): Future[Unit] = {
-    val lookup: Set[FileId] =
-      attachments.files.flatMap(envelope.mapping.mapping.get).toSet
-    val toRemove: List[FileId] = envelope.files
-      .filterNot { file =>
-        lookup.contains(file.fileId)
-      }
-      .map(_.fileId)
-
-    logger.warn(s"Removing ${toRemove.size} files from envelopeId $envelopeId.")
-
-    fileUploadService.deleteFiles(envelopeId, toRemove.toSet)
-
-  }
-
-  private def processValidation[U <: SectionSelectorType: SectionSelector](
-    validationResult: ValidationResult,
-    maybeAccessCode: Option[AccessCode],
+  private def processValid[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
-    envelopeId: EnvelopeId,
+    maybeAccessCode: Option[AccessCode],
     envelope: EnvelopeWithMapping,
     processData: ProcessData
   )(implicit
-    request: Request[_],
-    messages: Messages,
+    request: Request[AnyContent],
+    hc: HeaderCarrier,
     l: LangADT,
     lise: SmartStringEvaluator
-  ): Future[Result] =
-    if (validationResult.isFormValid) {
-      processValid(cache, maybeAccessCode, envelopeId, envelope, processData)
-    } else {
-      processInvalid(maybeAccessCode, cache, validationResult, processData)
+  ) =
+    for {
+      customerId <- submissionService.submitForm(cache, maybeAccessCode, envelope, processData.formModelOptics)
+    } yield {
+      if (customerId.isEmpty())
+        logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
+      Redirect(
+        uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+          .showAcknowledgement(maybeAccessCode, cache.formTemplate._id)
+      )
     }
 
   private def processInvalid(
@@ -249,8 +230,9 @@ class DeclarationController(
     )
 
     val declarationSectionFieldIds: List[FormComponentId] = cache.formTemplate.destinations match {
-      case DestinationList(_, _, ds) => ds.fields.map(_.id) ++ ds.fields.flatMap(_.childrenFormComponents.map(_.id))
-      case _                         => Nil
+      case DestinationList(_, _, ds) =>
+        ds.toList.flatMap(d => d.fields.map(_.id) ++ d.fields.flatMap(_.childrenFormComponents.map(_.id)))
+      case _ => Nil
     }
 
     for {
@@ -265,89 +247,4 @@ class DeclarationController(
       Redirect(call)
     }
   }
-
-  private def processValid[U <: SectionSelectorType: SectionSelector](
-    cache: AuthCacheWithForm,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId,
-    envelope: EnvelopeWithMapping,
-    processData: ProcessData
-  )(implicit
-    request: Request[_],
-    messages: Messages,
-    l: LangADT,
-    lise: SmartStringEvaluator
-  ): Future[Result] = {
-
-    val formModelOptics = processData.formModelOptics
-
-    val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
-
-    val attachments: Attachments = {
-      val visibleFc: Set[FormComponent] = formModelVisibilityOptics.allFormComponents.toSet
-
-      val visibleFcIds: Set[FormComponentId] = visibleFc.collect {
-        case fc @ IsFileUpload() if envelope.contains(fc.modelComponentId) => fc.id
-      }
-
-      Attachments(visibleFcIds.toList)
-    }
-
-    val variadicFormData: VariadicFormData[SourceOrigin.Current] = formModelOptics.pageOpticsData
-
-    val cacheUpd = cache.copy(form = cache.form.copy(formData = variadicFormData.toFormData))
-
-    val submissionMark = nonRepudiationHelpers.computeHash(nonRepudiationHelpers.formDataToJson(cache.form))
-
-    for {
-      _ <- cleanseEnvelope(envelopeId, envelope, attachments)
-      customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
-      submission <- gformBackEnd.createSubmission(
-                      cache.form._id,
-                      cache.form.formTemplateId,
-                      cache.form.envelopeId,
-                      customerId.id,
-                      attachments.size
-                    )
-      result <- gformBackEnd
-                  .submitWithUpdatedFormStatus(
-                    Signed,
-                    cacheUpd,
-                    maybeAccessCode,
-                    Some(SubmissionDetails(submission, submissionMark)),
-                    customerId,
-                    attachments,
-                    formModelOptics
-                  )
-
-    } yield {
-      val (_, customerId) = result
-      showAcknowledgement(cacheUpd, maybeAccessCode, customerId, formModelVisibilityOptics)
-    }
-  }
-
-  private def showAcknowledgement(
-    cache: AuthCacheWithForm,
-    maybeAccessCode: Option[AccessCode],
-    customerId: CustomerId,
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
-  )(implicit request: Request[_]) = {
-    if (customerId.isEmpty)
-      logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
-
-    auditSubmissionEvent(cache, customerId, formModelVisibilityOptics)
-
-    Redirect(
-      uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-        .showAcknowledgement(maybeAccessCode, cache.form.formTemplateId)
-    )
-  }
-
-  private def auditSubmissionEvent(
-    cache: AuthCacheWithForm,
-    customerId: CustomerId,
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
-  )(implicit request: Request[_]): Unit =
-    auditService.sendSubmissionEvent(cache.form, formModelVisibilityOptics, cache.retrievals, customerId)
-
 }

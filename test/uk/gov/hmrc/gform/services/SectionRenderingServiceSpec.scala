@@ -302,7 +302,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
   it should "render Declaration page with noPIITitle when defined" in new TestFixture {
 
     override lazy val formTemplate = buildFormTemplate(
-      DestinationList(NonEmptyList.of(hmrcDms), ackSection, mkDecSection(Some("Some noPII dec section title"))),
+      DestinationList(NonEmptyList.of(hmrcDms), ackSection, Some(mkDecSection(Some("Some noPII dec section title")))),
       List(
         nonRepeatingPageSection(
           title = "Some title",

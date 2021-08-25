@@ -43,7 +43,7 @@ object SectionSelector {
 
     def getSections(formTemplate: FormTemplate): List[Section] = {
       val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
-        destinationList.declarationSection.toSection :: Nil
+        destinationList.declarationSection.toList.map(_.toSection)
       )(destinationPrint => Nil)
 
       formTemplate.sections ::: destinationSections
@@ -65,8 +65,9 @@ object SectionSelector {
 
     def getSections(formTemplate: FormTemplate): List[Section] = {
       val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
-        destinationList.declarationSection.toSection ::
-          destinationList.acknowledgementSection.toSection :: Nil
+        destinationList.declarationSection.toList.map(_.toSection) ++ List(
+          destinationList.acknowledgementSection.toSection
+        )
       )(destinationPrint => Nil)
       formTemplate.sections ::: destinationSections
     }

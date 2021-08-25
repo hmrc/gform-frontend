@@ -77,7 +77,7 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
         fromPage(acknowledgement.toPage)
 
       fromDestinations(destinationList.destinations) ++
-        fromDeclarationSection(destinationList.declarationSection) ++
+        destinationList.declarationSection.toList.flatMap(fromDeclarationSection) ++
         fromAcknowledgementSection(destinationList.acknowledgementSection)
     }
     def fromDestinationPrint(destinationPrint: DestinationPrint): List[ExprMetadata] = {
