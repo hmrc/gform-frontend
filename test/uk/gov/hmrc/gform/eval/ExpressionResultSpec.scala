@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import play.api.test.Helpers
 
 import java.time.LocalDate
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, PeriodResult, StringResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateValueExpr, FormComponentId, FormCtx, TodayDateExprValue, WholeSterling }
 
 class ExpressionResultSpec extends FunSuite {
@@ -106,6 +106,142 @@ class ExpressionResultSpec extends FunSuite {
 
     TableDrivenPropertyChecks.forAll(table) { (input, staticTypeData, expected) =>
       assertEquals(input.applyTypeInfo(TypeInfo(FormCtx(FormComponentId("a")), staticTypeData)), expected)
+    }
+  }
+
+  test("contains should work for ListResult with OptionResult (choice or revealing choice) types") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("listResult", "containsValue", "expected"),
+      (ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2, 3)))), NumberResult(1), true),
+      (ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2)))), NumberResult(3), false)
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (listResult, containsValue, expected) =>
+      assertEquals(listResult.contains(containsValue), expected)
+    }
+  }
+
+  test("identical should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (
+        ListResult(List(StringResult("A"), StringResult("B"))),
+        ListResult(List(StringResult("A"), StringResult("B"))),
+        true
+      ),
+      (ListResult(List(StringResult("A"), StringResult("B"))), ListResult(List(StringResult("A"))), false),
+      (ListResult(List(NumberResult(1), NumberResult(2))), ListResult(List(NumberResult(1), NumberResult(2))), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), false),
+      (
+        ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2, 3)))),
+        ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2, 3)))),
+        true
+      ),
+      (
+        ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2)))),
+        ListResult(List(OptionResult(Seq(0, 1)))),
+        false
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs.identical(rhs), expected)
+    }
+  }
+
+  test("> (greater than) should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(2), false)
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs > rhs, expected)
+    }
+  }
+
+  test(">= (greater than or equals) should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(2), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), false)
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs >= rhs, expected)
+    }
+  }
+
+  test("< (less than) should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), false)
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs < rhs, expected)
+    }
+  }
+
+  test("<= (less than or equals) should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(1), true),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), false)
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs <= rhs, expected)
+    }
+  }
+
+  test("before should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (
+        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
+        DateResult(LocalDate.of(2022, 1, 1)),
+        true
+      ),
+      (
+        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
+        DateResult(LocalDate.of(2019, 1, 1)),
+        false
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs before rhs, expected)
+    }
+  }
+
+  test("after should work for ListResult") {
+
+    val table = TableDrivenPropertyChecks.Table(
+      ("lhs", "rhs", "expected"),
+      (
+        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
+        DateResult(LocalDate.of(2019, 1, 1)),
+        true
+      ),
+      (
+        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
+        DateResult(LocalDate.of(2022, 1, 1)),
+        false
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
+      assertEquals(lhs after rhs, expected)
     }
   }
 }

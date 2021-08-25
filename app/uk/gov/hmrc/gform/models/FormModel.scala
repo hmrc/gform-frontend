@@ -56,6 +56,10 @@ case class FormModel[A <: PageMode](
       fc.modelComponentId
     }.toSet
 
+  def allIndexedComponentIds: List[ModelComponentId] = allFormComponents.map(_.modelComponentId).collect {
+    case mcId if mcId.indexedComponentId.isIndexed => mcId
+  }
+
   val allMultiSelectionIds: Set[ModelComponentId] = allFormComponents
     .collect {
       case fc @ IsChoice(_)          => fc.id

@@ -95,7 +95,8 @@ class InstructionPDFPageConverterSpec
           Set.empty,
           Map.empty,
           langADT,
-          messages
+          messages,
+          List.empty
         )
       )
     )

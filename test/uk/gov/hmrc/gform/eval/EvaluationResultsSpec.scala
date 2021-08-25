@@ -19,10 +19,10 @@ package uk.gov.hmrc.gform.eval
 import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, NumberResult, PeriodResult, StringResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
-import uk.gov.hmrc.gform.models.ids.ModelPageId
+import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
@@ -37,7 +37,10 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
   private val booleanExprResolver = BooleanExprResolver(_ => false)
 
-  def buildEvaluationContext(pageIdSectionNumberMap: Map[ModelPageId, SectionNumber] = Map.empty) =
+  def buildEvaluationContext(
+    pageIdSectionNumberMap: Map[ModelPageId, SectionNumber] = Map.empty,
+    indexedComponentIds: List[ModelComponentId] = List.empty
+  ) =
     new EvaluationContext(
       formTemplateId,
       submissionRef,
@@ -61,7 +64,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             )
           )
         )
-      )
+      ),
+      indexedComponentIds
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()
@@ -221,6 +225,81 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Indexed("page1", 1) -> SectionNumber(1))),
         StringResult("/form/section/aaa999/-/1"),
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (link from non-repeating page to repeating page)"
+      )
+    )
+    forAll(table) {
+      (
+        typeInfo: TypeInfo,
+        recData: RecData[OutOfDate],
+        evaluationContext: EvaluationContext,
+        expectedResult: ExpressionResult,
+        _
+      ) =>
+        EvaluationResults.empty
+          .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
+    }
+  }
+
+  it should "evaluate form component reference from outside, when they are in indexed pages (repeating page, ATL)" in {
+
+    val table = Table(
+      ("typeInfo", "recData", "evaluationContext", "expectedResult", "scenario"),
+      (
+        TypeInfo(FormCtx(FormComponentId("addToListNumField")), StaticTypeData(ExprType.number, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("1_addToListQuestion"), VariadicValue.One("0")),
+            (toModelComponentId("2_addToListQuestion"), VariadicValue.One("1")),
+            (toModelComponentId("1_addToListNumField"), VariadicValue.One("1")),
+            (toModelComponentId("2_addToListNumField"), VariadicValue.One("2"))
+          )
+        ),
+        buildEvaluationContext(indexedComponentIds =
+          List(
+            FormComponentId("1_addToListNumField").modelComponentId,
+            FormComponentId("2_addToListNumField").modelComponentId
+          )
+        ),
+        ListResult(List(NumberResult(1), NumberResult(2))),
+        "Ref to AddToList number field from outside ATL"
+      ),
+      (
+        TypeInfo(FormCtx(FormComponentId("addToListStrField")), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("1_addToListQuestion"), VariadicValue.One("0")),
+            (toModelComponentId("2_addToListQuestion"), VariadicValue.One("1")),
+            (toModelComponentId("1_addToListStrField"), VariadicValue.One("AAA")),
+            (toModelComponentId("2_addToListStrField"), VariadicValue.One("BBB"))
+          )
+        ),
+        buildEvaluationContext(indexedComponentIds =
+          List(
+            FormComponentId("1_addToListStrField").modelComponentId,
+            FormComponentId("2_addToListStrField").modelComponentId
+          )
+        ),
+        ListResult(List(StringResult("AAA"), StringResult("BBB"))),
+        "Ref to AddToList string field from outside ATL"
+      ),
+      (
+        TypeInfo(FormCtx(FormComponentId("addToListChoiceField")), StaticTypeData(ExprType.choiceSelection, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("1_addToListQuestion"), VariadicValue.One("0")),
+            (toModelComponentId("2_addToListQuestion"), VariadicValue.One("1")),
+            (toModelComponentId("1_addToListChoiceField"), VariadicValue.Many(Seq("1"))),
+            (toModelComponentId("2_addToListChoiceField"), VariadicValue.Many(Seq("0")))
+          )
+        ),
+        buildEvaluationContext(indexedComponentIds =
+          List(
+            FormComponentId("1_addToListChoiceField").modelComponentId,
+            FormComponentId("2_addToListChoiceField").modelComponentId
+          )
+        ),
+        ListResult(List(OptionResult(Seq(1)), OptionResult(Seq(0)))),
+        "Ref to AddToList string field from outside ATL"
       )
     )
     forAll(table) {

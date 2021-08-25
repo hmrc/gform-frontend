@@ -40,5 +40,6 @@ class EvaluationContext(
   val overseasAddressLookup: Set[BaseComponentId],
   val pageIdSectionNumberMap: Map[ModelPageId, SectionNumber],
   val lang: LangADT,
-  val messages: Messages
+  val messages: Messages,
+  val indexedComponentIds: List[ModelComponentId]
 )

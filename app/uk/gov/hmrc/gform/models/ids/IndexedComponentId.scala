@@ -22,6 +22,10 @@ sealed trait IndexedComponentId extends Product with Serializable {
 
   def baseComponentId: BaseComponentId
 
+  def isPure: Boolean = !isIndexed
+
+  def isIndexed: Boolean = fold[Boolean](_ => false)(_ => true)
+
   def maybeIndex: Option[Int] = fold[Option[Int]](_ => none)(_.index.some)
 
   def increment: IndexedComponentId = mapIndex(_ + 1)
