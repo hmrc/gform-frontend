@@ -63,8 +63,7 @@
   new BackLink(attributes = Map("id" -> "backButton",
             "data-form-template-id" -> formTemplate._id.value,
             "data-access-code" -> maybeAccessCode.fold("-")(_.value),
-            "data-section-number" -> sectionNumber.value.toString,
-            "data-fast-forward" -> sectionNumber.value.toString
+            "data-section-number" -> sectionNumber.value.toString
         ),
         href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber)).path,
         content = new Text(messages("linkText.back")))
