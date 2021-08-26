@@ -89,15 +89,35 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     getForm(formIdData).map(Some(_)).recoverWith {
       case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue =>
         val formIdDataOriginal = formIdData.withOriginalTemplateId(formTemplate)
+        logger.info(
+          s"Attempt to access form $formIdData, but form not found in MongoDB, attempting to look for $formIdDataOriginal as a fallback."
+        )
         getForm(formIdDataOriginal)
-          .map { form =>
+          .flatMap { form =>
             logger.info(
               s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $formIdDataOriginal as a fallback succeeded."
             )
-            Some(form)
+
+            /*
+             *  Note! We are not replacing form in mongo, but updating it. And to update the form we need to first find it with original formTemplateId
+             *  in its name. Backend is making sure that update operation is lowercasing formTemplateId after form is found and before it is saved.
+             */
+            updateUserData(
+              formIdDataOriginal,
+              UserData(form.formData, form.status, form.visitsIndex, form.thirdPartyData, form.componentIdToFileId)
+            ).map { _ =>
+              logger.info(
+                s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $formIdDataOriginal as a fallback succeeded and form saved with $formIdData."
+              )
+              Some(form)
+            }
+
           }
           .recover {
             case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue =>
+              logger.info(
+                s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $formIdDataOriginal as a fallback failed."
+              )
               None
           }
     }
