@@ -189,6 +189,25 @@ class GformModule(
     summaryRenderingService
   )
 
+  val gformBackEndService = new GformBackEndService(
+    gformBackendModule.gformConnector,
+    summaryRenderingService,
+    instructionsRenderingService,
+    lookupRegistry,
+    graphModule.smartStringEvaluatorFactory,
+    graphModule.recalculation
+  )
+
+  val nonRepudiationHelpers = new NonRepudiationHelpers(auditingModule)
+
+  val submissionService = new SubmissionService(
+    playBuiltInsModule.i18nSupport,
+    gformBackEndService,
+    nonRepudiationHelpers,
+    auditingModule.auditService,
+    fileUploadModule.fileUploadService
+  )
+
   val summaryController: SummaryController = new SummaryController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
@@ -197,8 +216,8 @@ class GformModule(
     pdfGeneratorService,
     gformBackendModule.gformConnector,
     configModule.frontendAppConfig,
-    errorResponder,
     summaryRenderingService,
+    submissionService,
     controllersModule.messagesControllerComponents
   )
 
@@ -210,8 +229,6 @@ class GformModule(
     summaryRenderingService,
     controllersModule.messagesControllerComponents
   )
-
-  val nonRepudiationHelpers = new NonRepudiationHelpers(auditingModule)
 
   val acknowledgementController: AcknowledgementController = new AcknowledgementController(
     playBuiltInsModule.i18nSupport,
@@ -241,26 +258,16 @@ class GformModule(
     controllersModule.messagesControllerComponents
   )
 
-  val gformBackEndService = new GformBackEndService(
-    gformBackendModule.gformConnector,
-    summaryRenderingService,
-    instructionsRenderingService,
-    lookupRegistry,
-    graphModule.smartStringEvaluatorFactory,
-    graphModule.recalculation
-  )
-
   val declarationController = new DeclarationController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
-    auditingModule.auditService,
     fileUploadModule.fileUploadService,
     validationModule.validationService,
     sectionRenderingService,
     gformBackendModule.gformConnector,
     processDataService,
     gformBackEndService,
-    nonRepudiationHelpers,
+    submissionService,
     controllersModule.messagesControllerComponents
   )
 

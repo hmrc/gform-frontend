@@ -1053,7 +1053,7 @@ class StructuredFormDataBuilderSpec
   def destinationList: Destinations = DestinationList(
     NonEmptyList.one(Destination.Log(DestinationId("destination-id"))),
     ExampleData.acknowledgementSection,
-    ExampleData.declarationSection
+    Some(ExampleData.declarationSection)
   )
 
   def createNonRepeatingSection(fields: FormComponent*): Section =

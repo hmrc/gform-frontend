@@ -720,7 +720,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       Destination.HmrcDms(DestinationId(""), "", Value, "", "", "", false, false, false, Some(false), false)
     val emptyCompositeDestination = Destination.Composite(DestinationId(""), "", NonEmptyList.one(emptyHmrcDms))
     val emptyDestinationList =
-      DestinationList(NonEmptyList.one(emptyHmrcDms), emptyAcknowledgementSection, emptyDeclarationSection)
+      DestinationList(NonEmptyList.one(emptyHmrcDms), emptyAcknowledgementSection, Some(emptyDeclarationSection))
     val field = mkFormComponent("b", ctx)
     Table(
       // format: off
@@ -740,11 +740,11 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ("acknowledgementSection.description",  dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(description = Some(stringExpr))))),
       ("acknowledgementSection.shortName",    dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(shortName = Some(stringExpr))))),
       ("acknowledgementSection.fields",       dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(fields = field :: Nil)))),
-      ("declarationSection.title",            dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(title = stringExpr)))),
-      ("declarationSection.description",      dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(description = Some(stringExpr))))),
-      ("declarationSection.shortName",        dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(shortName = Some(stringExpr))))),
-      ("declarationSection.continueLabel",    dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(continueLabel = Some(stringExpr))))),
-      ("declarationSection.fields",           dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = emptyDeclarationSection.copy(fields = field :: Nil)))),
+      ("declarationSection.title",            dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = Some(emptyDeclarationSection.copy(title = stringExpr))))),
+      ("declarationSection.description",      dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = Some(emptyDeclarationSection.copy(description = Some(stringExpr)))))),
+      ("declarationSection.shortName",        dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = Some(emptyDeclarationSection.copy(shortName = Some(stringExpr)))))),
+      ("declarationSection.continueLabel",    dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = Some(emptyDeclarationSection.copy(continueLabel = Some(stringExpr)))))),
+      ("declarationSection.fields",           dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = Some(emptyDeclarationSection.copy(fields = field :: Nil))))),
       ("destination.hmrcDms.customerId",      dummyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx))))),
       ("destination.composite.destinations",  dummyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyCompositeDestination.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx)))))))
       // format: on

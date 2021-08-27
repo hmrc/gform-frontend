@@ -36,7 +36,7 @@ object Destinations {
   case class DestinationList(
     destinations: NonEmptyList[Destination],
     acknowledgementSection: AcknowledgementSection,
-    declarationSection: DeclarationSection
+    declarationSection: Option[DeclarationSection]
   ) extends Destinations
 
   case class DestinationPrint(

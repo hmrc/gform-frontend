@@ -41,9 +41,9 @@ trait AuditService {
       modelComponentId.toMongoIdentifier -> variadicValue.toSeq.mkString(",")
     }.toMap
 
-  def sendSubmissionEvent(
+  def sendSubmissionEvent[D <: DataOrigin](
     form: Form,
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =

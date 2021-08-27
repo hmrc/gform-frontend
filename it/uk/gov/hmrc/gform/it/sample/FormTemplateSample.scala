@@ -94,13 +94,15 @@ trait FormTemplateSample {
         instructionPdf = None,
         displayFeedbackLink = true
       ),
-      declarationSection = DeclarationSection(
-        title = toSmartString("Declaration Page"),
-        noPIITitle = None,
-        description = None,
-        shortName = None,
-        continueLabel = None,
-        fields = List.empty
+      declarationSection = Some(
+        DeclarationSection(
+          title = toSmartString("Declaration Page"),
+          noPIITitle = None,
+          description = None,
+          shortName = None,
+          continueLabel = None,
+          fields = List.empty
+        )
       )
     ),
     emailTemplateId = LocalisedEmailTemplateId("some_email_template", None),

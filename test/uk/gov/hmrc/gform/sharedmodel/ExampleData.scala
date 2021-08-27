@@ -156,7 +156,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       decFormComponent
     )
 
-  def destinationList = DestinationList(NonEmptyList.of(hmrcDms), ackSection, decSection)
+  def destinationList = DestinationList(NonEmptyList.of(hmrcDms), ackSection, Some(decSection))
 }
 
 trait ExampleAuthConfig {

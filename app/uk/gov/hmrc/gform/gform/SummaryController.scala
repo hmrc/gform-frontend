@@ -19,18 +19,22 @@ package uk.gov.hmrc.gform.gform
 import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
+import org.slf4j.LoggerFactory
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, ResponseHeader, Result }
+import play.api.mvc._
+import uk.gov.hmrc.gform.auditing.loggingHelpers
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActionsAlgebra, Direction, ErrResponder, Exit, SummaryContinue }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
@@ -39,6 +43,7 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -51,11 +56,13 @@ class SummaryController(
   pdfService: PdfGeneratorService,
   gformConnector: GformConnector,
   frontendAppConfig: FrontendAppConfig,
-  errResponder: ErrResponder,
   summaryRenderingService: SummaryRenderingService,
+  submissionService: SubmissionService,
   messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   import i18nSupport._
 
@@ -99,23 +106,22 @@ class SummaryController(
                 cache.form.componentIdToFileId
               )
             )
-            .map { _ =>
+            .flatMap { _ =>
               cache.formTemplate.destinations match {
-                case _: DestinationList =>
+                case DestinationList(_, _, _: Some[DeclarationSection]) =>
                   Redirect(
                     routes.DeclarationController
                       .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes)
-                  )
-
+                  ).pure[Future]
+                case DestinationList(_, _, None) =>
+                  processSubmission(maybeAccessCode, cache, formModelOptics)
                 case _: DestinationPrint =>
                   Redirect(
                     routes.PrintSectionController
                       .showPrintSection(formTemplateId, maybeAccessCode)
-                  )
+                  ).pure[Future]
               }
-
             }
-
           val redirectToSummary =
             Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
           val handleSummaryContinue = for {
@@ -147,6 +153,46 @@ class SummaryController(
           }
       }
     }
+
+  private def processSubmission(
+    maybeAccessCode: Option[AccessCode],
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(implicit
+    request: Request[AnyContent],
+    hc: HeaderCarrier,
+    l: LangADT,
+    lise: SmartStringEvaluator
+  ) =
+    validationService
+      .validateDeclarationSection(
+        cache.toCacheData,
+        formModelOptics.formModelVisibilityOptics,
+        EnvelopeWithMapping.empty
+      )
+      .flatMap { validationResult =>
+        if (validationResult.isFormValid) {
+          for {
+            envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+            customerId <- submissionService.submitForm[DataOrigin.Mongo, SectionSelectorType.Normal](
+                            cache,
+                            maybeAccessCode,
+                            EnvelopeWithMapping(envelope, cache.form),
+                            formModelOptics
+                          )
+          } yield {
+            if (customerId.isEmpty())
+              logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
+            Redirect(
+              uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+                .showAcknowledgement(maybeAccessCode, cache.formTemplate._id)
+            )
+          }
+        } else {
+          Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode))
+            .pure[Future]
+        }
+      }
 
   def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
