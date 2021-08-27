@@ -24,7 +24,7 @@ import play.api.libs.json.{ JsError, JsSuccess, Json }
 import play.api.mvc.{ AnyContent, Cookie, Request }
 import uk.gov.hmrc.auth.core.EnrolmentIdentifier
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
+import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.gform
@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.models.mappings.IRSA
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
-
+import uk.gov.hmrc.gform.sharedmodel.AffinityGroup
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 

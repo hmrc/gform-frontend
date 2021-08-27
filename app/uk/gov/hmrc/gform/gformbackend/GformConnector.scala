@@ -24,7 +24,6 @@ import cats.syntax.functor._
 import cats.syntax.show._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._

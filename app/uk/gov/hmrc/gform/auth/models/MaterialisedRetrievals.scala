@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
+import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.mappings._
 import uk.gov.hmrc.gform.models.userdetails.Nino
-import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, AffinityGroupUtil }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IdentifierName, ServiceName }
 import java.security.MessageDigest
 import uk.gov.hmrc.http.SessionId

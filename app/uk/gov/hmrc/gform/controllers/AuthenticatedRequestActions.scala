@@ -28,7 +28,7 @@ import play.api.mvc._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.retrieve.v2._
-import uk.gov.hmrc.auth.core.{ AffinityGroup, InsufficientEnrolments, AuthConnector => _, _ }
+import uk.gov.hmrc.auth.core.{ InsufficientEnrolments, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.commons.MarkDownUtil
@@ -48,7 +48,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, _ }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-
+import uk.gov.hmrc.gform.sharedmodel.AffinityGroup
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
@@ -103,7 +103,7 @@ class AuthenticatedRequestActions(
 
       authorised(predicate)
         .retrieve(Retrievals.affinityGroup) { case affinityGroup =>
-          Future.successful(affinityGroup)
+          Future.successful(affinityGroup.map(AffinityGroupUtil.localAffinityGroup))
         }
     }
 
@@ -417,7 +417,7 @@ class AuthenticatedRequestActions(
             } yield AuthenticatedRetrievals(
               govermentGatewayId,
               enrolments,
-              affinityGroup,
+              AffinityGroupUtil.localAffinityGroup(affinityGroup),
               groupIdentifier,
               maybeNino.map(Nino(_))
             )

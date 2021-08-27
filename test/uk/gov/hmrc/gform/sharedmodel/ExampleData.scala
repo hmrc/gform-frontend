@@ -21,8 +21,8 @@ import cats.data.NonEmptyList
 import play.api.ApplicationLoader.Context
 import play.api.i18n.Lang
 import play.api.{ Environment, Mode }
-import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
-import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
+import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation
+import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
