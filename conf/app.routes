@@ -11,6 +11,7 @@ GET           /email-auth/email-confirmed-form/:formTemplateId                  
 POST          /email-auth/email-confirmed-continue                                                               uk.gov.hmrc.gform.gform.EmailAuthController.emailConfirmedContinue(continue: String)
 
 GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.dashboard(formTemplateId: FormTemplateId)
+GET           /new-form/:formTemplateId/clean                                                                    uk.gov.hmrc.gform.gform.NewFormController.dashboardClean(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/session                                                                  uk.gov.hmrc.gform.gform.NewFormController.dashboardWithNewSession(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/show-access-code                                                         uk.gov.hmrc.gform.gform.NewFormController.showAccessCode(formTemplateId: FormTemplateId)
 POST          /new-form/:formTemplateId/submission-reference                                                     uk.gov.hmrc.gform.gform.NewFormController.newSubmissionReference(formTemplateId: FormTemplateId)

@@ -277,6 +277,14 @@ case class EvaluationResults(
               uk.gov.hmrc.gform.gform.routes.AcknowledgementController
                 .downloadPDF(evaluationContext.maybeAccessCode, evaluationContext.formTemplateId)
                 .url
+            case InternalLink.NewForm =>
+              uk.gov.hmrc.gform.gform.routes.NewFormController
+                .dashboardClean(evaluationContext.formTemplateId)
+                .url
+            case InternalLink.GGLogin =>
+              uk.gov.hmrc.gform.gform.routes.NewFormController
+                .dashboardWithNewSession(evaluationContext.formTemplateId)
+                .url
             case PageLink(id) =>
               computePageLink(id, evaluationContext)
           }

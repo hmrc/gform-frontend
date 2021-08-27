@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ GGLogin, NewForm, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData, VariadicValue }
@@ -225,6 +225,24 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Indexed("page1", 1) -> SectionNumber(1))),
         StringResult("/form/section/aaa999/-/1"),
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (link from non-repeating page to repeating page)"
+      ),
+      (
+        TypeInfo(LinkCtx(NewForm), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.empty
+        ),
+        evaluationContext,
+        StringResult("/new-form/aaa999/clean"),
+        "Eval LinkCtx(NewForm) as string (link to new form)"
+      ),
+      (
+        TypeInfo(LinkCtx(GGLogin), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.empty
+        ),
+        evaluationContext,
+        StringResult("/new-form/aaa999/session"),
+        "Eval LinkCtx(GGLogin) as string (link to logout user and take to GG signin page)"
       )
     )
     forAll(table) {
