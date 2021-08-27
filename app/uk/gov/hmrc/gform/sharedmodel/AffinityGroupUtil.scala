@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, MaterialisedRetrievals }
 
 object AffinityGroupUtil {
@@ -26,6 +25,12 @@ object AffinityGroupUtil {
       case a: AuthenticatedRetrievals => Some(a.affinityGroup)
       case _                          => None
     }
+
+  def localAffinityGroup(affinityGroup: uk.gov.hmrc.auth.core.AffinityGroup): AffinityGroup = affinityGroup match {
+    case uk.gov.hmrc.auth.core.AffinityGroup.Agent        => AffinityGroup.Agent
+    case uk.gov.hmrc.auth.core.AffinityGroup.Individual   => AffinityGroup.Individual
+    case uk.gov.hmrc.auth.core.AffinityGroup.Organisation => AffinityGroup.Organisation
+  }
 
   def affinityGroupNameO(affinityGroup: Option[AffinityGroup]): String = affinityGroup.fold("")(affinityGroupName)
 

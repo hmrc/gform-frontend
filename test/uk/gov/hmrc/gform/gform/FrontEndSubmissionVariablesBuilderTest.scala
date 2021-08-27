@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 /* import com.softwaremill.quicklens._
  * import play.api.libs.json.Json
- * import uk.gov.hmrc.auth.core.AffinityGroup
+ * import uk.gov.hmrc.gform.sharedmodel.AffinityGroup
  * import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
  * import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
  * import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }

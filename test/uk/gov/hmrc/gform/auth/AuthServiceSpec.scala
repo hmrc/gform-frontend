@@ -19,11 +19,11 @@ package uk.gov.hmrc.gform.auth
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
+import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT }
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, ExampleData, LangADT }
 import uk.gov.hmrc.gform.models.mappings.{ NINO => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -67,29 +67,29 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     AuthenticatedRetrievals(
       governmentGatewayId = governmentGatewayId,
       enrolments = enrolments,
-      affinityGroup = uk.gov.hmrc.auth.core.AffinityGroup.Individual,
+      affinityGroup = uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual,
       groupIdentifier = "20e9b243-7471-4081-be1e-fcb5da33fd5a",
       maybeNino = None
     )
 
   val materialisedRetrievalsAgent =
-    materialisedRetrievalsBuilder(uk.gov.hmrc.auth.core.AffinityGroup.Agent, enrolments)
+    materialisedRetrievalsBuilder(uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Agent, enrolments)
 
   val materialisedRetrievalsEnrolledAgent =
     materialisedRetrievalsBuilder(
-      uk.gov.hmrc.auth.core.AffinityGroup.Agent,
+      uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Agent,
       Enrolments(Set(Enrolment("HMRC-AS-AGENT")))
     )
 
   val materialisedRetrievalsOrganisation =
-    materialisedRetrievalsBuilder(uk.gov.hmrc.auth.core.AffinityGroup.Organisation, enrolments)
+    materialisedRetrievalsBuilder(uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation, enrolments)
 
   val materialisedRetrievalsIndividual =
-    materialisedRetrievalsBuilder(uk.gov.hmrc.auth.core.AffinityGroup.Individual, enrolments)
+    materialisedRetrievalsBuilder(uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual, enrolments)
 
   val materialisedRetrievalsEnrolment =
     materialisedRetrievalsBuilder(
-      uk.gov.hmrc.auth.core.AffinityGroup.Individual,
+      uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual,
       Enrolments(
         Set(
           Enrolment("HMRC-ORG-OBTDS").copy(
