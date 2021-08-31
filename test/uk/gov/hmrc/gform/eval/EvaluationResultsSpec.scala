@@ -16,19 +16,19 @@
 
 package uk.gov.hmrc.gform.eval
 
-import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor5}
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult}
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
-import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
+import uk.gov.hmrc.gform.models.ids.{ModelComponentId, ModelPageId}
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ GGLogin, NewForm, PageLink }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{NewForm, NewSession, PageLink}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{Day, Month, Year}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, FormTemplateId, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber}
+import uk.gov.hmrc.gform.sharedmodel.{LangADT, VariadicFormData, VariadicValue}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
@@ -236,13 +236,22 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         "Eval LinkCtx(NewForm) as string (link to new form)"
       ),
       (
-        TypeInfo(LinkCtx(GGLogin), StaticTypeData(ExprType.string, None)),
+        TypeInfo(LinkCtx(NewForm(FormTemplateId("abc"))), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.empty
+        ),
+        evaluationContext,
+        StringResult("/new-form/abc/clean"),
+        "Eval LinkCtx(NewForm(FormTemplateId(\"abc\"))) as string (link to new form)"
+      ),
+      (
+        TypeInfo(LinkCtx(NewSession), StaticTypeData(ExprType.string, None)),
         RecData[OutOfDate](
           VariadicFormData.empty
         ),
         evaluationContext,
         StringResult("/new-form/aaa999/session"),
-        "Eval LinkCtx(GGLogin) as string (link to logout user and take to GG signin page)"
+        "Eval LinkCtx(NewSession) as string (link to logout user and take to signin page)"
       )
     )
     forAll(table) {
