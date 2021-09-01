@@ -115,7 +115,7 @@ sealed trait ExpressionResult extends Product with Serializable {
 
   def identical(er: ExpressionResult): Boolean = this match {
     case t: Invalid     => false
-    case t: Hidden.type => false
+    case t: Hidden.type => er === Empty
     case t: Empty.type  => er.isEmpty
     case t: NumberResult =>
       er.ifNumberResult(_ === t.value) ||
@@ -211,7 +211,7 @@ sealed trait ExpressionResult extends Product with Serializable {
   }
 
   private def isEmpty: Boolean =
-    fold[Boolean](_ => false)(_ => false)(_ => true)(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(_ =>
+    fold[Boolean](_ => false)(_ => true)(_ => true)(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(_ =>
       false
     )(_ => false)
   private def ifNumberResult(f: BigDecimal => Boolean): Boolean =

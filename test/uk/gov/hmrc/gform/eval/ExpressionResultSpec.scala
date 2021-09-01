@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import play.api.test.Helpers
 
 import java.time.LocalDate
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, Hidden, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateValueExpr, FormComponentId, FormCtx, TodayDateExprValue, WholeSterling }
 
 class ExpressionResultSpec extends FunSuite {
@@ -49,7 +49,7 @@ class ExpressionResultSpec extends FunSuite {
     assertEquals(result, "1 January 1970")
   }
 
-  test("identical need return true for Number(222.00) and Constant(222)") {
+  test("identical needs to return true for Number(222.00) and Constant(222)") {
     val stringResult = StringResult("222")
 
     val numberResult = NumberResult(222.00)
@@ -59,6 +59,29 @@ class ExpressionResultSpec extends FunSuite {
     assertEquals(numberResult.value.toString, "222.0")
     assert(strNum)
     assert(numStr)
+  }
+
+  test("identical needs to return true for Hidden and Empty") {
+
+    val hidEmp = Hidden.identical(Empty)
+    val empHid = Empty.identical(Hidden)
+
+    assert(hidEmp)
+    assert(empHid)
+  }
+
+  test("identical needs to return false for Hidden and Hidden") {
+
+    val hidHid = Hidden.identical(Hidden)
+
+    assertEquals(false, hidHid)
+  }
+
+  test("identical needs to return true for Empty and Empty") {
+
+    val empEmp = Empty.identical(Empty)
+
+    assertEquals(true, empEmp)
   }
 
   test("StringResult and DateResult concatenation") {
