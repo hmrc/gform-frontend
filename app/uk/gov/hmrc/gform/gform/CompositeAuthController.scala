@@ -82,7 +82,9 @@ class CompositeAuthController(
             case AuthConfig.hmrcSimpleModule =>
               val formTemplate = request.attrs(FormTemplateKey)
               val continueUrl =
-                s"${frontendAppConfig.gformFrontendBaseUrl}${uk.gov.hmrc.gform.gform.routes.NewFormController.dashboardWithCompositeAuth(formTemplate._id).url}"
+                frontendAppConfig.gformFrontendBaseUrl + uk.gov.hmrc.gform.gform.routes.NewFormController
+                  .dashboardWithCompositeAuth(formTemplate._id)
+                  .url
               val ggLoginUrl = frontendAppConfig.governmentGatewaySignInUrl
               val url = s"$ggLoginUrl?continue=$continueUrl"
               Redirect(url)
