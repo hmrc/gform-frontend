@@ -99,7 +99,7 @@ class AuthService(
           case Some(id)
               if request.session
                 .get(compositeConfigCookieName)
-                .map(_.toLowerCase) === Some(formTemplate._id.value) || id.ggId === compositeAuthDetails
+                .contains(formTemplate._id.value) || id.ggId === compositeAuthDetails
                 .getOrElse("") =>
             performGGAuth(ggAuthorised(RecoverAuthResult.noop))
 

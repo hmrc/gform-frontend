@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, FormTemplateId }
 import uk.gov.hmrc.gform.views.hardcoded.CompositeAuthFormPage
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -59,7 +60,7 @@ class CompositeAuthController(
         html.auth.auth_selection(
           frontendAppConfig,
           compositeAuthFormPage,
-          ggId
+          ggId.map(FormDataHelpers.addSpacesInGovermentGatewayId)
         )
       ).pure[Future]
     }
@@ -78,14 +79,10 @@ class CompositeAuthController(
             BadRequest(html.auth.auth_selection(frontendAppConfig, compositeAuthFormPage, None)).pure[Future]
           },
           {
-            case _ @AuthConfig.hmrcSimpleModule =>
+            case AuthConfig.hmrcSimpleModule =>
               val formTemplate = request.attrs(FormTemplateKey)
               val continueUrl =
-                java.net.URLEncoder
-                  .encode(
-                    s"${frontendAppConfig.gformFrontendBaseUrl}/submissions/new-form/${formTemplate._id.value}/composite",
-                    "UTF-8"
-                  )
+                s"${frontendAppConfig.gformFrontendBaseUrl}${uk.gov.hmrc.gform.gform.routes.NewFormController.dashboardWithCompositeAuth(formTemplate._id).url}"
               val ggLoginUrl = frontendAppConfig.governmentGatewaySignInUrl
               val url = s"$ggLoginUrl?continue=$continueUrl"
               Redirect(url)

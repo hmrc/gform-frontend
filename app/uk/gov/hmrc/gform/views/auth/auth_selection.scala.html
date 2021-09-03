@@ -62,7 +62,7 @@
     @pageHeading(text = messages("compositeAuth.howToSignIn"))
     @maybeGGId.map { id =>
         <p class="govuk-body govuk-!-margin-bottom-2">@messages("compositeAuth.alreadySigned")</p>
-        <h2 class="govuk-heading-m">@{id.replaceAll("..(?!$)", "$0 ")}</h2>
+        <h2 class="govuk-heading-m">@id</h2>
     }
     @compositeAuthFormPage.render
 

@@ -22,6 +22,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, FormTemplate }
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.pWithStrong
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 
 class CompositeAuthFormPage(
   val formTemplate: FormTemplate,
@@ -81,7 +82,7 @@ class CompositeAuthFormPage(
                 conditionalHtml = Some(
                   pWithStrong(
                     messages("compositeAuth.ggDifferentConditional"),
-                    id.replaceAll("..(?!$)", "$0 "),
+                    FormDataHelpers.addSpacesInGovermentGatewayId(id),
                     "govuk-body"
                   )
                 )
