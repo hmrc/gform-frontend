@@ -318,4 +318,11 @@ class GformModule(
       configModule.frontendAppConfig,
       controllersModule.messagesControllerComponents
     )
+
+  val compositeAuthController: CompositeAuthController = new CompositeAuthController(
+    playBuiltInsModule.i18nSupport,
+    controllersModule.messagesControllerComponents,
+    controllersModule.nonAuthenticatedRequestActions,
+    configModule.frontendAppConfig
+  )
 }

@@ -107,6 +107,19 @@ class AuthenticatedRequestActions(
         }
     }
 
+  def getGovermentGatewayId(implicit request: Request[AnyContent]): Unit => Future[Option[GovernmentGatewayId]] =
+    _ =>
+      authorised(AuthProviders(AuthProvider.GovernmentGateway))
+        .retrieve(Retrievals.credentials) {
+          case Some(maybeCredentials) =>
+            Future.successful(toGovernmentGatewayId(maybeCredentials))
+          case _ =>
+            Future.successful(None)
+        }
+        .recover { case _ =>
+          None
+        }
+
   implicit def hc(implicit request: Request[_]): HeaderCarrier =
     HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
@@ -210,6 +223,7 @@ class AuthenticatedRequestActions(
                       .authenticateAndAuthorise(
                         formTemplate,
                         getAffinityGroup,
+                        getGovermentGatewayId,
                         ggAuthorised(request),
                         getCaseWorkerIdentity(request)
                       )
@@ -299,6 +313,7 @@ class AuthenticatedRequestActions(
                         .authenticateAndAuthorise(
                           formTemplate,
                           getAffinityGroup,
+                          getGovermentGatewayId,
                           ggAuthorised(request),
                           getCaseWorkerIdentity(request)
                         )
@@ -374,6 +389,9 @@ class AuthenticatedRequestActions(
         onSuccess(retrievals)(role)
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
       case AuthEmailRedirect(redirectUrl) =>
+        Redirect(redirectUrl.url)
+          .pure[Future]
+      case AuthCustomRedirect(redirectUrl) =>
         Redirect(redirectUrl.url)
           .pure[Future]
       case AuthAnonymousSession(redirectUrl) =>

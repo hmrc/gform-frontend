@@ -24,6 +24,7 @@ import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -62,29 +63,36 @@ class NewFormController(
   private val noAccessCode = Option.empty[AccessCode]
 
   private def formTemplateIdCookie(formTemplateId: FormTemplateId) =
-    Cookie(CookieNames.formTemplateIdCookieName, formTemplateId.value, secure = true)
+    Cookie(formTemplateIdCookieName, formTemplateId.value, secure = true)
 
   def dashboard(formTemplateId: FormTemplateId) =
-    auth.authWithOptReferrerCheckWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ViewDashboard) {
-      implicit request => implicit lang => cache =>
-        val cookie = formTemplateIdCookie(formTemplateId)
+    auth.authWithOptReferrerCheckWithoutRetrievingForm(
+      formTemplateId,
+      OperationWithoutForm.ViewDashboard
+    ) { implicit request => implicit lang => cache =>
+      val cookie = formTemplateIdCookie(formTemplateId)
 
-        val result =
-          (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
-            case (BySubmissionReference, _)                    => showAccesCodePage(cache, BySubmissionReference)
-            case (drm @ FormAccessCodeForAgents(_), IsAgent()) => showAccesCodePage(cache, drm)
-            case _ =>
-              Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, request.queryString)
-                .pure[Future]
-          }
+      val result =
+        (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
+          case (BySubmissionReference, _)                    => showAccesCodePage(cache, BySubmissionReference)
+          case (drm @ FormAccessCodeForAgents(_), IsAgent()) => showAccesCodePage(cache, drm)
+          case _ =>
+            Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, request.queryString).pure[Future]
+        }
 
-        result.map(_.withCookies(cookie))
+      result.map(_.withCookies(cookie))
     }
 
   /** To request a new confirmation code when verifying an email, user will have to start whole journey again in new session.
     */
   def dashboardWithNewSession(formTemplateId: FormTemplateId) = Action.async { request =>
     Redirect(routes.NewFormController.dashboard(formTemplateId)).withSession().pure[Future]
+  }
+
+  def dashboardWithCompositeAuth(formTemplateId: FormTemplateId) = Action.async { implicit request =>
+    Redirect(routes.NewFormController.dashboard(formTemplateId))
+      .addingToSession(compositeConfigCookieName -> formTemplateId.value)
+      .pure[Future]
   }
 
   /** This handles cases when draftRetrievalMethod submissionReference or formAccessCodeForAgents has been
