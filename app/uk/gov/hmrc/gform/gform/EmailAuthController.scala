@@ -22,13 +22,13 @@ import org.slf4j.{ Logger, LoggerFactory }
 import org.typelevel.ci.CIString
 import play.api.data
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.FormTemplateKey
-import uk.gov.hmrc.gform.auth.models.{ EmailAuthDetails, InvalidEmail, ValidEmail }
+import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, EmailAuthDetails, InvalidEmail, ValidEmail }
 import uk.gov.hmrc.gform.commons.MarkDownUtil
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.GformSessionKeys.EMAIL_AUTH_DETAILS_SESSION_KEY
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.{ COMPOSITE_AUTH_DETAILS_SESSION_KEY, EMAIL_AUTH_DETAILS_SESSION_KEY }
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActions
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode }
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.toJsonStr
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailAuthConfig, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, EmailAuthConfig, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.html.components
@@ -49,6 +49,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import org.typelevel.ci._
 import uk.gov.hmrc.gform.typeclasses.Rnd
+
 import scala.concurrent.{ ExecutionContext, Future }
 
 class EmailAuthController(
@@ -127,9 +128,34 @@ class EmailAuthController(
               maybeEmailFieldError
             )
           ).pure[Future]
+        case Composite(configs) =>
+          val compositeAuthDetails: CompositeAuthDetails =
+            jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+
+          compositeAuthDetails.get(formTemplate._id) match {
+            case Some(selection) =>
+              AuthConfig
+                .getAuthConfig(selection, configs) match {
+                case Some(EmailAuthConfig(_, emailUseInfo, _, _)) =>
+                  Ok(
+                    html.auth.enter_email(
+                      formTemplate,
+                      frontendAppConfig,
+                      uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId, continue),
+                      maybeEmailFieldValue.map(_.toString),
+                      emailUseInfo.map(MarkDownUtil.markDownParser _),
+                      pageErrors,
+                      maybeEmailFieldError
+                    )
+                  ).pure[Future]
+                case _ =>
+                  notSetEmailResult(formTemplateId)
+              }
+            case None =>
+              notSetEmailResult(formTemplateId)
+          }
         case _ =>
-          logger.warn(s"AuthModule for formTemplate $formTemplateId is not set to email")
-          BadRequest(s"Unable to accept Email for formTemplate $formTemplateId").pure[Future]
+          notSetEmailResult(formTemplateId)
       }
     }
 
@@ -183,32 +209,33 @@ class EmailAuthController(
       val emailAuthDetails: EmailAuthDetails =
         jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
 
-      (emailAuthDetails.get(formTemplateId), formTemplate.authConfig) match {
-        case (Some(emailAuthData), EmailAuthConfig(_, _, emailCodeHelp, emailConfirmation)) =>
-          val (pageErrors, maybeCodeFieldError) = error match {
-            case Some(true) =>
-              (
-                Errors(
-                  new components.govukErrorSummary()(
-                    ErrorSummary(
-                      errorList = List(
-                        ErrorLink(
-                          href = Some("#code"),
-                          content = content.Text(request.messages.messages("emailAuth.confirmCodeError"))
-                        )
-                      ),
-                      title = content.Text(request.messages.messages("error.summary.heading"))
+      val (pageErrors, maybeCodeFieldError) = error match {
+        case Some(true) =>
+          (
+            Errors(
+              new components.govukErrorSummary()(
+                ErrorSummary(
+                  errorList = List(
+                    ErrorLink(
+                      href = Some("#code"),
+                      content = content.Text(request.messages.messages("emailAuth.confirmCodeError"))
                     )
-                  )
-                ),
-                Some(
-                  ErrorMessage(
-                    content = content.Text(request.messages.messages("emailAuth.confirmCodeError"))
-                  )
+                  ),
+                  title = content.Text(request.messages.messages("error.summary.heading"))
                 )
               )
-            case _ => (NoErrors, None)
-          }
+            ),
+            Some(
+              ErrorMessage(
+                content = content.Text(request.messages.messages("emailAuth.confirmCodeError"))
+              )
+            )
+          )
+        case _ => (NoErrors, None)
+      }
+
+      (emailAuthDetails.get(formTemplateId), formTemplate.authConfig) match {
+        case (Some(emailAuthData), EmailAuthConfig(_, _, emailCodeHelp, _)) =>
           Ok(
             html.auth.confirm_code(
               formTemplate,
@@ -222,6 +249,37 @@ class EmailAuthController(
               maybeCodeFieldError
             )
           ).pure[Future]
+
+        case (Some(emailAuthData), Composite(configs)) =>
+          val compositeAuthDetails =
+            jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+              .get(formTemplate._id)
+
+          val config = AuthConfig
+            .getAuthConfig(compositeAuthDetails.get, configs)
+
+          config match {
+            case Some(EmailAuthConfig(_, _, emailCodeHelp, _)) =>
+              Ok(
+                html.auth.confirm_code(
+                  formTemplate,
+                  frontendAppConfig,
+                  EmailId(emailAuthData.email),
+                  emailCodeHelp.map(_.value),
+                  uk.gov.hmrc.gform.gform.routes.EmailAuthController
+                    .confirmCode(formTemplateId, continue),
+                  continue,
+                  pageErrors,
+                  maybeCodeFieldError
+                )
+              ).pure[Future]
+
+            case _ =>
+              logger.warn(s"Could not find emailAuthDetails in session for formTemplate $formTemplateId")
+              BadRequest(s"Unable to confirm code for formTemplate $formTemplateId").pure[Future]
+
+          }
+
         case _ =>
           logger.warn(s"Could not find emailAuthDetails in session for formTemplate $formTemplateId")
           BadRequest(s"Unable to confirm code for formTemplate $formTemplateId").pure[Future]
@@ -308,23 +366,25 @@ class EmailAuthController(
     formTemplate: FormTemplate,
     emailId: EmailId
   )(implicit
+    request: Request[AnyContent],
     hc: HeaderCarrier,
     me: MonadError[Future, Throwable],
     l: LangADT
-  ): Future[EmailAndCode] =
+  ): Future[EmailAndCode] = {
+    val isStaticCodeEmail = frontendAppConfig.emailAuthStaticCodeEmails.fold(false) {
+      _.exists(_ === ci"${emailId.value.toString}")
+    }
+
+    implicit val rnd = if (isStaticCodeEmail) {
+      Rnd.ConstantInt
+    } else {
+      Rnd.RandomInt
+    }
+
+    val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
+
     formTemplate.authConfig match {
       case emailAuthConfig: EmailAuthConfig =>
-        val isStaticCodeEmail = frontendAppConfig.emailAuthStaticCodeEmails.fold(false) {
-          _.exists(_ === ci"${emailId.value.toString}")
-        }
-
-        implicit val rnd = if (isStaticCodeEmail) {
-          Rnd.ConstantInt
-        } else {
-          Rnd.RandomInt
-        }
-
-        val emailAndCode = EmailAndCode.emailVerificationCode(emailId.value.toString)
         gformConnector
           .sendEmail(
             ConfirmationCodeWithEmailService(
@@ -336,6 +396,37 @@ class EmailAuthController(
           )
           .map(_ => emailAndCode)
 
+      case composite: Composite =>
+        val compositeAuthDetails =
+          jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+            .get(formTemplate._id)
+
+        val config = AuthConfig
+          .getAuthConfig(compositeAuthDetails.get, composite.configs)
+
+        config match {
+          case Some(EmailAuthConfig(service, _, _, _)) =>
+            gformConnector
+              .sendEmail(
+                ConfirmationCodeWithEmailService(
+                  NotifierEmailAddress(emailId.value.toString),
+                  emailAndCode.code,
+                  service,
+                  l
+                )
+              )
+              .map(_ => emailAndCode)
+
+          case _ =>
+            me.raiseError(new IllegalArgumentException(s"Unsupported auth config ${formTemplate.authConfig}"))
+        }
+
       case _ => me.raiseError(new IllegalArgumentException(s"Unsupported auth config ${formTemplate.authConfig}"))
     }
+  }
+
+  private def notSetEmailResult(formTemplateId: FormTemplateId): Future[Result] = {
+    logger.warn(s"AuthModule for formTemplate $formTemplateId is not set to email")
+    BadRequest(s"Unable to accept Email for formTemplate $formTemplateId").pure[Future]
+  }
 }

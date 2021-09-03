@@ -27,8 +27,11 @@ import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
+import uk.gov.hmrc.gform.controllers.CookieNames._
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.EmailAuthUtils.isEmailConfirmed
+import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.mappings.IRSA
 import uk.gov.hmrc.gform.sharedmodel.LangADT
@@ -49,6 +52,7 @@ class AuthService(
   def authenticateAndAuthorise(
     formTemplate: FormTemplate,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
+    getGovermentGatewayId: Unit => Future[Option[GovernmentGatewayId]],
     ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult],
     assumedIdentity: Option[Cookie]
   )(implicit
@@ -85,6 +89,51 @@ class AuthService(
               .pure[Future]
           case None =>
             AuthEmailRedirect(gform.routes.EmailAuthController.emailIdForm(formTemplate._id, request.uri)).pure[Future]
+        }
+      case Composite(configs) =>
+        val compositeAuthDetails =
+          jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+            .get(formTemplate._id)
+
+        getGovermentGatewayId(()) flatMap {
+          case Some(id)
+              if request.session
+                .get(compositeConfigCookieName)
+                .contains(formTemplate._id.value) || id.ggId === compositeAuthDetails
+                .getOrElse("") =>
+            performGGAuth(ggAuthorised(RecoverAuthResult.noop))
+
+          case Some(id) if compositeAuthDetails.isEmpty =>
+            AuthCustomRedirect(
+              gform.routes.CompositeAuthController
+                .authSelectionForm(formTemplate._id, Some(id.ggId))
+            )
+              .pure[Future]
+
+          case _ if compositeAuthDetails.isDefined =>
+            AuthConfig
+              .getAuthConfig(compositeAuthDetails.getOrElse(""), configs) match {
+              case Some(config) =>
+                authenticateAndAuthorise(
+                  formTemplate.copy(authConfig = config),
+                  getAffinityGroup,
+                  getGovermentGatewayId,
+                  ggAuthorised,
+                  assumedIdentity
+                )
+              case None =>
+                AuthCustomRedirect(
+                  gform.routes.CompositeAuthController
+                    .authSelectionForm(formTemplate._id, None)
+                )
+                  .pure[Future]
+            }
+
+          case _ =>
+            AuthCustomRedirect(
+              gform.routes.CompositeAuthController.authSelectionForm(formTemplate._id, None)
+            )
+              .pure[Future]
         }
     }
 

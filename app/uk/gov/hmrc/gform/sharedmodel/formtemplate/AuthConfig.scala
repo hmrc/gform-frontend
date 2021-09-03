@@ -16,9 +16,12 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.nelFormat
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LocalisedString, ValueClassFormat }
+import AuthConfig._
 
 case class EnrolmentAuth(
   serviceId: ServiceId,
@@ -86,6 +89,19 @@ sealed trait AuthConfig extends Product with Serializable {
     case EmailAuthConfig(_, _, _, _) => true
     case _                           => false
   }
+
+  def authConfigName = this match {
+    case Anonymous                          => anonymous
+    case HmrcAny                            => hmrcAny
+    case HmrcVerified(_, _)                 => hmrcVerified
+    case HmrcSimpleModule                   => hmrcSimpleModule
+    case HmrcEnrolmentModule(_)             => hmrcEnrolmentModule
+    case HmrcAgentModule(_)                 => hmrcAgentModule
+    case HmrcAgentWithEnrolmentModule(_, _) => hmrcAgentWithEnrolmentModule
+    case AWSALBAuth                         => awsALBAuth
+    case EmailAuthConfig(_, _, _, _)        => email
+    case Composite(_)                       => composite
+  }
 }
 
 case object Anonymous extends AuthConfig
@@ -102,6 +118,7 @@ case class EmailAuthConfig(
   emailCodeHelp: Option[LocalisedString],
   emailConfirmation: Option[LocalisedString]
 ) extends AuthConfig
+case class Composite(configs: NonEmptyList[AuthConfig]) extends AuthConfig
 
 object HasEnrolmentSection {
   def unapply(ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck, EnrolmentAction)] =
@@ -118,6 +135,17 @@ object HasEnrolmentSection {
 }
 
 object AuthConfig {
+
+  val anonymous = "anonymous"
+  val hmrcAny = "hmrcAny"
+  val hmrcVerified = "hmrcVerified"
+  val hmrcSimpleModule = "hmrcSimpleModule"
+  val hmrcEnrolmentModule = "hmrcEnrolmentModule"
+  val hmrcAgentModule = "hmrcAgentModule"
+  val hmrcAgentWithEnrolmentModule = "hmrcAgentWithEnrolmentModule"
+  val awsALBAuth = "awsALBAuth"
+  val email = "email"
+  val composite = "composite"
 
   def toEnrolmentPostCheck(maybeRegimeId: Option[RegimeId]): EnrolmentPostCheck =
     maybeRegimeId.fold(NoCheck: EnrolmentPostCheck)(RegimeIdCheck.apply)
@@ -157,6 +185,9 @@ object AuthConfig {
         EnrolmentAuth(serviceId, DoCheck(ForNonAgents, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)))
       case (Some(NeverVerb) | None, _) => EnrolmentAuth(serviceId, Never)
     }
+
+  def getAuthConfig(name: String, configs: NonEmptyList[AuthConfig]): Option[AuthConfig] =
+    configs.find(_.authConfigName == name)
 
   implicit val format: OFormat[AuthConfig] = derived.oformat()
 

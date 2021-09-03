@@ -21,4 +21,5 @@ object CookieNames {
   val authConfigCookieName = "authconfig"
   val anonymousFormSessionCookieName = "mdtpanonymous"
   val emailFormSessionCookieName = "mdtpemail"
+  val compositeConfigCookieName = "compositeconfig"
 }

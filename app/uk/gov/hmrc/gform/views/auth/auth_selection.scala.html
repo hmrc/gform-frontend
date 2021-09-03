@@ -1,0 +1,71 @@
+@*
+ * Copyright 2021 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.views.hardcoded.CompositeAuthFormPage
+@import uk.gov.hmrc.gform.views.hardcoded.pages.{ formCategory, withQueryParams }
+@import uk.gov.hmrc.gform.views.html.form.pageHeading
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+
+@(
+  frontendAppConfig: FrontendAppConfig,
+  compositeAuthFormPage: CompositeAuthFormPage,
+  maybeGGId: Option[String] = None
+)(
+  implicit
+  request: Request[_],
+  messages: Messages,
+  l:LangADT
+)
+
+@formWithCSRF = @{new formWithCSRF()}
+@govukButton = @{new govukButton()}
+@govukErrorSummary = @{new govukErrorSummary()}
+
+@heading = @{messages("continueDelete.title", compositeAuthFormPage.formCat)}
+@button = @{messages("button.continue")}
+
+@uk.gov.hmrc.gform.views.html.main_template(
+  title = heading,
+  serviceName = compositeAuthFormPage.formTemplate.formName.value,
+  developmentPhase = compositeAuthFormPage.formTemplate.developmentPhase,
+  frontendAppConfig = frontendAppConfig,
+  containsErrors = compositeAuthFormPage.hasErrors,
+  authConfig = Some(compositeAuthFormPage.formTemplate.authConfig),
+  formCategory = compositeAuthFormPage.formTemplate.formCategory,
+  displayHMRCLogo = compositeAuthFormPage.formTemplate.displayHMRCLogo,
+  displayTimeoutDialog = false,
+  languages = compositeAuthFormPage.formTemplate.languages,
+  templateId = compositeAuthFormPage.formTemplate._id,
+  userResearchUrl = compositeAuthFormPage.formTemplate.userResearchUrl.map(_.value)
+) {
+
+  @if(compositeAuthFormPage.hasErrors) {
+     @govukErrorSummary(compositeAuthFormPage.errorSummary)
+  }
+
+  @formWithCSRF(action = withQueryParams(uk.gov.hmrc.gform.gform.routes.CompositeAuthController.selectedForm(compositeAuthFormPage.formTemplate._id)), args = 'id -> "gf-form") {
+
+    @pageHeading(text = messages("compositeAuth.howToSignIn"))
+    @maybeGGId.map { id =>
+        <p class="govuk-body govuk-!-margin-bottom-2">@messages("compositeAuth.alreadySigned")</p>
+        <h2 class="govuk-heading-m">@id</h2>
+    }
+    @compositeAuthFormPage.render
+
+    @govukButton(Button(content = Text(button), value = Some(button)))
+  }
+}

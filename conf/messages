@@ -25,6 +25,15 @@ emailAuth.emailAddress=Email address
 emailAuth.confirmCodeError=Enter the code we emailed you. This is 4 letters, like DNLC
 emailAuth.emailConfirmation=Email address confirmed
 
+compositeAuth.howToSignIn=How do you want to sign in?
+compositeAuth.ggContent=Sign in with your Government Gateway user ID
+compositeAuth.ggContinueContent=Continue with this Government Gateway user ID
+compositeAuth.ggDifferentContent=Sign in with a different Government Gateway user ID
+compositeAuth.emailContent=Sign in with your email address
+compositeAuth.ggDifferentConditional=This will sign you out of any service currently using your Government Gateway user ID
+compositeAuth.alreadySigned=You are already signed in with Government Gateway user ID:
+compositeAuthSelection.error.required=Select how do you want to sign in?
+
 linkText.saveAndComeBackLater=Save and come back later
 linkText.back=Back
 linkText.removeRepeatedGroup=Remove {0}

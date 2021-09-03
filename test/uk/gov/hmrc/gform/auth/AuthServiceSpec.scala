@@ -60,6 +60,8 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
 
   val getAffinityGroup: Unit => Future[Option[AffinityGroup]] = const(Future.successful(None))
 
+  val getGovernmentGatewayId: Unit => Future[Option[GovernmentGatewayId]] = const(Future.successful(None))
+
   private def materialisedRetrievalsBuilder(affinityGroup: AffinityGroup, enrolments: Enrolments) =
     AuthenticatedRetrievals(governmentGatewayId, enrolments, affinityGroup, "TestGroupId", None)
 
@@ -135,39 +137,75 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
 
   it should "authorise a gg authentication only user when no agentAccess config" in {
     val result =
-      authService.authenticateAndAuthorise(buildFormTemplate, getAffinityGroup, ggAuthorisedSuccessful, None)
+      authService.authenticateAndAuthorise(
+        buildFormTemplate,
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessful,
+        None
+      )
     result.futureValue should be(AuthSuccessful(materialisedRetrievals, Role.Customer))
   }
 
   it should "authorise a gg authentication only non-agent when agent access is configured to agent denied" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateAgentDenied, getAffinityGroup, ggAuthorisedSuccessful, None)
+        .authenticateAndAuthorise(
+          formTemplateAgentDenied,
+          getAffinityGroup,
+          getGovernmentGatewayId,
+          ggAuthorisedSuccessful,
+          None
+        )
     result.futureValue should be(AuthSuccessful(materialisedRetrievals, Role.Customer))
   }
 
   it should "authorise a gg authentication only individual when agent access is configured to agent denied" in {
     val result = authService
-      .authenticateAndAuthorise(formTemplateAgentDenied, getAffinityGroup, ggAuthorisedSuccessfulIndividual, None)
+      .authenticateAndAuthorise(
+        formTemplateAgentDenied,
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessfulIndividual,
+        None
+      )
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsIndividual, Role.Customer))
   }
 
   it should "authorise a gg authentication only organisation when agent access is configured to agent denied" in {
     val result = authService
-      .authenticateAndAuthorise(formTemplateAgentDenied, getAffinityGroup, ggAuthorisedSuccessfulOrganisation, None)
+      .authenticateAndAuthorise(
+        formTemplateAgentDenied,
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessfulOrganisation,
+        None
+      )
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsOrganisation, Role.Customer))
   }
 
   it should "block a gg authentication only agent when agent access is configured to agent denied" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateAgentDenied, getAffinityGroup, ggAuthorisedSuccessfulAgent, None)
+        .authenticateAndAuthorise(
+          formTemplateAgentDenied,
+          getAffinityGroup,
+          getGovernmentGatewayId,
+          ggAuthorisedSuccessfulAgent,
+          None
+        )
     result.futureValue should be(AuthBlocked("Agents cannot access this form"))
   }
 
   it should "authorise a gg authentication only agent when agent access is configured to allow any agent" in {
     val result = authService
-      .authenticateAndAuthorise(formTemplateAnyAgentAllowed, getAffinityGroup, ggAuthorisedSuccessfulAgent, None)
+      .authenticateAndAuthorise(
+        formTemplateAnyAgentAllowed,
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessfulAgent,
+        None
+      )
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsAgent, Role.Customer))
   }
 
@@ -177,6 +215,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
         .authenticateAndAuthorise(
           formTemplateRequireMTDAgentEnrolment,
           getAffinityGroup,
+          getGovernmentGatewayId,
           ggAuthorisedSuccessfulEnrolledAgent,
           None
         )
@@ -186,21 +225,39 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   it should "authorise a gg authentication with enrolment" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateEnrolment, getAffinityGroup, ggAuthorisedEnrolment, None)
+        .authenticateAndAuthorise(
+          formTemplateEnrolment,
+          getAffinityGroup,
+          getGovernmentGatewayId,
+          ggAuthorisedEnrolment,
+          None
+        )
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolment, Role.Customer))
   }
 
   it should "redirect a gg authentication only agent with enrolment when agent access is configured to allow agent with enrolment" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateRequireMTDAgentEnrolment, getAffinityGroup, ggAuthorisedRedirect, None)
+        .authenticateAndAuthorise(
+          formTemplateRequireMTDAgentEnrolment,
+          getAffinityGroup,
+          getGovernmentGatewayId,
+          ggAuthorisedRedirect,
+          None
+        )
     result.futureValue should be(AuthRedirect(""))
   }
 
   it should "not authorise an Ofsted user when they have not been successfully authenticated by the AWS ALB" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateAWSALB, getAffinityGroup, ggAuthorisedSuccessful, None)
+        .authenticateAndAuthorise(
+          formTemplateAWSALB,
+          getAffinityGroup,
+          getGovernmentGatewayId,
+          ggAuthorisedSuccessful,
+          None
+        )
     result.futureValue should be(AuthBlocked("You are not authorized to access this service"))
   }
 
@@ -210,7 +267,13 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     implicit val hc: HeaderCarrier = HeaderCarrier(otherHeaders = Seq(("X-Amzn-Oidc-Data" -> jwt)))
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateAWSALB, getAffinityGroup, ggAuthorisedSuccessful, None)
+        .authenticateAndAuthorise(
+          formTemplateAWSALB,
+          getAffinityGroup,
+          getGovernmentGatewayId,
+          ggAuthorisedSuccessful,
+          None
+        )
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsOfsted, Role.Customer))
   }
 

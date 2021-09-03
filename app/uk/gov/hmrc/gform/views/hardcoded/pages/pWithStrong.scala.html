@@ -1,4 +1,4 @@
-/*
+@*
  * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,12 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *@
 
-package uk.gov.hmrc.gform.controllers
+@(
+  message: String,
+  sMessage: String,
+  classes: String = ""
 
-object GformSessionKeys {
-  val REFERRER_CHECK_DETAILS = "referrerCheckDetails"
-  val EMAIL_AUTH_DETAILS_SESSION_KEY = "emailAuthDetails"
-  val COMPOSITE_AUTH_DETAILS_SESSION_KEY = "compositeAuthDetails"
-}
+)
+
+<p class="@classes">@message <strong>@sMessage</strong></p>

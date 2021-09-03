@@ -74,6 +74,7 @@ class RoutingModule(
     govukRoutes,
     hmrcfrontendRoutes,
     gformModule.emailAuthController,
+    gformModule.compositeAuthController,
     gformModule.newFormController,
     gformModule.formController,
     gformModule.addToListController,

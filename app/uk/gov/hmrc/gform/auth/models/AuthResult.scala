@@ -26,3 +26,4 @@ final case class AuthEmailRedirect(redirectUrl: Call) extends AuthResult
 final case class AuthRedirectFlashingFormName(loginUrl: String) extends AuthResult
 final case class AuthBlocked(message: String) extends AuthResult
 final case class AuthForbidden(message: String) extends AuthResult
+final case class AuthCustomRedirect(redirectUrl: Call) extends AuthResult
