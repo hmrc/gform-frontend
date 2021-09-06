@@ -126,7 +126,7 @@ class ValidationService(
       .traverse(fv => validateFormComponent(fv, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
       .map(res => Monoid[ValidatedType[Unit]].combineAll(res))
 
-  def validateDeclarationSection[D <: DataOrigin](
+  def validateAllSections[D <: DataOrigin](
     cache: CacheData,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     envelope: EnvelopeWithMapping
