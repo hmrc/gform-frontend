@@ -164,35 +164,36 @@ class SummaryController(
     l: LangADT,
     lise: SmartStringEvaluator
   ) =
-    validationService
-      .validateDeclarationSection(
-        cache.toCacheData,
-        formModelOptics.formModelVisibilityOptics,
-        EnvelopeWithMapping.empty
-      )
-      .flatMap { validationResult =>
-        if (validationResult.isFormValid) {
-          for {
-            envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
-            customerId <- submissionService.submitForm[DataOrigin.Mongo, SectionSelectorType.Normal](
-                            cache,
-                            maybeAccessCode,
-                            EnvelopeWithMapping(envelope, cache.form),
-                            formModelOptics
-                          )
-          } yield {
-            if (customerId.isEmpty())
-              logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
-            Redirect(
-              uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-                .showAcknowledgement(maybeAccessCode, cache.formTemplate._id)
-            )
-          }
-        } else {
-          Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode))
-            .pure[Future]
-        }
-      }
+    for {
+      envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+      validationResult <- validationService
+                            .validateAllSections(
+                              cache.toCacheData,
+                              formModelOptics.formModelVisibilityOptics,
+                              EnvelopeWithMapping(envelope, cache.form)
+                            )
+      result <- if (validationResult.isFormValid) {
+                  for {
+                    customerId <- submissionService.submitForm[DataOrigin.Mongo, SectionSelectorType.Normal](
+                                    cache,
+                                    maybeAccessCode,
+                                    EnvelopeWithMapping(envelope, cache.form),
+                                    formModelOptics
+                                  )
+                  } yield {
+                    if (customerId.isEmpty())
+                      logger.warn(
+                        s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}"
+                      )
+                    Redirect(
+                      uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+                        .showAcknowledgement(maybeAccessCode, cache.formTemplate._id)
+                    )
+                  }
+                } else {
+                  Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)).pure[Future]
+                }
+    } yield result
 
   def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](

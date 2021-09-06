@@ -78,7 +78,7 @@ class DeclarationController(
           import i18nSupport._
           for {
             validationResult <- validationService
-                                  .validateDeclarationSection(
+                                  .validateAllSections(
                                     cache.toCacheData,
                                     formModelOptics.formModelVisibilityOptics,
                                     EnvelopeWithMapping.empty
@@ -179,7 +179,7 @@ class DeclarationController(
 
     for {
       valRes <- validationService
-                  .validateDeclarationSection(
+                  .validateAllSections(
                     cache.toCacheData,
                     processData.formModelOptics.formModelVisibilityOptics,
                     envelope
