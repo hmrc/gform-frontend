@@ -14,6 +14,7 @@ GET           /composite-auth/auth-selection-form/:formTemplateId               
 GET           /composite-auth/selected-form/:formTemplateId                                                      uk.gov.hmrc.gform.gform.CompositeAuthController.selectedForm(formTemplateId: FormTemplateId)
 
 GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.dashboard(formTemplateId: FormTemplateId)
+GET           /new-form/:formTemplateId/clean                                                                    uk.gov.hmrc.gform.gform.NewFormController.dashboardClean(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/session                                                                  uk.gov.hmrc.gform.gform.NewFormController.dashboardWithNewSession(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/composite                                                                uk.gov.hmrc.gform.gform.NewFormController.dashboardWithCompositeAuth(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/show-access-code                                                         uk.gov.hmrc.gform.gform.NewFormController.showAccessCode(formTemplateId: FormTemplateId)
