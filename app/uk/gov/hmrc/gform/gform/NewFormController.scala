@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
 import cats.syntax.applicative._
+import cats.syntax.eq._
 import org.slf4j.LoggerFactory
 import play.api.data
 import play.api.i18n.{ I18nSupport, Messages }
@@ -27,12 +28,13 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.gform.EmailAuthUtils.removeFormTemplate
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, QueryParams, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, FormStatus, QueryParams, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode }
@@ -196,10 +198,21 @@ class NewFormController(
   def newOrContinue(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>
+        val formTemplate = cache.formTemplate
         val queryParams: QueryParams = QueryParams.fromRequest(request)
-
         val formIdData = FormIdData.Plain(UserId(cache.retrievals), formTemplateId)
-        handleForm(formIdData, cache.formTemplate)(newForm(formTemplateId, cache, queryParams)) { form =>
+
+        def startNewForm(maybeFormStatus: Option[FormStatus]) =
+          if (formTemplate.authConfig.isEmailAuthConfig && maybeFormStatus.exists(_ === Submitted))
+            // for email auth, when form is SUBMITTED, remove form template id from session
+            // requires user to auth again via email
+            newForm(formTemplateId, cache, queryParams).map(
+              _.addingToSession(removeFormTemplate(formTemplateId))
+            )
+          else
+            newForm(formTemplateId, cache, queryParams)
+
+        def processExistingForm(form: Form) =
           cache.formTemplate.draftRetrievalMethod match {
             case NotPermitted =>
               fastForwardService.deleteForm(cache.toAuthCacheWithForm(form, noAccessCode), queryParams)
@@ -209,7 +222,11 @@ class NewFormController(
               val continueFormPage = new ContinueFormPage(cache.formTemplate, choice)
               Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
           }
-        }
+
+        for {
+          maybeFormStatus <- gformConnector.maybeForm(formIdData, cache.formTemplate).map(_.map(_.status))
+          result          <- handleForm(formIdData, cache.formTemplate)(startNewForm(maybeFormStatus))(processExistingForm)
+        } yield result
     }
 
   private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm, queryParams: QueryParams)(implicit
