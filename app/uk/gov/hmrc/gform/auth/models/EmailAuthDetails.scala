@@ -29,6 +29,9 @@ case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.e
   def +(values: (FormTemplateId, EmailAuthData)*): EmailAuthDetails =
     EmailAuthDetails(mappings ++ values)
 
+  def -(key: FormTemplateId): EmailAuthDetails =
+    EmailAuthDetails(mappings - key)
+
   def get(formTemplateId: FormTemplateId): Option[EmailAuthData] =
     mappings.get(formTemplateId)
 

@@ -21,7 +21,7 @@ import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auth.models.{ EmailAuthDetails, ValidEmail }
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.EMAIL_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, JsonUtils }
 
 object EmailAuthUtils {
 
@@ -32,5 +32,11 @@ object EmailAuthUtils {
       case Some(ValidEmail(emailAndCode, confirmed)) if confirmed => Some(emailAndCode.email)
       case _                                                      => None
     }
+  }
+
+  def removeFormTemplate(formTemplateId: FormTemplateId)(implicit request: Request[AnyContent]) = {
+    val emailAuthDetails: EmailAuthDetails =
+      jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
+    (EMAIL_AUTH_DETAILS_SESSION_KEY, JsonUtils.toJsonStr(emailAuthDetails - formTemplateId))
   }
 }
