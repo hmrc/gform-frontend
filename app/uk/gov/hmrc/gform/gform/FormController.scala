@@ -22,12 +22,14 @@ import cats.syntax.eq._
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform
+import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormHandlerResult }
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -41,6 +43,7 @@ import uk.gov.hmrc.gform.models.optics.DataOrigin.Browser
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationService }
@@ -469,20 +472,41 @@ class FormController(
                     val saveWithAccessCode = new SaveWithAccessCode(formTemplate, accessCode)
                     Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
                   case None =>
-                    if (formTemplate.authConfig.isEmailAuthConfig) {
-                      Redirect(gform.routes.SaveAcknowledgementController.show(formTemplateId))
-                    } else {
-                      showAcknowledgementPage(
-                        formTemplateId,
-                        maybeAccessCode,
-                        processData,
-                        maybeSn,
-                        formTemplate,
-                        envelopeExpiryDate
-                      )
+                    formTemplate.authConfig match {
+                      case Composite(configs) =>
+                        val compositeAuthDetails =
+                          jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+                            .get(formTemplate._id)
+                        val config = AuthConfig
+                          .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
+                        processSaveAndExitExtension(config, processData, maybeSn, envelopeExpiryDate)
+                      case config =>
+                        processSaveAndExitExtension(Some(config), processData, maybeSn, envelopeExpiryDate)
                     }
                 }
               }
+
+            def processSaveAndExitExtension(
+              config: Option[AuthConfig],
+              processData: ProcessData,
+              maybeSn: Option[SectionNumber],
+              envelopeExpiryDate: Option[EnvelopeExpiryDate]
+            ): Result = {
+              val formTemplate = cache.formTemplate
+              config match {
+                case Some(EmailAuthConfig(_, _, _, _)) =>
+                  Redirect(gform.routes.SaveAcknowledgementController.show(formTemplateId))
+                case _ =>
+                  showAcknowledgementPage(
+                    formTemplateId,
+                    maybeAccessCode,
+                    processData,
+                    maybeSn,
+                    formTemplate,
+                    envelopeExpiryDate
+                  )
+              }
+            }
 
             def processBack(
               processData: ProcessData,
