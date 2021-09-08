@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewSession, PageLink }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, FormTemplateId, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData, VariadicValue }
@@ -236,7 +236,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         "Eval LinkCtx(NewForm) as string (link to new form)"
       ),
       (
-        TypeInfo(LinkCtx(NewForm(FormTemplateId("abc"))), StaticTypeData(ExprType.string, None)),
+        TypeInfo(LinkCtx(NewFormForTemplate(FormTemplateId("abc"))), StaticTypeData(ExprType.string, None)),
         RecData[OutOfDate](
           VariadicFormData.empty
         ),

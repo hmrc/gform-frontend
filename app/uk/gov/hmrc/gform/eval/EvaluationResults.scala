@@ -277,7 +277,7 @@ case class EvaluationResults(
               uk.gov.hmrc.gform.gform.routes.AcknowledgementController
                 .downloadPDF(evaluationContext.maybeAccessCode, evaluationContext.formTemplateId)
                 .url
-            case InternalLink.NewForm(formTemplateId) =>
+            case InternalLink.NewFormForTemplate(formTemplateId) =>
               uk.gov.hmrc.gform.gform.routes.NewFormController
                 .dashboardClean(formTemplateId)
                 .url
