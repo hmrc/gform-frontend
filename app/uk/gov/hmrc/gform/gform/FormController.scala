@@ -479,14 +479,14 @@ class FormController(
                             .get(formTemplate._id)
                         val config = AuthConfig
                           .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
-                        processSaveAndExitExtension(config, processData, maybeSn, envelopeExpiryDate)
+                        processSaveAndExitAcknowledgementPage(config, processData, maybeSn, envelopeExpiryDate)
                       case config =>
-                        processSaveAndExitExtension(Some(config), processData, maybeSn, envelopeExpiryDate)
+                        processSaveAndExitAcknowledgementPage(Some(config), processData, maybeSn, envelopeExpiryDate)
                     }
                 }
               }
 
-            def processSaveAndExitExtension(
+            def processSaveAndExitAcknowledgementPage(
               config: Option[AuthConfig],
               processData: ProcessData,
               maybeSn: Option[SectionNumber],

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request }
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, EmailAuthDetails }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.ViewSaveAcknowledgement
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -44,7 +44,7 @@ class SaveAcknowledgementController(
 
   import i18nSupport._
 
-  def show(formTemplateId: FormTemplateId) =
+  def show(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, ViewSaveAcknowledgement) {
       implicit request => implicit lang => cache => _ => _ =>
         val formTemplate = cache.formTemplate
@@ -55,17 +55,20 @@ class SaveAcknowledgementController(
                 .get(formTemplate._id)
             val config = AuthConfig
               .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
-            showExtension(cache, formTemplateId, config)
+            saveAcknowledgementForEmail(cache, formTemplateId, config)
           case config =>
-            showExtension(cache, formTemplateId, Some(config))
+            saveAcknowledgementForEmail(cache, formTemplateId, Some(config))
         }
     }
 
-  private def showExtension(cache: AuthCacheWithForm, formTemplateId: FormTemplateId, config: Option[AuthConfig])(
-    implicit
+  private def saveAcknowledgementForEmail(
+    cache: AuthCacheWithForm,
+    formTemplateId: FormTemplateId,
+    config: Option[AuthConfig]
+  )(implicit
     request: Request[AnyContent],
     l: LangADT
-  ) = {
+  ): Future[Result] = {
     val formTemplate = cache.formTemplate
     config match {
       case Some(EmailAuthConfig(_, _, _, _)) =>
