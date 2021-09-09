@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.gform.EmailAuthUtils
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-/** This filter only applies to authConfig=email.
+/** This filter only applies to authConfig=email and triggered on the new form route only (/xxxx/new-form/formTemplateId)
   * It creates a new session when accessing a new instance of the form, following a successful form submission
   * in the same session.
   *
