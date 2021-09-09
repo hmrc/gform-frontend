@@ -19,6 +19,12 @@ trait GFormStubs extends FormTemplateSample {
         .willReturn(ok(JsonUtils.toJsonStr(formTemplate)))
     )
 
+  def gformFormNotFoundStub(formTemplate: FormTemplate) = stubFor(
+    WireMock
+      .get(urlMatching(s"/gform/forms/.*/${formTemplate._id.value}"))
+      .willReturn(notFound())
+  )
+
   def gformFormStub(formTemplate: FormTemplate) =
     stubFor(
       WireMock
