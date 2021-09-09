@@ -143,10 +143,13 @@ class FrontendFiltersModule(
     )
   }
 
+  private val emailAuthClearSessionFilter = new EmailAuthSessionPurgeFilter(gformBackendModule.gformConnector)
+
   lazy val httpFilters: Seq[EssentialFilter] = Seq(
     securityHeadersFilter,
     metricsModule.metricsFilter,
     sessionCookieDispatcherFilter,
+    emailAuthClearSessionFilter,
     headersFilter,
     deviceIdFilter,
     loggingFilter,

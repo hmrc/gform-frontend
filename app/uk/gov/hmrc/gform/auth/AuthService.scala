@@ -28,10 +28,12 @@ import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.CookieNames._
+import uk.gov.hmrc.gform.controllers.GformRequestAttrKeys.{ emailSessionClearAttrKey, emailSessionClearAttrKeyName }
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.EmailAuthUtils.isEmailConfirmed
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
+import uk.gov.hmrc.gform.gform.URIUtils.addQueryParams
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.mappings.IRSA
 import uk.gov.hmrc.gform.sharedmodel.LangADT
@@ -88,7 +90,18 @@ class AuthService(
             AuthSuccessful(EmailRetrievals(EmailId(email)), Role.Customer)
               .pure[Future]
           case None =>
-            AuthEmailRedirect(gform.routes.EmailAuthController.emailIdForm(formTemplate._id, request.uri)).pure[Future]
+            AuthEmailRedirect(
+              gform.routes.EmailAuthController.emailIdForm(
+                formTemplate._id,
+                addQueryParams(
+                  request.uri,
+                  request.attrs
+                    .get[String](emailSessionClearAttrKey)
+                    .map((emailSessionClearAttrKeyName, _))
+                    .toList: _*
+                )
+              )
+            ).pure[Future]
         }
       case Composite(configs) =>
         val compositeAuthDetails =
