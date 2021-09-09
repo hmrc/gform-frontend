@@ -17,26 +17,25 @@
 package uk.gov.hmrc.gform.gform
 
 import org.typelevel.ci.CIString
-import play.api.mvc.{ AnyContent, Request }
-import uk.gov.hmrc.gform.auth.models.{ EmailAuthDetails, ValidEmail }
+import play.api.mvc.RequestHeader
+import uk.gov.hmrc.gform.auth.models.EmailAuthDetails
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.EMAIL_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, JsonUtils }
 
 object EmailAuthUtils {
 
-  def isEmailConfirmed(formTemplateId: FormTemplateId)(implicit request: Request[AnyContent]): Option[CIString] = {
+  def isEmailConfirmed(formTemplateId: FormTemplateId)(implicit rh: RequestHeader): Option[CIString] = {
     val emailAuthDetails: EmailAuthDetails =
-      jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
-    emailAuthDetails.get(formTemplateId) match {
-      case Some(ValidEmail(emailAndCode, confirmed)) if confirmed => Some(emailAndCode.email)
-      case _                                                      => None
-    }
+      jsonFromSession(rh, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
+    emailAuthDetails
+      .get(formTemplateId)
+      .fold[Option[CIString]](None)(_.confirmedEmail)
   }
 
-  def removeFormTemplate(formTemplateId: FormTemplateId)(implicit request: Request[AnyContent]) = {
+  def removeFormTemplateFromAuthSession(formTemplateId: FormTemplateId)(implicit rh: RequestHeader) = {
     val emailAuthDetails: EmailAuthDetails =
-      jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
+      jsonFromSession(rh, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
     (EMAIL_AUTH_DETAILS_SESSION_KEY, JsonUtils.toJsonStr(emailAuthDetails - formTemplateId))
   }
 }

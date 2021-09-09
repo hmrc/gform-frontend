@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.gform
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.libs.json.Json.{ fromJson, parse }
 import play.api.libs.json.{ JsError, JsSuccess, Reads }
-import play.api.mvc.{ AnyContent, Request }
+import play.api.mvc.RequestHeader
 
 import scala.util.{ Failure, Success, Try }
 
@@ -27,8 +27,8 @@ object SessionUtil {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  def jsonFromSession[T: Reads](request: Request[AnyContent], key: String, default: T): T =
-    request.session
+  def jsonFromSession[T: Reads](rh: RequestHeader, key: String, default: T): T =
+    rh.session
       .get(key)
       .map { json =>
         Try(parse(json)) match {

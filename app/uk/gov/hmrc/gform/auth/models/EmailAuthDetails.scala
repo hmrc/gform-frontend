@@ -36,13 +36,12 @@ case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.e
     mappings.get(formTemplateId)
 
   def checkCodeAndConfirm(formTemplateId: FormTemplateId, emailAndCode: EmailAndCode): Option[EmailAuthDetails] =
-    get(formTemplateId).flatMap { emailCodeConfirmation =>
-      emailCodeConfirmation match {
-        case v @ ValidEmail(cached, _) if cached === emailAndCode =>
-          Some(EmailAuthDetails(mappings + (formTemplateId -> v.copy(confirmed = true))))
-        case _ => None
-      }
-    }
+    get(formTemplateId).flatMap(_.fold[Option[EmailAuthDetails]](_ => None) { v =>
+      if (v.emailAndCode === emailAndCode)
+        Some(EmailAuthDetails(mappings + (formTemplateId -> v.copy(confirmed = true))))
+      else
+        None
+    })
 }
 
 object EmailAuthDetails {

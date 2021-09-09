@@ -27,6 +27,19 @@ sealed trait EmailAuthData {
     case InvalidEmail(EmailId(email), _)       => email
     case ValidEmail(EmailAndCode(email, _), _) => email
   }
+
+  def confirmedEmail: Option[CIString] = fold[Option[CIString]](_ => None) { v =>
+    if (v.confirmed)
+      Some(v.email)
+    else
+      None
+  }
+
+  def fold[B](f: InvalidEmail => B)(g: ValidEmail => B) =
+    this match {
+      case x @ InvalidEmail(_, _) => f(x)
+      case x @ ValidEmail(_, _)   => g(x)
+    }
 }
 
 case class InvalidEmail(emailId: EmailId, message: String) extends EmailAuthData
