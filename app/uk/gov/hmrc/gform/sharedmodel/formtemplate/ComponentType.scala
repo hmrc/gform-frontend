@@ -176,7 +176,8 @@ object Address {
 case class OverseasAddress(
   mandatoryFields: List[OverseasAddress.Configurable.Mandatory],
   optionalFields: List[OverseasAddress.Configurable.Optional],
-  value: Option[OverseasAddress.Value]
+  value: Option[OverseasAddress.Value],
+  countryLookup: Boolean
 ) extends ComponentType with MultiField {
   override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
     OverseasAddress.fields(indexedComponentId)
