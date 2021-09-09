@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode }
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.toJsonStr
@@ -115,44 +115,28 @@ class EmailAuthController(
         case _ => (NoErrors, None, None)
       }
 
+      def showEnterEmailPage(emailUseInfo: Option[LocalisedString]) = Ok(
+        html.auth.enter_email(
+          formTemplate,
+          frontendAppConfig,
+          uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId, continue),
+          maybeEmailFieldValue.map(_.toString),
+          emailUseInfo.map(MarkDownUtil.markDownParser _),
+          pageErrors,
+          maybeEmailFieldError
+        )
+      ).pure[Future]
       formTemplate.authConfig match {
-        case EmailAuthConfig(_, emailUseInfo, _, _) =>
-          Ok(
-            html.auth.enter_email(
-              formTemplate,
-              frontendAppConfig,
-              uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId, continue),
-              maybeEmailFieldValue.map(_.toString),
-              emailUseInfo.map(MarkDownUtil.markDownParser _),
-              pageErrors,
-              maybeEmailFieldError
-            )
-          ).pure[Future]
+        case EmailAuthConfig(_, emailUseInfo, _, _) => showEnterEmailPage(emailUseInfo)
         case Composite(configs) =>
           val compositeAuthDetails: CompositeAuthDetails =
             jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
 
-          compositeAuthDetails.get(formTemplate._id) match {
-            case Some(selection) =>
-              AuthConfig
-                .getAuthConfig(selection, configs) match {
-                case Some(EmailAuthConfig(_, emailUseInfo, _, _)) =>
-                  Ok(
-                    html.auth.enter_email(
-                      formTemplate,
-                      frontendAppConfig,
-                      uk.gov.hmrc.gform.gform.routes.EmailAuthController.sendEmail(formTemplateId, continue),
-                      maybeEmailFieldValue.map(_.toString),
-                      emailUseInfo.map(MarkDownUtil.markDownParser _),
-                      pageErrors,
-                      maybeEmailFieldError
-                    )
-                  ).pure[Future]
-                case _ =>
-                  notSetEmailResult(formTemplateId)
-              }
-            case None =>
-              notSetEmailResult(formTemplateId)
+          compositeAuthDetails.get(formTemplate._id).flatMap { selection =>
+            AuthConfig.getAuthConfig(selection, configs)
+          } match {
+            case Some(EmailAuthConfig(_, emailUseInfo, _, _)) => showEnterEmailPage(emailUseInfo)
+            case _                                            => notSetEmailResult(formTemplateId)
           }
         case _ =>
           notSetEmailResult(formTemplateId)
