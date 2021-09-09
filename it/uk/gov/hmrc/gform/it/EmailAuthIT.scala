@@ -34,6 +34,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuth)
 
+    And("Gform get form returns 404 not found")
+    gformFormNotFoundStub(formTemplateEmailAuth)
+
     When("I request for a new form")
     val newFormResponse = get("/submissions/new-form/form-template-with-email-auth").send()
 
@@ -43,7 +46,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     val form = responseBody.getElementById("gf-form")
     form.attr(
       "action"
-    ) shouldBe "/submissions/email-auth/send-email/form-template-with-email-auth?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth"
+    ) shouldBe "/submissions/email-auth/send-email/form-template-with-email-auth?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth%3FemailSessionClear%3Dtrue"
     form.attr("method") shouldBe "POST"
     form.getElementsByClass("govuk-body").text shouldNot include("EmailUseInfo")
     val emailInput = form.getElementById("email")
@@ -62,6 +65,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuthWithOptionalDetails)
 
+    And("Gform get form returns 404 not found")
+    gformFormNotFoundStub(formTemplateEmailAuth)
+
     When("I request for a new form")
     val newFormResponse = get("/submissions/new-form/form-template-with-email-auth").send()
 
@@ -71,7 +77,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     val form = responseBody.getElementById("gf-form")
     form.attr(
       "action"
-    ) shouldBe "/submissions/email-auth/send-email/form-template-with-email-auth?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth"
+    ) shouldBe "/submissions/email-auth/send-email/form-template-with-email-auth?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth%3FemailSessionClear%3Dtrue"
     form.attr("method") shouldBe "POST"
     form.getElementsByClass("govuk-body").text should include("EmailUseInfo")
     val emailInput = form.getElementById("email")
@@ -90,6 +96,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuth)
 
+    And("Gform get form returns 404 not found")
+    gformFormNotFoundStub(formTemplateEmailAuth)
+
     And("Gform email notification service returns 204 NoContent")
     gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None))
 
@@ -106,7 +115,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     val form = responseBody.getElementById("gf-form")
     form.attr(
       "action"
-    ) shouldBe "/submissions/email-auth/confirm-code/form-template-with-email-auth?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth"
+    ) shouldBe "/submissions/email-auth/confirm-code/form-template-with-email-auth?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth%3FemailSessionClear%3Dtrue"
     form.attr("method") shouldBe "POST"
     form.getElementsByClass("govuk-details").text shouldNot include("EmailCodeHelp")
     val emailInput = form.getElementById("email")
@@ -130,6 +139,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuthWithOptionalDetails)
 
+    And("Gform get form returns 404 not found")
+    gformFormNotFoundStub(formTemplateEmailAuth)
+
     And("Gform email notification service returns 204 NoContent")
     gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None))
 
@@ -146,7 +158,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     val form = responseBody.getElementById("gf-form")
     form.attr(
       "action"
-    ) shouldBe "/submissions/email-auth/confirm-code/form-template-with-email-auth?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth"
+    ) shouldBe "/submissions/email-auth/confirm-code/form-template-with-email-auth?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth%3FemailSessionClear%3Dtrue"
     form.attr("method") shouldBe "POST"
     form.getElementsByClass("govuk-details").text should include("EmailCodeHelp")
     val emailInput = form.getElementById("email")
@@ -169,6 +181,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
 
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuth)
+
+    And("Gform get form returns 404 not found")
+    gformFormNotFoundStub(formTemplateEmailAuth)
 
     And("Gform email notification service returns 204 NoContent")
     gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None))
@@ -207,11 +222,11 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuthWithOptionalDetails)
 
-    And("Gform email notification service returns 204 NoContent")
-    gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None))
-
     And("Gform get form returns 200 OK")
     gformFormStub(formTemplateEmailAuth)
+
+    And("Gform email notification service returns 204 NoContent")
+    gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None))
 
     And("FileUpload get envelopes returns 200 OK")
     getFileUploadEnvelopeStub()
@@ -238,7 +253,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     val form = responseBody.getElementById("gf-form")
     form.attr(
       "action"
-    ) shouldBe "/submissions/email-auth/email-confirmed-continue?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth"
+    ) shouldBe "/submissions/email-auth/email-confirmed-continue?continue=%2Fsubmissions%2Fnew-form%2Fform-template-with-email-auth%3FemailSessionClear%3Dtrue"
     form.attr("method") shouldBe "POST"
     form.getElementsByClass("govuk-body").text should include("EmailConfirmation")
     val submitButton = form.getElementsByAttributeValue("name", "submitButton").get(0)
