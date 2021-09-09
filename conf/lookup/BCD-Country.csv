@@ -17,7 +17,7 @@ AU,,Australia,Awstralia,10,4,0
 AW,,Aruba,Arwba,,4,0
 AX,,Aland Islands,Ynysoedd Åland,,4,0
 AZ,,Azerbaijan,Azerbaijan,,4,0
-BA,,Bosnia-Herzegovina,Bosnia-Herzegovina,,4,0
+BA,,Bosnia and Herzegovina,Bosnia-Herzegovina,,4,0
 BB,,Barbados,Barbados,,4,0
 BD,,Bangladesh,Bangladesh,,4,0
 BE,,Belgium,Gwlad Belg,20,3,1
@@ -40,7 +40,7 @@ BY,,Belarus,Belarus,,4,0
 BZ,,Belize,Belize,,4,0
 CA,,Canada,Canada,10,4,0
 CC,,Cocos Islands,Ynysoedd Cocos,,4,0
-CD,,Congo (Democratic Republic of the),Gweriniaeth Ddemocrataidd y Congo,,4,0
+CD,,Democratic Republic of the Congo,Gweriniaeth Ddemocrataidd y Congo,,4,0
 CE,,Channel Islands,Ynysoedd y Sianel,,4,0
 CF,,Central Africa Republic,Gweriniaeth Canol Affrica,,4,0
 CG,,Congo,Congo,,4,0
@@ -85,7 +85,7 @@ GG,,Guernsey,Guernsey,,4,0
 GH,,Ghana,Ghana,,4,0
 GI,,Gibraltar,Gibraltar,,4,0
 GL,,Greenland,Yr Ynys Las,,4,0
-GM,,Gambia,Gambia,,4,0
+GM,,The Gambia,Gambia,,4,0
 GN,,Guinea,Guinée,,4,0
 GP,,Guadeloupe,Guadeloupe,,4,0
 GQ,,Equatorial Guinea,Guinea Gyhydeddol,,4,0
@@ -144,9 +144,9 @@ ME,,Montenegro,Montenegro,,4,0
 MF,,Saint Martin,Saint Martin,,4,0
 MG,,Madagascar,Madagascar,,4,0
 MH,,Marshall Islands,Ynysoedd Marshall,,4,0
-MK,,Macedonia,Macedonia,,4,0
+MK,,North Macedonia,Macedonia,,4,0
 ML,,Mali,Mali,,4,0
-MM,,Myanmar,Myanmar,,4,0
+MM,,Myanmar (Burma),Myanmar,,4,0
 MN,,Mongolia,Mongolia,,4,0
 MO,,Macao,Macau,,4,0
 MP,,Northern Mariana Islands,Ynysoedd Gogledd Mariana,,4,0
@@ -183,7 +183,7 @@ PL,,Poland,Gwlad Pwyl,20,3,1
 PM,,St Pierre and Miquelon,Saint Pierre a Miquelon,,4,0
 PN,,Pitcairn,Pitcairn,,4,0
 PR,,Puerto Rico,Puerto Rico,,4,0
-PS,,Palestinian Territory,Tiriogaeth Palesteina,,4,0
+PS,,Occupied Palestinian Territories,Tiriogaeth Palesteina,,4,0
 PT,,Portugal,Portiwgal,20,3,1
 PW,,Palau,Palau,,4,0
 PY,,Paraguay,Paraguay,,4,0
@@ -207,13 +207,13 @@ SL,,Sierra Leone,Sierra Leone,,4,0
 SM,,San Marino,San Marino,,4,0
 SN,,Senegal,Senegal,,4,0
 SO,,Somalia,Somalia,,4,0
-SR,,Surinam,Suriname,,4,0
+SR,,Suriname,Suriname,,4,0
 SS,,South Sudan,De Swdan,,4,0
 ST,,Sao Tome and Principe,São Tomé a Príncipe,,4,0
 SV,,El Salvador,El Salvador,,4,0
 SX,,Sint Maarten (Dutch part),Sint Maarten (Iseldiraidd),,4,0
 SY,,Syria,Syria,,4,0
-SZ,,Swaziland,Gwlad Swazi,,4,0
+SZ,Swaziland,Eswatini,Gwlad Swazi,,4,0
 TC,,Turks and Caicos Islands,Ynysoedd Turks a Caicos,,4,0
 TD,,Chad,Tchad,,4,0
 TF,,French Southern Territories,Tiriogaethau Deheuol Ffrainc,,4,0
