@@ -62,7 +62,7 @@ class OverseasAddressValidation[D <: DataOrigin](
         validateLine3(),
         validateCity(configurableOptionalFields),
         validatePostcode(configurableMandatoryFields),
-        validateCountry()
+        if (overseasAddress.countryLookup) validateCountry() else validationSuccess
       )
 
     Monoid[ValidatedType[Unit]].combineAll(validatedResult)

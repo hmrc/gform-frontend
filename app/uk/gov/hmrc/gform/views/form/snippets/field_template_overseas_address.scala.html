@@ -96,13 +96,19 @@
         <div class="govuk-hint" id="@{formComponent.id.value}-hint">@{formComponent.helpText.map(_.value).getOrElse("")}</div>
     }
 
-    @defining(List(
-        (OverseasAddress.line1,    "overseasAddress.line1",    "govuk-input govuk-!-width-two-thirds"),
-        (OverseasAddress.line2,    "overseasAddress.line2",    "govuk-input govuk-!-width-two-thirds"),
-        (OverseasAddress.line3,    "overseasAddress.line3",    "govuk-input govuk-!-width-two-thirds"),
-        (OverseasAddress.city,     "overseasAddress.city",     "govuk-input govuk-!-width-two-thirds"),
-        (OverseasAddress.postcode, "overseasAddress.postcode", "govuk-input--width-10")
-    )) { rows =>
+    @defining({
+        val rows = List(
+                (OverseasAddress.line1,    "overseasAddress.line1",    "govuk-input govuk-!-width-two-thirds"),
+                (OverseasAddress.line2,    "overseasAddress.line2",    "govuk-input govuk-!-width-two-thirds"),
+                (OverseasAddress.line3,    "overseasAddress.line3",    "govuk-input govuk-!-width-two-thirds"),
+                (OverseasAddress.city,     "overseasAddress.city",     "govuk-input govuk-!-width-two-thirds"),
+                (OverseasAddress.postcode, "overseasAddress.postcode", "govuk-input--width-10")
+            )
+        if(overseasAddress.countryLookup)
+            rows
+        else
+            rows ++ List((OverseasAddress.country,  "overseasAddress.country",  "govuk-input govuk-!-width-two-thirds"))
+    }) { rows =>
         @rows.map { case (row, messageKey, widthClass) =>
 
             @defining(safeId(row), safeError(row)) { case (rowId, rowError) =>
@@ -123,7 +129,7 @@
         }
     }
 
-    @{lookup_autosuggest(
+    @{if(overseasAddress.countryLookup) lookup_autosuggest(
         Label(
             forAttr = Some(htmlId(safeId(OverseasAddress.country))),
             isPageHeading = false,
