@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.graph.processor
 
+import uk.gov.hmrc.auth.core.Enrolment
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, EmailRetrievals, MaterialisedRetrievals, VerifyRetrievals }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil.affinityGroupNameO
@@ -39,6 +40,17 @@ object UserCtxEvaluatorProcessor extends IdentifierExtractor {
       case (AnonymousRetrievals(_), _) => ""
       case (EmailRetrievals(_), _)     => ""
       case (VerifyRetrievals(_, _), _) => ""
+    }
+
+  def maybeEnrolment(retrievals: MaterialisedRetrievals, enrolment: UserField.Enrolment): Option[Enrolment] =
+    retrievals match {
+      case AuthenticatedRetrievals(_, enrolments, _, _, _) =>
+        enrolments.enrolments.find(e =>
+          ServiceName(e.key) == enrolment.serviceName && e.identifiers.exists(k =>
+            IdentifierName(k.key) == enrolment.identifierName
+          )
+        )
+      case _ => None
     }
 
   def evalRosm(thirdPartyData: ThirdPartyData, rosmProp: RosmProp): String = {

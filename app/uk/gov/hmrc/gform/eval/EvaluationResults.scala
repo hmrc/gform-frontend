@@ -190,6 +190,17 @@ case class EvaluationResults(
       case PeriodExt(_, _)                            => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case PeriodValue(_)                             => unsupportedOperation("Number")(expr)
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
+      case UserFuncCtx(userField, UserFieldFunc.Count) =>
+        userField.fold(empty)(en =>
+          NumberResult(
+            UserCtxEvaluatorProcessor
+              .maybeEnrolment(evaluationContext.retrievals, en)
+              .toList
+              .flatMap(_.identifiers)
+              .count(i => IdentifierName(i.key) == en.identifierName)
+          )
+        )(empty)
+      case UserFuncCtx(_, _) => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -250,6 +261,23 @@ case class EvaluationResults(
           StringResult(
             UserCtxEvaluatorProcessor
               .processEvaluation(evaluationContext.retrievals, value, evaluationContext.authConfig)
+          )
+        )
+      case UserFuncCtx(userField, UserFieldFunc.Index(i)) =>
+        userField.fold(empty)(en =>
+          UserCtxEvaluatorProcessor
+            .maybeEnrolment(evaluationContext.retrievals, en)
+            .toList
+            .flatMap(_.identifiers)
+            .filter(i => IdentifierName(i.key) == en.identifierName)
+            .lift(i - 1)
+            .map(ei => StringResult(ei.value))
+            .getOrElse(empty)
+        )(empty)
+      case UserFuncCtx(_, UserFieldFunc.Count) =>
+        nonEmpty(
+          StringResult(
+            evalNumber(typeInfo, recData, booleanExprResolver, evaluationContext).stringRepresentation(typeInfo, m)
           )
         )
       case Constant(value: String) => nonEmpty(StringResult(value))
