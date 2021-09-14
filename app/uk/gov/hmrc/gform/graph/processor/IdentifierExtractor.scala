@@ -62,6 +62,6 @@ trait IdentifierExtractor {
   private val enrolmentsByServiceId: (Enrolments, String) => Set[core.Enrolment] =
     (enrolments, serviceId) => enrolments.enrolments.filter(_.key == serviceId)
 
-  private val maybeValue: Option[EnrolmentIdentifier] => String =
+  val maybeValue: Option[EnrolmentIdentifier] => String =
     maybeIdentifier => maybeIdentifier.map(_.value).getOrElse("")
 }

@@ -43,7 +43,6 @@ sealed trait Expr extends Product with Serializable {
       case Count(formComponentId: FormComponentId) => FormCtx(formComponentId.withFirstIndex) :: Nil
       case AuthCtx(_)                              => expr :: Nil
       case UserCtx(_)                              => expr :: Nil
-      case UserFuncCtx(_, _)                       => expr :: Nil
       case Constant(_)                             => expr :: Nil
       case PeriodValue(_)                          => expr :: Nil
       case HmrcRosmRegistrationCheck(_)            => expr :: Nil
@@ -80,7 +79,6 @@ sealed trait Expr extends Product with Serializable {
     case Count(formComponentId: FormComponentId)    => FormCtx(formComponentId.withFirstIndex) :: Nil
     case AuthCtx(value: AuthInfo)                   => this :: Nil
     case UserCtx(value: UserField)                  => this :: Nil
-    case UserFuncCtx(_, _)                          => this :: Nil
     case Constant(value: String)                    => this :: Nil
     case PeriodValue(value: String)                 => this :: Nil
     case HmrcRosmRegistrationCheck(value: RosmProp) => this :: Nil
@@ -106,7 +104,6 @@ sealed trait Expr extends Product with Serializable {
     case Count(field1: FormComponentId)             => Nil
     case AuthCtx(value: AuthInfo)                   => Nil
     case UserCtx(value: UserField)                  => Nil
-    case UserFuncCtx(_, _)                          => Nil
     case Constant(value: String)                    => Nil
     case PeriodValue(value: String)                 => Nil
     case HmrcRosmRegistrationCheck(value: RosmProp) => Nil
@@ -133,7 +130,6 @@ final case class Count(formComponentId: FormComponentId) extends Expr
 final case class ParamCtx(queryParam: QueryParam) extends Expr
 final case class AuthCtx(value: AuthInfo) extends Expr
 final case class UserCtx(value: UserField) extends Expr
-final case class UserFuncCtx(value: UserField, func: UserFieldFunc) extends Expr
 final case class Constant(value: String) extends Expr
 final case class PeriodValue(value: String) extends Expr
 final case class LinkCtx(link: InternalLink) extends Expr
@@ -225,7 +221,8 @@ sealed trait UserField {
 
 object UserField {
   final case object AffinityGroup extends UserField
-  final case class Enrolment(serviceName: ServiceName, identifierName: IdentifierName) extends UserField
+  final case class Enrolment(serviceName: ServiceName, identifierName: IdentifierName, func: Option[UserFieldFunc])
+      extends UserField
   final case object EnrolledIdentifier extends UserField
 
   implicit val format: OFormat[UserField] = derived.oformat()

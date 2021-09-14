@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber, ServiceName, UserField, UserFieldFunc, UserFuncCtx }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber, ServiceName, UserCtx, UserField, UserFieldFunc }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -245,7 +245,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          UserFuncCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("b")), UserFieldFunc.Index(0)),
+          UserCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("b"), Option(UserFieldFunc.Index(0)))),
           StaticTypeData(ExprType.string, None)
         ),
         recDataEmpty,
@@ -259,7 +259,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          UserFuncCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("c")), UserFieldFunc.Index(1)),
+          UserCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("c"), Option(UserFieldFunc.Index(1)))),
           StaticTypeData(ExprType.string, None)
         ),
         recDataEmpty,
@@ -282,7 +282,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          UserFuncCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("b")), UserFieldFunc.Count),
+          UserCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("b"), Option(UserFieldFunc.Count))),
           StaticTypeData(ExprType.string, None)
         ),
         recDataEmpty,
@@ -413,7 +413,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          UserFuncCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("b")), UserFieldFunc.Count),
+          UserCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("b"), Option(UserFieldFunc.Count))),
           StaticTypeData(ExprType.number, None)
         ),
         recData,

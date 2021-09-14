@@ -171,13 +171,19 @@ case class EvaluationResults(
       case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
-      case Else(field1: Expr, field2: Expr)           => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId)             => get(ctx, recData, fromVariadicValue, evaluationContext)
-      case Sum(FormCtx(formComponentId))              => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
-      case Sum(_)                                     => unsupportedOperation("Number")(expr)
-      case Count(formComponentId)                     => addToListCount(formComponentId, recData)
-      case AuthCtx(value: AuthInfo)                   => unsupportedOperation("Number")(expr)
-      case UserCtx(value: UserField)                  => unsupportedOperation("Number")(expr)
+      case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
+      case ctx @ FormCtx(formComponentId)   => get(ctx, recData, fromVariadicValue, evaluationContext)
+      case Sum(FormCtx(formComponentId))    => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
+      case Sum(_)                           => unsupportedOperation("Number")(expr)
+      case Count(formComponentId)           => addToListCount(formComponentId, recData)
+      case AuthCtx(value: AuthInfo)         => unsupportedOperation("Number")(expr)
+      case UserCtx(value: UserField) =>
+        value.fold(unsupportedOperation("Number")(expr))(enrolment =>
+          toNumberResult(
+            UserCtxEvaluatorProcessor
+              .processEvaluation(evaluationContext.retrievals, enrolment, evaluationContext.authConfig)
+          )
+        )(unsupportedOperation("Number")(expr))
       case Constant(value: String)                    => toNumberResult(value)
       case HmrcRosmRegistrationCheck(value: RosmProp) => unsupportedOperation("Number")(expr)
       case Value                                      => Empty
@@ -190,17 +196,6 @@ case class EvaluationResults(
       case PeriodExt(_, _)                            => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case PeriodValue(_)                             => unsupportedOperation("Number")(expr)
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
-      case UserFuncCtx(userField, UserFieldFunc.Count) =>
-        userField.fold(empty)(en =>
-          NumberResult(
-            UserCtxEvaluatorProcessor
-              .maybeEnrolment(evaluationContext.retrievals, en)
-              .toList
-              .flatMap(_.identifiers)
-              .count(i => IdentifierName(i.key) == en.identifierName)
-          )
-        )(empty)
-      case UserFuncCtx(_, _) => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -261,23 +256,6 @@ case class EvaluationResults(
           StringResult(
             UserCtxEvaluatorProcessor
               .processEvaluation(evaluationContext.retrievals, value, evaluationContext.authConfig)
-          )
-        )
-      case UserFuncCtx(userField, UserFieldFunc.Index(i)) =>
-        userField.fold(empty)(en =>
-          UserCtxEvaluatorProcessor
-            .maybeEnrolment(evaluationContext.retrievals, en)
-            .toList
-            .flatMap(_.identifiers)
-            .filter(i => IdentifierName(i.key) == en.identifierName)
-            .lift(i - 1)
-            .map(ei => StringResult(ei.value))
-            .getOrElse(empty)
-        )(empty)
-      case UserFuncCtx(_, UserFieldFunc.Count) =>
-        nonEmpty(
-          StringResult(
-            evalNumber(typeInfo, recData, booleanExprResolver, evaluationContext).stringRepresentation(typeInfo, m)
           )
         )
       case Constant(value: String) => nonEmpty(StringResult(value))

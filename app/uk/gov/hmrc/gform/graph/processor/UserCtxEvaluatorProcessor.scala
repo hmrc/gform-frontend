@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.gform.graph.processor
 
-import uk.gov.hmrc.auth.core.Enrolment
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, EmailRetrievals, MaterialisedRetrievals, VerifyRetrievals }
+import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil.affinityGroupNameO
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
@@ -33,24 +32,30 @@ object UserCtxEvaluatorProcessor extends IdentifierExtractor {
     (retrievals, userField) match {
       case (AuthenticatedRetrievals(_, enrolments, _, _, _), UserField.EnrolledIdentifier) =>
         authorizedEnrolmentValue(enrolments, authConfig)
-      case (AuthenticatedRetrievals(_, enrolments, _, _, _), UserField.Enrolment(sn, in)) =>
-        extractIdentifier(enrolments, sn, in)
+      case (AuthenticatedRetrievals(_, enrolments, _, _, _), UserField.Enrolment(sn, in, maybeUserFieldFunc)) =>
+        enrolments.enrolments
+          .find { e =>
+            ServiceName(e.key) == sn && e.identifiers.exists(k => IdentifierName(k.key) == in)
+          }
+          .map { enrolment =>
+            maybeUserFieldFunc match {
+              case Some(UserFieldFunc.Count) =>
+                enrolment.identifiers.count(i => IdentifierName(i.key) == in).toString
+              case Some(UserFieldFunc.Index(i)) =>
+                maybeValue(
+                  enrolment.identifiers
+                    .filter(i => IdentifierName(i.key) == in)
+                    .lift(i - 1)
+                )
+              case None => maybeValue(enrolment.getIdentifier(in.value))
+            }
+          }
+          .getOrElse("")
       case (_, UserField.AffinityGroup) =>
         affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals))
       case (AnonymousRetrievals(_), _) => ""
       case (EmailRetrievals(_), _)     => ""
       case (VerifyRetrievals(_, _), _) => ""
-    }
-
-  def maybeEnrolment(retrievals: MaterialisedRetrievals, enrolment: UserField.Enrolment): Option[Enrolment] =
-    retrievals match {
-      case AuthenticatedRetrievals(_, enrolments, _, _, _) =>
-        enrolments.enrolments.find(e =>
-          ServiceName(e.key) == enrolment.serviceName && e.identifiers.exists(k =>
-            IdentifierName(k.key) == enrolment.identifierName
-          )
-        )
-      case _ => None
     }
 
   def evalRosm(thirdPartyData: ThirdPartyData, rosmProp: RosmProp): String = {
