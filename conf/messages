@@ -25,7 +25,7 @@ emailAuth.emailAddress=Email address
 emailAuth.confirmCodeError=Enter the code we emailed you. This is 4 letters, like DNLC
 emailAuth.emailConfirmation=Email address confirmed
 
-compositeAuth.howToSignIn=How do you want to sign in?
+compositeAuth.title=How do you want to sign in?
 compositeAuth.ggContent=Sign in with your Government Gateway user ID
 compositeAuth.ggContinueContent=Continue with this Government Gateway user ID
 compositeAuth.ggDifferentContent=Sign in with a different Government Gateway user ID

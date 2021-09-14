@@ -19,11 +19,13 @@
 @import uk.gov.hmrc.gform.views.hardcoded.pages.{ formCategory, withQueryParams }
 @import uk.gov.hmrc.gform.views.html.form.pageHeading
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 
 @(
   frontendAppConfig: FrontendAppConfig,
   compositeAuthFormPage: CompositeAuthFormPage,
-  maybeGGId: Option[String] = None
+  maybeGGId: Option[String],
+  continue: String
 )(
   implicit
   request: Request[_],
@@ -35,7 +37,7 @@
 @govukButton = @{new govukButton()}
 @govukErrorSummary = @{new govukErrorSummary()}
 
-@heading = @{messages("continueDelete.title", compositeAuthFormPage.formCat)}
+@heading = @{messages("compositeAuth.title", compositeAuthFormPage.formCat)}
 @button = @{messages("button.continue")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
@@ -57,12 +59,12 @@
      @govukErrorSummary(compositeAuthFormPage.errorSummary)
   }
 
-  @formWithCSRF(action = withQueryParams(uk.gov.hmrc.gform.gform.routes.CompositeAuthController.selectedForm(compositeAuthFormPage.formTemplate._id)), args = 'id -> "gf-form") {
+  @formWithCSRF(action = uk.gov.hmrc.gform.gform.routes.CompositeAuthController.selectedForm(compositeAuthFormPage.formTemplate._id, maybeGGId, continue), args = 'id -> "gf-form") {
 
-    @pageHeading(text = messages("compositeAuth.howToSignIn"))
+    @pageHeading(text = messages("compositeAuth.title"))
     @maybeGGId.map { id =>
         <p class="govuk-body govuk-!-margin-bottom-2">@messages("compositeAuth.alreadySigned")</p>
-        <h2 class="govuk-heading-m">@id</h2>
+        <h2 class="govuk-heading-m">@{FormDataHelpers.addSpacesInGovermentGatewayId(id)}</h2>
     }
     @compositeAuthFormPage.render
 

@@ -22,12 +22,13 @@ import scala.concurrent.Future
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import play.api.i18n.I18nSupport
 import uk.gov.hmrc.gform.FormTemplateKey
-import uk.gov.hmrc.gform.auth.models.EmailAuthDetails
-import uk.gov.hmrc.gform.controllers.GformSessionKeys.EMAIL_AUTH_DETAILS_SESSION_KEY
+import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, EmailAuthDetails }
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.{ COMPOSITE_AUTH_DETAILS_SESSION_KEY, EMAIL_AUTH_DETAILS_SESSION_KEY }
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.gform.MaskUtil.maskEmail
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, FormTemplateId }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ signed_out, signed_out_email_auth }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -40,27 +41,40 @@ class SignOutController(
   def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth { request => l =>
     val formTemplate = request.attrs(FormTemplateKey)
     val redirect = Redirect(routes.SignOutController.showSignedOutPage(formTemplateId)).withNewSession
-    if (formTemplate.authConfig.isEmailAuthConfig) {
-      val emailAuthDetails: EmailAuthDetails =
-        jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
-      emailAuthDetails.get(formTemplateId).fold(redirect) { emailAuthData =>
+
+    val config: Option[AuthConfig] = formTemplate.authConfig match {
+      case Composite(configs) =>
+        val compositeAuthDetails =
+          jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+            .get(formTemplate._id)
+        AuthConfig
+          .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
+      case config => Some(config)
+    }
+
+    config match {
+      case Some(c) if c.isEmailAuthConfig =>
+        val emailAuthDetails: EmailAuthDetails =
+          jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
+
+        emailAuthDetails.get(formTemplateId).fold(redirect) { emailAuthData =>
+          redirect
+            .flashing("maskedEmailId" -> maskEmail(emailAuthData.email.toString))
+        }
+      case _ =>
         redirect
-          .flashing("maskedEmailId" -> maskEmail(emailAuthData.email.toString))
-      }
-    } else {
-      redirect
     }
   }
 
   def showSignedOutPage(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth {
     implicit request => implicit l =>
       val signBackInUrl = routes.NewFormController.dashboard(formTemplateId).url
-      val formTemplate = request.attrs(FormTemplateKey)
-      if (formTemplate.authConfig.isEmailAuthConfig) {
-        val maskedEmailId = request.flash.get("maskedEmailId").getOrElse("")
-        Ok(signed_out_email_auth(signBackInUrl, maskedEmailId, frontendConfig))
-      } else {
-        Ok(signed_out(signBackInUrl, frontendConfig))
+      val maskedEmailId = request.flash.get("maskedEmailId")
+      maskedEmailId match {
+        case Some(id) =>
+          Ok(signed_out_email_auth(signBackInUrl, id, frontendConfig))
+        case _ =>
+          Ok(signed_out(signBackInUrl, frontendConfig))
       }
   }
 }

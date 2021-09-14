@@ -24,18 +24,21 @@ import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.gform.auditing.loggingHelpers
-import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gform
+import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
@@ -137,12 +140,24 @@ class SummaryController(
                 val saveWithAccessCode = new SaveWithAccessCode(cache.formTemplate, accessCode)
                 Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
               case _ =>
-                if (formTemplate.authConfig.isEmailAuthConfig) {
-                  Redirect(gform.routes.SaveAcknowledgementController.show(formTemplateId))
-                } else {
-                  val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
-                  val saveAcknowledgement = new SaveAcknowledgement(cache.formTemplate, cache.form.envelopeExpiryDate)
-                  Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
+                val config: Option[AuthConfig] =
+                  formTemplate.authConfig match {
+                    case Composite(configs) =>
+                      val compositeAuthDetails =
+                        jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+                          .get(formTemplate._id)
+                      AuthConfig
+                        .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
+                    case config => Some(config)
+                  }
+
+                config match {
+                  case Some(c) if c.isEmailAuthConfig =>
+                    Redirect(gform.routes.SaveAcknowledgementController.show(formTemplateId))
+                  case _ =>
+                    val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
+                    val saveAcknowledgement = new SaveAcknowledgement(cache.formTemplate, cache.form.envelopeExpiryDate)
+                    Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
                 }
             }
 

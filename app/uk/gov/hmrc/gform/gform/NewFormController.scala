@@ -97,7 +97,7 @@ class NewFormController(
   }
 
   def dashboardWithCompositeAuth(formTemplateId: FormTemplateId) = Action.async { implicit request =>
-    Redirect(routes.NewFormController.dashboard(formTemplateId))
+    Redirect(routes.NewFormController.dashboard(formTemplateId).url, request.queryString)
       .addingToSession(compositeConfigCookieName -> formTemplateId.value)
       .pure[Future]
   }

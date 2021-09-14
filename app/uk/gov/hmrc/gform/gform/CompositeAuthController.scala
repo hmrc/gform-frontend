@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import java.net.URLEncoder
 import cats.implicits._
 import play.api.i18n.I18nSupport
 import play.api.mvc.MessagesControllerComponents
@@ -30,7 +31,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, FormTemplateId }
 import uk.gov.hmrc.gform.views.hardcoded.CompositeAuthFormPage
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -50,7 +50,7 @@ class CompositeAuthController(
     )
   )
 
-  def authSelectionForm(formTemplateId: FormTemplateId, ggId: Option[String]) =
+  def authSelectionForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String) =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplate = request.attrs(FormTemplateKey)
       val compositeAuthFormPage =
@@ -60,12 +60,13 @@ class CompositeAuthController(
         html.auth.auth_selection(
           frontendAppConfig,
           compositeAuthFormPage,
-          ggId.map(FormDataHelpers.addSpacesInGovermentGatewayId)
+          ggId,
+          continue
         )
       ).pure[Future]
     }
 
-  def selectedForm(formTemplateId: FormTemplateId) =
+  def selectedForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String) =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplate = request.attrs(FormTemplateKey)
       val compositeAuthDetails: CompositeAuthDetails =
@@ -75,23 +76,38 @@ class CompositeAuthController(
         .bindFromRequest()
         .fold(
           errorForm => {
-            val compositeAuthFormPage = new CompositeAuthFormPage(formTemplate, errorForm, None)
-            BadRequest(html.auth.auth_selection(frontendAppConfig, compositeAuthFormPage, None)).pure[Future]
+            val compositeAuthFormPage =
+              new CompositeAuthFormPage(formTemplate, errorForm, ggId)
+            BadRequest(
+              html.auth.auth_selection(frontendAppConfig, compositeAuthFormPage, ggId, continue)
+            )
+              .pure[Future]
           },
           {
             case AuthConfig.hmrcSimpleModule =>
               val formTemplate = request.attrs(FormTemplateKey)
-              val continueUrl =
+              val oQueryString: Option[String] =
+                request.queryString.get("continue").flatMap(_.headOption).map(_.split("\\?")) map { v =>
+                  if (v.length > 1)
+                    v.last
+                  else ""
+                }
+              val continueUrlBase =
                 frontendAppConfig.gformFrontendBaseUrl + uk.gov.hmrc.gform.gform.routes.NewFormController
                   .dashboardWithCompositeAuth(formTemplate._id)
                   .url
+              val continueUrl = oQueryString match {
+                case Some(qs) if qs.nonEmpty => continueUrlBase + "?" + qs
+                case _                       => continueUrlBase
+              }
               val ggLoginUrl = frontendAppConfig.governmentGatewaySignInUrl
-              val url = s"$ggLoginUrl?continue=$continueUrl"
+              val url = s"$ggLoginUrl?continue=${URLEncoder.encode(continueUrl, "UTF-8")}"
+
               Redirect(url)
                 .pure[Future]
 
             case selectedConfig =>
-              Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplateId))
+              Redirect(continue)
                 .addingToSession(
                   COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
                     compositeAuthDetails.add(formTemplateId -> selectedConfig)
