@@ -171,13 +171,19 @@ case class EvaluationResults(
       case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
-      case Else(field1: Expr, field2: Expr)           => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId)             => get(ctx, recData, fromVariadicValue, evaluationContext)
-      case Sum(FormCtx(formComponentId))              => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
-      case Sum(_)                                     => unsupportedOperation("Number")(expr)
-      case Count(formComponentId)                     => addToListCount(formComponentId, recData)
-      case AuthCtx(value: AuthInfo)                   => unsupportedOperation("Number")(expr)
-      case UserCtx(value: UserField)                  => unsupportedOperation("Number")(expr)
+      case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
+      case ctx @ FormCtx(formComponentId)   => get(ctx, recData, fromVariadicValue, evaluationContext)
+      case Sum(FormCtx(formComponentId))    => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
+      case Sum(_)                           => unsupportedOperation("Number")(expr)
+      case Count(formComponentId)           => addToListCount(formComponentId, recData)
+      case AuthCtx(value: AuthInfo)         => unsupportedOperation("Number")(expr)
+      case UserCtx(value: UserField) =>
+        value.fold(_ => unsupportedOperation("Number")(expr))(enrolment =>
+          toNumberResult(
+            UserCtxEvaluatorProcessor
+              .processEvaluation(evaluationContext.retrievals, enrolment, evaluationContext.authConfig)
+          )
+        )(_ => unsupportedOperation("Number")(expr))
       case Constant(value: String)                    => toNumberResult(value)
       case HmrcRosmRegistrationCheck(value: RosmProp) => unsupportedOperation("Number")(expr)
       case Value                                      => Empty

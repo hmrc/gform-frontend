@@ -159,11 +159,12 @@ case class FormModel[A <: PageMode](
     def illegal = TypeInfo.illegal(expr)
     val first: Option[Expr] = expr.firstExprForTypeResolution(this)
     first.fold(illegal) {
-      case FormCtx(formComponentId)              => explicitTypedExpr(expr, formComponentId)
-      case DateCtx(_)                            => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))
-      case IsNumberConstant(_) | PeriodExt(_, _) => TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-      case Period(_, _) | PeriodValue(_)         => TypeInfo(expr, StaticTypeData(ExprType.period, None))
-      case otherwise                             => TypeInfo(expr, StaticTypeData(ExprType.string, None))
+      case FormCtx(formComponentId) => explicitTypedExpr(expr, formComponentId)
+      case DateCtx(_)               => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))
+      case IsNumberConstant(_) | PeriodExt(_, _) | UserCtx(UserField.Enrolment(_, _, Some(UserFieldFunc.Count))) =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
+      case otherwise                     => TypeInfo(expr, StaticTypeData(ExprType.string, None))
     }
   }
 

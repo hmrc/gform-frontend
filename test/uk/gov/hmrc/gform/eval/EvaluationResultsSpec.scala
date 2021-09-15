@@ -18,7 +18,9 @@ package uk.gov.hmrc.gform.eval
 
 import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
 import play.api.test.Helpers
+import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
@@ -27,7 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, FormTemplateId, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber, ServiceName, UserCtx, UserField, UserFieldFunc }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -36,16 +38,20 @@ import java.time.LocalDate
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
   private val booleanExprResolver = BooleanExprResolver(_ => false)
+  private val recDataEmpty = RecData[OutOfDate](
+    VariadicFormData.empty
+  )
 
   def buildEvaluationContext(
     pageIdSectionNumberMap: Map[ModelPageId, SectionNumber] = Map.empty,
-    indexedComponentIds: List[ModelComponentId] = List.empty
+    indexedComponentIds: List[ModelComponentId] = List.empty,
+    retrievals: MaterialisedRetrievals = authContext
   ) =
     new EvaluationContext(
       formTemplateId,
       submissionRef,
       None,
-      authContext,
+      retrievals,
       ThirdPartyData.empty,
       authConfig,
       HeaderCarrier(),
@@ -183,75 +189,119 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(LangCtx, StaticTypeData(ExprType.string, None)),
-        RecData[OutOfDate](
-          VariadicFormData.empty
-        ),
+        recDataEmpty,
         evaluationContext,
         StringResult("en"),
         "Eval LangCtx as string"
       ),
       (
         TypeInfo(LinkCtx(PageLink(PageId("unknown"))), StaticTypeData(ExprType.string, None)),
-        RecData[OutOfDate](
-          VariadicFormData.empty
-        ),
+        recDataEmpty,
         evaluationContext,
         Empty,
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (non-existent)"
       ),
       (
         TypeInfo(LinkCtx(PageLink(PageId("page1"))), StaticTypeData(ExprType.string, None)),
-        RecData[OutOfDate](
-          VariadicFormData.empty
-        ),
+        recDataEmpty,
         buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Pure("page1") -> SectionNumber(1))),
         StringResult("/form/section/aaa999/-/1"),
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (exact match)"
       ),
       (
         TypeInfo(LinkCtx(PageLink(PageId("1_page1"))), StaticTypeData(ExprType.string, None)),
-        RecData[OutOfDate](
-          VariadicFormData.empty
-        ),
+        recDataEmpty,
         buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Pure("page1") -> SectionNumber(1))),
         StringResult("/form/section/aaa999/-/1"),
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (link from repeating/add-to-list page to non-repeating page)"
       ),
       (
         TypeInfo(LinkCtx(PageLink(PageId("page1"))), StaticTypeData(ExprType.string, None)),
-        RecData[OutOfDate](
-          VariadicFormData.empty
-        ),
+        recDataEmpty,
         buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Indexed("page1", 1) -> SectionNumber(1))),
         StringResult("/form/section/aaa999/-/1"),
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (link from non-repeating page to repeating page)"
       ),
       (
         TypeInfo(LinkCtx(NewForm), StaticTypeData(ExprType.string, None)),
-        RecData[OutOfDate](
-          VariadicFormData.empty
-        ),
+        recDataEmpty,
         evaluationContext,
         StringResult("/new-form/aaa999/clean"),
         "Eval LinkCtx(NewForm) as string (link to new form)"
       ),
       (
         TypeInfo(LinkCtx(NewFormForTemplate(FormTemplateId("abc"))), StaticTypeData(ExprType.string, None)),
-        RecData[OutOfDate](
-          VariadicFormData.empty
-        ),
+        recDataEmpty,
         evaluationContext,
         StringResult("/new-form/abc/clean"),
         "Eval LinkCtx(NewForm(FormTemplateId(\"abc\"))) as string (link to new form)"
       ),
       (
         TypeInfo(LinkCtx(NewSession), StaticTypeData(ExprType.string, None)),
-        RecData[OutOfDate](
-          VariadicFormData.empty
-        ),
+        recDataEmpty,
         evaluationContext,
         StringResult("/new-form/aaa999/session"),
         "Eval LinkCtx(NewSession) as string (link to logout user and take to signin page)"
+      ),
+      (
+        TypeInfo(
+          UserCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("b"), Option(UserFieldFunc.Index(0)))),
+          StaticTypeData(ExprType.string, None)
+        ),
+        recDataEmpty,
+        buildEvaluationContext(retrievals =
+          authContext.copy(enrolments =
+            Enrolments(Set(Enrolment("a", Seq(EnrolmentIdentifier("b", "b1")), "some-state", None)))
+          )
+        ),
+        ExpressionResult.empty,
+        "user enrolments at non-existent index"
+      ),
+      (
+        TypeInfo(
+          UserCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("c"), Option(UserFieldFunc.Index(1)))),
+          StaticTypeData(ExprType.string, None)
+        ),
+        recDataEmpty,
+        buildEvaluationContext(retrievals =
+          authContext.copy(enrolments =
+            Enrolments(
+              Set(
+                Enrolment(
+                  "a",
+                  Seq(EnrolmentIdentifier("b", "b1"), EnrolmentIdentifier("b", "b2"), EnrolmentIdentifier("c", "c1")),
+                  "some-state",
+                  None
+                )
+              )
+            )
+          )
+        ),
+        StringResult("c1"),
+        "user enrolments value at index"
+      ),
+      (
+        TypeInfo(
+          UserCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("b"), Option(UserFieldFunc.Count))),
+          StaticTypeData(ExprType.string, None)
+        ),
+        recDataEmpty,
+        buildEvaluationContext(retrievals =
+          authContext.copy(enrolments =
+            Enrolments(
+              Set(
+                Enrolment(
+                  "a",
+                  Seq(EnrolmentIdentifier("b", "b1"), EnrolmentIdentifier("b", "b2"), EnrolmentIdentifier("c", "c1")),
+                  "some-state",
+                  None
+                )
+              )
+            )
+          )
+        ),
+        StringResult("2"),
+        "user enrolments count for service a and identifier b"
       )
     )
     forAll(table) {
@@ -353,17 +403,33 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
     )
 
     val table = Table(
-      ("typeInfo", "recData", "expectedResult", "scenario"),
+      ("typeInfo", "recData", "evaluationContext", "expectedResult", "scenario"),
       (
         TypeInfo(Count(FormComponentId("addToListQuestion")), StaticTypeData(ExprType.number, None)),
         recData,
+        evaluationContext,
         NumberResult(2),
         "Ref to AddToList count in number field"
+      ),
+      (
+        TypeInfo(
+          UserCtx(UserField.Enrolment(ServiceName("a"), IdentifierName("b"), Option(UserFieldFunc.Count))),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        buildEvaluationContext(retrievals =
+          authContext.copy(enrolments =
+            Enrolments(Set(Enrolment("a", Seq(EnrolmentIdentifier("b", "1")), "some-state", None)))
+          )
+        ),
+        NumberResult(1),
+        "user enrolments count for service a and identifier b"
       )
     )
-    forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult, _) =>
-      EvaluationResults.empty
-        .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
+    forAll(table) {
+      (typeInfo: TypeInfo, recData: RecData[OutOfDate], evaluationContext, expectedResult: ExpressionResult, _) =>
+        EvaluationResults.empty
+          .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
 

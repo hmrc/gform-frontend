@@ -151,6 +151,14 @@ object PeriodFn {
 }
 final case class PeriodExt(period: Expr, func: PeriodFn) extends Expr
 
+sealed trait UserFieldFunc
+object UserFieldFunc {
+  case object Count extends UserFieldFunc
+  case class Index(i: Int) extends UserFieldFunc
+
+  implicit val format: OFormat[UserFieldFunc] = derived.oformat()
+}
+
 sealed trait AddressDetail {
   def toAddressAtom: Atom = this match {
     case AddressDetail.Line1    => Address.street1
@@ -202,11 +210,21 @@ object RosmProp {
   implicit val format: OFormat[RosmProp] = derived.oformat()
 }
 
-sealed trait UserField
+sealed trait UserField {
+  def fold[B](
+    f: UserField.AffinityGroup.type => B
+  )(g: UserField.Enrolment => B)(h: UserField.EnrolledIdentifier.type => B): B =
+    this match {
+      case UserField.AffinityGroup      => f(UserField.AffinityGroup)
+      case e: UserField.Enrolment       => g(e)
+      case UserField.EnrolledIdentifier => h(UserField.EnrolledIdentifier)
+    }
+}
 
 object UserField {
   final case object AffinityGroup extends UserField
-  final case class Enrolment(serviceName: ServiceName, identifierName: IdentifierName) extends UserField
+  final case class Enrolment(serviceName: ServiceName, identifierName: IdentifierName, func: Option[UserFieldFunc])
+      extends UserField
   final case object EnrolledIdentifier extends UserField
 
   implicit val format: OFormat[UserField] = derived.oformat()
