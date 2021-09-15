@@ -21,6 +21,7 @@ import cats.syntax.option._
 import scalax.collection.Graph
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
+import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, IsSelfReferring, SelfReferenceProjection, StandaloneSumInfo, SumInfo }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -72,12 +73,17 @@ object DependencyGraph {
         case otherwise                => List.empty
       }
 
+    def eqBaseComponentId(expr: Expr, fc: FormComponent): Boolean = expr
+      .cast[FormCtx]
+      .map(_.formComponentId.baseComponentId === fc.id.baseComponentId)
+      .contains(true)
+
     def toDiEdge(fc: FormComponent, expr: Expr, cycleBreaker: FormComponentId => Boolean): List[DiEdge[GraphNode]] =
       expr
         .leafs(formModel)
         .flatMap { e =>
           val fcNodes = toFormComponentId(e).map(fcId => GraphNode.Expr(e) ~> GraphNode.Simple(fcId))
-          if (cycleBreaker(fc.id) && e === FormCtx(fc.id)) fcNodes
+          if (cycleBreaker(fc.id) && eqBaseComponentId(e, fc)) fcNodes
           else GraphNode.Simple(fc.id) ~> GraphNode.Expr(e) :: fcNodes
         }
 
@@ -103,9 +109,14 @@ object DependencyGraph {
 
       deps1 ++ deps2
     }
-
     val validIfs: List[DiEdge[GraphNode]] = formModel.allValidIfs.flatMap { case (validIfs, fc) =>
-      validIfs.flatMap(validIf => boolenExprDeps(validIf.booleanExpr, fc :: Nil, _ === GraphNode.Expr(FormCtx(fc.id))))
+      validIfs.flatMap(validIf =>
+        boolenExprDeps(
+          validIf.booleanExpr,
+          fc :: Nil,
+          graphNodeExpr => eqBaseComponentId(graphNodeExpr.expr, fc)
+        )
+      )
     }
     val componentIncludeIfs: List[DiEdge[GraphNode]] = formModel.allComponentIncludeIfs.flatMap {
       case (includeIf, fc) =>

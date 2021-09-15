@@ -120,7 +120,7 @@ case class EvaluationResults(
   ): ExpressionResult = {
     val maybeListToSum: Either[ExpressionResult, List[BigDecimal]] =
       recData.variadicFormData
-        .forBaseComponentId(formComponentId.baseComponentId)
+        .forBaseComponentIdLessThen(formComponentId.modelComponentId)
         .toList
         .collect {
           case (k, v) if !isSumHidden(k) => v
