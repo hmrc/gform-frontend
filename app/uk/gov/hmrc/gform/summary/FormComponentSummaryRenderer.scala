@@ -1034,7 +1034,7 @@ object FormComponentSummaryRenderer {
         formFieldValidationResult
           .getOptionalCurrentValue(HtmlFieldId.indexed(fieldValue.id, index))
           .map { _ =>
-            val revealingFields = fcrd.prepareRenderables(element.revealingFields).flatMap {
+            val revealingFields = fcrd.prepareRenderables(element.revealingFields.filterNot(_.hideOnSummary)).flatMap {
               summaryListRows(
                 _,
                 formTemplateId,
