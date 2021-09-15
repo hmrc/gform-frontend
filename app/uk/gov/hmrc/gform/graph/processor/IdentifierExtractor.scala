@@ -50,12 +50,6 @@ trait IdentifierExtractor {
       )
   }
 
-  def extractIdentifier(enrolments: Enrolments, serviceName: ServiceName, identifierName: IdentifierName): String =
-    maybeValue(
-      enrolmentByServiceId(enrolments, serviceName.value)
-        .flatMap(_.getIdentifier(identifierName.value))
-    )
-
   private val enrolmentByServiceId: (Enrolments, String) => Option[core.Enrolment] =
     (enrolments, serviceId) => enrolments.getEnrolment(serviceId)
 

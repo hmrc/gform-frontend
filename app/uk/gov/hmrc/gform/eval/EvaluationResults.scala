@@ -178,12 +178,12 @@ case class EvaluationResults(
       case Count(formComponentId)           => addToListCount(formComponentId, recData)
       case AuthCtx(value: AuthInfo)         => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField) =>
-        value.fold(unsupportedOperation("Number")(expr))(enrolment =>
+        value.fold(_ => unsupportedOperation("Number")(expr))(enrolment =>
           toNumberResult(
             UserCtxEvaluatorProcessor
               .processEvaluation(evaluationContext.retrievals, enrolment, evaluationContext.authConfig)
           )
-        )(unsupportedOperation("Number")(expr))
+        )(_ => unsupportedOperation("Number")(expr))
       case Constant(value: String)                    => toNumberResult(value)
       case HmrcRosmRegistrationCheck(value: RosmProp) => unsupportedOperation("Number")(expr)
       case Value                                      => Empty

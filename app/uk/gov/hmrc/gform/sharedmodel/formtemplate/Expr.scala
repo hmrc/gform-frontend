@@ -211,11 +211,13 @@ object RosmProp {
 }
 
 sealed trait UserField {
-  def fold[B](f: => B)(g: UserField.Enrolment => B)(h: => B): B =
+  def fold[B](
+    f: UserField.AffinityGroup.type => B
+  )(g: UserField.Enrolment => B)(h: UserField.EnrolledIdentifier.type => B): B =
     this match {
-      case UserField.AffinityGroup      => f
+      case UserField.AffinityGroup      => f(UserField.AffinityGroup)
       case e: UserField.Enrolment       => g(e)
-      case UserField.EnrolledIdentifier => h
+      case UserField.EnrolledIdentifier => h(UserField.EnrolledIdentifier)
     }
 }
 
