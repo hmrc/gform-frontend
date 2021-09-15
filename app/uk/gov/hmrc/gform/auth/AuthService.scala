@@ -119,7 +119,7 @@ class AuthService(
           case Some(id) if compositeAuthDetails.isEmpty =>
             AuthCustomRedirect(
               gform.routes.CompositeAuthController
-                .authSelectionForm(formTemplate._id, Some(id.ggId))
+                .authSelectionForm(formTemplate._id, Some(id.ggId), request.uri)
             )
               .pure[Future]
 
@@ -137,14 +137,14 @@ class AuthService(
               case None =>
                 AuthCustomRedirect(
                   gform.routes.CompositeAuthController
-                    .authSelectionForm(formTemplate._id, None)
+                    .authSelectionForm(formTemplate._id, None, request.uri)
                 )
                   .pure[Future]
             }
 
           case _ =>
             AuthCustomRedirect(
-              gform.routes.CompositeAuthController.authSelectionForm(formTemplate._id, None)
+              gform.routes.CompositeAuthController.authSelectionForm(formTemplate._id, None, request.uri)
             )
               .pure[Future]
         }

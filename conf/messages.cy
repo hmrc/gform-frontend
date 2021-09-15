@@ -24,7 +24,7 @@ emailAuth.emailAddress=Cyfeiriad e-bost
 emailAuth.confirmCodeError=Nodwch y cod y gwnaethom ei anfon atoch drwy e-bost. Mae hwn yn 4 llythyren megis DNLC
 emailAuth.emailConfirmation=Cyfeiriad e-bost wedi’i gadarnhau
 
-compositeAuth.howToSignIn=Sut rydych am fewngofnodi?
+compositeAuth.title=Sut rydych am fewngofnodi?
 compositeAuth.ggContent=Mewngofnodi gyda’ch Dynodydd Defnyddiwr (ID) Porth y Llywodraeth
 compositeAuth.ggContinueContent=Parhau â’r Dynodydd Defnyddiwr (ID) Porth y Llywodraeth hwn
 compositeAuth.ggDifferentContent=Mewngofnodi gyda Dynodydd Defnyddiwr (ID) gwahanol ar gyfer Porth y Llywodraeth
