@@ -75,8 +75,7 @@ object DependencyGraph {
 
     def eqBaseComponentId(expr: Expr, fc: FormComponent): Boolean = expr
       .cast[FormCtx]
-      .map(_.formComponentId.baseComponentId === fc.id.baseComponentId)
-      .contains(true)
+      .exists(_.formComponentId.baseComponentId === fc.id.baseComponentId)
 
     def toDiEdge(fc: FormComponent, expr: Expr, cycleBreaker: FormComponentId => Boolean): List[DiEdge[GraphNode]] =
       expr
