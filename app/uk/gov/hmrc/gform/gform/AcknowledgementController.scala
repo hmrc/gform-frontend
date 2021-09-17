@@ -20,8 +20,10 @@ import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, ResponseHeader, Result }
 import uk.gov.hmrc.gform.auditing.AuditService
-import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
+import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.SectionSelectorType
@@ -31,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
+import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
@@ -64,6 +67,12 @@ class AcknowledgementController(
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       import i18nSupport._
 
+      val compositeAuthDetails: CompositeAuthDetails =
+        jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+
+      val sessionAfterRemovingCompositeAuthDetails = request.session
+        .+(COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(compositeAuthDetails.remove(formTemplateId)))
+
       cache.formTemplate.destinations match {
         case destinationList: DestinationList =>
           Future.successful(
@@ -77,7 +86,7 @@ class AcknowledgementController(
                   cache.form.envelopeId,
                   formModelOptics
                 )
-            )
+            ).withSession(sessionAfterRemovingCompositeAuthDetails)
           )
         case _ =>
           Future.failed(new BadRequestException(s"Acknowledgement is not defined for $formTemplateId"))

@@ -23,6 +23,9 @@ case class CompositeAuthDetails(mappings: Map[FormTemplateId, String] = Map.empt
   def add(values: (FormTemplateId, String)*): CompositeAuthDetails =
     CompositeAuthDetails(mappings ++ values)
 
+  def remove(key: FormTemplateId): CompositeAuthDetails =
+    CompositeAuthDetails(mappings - key)
+
   def get(formTemplateId: FormTemplateId): Option[String] =
     mappings.get(formTemplateId)
 }
