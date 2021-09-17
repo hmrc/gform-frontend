@@ -34,13 +34,22 @@
 @defining(formTemplateId.value, maybeAccessCode.getOrElse("-")) { case (templateId, accessCode) =>
   <div id="@formComponentId-files" class="govuk-body uploaded-files">
     @maybeCurrentValue.map { currentValue =>
-      @defining(currentValue.replace(fileId.value + "_", "")) { deleteLabel =>
-          @defining(deleteLabel + " " + messages("file.delete")) { ariaLabel =>
-              <span>@{deleteLabel} @govukButton(Button(content = Text(messages("file.delete")),
-                  inputType=Some("submit"),
-                  attributes = Map("id" -> "fileDelete", "aria-label" -> ariaLabel, "formaction" -> uk.gov.hmrc.gform.fileupload.routes.FileUploadController.deleteFile(formTemplateId, maybeAccessCode, sectionNumber, formComponentId).path),
-                  classes="link"))</span>
-          }
+      @defining(currentValue.replace(fileId.value + "_", "")) { fileName =>
+        @defining(fileName + " " + messages("file.delete")) { ariaLabel =>
+          <div class="govuk-summary-list app-file-upload__list">
+            <div class="govuk-summary-list__row">
+              <dd class="govuk-summary-list__value">
+                <span id="fileupload" role="status" aria-live="polite"><strong>@{fileName}</strong> @{messages("file.upload.done")}</span>
+              </dd>
+              <dd class="govuk-summary-list__actions app-file-upload__actions">
+                @govukButton(Button(content = Text(messages("file.delete")),
+                inputType=Some("submit"),
+                attributes = Map("id" -> "fileDelete", "aria-label" -> ariaLabel, "formaction" -> uk.gov.hmrc.gform.fileupload.routes.FileUploadController.deleteFile(formTemplateId, maybeAccessCode, sectionNumber, formComponentId).path),
+                classes="govuk-button--secondary govuk-!-margin-bottom-0"))
+              </dd>
+            </div>
+          </div>
+        }
       }
     }
   </div>
