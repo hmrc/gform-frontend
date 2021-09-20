@@ -317,7 +317,7 @@
       );
       $("#" + formComponentId + "-files")
         .empty()
-        .append(startProgressBar(""));
+        .append(startProgressBar());
       return $.ajax({
         url:
           "/file-upload/upload/envelopes/" +
