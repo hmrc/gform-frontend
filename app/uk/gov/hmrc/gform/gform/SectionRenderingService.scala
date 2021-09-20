@@ -797,8 +797,13 @@ class SectionRenderingService(
               ei,
               obligations
             )
-          case FileUpload() =>
-            htmlForFileUpload(formComponent, formTemplateId, ei, validationResult)
+          case FileUpload(fileUploadProvider) =>
+            fileUploadProvider match {
+              case FileUploadProvider.Upscan => HtmlFormat.empty
+              case FileUploadProvider.FileUploadFrontend =>
+                htmlForFileUpload(formComponent, formTemplateId, ei, validationResult)
+            }
+
           case InformationMessage(infoType, infoText) =>
             htmlForInformationMessage(formComponent, infoType, infoText, ei)
           case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>

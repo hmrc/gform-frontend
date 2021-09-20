@@ -195,7 +195,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
       case _: RevealingChoice =>
         validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
       case Group(_, _, _, _, _)     => validationSuccess.pure[F]
-      case FileUpload()             => validateFileUpload(envelope).pure[F]
+      case FileUpload(_)            => validateFileUpload(envelope).pure[F]
       case InformationMessage(_, _) => validationSuccess.pure[F]
       case HmrcTaxPeriod(_, _, _) =>
         validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
