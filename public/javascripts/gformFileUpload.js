@@ -28,6 +28,14 @@
     deleteLabel: {
       en: "Delete",
       cy: "Dileu"
+    },
+    uploadingFile: {
+      en: "Uploading file",
+      cy: "Uploading file"
+    },
+    hasBeenUploaded: {
+      en: "has been uploaded",
+      cy: "has been uploaded"
     }
   };
 
@@ -202,9 +210,9 @@
   function getFileExtension(fileName) {
     var fa = fileName.split('.');
     if (fa.length > 1) {
-        return fa.pop();
+      return fa.pop();
     } else {
-       return "unknown";
+      return "unknown";
     }
   }
 
@@ -276,10 +284,12 @@
         handleError($input, err.statusText);
       }
 
-      uploadFile(file, fileId)
+      var formComponentId = $input.attr("id");
+
+      uploadFile(file, fileId, formComponentId)
         .then(function(response) {
           return updateMapping(
-            $input.attr("id"),
+            formComponentId,
             fileId,
             formTemplateId,
             accessCode
@@ -287,7 +297,7 @@
         }, onError)
         .then(function(response) {
           fileUploadSuccess(
-            $input.attr("id"),
+            formComponentId,
             file.name,
             formTemplateId,
             $input,
@@ -298,13 +308,16 @@
     }
 
     // Handle file upload request
-    function uploadFile(file, fileId) {
+    function uploadFile(file, fileId, formComponentId) {
       var formData = new FormData();
       formData.append(
         fileId,
         file,
         fileId + "_" + file.name.replace(/\\/g, "/").replace(/.*\//, "")
       );
+      $("#" + formComponentId + "-files")
+        .empty()
+        .append(startProgressBar());
       return $.ajax({
         url:
           "/file-upload/upload/envelopes/" +
@@ -359,17 +372,35 @@
         .trigger("focus");
     }
 
+    // Display uploading file message
+    function startProgressBar() {
+      return progressBarWrapper("<span id='fileupload' role='status' aria-live='polite'>" + strings.uploadingFile[lang] + "</span>", "");
+    }
+
     // Display the uploaded file name and delete button
     function makeFileEntry(name, formComponentId, formTemplateId, accessCode, sectionNumber) {
       var deleteUrl = "/submissions/form/delete-file/" + formTemplateId + "/" + accessCode + "/" + sectionNumber + "/" + formComponentId
       var ariaLabel = name + " " + strings.deleteLabel[lang]
-      return $(
-          "<span>" +
-          name +
-          " <button type='submit' class='govuk-button link' data-module='govuk-button' id='fileDelete' aria-label='" + ariaLabel + "' formaction='" + deleteUrl + "'> " +
+      return progressBarWrapper(
+        "<span id='fileupload' role='status' aria-live='polite'><strong>" + name + "</strong>" + strings.hasBeenUploaded[lang] +  "</span>",
+        "<button type='submit' class='govuk-button govuk-button--secondary govuk-!-margin-bottom-0' data-module='govuk-button' id='fileDelete' aria-label='" + ariaLabel + "' formaction='" + deleteUrl + "'>" +
           strings.deleteLabel[lang] +
-          "</button>" +
-          "</span>"
+        "</button>"
+      );
+    }
+
+    function progressBarWrapper(messageContent, buttonContent) {
+      return $(
+        "<div class='govuk-summary-list app-file-upload__list'>" +
+          "<div class='govuk-summary-list__row'>" +
+            "<dd class='govuk-summary-list__value'>" +
+              messageContent +
+            "</dd>" +
+            "<dd class='govuk-summary-list__actions app-file-upload__actions'>" +
+              buttonContent +
+            "</dd>" +
+          "</div>" +
+        "</div>"
       );
     }
 
