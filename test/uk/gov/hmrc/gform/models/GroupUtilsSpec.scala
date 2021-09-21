@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FormComponentId, Section, SectionNumber, ShortText, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FileUploadProvider, FormComponentId, Section, SectionNumber, ShortText, Text, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.One
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
@@ -82,7 +82,7 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
     val sections: List[Section] =
       mkSection(
         mkFormComponent("regular", Text(ShortText.default, Value)) ::
-          mkFormComponent("regularFile", FileUpload()) :: Nil
+          mkFormComponent("regularFile", FileUpload(FileUploadProvider.FileUploadFrontend)) :: Nil
       ) ::
         mkSection(
           mkFormComponent(
@@ -91,7 +91,7 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
               5,
               List(
                 mkFormComponent("a", Text(ShortText.default, Value)),
-                mkFormComponent("f", FileUpload())
+                mkFormComponent("f", FileUpload(FileUploadProvider.FileUploadFrontend))
               )
             )
           ) :: Nil
