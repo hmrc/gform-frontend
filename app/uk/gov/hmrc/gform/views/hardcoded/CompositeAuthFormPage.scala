@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.gform.views.hardcoded
 
+import cats.implicits._
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.twirl.api.Html
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, FormTemplate }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, FormTemplate, SuppressErrors }
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.pWithStrong
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
@@ -27,7 +28,8 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 class CompositeAuthFormPage(
   val formTemplate: FormTemplate,
   form: Form[String],
-  ggId: Option[String]
+  ggId: Option[String],
+  se: SuppressErrors
 )(implicit messages: Messages)
     extends CommonPageProperties(formTemplate) {
 
@@ -51,7 +53,10 @@ class CompositeAuthFormPage(
     )
   }
 
-  val hasErrors: Boolean = errorSummary.errorList.nonEmpty
+  val hasErrors: Boolean =
+    if (se.asString === SuppressErrors.seNo)
+      errorSummary.errorList.nonEmpty
+    else false
 
   val render: Html = {
 
@@ -108,7 +113,7 @@ class CompositeAuthFormPage(
     }
 
     val radios = Radios(
-      errorMessage = errorMessage,
+      errorMessage = if (se.asString === SuppressErrors.seNo) errorMessage else None,
       name = "compositeAuthSelection",
       items = items
     )
