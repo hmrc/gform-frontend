@@ -374,7 +374,7 @@
 
     // Display uploading file message
     function startProgressBar() {
-      return progressBarWrapper("<span id='fileupload' role='status' aria-live='polite'>" + strings.uploadingFile[lang] + "</span>", "");
+      return progressBarWrapper("<span class='app-progress-spinner'></span><span id='fileupload' role='status' aria-live='polite'>" + strings.uploadingFile[lang] + "</span>", "");
     }
 
     // Display the uploaded file name and delete button
@@ -382,7 +382,7 @@
       var deleteUrl = "/submissions/form/delete-file/" + formTemplateId + "/" + accessCode + "/" + sectionNumber + "/" + formComponentId
       var ariaLabel = name + " " + strings.deleteLabel[lang]
       return progressBarWrapper(
-        "<span id='fileupload' role='status' aria-live='polite'><strong>" + name + "</strong>" + strings.hasBeenUploaded[lang] +  "</span>",
+        "<span id='fileupload' role='status' aria-live='polite'><strong>" + name + "</strong> " + strings.hasBeenUploaded[lang] +  "</span>",
         "<button type='submit' class='govuk-button govuk-button--secondary govuk-!-margin-bottom-0' data-module='govuk-button' id='fileDelete' aria-label='" + ariaLabel + "' formaction='" + deleteUrl + "'>" +
           strings.deleteLabel[lang] +
         "</button>"
@@ -391,7 +391,7 @@
 
     function progressBarWrapper(messageContent, buttonContent) {
       return $(
-        "<div class='govuk-summary-list app-file-upload__list'>" +
+        "<dl class='govuk-summary-list app-file-upload__list'>" +
           "<div class='govuk-summary-list__row'>" +
             "<dd class='govuk-summary-list__value'>" +
               messageContent +
@@ -400,7 +400,7 @@
               buttonContent +
             "</dd>" +
           "</div>" +
-        "</div>"
+        "</dl>"
       );
     }
 
