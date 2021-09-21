@@ -391,7 +391,7 @@
 
     function progressBarWrapper(messageContent, buttonContent) {
       return $(
-        "<div class='govuk-summary-list app-file-upload__list'>" +
+        "<dl class='govuk-summary-list app-file-upload__list'>" +
           "<div class='govuk-summary-list__row'>" +
             "<dd class='govuk-summary-list__value'>" +
               messageContent +
@@ -400,7 +400,7 @@
               buttonContent +
             "</dd>" +
           "</div>" +
-        "</div>"
+        "</dl>"
       );
     }
 
