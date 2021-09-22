@@ -10,7 +10,7 @@ POST          /email-auth/confirm-code/:formTemplateId                          
 GET           /email-auth/email-confirmed-form/:formTemplateId                                                   uk.gov.hmrc.gform.gform.EmailAuthController.emailConfirmedForm(formTemplateId: FormTemplateId, continue: String)
 POST          /email-auth/email-confirmed-continue                                                               uk.gov.hmrc.gform.gform.EmailAuthController.emailConfirmedContinue(continue: String)
 
-GET           /composite-auth/auth-selection-form/:formTemplateId                                                uk.gov.hmrc.gform.gform.CompositeAuthController.authSelectionForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String)
+GET           /composite-auth/auth-selection-form/:formTemplateId                                                uk.gov.hmrc.gform.gform.CompositeAuthController.authSelectionForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String, se: SuppressErrors ?= SuppressErrors.Yes)
 POST          /composite-auth/selected-form/:formTemplateId                                                      uk.gov.hmrc.gform.gform.CompositeAuthController.selectedForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String)
 
 GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.dashboard(formTemplateId: FormTemplateId)

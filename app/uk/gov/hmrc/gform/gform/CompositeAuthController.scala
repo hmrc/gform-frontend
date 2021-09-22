@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import java.net.URLEncoder
 import cats.implicits._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors
 import play.api.i18n.I18nSupport
 import play.api.mvc.MessagesControllerComponents
 import uk.gov.hmrc.gform.FormTemplateKey
@@ -50,11 +51,21 @@ class CompositeAuthController(
     )
   )
 
-  def authSelectionForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String) =
+  def authSelectionForm(
+    formTemplateId: FormTemplateId,
+    ggId: Option[String],
+    continue: String,
+    se: SuppressErrors
+  ) =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplate = request.attrs(FormTemplateKey)
       val compositeAuthFormPage =
-        new CompositeAuthFormPage(formTemplate, choice, ggId)
+        choice
+          .bindFromRequest()
+          .fold(
+            errorForm => new CompositeAuthFormPage(formTemplate, errorForm, ggId, se),
+            _ => new CompositeAuthFormPage(formTemplate, choice, ggId, se)
+          )
 
       Ok(
         html.auth.auth_selection(
@@ -67,22 +78,19 @@ class CompositeAuthController(
     }
 
   def selectedForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String) =
-    nonAutheticatedRequestActions.async { implicit request => implicit lang =>
-      val formTemplate = request.attrs(FormTemplateKey)
+    nonAutheticatedRequestActions.async { implicit request => _ =>
       val compositeAuthDetails: CompositeAuthDetails =
         jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
 
       choice
         .bindFromRequest()
         .fold(
-          errorForm => {
-            val compositeAuthFormPage =
-              new CompositeAuthFormPage(formTemplate, errorForm, ggId)
-            BadRequest(
-              html.auth.auth_selection(frontendAppConfig, compositeAuthFormPage, ggId, continue)
+          _ =>
+            Redirect(
+              uk.gov.hmrc.gform.gform.routes.CompositeAuthController
+                .authSelectionForm(formTemplateId, ggId, continue, SuppressErrors.No)
             )
-              .pure[Future]
-          },
+              .pure[Future],
           {
             case AuthConfig.hmrcSimpleModule =>
               val formTemplate = request.attrs(FormTemplateKey)

@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.Eq
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.validation.ValidationResult
 
@@ -36,6 +37,8 @@ sealed trait SuppressErrors extends Product with Serializable {
 }
 
 object SuppressErrors {
+
+  implicit val equal: Eq[SuppressErrors] = Eq.fromUniversalEquals
 
   case object Yes extends SuppressErrors
   case object No extends SuppressErrors
