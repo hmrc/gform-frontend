@@ -54,7 +54,7 @@ class CompositeAuthFormPage(
   }
 
   val hasErrors: Boolean =
-    if (se.asString === SuppressErrors.seNo)
+    if (se === SuppressErrors.No)
       errorSummary.errorList.nonEmpty
     else false
 
@@ -113,7 +113,7 @@ class CompositeAuthFormPage(
     }
 
     val radios = Radios(
-      errorMessage = if (se.asString === SuppressErrors.seNo) errorMessage else None,
+      errorMessage = if (se === SuppressErrors.No) errorMessage else None,
       name = "compositeAuthSelection",
       items = items
     )
