@@ -14,44 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.instructions
+package uk.gov.hmrc.gform.pdf.model
+
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
-import uk.gov.hmrc.gform.instructions.FormModelInstructionSummaryConverter._
-import uk.gov.hmrc.gform.instructions.TextFormatter.formatText
+import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
-import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationResult }
+import uk.gov.hmrc.gform.pdf.model.PDFModel._
+import uk.gov.hmrc.gform.pdf.model.TextFormatter._
 
-object InstructionPDFPageConverter {
-
-  def convert(
-    page: Page[Visibility],
-    sectionNumber: SectionNumber,
-    cache: AuthCacheWithForm,
-    envelopeWithMapping: EnvelopeWithMapping,
-    validationResult: ValidationResult
-  )(implicit
-    messages: Messages,
-    l: LangADT,
-    lise: SmartStringEvaluator,
-    fieldOrdering: Ordering[FormComponent]
-  ): Option[PageData] = {
-    val pageFields = filteredAndSorted(page.fields)
-      .map(c => mapFormComponent(c, cache, sectionNumber, validationResult, envelopeWithMapping))
-    if (pageFields.isEmpty)
-      None
-    else
-      Some(PageData(page.instruction.flatMap(_.name).map(_.value()), pageFields, sectionNumber.value.toString))
-  }
-
-  def mapFormComponent(
+object PDFPageFieldBuilder {
+  def build[T <: PDFType](
     formComponent: FormComponent,
     cache: AuthCacheWithForm,
     sectionNumber: SectionNumber,
@@ -61,24 +41,25 @@ object InstructionPDFPageConverter {
     messages: Messages,
     l: LangADT,
     lise: SmartStringEvaluator,
-    fieldOrdering: Ordering[FormComponent]
-  ): PageField =
+    pdfFunctions: PDFCustomRender[T]
+  ): PageField = {
+    import pdfFunctions._
     formComponent match {
       case IsText(Text(_, _, _, _, prefix, suffix)) =>
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())),
+          getFormComponentLabel(formComponent),
           formatText(validationResult(formComponent), envelopeWithMapping, prefix, suffix)
         )
 
       case IsTextArea(_) =>
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())),
+          getFormComponentLabel(formComponent),
           formatText(validationResult(formComponent), envelopeWithMapping).flatMap(_.split("\\R"))
         )
 
       case IsUkSortCode(_) =>
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())),
+          getFormComponentLabel(formComponent),
           List(
             UkSortCode
               .fields(
@@ -98,7 +79,7 @@ object InstructionPDFPageConverter {
         def monthKey = getMonthValue(validationResult(formComponent).getCurrentValue(safeId(Date.month)))
 
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())),
+          getFormComponentLabel(formComponent),
           List {
             val day = renderMonth(validationResult(formComponent).getCurrentValue(safeId(Date.day)))
             val month = messages(s"date.$monthKey")
@@ -114,7 +95,7 @@ object InstructionPDFPageConverter {
         def monthKey = getMonthValue(validationResult(formComponent).getCurrentValue(safeId(CalendarDate.month)))
 
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())),
+          getFormComponentLabel(formComponent),
           List {
             val day = renderMonth(validationResult(formComponent).getCurrentValue(safeId(CalendarDate.day)))
             val month = messages(s"date.$monthKey")
@@ -124,19 +105,19 @@ object InstructionPDFPageConverter {
 
       case IsTime(_) =>
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())),
+          getFormComponentLabel(formComponent),
           List(validationResult(formComponent).getCurrentValue.getOrElse(""))
         )
       case IsAddress(_) =>
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())),
+          getFormComponentLabel(formComponent),
           Address
             .renderToString(formComponent, validationResult(formComponent))
         )
 
       case IsOverseasAddress(_) =>
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())),
+          getFormComponentLabel(formComponent),
           OverseasAddress
             .renderToString(formComponent, validationResult(formComponent))
         )
@@ -146,7 +127,7 @@ object InstructionPDFPageConverter {
 
       case IsFileUpload() =>
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())),
+          getFormComponentLabel(formComponent),
           List(envelopeWithMapping.userFileName(formComponent))
         )
 
@@ -155,7 +136,7 @@ object InstructionPDFPageConverter {
         val maybeObligation = cache.form.thirdPartyData.obligations.findByPeriodKey(h, periodId)
 
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())).map(_.capitalize),
+          getFormComponentLabel(formComponent).map(_.capitalize),
           List(maybeObligation.fold("Value Lost!") { od =>
             messages("generic.From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
               messages("generic.to") + " " + formatDate(od.inboundCorrespondenceToDate)
@@ -164,7 +145,7 @@ object InstructionPDFPageConverter {
 
       case IsChoice(choice) =>
         SimpleField(
-          formComponent.instruction.flatMap(_.name.map(_.value())),
+          getFormComponentLabel(formComponent),
           choice.renderToString(formComponent, validationResult(formComponent))
         )
 
@@ -175,28 +156,25 @@ object InstructionPDFPageConverter {
             validationResult(formComponent)
               .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
               .map { _ =>
-                val revealingFields = filteredAndSorted(element.revealingFields)
-                  .map(f => mapFormComponent(f, cache, sectionNumber, validationResult, envelopeWithMapping))
+                val filteredFields = doFilter(element.revealingFields)
+                val revealingFields = formComponentOrdering
+                  .fold(filteredFields)(filteredFields.sorted(_))
+                  .map(f => build(f, cache, sectionNumber, validationResult, envelopeWithMapping))
                 ChoiceElement(element.choice.value(), revealingFields)
               }
           }
         RevealingChoiceField(
-          formComponent.instruction.flatMap(_.name.map(_.value())),
+          getFormComponentLabel(formComponent),
           selections
         )
 
       case IsGroup(group) =>
-        val fields = group.fields.sorted.map { f =>
-          mapFormComponent(f, cache, sectionNumber, validationResult, envelopeWithMapping)
+        val groupFields = group.fields
+        val fields = formComponentOrdering.fold(groupFields)(groupFields.sorted(_)).map { f =>
+          build(f, cache, sectionNumber, validationResult, envelopeWithMapping)
         }
 
-        GroupField(formComponent.instruction.flatMap(_.name.map(_.value())), fields)
+        GroupField(getFormComponentLabel(formComponent), fields)
     }
-
-  private def filteredAndSorted(
-    fields: List[FormComponent]
-  )(implicit fieldOrdering: Ordering[FormComponent]): List[FormComponent] =
-    fields
-      .filter(f => !f.hideOnSummary && f.instruction.isDefined)
-      .sorted
+  }
 }

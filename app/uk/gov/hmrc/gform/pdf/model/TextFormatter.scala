@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.instructions
+package uk.gov.hmrc.gform.pdf.model
 
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Date, FormComponent, IsAddress, IsChoice, IsDate, IsFileUpload, IsText, IsUkSortCode }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.views.summary.TextFormatter.componentTextForSummary
 

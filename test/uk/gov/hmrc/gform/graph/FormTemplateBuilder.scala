@@ -39,7 +39,12 @@ object FormTemplateBuilder {
       None
     )
 
-  def page(formComponents: List[FormComponent], includeIf: Option[IncludeIf] = None): Page[Basic] = Page(
+  def page(
+    formComponents: List[FormComponent],
+    includeIf: Option[IncludeIf] = None,
+    instruction: Option[Instruction] = None,
+    presentationHint: Option[PresentationHint] = None
+  ): Page[Basic] = Page(
     toSmartString("Section Name"),
     None,
     None,
@@ -51,8 +56,8 @@ object FormTemplateBuilder {
     formComponents,
     None,
     None,
-    None,
-    None
+    instruction,
+    presentationHint
   )
 
   def mkAddToListSection(pages: Page[Basic]*): Section.AddToList = Section.AddToList(
@@ -99,7 +104,11 @@ object FormTemplateBuilder {
     Section.RepeatingPage(page(formComponents), expr)
 
   def mkSection(formComponents: FormComponent*): Section.NonRepeatingPage = mkSection(formComponents.toList)
-  def mkSection(formComponents: List[FormComponent]) = Section.NonRepeatingPage(page(formComponents))
+  def mkSection(
+    formComponents: List[FormComponent],
+    instruction: Option[Instruction] = None,
+    presentationHint: Option[PresentationHint] = None
+  ) = Section.NonRepeatingPage(page(formComponents, None, instruction, presentationHint))
 
   def mkSectionIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf) =
     Section.NonRepeatingPage(
@@ -231,7 +240,7 @@ object FormTemplateBuilder {
   def mkFormTemplate(sections: List[Section], declarationSection: Option[DeclarationSection] = None) = FormTemplate(
     FormTemplateId("tst1"),
     FormTemplateId("tst1"),
-    toLocalisedString("Dependecy heavy experiment"),
+    toLocalisedString("Some form template"),
     Some(BetaBanner),
     Default,
     OnePerUser(ContinueOrDeletePage.Show),

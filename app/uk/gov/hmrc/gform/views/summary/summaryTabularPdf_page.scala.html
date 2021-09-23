@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.instructions.FormModelInstructionSummaryConverter._
+@import uk.gov.hmrc.gform.pdf.model.PDFModel._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 
@@ -28,5 +28,5 @@
     </div>
 }
 @for(field <- pageData.fields) {
-    @summaryInstructionPdf_field(field)
+    @summaryTabularPdf_field(field)
 }
