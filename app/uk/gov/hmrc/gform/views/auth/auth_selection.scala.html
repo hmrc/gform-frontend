@@ -49,7 +49,7 @@
   authConfig = Some(compositeAuthFormPage.formTemplate.authConfig),
   formCategory = compositeAuthFormPage.formTemplate.formCategory,
   displayHMRCLogo = compositeAuthFormPage.formTemplate.displayHMRCLogo,
-  displayTimeoutDialog = false,
+  displayTimeoutDialog = maybeGGId.isDefined,
   languages = compositeAuthFormPage.formTemplate.languages,
   templateId = compositeAuthFormPage.formTemplate._id,
   userResearchUrl = compositeAuthFormPage.formTemplate.userResearchUrl.map(_.value)

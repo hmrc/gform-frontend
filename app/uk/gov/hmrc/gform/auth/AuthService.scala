@@ -27,7 +27,6 @@ import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
-import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.controllers.GformRequestAttrKeys.{ emailSessionClearAttrKey, emailSessionClearAttrKeyName }
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.gform
@@ -109,11 +108,7 @@ class AuthService(
             .get(formTemplate._id)
 
         getGovermentGatewayId(()) flatMap {
-          case Some(id)
-              if request.session
-                .get(compositeConfigCookieName)
-                .contains(formTemplate._id.value) || id.ggId === compositeAuthDetails
-                .getOrElse("") =>
+          case Some(id) if List(AuthConfig.hmrcSimpleModule, id.ggId) contains compositeAuthDetails.getOrElse("") =>
             performGGAuth(ggAuthorised(RecoverAuthResult.noop))
 
           case Some(id) if compositeAuthDetails.isEmpty =>

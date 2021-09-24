@@ -22,16 +22,19 @@ import org.slf4j.LoggerFactory
 import play.api.data
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
-import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
+import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.CookieNames._
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, QueryParams, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
@@ -97,8 +100,15 @@ class NewFormController(
   }
 
   def dashboardWithCompositeAuth(formTemplateId: FormTemplateId) = Action.async { implicit request =>
+    val compositeAuthDetails: CompositeAuthDetails =
+      jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+
     Redirect(routes.NewFormController.dashboard(formTemplateId).url, request.queryString)
-      .addingToSession(compositeConfigCookieName -> formTemplateId.value)
+      .addingToSession(
+        COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
+          compositeAuthDetails.add(formTemplateId -> AuthConfig.hmrcSimpleModule)
+        )
+      )
       .pure[Future]
   }
 
