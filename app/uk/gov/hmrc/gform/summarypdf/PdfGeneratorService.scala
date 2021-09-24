@@ -16,13 +16,12 @@
 
 package uk.gov.hmrc.gform.summarypdf
 
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{ Source, StreamConverters }
 import akka.util.ByteString
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
 import play.mvc.Http.{ HeaderNames, MimeTypes }
 import uk.gov.hmrc.gform.sharedmodel.PdfHtml
 
-import java.io.ByteArrayOutputStream
 import scala.concurrent.{ ExecutionContext, Future }
 
 class PdfGeneratorService(
@@ -35,14 +34,17 @@ class PdfGeneratorService(
     pdfGeneratorConnector.generatePDF(body, headers)
   }
 
-  def generatePDFLocal(pdfHtml: PdfHtml)(implicit ec: ExecutionContext): Future[Array[Byte]] = Future {
-    val byteArrayOutputStream = new ByteArrayOutputStream()
-    val builder = new PdfRendererBuilder()
-    builder.useFastMode()
-    builder.withHtmlContent(pdfHtml.html, null)
-    builder.toStream(byteArrayOutputStream)
-    builder.run()
-    byteArrayOutputStream.toByteArray
+  def generatePDFLocal(pdfHtml: PdfHtml)(implicit ec: ExecutionContext): Future[Source[ByteString, Unit]] = Future {
+    StreamConverters.asOutputStream().mapMaterializedValue { os =>
+      Future {
+        val builder = new PdfRendererBuilder()
+        builder.useFastMode()
+        builder.withHtmlContent(pdfHtml.html, null)
+        builder.toStream(os)
+        builder.run()
+      }
+      ()
+    }
   }
 }
 

@@ -107,7 +107,8 @@ class PDFRenderServiceSpec
 
     lazy val formTemplate = mkFormTemplate(sections)
     lazy val cache = AuthCacheWithForm(retrievals, form, formTemplate, Role.Customer, maybeAccessCode)
-    lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = mkFormModelOptics(formTemplate, variadicFormData)
+    lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
+      mkFormModelOptics(formTemplate, variadicFormData).asInstanceOf[FormModelOptics[DataOrigin.Mongo]]
 
     implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
       .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)

@@ -93,12 +93,12 @@ object PDFCustomRender {
       ): Option[String] =
         maybePresentationHint
           .filter(_ == InvisiblePageTitle)
-          .fold[Option[String]](page.shortName.orElse(Option(page.title)).map(_.value()))(_ => None)
+          .fold[Option[String]](page.shortName.orElse(Some(page.title)).map(_.value()))(_ => None)
 
       override def getFormComponentLabel(formComponent: FormComponent)(implicit
         lise: SmartStringEvaluator
       ): Option[String] =
-        formComponent.shortName.map(_.value()).orElse(Option(formComponent.label.value()))
+        formComponent.shortName.map(_.value()).orElse(Some(formComponent.label.value()))
 
       override def doFilter(fields: List[FormComponent]): List[FormComponent] = fields.filterNot(_.hideOnSummary)
     }

@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import akka.util.ByteString
 import play.api.http.HttpEntity
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, ResponseHeader, Result }
@@ -144,10 +143,10 @@ class AcknowledgementController(
               },
               Some(SubmissionDetails(submission, hashedValue))
             )
-        pdfBytes <- pdfService.generatePDFLocal(pdfHtml)
+        pdfSource <- pdfService.generatePDFLocal(pdfHtml)
       } yield Result(
         header = ResponseHeader(200, Map.empty),
-        body = HttpEntity.Strict(ByteString(pdfBytes), Some("application/pdf"))
+        body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))
       )
     }
 

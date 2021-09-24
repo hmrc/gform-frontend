@@ -240,7 +240,7 @@ class GformBackEndService(
           },
           submissionDetails
         )
-        .map(Option(_))
+        .map(Some(_))
     }
   }
 

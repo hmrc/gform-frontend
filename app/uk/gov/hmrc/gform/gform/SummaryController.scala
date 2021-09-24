@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import akka.util.ByteString
 import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
@@ -226,17 +225,17 @@ class SummaryController(
           request.messages.messages(
             "summary.checkYourAnswers"
           ) + " - " + cache.formTemplate.formName.value + " - GOV.UK",
-          Option(cache.formTemplate.summarySection.title.value()),
+          Some(cache.formTemplate.summarySection.title.value()),
           cache,
           formModelOptics,
-          Option(PDFModel.HeaderFooter(Option(cache.formTemplate.summarySection.header), None)),
+          Some(PDFModel.HeaderFooter(Some(cache.formTemplate.summarySection.header), None)),
           None
         )
         .flatMap(pdfGeneratorService.generatePDFLocal)
-        .map { pdfBytes =>
+        .map { pdfSource =>
           Result(
             header = ResponseHeader(200, Map.empty),
-            body = HttpEntity.Strict(ByteString(pdfBytes), Some("application/pdf"))
+            body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))
           )
         }
     }

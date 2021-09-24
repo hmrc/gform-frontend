@@ -92,6 +92,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       AuthCacheWithForm(retrievals, form, formTemplate, Role.Customer, maybeAccessCode)
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
       mkFormModelOptics(formTemplate, cache.variadicFormData[SectionSelectorType.WithDeclaration])
+        .asInstanceOf[FormModelOptics[DataOrigin.Mongo]]
 
     implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
       .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)

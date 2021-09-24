@@ -100,13 +100,13 @@ trait FormModelSupport extends GraphSpec {
       FormComponentIdToFileIdMapping.empty
     )
 
-  def mkFormModelOptics[D <: DataOrigin](
+  def mkFormModelOptics(
     formTemplate: FormTemplate,
     data: VariadicFormData[SourceOrigin.OutOfDate]
-  )(implicit messages: Messages, lang: LangADT): FormModelOptics[D] = {
+  )(implicit messages: Messages, lang: LangADT): FormModelOptics[DataOrigin.Browser] = {
     val authCache: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate)
     FormModelOptics
-      .mkFormModelOptics[D, Id, SectionSelectorType.Normal](data, authCache, recalculation)
+      .mkFormModelOptics[DataOrigin.Browser, Id, SectionSelectorType.Normal](data, authCache, recalculation)
   }
 
   def mkProcessData(
