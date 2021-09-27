@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, LiveBanner, DevelopmentPhase, Anonymous, FormTemplateId }
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.components._
-@import uk.gov.hmrc.govukfrontend.views.html.layouts._
+@import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.footer.FooterItem
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 @import uk.gov.hmrc.hmrcfrontend.views.html.helpers
@@ -47,7 +47,7 @@
   userResearchUrl: Option[String]
 )(implicit requestHeader: RequestHeader, messages: Messages, l: LangADT)
 
-@hmrcTimeoutDialog = @{new components.hmrcTimeoutDialog()}
+@hmrcTimeoutDialog = @{new components.HmrcTimeoutDialog()}
 @timeoutDialog = @{
                     if(displayTimeoutDialog) {
                         appConfig.timeoutDialog(templateId, authConfig)
@@ -118,21 +118,21 @@
 
 @formSupportsLanguages = @{size > 1 && formLanguageSet.subsetOf(appLanguageSet)}
 
-@govukHeader = @{new govukHeader()}
-@govukFooter = @{new govukFooter()}
-@govukBackLink = @{new govukBackLink()}
-@govukSkipLink = @{new govukSkipLink()}
-@hmrcBanner = @{new components.hmrcBanner()}
-@hmrcUserResearchBanner = @{new components.hmrcUserResearchBanner()}
-@govukPhaseBanner = @{new govukPhaseBanner(govukTag = new govukTag())}
-@hmrcHeader = @{new components.hmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner)}
-@hmrcStandardHeader = @{new helpers.hmrcStandardHeader(hmrcHeader)}
-@hmrcFooter = @{new components.hmrcFooter()}
-@hmrcStandardFooter = @{new helpers.hmrcStandardFooter(hmrcFooter, new HmrcFooterItems(appConfig.accessibilityStatementConfig))}
-@govukTemplate = @{new govukTemplate(govukHeader, govukFooter, govukSkipLink)}
-@twoThirdsMainContent = @{new twoThirdsMainContent}
-@govukLayout = @{new govukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink, twoThirdsMainContent)}
-@hmrcReportTechnicalIssue = @{new components.hmrcReportTechnicalIssue()}
+@govukHeader = @{new GovukHeader()}
+@govukFooter = @{new GovukFooter()}
+@govukBackLink = @{new GovukBackLink()}
+@govukSkipLink = @{new GovukSkipLink()}
+@hmrcBanner = @{new components.HmrcBanner()}
+@hmrcUserResearchBanner = @{new components.HmrcUserResearchBanner()}
+@govukPhaseBanner = @{new GovukPhaseBanner(govukTag = new GovukTag())}
+@hmrcHeader = @{new components.HmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner)}
+@hmrcStandardHeader = @{new helpers.HmrcStandardHeader(hmrcHeader)}
+@hmrcFooter = @{new components.HmrcFooter()}
+@hmrcStandardFooter = @{new helpers.HmrcStandardFooter(hmrcFooter, new HmrcFooterItems(appConfig.accessibilityStatementConfig))}
+@govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink)}
+@twoThirdsMainContent = @{new TwoThirdsMainContent}
+@govukLayout = @{new GovukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink, twoThirdsMainContent)}
+@hmrcReportTechnicalIssue = @{new components.HmrcReportTechnicalIssue()}
 
 @language = @{l.toLanguage}
 
@@ -167,7 +167,7 @@
 
 @languageSwitch = @{
   if(formSupportsLanguages) {
-    new components.hmrcLanguageSelect()(LanguageSelect(language, En -> "/submissions/language/english", Cy -> "/submissions/language/cymraeg"))
+    new components.HmrcLanguageSelect()(LanguageSelect(language, En -> "/submissions/language/english", Cy -> "/submissions/language/cymraeg"))
   } else HtmlFormat.empty
 }
 

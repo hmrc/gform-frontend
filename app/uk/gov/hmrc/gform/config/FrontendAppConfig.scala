@@ -22,7 +22,7 @@ import play.api.i18n.{ Lang, Messages }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EmailAuthConfig, FormTemplateId }
 import uk.gov.hmrc.hmrcfrontend.config.AccessibilityStatementConfig
-import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
+import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
 case class FrontendAppConfig(
@@ -39,7 +39,7 @@ case class FrontendAppConfig(
   routeToSwitchLanguage: String => play.api.mvc.Call,
   contactFormServiceIdentifier: String,
   optimizelyUrl: Option[String],
-  trackingConsentSnippet: hmrcTrackingConsentSnippet,
+  trackingConsentSnippet: HmrcTrackingConsentSnippet,
   emailAuthStaticCodeEmails: Option[NonEmptyList[CIString]],
   accessibilityStatementConfig: AccessibilityStatementConfig
 ) {

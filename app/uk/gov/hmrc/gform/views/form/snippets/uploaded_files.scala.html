@@ -29,7 +29,7 @@
   sectionNumber: SectionNumber
 )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
-@govukButton = @{new govukButton()}
+@govukButton = @{new GovukButton()}
 
 @defining(formTemplateId.value, maybeAccessCode.getOrElse("-")) { case (templateId, accessCode) =>
   <div id="@formComponentId-files" class="govuk-body uploaded-files">

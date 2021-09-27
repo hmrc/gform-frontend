@@ -18,7 +18,7 @@
 @import uk.gov.hmrc.gform.gform.routes.NewFormController
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.views.hardcoded.AccessCodeStart
-@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 
 @(
   frontendAppConfig: FrontendAppConfig,
@@ -30,9 +30,9 @@
   l: LangADT
 )
 
-@formWithCSRF = @{new formWithCSRF()}
-@govukButton = @{new govukButton()}
-@govukErrorSummary = @{new govukErrorSummary()}
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
+@govukErrorSummary = @{new GovukErrorSummary()}
 @button = @{messages("button.continue")}
 
 @heading = @{accessCodeStart.formTemplate.formName.value}

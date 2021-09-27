@@ -34,7 +34,7 @@
 @formCat = @{messages(s"formCategory.${formCategory.getString}")}
 @heading = @{messages("ack.title", formCat)}
 
-@govukPanel = @{new govukPanel()}
+@govukPanel = @{new GovukPanel()}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,

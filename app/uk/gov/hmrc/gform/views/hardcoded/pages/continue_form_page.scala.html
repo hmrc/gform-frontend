@@ -17,7 +17,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.hardcoded.ContinueFormPage
 @import uk.gov.hmrc.gform.views.hardcoded.pages.{ formCategory, withQueryParams }
-@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 
 @(
   frontendAppConfig: FrontendAppConfig,
@@ -29,9 +29,9 @@
   l:LangADT
 )
 
-@formWithCSRF = @{new formWithCSRF()}
-@govukButton = @{new govukButton()}
-@govukErrorSummary = @{new govukErrorSummary()}
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
+@govukErrorSummary = @{new GovukErrorSummary()}
 
 @heading = @{messages("continueDelete.title", continueFormPage.formCat)}
 @button = @{messages("button.continue")}

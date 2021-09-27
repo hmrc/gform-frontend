@@ -22,7 +22,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Group
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
-@import uk.gov.hmrc.govukfrontend.views.html.components.govukHint
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukHint
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 @import uk.gov.hmrc.gform.controllers.AddGroup
 
@@ -39,7 +39,7 @@
 )(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @repeatCount = @{groupField.repeatsMin.getOrElse(0)}
-@govukButton = @{new govukButton()}
+@govukButton = @{new GovukButton()}
 
 @label = @{
   fieldValue.label.value
@@ -56,7 +56,7 @@
         </label>
     }
 
-  @maybeHelpText.map(hint => new govukHint()(hint))
+  @maybeHelpText.map(hint => new GovukHint()(hint))
 
   @snippets
 

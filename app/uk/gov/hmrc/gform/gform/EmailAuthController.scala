@@ -87,7 +87,7 @@ class EmailAuthController(
         case Some(InvalidEmail(EmailId(value), message)) =>
           (
             Errors(
-              new components.govukErrorSummary()(
+              new components.GovukErrorSummary()(
                 ErrorSummary(
                   errorList = List(
                     ErrorLink(
@@ -197,7 +197,7 @@ class EmailAuthController(
         case Some(true) =>
           (
             Errors(
-              new components.govukErrorSummary()(
+              new components.GovukErrorSummary()(
                 ErrorSummary(
                   errorList = List(
                     ErrorLink(

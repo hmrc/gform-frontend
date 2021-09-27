@@ -61,7 +61,7 @@
 }
 
 @safeError(atom: Atom) = @{
-    safeErrorMessage(atom).map(e => new govukErrorMessage()(e))
+    safeErrorMessage(atom).map(e => new GovukErrorMessage()(e))
 }
 
 <fieldset class="govuk-fieldset" id="@{formComponent.id.value}-fieldset" role="group" @if(formComponent.helpText.nonEmpty) { aria-describedby="@{formComponent.id.value}-hint" }>

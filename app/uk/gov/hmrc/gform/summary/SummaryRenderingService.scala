@@ -41,9 +41,9 @@ import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper._
-import uk.gov.hmrc.govukfrontend.views.html.components.govukSummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
 
 import java.time.format.DateTimeFormatter
 import scala.concurrent.{ ExecutionContext, Future }
@@ -373,7 +373,7 @@ object SummaryRenderingService {
       if (middleRows.isEmpty) {
         Nil
       } else {
-        val middleRowsHtml = new govukSummaryList()(SummaryList(middleRows, "govuk-!-margin-bottom-5"))
+        val middleRowsHtml = new GovukSummaryList()(SummaryList(middleRows, "govuk-!-margin-bottom-5"))
         List(begin, middleRowsHtml)
       }
     }
@@ -428,7 +428,7 @@ object SummaryRenderingService {
         ) :: Nil
       )
 
-      new govukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-5")) :: htmls
+      new GovukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-5")) :: htmls
     }
 
     val brackets: NonEmptyList[Bracket[Visibility]] = formModel.brackets.brackets
@@ -470,7 +470,7 @@ object SummaryRenderingService {
           )
         )
 
-      List(new govukSummaryList()(SummaryList(rows)))
+      List(new GovukSummaryList()(SummaryList(rows)))
     }
 
     val baseComponentIds: List[BaseComponentId] = pdfFieldIds.map(fcId => fcId.baseComponentId)

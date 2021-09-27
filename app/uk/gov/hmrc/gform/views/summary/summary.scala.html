@@ -26,7 +26,7 @@
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.controllers.{Exit, SummaryContinue}
 
 @(
@@ -46,8 +46,8 @@
 
 @heading = @{formTemplate.summarySection.title.value}
 
-@formWithCSRF = @{new formWithCSRF()}
-@govukButton = @{new govukButton()}
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
 @backLink = @{
     val href = uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, lastSectionNumber).path
     new BackLink(href = href, content = new Text(messages("linkText.back")))

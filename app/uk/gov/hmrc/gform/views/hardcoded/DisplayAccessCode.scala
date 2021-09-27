@@ -32,6 +32,6 @@ class DisplayAccessCode(val formTemplate: FormTemplate, val accessCode: AccessCo
     content = HtmlContent(acStrong)
   )
 
-  val panelHtml: Html = new govukPanel()(panel)
+  val panelHtml: Html = new GovukPanel()(panel)
 
 }

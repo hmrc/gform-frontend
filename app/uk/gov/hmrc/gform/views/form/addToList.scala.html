@@ -23,7 +23,7 @@
 @import uk.gov.hmrc.gform.gform.HasErrors
 @import uk.gov.hmrc.gform.views.html.{main_template, specimen}
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
-@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{SectionNumber, AddToListId}
 @import play.filters.csrf.CSRF
 @import uk.gov.hmrc.gform.controllers.{EditAddToList, SaveAndExit}
@@ -54,9 +54,9 @@
     evaluator: SmartStringEvaluator
 )
 
-@formWithCSRF = @{new formWithCSRF()}
-@govukButton = @{new govukButton()}
-@govukNotificationBanner = @{new govukNotificationBanner()}
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
+@govukNotificationBanner = @{new GovukNotificationBanner()}
 @heading = @{title}
 
 @backLink = @{

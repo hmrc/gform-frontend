@@ -78,7 +78,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
-import uk.gov.hmrc.hmrcfrontend.views.html.components.hmrcCurrencyInput
+import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcCurrencyInput
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 
 sealed trait HasErrors {
@@ -284,7 +284,7 @@ class SectionRenderingService(
     )
 
     val addAnotherQuestion: Html =
-      new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+      new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
     val shouldDisplayBack: Boolean =
       Origin(DataOrigin.unSwapDataOrigin(formModelOptics))
@@ -455,7 +455,7 @@ class SectionRenderingService(
       title = content.Text(messages("error.summary.heading"))
     )
 
-    val errorHtml: Html = new components.govukErrorSummary()(errorSummary)
+    val errorHtml: Html = new components.GovukErrorSummary()(errorSummary)
 
     Errors(errorHtml)
   }
@@ -500,7 +500,7 @@ class SectionRenderingService(
         title = content.Text(messages("error.summary.heading"))
       )
 
-      val errorHtml: Html = new components.govukErrorSummary()(errorSummary)
+      val errorHtml: Html = new components.GovukErrorSummary()(errorSummary)
 
       Errors(errorHtml)
     } else
@@ -902,7 +902,7 @@ class SectionRenderingService(
         items = items.toList
       )
 
-      new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+      new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
     }
 
@@ -1017,7 +1017,7 @@ class SectionRenderingService(
         formComponent.id
       )
 
-    val fileInput: Html = new components.govukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
+    val fileInput: Html = new components.GovukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
 
     val noJsButton: Button = Button(
       content = content.Text(messages("file.upload")),
@@ -1149,7 +1149,7 @@ class SectionRenderingService(
           classes = if (orientation === Horizontal) "govuk-radios--inline" else ""
         )
 
-        new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+        new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
       case Checkbox =>
         val items = optionsWithHintAndHelpText.zipWithIndex.map { case ((option, maybeHint, maybeHelpText), index) =>
@@ -1174,7 +1174,7 @@ class SectionRenderingService(
           classes = if (orientation === Horizontal && optionalHelpText.isEmpty) "gform-checkbox--inline" else ""
         )
 
-        new components.govukCheckboxes(govukErrorMessage, govukFieldset, govukHint, govukLabel)(checkboxes)
+        new components.GovukCheckboxes(govukErrorMessage, govukFieldset, govukHint, govukLabel)(checkboxes)
     }
   }
 
@@ -1291,7 +1291,7 @@ class SectionRenderingService(
         items = items
       )
 
-      new components.govukCheckboxes(govukErrorMessage, govukFieldset, govukHint, govukLabel)(checkboxes)
+      new components.GovukCheckboxes(govukErrorMessage, govukFieldset, govukHint, govukLabel)(checkboxes)
     } else {
 
       val items = revealingChoicesList.zipWithIndex.map {
@@ -1316,7 +1316,7 @@ class SectionRenderingService(
         items = items.toList
       )
 
-      new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+      new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
     }
   }
 
@@ -1418,7 +1418,7 @@ class SectionRenderingService(
           items = items
         )
 
-        new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+        new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
     }
   }
@@ -1476,7 +1476,7 @@ class SectionRenderingService(
       content = labelContent
     )
 
-    val govukTextarea = new components.govukTextarea(govukErrorMessage, govukHint, govukLabel)
+    val govukTextarea = new components.GovukTextarea(govukErrorMessage, govukHint, govukLabel)
 
     val attributes =
       if (formComponent.editable)
@@ -1499,7 +1499,7 @@ class SectionRenderingService(
           attributes = attributes
         )
 
-        new components.govukCharacterCount(govukTextarea, govukHint)(characterCount)
+        new components.GovukCharacterCount(govukTextarea, govukHint)(characterCount)
 
       case _ =>
         val textArea = Textarea(
@@ -1594,7 +1594,7 @@ class SectionRenderingService(
             attributes = ei.specialAttributes ++ attributes
           )
 
-          new hmrcCurrencyInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
+          new HmrcCurrencyInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
 
         } else {
           val inputType = formComponent match {
@@ -1616,7 +1616,7 @@ class SectionRenderingService(
             suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value)))
           )
 
-          new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
+          new components.GovukInput(govukErrorMessage, govukHint, govukLabel)(input)
         }
     }
   }
@@ -1785,7 +1785,7 @@ class SectionRenderingService(
       fieldset = Some(fieldset)
     )
 
-    new components.govukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
+    new components.GovukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
   }
 
   private def htmlForDate(
@@ -1870,7 +1870,7 @@ class SectionRenderingService(
       fieldset = Some(fieldset)
     )
 
-    new components.govukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
+    new components.GovukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
   }
 
   private def renderTime(
@@ -1937,7 +1937,7 @@ class SectionRenderingService(
       attributes = attributes
     )
 
-    new components.govukSelect(govukErrorMessage, govukHint, govukLabel)(select)
+    new components.GovukSelect(govukErrorMessage, govukHint, govukLabel)(select)
   }
 
   private def htmlForGroup(
@@ -2130,11 +2130,11 @@ class SectionRenderingService(
       case (None, false) => messages(continueLabelKey)
     }
 
-  private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
-  private val govukFieldset: components.govukFieldset = new components.govukFieldset()
-  private val govukHint: components.govukHint = new components.govukHint()
-  private val govukLabel: components.govukLabel = new components.govukLabel()
-  private val govukInput: components.govukInput = new components.govukInput(govukErrorMessage, govukHint, govukLabel)
+  private val govukErrorMessage: components.GovukErrorMessage = new components.GovukErrorMessage()
+  private val govukFieldset: components.GovukFieldset = new components.GovukFieldset()
+  private val govukHint: components.GovukHint = new components.GovukHint()
+  private val govukLabel: components.GovukLabel = new components.GovukLabel()
+  private val govukInput: components.GovukInput = new components.GovukInput(govukErrorMessage, govukHint, govukLabel)
 
 }
 
