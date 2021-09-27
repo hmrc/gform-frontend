@@ -1,0 +1,115 @@
+@*
+* Copyright 2021 HM Revenue & Customs
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*@
+
+@import uk.gov.hmrc.gform.pdf.model.PDFModel._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.summary.SubmissionDetails
+@import java.time.format.DateTimeFormatter
+@import uk.gov.hmrc.gform.commons.MarkDownUtil._
+@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+@import uk.gov.hmrc.gform.commons.MarkDownUtil._
+@import uk.gov.hmrc.gform.summary.SubmissionDetails
+@import uk.gov.hmrc.gform.summary.SummaryRenderingService
+@(
+    title: String,
+    maybePageTitle: Option[String],
+    summaryDatas: List[SummaryData],
+    maybeHeaderFooter: Option[HeaderFooter],
+    maybeSubmissionDetails: Option[SubmissionDetails],
+    formTemplate: FormTemplate
+)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+
+<html>
+<head>
+    <title>@title</title>
+    <style>
+        body{font-family:Arial,sans-serif;font-size: 16px; margin:50px;}
+        dl{border-bottom: 1px solid #bfc1c3;}
+        dt{font-weight: bold;}
+        dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:15px;}
+    </style>
+    <bookmarks>
+        @for(summaryData <- summaryDatas) {
+            @summaryData match {
+                case p: PageData => {
+                    @if(p.fields.nonEmpty) {
+                        @for(title <- p.title) {
+                            <bookmark name="@{title}" href="#@{p.id}"/>
+                        }
+                    }
+                }
+                case AddToListData(title, _, pageGroups, id) => {
+                    @if(title.nonEmpty) {
+                        <bookmark name="@{title}" href="#@{id}">
+                            @for(pageGroup <- pageGroups) {
+                                <bookmark name="@{pageGroup.title}" href="#@{pageGroup.id}"/>
+                            }
+                        </bookmark>
+                    }
+                }
+            }
+        }
+    </bookmarks>
+</head>
+<body>
+    <p> HM Revenue &amp; Customs </p>
+    <div>
+        <h1>@{formTemplate.formName.value}</h1>
+        @for(pageTitle <- maybePageTitle) {
+            <h1>@{pageTitle}</h1>
+        }
+        @for(headerFooter <- maybeHeaderFooter) {
+            @for(header <- headerFooter.header) {
+                @markDownParser(header)
+            }
+        }
+        @for(summaryData <- summaryDatas) {
+            @summaryData match {
+                case pageData: PageData => {
+                   @summaryPdf_page(pageData)
+                }
+                case AddToListData(title, summary, pageGroups, id) => {
+                    <h2 id="@{id}">@{title}</h2>
+                    <dl>
+                        <dt>@{summary.title}</dt>
+                        <dd>
+                            @for(v <- summary.values) {
+                                @v <br/>
+                            }
+                        </dd>
+                    </dl>
+                    @for(pageGroup <- pageGroups) {
+                        <div id="@{pageGroup.id}">
+                            <h3>
+                                @{pageGroup.title}
+                            </h3>
+                            @for(pageData <- pageGroup.pages) {
+                                @summaryPdf_page(pageData)
+                            }
+                        </div>
+                    }
+                }
+            }
+        }
+        @for(headerFooter <- maybeHeaderFooter) {
+            @for(footer <- headerFooter.footer) {
+                @markDownParser(footer)
+            }
+        }
+        @{SummaryRenderingService.submissionDetailsAsHTML(maybeSubmissionDetails)}
+    </div>
+</body>
+</html>

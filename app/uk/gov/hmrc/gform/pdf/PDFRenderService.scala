@@ -14,43 +14,44 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.instructions
+package uk.gov.hmrc.gform.pdf
 
-import play.api.i18n.I18nSupport
+import play.api.i18n.Messages
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
-import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.pdf.model.{ PDFCustomRender, PDFLayout, PDFPageModelBuilder, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, PdfHtml }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.validation.ValidationService
-import uk.gov.hmrc.gform.views.html.summary.summaryInstructionPdf
+import uk.gov.hmrc.gform.views.html.summary.{ summaryPdf, summaryTabularPdf }
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class InstructionsRenderingService(
-  i18nSupport: I18nSupport,
-  fileUploadAlgebra: FileUploadAlgebra[Future],
-  validationService: ValidationService
-) {
+class PDFRenderService(fileUploadAlgebra: FileUploadAlgebra[Future], validationService: ValidationService) {
 
-  def createInstructionPDFHtml[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
+  def createPDFHtml[D <: DataOrigin, U <: SectionSelectorType: SectionSelector, T <: PDFType](
+    title: String,
+    maybePageTitle: Option[String],
     cache: AuthCacheWithForm,
-    maybeSubmissionDetails: Option[SubmissionDetails],
-    formModelOptics: FormModelOptics[D]
+    formModelOptics: FormModelOptics[D],
+    maybeHeaderFooter: Option[HeaderFooter],
+    maybeSubmissionDetails: Option[SubmissionDetails]
   )(implicit
     request: Request[_],
+    messages: Messages,
     l: LangADT,
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    lise: SmartStringEvaluator
-  ): Future[PdfHtml] = {
-    import i18nSupport._
+    lise: SmartStringEvaluator,
+    pdfFunctions: PDFCustomRender[T]
+  ): Future[PdfHtml] =
     for {
       envelopeWithMapping <- fileUploadAlgebra
                                .getEnvelope(cache.form.envelopeId)
@@ -59,19 +60,25 @@ class InstructionsRenderingService(
         validationService
           .validateFormModel(cache.toCacheData, envelopeWithMapping, formModelOptics.formModelVisibilityOptics)
     } yield {
-      val mayBeInstructionPdf = cache.formTemplate.destinations match {
-        case DestinationList(_, acknowledgementSection, _) =>
-          acknowledgementSection.instructionPdf
-        case _ => None
+      val pdfModel = PDFPageModelBuilder.makeModel(formModelOptics, cache, envelopeWithMapping, validationResult)
+      val html = pdfFunctions.layout match {
+        case PDFLayout.Default =>
+          summaryPdf(
+            title,
+            maybePageTitle,
+            pdfModel,
+            maybeHeaderFooter,
+            maybeSubmissionDetails,
+            cache.formTemplate
+          ).toString
+        case PDFLayout.Tabular =>
+          summaryTabularPdf(
+            title,
+            pdfModel,
+            maybeHeaderFooter,
+            cache.formTemplate
+          ).toString
       }
-      PdfHtml(
-        summaryInstructionPdf(
-          FormModelInstructionSummaryConverter.convert(formModelOptics, cache, envelopeWithMapping, validationResult),
-          maybeSubmissionDetails,
-          mayBeInstructionPdf,
-          cache.formTemplate
-        ).toString
-      )
+      PdfHtml(html)
     }
-  }
 }

@@ -36,6 +36,7 @@ import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
@@ -48,6 +49,8 @@ import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCo
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -56,7 +59,8 @@ class SummaryController(
   auth: AuthenticatedRequestActionsAlgebra[Future],
   fileUploadService: FileUploadService,
   validationService: ValidationService,
-  pdfService: PdfGeneratorService,
+  pdfGeneratorService: PdfGeneratorService,
+  pdfRenderService: PDFRenderService,
   gformConnector: GformConnector,
   frontendAppConfig: FrontendAppConfig,
   summaryRenderingService: SummaryRenderingService,
@@ -216,12 +220,22 @@ class SummaryController(
       maybeAccessCode,
       OperationWithForm.DownloadSummaryPdf
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
-      pdfService
-        .generateSummaryPDF(maybeAccessCode, cache, SummaryPagePurpose.ForUser, formModelOptics)
-        .map { pdfStream =>
+      pdfRenderService
+        .createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+          request.messages.messages(
+            "summary.checkYourAnswers"
+          ) + " - " + cache.formTemplate.formName.value + " - GOV.UK",
+          Some(cache.formTemplate.summarySection.title.value()),
+          cache,
+          formModelOptics,
+          Some(PDFModel.HeaderFooter(Some(cache.formTemplate.summarySection.header), None)),
+          None
+        )
+        .flatMap(pdfGeneratorService.generatePDFLocal)
+        .map { pdfSource =>
           Result(
             header = ResponseHeader(200, Map.empty),
-            body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+            body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))
           )
         }
     }

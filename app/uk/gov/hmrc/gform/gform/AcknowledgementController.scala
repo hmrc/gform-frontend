@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.http.HttpEntity
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, ResponseHeader, Result }
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
@@ -33,6 +33,8 @@ import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
+import uk.gov.hmrc.gform.pdf.PDFRenderService
+import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
@@ -46,6 +48,7 @@ class AcknowledgementController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
   pdfService: PdfGeneratorService,
+  pdfRenderService: PDFRenderService,
   renderer: SectionRenderingService,
   summaryRenderingService: SummaryRenderingService,
   gformConnector: GformConnector,
@@ -100,6 +103,7 @@ class AcknowledgementController(
       OperationWithForm.ViewAcknowledgement
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       import i18nSupport._
+      val messages: Messages = request2Messages(request)
       val formString = nonRepudiationHelpers.formDataToJson(cache.form)
       val hashedValue = nonRepudiationHelpers.computeHash(formString)
 
@@ -121,18 +125,28 @@ class AcknowledgementController(
                         FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
                         cache.form.envelopeId
                       )
-        htmlForPDF <- summaryRenderingService
-                        .createHtmlForPdf[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
-                          maybeAccessCode,
-                          cache,
-                          Some(SubmissionDetails(submission, hashedValue)),
-                          SummaryPagePurpose.ForUser,
-                          formModelOptics
-                        )
-        pdfStream <- pdfService.generatePDF(htmlForPDF)
+
+        maybePDFHeaderFooter = cache.formTemplate.destinations match {
+                                 case d: DestinationList => d.acknowledgementSection.pdf.map(p => (p.header, p.footer))
+                                 case _                  => None
+                               }
+
+        pdfHtml <-
+          pdfRenderService
+            .createPDFHtml[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement, PDFType.Summary](
+              s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}",
+              None,
+              cache,
+              formModelOptics,
+              maybePDFHeaderFooter.map { case (maybeHeader, maybeFooter) =>
+                PDFModel.HeaderFooter(maybeHeader, maybeFooter)
+              },
+              Some(SubmissionDetails(submission, hashedValue))
+            )
+        pdfSource <- pdfService.generatePDFLocal(pdfHtml)
       } yield Result(
         header = ResponseHeader(200, Map.empty),
-        body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+        body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))
       )
     }
 

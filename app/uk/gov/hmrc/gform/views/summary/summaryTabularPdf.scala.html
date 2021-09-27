@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.instructions.FormModelInstructionSummaryConverter._
+@import uk.gov.hmrc.gform.pdf.model.PDFModel._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.summary.SubmissionDetails
 @import java.time.format.DateTimeFormatter
@@ -22,9 +22,9 @@
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 
 @(
+title: String,
 summaryDatas: List[SummaryData],
-maybeSubmissionDetails: Option[SubmissionDetails],
-maybeInstructionPdf: Option[AcknowledgementSectionPdf],
+maybeHeaderFooter: Option[HeaderFooter],
 formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @timeFormat = @{DateTimeFormatter.ofPattern("HH:mm")}
@@ -32,7 +32,7 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
 
 <html>
 <head>
-    <title>Instructions PDF - @{formTemplate.formName.value}</title>
+    <title>@{title}</title>
     <style>
         body {
           font-family:Arial, sans-serif;
@@ -120,8 +120,8 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
 </head>
 <body>
 <div class="container-fluid">
-    @for(instructionPdf <- maybeInstructionPdf) {
-        @for(header <- instructionPdf.header) {
+    @for(headerFooter <- maybeHeaderFooter) {
+        @for(header <- headerFooter.header) {
             <div class="row">
                 <div class="col-lg-12 heading-1">
                     @{markDownParser(header)}
@@ -133,7 +133,7 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
         @summaryData match {
             case pageData: PageData => {
                 <div id="@{pageData.id}">
-                    @summaryInstructionPdf_page(pageData)
+                    @summaryTabularPdf_page(pageData)
                 </div>
             }
             case AddToListData(_, _, pageGroups, id) => {
@@ -146,7 +146,7 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
                                 </div>
                             </div>
                             @for(pageData <- pageGroup.pages) {
-                                @summaryInstructionPdf_page(pageData)
+                                @summaryTabularPdf_page(pageData)
                             }
                         </div>
                     }
@@ -155,13 +155,13 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
         }
     }
 
-    @for(instructionPdf <- maybeInstructionPdf) {
-        @for(footer <- instructionPdf.footer) {
-            <div class="row">
-                <div class="col-lg-12 heading-1">
-                    @{markDownParser(footer)}
-                </div>
+    @for(headerFooter <- maybeHeaderFooter) {
+        @for(footer <- headerFooter.footer) {
+        <div class="row">
+            <div class="col-lg-12 heading-1">
+                @{markDownParser(footer)}
             </div>
+        </div>
         }
     }
 </div>

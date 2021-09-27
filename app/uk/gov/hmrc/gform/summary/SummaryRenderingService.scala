@@ -17,10 +17,7 @@
 package uk.gov.hmrc.gform.summary
 
 import cats.data.NonEmptyList
-import java.time.format.DateTimeFormatter
-
 import cats.syntax.eq._
-import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Call, Request }
 import play.twirl.api.{ Html, HtmlFormat }
@@ -30,11 +27,9 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
-import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose }
-import uk.gov.hmrc.gform.gform.routes
-import uk.gov.hmrc.gform.models.{ SectionSelectorType, Visibility }
+import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose, routes }
+import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.{ Bracket, FastForward, RepeaterWithNumber, SectionSelector, Singleton }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -46,10 +41,11 @@ import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper._
+import uk.gov.hmrc.govukfrontend.views.html.components.govukSummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.govukfrontend.views.html.components.govukSummaryList
 
+import java.time.format.DateTimeFormatter
 import scala.concurrent.{ ExecutionContext, Future }
 
 class SummaryRenderingService(
@@ -58,42 +54,6 @@ class SummaryRenderingService(
   validationService: ValidationService,
   frontendAppConfig: FrontendAppConfig
 ) {
-
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
-
-  def createHtmlForPdf[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
-    maybeAccessCode: Option[AccessCode],
-    cache: AuthCacheWithForm,
-    submissionDetails: Option[SubmissionDetails],
-    summaryPagePurpose: SummaryPagePurpose,
-    formModelOptics: FormModelOptics[D]
-  )(implicit
-    request: Request[_],
-    messages: Messages,
-    l: LangADT,
-    hc: HeaderCarrier,
-    ec: ExecutionContext,
-    lise: SmartStringEvaluator
-  ): Future[PdfHtml] =
-    for {
-      summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics)
-    } yield {
-      val submissionDetailsString = SummaryRenderingService.addSubmissionDetailsToDocument(submissionDetails, cache)
-      val pdfHtml = PdfHtml(
-        HtmlSanitiser
-          .sanitiseHtmlForPDF(
-            summaryHtml,
-            document => {
-              document.title(s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}")
-              HtmlSanitiser.acknowledgementPdf(document, submissionDetailsString, cache.formTemplate)
-            }
-          )
-      )
-      logger.info(
-        s"Pdf HTML size is ${pdfHtml.html.getBytes("UTF-8").length}. Form value size is ${cache.form.formData.valueBytesSize}"
-      )
-      pdfHtml
-    }
 
   def createHtmlForPrintPdf(
     maybeAccessCode: Option[AccessCode],
@@ -527,27 +487,24 @@ object SummaryRenderingService {
     renderHtmls(sortedFcs)
   }
 
-  def addSubmissionDetailsToDocument[U <: SectionSelectorType: SectionSelector](
-    submissionDetails: Option[SubmissionDetails],
-    cache: AuthCacheWithForm
-  )(implicit
+  def submissionDetailsAsHTML(maybeSubmissionDetails: Option[SubmissionDetails])(implicit
     messages: Messages
-  ): String = {
-    val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
-    val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
-    val formattedTime = submissionDetails.map(sd =>
-      s"""${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}"""
-    )
+  ): Html =
+    maybeSubmissionDetails
+      .map { sd =>
+        val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
+        val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
+        val formattedTime =
+          s"${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}"
+        val rows = List(
+          cya_row(messages("submission.date"), formattedTime),
+          cya_row(messages("submission.reference"), sd.submission.submissionRef.toString),
+          cya_row(messages("submission.mark"), sd.hashedValue)
+        )
 
-    val rows = List(
-      formattedTime.map(ft => cya_row(messages("submission.date"), ft)),
-      submissionDetails.map(sd => cya_row(messages("submission.reference"), sd.submission.submissionRef.toString)),
-      submissionDetails.map(sd => cya_row(messages("submission.mark"), sd.hashedValue))
-    ).flatten
-
-    cya_section(messages("submission.details"), HtmlFormat.fill(rows)).toString()
-
-  }
+        cya_section(messages("submission.details"), HtmlFormat.fill(rows))
+      }
+      .getOrElse(Html(""))
 
   private def determineContinueLabelKey(
     continueLabelKey: String,

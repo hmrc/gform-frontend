@@ -16,26 +16,16 @@
 
 package uk.gov.hmrc.gform.summarypdf
 
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{ Source, StreamConverters }
 import akka.util.ByteString
-import play.api.i18n.I18nSupport
-import play.api.mvc.Request
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
 import play.mvc.Http.{ HeaderNames, MimeTypes }
-import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
-import uk.gov.hmrc.gform.summary.SummaryRenderingService
+import uk.gov.hmrc.gform.sharedmodel.PdfHtml
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
 
 class PdfGeneratorService(
-  i18nSupport: I18nSupport,
-  pdfGeneratorConnector: PdfGeneratorConnector,
-  summaryRenderingService: SummaryRenderingService
+  pdfGeneratorConnector: PdfGeneratorConnector
 ) {
 
   def generatePDF(html: PdfHtml): Future[Source[ByteString, _]] = {
@@ -44,27 +34,18 @@ class PdfGeneratorService(
     pdfGeneratorConnector.generatePDF(body, headers)
   }
 
-  def generateSummaryPDF(
-    maybeAccessCode: Option[AccessCode],
-    cache: AuthCacheWithForm,
-    summaryPagePurpose: SummaryPagePurpose,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(implicit
-    request: Request[_],
-    l: LangADT,
-    hc: HeaderCarrier,
-    ec: ExecutionContext,
-    lise: SmartStringEvaluator
-  ): Future[Source[ByteString, _]] =
-    for {
-      summaryHtml <- summaryRenderingService
-                       .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForUser, formModelOptics)
-      htmlForPDF =
-        HtmlSanitiser
-          .sanitiseHtmlForPDF(summaryHtml, document => HtmlSanitiser.summaryPagePdf(document, cache.formTemplate))
-      pdfStream <- generatePDF(PdfHtml(htmlForPDF))
-    } yield pdfStream
-
+  def generatePDFLocal(pdfHtml: PdfHtml)(implicit ec: ExecutionContext): Future[Source[ByteString, Unit]] = Future {
+    StreamConverters.asOutputStream().mapMaterializedValue { os =>
+      Future {
+        val builder = new PdfRendererBuilder()
+        builder.useFastMode()
+        builder.withHtmlContent(pdfHtml.html, null)
+        builder.toStream(os)
+        builder.run()
+      }
+      ()
+    }
+  }
 }
 
 object PdfGeneratorService {

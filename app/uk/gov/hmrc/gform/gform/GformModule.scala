@@ -28,10 +28,10 @@ import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormVali
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndService, GformBackendModule }
 import uk.gov.hmrc.gform.graph.GraphModule
-import uk.gov.hmrc.gform.instructions.InstructionsRenderingService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ ProcessDataService, TaxPeriodStateChecker }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
+import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.{ PdfGeneratorConnector, PdfGeneratorService }
@@ -177,22 +177,15 @@ class GformModule(
     configModule.frontendAppConfig
   )
 
-  val instructionsRenderingService = new InstructionsRenderingService(
-    playBuiltInsModule.i18nSupport,
-    fileUploadModule.fileUploadService,
-    validationModule.validationService
+  val pdfGeneratorService = new PdfGeneratorService(
+    pdfGeneratorConnector
   )
 
-  val pdfGeneratorService = new PdfGeneratorService(
-    playBuiltInsModule.i18nSupport,
-    pdfGeneratorConnector,
-    summaryRenderingService
-  )
+  val pdfRenderService = new PDFRenderService(fileUploadModule.fileUploadService, validationModule.validationService)
 
   val gformBackEndService = new GformBackEndService(
     gformBackendModule.gformConnector,
-    summaryRenderingService,
-    instructionsRenderingService,
+    pdfRenderService,
     lookupRegistry,
     graphModule.smartStringEvaluatorFactory,
     graphModule.recalculation
@@ -214,6 +207,7 @@ class GformModule(
     fileUploadModule.fileUploadService,
     validationModule.validationService,
     pdfGeneratorService,
+    pdfRenderService,
     gformBackendModule.gformConnector,
     configModule.frontendAppConfig,
     summaryRenderingService,
@@ -234,6 +228,7 @@ class GformModule(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     pdfGeneratorService,
+    pdfRenderService,
     sectionRenderingService,
     summaryRenderingService,
     gformBackendModule.gformConnector,

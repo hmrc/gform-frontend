@@ -29,7 +29,8 @@ object Dependencies {
     "com.nrinaudo"                %% "kantan.csv"                 % "0.5.1",
     "com.miguelfonseca.completely" % "completely-core"            % "0.8.0",
     "org.jsoup"                    % "jsoup"                      % "1.13.1",
-    "org.webjars.npm"              % "govuk-frontend"             % "3.11.0"
+    "org.webjars.npm"              % "govuk-frontend"             % "3.11.0",
+    "com.openhtmltopdf"            % "openhtmltopdf-pdfbox"       % "1.0.10"
   )
 
   val munitVersion = "0.7.22"
@@ -41,7 +42,7 @@ object Dependencies {
     "com.ironcorelabs"       %% "cats-scalatest"           % "2.4.0"             % scope,
     "com.typesafe.play"      %% "play-test"                % PlayVersion.current % scope,
     "org.scalatestplus.play" %% "scalatestplus-play"       % "5.1.0"             % scope,
-    "org.mockito"            %% "mockito-scala-scalatest"  % "1.7.0"             % scope,
+    "org.mockito"            %% "mockito-scala-scalatest"  % "1.16.42"           % scope,
     "com.github.tomakehurst"  % "wiremock-jre8"            % "2.26.3"            % scope,
     "org.scalameta"          %% "munit"                    % munitVersion        % scope,
     "org.scalameta"          %% "munit-scalacheck"         % munitVersion        % scope,

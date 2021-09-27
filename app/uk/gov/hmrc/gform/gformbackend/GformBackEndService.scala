@@ -25,7 +25,7 @@ import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
-import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder, SummaryPagePurpose }
+import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -34,13 +34,14 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormPhase, FormTemplate, FormTemplateId, InstructionPDF }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.graph.Recalculation
-import uk.gov.hmrc.gform.instructions.InstructionsRenderingService
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
+import uk.gov.hmrc.gform.pdf.PDFRenderService
+import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 import uk.gov.hmrc.gform.submission.Submission
-import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
+import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -89,8 +90,7 @@ trait GformBackEndAlgebra[F[_]] {
 
 class GformBackEndService(
   gformConnector: GformConnector,
-  summaryRenderingService: SummaryRenderingService,
-  instructionsRenderingService: InstructionsRenderingService,
+  pdfRenderService: PDFRenderService,
   lookupRegistry: LookupRegistry,
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
   recalculation: Recalculation[Future, Throwable]
@@ -163,8 +163,17 @@ class GformBackEndService(
   ): Future[HttpResponse] =
     for {
       htmlForPDF <-
-        summaryRenderingService
-          .createHtmlForPdf(maybeAccessCode, cache, submissionDetails, SummaryPagePurpose.ForDms, formModelOptics)
+        pdfRenderService.createPDFHtml[D, U, PDFType.Summary](
+          s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}",
+          None,
+          cache,
+          formModelOptics,
+          cache.formTemplate.destinations match {
+            case d: DestinationList => d.acknowledgementSection.pdf.map(p => PDFModel.HeaderFooter(p.header, p.footer))
+            case _                  => None
+          },
+          submissionDetails
+        )
       htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate))
                                  createHTMLForInstructionPDF[SectionSelectorType.Normal, D](
                                    maybeAccessCode,
@@ -198,8 +207,8 @@ class GformBackEndService(
     cache: AuthCacheWithForm,
     submissionDetails: Option[SubmissionDetails],
     formModelOptics: FormModelOptics[D]
-  )(implicit messages: Messages, request: Request[_], l: LangADT, hc: HeaderCarrier) = {
-    val formModelOpticsUpdatedF = FormModelOptics.mkFormModelOptics(
+  )(implicit messages: Messages, request: Request[_], l: LangADT, hc: HeaderCarrier): Future[Option[PdfHtml]] = {
+    val formModelOpticsUpdatedFuture = FormModelOptics.mkFormModelOptics[D, Future, SectionSelectorType.Normal](
       formModelOptics.formModelVisibilityOptics.recData.variadicFormData
         .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
       cache,
@@ -207,7 +216,7 @@ class GformBackEndService(
       Some(FormPhase(InstructionPDF))
     )
 
-    formModelOpticsUpdatedF.flatMap { formModelOpticsUpdated =>
+    formModelOpticsUpdatedFuture.flatMap { formModelOpticsUpdated =>
       implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorFactory
         .apply(
           formModelOpticsUpdated.formModelVisibilityOptics
@@ -217,11 +226,19 @@ class GformBackEndService(
           cache.form,
           cache.formTemplate
         )
-      instructionsRenderingService
-        .createInstructionPDFHtml(
+
+      pdfRenderService
+        .createPDFHtml[D, U, PDFType.Instruction](
+          s"Instructions PDF - ${cache.formTemplate.formName.value}",
+          None,
           cache,
-          submissionDetails,
-          formModelOpticsUpdated
+          formModelOpticsUpdated,
+          cache.formTemplate.destinations match {
+            case DestinationList(_, acknowledgementSection, _) =>
+              acknowledgementSection.instructionPdf.map(p => PDFModel.HeaderFooter(p.header, p.footer))
+            case _ => None
+          },
+          submissionDetails
         )
         .map(Some(_))
     }
