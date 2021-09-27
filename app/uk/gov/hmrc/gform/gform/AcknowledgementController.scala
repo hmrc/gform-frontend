@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.gform.gform
 
+import org.slf4j.LoggerFactory
 import play.api.http.HttpEntity
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, ResponseHeader, Result }
+import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
@@ -59,6 +61,8 @@ class AcknowledgementController(
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def showAcknowledgement(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId
@@ -69,9 +73,22 @@ class AcknowledgementController(
       OperationWithForm.ViewAcknowledgement
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       import i18nSupport._
-
+      val formTemplate = request.attrs(FormTemplateKey)
       val compositeAuthDetails: CompositeAuthDetails =
         jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+
+      formTemplate.authConfig match {
+        case Composite(_) =>
+          logger.info(
+            s"For a template, ${formTemplateId.value} with composite config user has selected a config, " +
+              s"${compositeAuthDetails.get(formTemplateId)} and submitted a form with envelopeId ${cache.form.envelopeId}"
+          )
+        case config =>
+          logger.info(
+            s"For a template, ${formTemplateId.value} with ${config.authConfigName} config " +
+              s"user has submitted a form with envelopeId ${cache.form.envelopeId}"
+          )
+      }
 
       val sessionAfterRemovingCompositeAuthDetails = request.session
         .+(COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(compositeAuthDetails.remove(formTemplateId)))
