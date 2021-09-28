@@ -42,6 +42,6 @@ class CommonAgentPageProperties(formTemplate: FormTemplate, accessCode: AccessCo
       )
     )
 
-  val insetHtml: Html = new govukInsetText()(insetText)
+  val insetHtml: Html = new GovukInsetText()(insetText)
 
 }

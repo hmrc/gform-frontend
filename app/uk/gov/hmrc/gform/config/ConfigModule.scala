@@ -26,7 +26,7 @@ import play.api.i18n.Lang
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, TrackingConsentConfig }
-import uk.gov.hmrc.hmrcfrontend.views.html.helpers.hmrcTrackingConsentSnippet
+import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, ServicesConfig }
 import org.typelevel.ci._
@@ -97,7 +97,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
         url       <- playConfiguration.getOptional[String]("optimizely.url")
         projectId <- playConfiguration.getOptional[String]("optimizely.projectId")
       } yield s"$url$projectId.js",
-      trackingConsentSnippet = new hmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration)),
+      trackingConsentSnippet = new HmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration)),
       emailAuthStaticCodeEmails =
         getOptionalNonEmptyCIStringList(playConfiguration.getOptional[String]("emailAuth.staticCodeEmails")),
       accessibilityStatementConfig = accessibilityStatementConfig

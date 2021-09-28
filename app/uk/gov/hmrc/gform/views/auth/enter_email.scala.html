@@ -21,7 +21,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.html.main_template
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content
-@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import play.filters.csrf.CSRF
 
 @(
@@ -39,12 +39,12 @@
     l:LangADT
 )
 
-@formWithCSRF = @{new formWithCSRF()}
-@govukButton = @{new govukButton()}
-@govukErrorMessage = @{new govukErrorMessage()}
-@govukHint = @{new govukHint()}
-@govukLabel = @{new govukLabel()}
-@govukInput = @{new govukInput(govukErrorMessage, govukHint, govukLabel)}
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
+@govukErrorMessage = @{new GovukErrorMessage()}
+@govukHint = @{new GovukHint()}
+@govukLabel = @{new GovukLabel()}
+@govukInput = @{new GovukInput(govukErrorMessage, govukHint, govukLabel)}
 @heading = @{messages("emailAuth.enterYourEmailAddress")}
 
 @main_template(

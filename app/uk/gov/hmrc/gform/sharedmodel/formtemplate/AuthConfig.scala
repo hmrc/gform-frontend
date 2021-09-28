@@ -189,6 +189,16 @@ object AuthConfig {
   def getAuthConfig(name: String, configs: NonEmptyList[AuthConfig]): Option[AuthConfig] =
     configs.find(_.authConfigName == name)
 
+  val internalIdPattern = "(\\d{16})".r
+
+  def authConfigNameInLogs(config: String): String =
+    config match {
+      case internalIdPattern(_)        => "Existing Government Gateway"
+      case AuthConfig.hmrcSimpleModule => "Government Gateway"
+      case AuthConfig.email            => "Email"
+      case _                           => "Not Known"
+    }
+
   implicit val format: OFormat[AuthConfig] = derived.oformat()
 
 }

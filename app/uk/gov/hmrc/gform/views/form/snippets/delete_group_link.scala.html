@@ -31,7 +31,7 @@
     messages: Messages
 )
 
-@govukButton = @{new govukButton()}
+@govukButton = @{new GovukButton()}
 
 @removeButton.fold(HtmlFormat.empty) { modelComponentId =>
     @govukButton(Button(content = Text(messages("linkText.removeRepeatedGroup", label)),

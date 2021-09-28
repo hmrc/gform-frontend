@@ -66,7 +66,7 @@ class AccessCodeList(val formTemplate: FormTemplate, formOverviews: List[FormOve
       firstCellIsHeader = true
     )
 
-    new govukTable()(table)
+    new GovukTable()(table)
   }
 
 }

@@ -26,7 +26,7 @@ val map: Set[String]= ValidationUtil.renderErrors(validationResult)
   val errors: Set[String] = ValidationUtil.printErrors(map)
 
   errors.map{e =>
-   new govukErrorMessage()(
+   new GovukErrorMessage()(
         ErrorMessage(
           id = Some(fieldValue.id.value),
           classes = "error-message",

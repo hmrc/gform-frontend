@@ -23,8 +23,8 @@
   classes: String
 )
 @id = @{totalText.id}
-@govukHint = @{new govukHint()}
-@govukErrorMessage = @{new govukErrorMessage()}
+@govukHint = @{new GovukHint()}
+@govukErrorMessage = @{new GovukErrorMessage()}
 
 <div class="@toClasses("govuk-form-group", totalText.errorMessage.fold("")(_ => "govuk-form-group--error"))">
     @totalText.hint.fold(HtmlFormat.empty)(govukHint(_))

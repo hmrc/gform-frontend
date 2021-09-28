@@ -14,7 +14,7 @@
 * limitations under the License.
 *@
 
-@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SectionNumber, FormTemplate }
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -37,9 +37,9 @@
     pageLevelError: HasErrors = NoErrors
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
-@formWithCSRF = @{new formWithCSRF()}
-@govukButton = @{new govukButton()}
-@govukSummaryList = @{new govukSummaryList()}
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
+@govukSummaryList = @{new GovukSummaryList()}
 @heading = @{ title }
 @formAction = @{ uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber.increment), SaveAndContinue) }
 

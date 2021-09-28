@@ -20,7 +20,7 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
-@import uk.gov.hmrc.govukfrontend.views.html.components.{ govukHint, govukLabel, govukErrorMessage, govukSelect }
+@import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukHint, GovukLabel, GovukErrorMessage, GovukSelect }
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.lookup.LookupLabel
 
@@ -42,10 +42,10 @@
 
 @currentValue = @{validationResult.getCurrentValue}
 @accessCode = @{maybeAccessCode.fold("-")(_.value)}
-@govukLabel = @{new govukLabel()}
-@govukHint  = @{new govukHint()}
-@govukErrorMessage = @{new govukErrorMessage()}
-@govukSelect = @{new govukSelect(govukErrorMessage, govukHint, govukLabel)}
+@govukLabel = @{new GovukLabel()}
+@govukHint  = @{new GovukHint()}
+@govukErrorMessage = @{new GovukErrorMessage()}
+@govukSelect = @{new GovukSelect(govukErrorMessage, govukHint, govukLabel)}
 
 @form_group(validationResult) { hasErrors =>
   @defining(formComponentId.value, prepop.orElse(currentValue).getOrElse("")) { case (fcId, prepopValue) =>

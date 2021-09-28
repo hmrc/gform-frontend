@@ -21,7 +21,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.HasErrors
 @import uk.gov.hmrc.gform.views.html.{main_template, specimen}
-@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.controllers.{ SaveAndExit, Back }
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
@@ -71,9 +71,9 @@
   new BackLink(attributes = attributes, href = href, content = new Text(messages("linkText.back")))
 }
 
-@formWithCSRF = @{new formWithCSRF()}
-@govukButton = @{new govukButton()}
-@govukNotificationBanner = @{new govukNotificationBanner()}
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
+@govukNotificationBanner = @{new GovukNotificationBanner()}
 
 @displaySaveContinueButton(classes: String = "", otherAttributes: Map[String, String] = Map.empty) = @{
     if(shouldDisplayContinue) {
