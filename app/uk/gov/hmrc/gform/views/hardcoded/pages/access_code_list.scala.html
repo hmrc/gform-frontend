@@ -18,7 +18,7 @@
 @import uk.gov.hmrc.gform.gform.routes.NewFormController
 @import uk.gov.hmrc.gform.sharedmodel.{LangADT, SubmissionRef}
 @import uk.gov.hmrc.gform.views.hardcoded.AccessCodeList
-@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 
 @(
         accessCodeList: AccessCodeList,
@@ -30,8 +30,8 @@
         l: LangADT
 )
 
-@formWithCSRF = @{new formWithCSRF()}
-@govukButton = @{new govukButton()}
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
 
 @heading = @{accessCodeList.formTemplate.formName.value}
 @button = @{messages("accessCode.startNew", accessCodeList.formCat)}

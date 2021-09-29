@@ -76,7 +76,7 @@ class FormAddToListController(
                 _ =>
                   (
                     Errors(
-                      new components.govukErrorSummary()(
+                      new components.GovukErrorSummary()(
                         ErrorSummary(
                           errorList = List(
                             ErrorLink(

@@ -25,10 +25,10 @@ import uk.gov.hmrc.govukfrontend.views.html.components._
 class ContinueFormPage(val formTemplate: FormTemplate, form: Form[String])(implicit messages: Messages)
     extends CommonPageProperties(formTemplate) {
 
-  private val govukErrorMessage: govukErrorMessage = new govukErrorMessage()
-  private val govukFieldset: govukFieldset = new govukFieldset()
-  private val govukHint: govukHint = new govukHint()
-  private val govukLabel: govukLabel = new govukLabel()
+  private val govukErrorMessage: GovukErrorMessage = new GovukErrorMessage()
+  private val govukFieldset: GovukFieldset = new GovukFieldset()
+  private val govukHint: GovukHint = new GovukHint()
+  private val govukLabel: GovukLabel = new GovukLabel()
 
   val errorSummary: ErrorSummary = {
 
@@ -85,7 +85,7 @@ class ContinueFormPage(val formTemplate: FormTemplate, form: Form[String])(impli
       items = List(continue, delete)
     )
 
-    new govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+    new GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
   }
 
 }

@@ -43,12 +43,12 @@ class SaveAcknowledgement(val formTemplate: FormTemplate, envelopeExpiryDate: Op
     )
   )
 
-  val panelHtml: Html = new govukPanel()(panel)
+  val panelHtml: Html = new GovukPanel()(panel)
 
   private val insetText =
     InsetText(
       content = HtmlContent(p(messages("save4later.mustSubmit", formCat), "govuk-!-font-weight-bold"))
     )
 
-  val insetHtml: Html = new govukInsetText()(insetText)
+  val insetHtml: Html = new GovukInsetText()(insetText)
 }

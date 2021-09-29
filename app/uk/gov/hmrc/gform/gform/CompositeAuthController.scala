@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import java.net.URLEncoder
 import cats.implicits._
+import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors
 import play.api.i18n.I18nSupport
 import play.api.mvc.MessagesControllerComponents
@@ -51,6 +52,8 @@ class CompositeAuthController(
     )
   )
 
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def authSelectionForm(
     formTemplateId: FormTemplateId,
     ggId: Option[String],
@@ -82,6 +85,8 @@ class CompositeAuthController(
       val compositeAuthDetails: CompositeAuthDetails =
         jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
 
+      val formTemplate = request.attrs(FormTemplateKey)
+
       choice
         .bindFromRequest()
         .fold(
@@ -93,7 +98,6 @@ class CompositeAuthController(
               .pure[Future],
           {
             case AuthConfig.hmrcSimpleModule =>
-              val formTemplate = request.attrs(FormTemplateKey)
               val oQueryString: Option[String] =
                 request.queryString.get("continue").flatMap(_.headOption).map(_.split("\\?")) map { v =>
                   if (v.length > 1)
@@ -110,11 +114,17 @@ class CompositeAuthController(
               }
               val ggLoginUrl = frontendAppConfig.governmentGatewaySignInUrl
               val url = s"$ggLoginUrl?continue=${URLEncoder.encode(continueUrl, "UTF-8")}"
+              logger.info(
+                s"For a template, ${formTemplate._id.value} user has selected ${AuthConfig.authConfigNameInLogs(AuthConfig.hmrcSimpleModule)} config"
+              )
 
               Redirect(url)
                 .pure[Future]
 
             case selectedConfig =>
+              logger.info(
+                s"For a template, ${formTemplate._id.value} user has selected ${AuthConfig.authConfigNameInLogs(selectedConfig)} config"
+              )
               Redirect(continue)
                 .addingToSession(
                   COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(

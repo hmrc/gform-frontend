@@ -18,7 +18,7 @@
 @import uk.gov.hmrc.gform.views.hardcoded.CompositeAuthFormPage
 @import uk.gov.hmrc.gform.views.hardcoded.pages.{ formCategory, withQueryParams }
 @import uk.gov.hmrc.gform.views.html.form.pageHeading
-@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 
 @(
@@ -33,9 +33,9 @@
   l:LangADT
 )
 
-@formWithCSRF = @{new formWithCSRF()}
-@govukButton = @{new govukButton()}
-@govukErrorSummary = @{new govukErrorSummary()}
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
+@govukErrorSummary = @{new GovukErrorSummary()}
 
 @heading = @{messages("compositeAuth.title", compositeAuthFormPage.formCat)}
 @button = @{messages("button.continue")}

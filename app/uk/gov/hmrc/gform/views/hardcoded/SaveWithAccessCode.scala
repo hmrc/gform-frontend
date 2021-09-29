@@ -40,7 +40,7 @@ class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode)
     )
   )
 
-  val panelHtml: Html = new govukPanel()(panel)
+  val panelHtml: Html = new GovukPanel()(panel)
 
   val paragraph = p(
     messages("accessCode.new.validFor", accessCodeName)
@@ -51,6 +51,6 @@ class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode)
 
   private val warningText = WarningText(content = Text(messages("accessCode.mustSubmit", formCat)))
 
-  val warningHtml = new govukWarningText()(warningText)
+  val warningHtml = new GovukWarningText()(warningText)
 
 }

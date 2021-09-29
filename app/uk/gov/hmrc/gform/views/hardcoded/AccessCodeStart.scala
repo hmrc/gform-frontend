@@ -32,10 +32,10 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
 
   val accessCodeName = messages(s"accessCode.$draftRetrievalMethod")
 
-  private val govukErrorMessage: govukErrorMessage = new govukErrorMessage()
-  private val govukFieldset: govukFieldset = new govukFieldset()
-  private val govukHint: govukHint = new govukHint()
-  private val govukLabel: govukLabel = new govukLabel()
+  private val govukErrorMessage: GovukErrorMessage = new GovukErrorMessage()
+  private val govukFieldset: GovukFieldset = new GovukFieldset()
+  private val govukHint: GovukHint = new GovukHint()
+  private val govukLabel: GovukLabel = new GovukLabel()
 
   val errorSummary: ErrorSummary = {
 
@@ -112,8 +112,8 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
         classes = "govuk-input--width-10 govuk-!-margin-bottom-5",
         errorMessage = accessCodeError.flatMap(_ => errorMessage)
       )
-      val inputHtml = new govukInput(govukErrorMessage, govukHint, govukLabel)(input)
-      val detailsHtml = new govukDetails()(details)
+      val inputHtml = new GovukInput(govukErrorMessage, govukHint, govukLabel)(input)
+      val detailsHtml = new GovukDetails()(details)
       HtmlFormat.fill(List(inputHtml, detailsHtml))
     }
 
@@ -136,7 +136,7 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
       items = List(startNew, useExisting)
     )
 
-    new govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+    new GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
   }
 
 }

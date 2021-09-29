@@ -23,13 +23,13 @@ import uk.gov.hmrc.govukfrontend.views.html.components._
 class AgentEnrolmentProlog(val formTemplate: FormTemplate, url: String)(implicit messages: Messages)
     extends CommonPageProperties(formTemplate) {
 
-  val inset = new govukInsetText()(
+  val inset = new GovukInsetText()(
     InsetText(
       content = Text(messages("agentsPrologue.p2") + ".")
     )
   )
 
-  val button = new govukButton()(
+  val button = new GovukButton()(
     Button(
       href = Some(url),
       isStartButton = true,
