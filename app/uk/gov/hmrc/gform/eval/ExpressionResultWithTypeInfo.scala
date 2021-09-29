@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
+import cats.syntax.eq._
 import play.api.i18n.Messages
 
 case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, typeInfo: TypeInfo) {
@@ -28,5 +29,7 @@ case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, type
   def numberRepresentation: Option[BigDecimal] = expressionResult.numberRepresentation
 
   def optionRepresentation: Option[Seq[Int]] = expressionResult.optionRepresentation
+
+  def isEmpty = expressionResult === ExpressionResult.empty
 
 }

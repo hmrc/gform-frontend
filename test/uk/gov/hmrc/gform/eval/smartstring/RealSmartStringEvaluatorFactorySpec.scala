@@ -388,7 +388,8 @@ class RealSmartStringEvaluatorFactorySpec
           Map.empty,
           LangADT.En,
           messages,
-          indexedComponentIds
+          indexedComponentIds,
+          Set.empty
         )
       )
     )

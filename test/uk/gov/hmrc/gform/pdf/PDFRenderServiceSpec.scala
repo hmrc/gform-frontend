@@ -167,7 +167,6 @@ class PDFRenderServiceSpec
         None
       )
     ) { pdfHtml =>
-      println(pdfHtml.html)
       pdfHtml.html.trimLines shouldBe nonRepeatingPageInstructionPDFHTML
     }
   }

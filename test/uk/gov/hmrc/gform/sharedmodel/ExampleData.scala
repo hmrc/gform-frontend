@@ -73,7 +73,8 @@ trait ExampleEvaluationContext {
       Map.empty,
       LangADT.En,
       Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty)),
-      List.empty
+      List.empty,
+      Set.empty
     )
 }
 
@@ -552,7 +553,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None,
         instruction,
-        presentationHint
+        presentationHint,
+        None
       )
     )
 
@@ -601,7 +603,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None,
         instruction,
-        presentationHint
+        presentationHint,
+        None
       ),
       repeats = repeatsExpr
     )
@@ -662,7 +665,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     None,
     None,
     instruction,
-    presentationHint
+    presentationHint,
+    None
   )
 }
 

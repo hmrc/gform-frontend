@@ -21,6 +21,7 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.models.Atom
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveAttribute, DataRetrieveId }
 
 sealed trait Expr extends Product with Serializable {
 
@@ -55,6 +56,7 @@ sealed trait Expr extends Product with Serializable {
       case Period(_, _)                            => expr :: Nil
       case PeriodExt(_, _)                         => expr :: Nil
       case AddressLens(_, _)                       => expr :: Nil
+      case DataRetrieveCtx(_, _)                   => expr :: Nil
     }
     loop(this).headOption
   }
@@ -91,6 +93,7 @@ sealed trait Expr extends Product with Serializable {
     case Period(dateCtx1, dateCtx2)                 => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
     case PeriodExt(periodFun, _)                    => periodFun.leafs(formModel)
     case AddressLens(formComponentId, _)            => this :: Nil
+    case DataRetrieveCtx(_, _)                      => this :: Nil
   }
 
   def sums: List[Sum] = this match {
@@ -116,6 +119,7 @@ sealed trait Expr extends Product with Serializable {
     case Period(_, _)                               => Nil
     case PeriodExt(_, _)                            => Nil
     case AddressLens(_, _)                          => Nil
+    case DataRetrieveCtx(id, attribute)             => Nil
   }
 }
 
@@ -140,6 +144,8 @@ final case class DateCtx(value: DateExpr) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
 final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
 final case object LangCtx extends Expr
+final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieveAttribute) extends Expr
+
 sealed trait PeriodFn
 object PeriodFn {
   case object Sum extends PeriodFn

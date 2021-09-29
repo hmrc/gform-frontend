@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.models.PageMode
-import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, FormComponentId, IncludeIf, Page, Validator }
 
 class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormComponentId]) {
@@ -27,6 +27,8 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
   private def expandIncludeIf(includeIf: IncludeIf) = IncludeIf(expandBooleanExpr(includeIf.booleanExpr))
 
   private def expandValidator(validator: Validator) = ValidatorUpdater(validator, index, baseIds)
+
+  private def expandDataRetrieve(dataRetrieve: DataRetrieve) = DataRetrieveUpdater(dataRetrieve, index, baseIds)
 
   private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds)
 
@@ -43,7 +45,8 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
       },
       validators = page.validators.map(expandValidator),
       continueLabel = page.continueLabel.map(expandSmartString),
-      instruction = page.instruction.map(i => i.copy(name = i.name.map(expandSmartString)))
+      instruction = page.instruction.map(i => i.copy(name = i.name.map(expandSmartString))),
+      dataRetrieve = page.dataRetrieve.map(expandDataRetrieve)
     )
 }
 

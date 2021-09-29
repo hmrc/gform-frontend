@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform.sharedmodel.form
 
 import play.api.libs.json.{ Format, Json, OFormat }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, JsonUtils }
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieveFailed, DataRetrieveId, DataRetrieveMissingInput, DataRetrieveNotRequired, DataRetrieveResult, DataRetrieveSuccess, NotChecked, Obligations }
 
 case class ThirdPartyData(
   desRegistrationResponse: Option[DesRegistrationResponse],
@@ -28,8 +28,20 @@ case class ThirdPartyData(
   emailVerification: Map[EmailFieldId, EmailAndCode],
   queryParams: QueryParams,
   reviewData: Option[Map[String, String]] = None,
-  booleanExprCache: BooleanExprCache
+  booleanExprCache: BooleanExprCache,
+  dataRetrieve: Option[Map[DataRetrieveId, DataRetrieveResult]]
 ) {
+
+  def updateDataRetrieve(dataRetrieveResult: DataRetrieveResult): ThirdPartyData = dataRetrieveResult match {
+    case DataRetrieveNotRequired => this
+    case DataRetrieveSuccess(id, _) =>
+      copy(dataRetrieve = dataRetrieve match {
+        case None      => Some(Map(id -> dataRetrieveResult))
+        case Some(map) => Some(map + (id -> dataRetrieveResult))
+      })
+    case DataRetrieveFailed       => this
+    case DataRetrieveMissingInput => this
+  }
 
   def updateFrom(vr: Option[ValidatorsResult]): ThirdPartyData =
     vr match {
@@ -40,7 +52,8 @@ case class ThirdPartyData(
           emailVerification ++ m,
           queryParams,
           reviewData,
-          booleanExprCache
+          booleanExprCache,
+          dataRetrieve
         )
       case Some(ValidatorsResult(None, m)) =>
         ThirdPartyData(
@@ -49,7 +62,8 @@ case class ThirdPartyData(
           emailVerification ++ m,
           queryParams,
           reviewData,
-          booleanExprCache
+          booleanExprCache,
+          dataRetrieve
         )
       case _ => this
     }
@@ -58,8 +72,10 @@ case class ThirdPartyData(
 }
 
 object ThirdPartyData {
-  val empty = ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty, None, BooleanExprCache.empty)
+  val empty = ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty, None, BooleanExprCache.empty, None)
   implicit val formatMap: Format[Map[EmailFieldId, EmailAndCode]] =
     JsonUtils.formatMap(a => emailFieldId(FormComponentId(a)), _.value)
+  implicit val formatDataRetrieve: Format[Map[DataRetrieveId, DataRetrieveResult]] =
+    JsonUtils.formatMap(a => DataRetrieveId(a), _.value)
   implicit val format: OFormat[ThirdPartyData] = Json.format
 }

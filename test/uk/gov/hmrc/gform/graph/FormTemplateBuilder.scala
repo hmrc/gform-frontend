@@ -57,7 +57,8 @@ object FormTemplateBuilder {
     None,
     None,
     instruction,
-    presentationHint
+    presentationHint,
+    None
   )
 
   def mkAddToListSection(pages: Page[Basic]*): Section.AddToList = Section.AddToList(
@@ -122,6 +123,7 @@ object FormTemplateBuilder {
         Some(includeIf),
         None,
         formComponents,
+        None,
         None,
         None,
         None,
@@ -288,6 +290,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     None
   )
 
@@ -302,6 +305,7 @@ object FormTemplateBuilder {
       Some(includeIf),
       None,
       formComponents,
+      None,
       None,
       None,
       None,

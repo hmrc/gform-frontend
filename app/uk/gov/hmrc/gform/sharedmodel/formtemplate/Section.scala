@@ -118,7 +118,8 @@ case class DeclarationSection(
       continueLabel = continueLabel,
       continueIf = None,
       instruction = None,
-      presentationHint = None
+      presentationHint = None,
+      dataRetrieve = None
     )
 }
 
@@ -153,7 +154,8 @@ case class AcknowledgementSection(
       continueLabel = None,
       continueIf = None,
       instruction = None,
-      presentationHint = None
+      presentationHint = None,
+      dataRetrieve = None
     )
 }
 
@@ -191,7 +193,8 @@ case class EnrolmentSection(
       continueLabel = None,
       continueIf = None,
       instruction = None,
-      presentationHint = None
+      presentationHint = None,
+      dataRetrieve = None
     )
 }
 
