@@ -19,7 +19,6 @@
 @import uk.gov.hmrc.gform.views.hardcoded.pages.{ formCategory, withQueryParams }
 @import uk.gov.hmrc.gform.views.html.form.pageHeading
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
-@import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 
 @(
   frontendAppConfig: FrontendAppConfig,
@@ -64,7 +63,6 @@
     @pageHeading(text = messages("compositeAuth.title"))
     @maybeGGId.map { id =>
         <p class="govuk-body govuk-!-margin-bottom-2">@messages("compositeAuth.alreadySigned")</p>
-        <h2 class="govuk-heading-m">@{FormDataHelpers.addSpacesInGovermentGatewayId(id)}</h2>
     }
     @compositeAuthFormPage.render
 
