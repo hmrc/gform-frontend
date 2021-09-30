@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, FormComponent, FormComponentId, IncludeIf, Instruction, Page, PageId, ValidIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, FormComponent, FormComponentId, IncludeIf, Instruction, IsUpscanInitiateFileUpload, Page, PageId, ValidIf }
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)
@@ -56,6 +56,10 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
 
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
     fold(_.page.fields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)(_ => Nil)
+
+  def upscanInitiateRequests: List[FormComponentId] = fold(_.page.fields.collect {
+    case IsUpscanInitiateFileUpload(formComponent) => formComponent.id
+  })(_ => Nil)(_ => Nil)
 }
 
 case class Singleton[A <: PageMode](page: Page[A]) extends PageModel[A]

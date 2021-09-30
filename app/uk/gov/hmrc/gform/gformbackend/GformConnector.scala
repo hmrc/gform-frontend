@@ -103,7 +103,13 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
              */
             updateUserData(
               formIdDataOriginal,
-              UserData(form.formData, form.status, form.visitsIndex, form.thirdPartyData, form.componentIdToFileId)
+              UserData(
+                form.formData,
+                form.status,
+                form.visitsIndex,
+                form.thirdPartyData,
+                form.componentIdToFileId
+              )
             ).map { _ =>
               logger.info(
                 s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $formIdDataOriginal as a fallback succeeded and form saved with $formIdData."

@@ -20,6 +20,7 @@ import org.typelevel.ci.CIString
 import pureconfig._
 import pureconfig.generic.auto._
 import pureconfig.generic.ProductHint
+import scala.concurrent.duration.FiniteDuration
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, FileExtension }
 
 case class AppConfig(
@@ -34,7 +35,8 @@ case class AppConfig(
   contentTypesSeparatedByPipe: String,
   restrictedFileExtensionList: List[String],
   albAdminIssuerUrl: String,
-  `case-worker-assumed-identity-cookie`: String
+  `case-worker-assumed-identity-cookie`: String,
+  `upscan-confirmation-ttl`: FiniteDuration
 ) {
   def contentTypes: List[ContentType] = contentTypesSeparatedByPipe.split('|').toList.map(ContentType.apply)
 

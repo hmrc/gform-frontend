@@ -39,9 +39,11 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.metrics.{ GraphiteModule, MetricsModule }
+import uk.gov.hmrc.gform.mongo.MongoModule
 import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsModule, RoutingModule }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorConnector
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
+import uk.gov.hmrc.gform.upscan.UpscanModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
@@ -69,7 +71,7 @@ class ApplicationModule(context: Context)
   protected val akkaModule = new AkkaModule(materializer, actorSystem)
   private val playBuiltInsModule = new PlayBuiltInsModule(self)
 
-  protected val configModule = new ConfigModule(context, playBuiltInsModule, wsClient)
+  protected val configModule = new ConfigModule(context, playBuiltInsModule)
 
   private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
 
@@ -159,6 +161,21 @@ class ApplicationModule(context: Context)
     configModule
   )
 
+  val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
+
+  applicationCrypto.verifyConfiguration()
+
+  private val mongoModule = new MongoModule(configModule)
+
+  private val upscanModule = new UpscanModule(
+    wSHttpModule,
+    configModule,
+    mongoModule,
+    gformBackendModule,
+    applicationCrypto,
+    configModule.appConfig
+  )
+
   private val validationModule = new ValidationModule(
     fileUploadModule,
     gformBackendModule,
@@ -168,6 +185,7 @@ class ApplicationModule(context: Context)
   )
 
   private val gformModule = new GformModule(
+    akkaModule,
     configModule,
     wSHttpModule,
     controllersModule,
@@ -175,11 +193,13 @@ class ApplicationModule(context: Context)
     authModule,
     gformBackendModule,
     fileUploadModule,
+    upscanModule,
     validationModule,
     auditingModule,
     playBuiltInsModule,
     graphModule,
     lookupRegistry,
+    applicationCrypto,
     errResponder
   )
 
@@ -193,9 +213,6 @@ class ApplicationModule(context: Context)
     this,
     fileUploadModule
   )
-
-  val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
-  applicationCrypto.verifyConfiguration()
 
   private val frontendFiltersModule = new FrontendFiltersModule(
     gformBackendModule,

@@ -15,6 +15,7 @@ object Dependencies {
     "uk.gov.hmrc"                 %% "auth-client"                % "5.6.0-play-28",
     "uk.gov.hmrc"                 %% "domain"                     % "5.11.0-play-27",
     "uk.gov.hmrc"                 %% "play-partials"              % "8.1.0-play-28",
+    "uk.gov.hmrc.mongo"           %% "hmrc-mongo-play-28"         % "0.54.0",
     "com.typesafe.play"           %% "play-json-joda"             % "2.9.2",
     "org.julienrf"                %% "play-json-derived-codecs"   % "10.0.2",
     "org.typelevel"               %% "cats-core"                  % "2.2.0",

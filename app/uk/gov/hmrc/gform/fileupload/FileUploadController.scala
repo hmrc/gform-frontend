@@ -70,7 +70,7 @@ class FileUploadController(
     formComponentId: FormComponentId,
     fileId: FileId
   ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => _ => implicit formModelOptics =>
         for {
           envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
@@ -176,7 +176,7 @@ class FileUploadController(
     formComponentId: FormComponentId,
     fileId: FileId
   ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => sse => formModelOptics =>
         val maybeErrorCode: Option[FileUploadError] =
           for {

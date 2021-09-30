@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.gform.gform
 
+import akka.actor.Scheduler
 import cats.instances.future._
-
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.crypto.ApplicationCrypto
+import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.config.ConfigModule
@@ -35,11 +37,13 @@ import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.{ PdfGeneratorConnector, PdfGeneratorService }
+import uk.gov.hmrc.gform.upscan.{ UpscanController, UpscanModule }
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.language.LanguageUtils
 
 class GformModule(
+  akkaModule: AkkaModule,
   configModule: ConfigModule,
   wSHttpModule: WSHttpModule,
   controllersModule: ControllersModule,
@@ -47,11 +51,13 @@ class GformModule(
   authModule: AuthModule,
   gformBackendModule: GformBackendModule,
   fileUploadModule: FileUploadModule,
+  upscanModule: UpscanModule,
   validationModule: ValidationModule,
   auditingModule: AuditingModule,
   playBuiltInsModule: PlayBuiltInsModule,
   graphModule: GraphModule,
   lookupRegistry: LookupRegistry,
+  applicationCrypto: ApplicationCrypto,
   errorResponder: ErrResponder
 )(implicit
   ec: ExecutionContext
@@ -141,6 +147,7 @@ class GformModule(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     fileUploadModule.fileUploadService,
+    upscanModule.upscanService,
     validationModule.validationService,
     sectionRenderingService,
     gformBackendModule.gformConnector,
@@ -311,6 +318,20 @@ class GformModule(
       controllersModule.authenticatedRequestActions,
       playBuiltInsModule.i18nSupport,
       configModule.frontendAppConfig,
+      controllersModule.messagesControllerComponents
+    )
+
+  implicit val s: Scheduler = akkaModule.actorSystem.scheduler
+  val upscanController: UpscanController =
+    new UpscanController(
+      controllersModule.authenticatedRequestActions,
+      controllersModule.nonAuthenticatedRequestActions,
+      fastForwardService,
+      fileUploadModule.fileUploadFrontendService,
+      gformBackEndService,
+      upscanModule.upscanService,
+      applicationCrypto.QueryParameterCrypto,
+      playBuiltInsModule.i18nSupport,
       controllersModule.messagesControllerComponents
     )
 
