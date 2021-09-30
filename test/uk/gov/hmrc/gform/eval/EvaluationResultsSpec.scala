@@ -24,13 +24,13 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
-import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber, ServiceName, UserCtx, UserField, UserFieldFunc }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DataRetrieveCtx, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber, ServiceName, UserCtx, UserField, UserFieldFunc }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
@@ -45,14 +45,16 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
   def buildEvaluationContext(
     pageIdSectionNumberMap: Map[ModelPageId, SectionNumber] = Map.empty,
     indexedComponentIds: List[ModelComponentId] = List.empty,
-    retrievals: MaterialisedRetrievals = authContext
+    retrievals: MaterialisedRetrievals = authContext,
+    sortCodeLookup: Set[BaseComponentId] = Set.empty,
+    thirdPartyData: ThirdPartyData = ThirdPartyData.empty
   ) =
     new EvaluationContext(
       formTemplateId,
       submissionRef,
       None,
       retrievals,
-      ThirdPartyData.empty,
+      thirdPartyData,
       authConfig,
       HeaderCarrier(),
       Option.empty[FormPhase],
@@ -71,7 +73,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           )
         )
       ),
-      indexedComponentIds
+      indexedComponentIds,
+      sortCodeLookup
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()
@@ -302,6 +305,30 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         StringResult("2"),
         "user enrolments count for service a and identifier b"
+      ),
+      (
+        TypeInfo(
+          DataRetrieveCtx(
+            DataRetrieveId("someDataRetrieveId"),
+            DataRetrieveAttribute.fromString("DataRetrieveIsValid")
+          ),
+          StaticTypeData(ExprType.string, None)
+        ),
+        recDataEmpty,
+        buildEvaluationContext(thirdPartyData =
+          ThirdPartyData.empty.copy(dataRetrieve =
+            Some(
+              Map(
+                DataRetrieveId("someDataRetrieveId") -> DataRetrieveSuccess(
+                  DataRetrieveId("someDataRetrieveId"),
+                  Map(DataRetrieveAttribute.fromString("DataRetrieveIsValid") -> "111")
+                )
+              )
+            )
+          )
+        ),
+        StringResult("111"),
+        "Third party data retrieval for id 'someDataRetrieveId' and attribute 'attribute1'"
       )
     )
     forAll(table) {
@@ -689,5 +716,21 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       EvaluationResults.empty
         .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
+  }
+
+  "evalExpr - type string, with multi value form component" should "get all atom values concatenated" in {
+
+    val typeInfo = TypeInfo(FormCtx(FormComponentId("sortCode")), StaticTypeData(ExprType.string, None))
+    val recData = RecData[OutOfDate](
+      VariadicFormData.create(
+        (toModelComponentId("sortCode-1"), VariadicValue.One("11")),
+        (toModelComponentId("sortCode-2"), VariadicValue.One("22")),
+        (toModelComponentId("sortCode-3"), VariadicValue.One("33"))
+      )
+    )
+    val evaluationContext = buildEvaluationContext(sortCodeLookup = Set(BaseComponentId("sortCode")))
+
+    EvaluationResults.empty
+      .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe StringResult("112233")
   }
 }

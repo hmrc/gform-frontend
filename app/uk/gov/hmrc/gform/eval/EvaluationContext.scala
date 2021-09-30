@@ -20,8 +20,8 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SubmissionRef }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, DateValue, FormPhase, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.http.HeaderCarrier
 
 // Various information needed for Expr evaluation
@@ -41,5 +41,6 @@ class EvaluationContext(
   val pageIdSectionNumberMap: Map[ModelPageId, SectionNumber],
   val lang: LangADT,
   val messages: Messages,
-  val indexedComponentIds: List[ModelComponentId]
+  val indexedComponentIds: List[ModelComponentId],
+  val sortCodeLookup: Set[BaseComponentId]
 )

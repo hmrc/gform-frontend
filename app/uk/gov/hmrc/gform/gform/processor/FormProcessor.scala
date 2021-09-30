@@ -18,17 +18,17 @@ package uk.gov.hmrc.gform.gform.processor
 
 import cats.instances.future._
 import cats.instances.option._
-import cats.syntax.apply._
-import cats.syntax.eq._
+import cats.syntax.all._
 import play.api.i18n.I18nSupport
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
+import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
-import uk.gov.hmrc.gform.gform.{ FastForwardService, routes }
+import uk.gov.hmrc.gform.gform.{ DataRetrieveService, FastForwardService, routes }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, SectionNumber, SectionTitle4Ga, SuppressErrors }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, DataRetrieveMissingInput, DataRetrieveNotRequired, DataRetrieveResult, LangADT, SourceOrigin, ValidateBank, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -52,7 +52,8 @@ class FormProcessor(
   fastForwardService: FastForwardService,
   recalculation: Recalculation[Future, Throwable],
   fileUploadService: FileUploadAlgebra[Future],
-  handler: FormControllerRequestHandler
+  handler: FormControllerRequestHandler,
+  bankAccountReputationConnector: BankAccountReputationConnector[Future]
 )(implicit ec: ExecutionContext) {
 
   import i18nSupport._
@@ -178,16 +179,32 @@ class FormProcessor(
                                                                 envelopeWithMapping,
                                                                 validationService.validatePageModel
                                                               )
+      dataRetrieveResult <- {
+        val maybePageModelForSection =
+          processData.formModelOptics.formModelVisibilityOptics.formModel.pageModelLookup.get(sectionNumber)
+        maybePageModelForSection.fold[Future[DataRetrieveResult]](DataRetrieveNotRequired.pure[Future]) { pm =>
+          pm.fold[Future[DataRetrieveResult]](s =>
+            s.page.dataRetrieve.fold[Future[DataRetrieveResult]](DataRetrieveNotRequired.pure[Future]) {
+              case v: ValidateBank =>
+                implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
+                DataRetrieveService[ValidateBank, Future]
+                  .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
+            }
+          )(_ => DataRetrieveNotRequired.pure[Future])(_ => DataRetrieveNotRequired.pure[Future])
+        }
+      }
       res <- {
-
         val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
 
         val formDataU = oldData.toFormData ++ formData
         val before: ThirdPartyData = cache.form.thirdPartyData
-        val after: ThirdPartyData = before.updateFrom(validatorsResult)
+        val after: ThirdPartyData =
+          before.updateFrom(validatorsResult).updateDataRetrieve(dataRetrieveResult)
 
         val needsSecondPhaseRecalculation =
-          (before.desRegistrationResponse, after.desRegistrationResponse).mapN(_ =!= _)
+          (before.desRegistrationResponse, after.desRegistrationResponse)
+            .mapN(_ =!= _)
+            .getOrElse(false) || dataRetrieveResult == DataRetrieveMissingInput
 
         val visitsIndex = processData.visitsIndex.visit(sectionNumber)
 
@@ -201,7 +218,7 @@ class FormProcessor(
               )
           )
 
-        if (needsSecondPhaseRecalculation.getOrElse(false)) {
+        if (needsSecondPhaseRecalculation) {
           val newDataRaw = cache.variadicFormData[SectionSelectorType.Normal]
           for {
             newProcessData <- processDataService

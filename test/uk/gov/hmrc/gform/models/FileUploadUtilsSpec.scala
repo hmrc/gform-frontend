@@ -36,7 +36,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       FormData(List.empty[FormField]),
       Accepted,
       VisitIndex(Set.empty),
-      ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty, None, BooleanExprCache.empty),
+      ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty, None, BooleanExprCache.empty, None),
       None,
       mapping
     )
@@ -69,7 +69,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       formData,
       Accepted,
       VisitIndex(Set.empty),
-      ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty, None, BooleanExprCache.empty),
+      ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty, None, BooleanExprCache.empty, None),
       None,
       mapping
     )

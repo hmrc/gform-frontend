@@ -17,7 +17,9 @@
 package uk.gov.hmrc.gform.models.ids
 
 import cats.data.NonEmptyList
+import cats.syntax.option.none
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import cats.syntax.option._
 
 sealed trait MultiValueId extends Product with Serializable {
 
@@ -38,6 +40,8 @@ sealed trait MultiValueId extends Product with Serializable {
     fold[ModelComponentId.Atomic](pure =>
       throw new IllegalArgumentException(s"Cannot ask for atom for pure value: $pure")
     )(_.atoms.head)
+
+  def maybeMultiValue = fold(_ => none[MultiValueId.MultiValue])(_.some)
 
   def fold[B](
     f: MultiValueId.Pure => B

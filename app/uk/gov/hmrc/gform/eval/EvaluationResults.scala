@@ -26,11 +26,11 @@ import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.ids.{ ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveFailed, DataRetrieveMissingInput, DataRetrieveNotRequired, DataRetrieveSuccess, SourceOrigin, VariadicValue }
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult]
@@ -196,6 +196,7 @@ case class EvaluationResults(
       case PeriodExt(_, _)                            => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case PeriodValue(_)                             => unsupportedOperation("Number")(expr)
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
+      case DataRetrieveCtx(_, _)                      => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -225,7 +226,18 @@ case class EvaluationResults(
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId: FormComponentId)
+      case FormCtx(formComponentId: FormComponentId)
+          if evaluationContext.sortCodeLookup(formComponentId.baseComponentId) =>
+        whenVisible(formComponentId) {
+          val indexedComponentId = formComponentId.modelComponentId.indexedComponentId
+          val sortCodeAtoms = UkSortCode.fields(indexedComponentId).toList
+          val variadicValues: List[Option[VariadicValue]] =
+            sortCodeAtoms.map(atom => recData.variadicFormData.get(atom))
+          StringResult(variadicValues.collect {
+            case Some(VariadicValue.One(value)) if value.nonEmpty => value
+          }.mkString)
+        }
+      case FormCtx(formComponentId: FormComponentId)
           if evaluationContext.addressLookup(formComponentId.baseComponentId) || evaluationContext
             .overseasAddressLookup(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {
@@ -320,6 +332,23 @@ case class EvaluationResults(
             .getOrElse(ExpressionResult.empty)
         }
       case LangCtx => StringResult(evaluationContext.lang.langADTToString)
+      case DataRetrieveCtx(id, attribute) =>
+        nonEmpty(
+          StringResult(
+            (for {
+              dataRetrieve <- evaluationContext.thirdPartyData.dataRetrieve
+              result <- dataRetrieve
+                          .get(id)
+                          .flatMap {
+                            case DataRetrieveSuccess(_, data) =>
+                              data.get(attribute)
+                            case DataRetrieveNotRequired  => None
+                            case DataRetrieveFailed       => None
+                            case DataRetrieveMissingInput => None
+                          }
+            } yield result).getOrElse("")
+          )
+        )
     }
 
     loop(typeInfo.expr)

@@ -21,7 +21,7 @@ import play.api.libs.json.{ Json, OFormat }
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceData, RevealingChoiceInfo, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.gform.RenderUnit
 import uk.gov.hmrc.gform.models.{ Basic, PageMode }
 
@@ -38,7 +38,8 @@ case class Page[A <: PageMode](
   continueLabel: Option[SmartString],
   continueIf: Option[ContinueIf],
   instruction: Option[Instruction],
-  presentationHint: Option[PresentationHint]
+  presentationHint: Option[PresentationHint],
+  dataRetrieve: Option[DataRetrieve]
 ) {
 
   val allIds: List[FormComponentId] = fields.map(_.id) ++ fields.flatMap(_.childrenFormComponents.map(_.id))

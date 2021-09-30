@@ -83,6 +83,10 @@ case class FormModel[A <: PageMode](
     fc.id.baseComponentId
   }.toSet
 
+  val sortCodeLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsUkSortCode(_) =>
+    fc.baseComponentId
+  }.toSet
+
   val overseasAddressLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsOverseasAddress(_) =>
     fc.id.baseComponentId
   }.toSet
@@ -92,7 +96,7 @@ case class FormModel[A <: PageMode](
     case _                                      => Nil
   }
 
-  private val pageModelLookup: Map[SectionNumber, PageModel[A]] = pagesWithIndex.toList.map(_.swap).toMap
+  val pageModelLookup: Map[SectionNumber, PageModel[A]] = pagesWithIndex.toList.map(_.swap).toMap
 
   val fcIdRepeatsExprLookup: Map[FormComponentId, Expr] = brackets.repeatingPageBrackets.flatMap { repeatingBracket =>
     repeatingBracket.singletons.toList.flatMap(

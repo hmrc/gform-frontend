@@ -21,6 +21,7 @@ import cats.instances.future._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
+import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrResponder }
 import uk.gov.hmrc.gform.fileupload.{ FileUploadController, FileUploadModule }
@@ -124,6 +125,11 @@ class GformModule(
     controllersModule.messagesControllerComponents
   )
 
+  private val barsBaseUrl = s"${configModule.serviceConfig.baseUrl("bars")}/v2"
+
+  val bankAccountReputationConnector =
+    new BankAccountReputationAsyncConnector(wSHttpModule.auditableWSHttp, barsBaseUrl)
+
   val addToListProcessor = new FormProcessor(
     playBuiltInsModule.i18nSupport,
     processDataService,
@@ -132,7 +138,8 @@ class GformModule(
     fastForwardService,
     graphModule.recalculation,
     fileUploadModule.fileUploadService,
-    formControllerRequestHandler
+    formControllerRequestHandler,
+    bankAccountReputationConnector
   )
 
   val formController: FormController = new FormController(
