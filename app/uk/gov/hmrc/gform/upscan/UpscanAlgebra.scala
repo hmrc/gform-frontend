@@ -37,7 +37,7 @@ trait UpscanAlgebra[F[_]] {
     downloadUrl: String
   ): F[ByteString]
 
-  def waitForConfirmation(
+  def retrieveConfirmationOrFail(
     reference: UpscanReference
   ): F[UpscanFileStatus]
 

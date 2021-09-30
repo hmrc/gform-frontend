@@ -106,7 +106,7 @@ class UpscanService(
     downloadUrl: String
   ): Future[ByteString] = upscanConnector.download(downloadUrl)
 
-  def waitForConfirmation(reference: UpscanReference): Future[UpscanFileStatus] =
+  def retrieveConfirmationOrFail(reference: UpscanReference): Future[UpscanFileStatus] =
     upscanRepository.find(reference).flatMap {
       case Some(upscanConfirmation) => upscanConfirmation.status.pure[Future]
       case None                     => Future.failed(new Exception(s"No confirmation received yet for ${reference.value}"))

@@ -131,7 +131,7 @@ class UpscanController(
 
             val formIdData: FormIdData = FormIdData(cache, maybeAccessCode)
 
-            retry(upscanService.waitForConfirmation(reference), 2.seconds, 30).flatMap { upscanFileStatus =>
+            retry(upscanService.retrieveConfirmationOrFail(reference), 2.seconds, 30).flatMap { upscanFileStatus =>
               upscanFileStatus match {
                 case UpscanFileStatus.Ready =>
                   gformBackEndAlgebra.getForm(formIdData).flatMap { form =>
