@@ -157,7 +157,6 @@
 @headerBlock = {
   @hmrcStandardHeader(
     serviceName = Some(serviceTitle),
-    serviceUrl = Some("#"),
     signOutUrl = timeoutDialog.flatMap(_.signOutUrl),
     userResearchBanner = userResearchUrl.map(url => UserResearchBanner(language, url)),
     phaseBanner = Some(phaseBanner),
