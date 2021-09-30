@@ -21,13 +21,14 @@ import uk.gov.hmrc.gform.models.{ Bracket, SingletonWithNumber, Visibility }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import cats.syntax.option._
+import play.twirl.api.Html
 
 trait PDFModel {
   sealed trait SummaryData
 
   sealed trait PageField
 
-  case class SimpleField(label: Option[String], values: List[String]) extends PageField
+  case class SimpleField(label: Option[String], values: List[Html]) extends PageField
   case class GroupField(label: Option[String], fields: List[PageField]) extends PageField
   case class ChoiceElement(label: String, fields: List[PageField])
   case class RevealingChoiceField(label: Option[String], choiceElements: List[ChoiceElement]) extends PageField
@@ -35,7 +36,7 @@ trait PDFModel {
   case class PageData(title: Option[String], fields: List[PageField], id: String) extends SummaryData
 
   case class AddToListPageGroup(title: String, pages: List[PageData], id: String)
-  case class AddToListSummary(title: String, values: List[String])
+  case class AddToListSummary(title: String, values: List[Html])
   case class AddToListData(title: String, summary: AddToListSummary, pageGroups: List[AddToListPageGroup], id: String)
       extends SummaryData
 

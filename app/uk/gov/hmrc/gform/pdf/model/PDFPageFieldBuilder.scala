@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.pdf.model
 
 import play.api.i18n.Messages
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
@@ -54,22 +55,24 @@ object PDFPageFieldBuilder {
       case IsTextArea(_) =>
         SimpleField(
           getFormComponentLabel(formComponent),
-          formatText(validationResult(formComponent), envelopeWithMapping).flatMap(_.split("\\R"))
+          formatText(validationResult(formComponent), envelopeWithMapping)
         )
 
       case IsUkSortCode(_) =>
         SimpleField(
           getFormComponentLabel(formComponent),
           List(
-            UkSortCode
-              .fields(
-                formComponent.modelComponentId.indexedComponentId
-              ) // TODO JoVl, this is weird, let's use MultiValueId instead
-              .toList
-              .map { fieldId =>
-                validationResult(formComponent).getCurrentValue(HtmlFieldId.pure(fieldId))
-              }
-              .mkString("-")
+            Html(
+              UkSortCode
+                .fields(
+                  formComponent.modelComponentId.indexedComponentId
+                ) // TODO JoVl, this is weird, let's use MultiValueId instead
+                .toList
+                .map { fieldId =>
+                  validationResult(formComponent).getCurrentValue(HtmlFieldId.pure(fieldId))
+                }
+                .mkString("-")
+            )
           )
         )
 
@@ -85,7 +88,7 @@ object PDFPageFieldBuilder {
             val month = messages(s"date.$monthKey")
             val year = validationResult(formComponent).getCurrentValue(safeId(Date.year))
 
-            s"$day $month $year"
+            Html(s"$day $month $year")
           }
         )
 
@@ -99,20 +102,21 @@ object PDFPageFieldBuilder {
           List {
             val day = renderMonth(validationResult(formComponent).getCurrentValue(safeId(CalendarDate.day)))
             val month = messages(s"date.$monthKey")
-            s"$day $month"
+            Html(s"$day $month")
           }
         )
 
       case IsTime(_) =>
         SimpleField(
           getFormComponentLabel(formComponent),
-          List(validationResult(formComponent).getCurrentValue.getOrElse(""))
+          List(Html(validationResult(formComponent).getCurrentValue.getOrElse("")))
         )
       case IsAddress(_) =>
         SimpleField(
           getFormComponentLabel(formComponent),
           Address
             .renderToString(formComponent, validationResult(formComponent))
+            .map(Html(_))
         )
 
       case IsOverseasAddress(_) =>
@@ -120,6 +124,7 @@ object PDFPageFieldBuilder {
           getFormComponentLabel(formComponent),
           OverseasAddress
             .renderToString(formComponent, validationResult(formComponent))
+            .map(Html(_))
         )
 
       case IsInformationMessage(_) =>
@@ -128,7 +133,7 @@ object PDFPageFieldBuilder {
       case IsFileUpload() =>
         SimpleField(
           getFormComponentLabel(formComponent),
-          List(envelopeWithMapping.userFileName(formComponent))
+          List(Html(envelopeWithMapping.userFileName(formComponent)))
         )
 
       case IsHmrcTaxPeriod(h) =>
@@ -137,16 +142,16 @@ object PDFPageFieldBuilder {
 
         SimpleField(
           getFormComponentLabel(formComponent).map(_.capitalize),
-          List(maybeObligation.fold("Value Lost!") { od =>
+          List(Html(maybeObligation.fold("Value Lost!") { od =>
             messages("generic.From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
               messages("generic.to") + " " + formatDate(od.inboundCorrespondenceToDate)
-          })
+          }))
         )
 
       case IsChoice(choice) =>
         SimpleField(
           getFormComponentLabel(formComponent),
-          choice.renderToString(formComponent, validationResult(formComponent))
+          choice.renderToString(formComponent, validationResult(formComponent)).map(Html(_))
         )
 
       case IsRevealingChoice(rc) =>

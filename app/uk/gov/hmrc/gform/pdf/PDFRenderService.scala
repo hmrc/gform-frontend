@@ -21,6 +21,7 @@ import play.api.mvc.Request
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
+import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.pdf.model.{ PDFCustomRender, PDFLayout, PDFPageModelBuilder, PDFType }
@@ -42,7 +43,8 @@ class PDFRenderService(fileUploadAlgebra: FileUploadAlgebra[Future], validationS
     cache: AuthCacheWithForm,
     formModelOptics: FormModelOptics[D],
     maybeHeaderFooter: Option[HeaderFooter],
-    maybeSubmissionDetails: Option[SubmissionDetails]
+    maybeSubmissionDetails: Option[SubmissionDetails],
+    purpose: SummaryPagePurpose
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -60,7 +62,8 @@ class PDFRenderService(fileUploadAlgebra: FileUploadAlgebra[Future], validationS
         validationService
           .validateFormModel(cache.toCacheData, envelopeWithMapping, formModelOptics.formModelVisibilityOptics)
     } yield {
-      val pdfModel = PDFPageModelBuilder.makeModel(formModelOptics, cache, envelopeWithMapping, validationResult)
+      val envelopeByPurpose = envelopeWithMapping.byPurpose(purpose)
+      val pdfModel = PDFPageModelBuilder.makeModel(formModelOptics, cache, envelopeByPurpose, validationResult)
       val html = pdfFunctions.layout match {
         case PDFLayout.Default =>
           summaryPdf(

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.pdf.model
 
 import play.api.i18n.Messages
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.Atom
@@ -36,7 +37,7 @@ object TextFormatter {
     l: LangADT,
     messages: Messages,
     evaluator: SmartStringEvaluator
-  ): List[String] = {
+  ): List[Html] = {
     val currentValue = validationResult.getCurrentValue.getOrElse("")
 
     def getValue(formComponent: FormComponent): List[String] = formComponent match {
@@ -74,6 +75,6 @@ object TextFormatter {
       case _ => List(currentValue)
     }
 
-    getValue(validationResult.formComponent)
+    getValue(validationResult.formComponent).map(Html(_))
   }
 }

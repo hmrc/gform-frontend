@@ -26,6 +26,7 @@ trait PdfRenderServiceExpectations {
 
   private def htmlBase(summaryRows: String, bookmarks: String)(implicit time: LocalDateTime) =
     s"""
+       |<!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
        |<html>
        |	<head>
        |		<title>PDF Title</title>
@@ -86,6 +87,7 @@ trait PdfRenderServiceExpectations {
 
   def htmlTabularBase(summaryRows: String, bookmarks: String = "") =
     s"""
+       |<!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
        |<html>
        |	<head>
        |		<title>PDF Title</title>

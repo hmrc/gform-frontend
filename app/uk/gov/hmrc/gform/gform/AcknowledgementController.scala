@@ -159,7 +159,8 @@ class AcknowledgementController(
               maybePDFHeaderFooter.map { case (maybeHeader, maybeFooter) =>
                 PDFModel.HeaderFooter(maybeHeader, maybeFooter)
               },
-              Some(SubmissionDetails(submission, hashedValue))
+              Some(SubmissionDetails(submission, hashedValue)),
+              SummaryPagePurpose.ForUser
             )
         pdfSource <- pdfService.generatePDFLocal(pdfHtml)
       } yield Result(

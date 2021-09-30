@@ -20,6 +20,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import play.api.i18n.Messages
 import play.api.test.Helpers
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -105,7 +106,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       envelopeWithMapping,
       validationResult
     ) shouldBe List(
-      PageData(Some("Section Name"), List(SimpleField(Some("name"), List("name-value"))), "0")
+      PageData(Some("Section Name"), List(SimpleField(Some("name"), List(Html("name-value")))), "0")
     )
   }
 
@@ -130,8 +131,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       envelopeWithMapping,
       validationResult
     ) shouldBe List(
-      PageData(Some("Section Name"), List(SimpleField(Some("name"), List("name-value1"))), "0"),
-      PageData(Some("Section Name"), List(SimpleField(Some("name"), List("name-value2"))), "1")
+      PageData(Some("Section Name"), List(SimpleField(Some("name"), List(Html("name-value1")))), "0"),
+      PageData(Some("Section Name"), List(SimpleField(Some("name"), List(Html("name-value2")))), "1")
     )
   }
 
@@ -181,17 +182,20 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
     ) shouldBe List(
       AddToListData(
         "Pet owner summaryName",
-        AddToListSummary("Pet owner title", List("Pet owner description", "Pet owner description")),
+        AddToListSummary(
+          "Pet owner title",
+          List(Html("<p>Pet owner description</p>"), Html("<p>Pet owner description</p>"))
+        ),
         List(
           AddToListPageGroup(
             "Pet owner shortName",
             List(
               PageData(
                 Some("Section Name"),
-                List(SimpleField(Some("name"), List("name-value1")), SimpleField(Some("age"), List("1"))),
+                List(SimpleField(Some("name"), List(Html("name-value1"))), SimpleField(Some("age"), List(Html("1")))),
                 "0"
               ),
-              PageData(Some("Section Name"), List(SimpleField(Some("email"), List("somename1@test.com"))), "1")
+              PageData(Some("Section Name"), List(SimpleField(Some("email"), List(Html("somename1@test.com")))), "1")
             ),
             "addToListQuestion0"
           ),
@@ -200,10 +204,10 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
             List(
               PageData(
                 Some("Section Name"),
-                List(SimpleField(Some("name"), List("name-value2")), SimpleField(Some("age"), List("2"))),
+                List(SimpleField(Some("name"), List(Html("name-value2"))), SimpleField(Some("age"), List(Html("2")))),
                 "3"
               ),
-              PageData(Some("Section Name"), List(SimpleField(Some("email"), List("name-value2@test.com"))), "4")
+              PageData(Some("Section Name"), List(SimpleField(Some("email"), List(Html("name-value2@test.com")))), "4")
             ),
             "addToListQuestion1"
           )
@@ -239,7 +243,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       PageData(
         None,
         List(
-          SimpleField(Some("name"), List("name-value"))
+          SimpleField(Some("name"), List(Html("name-value")))
         ),
         "0"
       )
@@ -281,15 +285,15 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
         PageData(
           Some("page2-instruction"),
           List(
-            SimpleField(Some("email-instruction"), List("somename@test.com")),
-            SimpleField(Some("age-instruction"), List("1"))
+            SimpleField(Some("email-instruction"), List(Html("somename@test.com"))),
+            SimpleField(Some("age-instruction"), List(Html("1")))
           ),
           "1"
         ),
         PageData(
           Some("page1-instruction"),
           List(
-            SimpleField(Some("name-instruction"), List("name-value"))
+            SimpleField(Some("name-instruction"), List(Html("name-value")))
           ),
           "0"
         )
@@ -307,7 +311,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       PageData(
         None,
         List(
-          SimpleField(Some("name-instruction"), List("name-value"))
+          SimpleField(Some("name-instruction"), List(Html("name-value")))
         ),
         "0"
       )
@@ -341,7 +345,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       PageData(
         Some("some-instruction"),
         List(
-          SimpleField(Some("email-instruction"), List("somename@test.com"))
+          SimpleField(Some("email-instruction"), List(Html("somename@test.com")))
         ),
         "0"
       )
