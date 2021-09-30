@@ -25,7 +25,7 @@ import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
-import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder }
+import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder, SummaryPagePurpose }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -172,7 +172,8 @@ class GformBackEndService(
             case d: DestinationList => d.acknowledgementSection.pdf.map(p => PDFModel.HeaderFooter(p.header, p.footer))
             case _                  => None
           },
-          submissionDetails
+          submissionDetails,
+          SummaryPagePurpose.ForDms
         )
       htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate))
                                  createHTMLForInstructionPDF[SectionSelectorType.Normal, D](
@@ -238,7 +239,8 @@ class GformBackEndService(
               acknowledgementSection.instructionPdf.map(p => PDFModel.HeaderFooter(p.header, p.footer))
             case _ => None
           },
-          submissionDetails
+          submissionDetails,
+          SummaryPagePurpose.ForDms
         )
         .map(Some(_))
     }

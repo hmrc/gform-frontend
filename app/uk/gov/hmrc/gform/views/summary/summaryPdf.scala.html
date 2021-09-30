@@ -31,7 +31,8 @@
     maybeSubmissionDetails: Option[SubmissionDetails],
     formTemplate: FormTemplate
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
-
+@* check https://github.com/danfickle/openhtmltopdf/blob/open-dev-v1/openhtmltopdf-examples/src/main/resources/documentation/documentation.md *@
+<!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
 <html>
 <head>
     <title>@title</title>
@@ -65,7 +66,9 @@
     </bookmarks>
 </head>
 <body>
-    <p> HM Revenue &amp; Customs </p>
+    @if(formTemplate.displayHMRCLogo) {
+        <p> HM Revenue &amp; Customs </p>
+    }
     <div>
         <h1>@{formTemplate.formName.value}</h1>
         @for(pageTitle <- maybePageTitle) {
@@ -87,15 +90,15 @@
                         <dt>@{summary.title}</dt>
                         <dd>
                             @for(v <- summary.values) {
-                                @v <br/>
+                                @v
                             }
                         </dd>
                     </dl>
                     @for(pageGroup <- pageGroups) {
                         <div id="@{pageGroup.id}">
-                            <h3>
+                            <h2>
                                 @{pageGroup.title}
-                            </h3>
+                            </h2>
                             @for(pageData <- pageGroup.pages) {
                                 @summaryPdf_page(pageData)
                             }

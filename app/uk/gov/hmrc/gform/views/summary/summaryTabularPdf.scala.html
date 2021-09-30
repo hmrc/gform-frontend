@@ -29,7 +29,8 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
 
 @timeFormat = @{DateTimeFormatter.ofPattern("HH:mm")}
 @dateFormat = @{DateTimeFormatter.ofPattern("dd MMM yyyy")}
-
+@* check https://github.com/danfickle/openhtmltopdf/blob/open-dev-v1/openhtmltopdf-examples/src/main/resources/documentation/documentation.md *@
+<!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
 <html>
 <head>
     <title>@{title}</title>

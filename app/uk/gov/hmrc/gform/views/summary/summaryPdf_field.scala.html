@@ -20,7 +20,7 @@
 
 @(field: PageField)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
-@renderValues(values: List[String]) = {
+@renderValues(values: List[Html]) = {
     @for(value <- values) {
         @value<br/>
     }

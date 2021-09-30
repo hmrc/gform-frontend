@@ -229,7 +229,8 @@ class SummaryController(
           cache,
           formModelOptics,
           Some(PDFModel.HeaderFooter(Some(cache.formTemplate.summarySection.header), None)),
-          None
+          None,
+          SummaryPagePurpose.ForUser
         )
         .flatMap(pdfGeneratorService.generatePDFLocal)
         .map { pdfSource =>

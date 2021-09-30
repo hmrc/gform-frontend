@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadAlgebra }
+import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormTemplate, mkSection }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType }
@@ -135,7 +136,8 @@ class PDFRenderServiceSpec
         cache,
         formModelOptics,
         Some(HeaderFooter(Some(toSmartString("Some PDF header")), Some(toSmartString("Some PDF footer")))),
-        Some(SubmissionDetails(ExampleData.submission, "abcdefgh"))
+        Some(SubmissionDetails(ExampleData.submission, "abcdefgh")),
+        SummaryPagePurpose.ForUser
       )
     ) { pdfHtml =>
       pdfHtml.html.trimLines shouldBe nonRepeatingPageSummaryPDFHTML
@@ -164,10 +166,10 @@ class PDFRenderServiceSpec
         cache,
         formModelOptics,
         Some(HeaderFooter(Some(toSmartString("Some PDF header")), Some(toSmartString("Some PDF footer")))),
-        None
+        None,
+        SummaryPagePurpose.ForUser
       )
     ) { pdfHtml =>
-      println(pdfHtml.html)
       pdfHtml.html.trimLines shouldBe nonRepeatingPageInstructionPDFHTML
     }
   }
