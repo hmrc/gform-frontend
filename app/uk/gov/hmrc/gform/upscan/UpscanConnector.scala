@@ -27,7 +27,11 @@ class UpscanConnector(ws: WSHttp, baseUrl: String)(implicit
 ) {
 
   def upscanInitiate(request: UpscanInitiateRequest)(implicit hc: HeaderCarrier): Future[UpscanInitiateResponse] =
-    ws.POST[UpscanInitiateRequest, UpscanInitiateResponse](s"$baseUrl/v2/initiate", request)
+    ws.POST[UpscanInitiateRequest, UpscanInitiateResponse](
+      s"$baseUrl/v2/initiate",
+      request,
+      List(("User-Agent", "gform-trontend"))
+    )
 
   def download(downloadUrl: String): Future[ByteString] = ws.getByteString(downloadUrl)
 

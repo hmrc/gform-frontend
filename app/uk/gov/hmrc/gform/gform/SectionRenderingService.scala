@@ -1083,7 +1083,7 @@ class SectionRenderingService(
           ei.sectionNumber
         )
 
-    HtmlFormat.fill(fileInput :: uploadedFiles :: hiddenFields)
+    HtmlFormat.fill(hiddenFields ++ List(fileInput, uploadedFiles))
   }
 
   private def htmlForChoice(
