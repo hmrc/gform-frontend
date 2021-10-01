@@ -351,6 +351,9 @@
         url: dataset.upscanUrl,
         type: "POST",
         data: formData,
+        headers: {
+          "User-Agent": "gform-frontend"
+        },
         processData: false,
         contentType: false,
         xhrFields: {

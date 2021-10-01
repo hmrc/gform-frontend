@@ -68,6 +68,7 @@ class UpscanController(
 
   def callback(formComponentId: FormComponentId, envelopeId: EnvelopeId, formIdDataCrypted: Crypted): Action[JsValue] =
     nonAuth.json { implicit request => l =>
+      logger.info("Upscan callback - received notification for $formComponentId")
       implicit val hc = HeaderCarrier() // This is called by upscan service, this call has no session data
 
       val upscanCallbackPayload: JsResult[UpscanCallback] = request.body.validate[UpscanCallback]
