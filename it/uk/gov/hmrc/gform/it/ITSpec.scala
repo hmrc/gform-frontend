@@ -35,6 +35,7 @@ trait ITSpec
 
   val settingsOverride: Map[String, String] = Map(
     "auditing.enabled"                                 -> "false",
+    "metrics.enabled"                                  -> "false",
     "json.encryption.key"                              -> "fqpLDZ4sumDsekHkeEBlCA==",
     "json.encryption.previousKeys"                     -> "",
     "microservice.services.auth.port"                  -> s"$wiremockPort",

@@ -304,7 +304,7 @@ taxPeriod.noResults.getHelp=Cysylltwch â CThEM i gael help.
 
 # File upload
 file.upload=Uwchlwytho ffeil
-file.upload.done=has been uploaded
+file.upload.done=Uwchlwythwyd <strong>{0}</strong>
 file.delete=Dileu
 file.delete.file=Dileu {0}
 file.error.upload.one.only=Gallwch ond uwchlwytho un ffeil ar y tro

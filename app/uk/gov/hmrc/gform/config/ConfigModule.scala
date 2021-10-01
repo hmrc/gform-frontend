@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.config
 import cats.data.NonEmptyList
 import com.typesafe.config.{ ConfigFactory, Config => TypeSafeConfig }
 import org.typelevel.ci.CIString
-import play.api.libs.ws.WSClient
 import play.api.{ ApplicationLoader, Configuration, Environment }
 import play.api.Mode
 import play.api.i18n.Lang
@@ -32,7 +31,7 @@ import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerCon
 import org.typelevel.ci._
 import play.api.http.HttpConfiguration
 
-class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: PlayBuiltInsModule, wsClient: WSClient) {
+class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: PlayBuiltInsModule) {
 
   val playConfiguration: Configuration = context.initialConfiguration
   val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(playConfiguration, context.environment)

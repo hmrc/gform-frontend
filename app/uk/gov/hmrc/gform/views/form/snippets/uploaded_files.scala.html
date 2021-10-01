@@ -16,46 +16,42 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormComponentId, SectionNumber }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, SectionNumber }
 
 @(
-  maybeAccessCode: Option[AccessCode],
-  formTemplateId: FormTemplateId,
   formComponentId: FormComponentId,
   fileId: FileId,
   maybeCurrentValue: Option[String],
   noJsButton: Button,
-  deleteUrl: String,
+  deleteUrl: Call,
   sectionNumber: SectionNumber
 )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
 @govukButton = @{new GovukButton()}
 
-@defining(formTemplateId.value, maybeAccessCode.getOrElse("-")) { case (templateId, accessCode) =>
-  <div id="@formComponentId-files" class="govuk-body uploaded-files">
-    @maybeCurrentValue.map { currentValue =>
-      @defining(currentValue.replace(fileId.value + "_", "")) { fileName =>
-        @defining(fileName + " " + messages("file.delete")) { ariaLabel =>
-          <dl class="govuk-summary-list app-file-upload__list">
-            <div class="govuk-summary-list__row">
-              <dd class="govuk-summary-list__value">
-                <span id="fileupload" role="status" aria-live="polite"><strong>@{fileName}</strong> @{messages("file.upload.done")}</span>
-              </dd>
-              <dd class="govuk-summary-list__actions app-file-upload__actions">
-                @govukButton(Button(content = Text(messages("file.delete")),
-                inputType=Some("submit"),
-                attributes = Map("id" -> "fileDelete", "aria-label" -> ariaLabel, "formaction" -> uk.gov.hmrc.gform.fileupload.routes.FileUploadController.deleteFile(formTemplateId, maybeAccessCode, sectionNumber, formComponentId).path),
-                classes="govuk-button--secondary govuk-!-margin-bottom-0"))
-              </dd>
-            </div>
-          </dl>
-        }
+<div id="@formComponentId-files" class="govuk-body uploaded-files">
+  @maybeCurrentValue.map { currentValue =>
+    @defining(currentValue.replace(fileId.value + "_", "")) { fileName =>
+      @defining(fileName + " " + messages("file.delete")) { ariaLabel =>
+        <dl class="govuk-summary-list app-file-upload__list">
+          <div class="govuk-summary-list__row">
+            <dd class="govuk-summary-list__value">
+              <span id="fileupload" role="status" aria-live="polite">@{Html(messages("file.upload.done", fileName))}</span>
+            </dd>
+            <dd class="govuk-summary-list__actions app-file-upload__actions">
+              @govukButton(Button(content = Text(messages("file.delete")),
+              inputType=Some("submit"),
+              attributes = Map("id" -> "fileDelete", "aria-label" -> ariaLabel, "formaction" -> deleteUrl.path),
+              classes="govuk-button--secondary govuk-!-margin-bottom-0"))
+            </dd>
+          </div>
+        </dl>
       }
     }
+  }
+</div>
+<noscript>
+  <div>
+    @govukButton(noJsButton)
   </div>
-  <noscript>
-    <div>
-      @govukButton(noJsButton)
-    </div>
-  </noscript>
-}
+</noscript>

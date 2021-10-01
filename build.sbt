@@ -11,6 +11,8 @@ import org.irundaia.sbt.sass._
 
 val silencerVersion = "1.7.0"
 
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
 lazy val IntegrationTest = config("it") extend Test
 
 lazy val microservice = (project in file("."))
@@ -48,6 +50,7 @@ lazy val microservice = (project in file("."))
       compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full)
     ),
     routesImport ++= Seq(
+      "uk.gov.hmrc.crypto.Crypted",
       "uk.gov.hmrc.gform.binders.ValueClassBinder._",
       "uk.gov.hmrc.gform.controllers.Direction",
       "uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations._",
@@ -56,7 +59,8 @@ lazy val microservice = (project in file("."))
       "uk.gov.hmrc.gform.sharedmodel.form._",
       "uk.gov.hmrc.gform.sharedmodel._",
       "uk.gov.hmrc.gform.auth._",
-      "uk.gov.hmrc.gform.models._"
+      "uk.gov.hmrc.gform.models._",
+      "uk.gov.hmrc.gform.upscan.UpscanReference"
     ),
     TwirlKeys.templateImports ++= Seq(
       "play.twirl.api.Html",

@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.playcomponents
 
 import akka.stream.Materializer
 import play.api.mvc.{ EssentialFilter, SessionCookieBaker }
+import play.filters.cors.{ CORSConfig, CORSFilter }
 import play.filters.csrf.CSRFComponents
 import play.filters.headers.SecurityHeadersFilter
 import uk.gov.hmrc.gform.akka.AkkaModule
@@ -145,7 +146,12 @@ class FrontendFiltersModule(
 
   private val emailAuthClearSessionFilter = new EmailAuthSessionPurgeFilter(gformBackendModule.gformConnector)
 
+  private val corsConfig = CORSConfig.fromConfiguration(configModule.playConfiguration)
+
+  private val corsFilter = new CORSFilter(corsConfig)
+
   lazy val httpFilters: Seq[EssentialFilter] = Seq(
+    corsFilter,
     securityHeadersFilter,
     metricsModule.metricsFilter,
     sessionCookieDispatcherFilter,

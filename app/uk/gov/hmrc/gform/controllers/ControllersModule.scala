@@ -48,6 +48,7 @@ class ControllersModule(
 
   val nonAuthenticatedRequestActions: NonAuthenticatedRequestActions = new NonAuthenticatedRequestActions(
     playBuiltInsModule.langs,
+    playBuiltInsModule.builtInComponents.playBodyParsers,
     builtInComponents.defaultActionBuilder
   )
 

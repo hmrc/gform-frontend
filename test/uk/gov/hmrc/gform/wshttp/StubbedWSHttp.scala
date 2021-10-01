@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.wshttp
 
 import akka.actor.ActorSystem
+import akka.util.ByteString
 import com.typesafe.config.{ Config, ConfigFactory }
 import play.api.libs.json.Writes
 import play.api.libs.ws.WSClient
@@ -58,4 +59,15 @@ class StubbedWSHttp(response: HttpResponse) extends WSHttp {
                                                                              |""".stripMargin)
 
   override val wsClient: WSClient = null
+
+  override def POSTFile(
+    url: String,
+    fileName: String,
+    body: ByteString,
+    headers: Seq[(String, String)],
+    contentType: String
+  )(implicit ec: ExecutionContext): Future[HttpResponse] = Future.successful(response)
+
+  override def getByteString(url: String)(implicit ec: ExecutionContext): Future[ByteString] =
+    Future.successful(ByteString.empty)
 }

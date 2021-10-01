@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.bars
 
 import akka.actor.ActorSystem
+import akka.util.ByteString
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.typesafe.config.{ Config, ConfigFactory }
@@ -28,9 +29,11 @@ import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.test.WsTestClient.InternalWSClient
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.WiremockSupport
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector._
 import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.http.hooks.HttpHook
 import uk.gov.hmrc.http.{ HeaderCarrier, RequestId, UpstreamErrorResponse }
 
@@ -70,6 +73,17 @@ class BankAccountReputationAsyncConnectorSpec
                                                                                |""".stripMargin)
     override val hooks: Seq[HttpHook] = Seq.empty
     override protected def wsClient: WSClient = new InternalWSClient("http", wiremockPort)
+
+    override def POSTFile(
+      url: String,
+      fileName: String,
+      body: ByteString,
+      headers: Seq[(String, String)],
+      contentType: String
+    )(implicit ec: ExecutionContext): Future[HttpResponse] = Future.failed(new Exception("POSTFile Not implemented"))
+
+    override def getByteString(url: String)(implicit ec: ExecutionContext): Future[ByteString] =
+      Future.successful(ByteString.empty)
   }
 
   val bankAccountReputationAsyncConnector = new BankAccountReputationAsyncConnector(wsHttp, url)

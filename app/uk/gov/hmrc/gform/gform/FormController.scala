@@ -46,6 +46,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.upscan.UpscanAlgebra
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationService }
 import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
@@ -59,6 +60,7 @@ class FormController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
   fileUploadService: FileUploadAlgebra[Future],
+  upscanService: UpscanAlgebra[Future],
   validationService: ValidationService,
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
@@ -102,27 +104,39 @@ class FormController(
               singleton: Singleton[DataExpanded],
               sectionNumber: SectionNumber,
               handlerResult: FormHandlerResult
-            ) = Ok {
-              renderer.renderSection(
-                maybeAccessCode,
+            ) = upscanService
+              .upscanInitiate(
+                singleton.upscanInitiateRequests,
+                formTemplateId,
                 sectionNumber,
-                handlerResult,
-                cache.formTemplate,
-                cache.form.envelopeId,
-                singleton,
-                formMaxAttachmentSizeMB,
-                contentTypes,
-                restrictedFileExtensions,
-                cache.retrievals,
-                cache.form.thirdPartyData.obligations,
-                fastForward,
-                formModelOptics
+                maybeAccessCode,
+                cache.form,
+                FormIdData(cache, maybeAccessCode)
               )
-            }
+              .map { upscanInitiate =>
+                Ok {
+                  renderer.renderSection(
+                    maybeAccessCode,
+                    sectionNumber,
+                    handlerResult,
+                    cache.formTemplate,
+                    cache.form.envelopeId,
+                    singleton,
+                    formMaxAttachmentSizeMB,
+                    contentTypes,
+                    restrictedFileExtensions,
+                    cache.retrievals,
+                    cache.form.thirdPartyData.obligations,
+                    fastForward,
+                    formModelOptics,
+                    upscanInitiate
+                  )
+                }
+              }
 
             def validateSections(suppressErrors: SuppressErrors, sectionNumbers: SectionNumber*)(
-              f: FormHandlerResult => Result
-            ) =
+              f: FormHandlerResult => Future[Result]
+            ): Future[Result] =
               handler
                 .handleSuppressErrors(
                   formModelOptics,
@@ -132,7 +146,7 @@ class FormController(
                   validationService.validatePageModel _,
                   suppressErrors
                 )
-                .map(f)
+                .flatMap(f)
 
             val formModel = formModelOptics.formModelRenderPageOptics.formModel
             val bracket = formModel.bracket(sectionNumber)
@@ -173,7 +187,7 @@ class FormController(
                           cache,
                           handlerResult.envelope
                         )
-                      )
+                      ).pure[Future]
                     )
                   case _ =>
                     if (repeaterSectionNumber === sectionNumber) {
@@ -198,7 +212,7 @@ class FormController(
                               handlerResult.validationResult,
                               cache.retrievals
                             )
-                          )
+                          ).pure[Future]
                         )
                       } else {
                         // We want to display last repeater

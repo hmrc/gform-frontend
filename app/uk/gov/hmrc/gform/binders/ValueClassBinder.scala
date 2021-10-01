@@ -19,9 +19,11 @@ package uk.gov.hmrc.gform.binders
 import cats.implicits._
 import play.api.libs.json._
 import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
+import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.controllers.{ AddGroup, Back, Direction, EditAddToList, Exit, RemoveGroup, SaveAndContinue, SaveAndExit, SummaryContinue }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ ExpandUtils, FastForward, LookupQuery }
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId, FormStatus }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
@@ -51,6 +53,7 @@ object ValueClassBinder {
   implicit val fileIdBinder: PathBindable[FileId] = valueClassBinder(_.value)
 
   implicit val accessCodeBinder: PathBindable[AccessCode] = valueClassBinder(_.value)
+  implicit val envelopeIdBinder: PathBindable[EnvelopeId] = valueClassBinder(_.value)
   implicit val submissionRefBinder: PathBindable[SubmissionRef] = valueClassBinder(_.value)
   implicit val destinationIdBinder: PathBindable[DestinationId] = valueClassBinder(_.id)
   implicit val sectionTitle4GaBinder: PathBindable[SectionTitle4Ga] = valueClassBinder(_.value)
@@ -133,6 +136,12 @@ object ValueClassBinder {
     }
 
   implicit val formIdQueryBinder: QueryStringBindable[FormId] = valueClassQueryBinder(_.value)
+
+  implicit val reads: Reads[Crypted] = Reads {
+    case JsString(str) => JsSuccess(Crypted(str))
+    case unknown       => JsError(s"Failed to read Crypted. Expected JsString, but found $unknown")
+  }
+  implicit val cryptedBinder: QueryStringBindable[Crypted] = valueClassQueryBinder(_.value)
 
   implicit val sectionNumberQueryBinder: QueryStringBindable[SectionNumber] = new QueryStringBindable[SectionNumber] {
 

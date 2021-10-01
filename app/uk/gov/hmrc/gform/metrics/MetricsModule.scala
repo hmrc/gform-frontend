@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.metrics
 
-import com.kenshoo.play.metrics.{ MetricsController, MetricsFilter, MetricsFilterImpl, MetricsImpl }
+import com.kenshoo.play.metrics.{ DisabledMetrics, DisabledMetricsFilter, MetricsController, MetricsFilter, MetricsFilterImpl, MetricsImpl }
 import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.config.ConfigModule
@@ -30,9 +30,21 @@ class MetricsModule(
   ec: ExecutionContext
 ) {
 
-  val metrics = new MetricsImpl(configModule.context.lifecycle, configModule.context.initialConfiguration)
+  val kenshooMetricsEnabled = configModule.playConfiguration.get[Boolean]("metrics.enabled") // metrics collection
 
-  val metricsFilter: MetricsFilter = new MetricsFilterImpl(metrics)(akkaModule.materializer, ec)
+  val (metrics, metricsFilter) = if (kenshooMetricsEnabled) {
+
+    val metrics = new MetricsImpl(configModule.context.lifecycle, configModule.context.initialConfiguration)
+    val metricsFilter: MetricsFilter = new MetricsFilterImpl(metrics)(akkaModule.materializer, ec)
+
+    (metrics, metricsFilter)
+  } else {
+
+    val metrics = new DisabledMetrics()
+    val metricsFilter: MetricsFilter = new DisabledMetricsFilter()(akkaModule.materializer)
+
+    (metrics, metricsFilter)
+  }
 
   val metricsController = new MetricsController(metrics, controllerComponents)
 

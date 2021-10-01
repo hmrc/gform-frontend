@@ -42,6 +42,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.upscan.UpscanInitiate
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -151,7 +152,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         authContext,
         NotChecked,
         FastForward.Yes,
-        formModelOptics
+        formModelOptics,
+        UpscanInitiate.empty
       )
 
     val phoneField = Jsoup.parse(generatedHtml.body).getElementById("phoneNumber")
@@ -189,7 +191,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         authContext,
         NotChecked,
         FastForward.Yes,
-        formModelOptics
+        formModelOptics,
+        UpscanInitiate.empty
       )
 
     val textFieldHtml = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-label")
@@ -226,7 +229,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         authContext,
         NotChecked,
         FastForward.Yes,
-        formModelOptics
+        formModelOptics,
+        UpscanInitiate.empty
       )
 
     val textFieldHtml: Elements = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button")
@@ -268,7 +272,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         authContext,
         NotChecked,
         FastForward.Yes,
-        formModelOptics
+        formModelOptics,
+        UpscanInitiate.empty
       )
 
     Jsoup.parse(generatedHtml.body).title() shouldBe "Some title without PII - AAA999 dev test template - GOV.UK"

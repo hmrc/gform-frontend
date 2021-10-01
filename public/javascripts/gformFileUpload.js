@@ -31,11 +31,11 @@
     },
     uploadingFile: {
       en: "Uploading file",
-      cy: "Uploading file"
+      cy: "Wrthi’n uwchlwytho’r ffeil"
     },
     hasBeenUploaded: {
-      en: "has been uploaded",
-      cy: "has been uploaded"
+      en: "{0} has been uploaded",
+      cy: "Uwchlwythwyd {0}"
     }
   };
 
@@ -208,7 +208,7 @@
   }
 
   function getFileExtension(fileName) {
-    var fa = fileName.split('.');
+    var fa = fileName.split(".");
     if (fa.length > 1) {
       return fa.pop();
     } else {
@@ -286,38 +286,86 @@
 
       var formComponentId = $input.attr("id");
 
-      uploadFile(file, fileId, formComponentId)
-        .then(function(response) {
-          return updateMapping(
-            formComponentId,
-            fileId,
-            formTemplateId,
-            accessCode
-          );
-        }, onError)
-        .then(function(response) {
-          fileUploadSuccess(
-            formComponentId,
-            file.name,
-            formTemplateId,
-            $input,
-            accessCode,
-            sectionNumber
-          );
-        }, onError);
+      $("#" + formComponentId + "-files")
+        .empty()
+        .append(startProgressBar());
+
+      if (e.target.hasAttribute("upscan")) {
+        uploadFileUpscan(dataset)
+          .then(function(response) {
+            var key = document.getElementsByName("key")[0].value
+            return checkConfirmation(key);
+          }, onError)
+          .then(function(response) {
+            if(response == "error") {
+              onError({statusText: strings.unexpectedError[lang]});
+              hideFileStatus(formComponentId);
+            } else {
+              fileUploadSuccess(
+                formComponentId,
+                file.name,
+                formTemplateId,
+                $input,
+                accessCode,
+                sectionNumber
+              );
+            }
+          }, onError);
+      } else {
+        uploadFile(file, fileId)
+          .then(function(response) {
+            return updateMapping(
+              formComponentId,
+              fileId,
+              formTemplateId,
+              accessCode
+            );
+          }, onError)
+          .then(function(response) {
+            fileUploadSuccess(
+              formComponentId,
+              file.name,
+              formTemplateId,
+              $input,
+              accessCode,
+              sectionNumber
+            );
+          }, onError);
+      }
+    }
+
+    function checkConfirmation(key) {
+      return $.ajax({
+        url: "/submissions/upscan/check/" + key,
+        type: "GET"
+      });
+    }
+
+    // Handle upscan file upload request
+    function uploadFileUpscan(dataset) {
+      var formData = new FormData(document.getElementById("gf-form"));
+
+      return $.ajax({
+        url: dataset.upscanUrl,
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        xhrFields: {
+          withCredentials: true
+        }
+      })
     }
 
     // Handle file upload request
-    function uploadFile(file, fileId, formComponentId) {
+    function uploadFile(file, fileId) {
       var formData = new FormData();
       formData.append(
         fileId,
         file,
         fileId + "_" + file.name.replace(/\\/g, "/").replace(/.*\//, "")
       );
-      $("#" + formComponentId + "-files")
-        .empty()
-        .append(startProgressBar());
+
       return $.ajax({
         url:
           "/file-upload/upload/envelopes/" +
@@ -381,8 +429,12 @@
     function makeFileEntry(name, formComponentId, formTemplateId, accessCode, sectionNumber) {
       var deleteUrl = "/submissions/form/delete-file/" + formTemplateId + "/" + accessCode + "/" + sectionNumber + "/" + formComponentId
       var ariaLabel = name + " " + strings.deleteLabel[lang]
+
+      var hasBeenUploadedMessage = interpolate(strings.hasBeenUploaded[lang], [
+        " <strong>" + name + "</strong> "
+      ])
       return progressBarWrapper(
-        "<span id='fileupload' role='status' aria-live='polite'><strong>" + name + "</strong> " + strings.hasBeenUploaded[lang] +  "</span>",
+        "<span id='fileupload' role='status' aria-live='polite'>" + hasBeenUploadedMessage +  "</span>",
         "<button type='submit' class='govuk-button govuk-button--secondary govuk-!-margin-bottom-0' data-module='govuk-button' id='fileDelete' aria-label='" + ariaLabel + "' formaction='" + deleteUrl + "'>" +
           strings.deleteLabel[lang] +
         "</button>"
@@ -435,7 +487,7 @@
 
       return fileDelete(deleteUrl).then(
         function(response) {
-          fileDeleteSuccess(d.formComponentId);
+          hideFileStatus(d.formComponentId);
         },
         function(err) {
           t.removeAttr("aria-busy");
@@ -458,7 +510,7 @@
     }
 
     // File deletion succeeded
-    function fileDeleteSuccess(formComponentId) {
+    function hideFileStatus(formComponentId) {
       enableSubmitButton();
       $("#" + formComponentId + "-files").empty();
       $("#" + formComponentId).val("");
