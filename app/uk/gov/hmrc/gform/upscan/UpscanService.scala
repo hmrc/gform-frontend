@@ -83,13 +83,14 @@ class UpscanService(
   ): UpscanInitiateRequest = {
 
     val baseUrl = appConfig.`gform-frontend-base-url`
+    val baseUrlInternal = appConfig.`gform-frontend-base-url-internal`
 
     val formIdDataString = Json.stringify(Json.toJson(formIdData))
 
     val formIdDataCrypted: Crypted = queryParameterCrypto.encrypt(PlainText(formIdDataString))
 
     val callback: String =
-      baseUrl + UpscanController.callback(formComponentId, envelopeId, formIdDataCrypted).url
+      baseUrlInternal + UpscanController.callback(formComponentId, envelopeId, formIdDataCrypted).url
     val successRedirect: String =
       baseUrl + UpscanController.success(formTemplateId, sectionNumber, maybeAccessCode, formComponentId).url
     val errorRedirect: String =

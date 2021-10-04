@@ -27,6 +27,7 @@ case class AppConfig(
   appName: String,
   `government-gateway-sign-in-url`: String,
   `gform-frontend-base-url`: String,
+  `gform-frontend-base-url-internal`: String,
   `agent-subscription-frontend-base-url`: String,
   feature: FeatureToggle,
   `auth-module`: AuthModule,

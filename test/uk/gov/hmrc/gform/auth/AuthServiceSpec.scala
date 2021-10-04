@@ -44,6 +44,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     appName = "appName",
     `government-gateway-sign-in-url` = "government-gateway-sign-in-url",
     `gform-frontend-base-url` = "gform-frontend-base-url",
+    `gform-frontend-base-url-internal` = "gform-frontend-base-url-internal",
     `agent-subscription-frontend-base-url` = "agent-subscription-frontend-base-url",
     feature = null,
     formMaxAttachmentSizeMB = 1,
