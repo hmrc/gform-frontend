@@ -90,88 +90,103 @@ class SummaryController(
     ) { implicit request: Request[AnyContent] => implicit l => cache => implicit sse => formModelOptics =>
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
         requestRelatedData => variadicFormData =>
-          val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
-
-          val isFormValidF = for {
-            envelope <- envelopeF
-            validationResult <- validationService
-                                  .validateFormModel(
-                                    cache.toCacheData,
-                                    EnvelopeWithMapping(envelope, cache.form),
-                                    formModelOptics.formModelVisibilityOptics
-                                  )
-          } yield validationResult.isFormValid
-
-          val redirectToDeclarationOrPrint = gformConnector
-            .updateUserData(
-              FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
-              UserData(
-                cache.form.formData,
-                Validated,
-                cache.form.visitsIndex,
-                cache.form.thirdPartyData,
-                cache.form.componentIdToFileId
-              )
-            )
-            .flatMap { _ =>
-              cache.formTemplate.destinations match {
-                case DestinationList(_, _, _: Some[DeclarationSection]) =>
-                  Redirect(
-                    routes.DeclarationController
-                      .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes)
-                  ).pure[Future]
-                case DestinationList(_, _, None) =>
-                  processSubmission(maybeAccessCode, cache, formModelOptics)
-                case _: DestinationPrint =>
-                  Redirect(
-                    routes.PrintSectionController
-                      .showPrintSection(formTemplateId, maybeAccessCode)
-                  ).pure[Future]
-              }
-            }
-          val redirectToSummary =
-            Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
-          val handleSummaryContinue = for {
-            result <- isFormValidF.ifM(
-                        redirectToDeclarationOrPrint,
-                        redirectToSummary.pure[Future]
-                      )
-          } yield result
-
-          def handleExit(formTemplate: FormTemplate): Result =
-            maybeAccessCode match {
-              case Some(accessCode) =>
-                val saveWithAccessCode = new SaveWithAccessCode(cache.formTemplate, accessCode)
-                Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
-              case _ =>
-                val config: Option[AuthConfig] =
-                  formTemplate.authConfig match {
-                    case Composite(configs) =>
-                      val compositeAuthDetails =
-                        jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-                          .get(formTemplate._id)
-                      AuthConfig
-                        .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
-                    case config => Some(config)
-                  }
-
-                config match {
-                  case Some(c) if c.isEmailAuthConfig =>
-                    Redirect(gform.routes.SaveAcknowledgementController.show(formTemplateId))
-                  case _ =>
-                    val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
-                    val saveAcknowledgement = new SaveAcknowledgement(cache.formTemplate, cache.form.envelopeExpiryDate)
-                    Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
-                }
-            }
-
           save match {
-            case Exit            => handleExit(cache.formTemplate).pure[Future]
-            case SummaryContinue => handleSummaryContinue
+            case Exit            => handleExit(cache.formTemplate, maybeAccessCode, cache).pure[Future]
+            case SummaryContinue => handleSummaryContinue(formTemplateId, maybeAccessCode, cache, formModelOptics)
             case _               => BadRequest("Cannot determine action").pure[Future]
           }
       }
     }
+
+  def handleExit(formTemplate: FormTemplate, maybeAccessCode: Option[AccessCode], cache: AuthCacheWithForm)(implicit
+    request: Request[AnyContent],
+    l: LangADT
+  ): Result =
+    maybeAccessCode match {
+      case Some(accessCode) =>
+        val saveWithAccessCode = new SaveWithAccessCode(formTemplate, accessCode)
+        Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
+      case _ =>
+        val config: Option[AuthConfig] =
+          formTemplate.authConfig match {
+            case Composite(configs) =>
+              val compositeAuthDetails =
+                jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+                  .get(formTemplate._id)
+              AuthConfig
+                .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
+            case config => Some(config)
+          }
+
+        config match {
+          case Some(c) if c.isEmailAuthConfig =>
+            Redirect(gform.routes.SaveAcknowledgementController.show(formTemplate._id))
+          case _ =>
+            val call = routes.SummaryController.summaryById(formTemplate._id, maybeAccessCode)
+            val saveAcknowledgement = new SaveAcknowledgement(formTemplate, cache.form.envelopeExpiryDate)
+            Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
+        }
+    }
+
+  private def handleSummaryContinue(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(implicit
+    request: Request[AnyContent],
+    hc: HeaderCarrier,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Future[Result] = {
+    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
+
+    val isFormValidF = for {
+      envelope <- envelopeF
+      validationResult <- validationService
+                            .validateFormModel(
+                              cache.toCacheData,
+                              EnvelopeWithMapping(envelope, cache.form),
+                              formModelOptics.formModelVisibilityOptics
+                            )
+    } yield validationResult.isFormValid
+
+    def changeStateAndRedirectToDeclarationOrPrint: Future[Result] = gformConnector
+      .updateUserData(
+        FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
+        UserData(
+          cache.form.formData,
+          Validated,
+          cache.form.visitsIndex,
+          cache.form.thirdPartyData,
+          cache.form.componentIdToFileId
+        )
+      )
+      .flatMap { _ =>
+        cache.formTemplate.destinations match {
+          case DestinationList(_, _, _: Some[DeclarationSection]) =>
+            Redirect(
+              routes.DeclarationController
+                .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes)
+            ).pure[Future]
+          case DestinationList(_, _, None) =>
+            processSubmission(maybeAccessCode, cache, formModelOptics)
+          case _: DestinationPrint =>
+            Redirect(
+              routes.PrintSectionController
+                .showPrintSection(formTemplateId, maybeAccessCode)
+            ).pure[Future]
+        }
+      }
+    val redirectToSummary: Result =
+      Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
+    for {
+      result <- isFormValidF.ifM(
+                  changeStateAndRedirectToDeclarationOrPrint,
+                  redirectToSummary.pure[Future]
+                )
+    } yield result
+  }
 
   private def processSubmission(
     maybeAccessCode: Option[AccessCode],
