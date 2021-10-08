@@ -16,14 +16,9 @@
 
 package uk.gov.hmrc.gform.wshttp
 
-import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
 import com.typesafe.config.Config
 import play.api.libs.ws.WSClient
-import play.api.mvc.MultipartFormData.FilePart
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.hooks.HttpHooks
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -31,19 +26,7 @@ import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.http._
 
 trait WSHttp
-    extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpDelete with WSDelete {
-  def POSTFile(
-    url: String,
-    fileName: String,
-    body: ByteString,
-    headers: Seq[(String, String)],
-    contentType: String
-  )(implicit ec: ExecutionContext): Future[HttpResponse]
-
-  def getByteString(
-    url: String
-  )(implicit ec: ExecutionContext): Future[ByteString]
-}
+    extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpDelete with WSDelete {}
 
 class WSHttpImpl(
   val appName: String,
@@ -53,32 +36,4 @@ class WSHttpImpl(
   val wsClient: WSClient
 ) extends WSHttp with HttpHooks with HttpAuditing {
   override val hooks = Seq(AuditingHook)
-
-  override def POSTFile(
-    url: String,
-    fileName: String,
-    body: ByteString,
-    headers: Seq[(String, String)],
-    contentType: String
-  )(implicit ec: ExecutionContext): Future[HttpResponse] = {
-
-    val source: Source[FilePart[Source[ByteString, NotUsed]], NotUsed] = Source(
-      FilePart(fileName, fileName, Some(contentType), Source.single(body)) :: Nil
-    )
-
-    buildRequest(url, headers)
-      .post(source)
-      .map(wsResponse =>
-        HttpResponse(
-          status = wsResponse.status,
-          body = wsResponse.body,
-          headers = wsResponse.headers
-        )
-      )
-  }
-
-  override def getByteString(
-    url: String
-  )(implicit ec: ExecutionContext): Future[ByteString] =
-    buildRequest(url, Seq.empty).get().map(_.bodyAsBytes)
 }

@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.upscan
 
-import akka.util.ByteString
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HeaderCarrier
@@ -30,9 +29,7 @@ class UpscanConnector(ws: WSHttp, baseUrl: String)(implicit
     ws.POST[UpscanInitiateRequest, UpscanInitiateResponse](
       s"$baseUrl/v2/initiate",
       request,
-      List(("User-Agent", "gform-trontend"))
+      List(("User-Agent", "gform-frontend"))
     )
-
-  def download(downloadUrl: String): Future[ByteString] = ws.getByteString(downloadUrl)
 
 }

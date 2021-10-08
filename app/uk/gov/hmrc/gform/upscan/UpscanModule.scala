@@ -20,13 +20,11 @@ import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.gform.config.{ AppConfig, ConfigModule }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.mongo.MongoModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
 class UpscanModule(
   wSHttpModule: WSHttpModule,
   configModule: ConfigModule,
-  mongoModule: MongoModule,
   gformBackendModule: GformBackendModule,
   applicationCrypto: ApplicationCrypto,
   appConfig: AppConfig
@@ -40,13 +38,11 @@ class UpscanModule(
 
   private val upscanConnector = new UpscanConnector(wSHttpModule.auditableWSHttp, upscanBaseUrl)
 
-  private val upscanRepository = new UpscanRepository(appConfig, mongoModule.mongoComponent)
-
   val upscanService: UpscanService = new UpscanService(
     upscanConnector,
-    upscanRepository,
     gformBackendModule.gformConnector,
     applicationCrypto.QueryParameterCrypto,
+    configModule,
     appConfig
   )
 

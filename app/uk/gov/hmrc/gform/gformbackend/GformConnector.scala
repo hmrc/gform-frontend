@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.submission.Submission
+import uk.gov.hmrc.gform.upscan.{ UpscanFileStatus, UpscanReference }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
@@ -324,6 +325,21 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
         case _   => false
       }
     }
+  }
+
+  def retrieveConfirmation(
+    reference: UpscanReference
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[UpscanFileStatus]] = {
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    val url = s"$baseUrl/upscan/${reference.value}"
+    ws.GET[Option[UpscanFileStatus]](url)
+  }
+
+  def deleteUpscanReference(
+    reference: UpscanReference
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+    val url = s"$baseUrl/upscan/${reference.value}"
+    ws.DELETE[HttpResponse](url)(HttpReads.Implicits.readRaw, hc, ec).void
   }
 
   private def urlFragment(formIdData: FormIdData): String =

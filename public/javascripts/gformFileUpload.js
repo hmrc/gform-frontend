@@ -294,7 +294,7 @@
         uploadFileUpscan(dataset)
           .then(function(response) {
             var key = document.getElementsByName("key")[0].value
-            return checkConfirmation(key);
+            return checkConfirmation(formTemplateId, key);
           }, onError)
           .then(function(response) {
             if(response == "error") {
@@ -334,9 +334,9 @@
       }
     }
 
-    function checkConfirmation(key) {
+    function checkConfirmation(formTemplateId, key) {
       return $.ajax({
-        url: "/submissions/upscan/check/" + key,
+        url: "/submissions/upscan/check/" + formTemplateId +"/" + key,
         type: "GET"
       });
     }

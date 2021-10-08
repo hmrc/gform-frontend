@@ -30,7 +30,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.models.mappings.{ NINO => MNINO, VATReg => MVATReg }
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
 import Function.const
 
 class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChecks {
@@ -52,8 +51,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     contentTypesSeparatedByPipe = "csv|txt",
     restrictedFileExtensionList = List("JFIF", "PNG"),
     albAdminIssuerUrl = "",
-    `case-worker-assumed-identity-cookie` = "caseworker-assumed-identity",
-    `upscan-confirmation-ttl` = 120.seconds
+    `case-worker-assumed-identity-cookie` = "caseworker-assumed-identity"
   )
 
   implicit val request: Request[AnyContent] = null

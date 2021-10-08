@@ -24,7 +24,7 @@ import play.filters.headers.SecurityHeadersFilter
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.controllers.ControllersModule
+import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrorHandler }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.crypto.ApplicationCrypto
@@ -71,7 +71,8 @@ class FrontendFiltersModule(
   csrfComponents: CSRFComponents,
   emailSessionCookieBaker: SessionCookieBaker,
   anonoymousSessionCookieBaker: SessionCookieBaker,
-  hmrcSessionCookieBaker: SessionCookieBaker
+  hmrcSessionCookieBaker: SessionCookieBaker,
+  errorHandler: ErrorHandler
 )(implicit ec: ExecutionContext) { self =>
   private implicit val materializer: Materializer = akkaModule.materializer
 
@@ -148,7 +149,7 @@ class FrontendFiltersModule(
 
   private val corsConfig = CORSConfig.fromConfiguration(configModule.playConfiguration)
 
-  private val corsFilter = new CORSFilter(corsConfig)
+  private val corsFilter = new CORSFilter(corsConfig, errorHandler)
 
   lazy val httpFilters: Seq[EssentialFilter] = Seq(
     corsFilter,

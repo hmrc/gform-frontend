@@ -39,7 +39,6 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.metrics.{ GraphiteModule, MetricsModule }
-import uk.gov.hmrc.gform.mongo.MongoModule
 import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsModule, RoutingModule }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorConnector
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
@@ -165,12 +164,9 @@ class ApplicationModule(context: Context)
 
   applicationCrypto.verifyConfiguration()
 
-  private val mongoModule = new MongoModule(configModule)
-
   private val upscanModule = new UpscanModule(
     wSHttpModule,
     configModule,
-    mongoModule,
     gformBackendModule,
     applicationCrypto,
     configModule.appConfig
@@ -199,7 +195,6 @@ class ApplicationModule(context: Context)
     playBuiltInsModule,
     graphModule,
     lookupRegistry,
-    applicationCrypto,
     errResponder
   )
 
@@ -226,7 +221,8 @@ class ApplicationModule(context: Context)
     this,
     emailSessionCookieBaker,
     anonymousSessionCookieBaker,
-    hmrcSessionCookieBaker
+    hmrcSessionCookieBaker,
+    errorHandler
   )
 
   private val routingModule = new RoutingModule(

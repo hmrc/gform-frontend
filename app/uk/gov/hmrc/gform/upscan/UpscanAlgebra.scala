@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.upscan
 
-import akka.util.ByteString
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData }
@@ -33,22 +32,15 @@ trait UpscanAlgebra[F[_]] {
     formIdData: FormIdData
   )(implicit hc: HeaderCarrier): F[UpscanInitiate]
 
-  def download(
-    downloadUrl: String
-  ): F[ByteString]
-
   def retrieveConfirmationOrFail(
     reference: UpscanReference
-  ): F[UpscanFileStatus]
+  )(implicit hc: HeaderCarrier): F[UpscanFileStatus]
 
   def retrieveConfirmation(
     reference: UpscanReference
-  ): F[Option[UpscanFileStatus]]
+  )(implicit hc: HeaderCarrier): F[Option[UpscanFileStatus]]
 
   def deleteConfirmation(
     reference: UpscanReference
-  ): F[Unit]
-
-  def confirm(upscanCallbackSuccess: UpscanCallback.Success): F[UpscanConfirmation]
-  def reject(upscanCallbackFailure: UpscanCallback.Failure): F[UpscanConfirmation]
+  )(implicit hc: HeaderCarrier): F[Unit]
 }

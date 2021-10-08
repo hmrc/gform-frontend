@@ -50,7 +50,6 @@ lazy val microservice = (project in file("."))
       compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full)
     ),
     routesImport ++= Seq(
-      "uk.gov.hmrc.crypto.Crypted",
       "uk.gov.hmrc.gform.binders.ValueClassBinder._",
       "uk.gov.hmrc.gform.controllers.Direction",
       "uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations._",

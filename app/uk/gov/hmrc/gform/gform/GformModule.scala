@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.gform
 import akka.actor.Scheduler
 import cats.instances.future._
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
@@ -58,7 +57,6 @@ class GformModule(
   playBuiltInsModule: PlayBuiltInsModule,
   graphModule: GraphModule,
   lookupRegistry: LookupRegistry,
-  applicationCrypto: ApplicationCrypto,
   errorResponder: ErrResponder
 )(implicit
   ec: ExecutionContext
@@ -332,12 +330,9 @@ class GformModule(
   val upscanController: UpscanController =
     new UpscanController(
       controllersModule.authenticatedRequestActions,
-      controllersModule.nonAuthenticatedRequestActions,
       fastForwardService,
-      fileUploadModule.fileUploadFrontendService,
       gformBackEndService,
       upscanModule.upscanService,
-      applicationCrypto.QueryParameterCrypto,
       playBuiltInsModule.i18nSupport,
       controllersModule.messagesControllerComponents
     )
