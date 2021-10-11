@@ -143,13 +143,13 @@
 }
 
 @phaseBanner = @{
-  developmentPhase.fold(SiteBanner(Some(BetaBanner.banner))){ dp =>
+  developmentPhase.fold[Option[PhaseBanner]](Some(SiteBanner(Some(BetaBanner.banner)))){ dp =>
     dp match {
       case AlphaBanner | BetaBanner =>
-        SiteBanner(Some(dp.banner), HtmlContent(feedbackContent))
+        Some(SiteBanner(Some(dp.banner), HtmlContent(feedbackContent)))
       case ResearchBanner =>
-        SiteBanner(Some(dp.banner))
-      case LiveBanner => SiteBanner()
+        Some(SiteBanner(Some(dp.banner)))
+      case LiveBanner => None
     }
   }
 }
@@ -159,7 +159,7 @@
     serviceName = Some(serviceTitle),
     signOutUrl = timeoutDialog.flatMap(_.signOutUrl),
     userResearchBanner = userResearchUrl.map(url => UserResearchBanner(language, url)),
-    phaseBanner = Some(phaseBanner),
+    phaseBanner = phaseBanner,
     displayHmrcBanner = displayHMRCLogo
   )
 }
