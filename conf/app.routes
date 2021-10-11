@@ -82,7 +82,6 @@ GET           /printSection/notificationPdf/:formTemplateId                     
 GET           /identity-verification/failure/:formTemplateId                                                     uk.gov.hmrc.gform.gform.IdentityVerificationController.failure(formTemplateId: FormTemplateId)
 GET           /identity-verification/enrolments-needed/:formTemplateId                                           uk.gov.hmrc.gform.gform.IdentityVerificationController.enrolmentsNeeded(formTemplateId: FormTemplateId)
 
-POST          /upscan/callback/:formComponentId/:envelopeId                                                      uk.gov.hmrc.gform.upscan.UpscanController.callback(formComponentId: FormComponentId, envelopeId: EnvelopeId, formIdDataCrypted: Crypted)
 GET           /upscan/success/:formTemplateId/:sectionNumber/:maybeAccessCode/:formComponentId                   uk.gov.hmrc.gform.upscan.UpscanController.success(formTemplateId: FormTemplateId, sectionNumber: SectionNumber, maybeAccessCode: Option[AccessCode], formComponentId: FormComponentId)
 GET           /upscan/error/:formTemplateId/:sectionNumber/:maybeAccessCode/:formComponentId                     uk.gov.hmrc.gform.upscan.UpscanController.error(formTemplateId: FormTemplateId, sectionNumber: SectionNumber, maybeAccessCode: Option[AccessCode], formComponentId: FormComponentId)
-GET           /upscan/check/:upscanReference                                                                     uk.gov.hmrc.gform.upscan.UpscanController.check(upscanReference: UpscanReference)
+GET           /upscan/check/:formTemplateId/:upscanReference                                                     uk.gov.hmrc.gform.upscan.UpscanController.check(formTemplateId: FormTemplateId, upscanReference: UpscanReference)

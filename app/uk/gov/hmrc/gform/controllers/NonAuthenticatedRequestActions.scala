@@ -18,8 +18,7 @@ package uk.gov.hmrc.gform
 package controllers
 
 import play.api.i18n.{ Langs, MessagesApi }
-import play.api.libs.json.JsValue
-import play.api.mvc.{ Action, ActionBuilder, AnyContent, PlayBodyParsers, Request, Result }
+import play.api.mvc.{ Action, ActionBuilder, AnyContent, Request, Result }
 import scala.concurrent.Future
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.sharedmodel.LangADT
@@ -28,13 +27,10 @@ trait NonAuthenticatedRequestActionsAlgebra[F[_]] {
   def async(f: Request[AnyContent] => LangADT => F[Result]): Action[AnyContent]
 
   def apply(f: Request[AnyContent] => LangADT => Result): Action[AnyContent]
-
-  def json(f: Request[JsValue] => LangADT => F[Result]): Action[JsValue]
 }
 
 class NonAuthenticatedRequestActions(
   langs: Langs,
-  playBodyParsers: PlayBodyParsers,
   actionBuilder: ActionBuilder[Request, AnyContent]
 )(implicit
   messagesApi: MessagesApi
@@ -48,11 +44,4 @@ class NonAuthenticatedRequestActions(
 
   override def apply(f: Request[AnyContent] => LangADT => Result): Action[AnyContent] =
     async(r => l => Future.successful(f(r)(l)))
-
-  def json(f: Request[JsValue] => LangADT => Future[Result]): Action[JsValue] =
-    actionBuilder.async(playBodyParsers.json) { implicit request =>
-      val langADT: LangADT = LangADT.fromRequest(request, langs)
-      f(request)(langADT)
-    }
-
 }

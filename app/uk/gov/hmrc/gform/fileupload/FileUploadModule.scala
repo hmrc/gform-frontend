@@ -33,18 +33,8 @@ class FileUploadModule(
     baseUrl + pathPrefix + "/file-upload"
   }
 
-  private val fileUploadFrontendBaseUrl = {
-    val baseUrl = configModule.serviceConfig.baseUrl("file-upload-frontend")
-    baseUrl + "/file-upload"
-  }
-
   private val fileUploadConnector = new FileUploadConnector(wSHttpModule.auditableWSHttp, fileUploadBaseUrl)
 
-  private val fileUploadFrontendConnector =
-    new FileUploadFrontendConnector(wSHttpModule.auditableWSHttp, fileUploadFrontendBaseUrl)
-
   val fileUploadService = new FileUploadService(fileUploadConnector)
-
-  val fileUploadFrontendService = new FileUploadFrontendService(fileUploadFrontendConnector)
 
 }

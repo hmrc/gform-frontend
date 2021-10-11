@@ -16,13 +16,11 @@
 
 package uk.gov.hmrc.gform.upscan
 
-import akka.util.ByteString
 import cats.implicits._
-import java.time.Instant
 import play.api.libs.json.Json
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.crypto.{ Crypted, CryptoWithKeysFromConfig, PlainText }
-import uk.gov.hmrc.gform.config.AppConfig
+import uk.gov.hmrc.gform.config.{ AppConfig, ConfigModule }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormIdData, UserData }
@@ -32,12 +30,14 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class UpscanService(
   upscanConnector: UpscanConnector,
-  upscanRepository: UpscanRepository,
   gformConnector: GformConnector,
   queryParameterCrypto: CryptoWithKeysFromConfig,
+  configModule: ConfigModule,
   appConfig: AppConfig
 )(implicit ec: ExecutionContext)
     extends UpscanAlgebra[Future] {
+
+  private val gformBaseUrl = configModule.serviceConfig.baseUrl("gform") + "/gform"
 
   def upscanInitiate(
     fileUploadIds: List[FormComponentId],
@@ -88,8 +88,10 @@ class UpscanService(
 
     val formIdDataCrypted: Crypted = queryParameterCrypto.encrypt(PlainText(formIdDataString))
 
+    val callback0 = java.net.URLEncoder.encode(formIdDataCrypted.value, "UTF-8")
     val callback: String =
-      baseUrl + UpscanController.callback(formComponentId, envelopeId, formIdDataCrypted).url
+      gformBaseUrl + s"/upscan/callback/${formComponentId.value}/${envelopeId.value}?formIdDataCrypted=$callback0"
+
     val successRedirect: String =
       baseUrl + UpscanController.success(formTemplateId, sectionNumber, maybeAccessCode, formComponentId).url
     val errorRedirect: String =
@@ -102,29 +104,15 @@ class UpscanService(
     )
   }
 
-  def download(
-    downloadUrl: String
-  ): Future[ByteString] = upscanConnector.download(downloadUrl)
-
-  def retrieveConfirmationOrFail(reference: UpscanReference): Future[UpscanFileStatus] =
-    upscanRepository.find(reference).flatMap {
-      case Some(upscanConfirmation) => upscanConfirmation.status.pure[Future]
-      case None                     => Future.failed(new Exception(s"No confirmation received yet for ${reference.value}"))
+  def retrieveConfirmationOrFail(reference: UpscanReference)(implicit hc: HeaderCarrier): Future[UpscanFileStatus] =
+    retrieveConfirmation(reference).flatMap {
+      case Some(status) => status.pure[Future]
+      case None         => Future.failed(new Exception(s"No confirmation received yet for ${reference.value}"))
     }
 
-  def retrieveConfirmation(reference: UpscanReference): Future[Option[UpscanFileStatus]] =
-    upscanRepository.find(reference).map(_.map(_.status))
+  def retrieveConfirmation(reference: UpscanReference)(implicit hc: HeaderCarrier): Future[Option[UpscanFileStatus]] =
+    gformConnector.retrieveConfirmation(reference)
 
-  def confirm(upscanCallbackSuccess: UpscanCallback.Success): Future[UpscanConfirmation] =
-    upscanRepository.upsert(
-      UpscanConfirmation(upscanCallbackSuccess.reference, upscanCallbackSuccess.fileStatus, Instant.now())
-    )
-
-  def reject(upscanCallbackFailure: UpscanCallback.Failure): Future[UpscanConfirmation] =
-    upscanRepository.upsert(
-      UpscanConfirmation(upscanCallbackFailure.reference, upscanCallbackFailure.fileStatus, Instant.now())
-    )
-
-  def deleteConfirmation(reference: UpscanReference): Future[Unit] =
-    upscanRepository.delete(reference)
+  def deleteConfirmation(reference: UpscanReference)(implicit hc: HeaderCarrier): Future[Unit] =
+    gformConnector.deleteUpscanReference(reference)
 }
