@@ -143,7 +143,7 @@
 }
 
 @phaseBanner = @{
-  developmentPhase.fold[Option[PhaseBanner]](Some(SiteBanner(Some(BetaBanner.banner)))){ dp =>
+  developmentPhase.fold[Option[PhaseBanner]](Some(SiteBanner(Some(BetaBanner.banner), HtmlContent(feedbackContent)))){ dp =>
     dp match {
       case AlphaBanner | BetaBanner =>
         Some(SiteBanner(Some(dp.banner), HtmlContent(feedbackContent)))
