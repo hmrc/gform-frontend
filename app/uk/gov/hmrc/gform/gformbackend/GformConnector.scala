@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gformbackend
 
 import akka.http.scaladsl.model.StatusCodes
-import cats.data.NonEmptyList
+import cats.data.{ NonEmptyList, OptionT }
 import cats.instances.future._
 import cats.instances.string._
 import cats.syntax.functor._
@@ -119,12 +119,31 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
             }
 
           }
-          .recover {
+          .recoverWith {
             case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue =>
               logger.info(
                 s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $formIdDataOriginal as a fallback failed."
               )
-              None
+              def getFirstTemplateByLegacyIds(legacyIds: List[FormTemplateId]): Future[Option[FormTemplate]] =
+                legacyIds match {
+                  case Nil => Future.successful(None)
+                  case legacyFormId :: tail =>
+                    getFormTemplate(legacyFormId).map(Some(_)).recoverWith {
+                      case UpstreamErrorResponse.WithStatusCode(statusCode, _)
+                          if statusCode == StatusCodes.NotFound.intValue =>
+                        getFirstTemplateByLegacyIds(tail)
+                    }
+                }
+
+              val legacyFormIds = formTemplate.legacyFormIds.map(_.toList).getOrElse(Nil)
+
+              OptionT(getFirstTemplateByLegacyIds(legacyFormIds)).flatMap { formTemplate =>
+                val updatedFormIdData = formIdData.withTemplateId(formTemplate)
+                OptionT(maybeForm(updatedFormIdData, formTemplate)).semiflatTap { form =>
+                  createFormFromLegacy(updatedFormIdData, formIdData)
+                  Future.successful(form.copy(_id = formIdData.toFormId, formTemplateId = formTemplate._id))
+                }
+              }.value
           }
     }
 
@@ -140,6 +159,20 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
           s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/${accessCode.value}"
       }
     ws.PUT[UserData, HttpResponse](url, userData).void
+  }
+
+  private def createFormFromLegacy(formIdData: FormIdData, newFormId: FormIdData)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
+    val url =
+      formIdData match {
+        case FormIdData.Plain(userId, formTemplateId) =>
+          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/from-legacy"
+        case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
+          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/${accessCode.value}/from-legacy"
+      }
+    ws.POST[FormIdData, HttpResponse](url, newFormId).void
   }
 
   def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(implicit

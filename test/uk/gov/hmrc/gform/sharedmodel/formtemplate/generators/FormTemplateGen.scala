@@ -27,6 +27,8 @@ trait FormTemplateGen {
   def formTemplateIdLowerCase(formTemplateId: FormTemplateId): FormTemplateId = FormTemplateId(
     formTemplateId.value.toLowerCase
   )
+  def legacyFromIdListGen: Gen[Option[NonEmptyList[FormTemplateId]]] =
+    Gen.option(PrimitiveGen.oneOrMoreGen(PrimitiveGen.nonEmptyAlphaNumStrGen.map(FormTemplateId(_))))
   def formNameGen: Gen[LocalisedString] = LocalisedStringGen.localisedStringGen
   def developmentPhaseGen: Gen[DevelopmentPhase] = Gen.oneOf(AlphaBanner, BetaBanner, ResearchBanner, LiveBanner)
   def formCategoryGen: Gen[FormCategory] = Gen.oneOf(HMRCReturnForm, HMRCClaimForm, Default)
@@ -69,6 +71,7 @@ trait FormTemplateGen {
   def formTemplateGen: Gen[FormTemplate] =
     for {
       id                       <- formTemplateIdGen
+      legacyFormIds            <- legacyFromIdListGen
       name                     <- formNameGen
       developmentPhase         <- Gen.option(developmentPhaseGen)
       category                 <- formCategoryGen
@@ -87,6 +90,7 @@ trait FormTemplateGen {
     } yield FormTemplate(
       formTemplateIdLowerCase(id),
       id,
+      legacyFormIds,
       name,
       developmentPhase,
       category,
