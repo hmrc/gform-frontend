@@ -142,24 +142,12 @@
   @messages("feedback.after")
 }
 
-@phaseBanner = @{
-  developmentPhase.fold(SiteBanner(Some(BetaBanner.banner))){ dp =>
-    dp match {
-      case AlphaBanner | BetaBanner =>
-        SiteBanner(Some(dp.banner), HtmlContent(feedbackContent))
-      case ResearchBanner =>
-        SiteBanner(Some(dp.banner))
-      case LiveBanner => SiteBanner()
-    }
-  }
-}
-
 @headerBlock = {
   @hmrcStandardHeader(
     serviceName = Some(serviceTitle),
     signOutUrl = timeoutDialog.flatMap(_.signOutUrl),
     userResearchBanner = userResearchUrl.map(url => UserResearchBanner(language, url)),
-    phaseBanner = Some(phaseBanner),
+    phaseBanner = developmentPhase.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
     displayHmrcBanner = displayHMRCLogo
   )
 }

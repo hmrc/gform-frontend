@@ -17,9 +17,20 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
+import play.twirl.api.Html
+import uk.gov.hmrc.gform.views.components.SiteBanner
+import uk.gov.hmrc.govukfrontend.views.Aliases.{ HtmlContent, PhaseBanner }
 
 sealed trait DevelopmentPhase {
   val banner: String
+
+  def toPhaseBanner(feedbackContent: Html): Option[PhaseBanner] = this match {
+    case AlphaBanner    => Some(SiteBanner(Some(banner), HtmlContent(feedbackContent)))
+    case BetaBanner     => Some(SiteBanner(Some(banner), HtmlContent(feedbackContent)))
+    case ResearchBanner => Some(SiteBanner(Some(banner)))
+    case LiveBanner     => None
+  }
+
 }
 case object AlphaBanner extends DevelopmentPhase {
   override val banner: String = "alpha"
