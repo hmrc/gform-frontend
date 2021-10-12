@@ -1,6 +1,5 @@
 # microservice specific routes
 
-->            /govuk-frontend                                                                                    govuk.Routes
 ->            /hmrc-frontend                                                                                     hmrcfrontend.Routes
 
 GET           /email-auth/email-form/:formTemplateId                                                             uk.gov.hmrc.gform.gform.EmailAuthController.emailIdForm(formTemplateId: FormTemplateId, continue: String)
