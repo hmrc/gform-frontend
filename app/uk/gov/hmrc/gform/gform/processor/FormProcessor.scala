@@ -172,13 +172,13 @@ class FormProcessor(
     for {
       envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
       envelopeWithMapping = EnvelopeWithMapping(envelope, cache.form)
-      FormValidationOutcome(_, formData, validatorsResult) <- handler.handleFormValidation(
-                                                                processData.formModelOptics,
-                                                                validationSectionNumber,
-                                                                cache.toCacheData,
-                                                                envelopeWithMapping,
-                                                                validationService.validatePageModel
-                                                              )
+      FormValidationOutcome(isValid, formData, validatorsResult) <- handler.handleFormValidation(
+                                                                      processData.formModelOptics,
+                                                                      validationSectionNumber,
+                                                                      cache.toCacheData,
+                                                                      envelopeWithMapping,
+                                                                      validationService.validatePageModel
+                                                                    )
       dataRetrieveResult <- {
         val maybePageModelForSection =
           processData.formModelOptics.formModelVisibilityOptics.formModel.pageModelLookup.get(sectionNumber)
@@ -218,7 +218,7 @@ class FormProcessor(
               )
           )
 
-        if (needsSecondPhaseRecalculation) {
+        if (needsSecondPhaseRecalculation && isValid) {
           val newDataRaw = cache.variadicFormData[SectionSelectorType.Normal]
           for {
             newProcessData <- processDataService
