@@ -98,6 +98,7 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
         .heading-2 { font-size: 20px; font-weight: bold;}
         .heading-3 { font-size: 18px; font-weight: bold;}
     </style>
+    <meta name="subject" content="@{formTemplate.formName.value}"></meta>
     <bookmarks>
     @for(summaryData <- summaryDatas) {
         @summaryData match {
@@ -168,5 +169,3 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
 </div>
 </body>
 </html>
-
-

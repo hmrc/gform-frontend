@@ -190,7 +190,8 @@ class GformModule(
   )
 
   val pdfGeneratorService = new PdfGeneratorService(
-    pdfGeneratorConnector
+    pdfGeneratorConnector,
+    configModule.environment
   )
 
   val pdfRenderService = new PDFRenderService(fileUploadModule.fileUploadService, validationModule.validationService)

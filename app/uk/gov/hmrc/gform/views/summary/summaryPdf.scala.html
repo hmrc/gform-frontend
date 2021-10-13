@@ -42,6 +42,7 @@
         dt{font-weight: bold;}
         dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:15px;}
     </style>
+    <meta name="subject" content="@{formTemplate.formName.value}"></meta>
     <bookmarks>
         @for(summaryData <- summaryDatas) {
             @summaryData match {

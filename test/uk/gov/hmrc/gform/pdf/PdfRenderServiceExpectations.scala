@@ -187,6 +187,7 @@ trait PdfRenderServiceExpectations {
         |<p>Some PDF footer</p>
         |""".stripMargin,
       """
+        |<meta name="subject" content="Some form template"></meta>
         |<bookmarks>
         |  <bookmark name="Section Name" href="#0"/>
         |</bookmarks>
@@ -213,6 +214,7 @@ trait PdfRenderServiceExpectations {
         |</div>
         |""".stripMargin,
       """
+        |<meta name="subject" content="Some form template"></meta>
         |<bookmarks>
         |  <bookmark name="page1-instruction" href="#0"/>
         |</bookmarks>
