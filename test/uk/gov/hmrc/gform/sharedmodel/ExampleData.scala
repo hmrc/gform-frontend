@@ -700,6 +700,12 @@ trait ExampleFormTemplate {
   dependsOn: ExampleAuthConfig with ExampleSection with ExampleFieldId with ExampleFieldValue with ExampleDestination =>
 
   def formTemplateOriginalId = FormTemplateId("AAA999")
+  def legacyFormIds =
+    Some(
+      NonEmptyList.of(
+        FormTemplateId("AAA100")
+      )
+    )
   def formTemplateId = FormTemplateId(formTemplateOriginalId.value.toLowerCase)
   def formName = toLocalisedString("AAA999 dev test template")
 
@@ -754,6 +760,7 @@ trait ExampleFormTemplate {
     FormTemplate(
       formTemplateId,
       formTemplateOriginalId,
+      legacyFormIds,
       formName,
       Some(ResearchBanner),
       Default,
