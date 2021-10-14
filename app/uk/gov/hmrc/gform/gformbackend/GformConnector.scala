@@ -126,21 +126,30 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
                 s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $formIdDataOriginal as a fallback failed."
               )
 
-              def getFormByLegacyIds(legacyIds: NonEmptyList[FormTemplateId]): Future[Option[Form]] =
-                legacyIds match {
-                  case NonEmptyList(legacyFormId, tail) =>
-                    val legacyFormIdData = formIdData.withTemplateId(legacyFormId)
-                    getForm(legacyFormIdData)
-                      .flatMap(_ => createFormFromLegacy(legacyFormIdData, formIdData).map(Some(_)))
-                      .recoverWith {
-                        case UpstreamErrorResponse.WithStatusCode(statusCode, _)
-                            if statusCode == StatusCodes.NotFound.intValue =>
-                          NonEmptyList
-                            .fromList(tail)
-                            .map(getFormByLegacyIds)
-                            .getOrElse(Future.successful(None))
-                      }
-                }
+              def getFormByLegacyIds(legacyIds: NonEmptyList[FormTemplateId]): Future[Option[Form]] = {
+                val NonEmptyList(legacyFormId, tail) = legacyIds
+                val legacyFormIdData = formIdData.withTemplateId(legacyFormId)
+                logger.info(
+                  s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $legacyFormIdData as a fallback."
+                )
+
+                getForm(legacyFormIdData)
+                  .flatMap { _ =>
+                    logger.info(
+                      s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $legacyFormIdData as as a fallback succeeded and form saved."
+                    )
+
+                    createFormFromLegacy(legacyFormIdData, formIdData).map(Some(_))
+                  }
+                  .recoverWith {
+                    case UpstreamErrorResponse.WithStatusCode(statusCode, _)
+                        if statusCode == StatusCodes.NotFound.intValue =>
+                      NonEmptyList
+                        .fromList(tail)
+                        .map(getFormByLegacyIds)
+                        .getOrElse(Future.successful(None))
+                  }
+              }
 
               formTemplate.legacyFormIds.fold(Future.successful(none[Form]))(getFormByLegacyIds)
           }

@@ -45,9 +45,9 @@ sealed trait FormIdData {
       _.copy(formTemplateId = formTemplate.originalId)
     }
 
-  def withTemplateId(formTemplateID: FormTemplateId): FormIdData =
-    fold[FormIdData](_.copy(formTemplateId = formTemplateID)) {
-      _.copy(formTemplateId = formTemplateID)
+  def withTemplateId(formTemplateId: FormTemplateId): FormIdData =
+    fold[FormIdData](_.copy(formTemplateId = formTemplateId)) {
+      _.copy(formTemplateId = formTemplateId)
     }
 }
 
