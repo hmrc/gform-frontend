@@ -242,6 +242,7 @@ object FormTemplateBuilder {
   def mkFormTemplate(sections: List[Section], declarationSection: Option[DeclarationSection] = None) = FormTemplate(
     FormTemplateId("tst1"),
     FormTemplateId("tst1"),
+    None,
     toLocalisedString("Some form template"),
     Some(BetaBanner),
     Default,

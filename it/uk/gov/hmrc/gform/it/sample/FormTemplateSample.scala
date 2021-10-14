@@ -16,6 +16,7 @@ trait FormTemplateSample {
   val formTemplateEmailAuth = FormTemplate(
     _id = formTemplateId,
     originalId = formTemplateId,
+    legacyFormIds = None,
     formName = LocalisedString(Map(LangADT.En -> "Form with email auth")),
     developmentPhase = None,
     webChat = None,
