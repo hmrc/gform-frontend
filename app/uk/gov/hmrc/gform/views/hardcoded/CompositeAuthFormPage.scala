@@ -22,7 +22,6 @@ import play.api.i18n.Messages
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, FormTemplate, SuppressErrors }
 import uk.gov.hmrc.govukfrontend.views.html.components._
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.p
 
 class CompositeAuthFormPage(
   val formTemplate: FormTemplate,
@@ -83,11 +82,8 @@ class CompositeAuthFormPage(
               RadioItem(
                 value = Some(configName),
                 content = Text(messages("compositeAuth.ggDifferentContent")),
-                conditionalHtml = Some(
-                  p(
-                    messages("compositeAuth.ggDifferentConditional"),
-                    "govuk-body"
-                  )
+                hint = Some(
+                  Hint(content = Text(messages("compositeAuth.ggDifferentConditional")))
                 )
               )
             )
