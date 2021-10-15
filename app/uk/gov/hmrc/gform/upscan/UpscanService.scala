@@ -17,13 +17,11 @@
 package uk.gov.hmrc.gform.upscan
 
 import cats.implicits._
-import play.api.libs.json.Json
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.crypto.{ Crypted, CryptoWithKeysFromConfig, PlainText }
+import uk.gov.hmrc.crypto.{ Crypted, CryptoWithKeysFromConfig }
 import uk.gov.hmrc.gform.config.{ AppConfig, ConfigModule }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormIdData, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.gform.upscan.routes.UpscanController
 import uk.gov.hmrc.http.HeaderCarrier
@@ -43,59 +41,49 @@ class UpscanService(
     fileUploadIds: List[FormComponentId],
     formTemplateId: FormTemplateId,
     sectionNumber: SectionNumber,
-    maybeAccessCode: Option[AccessCode],
     form: Form,
     formIdData: FormIdData
   )(implicit
     hc: HeaderCarrier
   ): Future[UpscanInitiate] =
-    fileUploadIds
-      .traverse(formComponentId =>
-        upscanConnector
-          .upscanInitiate(
-            toRequest(formTemplateId, sectionNumber, maybeAccessCode, formComponentId, form.envelopeId, formIdData)
-          )
-          .map(formComponentId -> _)
-      )
-      .flatMap { fcIdWithResponse =>
-        val upscanInititate = UpscanInitiate(fcIdWithResponse.toMap)
-
-        val formIdData: FormIdData = FormIdData.fromForm(form, maybeAccessCode)
-        val userData: UserData = UserData(
-          form.formData,
-          form.status,
-          form.visitsIndex,
-          form.thirdPartyData,
-          form.componentIdToFileId
+    for {
+      formIdDataCrypted <- gformConnector.upscanEncrypt(formIdData)
+      fcIdWithResponse <-
+        fileUploadIds.traverse(formComponentId =>
+          upscanConnector
+            .upscanInitiate(
+              toRequest(
+                formTemplateId,
+                sectionNumber,
+                formComponentId,
+                form.envelopeId,
+                formIdData,
+                formIdDataCrypted
+              )
+            )
+            .map(formComponentId -> _)
         )
-
-        gformConnector.updateUserData(formIdData, userData).map(_ => upscanInititate)
-
-      }
+    } yield UpscanInitiate(fcIdWithResponse.toMap)
 
   private def toRequest(
     formTemplateId: FormTemplateId,
     sectionNumber: SectionNumber,
-    maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
     envelopeId: EnvelopeId,
-    formIdData: FormIdData
+    formIdData: FormIdData,
+    formIdDataCrypted: Crypted
   ): UpscanInitiateRequest = {
 
     val baseUrl = appConfig.`gform-frontend-base-url`
-
-    val formIdDataString = Json.stringify(Json.toJson(formIdData))
-
-    val formIdDataCrypted: Crypted = queryParameterCrypto.encrypt(PlainText(formIdDataString))
 
     val callback0 = java.net.URLEncoder.encode(formIdDataCrypted.value, "UTF-8")
     val callback: String =
       gformBaseUrl + s"/upscan/callback/${formComponentId.value}/${envelopeId.value}?formIdDataCrypted=$callback0"
 
     val successRedirect: String =
-      baseUrl + UpscanController.success(formTemplateId, sectionNumber, maybeAccessCode, formComponentId).url
+      baseUrl + UpscanController.success(formTemplateId, sectionNumber, formIdData.maybeAccessCode, formComponentId).url
     val errorRedirect: String =
-      baseUrl + UpscanController.error(formTemplateId, sectionNumber, maybeAccessCode, formComponentId).url
+      baseUrl + UpscanController.error(formTemplateId, sectionNumber, formIdData.maybeAccessCode, formComponentId).url
 
     UpscanInitiateRequest(
       callback,

@@ -25,6 +25,7 @@ import cats.syntax.functor._
 import cats.syntax.show._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.JsValue
+import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
@@ -366,6 +367,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
         case _   => false
       }
     }
+  }
+
+  def upscanEncrypt(formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Crypted] = {
+    val url = s"$baseUrl/upscan/encrypt"
+    ws.POST[FormIdData, HttpResponse](url, formIdData).map(httpResponse => Crypted(httpResponse.body))
   }
 
   def retrieveConfirmation(
