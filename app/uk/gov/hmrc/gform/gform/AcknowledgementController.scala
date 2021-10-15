@@ -37,7 +37,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
-import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
@@ -91,9 +90,6 @@ class AcknowledgementController(
           )
       }
 
-      val sessionAfterRemovingCompositeAuthDetails = request.session
-        .+(COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(compositeAuthDetails.remove(formTemplateId)))
-
       cache.formTemplate.destinations match {
         case destinationList: DestinationList =>
           Future.successful(
@@ -107,7 +103,7 @@ class AcknowledgementController(
                   cache.form.envelopeId,
                   formModelOptics
                 )
-            ).withSession(sessionAfterRemovingCompositeAuthDetails)
+            )
           )
         case _ =>
           Future.failed(new BadRequestException(s"Acknowledgement is not defined for $formTemplateId"))
