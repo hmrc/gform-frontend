@@ -109,7 +109,6 @@ class FormController(
                 singleton.upscanInitiateRequests,
                 formTemplateId,
                 sectionNumber,
-                maybeAccessCode,
                 cache.form,
                 FormIdData(cache, maybeAccessCode)
               )
