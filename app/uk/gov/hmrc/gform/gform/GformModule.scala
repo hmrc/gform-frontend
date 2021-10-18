@@ -125,6 +125,7 @@ class GformModule(
     fileUploadModule.fileUploadService,
     gformBackendModule.gformConnector,
     fastForwardService,
+    auditingModule.auditService,
     graphModule.recalculation,
     controllersModule.messagesControllerComponents
   )

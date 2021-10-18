@@ -41,21 +41,34 @@ trait AuditService {
       modelComponentId.toMongoIdentifier -> variadicValue.toSeq.mkString(",")
     }.toMap
 
+  def sendFormSaveEvent[D <: DataOrigin](
+    form: Form,
+    retrievals: MaterialisedRetrievals
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+    sendEvent("formSaved", form, Map.empty, retrievals, CustomerId.empty)
+
+  def sendFormResumeEvent[D <: DataOrigin](
+    form: Form,
+    retrievals: MaterialisedRetrievals
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+    sendEvent("formResumed", form, Map.empty, retrievals, CustomerId.empty)
+
   def sendSubmissionEvent[D <: DataOrigin](
     form: Form,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
-    sendEvent(form, formToMap(form, formModelVisibilityOptics), retrievals, customerId)
+    sendEvent("formSubmitted", form, formToMap(form, formModelVisibilityOptics), retrievals, customerId)
 
   private def sendEvent(
+    auditType: String,
     form: Form,
     detail: Map[String, String],
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
-    auditConnector.sendExplicitAudit("formSubmitted", details(form, detail, retrievals, customerId))
+    auditConnector.sendExplicitAudit(auditType, details(form, detail, retrievals, customerId))
 
   def calculateSubmissionEvent[D <: DataOrigin](
     form: Form,
