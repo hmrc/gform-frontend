@@ -29,7 +29,7 @@ class UpscanConnector(ws: WSHttp, baseUrl: String)(implicit
     ws.POST[UpscanInitiateRequest, UpscanInitiateResponse](
       s"$baseUrl/v2/initiate",
       request,
-      List(("User-Agent", "gform-frontend"))
+      List.empty[(String, String)]
     )
 
 }
