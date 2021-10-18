@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.pdf.model
 
 import play.api.i18n.Messages
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
@@ -116,7 +116,7 @@ object PDFPageFieldBuilder {
           getFormComponentLabel(formComponent),
           Address
             .renderToString(formComponent, validationResult(formComponent))
-            .map(Html(_))
+            .map(HtmlFormat.escape(_))
         )
 
       case IsOverseasAddress(_) =>
@@ -124,7 +124,7 @@ object PDFPageFieldBuilder {
           getFormComponentLabel(formComponent),
           OverseasAddress
             .renderToString(formComponent, validationResult(formComponent))
-            .map(Html(_))
+            .map(HtmlFormat.escape(_))
         )
 
       case IsInformationMessage(_) =>
