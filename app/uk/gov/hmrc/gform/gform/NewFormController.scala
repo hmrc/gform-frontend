@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory
 import play.api.data
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
+import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.CookieNames._
@@ -53,6 +54,7 @@ class NewFormController(
   fileUploadService: FileUploadService,
   gformConnector: GformConnector,
   fastForwardService: FastForwardService,
+  auditService: AuditService,
   recalculation: Recalculation[Future, Throwable],
   messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
@@ -214,8 +216,10 @@ class NewFormController(
             case NotPermitted =>
               fastForwardService.deleteForm(cache.toAuthCacheWithForm(form, noAccessCode), queryParams)
             case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
+              auditService.sendFormResumeEvent(form, cache.retrievals)
               redirectContinue[SectionSelectorType.Normal](cache, form, noAccessCode)
             case _ =>
+              auditService.sendFormResumeEvent(form, cache.retrievals)
               val continueFormPage = new ContinueFormPage(cache.formTemplate, choice)
               Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
           }
@@ -233,6 +237,7 @@ class NewFormController(
     for {
       formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
       res <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
+               auditService.sendFormCreateEvent(form, cache.retrievals)
                redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode)
              }
     } yield res
