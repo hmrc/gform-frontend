@@ -237,7 +237,7 @@ class NewFormController(
     for {
       formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
       res <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
-               auditService.sendFormSaveEvent(form, cache.retrievals)
+               auditService.sendFormCreateEvent(form, cache.retrievals)
                redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode)
              }
     } yield res

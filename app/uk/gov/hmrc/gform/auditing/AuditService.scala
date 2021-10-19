@@ -41,11 +41,11 @@ trait AuditService {
       modelComponentId.toMongoIdentifier -> variadicValue.toSeq.mkString(",")
     }.toMap
 
-  def sendFormSaveEvent[D <: DataOrigin](
+  def sendFormCreateEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
-    sendEvent("formSaved", form, Map.empty, retrievals, CustomerId.empty)
+    sendEvent("formCreated", form, Map.empty, retrievals, CustomerId.empty)
 
   def sendFormResumeEvent[D <: DataOrigin](
     form: Form,
