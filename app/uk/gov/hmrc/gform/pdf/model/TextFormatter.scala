@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.pdf.model
 
 import play.api.i18n.Messages
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.Atom
@@ -75,6 +75,6 @@ object TextFormatter {
       case _ => List(currentValue)
     }
 
-    getValue(validationResult.formComponent).map(Html(_))
+    getValue(validationResult.formComponent).map(HtmlFormat.escape(_))
   }
 }
