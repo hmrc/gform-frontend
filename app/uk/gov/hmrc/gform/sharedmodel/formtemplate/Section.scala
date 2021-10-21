@@ -59,7 +59,7 @@ object Section {
     shortName: SmartString,
     summaryName: SmartString,
     includeIf: Option[IncludeIf],
-    repeatsMax: Option[Expr],
+    limit: Option[AddToListLimit],
     pages: NonEmptyList[Page[Basic]],
     addAnotherQuestion: FormComponent,
     instruction: Option[Instruction],

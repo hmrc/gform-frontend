@@ -287,6 +287,35 @@ class SectionRenderingService(
     val addAnotherQuestion: Html =
       new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
+    val limitReached: AddToListLimitReached = bracket.source.limit
+      .flatMap { limit =>
+        val maybeMax: Option[BigDecimal] =
+          formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(limit.repeatsMax).numberRepresentation
+
+        limit.field match {
+          case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
+            maybeMax.map { maxRepeatsBigDecimal =>
+              if (maxRepeatsBigDecimal.toInt === bracket.iterations.size) {
+                AddToListLimitReached.Yes(
+                  HtmlFormat.fill(
+                    List(
+                      htmlForInformationMessage(info, infoType, infoText),
+                      html.form.snippets.hidden(formComponent.id.value, "1")
+                    )
+                  )
+                )
+              } else {
+                AddToListLimitReached.No
+              }
+            }
+
+          case unsupported => throw new Exception("AddToList.limit.field is not an Info component: " + unsupported)
+        }
+      }
+      .getOrElse(AddToListLimitReached.No)
+
+    val snippets = limitReached.fold(addAnotherQuestion)(identity)
+
     val shouldDisplayBack: Boolean =
       Origin(DataOrigin.unSwapDataOrigin(formModelOptics))
         .filteredSectionNumbers(sectionNumber)
@@ -307,7 +336,7 @@ class SectionRenderingService(
       renderComeBackLater,
       determineContinueLabelKey(retrievals.continueLabelKey, formTemplate.draftRetrievalMethod.isNotPermitted, None),
       shouldDisplayBack,
-      addAnotherQuestion,
+      snippets,
       specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics),
       maybeAccessCode,
       sectionNumber
@@ -865,7 +894,7 @@ class SectionRenderingService(
             }
 
           case InformationMessage(infoType, infoText) =>
-            htmlForInformationMessage(formComponent, infoType, infoText, ei)
+            htmlForInformationMessage(formComponent, infoType, infoText)
           case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>
             htmlForHmrcTaxPeriod(formComponent, ei, validationResult, obligations, htp)
         }
@@ -981,8 +1010,7 @@ class SectionRenderingService(
   private def htmlForInformationMessage(
     formComponent: FormComponent,
     infoType: InfoType,
-    infoText: SmartString,
-    ei: ExtraInfo
+    infoText: SmartString
   )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) =
     html.form.snippets.field_template_info(
       formComponent,
