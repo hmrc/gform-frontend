@@ -31,6 +31,7 @@ import org.slf4j.{ Logger, LoggerFactory }
 import play.api.mvc.request.{ Cell, RequestAttrKey }
 import uk.gov.hmrc.gform.controllers.GformRequestAttrKeys.{ emailSessionClearAttrKey, emailSessionClearAttrKeyName }
 import uk.gov.hmrc.gform.gform.EmailAuthUtils
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -72,7 +73,11 @@ class EmailAuthSessionPurgeFilter(gformConnector: GformConnector)(implicit
                             next(
                               rh.addAttr(
                                 RequestAttrKey.Session,
-                                Cell(rh.session.+(EmailAuthUtils.removeFormTemplateFromAuthSession(formTemplate._id)))
+                                Cell(
+                                  rh.session
+                                    .+(EmailAuthUtils.removeFormTemplateFromAuthSession(formTemplate._id))
+                                    .-(COMPOSITE_AUTH_DETAILS_SESSION_KEY)
+                                )
                               ).addAttr(emailSessionClearAttrKey, "true")
                             )
                           } else {
