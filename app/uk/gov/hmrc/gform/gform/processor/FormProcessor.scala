@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, SectionNumber, SectionTitle4Ga, SuppressErrors }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, DataRetrieveMissingInput, DataRetrieveNotRequired, DataRetrieveResult, LangADT, SourceOrigin, ValidateBank, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, DataRetrieveNotRequired, DataRetrieveResult, LangADT, SourceOrigin, ValidateBank, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -199,12 +199,15 @@ class FormProcessor(
         val formDataU = oldData.toFormData ++ formData
         val before: ThirdPartyData = cache.form.thirdPartyData
         val after: ThirdPartyData =
-          before.updateFrom(validatorsResult).updateDataRetrieve(dataRetrieveResult)
+          before
+            .updateFrom(validatorsResult)
+            .updateDataRetrieve(dataRetrieveResult)
 
         val needsSecondPhaseRecalculation =
           (before.desRegistrationResponse, after.desRegistrationResponse)
             .mapN(_ =!= _)
-            .getOrElse(false) || dataRetrieveResult == DataRetrieveMissingInput
+            .getOrElse(false) ||
+            before.dataRetrieve != after.dataRetrieve
 
         val visitsIndex = processData.visitsIndex.visit(sectionNumber)
 
@@ -219,7 +222,7 @@ class FormProcessor(
           )
 
         if (needsSecondPhaseRecalculation && isValid) {
-          val newDataRaw = cache.variadicFormData[SectionSelectorType.Normal]
+          val newDataRaw = cacheUpd.variadicFormData[SectionSelectorType.Normal]
           for {
             newProcessData <- processDataService
                                 .getProcessData[SectionSelectorType.Normal](
