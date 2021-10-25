@@ -83,7 +83,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
 
     lazy val validationResult: ValidationResult = new ValidationResult(
       Map(
-        fcName.id -> FieldOk(fcName, "name-value")
+        fcName.id -> FieldOk(fcName, "name&value")
       ),
       None
     )
@@ -106,7 +106,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       envelopeWithMapping,
       validationResult
     ) shouldBe List(
-      PageData(Some("Section Name"), List(SimpleField(Some("name"), List(Html("name-value")))), "0")
+      PageData(Some("Section Name"), List(SimpleField(Some("name"), List(Html("name&amp;value")))), "0")
     )
   }
 
@@ -311,7 +311,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       PageData(
         None,
         List(
-          SimpleField(Some("name-instruction"), List(Html("name-value")))
+          SimpleField(Some("name-instruction"), List(Html("name&amp;value")))
         ),
         "0"
       )

@@ -133,7 +133,7 @@ object PDFPageFieldBuilder {
       case IsFileUpload() =>
         SimpleField(
           getFormComponentLabel(formComponent),
-          List(Html(envelopeWithMapping.userFileName(formComponent)))
+          List(HtmlFormat.escape(envelopeWithMapping.userFileName(formComponent)))
         )
 
       case IsHmrcTaxPeriod(h) =>
