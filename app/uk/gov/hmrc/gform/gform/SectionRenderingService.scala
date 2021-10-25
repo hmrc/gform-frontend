@@ -295,7 +295,7 @@ class SectionRenderingService(
         limit.field match {
           case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
             maybeMax.map { maxRepeatsBigDecimal =>
-              if (maxRepeatsBigDecimal.toInt === bracket.iterations.size) {
+              if (maxRepeatsBigDecimal.toInt <= bracket.iterations.size) {
                 AddToListLimitReached.Yes(
                   HtmlFormat.fill(
                     List(
