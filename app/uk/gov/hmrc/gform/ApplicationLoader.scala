@@ -211,6 +211,7 @@ class ApplicationModule(context: Context)
 
   private val frontendFiltersModule = new FrontendFiltersModule(
     gformBackendModule,
+    authModule,
     applicationCrypto,
     playBuiltInsModule,
     akkaModule,

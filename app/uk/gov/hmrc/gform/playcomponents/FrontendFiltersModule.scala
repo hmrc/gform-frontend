@@ -38,8 +38,8 @@ import uk.gov.hmrc.play.bootstrap.frontend.filters.{ DefaultFrontendAuditFilter,
 import uk.gov.hmrc.play.bootstrap.filters.{ CacheControlConfig, CacheControlFilter, DefaultLoggingFilter, MDCFilter }
 
 import scala.concurrent.ExecutionContext
-
 import uk.gov.hmrc.crypto._
+import uk.gov.hmrc.gform.auth.AuthModule
 
 class AnonoymousSessionCookieCryptoFilter(
   sessionCookieCrypto: SessionCookieCrypto,
@@ -61,6 +61,7 @@ class EmailSessionCookieCryptoFilter(
 
 class FrontendFiltersModule(
   gformBackendModule: GformBackendModule,
+  authModule: AuthModule,
   applicationCrypto: ApplicationCrypto,
   playBuiltInsModule: PlayBuiltInsModule,
   akkaModule: AkkaModule,
@@ -145,7 +146,8 @@ class FrontendFiltersModule(
     )
   }
 
-  private val emailAuthClearSessionFilter = new EmailAuthSessionPurgeFilter(gformBackendModule.gformConnector)
+  private val emailAuthClearSessionFilter =
+    new EmailAuthSessionPurgeFilter(gformBackendModule.gformConnector, authModule.authConnector)
 
   private val corsConfig = CORSConfig.fromConfiguration(configModule.playConfiguration)
 

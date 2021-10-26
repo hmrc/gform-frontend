@@ -22,4 +22,7 @@ object GformRequestAttrKeys {
   val emailSessionClearAttrKeyName: String = "emailSessionClear"
   val emailSessionClearAttrKey: TypedKey[String] = TypedKey(emailSessionClearAttrKeyName)
 
+  val compositeAuthSessionClearAttrKeyName: String = "compositeAuthSessionClear"
+  val compositeAuthSessionClearAttrKey: TypedKey[String] = TypedKey(compositeAuthSessionClearAttrKeyName)
+
 }
