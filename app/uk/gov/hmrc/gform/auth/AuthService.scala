@@ -118,13 +118,7 @@ class AuthService(
                 .authSelectionForm(
                   formTemplate._id,
                   Some(id.ggId),
-                  addQueryParams(
-                    request.uri,
-                    request.attrs
-                      .get[String](compositeAuthSessionClearAttrKey)
-                      .map((compositeAuthSessionClearAttrKeyName, _))
-                      .toList: _*
-                  )
+                  compositeAuthUrlParameters
                 )
             )
               .pure[Future]
@@ -146,13 +140,7 @@ class AuthService(
                     .authSelectionForm(
                       formTemplate._id,
                       None,
-                      addQueryParams(
-                        request.uri,
-                        request.attrs
-                          .get[String](compositeAuthSessionClearAttrKey)
-                          .map((compositeAuthSessionClearAttrKeyName, _))
-                          .toList: _*
-                      )
+                      compositeAuthUrlParameters
                     )
                 )
                   .pure[Future]
@@ -163,18 +151,21 @@ class AuthService(
               gform.routes.CompositeAuthController.authSelectionForm(
                 formTemplate._id,
                 None,
-                addQueryParams(
-                  request.uri,
-                  request.attrs
-                    .get[String](compositeAuthSessionClearAttrKey)
-                    .map((compositeAuthSessionClearAttrKeyName, _))
-                    .toList: _*
-                )
+                compositeAuthUrlParameters
               )
             )
               .pure[Future]
         }
     }
+
+  private def compositeAuthUrlParameters(implicit request: Request[AnyContent]) =
+    addQueryParams(
+      request.uri,
+      request.attrs
+        .get[String](compositeAuthSessionClearAttrKey)
+        .map((compositeAuthSessionClearAttrKeyName, _))
+        .toList: _*
+    )
 
   private val notAuthorized: AuthResult = AuthBlocked("You are not authorized to access this service")
   private val decoder = Base64.getDecoder

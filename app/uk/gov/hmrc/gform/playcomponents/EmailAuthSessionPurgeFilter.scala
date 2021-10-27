@@ -74,7 +74,7 @@ class EmailAuthSessionPurgeFilter(
     }
   }
 
-  def getGovernmentGatewayId(implicit request: RequestHeader): Future[Option[String]] =
+  def getGovernmentGatewayGroupIdentifier(implicit request: RequestHeader): Future[Option[String]] =
     authorised(AuthProviders(AuthProvider.GovernmentGateway))
       .retrieve(Retrievals.groupIdentifier) {
         case Some(maybeCredentials) =>
@@ -95,19 +95,15 @@ class EmailAuthSessionPurgeFilter(
     val currentAuthProvider = jsonFromSession(rh, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
       .get(formTemplate._id)
 
-    logger.debug(s"Current auth provider : $currentAuthProvider")
-
     currentAuthProvider match {
       case Some("email") => handleEmail(next, formTemplate)
       case Some(_) =>
-        logger.debug("Getting gg id.....")
-        getGovernmentGatewayId(rh).flatMap {
+        getGovernmentGatewayGroupIdentifier(rh).flatMap {
           case Some(ggId) =>
-            logger.debug(s"ggId: $ggId")
             isGgFormSubmitted(formTemplate, ggId).flatMap { isSubmitted =>
               if (isSubmitted && !rh.queryString.contains(compositeAuthSessionClearAttrKeyName)) {
                 logger.info(
-                  s"Form status is SUBMITTED. Removing email auth data for template ${formTemplate._id} from session, to restart auth"
+                  s"Form status is SUBMITTED. Removing composite auth data for template ${formTemplate._id} from session, to restart auth"
                 )
                 next(
                   rh.addAttr(
@@ -123,7 +119,6 @@ class EmailAuthSessionPurgeFilter(
               }
             }
           case None =>
-            logger.debug(s"No gg id")
             next(rh.addAttr(compositeAuthSessionClearAttrKey, "true"))
         }
       case None =>
@@ -133,10 +128,8 @@ class EmailAuthSessionPurgeFilter(
 
   def isGgFormSubmitted(formTemplate: FormTemplate, ggId: String)(implicit rh: RequestHeader): Future[Boolean] = {
     val formIdData = FormIdData.Plain(UserId(ggId), formTemplate._id)
-    Console.println(s"FormId : $formIdData")
     gformConnector.maybeForm(formIdData, formTemplate).map { form =>
-      Console.println(s"Form : $form")
-      form.map(x => x.status === Submitted).getOrElse(false)
+      form.exists(_.status === Submitted)
     }
   }
 
@@ -144,40 +137,36 @@ class EmailAuthSessionPurgeFilter(
     next: RequestHeader => Future[Result],
     formTemplate: FormTemplate
   )(implicit rh: RequestHeader): Future[Result] =
-    if (formTemplate.authConfig.isEmailAuthConfig) {
-      isEmailConfirmed(formTemplate._id) match {
-        case Some(email) =>
-          logger.info(
-            s"Accessing new form and email confirmed in session. Checking for form status for template ${formTemplate._id}"
-          )
-          val formIdData = FormIdData.Plain(UserId(EmailRetrievals(EmailId(email))), formTemplate._id)
-          for {
-            maybeForm <- gformConnector.maybeForm(formIdData, formTemplate)
-            result <- maybeForm.fold(next(rh)) { form =>
-                        if (form.status === Submitted && !rh.queryString.contains(emailSessionClearAttrKeyName)) {
-                          logger.info(
-                            s"Form status is SUBMITTED. Removing email auth data for template ${formTemplate._id} from session, to restart auth"
-                          )
-                          next(
-                            rh.addAttr(
-                              RequestAttrKey.Session,
-                              Cell(
-                                rh.session
-                                  .+(EmailAuthUtils.removeFormTemplateFromAuthSession(formTemplate._id))
-                                  .-(COMPOSITE_AUTH_DETAILS_SESSION_KEY)
-                              )
-                            ).addAttr(emailSessionClearAttrKey, "true")
-                          )
-                        } else {
-                          next(rh)
-                        }
+    isEmailConfirmed(formTemplate._id) match {
+      case Some(email) =>
+        logger.info(
+          s"Accessing new form and email confirmed in session. Checking for form status for template ${formTemplate._id}"
+        )
+        val formIdData = FormIdData.Plain(UserId(EmailRetrievals(EmailId(email))), formTemplate._id)
+        for {
+          maybeForm <- gformConnector.maybeForm(formIdData, formTemplate)
+          result <- maybeForm.fold(next(rh)) { form =>
+                      if (form.status === Submitted && !rh.queryString.contains(emailSessionClearAttrKeyName)) {
+                        logger.info(
+                          s"Form status is SUBMITTED. Removing email auth data for template ${formTemplate._id} from session, to restart auth"
+                        )
+                        next(
+                          rh.addAttr(
+                            RequestAttrKey.Session,
+                            Cell(
+                              rh.session
+                                .+(EmailAuthUtils.removeFormTemplateFromAuthSession(formTemplate._id))
+                                .-(COMPOSITE_AUTH_DETAILS_SESSION_KEY)
+                            )
+                          ).addAttr(emailSessionClearAttrKey, "true")
+                        )
+                      } else {
+                        next(rh)
                       }
-          } yield result
-        case None =>
-          next(rh.addAttr(emailSessionClearAttrKey, "true"))
-      }
-    } else {
-      next(rh)
+                    }
+        } yield result
+      case None =>
+        next(rh.addAttr(emailSessionClearAttrKey, "true"))
     }
 
   private def isNewFormRoute(implicit rh: RequestHeader) =
