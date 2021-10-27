@@ -77,8 +77,8 @@ class EmailAuthSessionPurgeFilter(
   def getGovernmentGatewayGroupIdentifier(implicit request: RequestHeader): Future[Option[String]] =
     authorised(AuthProviders(AuthProvider.GovernmentGateway))
       .retrieve(Retrievals.groupIdentifier) {
-        case Some(maybeCredentials) =>
-          Future.successful(Some(maybeCredentials))
+        case Some(maybeGroupIdentifier) =>
+          Future.successful(Some(maybeGroupIdentifier))
         case _ =>
           Future.successful(None)
       }
@@ -99,8 +99,8 @@ class EmailAuthSessionPurgeFilter(
       case Some("email") => handleEmail(next, formTemplate)
       case Some(_) =>
         getGovernmentGatewayGroupIdentifier(rh).flatMap {
-          case Some(ggId) =>
-            isGgFormSubmitted(formTemplate, ggId).flatMap { isSubmitted =>
+          case Some(groupIdentifier) =>
+            isGgFormSubmitted(formTemplate, UserId(groupIdentifier)).flatMap { isSubmitted =>
               if (isSubmitted && !rh.queryString.contains(compositeAuthSessionClearAttrKeyName)) {
                 logger.info(
                   s"Form status is SUBMITTED. Removing composite auth data for template ${formTemplate._id} from session, to restart auth"
@@ -126,8 +126,8 @@ class EmailAuthSessionPurgeFilter(
     }
   }
 
-  def isGgFormSubmitted(formTemplate: FormTemplate, ggId: String)(implicit rh: RequestHeader): Future[Boolean] = {
-    val formIdData = FormIdData.Plain(UserId(ggId), formTemplate._id)
+  def isGgFormSubmitted(formTemplate: FormTemplate, userId: UserId)(implicit rh: RequestHeader): Future[Boolean] = {
+    val formIdData = FormIdData.Plain(userId, formTemplate._id)
     gformConnector.maybeForm(formIdData, formTemplate).map { form =>
       form.exists(_.status === Submitted)
     }
