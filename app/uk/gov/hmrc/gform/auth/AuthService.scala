@@ -27,7 +27,7 @@ import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
-import uk.gov.hmrc.gform.controllers.GformRequestAttrKeys.{ emailSessionClearAttrKey, emailSessionClearAttrKeyName }
+import uk.gov.hmrc.gform.controllers.GformRequestAttrKeys.{ compositeAuthSessionClearAttrKey, compositeAuthSessionClearAttrKeyName, emailSessionClearAttrKey, emailSessionClearAttrKeyName }
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.EmailAuthUtils.isEmailConfirmed
@@ -39,6 +39,7 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup
+
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
@@ -114,7 +115,11 @@ class AuthService(
           case Some(id) if compositeAuthDetails.isEmpty =>
             AuthCustomRedirect(
               gform.routes.CompositeAuthController
-                .authSelectionForm(formTemplate._id, Some(id.ggId), request.uri)
+                .authSelectionForm(
+                  formTemplate._id,
+                  Some(id.ggId),
+                  compositeAuthUrlParameters
+                )
             )
               .pure[Future]
 
@@ -132,18 +137,35 @@ class AuthService(
               case None =>
                 AuthCustomRedirect(
                   gform.routes.CompositeAuthController
-                    .authSelectionForm(formTemplate._id, None, request.uri)
+                    .authSelectionForm(
+                      formTemplate._id,
+                      None,
+                      compositeAuthUrlParameters
+                    )
                 )
                   .pure[Future]
             }
 
           case _ =>
             AuthCustomRedirect(
-              gform.routes.CompositeAuthController.authSelectionForm(formTemplate._id, None, request.uri)
+              gform.routes.CompositeAuthController.authSelectionForm(
+                formTemplate._id,
+                None,
+                compositeAuthUrlParameters
+              )
             )
               .pure[Future]
         }
     }
+
+  private def compositeAuthUrlParameters(implicit request: Request[AnyContent]) =
+    addQueryParams(
+      request.uri,
+      request.attrs
+        .get[String](compositeAuthSessionClearAttrKey)
+        .map((compositeAuthSessionClearAttrKeyName, _))
+        .toList: _*
+    )
 
   private val notAuthorized: AuthResult = AuthBlocked("You are not authorized to access this service")
   private val decoder = Base64.getDecoder

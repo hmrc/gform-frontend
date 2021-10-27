@@ -88,7 +88,6 @@ sealed trait AuthConfig extends Product with Serializable {
 
   def isEmailAuthConfig: Boolean = this match {
     case EmailAuthConfig(_, _, _, _) => true
-    case Composite(configs)          => configs.exists(x => x.isEmailAuthConfig)
     case _                           => false
   }
 
