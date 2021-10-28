@@ -21,7 +21,6 @@ import cats.syntax.eq._
 import cats.syntax.show._
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
-import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
 import uk.gov.hmrc.gform.controllers.helpers.InvisibleCharsHelper._
@@ -81,7 +80,13 @@ object FormDataHelpers {
             )
         )
       case None =>
-        Future.successful(BadRequest("Cannot parse body as FormUrlEncoded"))
+        continuation(RequestRelatedData.empty)(
+          formModelRenderPageOptics.recData.variadicFormData ++
+            VariadicFormData.empty[SourceOrigin.OutOfDate] --
+            maybeSectionNumber.toSeq.flatMap(s =>
+              unselectedChoiceElements(formModelRenderPageOptics.formModel(s), Map.empty)
+            )
+        )
     }
 
   private def trimAndReplaceCRLFWithLF(value: String) = value.trim.replaceAll("\r\n", "\n")
