@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.gform.models
 
-import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, MultiValueId }
+import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, FormComponent, FormComponentId, IncludeIf, Instruction, IsUpscanInitiateFileUpload, Page, PageId, ValidIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsUpscanInitiateFileUpload, Page, PageId, ValidIf }
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)
@@ -56,6 +56,14 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
 
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
     fold(_.page.fields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)(_ => Nil)
+
+  def maybeConfirmation: Option[Confirmation] = fold(_.page.confirmation)(_ => None)(_ => None)
+
+  def confirmationPage(confirmationLookup: Map[ModelPageId, ConfirmationPage.Confirmee]): ConfirmationPage =
+    maybeConfirmation match {
+      case None               => id.flatMap(id => confirmationLookup.get(id.modelPageId)).getOrElse(ConfirmationPage.Not)
+      case Some(confirmation) => ConfirmationPage.fromConfirmation(confirmation)
+    }
 
   def upscanInitiateRequests: List[FormComponentId] = fold(_.page.fields.collect {
     case IsUpscanInitiateFileUpload(formComponent) => formComponent.id

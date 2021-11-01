@@ -228,12 +228,6 @@ class FormDataHelpersSpec extends Spec {
     future.futureValue shouldBe Results.Ok
   }
 
-  "addSpacesInGovermentGatewayId" should "add a space after every 2 digits" in {
-    val input = "9692090753538380"
-    val result = FormDataHelpers.addSpacesInGovermentGatewayId(input)
-    result shouldBe "96 92 09 07 53 53 83 80"
-  }
-
   trait TestFixture {
     lazy val fields = List(mkFormComponent("formField1", Constant("value1")))
     lazy val section = mkSection(fields)

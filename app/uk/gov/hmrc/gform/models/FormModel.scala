@@ -37,6 +37,12 @@ case class FormModel[A <: PageMode](
       pageModel.id.map(id => (id.modelPageId, number))
   }.toMap
 
+  // Reverse lookup to find out SectionNumber which is confirmed by given PageId
+  val reverseConfirmationMap: Map[ModelPageId, ConfirmationPage.Confirmee] = pagesWithIndex.toList.flatMap {
+    case (pageModel, sectionNumber) =>
+      pageModel.maybeConfirmation.map(_.pageId.modelPageId -> ConfirmationPage.Confirmee(sectionNumber))
+  }.toMap
+
   val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
 
   val allFormComponents: List[FormComponent] = pages.flatMap(_.allFormComponents)

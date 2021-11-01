@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.models.PageMode
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, FormComponentId, IncludeIf, Page, Validator }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, Confirmation, FormComponentId, IncludeIf, Page, Validator }
 
 class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormComponentId]) {
 
@@ -31,6 +31,11 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
   private def expandDataRetrieve(dataRetrieve: DataRetrieve) = DataRetrieveUpdater(dataRetrieve, index, baseIds)
 
   private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds)
+
+  private def expandConfirmation(confirmation: Confirmation) = confirmation.copy(
+    question = new FormComponentUpdater(confirmation.question, index, baseIds).updatedWithId,
+    pageId = confirmation.pageId.withIndex(index)
+  )
 
   def updated: Page[A] =
     page.copy(
@@ -46,7 +51,8 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
       validators = page.validators.map(expandValidator),
       continueLabel = page.continueLabel.map(expandSmartString),
       instruction = page.instruction.map(i => i.copy(name = i.name.map(expandSmartString))),
-      dataRetrieve = page.dataRetrieve.map(expandDataRetrieve)
+      dataRetrieve = page.dataRetrieve.map(expandDataRetrieve),
+      confirmation = page.confirmation.map(expandConfirmation)
     )
 }
 

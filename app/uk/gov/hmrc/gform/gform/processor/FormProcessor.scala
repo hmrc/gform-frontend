@@ -168,7 +168,10 @@ class FormProcessor(
     formModelOptics: FormModelOptics[Mongo]
   )(
     toResult: Option[SectionNumber] => Result
-  )(implicit hc: HeaderCarrier, request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Future[Result] =
+  )(implicit hc: HeaderCarrier, request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Future[Result] = {
+    val pageModel: PageModel[Visibility] =
+      processData.formModelOptics.formModelVisibilityOptics.formModel(sectionNumber)
+
     for {
       envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
       envelopeWithMapping = EnvelopeWithMapping(envelope, cache.form)
@@ -179,20 +182,16 @@ class FormProcessor(
                                                                       envelopeWithMapping,
                                                                       validationService.validatePageModel
                                                                     )
-      dataRetrieveResult <- {
-        val maybePageModelForSection =
-          processData.formModelOptics.formModelVisibilityOptics.formModel.pageModelLookup.get(sectionNumber)
-        maybePageModelForSection.fold[Future[DataRetrieveResult]](DataRetrieveNotRequired.pure[Future]) { pm =>
-          pm.fold[Future[DataRetrieveResult]](s =>
-            s.page.dataRetrieve.fold[Future[DataRetrieveResult]](DataRetrieveNotRequired.pure[Future]) {
-              case v: ValidateBank =>
-                implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
-                DataRetrieveService[ValidateBank, Future]
-                  .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
-            }
-          )(_ => DataRetrieveNotRequired.pure[Future])(_ => DataRetrieveNotRequired.pure[Future])
-        }
-      }
+      dataRetrieveResult <-
+        pageModel.fold(singleton =>
+          singleton.page.dataRetrieve.fold[Future[DataRetrieveResult]](DataRetrieveNotRequired.pure[Future]) {
+            case v: ValidateBank =>
+              implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
+              DataRetrieveService[ValidateBank, Future]
+                .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
+          }
+        )(_ => DataRetrieveNotRequired.pure[Future])(_ => DataRetrieveNotRequired.pure[Future])
+
       res <- {
         val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
 
@@ -254,6 +253,7 @@ class FormProcessor(
         }
       }
     } yield res
+  }
 
   def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber): SectionTitle4Ga =
     sectionTitle4GaFactory(processData.formModel(sectionNumber).title, sectionNumber)

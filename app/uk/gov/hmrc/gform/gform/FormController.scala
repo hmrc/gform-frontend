@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
+import com.softwaremill.quicklens._
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.I18nSupport
 import play.api.mvc._
@@ -37,7 +38,7 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Browser
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
@@ -421,6 +422,65 @@ class FormController(
         } yield res
     }
 
+  def processConfirmation(
+    requestRelatedData: RequestRelatedData,
+    sectionNumber: SectionNumber,
+    processData: ProcessData,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  ): ConfirmationAction = {
+
+    val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
+    val pageModel: PageModel[Visibility] = formModel(sectionNumber)
+    val confirmationPage = pageModel.confirmationPage(formModel.reverseConfirmationMap)
+
+    confirmationPage match {
+      case ConfirmationPage.Confirmee(confirmedSectionNumber) =>
+        val browserData = processData.formModelOptics.formModelVisibilityOptics.data.forSectionNumber(sectionNumber)
+        val mongoData = formModelOptics.formModelVisibilityOptics.data.forSectionNumber(sectionNumber)
+
+        if (browserData != mongoData) {
+          // We need to remove confirmedSectionNumber from VisitsIndex
+          ConfirmationAction
+            .UpdateConfirmation(processData =>
+              processData
+                .modify(_.visitsIndex)
+                .setTo(processData.visitsIndex.unvisit(confirmedSectionNumber))
+            )
+        } else {
+          ConfirmationAction.noop
+        }
+
+      case ConfirmationPage.Confirmator(confirmation) =>
+        requestRelatedData.get(confirmation.question.id.value) match {
+          case "0" => ConfirmationAction.noop // Page is confirmed by user
+          case _ => // Page is not confirmed
+            val modelPageId: ModelPageId = confirmation.pageId.modelPageId
+
+            val sn: SectionNumber = formModel.pageIdSectionNumberMap
+              .getOrElse(modelPageId, throw new Exception(s"No section number found for pageId $modelPageId"))
+
+            val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
+            ConfirmationAction
+              .NotConfirmed(
+                Redirect(
+                  routes.FormController
+                    .form(
+                      formTemplateId,
+                      maybeAccessCode,
+                      sn,
+                      sectionTitle4Ga,
+                      SuppressErrors.Yes,
+                      FastForward.Yes
+                    )
+                )
+              )
+        }
+      case ConfirmationPage.Not => ConfirmationAction.noop
+    }
+  }
+
   def updateFormData(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -438,34 +498,46 @@ class FormController(
             def processSaveAndContinue(
               processData: ProcessData
             ): Future[Result] =
-              formProcessor.validateAndUpdateData(
-                cache,
+              processConfirmation(
+                requestRelatedData,
+                sectionNumber,
                 processData,
-                sectionNumber,
-                sectionNumber,
+                formTemplateId,
                 maybeAccessCode,
-                fastForward,
                 formModelOptics
-              ) {
-                case Some(sn) =>
-                  val isFirstLanding = sectionNumber < sn
-                  val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
-                  Redirect(
-                    routes.FormController
-                      .form(
-                        formTemplateId,
-                        maybeAccessCode,
-                        sn,
-                        sectionTitle4Ga,
-                        SuppressErrors(isFirstLanding),
-                        if (isFirstLanding)
-                          fastForward.next(processData.formModelOptics.formModelVisibilityOptics.formModel)
-                        else
-                          fastForward
+              ) match {
+                case ConfirmationAction.NotConfirmed(redirect) => redirect.pure[Future]
+                case ConfirmationAction.UpdateConfirmation(processDataUpdater) =>
+                  val processDataUpd = processDataUpdater(processData)
+                  formProcessor.validateAndUpdateData(
+                    cache,
+                    processDataUpd,
+                    sectionNumber,
+                    sectionNumber,
+                    maybeAccessCode,
+                    fastForward,
+                    formModelOptics
+                  ) {
+                    case Some(sn) =>
+                      val isFirstLanding = sectionNumber < sn
+                      val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processDataUpd, sn)
+                      Redirect(
+                        routes.FormController
+                          .form(
+                            formTemplateId,
+                            maybeAccessCode,
+                            sn,
+                            sectionTitle4Ga,
+                            SuppressErrors(isFirstLanding),
+                            if (isFirstLanding)
+                              fastForward.next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel)
+                            else
+                              fastForward
+                          )
                       )
-                  )
-                case None =>
-                  Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
+                    case None =>
+                      Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
+                  }
               }
 
             def processSaveAndExit(processData: ProcessData): Future[Result] =

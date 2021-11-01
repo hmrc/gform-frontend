@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
 case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {
   def visit(sectionNumber: SectionNumber): VisitIndex = VisitIndex(visitsIndex + sectionNumber.value)
+  def unvisit(sectionNumber: SectionNumber): VisitIndex = VisitIndex(visitsIndex - sectionNumber.value)
   def contains(index: Int): Boolean = visitsIndex.contains(index)
 }
 

@@ -156,12 +156,14 @@ class SectionRenderingService(
         formModelOptics.formModelVisibilityOptics.formModel(singletonWithNumber.sectionNumber).title,
         singletonWithNumber.sectionNumber
       )
-      singletonWithNumber.singleton.page.fields
+      val page = singletonWithNumber.singleton.page
+      page.fields
         .filterNot(_.hideOnSummary)
         .flatMap { fc =>
           FormComponentSummaryRenderer
             .summaryListRows[DataOrigin.Mongo, AddToListCYARender](
               fc,
+              page.id.map(_.modelPageId),
               formTemplate._id,
               formModelOptics.formModelVisibilityOptics,
               maybeAccessCode,
@@ -177,12 +179,12 @@ class SectionRenderingService(
     }
 
     html.form.addToListCheckYourAnswers(
-      if (isFirstVisit) messages("summary.checkYourAnswers") else checkYourAnswers.expandedUpdateTitle.value(),
+      if (isFirstVisit) messages("summary.checkYourAnswers") else checkYourAnswers.expandedUpdateTitle.value,
       if (isFirstVisit)
         messages("summary.checkYourAnswers")
       else
         checkYourAnswers.expandedNoPIIUpdateTitle.fold(checkYourAnswers.expandedUpdateTitle.valueWithoutInterpolations)(
-          _.value()
+          _.value
         ),
       formTemplate,
       maybeAccessCode,
@@ -325,8 +327,8 @@ class SectionRenderingService(
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
 
     html.form.addToList(
-      repeater.title.value(),
-      repeater.noPIITitle.fold(repeater.title.valueWithoutInterpolations)(_.value()),
+      repeater.title.value,
+      repeater.noPIITitle.fold(repeater.title.valueWithoutInterpolations)(_.value),
       bracket,
       formTemplate,
       recordTable,
@@ -410,8 +412,8 @@ class SectionRenderingService(
       maybeAccessCode,
       sectionNumber,
       page.title.value,
-      page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value()),
-      page.description.map(ls => ls.value()),
+      page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value),
+      page.description.map(ls => ls.value),
       snippetsForFields,
       javascript,
       envelopeId,
@@ -569,7 +571,7 @@ class SectionRenderingService(
 
     val declarationPage = singleton.page
 
-    val continueLabel = declarationPage.continueLabel.map(_.value()).getOrElse {
+    val continueLabel = declarationPage.continueLabel.map(_.value).getOrElse {
       formTemplate.formCategory match {
         case HMRCReturnForm => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
         case HMRCClaimForm  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
@@ -587,7 +589,7 @@ class SectionRenderingService(
       maybeAccessCode,
       SectionNumber(0),
       declarationPage.title.value,
-      declarationPage.noPIITitle.fold(declarationPage.title.valueWithoutInterpolations)(_.value()),
+      declarationPage.noPIITitle.fold(declarationPage.title.valueWithoutInterpolations)(_.value),
       declarationPage.description.map(ls => ls.value),
       snippets,
       "",
@@ -736,7 +738,7 @@ class SectionRenderingService(
       maybeAccessCode,
       SectionNumber(0),
       page.title.value,
-      page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value()),
+      page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value),
       None,
       snippets,
       "",

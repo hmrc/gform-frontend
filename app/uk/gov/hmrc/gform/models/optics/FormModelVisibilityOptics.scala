@@ -20,7 +20,7 @@ import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationResults, Expressi
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormPhase, IncludeIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormPhase, IncludeIf, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
@@ -86,6 +86,9 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
       if (formModel.isDefinedAt(modelComponentId)) {
         recData.variadicFormData.get(modelComponentId)
       } else None
+
+    def forSectionNumber[A](sectionNumber: SectionNumber): List[VariadicValue] =
+      formModel(sectionNumber).allFormComponentIds.map(_.modelComponentId).flatMap(recData.variadicFormData.get)
   }
 
 }
