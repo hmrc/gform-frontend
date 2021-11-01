@@ -66,7 +66,8 @@ trait FormTemplateSample {
           continueIf = None,
           instruction = None,
           presentationHint = None,
-          dataRetrieve = None
+          dataRetrieve = None,
+          confirmation = None
         )
       )
     ),

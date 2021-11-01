@@ -554,6 +554,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         instruction,
         presentationHint,
+        None,
         None
       )
     )
@@ -604,6 +605,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         instruction,
         presentationHint,
+        None,
         None
       ),
       repeats = repeatsExpr
@@ -666,6 +668,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     None,
     instruction,
     presentationHint,
+    None,
     None
   )
 }

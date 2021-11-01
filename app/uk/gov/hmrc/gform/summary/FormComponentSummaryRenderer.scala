@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
+import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ Atom, FastForward }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -38,10 +39,11 @@ object FormComponentSummaryRenderer {
 
   def summaryListRows[D <: DataOrigin, T <: RenderType](
     formComponent: FormComponent,
+    modelPageId: Option[ModelPageId],
     formTemplateId: FormTemplateId,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     maybeAccessCode: Option[AccessCode],
-    sectionNumber: SectionNumber,
+    formComponentSectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     obligations: Obligations,
     validationResult: ValidationResult,
@@ -56,6 +58,9 @@ object FormComponentSummaryRenderer {
   ): List[SummaryListRow] = {
 
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
+    val maybeConfirmee = modelPageId.map(formModelVisibilityOptics.formModel.reverseConfirmationMap)
+    // When field is confirmed we want change link to go to confirmation page
+    val sectionNumber = maybeConfirmee.fold(formComponentSectionNumber)(_.confirmedBySectionNumber)
 
     formComponent match {
       case IsText(Text(_, _, _, _, prefix, suffix)) =>
@@ -205,6 +210,7 @@ object FormComponentSummaryRenderer {
       case IsRevealingChoice(rc) =>
         getRevealingChoiceSummaryListRows(
           formComponent,
+          modelPageId,
           formTemplateId,
           formModelVisibilityOptics,
           maybeAccessCode,
@@ -223,6 +229,7 @@ object FormComponentSummaryRenderer {
         getGroupSummaryListRows(
           group,
           formComponent,
+          modelPageId,
           formTemplateId,
           formModelVisibilityOptics,
           maybeAccessCode,
@@ -989,6 +996,7 @@ object FormComponentSummaryRenderer {
 
   private def getRevealingChoiceSummaryListRows[D <: DataOrigin, T <: RenderType](
     fieldValue: FormComponent,
+    modelPageId: Option[ModelPageId],
     formTemplateId: FormTemplateId,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     maybeAccessCode: Option[AccessCode],
@@ -1037,6 +1045,7 @@ object FormComponentSummaryRenderer {
             val revealingFields = fcrd.prepareRenderables(element.revealingFields.filterNot(_.hideOnSummary)).flatMap {
               summaryListRows(
                 _,
+                modelPageId,
                 formTemplateId,
                 formModelVisibilityOptics,
                 maybeAccessCode,
@@ -1090,6 +1099,7 @@ object FormComponentSummaryRenderer {
   private def getGroupSummaryListRows[D <: DataOrigin, T <: RenderType](
     group: Group,
     formComponent: FormComponent,
+    modelPageId: Option[ModelPageId],
     formTemplateId: FormTemplateId,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     maybeAccessCode: Option[AccessCode],
@@ -1173,6 +1183,7 @@ object FormComponentSummaryRenderer {
         val rows = fcrd.prepareRenderables(group.fields).flatMap { formComponent =>
           summaryListRows(
             formComponent,
+            modelPageId,
             formTemplateId,
             formModelVisibilityOptics,
             maybeAccessCode,

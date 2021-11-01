@@ -107,9 +107,6 @@ object FormDataHelpers {
     form.modify(_.formData.fields).setTo(updated)
   }
 
-  def addSpacesInGovermentGatewayId(id: String): String =
-    id.trim.replaceAll("..(?!$)", "$0 ")
-
   private def buildVariadicFormDataFromBrowserPostData(
     formModel: FormModel[DataExpanded],
     requestData: Map[String, Seq[String]]

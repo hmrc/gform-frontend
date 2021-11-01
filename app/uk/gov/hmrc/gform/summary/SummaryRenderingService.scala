@@ -358,6 +358,7 @@ object SummaryRenderingService {
         .flatMap(formComponent =>
           FormComponentSummaryRenderer.summaryListRows[D, SummaryRender](
             formComponent,
+            page.id.map(_.modelPageId),
             formTemplate._id,
             formModelOptics.formModelVisibilityOptics,
             maybeAccessCode,
@@ -459,6 +460,7 @@ object SummaryRenderingService {
         .flatMap(formComponent =>
           FormComponentSummaryRenderer.summaryListRows[DataOrigin.Mongo, SummaryRender](
             formComponent,
+            None,
             formTemplate._id,
             formModelVisibilityOptics,
             maybeAccessCode,

@@ -39,7 +39,8 @@ case class Page[A <: PageMode](
   continueIf: Option[ContinueIf],
   instruction: Option[Instruction],
   presentationHint: Option[PresentationHint],
-  dataRetrieve: Option[DataRetrieve]
+  dataRetrieve: Option[DataRetrieve],
+  confirmation: Option[Confirmation]
 ) {
 
   val allIds: List[FormComponentId] = fields.map(_.id) ++ fields.flatMap(_.childrenFormComponents.map(_.id))
@@ -71,23 +72,24 @@ case class Page[A <: PageMode](
     }
   )
 
-  def renderUnits: List[RenderUnit] = fields.foldRight(List.empty[RenderUnit]) {
-    case (formComponent, (h @ RenderUnit.Group(baseComponentId, groupFormComponents)) :: xs) =>
-      formComponent match {
-        case IsGroup(group) =>
-          if (baseComponentId === formComponent.baseComponentId)
-            h.prepend((group, formComponent)) :: xs
-          else
-            RenderUnit.group(group, formComponent) :: h :: xs
-        case otherwise => RenderUnit.pure(formComponent) :: h :: xs
-      }
-    case (formComponent, acc) =>
-      val start = formComponent match {
-        case IsGroup(group) => RenderUnit.group(group, formComponent)
-        case otherwise      => RenderUnit.pure(formComponent)
-      }
-      start :: acc
-  }
+  def renderUnits: List[RenderUnit] =
+    (fields ++ confirmation.map(_.question).toList).foldRight(List.empty[RenderUnit]) {
+      case (formComponent, (h @ RenderUnit.Group(baseComponentId, groupFormComponents)) :: xs) =>
+        formComponent match {
+          case IsGroup(group) =>
+            if (baseComponentId === formComponent.baseComponentId)
+              h.prepend((group, formComponent)) :: xs
+            else
+              RenderUnit.group(group, formComponent) :: h :: xs
+          case otherwise => RenderUnit.pure(formComponent) :: h :: xs
+        }
+      case (formComponent, acc) =>
+        val start = formComponent match {
+          case IsGroup(group) => RenderUnit.group(group, formComponent)
+          case otherwise      => RenderUnit.pure(formComponent)
+        }
+        start :: acc
+    }
   val isTerminationPage: Boolean = continueIf.contains(Stop)
 
 }
