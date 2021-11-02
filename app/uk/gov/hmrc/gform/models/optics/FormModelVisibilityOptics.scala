@@ -87,8 +87,8 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
         recData.variadicFormData.get(modelComponentId)
       } else None
 
-    def forSectionNumber[A](sectionNumber: SectionNumber): List[VariadicValue] =
-      formModel(sectionNumber).allFormComponentIds.map(_.modelComponentId).flatMap(recData.variadicFormData.get)
+    def forSectionNumber[A](sectionNumber: SectionNumber): Set[VariadicValue] =
+      formModel(sectionNumber).allModelComponentIds.flatMap(recData.variadicFormData.get)
   }
 
 }

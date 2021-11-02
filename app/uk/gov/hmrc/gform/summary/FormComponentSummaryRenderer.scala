@@ -43,7 +43,7 @@ object FormComponentSummaryRenderer {
     formTemplateId: FormTemplateId,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     maybeAccessCode: Option[AccessCode],
-    formComponentSectionNumber: SectionNumber,
+    sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     obligations: Obligations,
     validationResult: ValidationResult,
@@ -58,9 +58,6 @@ object FormComponentSummaryRenderer {
   ): List[SummaryListRow] = {
 
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
-    val maybeConfirmee = modelPageId.map(formModelVisibilityOptics.formModel.reverseConfirmationMap)
-    // When field is confirmed we want change link to go to confirmation page
-    val sectionNumber = maybeConfirmee.fold(formComponentSectionNumber)(_.confirmedBySectionNumber)
 
     formComponent match {
       case IsText(Text(_, _, _, _, prefix, suffix)) =>
