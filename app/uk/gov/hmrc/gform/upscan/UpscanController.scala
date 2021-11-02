@@ -23,6 +23,7 @@ import play.api.mvc.{ Action, AnyContent, Flash, MessagesControllerComponents }
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
+import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, GformFlashKeys }
 import uk.gov.hmrc.gform.gform.FastForwardService
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
@@ -39,7 +40,8 @@ class UpscanController(
   gformBackEndAlgebra: GformBackEndAlgebra[Future],
   upscanService: UpscanAlgebra[Future],
   i18nSupport: I18nSupport,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  appConfig: AppConfig
 )(implicit ec: ExecutionContext, s: Scheduler)
     extends FrontendController(messagesControllerComponents) with Retrying {
 
@@ -120,8 +122,21 @@ class UpscanController(
           s"Upscan error callback - errorMessage: $errorMessage, errorCode: $errorCode, errorRequestId: $errorRequestId. errorResource: $errorResource, key: $key"
         )
 
-        val flash = mkFlash("file.error.upload.one.only")
         val fileId = FileId(formComponentId.value)
+
+        val flash = errorCode match {
+          case Some("InvalidArgument") =>
+            mkFlash(
+              "generic.error.upload",
+              formModelOptics.formModelVisibilityOptics.fcLookup
+                .get(formComponentId)
+                .map(_.label.localised.value)
+                .getOrElse("")
+            )
+          case Some("EntityTooLarge") => mkFlash("file.error.size", appConfig.formMaxAttachmentSizeMB.toString)
+          case Some("EntityTooSmall") => mkFlash("file.error.empty")
+          case _                      => mkFlash("file.error.upload.one.only")
+        }
 
         fastForwardService
           .redirectStopAt[SectionSelectorType.Normal](sectionNumber, cache, maybeAccessCode, formModelOptics)
