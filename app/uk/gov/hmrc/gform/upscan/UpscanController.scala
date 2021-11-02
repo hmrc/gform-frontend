@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.core.Retrying
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 class UpscanController(
   auth: AuthenticatedRequestActions,
@@ -112,7 +113,7 @@ class UpscanController(
     formComponentId: FormComponentId
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => _ => implicit formModelOptics =>
+      implicit request => implicit l => cache => implicit sse => implicit formModelOptics =>
         val errorMessage = request.getQueryString("errorMessage")
         val key = request.getQueryString("key")
         val errorCode = request.getQueryString("errorCode")
@@ -130,7 +131,7 @@ class UpscanController(
               "generic.error.upload",
               formModelOptics.formModelVisibilityOptics.fcLookup
                 .get(formComponentId)
-                .map(_.label.localised.value)
+                .map(_.label.value)
                 .getOrElse("")
             )
           case Some("EntityTooLarge") => mkFlash("file.error.size", appConfig.formMaxAttachmentSizeMB.toString)
