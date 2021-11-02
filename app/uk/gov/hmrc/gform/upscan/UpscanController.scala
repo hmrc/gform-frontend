@@ -23,6 +23,7 @@ import play.api.mvc.{ Action, AnyContent, Flash, MessagesControllerComponents }
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
+import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, GformFlashKeys }
 import uk.gov.hmrc.gform.gform.FastForwardService
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
@@ -32,6 +33,7 @@ import uk.gov.hmrc.gform.core.Retrying
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 class UpscanController(
   auth: AuthenticatedRequestActions,
@@ -39,7 +41,8 @@ class UpscanController(
   gformBackEndAlgebra: GformBackEndAlgebra[Future],
   upscanService: UpscanAlgebra[Future],
   i18nSupport: I18nSupport,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  appConfig: AppConfig
 )(implicit ec: ExecutionContext, s: Scheduler)
     extends FrontendController(messagesControllerComponents) with Retrying {
 
@@ -110,7 +113,7 @@ class UpscanController(
     formComponentId: FormComponentId
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => _ => implicit formModelOptics =>
+      implicit request => implicit l => cache => implicit sse => implicit formModelOptics =>
         val errorMessage = request.getQueryString("errorMessage")
         val key = request.getQueryString("key")
         val errorCode = request.getQueryString("errorCode")
@@ -120,8 +123,21 @@ class UpscanController(
           s"Upscan error callback - errorMessage: $errorMessage, errorCode: $errorCode, errorRequestId: $errorRequestId. errorResource: $errorResource, key: $key"
         )
 
-        val flash = mkFlash("file.error.upload.one.only")
         val fileId = FileId(formComponentId.value)
+
+        val flash = errorCode match {
+          case Some("InvalidArgument") =>
+            mkFlash(
+              "generic.error.upload",
+              formModelOptics.formModelVisibilityOptics.fcLookup
+                .get(formComponentId)
+                .map(_.label.value)
+                .getOrElse("")
+            )
+          case Some("EntityTooLarge") => mkFlash("file.error.size", appConfig.formMaxAttachmentSizeMB.toString)
+          case Some("EntityTooSmall") => mkFlash("file.error.empty")
+          case _                      => mkFlash("file.error.upload.one.only")
+        }
 
         fastForwardService
           .redirectStopAt[SectionSelectorType.Normal](sectionNumber, cache, maybeAccessCode, formModelOptics)
