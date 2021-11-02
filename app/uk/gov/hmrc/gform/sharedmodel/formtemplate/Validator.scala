@@ -41,17 +41,3 @@ case class HmrcRosmRegistrationCheckValidator(
 object HmrcRosmRegistrationCheckValidator {
   implicit val format: OFormat[HmrcRosmRegistrationCheckValidator] = derived.oformat()
 }
-
-case class BankAccountModulusCheck(
-  errorMessage: SmartString,
-  accountNumber: FormCtx,
-  sortCode: FormCtx
-) extends Validator {
-
-  val accountNumberId = accountNumber.formComponentId
-  val sortCodeId = sortCode.formComponentId
-}
-
-object BankAccountModulusCheck {
-  implicit val format: OFormat[BankAccountModulusCheck] = derived.oformat()
-}

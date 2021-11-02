@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BankAccountModulusCheck, FormComponentId, FormCtx, HmrcRosmRegistrationCheckValidator, Validator }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, HmrcRosmRegistrationCheckValidator, Validator }
 
 class ValidatorUpdater(validator: Validator, index: Int, baseIds: List[FormComponentId]) {
 
@@ -31,12 +31,6 @@ class ValidatorUpdater(validator: Validator, index: Int, baseIds: List[FormCompo
         errorMessage = expandSmartString(v.errorMessage),
         utr = expandFormCtx(v.utr),
         postcode = expandFormCtx(v.postcode)
-      )
-    case v: BankAccountModulusCheck =>
-      v.copy(
-        errorMessage = expandSmartString(v.errorMessage),
-        accountNumber = expandFormCtx(v.accountNumber),
-        sortCode = expandFormCtx(v.sortCode)
       )
   }
 }
