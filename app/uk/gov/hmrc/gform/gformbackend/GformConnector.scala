@@ -302,14 +302,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       desRegistrationRequest
     )
 
-  def validateBankModulus(accountNumber: String, sortCode: String)(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[Boolean] =
-    ws.POST[Account, HttpResponse](s"$baseUrl/validate/bank", Account(sortCode, accountNumber)).map(_ => true).recover {
-      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => false
-    }
-
   //TODO other formTemplate endpoints
   //TODO move this file to gform and make it's origin there
 
