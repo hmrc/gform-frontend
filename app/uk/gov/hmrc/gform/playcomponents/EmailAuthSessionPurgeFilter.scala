@@ -122,7 +122,7 @@ class EmailAuthSessionPurgeFilter(
             next(rh.addAttr(compositeAuthSessionClearAttrKey, "true"))
         }
       case None =>
-        next(rh)
+        next(rh.addAttr(compositeAuthSessionClearAttrKey, "true"))
     }
   }
 
