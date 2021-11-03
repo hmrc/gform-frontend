@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode, Repeater, Singleton }
 import uk.gov.hmrc.gform.sharedmodel.ValidateBank
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BankAccountModulusCheck, Expr, HmrcRosmRegistrationCheckValidator }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, HmrcRosmRegistrationCheckValidator }
 
 /*
  * Extracts metadata for all expressions of a Page.
@@ -40,8 +40,6 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
       val validatorExprs = page.validators.fold(List.empty[Expr]) {
         case HmrcRosmRegistrationCheckValidator(errorMessage, _, utr, postCode) =>
           utr :: postCode :: errorMessage.interpolations
-        case BankAccountModulusCheck(errorMessage, accountNumber, sortCode) =>
-          accountNumber :: sortCode :: errorMessage.interpolations
       }
 
       val dataRetrieveExpressions = page.dataRetrieve.fold(List.empty[Expr]) {

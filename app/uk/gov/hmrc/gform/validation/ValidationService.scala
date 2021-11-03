@@ -267,24 +267,6 @@ class ValidationService(
                 else errors.invalid
               )
           }
-      case BankAccountModulusCheck(errorMessage, accountNumber, sortCode) =>
-        val accountNumberValue = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(accountNumber).stringRepresentation
-
-        val sortCodeCombined = UkSortCode
-          .fields(sortCode.formComponentId.modelComponentId.indexedComponentId)
-          .map(formModelVisibilityOptics.data.one)
-          .toList
-          .flatten
-          .mkString("-")
-
-        val errors = Map(
-          accountNumber.formComponentId.modelComponentId -> Set(errorMessage.value),
-          sortCode.formComponentId.modelComponentId      -> Set(errorMessage.value)
-        )
-
-        gformConnector
-          .validateBankModulus(accountNumberValue, sortCodeCombined)
-          .map(b => if (b) ValidatorsResult.empty.valid else errors.invalid)
     }
   }
 }

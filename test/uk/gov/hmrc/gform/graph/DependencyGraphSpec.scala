@@ -464,17 +464,9 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       FormCtx(""),
       FormCtx("")
     )
-    val bankAccountModulusCheck = BankAccountModulusCheck(
-      toSmartString(""),
-      FormCtx(""),
-      FormCtx("")
-    )
 
     def hmrcRosm(rosm: HmrcRosmRegistrationCheckValidator): Page[Basic] =
       emptyPage.copy(validators = Some(rosm))
-
-    def bankAccount(bank: BankAccountModulusCheck): Page[Basic] =
-      emptyPage.copy(validators = Some(bank))
 
     Table(
       // format: off
@@ -482,9 +474,6 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ("validators.HmrcRosmRegistrationCheckValidator.errorMessage", hmrcRosm(hmrcRosmRegistrationCheckValidator.copy(errorMessage = stringExpr))),
       ("validators.HmrcRosmRegistrationCheckValidator.utr",          hmrcRosm(hmrcRosmRegistrationCheckValidator.copy(utr = ctx))),
       ("validators.HmrcRosmRegistrationCheckValidator.postcode",     hmrcRosm(hmrcRosmRegistrationCheckValidator.copy(postcode = ctx))),
-      ("validators.BankAccountModulusCheck.errorMessage",  bankAccount(bankAccountModulusCheck.copy(errorMessage = stringExpr))),
-      ("validators.BankAccountModulusCheck.accountNumber", bankAccount(bankAccountModulusCheck.copy(accountNumber = ctx))),
-      ("validators.BankAccountModulusCheck.sortCode",      bankAccount(bankAccountModulusCheck.copy(accountNumber = ctx)))
       // format: on
     )
   }

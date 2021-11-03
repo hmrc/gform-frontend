@@ -690,13 +690,6 @@ trait ExampleValidator {
       FormCtx(FormComponentId("utrToCheck")),
       FormCtx(FormComponentId("postcodeToCheck"))
     )
-  def bankAccountModulusCheckValidator =
-    BankAccountModulusCheck(
-      toSmartString("This is an error message for Bank"),
-      FormCtx(FormComponentId("accountNumber")),
-      FormCtx(FormComponentId("sortCode"))
-    )
-  //todo other example validators
 }
 
 trait ExampleFormTemplate {
