@@ -43,6 +43,8 @@ case class Page[A <: PageMode](
   confirmation: Option[Confirmation]
 ) {
 
+  val fieldsWithConfirmationQuestion: List[FormComponent] = confirmation.fold(fields)(fields ::: _.question :: Nil)
+
   val allIds: List[FormComponentId] = fields.map(_.id) ++ fields.flatMap(_.childrenFormComponents.map(_.id))
 
   val staticTypeInfo: StaticTypeInfo = StaticTypeInfo {
@@ -73,7 +75,7 @@ case class Page[A <: PageMode](
   )
 
   def renderUnits: List[RenderUnit] =
-    (fields ++ confirmation.map(_.question).toList).foldRight(List.empty[RenderUnit]) {
+    fieldsWithConfirmationQuestion.foldRight(List.empty[RenderUnit]) {
       case (formComponent, (h @ RenderUnit.Group(baseComponentId, groupFormComponents)) :: xs) =>
         formComponent match {
           case IsGroup(group) =>

@@ -153,7 +153,17 @@ class FormController(
 
             bracket match {
               case Bracket.NonRepeatingPage(singleton, sectionNumber, _) =>
-                validateSections(suppressErrors, sectionNumber)(renderSingleton(singleton, sectionNumber, _))
+                val formModel: FormModel[Visibility] = formModelOptics.formModelVisibilityOptics.formModel
+                val pageModel: PageModel[Visibility] = formModel(sectionNumber)
+                val confirmationPage = pageModel.confirmationPage(formModel.reverseConfirmationMap)
+
+                confirmationPage match {
+                  case ConfirmationPage.Confirmator(confirmation) if suppressErrors === SuppressErrors.No =>
+                    renderSingleton(singleton, sectionNumber, confirmation.isRequiredError(envelope, cache))
+                  case _ =>
+                    validateSections(suppressErrors, sectionNumber)(renderSingleton(singleton, sectionNumber, _))
+
+                }
               case bracket @ Bracket.RepeatingPage(_, _) =>
                 validateSections(suppressErrors, sectionNumber)(
                   renderSingleton(bracket.singletonForSectionNumber(sectionNumber), sectionNumber, _)
@@ -453,9 +463,25 @@ class FormController(
         }
 
       case ConfirmationPage.Confirmator(confirmation) =>
-        requestRelatedData.get(confirmation.question.id.value) match {
-          case "0" => ConfirmationAction.noop // Page is confirmed by user
-          case _ => // Page is not confirmed
+        requestRelatedData.getOption(confirmation.question.id.value) match {
+          case None =>
+            val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
+            ConfirmationAction
+              .NotConfirmed(
+                Redirect(
+                  routes.FormController
+                    .form(
+                      formTemplateId,
+                      maybeAccessCode,
+                      sectionNumber,
+                      sectionTitle4Ga,
+                      SuppressErrors.No,
+                      FastForward.Yes
+                    )
+                )
+              )
+          case Some("0") => ConfirmationAction.noop // Page is confirmed by user
+          case Some(_) => // Page is not confirmed
             val modelPageId: ModelPageId = confirmation.pageId.modelPageId
 
             val sn: SectionNumber = formModel.pageIdSectionNumberMap
