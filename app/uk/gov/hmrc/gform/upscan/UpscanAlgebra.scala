@@ -32,11 +32,11 @@ trait UpscanAlgebra[F[_]] {
 
   def retrieveConfirmationOrFail(
     reference: UpscanReference
-  )(implicit hc: HeaderCarrier): F[UpscanFileStatus]
+  )(implicit hc: HeaderCarrier): F[UpscanConfirmation]
 
   def retrieveConfirmation(
     reference: UpscanReference
-  )(implicit hc: HeaderCarrier): F[Option[UpscanFileStatus]]
+  )(implicit hc: HeaderCarrier): F[Option[UpscanConfirmation]]
 
   def deleteConfirmation(
     reference: UpscanReference

@@ -20,6 +20,7 @@ import akka.actor.Scheduler
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, Flash, MessagesControllerComponents }
+
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
@@ -67,8 +68,8 @@ class UpscanController(
 
             val formIdData: FormIdData = FormIdData(cache, maybeAccessCode)
 
-            retry(upscanService.retrieveConfirmationOrFail(reference), 2.seconds, 30).flatMap { upscanFileStatus =>
-              upscanFileStatus match {
+            retry(upscanService.retrieveConfirmationOrFail(reference), 2.seconds, 30).flatMap { upscanConfirmation =>
+              upscanConfirmation.status match {
                 case UpscanFileStatus.Ready =>
                   gformBackEndAlgebra.getForm(formIdData).flatMap { form =>
                     fastForwardService
@@ -80,8 +81,22 @@ class UpscanController(
                       )
                   }
                 case UpscanFileStatus.Failed =>
-                  val flash = mkFlash("file.error.upload.one.only")
                   val fileId = FileId(formComponentId.value)
+
+                  logger.info(
+                    s"Upscan failed - status: ${upscanConfirmation.status}, failureReason: ${upscanConfirmation.failureDetails.failureReason}, message: ${upscanConfirmation.failureDetails.message}"
+                  )
+                  val flash = upscanConfirmation.failureDetails match {
+                    case FailureDetails("REJECTED", _) =>
+                      mkFlash(
+                        "file.error.type",
+                        upscanConfirmation.failureDetails.message,
+                        "PDF, JPEG, XLSX, ODS, DOCX, ODT, PPTX, ODP"
+                      )
+                    case FailureDetails("UNKNOWN", _) =>
+                      mkFlash("file.error.size", appConfig.formMaxAttachmentSizeMB.toString)
+                    case _ => mkFlash("file.error.upload.one.only")
+                  }
 
                   fastForwardService
                     .redirectStopAt[SectionSelectorType.Normal](sectionNumber, cache, maybeAccessCode, formModelOptics)
@@ -93,14 +108,14 @@ class UpscanController(
 
   def check(formTemplateId: FormTemplateId, upscanReference: UpscanReference): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) { implicit request => l => cache =>
-      upscanService.retrieveConfirmation(upscanReference).flatMap { confirmation =>
+      upscanService.retrieveConfirmation(upscanReference).flatMap { upscanConfirmation =>
         // We need to delete confirmation, since if user uploads another file
         // waitForConfirmation in success callback would see old confirmation, which may not be correct
         // Note. This is not an issue for non-js journey as non-js users have never a chance to reuse upscan reference
         upscanService.deleteConfirmation(upscanReference).map { _ =>
-          confirmation match {
-            case Some(UpscanFileStatus.Ready) | None => NoContent
-            case Some(UpscanFileStatus.Failed)       => Ok("error")
+          upscanConfirmation match {
+            case Some(UpscanConfirmation(_, UpscanFileStatus.Ready, _, _)) | None => NoContent
+            case Some(UpscanConfirmation(_, UpscanFileStatus.Failed, _, _))       => Ok("error")
           }
         }
       }
