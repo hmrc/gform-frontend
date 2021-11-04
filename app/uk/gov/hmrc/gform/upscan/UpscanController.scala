@@ -114,8 +114,8 @@ class UpscanController(
         // Note. This is not an issue for non-js journey as non-js users have never a chance to reuse upscan reference
         upscanService.deleteConfirmation(upscanReference).map { _ =>
           upscanConfirmation match {
-            case Some(UpscanConfirmation(_, UpscanFileStatus.Ready, _, _)) | None => NoContent
-            case Some(UpscanConfirmation(_, UpscanFileStatus.Failed, _, _))       => Ok("error")
+            case Some(UpscanConfirmation(UpscanFileStatus.Ready, _)) | None => NoContent
+            case Some(UpscanConfirmation(UpscanFileStatus.Failed, _))       => Ok("error")
           }
         }
       }

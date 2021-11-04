@@ -92,10 +92,8 @@ object FailureDetails {
 }
 
 final case class UpscanConfirmation(
-  _id: UpscanReference,
   status: UpscanFileStatus,
-  failureDetails: FailureDetails,
-  confirmedAt: Instant
+  failureDetails: FailureDetails
 )
 
 object UpscanConfirmation {
