@@ -38,6 +38,10 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
 
   def allFormComponents: List[FormComponent] =
     fold(_.page.fields.flatMap(nestedFields))(_.formComponent :: Nil)(_.addAnotherQuestion :: Nil)
+
+  def allFormComponentsWithConfirmations: List[FormComponent] =
+    allFormComponents ++ fold(_.page.confirmation.map(_.question).toList)(_ => Nil)(_ => Nil)
+
   def allFormComponentIds: List[FormComponentId] = allFormComponents.map(_.id)
 
   def allMultiValueIds: List[MultiValueId] = allFormComponents.map(_.multiValueId)
