@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.summary
 
 import cats.syntax.eq._
 import play.api.i18n.Messages
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
@@ -292,7 +293,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.escape(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -360,7 +361,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.escape(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -429,7 +430,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.escape(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -501,7 +502,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.escape(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -572,7 +573,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.escape(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -631,7 +632,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.escape(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -695,7 +696,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.escape(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -759,7 +760,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.escape(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -821,7 +822,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.escape(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -896,7 +897,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.escape(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -962,7 +963,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.escape(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -1058,7 +1059,7 @@ object FormComponentSummaryRenderer {
 
             summaryListRow(
               label,
-              value,
+              HtmlFormat.escape(value),
               visuallyHiddenText,
               keyClasses,
               "",
@@ -1143,7 +1144,7 @@ object FormComponentSummaryRenderer {
           List(
             summaryListRow(
               label,
-              value,
+              HtmlFormat.escape(value),
               visuallyHiddenText,
               keyClasses,
               "",
@@ -1198,7 +1199,7 @@ object FormComponentSummaryRenderer {
         if (label.nonEmpty && formComponent.modelComponentId.maybeIndex.fold(false)(_ === 1)) {
           val customKeyClasses = "summary-group-label"
 
-          summaryListRow(label, "", None, customKeyClasses, "", "", Nil) :: rows
+          summaryListRow(label, Html(""), None, customKeyClasses, "", "", Nil) :: rows
         } else rows
     }
   }
