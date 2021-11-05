@@ -410,7 +410,7 @@ object SummaryRenderingService {
       val url: Call = routes.FormController
         .form(formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
 
-      val addToListSummary = addToListItemSummaries.map(ss => markDownParser(ss).toString).toList.mkString("")
+      val addToListSummary = HtmlFormat.fill(addToListItemSummaries.map(ss => markDownParser(ss)).toList)
 
       val label = repeater.title.value()
 

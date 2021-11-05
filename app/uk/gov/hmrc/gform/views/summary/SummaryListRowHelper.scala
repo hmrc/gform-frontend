@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.views.summary
 
 import play.api.mvc.Call
+import play.twirl.api.Html
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ HtmlContent, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist._
 
@@ -24,7 +25,7 @@ object SummaryListRowHelper {
 
   def summaryListRow(
     label: String,
-    value: String,
+    value: Html,
     visuallyHiddenText: Option[String],
     keyClasses: String,
     valueClasses: String,
