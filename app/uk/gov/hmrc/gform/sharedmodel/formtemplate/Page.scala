@@ -43,19 +43,19 @@ case class Page[A <: PageMode](
   confirmation: Option[Confirmation]
 ) {
 
-  val fieldsWithConfirmationQuestion: List[FormComponent] = confirmation.fold(fields)(fields ::: _.question :: Nil)
+  val allFields: List[FormComponent] = confirmation.fold(fields)(fields ::: _.question :: Nil)
 
-  val allIds: List[FormComponentId] = fields.map(_.id) ++ fields.flatMap(_.childrenFormComponents.map(_.id))
+  val allIds: List[FormComponentId] = allFields.map(_.id) ++ allFields.flatMap(_.childrenFormComponents.map(_.id))
 
   val staticTypeInfo: StaticTypeInfo = StaticTypeInfo {
-    (fields ++ fields
+    (allFields ++ allFields
       .flatMap(_.childrenFormComponents))
       .map(fc => fc.baseComponentId -> fc.staticTypeData)
       .toMap
   }
 
   val revealingChoiceInfo: RevealingChoiceInfo = RevealingChoiceInfo {
-    fields
+    allFields
       .collect { case fc @ IsRevealingChoice(revealingChoice) =>
         revealingChoice.options.zipWithIndex.flatMap { case (revealingChoiceElement, index) =>
           revealingChoiceElement.revealingFields.map { rf =>
@@ -67,7 +67,7 @@ case class Page[A <: PageMode](
   }
 
   val sumInfo: SumInfo = implicitly[Monoid[SumInfo]].combineAll(
-    (fields ++ fields
+    (allFields ++ allFields
       .flatMap(_.childrenFormComponents)).collect {
       case fc @ HasValueExpr(expr) if expr.sums.nonEmpty =>
         SumInfo(expr.sums.map(sum => (sum, Set(fc.id))).toMap)
@@ -75,7 +75,7 @@ case class Page[A <: PageMode](
   )
 
   def renderUnits: List[RenderUnit] =
-    fieldsWithConfirmationQuestion.foldRight(List.empty[RenderUnit]) {
+    allFields.foldRight(List.empty[RenderUnit]) {
       case (formComponent, (h @ RenderUnit.Group(baseComponentId, groupFormComponents)) :: xs) =>
         formComponent match {
           case IsGroup(group) =>

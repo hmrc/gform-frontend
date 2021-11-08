@@ -38,7 +38,7 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
     }
 
     def fromPage(page: Page[Basic]): List[ExprMetadata] =
-      page.fields.flatMap(AllFormComponentExpressions.unapply).flatten ++
+      page.allFields.flatMap(AllFormComponentExpressions.unapply).flatten ++
         toPlainExprs(
           fromSmartStrings(page.title),
           fromOption(

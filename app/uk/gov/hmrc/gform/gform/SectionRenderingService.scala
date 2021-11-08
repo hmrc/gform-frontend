@@ -157,7 +157,7 @@ class SectionRenderingService(
         singletonWithNumber.sectionNumber
       )
       val page = singletonWithNumber.singleton.page
-      page.fields
+      page.allFields
         .filterNot(_.hideOnSummary)
         .flatMap { fc =>
           FormComponentSummaryRenderer
@@ -2135,7 +2135,7 @@ class SectionRenderingService(
 
   private def shouldDisplayHeading(singleton: Singleton[DataExpanded])(implicit sse: SmartStringEvaluator): Boolean = {
     val page = singleton.page
-    page.fields match {
+    page.allFields match {
       case IsGroup(g) :: _              => false
       case IsInformationMessage(_) :: _ => false
       case formComponent :: IsNilOrInfoOnly() =>

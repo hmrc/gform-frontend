@@ -23,7 +23,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, SectionNumber 
 sealed trait ConfirmationPage
 
 object ConfirmationPage {
-  final case class Confirmee(confirmedBySectionNumber: SectionNumber) extends ConfirmationPage
+  final case class Confirmee(confirmedBySectionNumber: SectionNumber, confirmation: Confirmation)
+      extends ConfirmationPage
   final case class Confirmator(confirmation: Confirmation) extends ConfirmationPage {
     val modelPageId: ModelPageId = confirmation.pageId.modelPageId
   }

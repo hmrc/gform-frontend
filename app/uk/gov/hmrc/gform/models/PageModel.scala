@@ -37,10 +37,7 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
     formComponent :: formComponent.childrenFormComponents
 
   def allFormComponents: List[FormComponent] =
-    fold(_.page.fields.flatMap(nestedFields))(_.formComponent :: Nil)(_.addAnotherQuestion :: Nil)
-
-  def allFormComponentsWithConfirmations: List[FormComponent] =
-    allFormComponents ++ fold(_.page.confirmation.map(_.question).toList)(_ => Nil)(_ => Nil)
+    fold(_.page.allFields.flatMap(nestedFields))(_.formComponent :: Nil)(_.addAnotherQuestion :: Nil)
 
   def allFormComponentIds: List[FormComponentId] = allFormComponents.map(_.id)
 
@@ -56,10 +53,10 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def getIncludeIf: Option[IncludeIf] = fold(_.page.includeIf)(_ => None)(_.includeIf)
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] =
-    fold(_.page.fields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)(_ => Nil)
+    fold(_.page.allFields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)(_ => Nil)
 
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
-    fold(_.page.fields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)(_ => Nil)
+    fold(_.page.allFields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)(_ => Nil)
 
   def maybeConfirmation: Option[Confirmation] = fold(_.page.confirmation)(_ => None)(_ => None)
 
@@ -69,7 +66,7 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
       case Some(confirmation) => ConfirmationPage.fromConfirmation(confirmation)
     }
 
-  def upscanInitiateRequests: List[FormComponentId] = fold(_.page.fields.collect {
+  def upscanInitiateRequests: List[FormComponentId] = fold(_.page.allFields.collect {
     case IsUpscanInitiateFileUpload(formComponent) => formComponent.id
   })(_ => Nil)(_ => Nil)
 }
