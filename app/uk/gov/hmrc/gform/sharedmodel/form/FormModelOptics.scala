@@ -39,7 +39,7 @@ case class FormModelOptics[D <: DataOrigin](
 ) {
   val pageOpticsData: VariadicFormData[SourceOrigin.Current] = formModelRenderPageOptics.recData.variadicFormData
 
-  def clearTaxResponses(
+  def clearModelComponentIds(
     modelComponentIds: List[ModelComponentId]
   ): FormModelOptics[D] =
     this

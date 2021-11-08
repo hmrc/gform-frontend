@@ -153,17 +153,7 @@ class FormController(
 
             bracket match {
               case Bracket.NonRepeatingPage(singleton, sectionNumber, _) =>
-                val formModel: FormModel[Visibility] = formModelOptics.formModelVisibilityOptics.formModel
-                val pageModel: PageModel[Visibility] = formModel(sectionNumber)
-                val confirmationPage = pageModel.confirmationPage(formModel.reverseConfirmationMap)
-
-                confirmationPage match {
-                  case ConfirmationPage.Confirmator(confirmation) if suppressErrors === SuppressErrors.No =>
-                    renderSingleton(singleton, sectionNumber, confirmation.isRequiredError(envelope, cache))
-                  case _ =>
-                    validateSections(suppressErrors, sectionNumber)(renderSingleton(singleton, sectionNumber, _))
-
-                }
+                validateSections(suppressErrors, sectionNumber)(renderSingleton(singleton, sectionNumber, _))
               case bracket @ Bracket.RepeatingPage(_, _) =>
                 validateSections(suppressErrors, sectionNumber)(
                   renderSingleton(bracket.singletonForSectionNumber(sectionNumber), sectionNumber, _)
@@ -446,25 +436,30 @@ class FormController(
     val confirmationPage = pageModel.confirmationPage(formModel.reverseConfirmationMap)
 
     confirmationPage match {
-      case ConfirmationPage.Confirmee(confirmedSectionNumber) =>
+      case ConfirmationPage.Confirmee(confirmedSectionNumber, confirmation) =>
         val browserData = processData.formModelOptics.formModelVisibilityOptics.data.forSectionNumber(sectionNumber)
         val mongoData = formModelOptics.formModelVisibilityOptics.data.forSectionNumber(sectionNumber)
 
         if (browserData != mongoData) {
-          // We need to remove confirmedSectionNumber from VisitsIndex
+          // We need to remove confirmedSectionNumber from VisitsIndex and confirmation answer
           ConfirmationAction
             .UpdateConfirmation(processData =>
               processData
                 .modify(_.visitsIndex)
                 .setTo(processData.visitsIndex.unvisit(confirmedSectionNumber))
+                .modify(_.formModelOptics)
+                .using(_.clearModelComponentIds(confirmation.question.id.modelComponentId :: Nil))
             )
         } else {
           ConfirmationAction.noop
         }
 
       case ConfirmationPage.Confirmator(confirmation) =>
-        requestRelatedData.getOption(confirmation.question.id.value) match {
-          case None =>
+        processData.formModelOptics.formModelVisibilityOptics.data
+          .many(confirmation.question.id.modelComponentId)
+          .toList
+          .flatten match {
+          case Nil =>
             val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
             ConfirmationAction
               .NotConfirmed(
@@ -480,8 +475,9 @@ class FormController(
                     )
                 )
               )
-          case Some("0") => ConfirmationAction.noop // Page is confirmed by user
-          case Some(_) => // Page is not confirmed
+          case "0" :: Nil =>
+            ConfirmationAction.noop // Page is confirmed by user
+          case _ => // Page is not confirmed
             val modelPageId: ModelPageId = confirmation.pageId.modelPageId
 
             val sn: SectionNumber = formModel.pageIdSectionNumberMap

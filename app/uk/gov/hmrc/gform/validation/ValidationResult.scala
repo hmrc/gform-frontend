@@ -51,7 +51,7 @@ case class ValidationResult(
   def formFieldValidationResults: List[FormFieldValidationResult] = lookup.values.toList
 
   def formFieldValidationResults(singleton: Singleton[DataExpanded]): List[FormFieldValidationResult] =
-    singleton.allFormComponentsWithConfirmations.map(apply)
+    singleton.allFormComponents.map(apply)
 
   private def cleanCurrentValues: List[FormFieldValidationResult] =
     lookup.map {

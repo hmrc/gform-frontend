@@ -20,12 +20,12 @@ import uk.gov.hmrc.http.BadRequestException
 
 case class RequestRelatedData(requestData: Map[String, Seq[String]]) extends AnyVal {
   def +(rrd: RequestRelatedData): RequestRelatedData = RequestRelatedData(requestData ++ rrd.requestData)
-  def getOption(key: String): Option[String] =
+
+  def get(key: String): String =
     requestData
       .get(key)
       .flatMap(_.headOption)
-  def get(key: String): String =
-    getOption(key).getOrElse(throw new BadRequestException(s"Missing '$key' in request data"))
+      .getOrElse(throw new BadRequestException(s"Missing '$key' in request data"))
 
 }
 

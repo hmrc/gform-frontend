@@ -136,7 +136,7 @@ object PDFPageModelBuilder {
 
     import pdfFunctions._
 
-    val filteredFields = doFilter(singleton.page.fields)
+    val filteredFields = doFilter(singleton.page.allFields)
     val pageFields: List[PageField] = formComponentOrdering
       .fold(filteredFields)(filteredFields.sorted(_))
       .map(fc => PDFPageFieldBuilder.build(fc, cache, sectionNumber, validationResult, envelopeWithMapping))

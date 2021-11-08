@@ -40,7 +40,9 @@ case class FormModel[A <: PageMode](
   // Reverse lookup to find out SectionNumber which is confirmed by given PageId
   val reverseConfirmationMap: Map[ModelPageId, ConfirmationPage.Confirmee] = pagesWithIndex.toList.flatMap {
     case (pageModel, sectionNumber) =>
-      pageModel.maybeConfirmation.map(_.pageId.modelPageId -> ConfirmationPage.Confirmee(sectionNumber))
+      pageModel.maybeConfirmation.map(confirmation =>
+        confirmation.pageId.modelPageId -> ConfirmationPage.Confirmee(sectionNumber, confirmation)
+      )
   }.toMap
 
   val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
@@ -106,7 +108,7 @@ case class FormModel[A <: PageMode](
 
   val fcIdRepeatsExprLookup: Map[FormComponentId, Expr] = brackets.repeatingPageBrackets.flatMap { repeatingBracket =>
     repeatingBracket.singletons.toList.flatMap(
-      _.singleton.page.fields.map(fc => (fc.id, repeatingBracket.source.repeats))
+      _.singleton.page.allFields.map(fc => (fc.id, repeatingBracket.source.repeats))
     )
   }.toMap
 
@@ -203,7 +205,7 @@ case class FormModel[A <: PageMode](
 
   def allIncludeIfsWithDependingFormComponents: List[(IncludeIf, List[FormComponent])] = pages.collect {
     case pm @ HasIncludeIf(includeIf) =>
-      (includeIf, pm.fold(_.page.fields)(_ => Nil)(_.addAnotherQuestion :: Nil))
+      (includeIf, pm.fold(_.page.allFields)(_ => Nil)(_.addAnotherQuestion :: Nil))
   }
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] = pages.flatMap(_.allValidIfs)
