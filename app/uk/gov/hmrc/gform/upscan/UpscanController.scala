@@ -86,10 +86,10 @@ class UpscanController(
                     s"Upscan failed - status: ${confirmation.status}, failureReason: ${confirmation.failureDetails.failureReason}, message: ${confirmation.failureDetails.message}"
                   )
                   val flash = confirmation.failureDetails match {
-                    case FailureDetails("EntityTooLarge", _) | FailureDetails("UNKNOWN", _) =>
+                    case FailureDetails("EntityTooLarge", _) =>
                       mkFlash("file.error.size", appConfig.formMaxAttachmentSizeMB.toString)
                     case FailureDetails("EntityTooSmall", _) => mkFlash("file.error.empty")
-                    case FailureDetails("InvalidFileType", _) =>
+                    case FailureDetails("InvalidFileType", _) | FailureDetails("REJECTED", _) =>
                       mkFlash(
                         "file.error.type",
                         confirmation.failureDetails.message,
