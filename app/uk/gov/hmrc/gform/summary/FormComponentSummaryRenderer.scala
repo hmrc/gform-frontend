@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.gform.summary
 
-import cats.syntax.eq._
+import cats.Monoid
+import cats.syntax.all._
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
@@ -31,12 +32,15 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, SmartString }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId, ValidationResult }
 import uk.gov.hmrc.gform.views.html.errorInline
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.br
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper.summaryListRow
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.summary.TextFormatter.formatText
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 
 object FormComponentSummaryRenderer {
+
+  implicit val monoidHtml: Monoid[Html] = Monoid.instance[Html](HtmlFormat.empty, (x, y) => HtmlFormat.fill(List(x, y)))
 
   def summaryListRows[D <: DataOrigin, T <: RenderType](
     formComponent: FormComponent,
@@ -286,14 +290,15 @@ object FormComponentSummaryRenderer {
 
     val keyClasses = getKeyClasses(hasErrors)
 
-    val value = if (hasErrors) errors.mkString(" ") else formatText(formFieldValidationResult, envelope, prefix, suffix)
+    val value =
+      if (hasErrors) errors.mkString(" ") :: Nil else formatText(formFieldValidationResult, envelope, prefix, suffix)
 
     val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.escape(value),
+        value.map(HtmlFormat.escape).intercalate(br()),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -348,20 +353,17 @@ object FormComponentSummaryRenderer {
 
     val keyClasses = getKeyClasses(hasErrors)
 
-    val currentValueLines = formatText(formFieldValidationResult, envelope).split("\\R")
+    val currentValueLines = formatText(formFieldValidationResult, envelope).flatMap(_.split("\\R").toList)
 
-    val currentValue = if (currentValueLines.nonEmpty) {
-      currentValueLines.init.map { line =>
-        s"$line<br>"
-      }.mkString + currentValueLines.last
-    } else ""
+    val currentValue =
+      currentValueLines.map(HtmlFormat.escape).intercalate(br())
 
-    val value = if (hasErrors) errors.mkString(" ") else currentValue
+    val value = if (hasErrors) Html(errors.mkString(" ")) else currentValue
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.escape(value),
+        value,
         visuallyHiddenText,
         keyClasses,
         "",
@@ -686,17 +688,18 @@ object FormComponentSummaryRenderer {
     val keyClasses = getKeyClasses(hasErrors)
 
     val value = if (hasErrors) {
-      errors.mkString(" ")
+      Html(errors.mkString(" "))
     } else {
       Address
         .renderToString(formComponent, formFieldValidationResult)
-        .mkString("", "<br>", "<br>")
+        .map(HtmlFormat.escape(_))
+        .intercalate(br())
     }
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.escape(value),
+        value,
         visuallyHiddenText,
         keyClasses,
         "",
@@ -750,17 +753,19 @@ object FormComponentSummaryRenderer {
     val keyClasses = getKeyClasses(hasErrors)
 
     val value = if (hasErrors) {
-      errors.mkString(" ")
+      Html(errors.mkString(" "))
     } else {
       OverseasAddress
         .renderToString(formComponent, formFieldValidationResult)
-        .mkString("", "<br>", "<br>")
+        .map(HtmlFormat.escape(_))
+        .intercalate(br())
+
     }
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.escape(value),
+        value,
         visuallyHiddenText,
         keyClasses,
         "",
@@ -956,14 +961,18 @@ object FormComponentSummaryRenderer {
 
     val value =
       if (hasErrors)
-        errors.mkString(" ")
+        Html(errors.mkString(" "))
       else
-        choice.renderToString(formComponent, formFieldValidationResult).map(s => s"<p>$s</p>").mkString
+        HtmlFormat.fill(
+          choice
+            .renderToString(formComponent, formFieldValidationResult)
+            .map(s => uk.gov.hmrc.gform.views.html.hardcoded.pages.pWrapper(HtmlFormat.escape(s)))
+        )
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.escape(value),
+        value,
         visuallyHiddenText,
         keyClasses,
         "",
@@ -1134,48 +1143,46 @@ object FormComponentSummaryRenderer {
         val value =
           errorResults.headOption match {
             case None =>
-              formFieldValidationResults.map(ffvr => s"${TextFormatter.formatText(ffvr, envelope)}<br>").mkString
+              formFieldValidationResults
+                .flatMap(ffvr => TextFormatter.formatText(ffvr, envelope))
+                .map(HtmlFormat.escape)
+                .intercalate(br())
             case Some(formFieldValidationResult) =>
               val errors = checkErrors(formComponent, formFieldValidationResult)
-              errors.mkString(" ")
+              Html(errors.mkString(" "))
           }
 
-        if (value.nonEmpty) {
-          List(
-            summaryListRow(
-              label,
-              HtmlFormat.escape(value),
-              visuallyHiddenText,
-              keyClasses,
-              "",
-              "",
-              if (formComponent.onlyShowOnSummary)
-                Nil
-              else {
-                val changeOrViewLabel =
-                  if (formComponent.editable) messages("summary.change") else messages("summary.view")
-                List(
-                  (
-                    uk.gov.hmrc.gform.gform.routes.FormController
-                      .form(
-                        formTemplateId,
-                        maybeAccessCode,
-                        sectionNumber,
-                        sectionTitle4Ga,
-                        SuppressErrors.Yes,
-                        fastForward
-                      ),
-                    changeOrViewLabel,
-                    iterationTitle.fold(changeOrViewLabel + " " + label)(it =>
-                      changeOrViewLabel + " " + it + " " + label
-                    )
-                  )
+        List(
+          summaryListRow(
+            label,
+            value,
+            visuallyHiddenText,
+            keyClasses,
+            "",
+            "",
+            if (formComponent.onlyShowOnSummary)
+              Nil
+            else {
+              val changeOrViewLabel =
+                if (formComponent.editable) messages("summary.change") else messages("summary.view")
+              List(
+                (
+                  uk.gov.hmrc.gform.gform.routes.FormController
+                    .form(
+                      formTemplateId,
+                      maybeAccessCode,
+                      sectionNumber,
+                      sectionTitle4Ga,
+                      SuppressErrors.Yes,
+                      fastForward
+                    ),
+                  changeOrViewLabel,
+                  iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
                 )
-              }
-            )
+              )
+            }
           )
-
-        } else List(SummaryListRow())
+        )
 
       case _ =>
         val rows = fcrd.prepareRenderables(group.fields).flatMap { formComponent =>

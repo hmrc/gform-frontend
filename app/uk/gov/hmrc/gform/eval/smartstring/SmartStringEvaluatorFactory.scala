@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.eval.smartstring
 
 import play.api.i18n.Messages
+import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.MarkDownUtil.escapeMarkdown
 import uk.gov.hmrc.gform.eval.{ ExprType, TypeInfo }
@@ -122,8 +123,9 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
 
         if (markDown) {
           typeInfo.staticTypeData.exprType match {
-            case ExprType.AddressString => addressRepresentation(typeInfo)
-            case _                      => escapeMarkdown(formatted)
+            case ExprType.AddressString =>
+              addressRepresentation(typeInfo).map(HtmlFormat.escape).map(_.body).mkString(",<br>")
+            case _ => escapeMarkdown(formatted)
           }
         } else {
           formatted
@@ -133,7 +135,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
       private def stringRepresentation(typeInfo: TypeInfo): String =
         formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation(messages)
 
-      private def addressRepresentation(typeInfo: TypeInfo): String =
+      private def addressRepresentation(typeInfo: TypeInfo): List[String] =
         formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).addressRepresentation
 
       private def mapChoiceSelectedIndexes(typeInfo: TypeInfo, f: Seq[Int] => String): String =
