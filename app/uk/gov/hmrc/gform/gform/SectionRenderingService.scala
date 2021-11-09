@@ -157,7 +157,7 @@ class SectionRenderingService(
         singletonWithNumber.sectionNumber
       )
       val page = singletonWithNumber.singleton.page
-      page.allFields
+      page.fields
         .filterNot(_.hideOnSummary)
         .flatMap { fc =>
           FormComponentSummaryRenderer

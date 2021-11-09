@@ -37,7 +37,7 @@ sealed trait ConfirmationAction
 
 object ConfirmationAction {
   case class NotConfirmed(redirect: Result) extends ConfirmationAction
-  case class UpdateConfirmation(f: ProcessData => ProcessData) extends ConfirmationAction
+  case class UpdateConfirmation(f: ProcessData => ProcessData, isConfirmationPage: Boolean) extends ConfirmationAction
 
-  val noop: ConfirmationAction = ConfirmationAction.UpdateConfirmation(identity)
+  val noop: ConfirmationAction = ConfirmationAction.UpdateConfirmation(identity, false)
 }
