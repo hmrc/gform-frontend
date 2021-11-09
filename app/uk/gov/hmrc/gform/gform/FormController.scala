@@ -428,7 +428,8 @@ class FormController(
     processData: ProcessData,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    fastForward: FastForward
   ): ConfirmationAction = {
 
     val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
@@ -443,12 +444,14 @@ class FormController(
         if (browserData != mongoData) {
           // We need to remove confirmedSectionNumber from VisitsIndex and confirmation answer
           ConfirmationAction
-            .UpdateConfirmation(processData =>
-              processData
-                .modify(_.visitsIndex)
-                .setTo(processData.visitsIndex.unvisit(confirmedSectionNumber))
-                .modify(_.formModelOptics)
-                .using(_.clearModelComponentIds(confirmation.question.id.modelComponentId :: Nil))
+            .UpdateConfirmation(
+              processData =>
+                processData
+                  .modify(_.visitsIndex)
+                  .setTo(processData.visitsIndex.unvisit(confirmedSectionNumber))
+                  .modify(_.formModelOptics)
+                  .using(_.clearModelComponentIds(confirmation.question.id.modelComponentId :: Nil)),
+              true
             )
         } else {
           ConfirmationAction.noop
@@ -471,7 +474,7 @@ class FormController(
                       sectionNumber,
                       sectionTitle4Ga,
                       SuppressErrors.No,
-                      FastForward.Yes
+                      fastForward
                     )
                 )
               )
@@ -494,7 +497,7 @@ class FormController(
                       sn,
                       sectionTitle4Ga,
                       SuppressErrors.Yes,
-                      FastForward.Yes
+                      fastForward
                     )
                 )
               )
@@ -526,10 +529,11 @@ class FormController(
                 processData,
                 formTemplateId,
                 maybeAccessCode,
-                formModelOptics
+                formModelOptics,
+                fastForward
               ) match {
                 case ConfirmationAction.NotConfirmed(redirect) => redirect.pure[Future]
-                case ConfirmationAction.UpdateConfirmation(processDataUpdater) =>
+                case ConfirmationAction.UpdateConfirmation(processDataUpdater, isConfirmationPage) =>
                   val processDataUpd = processDataUpdater(processData)
                   formProcessor.validateAndUpdateData(
                     cache,
@@ -551,7 +555,7 @@ class FormController(
                             sn,
                             sectionTitle4Ga,
                             SuppressErrors(isFirstLanding),
-                            if (isFirstLanding)
+                            if (isFirstLanding && !isConfirmationPage)
                               fastForward.next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel)
                             else
                               fastForward
