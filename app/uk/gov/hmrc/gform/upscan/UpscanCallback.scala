@@ -90,3 +90,13 @@ final case class FailureDetails(
 object FailureDetails {
   implicit val reads: Reads[FailureDetails] = derived.reads()
 }
+
+final case class UpscanConfirmation(
+  _id: UpscanReference,
+  status: UpscanFileStatus,
+  failureDetails: FailureDetails
+)
+
+object UpscanConfirmation {
+  implicit val reads: Reads[UpscanConfirmation] = derived.reads()
+}

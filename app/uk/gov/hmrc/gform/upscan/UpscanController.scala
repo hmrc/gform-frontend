@@ -67,8 +67,8 @@ class UpscanController(
 
             val formIdData: FormIdData = FormIdData(cache, maybeAccessCode)
 
-            retry(upscanService.retrieveConfirmationOrFail(reference), 2.seconds, 30).flatMap { upscanFileStatus =>
-              upscanFileStatus match {
+            retry(upscanService.retrieveConfirmationOrFail(reference), 2.seconds, 30).flatMap { confirmation =>
+              confirmation.status match {
                 case UpscanFileStatus.Ready =>
                   gformBackEndAlgebra.getForm(formIdData).flatMap { form =>
                     fastForwardService
@@ -80,8 +80,23 @@ class UpscanController(
                       )
                   }
                 case UpscanFileStatus.Failed =>
-                  val flash = mkFlash("file.error.upload.one.only")
                   val fileId = FileId(formComponentId.value)
+
+                  logger.info(
+                    s"Upscan failed - status: ${confirmation.status}, failureReason: ${confirmation.failureDetails.failureReason}, message: ${confirmation.failureDetails.message}"
+                  )
+                  val flash = confirmation.failureDetails match {
+                    case FailureDetails("EntityTooLarge", _) =>
+                      mkFlash("file.error.size", appConfig.formMaxAttachmentSizeMB.toString)
+                    case FailureDetails("EntityTooSmall", _) => mkFlash("file.error.empty")
+                    case FailureDetails("InvalidFileType", _) | FailureDetails("REJECTED", _) =>
+                      mkFlash(
+                        "file.error.type",
+                        confirmation.failureDetails.message,
+                        "PDF, JPEG, XLSX, ODS, DOCX, ODT, PPTX, ODP"
+                      )
+                    case _ => mkFlash("file.error.upload.one.only")
+                  }
 
                   fastForwardService
                     .redirectStopAt[SectionSelectorType.Normal](sectionNumber, cache, maybeAccessCode, formModelOptics)
@@ -99,8 +114,8 @@ class UpscanController(
         // Note. This is not an issue for non-js journey as non-js users have never a chance to reuse upscan reference
         upscanService.deleteConfirmation(upscanReference).map { _ =>
           confirmation match {
-            case Some(UpscanFileStatus.Ready) | None => NoContent
-            case Some(UpscanFileStatus.Failed)       => Ok("error")
+            case Some(UpscanConfirmation(_, UpscanFileStatus.Ready, _)) | None => NoContent
+            case Some(UpscanConfirmation(_, UpscanFileStatus.Failed, _))       => Ok("error")
           }
         }
       }
