@@ -77,7 +77,7 @@ case class FormModel[A <: PageMode](
     .toSet
 
   val allFileIds: Set[ModelComponentId] = allFormComponents
-    .collect { case fc @ IsFileUpload() =>
+    .collect { case fc @ IsFileUpload(_) =>
       fc.id
     }
     .map(_.modelComponentId)

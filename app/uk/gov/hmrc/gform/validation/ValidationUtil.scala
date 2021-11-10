@@ -153,7 +153,7 @@ object ValidationUtil {
             ComponentField(formComponent, optionalData)
           }
 
-      case IsFileUpload() =>
+      case IsFileUpload(_) =>
         val modelComponentId = formComponent.modelComponentId
         val fileName = envelope.find(modelComponentId).map(_.fileName).getOrElse("")
         gFormErrors.get(modelComponentId) match {

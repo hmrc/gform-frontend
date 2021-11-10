@@ -168,7 +168,7 @@ object FormComponentSummaryRenderer {
       case IsInformationMessage(_) =>
         List(SummaryListRow())
 
-      case IsFileUpload() =>
+      case IsFileUpload(_) =>
         getFileUploadSummaryListRows(
           formComponent,
           formTemplateId,

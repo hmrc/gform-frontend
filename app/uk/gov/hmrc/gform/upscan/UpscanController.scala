@@ -92,7 +92,7 @@ class UpscanController(
                     case FailureDetails("InvalidFileType", _) | FailureDetails("REJECTED", _) =>
                       mkFlash(
                         "file.error.type",
-                        confirmation.failureDetails.message,
+                        "",
                         "PDF, JPEG, XLSX, ODS, DOCX, ODT, PPTX, ODP"
                       )
                     case _ => mkFlash("file.error.upload.one.only")

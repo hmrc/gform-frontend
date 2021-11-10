@@ -171,7 +171,7 @@ object IsHmrcTaxPeriod {
 }
 
 object IsFileUpload {
-  def unapply(fc: FormComponent): Boolean = fc.`type`.cast[FileUpload].isDefined
+  def unapply(fc: FormComponent): Option[FileUpload] = fc.`type`.cast[FileUpload]
 }
 
 object IsTime {
