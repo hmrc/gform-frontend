@@ -51,7 +51,7 @@ object GroupUtils {
       }
 
     val allGroupFileUploadIds: Set[FormComponentId] = currentGroups
-      .flatMap(_.fields.collect { case fc @ IsFileUpload() =>
+      .flatMap(_.fields.collect { case fc @ IsFileUpload(_) =>
         fc.id
       })
       .toSet
