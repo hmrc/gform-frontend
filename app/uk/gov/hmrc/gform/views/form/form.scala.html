@@ -79,7 +79,7 @@
     if(shouldDisplayContinue) {
         govukButton(Button(content = Text(buttonLabel),
             inputType=Some("submit"),
-            attributes = Map("formaction" -> page.formAction.path) ++ otherAttributes,
+            attributes = Map("formmethod" -> "post", "formaction" -> page.formAction.path) ++ otherAttributes,
             classes = classes))
     }
 }
@@ -136,7 +136,7 @@
           @if(page.renderComeBackLater) {
             @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
                     inputType=Some("submit"),
-                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndExit).path),
+                    attributes = Map("formmethod" -> "post", "formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndExit).path),
                     classes="govuk-button--secondary"
                 )
             )
