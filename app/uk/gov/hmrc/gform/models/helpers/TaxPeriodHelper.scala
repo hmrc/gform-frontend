@@ -32,8 +32,9 @@ object TaxPeriodHelper {
     envelope: EnvelopeWithMapping
   )(implicit l: LangADT, messages: Messages, evaluator: SmartStringEvaluator) =
     valResult match {
-      case ComponentField(a, b) => b.values.headOption.fold("")(ffvr => TextFormatter.formatText(ffvr, envelope))
-      case _                    => ""
+      case ComponentField(a, b) =>
+        b.values.headOption.fold("")(ffvr => TextFormatter.formatText(ffvr, envelope).mkString(""))
+      case _ => ""
     }
 
   private val dtfUser = DateTimeFormatter.ofPattern("dd MMMM yyyy")

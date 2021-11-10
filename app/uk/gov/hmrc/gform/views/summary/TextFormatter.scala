@@ -132,23 +132,23 @@ object TextFormatter {
     l: LangADT,
     messages: Messages,
     evaluator: SmartStringEvaluator
-  ): String = {
+  ): List[String] = {
     val currentValue = validationResult.getCurrentValue.getOrElse("")
 
-    def getValue(formComponent: FormComponent): String = formComponent match {
-      case IsText(text)     => componentTextForSummary(currentValue, text.constraint, prefix, suffix)
-      case IsFileUpload()   => envelope.userFileName(formComponent)
-      case IsChoice(choice) => choice.renderToString(formComponent, validationResult).mkString("<br>")
+    def getValue(formComponent: FormComponent): List[String] = formComponent match {
+      case IsText(text)     => componentTextForSummary(currentValue, text.constraint, prefix, suffix) :: Nil
+      case IsFileUpload()   => envelope.userFileName(formComponent) :: Nil
+      case IsChoice(choice) => choice.renderToString(formComponent, validationResult)
       case IsUkSortCode(sortCode) =>
         sortCode
           .fields(formComponent.modelComponentId.indexedComponentId)
           .map(modelComponentId => validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
           .toList
-          .mkString("-")
+          .mkString("-") :: Nil
       case IsAddress(address) =>
-        Address
-          .renderToString(formComponent, validationResult)
-          .mkString("<br>")
+        Address.renderToString(formComponent, validationResult)
+      case IsOverseasAddress(address) =>
+        OverseasAddress.renderToString(formComponent, validationResult)
       case IsDate(date) =>
         def monthToString(atom: Atom, s: String): String = atom match {
           case Date.month =>
@@ -162,8 +162,8 @@ object TextFormatter {
             monthToString(modelComponentId.atom, validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
           )
           .toList
-          .mkString(" ")
-      case _ => currentValue
+          .mkString(" ") :: Nil
+      case _ => currentValue :: Nil
     }
 
     getValue(validationResult.formComponent)

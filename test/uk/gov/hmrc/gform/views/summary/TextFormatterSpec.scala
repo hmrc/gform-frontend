@@ -118,9 +118,9 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks {
     def formatForConstraint(constraint: TextConstraint) =
       TextFormatter.formatText(FieldOk(getComponent(constraint), input), EnvelopeWithMapping.empty)
 
-    formatForConstraint(Sterling(RoundingMode.defaultRoundingMode, false)) shouldBe expectedSterling
-    formatForConstraint(Number()) shouldBe expectedNumber
-    formatForConstraint(PositiveNumber()) shouldBe expectedNumber
+    formatForConstraint(Sterling(RoundingMode.defaultRoundingMode, false)) shouldBe List(expectedSterling)
+    formatForConstraint(Number()) shouldBe List(expectedNumber)
+    formatForConstraint(PositiveNumber()) shouldBe List(expectedNumber)
   }
 
   "componentTextReadonly for positiveNumber" should "return correct string for prefix and suffix for language En" in {
