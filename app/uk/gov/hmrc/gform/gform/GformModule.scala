@@ -147,6 +147,10 @@ class GformModule(
     bankAccountReputationConnector
   )
 
+  val confirmationService = new ConfirmationService(
+    addToListProcessor
+  )
+
   val formController: FormController = new FormController(
     configModule.appConfig,
     configModule.frontendAppConfig,
@@ -163,6 +167,7 @@ class GformModule(
     fastForwardService,
     graphModule.recalculation,
     addToListProcessor,
+    confirmationService,
     controllersModule.messagesControllerComponents
   )
 

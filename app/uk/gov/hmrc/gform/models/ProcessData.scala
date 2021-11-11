@@ -20,15 +20,15 @@ import cats.data.NonEmptyList
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.{ Monad, MonadError }
+import com.softwaremill.quicklens._
 import play.api.i18n.Messages
-
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.IsHmrcTaxPeriod
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, IsHmrcTaxPeriod }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.models.gform.ObligationsAction
@@ -40,6 +40,11 @@ case class ProcessData(
   booleanExprCache: BooleanExprCache
 ) {
   val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
+
+  def removeConfirmation(confirmation: Confirmation): ProcessData =
+    this
+      .modify(_.formModelOptics)
+      .using(_.clearModelComponentIds(confirmation.question.id.modelComponentId :: Nil)),
 }
 
 class ProcessDataService[F[_]: Monad](
