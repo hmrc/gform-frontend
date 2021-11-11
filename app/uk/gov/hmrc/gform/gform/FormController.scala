@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.gform
 import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
-import com.softwaremill.quicklens._
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.I18nSupport
 import play.api.mvc._
@@ -38,7 +37,7 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
-import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Browser
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
@@ -71,6 +70,7 @@ class FormController(
   fastForwardService: FastForwardService,
   recalculation: Recalculation[Future, Throwable],
   formProcessor: FormProcessor,
+  confirmationService: ConfirmationService,
   messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
@@ -422,90 +422,6 @@ class FormController(
         } yield res
     }
 
-  def processConfirmation(
-    requestRelatedData: RequestRelatedData,
-    sectionNumber: SectionNumber,
-    processData: ProcessData,
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    fastForward: FastForward
-  ): ConfirmationAction = {
-
-    val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
-    val pageModel: PageModel[Visibility] = formModel(sectionNumber)
-    val confirmationPage = pageModel.confirmationPage(formModel.reverseConfirmationMap)
-
-    confirmationPage match {
-      case ConfirmationPage.Confirmee(confirmedSectionNumber, confirmation) =>
-        val browserData = processData.formModelOptics.formModelVisibilityOptics.data.forSectionNumber(sectionNumber)
-        val mongoData = formModelOptics.formModelVisibilityOptics.data.forSectionNumber(sectionNumber)
-
-        if (browserData != mongoData) {
-          // We need to remove confirmedSectionNumber from VisitsIndex and confirmation answer
-          ConfirmationAction
-            .UpdateConfirmation(
-              processData =>
-                processData
-                  .modify(_.visitsIndex)
-                  .setTo(processData.visitsIndex.unvisit(confirmedSectionNumber))
-                  .modify(_.formModelOptics)
-                  .using(_.clearModelComponentIds(confirmation.question.id.modelComponentId :: Nil)),
-              true
-            )
-        } else {
-          ConfirmationAction.noop
-        }
-
-      case ConfirmationPage.Confirmator(confirmation) =>
-        processData.formModelOptics.formModelVisibilityOptics.data
-          .many(confirmation.question.id.modelComponentId)
-          .toList
-          .flatten match {
-          case Nil =>
-            val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
-            ConfirmationAction
-              .NotConfirmed(
-                Redirect(
-                  routes.FormController
-                    .form(
-                      formTemplateId,
-                      maybeAccessCode,
-                      sectionNumber,
-                      sectionTitle4Ga,
-                      SuppressErrors.No,
-                      fastForward
-                    )
-                )
-              )
-          case "0" :: Nil =>
-            ConfirmationAction.noop // Page is confirmed by user
-          case _ => // Page is not confirmed
-            val modelPageId: ModelPageId = confirmation.pageId.modelPageId
-
-            val sn: SectionNumber = formModel.pageIdSectionNumberMap
-              .getOrElse(modelPageId, throw new Exception(s"No section number found for pageId $modelPageId"))
-
-            val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
-            ConfirmationAction
-              .NotConfirmed(
-                Redirect(
-                  routes.FormController
-                    .form(
-                      formTemplateId,
-                      maybeAccessCode,
-                      sn,
-                      sectionTitle4Ga,
-                      SuppressErrors.Yes,
-                      fastForward
-                    )
-                )
-              )
-        }
-      case ConfirmationPage.Not => ConfirmationAction.noop
-    }
-  }
-
   def updateFormData(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -523,8 +439,7 @@ class FormController(
             def processSaveAndContinue(
               processData: ProcessData
             ): Future[Result] =
-              processConfirmation(
-                requestRelatedData,
+              confirmationService.processConfirmation(
                 sectionNumber,
                 processData,
                 formTemplateId,
@@ -566,10 +481,12 @@ class FormController(
                   }
               }
 
-            def processSaveAndExit(processData: ProcessData): Future[Result] =
+            def processSaveAndExit(processData: ProcessData): Future[Result] = {
+              val purgeConfirmationData: ProcessData => ProcessData =
+                confirmationService.purgeConfirmationData(sectionNumber, processData)
               formProcessor.validateAndUpdateData(
                 cache,
-                processData,
+                purgeConfirmationData(processData),
                 sectionNumber,
                 sectionNumber,
                 maybeAccessCode,
@@ -596,6 +513,7 @@ class FormController(
                     }
                 }
               }
+            }
 
             def processSaveAndExitAcknowledgementPage(
               config: Option[AuthConfig],
@@ -620,10 +538,15 @@ class FormController(
             }
 
             def processBack(
-              processData: ProcessData,
+              processData0: ProcessData,
               commingFromSn: SectionNumber,
               sn: SectionNumber
             ): Future[Result] = {
+
+              val purgeConfirmationData: ProcessData => ProcessData =
+                confirmationService.purgeConfirmationData(sectionNumber, processData0)
+
+              val processData = purgeConfirmationData(processData0)
 
               def goBack(saveData: Boolean) = {
 
