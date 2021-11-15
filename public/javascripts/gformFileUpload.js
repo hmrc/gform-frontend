@@ -343,9 +343,7 @@
 
     // Handle upscan file upload request
     function uploadFileUpscan(dataset) {
-      var formData = new FormData(document.getElementById("gf-form"));
-
-      formData.delete("csrfToken");
+      var formData = new FormData(document.getElementById("gf-upscan"));
 
       return $.ajax({
         url: dataset.upscanUrl,

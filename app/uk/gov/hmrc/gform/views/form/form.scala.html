@@ -81,7 +81,7 @@
     if(shouldDisplayContinue) {
         govukButton(Button(content = Text(buttonLabel),
             inputType=Some("submit"),
-            attributes = Map("form" -> "gf-form", "formaction" -> page.formAction.path) ++ otherAttributes,
+            attributes = Map("formaction" -> page.formAction.path) ++ otherAttributes,
             classes = classes))
     }
 }
@@ -132,30 +132,42 @@
             @{page.snippets}
         }
         @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form"){
-            <div></div>
+            @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1", "aria-hidden" -> "true", "form" -> "gf-upscan"))
+
+            <div class="govuk-button-group">
+                @displaySaveContinueButton(otherAttributes = Map("form" -> "gf-upscan"))
+                @if(page.renderComeBackLater) {
+                    @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+                        inputType = Some("submit"),
+                        attributes = Map("form" -> "gf-upscan", "formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndExit).path),
+                        classes = "govuk-button--secondary"
+                    )
+                    )
+                }
+            </div>
         }
     } else {
         @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
             @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
-            @{
-                page.snippets
-            }
+            @{page.snippets}
+
+            @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1", "aria-hidden" -> "true"))
+
+            <div class="govuk-button-group">
+                @displaySaveContinueButton()
+                @if(page.renderComeBackLater) {
+                    @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+                        inputType = Some("submit"),
+                        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndExit).path),
+                        classes = "govuk-button--secondary"
+                    )
+                    )
+                }
+            </div>
         }
     }
 
-    @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1", "aria-hidden" -> "true"))
 
-    <div class="govuk-button-group">
-        @displaySaveContinueButton()
-        @if(page.renderComeBackLater) {
-            @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
-                inputType = Some("submit"),
-                attributes = Map("form" -> "gf-form", "formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndExit).path),
-                classes = "govuk-button--secondary"
-            )
-            )
-        }
-    </div>
 
 
     @specimenNavigation
