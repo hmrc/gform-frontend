@@ -40,5 +40,6 @@ case class SectionRenderingInformation(
   contentTypes: List[ContentType],
   restrictedFileExtensions: List[FileExtension],
   progressIndicator: Option[String] = None,
-  renderWithoutCSRF: Boolean = false
+  renderWithoutCSRF: Boolean = false,
+  upscanUrl: Option[String] = None
 )

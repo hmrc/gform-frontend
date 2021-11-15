@@ -392,6 +392,10 @@ class SectionRenderingService(
       fu.fileUploadProvider
     }
 
+    val upscanUrl: Option[String] = if (fileUploadProviders.size === 1) {
+      Some(upscanInitiate.get(pageModel.find(_.`type`.isInstanceOf[FileUpload]).get.id).uploadRequest.href)
+    } else None
+
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
 
@@ -436,7 +440,8 @@ class SectionRenderingService(
       contentTypes,
       restrictedFileExtensions,
       page.progressIndicator.map(ls => ls.value),
-      fileUploadProviders.size === 1
+      fileUploadProviders.size === 1,
+      upscanUrl
     )
     html.form.form(
       formTemplate,
