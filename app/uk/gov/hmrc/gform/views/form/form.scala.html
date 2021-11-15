@@ -128,7 +128,6 @@
 
     @if(page.renderWithoutCSRF){
         @formWithoutCSRF(action = Call("POST", page.upscanUrl.getOrElse("")), args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-upscan"){
-            @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
             @{page.snippets}
         }
         @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form"){
