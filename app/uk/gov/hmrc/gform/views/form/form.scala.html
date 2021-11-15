@@ -127,14 +127,19 @@
     }
 
     @if(page.renderWithoutCSRF){
-        @formWithoutCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form"){
+        @formWithoutCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-upscan"){
             @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
             @{page.snippets}
         }
-    } else {
         @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form"){
+            <div></div>
+        }
+    } else {
+        @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
             @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
-            @{page.snippets}
+            @{
+                page.snippets
+            }
         }
     }
 

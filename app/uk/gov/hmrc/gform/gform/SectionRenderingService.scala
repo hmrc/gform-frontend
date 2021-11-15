@@ -1105,7 +1105,7 @@ class SectionRenderingService(
       inputType = Some("submit"),
       classes = "govuk-button--secondary",
       attributes = Map(
-        "form"        -> "gf-form",
+        "form"        -> "gf-upscan",
         "formaction"  -> formAction,
         "formenctype" -> "multipart/form-data"
       ),
