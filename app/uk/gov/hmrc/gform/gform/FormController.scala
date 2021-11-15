@@ -506,21 +506,6 @@ class FormController(
     }
   }
 
-  def updateFormDataForFU(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    browserSectionNumber: SectionNumber,
-    fastForward: FastForward,
-    save: Direction
-  ) =
-    updateFormData(
-      formTemplateId,
-      maybeAccessCode,
-      browserSectionNumber,
-      fastForward,
-      save
-    )
-
   def updateFormData(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],

@@ -39,5 +39,6 @@ case class SectionRenderingInformation(
   formMaxAttachmentSizeMB: Int,
   contentTypes: List[ContentType],
   restrictedFileExtensions: List[FileExtension],
-  progressIndicator: Option[String] = None
+  progressIndicator: Option[String] = None,
+  renderWithoutCSRF: Boolean = false
 )

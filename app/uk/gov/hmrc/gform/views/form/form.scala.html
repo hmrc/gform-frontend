@@ -22,6 +22,7 @@
 @import uk.gov.hmrc.gform.gform.HasErrors
 @import uk.gov.hmrc.gform.views.html.{main_template, specimen}
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
+@import uk.gov.hmrc.gform.views.html.form.FormWithoutCSRF
 @import uk.gov.hmrc.gform.controllers.{ SaveAndExit, Back }
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
@@ -64,7 +65,6 @@
     } else {
       (uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber)).path,
         Map("id" -> "backButton",
-            "formmethod" -> "post",
             "data-form-template-id" -> formTemplate._id.value,
             "data-access-code" -> maybeAccessCode.fold("-")(_.value),
             "data-section-number" -> sectionNumber.value.toString))
@@ -73,6 +73,7 @@
 }
 
 @formWithCSRF = @{new FormWithCSRF()}
+@formWithoutCSRF = @{new FormWithoutCSRF()}
 @govukButton = @{new GovukButton()}
 @govukNotificationBanner = @{new GovukNotificationBanner()}
 
@@ -80,7 +81,7 @@
     if(shouldDisplayContinue) {
         govukButton(Button(content = Text(buttonLabel),
             inputType=Some("submit"),
-            attributes = Map("formmethod" -> "post", "formaction" -> page.formAction.path) ++ otherAttributes,
+            attributes = Map("form" -> "gf-form", "formaction" -> page.formAction.path) ++ otherAttributes,
             classes = classes))
     }
 }
@@ -125,25 +126,32 @@
       }
     }
 
-    @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
+    @if(page.renderWithoutCSRF){
+        @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form"){
+            @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
+            @{page.snippets}
+        }
+    } else {
+        @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form"){
+            @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
+            @{page.snippets}
+        }
+    }
 
-    @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
     @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1", "aria-hidden" -> "true"))
 
-      @{page.snippets}
-
-      <div class="govuk-button-group">
-          @displaySaveContinueButton()
-          @if(page.renderComeBackLater) {
+    <div class="govuk-button-group">
+        @displaySaveContinueButton()
+        @if(page.renderComeBackLater) {
             @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
-                    inputType=Some("submit"),
-                    attributes = Map("formmethod" -> "post", "formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndExit).path),
-                    classes="govuk-button--secondary"
-                )
+                inputType = Some("submit"),
+                attributes = Map("form" -> "gf-form", "formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndExit).path),
+                classes = "govuk-button--secondary"
             )
-          }
-      </div>
-    }
+            )
+        }
+    </div>
+
 
     @specimenNavigation
 

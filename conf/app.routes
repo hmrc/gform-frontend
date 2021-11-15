@@ -28,7 +28,6 @@ GET           /form/:formTemplateId/:maybeAccessCode/:sectionNumber             
 GET           /form/back/:formTemplateId/:maybeAccessCode/:sectionNumber                                         uk.gov.hmrc.gform.gform.FormController.backAction(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber, ff: FastForward)
 GET           /form/section/:formTemplateId/:maybeAccessCode/:sectionNumber                                      uk.gov.hmrc.gform.gform.FormController.formSection(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber)
 POST          /form/:formTemplateId/:maybeAccessCode/:sectionNumber                                              uk.gov.hmrc.gform.gform.FormController.updateFormData(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber, ff: FastForward, action: Direction)
-GET           /form/:formTemplateId/:maybeAccessCode/:sectionNumber                                              uk.gov.hmrc.gform.gform.FormController.updateFormDataForFU(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber, ff: FastForward, action: Direction)
 
 GET           /delete/:formTemplateId                                                                            uk.gov.hmrc.gform.gform.FormController.deleteOnExit(formTemplateId: FormTemplateId)
 

@@ -387,19 +387,13 @@ class SectionRenderingService(
 
     val formModel = formModelOptics.formModelRenderPageOptics.formModel
     val pageModel = formModel(sectionNumber).allFormComponents
-    val componentSize = pageModel.map(_.id).size
 
     val fileUploadProviders: List[FileUploadProvider] = pageModel.collect { case IsFileUpload(fu) =>
       fu.fileUploadProvider
     }
 
-    val actionForm =
-      if (fileUploadProviders.size === 1 && componentSize === 1) {
-        uk.gov.hmrc.gform.gform.routes.FormController
-          .updateFormDataForFU(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
-      } else
-        uk.gov.hmrc.gform.gform.routes.FormController
-          .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
+    val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
+      .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
 
     val page = singleton.page
 
@@ -441,7 +435,8 @@ class SectionRenderingService(
       formMaxAttachmentSizeMB,
       contentTypes,
       restrictedFileExtensions,
-      page.progressIndicator.map(ls => ls.value)
+      page.progressIndicator.map(ls => ls.value),
+      fileUploadProviders.size === 1
     )
     html.form.form(
       formTemplate,
@@ -1110,7 +1105,7 @@ class SectionRenderingService(
       inputType = Some("submit"),
       classes = "govuk-button--secondary",
       attributes = Map(
-        "formmethod"  -> "post",
+        "form"        -> "gf-form",
         "formaction"  -> formAction,
         "formenctype" -> "multipart/form-data"
       ),
