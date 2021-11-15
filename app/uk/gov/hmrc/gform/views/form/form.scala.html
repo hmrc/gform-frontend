@@ -127,7 +127,7 @@
     }
 
     @if(page.renderWithoutCSRF){
-        @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form"){
+        @formWithoutCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form"){
             @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
             @{page.snippets}
         }
