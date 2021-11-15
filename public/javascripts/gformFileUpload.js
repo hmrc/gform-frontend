@@ -435,7 +435,7 @@
       ])
       return progressBarWrapper(
         "<span id='fileupload' role='status' aria-live='polite'>" + hasBeenUploadedMessage +  "</span>",
-        "<button type='submit' formmethod='post' class='govuk-button govuk-button--secondary govuk-!-margin-bottom-0' data-module='govuk-button' id='fileDelete' aria-label='" + ariaLabel + "' formaction='" + deleteUrl + "'>" +
+        "<button type='submit' class='govuk-button govuk-button--secondary govuk-!-margin-bottom-0' data-module='govuk-button' id='fileDelete' aria-label='" + ariaLabel + "' formaction='" + deleteUrl + "'>" +
           strings.deleteLabel[lang] +
         "</button>"
       );
