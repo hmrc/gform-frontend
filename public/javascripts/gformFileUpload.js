@@ -343,7 +343,7 @@
 
     // Handle upscan file upload request
     function uploadFileUpscan(dataset) {
-      var formData = new FormData(document.getElementById("gf-upscan"));
+      var formData = new FormData(document.getElementById("gf-form"));
 
       return $.ajax({
         url: dataset.upscanUrl,

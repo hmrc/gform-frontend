@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, FileExtension }
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.upscan.UpscanData
 
 case class SectionRenderingInformation(
   formTemplateId: FormTemplateId,
@@ -40,6 +41,5 @@ case class SectionRenderingInformation(
   contentTypes: List[ContentType],
   restrictedFileExtensions: List[FileExtension],
   progressIndicator: Option[String] = None,
-  renderWithoutCSRF: Boolean = false,
-  upscanUrl: Option[String] = None
+  upscanData: Option[UpscanData] = None
 )

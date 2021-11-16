@@ -52,7 +52,7 @@ import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.summary.{ AddToListCYARender, FormComponentSummaryRenderer }
-import uk.gov.hmrc.gform.upscan.{ UpscanInitiate, UpscanInitiateResponse }
+import uk.gov.hmrc.gform.upscan.{ UpscanData, UpscanInitiate, UpscanInitiateResponse }
 import uk.gov.hmrc.gform.validation.HtmlFieldId
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
@@ -385,17 +385,6 @@ class SectionRenderingService(
       specialAttributes = Map.empty
     )
 
-    val formModel = formModelOptics.formModelRenderPageOptics.formModel
-    val pageModel = formModel(sectionNumber).allFormComponents
-
-    val fileUploadProviders: List[FileUploadProvider] = pageModel.collect { case IsFileUpload(fu) =>
-      fu.fileUploadProvider
-    }
-
-    val upscanUrl: Option[String] = if (fileUploadProviders.size === 1) {
-      Some(upscanInitiate.get(pageModel.find(_.`type`.isInstanceOf[FileUpload]).get.id).uploadRequest.href)
-    } else None
-
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
 
@@ -413,8 +402,31 @@ class SectionRenderingService(
 
     val originSection = Origin(DataOrigin.unSwapDataOrigin(formModelOptics)).minSectionNumber
     val renderUnits: List[RenderUnit] = page.renderUnits
+
+    val formModel = formModelOptics.formModelRenderPageOptics.formModel
+    val formComponents = formModel(sectionNumber).allFormComponents
+
+    val fileUploadProviders: List[(FormComponent, FileUploadProvider)] = formComponents.collect {
+      case fc @ IsFileUpload(fu) =>
+        fc -> fu.fileUploadProvider
+    }
+
+    val upscanData: Option[UpscanData] = {
+      fileUploadProviders match {
+        case (fc, FileUploadProvider.Upscan) :: Nil =>
+          val snippetsForUpscan = renderUnits.map(renderUnit =>
+            htmlForUpscan(renderUnit, formTemplate._id, ei, validationResult, upscanInitiate)
+          )
+
+          val upscanUrl = upscanInitiate.get(fc.id).uploadRequest.href
+
+          Some(UpscanData(upscanUrl, snippetsForUpscan))
+        case _ => None
+      }
+    }
+
     val snippetsForFields = renderUnits
-      .map(renderUnit => htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, upscanInitiate))
+      .map(renderUnit => htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, UpscanInitiate.empty))
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
       _ === Continue
     ) && !formTemplate.draftRetrievalMethod.isNotPermitted
@@ -440,8 +452,7 @@ class SectionRenderingService(
       contentTypes,
       restrictedFileExtensions,
       page.progressIndicator.map(ls => ls.value),
-      fileUploadProviders.size === 1,
-      upscanUrl
+      upscanData
     )
     html.form.form(
       formTemplate,
@@ -780,6 +791,64 @@ class SectionRenderingService(
       )
   }
 
+  private def findFileId(ei: ExtraInfo, formComponent: FormComponent): FileId =
+    ei.envelope
+      .find(formComponent.modelComponentId)
+      .map(_.fileId)
+      .getOrElse(ei.envelope.mapping.fileIdFor(formComponent.id))
+
+  private def isVisible(formComponent: FormComponent, ei: ExtraInfo): Boolean = formComponent.includeIf.fold(true) {
+    includeIf =>
+      ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+  }
+
+  private def htmlForUpscan(
+    renderUnit: RenderUnit,
+    formTemplateId: FormTemplateId,
+    ei: ExtraInfo,
+    validationResult: ValidationResult,
+    upscanInitiate: UpscanInitiate
+  )(implicit
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Html =
+    renderUnit.fold { case RenderUnit.Pure(formComponent) =>
+      if (!isVisible(formComponent, ei) || formComponent.onlyShowOnSummary) {
+        HtmlFormat.empty
+      } else {
+        formComponent.`type` match {
+          case FileUpload(fileUploadProvider) =>
+            val fileId: FileId = findFileId(ei, formComponent)
+            fileUploadProvider match {
+              case FileUploadProvider.Upscan =>
+                val upscanInitiateResponse: UpscanInitiateResponse = upscanInitiate.get(formComponent.id)
+                val hiddenFields: List[Html] = upscanInitiateResponse.uploadRequest.fields.toList.map {
+                  case (name, value) =>
+                    html.form.snippets.hidden(name, value)
+                }
+                val fileUploadName = "file"
+                val attributes = Map("upscan" -> "upscan")
+                htmlForFileUpload(
+                  formComponent,
+                  formTemplateId,
+                  ei,
+                  validationResult,
+                  fileId,
+                  fileUploadName,
+                  upscanInitiateResponse.uploadRequest.href,
+                  attributes,
+                  hiddenFields
+                )
+              case _ => HtmlFormat.empty
+            }
+          case _ => HtmlFormat.empty
+        }
+      }
+    } { case _ =>
+      HtmlFormat.empty
+    }
+
   private def htmlFor(
     renderUnit: RenderUnit,
     formTemplateId: FormTemplateId,
@@ -794,11 +863,7 @@ class SectionRenderingService(
     sse: SmartStringEvaluator
   ): Html =
     renderUnit.fold { case RenderUnit.Pure(formComponent) =>
-      val isVisible = formComponent.includeIf.fold(true) { includeIf =>
-        ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
-      }
-
-      if (!isVisible || formComponent.onlyShowOnSummary) {
+      if (!isVisible(formComponent, ei) || formComponent.onlyShowOnSummary) {
         HtmlFormat.empty
       } else {
 
@@ -847,32 +912,8 @@ class SectionRenderingService(
               upscanInitiate
             )
           case FileUpload(fileUploadProvider) =>
-            val fileId: FileId =
-              ei.envelope
-                .find(formComponent.modelComponentId)
-                .map(_.fileId)
-                .getOrElse(ei.envelope.mapping.fileIdFor(formComponent.id))
-
+            val fileId: FileId = findFileId(ei, formComponent)
             fileUploadProvider match {
-              case FileUploadProvider.Upscan =>
-                val upscanInitiateResponse: UpscanInitiateResponse = upscanInitiate.get(formComponent.id)
-                val hiddenFields: List[Html] = upscanInitiateResponse.uploadRequest.fields.toList.map {
-                  case (name, value) =>
-                    html.form.snippets.hidden(name, value)
-                }
-                val fileUploadName = "file"
-                val attributes = Map("upscan" -> "upscan")
-                htmlForFileUpload(
-                  formComponent,
-                  formTemplateId,
-                  ei,
-                  validationResult,
-                  fileId,
-                  fileUploadName,
-                  upscanInitiateResponse.uploadRequest.href,
-                  attributes,
-                  hiddenFields
-                )
               case FileUploadProvider.FileUploadFrontend =>
                 val successUrl =
                   frontendAppConfig.gformFrontendBaseUrl + FileUploadController.noJsSuccessCallback(
@@ -907,6 +948,7 @@ class SectionRenderingService(
                   Map.empty[String, String],
                   List.empty[Html]
                 )
+              case _ => HtmlFormat.empty
             }
 
           case InformationMessage(infoType, infoText) =>
@@ -1110,7 +1152,6 @@ class SectionRenderingService(
       inputType = Some("submit"),
       classes = "govuk-button--secondary",
       attributes = Map(
-        "form"        -> "gf-upscan",
         "formaction"  -> formAction,
         "formenctype" -> "multipart/form-data"
       ),
