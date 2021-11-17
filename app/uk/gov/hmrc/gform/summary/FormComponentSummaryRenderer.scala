@@ -291,14 +291,14 @@ object FormComponentSummaryRenderer {
     val keyClasses = getKeyClasses(hasErrors)
 
     val value =
-      if (hasErrors) errors.mkString(" ") :: Nil else formatText(formFieldValidationResult, envelope, prefix, suffix)
+      if (hasErrors) errors else formatText(formFieldValidationResult, envelope, prefix, suffix).map(HtmlFormat.escape)
 
     val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
 
     List(
       summaryListRow(
         label,
-        value.map(HtmlFormat.escape).intercalate(br()),
+        value.intercalate(br()),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -356,14 +356,14 @@ object FormComponentSummaryRenderer {
     val currentValueLines = formatText(formFieldValidationResult, envelope).flatMap(_.split("\\R").toList)
 
     val currentValue =
-      currentValueLines.map(HtmlFormat.escape).intercalate(br())
+      currentValueLines.map(HtmlFormat.escape)
 
-    val value = if (hasErrors) Html(errors.mkString(" ")) else currentValue
+    val value = if (hasErrors) errors else currentValue
 
     List(
       summaryListRow(
         label,
-        value,
+        value.intercalate(br()),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -427,12 +427,12 @@ object FormComponentSummaryRenderer {
       }
       .mkString("-")
 
-    val value = if (hasErrors) errors.mkString(" ") else currentValue
+    val value = if (hasErrors) errors else HtmlFormat.escape(currentValue) :: Nil
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.escape(value),
+        HtmlFormat.fill(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -492,19 +492,19 @@ object FormComponentSummaryRenderer {
 
     val value =
       if (hasErrors)
-        errors.head.toString
+        errors.head
       else {
         val day = renderMonth(formFieldValidationResult.getCurrentValue(safeId(Date.day)))
         val month = messages(s"date.$monthKey")
         val year = formFieldValidationResult.getCurrentValue(safeId(Date.year))
 
-        s"$day $month $year"
+        HtmlFormat.escape(s"$day $month $year")
       }
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.escape(value),
+        value,
         visuallyHiddenText,
         keyClasses,
         "",
@@ -564,18 +564,18 @@ object FormComponentSummaryRenderer {
 
     val value =
       if (hasErrors)
-        errors.head.toString
+        errors.head
       else {
         val day = renderMonth(formFieldValidationResult.getCurrentValue(safeId(CalendarDate.day)))
         val month = messages(s"date.$monthKey")
 
-        s"$day $month"
+        HtmlFormat.escape(s"$day $month")
       }
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.escape(value),
+        value,
         visuallyHiddenText,
         keyClasses,
         "",
@@ -629,12 +629,13 @@ object FormComponentSummaryRenderer {
 
     val keyClasses = getKeyClasses(hasErrors)
 
-    val value = if (hasErrors) errors.head.toString else formFieldValidationResult.getCurrentValue.getOrElse("")
+    val value =
+      if (hasErrors) errors.head else HtmlFormat.escape(formFieldValidationResult.getCurrentValue.getOrElse(""))
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.escape(value),
+        value,
         visuallyHiddenText,
         keyClasses,
         "",
@@ -688,7 +689,7 @@ object FormComponentSummaryRenderer {
     val keyClasses = getKeyClasses(hasErrors)
 
     val value = if (hasErrors) {
-      Html(errors.mkString(" "))
+      errors.head
     } else {
       Address
         .renderToString(formComponent, formFieldValidationResult)
@@ -753,13 +754,12 @@ object FormComponentSummaryRenderer {
     val keyClasses = getKeyClasses(hasErrors)
 
     val value = if (hasErrors) {
-      Html(errors.mkString(" "))
+      errors.head
     } else {
       OverseasAddress
         .renderToString(formComponent, formFieldValidationResult)
         .map(HtmlFormat.escape(_))
         .intercalate(br())
-
     }
 
     List(
@@ -822,12 +822,12 @@ object FormComponentSummaryRenderer {
 
     val keyClasses = getKeyClasses(hasErrors)
 
-    val value = if (hasErrors) errors.mkString(" ") else envelope.userFileName(formComponent)
+    val value = if (hasErrors) errors.head else HtmlFormat.escape(envelope.userFileName(formComponent))
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.escape(value),
+        value,
         visuallyHiddenText,
         keyClasses,
         "",
@@ -892,17 +892,18 @@ object FormComponentSummaryRenderer {
 
     val value =
       if (hasErrors)
-        errors.mkString(" ")
+        errors.head
       else
-        maybeObligation.fold("Value Lost!") { od =>
-          messages("generic.From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
-            messages("generic.to") + " " + formatDate(od.inboundCorrespondenceToDate)
-        }
+        HtmlFormat
+          .escape(maybeObligation.fold("Value Lost!") { od =>
+            messages("generic.From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
+              messages("generic.to") + " " + formatDate(od.inboundCorrespondenceToDate)
+          })
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.escape(value),
+        value,
         visuallyHiddenText,
         keyClasses,
         "",
@@ -961,18 +962,16 @@ object FormComponentSummaryRenderer {
 
     val value =
       if (hasErrors)
-        Html(errors.mkString(" "))
+        errors
       else
-        HtmlFormat.fill(
-          choice
-            .renderToString(formComponent, formFieldValidationResult)
-            .map(s => uk.gov.hmrc.gform.views.html.hardcoded.pages.pWrapper(HtmlFormat.escape(s)))
-        )
+        choice
+          .renderToString(formComponent, formFieldValidationResult)
+          .map(s => uk.gov.hmrc.gform.views.html.hardcoded.pages.pWrapper(HtmlFormat.escape(s)))
 
     List(
       summaryListRow(
         label,
-        value,
+        HtmlFormat.fill(value),
         visuallyHiddenText,
         keyClasses,
         "",
@@ -1030,7 +1029,7 @@ object FormComponentSummaryRenderer {
       .map { case (element, index) =>
         val hasErrors = formFieldValidationResult.isNotOk
 
-        val errors = formFieldValidationResult.fieldErrors.toList.map { e =>
+        val errors: List[Html] = formFieldValidationResult.fieldErrors.toList.map { e =>
           errorInline("summary", e, Seq())
         }
 
@@ -1042,9 +1041,9 @@ object FormComponentSummaryRenderer {
 
         val value =
           if (hasErrors)
-            errors.mkString(" ")
+            errors.head
           else
-            element.choice.value()
+            HtmlFormat.escape(element.choice.value())
 
         formFieldValidationResult
           .getOptionalCurrentValue(HtmlFieldId.indexed(fieldValue.id, index))
@@ -1068,7 +1067,7 @@ object FormComponentSummaryRenderer {
 
             summaryListRow(
               label,
-              HtmlFormat.escape(value),
+              value,
               visuallyHiddenText,
               keyClasses,
               "",
