@@ -126,32 +126,30 @@
       }
     }
 
-
-    @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
-    @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1", "aria-hidden" -> "true", "form" -> "gf-form"))
-
-    @if(page.upscanData.isDefined){
-        @formWithoutCSRF(action = Call("POST", page.upscanData.get.url), args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-upscan"){
-            @{page.upscanData.get.snippets}
+    @page.upscanData.map { upscanData =>
+        @formWithoutCSRF(action = Call("POST", upscanData.url), args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-upscan"){
+            @{upscanData.snippets}
         }
     }
     @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
-        @{page.snippets}
-    }
 
-    <div class="govuk-button-group">
-        @displaySaveContinueButton(otherAttributes = Map("form" -> "gf-form"))
-        @if(page.renderComeBackLater) {
+    @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
+    @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1", "aria-hidden" -> "true"))
+
+      @{page.snippets}
+
+      <div class="govuk-button-group">
+          @displaySaveContinueButton()
+          @if(page.renderComeBackLater) {
             @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
-                inputType = Some("submit"),
-                attributes = Map("form" -> "gf-form", "formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndExit).path),
-                classes = "govuk-button--secondary"
+                    inputType=Some("submit"),
+                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndExit).path),
+                    classes="govuk-button--secondary"
+                )
             )
-            )
-        }
-    </div>
-
-
+          }
+      </div>
+    }
 
     @specimenNavigation
 

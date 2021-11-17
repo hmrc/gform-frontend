@@ -384,7 +384,6 @@ class SectionRenderingService(
       formLevelHeading,
       specialAttributes = Map.empty
     )
-
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
 
@@ -871,32 +870,34 @@ class SectionRenderingService(
               upscanInitiate
             )
           case FileUpload(fileUploadProvider) =>
-            val fileId: FileId = ei.envelope
-              .find(formComponent.modelComponentId)
-              .map(_.fileId)
-              .getOrElse(ei.envelope.mapping.fileIdFor(formComponent.id))
+            val fileId: FileId =
+              ei.envelope
+                .find(formComponent.modelComponentId)
+                .map(_.fileId)
+                .getOrElse(ei.envelope.mapping.fileIdFor(formComponent.id))
+
             fileUploadProvider match {
               case FileUploadProvider.Upscan =>
-                val fileUploadName = "file"
-                val otherAttributes =
-                  if (upscanData.isDefined) Map("form" -> upscanData.get.formMetaData.htmlId)
-                  else Map.empty[String, String]
+                upscanData match {
+                  case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
+                  case Some(upscanData) =>
+                    val fileUploadName = "file"
+                    val otherAttributes = Map("form" -> upscanData.formMetaData.htmlId)
+                    val attributes = Map("upscan" -> "upscan") ++ otherAttributes
 
-                val formActionUrl = upscanData.map(_.url).getOrElse("")
-                val attributes = Map("upscan" -> "upscan") ++ otherAttributes
-
-                htmlForFileUpload(
-                  formComponent,
-                  formTemplateId,
-                  ei,
-                  validationResult,
-                  fileId,
-                  fileUploadName,
-                  formActionUrl,
-                  attributes,
-                  List.empty[Html],
-                  otherAttributes
-                )
+                    htmlForFileUpload(
+                      formComponent,
+                      formTemplateId,
+                      ei,
+                      validationResult,
+                      fileId,
+                      fileUploadName,
+                      upscanData.url,
+                      attributes,
+                      List.empty[Html],
+                      otherAttributes
+                    )
+                }
               case FileUploadProvider.FileUploadFrontend =>
                 val successUrl =
                   frontendAppConfig.gformFrontendBaseUrl + FileUploadController.noJsSuccessCallback(
