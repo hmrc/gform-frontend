@@ -1116,8 +1116,7 @@ class SectionRenderingService(
         "data-form-template-id" -> formTemplateId.value,
         "data-max-file-size-MB" -> ei.formMaxAttachmentSizeMB.toString,
         "data-access-code"      -> ei.maybeAccessCode.fold("-")(_.value),
-        "data-section-number"   -> ei.sectionNumber.value.toString,
-        "data-upscan-url"       -> formAction
+        "data-section-number"   -> ei.sectionNumber.value.toString
       )
     )
 
