@@ -52,7 +52,7 @@ import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.summary.{ AddToListCYARender, FormComponentSummaryRenderer }
-import uk.gov.hmrc.gform.upscan.{ UpscanInitiate, UpscanInitiateResponse }
+import uk.gov.hmrc.gform.upscan.{ FormMetaData, UpscanData, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.HtmlFieldId
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
@@ -401,8 +401,29 @@ class SectionRenderingService(
 
     val originSection = Origin(DataOrigin.unSwapDataOrigin(formModelOptics)).minSectionNumber
     val renderUnits: List[RenderUnit] = page.renderUnits
+
+    val formModel = formModelOptics.formModelRenderPageOptics.formModel
+    val formComponents = formModel(sectionNumber).allFormComponents
+
+    val fileUploadProviders: List[(FormComponent, FileUploadProvider)] = formComponents.collect {
+      case fc @ IsFileUpload(fu) =>
+        fc -> fu.fileUploadProvider
+    }
+
+    val upscanData: Option[UpscanData] = {
+      fileUploadProviders match {
+        case (fc, FileUploadProvider.Upscan) :: Nil =>
+          val uploadRequest = upscanInitiate.get(fc.id).uploadRequest
+          val snippetsForUpscan = List(htmlForUpscan(fc, ei, uploadRequest.fields))
+          Some(UpscanData(uploadRequest.href, snippetsForUpscan, FormMetaData(fc.id, "gf-upscan")))
+        case _ => None
+      }
+    }
+
     val snippetsForFields = renderUnits
-      .map(renderUnit => htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, upscanInitiate))
+      .map(renderUnit =>
+        htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, upscanInitiate, upscanData)
+      )
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
       _ === Continue
     ) && !formTemplate.draftRetrievalMethod.isNotPermitted
@@ -427,7 +448,8 @@ class SectionRenderingService(
       formMaxAttachmentSizeMB,
       contentTypes,
       restrictedFileExtensions,
-      page.progressIndicator.map(ls => ls.value)
+      page.progressIndicator.map(ls => ls.value),
+      upscanData
     )
     html.form.form(
       formTemplate,
@@ -766,13 +788,32 @@ class SectionRenderingService(
       )
   }
 
+  private def isVisible(formComponent: FormComponent, ei: ExtraInfo): Boolean = formComponent.includeIf.fold(true) {
+    includeIf =>
+      ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+  }
+
+  private def htmlForUpscan(
+    formComponent: FormComponent,
+    ei: ExtraInfo,
+    fields: Map[String, String]
+  ): Html =
+    if (!isVisible(formComponent, ei) || formComponent.onlyShowOnSummary) HtmlFormat.empty
+    else {
+      val hiddenFields: List[Html] = fields.toList.map { case (name, value) =>
+        html.form.snippets.hidden(name, value)
+      }
+      HtmlFormat.fill(hiddenFields)
+    }
+
   private def htmlFor(
     renderUnit: RenderUnit,
     formTemplateId: FormTemplateId,
     ei: ExtraInfo,
     validationResult: ValidationResult,
     obligations: Obligations,
-    upscanInitiate: UpscanInitiate
+    upscanInitiate: UpscanInitiate,
+    upscanData: Option[UpscanData] = None
   )(implicit
     request: RequestHeader,
     messages: Messages,
@@ -780,11 +821,7 @@ class SectionRenderingService(
     sse: SmartStringEvaluator
   ): Html =
     renderUnit.fold { case RenderUnit.Pure(formComponent) =>
-      val isVisible = formComponent.includeIf.fold(true) { includeIf =>
-        ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
-      }
-
-      if (!isVisible || formComponent.onlyShowOnSummary) {
+      if (!isVisible(formComponent, ei) || formComponent.onlyShowOnSummary) {
         HtmlFormat.empty
       } else {
 
@@ -841,24 +878,26 @@ class SectionRenderingService(
 
             fileUploadProvider match {
               case FileUploadProvider.Upscan =>
-                val upscanInitiateResponse: UpscanInitiateResponse = upscanInitiate.get(formComponent.id)
-                val hiddenFields: List[Html] = upscanInitiateResponse.uploadRequest.fields.toList.map {
-                  case (name, value) =>
-                    html.form.snippets.hidden(name, value)
+                upscanData match {
+                  case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
+                  case Some(upscanData) =>
+                    val fileUploadName = "file"
+                    val otherAttributes = Map("form" -> upscanData.formMetaData.htmlId)
+                    val attributes = Map("upscan" -> "upscan") ++ otherAttributes
+
+                    htmlForFileUpload(
+                      formComponent,
+                      formTemplateId,
+                      ei,
+                      validationResult,
+                      fileId,
+                      fileUploadName,
+                      upscanData.url,
+                      attributes,
+                      List.empty[Html],
+                      otherAttributes
+                    )
                 }
-                val fileUploadName = "file"
-                val attributes = Map("upscan" -> "upscan")
-                htmlForFileUpload(
-                  formComponent,
-                  formTemplateId,
-                  ei,
-                  validationResult,
-                  fileId,
-                  fileUploadName,
-                  upscanInitiateResponse.uploadRequest.href,
-                  attributes,
-                  hiddenFields
-                )
               case FileUploadProvider.FileUploadFrontend =>
                 val successUrl =
                   frontendAppConfig.gformFrontendBaseUrl + FileUploadController.noJsSuccessCallback(
@@ -1030,7 +1069,8 @@ class SectionRenderingService(
     fileUploadName: String,
     formAction: String,
     fileUploadAttributes: Map[String, String],
-    hiddenFields: List[Html]
+    hiddenFields: List[Html],
+    otherAttributes: Map[String, String] = Map.empty
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -1098,7 +1138,7 @@ class SectionRenderingService(
       attributes = Map(
         "formaction"  -> formAction,
         "formenctype" -> "multipart/form-data"
-      ),
+      ) ++ otherAttributes,
       preventDoubleClick = true
     )
 

@@ -137,7 +137,7 @@ object TextFormatter {
 
     def getValue(formComponent: FormComponent): List[String] = formComponent match {
       case IsText(text)     => componentTextForSummary(currentValue, text.constraint, prefix, suffix) :: Nil
-      case IsFileUpload()   => envelope.userFileName(formComponent) :: Nil
+      case IsFileUpload(_)  => envelope.userFileName(formComponent) :: Nil
       case IsChoice(choice) => choice.renderToString(formComponent, validationResult)
       case IsUkSortCode(sortCode) =>
         sortCode

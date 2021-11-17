@@ -66,7 +66,7 @@ class SubmissionService(
       val visibleFc: Set[FormComponent] = formModelVisibilityOptics.allFormComponents.toSet
 
       val visibleFcIds: Set[FormComponentId] = visibleFc.collect {
-        case fc @ IsFileUpload() if envelope.contains(fc.modelComponentId) => fc.id
+        case fc @ IsFileUpload(_) if envelope.contains(fc.modelComponentId) => fc.id
       }
 
       Attachments(visibleFcIds.toList)
