@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.controllers
+package uk.gov.hmrc.gform.upscan
 
-import uk.gov.hmrc.http.BadRequestException
+import play.twirl.api.Html
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
-case class RequestRelatedData(requestData: Map[String, Seq[String]]) extends AnyVal {
-  def +(rrd: RequestRelatedData): RequestRelatedData = RequestRelatedData(requestData ++ rrd.requestData)
-
-  def get(key: String): String =
-    requestData
-      .get(key)
-      .flatMap(_.headOption)
-      .getOrElse(throw new BadRequestException(s"Missing '$key' in request data"))
-
-}
-
-object RequestRelatedData {
-  val empty = RequestRelatedData(Map.empty)
-}
+case class UpscanData(url: String, snippets: List[Html], formMetaData: FormMetaData)
+case class FormMetaData(fcId: FormComponentId, htmlId: String)

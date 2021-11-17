@@ -55,6 +55,6 @@ trait ObligationValidator extends TaxSelectionNavigator {
       }
       .flatten
 
-    formModelOptics.clearTaxResponses(toRemove)
+    formModelOptics.clearModelComponentIds(toRemove)
   }
 }

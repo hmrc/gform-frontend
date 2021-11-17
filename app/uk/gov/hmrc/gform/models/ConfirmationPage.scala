@@ -23,7 +23,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, SectionNumber 
 sealed trait ConfirmationPage
 
 object ConfirmationPage {
-  final case class Confirmee(confirmedBySectionNumber: SectionNumber) extends ConfirmationPage
+  final case class Confirmee(confirmedBySectionNumber: SectionNumber, confirmation: Confirmation)
+      extends ConfirmationPage
   final case class Confirmator(confirmation: Confirmation) extends ConfirmationPage {
     val modelPageId: ModelPageId = confirmation.pageId.modelPageId
   }
@@ -36,7 +37,7 @@ sealed trait ConfirmationAction
 
 object ConfirmationAction {
   case class NotConfirmed(redirect: Result) extends ConfirmationAction
-  case class UpdateConfirmation(f: ProcessData => ProcessData) extends ConfirmationAction
+  case class UpdateConfirmation(f: ProcessData => ProcessData, isConfirmationPage: Boolean) extends ConfirmationAction
 
-  val noop: ConfirmationAction = ConfirmationAction.UpdateConfirmation(identity)
+  val noop: ConfirmationAction = ConfirmationAction.UpdateConfirmation(identity, false)
 }

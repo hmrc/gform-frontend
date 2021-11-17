@@ -24,7 +24,7 @@ case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, type
   def stringRepresentation(implicit messages: Messages): String =
     expressionResult.stringRepresentation(typeInfo, messages)
 
-  def addressRepresentation: String = expressionResult.addressRepresentation(typeInfo)
+  def addressRepresentation: List[String] = expressionResult.addressRepresentation(typeInfo)
 
   def numberRepresentation: Option[BigDecimal] = expressionResult.numberRepresentation
 

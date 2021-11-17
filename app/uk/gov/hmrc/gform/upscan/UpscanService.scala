@@ -92,13 +92,13 @@ class UpscanService(
     )
   }
 
-  def retrieveConfirmationOrFail(reference: UpscanReference)(implicit hc: HeaderCarrier): Future[UpscanFileStatus] =
+  def retrieveConfirmationOrFail(reference: UpscanReference)(implicit hc: HeaderCarrier): Future[UpscanConfirmation] =
     retrieveConfirmation(reference).flatMap {
       case Some(status) => status.pure[Future]
       case None         => Future.failed(new Exception(s"No confirmation received yet for ${reference.value}"))
     }
 
-  def retrieveConfirmation(reference: UpscanReference)(implicit hc: HeaderCarrier): Future[Option[UpscanFileStatus]] =
+  def retrieveConfirmation(reference: UpscanReference)(implicit hc: HeaderCarrier): Future[Option[UpscanConfirmation]] =
     gformConnector.retrieveConfirmation(reference)
 
   def deleteConfirmation(reference: UpscanReference)(implicit hc: HeaderCarrier): Future[Unit] =

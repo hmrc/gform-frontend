@@ -34,7 +34,7 @@ object AddToListUtils {
 
     val addToListFileUploadIds: Set[FormComponentId] = bracket.toPageModel.toList
       .flatMap(_.allFormComponents)
-      .collect { case fc @ IsFileUpload() =>
+      .collect { case fc @ IsFileUpload(_) =>
         fc.id
       }
       .toSet

@@ -235,7 +235,7 @@ object VariadicFormData {
   }
 
   def listVariadicFormComponentIds[A <: PageMode](page: Page[A]): Set[ModelComponentId] =
-    page.fields.flatMap(listVariadicFormComponentIds).toSet
+    page.allFields.flatMap(listVariadicFormComponentIds).toSet
 
   def listVariadicFormComponentIds[A <: PageMode](pageModel: PageModel[A]): Set[ModelComponentId] =
     pageModel.allFormComponents.flatMap(listVariadicFormComponentIds).toSet

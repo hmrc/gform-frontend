@@ -130,7 +130,7 @@ object PDFPageFieldBuilder {
       case IsInformationMessage(_) =>
         SimpleField(None, List.empty)
 
-      case IsFileUpload() =>
+      case IsFileUpload(_) =>
         SimpleField(
           getFormComponentLabel(formComponent),
           List(HtmlFormat.escape(envelopeWithMapping.userFileName(formComponent)))

@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.submission.Submission
-import uk.gov.hmrc.gform.upscan.{ UpscanFileStatus, UpscanReference }
+import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
@@ -302,14 +302,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       desRegistrationRequest
     )
 
-  def validateBankModulus(accountNumber: String, sortCode: String)(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[Boolean] =
-    ws.POST[Account, HttpResponse](s"$baseUrl/validate/bank", Account(sortCode, accountNumber)).map(_ => true).recover {
-      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => false
-    }
-
   //TODO other formTemplate endpoints
   //TODO move this file to gform and make it's origin there
 
@@ -376,10 +368,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def retrieveConfirmation(
     reference: UpscanReference
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[UpscanFileStatus]] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[UpscanConfirmation]] = {
     import uk.gov.hmrc.http.HttpReads.Implicits._
     val url = s"$baseUrl/upscan/${reference.value}"
-    ws.GET[Option[UpscanFileStatus]](url)
+    ws.GET[Option[UpscanConfirmation]](url)
   }
 
   def deleteUpscanReference(
