@@ -17,5 +17,7 @@
 package uk.gov.hmrc.gform.upscan
 
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
-case class UpscanData(url: String, snippets: List[Html])
+case class UpscanData(url: String, snippets: List[Html], formMetaData: FormMetaData)
+case class FormMetaData(fcId: FormComponentId, htmlId: String)
