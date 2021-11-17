@@ -301,20 +301,38 @@
             return checkConfirmation(formTemplateId, key);
           }, onError)
           .then(function(response) {
-            if(response == "error") {
-              onError({
-                statusText: interpolate(strings.upscanError[lang], [transformMimeTypes(window.gform.contentTypes)])
-              });
-              hideFileStatus(formComponentId);
-            } else {
+            if(response == "") {
               fileUploadSuccess(
-                formComponentId,
-                file.name,
-                formTemplateId,
-                $input,
-                accessCode,
-                sectionNumber
+                  formComponentId,
+                  file.name,
+                  formTemplateId,
+                  $input,
+                  accessCode,
+                  sectionNumber
               );
+            } else {
+              switch (response) {
+                case "InvalidFileType" || "REJECTED":
+                  onError({
+                    statusText: interpolate(strings.upscanError[lang], [transformMimeTypes(window.gform.contentTypes)])
+                  });
+                  break;
+                case "EntityTooSmall":
+                  onError({
+                    statusText: interpolate(strings.emptyFileSizeError[lang])
+                  });
+                  break;
+                case "EntityTooLarge":
+                  onError({
+                    statusText: interpolate(strings.maxSizeError[lang], [maxFileSize])
+                  });
+                  break;
+                default:
+                  onError({
+                    statusText: interpolate(strings.unexpectedError[lang])
+                  });
+              }
+              hideFileStatus(formComponentId);
             }
           }, onError);
       } else {
