@@ -301,6 +301,7 @@
             return checkConfirmation(formTemplateId, key);
           }, onError)
           .then(function(response) {
+            console.log("response:",response)
             if(response == "") {
               fileUploadSuccess(
                   formComponentId,
@@ -312,7 +313,8 @@
               );
             } else {
               switch (response) {
-                case "InvalidFileType" || "REJECTED":
+                case "InvalidFileType":
+                case "REJECTED":
                   onError({
                     statusText: interpolate(strings.upscanError[lang], [transformMimeTypes(window.gform.contentTypes)])
                   });
