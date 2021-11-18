@@ -1093,7 +1093,7 @@ class SectionRenderingService(
       )
     )
 
-    val currentValue = formFieldValidationResult.getCurrentValue.filterNot(_ === "")
+    val currentValue = formFieldValidationResult.getCurrentValue.filterNot(_ === "").map(HtmlFormat.escape(_).body)
 
     val labelContent = content.Text(formComponent.label.value)
 
