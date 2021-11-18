@@ -115,7 +115,8 @@ class UpscanController(
         upscanService.deleteConfirmation(upscanReference).map { _ =>
           confirmation match {
             case Some(UpscanConfirmation(_, UpscanFileStatus.Ready, _)) | None => NoContent
-            case Some(UpscanConfirmation(_, UpscanFileStatus.Failed, _))       => Ok("error")
+            case Some(UpscanConfirmation(_, UpscanFileStatus.Failed, failureDetails)) =>
+              Ok(failureDetails.failureReason)
           }
         }
       }
