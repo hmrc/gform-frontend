@@ -21,10 +21,6 @@
       en: "Could not delete file, file is invalid",
       cy: "Doedd dim modd dileu ffeil, mae’r ffeil yn annilys"
     },
-    upscanError: {
-      en: "You can only upload {0}",
-      cy: "Gallwch ond uwchlwytho {0}"
-    },
     unexpectedError: {
       en: "An unexpected error occurred",
       cy: "Mae gwall annisgwyl wedi digwydd"
@@ -301,7 +297,7 @@
             return checkConfirmation(formTemplateId, key);
           }, onError)
           .then(function(response) {
-            if(response == "") {
+            if(response === undefined) {
               fileUploadSuccess(
                   formComponentId,
                   file.name,
@@ -315,7 +311,7 @@
                 case "InvalidFileType":
                 case "REJECTED":
                   onError({
-                    statusText: interpolate(strings.upscanError[lang], [transformMimeTypes(window.gform.contentTypes)])
+                    statusText: interpolate(strings.fileTypeError[lang],["", transformMimeTypes(window.gform.contentTypes)])
                   });
                   break;
                 case "EntityTooSmall":
