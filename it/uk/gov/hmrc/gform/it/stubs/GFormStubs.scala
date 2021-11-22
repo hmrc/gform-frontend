@@ -37,6 +37,7 @@ trait GFormStubs extends FormTemplateSample {
                 EnvelopeId("some-envelope-id"),
                 UserId("some-user-id"),
                 formTemplate._id,
+                None,
                 FormData(List.empty),
                 InProgress,
                 VisitIndex(Set.empty),

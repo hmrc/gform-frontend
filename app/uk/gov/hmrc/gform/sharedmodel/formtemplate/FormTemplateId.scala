@@ -16,13 +16,15 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import cats.Show
+import cats.{ Eq, Show }
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 
 case class FormTemplateId(value: String) extends AnyVal
 
 object FormTemplateId {
+
+  implicit val equal: Eq[FormTemplateId] = Eq.fromUniversalEquals
 
   implicit val mongoVformat: Format[FormTemplateId] =
     ValueClassFormat.vformat("_id", FormTemplateId.apply, x => JsString(x.value))
