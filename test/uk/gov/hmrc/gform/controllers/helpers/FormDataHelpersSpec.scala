@@ -55,6 +55,7 @@ class FormDataHelpersSpec extends Spec {
       EnvelopeId("id1"),
       UserId("usr"),
       FormTemplateId("temp"),
+      None,
       FormData(formFields),
       Accepted,
       VisitIndex(Set.empty),

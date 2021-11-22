@@ -21,6 +21,8 @@ import cats.data.NonEmptyList
 import cats.implicits.none
 import cats.instances.future._
 import cats.instances.string._
+import cats.syntax.applicative._
+import cats.syntax.eq._
 import cats.syntax.functor._
 import cats.syntax.show._
 import org.slf4j.LoggerFactory
@@ -84,77 +86,93 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.GET[Form](url)
   }
 
+  private def maybeForm(formIdData: FormIdData)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Option[Form]] = getForm(formIdData).map(Some(_)).recoverWith {
+    case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode === StatusCodes.NotFound.intValue =>
+      Option.empty[Form].pure[Future]
+  }
+
   def maybeForm(formIdData: FormIdData, formTemplate: FormTemplate)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Option[Form]] =
-    getForm(formIdData).map(Some(_)).recoverWith {
-      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue =>
-        val formIdDataOriginal = formIdData.withOriginalTemplateId(formTemplate)
-        logger.info(
-          s"Attempt to access form $formIdData, but form not found in MongoDB, attempting to look for $formIdDataOriginal as a fallback."
-        )
-        getForm(formIdDataOriginal)
-          .flatMap { form =>
+    getForm(formIdData)
+      .flatMap { form =>
+        if (formTemplate.version === form.formTemplateVersion) {
+          Some(form).pure[Future]
+        } else {
+          logger.info(
+            s"FormTemplate ${formTemplate._id.value} version and Form version mismatch. FormTemplate version: ${formTemplate.version}, Form version: ${form.formTemplateVersion}"
+          )
+          formTemplate.legacyFormIds.fold(Option.empty[Form].pure[Future]) { legacyFormIds =>
+            val legacyFormTemplateId = legacyFormIds.head
             logger.info(
-              s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $formIdDataOriginal as a fallback succeeded."
+              s"FormTemplate ${formTemplate._id.value} checking legacy FormTemplateId: ${legacyFormTemplateId.value}"
             )
-
-            /*
-             *  Note! We are not replacing form in mongo, but updating it. And to update the form we need to first find it with original formTemplateId
-             *  in its name. Backend is making sure that update operation is lowercasing formTemplateId after form is found and before it is saved.
-             */
-            updateUserData(
-              formIdDataOriginal,
-              UserData(
-                form.formData,
-                form.status,
-                form.visitsIndex,
-                form.thirdPartyData,
-                form.componentIdToFileId
-              )
-            ).map { _ =>
-              logger.info(
-                s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $formIdDataOriginal as a fallback succeeded and form saved with $formIdData."
-              )
-              Some(form)
-            }
-
-          }
-          .recoverWith {
-            case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue =>
-              logger.info(
-                s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $formIdDataOriginal as a fallback failed."
-              )
-
-              def getFormByLegacyIds(legacyIds: NonEmptyList[FormTemplateId]): Future[Option[Form]] = {
-                val NonEmptyList(legacyFormId, tail) = legacyIds
-                val legacyFormIdData = formIdData.withTemplateId(legacyFormId)
+            existsFormTemplate(legacyFormTemplateId).flatMap { exists =>
+              if (exists) {
+                logger.info(s"Legacy FormTemplate ${legacyFormTemplateId.value} exists. Trying to load legacy form.")
+                val legacyFormIdData = formIdData.withTemplateId(legacyFormTemplateId)
+                maybeForm(legacyFormIdData).flatMap {
+                  case None =>
+                    logger.info(s"Legacy form for FormTemplate ${legacyFormTemplateId.value} not found")
+                    changeFormTemplateIdVersion(formIdData, legacyFormIds.head).map { _ =>
+                      val formUpd = form.copy(formTemplateId = legacyFormIds.head)
+                      Some(formUpd)
+                    }
+                  case Some(form) =>
+                    logger.info(s"Legacy form for FormTemplate $legacyFormTemplateId found (status = ${form.status})")
+                    if (form.status === Submitted) {
+                      Option.empty[Form].pure[Future]
+                    } else {
+                      Some(form).pure[Future]
+                    }
+                }
+              } else {
                 logger.info(
-                  s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $legacyFormIdData as a fallback."
+                  s"Legacy FormTemplate: $legacyFormTemplateId do not exists. Trying to resolve legacyFormIds: $legacyFormIds"
                 )
-
-                getForm(legacyFormIdData)
-                  .flatMap { _ =>
-                    logger.info(
-                      s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $legacyFormIdData as as a fallback succeeded and form saved."
-                    )
-
-                    createFormFromLegacy(legacyFormIdData, formIdData).map(Some(_))
-                  }
-                  .recoverWith {
-                    case UpstreamErrorResponse.WithStatusCode(statusCode, _)
-                        if statusCode == StatusCodes.NotFound.intValue =>
-                      NonEmptyList
-                        .fromList(tail)
-                        .map(getFormByLegacyIds)
-                        .getOrElse(Future.successful(None))
-                  }
+                getFormByLegacyIds(formIdData)(legacyFormIds).map {
+                  case Some(form) if formTemplate.version === form.formTemplateVersion => Some(form)
+                  case _                                                               => None
+                }
               }
-
-              formTemplate.legacyFormIds.fold(Future.successful(none[Form]))(getFormByLegacyIds)
+            }
           }
-    }
+        }
+      }
+      .recoverWith {
+        case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode === StatusCodes.NotFound.intValue =>
+          formTemplate.legacyFormIds.fold(Future.successful(none[Form]))(getFormByLegacyIds(formIdData))
+      }
+
+  def getFormByLegacyIds(
+    formIdData: FormIdData
+  )(legacyIds: NonEmptyList[FormTemplateId])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Form]] = {
+    val NonEmptyList(legacyFormId, tail) = legacyIds
+    val legacyFormIdData = formIdData.withTemplateId(legacyFormId)
+    logger.info(
+      s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $legacyFormIdData as a fallback."
+    )
+
+    getForm(legacyFormIdData)
+      .flatMap { _ =>
+        logger.info(
+          s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $legacyFormIdData as a fallback succeeded and form saved."
+        )
+
+        createFormFromLegacy(legacyFormIdData, formIdData).map(Some(_))
+      }
+      .recoverWith {
+        case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode === StatusCodes.NotFound.intValue =>
+          NonEmptyList
+            .fromList(tail)
+            .map(getFormByLegacyIds(formIdData))
+            .getOrElse(Future.successful(None))
+      }
+  }
 
   def updateUserData(formIdData: FormIdData, userData: UserData)(implicit
     hc: HeaderCarrier,
@@ -168,6 +186,20 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
           s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/${accessCode.value}"
       }
     ws.PUT[UserData, HttpResponse](url, userData).void
+  }
+
+  def changeFormTemplateIdVersion(formIdData: FormIdData, formTemplateId: FormTemplateId)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
+    val url =
+      formIdData match {
+        case FormIdData.Plain(userId, formTemplateId) =>
+          s"$baseUrl/version/${userId.value}/${formTemplateId.value}"
+        case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
+          s"$baseUrl/version/${userId.value}/${formTemplateId.value}/${accessCode.value}"
+      }
+    ws.PUT[FormTemplateId, HttpResponse](url, formTemplateId).void
   }
 
   private def createFormFromLegacy(formIdData: FormIdData, newFormId: FormIdData)(implicit
@@ -280,6 +312,16 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       template,
       Seq("Content-Type" -> ContentType.`application/json`.value)
     ).void
+
+  def existsFormTemplate(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
+    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}")
+      .map(_ => true)
+      .recoverWith {
+        case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode === StatusCodes.NotFound.intValue =>
+          false.pure[Future]
+      }
 
   def getFormTemplate(
     formTemplateId: FormTemplateId

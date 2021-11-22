@@ -245,6 +245,7 @@ object FormTemplateBuilder {
     FormTemplateId("tst1"),
     FormTemplateId("tst1"),
     None,
+    None,
     toLocalisedString("Some form template"),
     Some(BetaBanner),
     Default,

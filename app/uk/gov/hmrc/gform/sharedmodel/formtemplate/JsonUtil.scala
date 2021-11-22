@@ -74,6 +74,10 @@ trait JsonUtils {
       }
     )
 
+  def constReads[A](a: A): Reads[A] = new Reads[A] {
+    def reads(json: JsValue): JsResult[A] = JsSuccess(a)
+  }
+
   def safeCast[A, B >: A](reads: Reads[A]): Reads[B] = reads.asInstanceOf[Reads[B]]
 
   def toJsonStr[T: Writes](obj: T): String =

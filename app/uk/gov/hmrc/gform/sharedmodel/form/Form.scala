@@ -30,6 +30,7 @@ case class Form(
   envelopeId: EnvelopeId,
   userId: UserId,
   formTemplateId: FormTemplateId,
+  formTemplateVersion: Option[FormTemplateVersion],
   formData: FormData,
   status: FormStatus,
   visitsIndex: VisitIndex,
@@ -42,17 +43,25 @@ object Form {
 
   private val thirdPartyData = "thirdPartyData"
   private val componentIdToFileId = "componentIdToFileId"
+  private val formTemplateVersion = "version"
 
   private val thirdPartyDataWithFallback: Reads[ThirdPartyData] =
     (__ \ thirdPartyData).read[ThirdPartyData]
   private val componentIdToFileIdReads: Reads[FormComponentIdToFileIdMapping] =
     (__ \ componentIdToFileId).read[FormComponentIdToFileIdMapping]
 
+  private val formTemplateVersionWithFallback: Reads[Option[FormTemplateVersion]] =
+    (__ \ formTemplateVersion)
+      .readNullable[String]
+      .map(_.map(FormTemplateVersion.apply))
+      .orElse(JsonUtils.constReads(Option.empty[FormTemplateVersion]))
+
   private val reads: Reads[Form] = (
     (FormId.format: Reads[FormId]) and
       EnvelopeId.format and
       UserId.oformat and
       FormTemplateId.vformat and
+      formTemplateVersionWithFallback and
       FormData.format and
       FormStatus.format and
       VisitIndex.format and
@@ -66,6 +75,7 @@ object Form {
       EnvelopeId.format.writes(form.envelopeId) ++
       UserId.oformat.writes(form.userId) ++
       FormTemplateId.oformat.writes(form.formTemplateId) ++
+      form.formTemplateVersion.map(FormTemplateVersion.oformat.writes).getOrElse(Json.obj()) ++
       FormData.format.writes(form.formData) ++
       FormStatus.format.writes(form.status) ++
       VisitIndex.format.writes(form.visitsIndex) ++

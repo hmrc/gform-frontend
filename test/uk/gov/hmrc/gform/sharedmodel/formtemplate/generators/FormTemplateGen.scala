@@ -71,6 +71,7 @@ trait FormTemplateGen {
   def formTemplateGen: Gen[FormTemplate] =
     for {
       id                       <- formTemplateIdGen
+      version                  <- FormTemplateVersionGen.formTemplateVersionGen
       legacyFormIds            <- legacyFromIdListGen
       name                     <- formNameGen
       developmentPhase         <- Gen.option(developmentPhaseGen)
@@ -90,6 +91,7 @@ trait FormTemplateGen {
     } yield FormTemplate(
       formTemplateIdLowerCase(id),
       id,
+      version,
       legacyFormIds,
       name,
       developmentPhase,

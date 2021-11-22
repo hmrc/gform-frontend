@@ -21,6 +21,7 @@ import cats.Id
 import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
+import cats.syntax.eq._
 import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results._
@@ -352,7 +353,9 @@ class AuthenticatedRequestActions(
     def whenFormExists(form: Form): Future[Result] =
       for {
         _ <- MDCHelpers.addFormIdToMdc(form._id)
-        cache = AuthCacheWithForm(retrievals, form, formTemplate, role, maybeAccessCode)
+        formTemplateForForm <- if (form.formTemplateId === formTemplate._id) formTemplate.pure[Future]
+                               else gformConnector.getFormTemplate(form.formTemplateId)
+        cache = AuthCacheWithForm(retrievals, form, formTemplateForForm, role, maybeAccessCode)
 
         formModelOptics <-
           FormModelOptics
@@ -360,7 +363,7 @@ class AuthenticatedRequestActions(
 
         smartStringEvaluator =
           smartStringEvaluatorFactory
-            .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
+            .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplateForForm)
         envelope <- fileUploadConnector.getEnvelope(cache.form.envelopeId)
         result   <- f(cache)(smartStringEvaluator)(formModelOptics)
       } yield result
