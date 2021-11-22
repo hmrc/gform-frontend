@@ -75,6 +75,6 @@ object TextFormatter {
       case _ => List(currentValue)
     }
 
-    getValue(validationResult.formComponent).map(HtmlFormat.escape(_))
+    getValue(validationResult.formComponent).flatMap(v => v.split("\n").toList).map(HtmlFormat.escape(_))
   }
 }
