@@ -30,8 +30,8 @@ compositeAuth.ggContent=Sign in with your Government Gateway user ID.
 compositeAuth.ggContinueContent=Continue with this Government Gateway user ID.
 compositeAuth.ggDifferentContent=Sign in with a different Government Gateway user ID.
 compositeAuth.emailContent=Sign in with your email address.
-compositeAuth.ggDifferentConditional=This will sign you out of any service currently using your Government Gateway user ID
-compositeAuth.alreadySigned=You are already signed in to Government Gateway
+compositeAuth.ggDifferentConditional=This will sign you out of any service currently using your Government Gateway user ID.
+compositeAuth.alreadySigned=You are already signed in to Government Gateway.
 compositeAuthSelection.error.required=Select how do you want to sign in?
 
 linkText.saveAndComeBackLater=Save and come back later

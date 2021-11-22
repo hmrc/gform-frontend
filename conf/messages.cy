@@ -29,8 +29,8 @@ compositeAuth.ggContent=Mewngofnodi gyda’ch Dynodydd Defnyddiwr (ID) Porth y L
 compositeAuth.ggContinueContent=Parhau â’r Dynodydd Defnyddiwr (ID) Porth y Llywodraeth hwn.
 compositeAuth.ggDifferentContent=Mewngofnodi gyda Dynodydd Defnyddiwr (ID) gwahanol ar gyfer Porth y Llywodraeth.
 compositeAuth.emailContent=Mewngofnodi gyda’ch cyfeiriad e-bost.
-compositeAuth.ggDifferentConditional=Bydd hyn yn eich allgofnodi o unrhyw wasanaeth sy’n defnyddio’ch Dynodydd Defnyddiwr (ID) Porth y Llywodraeth ar hyn o bryd
-compositeAuth.alreadySigned=Rydych eisoes wedi mewngofnodi i Borth y Llywodraeth
+compositeAuth.ggDifferentConditional=Bydd hyn yn eich allgofnodi o unrhyw wasanaeth sy’n defnyddio’ch Dynodydd Defnyddiwr (ID) Porth y Llywodraeth ar hyn o bryd.
+compositeAuth.alreadySigned=Rydych eisoes wedi mewngofnodi i Borth y Llywodraeth.
 compositeAuthSelection.error.required=Dewis sut rydych am fewngofnodi
 
 linkText.saveAndComeBackLater=Cadw a dod yn ôl yn hwyrach
