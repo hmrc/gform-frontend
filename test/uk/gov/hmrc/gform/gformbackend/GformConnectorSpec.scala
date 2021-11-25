@@ -30,10 +30,10 @@ class GformConnectorSpec extends Spec {
 
   it should "return form template for given type and version" in new Fixture {
     val status = 200
-    val responseJson = Some(Json.toJson(buildFormTemplate))
+    val responseJson = Some(Json.toJson(buildFormTemplateWithRedirects))
     connector
       .getFormTemplate(formTemplateId)
-      .futureValue shouldBe buildFormTemplate
+      .futureValue shouldBe buildFormTemplateWithRedirects
   }
 
   behavior of "GformConnector.formTemplate - unhappy scenario"

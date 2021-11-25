@@ -72,15 +72,18 @@ class AcknowledgementController(
       OperationWithForm.ViewAcknowledgement
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       import i18nSupport._
-      val formTemplate = request.attrs(FormTemplateKey)
+      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirects.formTemplate
       val compositeAuthDetails: CompositeAuthDetails =
         jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
 
       formTemplate.authConfig match {
         case Composite(_) =>
+          val authConfigName =
+            AuthConfig.authConfigNameInLogs(compositeAuthDetails.get(formTemplateWithRedirects).getOrElse(""))
           logger.info(
             s"For a template, ${formTemplateId.value} with composite config user has selected " +
-              s"${AuthConfig.authConfigNameInLogs(compositeAuthDetails.get(formTemplateId).getOrElse(""))} config " +
+              s"$authConfigName config " +
               s"and submitted a form with envelopeId ${cache.form.envelopeId}"
           )
         case config =>

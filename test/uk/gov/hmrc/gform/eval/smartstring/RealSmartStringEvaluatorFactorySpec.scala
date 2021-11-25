@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, Horizontal, Radio, RevealingChoice, RevealingChoiceElement, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateWithRedirects, Horizontal, Radio, RevealingChoice, RevealingChoiceElement, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
@@ -359,7 +359,13 @@ class RealSmartStringEvaluatorFactorySpec
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
     lazy val cache: AuthCacheWithForm =
-      AuthCacheWithForm(retrievals, form, formTemplate, Role.Customer, maybeAccessCode)
+      AuthCacheWithForm(
+        retrievals,
+        form,
+        FormTemplateWithRedirects.noRedirects(formTemplate),
+        Role.Customer,
+        maybeAccessCode
+      )
     lazy val indexedComponentIds: List[ModelComponentId] = List.empty
 
     val mockRecalculation = mock[Recalculation[Future, Throwable]]

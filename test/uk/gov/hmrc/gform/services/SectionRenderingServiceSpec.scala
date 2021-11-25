@@ -77,7 +77,13 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
     lazy val validationResult = ValidationResult.empty
-    lazy val cache = AuthCacheWithForm(authContext, form, formTemplate, Role.Customer, Some(accessCode))
+    lazy val cache = AuthCacheWithForm(
+      authContext,
+      form,
+      FormTemplateWithRedirects.noRedirects(formTemplate),
+      Role.Customer,
+      Some(accessCode)
+    )
 
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
       .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.Normal](

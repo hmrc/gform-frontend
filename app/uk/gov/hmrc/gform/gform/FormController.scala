@@ -504,7 +504,7 @@ class FormController(
                       case Composite(configs) =>
                         val compositeAuthDetails =
                           jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-                            .get(formTemplate._id)
+                            .get(cache.formTemplateWithRedirects)
                         val config = AuthConfig
                           .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
                         processSaveAndExitAcknowledgementPage(config, processData, maybeSn, envelopeExpiryDate)

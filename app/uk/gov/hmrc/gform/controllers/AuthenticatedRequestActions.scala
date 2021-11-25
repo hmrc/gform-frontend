@@ -183,7 +183,8 @@ class AuthenticatedRequestActions(
   ): Action[AnyContent] =
     actionBuilder.async { implicit request =>
       implicit val lang: LangADT = getCurrentLanguage(request)
-      val formTemplate = request.attrs(FormTemplateKey)
+      val formTemplateWithRedirect = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirect.formTemplate
       formTemplate.referrerConfig match {
         case Some(referrerConfig: ReferrerConfig) =>
           val referrerCheckDetails: ReferrerCheckDetails =
@@ -216,13 +217,14 @@ class AuthenticatedRequestActions(
     operation: OperationWithoutForm,
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
   )(implicit request: Request[AnyContent]): Future[Result] = {
-    val formTemplate = request.attrs(FormTemplateKey)
+    val formTemplateWithRedirect = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateWithRedirect.formTemplate
     implicit val lang: LangADT = getCurrentLanguage(request)
     for {
       _ <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
       authResult <- authService
                       .authenticateAndAuthorise(
-                        formTemplate,
+                        formTemplateWithRedirect,
                         getAffinityGroup,
                         getGovermentGatewayId,
                         ggAuthorised(request),
@@ -249,7 +251,8 @@ class AuthenticatedRequestActions(
   ): Action[AnyContent] = actionBuilder.async { implicit request =>
     implicit val l: LangADT = getCurrentLanguage(request)
 
-    val formTemplate = request.attrs(FormTemplateKey)
+    val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateWithRedirects.formTemplate
     for {
       result <- f(request)(l)(formTemplate)
     } yield result
@@ -260,7 +263,8 @@ class AuthenticatedRequestActions(
   )(f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] =
     actionBuilder.async { implicit request =>
       val predicate = AuthProviders(AuthProvider.GovernmentGateway)
-      val formTemplate = request.attrs(FormTemplateKey)
+      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirects.formTemplate
       for {
         _          <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
         authResult <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
@@ -306,13 +310,14 @@ class AuthenticatedRequestActions(
       import i18nSupport._
       implicit val l: LangADT = getCurrentLanguage(request)
 
-      val formTemplate = request.attrs(FormTemplateKey)
+      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirects.formTemplate
       for {
         _ <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
         _ <- MDCHelpers.addAccessCodeToMdc(maybeAccessCode)
         authResult <- authService
                         .authenticateAndAuthorise(
-                          formTemplate,
+                          formTemplateWithRedirects,
                           getAffinityGroup,
                           getGovermentGatewayId,
                           ggAuthorised(request),
@@ -321,7 +326,7 @@ class AuthenticatedRequestActions(
         result <- handleAuthResults(
                     authResult,
                     formTemplate,
-                    onSuccess = withForm[U](f(request)(l))(maybeAccessCode, formTemplate)
+                    onSuccess = withForm[U](f(request)(l))(maybeAccessCode, formTemplateWithRedirects)
                   )
       } yield result
     }
@@ -330,7 +335,7 @@ class AuthenticatedRequestActions(
     f: AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[Result]
   )(
     maybeAccessCode: Option[AccessCode],
-    formTemplate: FormTemplate
+    formTemplateWithRedirects: FormTemplateWithRedirects
   )(
     retrievals: MaterialisedRetrievals
   )(
@@ -340,6 +345,8 @@ class AuthenticatedRequestActions(
     hc: HeaderCarrier,
     l: LangADT
   ): Future[Result] = {
+
+    val formTemplate = formTemplateWithRedirects.formTemplate
 
     /* When user access form having email auth via bookmark, it can happen that user's form doesn't exist
      * and due to bookmark user didn't go via dashboard endpoint to create a new one, so we need to send him there.
@@ -353,7 +360,7 @@ class AuthenticatedRequestActions(
     def whenFormExists(form: Form): Future[Result] =
       for {
         _ <- MDCHelpers.addFormIdToMdc(form._id)
-        formTemplateForForm <- if (form.formTemplateId === formTemplate._id) formTemplate.pure[Future]
+        formTemplateForForm <- if (form.formTemplateId === formTemplate._id) formTemplateWithRedirects.pure[Future]
                                else gformConnector.getFormTemplate(form.formTemplateId)
         cache = AuthCacheWithForm(retrievals, form, formTemplateForForm, role, maybeAccessCode)
 
@@ -363,7 +370,13 @@ class AuthenticatedRequestActions(
 
         smartStringEvaluator =
           smartStringEvaluatorFactory
-            .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplateForForm)
+            .apply(
+              formModelOptics.formModelVisibilityOptics,
+              retrievals,
+              maybeAccessCode,
+              form,
+              formTemplateForForm.formTemplate
+            )
         envelope <- fileUploadConnector.getEnvelope(cache.form.envelopeId)
         result   <- f(cache)(smartStringEvaluator)(formModelOptics)
       } yield result
@@ -494,10 +507,11 @@ sealed trait AuthCache {
 case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
-  formTemplate: FormTemplate,
+  formTemplateWithRedirects: FormTemplateWithRedirects,
   role: Role,
   accessCode: Option[AccessCode]
 ) extends AuthCache {
+  val formTemplate: FormTemplate = formTemplateWithRedirects.formTemplate
   def formModel[U <: SectionSelectorType: SectionSelector](implicit
     hc: HeaderCarrier
   ): FormModel[DependencyGraphVerification] = {
@@ -541,7 +555,7 @@ case class AuthCacheWithoutForm(
     formTemplate
   )
   def toAuthCacheWithForm(form: Form, accessCode: Option[AccessCode]) =
-    AuthCacheWithForm(retrievals, form, formTemplate, role, accessCode)
+    AuthCacheWithForm(retrievals, form, FormTemplateWithRedirects.noRedirects(formTemplate), role, accessCode)
 }
 
 class CacheData(

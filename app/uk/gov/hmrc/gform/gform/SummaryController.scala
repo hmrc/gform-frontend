@@ -91,17 +91,22 @@ class SummaryController(
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
         requestRelatedData => variadicFormData =>
           save match {
-            case Exit            => handleExit(cache.formTemplate, maybeAccessCode, cache).pure[Future]
+            case Exit            => handleExit(cache.formTemplateWithRedirects, maybeAccessCode, cache).pure[Future]
             case SummaryContinue => handleSummaryContinue(formTemplateId, maybeAccessCode, cache, formModelOptics)
             case _               => BadRequest("Cannot determine action").pure[Future]
           }
       }
     }
 
-  def handleExit(formTemplate: FormTemplate, maybeAccessCode: Option[AccessCode], cache: AuthCacheWithForm)(implicit
+  def handleExit(
+    formTemplateWithRedirects: FormTemplateWithRedirects,
+    maybeAccessCode: Option[AccessCode],
+    cache: AuthCacheWithForm
+  )(implicit
     request: Request[AnyContent],
     l: LangADT
-  ): Result =
+  ): Result = {
+    val formTemplate = formTemplateWithRedirects.formTemplate
     maybeAccessCode match {
       case Some(accessCode) =>
         val saveWithAccessCode = new SaveWithAccessCode(formTemplate, accessCode)
@@ -112,7 +117,7 @@ class SummaryController(
             case Composite(configs) =>
               val compositeAuthDetails =
                 jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-                  .get(formTemplate._id)
+                  .get(formTemplateWithRedirects)
               AuthConfig
                 .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
             case config => Some(config)
@@ -127,6 +132,7 @@ class SummaryController(
             Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
         }
     }
+  }
 
   private def handleSummaryContinue(
     formTemplateId: FormTemplateId,
