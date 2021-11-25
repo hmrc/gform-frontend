@@ -74,8 +74,13 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
 case class Singleton[A <: PageMode](page: Page[A]) extends PageModel[A]
 case class CheckYourAnswers[A <: PageMode](
   expandedId: PageId,
+  expandedTitle: SmartString,
   expandedUpdateTitle: SmartString,
+  expandedNoPIITitle: Option[SmartString],
   expandedNoPIIUpdateTitle: Option[SmartString],
+  expandedHeader: Option[SmartString],
+  expandedFooter: Option[SmartString],
+  expandedContinueLabel: Option[SmartString],
   formComponent: FormComponent,
   index: Int
 ) extends PageModel[A]

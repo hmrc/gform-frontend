@@ -19,7 +19,15 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import play.api.libs.json.{ Format, Json }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 
-case class CheckYourAnswersPage(updateTitle: SmartString, noPIIUpdateTitle: Option[SmartString])
+case class CheckYourAnswersPage(
+  title: SmartString,
+  updateTitle: SmartString,
+  noPIITitle: Option[SmartString],
+  noPIIUpdateTitle: Option[SmartString],
+  header: Option[SmartString],
+  footer: Option[SmartString],
+  continueLabel: Option[SmartString]
+)
 
 object CheckYourAnswersPage {
   implicit val format: Format[CheckYourAnswersPage] = Json.format[CheckYourAnswersPage]

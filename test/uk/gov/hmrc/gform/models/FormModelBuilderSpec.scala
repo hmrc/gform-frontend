@@ -141,7 +141,15 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
     val section1 = mkAddToListSection(
       "someQuestion",
       Some(
-        CheckYourAnswersPage(toSmartString("Update Title"), Some(toSmartString("No PII Update Title")))
+        CheckYourAnswersPage(
+          toSmartString("Update Title"),
+          toSmartString("Update Title"),
+          Some(toSmartString("No PII Title")),
+          Some(toSmartString("No PII Update Title")),
+          Some(toSmartString("Header")),
+          Some(toSmartString("Footer")),
+          Some(toSmartString("Continue"))
+        )
       ),
       List(fcA)
     )

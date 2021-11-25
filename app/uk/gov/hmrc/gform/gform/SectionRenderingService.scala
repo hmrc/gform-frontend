@@ -179,13 +179,14 @@ class SectionRenderingService(
     }
 
     html.form.addToListCheckYourAnswers(
-      if (isFirstVisit) messages("summary.checkYourAnswers") else checkYourAnswers.expandedUpdateTitle.value,
+      if (isFirstVisit) checkYourAnswers.expandedTitle.value else checkYourAnswers.expandedUpdateTitle.value,
       if (isFirstVisit)
-        messages("summary.checkYourAnswers")
+        checkYourAnswers.expandedNoPIITitle.fold(messages("summary.checkYourAnswers"))(_.value)
       else
-        checkYourAnswers.expandedNoPIIUpdateTitle.fold(checkYourAnswers.expandedUpdateTitle.valueWithoutInterpolations)(
-          _.value
-        ),
+        checkYourAnswers.expandedNoPIIUpdateTitle.fold(checkYourAnswers.expandedNoPIITitle match {
+          case Some(value) => value.valueWithoutInterpolations
+          case None        => messages("summary.checkYourAnswers")
+        })(_.value),
       formTemplate,
       maybeAccessCode,
       sectionNumber,
@@ -194,10 +195,12 @@ class SectionRenderingService(
       determineContinueLabelKey(
         cache.retrievals.continueLabelKey,
         formTemplate.draftRetrievalMethod.isNotPermitted,
-        None
+        checkYourAnswers.expandedContinueLabel
       ),
       renderComeBackLater,
-      pageLevelErrorHtml
+      pageLevelErrorHtml,
+      checkYourAnswers.expandedHeader.map(markDownParser),
+      checkYourAnswers.expandedFooter.map(markDownParser)
     )
   }
 
