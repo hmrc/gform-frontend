@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory
 import play.api.data
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
+import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -104,11 +105,12 @@ class NewFormController(
   def dashboardWithCompositeAuth(formTemplateId: FormTemplateId) = Action.async { implicit request =>
     val compositeAuthDetails: CompositeAuthDetails =
       jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-
+    val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateWithRedirects.formTemplate
     Redirect(routes.NewFormController.dashboard(formTemplateId).url, request.queryString)
       .addingToSession(
         COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
-          compositeAuthDetails.add(formTemplateId -> AuthConfig.hmrcSimpleModule)
+          compositeAuthDetails.add(formTemplate, AuthConfig.hmrcSimpleModule)
         )
       )
       .pure[Future]

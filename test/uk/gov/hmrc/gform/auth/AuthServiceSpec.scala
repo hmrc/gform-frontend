@@ -138,7 +138,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   it should "authorise a gg authentication only user when no agentAccess config" in {
     val result =
       authService.authenticateAndAuthorise(
-        buildFormTemplate,
+        FormTemplateWithRedirects.noRedirects(buildFormTemplate),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessful,
@@ -151,7 +151,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     val result =
       authService
         .authenticateAndAuthorise(
-          formTemplateAgentDenied,
+          FormTemplateWithRedirects.noRedirects(formTemplateAgentDenied),
           getAffinityGroup,
           getGovernmentGatewayId,
           ggAuthorisedSuccessful,
@@ -163,7 +163,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   it should "authorise a gg authentication only individual when agent access is configured to agent denied" in {
     val result = authService
       .authenticateAndAuthorise(
-        formTemplateAgentDenied,
+        FormTemplateWithRedirects.noRedirects(formTemplateAgentDenied),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessfulIndividual,
@@ -175,7 +175,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   it should "authorise a gg authentication only organisation when agent access is configured to agent denied" in {
     val result = authService
       .authenticateAndAuthorise(
-        formTemplateAgentDenied,
+        FormTemplateWithRedirects.noRedirects(formTemplateAgentDenied),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessfulOrganisation,
@@ -188,7 +188,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     val result =
       authService
         .authenticateAndAuthorise(
-          formTemplateAgentDenied,
+          FormTemplateWithRedirects.noRedirects(formTemplateAgentDenied),
           getAffinityGroup,
           getGovernmentGatewayId,
           ggAuthorisedSuccessfulAgent,
@@ -200,7 +200,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   it should "authorise a gg authentication only agent when agent access is configured to allow any agent" in {
     val result = authService
       .authenticateAndAuthorise(
-        formTemplateAnyAgentAllowed,
+        FormTemplateWithRedirects.noRedirects(formTemplateAnyAgentAllowed),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessfulAgent,
@@ -213,7 +213,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     val result =
       authService
         .authenticateAndAuthorise(
-          formTemplateRequireMTDAgentEnrolment,
+          FormTemplateWithRedirects.noRedirects(formTemplateRequireMTDAgentEnrolment),
           getAffinityGroup,
           getGovernmentGatewayId,
           ggAuthorisedSuccessfulEnrolledAgent,
@@ -226,7 +226,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     val result =
       authService
         .authenticateAndAuthorise(
-          formTemplateEnrolment,
+          FormTemplateWithRedirects.noRedirects(formTemplateEnrolment),
           getAffinityGroup,
           getGovernmentGatewayId,
           ggAuthorisedEnrolment,
@@ -239,7 +239,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     val result =
       authService
         .authenticateAndAuthorise(
-          formTemplateRequireMTDAgentEnrolment,
+          FormTemplateWithRedirects.noRedirects(formTemplateRequireMTDAgentEnrolment),
           getAffinityGroup,
           getGovernmentGatewayId,
           ggAuthorisedRedirect,
@@ -252,7 +252,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     val result =
       authService
         .authenticateAndAuthorise(
-          formTemplateAWSALB,
+          FormTemplateWithRedirects.noRedirects(formTemplateAWSALB),
           getAffinityGroup,
           getGovernmentGatewayId,
           ggAuthorisedSuccessful,
@@ -268,7 +268,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     val result =
       authService
         .authenticateAndAuthorise(
-          formTemplateAWSALB,
+          FormTemplateWithRedirects.noRedirects(formTemplateAWSALB),
           getAffinityGroup,
           getGovernmentGatewayId,
           ggAuthorisedSuccessful,

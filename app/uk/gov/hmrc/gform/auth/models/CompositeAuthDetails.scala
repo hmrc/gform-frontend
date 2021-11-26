@@ -17,17 +17,23 @@
 package uk.gov.hmrc.gform.auth.models
 
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, FormTemplateWithRedirects, JsonUtils }
 
 case class CompositeAuthDetails(mappings: Map[FormTemplateId, String] = Map.empty) {
-  def add(values: (FormTemplateId, String)*): CompositeAuthDetails =
-    CompositeAuthDetails(mappings ++ values)
+  def add(formTemplate: FormTemplate, value: String): CompositeAuthDetails =
+    CompositeAuthDetails(
+      mappings + (formTemplate._id -> value) ++ formTemplate.legacyFormIds.fold(List.empty[(FormTemplateId, String)])(
+        _.map(_ -> value).toList
+      )
+    )
 
   def remove(key: FormTemplateId): CompositeAuthDetails =
     CompositeAuthDetails(mappings - key)
 
-  def get(formTemplateId: FormTemplateId): Option[String] =
-    mappings.get(formTemplateId)
+  def get(formTemplateWithRedirects: FormTemplateWithRedirects): Option[String] =
+    mappings
+      .get(formTemplateWithRedirects.formTemplate._id)
+      .orElse(formTemplateWithRedirects.redirect.flatMap(mappings.get))
 }
 
 object CompositeAuthDetails {

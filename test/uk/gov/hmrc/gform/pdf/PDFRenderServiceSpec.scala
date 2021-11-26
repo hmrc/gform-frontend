@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
 import uk.gov.hmrc.gform.pdf.model.PDFType
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Instruction, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateWithRedirects, Instruction, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult, ValidationService }
@@ -107,7 +107,13 @@ class PDFRenderServiceSpec
       )
 
     lazy val formTemplate = mkFormTemplate(sections)
-    lazy val cache = AuthCacheWithForm(retrievals, form, formTemplate, Role.Customer, maybeAccessCode)
+    lazy val cache = AuthCacheWithForm(
+      retrievals,
+      form,
+      FormTemplateWithRedirects.noRedirects(formTemplate),
+      Role.Customer,
+      maybeAccessCode
+    )
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
       mkFormModelOptics(formTemplate, variadicFormData).asInstanceOf[FormModelOptics[DataOrigin.Mongo]]
 

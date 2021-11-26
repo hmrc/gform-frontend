@@ -180,6 +180,9 @@ class ReviewService[F[_]: Monad](
       .toList
       .distinct
       .traverse(gformBackEnd.getFormTemplate)
-      .map(_.map(template => (template._id, template)).toMap)
-
+      .map(
+        _.map(templateWithRedirects =>
+          (templateWithRedirects.formTemplate._id, templateWithRedirects.formTemplate)
+        ).toMap
+      )
 }

@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateWithRedirects
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 import cats.syntax.eq._
 import org.slf4j.{ Logger, LoggerFactory }
@@ -63,10 +64,11 @@ class EmailAuthSessionPurgeFilter(
   def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
     implicit val requestHeader: RequestHeader = rh
     if (isNewFormRoute) {
-      val formTemplate = rh.attrs(FormTemplateKey)
+      val formTemplateWithRedirects = rh.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirects.formTemplate
       formTemplate.authConfig match {
-        case _: EmailAuthConfig => handleEmail(next, formTemplate)
-        case Composite(configs) => handleCompositeAuth(next, formTemplate, configs)
+        case _: EmailAuthConfig => handleEmail(next, formTemplateWithRedirects)
+        case Composite(configs) => handleCompositeAuth(next, formTemplateWithRedirects, configs)
         case _                  => next(rh)
       }
     } else {
@@ -88,15 +90,16 @@ class EmailAuthSessionPurgeFilter(
 
   def handleCompositeAuth(
     next: RequestHeader => Future[Result],
-    formTemplate: FormTemplate,
+    formTemplateWithRedirects: FormTemplateWithRedirects,
     configs: NonEmptyList[AuthConfig]
   )(implicit rh: RequestHeader): Future[Result] = {
 
+    val formTemplate = formTemplateWithRedirects.formTemplate
     val currentAuthProvider = jsonFromSession(rh, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-      .get(formTemplate._id)
+      .get(formTemplateWithRedirects)
 
     currentAuthProvider match {
-      case Some("email") => handleEmail(next, formTemplate)
+      case Some("email") => handleEmail(next, formTemplateWithRedirects)
       case Some(_) =>
         getGovernmentGatewayGroupIdentifier(rh).flatMap {
           case Some(groupIdentifier) =>
@@ -135,10 +138,11 @@ class EmailAuthSessionPurgeFilter(
 
   def handleEmail(
     next: RequestHeader => Future[Result],
-    formTemplate: FormTemplate
+    formTemplateWithRedirects: FormTemplateWithRedirects
   )(implicit rh: RequestHeader): Future[Result] =
-    isEmailConfirmed(formTemplate._id) match {
+    isEmailConfirmed(formTemplateWithRedirects) match {
       case Some(email) =>
+        val formTemplate = formTemplateWithRedirects.formTemplate
         logger.info(
           s"Accessing new form and email confirmed in session. Checking for form status for template ${formTemplate._id}"
         )

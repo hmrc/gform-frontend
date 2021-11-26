@@ -34,11 +34,12 @@ import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateWithRedirects
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode }
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.toJsonStr
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, EmailAuthConfig, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, EmailAuthConfig, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.html.components
@@ -80,40 +81,42 @@ class EmailAuthController(
 
   def emailIdForm(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
-      val formTemplate = request.attrs(FormTemplateKey)
+      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirects.formTemplate
       val emailAuthDetails: EmailAuthDetails =
         jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
-      val (pageErrors, maybeEmailFieldError, maybeEmailFieldValue) = emailAuthDetails.get(formTemplateId) match {
-        case Some(InvalidEmail(EmailId(value), message)) =>
-          (
-            Errors(
-              new components.GovukErrorSummary()(
-                ErrorSummary(
-                  errorList = List(
-                    ErrorLink(
-                      href = Some("#email"),
-                      content = content.Text(
-                        request.messages
-                          .messages(message, request.messages.messages("emailAuth.emailAddress"))
+      val (pageErrors, maybeEmailFieldError, maybeEmailFieldValue) =
+        emailAuthDetails.get(formTemplateWithRedirects) match {
+          case Some(InvalidEmail(EmailId(value), message)) =>
+            (
+              Errors(
+                new components.GovukErrorSummary()(
+                  ErrorSummary(
+                    errorList = List(
+                      ErrorLink(
+                        href = Some("#email"),
+                        content = content.Text(
+                          request.messages
+                            .messages(message, request.messages.messages("emailAuth.emailAddress"))
+                        )
                       )
-                    )
-                  ),
-                  title = content.Text(request.messages.messages("error.summary.heading"))
+                    ),
+                    title = content.Text(request.messages.messages("error.summary.heading"))
+                  )
                 )
-              )
-            ),
-            Some(
-              ErrorMessage(
-                content = content.Text(
-                  request.messages
-                    .messages(message, request.messages.messages("emailAuth.emailAddress"))
+              ),
+              Some(
+                ErrorMessage(
+                  content = content.Text(
+                    request.messages
+                      .messages(message, request.messages.messages("emailAuth.emailAddress"))
+                  )
                 )
-              )
-            ),
-            Some(value)
-          )
-        case _ => (NoErrors, None, None)
-      }
+              ),
+              Some(value)
+            )
+          case _ => (NoErrors, None, None)
+        }
 
       def showEnterEmailPage(emailUseInfo: Option[LocalisedString]) = Ok(
         html.auth.enter_email(
@@ -132,7 +135,7 @@ class EmailAuthController(
           val compositeAuthDetails: CompositeAuthDetails =
             jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
 
-          compositeAuthDetails.get(formTemplate._id).flatMap { selection =>
+          compositeAuthDetails.get(formTemplateWithRedirects).flatMap { selection =>
             AuthConfig.getAuthConfig(selection, configs)
           } match {
             case Some(EmailAuthConfig(_, emailUseInfo, _, _)) => showEnterEmailPage(emailUseInfo)
@@ -160,10 +163,11 @@ class EmailAuthController(
             ).pure[Future],
           { email =>
             val emailId = EmailId(CIString(email))
-            val formTemplate = request.attrs(FormTemplateKey)
+            val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+
             EmailAddress.isValid(emailId.value.toString) match {
               case true =>
-                sendEmailWithConfirmationCode(formTemplate, emailId).map { emailAndCode =>
+                sendEmailWithConfirmationCode(formTemplateWithRedirects, emailId).map { emailAndCode =>
                   Redirect(
                     uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId, None, continue)
                   ).addingToSession(
@@ -189,7 +193,8 @@ class EmailAuthController(
 
   def confirmCodeForm(formTemplateId: FormTemplateId, error: Option[Boolean], continue: String): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
-      val formTemplate = request.attrs(FormTemplateKey)
+      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirects.formTemplate
       val emailAuthDetails: EmailAuthDetails =
         jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
 
@@ -218,7 +223,7 @@ class EmailAuthController(
         case _ => (NoErrors, None)
       }
 
-      (emailAuthDetails.get(formTemplateId), formTemplate.authConfig) match {
+      (emailAuthDetails.get(formTemplateWithRedirects), formTemplate.authConfig) match {
         case (Some(emailAuthData), EmailAuthConfig(_, _, emailCodeHelp, _)) =>
           Ok(
             html.auth.confirm_code(
@@ -237,7 +242,7 @@ class EmailAuthController(
         case (Some(emailAuthData), Composite(configs)) =>
           val compositeAuthDetails =
             jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-              .get(formTemplate._id)
+              .get(formTemplateWithRedirects)
 
           val config = AuthConfig
             .getAuthConfig(compositeAuthDetails.get, configs)
@@ -275,7 +280,8 @@ class EmailAuthController(
     continue: String
   ): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => _ =>
-      val formTemplate = request.attrs(FormTemplateKey)
+      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirects.formTemplate
 
       confirmCodeForm
         .bindFromRequest()
@@ -289,7 +295,11 @@ class EmailAuthController(
             val emailAuthDetails: EmailAuthDetails =
               jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
             emailAuthDetails
-              .checkCodeAndConfirm(formTemplateId, EmailAndCode(CIString(email), EmailConfirmationCode(CIString(code))))
+              .checkCodeAndConfirm(
+                formTemplateId,
+                formTemplate,
+                EmailAndCode(CIString(email), EmailConfirmationCode(CIString(code)))
+              )
               .fold {
                 Redirect(
                   uk.gov.hmrc.gform.gform.routes.EmailAuthController
@@ -320,7 +330,9 @@ class EmailAuthController(
 
   def emailConfirmedForm(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
-      val formTemplate = request.attrs(FormTemplateKey)
+      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirects.formTemplate
+
       formTemplate.authConfig match {
         case EmailAuthConfig(_, _, _, Some(emailConfirmation)) =>
           Ok(
@@ -347,7 +359,7 @@ class EmailAuthController(
     }
 
   private def sendEmailWithConfirmationCode[D <: DataOrigin](
-    formTemplate: FormTemplate,
+    formTemplateWithRedirects: FormTemplateWithRedirects,
     emailId: EmailId
   )(implicit
     request: Request[AnyContent],
@@ -355,6 +367,8 @@ class EmailAuthController(
     me: MonadError[Future, Throwable],
     l: LangADT
   ): Future[EmailAndCode] = {
+    val formTemplate = formTemplateWithRedirects.formTemplate
+
     val isStaticCodeEmail = frontendAppConfig.emailAuthStaticCodeEmails.fold(false) {
       _.exists(_ === ci"${emailId.value.toString}")
     }
@@ -383,7 +397,7 @@ class EmailAuthController(
       case composite: Composite =>
         val compositeAuthDetails =
           jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-            .get(formTemplate._id)
+            .get(formTemplateWithRedirects)
 
         val config = AuthConfig
           .getAuthConfig(compositeAuthDetails.get, composite.configs)

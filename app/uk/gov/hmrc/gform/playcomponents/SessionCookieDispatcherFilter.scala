@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplateId, FormTemplateWithRedirects }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.{ SessionCookieCrypto, SessionCookieCryptoFilter }
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
@@ -60,14 +60,15 @@ class SessionCookieDispatcherFilter(
       mayContainsFormTemplateId.map(_.indexOf(true))
     }
 
-    val maybeFormTemplate: Future[Either[Unit, FormTemplate]] = formTemplateIdParamIndex match {
-      case Some(i) if i =!= -1 =>
-        val templateId = rh.uri.split("\\?")(0).split("/")(i)
-        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(rh, rh.session)
-        gformConnector.getFormTemplate(FormTemplateId(templateId.toLowerCase)).map(Right(_))
-      case _ =>
-        Future.successful(Left(()))
-    }
+    val maybeFormTemplateWithRedirects: Future[Either[Unit, FormTemplateWithRedirects]] =
+      formTemplateIdParamIndex match {
+        case Some(i) if i =!= -1 =>
+          val templateId = rh.uri.split("\\?")(0).split("/")(i)
+          implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(rh, rh.session)
+          gformConnector.getFormTemplate(FormTemplateId(templateId.toLowerCase)).map(Right(_))
+        case _ =>
+          Future.successful(Left(()))
+      }
 
     def findAuthConfigCookie(rh: RequestHeader): Option[Cookie] =
       rh.headers
@@ -75,23 +76,24 @@ class SessionCookieDispatcherFilter(
         .flatMap(cookieHeaderEncoding.decodeCookieHeader)
         .find(_.name == authConfigCookieName)
 
-    maybeFormTemplate.flatMap {
-      case Right(formTemplate) =>
+    maybeFormTemplateWithRedirects.flatMap {
+      case Right(formTemplateWithRedirects) =>
+        val formTemplate = formTemplateWithRedirects.formTemplate
         val (result, cookieValue) =
           formTemplate.authConfig match {
             case Anonymous =>
               (
-                anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
+                anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateWithRedirects)),
                 encrypter.encrypt(PlainText(AnonymousAuth))
               )
             case EmailAuthConfig(_, _, _, _) =>
               (
-                emailCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
+                emailCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateWithRedirects)),
                 encrypter.encrypt(PlainText(EmailAuth))
               )
             case _ =>
               (
-                hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplate)),
+                hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateWithRedirects)),
                 encrypter.encrypt(PlainText(HmrcAuth))
               )
           }

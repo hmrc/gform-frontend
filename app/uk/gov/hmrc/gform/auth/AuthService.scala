@@ -52,7 +52,7 @@ class AuthService(
   private val logger = LoggerFactory.getLogger(getClass)
 
   def authenticateAndAuthorise(
-    formTemplate: FormTemplate,
+    formTemplateWithRedirects: FormTemplateWithRedirects,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
     getGovermentGatewayId: Unit => Future[Option[GovernmentGatewayId]],
     ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult],
@@ -61,7 +61,8 @@ class AuthService(
     request: Request[AnyContent],
     hc: HeaderCarrier,
     l: LangADT
-  ): Future[AuthResult] =
+  ): Future[AuthResult] = {
+    val formTemplate = formTemplateWithRedirects.formTemplate
     formTemplate.authConfig match {
       case Anonymous =>
         hc.sessionId
@@ -85,7 +86,7 @@ class AuthService(
         }
         performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
       case EmailAuthConfig(_, _, _, _) =>
-        isEmailConfirmed(formTemplate._id) match {
+        isEmailConfirmed(formTemplateWithRedirects) match {
           case Some(email) =>
             AuthSuccessful(EmailRetrievals(EmailId(email)), Role.Customer)
               .pure[Future]
@@ -106,7 +107,7 @@ class AuthService(
       case Composite(configs) =>
         val compositeAuthDetails =
           jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-            .get(formTemplate._id)
+            .get(formTemplateWithRedirects)
 
         getGovermentGatewayId(()) flatMap {
           case Some(id) if List(AuthConfig.hmrcSimpleModule, id.ggId) contains compositeAuthDetails.getOrElse("") =>
@@ -128,7 +129,9 @@ class AuthService(
               .getAuthConfig(compositeAuthDetails.getOrElse(""), configs) match {
               case Some(config) =>
                 authenticateAndAuthorise(
-                  formTemplate.copy(authConfig = config),
+                  formTemplateWithRedirects.copy(formTemplate =
+                    formTemplateWithRedirects.formTemplate.copy(authConfig = config)
+                  ),
                   getAffinityGroup,
                   getGovermentGatewayId,
                   ggAuthorised,
@@ -157,6 +160,7 @@ class AuthService(
               .pure[Future]
         }
     }
+  }
 
   private def compositeAuthUrlParameters(implicit request: Request[AnyContent]) =
     addQueryParams(

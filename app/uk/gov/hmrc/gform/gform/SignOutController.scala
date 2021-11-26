@@ -39,14 +39,15 @@ class SignOutController(
 ) extends FrontendController(messagesControllerComponents) with I18nSupport {
 
   def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth { request => l =>
-    val formTemplate = request.attrs(FormTemplateKey)
+    val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateWithRedirects.formTemplate
     val redirect = Redirect(routes.SignOutController.showSignedOutPage(formTemplateId)).withNewSession
 
     val config: Option[AuthConfig] = formTemplate.authConfig match {
       case Composite(configs) =>
         val compositeAuthDetails =
           jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-            .get(formTemplate._id)
+            .get(formTemplateWithRedirects)
         AuthConfig
           .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
       case config => Some(config)
@@ -57,7 +58,7 @@ class SignOutController(
         val emailAuthDetails: EmailAuthDetails =
           jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
 
-        emailAuthDetails.get(formTemplateId).fold(redirect) { emailAuthData =>
+        emailAuthDetails.get(formTemplateWithRedirects).fold(redirect) { emailAuthData =>
           redirect
             .flashing("maskedEmailId" -> maskEmail(emailAuthData.email.toString))
         }

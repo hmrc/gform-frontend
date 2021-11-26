@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfHtml, SourceOrigin, SubmissionData, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormPhase, FormTemplate, FormTemplateId, InstructionPDF }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormPhase, FormTemplate, FormTemplateId, FormTemplateWithRedirects, InstructionPDF }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
@@ -49,7 +49,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait GformBackEndAlgebra[F[_]] {
   def getForm(id: FormIdData)(implicit hc: HeaderCarrier): F[Form]
 
-  def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): F[FormTemplate]
+  def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): F[FormTemplateWithRedirects]
 
   def createSubmission(
     formId: FormId,
@@ -99,7 +99,7 @@ class GformBackEndService(
 
   def getForm(id: FormIdData)(implicit hc: HeaderCarrier): Future[Form] = gformConnector.getForm(id)
 
-  def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): Future[FormTemplate] =
+  def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): Future[FormTemplateWithRedirects] =
     gformConnector.getFormTemplate(id)
 
   def getFormBundle(rootFormId: FormIdData)(implicit hc: HeaderCarrier): Future[NonEmptyList[FormIdData]] =

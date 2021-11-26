@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc
+package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import _root_.play.api.libs.typedmap.TypedKey
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateWithRedirects
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 
-package object gform {
-  val FormTemplateKey: TypedKey[FormTemplateWithRedirects] = TypedKey[FormTemplateWithRedirects]("form-template")
+final case class FormTemplateWithRedirects(
+  formTemplate: FormTemplate,
+  redirect: Option[FormTemplateId] // FormTemplateId which has formTemplate._id in its legacyIds
+)
+
+object FormTemplateWithRedirects {
+  def noRedirects(formTemplate: FormTemplate): FormTemplateWithRedirects =
+    FormTemplateWithRedirects(formTemplate, Option.empty[FormTemplateId])
+  implicit val format: OFormat[FormTemplateWithRedirects] = derived.oformat()
 }
