@@ -142,7 +142,7 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
       "someQuestion",
       Some(
         CheckYourAnswersPage(
-          toSmartString("Update Title"),
+          Some(toSmartString("Title")),
           toSmartString("Update Title"),
           Some(toSmartString("No PII Title")),
           Some(toSmartString("No PII Update Title")),
