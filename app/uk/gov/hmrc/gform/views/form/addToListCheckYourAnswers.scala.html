@@ -34,7 +34,9 @@
     frontendAppConfig: FrontendAppConfig,
     continueButtonLabel: String,
     renderComeBackLater: Boolean,
-    pageLevelError: HasErrors = NoErrors
+    pageLevelError: HasErrors = NoErrors,
+    header: Option[Html],
+    footer: Option[Html]
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
@@ -59,7 +61,16 @@
 ) {
     @pageHeading(heading)
 
+    <div class="govuk-body govuk-!-margin-bottom-9">
+        @header
+    </div>
+
     @govukSummaryList(SummaryList(summaryListRows, "govuk-!-margin-bottom-5"))
+
+    <div class="govuk-body">
+        @footer
+    </div>
+
 
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
         @govukButton(Button(content = Text(continueButtonLabel),
