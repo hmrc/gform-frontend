@@ -357,7 +357,7 @@ class FormModelBuilder[E, F[_]: Functor](
     ).updatedWithId.copy(mandatory = false, derived = true, submissible = false)
     CheckYourAnswers[T](
       s.pageId.withIndex(index).withSuffix("CYA"),
-      c.title.expand(index, s.allIds),
+      c.title.map(_.expand(index, s.allIds)),
       c.updateTitle.expand(index, s.allIds),
       c.noPIITitle.map(_.expand(index, s.allIds)),
       c.noPIIUpdateTitle.map(_.expand(index, s.allIds)),

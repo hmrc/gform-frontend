@@ -179,7 +179,11 @@ class SectionRenderingService(
     }
 
     html.form.addToListCheckYourAnswers(
-      if (isFirstVisit) checkYourAnswers.expandedTitle.value else checkYourAnswers.expandedUpdateTitle.value,
+      if (isFirstVisit) checkYourAnswers.expandedTitle match {
+        case Some(value) => value.valueWithoutInterpolations
+        case None        => messages("summary.checkYourAnswers")
+      }
+      else checkYourAnswers.expandedUpdateTitle.value,
       if (isFirstVisit)
         checkYourAnswers.expandedNoPIITitle.fold(messages("summary.checkYourAnswers"))(_.value)
       else

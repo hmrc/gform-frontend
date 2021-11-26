@@ -61,16 +61,19 @@
 ) {
     @pageHeading(heading)
 
-    <div class="govuk-body govuk-!-margin-bottom-9">
-        @header
-    </div>
+    @header.map{ h =>
+        <div class="govuk-body govuk-!-margin-bottom-9">
+            @h
+        </div>
+    }
 
     @govukSummaryList(SummaryList(summaryListRows, "govuk-!-margin-bottom-5"))
 
-    <div class="govuk-body">
-        @footer
-    </div>
-
+    @footer.map{ f =>
+        <div class="govuk-body">
+            @f
+        </div>
+    }
 
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
         @govukButton(Button(content = Text(continueButtonLabel),
