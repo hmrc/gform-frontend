@@ -64,7 +64,6 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
     `type` = formComponent.`type` match {
       case t: Text               => t.copy(value = expandExpr(t.value))
       case t: TextArea           => t.copy(value = expandExpr(t.value))
-      case t: UkSortCode         => t.copy(value = expandExpr(t.value))
       case t: HmrcTaxPeriod      => t.copy(idNumber = expandExpr(t.idNumber))
       case t: Choice             => expandChoice(t)
       case t: RevealingChoice    => expandRevealingChoice(t)

@@ -312,9 +312,6 @@ file.error.empty=Mae’r ffeil hon yn wag
 file.error.size=Mae’r ffeil hon yn fwy na maint y ffeil fwyaf a ganiateir sef {0}MB
 file.error.type=Ni chaniateir y math o ffeil {0}. Gallwch ond uwchlwytho {1}
 
-# Sort code
-sortcode.part=Cod didoli rhan {0}
-
 # Assistive text
 assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt
 

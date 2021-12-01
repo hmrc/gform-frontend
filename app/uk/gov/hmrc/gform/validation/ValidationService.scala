@@ -273,7 +273,6 @@ class ValidationService(
 
 object ValidationValues {
 
-  val sortCodeLength = 2
   val bankAccountLength = 8
   val sterlingLength = 11
   val addressLine = 35

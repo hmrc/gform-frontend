@@ -158,10 +158,6 @@ object IsOverseasAddress {
   def unapply(fc: FormComponent): Option[OverseasAddress] = fc.`type`.cast[OverseasAddress]
 }
 
-object IsUkSortCode {
-  def unapply(fc: FormComponent): Option[UkSortCode] = fc.`type`.cast[UkSortCode]
-}
-
 object IsInformationMessage {
   def unapply(fc: FormComponent): Option[InformationMessage] = fc.`type`.cast[InformationMessage]
 }

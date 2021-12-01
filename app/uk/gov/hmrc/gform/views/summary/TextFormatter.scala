@@ -139,12 +139,6 @@ object TextFormatter {
       case IsText(text)     => componentTextForSummary(currentValue, text.constraint, prefix, suffix) :: Nil
       case IsFileUpload(_)  => envelope.userFileName(formComponent) :: Nil
       case IsChoice(choice) => choice.renderToString(formComponent, validationResult)
-      case IsUkSortCode(sortCode) =>
-        sortCode
-          .fields(formComponent.modelComponentId.indexedComponentId)
-          .map(modelComponentId => validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
-          .toList
-          .mkString("-") :: Nil
       case IsAddress(address) =>
         Address.renderToString(formComponent, validationResult)
       case IsOverseasAddress(address) =>

@@ -41,6 +41,5 @@ class EvaluationContext(
   val pageIdSectionNumberMap: Map[ModelPageId, SectionNumber],
   val lang: LangADT,
   val messages: Messages,
-  val indexedComponentIds: List[ModelComponentId],
-  val sortCodeLookup: Set[BaseComponentId]
+  val indexedComponentIds: List[ModelComponentId]
 )

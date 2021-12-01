@@ -53,6 +53,7 @@ object ComponentValidator {
   val genericErrorRequired                                   = "generic.error.required"
   val genericErrorParentSubmissionRefSameAsFormSubmissionRef = "generic.error.parentSubmissionRefSameAsFormSubmissionRef"
   val genericErrorExactNumbers                               = "generic.error.exactNumbers"
+  val genericErrorSortCode                                   = "generic.error.sortcode"
   val genericErrorSubmissionRef                              = "generic.error.submissionRef"
   val genericErrorMaxWhole                                   = "generic.error.maxWhole"
   val genericErrorPositiveNumber                             = "generic.error.positiveNumber"
@@ -179,6 +180,7 @@ object ComponentValidator {
         )
       case (_, Some(value), ReferenceNumber(min, max)) => referenceNumberConstraints(fieldValue, value, min, max)
       case (_, Some(value), UkBankAccountNumber)       => validateBankAccountFormat(fieldValue, value)
+      case (_, Some(value), UkSortCodeFormat)          => validateSortCodeFormat(fieldValue, value)
       case (_, Some(value), SubmissionRefFormat)       => validateSubmissionRefFormat(fieldValue, value)
       case (_, Some(value), UTR)                       => checkUtr(fieldValue, value)
       case (_, Some(value), NINO)                      => checkNino(fieldValue, value)
@@ -199,8 +201,7 @@ object ComponentValidator {
         validateNumber(fieldValue, value, maxWhole, maxFractional, false)
       case (_, Some(value), PositiveNumber(maxWhole, maxFractional, _, _)) =>
         validateNumber(fieldValue, value, maxWhole, maxFractional, true)
-      case (_, Some(value), UkSortCodeFormat) => validationSuccess
-      case (false, None, _)                   => validationSuccess
+      case (false, None, _) => validationSuccess
     }
 
   def validateParentSubmissionRef[D <: DataOrigin](
@@ -238,6 +239,21 @@ object ComponentValidator {
       case _ =>
         val vars: List[String] = ValidationValues.bankAccountLength.toString :: Nil
         validationFailure(fieldValue, genericErrorExactNumbers, Some(vars))
+    }
+  }
+
+  private def validateSortCodeFormat(
+    fieldValue: FormComponent,
+    value: String
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] = {
+    val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^d]{0,2}\d{2}[^0-9]{0,2}$""".r
+    value match {
+      case ukSortCodeFormat() => validationSuccess
+      case _ =>
+        validationFailure(fieldValue, genericErrorSortCode, None)
     }
   }
 

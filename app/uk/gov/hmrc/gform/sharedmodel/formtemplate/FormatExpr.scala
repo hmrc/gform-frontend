@@ -194,7 +194,7 @@ sealed trait TextConstraint {
     case WholeSterling(_)             => CssClassSize._10
     case ReferenceNumber(_, max)      => deriveCssClassNameForText(max)
     case UkBankAccountNumber          => CssClassSize._10
-    case UkSortCodeFormat             => CssClassSize._2
+    case UkSortCodeFormat             => CssClassSize._5
     case SubmissionRefFormat          => CssClassSize._20
     case TelephoneNumber              => CssClassSize._10
     case Email                        => CssClassSize._30

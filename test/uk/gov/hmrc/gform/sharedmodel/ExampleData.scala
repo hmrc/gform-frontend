@@ -73,8 +73,7 @@ trait ExampleEvaluationContext {
       Map.empty,
       LangADT.En,
       Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty)),
-      List.empty,
-      Set.empty
+      List.empty
     )
 }
 
