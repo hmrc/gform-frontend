@@ -53,7 +53,7 @@ object ComponentValidator {
   val genericErrorRequired                                   = "generic.error.required"
   val genericErrorParentSubmissionRefSameAsFormSubmissionRef = "generic.error.parentSubmissionRefSameAsFormSubmissionRef"
   val genericErrorExactNumbers                               = "generic.error.exactNumbers"
-  val genericErrorSortCode                                   = "generic.error.sortcode"
+  val genericErrorSortCode                                   = "generic.error.sortCode"
   val genericErrorSubmissionRef                              = "generic.error.submissionRef"
   val genericErrorMaxWhole                                   = "generic.error.maxWhole"
   val genericErrorPositiveNumber                             = "generic.error.positiveNumber"
@@ -249,7 +249,7 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
-    val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^d]{0,2}\d{2}[^0-9]{0,2}$""".r
+    val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
     value match {
       case ukSortCodeFormat() => validationSuccess
       case _ =>
