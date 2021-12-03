@@ -108,7 +108,7 @@ class FormController(
             ) = upscanService
               .upscanInitiate(
                 singleton.upscanInitiateRequests,
-                formTemplateId,
+                cache.formTemplateId,
                 sectionNumber,
                 cache.form,
                 FormIdData(cache, maybeAccessCode)
@@ -221,7 +221,7 @@ class FormController(
                         Redirect(
                           routes.FormController
                             .form(
-                              formTemplateId,
+                              cache.formTemplateId,
                               maybeAccessCode,
                               lastRepeaterSectionNumber,
                               sectionTitle4Ga,
@@ -244,7 +244,7 @@ class FormController(
   def deleteOnExit(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
       implicit request => l => cache => sse => formModelOptics =>
-        fastForwardService.deleteForm(cache, QueryParams.empty)
+        fastForwardService.deleteForm(formTemplateId, cache, QueryParams.empty)
     }
 
   def formSection(
@@ -253,13 +253,13 @@ class FormController(
     sectionNumber: SectionNumber
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      _ => _ => _ => _ => formModelOptics =>
+      _ => _ => cache => _ => formModelOptics =>
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val sectionTitle4Ga = sectionTitle4GaFactory(formModel(sectionNumber).title, sectionNumber)
         Redirect(
           routes.FormController
             .form(
-              formTemplateId,
+              cache.formTemplate._id,
               maybeAccessCode,
               sectionNumber,
               sectionTitle4Ga,
@@ -283,7 +283,7 @@ class FormController(
           Redirect(
             routes.FormController
               .form(
-                formTemplateId,
+                cache.formTemplateId,
                 maybeAccessCode,
                 toSectionNumber,
                 sectionTitle4Ga,
@@ -377,7 +377,7 @@ class FormController(
           Redirect(
             routes.FormController
               .form(
-                formTemplateId,
+                cache.formTemplateId,
                 maybeAccessCode,
                 gotoSectionNumber,
                 sectionTitle4Ga,
@@ -409,7 +409,7 @@ class FormController(
                      Redirect(
                        routes.FormController
                          .form(
-                           formTemplateId,
+                           cache.formTemplateId,
                            maybeAccessCode,
                            sectionNumber,
                            sectionTitle4Ga,
@@ -442,7 +442,7 @@ class FormController(
               confirmationService.processConfirmation(
                 sectionNumber,
                 processData,
-                formTemplateId,
+                cache.formTemplateId,
                 maybeAccessCode,
                 formModelOptics,
                 fastForward
@@ -465,7 +465,7 @@ class FormController(
                       Redirect(
                         routes.FormController
                           .form(
-                            formTemplateId,
+                            cache.formTemplateId,
                             maybeAccessCode,
                             sn,
                             sectionTitle4Ga,
@@ -477,7 +477,7 @@ class FormController(
                           )
                       )
                     case None =>
-                      Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
+                      Redirect(routes.SummaryController.summaryById(cache.formTemplateId, maybeAccessCode))
                   }
               }
 
@@ -524,10 +524,10 @@ class FormController(
               val formTemplate = cache.formTemplate
               config match {
                 case Some(EmailAuthConfig(_, _, _, _)) =>
-                  Redirect(gform.routes.SaveAcknowledgementController.show(formTemplateId))
+                  Redirect(gform.routes.SaveAcknowledgementController.show(cache.formTemplateId))
                 case _ =>
                   showAcknowledgementPage(
-                    formTemplateId,
+                    cache.formTemplateId,
                     maybeAccessCode,
                     processData,
                     maybeSn,
@@ -553,7 +553,7 @@ class FormController(
                 val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
                 val goBackLink = Redirect(
                   routes.FormController
-                    .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, fastForward)
+                    .form(cache.formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, fastForward)
                 )
 
                 if (saveData) {
@@ -628,7 +628,7 @@ class FormController(
                 Redirect(
                   routes.FormController
                     .form(
-                      formTemplateId,
+                      cache.formTemplateId,
                       maybeAccessCode,
                       sectionNumber,
                       sectionTitle4Ga,

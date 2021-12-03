@@ -102,7 +102,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
       RecalculationResult.empty(
-        new EvaluationContext(
+        EvaluationContext(
           formTemplate._id,
           submissionRef,
           Some(accessCode),

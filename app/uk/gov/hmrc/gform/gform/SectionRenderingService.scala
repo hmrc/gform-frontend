@@ -666,10 +666,8 @@ class SectionRenderingService(
 
   def renderAcknowledgementSection(
     maybeAccessCode: Option[AccessCode],
-    formTemplate: FormTemplate,
+    cache: AuthCacheWithForm,
     destinationList: DestinationList,
-    retrievals: MaterialisedRetrievals,
-    envelopeId: EnvelopeId,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
     request: Request[_],
@@ -677,6 +675,11 @@ class SectionRenderingService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Html = {
+    val formTemplate = cache.formTemplate
+    val formTemplateId = cache.form.formTemplateId
+    val retrievals = cache.retrievals
+    val envelopeId = cache.form.envelopeId
+
     val ackSection = destinationList.acknowledgementSection.toSection
     val ei = ExtraInfo(
       Singleton(ackSection.page.asInstanceOf[Page[DataExpanded]]),
@@ -703,10 +706,10 @@ class SectionRenderingService(
 
     val formCategory = formTemplate.formCategory
     val snippets = destinationList.acknowledgementSection.toPage.renderUnits.map(renderUnit =>
-      htmlFor(renderUnit, formTemplate._id, ei, ValidationResult.empty, obligations = NotChecked, UpscanInitiate.empty)
+      htmlFor(renderUnit, formTemplateId, ei, ValidationResult.empty, obligations = NotChecked, UpscanInitiate.empty)
     )
     val renderingInfo = SectionRenderingInformation(
-      formTemplate._id,
+      formTemplateId,
       maybeAccessCode,
       SectionNumber(0),
       destinationList.acknowledgementSection.title.value,
@@ -716,7 +719,7 @@ class SectionRenderingService(
       "",
       envelopeId,
       uk.gov.hmrc.gform.gform.routes.DeclarationController
-        .submitDeclaration(formTemplate._id, maybeAccessCode, uk.gov.hmrc.gform.controllers.Continue),
+        .submitDeclaration(formTemplateId, maybeAccessCode, uk.gov.hmrc.gform.controllers.Continue),
       false,
       messages("button.confirmAndSend"),
       0,
@@ -724,7 +727,7 @@ class SectionRenderingService(
       Nil
     )
     uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
-      .acknowledgement(renderingInfo, htmlContent, formCategory, formTemplate, frontendAppConfig)
+      .acknowledgement(formTemplateId, renderingInfo, htmlContent, formCategory, formTemplate, frontendAppConfig)
   }
 
   def renderEnrolmentSection(

@@ -57,7 +57,7 @@ object FormModelOptics {
     hc: HeaderCarrier
   ) = {
     val evaluationContext =
-      new EvaluationContext(
+      EvaluationContext(
         cache.formTemplate._id,
         SubmissionRef(""),
         cache.accessCode,
