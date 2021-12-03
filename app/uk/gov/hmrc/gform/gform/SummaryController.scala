@@ -91,14 +91,15 @@ class SummaryController(
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
         requestRelatedData => variadicFormData =>
           save match {
-            case Exit            => handleExit(cache.formTemplateWithRedirects, maybeAccessCode, cache).pure[Future]
-            case SummaryContinue => handleSummaryContinue(formTemplateId, maybeAccessCode, cache, formModelOptics)
-            case _               => BadRequest("Cannot determine action").pure[Future]
+            case Exit => handleExit(cache.formTemplateWithRedirects, maybeAccessCode, cache).pure[Future]
+            case SummaryContinue =>
+              handleSummaryContinue(cache.form.formTemplateId, maybeAccessCode, cache, formModelOptics)
+            case _ => BadRequest("Cannot determine action").pure[Future]
           }
       }
     }
 
-  def handleExit(
+  private def handleExit(
     formTemplateWithRedirects: FormTemplateWithRedirects,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm
@@ -170,7 +171,7 @@ class SummaryController(
       )
       .flatMap { _ =>
         cache.formTemplate.destinations match {
-          case DestinationList(_, _, _: Some[DeclarationSection]) =>
+          case DestinationList(_, _, Some(declarationSection)) =>
             Redirect(
               routes.DeclarationController
                 .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes)

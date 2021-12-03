@@ -26,6 +26,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 sealed trait FormIdData {
 
+  val formTemplateId: FormTemplateId
+
   def fold[A](f: FormIdData.Plain => A)(g: FormIdData.WithAccessCode => A): A = this match {
     case p: FormIdData.Plain          => f(p)
     case w: FormIdData.WithAccessCode => g(w)

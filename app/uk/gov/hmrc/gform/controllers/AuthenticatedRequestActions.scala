@@ -22,6 +22,7 @@ import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
+import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results._
@@ -293,7 +294,7 @@ class AuthenticatedRequestActions(
           case PermissionResult.FormSubmitted =>
             Redirect(
               uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-                .showAcknowledgement(maybeAccessCode, formTemplateId)
+                .showAcknowledgement(maybeAccessCode, cache.formTemplate._id)
             ).pure[Future]
         }
     }
@@ -362,16 +363,24 @@ class AuthenticatedRequestActions(
         _ <- MDCHelpers.addFormIdToMdc(form._id)
         formTemplateForForm <- if (form.formTemplateId === formTemplate._id) formTemplateWithRedirects.pure[Future]
                                else gformConnector.getFormTemplate(form.formTemplateId)
-        cache = AuthCacheWithForm(retrievals, form, formTemplateForForm, role, maybeAccessCode)
+        formUpd = if (form.status === Submitted) {
+                    form.copy(formTemplateId = formTemplate._id)
+                  } else form
+        cache = AuthCacheWithForm(retrievals, formUpd, formTemplateForForm, role, maybeAccessCode)
 
         formModelOptics <-
           FormModelOptics
             .mkFormModelOptics[DataOrigin.Mongo, Future, U](cache.variadicFormData, cache, recalculation)
 
+        formModelOpticsUpd =
+          formModelOptics
+            .modify(_.formModelVisibilityOptics.recalculationResult.evaluationContext.formTemplateId)
+            .setTo(formUpd.formTemplateId)
+
         smartStringEvaluator =
           smartStringEvaluatorFactory
             .apply(
-              formModelOptics.formModelVisibilityOptics,
+              formModelOpticsUpd.formModelVisibilityOptics,
               retrievals,
               maybeAccessCode,
               form,
@@ -512,6 +521,7 @@ case class AuthCacheWithForm(
   accessCode: Option[AccessCode]
 ) extends AuthCache {
   val formTemplate: FormTemplate = formTemplateWithRedirects.formTemplate
+  val formTemplateId: FormTemplateId = formTemplate._id
   def formModel[U <: SectionSelectorType: SectionSelector](implicit
     hc: HeaderCarrier
   ): FormModel[DependencyGraphVerification] = {

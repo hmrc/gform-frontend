@@ -14,13 +14,15 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormCategory, FormTemplate}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormCategory, FormTemplate, FormTemplateId}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 @import uk.gov.hmrc.gform.models.SectionRenderingInformation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default => FormCatDefault }
 
+@* NOTE!!!! formTemplateId may not be the same as formTemplate._id due to versioning *@
 @(
+  formTemplateId: FormTemplateId,
   supportContents: SectionRenderingInformation,
   htmlContent: Content,
   formCategory: FormCategory,
@@ -46,7 +48,7 @@
   formCategory = formTemplate.formCategory,
   displayHMRCLogo = formTemplate.displayHMRCLogo,
   languages = formTemplate.languages,
-  templateId = formTemplate._id,
+  templateId = formTemplateId,
   userResearchUrl = formTemplate.userResearchUrl.map(_.value)
 ) {
 
@@ -66,7 +68,7 @@
     <p class="govuk-body">
       @messages("ack.feedbackText1")
       <a
-        href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, supportContents.maybeAccessCode).url"
+        href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplateId, supportContents.maybeAccessCode).url"
 	class="govuk-link">@messages("ack.feedbackLink")</a>
       @messages("ack.feedbackText2").
     </p>
