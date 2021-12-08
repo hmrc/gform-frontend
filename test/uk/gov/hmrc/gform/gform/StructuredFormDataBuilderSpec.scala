@@ -143,6 +143,23 @@ class StructuredFormDataBuilderSpec
       ),
       objectStructure(
         field(
+          "addAnotherQuestionWithText",
+          arrayNode(
+            objectStructure(
+              field("lookupInAddToList", textNode("field_id")),
+              field("addAnotherQuestionWithText", textNode("0"))
+            ),
+            objectStructure(
+              field("lookupInAddToList", textNode("field_id")),
+              field("addAnotherQuestionWithText", textNode("0"))
+            ),
+            objectStructure(
+              field("lookupInAddToList", textNode("field_id")),
+              field("addAnotherQuestionWithText", textNode("1"))
+            )
+          )
+        ),
+        field(
           "addAnotherQuestionWithRevealingChoiceWithText",
           arrayNode(
             objectStructure(
@@ -174,23 +191,6 @@ class StructuredFormDataBuilderSpec
                   field("revealed", objectStructure(field("lookupInRevealingChoiceInAddToList", textNode("field_id"))))
                 )
               )
-            )
-          )
-        ),
-        field(
-          "addAnotherQuestionWithText",
-          arrayNode(
-            objectStructure(
-              field("lookupInAddToList", textNode("field_id")),
-              field("addAnotherQuestionWithText", textNode("0"))
-            ),
-            objectStructure(
-              field("lookupInAddToList", textNode("field_id")),
-              field("addAnotherQuestionWithText", textNode("0"))
-            ),
-            objectStructure(
-              field("lookupInAddToList", textNode("field_id")),
-              field("addAnotherQuestionWithText", textNode("1"))
             )
           )
         ),
@@ -317,6 +317,23 @@ class StructuredFormDataBuilderSpec
       ),
       objectStructure(
         field(
+          "addAnotherQuestionWithText",
+          arrayNode(
+            objectStructure(
+              field("textInAddToList", textNode("Add to list text 1")),
+              field("addAnotherQuestionWithText", textNode("0"))
+            ),
+            objectStructure(
+              field("textInAddToList", textNode("Add to list text 2")),
+              field("addAnotherQuestionWithText", textNode("0"))
+            ),
+            objectStructure(
+              field("textInAddToList", textNode("Add to list text 3")),
+              field("addAnotherQuestionWithText", textNode("1"))
+            )
+          )
+        ),
+        field(
           "addAnotherQuestionWithRevealingChoiceWithText",
           arrayNode(
             objectStructure(
@@ -363,23 +380,6 @@ class StructuredFormDataBuilderSpec
                   )
                 )
               )
-            )
-          )
-        ),
-        field(
-          "addAnotherQuestionWithText",
-          arrayNode(
-            objectStructure(
-              field("textInAddToList", textNode("Add to list text 1")),
-              field("addAnotherQuestionWithText", textNode("0"))
-            ),
-            objectStructure(
-              field("textInAddToList", textNode("Add to list text 2")),
-              field("addAnotherQuestionWithText", textNode("0"))
-            ),
-            objectStructure(
-              field("textInAddToList", textNode("Add to list text 3")),
-              field("addAnotherQuestionWithText", textNode("1"))
             )
           )
         ),
