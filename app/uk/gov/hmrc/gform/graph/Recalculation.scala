@@ -98,7 +98,7 @@ class Recalculation[F[_]: Monad, E](
           case (cacheUpdate, (evaluationResults, graphTopologicalOrder)) =>
             val finalEvaluationResults =
               implicitly[Monoid[EvaluationResults]].combine(cacheUpdate.evaluationResults, evaluationResults)
-            new RecalculationResult(
+            RecalculationResult(
               finalEvaluationResults,
               GraphData(graphTopologicalOrder, graph),
               cacheUpdate.booleanExprCache,

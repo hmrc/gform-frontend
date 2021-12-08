@@ -82,13 +82,13 @@ class AcknowledgementController(
           val authConfigName =
             AuthConfig.authConfigNameInLogs(compositeAuthDetails.get(formTemplateWithRedirects).getOrElse(""))
           logger.info(
-            s"For a template, ${formTemplateId.value} with composite config user has selected " +
+            s"For a template, ${cache.formTemplateId.value} with composite config user has selected " +
               s"$authConfigName config " +
               s"and submitted a form with envelopeId ${cache.form.envelopeId}"
           )
         case config =>
           logger.info(
-            s"For a template, ${formTemplateId.value} with ${AuthConfig.authConfigNameInLogs(config.authConfigName)} config " +
+            s"For a template, ${cache.formTemplateId.value} with ${AuthConfig.authConfigNameInLogs(config.authConfigName)} config " +
               s"user has submitted a form with envelopeId ${cache.form.envelopeId}"
           )
       }
@@ -100,16 +100,14 @@ class AcknowledgementController(
               renderer
                 .renderAcknowledgementSection(
                   maybeAccessCode,
-                  cache.formTemplate,
+                  cache,
                   destinationList,
-                  cache.retrievals,
-                  cache.form.envelopeId,
                   formModelOptics
                 )
             )
           )
         case _ =>
-          Future.failed(new BadRequestException(s"Acknowledgement is not defined for $formTemplateId"))
+          Future.failed(new BadRequestException(s"Acknowledgement is not defined for ${cache.formTemplateId}"))
       }
     }
 

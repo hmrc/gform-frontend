@@ -943,6 +943,9 @@ object FormComponentSummaryRenderer {
 
     val indices = formFieldValidationResult.getComponentFieldIndices(fieldValue.id)
 
+    val label = fcrd.label(fieldValue)
+    val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
+
     val selections: List[Option[List[SummaryListRow]]] = rc.options
       .zip(indices)
       .map { case (element, index) =>
@@ -951,10 +954,6 @@ object FormComponentSummaryRenderer {
         val errors: List[Html] = formFieldValidationResult.fieldErrors.toList.map { e =>
           errorInline("summary", e, Seq())
         }
-
-        val label = fcrd.label(fieldValue)
-
-        val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
         val keyClasses = getKeyClasses(hasErrors)
 
@@ -1018,7 +1017,40 @@ object FormComponentSummaryRenderer {
           }
       }
 
-    selections.collect { case Some(v) => v }.flatten
+    val selectionsContent = selections.collect { case Some(v) => v }.flatten
+
+    if (selectionsContent.isEmpty) {
+      List(
+        summaryListRow(
+          label,
+          HtmlFormat.empty,
+          visuallyHiddenText,
+          "",
+          "",
+          "",
+          if (fieldValue.onlyShowOnSummary)
+            Nil
+          else {
+            val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+            List(
+              (
+                uk.gov.hmrc.gform.gform.routes.FormController
+                  .form(
+                    formTemplateId,
+                    maybeAccessCode,
+                    sectionNumber,
+                    sectionTitle4Ga,
+                    SuppressErrors.Yes,
+                    fastForward
+                  ),
+                changeOrViewLabel,
+                iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
+              )
+            )
+          }
+        )
+      )
+    } else selectionsContent
   }
 
   private def getGroupSummaryListRows[D <: DataOrigin, T <: RenderType](

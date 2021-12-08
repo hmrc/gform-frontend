@@ -100,10 +100,12 @@ class DeclarationController(
           }
 
         case (_, Some(_)) =>
-          Future.failed(new BadRequestException(s"Declaration Section is not defined for $formTemplateId"))
+          Future.failed(new BadRequestException(s"Declaration Section is not defined for ${cache.formTemplateId}"))
         case (_, None) =>
           Future.failed(
-            new BadRequestException(s"Declaration section doesn't exist: Found empty page model for $formTemplateId")
+            new BadRequestException(
+              s"Declaration section doesn't exist: Found empty page model for ${cache.formTemplateId}"
+            )
           )
       }
     }
@@ -138,7 +140,9 @@ class DeclarationController(
                 )
 
               case (uk.gov.hmrc.gform.controllers.Continue, _) =>
-                Future.failed(new BadRequestException(s"Declaration Section is not defined for $formTemplateId"))
+                Future.failed(
+                  new BadRequestException(s"Declaration Section is not defined for ${cache.formTemplateId}")
+                )
 
               case _ =>
                 Future.successful(BadRequest("Cannot determine action"))

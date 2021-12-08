@@ -48,7 +48,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
   implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
   def evaluationContext(formTemplate: FormTemplate): EvaluationContext =
-    new EvaluationContext(
+    EvaluationContext(
       formTemplate._id,
       SubmissionRef(EnvelopeId("")),
       None,

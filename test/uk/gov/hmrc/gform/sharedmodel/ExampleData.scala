@@ -57,7 +57,7 @@ trait ExampleEvaluationContext {
   self: ExampleFormTemplate with ExampleAuthContext with ExampleAuthConfig with ExampleSubmissionRef =>
 
   val evaluationContext: EvaluationContext =
-    new EvaluationContext(
+    EvaluationContext(
       formTemplateId,
       submissionRef,
       None,

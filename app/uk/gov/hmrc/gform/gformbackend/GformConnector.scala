@@ -117,22 +117,35 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
                 val legacyFormIdData = formIdData.withTemplateId(legacyFormTemplateId)
                 maybeForm(legacyFormIdData).flatMap {
                   case None =>
-                    logger.info(s"Legacy form for FormTemplate ${legacyFormTemplateId.value} not found")
-                    changeFormTemplateIdVersion(formIdData, legacyFormIds.head).map { _ =>
-                      val formUpd = form.copy(formTemplateId = legacyFormIds.head)
-                      Some(formUpd)
+                    if (form.status === Submitted) {
+                      logger.info(
+                        s"Legacy form for FormTemplate ${legacyFormTemplateId.value} not found, but form status is Submitted"
+                      )
+                      Some(
+                        form.copy(
+                          formTemplateId = legacyFormTemplateId
+                        )
+                      ).pure[Future]
+                    } else {
+                      logger.info(
+                        s"Legacy form for FormTemplate ${legacyFormTemplateId.value} not found, transferring form data..."
+                      )
+                      changeFormTemplateIdVersion(formIdData, legacyFormIds.head).map { newForm =>
+                        logger.info(
+                          s"Form data transferred from ${formIdData.formTemplateId.value} to ${legacyFormTemplateId.value}"
+                        )
+                        Some(newForm)
+                      }
                     }
                   case Some(form) =>
-                    logger.info(s"Legacy form for FormTemplate $legacyFormTemplateId found (status = ${form.status})")
-                    if (form.status === Submitted) {
-                      Option.empty[Form].pure[Future]
-                    } else {
-                      Some(form).pure[Future]
-                    }
+                    logger.info(
+                      s"Legacy form for FormTemplate ${legacyFormTemplateId.value} found (status = ${form.status})"
+                    )
+                    Some(form).pure[Future]
                 }
               } else {
                 logger.info(
-                  s"Legacy FormTemplate: $legacyFormTemplateId do not exists. Trying to resolve legacyFormIds: $legacyFormIds"
+                  s"Legacy FormTemplate: ${legacyFormTemplateId.value} do not exists. Trying to resolve legacyFormIds: $legacyFormIds"
                 )
                 getFormByLegacyIds(formIdData)(legacyFormIds).map {
                   case Some(form) if formTemplate.version === form.formTemplateVersion => Some(form)
@@ -191,7 +204,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def changeFormTemplateIdVersion(formIdData: FormIdData, formTemplateId: FormTemplateId)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
-  ): Future[Unit] = {
+  ): Future[Form] = {
     val url =
       formIdData match {
         case FormIdData.Plain(userId, formTemplateId) =>
@@ -199,7 +212,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
         case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
           s"$baseUrl/version/${userId.value}/${formTemplateId.value}/${accessCode.value}"
       }
-    ws.PUT[FormTemplateId, HttpResponse](url, formTemplateId).void
+    ws.PUT[FormTemplateId, Form](url, formTemplateId)
   }
 
   private def createFormFromLegacy(formIdData: FormIdData, newFormId: FormIdData)(implicit

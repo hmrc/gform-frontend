@@ -93,7 +93,7 @@ class NewFormController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
       implicit request => _ => cache => _ => _ =>
         val queryParams = QueryParams.fromRequest(request)
-        fastForwardService.deleteForm(cache, queryParams)
+        fastForwardService.deleteForm(formTemplateId, cache, queryParams)
     }
 
   /** To request a new confirmation code when verifying an email, user will have to start whole journey again in new session.
@@ -195,7 +195,7 @@ class NewFormController(
             {
               case "continue" =>
                 fastForwardService.redirectFastForward[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics)
-              case "delete" => fastForwardService.deleteForm(cache, queryParams)
+              case "delete" => fastForwardService.deleteForm(formTemplateId, cache, queryParams)
               case _        => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
             }
           )
@@ -216,7 +216,7 @@ class NewFormController(
         handleForm(formIdData, cache.formTemplate)(newForm(formTemplateId, cache, queryParams)) { form =>
           cache.formTemplate.draftRetrievalMethod match {
             case NotPermitted =>
-              fastForwardService.deleteForm(cache.toAuthCacheWithForm(form, noAccessCode), queryParams)
+              fastForwardService.deleteForm(formTemplateId, cache.toAuthCacheWithForm(form, noAccessCode), queryParams)
             case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
               auditService.sendFormResumeEvent(form, cache.retrievals)
               redirectContinue[SectionSelectorType.Normal](cache, form, noAccessCode)

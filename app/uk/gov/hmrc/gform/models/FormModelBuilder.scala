@@ -182,7 +182,7 @@ class FormModelBuilder[E, F[_]: Functor](
     messages: Messages
   ): F[RecalculationResult] = {
     val evaluationContext =
-      new EvaluationContext(
+      EvaluationContext(
         formTemplate._id,
         SubmissionRef(envelopeId),
         maybeAccessCode,

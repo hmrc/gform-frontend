@@ -107,7 +107,7 @@ class SummaryRenderingServiceSpec
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
       RecalculationResult.empty(
-        new EvaluationContext(
+        EvaluationContext(
           formTemplate._id,
           submissionRef,
           maybeAccessCode,

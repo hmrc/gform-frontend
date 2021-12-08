@@ -17,7 +17,10 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
+import cats.syntax.eq._
+import cats.syntax.traverse._
 import com.softwaremill.quicklens._
+import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.Messages
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
@@ -30,7 +33,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, FormStatus, InProgress, QueryParams, Summary, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SectionNumber, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationService
@@ -46,6 +49,8 @@ class FastForwardService(
   handler: FormControllerRequestHandler,
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory
 )(implicit ec: ExecutionContext) {
+
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   def redirectFastForward[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
@@ -123,15 +128,26 @@ class FastForwardService(
     }
 
   def deleteForm(
+    formTemplateId: FormTemplateId,
     cache: AuthCacheWithForm,
     queryParams: QueryParams
   )(implicit
     hc: HeaderCarrier
   ): Future[Result] = {
-    val formTemplateId = cache.formTemplate._id
-    gformConnector
-      .deleteForm(cache.form._id)
+
+    val formsToDelete =
+      if (cache.formTemplateId === formTemplateId)
+        List(cache.form._id)
+      else {
+        List(cache.form._id, FormIdData.apply(cache, None).withTemplateId(formTemplateId).toFormId)
+      }
+
+    logger.info("User decided not to continue in his form, deleting form(s): " + formsToDelete.mkString(", "))
+
+    formsToDelete
+      .traverse(formId => gformConnector.deleteForm(formId))
       .map(_ => Redirect(routes.NewFormController.dashboard(formTemplateId).url, queryParams.toPlayQueryParams))
+
   }
 
   def updateUserData(

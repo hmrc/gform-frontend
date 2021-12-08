@@ -49,7 +49,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
     sortCodeLookup: Set[BaseComponentId] = Set.empty,
     thirdPartyData: ThirdPartyData = ThirdPartyData.empty
   ) =
-    new EvaluationContext(
+    EvaluationContext(
       formTemplateId,
       submissionRef,
       None,
