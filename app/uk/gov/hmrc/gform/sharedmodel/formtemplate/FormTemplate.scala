@@ -44,7 +44,8 @@ case class FormTemplate(
   summarySection: SummarySection,
   displayHMRCLogo: Boolean,
   userResearchUrl: Option[UserResearchUrl] = None,
-  referrerConfig: Option[ReferrerConfig] = None
+  referrerConfig: Option[ReferrerConfig] = None,
+  emailExpr: Option[Expr] = None
 ) {
 
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")

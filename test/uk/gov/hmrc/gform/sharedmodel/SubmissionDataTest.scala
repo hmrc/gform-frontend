@@ -39,7 +39,8 @@ class SubmissionDataTest extends Spec {
         )
       ),
       Attachments(FormComponentId("proof") :: Nil),
-      LangADT.En
+      LangADT.En,
+      None
     )
 
     Json.toJson(submissionData) should be(expectedJson)
