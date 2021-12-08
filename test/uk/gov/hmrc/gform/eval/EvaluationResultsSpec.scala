@@ -310,7 +310,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         TypeInfo(
           DataRetrieveCtx(
             DataRetrieveId("someDataRetrieveId"),
-            DataRetrieveAttribute.fromString("DataRetrieveIsValid")
+            DataRetrieveAttribute.fromName("isValid")
           ),
           StaticTypeData(ExprType.string, None)
         ),
@@ -321,7 +321,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
               Map(
                 DataRetrieveId("someDataRetrieveId") -> DataRetrieveSuccess(
                   DataRetrieveId("someDataRetrieveId"),
-                  Map(DataRetrieveAttribute.fromString("DataRetrieveIsValid") -> "111")
+                  Map(DataRetrieveAttribute.fromName("isValid") -> "111")
                 )
               )
             )

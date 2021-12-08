@@ -18,14 +18,15 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
 import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.ExprGen.formCtxGen
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId, ValidateBank }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.ValidateBankDetails
 
 trait DataRetrieveGen {
-  def validateBankGen: Gen[ValidateBank] = for {
+  def validateBankGen: Gen[ValidateBankDetails] = for {
     id                <- Gen.alphaStr
     sortCodeExpr      <- formCtxGen
     accountNumberExpr <- formCtxGen
-  } yield ValidateBank(DataRetrieveId(id), sortCodeExpr, accountNumberExpr)
+  } yield ValidateBankDetails(DataRetrieveId(id), sortCodeExpr, accountNumberExpr)
 
   def dataRetrieveGen: Gen[DataRetrieve] = validateBankGen
 }

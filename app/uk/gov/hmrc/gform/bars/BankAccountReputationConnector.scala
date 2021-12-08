@@ -17,8 +17,6 @@
 package uk.gov.hmrc.gform.bars
 
 import play.api.libs.json.{ Format, Json }
-import uk.gov.hmrc.gform.bars.BankAccountReputationConnector.{ ValidateBankDetailsRequest, ValidateBankDetailsResponse }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -27,18 +25,32 @@ import scala.language.higherKinds
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
 trait BankAccountReputationConnector[F[_]] {
-  def validateBankDetails(account: ValidateBankDetailsRequest)(implicit
+  def validateBankDetails(account: ValidateBankDetails.Request)(implicit
     hc: HeaderCarrier
-  ): F[ValidateBankDetailsResponse]
+  ): F[ValidateBankDetails.Response]
+  def businessBankAccountExistence(account: BusinessBankAccountExistence.Request)(implicit
+    hc: HeaderCarrier
+  ): F[BusinessBankAccountExistence.Response]
 }
 
 class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex: ExecutionContext)
     extends BankAccountReputationConnector[Future] {
-  override def validateBankDetails(request: ValidateBankDetailsRequest)(implicit
+  override def validateBankDetails(request: ValidateBankDetails.Request)(implicit
     hc: HeaderCarrier
-  ): Future[ValidateBankDetailsResponse] =
-    ws.POST[ValidateBankDetailsRequest, ValidateBankDetailsResponse](
-      baseUrl + s"/validateBankDetails",
+  ): Future[ValidateBankDetails.Response] =
+    ws.POST[ValidateBankDetails.Request, ValidateBankDetails.Response](
+      baseUrl + "/v2/validateBankDetails",
+      request,
+      Seq(("User-Agent", "gforms"), ("Content-Type", "application/json")) ++ hc.requestId.map(r =>
+        ("X-Tracking-Id", r.value)
+      )
+    )
+
+  override def businessBankAccountExistence(request: BusinessBankAccountExistence.Request)(implicit
+    hc: HeaderCarrier
+  ): Future[BusinessBankAccountExistence.Response] =
+    ws.POST[BusinessBankAccountExistence.Request, BusinessBankAccountExistence.Response](
+      baseUrl + "/verify/business",
       request,
       Seq(("User-Agent", "gforms"), ("Content-Type", "application/json")) ++ hc.requestId.map(r =>
         ("X-Tracking-Id", r.value)
@@ -46,37 +58,31 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
     )
 }
 
-object BankAccountReputationConnector {
+object ValidateBankDetails {
 
-  case class AccountNumber(value: String) extends AnyVal
-  object AccountNumber {
-    implicit val format: Format[AccountNumber] =
-      JsonUtils.valueClassFormat[AccountNumber, String](AccountNumber.apply, _.value)
-  }
-
-  case class SortCode(value: String) extends AnyVal
-  object SortCode {
-    implicit val format: Format[SortCode] = JsonUtils.valueClassFormat[SortCode, String](SortCode.apply, _.value)
-  }
+  def create(
+    sortCode: String,
+    accountNumber: String
+  ) = Request(Account(sortCode, accountNumber))
 
   case class Account(
-    sortCode: SortCode, // The bank sort code, 6 characters long (whitespace and/or dashes should be removed)
-    accountNumber: AccountNumber // The bank account number, 8 characters long
+    sortCode: String, // The bank sort code, 6 characters long (whitespace and/or dashes should be removed)
+    accountNumber: String // The bank account number, 8 characters long
   )
 
   object Account {
     implicit val format: Format[Account] = Json.format[Account]
   }
 
-  case class ValidateBankDetailsRequest(
+  case class Request(
     account: Account
   )
 
-  object ValidateBankDetailsRequest {
-    implicit val format: Format[ValidateBankDetailsRequest] = Json.format[ValidateBankDetailsRequest]
+  object Request {
+    implicit val format: Format[Request] = Json.format[Request]
   }
 
-  case class ValidateBankDetailsResponse(
+  case class Response(
     accountNumberWithSortCodeIsValid: String,
     nonStandardAccountDetailsRequiredForBacs: String,
     sortCodeIsPresentOnEISCD: String,
@@ -88,7 +94,68 @@ object BankAccountReputationConnector {
     sortCodeBankName: Option[String]
   )
 
-  object ValidateBankDetailsResponse {
-    implicit val format: Format[ValidateBankDetailsResponse] = Json.format[ValidateBankDetailsResponse]
+  object Response {
+    implicit val format: Format[Response] = Json.format[Response]
+  }
+}
+
+object BusinessBankAccountExistence {
+
+  def create(
+    sortCode: String,
+    accountNumber: String,
+    companyName: String
+  ) = Request(Account(sortCode, accountNumber), Some(Business(companyName, None, None)))
+
+  case class Account(
+    sortCode: String, // The bank sort code, 6 characters long (whitespace and/or dashes should be removed)
+    accountNumber: String // The bank account number, 8 characters long
+  )
+
+  object Account {
+    implicit val format: Format[Account] = Json.format[Account]
+  }
+
+  case class Address(
+    lines: List[String], // One to four lines; cumulative length must be between 1 and 140 characters.
+    town: Option[String], // Must be between 1 and 35 characters long
+    postcode: Option[String]
+  )
+
+  object Address {
+    implicit val format: Format[Address] = Json.format[Address]
+  }
+
+  case class Business(
+    companyName: String, // Must be between 1 and 70 characters long
+    companyRegistrationNumber: Option[String],
+    address: Option[Address]
+  )
+
+  object Business {
+    implicit val format: Format[Business] = Json.format[Business]
+  }
+
+  case class Request(
+    account: Account,
+    business: Option[Business]
+  )
+
+  object Request {
+    implicit val format: Format[Request] = Json.format[Request]
+  }
+  case class Response(
+    accountNumberIsWellFormatted: String,
+    sortCodeIsPresentOnEISCD: String,
+    sortCodeBankName: Option[String],
+    nonStandardAccountDetailsRequiredForBacs: String,
+    accountExists: String,
+    nameMatches: String,
+    sortCodeSupportsDirectDebit: String,
+    sortCodeSupportsDirectCredit: String
+  )
+
+  object Response {
+    implicit val format: Format[Response] = Json.format[Response]
   }
 }
