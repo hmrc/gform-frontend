@@ -130,7 +130,7 @@ class GformModule(
     controllersModule.messagesControllerComponents
   )
 
-  private val barsBaseUrl = s"${configModule.serviceConfig.baseUrl("bars")}/v2"
+  private val barsBaseUrl = s"${configModule.serviceConfig.baseUrl("bars")}"
 
   val bankAccountReputationConnector =
     new BankAccountReputationAsyncConnector(wSHttpModule.auditableWSHttp, barsBaseUrl)

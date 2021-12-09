@@ -29,7 +29,6 @@ import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.test.WsTestClient.InternalWSClient
 import uk.gov.hmrc.gform.WiremockSupport
-import uk.gov.hmrc.gform.bars.BankAccountReputationConnector._
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.hooks.HttpHook
 import uk.gov.hmrc.http.{ HeaderCarrier, RequestId, UpstreamErrorResponse }
@@ -75,7 +74,7 @@ class BankAccountReputationAsyncConnectorSpec
   val bankAccountReputationAsyncConnector = new BankAccountReputationAsyncConnector(wsHttp, url)
 
   trait TestFixture {
-    val validateResponse = ValidateBankDetailsResponse(
+    val validateResponse = ValidateBankDetails.Response(
       "yes",
       "yes",
       "yes",
@@ -92,7 +91,7 @@ class BankAccountReputationAsyncConnectorSpec
 
     stubFor(
       WireMock
-        .post(s"/validateBankDetails")
+        .post(s"/v2/validateBankDetails")
         .withHeader("User-Agent", equalTo("gforms"))
         .withHeader("Content-Type", equalTo("application/json"))
         .withHeader("X-Tracking-Id", equalTo("some-tracking-id"))
@@ -108,11 +107,9 @@ class BankAccountReputationAsyncConnectorSpec
     )
 
     val future = bankAccountReputationAsyncConnector.validateBankDetails(
-      ValidateBankDetailsRequest(
-        Account(
-          SortCode("112233"),
-          AccountNumber("123456")
-        )
+      ValidateBankDetails.create(
+        "112233",
+        "12345678"
       )
     )
 
@@ -124,7 +121,7 @@ class BankAccountReputationAsyncConnectorSpec
   it should "return BadRequest error" in new TestFixture {
     stubFor(
       WireMock
-        .post(s"/validateBankDetails")
+        .post(s"/v2/validateBankDetails")
         .willReturn(
           badRequest().withBody("""
                                   |{
@@ -136,18 +133,13 @@ class BankAccountReputationAsyncConnectorSpec
     )
 
     val future = bankAccountReputationAsyncConnector.validateBankDetails(
-      ValidateBankDetailsRequest(
-        Account(
-          SortCode(""),
-          AccountNumber("")
-        )
-      )
+      ValidateBankDetails.create("", "")
     )
 
     whenReady(future.failed) {
       case UpstreamErrorResponse(message, statusCode, _, _) =>
         message shouldBe
-          s"""POST of '$url/validateBankDetails' returned 400. Response body: '
+          s"""POST of '$url/v2/validateBankDetails' returned 400. Response body: '
              |{
              |    "code": "INVALID_SORTCODE",
              |    "desc": ": invalid sortcode"

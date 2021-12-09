@@ -18,9 +18,10 @@ package uk.gov.hmrc.gform.gform
 
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.bars
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
-import uk.gov.hmrc.gform.bars.BankAccountReputationConnector.{ Account, AccountNumber, SortCode, ValidateBankDetailsRequest }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -38,11 +39,11 @@ sealed trait DataRetrieveService[T <: DataRetrieve, F[_]] {
 object DataRetrieveService {
   implicit def validateBankDetailsInstant(implicit
     bankAccountReputationConnector: BankAccountReputationConnector[Future]
-  ): DataRetrieveService[ValidateBank, Future] = new DataRetrieveService[ValidateBank, Future] {
+  ): DataRetrieveService[ValidateBankDetails, Future] = new DataRetrieveService[ValidateBankDetails, Future] {
     private val logger: Logger = LoggerFactory.getLogger(getClass)
 
     override def retrieve(
-      validateBankDetails: ValidateBank,
+      validateBankDetails: ValidateBankDetails,
       formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
     )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[DataRetrieveResult] = {
       val accNumber =
@@ -55,15 +56,16 @@ object DataRetrieveService {
       } else {
         bankAccountReputationConnector
           .validateBankDetails(
-            ValidateBankDetailsRequest(
-              Account(SortCode(sortCode.stringRepresentation), AccountNumber(accNumber.stringRepresentation))
+            bars.ValidateBankDetails.create(
+              sortCode.stringRepresentation,
+              accNumber.stringRepresentation
             )
           )
           .map { validateResult =>
             DataRetrieveSuccess(
               validateBankDetails.id,
               Map(
-                DataRetrieveIsValid -> validateResult.accountNumberWithSortCodeIsValid
+                DataRetrieveAttribute.IsValid -> validateResult.accountNumberWithSortCodeIsValid
               )
             )
           }
@@ -74,6 +76,60 @@ object DataRetrieveService {
       }
     }
   }
+
+  implicit def businessBankAccountExistence(implicit
+    bankAccountReputationConnector: BankAccountReputationConnector[Future]
+  ): DataRetrieveService[BusinessBankAccountExistence, Future] =
+    new DataRetrieveService[BusinessBankAccountExistence, Future] {
+      private val logger: Logger = LoggerFactory.getLogger(getClass)
+
+      override def retrieve(
+        businessBankAccountExistence: BusinessBankAccountExistence,
+        formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
+      )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[DataRetrieveResult] = {
+        val accNumber =
+          formModelVisibilityOptics.evalAndApplyTypeInfoFirst(businessBankAccountExistence.accountNumber)
+        val sortCode =
+          formModelVisibilityOptics.evalAndApplyTypeInfoFirst(businessBankAccountExistence.sortCode)
+        val companyName =
+          formModelVisibilityOptics.evalAndApplyTypeInfoFirst(businessBankAccountExistence.companyName)
+
+        if (accNumber.isEmpty || sortCode.isEmpty || companyName.isEmpty) {
+          Future.successful(DataRetrieveMissingInput)
+        } else {
+          bankAccountReputationConnector
+            .businessBankAccountExistence(
+              bars.BusinessBankAccountExistence.create(
+                sortCode.stringRepresentation,
+                accNumber.stringRepresentation,
+                companyName.stringRepresentation
+              )
+            )
+            .map { result =>
+              DataRetrieveSuccess(
+                businessBankAccountExistence.id,
+                Map(
+                  DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
+                  DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> result.sortCodeIsPresentOnEISCD,
+                  DataRetrieveAttribute.SortCodeBankName                         -> result.sortCodeBankName.getOrElse(""),
+                  DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> result.nonStandardAccountDetailsRequiredForBacs,
+                  DataRetrieveAttribute.AccountExists                            -> result.accountExists,
+                  DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
+                  DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
+                  DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit
+                )
+              )
+            }
+            .recover { case e =>
+              logger.error(
+                s"Failed to retrieve data for businessBankAccountExistence, with id ${businessBankAccountExistence.id}",
+                e
+              )
+              DataRetrieveFailed
+            }
+        }
+      }
+    }
 
   def apply[T <: DataRetrieve, F[_]](implicit d: DataRetrieveService[T, F]) = d
 }

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode, Repeater, Singleton }
-import uk.gov.hmrc.gform.sharedmodel.ValidateBank
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, HmrcRosmRegistrationCheckValidator }
 
 /*
@@ -43,7 +43,9 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
       }
 
       val dataRetrieveExpressions = page.dataRetrieve.fold(List.empty[Expr]) {
-        case ValidateBank(_, sortCode, accountNumber) => List(sortCode, accountNumber)
+        case ValidateBankDetails(_, sortCode, accountNumber) => List(sortCode, accountNumber)
+        case BusinessBankAccountExistence(_, sortCode, accountNumber, companyName) =>
+          List(sortCode, accountNumber, companyName)
       }
       pageExprs ++ validatorExprs ++ dataRetrieveExpressions
     }

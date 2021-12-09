@@ -35,10 +35,11 @@ import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction 
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
 import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, SectionNumber, SectionTitle4Ga, SuppressErrors }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, DataRetrieveNotRequired, DataRetrieveResult, LangADT, SourceOrigin, ValidateBank, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, DataRetrieveNotRequired, DataRetrieveResult, LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -185,9 +186,13 @@ class FormProcessor(
       dataRetrieveResult <-
         pageModel.fold(singleton =>
           singleton.page.dataRetrieve.fold[Future[DataRetrieveResult]](DataRetrieveNotRequired.pure[Future]) {
-            case v: ValidateBank =>
+            case v: ValidateBankDetails =>
               implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
-              DataRetrieveService[ValidateBank, Future]
+              DataRetrieveService[ValidateBankDetails, Future]
+                .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
+            case v: BusinessBankAccountExistence =>
+              implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
+              DataRetrieveService[BusinessBankAccountExistence, Future]
                 .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
           }
         )(_ => DataRetrieveNotRequired.pure[Future])(_ => DataRetrieveNotRequired.pure[Future])
