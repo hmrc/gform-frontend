@@ -25,21 +25,21 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SubmissionRef }
 import uk.gov.hmrc.http.HeaderCarrier
 
 // Various information needed for Expr evaluation
-class EvaluationContext(
-  val formTemplateId: FormTemplateId,
-  val submissionRef: SubmissionRef,
-  val maybeAccessCode: Option[AccessCode],
-  val retrievals: MaterialisedRetrievals,
-  val thirdPartyData: ThirdPartyData,
-  val authConfig: AuthConfig,
-  val headerCarrier: HeaderCarrier,
-  val formPhase: Option[FormPhase],
-  val fileIdsWithMapping: FileIdsWithMapping,
-  val dateLookup: Map[ModelComponentId, DateValue],
-  val addressLookup: Set[BaseComponentId],
-  val overseasAddressLookup: Set[BaseComponentId],
-  val pageIdSectionNumberMap: Map[ModelPageId, SectionNumber],
-  val lang: LangADT,
-  val messages: Messages,
-  val indexedComponentIds: List[ModelComponentId]
+final case class EvaluationContext(
+  formTemplateId: FormTemplateId,
+  submissionRef: SubmissionRef,
+  maybeAccessCode: Option[AccessCode],
+  retrievals: MaterialisedRetrievals,
+  thirdPartyData: ThirdPartyData,
+  authConfig: AuthConfig,
+  headerCarrier: HeaderCarrier,
+  formPhase: Option[FormPhase],
+  fileIdsWithMapping: FileIdsWithMapping,
+  dateLookup: Map[ModelComponentId, DateValue],
+  addressLookup: Set[BaseComponentId],
+  overseasAddressLookup: Set[BaseComponentId],
+  pageIdSectionNumberMap: Map[ModelPageId, SectionNumber],
+  lang: LangADT,
+  messages: Messages,
+  indexedComponentIds: List[ModelComponentId]
 )
