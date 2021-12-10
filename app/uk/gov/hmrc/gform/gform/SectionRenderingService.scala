@@ -1670,8 +1670,13 @@ class SectionRenderingService(
       formFieldValidationResult.getCurrentValue
         .orElse(Some(prepopValue))
         .map { cv =>
-          TextFormatter
-            .componentTextForRendering(cv, text.constraint, formComponent.presentationHint, formComponent.editable)
+          formFieldValidationResult match {
+            case FieldOk(_, _) | FieldGlobalOk(_, _) =>
+              TextFormatter
+                .componentTextForRendering(cv, text.constraint, formComponent.presentationHint, formComponent.editable)
+            case _ => cv
+          }
+
         }
 
     formComponent.presentationHint match {
