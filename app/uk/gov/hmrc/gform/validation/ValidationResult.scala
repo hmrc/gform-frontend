@@ -64,10 +64,7 @@ case class ValidationResult(
         val cvUpd: String = cv.replace(" ", "")
         FieldOk(formComponent, cvUpd)
       case (_, FieldOk(formComponent, cv)) if formComponent.isSortCode =>
-        val cvUpd: String = cv
-          .replaceAll("[^0-9]", "")
-          .grouped(2)
-          .mkString("-")
+        val cvUpd: String = cv.replaceAll("[^0-9]", "")
         FieldOk(formComponent, cvUpd)
       case (formComponent, ffvr) => ffvr
     }.toList
