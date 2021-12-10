@@ -22,6 +22,7 @@ import play.api.i18n.Messages
 import play.api.mvc.Request
 
 import scala.language.higherKinds
+import cats.syntax.all._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
@@ -189,6 +190,12 @@ class GformBackEndService(
                               cache.formTemplate.destinations,
                               lookupRegistry
                             )
+      maybeEmailAddress <- cache.formTemplate.emailExpr.traverse { expr =>
+                             val email = formModelOptics.formModelVisibilityOptics
+                               .evalAndApplyTypeInfoFirst(expr)
+                               .stringRepresentation
+                             Future.successful(email)
+                           }
       response <- handleSubmission(
                     cache.retrievals,
                     cache.formTemplate,
@@ -199,7 +206,8 @@ class GformBackEndService(
                     htmlForInstructionPDF,
                     structuredFormData,
                     attachments,
-                    formModelOptics.formModelVisibilityOptics
+                    formModelOptics.formModelVisibilityOptics,
+                    maybeEmailAddress
                   )
     } yield response
 
@@ -284,7 +292,8 @@ class GformBackEndService(
     htmlForInstructionPDF: Option[PdfHtml],
     structuredFormData: StructuredFormValue.ObjectStructure,
     attachments: Attachments,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    maybeEmailAddress: Option[String]
   )(implicit hc: HeaderCarrier, l: LangADT): Future[HttpResponse] =
     gformConnector.submitForm(
       FormIdData(retrievals, formTemplate._id, maybeAccessCode),
@@ -298,7 +307,8 @@ class GformBackEndService(
         emailParameters,
         structuredFormData,
         attachments,
-        formModelVisibilityOptics
+        formModelVisibilityOptics,
+        maybeEmailAddress
       ),
       AffinityGroupUtil.fromRetrievals(retrievals)
     )
@@ -312,7 +322,8 @@ class GformBackEndService(
     emailParameters: EmailParametersRecalculated,
     structuredFormData: StructuredFormValue.ObjectStructure,
     attachments: Attachments,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    maybeEmailAddress: Option[String]
   )(implicit l: LangADT): SubmissionData =
     SubmissionData(
       htmlForPDF,
@@ -321,7 +332,8 @@ class GformBackEndService(
       structuredFormData,
       emailParameters,
       attachments,
-      l
+      l,
+      maybeEmailAddress
     )
 
   private def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Boolean =
