@@ -125,7 +125,6 @@ object DataRetrieve {
 sealed trait DataRetrieveResult
 case object DataRetrieveNotRequired extends DataRetrieveResult
 case class DataRetrieveSuccess(id: DataRetrieveId, data: Map[DataRetrieveAttribute, String]) extends DataRetrieveResult
-case object DataRetrieveFailed extends DataRetrieveResult
 case object DataRetrieveMissingInput extends DataRetrieveResult
 
 object DataRetrieveResult {

@@ -40,10 +40,7 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
   ): Future[ValidateBankDetails.Response] =
     ws.POST[ValidateBankDetails.Request, ValidateBankDetails.Response](
       baseUrl + "/v2/validateBankDetails",
-      request,
-      Seq(("User-Agent", "gforms"), ("Content-Type", "application/json")) ++ hc.requestId.map(r =>
-        ("X-Tracking-Id", r.value)
-      )
+      request
     )
 
   override def businessBankAccountExistence(request: BusinessBankAccountExistence.Request)(implicit
@@ -51,10 +48,7 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
   ): Future[BusinessBankAccountExistence.Response] =
     ws.POST[BusinessBankAccountExistence.Request, BusinessBankAccountExistence.Response](
       baseUrl + "/verify/business",
-      request,
-      Seq(("User-Agent", "gforms"), ("Content-Type", "application/json")) ++ hc.requestId.map(r =>
-        ("X-Tracking-Id", r.value)
-      )
+      request
     )
 }
 

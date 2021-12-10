@@ -71,7 +71,7 @@ object DataRetrieveService {
           }
           .recover { case e =>
             logger.error(s"Failed to retrieve data for validateBankDetails, with id ${validateBankDetails.id}", e)
-            DataRetrieveFailed
+            throw e
           }
       }
     }
@@ -125,7 +125,7 @@ object DataRetrieveService {
                 s"Failed to retrieve data for businessBankAccountExistence, with id ${businessBankAccountExistence.id}",
                 e
               )
-              DataRetrieveFailed
+              throw e
             }
         }
       }
