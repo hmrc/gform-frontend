@@ -1676,7 +1676,6 @@ class SectionRenderingService(
                 .componentTextForRendering(cv, text.constraint, formComponent.presentationHint, formComponent.editable)
             case _ => cv
           }
-
         }
 
     formComponent.presentationHint match {
