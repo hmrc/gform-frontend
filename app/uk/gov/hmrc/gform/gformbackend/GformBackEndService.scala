@@ -22,9 +22,9 @@ import play.api.i18n.Messages
 import play.api.mvc.Request
 
 import scala.language.higherKinds
+import cats.syntax.all._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.eval.ExpressionResult.StringResult
 import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder, SummaryPagePurpose }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -190,15 +190,11 @@ class GformBackEndService(
                               cache.formTemplate.destinations,
                               lookupRegistry
                             )
-      maybeEmailAddress <- cache.formTemplate.emailExpr match {
-                             case Some(expr) =>
-                               formModelOptics.formModelVisibilityOptics
-                                 .evalAndApplyTypeInfoFirst(expr)
-                                 .expressionResult match {
-                                 case StringResult(str) => Future.successful(Some(str))
-                                 case _                 => Future.successful(None)
-                               }
-                             case None => Future.successful(None)
+      maybeEmailAddress <- cache.formTemplate.emailExpr.traverse { expr =>
+                             val email = formModelOptics.formModelVisibilityOptics
+                               .evalAndApplyTypeInfoFirst(expr)
+                               .stringRepresentation
+                             Future.successful(email)
                            }
       response <- handleSubmission(
                     cache.retrievals,
