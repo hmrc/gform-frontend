@@ -91,10 +91,6 @@ case class FormModel[A <: PageMode](
     fc.id.baseComponentId
   }.toSet
 
-  val sortCodeLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsUkSortCode(_) =>
-    fc.baseComponentId
-  }.toSet
-
   val overseasAddressLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsOverseasAddress(_) =>
     fc.id.baseComponentId
   }.toSet

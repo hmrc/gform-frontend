@@ -93,18 +93,6 @@ object FormComponentSummaryRenderer {
           fastForward
         )
 
-      case IsUkSortCode(_) =>
-        getUkSortCodeSummaryListRows(
-          formComponent,
-          formTemplateId,
-          maybeAccessCode,
-          sectionNumber,
-          sectionTitle4Ga,
-          formFieldValidationResult,
-          iterationTitle,
-          fastForward
-        )
-
       case IsDate(_) =>
         getDateSummaryListRows(
           formComponent,
@@ -364,75 +352,6 @@ object FormComponentSummaryRenderer {
       summaryListRow(
         label,
         value.intercalate(br()),
-        visuallyHiddenText,
-        keyClasses,
-        "",
-        "",
-        if (fieldValue.onlyShowOnSummary)
-          Nil
-        else {
-          val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
-          List(
-            (
-              uk.gov.hmrc.gform.gform.routes.FormController
-                .form(
-                  formTemplateId,
-                  maybeAccessCode,
-                  sectionNumber,
-                  sectionTitle4Ga,
-                  SuppressErrors.Yes,
-                  fastForward
-                ),
-              changeOrViewLabel,
-              iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
-            )
-          )
-        }
-      )
-    )
-  }
-
-  private def getUkSortCodeSummaryListRows[T <: RenderType](
-    fieldValue: FormComponent,
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    sectionNumber: SectionNumber,
-    sectionTitle4Ga: SectionTitle4Ga,
-    formFieldValidationResult: FormFieldValidationResult,
-    iterationTitle: Option[String],
-    fastForward: FastForward
-  )(implicit
-    messages: Messages,
-    lise: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[T]
-  ): List[SummaryListRow] = {
-
-    val hasErrors = formFieldValidationResult.isNotOk
-
-    val errors = checkErrors(fieldValue, formFieldValidationResult)
-
-    val label = fcrd.label(fieldValue)
-
-    val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
-
-    val keyClasses = getKeyClasses(hasErrors)
-
-    val currentValue = UkSortCode
-      .fields(
-        fieldValue.modelComponentId.indexedComponentId
-      ) // TODO JoVl, this is weird, let's use MultiValueId instead
-      .toList
-      .map { fieldId =>
-        formFieldValidationResult.getCurrentValue(HtmlFieldId.pure(fieldId))
-      }
-      .mkString("-")
-
-    val value = if (hasErrors) errors else HtmlFormat.escape(currentValue) :: Nil
-
-    List(
-      summaryListRow(
-        label,
-        HtmlFormat.fill(value),
         visuallyHiddenText,
         keyClasses,
         "",

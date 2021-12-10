@@ -227,17 +227,6 @@ case class EvaluationResults(
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case FormCtx(formComponentId: FormComponentId)
-          if evaluationContext.sortCodeLookup(formComponentId.baseComponentId) =>
-        whenVisible(formComponentId) {
-          val indexedComponentId = formComponentId.modelComponentId.indexedComponentId
-          val sortCodeAtoms = UkSortCode.fields(indexedComponentId).toList
-          val variadicValues: List[Option[VariadicValue]] =
-            sortCodeAtoms.map(atom => recData.variadicFormData.get(atom))
-          StringResult(variadicValues.collect {
-            case Some(VariadicValue.One(value)) if value.nonEmpty => value
-          }.mkString)
-        }
-      case FormCtx(formComponentId: FormComponentId)
           if evaluationContext.addressLookup(formComponentId.baseComponentId) || evaluationContext
             .overseasAddressLookup(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {

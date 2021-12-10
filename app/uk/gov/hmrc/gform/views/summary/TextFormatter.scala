@@ -58,6 +58,7 @@ object TextFormatter {
       case (_: Sterling, _, _)                                                        => formatSterling(stripTrailingZeros(currentValue), defaultFormat)
       case (_: WholeSterling, _, true)                                                => stripTrailingZeros(currentValue)
       case (_: WholeSterling, _, _)                                                   => stripDecimal(formatSterling(stripTrailingZeros(currentValue), defaultFormat))
+      case (UkSortCodeFormat,_ ,_)                                                    => formatUkSortCode(currentValue)
       case _                                                                          => currentValue
       // format: on
     }
@@ -76,6 +77,7 @@ object TextFormatter {
       case (IsPositiveNumberOrNumber(maxFractionalDigits, roundingMode, unit), p, s) => prependPrefix(p) + formatNumber(currentValue, maxFractionalDigits, roundingMode, s.map(_.localised).orElse(unit))
       case (_: Sterling, _, _)                                                       => formatSterling(currentValue)
       case (_: WholeSterling, _, _)                                                  => stripDecimal(formatSterling(currentValue))
+      case (UkSortCodeFormat, _, _)                                                  => formatUkSortCode(currentValue)
       case (_, p, s)                                                                 => prependPrefix(p) + currentValue + appendSuffix(s)
       case _                                                                         => currentValue
       // format: on
@@ -123,6 +125,8 @@ object TextFormatter {
   private def formatSterling(currentValue: String, format: NumberFormat = currencyFormat): String =
     toBigDecimalSafe(currentValue).fold(currentValue)(format.format)
 
+  private def formatUkSortCode(currentValue: String): String = currentValue.grouped(2).mkString("-")
+
   def formatText(
     validationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping,
@@ -139,12 +143,6 @@ object TextFormatter {
       case IsText(text)     => componentTextForSummary(currentValue, text.constraint, prefix, suffix) :: Nil
       case IsFileUpload(_)  => envelope.userFileName(formComponent) :: Nil
       case IsChoice(choice) => choice.renderToString(formComponent, validationResult)
-      case IsUkSortCode(sortCode) =>
-        sortCode
-          .fields(formComponent.modelComponentId.indexedComponentId)
-          .map(modelComponentId => validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
-          .toList
-          .mkString("-") :: Nil
       case IsAddress(address) =>
         Address.renderToString(formComponent, validationResult)
       case IsOverseasAddress(address) =>

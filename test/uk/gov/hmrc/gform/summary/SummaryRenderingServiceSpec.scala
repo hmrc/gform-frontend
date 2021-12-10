@@ -123,8 +123,7 @@ class SummaryRenderingServiceSpec
           Map.empty,
           LangADT.En,
           messages,
-          List.empty,
-          Set.empty
+          List.empty
         )
       )
     )

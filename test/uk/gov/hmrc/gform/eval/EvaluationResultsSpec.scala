@@ -73,8 +73,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           )
         )
       ),
-      indexedComponentIds,
-      sortCodeLookup
+      indexedComponentIds
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()
@@ -716,21 +715,5 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       EvaluationResults.empty
         .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
-  }
-
-  "evalExpr - type string, with multi value form component" should "get all atom values concatenated" in {
-
-    val typeInfo = TypeInfo(FormCtx(FormComponentId("sortCode")), StaticTypeData(ExprType.string, None))
-    val recData = RecData[OutOfDate](
-      VariadicFormData.create(
-        (toModelComponentId("sortCode-1"), VariadicValue.One("11")),
-        (toModelComponentId("sortCode-2"), VariadicValue.One("22")),
-        (toModelComponentId("sortCode-3"), VariadicValue.One("33"))
-      )
-    )
-    val evaluationContext = buildEvaluationContext(sortCodeLookup = Set(BaseComponentId("sortCode")))
-
-    EvaluationResults.empty
-      .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe StringResult("112233")
   }
 }

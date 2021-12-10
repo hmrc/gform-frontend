@@ -836,8 +836,6 @@ class SectionRenderingService(
       } else {
 
         formComponent.`type` match {
-          case UkSortCode(_) =>
-            htmlForSortCode(formComponent, validationResult, ei)
           case Group(_, _, _, _, _) =>
             throw new IllegalArgumentException(s"Group '${formComponent.id}' cannot be rendered as RenderUnit.Pure")
           case Date(_, offset, dateValue) =>
@@ -1672,8 +1670,12 @@ class SectionRenderingService(
       formFieldValidationResult.getCurrentValue
         .orElse(Some(prepopValue))
         .map { cv =>
-          TextFormatter
-            .componentTextForRendering(cv, text.constraint, formComponent.presentationHint, formComponent.editable)
+          formFieldValidationResult match {
+            case FieldOk(_, _) | FieldGlobalOk(_, _) =>
+              TextFormatter
+                .componentTextForRendering(cv, text.constraint, formComponent.presentationHint, formComponent.editable)
+            case _ => cv
+          }
         }
 
     formComponent.presentationHint match {
@@ -1739,27 +1741,6 @@ class SectionRenderingService(
           new components.GovukInput(govukErrorMessage, govukHint, govukLabel)(input)
         }
     }
-  }
-
-  private def htmlForSortCode(
-    formComponent: FormComponent,
-    validationResult: ValidationResult,
-    ei: ExtraInfo
-  )(implicit
-    messages: Messages,
-    l: LangADT,
-    sse: SmartStringEvaluator
-  ) = {
-    val formFieldValidationResult = validationResult(formComponent)
-    val isPageHeading = ei.formLevelHeading
-    html.form.snippets
-      .field_template_sort_code(
-        formComponent,
-        formFieldValidationResult,
-        isPageHeading,
-        getLabelClasses(isPageHeading, formComponent.labelSize)
-      )
-
   }
 
   private def htmlForAddress(

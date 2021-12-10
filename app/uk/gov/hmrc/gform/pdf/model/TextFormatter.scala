@@ -45,14 +45,6 @@ object TextFormatter {
         List(componentTextForSummary(currentValue, text.constraint, prefix, suffix)).filter(_.nonEmpty)
       case IsFileUpload(_)  => List(envelopeWithMapping.userFileName(formComponent))
       case IsChoice(choice) => choice.renderToString(formComponent, validationResult)
-      case IsUkSortCode(sortCode) =>
-        List(
-          sortCode
-            .fields(formComponent.modelComponentId.indexedComponentId)
-            .map(modelComponentId => validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
-            .toList
-            .mkString("-")
-        )
       case IsAddress(_) =>
         Address
           .renderToString(formComponent, validationResult)

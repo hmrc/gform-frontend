@@ -64,8 +64,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       Map.empty,
       lang,
       messages,
-      List.empty,
-      Set.empty
+      List.empty
     )
 
   "recalculation" should "recalculate single dependency" in {

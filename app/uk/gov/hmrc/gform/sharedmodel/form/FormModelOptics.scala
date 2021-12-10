@@ -73,8 +73,7 @@ object FormModelOptics {
         Map.empty,
         lang,
         messages,
-        List.empty,
-        Set.empty[BaseComponentId]
+        List.empty
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),

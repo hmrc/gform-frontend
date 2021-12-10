@@ -119,7 +119,7 @@ generic.nonUKCountryCode.error.pattern={0} must be entered in the correct format
 generic.countryCode.error.pattern={0} must be entered in the correct format, for example FR
 generic.governmentId.error.pattern={0} must be entered in the correct format
 generic.governmentId.not.exist=The {0} you entered does not exist
-generic.error.sortcode={0} must be entered as 3 sets of 2 numbers, for example 07 00 00
+generic.error.sortCode=Enter a valid sort code like 123456
 generic.error.exactNumbers={0} must be {1} numbers
 generic.error.lookup={0} must match one of the suggestions from the list
 generic.error.register={0} must be from a valid list, {1} is not a valid list
@@ -313,9 +313,6 @@ file.error.upload.one.only=Only one file at a time can be uploaded
 file.error.empty=This file is empty
 file.error.size=This file is larger than the maximum file size of {0}MB
 file.error.type=The file type {0} is not permitted. You can only upload {1}
-
-# Sort code
-sortcode.part=Sort code part {0}
 
 # Assistive text
 assistive.text.sterling=in pounds sterling, do not enter the pound sign

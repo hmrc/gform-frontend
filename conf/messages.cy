@@ -118,7 +118,7 @@ generic.nonUKCountryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er eng
 generic.countryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
 generic.governmentId.error.pattern=Rhaid nodi {0} yn y fformat cywir
 generic.governmentId.not.exist=Nid yw’r {0} a nodoch yn bodoli
-generic.error.sortcode=Rhaid nodi {0} fel 3 set o rifau 2 ddigid, er enghraifft 07 00 00
+generic.error.sortCode=Nodwch god didoli dilys fel 123456
 generic.error.exactNumbers=Rhaid i {0} fod yn rhif {1} digid
 generic.error.lookup=Rhaid i {0} gyd-fynd ag un o’r awgrymiadau o’r rhestr
 generic.error.email=Rhaid i {0} gyd-fynd â’r cod rydych wedi ei gael drwy e-bost
@@ -311,9 +311,6 @@ file.error.upload.one.only=Gallwch ond uwchlwytho un ffeil ar y tro
 file.error.empty=Mae’r ffeil hon yn wag
 file.error.size=Mae’r ffeil hon yn fwy na maint y ffeil fwyaf a ganiateir sef {0}MB
 file.error.type=Ni chaniateir y math o ffeil {0}. Gallwch ond uwchlwytho {1}
-
-# Sort code
-sortcode.part=Cod didoli rhan {0}
 
 # Assistive text
 assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt

@@ -51,7 +51,6 @@ sealed trait ComponentType {
   def showType: String = this match {
     case _: Text               => "text"
     case _: TextArea           => "textArea"
-    case _: UkSortCode         => "ukSortCode"
     case _: Date               => "date"
     case _: CalendarDate.type  => "calendarDate"
     case _: Time               => "time"
@@ -95,19 +94,6 @@ case class TextArea(
 object TextArea {
   val defaultRows = 5
   val defaultDisplayCharCount = true
-}
-
-case class UkSortCode(value: Expr) extends ComponentType with MultiField {
-  override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
-    UkSortCode.fields(indexedComponentId)
-}
-
-object UkSortCode {
-  val _1: Atom = Atom("1")
-  val _2: Atom = Atom("2")
-  val _3: Atom = Atom("3")
-  val fields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = (indexedComponentId: IndexedComponentId) =>
-    NonEmptyList.of(_1, _2, _3).map(ModelComponentId.atomicCurry(indexedComponentId))
 }
 
 case class Date(

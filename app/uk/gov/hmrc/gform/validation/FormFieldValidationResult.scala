@@ -31,7 +31,7 @@ case class FieldGlobalError(formComponent: FormComponent, currentValue: String, 
 case class ComponentField(
   formComponent: FormComponent,
   data: Map[HtmlFieldId, FormFieldValidationResult]
-) // Used by multivalue fields ie. date, address, sortcode but also choice and revealingChoice
+) // Used by multivalue fields ie. date, address but also choice and revealingChoice
     extends FormFieldValidationResult
 
 trait FormFieldValidationResult {

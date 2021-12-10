@@ -58,24 +58,6 @@ object PDFPageFieldBuilder {
           formatText(validationResult(formComponent), envelopeWithMapping)
         )
 
-      case IsUkSortCode(_) =>
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          List(
-            Html(
-              UkSortCode
-                .fields(
-                  formComponent.modelComponentId.indexedComponentId
-                ) // TODO JoVl, this is weird, let's use MultiValueId instead
-                .toList
-                .map { fieldId =>
-                  validationResult(formComponent).getCurrentValue(HtmlFieldId.pure(fieldId))
-                }
-                .mkString("-")
-            )
-          )
-        )
-
       case IsDate(_) =>
         def safeId(atom: Atom) = HtmlFieldId.pure(formComponent.atomicFormComponentId(atom))
 
