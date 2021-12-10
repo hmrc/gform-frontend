@@ -92,9 +92,8 @@ class BankAccountReputationAsyncConnectorSpec
     stubFor(
       WireMock
         .post(s"/v2/validateBankDetails")
-        .withHeader("User-Agent", equalTo("gforms"))
+        .withHeader("User-Agent", equalTo("AHC/2.1"))
         .withHeader("Content-Type", equalTo("application/json"))
-        .withHeader("X-Tracking-Id", equalTo("some-tracking-id"))
         .willReturn(
           ok(
             Json

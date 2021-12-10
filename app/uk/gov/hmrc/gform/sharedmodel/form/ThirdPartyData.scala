@@ -20,7 +20,7 @@ import play.api.libs.json.{ Format, Json, OFormat }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, JsonUtils }
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieveFailed, DataRetrieveId, DataRetrieveMissingInput, DataRetrieveNotRequired, DataRetrieveResult, DataRetrieveSuccess, NotChecked, Obligations }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieveId, DataRetrieveMissingInput, DataRetrieveNotRequired, DataRetrieveResult, DataRetrieveSuccess, NotChecked, Obligations }
 
 case class ThirdPartyData(
   desRegistrationResponse: Option[DesRegistrationResponse],
@@ -39,7 +39,6 @@ case class ThirdPartyData(
         case None      => Some(Map(id -> dataRetrieveResult))
         case Some(map) => Some(map + (id -> dataRetrieveResult))
       })
-    case DataRetrieveFailed       => this
     case DataRetrieveMissingInput => this
   }
 

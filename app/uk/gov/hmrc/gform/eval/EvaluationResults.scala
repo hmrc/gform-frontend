@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.models.ids.{ ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveFailed, DataRetrieveMissingInput, DataRetrieveNotRequired, DataRetrieveSuccess, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveMissingInput, DataRetrieveNotRequired, DataRetrieveSuccess, SourceOrigin, VariadicValue }
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult]
@@ -332,7 +332,6 @@ case class EvaluationResults(
                             case DataRetrieveSuccess(_, data) =>
                               data.get(attribute)
                             case DataRetrieveNotRequired  => None
-                            case DataRetrieveFailed       => None
                             case DataRetrieveMissingInput => None
                           }
             } yield result).getOrElse("")
