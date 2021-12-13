@@ -184,18 +184,20 @@ class FormProcessor(
                                                                       validationService.validatePageModel
                                                                     )
       dataRetrieveResult <-
-        pageModel.fold(singleton =>
-          singleton.page.dataRetrieve.fold[Future[DataRetrieveResult]](DataRetrieveNotRequired.pure[Future]) {
-            case v: ValidateBankDetails =>
-              implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
-              DataRetrieveService[ValidateBankDetails, Future]
-                .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
-            case v: BusinessBankAccountExistence =>
-              implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
-              DataRetrieveService[BusinessBankAccountExistence, Future]
-                .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
-          }
-        )(_ => DataRetrieveNotRequired.pure[Future])(_ => DataRetrieveNotRequired.pure[Future])
+        if (isValid) {
+          pageModel.fold(singleton =>
+            singleton.page.dataRetrieve.fold[Future[DataRetrieveResult]](DataRetrieveNotRequired.pure[Future]) {
+              case v: ValidateBankDetails =>
+                implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
+                DataRetrieveService[ValidateBankDetails, Future]
+                  .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
+              case v: BusinessBankAccountExistence =>
+                implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
+                DataRetrieveService[BusinessBankAccountExistence, Future]
+                  .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
+            }
+          )(_ => DataRetrieveNotRequired.pure[Future])(_ => DataRetrieveNotRequired.pure[Future])
+        } else DataRetrieveNotRequired.pure[Future]
 
       res <- {
         val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
