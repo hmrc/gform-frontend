@@ -154,6 +154,7 @@ object ComponentValidator {
       case (true, None, _) =>
         val key = fieldValue match {
           case lookupRegistry.extractors.IsRadioLookup(_) => choiceErrorRequired
+          case lookupRegistry.extractors.IsUkPostCode(_)  => genericErrorSortCode
           case _                                          => genericErrorRequired
         }
         validationFailure(fieldValue, key, None)
