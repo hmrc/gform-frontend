@@ -74,15 +74,16 @@ class FormDataHelpersSpec extends Spec {
   "processResponseDataFromBody" should "build variadicFormData and requestRelatedData" in new TestFixture {
 
     val continuationFunction = (requestRelatedData: RequestRelatedData) =>
-      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
-        requestRelatedData shouldBe RequestRelatedData(Map("actionField" -> List("save")))
-        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
-          Map(
-            purePure("formField1") -> VariadicValue.One("value1")
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
+        (_: VariadicFormData[SourceOrigin.OutOfDate]) => {
+          requestRelatedData shouldBe RequestRelatedData(Map("actionField" -> List("save")))
+          variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+            Map(
+              purePure("formField1") -> VariadicValue.One("value1")
+            )
           )
-        )
-        Future.successful(Results.Ok)
-      }
+          Future.successful(Results.Ok)
+        }
 
     val future = FormDataHelpers
       .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
@@ -97,14 +98,15 @@ class FormDataHelpersSpec extends Spec {
     override lazy val requestBodyParams = Map("amountField" -> Seq("£111"))
 
     val continuationFunction = (_: RequestRelatedData) =>
-      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
-        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
-          Map(
-            purePure("amountField") -> VariadicValue.One("111")
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
+        (_: VariadicFormData[SourceOrigin.OutOfDate]) => {
+          variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+            Map(
+              purePure("amountField") -> VariadicValue.One("111")
+            )
           )
-        )
-        Future.successful(Results.Ok)
-      }
+          Future.successful(Results.Ok)
+        }
 
     val future = FormDataHelpers
       .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
@@ -119,14 +121,15 @@ class FormDataHelpersSpec extends Spec {
     override lazy val requestBodyParams = Map("amountField" -> Seq("£111"))
 
     val continuationFunction = (_: RequestRelatedData) =>
-      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
-        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
-          Map(
-            purePure("amountField") -> VariadicValue.One("111")
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
+        (_: VariadicFormData[SourceOrigin.OutOfDate]) => {
+          variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+            Map(
+              purePure("amountField") -> VariadicValue.One("111")
+            )
           )
-        )
-        Future.successful(Results.Ok)
-      }
+          Future.successful(Results.Ok)
+        }
 
     val future = FormDataHelpers
       .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
@@ -140,14 +143,15 @@ class FormDataHelpersSpec extends Spec {
     override lazy val requestBodyParams = Map("formField1" -> Seq("value1\r\n23 "))
 
     val continuationFunction = (requestRelatedData: RequestRelatedData) =>
-      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
-        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
-          Map(
-            purePure("formField1") -> VariadicValue.One("value1\n23")
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
+        (_: VariadicFormData[SourceOrigin.OutOfDate]) => {
+          variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+            Map(
+              purePure("formField1") -> VariadicValue.One("value1\n23")
+            )
           )
-        )
-        Future.successful(Results.Ok)
-      }
+          Future.successful(Results.Ok)
+        }
 
     val future = FormDataHelpers
       .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
@@ -194,16 +198,17 @@ class FormDataHelpersSpec extends Spec {
     )
 
     val continuationFunction = (requestRelatedData: RequestRelatedData) =>
-      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) => {
-        variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
-          Map(
-            purePure("formField1") -> VariadicValue.One(
-              "value1"
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
+        (_: VariadicFormData[SourceOrigin.OutOfDate]) => {
+          variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+            Map(
+              purePure("formField1") -> VariadicValue.One(
+                "value1"
+              )
             )
           )
-        )
-        Future.successful(Results.Ok)
-      }
+          Future.successful(Results.Ok)
+        }
 
     val persistedData: RecData[SourceOrigin.Current] = RecData.fromData(
       VariadicFormData[SourceOrigin.Current](

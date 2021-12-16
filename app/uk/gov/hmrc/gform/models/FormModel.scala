@@ -95,6 +95,11 @@ case class FormModel[A <: PageMode](
     fc.id.baseComponentId
   }.toSet
 
+  val sortCodeLookup: Set[BaseComponentId] = allFormComponents.collect {
+    case fc @ IsText(Text(UkSortCodeFormat, _, _, _, _, _)) =>
+      fc.baseComponentId
+  }.toSet
+
   val exprsMetadata: List[ExprMetadata] = brackets.toBracketsPlains.toList.flatMap {
     case AllPageModelExpressions(exprMetadatas) => exprMetadatas
     case _                                      => Nil

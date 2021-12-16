@@ -111,29 +111,37 @@ class FormProcessor(
         form = cache.form.copy(visitsIndex = VisitIndex(visitsIndexUpd), componentIdToFileId = componentIdToFileId)
       )
 
-      validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) {
-        maybeSectionNumber =>
-          val sectionNumber =
-            if (isLastIteration)
-              maybeSectionNumber
-                .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
-                .getOrElse(sn)
-            else
-              sn
+      validateAndUpdateData(
+        cacheUpd,
+        processDataUpd,
+        sn,
+        sn,
+        maybeAccessCode,
+        ff,
+        formModelOptics,
+        VariadicFormData.empty
+      ) { maybeSectionNumber =>
+        val sectionNumber =
+          if (isLastIteration)
+            maybeSectionNumber
+              .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
+              .getOrElse(sn)
+          else
+            sn
 
-          val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sectionNumber)
+        val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sectionNumber)
 
-          Redirect(
-            routes.FormController
-              .form(
-                cache.formTemplate._id,
-                maybeAccessCode,
-                sectionNumber,
-                sectionTitle4Ga,
-                SuppressErrors.Yes,
-                FastForward.Yes
-              )
-          )
+        Redirect(
+          routes.FormController
+            .form(
+              cache.formTemplate._id,
+              maybeAccessCode,
+              sectionNumber,
+              sectionTitle4Ga,
+              SuppressErrors.Yes,
+              FastForward.Yes
+            )
+        )
       }
     }
 
@@ -166,7 +174,8 @@ class FormProcessor(
     validationSectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode],
     fastForward: FastForward,
-    formModelOptics: FormModelOptics[Mongo]
+    formModelOptics: FormModelOptics[Mongo],
+    enteredVariadicFormData: VariadicFormData[SourceOrigin.OutOfDate]
   )(
     toResult: Option[SectionNumber] => Result
   )(implicit hc: HeaderCarrier, request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Future[Result] = {
@@ -181,7 +190,8 @@ class FormProcessor(
                                                                       validationSectionNumber,
                                                                       cache.toCacheData,
                                                                       envelopeWithMapping,
-                                                                      validationService.validatePageModel
+                                                                      validationService.validatePageModel,
+                                                                      enteredVariadicFormData
                                                                     )
       dataRetrieveResult <-
         if (isValid) {
@@ -245,7 +255,8 @@ class FormProcessor(
                         validationSectionNumber,
                         maybeAccessCode,
                         fastForward,
-                        formModelOptics
+                        formModelOptics,
+                        enteredVariadicFormData
                       )(toResult) // recursive call
           } yield result
         } else {

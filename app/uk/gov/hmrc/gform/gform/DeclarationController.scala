@@ -122,7 +122,7 @@ class DeclarationController(
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       import i18nSupport._
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
-        requestRelatedData => declarationOnlyVariadicFormData =>
+        requestRelatedData => declarationOnlyVariadicFormData => _ =>
           val sectionsData = formModelOptics.formModelRenderPageOptics.recData.variadicFormData
             .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]]
           val variadicFormData = sectionsData ++ declarationOnlyVariadicFormData

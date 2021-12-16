@@ -432,7 +432,7 @@ class FormController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics, Some(browserSectionNumber)) {
-          requestRelatedData => variadicFormData =>
+          requestRelatedData => variadicFormData => enteredVariadicFormData =>
             val sectionNumber: SectionNumber =
               formModelOptics.formModelVisibilityOptics.formModel.visibleSectionNumber(browserSectionNumber)
 
@@ -457,7 +457,8 @@ class FormController(
                     sectionNumber,
                     maybeAccessCode,
                     fastForward,
-                    formModelOptics
+                    formModelOptics,
+                    enteredVariadicFormData
                   ) {
                     case Some(sn) =>
                       val isFirstLanding = sectionNumber < sn
@@ -491,7 +492,8 @@ class FormController(
                 sectionNumber,
                 maybeAccessCode,
                 fastForward,
-                formModelOptics
+                formModelOptics,
+                enteredVariadicFormData
               ) { maybeSn =>
                 val formTemplate = cache.formTemplate
                 val envelopeExpiryDate = cache.form.envelopeExpiryDate
@@ -564,7 +566,8 @@ class FormController(
                     browserSectionNumber,
                     maybeAccessCode,
                     fastForward,
-                    formModelOptics
+                    formModelOptics,
+                    enteredVariadicFormData
                   )(_ => goBackLink)
                 } else {
                   goBackLink.pure[Future]
@@ -622,7 +625,8 @@ class FormController(
                 sectionNumber,
                 maybeAccessCode,
                 fastForward,
-                formModelOptics
+                formModelOptics,
+                enteredVariadicFormData
               ) { _ =>
                 val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
                 Redirect(

@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.validation
 import cats.Monoid
 import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
-import uk.gov.hmrc.gform.ops.FormComponentOps
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidatorsResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
@@ -53,26 +53,17 @@ case class ValidationResult(
   def formFieldValidationResults(singleton: Singleton[DataExpanded]): List[FormFieldValidationResult] =
     singleton.allFormComponents.map(apply)
 
-  private def cleanCurrentValues: List[FormFieldValidationResult] =
-    lookup.map {
-      case (_, FieldOk(formComponent, cv))
-          if formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber =>
-        val poundOrComma = "[£,]".r
-        val cvUpd: String = poundOrComma.replaceAllIn(cv, "")
-        FieldOk(formComponent, cvUpd)
-      case (_, FieldOk(formComponent, cv)) if formComponent.isReferenceNumber =>
-        val cvUpd: String = cv.replace(" ", "")
-        FieldOk(formComponent, cvUpd)
-      case (_, FieldOk(formComponent, cv)) if formComponent.isSortCode =>
-        val cvUpd: String = cv.replaceAll("[^0-9]", "")
-        FieldOk(formComponent, cvUpd)
-      case (formComponent, ffvr) => ffvr
-    }.toList
+  def toFormValidationOutcome(
+    enteredVariadicFormData: VariadicFormData[SourceOrigin.OutOfDate]
+  ): FormValidationOutcome = {
 
-  def toFormValidationOutcome: FormValidationOutcome = {
+    val enteredFormFieldValidationResults: List[FormFieldValidationResult] = formFieldValidationResults.collect {
+      case fe @ FieldError(fc, cv, _) =>
+        fe.copy(currentValue = enteredVariadicFormData.one(fc.modelComponentId).getOrElse(cv))
+    }
 
     val formComponentValidations =
-      if (isFormValid) cleanCurrentValues else formFieldValidationResults
+      if (isFormValid) formFieldValidationResults else enteredFormFieldValidationResults
 
     FormValidationOutcome(
       isFormValid,

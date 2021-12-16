@@ -73,7 +73,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           )
         )
       ),
-      indexedComponentIds
+      indexedComponentIds,
+      Set.empty
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()
