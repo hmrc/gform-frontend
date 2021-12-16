@@ -458,7 +458,7 @@ class FormController(
                     maybeAccessCode,
                     fastForward,
                     formModelOptics,
-                    enteredVariadicFormData
+                    enteredVariadicFormData.userData
                   ) {
                     case Some(sn) =>
                       val isFirstLanding = sectionNumber < sn
@@ -493,7 +493,7 @@ class FormController(
                 maybeAccessCode,
                 fastForward,
                 formModelOptics,
-                enteredVariadicFormData
+                enteredVariadicFormData.userData
               ) { maybeSn =>
                 val formTemplate = cache.formTemplate
                 val envelopeExpiryDate = cache.form.envelopeExpiryDate
@@ -567,7 +567,7 @@ class FormController(
                     maybeAccessCode,
                     fastForward,
                     formModelOptics,
-                    enteredVariadicFormData
+                    enteredVariadicFormData.userData
                   )(_ => goBackLink)
                 } else {
                   goBackLink.pure[Future]
@@ -626,7 +626,7 @@ class FormController(
                 maybeAccessCode,
                 fastForward,
                 formModelOptics,
-                enteredVariadicFormData
+                enteredVariadicFormData.userData
               ) { _ =>
                 val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
                 Redirect(

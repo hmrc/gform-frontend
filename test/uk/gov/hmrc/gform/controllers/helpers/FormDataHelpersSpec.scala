@@ -75,7 +75,7 @@ class FormDataHelpersSpec extends Spec {
 
     val continuationFunction = (requestRelatedData: RequestRelatedData) =>
       (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
-        (_: VariadicFormData[SourceOrigin.OutOfDate]) => {
+        (_: EnteredVariadicFormData) => {
           requestRelatedData shouldBe RequestRelatedData(Map("actionField" -> List("save")))
           variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
             Map(
@@ -99,7 +99,7 @@ class FormDataHelpersSpec extends Spec {
 
     val continuationFunction = (_: RequestRelatedData) =>
       (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
-        (_: VariadicFormData[SourceOrigin.OutOfDate]) => {
+        (_: EnteredVariadicFormData) => {
           variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
             Map(
               purePure("amountField") -> VariadicValue.One("111")
@@ -122,7 +122,7 @@ class FormDataHelpersSpec extends Spec {
 
     val continuationFunction = (_: RequestRelatedData) =>
       (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
-        (_: VariadicFormData[SourceOrigin.OutOfDate]) => {
+        (_: EnteredVariadicFormData) => {
           variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
             Map(
               purePure("amountField") -> VariadicValue.One("111")
@@ -144,7 +144,7 @@ class FormDataHelpersSpec extends Spec {
 
     val continuationFunction = (requestRelatedData: RequestRelatedData) =>
       (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
-        (_: VariadicFormData[SourceOrigin.OutOfDate]) => {
+        (_: EnteredVariadicFormData) => {
           variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
             Map(
               purePure("formField1") -> VariadicValue.One("value1\n23")
@@ -199,7 +199,7 @@ class FormDataHelpersSpec extends Spec {
 
     val continuationFunction = (requestRelatedData: RequestRelatedData) =>
       (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
-        (_: VariadicFormData[SourceOrigin.OutOfDate]) => {
+        (_: EnteredVariadicFormData) => {
           variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
             Map(
               purePure("formField1") -> VariadicValue.One(

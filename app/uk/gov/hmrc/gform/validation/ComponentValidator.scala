@@ -74,6 +74,8 @@ object ComponentValidator {
   val timeErrorRequired                                      = "time.error.required"
   // format: on
 
+  val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
+
   private def textData[D <: DataOrigin](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     fieldValue: FormComponent
@@ -249,14 +251,12 @@ object ComponentValidator {
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ): ValidatedType[Unit] = {
-    val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
+  ): ValidatedType[Unit] =
     value match {
       case ukSortCodeFormat() => validationSuccess
       case _ =>
         validationFailure(fieldValue, genericErrorSortCode, None)
     }
-  }
 
   private def validateSubmissionRefFormat(
     fieldValue: FormComponent,

@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicV
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber }
 import uk.gov.hmrc.gform.ops.FormComponentOps
+import uk.gov.hmrc.gform.validation.ComponentValidator
 
 import scala.concurrent.Future
 
@@ -43,9 +44,9 @@ object FormDataHelpers {
     formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo],
     maybeSectionNumber: Option[SectionNumber] = None
   )(
-    continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => VariadicFormData[
-      SourceOrigin.OutOfDate
-    ] => Future[Result]
+    continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => EnteredVariadicFormData => Future[
+      Result
+    ]
   ): Future[Result] =
     request.body.asFormUrlEncoded
       .map(_.map { case (field, values) =>
@@ -72,18 +73,19 @@ object FormDataHelpers {
       case Some(requestData) =>
         val (variadicFormData, requestRelatedData, enteredVariadicFormData) =
           buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, requestData)
+        val maybeSectionModelComponentIds = maybeSectionNumber.toSeq.flatMap(s =>
+          unselectedChoiceElements(formModelRenderPageOptics.formModel(s), requestData)
+        )
         continuation(requestRelatedData)(
           formModelRenderPageOptics.recData.variadicFormData ++
             variadicFormData --
-            maybeSectionNumber.toSeq.flatMap(s =>
-              unselectedChoiceElements(formModelRenderPageOptics.formModel(s), requestData)
-            )
+            maybeSectionModelComponentIds
         )(
-          formModelRenderPageOptics.recData.variadicFormData ++
-            enteredVariadicFormData --
-            maybeSectionNumber.toSeq.flatMap(s =>
-              unselectedChoiceElements(formModelRenderPageOptics.formModel(s), requestData)
-            )
+          EnteredVariadicFormData(
+            formModelRenderPageOptics.recData.variadicFormData ++
+              enteredVariadicFormData --
+              maybeSectionModelComponentIds
+          )
         )
       case None =>
         val variadicFormData = formModelRenderPageOptics.recData.variadicFormData ++
@@ -91,7 +93,7 @@ object FormDataHelpers {
           maybeSectionNumber.toSeq.flatMap(s =>
             unselectedChoiceElements(formModelRenderPageOptics.formModel(s), Map.empty)
           )
-        continuation(RequestRelatedData.empty)(variadicFormData)(variadicFormData)
+        continuation(RequestRelatedData.empty)(variadicFormData)(EnteredVariadicFormData(variadicFormData))
     }
 
   private def trimAndReplaceCRLFWithLF(value: String) = value.trim.replaceAll("\r\n", "\n")
@@ -173,11 +175,11 @@ object FormDataHelpers {
         RequestRelatedData.empty,
         VariadicFormData.empty[SourceOrigin.OutOfDate]
       )
-    ) { case ((variadicFormDataAcc, requestRelatedDataAcc, orgVariadicFormDataAcc), (maybeVar, maybeReq, maybeOrg)) =>
+    ) { case ((variadicFormDataAcc, requestRelatedDataAcc, entVariadicFormDataAcc), (maybeVar, maybeReq, maybeEnt)) =>
       (
         maybeVar.fold(variadicFormDataAcc)(variadicFormDataAcc.addValue),
         maybeReq.fold(requestRelatedDataAcc)(requestRelatedDataAcc + _),
-        maybeOrg.fold(orgVariadicFormDataAcc)(orgVariadicFormDataAcc.addValue)
+        maybeEnt.fold(entVariadicFormDataAcc)(entVariadicFormDataAcc.addValue)
       )
     }
   }
@@ -213,11 +215,11 @@ object FormDataHelpers {
       case _                                                      => value
     }
 
-  private def isValidSortCode(value: String): Boolean = {
-    val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
+  private def isValidSortCode(value: String): Boolean =
     value match {
-      case ukSortCodeFormat() => true
-      case _                  => false
+      case ComponentValidator.ukSortCodeFormat() => true
+      case _                                     => false
     }
-  }
 }
+
+case class EnteredVariadicFormData(userData: VariadicFormData[SourceOrigin.OutOfDate]) extends AnyVal
