@@ -41,6 +41,5 @@ final case class EvaluationContext(
   pageIdSectionNumberMap: Map[ModelPageId, SectionNumber],
   lang: LangADT,
   messages: Messages,
-  indexedComponentIds: List[ModelComponentId],
-  sortCodeLookup: Set[BaseComponentId]
+  indexedComponentIds: List[ModelComponentId]
 )

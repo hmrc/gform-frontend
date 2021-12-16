@@ -241,15 +241,6 @@ case class EvaluationResults(
           val addressLines = variadicValues.collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
           ExpressionResult.AddressResult(addressLines)
         }
-
-      case ctx @ FormCtx(formComponentId: FormComponentId)
-          if evaluationContext.sortCodeLookup(formComponentId.baseComponentId) =>
-        whenVisible(formComponentId) {
-          val sortCodeExprResult = get(ctx, recData, fromVariadicValue, evaluationContext)
-          sortCodeExprResult.withStringResult(sortCodeExprResult) { sortCode =>
-            StringResult(sortCode.replaceAll("[^0-9]", "").grouped(2).mkString("-"))
-          }
-        }
       case ctx @ FormCtx(formComponentId: FormComponentId) =>
         get(ctx, recData, fromVariadicValue, evaluationContext)
       case Sum(field1: Expr) => unsupportedOperation("String")(expr)

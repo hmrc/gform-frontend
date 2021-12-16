@@ -198,8 +198,7 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.pageIdSectionNumberMap,
         lang,
         messages,
-        formModel.allIndexedComponentIds,
-        formModel.sortCodeLookup
+        formModel.allIndexedComponentIds
       )
 
     recalculation
