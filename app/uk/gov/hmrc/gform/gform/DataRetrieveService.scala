@@ -100,7 +100,7 @@ object DataRetrieveService {
           bankAccountReputationConnector
             .businessBankAccountExistence(
               bars.BusinessBankAccountExistence.create(
-                sortCode.stringRepresentation.replaceAll("[^0-9]", ""),
+                sortCode.stringRepresentation,
                 accNumber.stringRepresentation,
                 companyName.stringRepresentation
               )
