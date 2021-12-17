@@ -188,7 +188,7 @@ case class EvaluationResults(
       case HmrcRosmRegistrationCheck(value: RosmProp) => unsupportedOperation("Number")(expr)
       case Value                                      => Empty
       case FormTemplateCtx(value: FormTemplateProp)   => unsupportedOperation("Number")(expr)
-      case ParamCtx(_)                                => unsupportedOperation("Number")(expr)
+      case ParamCtx(queryParam)                       => toNumberResult(evaluationContext.thirdPartyData.queryParams(queryParam))
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
       case LangCtx                                    => unsupportedOperation("Number")(expr)
       case DateCtx(_)                                 => unsupportedOperation("Number")(expr)

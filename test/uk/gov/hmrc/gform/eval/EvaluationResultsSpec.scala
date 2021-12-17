@@ -26,10 +26,10 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
+import uk.gov.hmrc.gform.sharedmodel.form.{ QueryParamValue, QueryParams, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DataRetrieveCtx, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, Period, PeriodExt, PeriodFn, PeriodValue, SectionNumber, ServiceName, UserCtx, UserField, UserFieldFunc }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DataRetrieveCtx, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, ParamCtx, Period, PeriodExt, PeriodFn, PeriodValue, QueryParam, RoundingMode, SectionNumber, ServiceName, Sterling, UserCtx, UserField, UserFieldFunc }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -54,7 +54,14 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       submissionRef,
       None,
       retrievals,
-      thirdPartyData,
+      thirdPartyData.copy(queryParams =
+        QueryParams(
+          Map(
+            QueryParam("availAmt")    -> QueryParamValue("123"),
+            QueryParam("availAmtStr") -> QueryParamValue("foo")
+          )
+        )
+      ),
       authConfig,
       HeaderCarrier(),
       Option.empty[FormPhase],
@@ -450,6 +457,26 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         NumberResult(1),
         "user enrolments count for service a and identifier b"
+      ),
+      (
+        TypeInfo(
+          ParamCtx(QueryParam("availAmt")),
+          StaticTypeData(ExprType.number, Some(Sterling(RoundingMode.Down, false)))
+        ),
+        recData,
+        evaluationContext,
+        NumberResult(123),
+        "convert param to Sterling"
+      ),
+      (
+        TypeInfo(
+          ParamCtx(QueryParam("availAmtStr")),
+          StaticTypeData(ExprType.number, Some(Sterling(RoundingMode.Down, false)))
+        ),
+        recData,
+        evaluationContext,
+        ExpressionResult.Invalid("Number - cannot convert 'foo' to number"),
+        "convert param to Sterling (fail when param is not a convertible to number)"
       )
     )
     forAll(table) {
