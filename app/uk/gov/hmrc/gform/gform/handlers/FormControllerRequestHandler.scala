@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SectionNumber, SuppressErrors }
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -52,7 +53,8 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     sectionNumber: SectionNumber,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser]
+    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
+    enteredVariadicFormData: VariadicFormData[SourceOrigin.OutOfDate]
   ): Future[FormValidationOutcome] =
     formValidator
       .validatePageModelBySectionNumber(
@@ -62,7 +64,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
         envelope,
         validatePageModel
       )
-      .map(formValidator.toFormValidationOutcome)
+      .map(fhr => formValidator.toFormValidationOutcome(fhr, enteredVariadicFormData))
 
   def handleFastForwardValidate(
     processData: ProcessData,

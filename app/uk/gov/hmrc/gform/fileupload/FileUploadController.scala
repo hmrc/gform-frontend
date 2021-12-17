@@ -230,7 +230,7 @@ class FileUploadController(
     formComponentId: FormComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => implicit l => cache => _ => formModelOptics =>
-      processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) { _ => variadicFormData =>
+      processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) { _ => variadicFormData => _ =>
         val cacheU = cache
           .modify(_.form.formData)
           .using(_ ++ variadicFormData.toFormData)

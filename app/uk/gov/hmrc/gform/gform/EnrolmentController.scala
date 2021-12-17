@@ -164,74 +164,75 @@ class EnrolmentController(
           val formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo] =
             FormModelRenderPageOptics(genesisFormModel, RecData.empty)
 
-          processResponseDataFromBody(request, formModelRenderPageOptics) { requestRelatedData => variadicFormData =>
-            val formModelOpticsF = FormModelOptics
-              .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.EnrolmentOnly](
-                variadicFormData,
-                cache,
-                cache.toCacheData,
-                recalculation,
-                None,
-                FormComponentIdToFileIdMapping.empty
-              )
-            def handleContinueWithData(formModelOptics: FormModelOptics[DataOrigin.Mongo]) = {
-              val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
-
-              implicit val sse =
-                smartStringEvaluatorFactory(
-                  formModelVisibilityOptics,
-                  cache.retrievals,
-                  ThirdPartyData.empty,
-                  None,
-                  EnvelopeId(""),
-                  formTemplate
-                )
-
-              implicit val EC = enrolmentConnect
-              implicit val GGC = ggConnect
-
-              val formValidator: FormValidator = new FormValidator()
-              val formHandlerResultF: Future[FormHandlerResult] =
-                formValidator.validatePageModelBySectionNumber[DataOrigin.Mongo](
-                  formModelOptics,
-                  SectionNumber(0),
+          processResponseDataFromBody(request, formModelRenderPageOptics) {
+            requestRelatedData => variadicFormData => _ =>
+              val formModelOpticsF = FormModelOptics
+                .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.EnrolmentOnly](
+                  variadicFormData,
+                  cache,
                   cache.toCacheData,
-                  EnvelopeWithMapping.empty,
-                  validationService.validatePageModel
+                  recalculation,
+                  None,
+                  FormComponentIdToFileIdMapping.empty
                 )
+              def handleContinueWithData(formModelOptics: FormModelOptics[DataOrigin.Mongo]) = {
+                val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
 
-              val enrolmentResultProcessor = new EnrolmentResultProcessor(
-                renderEnrolmentSection,
-                formTemplate,
-                retrievals,
-                enrolmentSection,
-                formModelOptics,
-                frontendAppConfig
-              )
-              for {
-                formHandlerResult <- formHandlerResultF
-                res <- processValidation(
-                         serviceId,
-                         enrolmentSection,
-                         postCheck,
-                         checkEnrolment(serviceId),
-                         formHandlerResult,
-                         lfcev,
-                         retrievals
-                       )
-                         .fold(
-                           enrolmentResultProcessor
-                             .recoverEnrolmentError(formHandlerResult.validationResult),
-                           enrolmentResultProcessor.processEnrolmentResult
+                implicit val sse =
+                  smartStringEvaluatorFactory(
+                    formModelVisibilityOptics,
+                    cache.retrievals,
+                    ThirdPartyData.empty,
+                    None,
+                    EnvelopeId(""),
+                    formTemplate
+                  )
+
+                implicit val EC = enrolmentConnect
+                implicit val GGC = ggConnect
+
+                val formValidator: FormValidator = new FormValidator()
+                val formHandlerResultF: Future[FormHandlerResult] =
+                  formValidator.validatePageModelBySectionNumber[DataOrigin.Mongo](
+                    formModelOptics,
+                    SectionNumber(0),
+                    cache.toCacheData,
+                    EnvelopeWithMapping.empty,
+                    validationService.validatePageModel
+                  )
+
+                val enrolmentResultProcessor = new EnrolmentResultProcessor(
+                  renderEnrolmentSection,
+                  formTemplate,
+                  retrievals,
+                  enrolmentSection,
+                  formModelOptics,
+                  frontendAppConfig
+                )
+                for {
+                  formHandlerResult <- formHandlerResultF
+                  res <- processValidation(
+                           serviceId,
+                           enrolmentSection,
+                           postCheck,
+                           checkEnrolment(serviceId),
+                           formHandlerResult,
+                           lfcev,
+                           retrievals
                          )
-                         .run(Env(formTemplate, retrievals, formModelVisibilityOptics))
-              } yield res
-            }
-            action match {
-              case uk.gov.hmrc.gform.controllers.Continue =>
-                formModelOpticsF.flatMap(handleContinueWithData)
-              case _ => Future.successful(BadRequest("Cannot determine action"))
-            }
+                           .fold(
+                             enrolmentResultProcessor
+                               .recoverEnrolmentError(formHandlerResult.validationResult),
+                             enrolmentResultProcessor.processEnrolmentResult
+                           )
+                           .run(Env(formTemplate, retrievals, formModelVisibilityOptics))
+                } yield res
+              }
+              action match {
+                case uk.gov.hmrc.gform.controllers.Continue =>
+                  formModelOpticsF.flatMap(handleContinueWithData)
+                case _ => Future.successful(BadRequest("Cannot determine action"))
+              }
 
           }
         case _ =>

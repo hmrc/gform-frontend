@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ GetEmailCodeFieldMatcher, ValidationResult }
@@ -83,10 +84,11 @@ class FormValidator(implicit ec: ExecutionContext) {
   }
 
   def toFormValidationOutcome(
-    fhr: FormHandlerResult
+    fhr: FormHandlerResult,
+    enteredVariadicFormData: VariadicFormData[SourceOrigin.OutOfDate]
   ): FormValidationOutcome = {
     val FormHandlerResult(validationResult, _) = fhr
-    validationResult.toFormValidationOutcome
+    validationResult.toFormValidationOutcome(enteredVariadicFormData)
   }
 
   def fastForwardValidate(
@@ -110,13 +112,14 @@ class FormValidator(implicit ec: ExecutionContext) {
             cache,
             envelope,
             validatePageModel
-          ).map(toFormValidationOutcome).map { case FormValidationOutcome(isValid, _, _) =>
-            val page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
-            val hasBeenVisited = processData.visitsIndex.contains(currentSn.value)
+          ).map(fhr => toFormValidationOutcome(fhr, VariadicFormData.empty)).map {
+            case FormValidationOutcome(isValid, _, _) =>
+              val page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
+              val hasBeenVisited = processData.visitsIndex.contains(currentSn.value)
 
-            val stop = page.isTerminationPage || !hasBeenVisited
+              val stop = page.isTerminationPage || !hasBeenVisited
 
-            if (isValid && !stop && fastForward.goOn(currentSn)) None else Some(currentSn)
+              if (isValid && !stop && fastForward.goOn(currentSn)) None else Some(currentSn)
           }
       }
     }

@@ -89,7 +89,7 @@ class SummaryController(
       OperationWithForm.AcceptSummary
     ) { implicit request: Request[AnyContent] => implicit l => cache => implicit sse => formModelOptics =>
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
-        requestRelatedData => variadicFormData =>
+        requestRelatedData => variadicFormData => _ =>
           save match {
             case Exit => handleExit(cache.formTemplateWithRedirects, maybeAccessCode, cache).pure[Future]
             case SummaryContinue =>

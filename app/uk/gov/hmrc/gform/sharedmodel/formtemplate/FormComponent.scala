@@ -84,6 +84,7 @@ case class FormComponent(
     case IsText(Text(tc @ WholeSterling(_), _, _, _, _, _))           => Some(tc)
     case IsText(Text(tc @ Number(_, _, _, _), _, _, _, _, _))         => Some(tc)
     case IsText(Text(tc @ PositiveNumber(_, _, _, _), _, _, _, _, _)) => Some(tc)
+    case IsText(Text(UkSortCodeFormat, _, _, _, _, _))                => Some(UkSortCodeFormat)
     case _                                                            => None
   }
 

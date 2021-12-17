@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicV
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber }
 import uk.gov.hmrc.gform.ops.FormComponentOps
+import uk.gov.hmrc.gform.validation.ComponentValidator
 
 import scala.concurrent.Future
 
@@ -43,9 +44,9 @@ object FormDataHelpers {
     formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo],
     maybeSectionNumber: Option[SectionNumber] = None
   )(
-    continuation: RequestRelatedData => VariadicFormData[
-      SourceOrigin.OutOfDate
-    ] => Future[Result]
+    continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => EnteredVariadicFormData => Future[
+      Result
+    ]
   ): Future[Result] =
     request.body.asFormUrlEncoded
       .map(_.map { case (field, values) =>
@@ -70,23 +71,29 @@ object FormDataHelpers {
         )
       }) match {
       case Some(requestData) =>
-        val (variadicFormData, requestRelatedData) =
+        val (variadicFormData, requestRelatedData, enteredVariadicFormData) =
           buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, requestData)
+        val maybeSectionModelComponentIds = maybeSectionNumber.toSeq.flatMap(s =>
+          unselectedChoiceElements(formModelRenderPageOptics.formModel(s), requestData)
+        )
         continuation(requestRelatedData)(
           formModelRenderPageOptics.recData.variadicFormData ++
             variadicFormData --
-            maybeSectionNumber.toSeq.flatMap(s =>
-              unselectedChoiceElements(formModelRenderPageOptics.formModel(s), requestData)
-            )
+            maybeSectionModelComponentIds
+        )(
+          EnteredVariadicFormData(
+            formModelRenderPageOptics.recData.variadicFormData ++
+              enteredVariadicFormData --
+              maybeSectionModelComponentIds
+          )
         )
       case None =>
-        continuation(RequestRelatedData.empty)(
-          formModelRenderPageOptics.recData.variadicFormData ++
-            VariadicFormData.empty[SourceOrigin.OutOfDate] --
-            maybeSectionNumber.toSeq.flatMap(s =>
-              unselectedChoiceElements(formModelRenderPageOptics.formModel(s), Map.empty)
-            )
-        )
+        val variadicFormData = formModelRenderPageOptics.recData.variadicFormData ++
+          VariadicFormData.empty[SourceOrigin.OutOfDate] --
+          maybeSectionNumber.toSeq.flatMap(s =>
+            unselectedChoiceElements(formModelRenderPageOptics.formModel(s), Map.empty)
+          )
+        continuation(RequestRelatedData.empty)(variadicFormData)(EnteredVariadicFormData(variadicFormData))
     }
 
   private def trimAndReplaceCRLFWithLF(value: String) = value.trim.replaceAll("\r\n", "\n")
@@ -110,56 +117,70 @@ object FormDataHelpers {
   private def buildVariadicFormDataFromBrowserPostData(
     formModel: FormModel[DataExpanded],
     requestData: Map[String, Seq[String]]
-  ): (VariadicFormData[SourceOrigin.OutOfDate], RequestRelatedData) = {
+  ): (VariadicFormData[SourceOrigin.OutOfDate], RequestRelatedData, VariadicFormData[SourceOrigin.OutOfDate]) = {
 
     val upperCaseIds: Set[ModelComponentId] = formModel.allUpperCaseIds
     val variadicFormComponentIds: Set[ModelComponentId] = formModel.allModelComponentIds
     val multiValueIds: Set[ModelComponentId] = formModel.allMultiSelectionIds
 
-    val xs: List[(Option[(ModelComponentId, VariadicValue)], Option[RequestRelatedData])] = requestData.toList.map {
-      case (id, s) =>
-        val modelComponentId = ExpandUtils.toModelComponentId(id)
+    val xs: List[
+      (Option[(ModelComponentId, VariadicValue)], Option[RequestRelatedData], Option[(ModelComponentId, VariadicValue)])
+    ] = requestData.toList.map { case (id, s) =>
+      val modelComponentId = ExpandUtils.toModelComponentId(id)
 
-        (variadicFormComponentIds(modelComponentId), multiValueIds(modelComponentId)) match {
-          case (true, true) =>
-            (
-              Some(
-                modelComponentId -> VariadicValue.Many(
-                  s.toList.mkString(",").split(",").map(_.trim).filterNot(_.isEmpty)
-                )
-              ),
-              None
+      (variadicFormComponentIds(modelComponentId), multiValueIds(modelComponentId)) match {
+        case (true, true) =>
+          val value = Some(
+            modelComponentId -> VariadicValue.Many(
+              s.toList.mkString(",").split(",").map(_.trim).filterNot(_.isEmpty)
             )
-          case (true, false) =>
-            s.toList match {
-              case first :: _ =>
-                val firstUpdated =
-                  if (upperCaseIds(modelComponentId)) {
-                    first.toUpperCase()
-                  } else first
-                (
-                  Some(
-                    modelComponentId -> VariadicValue.One(
-                      removeCurrencySymbolIfNumericType(firstUpdated, modelComponentId.toFormComponentId, formModel)
-                    )
-                  ),
-                  None
+          );
+          (
+            value,
+            None,
+            value
+          )
+        case (true, false) =>
+          s.toList match {
+            case first :: _ =>
+              val firstUpdated =
+                if (upperCaseIds(modelComponentId)) {
+                  first.toUpperCase()
+                } else first
+              (
+                Some(
+                  modelComponentId -> VariadicValue.One(
+                    cleanVariadicValues(firstUpdated, modelComponentId.toFormComponentId, formModel)
+                  )
+                ),
+                None,
+                Some(
+                  modelComponentId -> VariadicValue.One(
+                    firstUpdated
+                  )
                 )
-              case _ =>
-                throw new IllegalArgumentException(
-                  show"""Got a single value form component ID "$id", with an empty list of values"""
-                )
-            }
-          case (false, _) => (None, Some(RequestRelatedData(Map(id -> s))))
-        }
+              )
+            case _ =>
+              throw new IllegalArgumentException(
+                show"""Got a single value form component ID "$id", with an empty list of values"""
+              )
+          }
+        case (false, _) => (None, Some(RequestRelatedData(Map(id -> s))), None)
+      }
     }
 
-    xs.foldLeft((VariadicFormData.empty[SourceOrigin.OutOfDate], RequestRelatedData.empty)) {
-      case ((variadicFormDataAcc, requestRelatedDataAcc), (maybeVar, maybeReq)) =>
-        (
-          maybeVar.fold(variadicFormDataAcc)(variadicFormDataAcc.addValue),
-          maybeReq.fold(requestRelatedDataAcc)(requestRelatedDataAcc + _)
-        )
+    xs.foldLeft(
+      (
+        VariadicFormData.empty[SourceOrigin.OutOfDate],
+        RequestRelatedData.empty,
+        VariadicFormData.empty[SourceOrigin.OutOfDate]
+      )
+    ) { case ((variadicFormDataAcc, requestRelatedDataAcc, entVariadicFormDataAcc), (maybeVar, maybeReq, maybeEnt)) =>
+      (
+        maybeVar.fold(variadicFormDataAcc)(variadicFormDataAcc.addValue),
+        maybeReq.fold(requestRelatedDataAcc)(requestRelatedDataAcc + _),
+        maybeEnt.fold(entVariadicFormDataAcc)(entVariadicFormDataAcc.addValue)
+      )
     }
   }
   /*
@@ -178,13 +199,27 @@ object FormDataHelpers {
         revealingChoice.options.flatMap(_.revealingFields).map(_.modelComponentId).toSet + f.modelComponentId
     }.flatten
 
-  private def removeCurrencySymbolIfNumericType(
+  private def cleanVariadicValues(
     value: String,
     formComponentId: FormComponentId,
     formModel: FormModel[DataExpanded]
   ): String =
     formModel.fcLookup.get(formComponentId) match {
-      case Some(formComponent) if formComponent.isNumeric => value.replace("£", "")
-      case _                                              => value
+      case Some(formComponent) if formComponent.isNumeric                            => value.replace("£", "")
+      case Some(formComponent) if formComponent.isSortCode && isValidSortCode(value) => value.replaceAll("[^0-9]", "")
+      case Some(formComponent)
+          if formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber =>
+        val poundOrComma = "[£,]".r
+        poundOrComma.replaceAllIn(value, "")
+      case Some(formComponent) if formComponent.isReferenceNumber => value.replace(" ", "")
+      case _                                                      => value
+    }
+
+  private def isValidSortCode(value: String): Boolean =
+    value match {
+      case ComponentValidator.ukSortCodeFormat() => true
+      case _                                     => false
     }
 }
+
+case class EnteredVariadicFormData(userData: VariadicFormData[SourceOrigin.OutOfDate]) extends AnyVal

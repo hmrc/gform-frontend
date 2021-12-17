@@ -39,6 +39,7 @@ object TextFormatter {
       case IsPositiveNumberOrNumber(maxFractionalDigits, roundingMode, unit) => formatNumber(currentValue, maxFractionalDigits, roundingMode, unit)
       case _: Sterling                                                       => formatSterling(currentValue)
       case _: WholeSterling                                                  => stripDecimal(formatSterling(currentValue))
+      case UkSortCodeFormat                                                  => formatUkSortCode(currentValue)
       case _                                                                 => currentValue
       // format: on
     }

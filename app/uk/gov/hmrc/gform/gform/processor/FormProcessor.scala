@@ -111,29 +111,37 @@ class FormProcessor(
         form = cache.form.copy(visitsIndex = VisitIndex(visitsIndexUpd), componentIdToFileId = componentIdToFileId)
       )
 
-      validateAndUpdateData(cacheUpd, processDataUpd, sn, sn, maybeAccessCode, ff, formModelOptics) {
-        maybeSectionNumber =>
-          val sectionNumber =
-            if (isLastIteration)
-              maybeSectionNumber
-                .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
-                .getOrElse(sn)
-            else
-              sn
+      validateAndUpdateData(
+        cacheUpd,
+        processDataUpd,
+        sn,
+        sn,
+        maybeAccessCode,
+        ff,
+        formModelOptics,
+        VariadicFormData.empty
+      ) { maybeSectionNumber =>
+        val sectionNumber =
+          if (isLastIteration)
+            maybeSectionNumber
+              .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
+              .getOrElse(sn)
+          else
+            sn
 
-          val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sectionNumber)
+        val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sectionNumber)
 
-          Redirect(
-            routes.FormController
-              .form(
-                cache.formTemplate._id,
-                maybeAccessCode,
-                sectionNumber,
-                sectionTitle4Ga,
-                SuppressErrors.Yes,
-                FastForward.Yes
-              )
-          )
+        Redirect(
+          routes.FormController
+            .form(
+              cache.formTemplate._id,
+              maybeAccessCode,
+              sectionNumber,
+              sectionTitle4Ga,
+              SuppressErrors.Yes,
+              FastForward.Yes
+            )
+        )
       }
     }
 
@@ -166,7 +174,8 @@ class FormProcessor(
     validationSectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode],
     fastForward: FastForward,
-    formModelOptics: FormModelOptics[Mongo]
+    formModelOptics: FormModelOptics[Mongo],
+    enteredVariadicFormData: VariadicFormData[SourceOrigin.OutOfDate]
   )(
     toResult: Option[SectionNumber] => Result
   )(implicit hc: HeaderCarrier, request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Future[Result] = {
@@ -181,21 +190,24 @@ class FormProcessor(
                                                                       validationSectionNumber,
                                                                       cache.toCacheData,
                                                                       envelopeWithMapping,
-                                                                      validationService.validatePageModel
+                                                                      validationService.validatePageModel,
+                                                                      enteredVariadicFormData
                                                                     )
       dataRetrieveResult <-
-        pageModel.fold(singleton =>
-          singleton.page.dataRetrieve.fold[Future[DataRetrieveResult]](DataRetrieveNotRequired.pure[Future]) {
-            case v: ValidateBankDetails =>
-              implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
-              DataRetrieveService[ValidateBankDetails, Future]
-                .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
-            case v: BusinessBankAccountExistence =>
-              implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
-              DataRetrieveService[BusinessBankAccountExistence, Future]
-                .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
-          }
-        )(_ => DataRetrieveNotRequired.pure[Future])(_ => DataRetrieveNotRequired.pure[Future])
+        if (isValid) {
+          pageModel.fold(singleton =>
+            singleton.page.dataRetrieve.fold[Future[DataRetrieveResult]](DataRetrieveNotRequired.pure[Future]) {
+              case v: ValidateBankDetails =>
+                implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
+                DataRetrieveService[ValidateBankDetails, Future]
+                  .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
+              case v: BusinessBankAccountExistence =>
+                implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
+                DataRetrieveService[BusinessBankAccountExistence, Future]
+                  .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
+            }
+          )(_ => DataRetrieveNotRequired.pure[Future])(_ => DataRetrieveNotRequired.pure[Future])
+        } else DataRetrieveNotRequired.pure[Future]
 
       res <- {
         val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
@@ -243,7 +255,8 @@ class FormProcessor(
                         validationSectionNumber,
                         maybeAccessCode,
                         fastForward,
-                        formModelOptics
+                        formModelOptics,
+                        enteredVariadicFormData
                       )(toResult) // recursive call
           } yield result
         } else {

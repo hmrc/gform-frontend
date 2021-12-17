@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.lookup
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, Lookup, Register, Text }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, Lookup, Register, Text, UkSortCodeFormat }
 
 class LookupExtractors(lookup: Map[Register, LookupType]) {
 
@@ -33,6 +33,14 @@ class LookupExtractors(lookup: Map[Register, LookupType]) {
       fc.`type` match {
         case t @ Text(Lookup(IsRadioRegister(), _), _, _, _, _, _) => Some(t)
         case _                                                     => None
+      }
+  }
+
+  object IsUkPostCode {
+    def unapply(fc: FormComponent): Option[Text] =
+      fc.`type` match {
+        case t @ Text(UkSortCodeFormat, _, _, _, _, _) => Some(t)
+        case _                                         => None
       }
   }
 }
