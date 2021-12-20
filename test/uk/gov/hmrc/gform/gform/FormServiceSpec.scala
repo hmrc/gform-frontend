@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.gform
 
 import org.scalacheck.Gen
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.models.EnteredVariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen
 import uk.gov.hmrc.gform.validation.{ FieldError, FieldOk, FormFieldValidationResult, ValidationResult }
 import uk.gov.hmrc.gform.ops.FormComponentOps
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 
 class FormServiceSpec extends Spec {
 
@@ -36,7 +36,7 @@ class FormServiceSpec extends Spec {
     new ValidationResult(
       Map(formComponent.id -> formFieldValidationResult),
       None
-    ).toFormValidationOutcome(VariadicFormData.empty).formData.fields.head.value
+    ).toFormValidationOutcome(EnteredVariadicFormData.empty).formData.fields.head.value
 
   it should "not remove any commas from the FormFieldValidationResult when FormFieldValidationResult is not equal to FieldOk" in {
     forAll(genFormComponentSterlingConstraint) { formComponent =>

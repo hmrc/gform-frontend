@@ -20,9 +20,8 @@ import cats.Monoid
 import uk.gov.hmrc.gform.controllers.{ CacheData, Origin }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ FastForward, ProcessData }
+import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ GetEmailCodeFieldMatcher, ValidationResult }
@@ -85,7 +84,7 @@ class FormValidator(implicit ec: ExecutionContext) {
 
   def toFormValidationOutcome(
     fhr: FormHandlerResult,
-    enteredVariadicFormData: VariadicFormData[SourceOrigin.OutOfDate]
+    enteredVariadicFormData: EnteredVariadicFormData
   ): FormValidationOutcome = {
     val FormHandlerResult(validationResult, _) = fhr
     validationResult.toFormValidationOutcome(enteredVariadicFormData)
@@ -112,7 +111,7 @@ class FormValidator(implicit ec: ExecutionContext) {
             cache,
             envelope,
             validatePageModel
-          ).map(fhr => toFormValidationOutcome(fhr, VariadicFormData.empty)).map {
+          ).map(fhr => toFormValidationOutcome(fhr, EnteredVariadicFormData.empty)).map {
             case FormValidationOutcome(isValid, _, _) =>
               val page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
               val hasBeenVisited = processData.visitsIndex.contains(currentSn.value)

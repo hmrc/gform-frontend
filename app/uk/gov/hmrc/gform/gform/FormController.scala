@@ -458,7 +458,7 @@ class FormController(
                     maybeAccessCode,
                     fastForward,
                     formModelOptics,
-                    enteredVariadicFormData.userData
+                    enteredVariadicFormData
                   ) {
                     case Some(sn) =>
                       val isFirstLanding = sectionNumber < sn
@@ -483,17 +483,18 @@ class FormController(
               }
 
             def processSaveAndExit(processData: ProcessData): Future[Result] = {
-              val purgeConfirmationData: ProcessData => ProcessData =
-                confirmationService.purgeConfirmationData(sectionNumber, processData)
+              val purgeConfirmationData: PurgeConfirmationData =
+                confirmationService.purgeConfirmationData(sectionNumber, processData, enteredVariadicFormData)
+
               formProcessor.validateAndUpdateData(
                 cache,
-                purgeConfirmationData(processData),
+                purgeConfirmationData.f(processData),
                 sectionNumber,
                 sectionNumber,
                 maybeAccessCode,
                 fastForward,
                 formModelOptics,
-                enteredVariadicFormData.userData
+                purgeConfirmationData.enteredVariadicFormData
               ) { maybeSn =>
                 val formTemplate = cache.formTemplate
                 val envelopeExpiryDate = cache.form.envelopeExpiryDate
@@ -545,10 +546,10 @@ class FormController(
               sn: SectionNumber
             ): Future[Result] = {
 
-              val purgeConfirmationData: ProcessData => ProcessData =
+              val purgeConfirmationData: PurgeConfirmationData =
                 confirmationService.purgeConfirmationData(sectionNumber, processData0)
 
-              val processData = purgeConfirmationData(processData0)
+              val processData = purgeConfirmationData.f(processData0)
 
               def goBack(saveData: Boolean) = {
 
@@ -567,7 +568,7 @@ class FormController(
                     maybeAccessCode,
                     fastForward,
                     formModelOptics,
-                    enteredVariadicFormData.userData
+                    enteredVariadicFormData
                   )(_ => goBackLink)
                 } else {
                   goBackLink.pure[Future]
@@ -626,7 +627,7 @@ class FormController(
                 maybeAccessCode,
                 fastForward,
                 formModelOptics,
-                enteredVariadicFormData.userData
+                enteredVariadicFormData
               ) { _ =>
                 val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
                 Redirect(

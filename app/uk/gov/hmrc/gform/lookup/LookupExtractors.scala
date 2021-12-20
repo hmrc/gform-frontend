@@ -36,7 +36,7 @@ class LookupExtractors(lookup: Map[Register, LookupType]) {
       }
   }
 
-  object IsUkPostCode {
+  object IsUkSortCode {
     def unapply(fc: FormComponent): Option[Text] =
       fc.`type` match {
         case t @ Text(UkSortCodeFormat, _, _, _, _, _) => Some(t)
