@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.Bracket.NonRepeatingPage
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded, FormModel, Singleton }
+import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded, EnteredVariadicFormData, FormModel, Singleton }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponentId, FormTemplateId, Horizontal, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SectionNumber, Sterling, Text, Value, WholeSterling }

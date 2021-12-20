@@ -19,9 +19,8 @@ package uk.gov.hmrc.gform.gform.handlers
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ FastForward, ProcessData }
+import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SectionNumber, SuppressErrors }
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -54,7 +53,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
-    enteredVariadicFormData: VariadicFormData[SourceOrigin.OutOfDate]
+    enteredVariadicFormData: EnteredVariadicFormData
   ): Future[FormValidationOutcome] =
     formValidator
       .validatePageModelBySectionNumber(

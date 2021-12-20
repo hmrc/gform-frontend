@@ -44,7 +44,7 @@ case class ProcessData(
   def removeConfirmation(confirmation: Confirmation): ProcessData =
     this
       .modify(_.formModelOptics)
-      .using(_.clearModelComponentIds(confirmation.question.id.modelComponentId :: Nil)),
+      .using(_.clearModelComponentIds(confirmation.question.id.modelComponentId :: Nil))
 }
 
 class ProcessDataService[F[_]: Monad](

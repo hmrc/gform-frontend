@@ -18,9 +18,8 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
-import uk.gov.hmrc.gform.models.PageModel
+import uk.gov.hmrc.gform.models.{ ConfirmationAction, ConfirmationPage, EnteredVariadicFormData, FastForward, FormModel, PageModel, ProcessData, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelPageId
-import uk.gov.hmrc.gform.models.{ ConfirmationAction, ConfirmationPage, FastForward, FormModel, ProcessData, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -110,8 +109,9 @@ class ConfirmationService(
 
   def purgeConfirmationData(
     sectionNumber: SectionNumber,
-    processData: ProcessData
-  ): ProcessData => ProcessData = {
+    processData: ProcessData,
+    enteredVariadicFormData: EnteredVariadicFormData = EnteredVariadicFormData.empty
+  ): PurgeConfirmationData = {
 
     val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
     val pageModel: PageModel[Visibility] = formModel(sectionNumber)
@@ -121,16 +121,23 @@ class ConfirmationService(
       // We do not want to keep confirmation data on exit from confirmation page (or when back link is clicked)
       // But only remove data when answer is "1" ie. not confirmed
       case Some(confirmation) =>
-        processData.formModelOptics.formModelVisibilityOptics.data
-          .many(confirmation.question.id.modelComponentId)
-          .toList
-          .flatten match {
-          case "1" :: Nil => _.removeConfirmation(confirmation)
-          case _          => identity
-        }
+        PurgeConfirmationData(
+          processData.formModelOptics.formModelVisibilityOptics.data
+            .many(confirmation.question.id.modelComponentId)
+            .toList
+            .flatten match {
+            case "1" :: Nil => _.removeConfirmation(confirmation)
+            case _          => identity
+          },
+          EnteredVariadicFormData(
+            enteredVariadicFormData.userData -- enteredVariadicFormData.userData.by(confirmation.question)
+          )
+        )
 
-      case None => identity
+      case None => PurgeConfirmationData(identity, enteredVariadicFormData)
 
     }
   }
 }
+
+case class PurgeConfirmationData(f: ProcessData => ProcessData, enteredVariadicFormData: EnteredVariadicFormData)

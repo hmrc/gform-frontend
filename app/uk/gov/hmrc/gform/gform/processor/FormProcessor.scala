@@ -119,7 +119,7 @@ class FormProcessor(
         maybeAccessCode,
         ff,
         formModelOptics,
-        VariadicFormData.empty
+        EnteredVariadicFormData.empty
       ) { maybeSectionNumber =>
         val sectionNumber =
           if (isLastIteration)
@@ -175,7 +175,7 @@ class FormProcessor(
     maybeAccessCode: Option[AccessCode],
     fastForward: FastForward,
     formModelOptics: FormModelOptics[Mongo],
-    enteredVariadicFormData: VariadicFormData[SourceOrigin.OutOfDate]
+    enteredVariadicFormData: EnteredVariadicFormData
   )(
     toResult: Option[SectionNumber] => Result
   )(implicit hc: HeaderCarrier, request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Future[Result] = {

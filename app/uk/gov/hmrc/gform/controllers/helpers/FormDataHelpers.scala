@@ -25,7 +25,7 @@ import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
 import uk.gov.hmrc.gform.controllers.helpers.InvisibleCharsHelper._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics }
-import uk.gov.hmrc.gform.models.{ DataExpanded, ExpandUtils, FormModel, PageModel }
+import uk.gov.hmrc.gform.models.{ DataExpanded, EnteredVariadicFormData, ExpandUtils, FormModel, PageModel }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
@@ -221,5 +221,3 @@ object FormDataHelpers {
       case _                                     => false
     }
 }
-
-case class EnteredVariadicFormData(userData: VariadicFormData[SourceOrigin.OutOfDate]) extends AnyVal

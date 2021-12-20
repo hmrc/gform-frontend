@@ -17,9 +17,8 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.Monoid
-import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
+import uk.gov.hmrc.gform.models.{ DataExpanded, EnteredVariadicFormData, Singleton }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidatorsResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
@@ -54,12 +53,12 @@ case class ValidationResult(
     singleton.allFormComponents.map(apply)
 
   def toFormValidationOutcome(
-    enteredVariadicFormData: VariadicFormData[SourceOrigin.OutOfDate]
+    enteredVariadicFormData: EnteredVariadicFormData
   ): FormValidationOutcome = {
 
     val enteredFormFieldValidationResults: List[FormFieldValidationResult] = formFieldValidationResults.collect {
       case fe @ FieldError(fc, cv, _) =>
-        fe.copy(currentValue = enteredVariadicFormData.one(fc.modelComponentId).getOrElse(cv))
+        fe.copy(currentValue = enteredVariadicFormData.userData.one(fc.modelComponentId).getOrElse(cv))
     }
 
     val formComponentValidations =
