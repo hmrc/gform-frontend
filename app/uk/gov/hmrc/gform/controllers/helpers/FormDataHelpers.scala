@@ -221,5 +221,3 @@ object FormDataHelpers {
       case _                                     => false
     }
 }
-
-case class EnteredVariadicFormData(userData: VariadicFormData[SourceOrigin.OutOfDate]) extends AnyVal
