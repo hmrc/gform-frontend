@@ -21,6 +21,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.WebChat
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormCategory
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default, FormTemplateId}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.AccessibilityUrl
 
 @(title: String,
   serviceName: String,
@@ -37,7 +38,8 @@
   templateId: FormTemplateId,
   backLink: Option[BackLink] = None,
   displayTimeoutDialog: Boolean = true,
-  userResearchUrl: Option[String] = None
+  userResearchUrl: Option[String] = None,
+  accessibilityUrl: Option[AccessibilityUrl] = None
 )(content: Html)(implicit request: Request[_], messages: Messages, l: LangADT)
 
 @webChatRoomId = @{
@@ -95,5 +97,6 @@
   templateId = templateId,
   backLink = backLink,
   displayTimeoutDialog = displayTimeoutDialog,
-  userResearchUrl = userResearchUrl
+  userResearchUrl = userResearchUrl,
+  accessibilityUrl = accessibilityUrl
 )
