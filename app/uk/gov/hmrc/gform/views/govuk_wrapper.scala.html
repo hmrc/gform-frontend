@@ -138,7 +138,7 @@
 
 @feedbackContent = {
   @messages("feedback.before")
-    <a class='govuk-link' href='@{appConfig.betaFeedbackUrlNoAuth}'>@messages("feedback.link")</a>
+    <a class='govuk-link' href='@{Some(s"${appConfig.betaFeedbackUrlNoAuth}${templateId.value.toLowerCase}")}'>@messages("feedback.link")</a>
   @messages("feedback.after")
 }
 
@@ -171,7 +171,7 @@
     @content
     @hmrcReportTechnicalIssue(
       ReportTechnicalIssue(
-        serviceCode = appConfig.contactFormServiceIdentifier,
+        serviceCode = templateId.value.toLowerCase,
         language = language
       )
     )
