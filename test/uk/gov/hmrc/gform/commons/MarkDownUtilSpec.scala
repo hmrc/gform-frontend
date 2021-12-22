@@ -31,19 +31,19 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
       ("", ""),
       (
         "link [making a claim](/submissions/new-form/)",
-        """<p>link <a href="/submissions/new-form/" class="govuk-link">making a claim</a></p>"""
+        """<p class="govuk-body">link <a href="/submissions/new-form/" class="govuk-link">making a claim</a></p>"""
       ),
       (
         "link [making a claim](/some/relative/path)",
-        """<p>link <a href="/some/relative/path" target="_blank" class="govuk-link">making a claim</a></p>"""
+        """<p class="govuk-body">link <a href="/some/relative/path" target="_blank" class="govuk-link">making a claim</a></p>"""
       ),
       (
         "link [making a claim](https://www.gov.uk/government)",
-        """<p>link <a href="https://www.gov.uk/government" target="_blank" class="govuk-link">making a claim</a></p>"""
+        """<p class="govuk-body">link <a href="https://www.gov.uk/government" target="_blank" class="govuk-link">making a claim</a></p>"""
       ),
       (
         "link [print pdf](/submissions/acknowledgement/pdf/test-form)",
-        """<p>link <a href="/submissions/acknowledgement/pdf/test-form" target="_blank" class="govuk-link print-link">print pdf</a></p>"""
+        """<p class="govuk-body">link <a href="/submissions/acknowledgement/pdf/test-form" target="_blank" class="govuk-link print-link">print pdf</a></p>"""
       )
     )
 
@@ -76,7 +76,7 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
     val input =
       """<a href="#" role="button" draggable="false" class="govuk-button govuk-button--start" data-module="govuk-button">Start now</a>"""
     val expected =
-      """<p><a href="#" role="button" draggable="false" class="govuk-button govuk-button--start" data-module="govuk-button" target="_blank">Start now</a></p>"""
+      """<p class="govuk-body"><a href="#" role="button" draggable="false" class="govuk-button govuk-button--start" data-module="govuk-button" target="_blank">Start now</a></p>"""
 
     MarkDownUtil.markDownParser(input) shouldBe Html(expected)
   }
@@ -85,7 +85,7 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
     val input =
       """<a href="name?t=1" class="govuk-button" role="button" target="_self">Change amounts</a>"""
     val expected =
-      """<p><a href="name?t=1" class="govuk-button" role="button" target="_self">Change amounts</a></p>"""
+      """<p class="govuk-body"><a href="name?t=1" class="govuk-button" role="button" target="_self">Change amounts</a></p>"""
 
     MarkDownUtil.markDownParser(input) shouldBe Html(expected)
   }
