@@ -135,6 +135,11 @@ case class FormModel[A <: PageMode](
   def apply(sectionNumber: Int): PageModel[A] = pageModelLookup(SectionNumber(sectionNumber))
 
   def bracket(sectionNumber: SectionNumber): Bracket[A] =
+    brackets
+      .withSectionNumber(sectionNumber)
+      .getOrElse(throw new IllegalArgumentException(s"Wrong sectionNumber $sectionNumber"))
+
+  def maybeBracket(sectionNumber: SectionNumber): Option[Bracket[A]] =
     brackets.withSectionNumber(sectionNumber)
 
   def addToListBrackets: List[Bracket.AddToList[A]] = brackets.addToListBrackets
