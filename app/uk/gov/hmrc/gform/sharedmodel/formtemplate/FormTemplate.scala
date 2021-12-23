@@ -16,12 +16,14 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import ai.x.play.json.Jsonx
 import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LocalisedString, formtemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
+import ai.x.play.json.Encoders.encoder
 
 case class FormTemplate(
   _id: FormTemplateId,
@@ -45,7 +47,8 @@ case class FormTemplate(
   displayHMRCLogo: Boolean,
   userResearchUrl: Option[UserResearchUrl] = None,
   referrerConfig: Option[ReferrerConfig] = None,
-  emailExpr: Option[Expr] = None
+  emailExpr: Option[Expr] = None,
+  accessibilityUrl: Option[AccessibilityUrl] = None
 ) {
 
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")
@@ -57,7 +60,7 @@ object FormTemplate {
   import JsonUtils._
 
   private val reads = Reads[FormTemplate] { json =>
-    Json.reads[FormTemplate].reads(json)
+    Jsonx.formatCaseClass[FormTemplate].reads(json)
   }
 
   implicit val format: OFormat[FormTemplate] = OFormat(reads, derived.owrites[FormTemplate]())

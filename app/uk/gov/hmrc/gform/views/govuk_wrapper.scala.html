@@ -31,6 +31,7 @@
 @import uk.gov.hmrc.hmrcfrontend.views.config.HmrcFooterItems
 @import uk.gov.hmrc.hmrcfrontend.config.AccessibilityStatementConfig
 @import uk.gov.hmrc.hmrcfrontend.views.Aliases.UserResearchBanner
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.AccessibilityUrl
 
 @(appConfig: FrontendAppConfig,
   serviceTitle: String,
@@ -44,7 +45,8 @@
   templateId: FormTemplateId,
   backLink: Option[BackLink],
   displayTimeoutDialog: Boolean,
-  userResearchUrl: Option[String]
+  userResearchUrl: Option[String],
+  accessibilityUrl: Option[AccessibilityUrl]
 )(implicit requestHeader: RequestHeader, messages: Messages, l: LangADT)
 
 @hmrcTimeoutDialog = @{new components.HmrcTimeoutDialog()}
@@ -184,5 +186,5 @@
   beforeContentBlock = Some(beforeContentBlock),
   bodyEndBlock = None,
   scriptsBlock = Some(scripts),
-  footerBlock = Some(hmrcStandardFooter(accessibilityStatementUrl = Some(s"${appConfig.footerAccessibilityStatementUrl}/${templateId.value.toLowerCase}")))
+  footerBlock = Some(hmrcStandardFooter(accessibilityStatementUrl = Some(s"${appConfig.footerAccessibilityStatementUrl}/${accessibilityUrl.map(_.value).getOrElse(templateId.value).toLowerCase}")))
 )(contentBlock)

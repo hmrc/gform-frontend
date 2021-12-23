@@ -61,7 +61,8 @@
     templateId = formTemplate._id,
     backLink = None,
     displayTimeoutDialog = false,
-    userResearchUrl = formTemplate.userResearchUrl.map(_.value)
+    userResearchUrl = formTemplate.userResearchUrl.map(_.value),
+    accessibilityUrl = formTemplate.accessibilityUrl
 ) {
 
     @pageLevelError.render
