@@ -903,8 +903,6 @@ trait ExampleFrontendAppConfig {
 
   val frontendAppConfig = FrontendAppConfig(
     albAdminIssuerUrl = "",
-    reportAProblemPartialUrl = "http://reportProblem.url",
-    reportAProblemNonJSUrl = "http://reportProblem.json.url",
     governmentGatewaySignInUrl = "http://gofernment.gateway.signin.url",
     gformFrontendBaseUrl = "gform.frontend.base.url",
     betaFeedbackUrlNoAuth = "beta.feedback.url.no.auth",
@@ -918,7 +916,6 @@ trait ExampleFrontendAppConfig {
     ),
     availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy")),
     routeToSwitchLanguage = uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage,
-    contactFormServiceIdentifier = "",
     optimizelyUrl = None,
     trackingConsentSnippet = new HmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration)),
     emailAuthStaticCodeEmails = Some(NonEmptyList.of(ci"test1@test.com", ci"test2@test.com")),

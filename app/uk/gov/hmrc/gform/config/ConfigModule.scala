@@ -72,17 +72,14 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
         typesafeConfig.getString(s"$path.keepAliveUrl"),
         typesafeConfig.getString(s"$path.signOutUrl")
       )
-    val contactFormServiceIdentifier = "GForm"
     FrontendAppConfig(
       albAdminIssuerUrl =
         playConfiguration.getOptional[String]("albAdminIssuerUrl").getOrElse("idp-url-variable-not-set"),
-      reportAProblemPartialUrl = s"/contact/problem_reports_ajax?service=$contactFormServiceIdentifier",
-      reportAProblemNonJSUrl = s"/contact/problem_reports_nonjs?service=$contactFormServiceIdentifier",
       governmentGatewaySignInUrl = typesafeConfig.getString("government-gateway-sign-in-url"),
       gformFrontendBaseUrl = typesafeConfig.getString("gform-frontend-base-url"),
       signOutUrl = typesafeConfig.getString("signout-url"),
       footerAccessibilityStatementUrl = typesafeConfig.getString("footer-accessibility-statement-url"),
-      betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier",
+      betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=",
       authModule = AuthModule(
         getJSConfig("auth-module.hmrc"),
         getJSConfig("auth-module.anonymous"),
@@ -91,7 +88,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       ),
       availableLanguages = availableLanguages,
       routeToSwitchLanguage = routeToSwitchLanguage,
-      contactFormServiceIdentifier = contactFormServiceIdentifier,
       optimizelyUrl = for {
         url       <- playConfiguration.getOptional[String]("optimizely.url")
         projectId <- playConfiguration.getOptional[String]("optimizely.projectId")
