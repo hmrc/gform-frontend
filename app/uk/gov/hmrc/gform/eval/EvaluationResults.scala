@@ -148,7 +148,11 @@ case class EvaluationResults(
     }
   }
 
-  private def evalSize(formComponentId: FormComponentId, recData: RecData[SourceOrigin.OutOfDate], index: Int) = {
+  private def evalSize(
+    formComponentId: FormComponentId,
+    recData: RecData[SourceOrigin.OutOfDate],
+    index: Int
+  ): ExpressionResult = {
     val firstQuestionFcId = formComponentId.withFirstIndex
     val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
     if (isHidden.contains(Hidden)) {
@@ -353,12 +357,7 @@ case class EvaluationResults(
             } yield result).getOrElse("")
           )
         )
-      case Size(formComponentId, index) =>
-        nonEmpty(
-          StringResult(
-            evalSize(formComponentId, recData, index).stringRepresentation(typeInfo, evaluationContext.messages)
-          )
-        )
+      case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
     }
 
     loop(typeInfo.expr)
