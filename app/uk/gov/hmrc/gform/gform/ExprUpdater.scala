@@ -40,6 +40,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case AddressLens(formComponentId, detail) => AddressLens(expandFcId(formComponentId), detail)
     case LinkCtx(PageLink(id))                => LinkCtx(PageLink(id.withIndex(index)))
     case DataRetrieveCtx(id, attribute)       => DataRetrieveCtx(id.withIndex(index), attribute)
+    case Size(formComponentId, index)         => Size(expandFcId(formComponentId), index)
     case otherwise                            => otherwise
   }
 

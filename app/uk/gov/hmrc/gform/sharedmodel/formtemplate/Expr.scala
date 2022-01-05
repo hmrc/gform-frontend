@@ -57,6 +57,7 @@ sealed trait Expr extends Product with Serializable {
       case PeriodExt(_, _)                         => expr :: Nil
       case AddressLens(_, _)                       => expr :: Nil
       case DataRetrieveCtx(_, _)                   => expr :: Nil
+      case Size(_, _)                              => expr :: Nil
     }
     loop(this).headOption
   }
@@ -94,6 +95,7 @@ sealed trait Expr extends Product with Serializable {
     case PeriodExt(periodFun, _)                    => periodFun.leafs(formModel)
     case AddressLens(formComponentId, _)            => this :: Nil
     case DataRetrieveCtx(_, _)                      => this :: Nil
+    case Size(_, _)                                 => this :: Nil
   }
 
   def sums: List[Sum] = this match {
@@ -120,6 +122,7 @@ sealed trait Expr extends Product with Serializable {
     case PeriodExt(_, _)                            => Nil
     case AddressLens(_, _)                          => Nil
     case DataRetrieveCtx(id, attribute)             => Nil
+    case Size(_, _)                                 => Nil
   }
 }
 
@@ -145,6 +148,7 @@ final case class AddressLens(formComponentId: FormComponentId, detail: AddressDe
 final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
 final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieveAttribute) extends Expr
+final case class Size(formComponentId: FormComponentId, index: Int) extends Expr
 
 sealed trait PeriodFn
 object PeriodFn {
