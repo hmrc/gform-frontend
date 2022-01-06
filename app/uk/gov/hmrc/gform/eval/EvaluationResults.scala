@@ -148,6 +148,25 @@ case class EvaluationResults(
     }
   }
 
+  private def evalSize(
+    formComponentId: FormComponentId,
+    recData: RecData[SourceOrigin.OutOfDate],
+    index: Int
+  ): ExpressionResult = {
+    val firstQuestionFcId = formComponentId.withFirstIndex
+    val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
+    if (isHidden.contains(Hidden)) {
+      NumberResult(0)
+    } else {
+      val xs: Iterable[(ModelComponentId, VariadicValue)] =
+        recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
+
+      val size: Int = xs.map(_._2).count(_.contains(index.toString))
+
+      NumberResult(size)
+    }
+  }
+
   private def evalNumber(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -197,6 +216,7 @@ case class EvaluationResults(
       case PeriodValue(_)                             => unsupportedOperation("Number")(expr)
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
       case DataRetrieveCtx(_, _)                      => unsupportedOperation("Number")(expr)
+      case Size(formComponentId, index)               => evalSize(formComponentId, recData, index)
     }
 
     loop(typeInfo.expr)
@@ -337,6 +357,7 @@ case class EvaluationResults(
             } yield result).getOrElse("")
           )
         )
+      case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
     }
 
     loop(typeInfo.expr)
