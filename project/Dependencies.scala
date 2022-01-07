@@ -1,5 +1,4 @@
 import play.core.PlayVersion
-import play.sbt.PlayImport.ws
 import sbt._
 
 object Dependencies {
@@ -7,7 +6,6 @@ object Dependencies {
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
   val compile = Seq(
-    ws,
     "uk.gov.hmrc"                 %% "bootstrap-frontend-play-28" % "4.3.0",
     "uk.gov.hmrc"                 %% "play-language"              % "5.1.0-play-28",
     "uk.gov.hmrc"                 %% "play-frontend-hmrc"         % "1.19.0-play-28",
