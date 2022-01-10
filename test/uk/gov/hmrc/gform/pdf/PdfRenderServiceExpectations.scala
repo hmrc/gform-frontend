@@ -43,7 +43,7 @@ trait PdfRenderServiceExpectations {
        |    <div>
        |      <h1>Some form template</h1>
        |      <h1>Page title</h1>
-       |      <p class="govuk-body">Some PDF header</p>
+       |      <p>Some PDF header</p>
        |      $summaryRows
        |      <h3 class="govuk-heading-m">
        |        Submission Details
@@ -158,13 +158,13 @@ trait PdfRenderServiceExpectations {
        |		<div class="container-fluid">
        |			<div class="row">
        |				<div class="col-lg-12 heading-1">
-       |					<p class="govuk-body">Some PDF header</p>
+       |					<p>Some PDF header</p>
        |				</div>
        |			</div>
        |      $summaryRows
        |			<div class="row">
        |				<div class="col-lg-12 heading-1">
-       |					<p class="govuk-body">Some PDF footer</p>
+       |					<p>Some PDF footer</p>
        |				</div>
        |			</div>
        |		</div>
@@ -184,7 +184,7 @@ trait PdfRenderServiceExpectations {
         |      name-value<br/>
         |   </dd>
         |</dl>
-        |<p class="govuk-body">Some PDF footer</p>
+        |<p>Some PDF footer</p>
         |""".stripMargin,
       """
         |<meta name="subject" content="Some form template"></meta>
