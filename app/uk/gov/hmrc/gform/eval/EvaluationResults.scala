@@ -153,18 +153,12 @@ case class EvaluationResults(
     recData: RecData[SourceOrigin.OutOfDate],
     index: Int
   ): ExpressionResult = {
-    val firstQuestionFcId = formComponentId.withFirstIndex
-    val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
-    if (isHidden.contains(Hidden)) {
-      NumberResult(0)
-    } else {
-      val xs: Iterable[(ModelComponentId, VariadicValue)] =
-        recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
+    val xs: Iterable[(ModelComponentId, VariadicValue)] =
+      recData.variadicFormData.forBaseComponentIdLessThen(formComponentId.modelComponentId)
 
-      val size: Int = xs.map(_._2).count(_.contains(index.toString))
+    val size: Int = xs.map(_._2).count(_.contains(index.toString))
 
-      NumberResult(size)
-    }
+    NumberResult(size)
   }
 
   private def evalNumber(
