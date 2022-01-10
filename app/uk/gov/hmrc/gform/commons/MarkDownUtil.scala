@@ -32,7 +32,7 @@ object MarkDownUtil {
   private val markdownControlCharacters =
     List("\\", "/", "`", "*", "_", "{", "}", "[", "]", "(", ")", "#", "+", "-", ".", "!")
 
-  private def modifyHtmlAttributes(html: String): String = {
+  private def addTargetToLinks(html: String): String = {
     val doc: Document = Jsoup.parse(html)
     val links = doc.getElementsByAttribute("href")
     links.asScala.foreach { element =>
@@ -41,12 +41,6 @@ object MarkDownUtil {
       }
       if (!element.hasAttr("class")) {
         element.attr("class", "govuk-link")
-      }
-    }
-    val paragraphs = doc.getElementsByTag("p")
-    paragraphs.asScala.foreach { element =>
-      if (!element.hasAttr("class")) {
-        element.attr("class", "govuk-body")
       }
     }
     doc.getElementsByAttributeValueStarting("href", "/submissions/new-form/").removeAttr("target")
@@ -64,7 +58,7 @@ object MarkDownUtil {
     val flavour = new GFMFlavourDescriptor
     val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
     val html = new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
-    Html(unescapeMarkdownHtml(modifyHtmlAttributes(html)))
+    Html(unescapeMarkdownHtml(addTargetToLinks(html)))
   }
 
   def escapeMarkdown(s: String): String = {
