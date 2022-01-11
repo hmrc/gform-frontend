@@ -74,8 +74,6 @@
     <script src='@controllers.routes.Assets.versioned("lib/govuk-frontend/govuk/all.js")'></script>
     <script src='@controllers.routes.Assets.versioned("lib/hmrc-frontend/hmrc/all.js")'></script>
 
-    @{timeoutDialog.fold(HtmlFormat.empty)(timeoutDialog => hmrcTimeoutDialog(timeoutDialog))}
-
     <script>window.GOVUKFrontend.initAll();</script>
     <script>window.HMRCFrontend.initAll();</script>
 
@@ -107,6 +105,8 @@
             "genericCharacterRemaining": "@{messages("generic.characterRemaining")}",
             "genericCharacterTooMany": "@{messages("generic.characterTooMany")}"
           }
+
+          @{timeoutDialog.fold(HtmlFormat.empty)(timeoutDialog => hmrcTimeoutDialog(timeoutDialog))}
     </script>
     <meta name="format-detection" content="telephone=no" />
 }
