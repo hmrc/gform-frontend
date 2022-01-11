@@ -45,6 +45,7 @@ import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
+import java.nio.charset.StandardCharsets
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
@@ -251,7 +252,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POST[String, Submission](
       baseUrl + s"/forms/${formId.value}/${formTemplateId.value}/${envelopeId.value}/$noOfAttachments/createSubmission",
       "",
-      Seq(("customerId", Base64.encodeBase64String(customerId.getBytes("UTF-8"))))
+      Seq(("customerId", Base64.encodeBase64String(customerId.getBytes(StandardCharsets.UTF_8))))
     )
 
   def submitForm(
@@ -302,7 +303,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       url,
       submissionData,
       Seq(
-        "customerId"    -> Base64.encodeBase64String(customerId.id.getBytes("UTF-8")),
+        "customerId"    -> Base64.encodeBase64String(customerId.id.getBytes(StandardCharsets.UTF_8)),
         "affinityGroup" -> affinityGroupNameO(affinityGroup)
       )
     )
