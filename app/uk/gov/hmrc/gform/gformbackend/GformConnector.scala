@@ -25,6 +25,7 @@ import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.functor._
 import cats.syntax.show._
+import org.apache.commons.codec.binary.Base64
 import org.slf4j.LoggerFactory
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.crypto.Crypted
@@ -250,7 +251,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POST[String, Submission](
       baseUrl + s"/forms/${formId.value}/${formTemplateId.value}/${envelopeId.value}/$noOfAttachments/createSubmission",
       "",
-      Seq(("customerId", customerId))
+      Seq(("customerId", Base64.encodeBase64String(customerId.getBytes("UTF-8"))))
     )
 
   def submitForm(
@@ -300,7 +301,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POST[SubmissionData, HttpResponse](
       url,
       submissionData,
-      Seq("customerId" -> customerId.id, "affinityGroup" -> affinityGroupNameO(affinityGroup))
+      Seq(
+        "customerId"    -> Base64.encodeBase64String(customerId.id.getBytes("UTF-8")),
+        "affinityGroup" -> affinityGroupNameO(affinityGroup)
+      )
     )
 
   def submissionDetails(
