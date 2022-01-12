@@ -28,7 +28,8 @@ object Dependencies {
     "org.jsoup"                    % "jsoup"                      % "1.13.1",
     "org.webjars.npm"              % "govuk-frontend"             % "3.11.0",
     "com.openhtmltopdf"            % "openhtmltopdf-pdfbox"       % "1.0.10",
-    "ai.x"                        %% "play-json-extensions"       % "0.42.0"
+    "ai.x"                        %% "play-json-extensions"       % "0.42.0",
+    "org.apache.commons"           % "commons-text"               % "1.9"
   )
 
   val munitVersion = "0.7.22"

@@ -25,7 +25,7 @@ import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.functor._
 import cats.syntax.show._
-import org.apache.commons.codec.binary.Base64
+import org.apache.commons.text.StringEscapeUtils
 import org.slf4j.LoggerFactory
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.crypto.Crypted
@@ -45,7 +45,6 @@ import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
-import java.nio.charset.StandardCharsets
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
@@ -252,7 +251,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POST[String, Submission](
       baseUrl + s"/forms/${formId.value}/${formTemplateId.value}/${envelopeId.value}/$noOfAttachments/createSubmission",
       "",
-      Seq(("customerId", Base64.encodeBase64String(customerId.getBytes(StandardCharsets.UTF_8))))
+      Seq(("customerId", StringEscapeUtils.escapeHtml4(customerId)))
     )
 
   def submitForm(
@@ -303,7 +302,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       url,
       submissionData,
       Seq(
-        "customerId"    -> Base64.encodeBase64String(customerId.id.getBytes(StandardCharsets.UTF_8)),
+        "customerId"    -> StringEscapeUtils.escapeHtml4(customerId.id),
         "affinityGroup" -> affinityGroupNameO(affinityGroup)
       )
     )
