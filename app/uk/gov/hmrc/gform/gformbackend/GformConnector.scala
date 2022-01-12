@@ -25,6 +25,7 @@ import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.functor._
 import cats.syntax.show._
+import org.apache.commons.text.StringEscapeUtils
 import org.slf4j.LoggerFactory
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.crypto.Crypted
@@ -250,7 +251,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POST[String, Submission](
       baseUrl + s"/forms/${formId.value}/${formTemplateId.value}/${envelopeId.value}/$noOfAttachments/createSubmission",
       "",
-      Seq(("customerId", customerId))
+      Seq(("customerId", StringEscapeUtils.escapeHtml4(customerId)))
     )
 
   def submitForm(
@@ -300,7 +301,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POST[SubmissionData, HttpResponse](
       url,
       submissionData,
-      Seq("customerId" -> customerId.id, "affinityGroup" -> affinityGroupNameO(affinityGroup))
+      Seq(
+        "customerId"    -> StringEscapeUtils.escapeHtml4(customerId.id),
+        "affinityGroup" -> affinityGroupNameO(affinityGroup)
+      )
     )
 
   def submissionDetails(
