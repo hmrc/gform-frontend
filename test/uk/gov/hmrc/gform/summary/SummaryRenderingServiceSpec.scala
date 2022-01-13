@@ -34,8 +34,9 @@ import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadAlgebra }
-import uk.gov.hmrc.gform.gform.SummaryPagePurpose
+import uk.gov.hmrc.gform.gform.{ SectionRenderingService, SummaryPagePurpose }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -86,6 +87,7 @@ class SummaryRenderingServiceSpec
     )
     lazy val validationResult = ValidationResult.empty
 
+    val renderer = new SectionRenderingService(frontendAppConfig, new LookupRegistry(Map.empty))
     val mockFileUploadService = mock[FileUploadAlgebra[Future]]
     val mockValidationService = mock[ValidationService]
     val mockRecalculation = mock[Recalculation[Future, Throwable]]
@@ -139,7 +141,13 @@ class SummaryRenderingServiceSpec
       .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
 
     val summaryRenderingService =
-      new SummaryRenderingService(i18nSupport, mockFileUploadService, mockValidationService, frontendAppConfig)
+      new SummaryRenderingService(
+        renderer,
+        i18nSupport,
+        mockFileUploadService,
+        mockValidationService,
+        frontendAppConfig
+      )
   }
 
   "createHtmlForPdf" should {

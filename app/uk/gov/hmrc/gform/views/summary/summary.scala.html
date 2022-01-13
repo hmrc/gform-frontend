@@ -41,6 +41,7 @@
     summaryPagePurpose: SummaryPagePurpose,
     reviewerComments : Option[String],
     header: Html,
+    summaryDeclaration: Html,
     footer: Html
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
@@ -87,6 +88,9 @@
 
       	@snippets
 
+        <div class="govuk-body">
+            @summaryDeclaration
+        </div>
         <div class="govuk-body">
             @footer
         </div>

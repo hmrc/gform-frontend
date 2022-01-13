@@ -16,16 +16,38 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.data.NonEmptyList
 import play.api.libs.json.{ Json, OFormat }
+import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 case class SummarySection(
   title: SmartString,
   header: SmartString,
   footer: SmartString,
-  continueLabel: Option[SmartString]
-)
+  continueLabel: Option[SmartString],
+  fields: Option[NonEmptyList[FormComponent]]
+) {
+  def toPage: Page[Basic] =
+    Page(
+      title = title,
+      id = None,
+      noPIITitle = None,
+      description = None,
+      shortName = None,
+      progressIndicator = None,
+      includeIf = None,
+      validators = None,
+      fields = fields.fold(List.empty[FormComponent])(_.toList),
+      continueLabel = None,
+      continueIf = None,
+      instruction = None,
+      presentationHint = None,
+      dataRetrieve = None,
+      confirmation = None
+    )
+}
 
-object SummarySection {
+object SummarySection extends JsonUtils {
   implicit val format: OFormat[SummarySection] = Json.format[SummarySection]
 }

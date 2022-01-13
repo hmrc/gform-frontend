@@ -29,7 +29,8 @@
     summaryDatas: List[SummaryData],
     maybeHeaderFooter: Option[HeaderFooter],
     maybeSubmissionDetails: Option[SubmissionDetails],
-    formTemplate: FormTemplate
+    formTemplate: FormTemplate,
+    summarySectionDeclaration: Option[Html]
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 @* check https://github.com/danfickle/openhtmltopdf/blob/open-dev-v1/openhtmltopdf-examples/src/main/resources/documentation/documentation.md *@
 <!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
@@ -114,6 +115,7 @@
             }
         }
         @{SummaryRenderingService.submissionDetailsAsHTML(maybeSubmissionDetails)}
+        @{summarySectionDeclaration.getOrElse(HtmlFormat.empty)}
     </div>
 </body>
 </html>
