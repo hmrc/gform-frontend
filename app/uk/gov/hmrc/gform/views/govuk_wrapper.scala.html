@@ -105,9 +105,10 @@
             "genericCharacterRemaining": "@{messages("generic.characterRemaining")}",
             "genericCharacterTooMany": "@{messages("generic.characterTooMany")}"
           }
-
-          @{timeoutDialog.fold(HtmlFormat.empty)(timeoutDialog => hmrcTimeoutDialog(timeoutDialog))}
     </script>
+
+   @{timeoutDialog.fold(HtmlFormat.empty)(timeoutDialog => hmrcTimeoutDialog(timeoutDialog))}
+
     <meta name="format-detection" content="telephone=no" />
 }
 
