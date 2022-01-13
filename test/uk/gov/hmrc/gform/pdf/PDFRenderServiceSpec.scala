@@ -143,7 +143,8 @@ class PDFRenderServiceSpec
         formModelOptics,
         Some(HeaderFooter(Some(toSmartString("Some PDF header")), Some(toSmartString("Some PDF footer")))),
         Some(SubmissionDetails(ExampleData.submission, "abcdefgh")),
-        SummaryPagePurpose.ForUser
+        SummaryPagePurpose.ForUser,
+        None
       )
     ) { pdfHtml =>
       pdfHtml.html.trimLines shouldBe nonRepeatingPageSummaryPDFHTML
@@ -173,7 +174,8 @@ class PDFRenderServiceSpec
         formModelOptics,
         Some(HeaderFooter(Some(toSmartString("Some PDF header")), Some(toSmartString("Some PDF footer")))),
         None,
-        SummaryPagePurpose.ForUser
+        SummaryPagePurpose.ForUser,
+        None
       )
     ) { pdfHtml =>
       pdfHtml.html.trimLines shouldBe nonRepeatingPageInstructionPDFHTML

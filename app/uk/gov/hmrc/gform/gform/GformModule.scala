@@ -189,6 +189,7 @@ class GformModule(
   )
 
   val summaryRenderingService = new SummaryRenderingService(
+    sectionRenderingService,
     playBuiltInsModule.i18nSupport,
     fileUploadModule.fileUploadService,
     validationModule.validationService,
@@ -204,6 +205,7 @@ class GformModule(
 
   val gformBackEndService = new GformBackEndService(
     gformBackendModule.gformConnector,
+    sectionRenderingService,
     pdfRenderService,
     lookupRegistry,
     graphModule.smartStringEvaluatorFactory,

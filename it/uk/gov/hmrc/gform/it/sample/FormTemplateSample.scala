@@ -29,7 +29,8 @@ trait FormTemplateSample {
       toSmartString("Check your answers"),
       toSmartString("Make sure the information you have given is correct"),
       toSmartString("Now send your form"),
-      Some(toSmartString("Continue"))
+      Some(toSmartString("Continue")),
+      None
     ),
     authConfig =
       EmailAuthConfig(EmailVerifierService.digitalContact(EmailTemplateId("code_template"), None), None, None, None),

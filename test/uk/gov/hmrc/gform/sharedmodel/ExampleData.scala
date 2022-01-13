@@ -744,7 +744,8 @@ trait ExampleFormTemplate {
       toSmartString("Summary Title"),
       toSmartString("Summary Header"),
       toSmartString("Summary Footer"),
-      Some(toSmartString("Summary ContinueLabel"))
+      Some(toSmartString("Summary ContinueLabel")),
+      None
     )
 
   def userResearchUrl = UserResearchUrl("https://test.service.gov.uk")

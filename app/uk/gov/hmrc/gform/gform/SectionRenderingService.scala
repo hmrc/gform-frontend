@@ -569,6 +569,42 @@ class SectionRenderingService(
       NoErrors
   }
 
+  def renderSummarySectionDeclaration(
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    maybeAccessCode: Option[AccessCode]
+  )(implicit
+    request: RequestHeader,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Html = {
+    val formTemplate = cache.formTemplate
+    val formTemplateId = formTemplate._id
+    val envelopeId = cache.form.envelopeId
+    val retrievals = cache.retrievals
+
+    val page = formTemplate.summarySection.toPage
+    val ei = ExtraInfo(
+      Singleton(page.asInstanceOf[Page[DataExpanded]]),
+      maybeAccessCode,
+      SectionNumber(0),
+      formModelOptics,
+      formTemplate,
+      envelopeId,
+      EnvelopeWithMapping.empty,
+      0,
+      retrievals,
+      formLevelHeading = false,
+      specialAttributes = Map.empty
+    )
+
+    val snippets = page.renderUnits.map(renderUnit =>
+      htmlFor(renderUnit, formTemplateId, ei, ValidationResult.empty, obligations = NotChecked, UpscanInitiate.empty)
+    )
+    HtmlFormat.fill(snippets)
+  }
+
   def renderDeclarationSection(
     maybeAccessCode: Option[AccessCode],
     form: Form,

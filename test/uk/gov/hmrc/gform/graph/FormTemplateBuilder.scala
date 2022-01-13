@@ -269,7 +269,8 @@ object FormTemplateBuilder {
       toSmartString("Title"),
       toSmartString("Header"),
       toSmartString("Footer"),
-      Some(toSmartString("ContinueLabel"))
+      Some(toSmartString("ContinueLabel")),
+      None
     ),
     true,
     Some(UserResearchUrl("https://test.service.gov.uk"))

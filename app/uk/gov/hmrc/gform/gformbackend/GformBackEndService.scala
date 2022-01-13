@@ -26,7 +26,7 @@ import cats.syntax.all._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
-import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder, SummaryPagePurpose }
+import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, SectionRenderingService, StructuredFormDataBuilder, SummaryPagePurpose }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -91,6 +91,7 @@ trait GformBackEndAlgebra[F[_]] {
 
 class GformBackEndService(
   gformConnector: GformConnector,
+  renderer: SectionRenderingService,
   pdfRenderService: PDFRenderService,
   lookupRegistry: LookupRegistry,
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
@@ -161,7 +162,13 @@ class GformBackEndService(
     l: LangADT,
     hc: HeaderCarrier,
     lise: SmartStringEvaluator
-  ): Future[HttpResponse] =
+  ): Future[HttpResponse] = {
+    val summarySectionDeclaration = renderer.renderSummarySectionDeclaration(
+      cache,
+      formModelOptics.asInstanceOf[FormModelOptics[DataOrigin.Mongo]],
+      maybeAccessCode
+    )
+
     for {
       htmlForPDF <-
         pdfRenderService.createPDFHtml[D, U, PDFType.Summary](
@@ -174,7 +181,8 @@ class GformBackEndService(
             case _                  => None
           },
           submissionDetails,
-          SummaryPagePurpose.ForDms
+          SummaryPagePurpose.ForDms,
+          Some(summarySectionDeclaration)
         )
       htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate))
                                  createHTMLForInstructionPDF[SectionSelectorType.Normal, D](
@@ -210,6 +218,7 @@ class GformBackEndService(
                     maybeEmailAddress
                   )
     } yield response
+  }
 
   private def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, D <: DataOrigin](
     maybeAccessCode: Option[AccessCode],
@@ -248,7 +257,8 @@ class GformBackEndService(
             case _ => None
           },
           submissionDetails,
-          SummaryPagePurpose.ForDms
+          SummaryPagePurpose.ForDms,
+          None
         )
         .map(Some(_))
     }

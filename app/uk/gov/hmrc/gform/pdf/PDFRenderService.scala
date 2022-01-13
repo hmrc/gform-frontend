@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.pdf
 
 import play.api.i18n.Messages
 import play.api.mvc.Request
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
@@ -35,7 +36,10 @@ import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class PDFRenderService(fileUploadAlgebra: FileUploadAlgebra[Future], validationService: ValidationService) {
+class PDFRenderService(
+  fileUploadAlgebra: FileUploadAlgebra[Future],
+  validationService: ValidationService
+) {
 
   def createPDFHtml[D <: DataOrigin, U <: SectionSelectorType: SectionSelector, T <: PDFType](
     title: String,
@@ -44,7 +48,8 @@ class PDFRenderService(fileUploadAlgebra: FileUploadAlgebra[Future], validationS
     formModelOptics: FormModelOptics[D],
     maybeHeaderFooter: Option[HeaderFooter],
     maybeSubmissionDetails: Option[SubmissionDetails],
-    purpose: SummaryPagePurpose
+    purpose: SummaryPagePurpose,
+    summaryDeclaration: Option[Html]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -61,6 +66,7 @@ class PDFRenderService(fileUploadAlgebra: FileUploadAlgebra[Future], validationS
       validationResult <-
         validationService
           .validateFormModel(cache.toCacheData, envelopeWithMapping, formModelOptics.formModelVisibilityOptics)
+
     } yield {
       val envelopeByPurpose = envelopeWithMapping.byPurpose(purpose)
       val pdfModel = PDFPageModelBuilder.makeModel(formModelOptics, cache, envelopeByPurpose, validationResult)
@@ -72,7 +78,8 @@ class PDFRenderService(fileUploadAlgebra: FileUploadAlgebra[Future], validationS
             pdfModel,
             maybeHeaderFooter,
             maybeSubmissionDetails,
-            cache.formTemplate
+            cache.formTemplate,
+            summaryDeclaration
           ).toString
         case PDFLayout.Tabular =>
           summaryTabularPdf(

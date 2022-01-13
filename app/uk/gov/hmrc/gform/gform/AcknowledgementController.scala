@@ -132,6 +132,12 @@ class AcknowledgementController(
         .calculateSubmissionEvent(cache.form, formModelOptics.formModelVisibilityOptics, cache.retrievals, customerId)
         .eventId
 
+      val summarySectionDeclaration = renderer.renderSummarySectionDeclaration(
+        cache,
+        formModelOptics,
+        maybeAccessCode
+      )
+
       import i18nSupport._
       for {
 
@@ -157,7 +163,8 @@ class AcknowledgementController(
                 PDFModel.HeaderFooter(maybeHeader, maybeFooter)
               },
               Some(SubmissionDetails(submission, hashedValue)),
-              SummaryPagePurpose.ForUser
+              SummaryPagePurpose.ForUser,
+              Some(summarySectionDeclaration)
             )
         pdfSource <- pdfService.generatePDFLocal(pdfHtml)
       } yield Result(

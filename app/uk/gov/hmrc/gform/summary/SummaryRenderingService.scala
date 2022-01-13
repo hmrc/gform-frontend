@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
-import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose, routes }
+import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SectionRenderingService, SummaryPagePurpose, routes }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -49,6 +49,7 @@ import java.time.format.DateTimeFormatter
 import scala.concurrent.{ ExecutionContext, Future }
 
 class SummaryRenderingService(
+  renderer: SectionRenderingService,
   i18nSupport: I18nSupport,
   fileUploadAlgebra: FileUploadAlgebra[Future],
   validationService: ValidationService,
@@ -141,11 +142,11 @@ class SummaryRenderingService(
 
   }
 
-  def getSummaryHTML[D <: DataOrigin](
+  def getSummaryHTML(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
-    formModelOptics: FormModelOptics[D]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
     request: Request[_],
     l: LangADT,
@@ -161,17 +162,22 @@ class SummaryRenderingService(
       envelope <- envelopeF
       validationResult <- validationService
                             .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics)
-    } yield SummaryRenderingService.renderSummary(
-      cache.formTemplate,
-      validationResult,
-      formModelOptics,
-      maybeAccessCode,
-      envelope,
-      cache.retrievals,
-      frontendAppConfig,
-      cache.form.thirdPartyData.obligations,
-      summaryPagePurpose
-    )
+    } yield {
+      val summaryDeclaration: Html =
+        renderer.renderSummarySectionDeclaration(cache, formModelOptics, maybeAccessCode)
+      SummaryRenderingService.renderSummary(
+        cache.formTemplate,
+        validationResult,
+        formModelOptics,
+        maybeAccessCode,
+        envelope,
+        cache.retrievals,
+        frontendAppConfig,
+        cache.form.thirdPartyData.obligations,
+        summaryPagePurpose,
+        summaryDeclaration
+      )
+    }
 
   }
 
@@ -224,7 +230,8 @@ object SummaryRenderingService {
     retrievals: MaterialisedRetrievals,
     frontendAppConfig: FrontendAppConfig,
     obligations: Obligations,
-    summaryPagePurpose: SummaryPagePurpose
+    summaryPagePurpose: SummaryPagePurpose,
+    summaryDeclaration: Html
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
@@ -258,6 +265,7 @@ object SummaryRenderingService {
       summaryPagePurpose,
       None,
       headerHtml,
+      summaryDeclaration,
       footerHtml
     )
   }
@@ -304,6 +312,7 @@ object SummaryRenderingService {
       summaryPagePurpose,
       None,
       headerHtml,
+      HtmlFormat.empty,
       footerHtml
     )
   }
