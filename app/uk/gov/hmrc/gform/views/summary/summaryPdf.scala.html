@@ -109,13 +109,13 @@
                 }
             }
         }
+        @{summarySectionDeclaration.getOrElse(HtmlFormat.empty)}
         @for(headerFooter <- maybeHeaderFooter) {
             @for(footer <- headerFooter.footer) {
                 @markDownParser(footer)
             }
         }
         @{SummaryRenderingService.submissionDetailsAsHTML(maybeSubmissionDetails)}
-        @{summarySectionDeclaration.getOrElse(HtmlFormat.empty)}
     </div>
 </body>
 </html>
