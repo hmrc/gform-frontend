@@ -97,7 +97,6 @@ class BooleanExprEval[F[_]: Monad] {
         val formModel = formModelVisibilityOptics.formModel
         val recalculationResult = formModelVisibilityOptics.recalculationResult
         val recData = formModelVisibilityOptics.recData
-        // TODO this doesn't work for BooleanExpr from ValidIf yet (they will need to be evaluated in Recalculation.scala).
         BooleanExprEval
           .evalInExpr(in, formModel, recalculationResult, formModelVisibilityOptics.booleanExprResolver, recData)
           .pure[F]
