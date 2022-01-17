@@ -47,16 +47,9 @@
 
 @main_template(
     title = noPIITitle,
-    serviceName = formTemplate.formName.value,
+    formTemplate = formTemplate,
     containsErrors = pageLevelError.hasErrors,
-    developmentPhase = formTemplate.developmentPhase,
     frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig),
-    webChat = formTemplate.webChat,
-    formCategory = formTemplate.formCategory,
-    displayHMRCLogo = formTemplate.displayHMRCLogo,
-    languages = formTemplate.languages,
-    templateId = formTemplate._id,
     backLink = None
 ) {
     @pageHeading(heading)

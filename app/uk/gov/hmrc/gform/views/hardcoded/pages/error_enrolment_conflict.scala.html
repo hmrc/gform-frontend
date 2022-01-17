@@ -32,15 +32,8 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName.value,
-  frontendAppConfig = frontendAppConfig,
-  authConfig = None,
-  formCategory = formTemplate.formCategory,
-  displayHMRCLogo = formTemplate.displayHMRCLogo,
-  languages = formTemplate.languages,
-  templateId = formTemplate._id,
-  userResearchUrl = formTemplate.userResearchUrl.map(_.value),
-  accessibilityUrl = formTemplate.accessibilityUrl
+  formTemplate = formTemplate,
+  frontendAppConfig = frontendAppConfig
 ) {
 
 <h1 class="govuk-label--l">@heading</h1>

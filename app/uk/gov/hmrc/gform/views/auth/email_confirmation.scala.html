@@ -54,18 +54,9 @@
 
 @main_template(
     title = heading,
-    developmentPhase = formTemplate.developmentPhase,
-    serviceName = formTemplate.formName.value,
+    formTemplate = formTemplate,
     frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig),
-    webChat = formTemplate.webChat,
-    formCategory = formTemplate.formCategory,
-    displayHMRCLogo = formTemplate.displayHMRCLogo,
-    languages = formTemplate.languages,
-    templateId = formTemplate._id,
-    backLink = None,
-    userResearchUrl = formTemplate.userResearchUrl.map(_.value),
-    accessibilityUrl = formTemplate.accessibilityUrl
+    backLink = None
 ) {
 
     <header class="hmrc-page-heading">

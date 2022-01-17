@@ -162,7 +162,7 @@ class AuthenticatedRequestActions(
       authResult <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
       result <- authResult match {
                   case _: AuthSuccessful => Future.successful(Ok("success"))
-                  case _                 => errResponder.forbidden("Access denied")
+                  case _                 => errResponder.forbidden("Access denied", Option.empty[FormTemplate])
                 }
     } yield result
   }
@@ -204,8 +204,8 @@ class AuthenticatedRequestActions(
           } else {
             errResponder.forbidden(
               "Restricted by referrer config",
-              Some(MarkDownUtil.markDownParser(referrerConfig.exitMessage.value)),
-              Some(formTemplate.languages)
+              Some(formTemplate),
+              Some(MarkDownUtil.markDownParser(referrerConfig.exitMessage.value))
             )
           }
         case None =>
@@ -238,9 +238,11 @@ class AuthenticatedRequestActions(
                     role => {
                       val cache = AuthCacheWithoutForm(retrievals, formTemplate, role)
                       Permissions.apply(operation, cache.role) match {
-                        case PermissionResult.Permitted     => f(request)(lang)(cache)
-                        case PermissionResult.NotPermitted  => errResponder.forbidden("Access denied")
-                        case PermissionResult.FormSubmitted => errResponder.forbidden("Access denied")
+                        case PermissionResult.Permitted => f(request)(lang)(cache)
+                        case PermissionResult.NotPermitted =>
+                          errResponder.forbidden("Access denied", Some(formTemplate))
+                        case PermissionResult.FormSubmitted =>
+                          errResponder.forbidden("Access denied", Some(formTemplate))
                       }
                     }
                 )
@@ -272,7 +274,7 @@ class AuthenticatedRequestActions(
         result <- authResult match {
                     case AuthSuccessful(retrievals, role) =>
                       f(request)(getCurrentLanguage(request))(AuthCacheWithoutForm(retrievals, formTemplate, role))
-                    case _ => errResponder.forbidden("Access denied")
+                    case _ => errResponder.forbidden("Access denied", Some(formTemplate))
                   }
       } yield result
     }
@@ -288,9 +290,11 @@ class AuthenticatedRequestActions(
   ): Action[AnyContent] =
     async(formTemplateId, maybeAccessCode) {
       implicit request => lang => cache => smartStringEvaluator => formModelOptics =>
+        val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+        val formTemplate = formTemplateWithRedirects.formTemplate
         Permissions.apply(operation, cache.role, cache.form.status) match {
           case PermissionResult.Permitted    => f(request)(lang)(cache)(smartStringEvaluator)(formModelOptics)
-          case PermissionResult.NotPermitted => errResponder.forbidden("Access denied")
+          case PermissionResult.NotPermitted => errResponder.forbidden("Access denied", Some(formTemplate))
           case PermissionResult.FormSubmitted =>
             Redirect(
               uk.gov.hmrc.gform.gform.routes.AcknowledgementController
@@ -426,9 +430,9 @@ class AuthenticatedRequestActions(
       case AuthRedirectFlashingFormName(loginUrl) =>
         Redirect(loginUrl).flashing("formTitle" -> formTemplate.formName.value).pure[Future]
       case AuthBlocked(message) =>
-        errResponder.forbiddenWithReason(message)
+        errResponder.forbiddenWithReason(message, Some(formTemplate))
       case AuthForbidden(message) =>
-        errResponder.forbidden(message)
+        errResponder.forbidden(message, Some(formTemplate))
     }
 
   val defaultRetrievals = Retrievals.credentials and

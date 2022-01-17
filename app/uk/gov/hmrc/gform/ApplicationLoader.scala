@@ -39,7 +39,7 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.metrics.{ GraphiteModule, MetricsModule }
-import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsModule, RoutingModule }
+import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsModule, RequestHeaderService, RoutingModule }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorConnector
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.upscan.UpscanModule
@@ -82,23 +82,6 @@ class ApplicationModule(context: Context)
     playBuiltInsModule.i18nSupport,
     playBuiltInsModule.langs
   )(messagesApi)
-
-  val errorHandler: ErrorHandler = new ErrorHandler(
-    configModule.environment,
-    configModule.playConfiguration,
-    configModule.context.devContext.map(_.sourceMapper),
-    errResponder
-  )
-
-  val csrfHttpErrorHandler: CSRFErrorHandler = new CSRFErrorHandler(
-    configModule.environment,
-    configModule.playConfiguration,
-    configModule.context.devContext.map(_.sourceMapper),
-    errResponder,
-    configModule.appConfig
-  )
-
-  override lazy val csrfErrorHandler: CSRF.ErrorHandler = new CSRF.CSRFHttpErrorHandler(csrfHttpErrorHandler)
 
   new GraphiteModule(environment, configuration, applicationLifecycle, metricsModule)
 
@@ -209,6 +192,16 @@ class ApplicationModule(context: Context)
     fileUploadModule
   )
 
+  private val requestHeaderService = new RequestHeaderService(gformBackendModule.gformConnector)
+
+  val errorHandler: ErrorHandler = new ErrorHandler(
+    configModule.environment,
+    configModule.playConfiguration,
+    configModule.context.devContext.map(_.sourceMapper),
+    errResponder,
+    requestHeaderService
+  )
+
   private val frontendFiltersModule = new FrontendFiltersModule(
     gformBackendModule,
     authModule,
@@ -223,6 +216,7 @@ class ApplicationModule(context: Context)
     emailSessionCookieBaker,
     anonymousSessionCookieBaker,
     hmrcSessionCookieBaker,
+    requestHeaderService,
     errorHandler
   )
 
@@ -242,6 +236,16 @@ class ApplicationModule(context: Context)
     assetsMetadata
   )
 
+  val csrfHttpErrorHandler: CSRFErrorHandler = new CSRFErrorHandler(
+    configModule.environment,
+    configModule.playConfiguration,
+    configModule.context.devContext.map(_.sourceMapper),
+    errResponder,
+    configModule.appConfig,
+    requestHeaderService
+  )
+
+  override lazy val csrfErrorHandler: CSRF.ErrorHandler = new CSRF.CSRFHttpErrorHandler(csrfHttpErrorHandler)
   override lazy val httpRequestHandler: HttpRequestHandler = routingModule.httpRequestHandler
   override val httpFilters: Seq[EssentialFilter] = frontendFiltersModule.httpFilters
   override def router: Router = routingModule.router

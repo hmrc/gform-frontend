@@ -37,15 +37,8 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = displayAccessCode.formTemplate.formName.value,
-  developmentPhase = displayAccessCode.formTemplate.developmentPhase,
-  frontendAppConfig = frontendAppConfig,
-  authConfig = Some(displayAccessCode.formTemplate.authConfig),
-  formCategory = displayAccessCode.formTemplate.formCategory,
-  displayHMRCLogo = displayAccessCode.formTemplate.displayHMRCLogo,
-  languages = displayAccessCode.formTemplate.languages,
-  templateId = displayAccessCode.formTemplate._id,
-  userResearchUrl = displayAccessCode.formTemplate.userResearchUrl.map(_.value)
+  formTemplate = displayAccessCode.formTemplate,
+  frontendAppConfig = frontendAppConfig
 ) {
 
   @displayAccessCode.panelHtml

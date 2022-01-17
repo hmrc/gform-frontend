@@ -27,17 +27,9 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = messages(titleKey),
-    serviceName = formTemplate.formName.value,
+    formTemplate = formTemplate,
     containsErrors = true,
-    developmentPhase = formTemplate.developmentPhase,
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig),
-    formCategory = formTemplate.formCategory,
-    displayHMRCLogo = formTemplate.displayHMRCLogo,
-    languages = formTemplate.languages,
-    templateId = formTemplate._id,
-    userResearchUrl = formTemplate.userResearchUrl.map(_.value),
-    accessibilityUrl = formTemplate.accessibilityUrl
+    frontendAppConfig = frontendAppConfig
 ) {
     <div class="govuk-body">@html</div>
 }

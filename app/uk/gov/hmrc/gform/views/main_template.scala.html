@@ -15,32 +15,26 @@
  *@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase,  ResearchBanner, AuthConfig}
-@import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
-@import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.WebChat
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormCategory
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default, FormTemplateId}
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.AccessibilityUrl
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, WebChat}
 
 @(title: String,
-  serviceName: String,
+  formTemplate: FormTemplate,
   containsErrors: Boolean = false,
-  developmentPhase: Option[DevelopmentPhase] = None,
-  sidebarLinks: Option[Html] = None,
-  scriptElem: Option[Html] = None,
   frontendAppConfig: FrontendAppConfig,
-  authConfig: Option[AuthConfig],
-  webChat: Option[WebChat] = None,
-  formCategory: FormCategory = Default,
-  displayHMRCLogo: Boolean,
-  languages: AvailableLanguages = AvailableLanguages.default,
-  templateId: FormTemplateId,
   backLink: Option[BackLink] = None,
   displayTimeoutDialog: Boolean = true,
-  userResearchUrl: Option[String] = None,
-  accessibilityUrl: Option[AccessibilityUrl] = None
+  displaySignOut: Boolean = true
 )(content: Html)(implicit request: Request[_], messages: Messages, l: LangADT)
+
+@serviceName = @{
+  formTemplate.formName.value
+}
+
+@webChat = @{
+  formTemplate.webChat
+}
 
 @webChatRoomId = @{
   webChat match {
@@ -56,17 +50,14 @@
   }
 }
 
-@mainScripts = {
-  @scriptElem
-}
-
 @errorPrefix = @{if (containsErrors) "Error: " else ""}
 
-@titlePrefix = @{if(title.nonEmpty) title + " - " else ""}
+@titlePrefix = @{if (title.nonEmpty) title + " - " else ""}
 
 @headTitle = @{
     errorPrefix + titlePrefix + serviceName + " - GOV.UK"
 }
+
 @webchatSidebar = {
   @if(webChat.nonEmpty) {
     <nav class="govuk-related-items" style="border-top: 5px solid #005ea5;">
@@ -88,15 +79,10 @@
   appConfig = frontendAppConfig,
   serviceTitle = serviceName,
   headTitle = headTitle,
-  developmentPhase = developmentPhase,
   content = content,
-  scriptElem = Some(mainScripts),
-  authConfig = authConfig,
-  displayHMRCLogo = displayHMRCLogo,
-  formLanguages = languages,
-  templateId = templateId,
+  maybeFormTemplate = Some(formTemplate),
   backLink = backLink,
   displayTimeoutDialog = displayTimeoutDialog,
-  userResearchUrl = userResearchUrl,
-  accessibilityUrl = accessibilityUrl
+  displaySignOut = displaySignOut,
+  displayLanguageSwitcher = true
 )

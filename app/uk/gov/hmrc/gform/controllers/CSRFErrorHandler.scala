@@ -23,10 +23,10 @@ import play.api._
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ RequestHeader, Result }
 import play.core.SourceMapper
-
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.gform.routes
+import uk.gov.hmrc.gform.playcomponents.RequestHeaderService
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 class CSRFErrorHandler(
@@ -34,8 +34,10 @@ class CSRFErrorHandler(
   configuration: Configuration,
   sourceMapper: Option[SourceMapper],
   errResponder: ErrResponder,
-  appConfig: AppConfig
-) extends ErrorHandler(environment, configuration, sourceMapper, errResponder) {
+  appConfig: AppConfig,
+  requestHeaderService: RequestHeaderService
+)(implicit ec: ExecutionContext)
+    extends ErrorHandler(environment, configuration, sourceMapper, errResponder, requestHeaderService) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 

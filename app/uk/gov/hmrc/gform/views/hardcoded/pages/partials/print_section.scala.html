@@ -35,17 +35,9 @@
 @heading = @{title.value}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-title = heading,
-serviceName = formTemplate.formName.value,
-frontendAppConfig = frontendAppConfig,
-authConfig = Some(formTemplate.authConfig),
-webChat = formTemplate.webChat,
-formCategory = formTemplate.formCategory,
-displayHMRCLogo = formTemplate.displayHMRCLogo,
-languages = formTemplate.languages,
-templateId = formTemplate._id,
-userResearchUrl = formTemplate.userResearchUrl.map(_.value),
-accessibilityUrl = formTemplate.accessibilityUrl
+  title = heading,
+  formTemplate = formTemplate,
+  frontendAppConfig = frontendAppConfig
 ) {
     <h1 class="govuk-heading-xl">
         @title.value

@@ -69,13 +69,15 @@ class SignOutController(
 
   def showSignedOutPage(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth {
     implicit request => implicit l =>
+      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirects.formTemplate
       val signBackInUrl = routes.NewFormController.dashboard(formTemplateId).url
       val maskedEmailId = request.flash.get("maskedEmailId")
       maskedEmailId match {
         case Some(id) =>
-          Ok(signed_out_email_auth(signBackInUrl, id, frontendConfig))
+          Ok(signed_out_email_auth(formTemplate, signBackInUrl, id, frontendConfig))
         case _ =>
-          Ok(signed_out(signBackInUrl, frontendConfig))
+          Ok(signed_out(formTemplate, signBackInUrl, frontendConfig))
       }
   }
 }

@@ -33,14 +33,8 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = agentEnrolmentProlog.formTemplate.formName.value,
-  frontendAppConfig = frontendAppConfig,
-  authConfig = Some(agentEnrolmentProlog.formTemplate.authConfig),
-  formCategory = agentEnrolmentProlog.formTemplate.formCategory,
-  displayHMRCLogo = agentEnrolmentProlog.formTemplate.displayHMRCLogo,
-  languages = agentEnrolmentProlog.formTemplate.languages,
-  templateId = agentEnrolmentProlog.formTemplate._id,
-  userResearchUrl = agentEnrolmentProlog.formTemplate.userResearchUrl.map(_.value)
+  formTemplate = agentEnrolmentProlog.formTemplate,
+  frontendAppConfig = frontendAppConfig
 ) {
   <h1 class="govuk-label--l">
     @heading

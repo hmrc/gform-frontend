@@ -260,7 +260,7 @@ class AuthService(
 
         val recoverPF = needEnrolment match {
           case RequireEnrolment(enrolmentSection, _) => RecoverAuthResult.redirectToEnrolmentSection(showEnrolment)
-          case RejectAccess                          => RecoverAuthResult.rejectInsufficientEnrolments
+          case RejectAccess                          => RecoverAuthResult.rejectInsufficientEnrolments(formTemplate._id)
         }
         for {
           predicate <- predicateF
