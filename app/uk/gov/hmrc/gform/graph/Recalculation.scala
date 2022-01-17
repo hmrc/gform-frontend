@@ -167,12 +167,8 @@ class Recalculation[F[_]: Monad, E](
           noStateChange(evResult + (expr, exprResult))
       }
 
-      val validIfsResult: StateT[F, RecalculationState, Unit] =
-        evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext)
-
-      (validIfsResult, graphLayerResult).mapN { case (_, result) =>
-        result
-      }
+      // We are only interested in `ValidIf` with `In` expression and any other `validIf` is being ignored
+      evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext) >> graphLayerResult
 
     }
 
