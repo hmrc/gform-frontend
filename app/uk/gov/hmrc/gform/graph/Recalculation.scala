@@ -118,10 +118,10 @@ class Recalculation[F[_]: Monad, E](
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
     state.flatMap { evResult =>
       val booleanExprResolver = BooleanExprResolver { booleanExpr =>
-        evalIfExprPure(booleanExpr, evResult, recData, retrievals, evaluationContext)
+        evalBooleanExprPure(booleanExpr, evResult, recData, retrievals, evaluationContext)
       }
 
-      graphLayer.foldMapM {
+      val graphLayerResult: StateT[F, RecalculationState, EvaluationResults] = graphLayer.foldMapM {
 
         case GraphNode.Simple(fcId) =>
           for {
@@ -129,15 +129,11 @@ class Recalculation[F[_]: Monad, E](
               isHiddenByIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
             isHiddenComponentIncludeIf <-
               isHiddenByComponentIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
-            isHiddenByValidIf <-
-              isHiddenByValidIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
             isHiddenRevealingChoice <- isHiddenByRevealingChoice(fcId, recData)
             isHiddenRepeatsExpr <-
               isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
           } yield
-            if (
-              isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr || isHiddenByValidIf
-            ) {
+            if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
               evResult + (FormCtx(fcId), ExpressionResult.Hidden)
             } else {
               evResult
@@ -170,9 +166,17 @@ class Recalculation[F[_]: Monad, E](
 
           noStateChange(evResult + (expr, exprResult))
       }
+
+      val validIfsResult: StateT[F, RecalculationState, Unit] =
+        evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext)
+
+      (validIfsResult, graphLayerResult).mapN { case (_, result) =>
+        result
+      }
+
     }
 
-  private def evalIfExprPure(
+  private def evalBooleanExprPure(
     booleanExpr: BooleanExpr,
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -181,7 +185,7 @@ class Recalculation[F[_]: Monad, E](
   )(implicit formModel: FormModel[Interim]): Boolean = {
 
     val booleanExprResolver = BooleanExprResolver { booleanExpr =>
-      evalIfExprPure(booleanExpr, evaluationResults, recData, retrievals, evaluationContext)
+      evalBooleanExprPure(booleanExpr, evaluationResults, recData, retrievals, evaluationContext)
     }
 
     val rr =
@@ -215,7 +219,7 @@ class Recalculation[F[_]: Monad, E](
     loop(booleanExpr)
   }
 
-  private def evalIfExpr(
+  private def evalBooleanExpr(
     booleanExpr: BooleanExpr,
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -283,19 +287,19 @@ class Recalculation[F[_]: Monad, E](
     loop(booleanExpr)
   }
 
-  private def evaluateIncludeIf(
+  private def evalBooleanExpr(
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   )(
-    includeIf: Option[IncludeIf]
+    booleanExpr: Option[BooleanExpr]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
-    includeIf.fold(noStateChange(false)) { includeIf =>
+    booleanExpr.fold(noStateChange(false)) { booleanExpr =>
       for {
-        b <- evalIfExpr(
-               includeIf.booleanExpr,
+        b <- evalBooleanExpr(
+               booleanExpr,
                evaluationResults,
                recData,
                retrievals,
@@ -305,27 +309,23 @@ class Recalculation[F[_]: Monad, E](
       } yield !b
     }
 
-  private def evaluateValidIf(
+  private def evalValidIfs(
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
-  )(
-    validIf: Option[ValidIf]
-  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
-    validIf.fold(noStateChange(false)) { validIf =>
-      for {
-        b <- evalIfExpr(
-               validIf.booleanExpr,
-               evaluationResults,
-               recData,
-               retrievals,
-               booleanExprResolver,
-               evaluationContext
-             )
-      } yield !b
-    }
+  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Unit] = {
+    val validIfs: List[ValidIf] = formModel.allValidIfs.flatMap(_._1)
+
+    validIfs
+      .traverse(validIf =>
+        evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
+          Some(validIf.booleanExpr)
+        }
+      )
+      .void
+  }
 
   private def isHiddenByIncludeIf(
     fcId: FormComponentId,
@@ -336,10 +336,11 @@ class Recalculation[F[_]: Monad, E](
     evaluationContext: EvaluationContext
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] = {
     val pageLookup: Map[FormComponentId, PageModel[Interim]] = formModel.pageLookup
-    evaluateIncludeIf(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
+    evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
       pageLookup
         .get(fcId)
         .flatMap(_.getIncludeIf)
+        .map(_.booleanExpr)
     }
   }
 
@@ -351,30 +352,12 @@ class Recalculation[F[_]: Monad, E](
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
-    evaluateIncludeIf(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
+    evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
       formModel.fcLookup
         .get(fcId)
         .flatMap(_.includeIf)
+        .map(_.booleanExpr)
     }
-
-  private def isHiddenByValidIf(
-    fcId: FormComponentId,
-    evaluationResults: EvaluationResults,
-    recData: RecData[SourceOrigin.OutOfDate],
-    retrievals: MaterialisedRetrievals,
-    booleanExprResolver: BooleanExprResolver,
-    evaluationContext: EvaluationContext
-  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] = {
-    val validIfs: List[ValidIf] = formModel.allValidIfs.filter(_._2.id === fcId).flatMap(_._1)
-
-    validIfs
-      .traverse(validIf =>
-        evaluateValidIf(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
-          Some(validIf)
-        }
-      )
-      .map(_.foldLeft(false)(_ && _))
-  }
 
   private def isHiddenByRepeatsExpr(
     fcId: FormComponentId,
