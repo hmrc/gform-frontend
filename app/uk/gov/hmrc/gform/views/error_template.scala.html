@@ -15,16 +15,16 @@
  *@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 
 @(
   pageTitle: String,
   heading: String,
   message: String,
+  maybeFormTemplate: Option[FormTemplate],
   maybeMessageHtml: Option[Html] = None,
-  frontendAppConfig: FrontendAppConfig,
-  availableLanguages: AvailableLanguages = AvailableLanguages.default
+  frontendAppConfig: FrontendAppConfig
 )(implicit requestHeader: RequestHeader, messages: Messages, l: LangADT)
 
 @mainContent = {
@@ -41,12 +41,9 @@
     serviceTitle = pageTitle,
     headTitle = pageTitle,
     content = mainContent,
-    authConfig = None,
-    displayHMRCLogo = false,
-    templateId = FormTemplateId(""),
+    maybeFormTemplate = maybeFormTemplate,
     backLink = None,
     displayTimeoutDialog = true,
-    formLanguages = availableLanguages,
-    userResearchUrl = None,
-    accessibilityUrl = None
+    displaySignOut = true,
+    displayLanguageSwitcher = false
 )

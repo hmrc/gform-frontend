@@ -21,6 +21,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.MessagesControllerComponents
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActionsAlgebra
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.Future
@@ -34,8 +35,10 @@ class ErrorController(
 
   import i18nSupport._
 
-  def insufficientEnrolments = nonAuth { implicit request => implicit l =>
+  def insufficientEnrolments(formTemplateId: FormTemplateId) = nonAuth { implicit request => implicit l =>
+    val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateWithRedirects.formTemplate
     val pageTitle = request.flash.get("formTitle").getOrElse("")
-    Ok(views.html.hardcoded.pages.insufficient_enrolments(pageTitle, frontendAppConfig))
+    Ok(views.html.hardcoded.pages.insufficient_enrolments(formTemplate, pageTitle, frontendAppConfig))
   }
 }

@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.gform.config.AppConfig
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 object RecoverAuthResult {
 
@@ -33,9 +34,12 @@ object RecoverAuthResult {
       authRedirect
   }
 
-  val rejectInsufficientEnrolments: PartialFunction[Throwable, AuthResult] = { case _: InsufficientEnrolments =>
-    logger.debug("Auth Failed")
-    AuthRedirectFlashingFormName(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
+  def rejectInsufficientEnrolments(formTemplateId: FormTemplateId): PartialFunction[Throwable, AuthResult] = {
+    case _: InsufficientEnrolments =>
+      logger.debug("Auth Failed")
+      AuthRedirectFlashingFormName(
+        uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments(formTemplateId).url
+      )
   }
 
   def basicRecover(request: Request[AnyContent], appConfig: AppConfig): PartialFunction[Throwable, AuthResult] =

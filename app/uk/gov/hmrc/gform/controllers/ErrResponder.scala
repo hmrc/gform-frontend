@@ -24,7 +24,8 @@ import play.api.mvc.{ RequestHeader, Result }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auditing.HttpAuditingService
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 import scala.concurrent.Future
 
@@ -48,40 +49,62 @@ class ErrResponder(
 
   import i18nSupport._
 
-  def internalServerError(requestHeader: RequestHeader, e: Throwable) = {
+  def internalServerError(requestHeader: RequestHeader, maybeFormTemplate: Option[FormTemplate], e: Throwable) = {
+    val l: LangADT = LangADT.fromRequest(requestHeader, langs)
     logger.error(s"Experienced internal server error", e)
     httpAuditingService.auditServerError(requestHeader)
-    Future.successful(InternalServerError.apply(renderInternalServerError(requestHeader)))
+    Future.successful(InternalServerError.apply(renderInternalServerError(maybeFormTemplate)(requestHeader, l)))
   }
 
-  def onOtherClientError(requestHeader: RequestHeader, statusCode: Int, message: String) = {
+  def onOtherClientError(
+    requestHeader: RequestHeader,
+    statusCode: Int,
+    message: String,
+    maybeFormTemplate: Option[FormTemplate]
+  ) = {
+    val l: LangADT = LangADT.fromRequest(requestHeader, langs)
     logger.warn(s"Experienced internal server error, statusCode=$statusCode, message=$message")
     //no auditing
-    Future.successful(InternalServerError.apply(renderInternalServerError(requestHeader)))
+    Future.successful(InternalServerError.apply(renderInternalServerError(maybeFormTemplate)(requestHeader, l)))
   }
 
   def forbidden(
     message: String,
+    maybeFormTemplate: Option[FormTemplate],
     messageHtml: Option[Html] = None,
-    availableLanguages: Option[AvailableLanguages] = None,
     smartLogger: SmartLogger = smartLocalLogger
-  )(implicit request: RequestHeader): Future[Result] =
-    forbiddenReason(message, "generic.error.pageRestricted", smartLogger, messageHtml, availableLanguages)
+  )(implicit request: RequestHeader): Future[Result] = {
+    implicit val l: LangADT = LangADT.fromRequest(request, langs)
+    forbiddenReason(
+      message,
+      "generic.error.pageRestricted",
+      smartLogger,
+      maybeFormTemplate,
+      messageHtml
+    )
+  }
 
-  def forbiddenWithReason(reason: String, smartLogger: SmartLogger = smartLocalLogger)(implicit
+  def forbiddenWithReason(
+    reason: String,
+    maybeFormTemplate: Option[FormTemplate],
+    smartLogger: SmartLogger = smartLocalLogger
+  )(implicit
     request: RequestHeader
-  ): Future[Result] =
-    forbiddenReason(reason, reason, smartLogger)
+  ): Future[Result] = {
+    implicit val l: LangADT = LangADT.fromRequest(request, langs)
+    forbiddenReason(reason, reason, smartLogger, maybeFormTemplate)
+  }
 
   private def forbiddenReason(
     message: String,
     reason: String,
     smartLogger: SmartLogger,
-    reasonHtml: Option[Html] = None,
-    availableLanguages: Option[AvailableLanguages] = None
+    maybeFormTemplate: Option[FormTemplate],
+    reasonHtml: Option[Html] = None
   )(implicit
     request: RequestHeader,
-    messages: Messages
+    messages: Messages,
+    l: LangADT
   ): Future[Result] = {
     smartLogger.log(s"Trying to access forbidden resource: $message")
     httpAuditingService.auditForbidden(request)
@@ -91,8 +114,8 @@ class ErrResponder(
           messages("generic.error.accessForbidden"),
           messages("generic.error.pageRestricted"),
           messages(reason),
-          reasonHtml,
-          availableLanguages
+          maybeFormTemplate,
+          reasonHtml
         )
       )
     )
@@ -101,56 +124,69 @@ class ErrResponder(
   def badRequest(
     requestHeader: RequestHeader,
     message: String,
+    maybeFormTemplate: Option[FormTemplate],
     smartLogger: SmartLogger = smartLocalLogger
   ): Future[Result] = {
+    val l: LangADT = LangADT.fromRequest(requestHeader, langs)
     smartLogger.log(s"Bad request: $message")
     httpAuditingService.auditBadRequest(requestHeader, message)
-    Future.successful(BadRequest(renderBadRequest(requestHeader)))
+    Future.successful(BadRequest(renderBadRequest(maybeFormTemplate)(requestHeader, l)))
   }
 
   def notFound(
     requestHeader: RequestHeader,
     message: String,
+    maybeFormTemplate: Option[FormTemplate],
     smartLogger: SmartLogger = smartLocalLogger
   ): Future[Result] = {
+    val l: LangADT = LangADT.fromRequest(requestHeader, langs)
     smartLogger.log(s"Page NotFound: $message")
     httpAuditingService.auditNotFound(requestHeader)
-    Future.successful(NotFound(renderNotFound(requestHeader)))
+    Future.successful(NotFound(renderNotFound(maybeFormTemplate)(requestHeader, l)))
   }
 
-  private def renderInternalServerError(implicit request: RequestHeader) = renderErrorPage(
-    pageTitle = Messages("global.error.InternalServerError500.title"),
-    heading = Messages("global.error.InternalServerError500.heading"),
-    message = Messages("global.error.InternalServerError500.message")
-  )
+  private def renderInternalServerError(
+    maybeFormTemplate: Option[FormTemplate]
+  )(implicit request: RequestHeader, l: LangADT) =
+    renderErrorPage(
+      pageTitle =
+        maybeFormTemplate.map(_.formName.value).getOrElse(Messages("global.error.InternalServerError500.title")),
+      heading = Messages("global.error.InternalServerError500.heading"),
+      message = Messages("global.error.InternalServerError500.message"),
+      maybeFormTemplate = maybeFormTemplate
+    )
 
-  private def renderNotFound(implicit request: RequestHeader) = renderErrorPage(
-    pageTitle = Messages("global.error.pageNotFound404.title"),
-    heading = Messages("global.error.pageNotFound404.heading"),
-    message = Messages("global.error.pageNotFound404.message")
-  )
+  private def renderNotFound(maybeFormTemplate: Option[FormTemplate])(implicit request: RequestHeader, lang: LangADT) =
+    renderErrorPage(
+      pageTitle = Messages("global.error.pageNotFound404.title"),
+      heading = Messages("global.error.pageNotFound404.heading"),
+      message = Messages("global.error.pageNotFound404.message"),
+      maybeFormTemplate = maybeFormTemplate
+    )
 
-  private def renderBadRequest(implicit request: RequestHeader) = renderErrorPage(
-    pageTitle = Messages("global.error.badRequest400.title"),
-    heading = Messages("global.error.badRequest400.heading"),
-    message = Messages("global.error.badRequest400.message")
-  )
+  private def renderBadRequest(
+    maybeFormTemplate: Option[FormTemplate]
+  )(implicit request: RequestHeader, lang: LangADT) =
+    renderErrorPage(
+      pageTitle = Messages("global.error.badRequest400.title"),
+      heading = Messages("global.error.badRequest400.heading"),
+      message = Messages("global.error.badRequest400.message"),
+      maybeFormTemplate = maybeFormTemplate
+    )
 
   private def renderErrorPage(
     pageTitle: String,
     heading: String,
     message: String,
-    maybeMessageHtml: Option[Html] = None,
-    availableLanguages: Option[AvailableLanguages] = None
-  )(implicit requestHeader: RequestHeader) = {
-    implicit val lang: LangADT = LangADT.fromRequest(requestHeader, langs)
+    maybeFormTemplate: Option[FormTemplate],
+    maybeMessageHtml: Option[Html] = None
+  )(implicit requestHeader: RequestHeader, lang: LangADT) =
     views.html.error_template(
       pageTitle,
       heading,
       message,
+      maybeFormTemplate,
       maybeMessageHtml,
-      frontendAppConfig,
-      availableLanguages.fold(AvailableLanguages.default)(identity)
+      frontendAppConfig
     )
-  }
 }

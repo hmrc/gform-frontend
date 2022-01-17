@@ -40,17 +40,8 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName.value,
-  developmentPhase = formTemplate.developmentPhase,
-  frontendAppConfig = frontendAppConfig,
-  authConfig = Some(formTemplate.authConfig),
-  webChat = formTemplate.webChat,
-  formCategory = formTemplate.formCategory,
-  displayHMRCLogo = formTemplate.displayHMRCLogo,
-  languages = formTemplate.languages,
-  templateId = formTemplateId,
-  userResearchUrl = formTemplate.userResearchUrl.map(_.value),
-  accessibilityUrl = formTemplate.accessibilityUrl
+  formTemplate = formTemplate,
+  frontendAppConfig = frontendAppConfig
 ) {
 
 

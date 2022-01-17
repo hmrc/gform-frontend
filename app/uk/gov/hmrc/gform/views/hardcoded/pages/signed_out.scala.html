@@ -16,9 +16,10 @@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BetaBanner, FormTemplateId }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BetaBanner, FormTemplate }
 
 @(
+        formTemplate: FormTemplate,
         signBackInURL: String,
         frontendAppConfig: FrontendAppConfig
 )(
@@ -33,12 +34,9 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = "",
-  developmentPhase = Some(BetaBanner),
+  formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
-  authConfig = None,
-  templateId = FormTemplateId(""),
-  displayHMRCLogo = false
+  displaySignOut = false
 ) {
 
   <h1 class="govuk-label--l">@heading</h1>

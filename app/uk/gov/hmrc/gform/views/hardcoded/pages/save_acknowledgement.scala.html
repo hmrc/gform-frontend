@@ -27,15 +27,8 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = saveAcknowledgement.heading,
-  serviceName = saveAcknowledgement.formTemplate.formName.value,
-  developmentPhase = saveAcknowledgement.formTemplate.developmentPhase,
-  frontendAppConfig = frontendAppConfig,
-  authConfig = Some(saveAcknowledgement.formTemplate.authConfig),
-  formCategory = saveAcknowledgement.formTemplate.formCategory,
-  displayHMRCLogo = saveAcknowledgement.formTemplate.displayHMRCLogo,
-  languages = saveAcknowledgement.formTemplate.languages,
-  templateId = saveAcknowledgement.formTemplate._id,
-  userResearchUrl = saveAcknowledgement.formTemplate.userResearchUrl.map(_.value)
+  formTemplate = saveAcknowledgement.formTemplate,
+  frontendAppConfig = frontendAppConfig
 ) {
 
 @saveAcknowledgement.panelHtml

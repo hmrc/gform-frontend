@@ -73,6 +73,7 @@ class FrontendFiltersModule(
   emailSessionCookieBaker: SessionCookieBaker,
   anonoymousSessionCookieBaker: SessionCookieBaker,
   hmrcSessionCookieBaker: SessionCookieBaker,
+  requestHeaderService: RequestHeaderService,
   errorHandler: ErrorHandler
 )(implicit ec: ExecutionContext) { self =>
   private implicit val materializer: Materializer = akkaModule.materializer
@@ -141,7 +142,7 @@ class FrontendFiltersModule(
       hmrcSessionCookieCryptoFilter,
       anonoymousSessionCookieCryptoFilter,
       emailSessionCookieCryptoFilter,
-      gformBackendModule.gformConnector,
+      requestHeaderService,
       configModule
     )
   }

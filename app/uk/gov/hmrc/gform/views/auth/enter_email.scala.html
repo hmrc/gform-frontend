@@ -46,20 +46,11 @@
 
 @main_template(
     title = heading,
-    developmentPhase = formTemplate.developmentPhase,
+    formTemplate = formTemplate,
     containsErrors = pageLevelError.hasErrors,
-    serviceName = formTemplate.formName.value,
     frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig),
-    webChat = formTemplate.webChat,
-    formCategory = formTemplate.formCategory,
-    displayHMRCLogo = formTemplate.displayHMRCLogo,
-    languages = formTemplate.languages,
-    templateId = formTemplate._id,
     backLink = None,
-    displayTimeoutDialog = false,
-    userResearchUrl = formTemplate.userResearchUrl.map(_.value),
-    accessibilityUrl = formTemplate.accessibilityUrl
+    displayTimeoutDialog = false
 ) {
 
     @pageLevelError.render

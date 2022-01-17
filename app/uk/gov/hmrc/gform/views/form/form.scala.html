@@ -88,19 +88,10 @@
 
 @main_template(
   title = page.noPIITitle,
-  serviceName = formTemplate.formName.value,
+  formTemplate = formTemplate,
   containsErrors = pageLevelError.hasErrors,
-  developmentPhase = formTemplate.developmentPhase,
   frontendAppConfig = frontendAppConfig,
-  authConfig = Some(formTemplate.authConfig),
-  webChat = formTemplate.webChat,
-  formCategory = formTemplate.formCategory,
-  displayHMRCLogo = formTemplate.displayHMRCLogo,
-  languages = formTemplate.languages,
-  templateId = formTemplate._id,
-  backLink = if(shouldDisplayBack) Some(backLink) else None,
-  userResearchUrl = formTemplate.userResearchUrl.map(_.value),
-  accessibilityUrl = formTemplate.accessibilityUrl
+  backLink = if(shouldDisplayBack) Some(backLink) else None
 ) {
 
     @pageLevelError.render

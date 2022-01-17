@@ -40,17 +40,10 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = compositeAuthFormPage.formTemplate.formName.value,
-  developmentPhase = compositeAuthFormPage.formTemplate.developmentPhase,
+  formTemplate = compositeAuthFormPage.formTemplate,
   frontendAppConfig = frontendAppConfig,
   containsErrors = compositeAuthFormPage.hasErrors,
-  authConfig = Some(compositeAuthFormPage.formTemplate.authConfig),
-  formCategory = compositeAuthFormPage.formTemplate.formCategory,
-  displayHMRCLogo = compositeAuthFormPage.formTemplate.displayHMRCLogo,
-  displayTimeoutDialog = maybeGGId.isDefined,
-  languages = compositeAuthFormPage.formTemplate.languages,
-  templateId = compositeAuthFormPage.formTemplate._id,
-  userResearchUrl = compositeAuthFormPage.formTemplate.userResearchUrl.map(_.value)
+  displayTimeoutDialog = maybeGGId.isDefined
 ) {
 
   @if(compositeAuthFormPage.hasErrors) {

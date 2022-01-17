@@ -17,19 +17,14 @@
 package uk.gov.hmrc.gform.playcomponents
 
 import _root_.akka.stream.Materializer
-import cats.syntax.eq._
 import play.api.http.HeaderNames
 import play.api.mvc._
-import play.api.routing.Router.RequestImplicits._
 import uk.gov.hmrc.crypto.{ Crypted, Decrypter, Encrypter, PlainText }
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
-import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplateId, FormTemplateWithRedirects }
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplateWithRedirects }
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.{ SessionCookieCrypto, SessionCookieCryptoFilter }
-import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -38,7 +33,7 @@ class SessionCookieDispatcherFilter(
   hmrcCookieCryptoFilter: SessionCookieCryptoFilter,
   anonymousCookieCryptoFilter: SessionCookieCryptoFilter,
   emailCookieCryptoFilter: SessionCookieCryptoFilter,
-  gformConnector: GformConnector,
+  requestHeaderService: RequestHeaderService,
   configModule: ConfigModule
 )(implicit ec: ExecutionContext, override val mat: Materializer)
     extends Filter {
@@ -54,21 +49,8 @@ class SessionCookieDispatcherFilter(
 
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
-    val formTemplateIdParamIndex: Option[Int] = {
-      val mayContainsFormTemplateId: Option[Array[Boolean]] =
-        rh.handlerDef.map(_.path.split("/")).map(_.map(_.containsSlice("$formTemplateId")))
-      mayContainsFormTemplateId.map(_.indexOf(true))
-    }
-
-    val maybeFormTemplateWithRedirects: Future[Either[Unit, FormTemplateWithRedirects]] =
-      formTemplateIdParamIndex match {
-        case Some(i) if i =!= -1 =>
-          val templateId = rh.uri.split("\\?")(0).split("/")(i)
-          implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(rh, rh.session)
-          gformConnector.getFormTemplate(FormTemplateId(templateId.toLowerCase)).map(Right(_))
-        case _ =>
-          Future.successful(Left(()))
-      }
+    val maybeFormTemplateWithRedirects: Future[Option[FormTemplateWithRedirects]] =
+      requestHeaderService.formTemplateWithRedirects(rh)
 
     def findAuthConfigCookie(rh: RequestHeader): Option[Cookie] =
       rh.headers
@@ -77,7 +59,7 @@ class SessionCookieDispatcherFilter(
         .find(_.name == authConfigCookieName)
 
     maybeFormTemplateWithRedirects.flatMap {
-      case Right(formTemplateWithRedirects) =>
+      case Some(formTemplateWithRedirects) =>
         val formTemplate = formTemplateWithRedirects.formTemplate
         val (result, cookieValue) =
           formTemplate.authConfig match {
@@ -99,7 +81,7 @@ class SessionCookieDispatcherFilter(
           }
         result.map(_.withCookies(Cookie(authConfigCookieName, cookieValue.value, secure = true)))
 
-      case Left(_) =>
+      case None =>
         findAuthConfigCookie(rh).map(v => decrypter.decrypt(Crypted(v.value)).value) match {
           case Some(AnonymousAuth) =>
             anonymousCookieCryptoFilter(next)(rh)

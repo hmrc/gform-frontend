@@ -122,7 +122,7 @@ class EnrolmentController(
             )
           ).pure[Future]
         case _ =>
-          Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
+          Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments(formTemplateId))
             .flashing("formTitle" -> cache.formTemplate.formName.value)
             .pure[Future]
       }
@@ -237,7 +237,7 @@ class EnrolmentController(
           }
         case _ =>
           Future.successful(
-            Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
+            Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments(formTemplateId))
               .flashing("formTitle" -> formTemplate.formName.value)
           )
       }

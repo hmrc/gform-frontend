@@ -16,7 +16,7 @@
 
 @import play.twirl.api.HtmlFormat
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, LiveBanner, DevelopmentPhase, Anonymous, FormTemplateId }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, LiveBanner, DevelopmentPhase, Anonymous, FormTemplate }
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.components._
 @import uk.gov.hmrc.govukfrontend.views.html.components._
@@ -36,30 +36,49 @@
 @(appConfig: FrontendAppConfig,
   serviceTitle: String,
   headTitle: String,
-  developmentPhase: Option[DevelopmentPhase] = None,
   content: Html = HtmlFormat.empty,
-  scriptElem: Option[Html] = None,
-  authConfig: Option[AuthConfig],
-  displayHMRCLogo: Boolean,
-  formLanguages: AvailableLanguages = AvailableLanguages.default,
-  templateId: FormTemplateId,
+  maybeFormTemplate: Option[FormTemplate],
   backLink: Option[BackLink],
   displayTimeoutDialog: Boolean,
-  userResearchUrl: Option[String],
-  accessibilityUrl: Option[AccessibilityUrl]
+  displaySignOut: Boolean,
+  displayLanguageSwitcher: Boolean
 )(implicit requestHeader: RequestHeader, messages: Messages, l: LangADT)
 
+@authConfig = @{
+  if (displaySignOut) maybeFormTemplate.map(_.authConfig) else None
+}
+
+@userResearchUrl = @{
+  maybeFormTemplate.flatMap(_.userResearchUrl.map(_.value))
+}
+
+@accessibilityUrl = @{
+  maybeFormTemplate.flatMap(_.accessibilityUrl)
+}
+
+@formLanguages = @{
+  if (displayLanguageSwitcher) maybeFormTemplate.map(_.languages).getOrElse(AvailableLanguages.default) else AvailableLanguages.default
+}
+
+@displayHMRCLogo = @{
+  maybeFormTemplate.map(_.displayHMRCLogo).getOrElse(false)
+}
+
+@developmentPhase = @{
+  maybeFormTemplate.flatMap(_.developmentPhase)
+}
+
 @hmrcTimeoutDialog = @{new components.HmrcTimeoutDialog()}
+
 @timeoutDialog = @{
-                    if(displayTimeoutDialog) {
-                        appConfig.timeoutDialog(templateId, authConfig)
-                    } else {
-                        None
-                    }
+  if(displayTimeoutDialog) {
+      maybeFormTemplate.flatMap(formTemplate => appConfig.timeoutDialog(formTemplate._id, authConfig))
+  } else {
+      None
+  }
 }
 
 @scripts = {
-    @scriptElem
     <script src='@routes.Assets.versioned("javascripts/jquery.min.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/utils.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformFileUpload.js")'></script>
@@ -140,9 +159,11 @@
 @language = @{l.toLanguage}
 
 @feedbackContent = {
-  @messages("feedback.before")
-    <a class='govuk-link' href='@{Some(s"${appConfig.betaFeedbackUrlNoAuth}${templateId.value.toLowerCase}")}'>@messages("feedback.link")</a>
-  @messages("feedback.after")
+  @maybeFormTemplate.fold(HtmlFormat.empty){formTemplate =>
+    @messages("feedback.before")
+      <a class='govuk-link' href='@{Some(s"${appConfig.betaFeedbackUrlNoAuth}${formTemplate._id.value}")}'>@messages("feedback.link")</a>
+    @messages("feedback.after")
+  }
 }
 
 @headerBlock = {
@@ -169,12 +190,16 @@
   @backLink.map(govukBackLink.apply)
 }
 
+@deskProServiceCode = @{
+  val serviceNameEn = maybeFormTemplate.fold("Error")(_.formName.value(LangADT.En))
+  s"GForm/$serviceNameEn"
+}
 
 @contentBlock = {
     @content
     @hmrcReportTechnicalIssue(
       ReportTechnicalIssue(
-        serviceCode = templateId.value.toLowerCase,
+        serviceCode = deskProServiceCode,
         language = language
       )
     )
@@ -187,5 +212,5 @@
   beforeContentBlock = Some(beforeContentBlock),
   bodyEndBlock = None,
   scriptsBlock = Some(scripts),
-  footerBlock = Some(hmrcStandardFooter(accessibilityStatementUrl = Some(s"${appConfig.footerAccessibilityStatementUrl}/${accessibilityUrl.map(_.value).getOrElse(templateId.value).toLowerCase}")))
+  footerBlock = Some(hmrcStandardFooter(accessibilityStatementUrl = accessibilityUrl.map(_.value).orElse(maybeFormTemplate.map(_._id.value)).map(path => s"${appConfig.footerAccessibilityStatementUrl}/$path")))
 )(contentBlock)
