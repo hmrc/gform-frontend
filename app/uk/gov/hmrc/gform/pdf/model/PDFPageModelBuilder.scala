@@ -73,7 +73,7 @@ object PDFPageModelBuilder {
         val addToListTitle = addToList.source.summaryName.value()
         val addToListSummary: AddToListSummary =
           AddToListSummary(
-            addToList.repeaters.last.title.value(),
+            addToList.repeaters.last.title.value,
             addToList.repeaters.map(r => markDownParser(r.expandedDescription)).toList
           )
         val addToListPageGroups: List[AddToListPageGroup] = addToList.iterations.toList.zipWithIndex.flatMap {

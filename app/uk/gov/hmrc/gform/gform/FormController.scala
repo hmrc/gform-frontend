@@ -217,7 +217,7 @@ class FormController(
                       } else {
                         // We want to display last repeater
                         val sectionTitle4Ga =
-                          sectionTitle4GaFactory(lastRepeater.expandedTitle, lastRepeaterSectionNumber)
+                          sectionTitle4GaFactory(lastRepeater, lastRepeaterSectionNumber)
                         Redirect(
                           routes.FormController
                             .form(
@@ -255,7 +255,7 @@ class FormController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => cache => _ => formModelOptics =>
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
-        val sectionTitle4Ga = sectionTitle4GaFactory(formModel(sectionNumber).title, sectionNumber)
+        val sectionTitle4Ga = sectionTitle4GaFactory(formModel(sectionNumber), sectionNumber)
         Redirect(
           routes.FormController
             .form(
@@ -279,7 +279,7 @@ class FormController(
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         def goBack(toSectionNumber: SectionNumber) = {
           val formModel = formModelOptics.formModelRenderPageOptics.formModel
-          val sectionTitle4Ga = sectionTitle4GaFactory(formModel(toSectionNumber).title, sectionNumber)
+          val sectionTitle4Ga = sectionTitle4GaFactory(formModel(toSectionNumber), sectionNumber)
           Redirect(
             routes.FormController
               .form(
@@ -373,7 +373,7 @@ class FormController(
           val (gotoSectionNumber, fastForward) =
             addToListIteration.checkYourAnswers.fold(defaultNavigation())(checkYourAnswersNavigation)
           val sectionTitle4Ga =
-            sectionTitle4GaFactory(processData.formModel(gotoSectionNumber).title, gotoSectionNumber)
+            sectionTitle4GaFactory(processData.formModel(gotoSectionNumber), gotoSectionNumber)
           Redirect(
             routes.FormController
               .form(

@@ -153,7 +153,7 @@ class SectionRenderingService(
 
     val summaryListRecords: List[SummaryListRow] = addToListIteration.singletons.toList.flatMap { singletonWithNumber =>
       val sectionTitle4Ga = sectionTitle4GaFactory(
-        formModelOptics.formModelVisibilityOptics.formModel(singletonWithNumber.sectionNumber).title,
+        formModelOptics.formModelVisibilityOptics.formModel(singletonWithNumber.sectionNumber),
         singletonWithNumber.sectionNumber
       )
       val page = singletonWithNumber.singleton.page

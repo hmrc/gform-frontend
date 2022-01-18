@@ -268,7 +268,7 @@ class FileUploadController(
                      )
             } yield {
               val sectionTitle4Ga = sectionTitle4GaFactory(
-                formModelOptics.formModelRenderPageOptics.formModel(sectionNumber).title,
+                formModelOptics.formModelRenderPageOptics.formModel(sectionNumber),
                 sectionNumber
               )
               Redirect(

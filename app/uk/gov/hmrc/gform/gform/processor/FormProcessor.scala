@@ -274,5 +274,5 @@ class FormProcessor(
   }
 
   def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber): SectionTitle4Ga =
-    sectionTitle4GaFactory(processData.formModel(sectionNumber).title, sectionNumber)
+    sectionTitle4GaFactory(processData.formModel(sectionNumber), sectionNumber)
 }

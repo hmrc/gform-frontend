@@ -341,7 +341,7 @@ object SummaryRenderingService {
       l: LangADT
     ): List[Html] = {
       val page = singleton.page
-      val sectionTitle4Ga = sectionTitle4GaFactory(page.title, sectionNumber)
+      val sectionTitle4Ga = sectionTitle4GaFactory(singleton, sectionNumber)
       val pageTitle = page.shortName.getOrElse(page.title)
 
       val begin = source.fold { _ =>
@@ -414,14 +414,14 @@ object SummaryRenderingService {
       val repeater = lastRepeaterWithNumber.repeater
       val sectionNumber = lastRepeaterWithNumber.sectionNumber
 
-      val sectionTitle4Ga: SectionTitle4Ga = sectionTitle4GaFactory(repeater.expandedTitle, sectionNumber)
+      val sectionTitle4Ga: SectionTitle4Ga = sectionTitle4GaFactory(repeater, sectionNumber)
 
       val url: Call = routes.FormController
         .form(formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
 
       val addToListSummary = HtmlFormat.fill(addToListItemSummaries.map(ss => markDownParser(ss)).toList)
 
-      val label = repeater.title.value()
+      val label = repeater.title.value
 
       val slr: SummaryListRow = summaryListRow(
         label, // This is weird to use, as it can have $n, but this list in shown only once. Should we have other property here?
