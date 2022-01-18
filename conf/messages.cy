@@ -245,6 +245,7 @@ date.after=Rhaid i {0} fod ar ôl {1}
 date.precisely=Rhaid i {0} fod {1}
 date.isMissing=ar goll
 date.invalid=Rhaid i’r {0} fod yn ddyddiad dilys
+date.today = heddiw
 
 #Months
 date.January=Ionawr

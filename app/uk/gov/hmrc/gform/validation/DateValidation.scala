@@ -224,7 +224,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
   ): ValidatedType[Unit] = {
     val nowWithOffset = now.apply().plusDays(offset.value.toLong)
     if (beforeAfterPrecisely.datePredicate(date, nowWithOffset)) validationSuccess
-    else validationFailed(formComponent, s"date.${beforeAfterPrecisely.mkString}", Some("today" :: Nil))
+    else validationFailed(formComponent, s"date.${beforeAfterPrecisely.mkString}", Some("date.today" :: Nil))
   }
 
   private def validateInputDate(
