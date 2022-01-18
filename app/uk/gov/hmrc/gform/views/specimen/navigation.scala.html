@@ -27,7 +27,7 @@
 
 @navigationLink(sectionIndex: Int, label: String, templateId: String) = {
   @defining(pages(sectionIndex)) { case (page, sectionNumber) =>
-    @defining(SectionTitle4Ga.sectionTitle4GaFactory(page.title, sectionNumber).value) { sectionTitle4Ga =>
+    @defining(SectionTitle4Ga.sectionTitle4GaFactory(page, sectionNumber).value) { sectionTitle4Ga =>
       <a href="/submissions/form/@templateId/@sectionTitle4Ga?n=@sectionIndex&se=t&ff=t" class="govuk-link">@label</a>
     }
   }
@@ -50,7 +50,7 @@
       @pages.map { case (pageModel, sectionIndex) =>
         @defining(pageModel.title.value, if(sectionNumber === sectionIndex.value) "selected" else "") { case (title, selected) =>
           @defining(
-            SectionTitle4Ga.sectionTitle4GaFactory(pageModel.title, sectionIndex).value,
+            SectionTitle4Ga.sectionTitle4GaFactory(pageModel, sectionIndex).value,
             title.substring(0, Math.min(title.length, 80))) { case (sectionTitle4Ga, titleTrimmed) =>
               <option value="@{sectionIndex.value}" data-title="@sectionTitle4Ga"  @selected>@{sectionIndex.value + 1}/@total - @titleTrimmed</option>
             }
