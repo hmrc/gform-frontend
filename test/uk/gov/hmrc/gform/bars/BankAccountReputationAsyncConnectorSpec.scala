@@ -29,9 +29,10 @@ import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.test.WsTestClient.InternalWSClient
 import uk.gov.hmrc.gform.WiremockSupport
+import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceResponse }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.hooks.HttpHook
-import uk.gov.hmrc.http.{ HeaderCarrier, RequestId, UpstreamErrorResponse }
+import uk.gov.hmrc.http.{ HeaderCarrier, RequestId }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -113,7 +114,7 @@ class BankAccountReputationAsyncConnectorSpec
     )
 
     whenReady(future) { response =>
-      response shouldBe validateResponse
+      response shouldBe ServiceResponse(Some(validateResponse))
     }
   }
 
@@ -135,17 +136,8 @@ class BankAccountReputationAsyncConnectorSpec
       ValidateBankDetails.create("", "")
     )
 
-    whenReady(future.failed) {
-      case UpstreamErrorResponse(message, statusCode, _, _) =>
-        message shouldBe
-          s"""POST of '$url/v2/validateBankDetails' returned 400. Response body: '
-             |{
-             |    "code": "INVALID_SORTCODE",
-             |    "desc": ": invalid sortcode"
-             |}
-             |'""".stripMargin
-        statusCode shouldBe 400
-      case other => fail(other)
+    whenReady(future) { response =>
+      response shouldBe CannotRetrieveResponse
     }
   }
 }

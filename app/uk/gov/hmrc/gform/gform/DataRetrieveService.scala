@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.bars
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
@@ -40,7 +39,6 @@ object DataRetrieveService {
   implicit def validateBankDetailsInstant(implicit
     bankAccountReputationConnector: BankAccountReputationConnector[Future]
   ): DataRetrieveService[ValidateBankDetails, Future] = new DataRetrieveService[ValidateBankDetails, Future] {
-    private val logger: Logger = LoggerFactory.getLogger(getClass)
 
     override def retrieve(
       validateBankDetails: ValidateBankDetails,
@@ -61,17 +59,13 @@ object DataRetrieveService {
               accNumber.stringRepresentation
             )
           )
-          .map { validateResult =>
+          .collect { case ServiceResponse(Some(validateResult)) =>
             DataRetrieveSuccess(
               validateBankDetails.id,
               Map(
                 DataRetrieveAttribute.IsValid -> validateResult.accountNumberWithSortCodeIsValid
               )
             )
-          }
-          .recover { case e =>
-            logger.error(s"Failed to retrieve data for validateBankDetails, with id ${validateBankDetails.id}", e)
-            throw e
           }
       }
     }
@@ -81,7 +75,6 @@ object DataRetrieveService {
     bankAccountReputationConnector: BankAccountReputationConnector[Future]
   ): DataRetrieveService[BusinessBankAccountExistence, Future] =
     new DataRetrieveService[BusinessBankAccountExistence, Future] {
-      private val logger: Logger = LoggerFactory.getLogger(getClass)
 
       override def retrieve(
         businessBankAccountExistence: BusinessBankAccountExistence,
@@ -105,7 +98,7 @@ object DataRetrieveService {
                 companyName.stringRepresentation
               )
             )
-            .map { result =>
+            .collect { case ServiceResponse(Some(result)) =>
               DataRetrieveSuccess(
                 businessBankAccountExistence.id,
                 Map(
@@ -119,13 +112,6 @@ object DataRetrieveService {
                   DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit
                 )
               )
-            }
-            .recover { case e =>
-              logger.error(
-                s"Failed to retrieve data for businessBankAccountExistence, with id ${businessBankAccountExistence.id}",
-                e
-              )
-              throw e
             }
         }
       }
