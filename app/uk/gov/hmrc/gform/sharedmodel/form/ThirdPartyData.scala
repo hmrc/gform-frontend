@@ -20,7 +20,7 @@ import play.api.libs.json.{ Format, Json, OFormat }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, JsonUtils }
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieveId, DataRetrieveMissingInput, DataRetrieveNotRequired, DataRetrieveResult, DataRetrieveSuccess, NotChecked, Obligations }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieveId, DataRetrieveResult, DataRetrieveSuccess, NotChecked, Obligations }
 
 case class ThirdPartyData(
   desRegistrationResponse: Option[DesRegistrationResponse],
@@ -32,14 +32,13 @@ case class ThirdPartyData(
   dataRetrieve: Option[Map[DataRetrieveId, DataRetrieveResult]]
 ) {
 
-  def updateDataRetrieve(dataRetrieveResult: DataRetrieveResult): ThirdPartyData = dataRetrieveResult match {
-    case DataRetrieveNotRequired => this
-    case DataRetrieveSuccess(id, _) =>
+  def updateDataRetrieve(dataRetrieveResult: Option[DataRetrieveResult]): ThirdPartyData = dataRetrieveResult match {
+    case Some(drs @ DataRetrieveSuccess(id, _)) =>
       copy(dataRetrieve = dataRetrieve match {
-        case None      => Some(Map(id -> dataRetrieveResult))
-        case Some(map) => Some(map + (id -> dataRetrieveResult))
+        case None      => Some(Map(id -> drs))
+        case Some(map) => Some(map + (id -> drs))
       })
-    case DataRetrieveMissingInput => this
+    case None => this
   }
 
   def updateFrom(vr: Option[ValidatorsResult]): ThirdPartyData =
