@@ -39,7 +39,7 @@ import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, SectionNumber, SectionTitle4Ga, SuppressErrors }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, DataRetrieveNotRequired, DataRetrieveResult, LangADT, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -196,7 +196,7 @@ class FormProcessor(
       dataRetrieveResult <-
         if (isValid) {
           pageModel.fold(singleton =>
-            singleton.page.dataRetrieve.fold[Future[DataRetrieveResult]](DataRetrieveNotRequired.pure[Future]) {
+            singleton.page.dataRetrieve.flatTraverse {
               case v: ValidateBankDetails =>
                 implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
                 DataRetrieveService[ValidateBankDetails, Future]
@@ -206,8 +206,8 @@ class FormProcessor(
                 DataRetrieveService[BusinessBankAccountExistence, Future]
                   .retrieve(v, processData.formModelOptics.formModelVisibilityOptics)
             }
-          )(_ => DataRetrieveNotRequired.pure[Future])(_ => DataRetrieveNotRequired.pure[Future])
-        } else DataRetrieveNotRequired.pure[Future]
+          )(_ => Option.empty.pure[Future])(_ => Option.empty.pure[Future])
+        } else Option.empty.pure[Future]
 
       res <- {
         val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
@@ -222,8 +222,7 @@ class FormProcessor(
         val needsSecondPhaseRecalculation =
           (before.desRegistrationResponse, after.desRegistrationResponse)
             .mapN(_ =!= _)
-            .getOrElse(false) ||
-            before.dataRetrieve != after.dataRetrieve
+            .getOrElse(false)
 
         val visitsIndex = processData.visitsIndex.visit(sectionNumber)
 

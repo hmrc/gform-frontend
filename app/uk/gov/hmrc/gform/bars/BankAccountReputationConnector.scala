@@ -48,21 +48,12 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
     ).map { httpResponse =>
       val status = httpResponse.status
       status match {
-        case 200 | 201 =>
+        case 200 =>
           logger.info(s"Calling validate bank details returned $status: Success.")
           ServiceResponse(
             httpResponse.json
               .asOpt[ValidateBankDetails.Response]
           )
-        case 400 =>
-          logger.info(s"Calling validate bank details returned $status: InvalidBankDetails.")
-          CannotRetrieveResponse
-        case 403 =>
-          logger.info(s"Calling validate bank details returned $status: InvalidBankDetails.")
-          CannotRetrieveResponse
-        case 409 =>
-          logger.info(s"Calling validate bank details returned $status: Conflict.")
-          CannotRetrieveResponse
         case other =>
           logger.error(s"Problem when calling validate bank details. Http status: $other, body: ${httpResponse.body}")
           CannotRetrieveResponse
@@ -81,20 +72,11 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
     ).map { httpResponse =>
       val status = httpResponse.status
       status match {
-        case 200 | 201 =>
+        case 200 =>
           logger.info(s"Calling business bank account existence returned $status: Success.")
           ServiceResponse(
             httpResponse.json.asOpt[BusinessBankAccountExistence.Response]
           )
-        case 400 =>
-          logger.info(s"Calling business bank account existence returned $status: InvalidBusinessBankAccount.")
-          CannotRetrieveResponse
-        case 403 =>
-          logger.info(s"Calling business bank account existence returned $status: InvalidBusinessBankAccount.")
-          CannotRetrieveResponse
-        case 409 =>
-          logger.info(s"Calling business bank account existence returned $status: Conflict.")
-          CannotRetrieveResponse
         case other =>
           logger.error(
             s"Problem when calling business bank account existence. Http status: $other, body: ${httpResponse.body}"

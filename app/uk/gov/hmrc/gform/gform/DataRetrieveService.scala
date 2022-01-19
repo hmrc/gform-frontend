@@ -32,7 +32,7 @@ sealed trait DataRetrieveService[T <: DataRetrieve, F[_]] {
     hc: HeaderCarrier,
     messages: Messages,
     ex: ExecutionContext
-  ): F[DataRetrieveResult]
+  ): F[Option[DataRetrieveResult]]
 }
 
 object DataRetrieveService {
@@ -43,14 +43,14 @@ object DataRetrieveService {
     override def retrieve(
       validateBankDetails: ValidateBankDetails,
       formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
-    )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[DataRetrieveResult] = {
+    )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
       val accNumber =
         formModelVisibilityOptics.evalAndApplyTypeInfoFirst(validateBankDetails.accountNumber)
       val sortCode =
         formModelVisibilityOptics.evalAndApplyTypeInfoFirst(validateBankDetails.sortCode)
 
       if (accNumber.isEmpty || sortCode.isEmpty) {
-        Future.successful(DataRetrieveMissingInput)
+        Future.successful(None)
       } else {
         bankAccountReputationConnector
           .validateBankDetails(
@@ -59,13 +59,17 @@ object DataRetrieveService {
               accNumber.stringRepresentation
             )
           )
-          .collect { case ServiceResponse(Some(validateResult)) =>
-            DataRetrieveSuccess(
-              validateBankDetails.id,
-              Map(
-                DataRetrieveAttribute.IsValid -> validateResult.accountNumberWithSortCodeIsValid
+          .map {
+            case ServiceResponse(Some(validateResult)) =>
+              Some(
+                DataRetrieveSuccess(
+                  validateBankDetails.id,
+                  Map(
+                    DataRetrieveAttribute.IsValid -> validateResult.accountNumberWithSortCodeIsValid
+                  )
+                )
               )
-            )
+            case _ => None
           }
       }
     }
@@ -79,7 +83,7 @@ object DataRetrieveService {
       override def retrieve(
         businessBankAccountExistence: BusinessBankAccountExistence,
         formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
-      )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[DataRetrieveResult] = {
+      )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
         val accNumber =
           formModelVisibilityOptics.evalAndApplyTypeInfoFirst(businessBankAccountExistence.accountNumber)
         val sortCode =
@@ -88,7 +92,7 @@ object DataRetrieveService {
           formModelVisibilityOptics.evalAndApplyTypeInfoFirst(businessBankAccountExistence.companyName)
 
         if (accNumber.isEmpty || sortCode.isEmpty || companyName.isEmpty) {
-          Future.successful(DataRetrieveMissingInput)
+          Future.successful(None)
         } else {
           bankAccountReputationConnector
             .businessBankAccountExistence(
@@ -98,20 +102,24 @@ object DataRetrieveService {
                 companyName.stringRepresentation
               )
             )
-            .collect { case ServiceResponse(Some(result)) =>
-              DataRetrieveSuccess(
-                businessBankAccountExistence.id,
-                Map(
-                  DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
-                  DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> result.sortCodeIsPresentOnEISCD,
-                  DataRetrieveAttribute.SortCodeBankName                         -> result.sortCodeBankName.getOrElse(""),
-                  DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> result.nonStandardAccountDetailsRequiredForBacs,
-                  DataRetrieveAttribute.AccountExists                            -> result.accountExists,
-                  DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
-                  DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
-                  DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit
+            .map {
+              case ServiceResponse(Some(result)) =>
+                Some(
+                  DataRetrieveSuccess(
+                    businessBankAccountExistence.id,
+                    Map(
+                      DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
+                      DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> result.sortCodeIsPresentOnEISCD,
+                      DataRetrieveAttribute.SortCodeBankName                         -> result.sortCodeBankName.getOrElse(""),
+                      DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> result.nonStandardAccountDetailsRequiredForBacs,
+                      DataRetrieveAttribute.AccountExists                            -> result.accountExists,
+                      DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
+                      DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
+                      DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit
+                    )
+                  )
                 )
-              )
+              case _ => None
             }
         }
       }
