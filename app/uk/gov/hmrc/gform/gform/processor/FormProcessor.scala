@@ -222,7 +222,8 @@ class FormProcessor(
         val needsSecondPhaseRecalculation =
           (before.desRegistrationResponse, after.desRegistrationResponse)
             .mapN(_ =!= _)
-            .getOrElse(false)
+            .getOrElse(false) ||
+            before.dataRetrieve != after.dataRetrieve
 
         val visitsIndex = processData.visitsIndex.visit(sectionNumber)
 
