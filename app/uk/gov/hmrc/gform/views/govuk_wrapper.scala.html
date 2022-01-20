@@ -158,10 +158,15 @@
 
 @language = @{l.toLanguage}
 
+@deskProServiceCode = @{
+  val serviceNameEn = maybeFormTemplate.fold("Error")(_.formName.value(LangADT.En))
+  s"GForm/$serviceNameEn"
+}
+
 @feedbackContent = {
   @maybeFormTemplate.fold(HtmlFormat.empty){formTemplate =>
     @messages("feedback.before")
-      <a class='govuk-link' href='@{Some(s"${appConfig.betaFeedbackUrlNoAuth}${formTemplate._id.value}")}'>@messages("feedback.link")</a>
+      <a class='govuk-link' href='@{Some(s"${appConfig.betaFeedbackUrlNoAuth}${urlEncode(deskProServiceCode)}")}'>@messages("feedback.link")</a>
     @messages("feedback.after")
   }
 }
@@ -188,11 +193,6 @@
   }
   @languageSwitch
   @backLink.map(govukBackLink.apply)
-}
-
-@deskProServiceCode = @{
-  val serviceNameEn = maybeFormTemplate.fold("Error")(_.formName.value(LangADT.En))
-  s"GForm/$serviceNameEn"
 }
 
 @contentBlock = {
