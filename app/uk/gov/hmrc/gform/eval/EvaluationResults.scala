@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.models.ids.{ ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveSuccess, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveResult, SourceOrigin, VariadicValue }
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult]
@@ -342,7 +342,7 @@ case class EvaluationResults(
               dataRetrieve <- evaluationContext.thirdPartyData.dataRetrieve
               result <- dataRetrieve
                           .get(id)
-                          .flatMap { case DataRetrieveSuccess(_, data) =>
+                          .flatMap { case DataRetrieveResult(_, data, _) =>
                             data.get(attribute)
                           }
             } yield result).getOrElse("")

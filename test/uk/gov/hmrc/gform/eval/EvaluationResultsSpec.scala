@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
+import play.api.libs.json.Json
 import play.api.test.Helpers
 import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.Spec
@@ -325,9 +326,10 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           ThirdPartyData.empty.copy(dataRetrieve =
             Some(
               Map(
-                DataRetrieveId("someDataRetrieveId") -> DataRetrieveSuccess(
+                DataRetrieveId("someDataRetrieveId") -> DataRetrieveResult(
                   DataRetrieveId("someDataRetrieveId"),
-                  Map(DataRetrieveAttribute.fromName("isValid") -> "111")
+                  Map(DataRetrieveAttribute.fromName("isValid") -> "111"),
+                  Json.obj()
                 )
               )
             )

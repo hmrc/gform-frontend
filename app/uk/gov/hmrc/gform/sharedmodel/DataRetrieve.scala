@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import julienrf.json.derived
-import play.api.libs.json.{ Format, OFormat }
+import play.api.libs.json.{ Format, JsValue, OFormat }
+import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, JsonUtils }
 
 case class DataRetrieveId(value: String) extends AnyVal {
@@ -95,6 +96,13 @@ sealed trait DataRetrieve {
 
 object DataRetrieve {
 
+  def requestParamsFromCache(
+    form: Form,
+    dataRetrieveId: DataRetrieveId
+  ): Option[JsValue] = form.thirdPartyData.dataRetrieve.flatMap(
+    _.get(dataRetrieveId).map(_.requestParams)
+  )
+
   final case class ValidateBankDetails(override val id: DataRetrieveId, sortCode: Expr, accountNumber: Expr)
       extends DataRetrieve {
     override def attributes: List[DataRetrieveAttribute] = List(DataRetrieveAttribute.IsValid)
@@ -122,10 +130,14 @@ object DataRetrieve {
   implicit val format: OFormat[DataRetrieve] = derived.oformat()
 }
 
-sealed trait DataRetrieveResult
-case class DataRetrieveSuccess(id: DataRetrieveId, data: Map[DataRetrieveAttribute, String]) extends DataRetrieveResult
+case class DataRetrieveResult(
+  id: DataRetrieveId,
+  data: Map[DataRetrieveAttribute, String],
+  requestParams: JsValue // Request data used to decide if new call to the API is need when input data are changing
+)
 
 object DataRetrieveResult {
+
   implicit val dataRetrieveSuccessDataFormat: Format[Map[DataRetrieveAttribute, String]] =
     implicitly[Format[Map[String, String]]]
       .bimap[Map[DataRetrieveAttribute, String]](
