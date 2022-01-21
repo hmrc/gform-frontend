@@ -46,9 +46,13 @@ import uk.gov.hmrc.gform.upscan.UpscanModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
+import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
 
-class ApplicationLoader extends play.api.ApplicationLoader {
-  def load(context: Context): Application = {
+class ApplicationLoader extends play.api.ApplicationLoader with Base64ConfigDecoder {
+
+  def load(_context: Context): Application = {
+    val context = _context.copy(initialConfiguration = decodeConfig(_context.initialConfiguration))
+
     LoggerConfigurator(context.environment.classLoader).foreach {
       _.configure(context.environment)
     }
