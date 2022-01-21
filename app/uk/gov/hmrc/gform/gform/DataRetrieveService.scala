@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.Messages
+import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.bars
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -28,7 +29,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
 
 sealed trait DataRetrieveService[T <: DataRetrieve, F[_]] {
-  def retrieve(dataRetrieve: T, formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser])(implicit
+  def retrieve(
+    dataRetrieve: T,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+    maybeRequestParams: Option[JsValue]
+  )(implicit
     hc: HeaderCarrier,
     messages: Messages,
     ex: ExecutionContext
@@ -42,31 +47,34 @@ object DataRetrieveService {
 
     override def retrieve(
       validateBankDetails: ValidateBankDetails,
-      formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
+      formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+      maybeRequestParams: Option[JsValue]
     )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
       val accNumber =
-        formModelVisibilityOptics.evalAndApplyTypeInfoFirst(validateBankDetails.accountNumber)
+        formModelVisibilityOptics.evalAndApplyTypeInfoFirst(validateBankDetails.accountNumber).stringRepresentation
       val sortCode =
-        formModelVisibilityOptics.evalAndApplyTypeInfoFirst(validateBankDetails.sortCode)
+        formModelVisibilityOptics.evalAndApplyTypeInfoFirst(validateBankDetails.sortCode).stringRepresentation
 
-      if (accNumber.isEmpty || sortCode.isEmpty) {
+      val requestParams = Json.obj(
+        "accountNumber" -> accNumber,
+        "sortCode"      -> sortCode
+      )
+      if (accNumber.isEmpty || sortCode.isEmpty || maybeRequestParams.contains(requestParams)) {
         Future.successful(None)
       } else {
         bankAccountReputationConnector
           .validateBankDetails(
-            bars.ValidateBankDetails.create(
-              sortCode.stringRepresentation,
-              accNumber.stringRepresentation
-            )
+            bars.ValidateBankDetails.create(sortCode, accNumber)
           )
           .map {
             case ServiceResponse(Some(validateResult)) =>
               Some(
-                DataRetrieveSuccess(
+                DataRetrieveResult(
                   validateBankDetails.id,
                   Map(
                     DataRetrieveAttribute.IsValid -> validateResult.accountNumberWithSortCodeIsValid
-                  )
+                  ),
+                  requestParams
                 )
               )
             case _ => None
@@ -82,30 +90,41 @@ object DataRetrieveService {
 
       override def retrieve(
         businessBankAccountExistence: BusinessBankAccountExistence,
-        formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
+        formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+        maybeRequestParams: Option[JsValue]
       )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
         val accNumber =
-          formModelVisibilityOptics.evalAndApplyTypeInfoFirst(businessBankAccountExistence.accountNumber)
+          formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(businessBankAccountExistence.accountNumber)
+            .stringRepresentation
         val sortCode =
-          formModelVisibilityOptics.evalAndApplyTypeInfoFirst(businessBankAccountExistence.sortCode)
+          formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(businessBankAccountExistence.sortCode)
+            .stringRepresentation
         val companyName =
-          formModelVisibilityOptics.evalAndApplyTypeInfoFirst(businessBankAccountExistence.companyName)
+          formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(businessBankAccountExistence.companyName)
+            .stringRepresentation
 
-        if (accNumber.isEmpty || sortCode.isEmpty || companyName.isEmpty) {
+        val requestParams = Json.obj(
+          "accountNumber" -> accNumber,
+          "sortCode"      -> sortCode,
+          "companyName"   -> companyName
+        )
+
+        if (
+          accNumber.isEmpty || sortCode.isEmpty || companyName.isEmpty || maybeRequestParams.contains(requestParams)
+        ) {
           Future.successful(None)
         } else {
           bankAccountReputationConnector
             .businessBankAccountExistence(
-              bars.BusinessBankAccountExistence.create(
-                sortCode.stringRepresentation,
-                accNumber.stringRepresentation,
-                companyName.stringRepresentation
-              )
+              bars.BusinessBankAccountExistence.create(sortCode, accNumber, companyName)
             )
             .map {
               case ServiceResponse(Some(result)) =>
                 Some(
-                  DataRetrieveSuccess(
+                  DataRetrieveResult(
                     businessBankAccountExistence.id,
                     Map(
                       DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
@@ -116,7 +135,8 @@ object DataRetrieveService {
                       DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
                       DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
                       DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit
-                    )
+                    ),
+                    requestParams
                   )
                 )
               case _ => None
