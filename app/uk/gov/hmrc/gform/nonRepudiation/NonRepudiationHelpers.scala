@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.nonRepudiation
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auditing.AuditingModule
+import uk.gov.hmrc.gform.gform.CryptoUtil
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 
 import scala.concurrent.ExecutionContext
@@ -27,24 +28,10 @@ class NonRepudiationHelpers(auditModule: AuditingModule) {
 
   def formDataToJson(form: Form): String = Json.toJson(form.formData).toString()
 
-  def computeHash(formJson: String): String = sha256Hash(formJson)
+  def computeHash(formJson: String): String = CryptoUtil.sha256Hash(formJson)
 
   def sendAuditEvent(hashedValue: String, formAsString: String, eventId: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ) = auditModule.auditService.sendSubmissionEventHashed(hashedValue, formAsString, eventId)
-
-  def sha256Hash(text: String): String =
-    String.format(
-      "%064x",
-      new java.math.BigInteger(
-        1,
-        java.security.MessageDigest
-          .getInstance("SHA-256")
-          .digest(
-            text
-              .getBytes("UTF-8")
-          )
-      )
-    )
 }

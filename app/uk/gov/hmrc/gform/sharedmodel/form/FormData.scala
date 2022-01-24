@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.form
 
 import play.api.libs.json._
+import uk.gov.hmrc.gform.gform.CryptoUtil
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 
 case class FormData(fields: List[FormField]) {
@@ -30,6 +31,8 @@ case class FormData(fields: List[FormField]) {
 
   def ++(other: FormData): FormData =
     FormData((toData ++ other.toData).map { case (k, v) => FormField(k, v) }.toList)
+
+  def toHash: Option[String] = Some(CryptoUtil.sha256Hash(Json.toJson(FormData(fields)).toString()))
 }
 
 object FormData {

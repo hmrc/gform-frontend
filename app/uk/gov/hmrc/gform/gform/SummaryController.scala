@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.syntax.eq._
 import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
@@ -82,7 +83,12 @@ class SummaryController(
             .map(Ok(_))
       }
 
-  def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], save: Direction): Action[AnyContent] =
+  def submit(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    save: Direction,
+    refreshToken: Option[String]
+  ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
@@ -93,7 +99,7 @@ class SummaryController(
           save match {
             case Exit => handleExit(cache.formTemplateWithRedirects, maybeAccessCode, cache).pure[Future]
             case SummaryContinue =>
-              handleSummaryContinue(cache.form.formTemplateId, maybeAccessCode, cache, formModelOptics)
+              handleSummaryContinue(cache.form.formTemplateId, maybeAccessCode, cache, formModelOptics, refreshToken)
             case _ => BadRequest("Cannot determine action").pure[Future]
           }
       }
@@ -139,7 +145,8 @@ class SummaryController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    refreshToken: Option[String]
   )(implicit
     request: Request[AnyContent],
     hc: HeaderCarrier,
@@ -156,7 +163,8 @@ class SummaryController(
                               EnvelopeWithMapping(envelope, cache.form),
                               formModelOptics.formModelVisibilityOptics
                             )
-    } yield validationResult.isFormValid
+      isTokenValid <- Future.successful(refreshToken === cache.form.formData.toHash)
+    } yield validationResult.isFormValid && isTokenValid
 
     def changeStateAndRedirectToDeclarationOrPrint: Future[Result] = gformConnector
       .updateUserData(
