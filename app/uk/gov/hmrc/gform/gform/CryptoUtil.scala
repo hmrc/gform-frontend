@@ -16,19 +16,17 @@
 
 package uk.gov.hmrc.gform.gform
 
+import java.nio.charset.StandardCharsets
+
 object CryptoUtil {
 
   def sha256Hash(text: String): String =
-    String.format(
-      "%064x",
-      new java.math.BigInteger(
-        1,
-        java.security.MessageDigest
-          .getInstance("SHA-256")
-          .digest(
-            text
-              .getBytes("UTF-8")
-          )
+    java.security.MessageDigest
+      .getInstance("SHA-256")
+      .digest(
+        text
+          .getBytes(StandardCharsets.UTF_8)
       )
-    )
+      .map("%02x".format(_))
+      .mkString
 }

@@ -176,7 +176,7 @@ class SummaryRenderingService(
         cache.form.thirdPartyData.obligations,
         summaryPagePurpose,
         summaryDeclaration,
-        cache.form.formData.toHash
+        cache.form.formData.fingerprint
       )
     }
 
@@ -216,7 +216,7 @@ class SummaryRenderingService(
       cache.form.thirdPartyData.obligations,
       summaryPagePurpose,
       pdfFieldIds,
-      cache.form.formData.toHash
+      cache.form.formData.fingerprint
     )
   }
 }
@@ -234,7 +234,7 @@ object SummaryRenderingService {
     obligations: Obligations,
     summaryPagePurpose: SummaryPagePurpose,
     summaryDeclaration: Html,
-    refreshToken: Option[String]
+    formDataFingerprint: String
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
@@ -270,7 +270,7 @@ object SummaryRenderingService {
       headerHtml,
       summaryDeclaration,
       footerHtml,
-      refreshToken
+      formDataFingerprint
     )
   }
 
@@ -285,7 +285,7 @@ object SummaryRenderingService {
     obligations: Obligations,
     summaryPagePurpose: SummaryPagePurpose,
     pdfFieldIds: List[FormComponentId],
-    refreshToken: Option[String]
+    formDataFingerprint: String
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -319,7 +319,7 @@ object SummaryRenderingService {
       headerHtml,
       HtmlFormat.empty,
       footerHtml,
-      refreshToken
+      formDataFingerprint
     )
   }
 

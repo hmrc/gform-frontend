@@ -87,7 +87,7 @@ class SummaryController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     save: Direction,
-    refreshToken: Option[String]
+    formDataFingerprint: String
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
@@ -99,7 +99,13 @@ class SummaryController(
           save match {
             case Exit => handleExit(cache.formTemplateWithRedirects, maybeAccessCode, cache).pure[Future]
             case SummaryContinue =>
-              handleSummaryContinue(cache.form.formTemplateId, maybeAccessCode, cache, formModelOptics, refreshToken)
+              handleSummaryContinue(
+                cache.form.formTemplateId,
+                maybeAccessCode,
+                cache,
+                formModelOptics,
+                formDataFingerprint
+              )
             case _ => BadRequest("Cannot determine action").pure[Future]
           }
       }
@@ -146,7 +152,7 @@ class SummaryController(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    refreshToken: Option[String]
+    formDataFingerprint: String
   )(implicit
     request: Request[AnyContent],
     hc: HeaderCarrier,
@@ -163,7 +169,7 @@ class SummaryController(
                               EnvelopeWithMapping(envelope, cache.form),
                               formModelOptics.formModelVisibilityOptics
                             )
-      isTokenValid <- Future.successful(refreshToken === cache.form.formData.toHash)
+      isTokenValid <- Future.successful(formDataFingerprint === cache.form.formData.fingerprint)
     } yield validationResult.isFormValid && isTokenValid
 
     def changeStateAndRedirectToDeclarationOrPrint: Future[Result] = gformConnector

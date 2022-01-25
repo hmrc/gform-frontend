@@ -32,7 +32,7 @@ case class FormData(fields: List[FormField]) {
   def ++(other: FormData): FormData =
     FormData((toData ++ other.toData).map { case (k, v) => FormField(k, v) }.toList)
 
-  def toHash: Option[String] = Some(CryptoUtil.sha256Hash(Json.toJson(FormData(fields)).toString()))
+  def fingerprint: String = CryptoUtil.sha256Hash(Json.stringify(Json.toJson(FormData(fields))))
 }
 
 object FormData {
