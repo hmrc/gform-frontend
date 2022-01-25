@@ -33,7 +33,7 @@ object SectionTitle4Ga {
       } else {
         sectionTitle
       }
-    SectionTitle4Ga(finalSectionTitle.replace(' ', '-').replaceAll("[^-A-Za-z0-9]", ""))
+    SectionTitle4Ga(finalSectionTitle.replace(' ', '-').replaceAll("[^-A-Za-z0-9]", "").toLowerCase)
   }
 
   implicit val format: Format[SectionTitle4Ga] =
