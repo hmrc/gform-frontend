@@ -41,5 +41,5 @@ case class SectionRenderingInformation(
   contentTypes: List[ContentType],
   restrictedFileExtensions: List[FileExtension],
   progressIndicator: Option[String] = None,
-  upscanData: Option[UpscanData] = None
+  upscanData: Map[FormComponentId, UpscanData] = Map.empty
 )

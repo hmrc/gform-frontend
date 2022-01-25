@@ -417,15 +417,16 @@ class SectionRenderingService(
         fc -> fu.fileUploadProvider
     }
 
-    val upscanData: Option[UpscanData] = {
-      fileUploadProviders match {
-        case (fc, FileUploadProvider.Upscan) :: Nil =>
+    val upscanData: Map[FormComponentId, UpscanData] =
+      fileUploadProviders.flatMap {
+        case (fc, FileUploadProvider.Upscan) =>
           val uploadRequest = upscanInitiate.get(fc.id).uploadRequest
           val snippetsForUpscan = List(htmlForUpscan(fc, ei, uploadRequest.fields))
-          Some(UpscanData(uploadRequest.href, snippetsForUpscan, FormMetaData(fc.id, "gf-upscan")))
+          Some(
+            fc.id -> UpscanData(uploadRequest.href, snippetsForUpscan, FormMetaData(fc.id, "gf-upscan-" + fc.id.value))
+          )
         case _ => None
-      }
-    }
+      }.toMap
 
     val snippetsForFields = renderUnits
       .map(renderUnit =>
@@ -859,7 +860,7 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     obligations: Obligations,
     upscanInitiate: UpscanInitiate,
-    upscanData: Option[UpscanData] = None
+    upscanData: Map[FormComponentId, UpscanData] = Map.empty[FormComponentId, UpscanData]
   )(implicit
     request: RequestHeader,
     messages: Messages,
@@ -922,7 +923,7 @@ class SectionRenderingService(
 
             fileUploadProvider match {
               case FileUploadProvider.Upscan =>
-                upscanData match {
+                upscanData.get(formComponent.id) match {
                   case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
                   case Some(upscanData) =>
                     val fileUploadName = "file"

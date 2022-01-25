@@ -118,8 +118,8 @@
       }
     }
 
-    @page.upscanData.map { upscanData =>
-        @formWithoutCSRF(action = Call("POST", upscanData.url), args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-upscan"){
+    @page.upscanData.map { case (_, upscanData) =>
+        @formWithoutCSRF(action = Call("POST", upscanData.url), args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> upscanData.formMetaData.htmlId){
             @{upscanData.snippets}
         }
     }
