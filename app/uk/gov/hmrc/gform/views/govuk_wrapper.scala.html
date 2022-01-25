@@ -95,9 +95,6 @@
 
     <script>window.GOVUKFrontend.initAll();</script>
     <script>window.HMRCFrontend.initAll();</script>
-
-    @* the script below overrides window.GOVUKFrontend.CharacterCount.updateCountMessage method, to enable localized messages *@
-    <script src='@routes.Assets.versioned("javascripts/gformCharacterCount.js")'></script>
 }
 
 @linkElement = {
@@ -118,12 +115,6 @@
           window.gform = window.gform || {};
           window.gform.baseLookupUrl = "/submissions/lookup/";
           window.gform.lang = window.getCookie("PLAY_LANG") || "en";
-          window.gform.messages = {
-            "genericCharactersRemaining": "@{messages("generic.charactersRemaining")}",
-            "genericCharactersTooMany": "@{messages("generic.charactersTooMany")}",
-            "genericCharacterRemaining": "@{messages("generic.characterRemaining")}",
-            "genericCharacterTooMany": "@{messages("generic.characterTooMany")}"
-          }
     </script>
 
    @{timeoutDialog.fold(HtmlFormat.empty)(timeoutDialog => hmrcTimeoutDialog(timeoutDialog))}

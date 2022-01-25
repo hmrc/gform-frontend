@@ -61,7 +61,6 @@ import uk.gov.hmrc.gform.views.html.specimen
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
-import uk.gov.hmrc.govukfrontend.views.viewmodels.charactercount.CharacterCount
 import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ Content, Empty, HtmlContent }
@@ -79,7 +78,8 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
-import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcCurrencyInput
+import uk.gov.hmrc.hmrcfrontend.views.Aliases.CharacterCount
+import uk.gov.hmrc.hmrcfrontend.views.html.components.{ HmrcCharacterCount, HmrcCurrencyInput }
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 
 sealed trait HasErrors {
@@ -1584,7 +1584,8 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     ei: ExtraInfo
   )(implicit
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    messages: Messages
   ) = {
     val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
@@ -1654,7 +1655,7 @@ class SectionRenderingService(
           attributes = attributes
         )
 
-        new components.GovukCharacterCount(govukTextarea, govukHint)(characterCount)
+        new HmrcCharacterCount(govukTextarea, govukHint)(characterCount)
 
       case _ =>
         val textArea = Textarea(
