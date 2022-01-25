@@ -504,7 +504,7 @@ object SummaryRenderingService {
     maybeSubmissionDetails
       .map { sd =>
         val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
-        val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
+        val dateFormat = DateTimeFormatter.ofPattern("d MMM yyyy")
         val formattedTime =
           s"${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}"
         val rows = List(
