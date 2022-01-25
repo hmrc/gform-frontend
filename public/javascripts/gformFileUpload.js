@@ -291,7 +291,7 @@
         .append(startProgressBar());
 
       if (e.target.hasAttribute("upscan")) {
-        uploadFileUpscan()
+        uploadFileUpscan(e.target)
           .then(function(response) {
             var key = document.getElementsByName("key")[0].value
             return checkConfirmation(formTemplateId, key);
@@ -363,8 +363,9 @@
     }
 
     // Handle upscan file upload request
-    function uploadFileUpscan() {
-      var upscanForm = document.getElementById("gf-upscan")
+    function uploadFileUpscan(target) {
+      var formId = target.getAttribute("form");
+      var upscanForm = document.getElementById(formId);
       var formData = new FormData(upscanForm);
 
       return $.ajax({
