@@ -114,7 +114,7 @@ class BankAccountReputationAsyncConnectorSpec
     )
 
     whenReady(future) { response =>
-      response shouldBe ServiceResponse(Some(validateResponse))
+      response shouldBe ServiceResponse(validateResponse)
     }
   }
 
