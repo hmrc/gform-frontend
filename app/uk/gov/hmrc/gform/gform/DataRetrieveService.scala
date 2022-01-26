@@ -67,7 +67,7 @@ object DataRetrieveService {
             bars.ValidateBankDetails.create(sortCode, accNumber)
           )
           .map {
-            case ServiceResponse(Some(validateResult)) =>
+            case ServiceResponse(validateResult) =>
               Some(
                 DataRetrieveResult(
                   validateBankDetails.id,
@@ -77,7 +77,10 @@ object DataRetrieveService {
                   requestParams
                 )
               )
-            case _ => None
+            // We need to fail the journey here, otherwise expressions like
+            // ${dataRetrieve.bankDetails.isValid='no'} etc.
+            // will always evaluate to false
+            case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve ValidateBankDetails data")
           }
       }
     }
@@ -122,7 +125,7 @@ object DataRetrieveService {
               bars.BusinessBankAccountExistence.create(sortCode, accNumber, companyName)
             )
             .map {
-              case ServiceResponse(Some(result)) =>
+              case ServiceResponse(result) =>
                 Some(
                   DataRetrieveResult(
                     businessBankAccountExistence.id,
@@ -139,7 +142,11 @@ object DataRetrieveService {
                     requestParams
                   )
                 )
-              case _ => None
+              case CannotRetrieveResponse | NotFound =>
+                // We need to fail the journey here, otherwise expressions like
+                // ${dataRetrieve.businessBankDetails.accountNumberIsWellFormatted='no'} etc.
+                // will always evaluate to false
+                throw new Exception("Cannot retrieve BusinessBankAccountExistence data")
             }
         }
       }

@@ -29,10 +29,10 @@ import scala.language.higherKinds
 trait BankAccountReputationConnector[F[_]] {
   def validateBankDetails(account: ValidateBankDetails.Request)(implicit
     hc: HeaderCarrier
-  ): F[ServiceCallResponse[Option[ValidateBankDetails.Response]]]
+  ): F[ServiceCallResponse[ValidateBankDetails.Response]]
   def businessBankAccountExistence(account: BusinessBankAccountExistence.Request)(implicit
     hc: HeaderCarrier
-  ): F[ServiceCallResponse[Option[BusinessBankAccountExistence.Response]]]
+  ): F[ServiceCallResponse[BusinessBankAccountExistence.Response]]
 }
 
 class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex: ExecutionContext)
@@ -41,7 +41,7 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
 
   override def validateBankDetails(request: ValidateBankDetails.Request)(implicit
     hc: HeaderCarrier
-  ): Future[ServiceCallResponse[Option[ValidateBankDetails.Response]]] =
+  ): Future[ServiceCallResponse[ValidateBankDetails.Response]] =
     ws.POST[ValidateBankDetails.Request, HttpResponse](
       baseUrl + "/v2/validateBankDetails",
       request
@@ -49,11 +49,20 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
       val status = httpResponse.status
       status match {
         case 200 =>
-          logger.info(s"Calling validate bank details returned $status: Success.")
-          ServiceResponse(
-            httpResponse.json
-              .asOpt[ValidateBankDetails.Response]
-          )
+          httpResponse.json
+            .validate[ValidateBankDetails.Response]
+            .fold(
+              invalid => {
+                logger.error(
+                  s"Calling validate bank details returned $status, but marshalling of data failed with: $invalid"
+                )
+                CannotRetrieveResponse
+              },
+              valid => {
+                logger.info(s"Calling validate bank details returned $status: Success.")
+                ServiceResponse(valid)
+              }
+            )
         case other =>
           logger.error(s"Problem when calling validate bank details. Http status: $other, body: ${httpResponse.body}")
           CannotRetrieveResponse
@@ -65,7 +74,7 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
 
   override def businessBankAccountExistence(request: BusinessBankAccountExistence.Request)(implicit
     hc: HeaderCarrier
-  ): Future[ServiceCallResponse[Option[BusinessBankAccountExistence.Response]]] =
+  ): Future[ServiceCallResponse[BusinessBankAccountExistence.Response]] =
     ws.POST[BusinessBankAccountExistence.Request, HttpResponse](
       baseUrl + "/verify/business",
       request
@@ -73,10 +82,20 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
       val status = httpResponse.status
       status match {
         case 200 =>
-          logger.info(s"Calling business bank account existence returned $status: Success.")
-          ServiceResponse(
-            httpResponse.json.asOpt[BusinessBankAccountExistence.Response]
-          )
+          httpResponse.json
+            .validate[BusinessBankAccountExistence.Response]
+            .fold(
+              invalid => {
+                logger.error(
+                  s"Calling business bank account existence returned $status, but marshalling of data failed with: $invalid"
+                )
+                CannotRetrieveResponse
+              },
+              valid => {
+                logger.info(s"Calling business bank account existence returned $status: Success.")
+                ServiceResponse(valid)
+              }
+            )
         case other =>
           logger.error(
             s"Problem when calling business bank account existence. Http status: $other, body: ${httpResponse.body}"
