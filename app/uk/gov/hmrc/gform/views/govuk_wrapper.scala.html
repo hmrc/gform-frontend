@@ -151,9 +151,10 @@
 @hmrcStandardHeader = @{new helpers.HmrcStandardHeader(hmrcHeader)}
 @hmrcFooter = @{new components.HmrcFooter()}
 @hmrcStandardFooter = @{new helpers.HmrcStandardFooter(hmrcFooter, new HmrcFooterItems(appConfig.accessibilityStatementConfig))}
-@govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink)}
+@fixedWidthPageLayout = @{new FixedWidthPageLayout()}
+@govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink, fixedWidthPageLayout)}
 @twoThirdsMainContent = @{new TwoThirdsMainContent}
-@govukLayout = @{new GovukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink, twoThirdsMainContent)}
+@govukLayout = @{new GovukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink, twoThirdsMainContent, fixedWidthPageLayout)}
 @hmrcReportTechnicalIssue = @{new components.HmrcReportTechnicalIssue()}
 
 @language = @{l.toLanguage}
