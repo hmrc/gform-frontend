@@ -125,7 +125,7 @@ class ErrResponder(
     requestHeader: RequestHeader,
     message: String,
     maybeFormTemplate: Option[FormTemplate],
-    smartLogger: SmartLogger = smartLocalLogger
+    smartLogger: SmartLogger
   ): Future[Result] = {
     val l: LangADT = LangADT.fromRequest(requestHeader, langs)
     smartLogger.log(s"Bad request: $message")

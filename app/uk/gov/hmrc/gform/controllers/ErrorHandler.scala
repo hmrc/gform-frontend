@@ -36,17 +36,18 @@ class ErrorHandler(
     extends DefaultHttpErrorHandler(environment, configuration, sourceMapper, None) {
 
   private val smartUpstreamLogger = SmartLogger.upstreamLogger
+  private val smartLocalLogger = SmartLogger.localLogger
 
   override protected def onBadRequest(
     requestHeader: RequestHeader,
     message: String
-  ): Future[Result] = errResponder.badRequest(requestHeader, message, None)
+  ): Future[Result] = errResponder.badRequest(requestHeader, message, None, smartLocalLogger)
 
   override protected def onNotFound(
     requestHeader: RequestHeader,
     message: String
   ): Future[Result] =
-    errResponder.notFound(requestHeader, message, None, smartUpstreamLogger)
+    errResponder.notFound(requestHeader, message, None, smartLocalLogger)
 
   override protected def onOtherClientError(
     requestHeader: RequestHeader,
@@ -59,7 +60,6 @@ class ErrorHandler(
     maybeFormTemplate.flatMap(maybeFormTemplate =>
       errResponder.onOtherClientError(requestHeader, statusCode, message, maybeFormTemplate)
     )
-
   }
 
   override def onServerError(requestHeader: RequestHeader, exception: Throwable): Future[Result] = {
@@ -75,8 +75,7 @@ class ErrorHandler(
         case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == BadRequest.intValue =>
           errResponder.badRequest(requestHeader, e.message, maybeFormTemplate, smartUpstreamLogger)
         case e: BadRequestException =>
-          errResponder.badRequest(requestHeader, e.message, maybeFormTemplate)
-        //    case e: UnauthorizedException => TODO redirect to login page
+          errResponder.badRequest(requestHeader, e.message, maybeFormTemplate, smartLocalLogger)
         case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == Forbidden.intValue =>
           errResponder.forbidden(e.message, maybeFormTemplate, None, smartUpstreamLogger)(requestHeader)
         case e: ForbiddenException =>
