@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -30,6 +31,7 @@ import scala.language.higherKinds
 
 sealed trait DataRetrieveService[T <: DataRetrieve, F[_]] {
   def retrieve(
+    formTemplateId: FormTemplateId,
     dataRetrieve: T,
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
     maybeRequestParams: Option[JsValue]
@@ -46,6 +48,7 @@ object DataRetrieveService {
   ): DataRetrieveService[ValidateBankDetails, Future] = new DataRetrieveService[ValidateBankDetails, Future] {
 
     override def retrieve(
+      formTemplateId: FormTemplateId,
       validateBankDetails: ValidateBankDetails,
       formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
       maybeRequestParams: Option[JsValue]
@@ -64,6 +67,7 @@ object DataRetrieveService {
       } else {
         bankAccountReputationConnector
           .validateBankDetails(
+            formTemplateId,
             bars.ValidateBankDetails.create(sortCode, accNumber)
           )
           .map {
@@ -92,6 +96,7 @@ object DataRetrieveService {
     new DataRetrieveService[BusinessBankAccountExistence, Future] {
 
       override def retrieve(
+        formTemplateId: FormTemplateId,
         businessBankAccountExistence: BusinessBankAccountExistence,
         formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
         maybeRequestParams: Option[JsValue]
@@ -122,6 +127,7 @@ object DataRetrieveService {
         } else {
           bankAccountReputationConnector
             .businessBankAccountExistence(
+              formTemplateId,
               bars.BusinessBankAccountExistence.create(sortCode, accNumber, companyName)
             )
             .map {
