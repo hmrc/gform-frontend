@@ -16,11 +16,13 @@
 
 package uk.gov.hmrc.gform.wshttp
 
+import com.typesafe.config.ConfigValueFactory
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 class WSHttpModule(
   auditingModule: AuditingModule,
@@ -28,13 +30,27 @@ class WSHttpModule(
   akkaModule: AkkaModule,
   ahcWSComponents: AhcWSComponents
 ) {
-  lazy val auditableWSHttp: WSHttp = new WSHttpImpl(
+  val auditableWSHttp: WSHttp = new WSHttpImpl(
     configModule.appConfig.appName,
     auditingModule.auditConnector,
     configModule.typesafeConfig,
     akkaModule.actorSystem,
     wsClient
   )
+
+  val auditableWSHttpCustomAppName: FormTemplateId => WSHttp = formTemplateId => {
+    val appName = configModule.typesafeConfig.getString("appName")
+    val config =
+      configModule.typesafeConfig
+        .withValue("appName", ConfigValueFactory.fromAnyRef(appName + "/" + formTemplateId.value))
+    new WSHttpImpl(
+      configModule.appConfig.appName,
+      auditingModule.auditConnector,
+      config,
+      akkaModule.actorSystem,
+      wsClient
+    )
+  }
 
   def wsClient: WSClient = ahcWSComponents.wsClient
 }
