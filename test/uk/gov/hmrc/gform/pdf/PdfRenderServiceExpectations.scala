@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter
 trait PdfRenderServiceExpectations {
 
   val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
-  val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
+  val dateFormat = DateTimeFormatter.ofPattern("d MMM yyyy")
 
   private def htmlBase(summaryRows: String, bookmarks: String)(implicit time: LocalDateTime) =
     s"""

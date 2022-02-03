@@ -315,6 +315,12 @@ class EmailAuthController(
                     ).addingToSession(
                       EMAIL_AUTH_DETAILS_SESSION_KEY -> confirmedEmailAuthDetailsStr
                     )
+                  case Composite(configs) if configs.exists(_.isEmailConfirmation) =>
+                    Redirect(
+                      uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailConfirmedForm(formTemplateId, continue)
+                    ).addingToSession(
+                      EMAIL_AUTH_DETAILS_SESSION_KEY -> confirmedEmailAuthDetailsStr
+                    )
                   case _ =>
                     Redirect(continue).addingToSession(
                       EMAIL_AUTH_DETAILS_SESSION_KEY -> confirmedEmailAuthDetailsStr
@@ -335,6 +341,21 @@ class EmailAuthController(
 
       formTemplate.authConfig match {
         case EmailAuthConfig(_, _, _, Some(emailConfirmation)) =>
+          Ok(
+            html.auth.email_confirmation(
+              formTemplate,
+              frontendAppConfig,
+              uk.gov.hmrc.gform.gform.routes.EmailAuthController
+                .emailConfirmedContinue(continue),
+              MarkDownUtil.markDownParser(emailConfirmation)
+            )
+          ).pure[Future]
+        case Composite(configs) if configs.exists(_.isEmailConfirmation) =>
+          val emailConfirmation = configs
+            .collectFirst { case EmailAuthConfig(_, _, _, Some(emailConfirmation)) =>
+              emailConfirmation
+            }
+            .getOrElse(LocalisedString.empty)
           Ok(
             html.auth.email_confirmation(
               formTemplate,

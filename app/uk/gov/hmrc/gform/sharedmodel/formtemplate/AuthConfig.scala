@@ -91,6 +91,11 @@ sealed trait AuthConfig extends Product with Serializable {
     case _                           => false
   }
 
+  def isEmailConfirmation: Boolean = this match {
+    case EmailAuthConfig(_, _, _, Some(_)) => true
+    case _                                 => false
+  }
+
   def authConfigName = this match {
     case Anonymous                          => anonymous
     case HmrcAny                            => hmrcAny
