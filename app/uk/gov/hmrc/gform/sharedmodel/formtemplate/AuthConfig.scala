@@ -92,11 +92,6 @@ sealed trait AuthConfig extends Product with Serializable {
     case _                           => false
   }
 
-  def isEmailConfirmation: Boolean = this match {
-    case EmailAuthConfig(_, _, _, Some(_)) => true
-    case _                                 => false
-  }
-
   def authConfigName = this match {
     case Anonymous                          => anonymous
     case HmrcAny                            => hmrcAny
@@ -145,7 +140,7 @@ object HasEmailConfirmation {
   def unapply(ac: AuthConfig): Option[LocalisedString] =
     ac match {
       case EmailAuthConfig(_, _, _, Some(emailConfirmation)) => Some(emailConfirmation)
-      case Composite(configs) if configs.exists(_.isEmailConfirmation) =>
+      case Composite(configs) =>
         configs.collectFirst { case EmailAuthConfig(_, _, _, Some(emailConfirmation)) => emailConfirmation }
       case _ => None
     }
