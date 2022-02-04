@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.implicits._
 import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json._
@@ -136,6 +137,16 @@ object HasEnrolmentSection {
             EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check))
           ) =>
         Some((serviceId, es, check, enrolmentAction))
+      case _ => None
+    }
+}
+
+object HasEmailConfirmation {
+  def unapply(ac: AuthConfig): Option[LocalisedString] =
+    ac match {
+      case EmailAuthConfig(_, _, _, Some(emailConfirmation)) => Some(emailConfirmation)
+      case Composite(configs) if configs.exists(_.isEmailConfirmation) =>
+        configs.collectFirst { case EmailAuthConfig(_, _, _, Some(emailConfirmation)) => emailConfirmation }
       case _ => None
     }
 }

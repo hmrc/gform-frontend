@@ -34,12 +34,11 @@ import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateWithRedirects
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, EmailAuthConfig, FormTemplateId, FormTemplateWithRedirects, HasEmailConfirmation }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode }
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.toJsonStr
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, EmailAuthConfig, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.html.components
@@ -309,13 +308,7 @@ class EmailAuthController(
                 val confirmedEmailAuthDetailsStr = toJsonStr(confirmedEmailAuthDetails)
 
                 formTemplate.authConfig match {
-                  case EmailAuthConfig(_, _, _, Some(_)) =>
-                    Redirect(
-                      uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailConfirmedForm(formTemplateId, continue)
-                    ).addingToSession(
-                      EMAIL_AUTH_DETAILS_SESSION_KEY -> confirmedEmailAuthDetailsStr
-                    )
-                  case Composite(configs) if configs.exists(_.isEmailConfirmation) =>
+                  case HasEmailConfirmation(_) =>
                     Redirect(
                       uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailConfirmedForm(formTemplateId, continue)
                     ).addingToSession(
@@ -340,22 +333,7 @@ class EmailAuthController(
       val formTemplate = formTemplateWithRedirects.formTemplate
 
       formTemplate.authConfig match {
-        case EmailAuthConfig(_, _, _, Some(emailConfirmation)) =>
-          Ok(
-            html.auth.email_confirmation(
-              formTemplate,
-              frontendAppConfig,
-              uk.gov.hmrc.gform.gform.routes.EmailAuthController
-                .emailConfirmedContinue(continue),
-              MarkDownUtil.markDownParser(emailConfirmation)
-            )
-          ).pure[Future]
-        case Composite(configs) if configs.exists(_.isEmailConfirmation) =>
-          val emailConfirmation = configs
-            .collectFirst { case EmailAuthConfig(_, _, _, Some(emailConfirmation)) =>
-              emailConfirmation
-            }
-            .getOrElse(LocalisedString.empty)
+        case HasEmailConfirmation(emailConfirmation) =>
           Ok(
             html.auth.email_confirmation(
               formTemplate,
