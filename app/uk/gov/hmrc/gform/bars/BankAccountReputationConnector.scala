@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.bars
 
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.libs.json.{ Format, Json }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
@@ -28,103 +27,85 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
 
 trait BankAccountReputationConnector[F[_]] {
-  def validateBankDetails(
-    formTemplateId: FormTemplateId,
-    account: ValidateBankDetails.Request
-  )(implicit
+  def validateBankDetails(account: ValidateBankDetails.Request)(implicit
     hc: HeaderCarrier
   ): F[ServiceCallResponse[ValidateBankDetails.Response]]
-  def businessBankAccountExistence(
-    formTemplateId: FormTemplateId,
-    account: BusinessBankAccountExistence.Request
-  )(implicit
+  def businessBankAccountExistence(account: BusinessBankAccountExistence.Request)(implicit
     hc: HeaderCarrier
   ): F[ServiceCallResponse[BusinessBankAccountExistence.Response]]
 }
 
-class BankAccountReputationAsyncConnector(ws: FormTemplateId => WSHttp, baseUrl: String)(implicit ex: ExecutionContext)
+class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex: ExecutionContext)
     extends BankAccountReputationConnector[Future] {
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  override def validateBankDetails(
-    formTemplateId: FormTemplateId,
-    request: ValidateBankDetails.Request
-  )(implicit
+  override def validateBankDetails(request: ValidateBankDetails.Request)(implicit
     hc: HeaderCarrier
   ): Future[ServiceCallResponse[ValidateBankDetails.Response]] =
-    ws(formTemplateId)
-      .POST[ValidateBankDetails.Request, HttpResponse](
-        baseUrl + "/v2/validateBankDetails",
-        request
-      )
-      .map { httpResponse =>
-        val status = httpResponse.status
-        status match {
-          case 200 =>
-            httpResponse.json
-              .validate[ValidateBankDetails.Response]
-              .fold(
-                invalid => {
-                  logger.error(
-                    s"Calling validate bank details returned $status, but marshalling of data failed with: $invalid"
-                  )
-                  CannotRetrieveResponse
-                },
-                valid => {
-                  logger.info(s"Calling validate bank details returned $status: Success.")
-                  ServiceResponse(valid)
-                }
-              )
-          case other =>
-            logger.error(s"Problem when calling validate bank details. Http status: $other, body: ${httpResponse.body}")
-            CannotRetrieveResponse
-        }
+    ws.POST[ValidateBankDetails.Request, HttpResponse](
+      baseUrl + "/v2/validateBankDetails",
+      request
+    ).map { httpResponse =>
+      val status = httpResponse.status
+      status match {
+        case 200 =>
+          httpResponse.json
+            .validate[ValidateBankDetails.Response]
+            .fold(
+              invalid => {
+                logger.error(
+                  s"Calling validate bank details returned $status, but marshalling of data failed with: $invalid"
+                )
+                CannotRetrieveResponse
+              },
+              valid => {
+                logger.info(s"Calling validate bank details returned $status: Success.")
+                ServiceResponse(valid)
+              }
+            )
+        case other =>
+          logger.error(s"Problem when calling validate bank details. Http status: $other, body: ${httpResponse.body}")
+          CannotRetrieveResponse
       }
-      .recover { case ex =>
-        logger.error("Unknown problem when calling validate bank details", ex)
-        CannotRetrieveResponse
-      }
+    }.recover { case ex =>
+      logger.error("Unknown problem when calling validate bank details", ex)
+      CannotRetrieveResponse
+    }
 
-  override def businessBankAccountExistence(
-    formTemplateId: FormTemplateId,
-    request: BusinessBankAccountExistence.Request
-  )(implicit
+  override def businessBankAccountExistence(request: BusinessBankAccountExistence.Request)(implicit
     hc: HeaderCarrier
   ): Future[ServiceCallResponse[BusinessBankAccountExistence.Response]] =
-    ws(formTemplateId)
-      .POST[BusinessBankAccountExistence.Request, HttpResponse](
-        baseUrl + "/verify/business",
-        request
-      )
-      .map { httpResponse =>
-        val status = httpResponse.status
-        status match {
-          case 200 =>
-            httpResponse.json
-              .validate[BusinessBankAccountExistence.Response]
-              .fold(
-                invalid => {
-                  logger.error(
-                    s"Calling business bank account existence returned $status, but marshalling of data failed with: $invalid"
-                  )
-                  CannotRetrieveResponse
-                },
-                valid => {
-                  logger.info(s"Calling business bank account existence returned $status: Success.")
-                  ServiceResponse(valid)
-                }
-              )
-          case other =>
-            logger.error(
-              s"Problem when calling business bank account existence. Http status: $other, body: ${httpResponse.body}"
+    ws.POST[BusinessBankAccountExistence.Request, HttpResponse](
+      baseUrl + "/verify/business",
+      request
+    ).map { httpResponse =>
+      val status = httpResponse.status
+      status match {
+        case 200 =>
+          httpResponse.json
+            .validate[BusinessBankAccountExistence.Response]
+            .fold(
+              invalid => {
+                logger.error(
+                  s"Calling business bank account existence returned $status, but marshalling of data failed with: $invalid"
+                )
+                CannotRetrieveResponse
+              },
+              valid => {
+                logger.info(s"Calling business bank account existence returned $status: Success.")
+                ServiceResponse(valid)
+              }
             )
-            CannotRetrieveResponse
-        }
+        case other =>
+          logger.error(
+            s"Problem when calling business bank account existence. Http status: $other, body: ${httpResponse.body}"
+          )
+          CannotRetrieveResponse
       }
-      .recover { case ex =>
-        logger.error("Unknown problem when calling business bank account existence", ex)
-        CannotRetrieveResponse
-      }
+    }.recover { case ex =>
+      logger.error("Unknown problem when calling business bank account existence", ex)
+      CannotRetrieveResponse
+    }
 }
 
 object ValidateBankDetails {

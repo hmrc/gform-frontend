@@ -202,22 +202,12 @@ class FormProcessor(
                 val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, v.id)
                 implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
                 DataRetrieveService[ValidateBankDetails, Future]
-                  .retrieve(
-                    cache.formTemplateId,
-                    v,
-                    processData.formModelOptics.formModelVisibilityOptics,
-                    maybeRequestParams
-                  )
+                  .retrieve(v, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
               case v: BusinessBankAccountExistence =>
                 val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, v.id)
                 implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
                 DataRetrieveService[BusinessBankAccountExistence, Future]
-                  .retrieve(
-                    cache.formTemplateId,
-                    v,
-                    processData.formModelOptics.formModelVisibilityOptics,
-                    maybeRequestParams
-                  )
+                  .retrieve(v, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
             }
           )(_ => Option.empty.pure[Future])(_ => Option.empty.pure[Future])
         } else Option.empty.pure[Future]

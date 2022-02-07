@@ -29,7 +29,6 @@ import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.test.WsTestClient.InternalWSClient
 import uk.gov.hmrc.gform.WiremockSupport
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceResponse }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.hooks.HttpHook
@@ -62,18 +61,16 @@ class BankAccountReputationAsyncConnectorSpec
 
   val url = s"http://localhost:$wiremockPort"
 
-  val wsHttp = (formTemplateId: FormTemplateId) =>
-    new WSHttp {
-      override protected def actorSystem: ActorSystem = system
-      override protected def configuration: Config = ConfigFactory.parseString(s"""
-                                                                                  |internalServiceHostPatterns = []
-                                                                                  |bootstrap.http.headersAllowlist = []
-                                                                                  |http-verbs.retries.intervals = []
-                                                                                  |appName = ${formTemplateId.value}
-                                                                                  |""".stripMargin)
-      override val hooks: Seq[HttpHook] = Seq.empty
-      override protected def wsClient: WSClient = new InternalWSClient("http", wiremockPort)
-    }
+  val wsHttp = new WSHttp {
+    override protected def actorSystem: ActorSystem = system
+    override protected def configuration: Config = ConfigFactory.parseString("""
+                                                                               |internalServiceHostPatterns = []
+                                                                               |bootstrap.http.headersAllowlist = []
+                                                                               |http-verbs.retries.intervals = []
+                                                                               |""".stripMargin)
+    override val hooks: Seq[HttpHook] = Seq.empty
+    override protected def wsClient: WSClient = new InternalWSClient("http", wiremockPort)
+  }
 
   val bankAccountReputationAsyncConnector = new BankAccountReputationAsyncConnector(wsHttp, url)
 
@@ -96,7 +93,7 @@ class BankAccountReputationAsyncConnectorSpec
     stubFor(
       WireMock
         .post(s"/v2/validateBankDetails")
-        .withHeader("User-Agent", equalTo("fooBar"))
+        .withHeader("User-Agent", equalTo("AHC/2.1"))
         .withHeader("Content-Type", equalTo("application/json"))
         .willReturn(
           ok(
@@ -110,7 +107,6 @@ class BankAccountReputationAsyncConnectorSpec
     )
 
     val future = bankAccountReputationAsyncConnector.validateBankDetails(
-      FormTemplateId("fooBar"),
       ValidateBankDetails.create(
         "112233",
         "12345678"
@@ -137,7 +133,6 @@ class BankAccountReputationAsyncConnectorSpec
     )
 
     val future = bankAccountReputationAsyncConnector.validateBankDetails(
-      FormTemplateId("fooBar"),
       ValidateBankDetails.create("", "")
     )
 

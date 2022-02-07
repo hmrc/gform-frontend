@@ -133,7 +133,7 @@ class GformModule(
   private val barsBaseUrl = s"${configModule.serviceConfig.baseUrl("bars")}"
 
   val bankAccountReputationConnector =
-    new BankAccountReputationAsyncConnector(wSHttpModule.auditableWSHttpCustomAppName, barsBaseUrl)
+    new BankAccountReputationAsyncConnector(wSHttpModule.auditableWSHttp, barsBaseUrl)
 
   val addToListProcessor = new FormProcessor(
     playBuiltInsModule.i18nSupport,
