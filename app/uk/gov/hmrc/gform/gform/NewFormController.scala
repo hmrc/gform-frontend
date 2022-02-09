@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.implicits.catsSyntaxEq
 import cats.instances.future._
 import cats.syntax.applicative._
 import org.slf4j.LoggerFactory
@@ -237,10 +238,23 @@ class NewFormController(
       Future.failed(new NotFoundException(s"Form with id ${formIdData.toFormId} not found."))
 
     for {
-      formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
-      res <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
-               auditService.sendFormCreateEvent(form, cache.retrievals)
-               redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode)
+      formTemplate <- Future.successful(request.attrs(FormTemplateKey))
+      redirectFormTemplate <- formTemplate.redirect match {
+                                case Some(formTemplateId) => gformConnector.getFormTemplate(formTemplateId)
+                                case None                 => Future.successful(formTemplate)
+                              }
+      res <- if (redirectFormTemplate.formTemplate._id =!= formTemplateId) {
+               val url = routes.NewFormController.newOrContinue(redirectFormTemplate.formTemplate._id).url
+               logger.info(s"Form not found for formTemplateId $formTemplateId and redirect to $url")
+               Redirect(url).pure[Future]
+             } else {
+               for {
+                 formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
+                 res <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
+                          auditService.sendFormCreateEvent(form, cache.retrievals)
+                          redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode)
+                        }
+               } yield res
              }
     } yield res
   }
