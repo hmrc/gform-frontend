@@ -16,4 +16,10 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.Eq
+
 case class Atom(value: String) extends AnyVal
+
+object Atom {
+  implicit val equal: Eq[Atom] = Eq.fromUniversalEquals
+}

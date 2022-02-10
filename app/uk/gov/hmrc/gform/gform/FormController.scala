@@ -46,6 +46,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.upscan.UpscanAlgebra
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationService }
 import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
@@ -185,7 +186,8 @@ class FormController(
                           formModelOptics,
                           handlerResult.validationResult,
                           cache,
-                          handlerResult.envelope
+                          handlerResult.envelope,
+                          AddressRecordLookup.from(cache.form.thirdPartyData)
                         )
                       ).pure[Future]
                     )

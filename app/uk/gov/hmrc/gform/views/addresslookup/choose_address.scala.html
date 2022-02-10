@@ -1,0 +1,56 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.addresslookup.AddressSelectionPage
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+
+@(
+  formTemplate: FormTemplate,
+  frontendAppConfig: FrontendAppConfig,
+  addressSelectionPage: AddressSelectionPage,
+  formAction: Call,
+  backHref: Call
+)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+
+@formWithCSRF = @{new FormWithCSRF()}
+@govukErrorSummary = @{new GovukErrorSummary()}
+
+@backLink = @{
+  new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))
+}
+
+@uk.gov.hmrc.gform.views.html.main_template(
+  title = messages("postcodeLookup.choose.address"),
+  formTemplate = formTemplate,
+  frontendAppConfig = frontendAppConfig,
+  backLink = Some(backLink),
+  containsErrors = addressSelectionPage.hasErrors
+) {
+
+  @if(addressSelectionPage.hasErrors) {
+     @govukErrorSummary(addressSelectionPage.errorSummary)
+  }
+
+  <h1 class="govuk-heading-xl" id="pageHeading">@messages("postcodeLookup.choose.address")</h1>
+  @formWithCSRF(action = formAction, 'novalidate -> "novalidate") {
+     <p><a class="govuk-link" href="todo">@messages("postcodeLookup.enter.address.manually")</a></p>
+     @addressSelectionPage.render
+     <button type="submit" name="continue" class="govuk-button" data-module="govuk-button">
+        @messages("postcodeLookup.continue")
+     </button>
+  }
+}

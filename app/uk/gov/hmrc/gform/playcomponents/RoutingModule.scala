@@ -91,7 +91,8 @@ class RoutingModule(
     gformModule.staticPagesController,
     gformModule.printSectionController,
     gformModule.identityVerificationController,
-    gformModule.upscanController
+    gformModule.upscanController,
+    gformModule.addressLookupController
   )
 
   private val prodRoutes: prod.Routes = new prod.Routes(

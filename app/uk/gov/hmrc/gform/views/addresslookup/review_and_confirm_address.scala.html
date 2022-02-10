@@ -1,0 +1,51 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+
+@(
+  formTemplate: FormTemplate,
+  frontendAppConfig: FrontendAppConfig,
+  address: Html,
+  confirmAddressAndContinue: Call,
+  backHref: Call
+)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+
+@formWithCSRF = @{new FormWithCSRF()}
+
+@backLink = @{
+  new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))
+}
+
+@uk.gov.hmrc.gform.views.html.main_template(
+  title = messages("postcodeLookup.review.and.confirm"),
+  formTemplate = formTemplate,
+  frontendAppConfig = frontendAppConfig,
+  backLink = Some(backLink)
+) {
+
+  <h1 class="govuk-heading-xl">@messages("postcodeLookup.review.and.confirm")</h1>
+
+  @formWithCSRF(action = confirmAddressAndContinue, 'novalidate -> "novalidate") {
+
+    @address
+
+    <p><a class="govuk-link" href="todo">@messages("postcodeLookup.chage.address")</a></p>
+
+    <button type="submit" name="continue" class="govuk-button" data-module="govuk-button">@messages("postcodeLookup.confirm.address")</button>
+  }
+}

@@ -1,4 +1,4 @@
-/*
+@*
  * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,17 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *@
 
-package uk.gov.hmrc
+@()(implicit messages: Messages)
 
-import _root_.play.api.libs.typedmap.TypedKey
-import _root_.play.twirl.api.{ Html, HtmlFormat }
-import cats.Monoid
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateWithRedirects
-
-package object gform {
-  val FormTemplateKey: TypedKey[FormTemplateWithRedirects] = TypedKey[FormTemplateWithRedirects]("form-template")
-
-  implicit val monoidHtml: Monoid[Html] = Monoid.instance[Html](HtmlFormat.empty, (x, y) => HtmlFormat.fill(List(x, y)))
-}
+<p class="govuk-!-margin-bottom-6 govuk-body">
+  <a class="govuk-link" target="_blank" rel="noopener noreferrer" href="todo">@messages("postcodeLookup.enter.address.manually")</a>
+</p>

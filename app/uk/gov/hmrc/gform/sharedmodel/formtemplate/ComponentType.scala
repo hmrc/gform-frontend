@@ -49,19 +49,20 @@ sealed trait MultiField {
 
 sealed trait ComponentType {
   def showType: String = this match {
-    case _: Text               => "text"
-    case _: TextArea           => "textArea"
-    case _: Date               => "date"
-    case _: CalendarDate.type  => "calendarDate"
-    case _: Time               => "time"
-    case _: Address            => "address"
-    case _: OverseasAddress    => "overseasAddress"
-    case _: Choice             => "choice"
-    case _: RevealingChoice    => "revealingChoice"
-    case _: HmrcTaxPeriod      => "hmrcTaxPeriod"
-    case _: Group              => "group"
-    case _: InformationMessage => "informationMessage"
-    case _: FileUpload         => "fileUpload"
+    case _: Text                => "text"
+    case _: TextArea            => "textArea"
+    case _: Date                => "date"
+    case _: CalendarDate.type   => "calendarDate"
+    case _: PostcodeLookup.type => "postcodeLookup"
+    case _: Time                => "time"
+    case _: Address             => "address"
+    case _: OverseasAddress     => "overseasAddress"
+    case _: Choice              => "choice"
+    case _: RevealingChoice     => "revealingChoice"
+    case _: HmrcTaxPeriod       => "hmrcTaxPeriod"
+    case _: Group               => "group"
+    case _: InformationMessage  => "informationMessage"
+    case _: FileUpload          => "fileUpload"
   }
 }
 
@@ -117,6 +118,15 @@ case object CalendarDate extends ComponentType with MultiField {
   val day: Atom = Atom("day")
   val month: Atom = Atom("month")
   val componentFields: NonEmptyList[Atom] = NonEmptyList.of(day, month)
+
+  override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
+    componentFields.map(ModelComponentId.atomicCurry(indexedComponentId))
+}
+
+case object PostcodeLookup extends ComponentType with MultiField {
+  val postcode: Atom = Atom("postcode")
+  val filter: Atom = Atom("filter")
+  val componentFields: NonEmptyList[Atom] = NonEmptyList.of(postcode, filter)
 
   override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
     componentFields.map(ModelComponentId.atomicCurry(indexedComponentId))

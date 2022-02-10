@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.gform.summary
 
-import cats.Monoid
 import cats.syntax.all._
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.gform.addresslookup.PostcodeLookup.AddressRecord
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
 import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ Atom, FastForward }
+import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, SmartString }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId, ValidationResult }
@@ -40,8 +41,6 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 
 object FormComponentSummaryRenderer {
 
-  implicit val monoidHtml: Monoid[Html] = Monoid.instance[Html](HtmlFormat.empty, (x, y) => HtmlFormat.fill(List(x, y)))
-
   def summaryListRows[D <: DataOrigin, T <: RenderType](
     formComponent: FormComponent,
     modelPageId: Option[ModelPageId],
@@ -53,6 +52,7 @@ object FormComponentSummaryRenderer {
     obligations: Obligations,
     validationResult: ValidationResult,
     envelope: EnvelopeWithMapping,
+    addressRecordLookup: AddressRecordLookup,
     iterationTitle: Option[String] = None,
     fastForward: FastForward = FastForward.Yes
   )(implicit
@@ -115,6 +115,19 @@ object FormComponentSummaryRenderer {
           formFieldValidationResult,
           iterationTitle,
           fastForward
+        )
+
+      case IsPostcodeLookup() =>
+        getPostcodeLookupRows(
+          formComponent,
+          formTemplateId,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          formFieldValidationResult,
+          iterationTitle,
+          fastForward,
+          addressRecordLookup
         )
 
       case IsTime(_) =>
@@ -212,7 +225,8 @@ object FormComponentSummaryRenderer {
           obligations,
           envelope,
           iterationTitle,
-          fastForward
+          fastForward,
+          addressRecordLookup
         )
 
       case IsGroup(group) =>
@@ -230,7 +244,8 @@ object FormComponentSummaryRenderer {
           validationResult,
           envelope,
           iterationTitle,
-          fastForward
+          fastForward,
+          addressRecordLookup
         )
     }
   }
@@ -521,6 +536,77 @@ object FormComponentSummaryRenderer {
         }
       )
     )
+  }
+
+  private def getPostcodeLookupRows[T <: RenderType](
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    formFieldValidationResult: FormFieldValidationResult,
+    iterationTitle: Option[String],
+    fastForward: FastForward,
+    addressRecordLookup: AddressRecordLookup
+  )(implicit
+    messages: Messages,
+    lise: SmartStringEvaluator,
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
+
+    val hasErrors = formFieldValidationResult.isNotOk
+
+    val errors = checkErrors(fieldValue, formFieldValidationResult)
+
+    val label = fcrd.label(fieldValue)
+
+    val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    def printAddress(addressRecord: AddressRecord): Html = {
+      import addressRecord.address._
+      List(line1, line2, line3, line4, town, postcode)
+        .filter(_.nonEmpty)
+        .map(Html(_))
+        .intercalate(br())
+    }
+
+    val value =
+      if (hasErrors) errors
+      else List(addressRecordLookup.lookup(fieldValue.id).map(printAddress).getOrElse(Html("")))
+
+    val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+
+    List(
+      summaryListRow(
+        label,
+        value.intercalate(br()),
+        visuallyHiddenText,
+        keyClasses,
+        "",
+        "",
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(
+                  formTemplateId,
+                  maybeAccessCode,
+                  sectionNumber,
+                  sectionTitle4Ga,
+                  SuppressErrors.Yes,
+                  fastForward
+                ),
+              changeOrViewLabel,
+              iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
+            )
+          )
+      )
+    )
+
   }
 
   private def getTimeSummaryListRows[T <: RenderType](
@@ -933,7 +1019,8 @@ object FormComponentSummaryRenderer {
     obligations: Obligations,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: FastForward,
+    addressRecordLookup: AddressRecordLookup
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -978,6 +1065,7 @@ object FormComponentSummaryRenderer {
                 obligations,
                 validationResult,
                 envelope,
+                addressRecordLookup,
                 None,
                 fastForward
               )
@@ -1067,7 +1155,8 @@ object FormComponentSummaryRenderer {
     validationResult: ValidationResult,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: FastForward,
+    addressRecordLookup: AddressRecordLookup
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -1147,6 +1236,7 @@ object FormComponentSummaryRenderer {
             obligations,
             validationResult,
             envelope,
+            addressRecordLookup,
             iterationTitle,
             fastForward
           )
