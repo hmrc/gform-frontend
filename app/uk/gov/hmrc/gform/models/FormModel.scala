@@ -91,6 +91,10 @@ case class FormModel[A <: PageMode](
     fc.id.baseComponentId
   }.toSet
 
+  val taxPeriodDate: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsTaxPeriodDate() =>
+    fc.id.baseComponentId
+  }.toSet
+
   val overseasAddressLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsOverseasAddress(_) =>
     fc.id.baseComponentId
   }.toSet

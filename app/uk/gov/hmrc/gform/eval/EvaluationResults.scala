@@ -21,16 +21,19 @@ import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.eq._
 import cats.syntax.traverse._
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
-import uk.gov.hmrc.gform.models.ids.{ ModelComponentId }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveResult, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult]
@@ -216,6 +219,27 @@ case class EvaluationResults(
     loop(typeInfo.expr)
   }
 
+  def evalTaxPeriodYear(
+    componentId: FormComponentId,
+    recData: RecData[SourceOrigin.OutOfDate],
+    messages: Messages
+  ): ExpressionResult = {
+    val yearAtom = Atomic(componentId.modelComponentId.indexedComponentId, TaxPeriodDate.year)
+    val monthAtom = Atomic(componentId.modelComponentId.indexedComponentId, TaxPeriodDate.month)
+
+    val monthKey = recData.variadicFormData
+      .get(monthAtom)
+      .map(_.fold(x => x.value)(x => x.value.mkString("")))
+      .map(getMonthValue)
+      .getOrElse("")
+
+    val monthAsText = messages(s"date.$monthKey")
+
+    val year = recData.variadicFormData.get(yearAtom).map(_.fold(x => x.value)(x => x.value.mkString(""))).getOrElse("")
+
+    StringResult(s"$monthAsText $year")
+  }
+
   private def evalString(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -254,6 +278,11 @@ case class EvaluationResults(
           val variadicValues: List[Option[VariadicValue]] = addressAtoms.map(atom => recData.variadicFormData.get(atom))
           val addressLines = variadicValues.collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
           ExpressionResult.AddressResult(addressLines)
+        }
+      case FormCtx(formComponentId: FormComponentId)
+          if evaluationContext.taxPeriodYear(formComponentId.baseComponentId) =>
+        whenVisible(formComponentId) {
+          evalTaxPeriodYear(formComponentId, recData, evaluationContext.messages)
         }
       case ctx @ FormCtx(formComponentId: FormComponentId) =>
         get(ctx, recData, fromVariadicValue, evaluationContext)

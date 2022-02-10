@@ -25,6 +25,8 @@ case object TextRaw extends ComponentTypeRaw
 
 case object DateRaw extends ComponentTypeRaw
 
+case object TaxPeriodDateRaw extends ComponentTypeRaw
+
 case object AddressRaw extends ComponentTypeRaw
 
 case object ChoiceRaw extends ComponentTypeRaw
@@ -47,6 +49,7 @@ object ComponentTypeRaw {
     Map(
       "text"            -> TextRaw,
       "date"            -> DateRaw,
+      "taxPeriodDate"   -> TaxPeriodDateRaw,
       "address"         -> AddressRaw,
       "choice"          -> ChoiceRaw,
       "revealingChoice" -> RevealingChoiceRaw,

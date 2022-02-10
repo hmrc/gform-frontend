@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit.MINUTES
-
 import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.foldable._
@@ -53,6 +52,7 @@ sealed trait ComponentType {
     case _: TextArea            => "textArea"
     case _: Date                => "date"
     case _: CalendarDate.type   => "calendarDate"
+    case _: TaxPeriodDate.type  => "taxPeriodDate"
     case _: PostcodeLookup.type => "postcodeLookup"
     case _: Time                => "time"
     case _: Address             => "address"
@@ -127,6 +127,15 @@ case object PostcodeLookup extends ComponentType with MultiField {
   val postcode: Atom = Atom("postcode")
   val filter: Atom = Atom("filter")
   val componentFields: NonEmptyList[Atom] = NonEmptyList.of(postcode, filter)
+
+  override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
+    componentFields.map(ModelComponentId.atomicCurry(indexedComponentId))
+}
+
+case object TaxPeriodDate extends ComponentType with MultiField {
+  val month: Atom = Atom("month")
+  val year: Atom = Atom("year")
+  val componentFields: NonEmptyList[Atom] = NonEmptyList.of(month, year)
 
   override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
     componentFields.map(ModelComponentId.atomicCurry(indexedComponentId))
