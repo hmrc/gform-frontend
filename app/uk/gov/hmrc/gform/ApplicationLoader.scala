@@ -26,6 +26,7 @@ import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{ EssentialFilter, LegacySessionCookieBaker, SessionCookieBaker }
 import play.api.routing.Router
 import uk.gov.hmrc.crypto.ApplicationCrypto
+import uk.gov.hmrc.gform.addresslookup.AddressLookupModule
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
@@ -159,6 +160,12 @@ class ApplicationModule(context: Context)
     configModule.appConfig
   )
 
+  private val addressLookupModule = new AddressLookupModule(
+    wSHttpModule,
+    configModule,
+    gformBackendModule
+  )
+
   private val validationModule = new ValidationModule(
     fileUploadModule,
     gformBackendModule,
@@ -177,6 +184,7 @@ class ApplicationModule(context: Context)
     gformBackendModule,
     fileUploadModule,
     upscanModule,
+    addressLookupModule,
     validationModule,
     auditingModule,
     playBuiltInsModule,

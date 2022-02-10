@@ -16,10 +16,12 @@
 
 package uk.gov.hmrc.gform.pdf.model
 
+import cats.implicits._
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.gform.addresslookup.PostcodeLookup.AddressRecord
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
@@ -86,6 +88,21 @@ object PDFPageFieldBuilder {
             val month = messages(s"date.$monthKey")
             Html(s"$day $month")
           }
+        )
+
+      case IsPostcodeLookup() =>
+        def printAddress(addressRecord: AddressRecord): List[String] = {
+          import addressRecord.address._
+          List(line1, line2, line3, line4, town, postcode)
+            .filter(_.nonEmpty)
+        }
+
+        val addressLines: List[String] =
+          cache.form.thirdPartyData.addressFor(formComponent.id).map(printAddress).getOrElse(Nil)
+
+        SimpleField(
+          getFormComponentLabel(formComponent),
+          addressLines.map(HtmlFormat.escape(_))
         )
 
       case IsTime(_) =>

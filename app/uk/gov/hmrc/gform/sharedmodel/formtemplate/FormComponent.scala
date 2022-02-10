@@ -143,6 +143,10 @@ object IsCalendarDate {
   }
 }
 
+object IsPostcodeLookup {
+  def unapply(fc: FormComponent): Boolean = fc.`type`.cast[PostcodeLookup.type].isDefined
+}
+
 object IsChoice {
   def unapply(fc: FormComponent): Option[Choice] = fc.`type`.cast[Choice]
 }

@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc
+package uk.gov.hmrc.gform.addresslookup
 
-import _root_.play.api.libs.typedmap.TypedKey
-import _root_.play.twirl.api.{ Html, HtmlFormat }
-import cats.Monoid
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateWithRedirects
+import cats.data.NonEmptyList
+import play.api.libs.json.{ Format, Json }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 
-package object gform {
-  val FormTemplateKey: TypedKey[FormTemplateWithRedirects] = TypedKey[FormTemplateWithRedirects]("form-template")
+final case class AddressLookupResult(
+  request: PostcodeLookup.Request,
+  addresses: Option[NonEmptyList[PostcodeLookup.AddressRecord]]
+)
 
-  implicit val monoidHtml: Monoid[Html] = Monoid.instance[Html](HtmlFormat.empty, (x, y) => HtmlFormat.fill(List(x, y)))
+object AddressLookupResult {
+  import JsonUtils._
+  implicit val format: Format[AddressLookupResult] = Json.format[AddressLookupResult]
 }

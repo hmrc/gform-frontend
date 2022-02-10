@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc
+package uk.gov.hmrc.gform.summary
 
-import _root_.play.api.libs.typedmap.TypedKey
-import _root_.play.twirl.api.{ Html, HtmlFormat }
-import cats.Monoid
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateWithRedirects
+import uk.gov.hmrc.gform.addresslookup.PostcodeLookup
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
-package object gform {
-  val FormTemplateKey: TypedKey[FormTemplateWithRedirects] = TypedKey[FormTemplateWithRedirects]("form-template")
+final case class AddressRecordLookup(lookup: FormComponentId => Option[PostcodeLookup.AddressRecord]) extends AnyVal
 
-  implicit val monoidHtml: Monoid[Html] = Monoid.instance[Html](HtmlFormat.empty, (x, y) => HtmlFormat.fill(List(x, y)))
+object AddressRecordLookup {
+  def from(thirdPartyData: ThirdPartyData): AddressRecordLookup = AddressRecordLookup(thirdPartyData.addressFor)
 }

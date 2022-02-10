@@ -36,6 +36,9 @@ sealed trait MultiValueId extends Product with Serializable {
   def atomsModelComponentIds: List[ModelComponentId] =
     fold[List[ModelComponentId]](_.modelComponentId :: Nil)(_.atoms.toList)
 
+  def atomsModelComponentIdsFilterByAtom(f: ModelComponentId.Atomic => Boolean): List[ModelComponentId] =
+    fold[List[ModelComponentId]](_.modelComponentId :: Nil)(_.atoms.toList.filter(f))
+
   def firstAtomModelComponentId: ModelComponentId.Atomic =
     fold[ModelComponentId.Atomic](pure =>
       throw new IllegalArgumentException(s"Cannot ask for atom for pure value: $pure")

@@ -480,3 +480,17 @@ this.section.is=This section is
 lookup.select.default.option.text=Select a
 
 signOut.toContinueSignBackInWithEmail=To continue sign back in with your email
+
+postcodeLookup.Postcode=Postcode
+postcodeLookup.Filter=Property name or number (optional)
+postcodeLookup.Filter.hint=For example, The Mill, 116 or Flat 37a
+postcodeLookup.enter.address.manually=Enter the address manually
+postcodeLookup.choose.address=Choose address
+postcodeLookup.chage.address=Change address
+postcodeLookup.continue=Continue
+postcodeLookup.confirm.address=Confirm address
+postcodeLookup.review.and.confirm=Review and confirm
+postcodeLookup.cannot.find.address.title=We cannot find any addresses
+postcodeLookup.cannot.find.address=We cannot find any addresses for {0}
+postcodeLookup.try.different.postcode=Try a different postcode
+addressId.error.required=Select the property for the address

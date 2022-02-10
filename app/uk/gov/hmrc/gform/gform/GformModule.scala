@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import akka.actor.Scheduler
 import cats.instances.future._
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.addresslookup.{ AddressLookupController, AddressLookupModule }
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
@@ -52,6 +53,7 @@ class GformModule(
   gformBackendModule: GformBackendModule,
   fileUploadModule: FileUploadModule,
   upscanModule: UpscanModule,
+  addressLookupModule: AddressLookupModule,
   validationModule: ValidationModule,
   auditingModule: AuditingModule,
   playBuiltInsModule: PlayBuiltInsModule,
@@ -144,7 +146,8 @@ class GformModule(
     graphModule.recalculation,
     fileUploadModule.fileUploadService,
     formControllerRequestHandler,
-    bankAccountReputationConnector
+    bankAccountReputationConnector,
+    addressLookupModule.addressLookupService
   )
 
   val confirmationService = new ConfirmationService(
@@ -353,4 +356,13 @@ class GformModule(
     controllersModule.nonAuthenticatedRequestActions,
     configModule.frontendAppConfig
   )
+
+  val addressLookupController: AddressLookupController =
+    new AddressLookupController(
+      controllersModule.authenticatedRequestActions,
+      addressLookupModule.addressLookupService,
+      configModule.frontendAppConfig,
+      playBuiltInsModule.i18nSupport,
+      controllersModule.messagesControllerComponents
+    )
 }

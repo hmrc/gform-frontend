@@ -176,7 +176,8 @@ class SummaryRenderingService(
         cache.form.thirdPartyData.obligations,
         summaryPagePurpose,
         summaryDeclaration,
-        cache.form.formData.fingerprint
+        cache.form.formData.fingerprint,
+        AddressRecordLookup.from(cache.form.thirdPartyData)
       )
     }
 
@@ -216,7 +217,8 @@ class SummaryRenderingService(
       cache.form.thirdPartyData.obligations,
       summaryPagePurpose,
       pdfFieldIds,
-      cache.form.formData.fingerprint
+      cache.form.formData.fingerprint,
+      AddressRecordLookup.from(cache.form.thirdPartyData)
     )
   }
 }
@@ -234,7 +236,8 @@ object SummaryRenderingService {
     obligations: Obligations,
     summaryPagePurpose: SummaryPagePurpose,
     summaryDeclaration: Html,
-    formDataFingerprint: String
+    formDataFingerprint: String,
+    addressRecordLookup: AddressRecordLookup
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
@@ -250,7 +253,8 @@ object SummaryRenderingService {
         maybeAccessCode,
         formTemplate,
         envelopeUpd,
-        obligations
+        obligations,
+        addressRecordLookup
       )
     summary(
       formTemplate,
@@ -285,7 +289,8 @@ object SummaryRenderingService {
     obligations: Obligations,
     summaryPagePurpose: SummaryPagePurpose,
     pdfFieldIds: List[FormComponentId],
-    formDataFingerprint: String
+    formDataFingerprint: String,
+    addressRecordLookup: AddressRecordLookup
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -303,7 +308,8 @@ object SummaryRenderingService {
         formTemplate,
         envelope,
         obligations,
-        pdfFieldIds
+        pdfFieldIds,
+        addressRecordLookup
       )
     summary(
       formTemplate,
@@ -329,7 +335,8 @@ object SummaryRenderingService {
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
     envelope: EnvelopeWithMapping,
-    obligations: Obligations
+    obligations: Obligations,
+    addressRecordLookup: AddressRecordLookup
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -382,6 +389,7 @@ object SummaryRenderingService {
             obligations,
             validationResult,
             envelope,
+            addressRecordLookup,
             iterationTitle
           )
         )
@@ -467,7 +475,8 @@ object SummaryRenderingService {
     formTemplate: FormTemplate,
     envelope: EnvelopeWithMapping,
     obligations: Obligations,
-    pdfFieldIds: List[FormComponentId]
+    pdfFieldIds: List[FormComponentId],
+    addressRecordLookup: AddressRecordLookup
   )(implicit messages: Messages, l: LangADT, lise: SmartStringEvaluator): List[Html] = {
 
     def renderHtmls(fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
@@ -483,7 +492,8 @@ object SummaryRenderingService {
             SectionTitle4Ga(""),
             obligations,
             validationResult,
-            envelope
+            envelope,
+            addressRecordLookup
           )
         )
 

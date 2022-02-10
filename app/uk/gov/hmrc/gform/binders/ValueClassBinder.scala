@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.binders
 import cats.implicits._
 import play.api.libs.json._
 import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
+import scala.util.{ Failure, Success }
 import uk.gov.hmrc.gform.controllers.{ AddGroup, Back, Direction, EditAddToList, Exit, RemoveGroup, SaveAndContinue, SaveAndExit, SummaryContinue }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ ExpandUtils, FastForward, LookupQuery }
@@ -132,6 +133,24 @@ object ValueClassBinder {
 
       override def unbind(key: String, maybeAccessCode: Option[AccessCode]): String =
         maybeAccessCode.fold("-")(a => a.value)
+    }
+
+  implicit def optionSectionNumberBinder(implicit
+    stringBinder: PathBindable[String]
+  ): PathBindable[Option[SectionNumber]] =
+    new PathBindable[Option[SectionNumber]] {
+      override def bind(key: String, value: String): Either[String, Option[SectionNumber]] =
+        stringBinder.bind(key, value).right.flatMap(parseString[String]).right.flatMap {
+          case "-" => Right(None)
+          case a =>
+            Try(value.toInt) match {
+              case Success(a)     => Right(Some(SectionNumber(a)))
+              case Failure(error) => Left(("No valid value in url binding: " + value + ". Error: " + error))
+            }
+        }
+
+      override def unbind(key: String, maybeAccessCode: Option[SectionNumber]): String =
+        maybeAccessCode.fold("-")(a => a.value.toString)
     }
 
   implicit val formIdQueryBinder: QueryStringBindable[FormId] = valueClassQueryBinder(_.value)

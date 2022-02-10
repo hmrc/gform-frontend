@@ -22,6 +22,7 @@ import cats.syntax.all._
 import play.api.i18n.I18nSupport
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
+import uk.gov.hmrc.gform.addresslookup.AddressLookupService
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
@@ -55,7 +56,8 @@ class FormProcessor(
   recalculation: Recalculation[Future, Throwable],
   fileUploadService: FileUploadAlgebra[Future],
   handler: FormControllerRequestHandler,
-  bankAccountReputationConnector: BankAccountReputationConnector[Future]
+  bankAccountReputationConnector: BankAccountReputationConnector[Future],
+  addressLookupService: AddressLookupService[Future]
 )(implicit ec: ExecutionContext) {
 
   import i18nSupport._
@@ -180,8 +182,10 @@ class FormProcessor(
   )(
     toResult: Option[SectionNumber] => Result
   )(implicit hc: HeaderCarrier, request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Future[Result] = {
+
+    val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
     val pageModel: PageModel[Visibility] =
-      processData.formModelOptics.formModelVisibilityOptics.formModel(sectionNumber)
+      formModelVisibilityOptics.formModel(sectionNumber)
 
     for {
       envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
@@ -212,6 +216,15 @@ class FormProcessor(
           )(_ => Option.empty.pure[Future])(_ => Option.empty.pure[Future])
         } else Option.empty.pure[Future]
 
+      updatePostcodeLookup <-
+        if (isValid) {
+          pageModel.postcodeLookup.flatTraverse { formComponent =>
+            addressLookupService
+              .postcodeLookup(formComponent, formModelVisibilityOptics)
+              .map(_.map(resp => formComponent.id -> resp))
+          }
+        } else Option.empty.pure[Future]
+
       res <- {
         val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
 
@@ -221,6 +234,7 @@ class FormProcessor(
           before
             .updateFrom(validatorsResult)
             .updateDataRetrieve(dataRetrieveResult)
+            .updatePostcodeLookup(updatePostcodeLookup)
 
         val needsSecondPhaseRecalculation =
           (before.desRegistrationResponse, after.desRegistrationResponse)
@@ -270,7 +284,20 @@ class FormProcessor(
               maybeAccessCode,
               fastForward,
               envelopeWithMapping
-            )(toResult)
+            ) { maybeSectionNumber =>
+              updatePostcodeLookup.fold(toResult(maybeSectionNumber)) { case (formComponentId, _) =>
+                Redirect(
+                  uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
+                    .chooseAddress(
+                      cache.formTemplate._id,
+                      maybeAccessCode,
+                      formComponentId,
+                      sectionNumber,
+                      maybeSectionNumber
+                    )
+                )
+              }
+            }
         }
       }
     } yield res

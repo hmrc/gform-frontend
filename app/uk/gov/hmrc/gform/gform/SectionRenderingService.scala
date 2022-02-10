@@ -20,12 +20,13 @@ import java.time.LocalDate
 import cats.data.NonEmptyList
 import cats.instances.int._
 import cats.instances.string._
-import cats.syntax.eq._
+import cats.syntax.all._
 import org.jsoup.Jsoup
 import shapeless.syntax.typeable._
 import play.api.i18n.Messages
 import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals }
@@ -51,7 +52,7 @@ import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
-import uk.gov.hmrc.gform.summary.{ AddToListCYARender, FormComponentSummaryRenderer }
+import uk.gov.hmrc.gform.summary.{ AddToListCYARender, AddressRecordLookup, FormComponentSummaryRenderer }
 import uk.gov.hmrc.gform.upscan.{ FormMetaData, UpscanData, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.HtmlFieldId
 import uk.gov.hmrc.gform.validation._
@@ -137,7 +138,8 @@ class SectionRenderingService(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     validationResult: ValidationResult,
     cache: AuthCacheWithForm,
-    envelope: EnvelopeWithMapping
+    envelope: EnvelopeWithMapping,
+    addressRecordLookup: AddressRecordLookup
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -172,6 +174,7 @@ class SectionRenderingService(
               cache.form.thirdPartyData.obligations,
               validationResult,
               envelope,
+              addressRecordLookup,
               None,
               FastForward.StopAt(sectionNumber)
             )
@@ -879,6 +882,8 @@ class SectionRenderingService(
             htmlForDate(formComponent, offset, dateValue, validationResult, ei)
           case CalendarDate =>
             htmlForCalendarDate(formComponent, validationResult, ei)
+          case PostcodeLookup =>
+            htmlForPostcodeLookup(formComponent, validationResult, ei)
           case t @ Time(_, _) =>
             renderTime(t, formComponent, validationResult, ei)
           case Address(international) =>
@@ -1925,6 +1930,75 @@ class SectionRenderingService(
     )
 
     new components.GovukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
+  }
+
+  private def htmlForPostcodeLookup(
+    formComponent: FormComponent,
+    validationResult: ValidationResult,
+    ei: ExtraInfo
+  )(implicit
+    messages: Messages
+  ) = {
+
+    val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
+
+    val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
+
+    val errorMessage: Option[ErrorMessage] = errors.map(error =>
+      ErrorMessage(
+        content = content.Text(error)
+      )
+    )
+
+    val filterHint: Hint = Hint(
+      content = content.Text(messages("postcodeLookup.Filter.hint"))
+    )
+
+    val attributes =
+      if (formComponent.editable)
+        Map.empty[String, String]
+      else
+        Map("readonly" -> "")
+
+    val isPageHeading = false
+
+    val hasErrors = formFieldValidationResult.isNotOk
+    val inputClasses = if (hasErrors) "govuk-input--error" else ""
+
+    val items: NonEmptyList[Input] =
+      PostcodeLookup
+        .fields(formComponent.modelComponentId.indexedComponentId)
+        .map { modelComponentId =>
+          val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
+          val atom = modelComponentId.atom
+
+          val labelContent = content.Text(messages("postcodeLookup." + atom.value.capitalize))
+
+          val label = Label(
+            isPageHeading = isPageHeading,
+            classes = getLabelClasses(isPageHeading, formComponent.labelSize),
+            content = labelContent
+          )
+          Input(
+            id = modelComponentId.toMongoIdentifier,
+            inputType = "text",
+            name = modelComponentId.toMongoIdentifier,
+            label = label,
+            hint = if (modelComponentId.atom === PostcodeLookup.filter) Some(filterHint) else None,
+            value = formFieldValidationResult
+              .getOptionalCurrentValue(HtmlFieldId.pure(modelComponentId))
+              .orElse(prepop),
+            classes =
+              if (modelComponentId.atom === PostcodeLookup.postcode) s"$inputClasses govuk-input--width-10"
+              else "govuk-input--width-20",
+            attributes = attributes,
+            errorMessage = if (modelComponentId.atom === PostcodeLookup.postcode) errorMessage else None
+          )
+        }
+
+    val maker = new components.GovukInput(govukErrorMessage, govukHint, govukLabel)
+
+    items.map(maker(_)).intercalate(html.form.snippets.manual_address())
   }
 
   private def htmlForDate(

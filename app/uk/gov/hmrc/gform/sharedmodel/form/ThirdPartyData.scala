@@ -16,7 +16,9 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
+import cats.implicits._
 import play.api.libs.json.{ Format, Json, OFormat }
+import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, PostcodeLookup }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, JsonUtils }
@@ -29,8 +31,24 @@ case class ThirdPartyData(
   queryParams: QueryParams,
   reviewData: Option[Map[String, String]] = None,
   booleanExprCache: BooleanExprCache,
-  dataRetrieve: Option[Map[DataRetrieveId, DataRetrieveResult]]
+  dataRetrieve: Option[Map[DataRetrieveId, DataRetrieveResult]],
+  postcodeLookup: Option[Map[FormComponentId, AddressLookupResult]],
+  selectedAddresses: Option[Map[FormComponentId, String]]
 ) {
+
+  def addressFor(formComponentId: FormComponentId): Option[PostcodeLookup.AddressRecord] = for {
+    lookup              <- postcodeLookup
+    selections          <- selectedAddresses
+    addressId           <- selections.get(formComponentId)
+    addressLookupResult <- lookup.get(formComponentId)
+    addresses           <- addressLookupResult.addresses
+    address             <- addresses.find(_.id === addressId)
+  } yield address
+
+  def addressSelectionFor(formComponentId: FormComponentId): Option[String] = for {
+    selections <- selectedAddresses
+    addressId  <- selections.get(formComponentId)
+  } yield addressId
 
   def updateDataRetrieve(dataRetrieveResult: Option[DataRetrieveResult]): ThirdPartyData = dataRetrieveResult match {
     case Some(drd @ DataRetrieveResult(id, _, _)) =>
@@ -39,6 +57,17 @@ case class ThirdPartyData(
         case Some(map) => Some(map + (id -> drd))
       })
     case None => this
+  }
+
+  def updatePostcodeLookup(postcodeLookupData: Option[(FormComponentId, AddressLookupResult)]): ThirdPartyData =
+    postcodeLookupData.fold(this) { case (formComponentId, response) =>
+      val updatedPostcodeLookup = postcodeLookup.getOrElse(Map.empty) + (formComponentId -> response)
+      this.copy(postcodeLookup = Some(updatedPostcodeLookup))
+    }
+
+  def updateSelectedAddresses(formComponentId: FormComponentId, addressId: String): ThirdPartyData = {
+    val updatedSelectedAddresses = selectedAddresses.getOrElse(Map.empty) + (formComponentId -> addressId)
+    this.copy(selectedAddresses = Some(updatedSelectedAddresses))
   }
 
   def updateFrom(vr: Option[ValidatorsResult]): ThirdPartyData =
@@ -51,7 +80,9 @@ case class ThirdPartyData(
           queryParams,
           reviewData,
           booleanExprCache,
-          dataRetrieve
+          dataRetrieve,
+          postcodeLookup,
+          selectedAddresses
         )
       case Some(ValidatorsResult(None, m)) =>
         ThirdPartyData(
@@ -61,7 +92,9 @@ case class ThirdPartyData(
           queryParams,
           reviewData,
           booleanExprCache,
-          dataRetrieve
+          dataRetrieve,
+          postcodeLookup,
+          selectedAddresses
         )
       case _ => this
     }
@@ -70,10 +103,15 @@ case class ThirdPartyData(
 }
 
 object ThirdPartyData {
-  val empty = ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty, None, BooleanExprCache.empty, None)
+  val empty =
+    ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty, None, BooleanExprCache.empty, None, None, None)
   implicit val formatMap: Format[Map[EmailFieldId, EmailAndCode]] =
     JsonUtils.formatMap(a => emailFieldId(FormComponentId(a)), _.value)
   implicit val formatDataRetrieve: Format[Map[DataRetrieveId, DataRetrieveResult]] =
     JsonUtils.formatMap(a => DataRetrieveId(a), _.value)
+  implicit val formatPostcodeLookup: Format[Map[FormComponentId, AddressLookupResult]] =
+    JsonUtils.formatMap(a => FormComponentId(a), _.value)
+  implicit val formatSelectedAddresses: Format[Map[FormComponentId, String]] =
+    JsonUtils.formatMap(a => FormComponentId(a), _.value)
   implicit val format: OFormat[ThirdPartyData] = Json.format
 }
