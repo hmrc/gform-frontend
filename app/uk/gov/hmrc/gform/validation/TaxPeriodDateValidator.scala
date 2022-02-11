@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.Monoid
 import cats.implicits.{ catsSyntaxValidatedId, _ }
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
@@ -91,17 +90,15 @@ class TaxPeriodDateValidator[D <: DataOrigin](formModelVisibilityOptics: FormMod
       ModelComponentIdValue(m, formModelVisibilityOptics.data.one(m))
     )
 
-    val validatedResult = if (formComponent.mandatory) {
-      atomsWithValues.map { mcv =>
-        Console.println(s"atom with value : $mcv")
+    if (formComponent.mandatory) {
+      atomsWithValues.foldMap { mcv =>
         mcv.value
           .filter(_.nonEmpty)
           .fold(requiredError(formComponent, mcv.modelComponentId))(_ => validationSuccess)
       }
     } else {
-      List(validationSuccess)
+      validationSuccess
     }
-    Monoid[ValidatedType[Unit]].combineAll(validatedResult)
   }
 
   private def requiredError(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] =

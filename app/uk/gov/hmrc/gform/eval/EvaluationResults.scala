@@ -224,18 +224,21 @@ case class EvaluationResults(
     recData: RecData[SourceOrigin.OutOfDate],
     messages: Messages
   ): ExpressionResult = {
+    val monthsValidationRegex = "0?\\d|1[012]".r
     val yearAtom = Atomic(componentId.modelComponentId.indexedComponentId, TaxPeriodDate.year)
     val monthAtom = Atomic(componentId.modelComponentId.indexedComponentId, TaxPeriodDate.month)
 
     val monthKey = recData.variadicFormData
-      .get(monthAtom)
-      .map(_.fold(x => x.value)(x => x.value.mkString("")))
+      .one(monthAtom)
+      .filter {
+        case monthsValidationRegex() => true
+        case _                       => false
+      }
       .map(getMonthValue)
       .getOrElse("")
 
     val monthAsText = messages(s"date.$monthKey")
-
-    val year = recData.variadicFormData.get(yearAtom).map(_.fold(x => x.value)(x => x.value.mkString(""))).getOrElse("")
+    val year = recData.variadicFormData.one(yearAtom).getOrElse("")
 
     StringResult(s"$monthAsText $year")
   }

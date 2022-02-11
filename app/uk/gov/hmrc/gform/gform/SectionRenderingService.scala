@@ -2044,7 +2044,7 @@ class SectionRenderingService(
         .map { modelComponentId =>
           val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
           val atom = modelComponentId.atom
-          val inputWidth = if (atom.value == "year") "4" else "2"
+          val inputWidth = if (atom === TaxPeriodDate.year) "4" else "2"
           InputItem(
             id = modelComponentId.toMongoIdentifier,
             name = modelComponentId.toMongoIdentifier,
