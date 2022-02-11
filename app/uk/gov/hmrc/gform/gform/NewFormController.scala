@@ -249,7 +249,7 @@ class NewFormController(
     for {
       formTemplate <- gformConnector.getFormTemplate(formTemplateId)
       formIdData   <- Future.successful(FormIdData.Plain(UserId(retrievals), formTemplate.formTemplate._id))
-      maybeForm    <- gformConnector.maybeForm(formIdData, formTemplate.formTemplate)
+      maybeForm    <- gformConnector.maybeForm(formIdData)
       res <- maybeForm match {
                case Some(_) => Future.successful(formTemplate.formTemplate)
                case None =>
