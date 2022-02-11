@@ -213,7 +213,7 @@ class NewFormController(
         val queryParams: QueryParams = QueryParams.fromRequest(request)
 
         for {
-          formTemplate <- getLatestFormTemplate(formTemplateId)
+          formTemplate <- getLatestFormTemplate(formTemplateId, cache.retrievals)
           formIdData   <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
           res <-
             handleForm(formIdData, formTemplate)(
@@ -243,13 +243,20 @@ class NewFormController(
     }
 
   private def getLatestFormTemplate(
-    formTemplateId: FormTemplateId
+    formTemplateId: FormTemplateId,
+    retrievals: MaterialisedRetrievals
   )(implicit hc: HeaderCarrier): Future[FormTemplate] =
     for {
       formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-      res <- formTemplate.redirect match {
-               case Some(ft) => getLatestFormTemplate(ft)
-               case None     => Future.successful(formTemplate.formTemplate)
+      formIdData   <- Future.successful(FormIdData.Plain(UserId(retrievals), formTemplate.formTemplate._id))
+      maybeForm    <- gformConnector.maybeForm(formIdData, formTemplate.formTemplate)
+      res <- maybeForm match {
+               case Some(_) => Future.successful(formTemplate.formTemplate)
+               case None =>
+                 formTemplate.redirect match {
+                   case Some(ft) => getLatestFormTemplate(ft, retrievals)
+                   case None     => Future.successful(formTemplate.formTemplate)
+                 }
              }
     } yield res
 
