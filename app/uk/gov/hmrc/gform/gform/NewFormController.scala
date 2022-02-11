@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.implicits.catsSyntaxEq
 import cats.instances.future._
 import cats.syntax.applicative._
 import org.slf4j.LoggerFactory
@@ -238,23 +237,14 @@ class NewFormController(
       Future.failed(new NotFoundException(s"Form with id ${formIdData.toFormId} not found."))
 
     for {
-      formTemplate <- Future.successful(request.attrs(FormTemplateKey))
-      redirectFormTemplate <- formTemplate.redirect match {
-                                case Some(formTemplateId) => gformConnector.getFormTemplate(formTemplateId)
-                                case None                 => Future.successful(formTemplate)
-                              }
-      res <- if (redirectFormTemplate.formTemplate._id =!= formTemplateId) {
-               val url = routes.NewFormController.newOrContinue(redirectFormTemplate.formTemplate._id).url
-               logger.info(s"Form not found for formTemplateId $formTemplateId and redirect to $url")
-               Redirect(url).pure[Future]
-             } else {
-               for {
-                 formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
-                 res <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
-                          auditService.sendFormCreateEvent(form, cache.retrievals)
-                          redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode)
-                        }
-               } yield res
+      (formIdData, formTemplate) <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
+      res <- handleForm(formIdData, formTemplate)(notFound(formIdData)) { form =>
+               auditService.sendFormCreateEvent(form, cache.retrievals)
+               redirectContinue[SectionSelectorType.Normal](
+                 cache.copy(formTemplate = formTemplate),
+                 form,
+                 formIdData.maybeAccessCode
+               )
              }
     } yield res
   }
@@ -320,8 +310,8 @@ class NewFormController(
             accessCodeForm.accessOption match {
               case AccessCodePage.optionNew =>
                 for {
-                  formIdData <- startFreshForm(formTemplateId, cache.retrievals, QueryParams.empty)
-                  result     <- processNewFormData(formIdData, drm)
+                  (formIdData, _) <- startFreshForm(formTemplateId, cache.retrievals, QueryParams.empty)
+                  result          <- processNewFormData(formIdData, drm)
                 } yield result
               case AccessCodePage.optionAccess =>
                 optionAccess(accessCodeForm, cache)
@@ -380,12 +370,33 @@ class NewFormController(
     formTemplateId: FormTemplateId,
     retrievals: MaterialisedRetrievals,
     queryParams: QueryParams
-  )(implicit hc: HeaderCarrier): Future[FormIdData] =
+  )(implicit hc: HeaderCarrier): Future[(FormIdData, FormTemplate)] =
     for {
-      newFormData <-
-        gformConnector
-          .newForm(formTemplateId, UserId(retrievals), AffinityGroupUtil.fromRetrievals(retrievals), queryParams)
-    } yield newFormData
+      formTemplate <- getLatestFormTemplate(formTemplateId)
+      formIdData   <- Future.successful(FormIdData.Plain(UserId(retrievals), formTemplate._id))
+      maybeForm    <- gformConnector.maybeForm(formIdData, formTemplate)
+      newFormData <- maybeForm match {
+                       case Some(_) => Future.successful(formIdData)
+                       case None =>
+                         gformConnector.newForm(
+                           formTemplate._id,
+                           UserId(retrievals),
+                           AffinityGroupUtil.fromRetrievals(retrievals),
+                           queryParams
+                         )
+                     }
+    } yield newFormData -> formTemplate
+
+  private def getLatestFormTemplate(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier): Future[FormTemplate] =
+    for {
+      formTemplate <- gformConnector.getFormTemplate(formTemplateId)
+      res <- formTemplate.redirect match {
+               case Some(ft) => getLatestFormTemplate(ft)
+               case None     => Future.successful(formTemplate.formTemplate)
+             }
+    } yield res
 
   private def handleForm[A](
     formIdData: FormIdData,
