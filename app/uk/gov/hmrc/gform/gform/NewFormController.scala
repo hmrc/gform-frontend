@@ -212,21 +212,46 @@ class NewFormController(
       implicit request => implicit l => cache =>
         val queryParams: QueryParams = QueryParams.fromRequest(request)
 
-        val formIdData = FormIdData.Plain(UserId(cache.retrievals), formTemplateId)
-        handleForm(formIdData, cache.formTemplate)(newForm(formTemplateId, cache, queryParams)) { form =>
-          cache.formTemplate.draftRetrievalMethod match {
-            case NotPermitted =>
-              fastForwardService.deleteForm(formTemplateId, cache.toAuthCacheWithForm(form, noAccessCode), queryParams)
-            case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
-              auditService.sendFormResumeEvent(form, cache.retrievals)
-              redirectContinue[SectionSelectorType.Normal](cache, form, noAccessCode)
-            case _ =>
-              auditService.sendFormResumeEvent(form, cache.retrievals)
-              val continueFormPage = new ContinueFormPage(cache.formTemplate, choice)
-              Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
-          }
-        }
+        for {
+          formTemplate <- getLatestFormTemplate(formTemplateId)
+          formIdData   <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
+          res <-
+            handleForm(formIdData, formTemplate)(
+              newForm(formTemplate._id, cache.copy(formTemplate = formTemplate), queryParams)
+            ) { form =>
+              formTemplate.draftRetrievalMethod match {
+                case NotPermitted =>
+                  fastForwardService.deleteForm(
+                    formTemplate._id,
+                    cache.toAuthCacheWithForm(form, noAccessCode),
+                    queryParams
+                  )
+                case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
+                  auditService.sendFormResumeEvent(form, cache.retrievals)
+                  redirectContinue[SectionSelectorType.Normal](
+                    cache.copy(formTemplate = formTemplate),
+                    form,
+                    noAccessCode
+                  )
+                case _ =>
+                  auditService.sendFormResumeEvent(form, cache.retrievals)
+                  val continueFormPage = new ContinueFormPage(formTemplate, choice)
+                  Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
+              }
+            }
+        } yield res
     }
+
+  private def getLatestFormTemplate(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier): Future[FormTemplate] =
+    for {
+      formTemplate <- gformConnector.getFormTemplate(formTemplateId)
+      res <- formTemplate.redirect match {
+               case Some(ft) => getLatestFormTemplate(ft)
+               case None     => Future.successful(formTemplate.formTemplate)
+             }
+    } yield res
 
   private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm, queryParams: QueryParams)(implicit
     request: Request[AnyContent],
@@ -237,14 +262,10 @@ class NewFormController(
       Future.failed(new NotFoundException(s"Form with id ${formIdData.toFormId} not found."))
 
     for {
-      (formIdData, formTemplate) <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
-      res <- handleForm(formIdData, formTemplate)(notFound(formIdData)) { form =>
+      formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
+      res <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
                auditService.sendFormCreateEvent(form, cache.retrievals)
-               redirectContinue[SectionSelectorType.Normal](
-                 cache.copy(formTemplate = formTemplate),
-                 form,
-                 formIdData.maybeAccessCode
-               )
+               redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode)
              }
     } yield res
   }
@@ -310,8 +331,8 @@ class NewFormController(
             accessCodeForm.accessOption match {
               case AccessCodePage.optionNew =>
                 for {
-                  (formIdData, _) <- startFreshForm(formTemplateId, cache.retrievals, QueryParams.empty)
-                  result          <- processNewFormData(formIdData, drm)
+                  formIdData <- startFreshForm(formTemplateId, cache.retrievals, QueryParams.empty)
+                  result     <- processNewFormData(formIdData, drm)
                 } yield result
               case AccessCodePage.optionAccess =>
                 optionAccess(accessCodeForm, cache)
@@ -370,33 +391,12 @@ class NewFormController(
     formTemplateId: FormTemplateId,
     retrievals: MaterialisedRetrievals,
     queryParams: QueryParams
-  )(implicit hc: HeaderCarrier): Future[(FormIdData, FormTemplate)] =
+  )(implicit hc: HeaderCarrier): Future[FormIdData] =
     for {
-      formTemplate <- getLatestFormTemplate(formTemplateId)
-      formIdData   <- Future.successful(FormIdData.Plain(UserId(retrievals), formTemplate._id))
-      maybeForm    <- gformConnector.maybeForm(formIdData, formTemplate)
-      newFormData <- maybeForm match {
-                       case Some(_) => Future.successful(formIdData)
-                       case None =>
-                         gformConnector.newForm(
-                           formTemplate._id,
-                           UserId(retrievals),
-                           AffinityGroupUtil.fromRetrievals(retrievals),
-                           queryParams
-                         )
-                     }
-    } yield newFormData -> formTemplate
-
-  private def getLatestFormTemplate(
-    formTemplateId: FormTemplateId
-  )(implicit hc: HeaderCarrier): Future[FormTemplate] =
-    for {
-      formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-      res <- formTemplate.redirect match {
-               case Some(ft) => getLatestFormTemplate(ft)
-               case None     => Future.successful(formTemplate.formTemplate)
-             }
-    } yield res
+      newFormData <-
+        gformConnector
+          .newForm(formTemplateId, UserId(retrievals), AffinityGroupUtil.fromRetrievals(retrievals), queryParams)
+    } yield newFormData
 
   private def handleForm[A](
     formIdData: FormIdData,
