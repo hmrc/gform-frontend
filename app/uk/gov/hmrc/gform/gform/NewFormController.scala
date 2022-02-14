@@ -212,20 +212,34 @@ class NewFormController(
       implicit request => implicit l => cache =>
         val queryParams: QueryParams = QueryParams.fromRequest(request)
 
-        val formIdData = FormIdData.Plain(UserId(cache.retrievals), formTemplateId)
-        handleForm(formIdData, cache.formTemplate)(newForm(formTemplateId, cache, queryParams)) { form =>
-          cache.formTemplate.draftRetrievalMethod match {
-            case NotPermitted =>
-              fastForwardService.deleteForm(formTemplateId, cache.toAuthCacheWithForm(form, noAccessCode), queryParams)
-            case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
-              auditService.sendFormResumeEvent(form, cache.retrievals)
-              redirectContinue[SectionSelectorType.Normal](cache, form, noAccessCode)
-            case _ =>
-              auditService.sendFormResumeEvent(form, cache.retrievals)
-              val continueFormPage = new ContinueFormPage(cache.formTemplate, choice)
-              Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
-          }
-        }
+        for {
+          formTemplate <- gformConnector.getLatestFormTemplate(formTemplateId)
+          formIdData   <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
+          res <-
+            handleForm(formIdData, formTemplate)(
+              newForm(formTemplate._id, cache.copy(formTemplate = formTemplate), queryParams)
+            ) { form =>
+              formTemplate.draftRetrievalMethod match {
+                case NotPermitted =>
+                  fastForwardService.deleteForm(
+                    formTemplate._id,
+                    cache.toAuthCacheWithForm(form, noAccessCode),
+                    queryParams
+                  )
+                case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
+                  auditService.sendFormResumeEvent(form, cache.retrievals)
+                  redirectContinue[SectionSelectorType.Normal](
+                    cache.copy(formTemplate = formTemplate),
+                    form,
+                    noAccessCode
+                  )
+                case _ =>
+                  auditService.sendFormResumeEvent(form, cache.retrievals)
+                  val continueFormPage = new ContinueFormPage(formTemplate, choice)
+                  Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
+              }
+            }
+        } yield res
     }
 
   private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm, queryParams: QueryParams)(implicit
