@@ -87,7 +87,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.GET[Form](url)
   }
 
-  def maybeForm(formIdData: FormIdData)(implicit
+  private def maybeForm(formIdData: FormIdData)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Option[Form]] = getForm(formIdData).map(Some(_)).recoverWith {
