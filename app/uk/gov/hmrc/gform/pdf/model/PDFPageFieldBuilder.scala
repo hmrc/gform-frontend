@@ -105,6 +105,20 @@ object PDFPageFieldBuilder {
           addressLines.map(HtmlFormat.escape(_))
         )
 
+      case IsTaxPeriodDate() =>
+        def safeId(atom: Atom) = HtmlFieldId.pure(formComponent.atomicFormComponentId(atom))
+
+        def monthKey = getMonthValue(validationResult(formComponent).getCurrentValue(safeId(TaxPeriodDate.month)))
+
+        SimpleField(
+          getFormComponentLabel(formComponent),
+          List {
+            val year = renderMonth(validationResult(formComponent).getCurrentValue(safeId(TaxPeriodDate.year)))
+            val month = messages(s"date.$monthKey")
+            Html(s"$month $year")
+          }
+        )
+
       case IsTime(_) =>
         SimpleField(
           getFormComponentLabel(formComponent),

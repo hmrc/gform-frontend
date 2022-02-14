@@ -82,6 +82,8 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
 
   private val dateValidation = new DateValidation[D](formModelVisibilityOptics)
   private val calendarDateValidation = new CalendarDateValidation[D](formModelVisibilityOptics)
+  private val taxPeriodDateValidation = new TaxPeriodDateValidator[D](formModelVisibilityOptics)
+
   private val postcodeLookupValidation = new PostcodeLookupValidation[D](formModelVisibilityOptics)
 
   private[validation] def validIf(
@@ -168,7 +170,10 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
             formComponent
           )
         )
-
+      case TaxPeriodDate =>
+        validIf(
+          taxPeriodDateValidation.validate(formComponent)
+        )
       case Text(SubmissionRefFormat, _, _, _, _, _)
           if formTemplate.parentFormSubmissionRefs.contains(formComponent.id) =>
         validIf(

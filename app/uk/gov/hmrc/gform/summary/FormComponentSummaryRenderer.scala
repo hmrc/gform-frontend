@@ -117,6 +117,18 @@ object FormComponentSummaryRenderer {
           fastForward
         )
 
+      case IsTaxPeriodDate() =>
+        getTaxPeriodDateSummartListRows(
+          formComponent,
+          formTemplateId,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          formFieldValidationResult,
+          iterationTitle,
+          fastForward
+        )
+
       case IsPostcodeLookup() =>
         getPostcodeLookupRows(
           formComponent,
@@ -536,6 +548,77 @@ object FormComponentSummaryRenderer {
         }
       )
     )
+  }
+
+  private def getTaxPeriodDateSummartListRows[T <: RenderType](
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    formFieldValidationResult: FormFieldValidationResult,
+    iterationTitle: Option[String],
+    fastForward: FastForward
+  )(implicit
+    messages: Messages,
+    lise: SmartStringEvaluator,
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
+    val hasErrors = formFieldValidationResult.isNotOk
+
+    val errors = checkErrors(fieldValue, formFieldValidationResult)
+
+    val label = fcrd.label(fieldValue)
+
+    val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    def safeId(atom: Atom) = HtmlFieldId.pure(fieldValue.atomicFormComponentId(atom))
+
+    def monthKey = getMonthValue(formFieldValidationResult.getCurrentValue(safeId(TaxPeriodDate.month)))
+
+    val value =
+      if (hasErrors)
+        errors.head
+      else {
+        val year = renderMonth(formFieldValidationResult.getCurrentValue(safeId(TaxPeriodDate.year)))
+        val month = messages(s"date.$monthKey")
+
+        HtmlFormat.escape(s"$month $year")
+      }
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        visuallyHiddenText,
+        keyClasses,
+        "",
+        "",
+        if (fieldValue.onlyShowOnSummary)
+          Nil
+        else {
+          val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(
+                  formTemplateId,
+                  maybeAccessCode,
+                  sectionNumber,
+                  sectionTitle4Ga,
+                  SuppressErrors.Yes,
+                  fastForward
+                ),
+              changeOrViewLabel,
+              iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
+            )
+          )
+        }
+      )
+    )
+
   }
 
   private def getPostcodeLookupRows[T <: RenderType](

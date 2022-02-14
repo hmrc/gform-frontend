@@ -884,6 +884,8 @@ class SectionRenderingService(
             htmlForCalendarDate(formComponent, validationResult, ei)
           case PostcodeLookup =>
             htmlForPostcodeLookup(formComponent, validationResult, ei)
+          case TaxPeriodDate =>
+            htmlForTaxPeriodDate(formComponent, validationResult, ei)
           case t @ Time(_, _) =>
             renderTime(t, formComponent, validationResult, ei)
           case Address(international) =>
@@ -1999,6 +2001,84 @@ class SectionRenderingService(
     val maker = new components.GovukInput(govukErrorMessage, govukHint, govukLabel)
 
     items.map(maker(_)).intercalate(html.form.snippets.manual_address())
+  }
+
+  private def htmlForTaxPeriodDate(
+    formComponent: FormComponent,
+    validationResult: ValidationResult,
+    ei: ExtraInfo
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ) = {
+
+    val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
+
+    val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
+
+    val errorMessage: Option[ErrorMessage] = errors.map(error =>
+      ErrorMessage(
+        content = content.Text(error)
+      )
+    )
+
+    val hint: Option[Hint] = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
+      )
+    }
+
+    val hasErrors = formFieldValidationResult.isNotOk
+
+    val inputClasses = if (hasErrors) "govuk-input--error" else ""
+
+    val attributes =
+      if (formComponent.editable)
+        Map.empty[String, String]
+      else
+        Map("readonly" -> "")
+
+    val items =
+      TaxPeriodDate
+        .fields(formComponent.modelComponentId.indexedComponentId)
+        .map { modelComponentId =>
+          val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
+          val atom = modelComponentId.atom
+          val inputWidth = if (atom === TaxPeriodDate.year) "4" else "2"
+          InputItem(
+            id = modelComponentId.toMongoIdentifier,
+            name = modelComponentId.toMongoIdentifier,
+            value = formFieldValidationResult
+              .getOptionalCurrentValue(HtmlFieldId.pure(modelComponentId))
+              .orElse(prepop),
+            label = Some(messages("date." + atom.value.capitalize)),
+            classes = s"$inputClasses govuk-input--width-$inputWidth",
+            attributes = attributes
+          )
+        }
+
+    val isPageHeading = ei.formLevelHeading
+
+    val fieldset = Fieldset(
+      legend = Some(
+        Legend(
+          content = content.Text(formComponent.label.value),
+          classes = getLabelClasses(isPageHeading, formComponent.labelSize),
+          isPageHeading = isPageHeading
+        )
+      )
+    )
+
+    val dateInput = DateInput(
+      id = formComponent.id.value,
+      items = items.toList,
+      hint = hint,
+      errorMessage = errorMessage,
+      fieldset = Some(fieldset)
+    )
+
+    new components.GovukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
+
   }
 
   private def htmlForDate(

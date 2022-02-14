@@ -147,6 +147,13 @@ object IsPostcodeLookup {
   def unapply(fc: FormComponent): Boolean = fc.`type`.cast[PostcodeLookup.type].isDefined
 }
 
+object IsTaxPeriodDate {
+  def unapply(fc: FormComponent): Boolean = fc.`type` match {
+    case TaxPeriodDate => true
+    case _             => false
+  }
+}
+
 object IsChoice {
   def unapply(fc: FormComponent): Option[Choice] = fc.`type`.cast[Choice]
 }
