@@ -20,7 +20,7 @@ import cats.Monoid
 import uk.gov.hmrc.gform.models.{ DataExpanded, EnteredVariadicFormData, Singleton }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidatorsResult }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, IsChoice }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
 case class ValidationResult(
   lookup: Map[FormComponentId, FormFieldValidationResult],
@@ -57,10 +57,6 @@ case class ValidationResult(
   ): FormValidationOutcome = {
 
     val enteredFormFieldValidationResults: List[FormFieldValidationResult] = formFieldValidationResults.collect {
-      case fe @ FieldError(fc @ IsChoice(_), cv, _) =>
-        fe.copy(currentValue =
-          enteredVariadicFormData.userData.many(fc.modelComponentId).getOrElse(Seq.empty[String]).mkString(", ")
-        )
       case fe @ FieldError(fc, cv, _) =>
         fe.copy(currentValue = enteredVariadicFormData.userData.one(fc.modelComponentId).getOrElse(cv))
     }
