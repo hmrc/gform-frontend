@@ -549,7 +549,7 @@ class FormController(
             ): Future[Result] = {
 
               val purgeConfirmationData: PurgeConfirmationData =
-                confirmationService.purgeConfirmationData(sectionNumber, processData0)
+                confirmationService.purgeConfirmationData(sectionNumber, processData0, enteredVariadicFormData)
 
               val processData = purgeConfirmationData.f(processData0)
 
@@ -570,7 +570,7 @@ class FormController(
                     maybeAccessCode,
                     fastForward,
                     formModelOptics,
-                    enteredVariadicFormData
+                    purgeConfirmationData.enteredVariadicFormData
                   )(_ => goBackLink)
                 } else {
                   goBackLink.pure[Future]
