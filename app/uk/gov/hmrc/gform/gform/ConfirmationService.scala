@@ -110,7 +110,7 @@ class ConfirmationService(
   def purgeConfirmationData(
     sectionNumber: SectionNumber,
     processData: ProcessData,
-    enteredVariadicFormData: EnteredVariadicFormData = EnteredVariadicFormData.empty
+    enteredVariadicFormData: EnteredVariadicFormData
   ): PurgeConfirmationData = {
 
     val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
