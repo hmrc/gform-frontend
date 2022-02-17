@@ -205,7 +205,9 @@ class AuthenticatedRequestActions(
             errResponder.forbidden(
               "Restricted by referrer config",
               Some(formTemplate),
-              Some(MarkDownUtil.markDownParser(referrerConfig.exitMessage.value))
+              Some(
+                views.html.form.snippets.markdown_wrapper(MarkDownUtil.markDownParser(referrerConfig.exitMessage.value))
+              )
             )
           }
         case None =>
