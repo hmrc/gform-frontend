@@ -14,8 +14,10 @@
  * limitations under the License.
  *@
 
-@()(implicit messages: Messages)
+@(
+  enterAddressHref: Call,
+)(implicit messages: Messages)
 
 <p class="govuk-!-margin-bottom-6 govuk-body">
-  <a class="govuk-link" target="_blank" rel="noopener noreferrer" href="todo">@messages("postcodeLookup.enter.address.manually")</a>
+  <a class="govuk-link" target="_blank" rel="noopener noreferrer" href="@enterAddressHref.url">@messages("postcodeLookup.enter.address.manually")</a>
 </p>

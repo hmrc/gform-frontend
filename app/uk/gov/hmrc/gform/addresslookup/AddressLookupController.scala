@@ -18,23 +18,34 @@ package uk.gov.hmrc.gform.addresslookup
 
 import cats.data.NonEmptyList
 import cats.implicits._
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
 import play.twirl.api.Html
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
+import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
+import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.models.{ Basic, FormModelBuilder }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ FastForward, SectionSelectorType }
 import uk.gov.hmrc.gform.monoidHtml
+import uk.gov.hmrc.gform.sharedmodel.form.FormData
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Expr, FormComponent, FormTemplateWithRedirects, Page, Section }
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString }
+import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber, SectionTitle4Ga, SuppressErrors }
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.addresslookup
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.br
-import uk.gov.hmrc.http.NotFoundException
+import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 class AddressLookupController(
@@ -42,7 +53,10 @@ class AddressLookupController(
   addressLookupService: AddressLookupService[Future],
   frontendAppConfig: FrontendAppConfig,
   i18nSupport: I18nSupport,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  recalculation: Recalculation[Future, Throwable],
+  formControllerRequestHandler: FormControllerRequestHandler,
+  validationService: ValidationService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -65,7 +79,7 @@ class AddressLookupController(
               new NotFoundException(s"No addresslookup found for FormComponentId: ${formComponentId.value}.")
             )
           ) { addressLookupResult =>
-            addressLookupResult.addresses
+            addressLookupResult.response.addresses
               .fold(
                 Ok(
                   addresslookup.no_address_found(
@@ -93,7 +107,8 @@ class AddressLookupController(
                     formModelOptics,
                     sectionNumber,
                     maybeAccessCode,
-                    maybeSectionNumber
+                    maybeSectionNumber,
+                    addressLookupResult
                   )
                 )
               }
@@ -137,9 +152,10 @@ class AddressLookupController(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     sectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode],
-    maybeSectionNumber: Option[SectionNumber]
+    maybeSectionNumber: Option[SectionNumber],
+    addressLookupResult: AddressLookupResult
   )(implicit request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Html = {
-    val addressSelectioPage = new AddressSelectionPage(
+    val addressSelectionPage = new AddressSelectionPage(
       addressRecords,
       form,
       cache.form.thirdPartyData.addressSelectionFor(formComponentId)
@@ -150,10 +166,20 @@ class AddressLookupController(
     addresslookup.choose_address(
       cache.formTemplate,
       frontendAppConfig,
-      addressSelectioPage,
+      addressSelectionPage,
       routes.AddressLookupController
         .submitAddress(cache.formTemplate._id, maybeAccessCode, formComponentId, sectionNumber, maybeSectionNumber),
-      backHref
+      routes.AddressLookupController
+        .enterAddress(
+          cache.formTemplate._id,
+          maybeAccessCode,
+          formComponentId,
+          sectionNumber,
+          maybeSectionNumber,
+          SuppressErrors.Yes
+        ),
+      backHref,
+      addressLookupResult
     )
   }
 
@@ -169,12 +195,11 @@ class AddressLookupController(
         addressIdForm.bindFromRequest
           .fold(
             errorForm =>
-              cache.form.thirdPartyData.postcodeLookup
-                .flatMap(_.get(formComponentId))
-                .flatMap(_.addresses)
+              cache.form.thirdPartyData
+                .addressesFor(formComponentId)
                 .fold(
                   throw new NotFoundException(s"No addresses found for FormComponentId: ${formComponentId.value}.")
-                ) { addressRecords =>
+                ) { case (addressRecords, addressLookupResult) =>
                   BadRequest(
                     renderChooseAddressPage(
                       formComponentId,
@@ -184,7 +209,8 @@ class AddressLookupController(
                       formModelOptics,
                       sectionNumber,
                       maybeAccessCode,
-                      maybeSectionNumber
+                      maybeSectionNumber,
+                      addressLookupResult
                     )
                   )
                 }
@@ -217,18 +243,29 @@ class AddressLookupController(
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        cache.form.thirdPartyData.addressFor(formComponentId) match {
+        cache.form.thirdPartyData.addressLines(formComponentId) match {
           case None => BadRequest("TRY AGAIN").pure[Future]
-          case Some(addressRecord) =>
+          case Some(addressLines) =>
             val backHref =
-              routes.AddressLookupController
-                .chooseAddress(formTemplateId, maybeAccessCode, formComponentId, sectionNumber, maybeSectionNumber)
+              if (cache.form.thirdPartyData.enteredAddressFor(formComponentId).isDefined) {
+                routes.AddressLookupController
+                  .enterAddress(
+                    formTemplateId,
+                    maybeAccessCode,
+                    formComponentId,
+                    sectionNumber,
+                    maybeSectionNumber,
+                    SuppressErrors.Yes
+                  )
+              } else {
+                routes.AddressLookupController
+                  .chooseAddress(formTemplateId, maybeAccessCode, formComponentId, sectionNumber, maybeSectionNumber)
+              }
 
-            import addressRecord.address._
-            val address = List(line1, line2, line3, line4, town, postcode)
-              .filter(_.nonEmpty)
-              .map(addresslookup.address_line(_))
-              .intercalate(br())
+            val address =
+              addressLines
+                .map(addresslookup.address_line(_))
+                .intercalate(br())
 
             val confirmAddressAndContinue = routes.AddressLookupController
               .confirmAddressAndContinue(
@@ -238,6 +275,15 @@ class AddressLookupController(
                 sectionNumber,
                 maybeSectionNumber
               )
+            val enterAddressHref = routes.AddressLookupController
+              .enterAddress(
+                cache.formTemplate._id,
+                maybeAccessCode,
+                formComponentId,
+                sectionNumber,
+                maybeSectionNumber,
+                SuppressErrors.Yes
+              )
             Ok(
               addresslookup
                 .review_and_confirm_address(
@@ -245,6 +291,7 @@ class AddressLookupController(
                   frontendAppConfig,
                   address,
                   confirmAddressAndContinue,
+                  enterAddressHref,
                   backHref
                 )
             )
@@ -276,13 +323,248 @@ class AddressLookupController(
     maybeSectionNumber: Option[SectionNumber]
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      request => l => cache => sse => formModelOptics =>
-        maybeSectionNumber match {
-          case None =>
-            Redirect(
-              uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(cache.formTemplateId, maybeAccessCode)
-            ).pure[Future]
-          case Some(sn) => Redirect(backLink(cache, formModelOptics, sn, maybeAccessCode)).pure[Future]
+      implicit request => l => cache => sse => formModelOptics =>
+        addressLookupService
+          .populatePostcodeIfEmpty(
+            cache.form,
+            maybeAccessCode,
+            formComponentId,
+            formModelOptics.formModelVisibilityOptics,
+            sectionNumber
+          )
+          .as(
+            maybeSectionNumber match {
+              case None =>
+                Redirect(
+                  uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(cache.formTemplateId, maybeAccessCode)
+                )
+              case Some(sn) => Redirect(backLink(cache, formModelOptics, sn, maybeAccessCode))
+            }
+          )
+    }
+
+  def enterAddress(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    formComponentId: FormComponentId,
+    sectionNumber: SectionNumber,
+    maybeSectionNumber: Option[SectionNumber],
+    se: SuppressErrors
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
+      implicit request => implicit l => cache => implicit sse => realFormModelOptics =>
+        mkSyntheticFormModelOptics(formComponentId, cache, maybeAccessCode) {
+          syntheticFormComponent => syntheticCache => formModelOptics =>
+            val cacheData = syntheticCache.toCacheData
+
+            val envelopeWithMapping: EnvelopeWithMapping = EnvelopeWithMapping(Envelope.empty, syntheticCache.form)
+
+            formControllerRequestHandler
+              .handleSuppressErrors(
+                formModelOptics,
+                List(SectionNumber(0)),
+                cacheData,
+                envelopeWithMapping,
+                validationService.validatePageModel,
+                se
+              )
+              .map { formHandlerResult =>
+                val formFieldValidationResult: FormFieldValidationResult =
+                  formHandlerResult.validationResult(syntheticFormComponent)
+
+                val enterAddressPage = new EnterAddressPage(syntheticFormComponent, formFieldValidationResult)
+                val formAction =
+                  routes.AddressLookupController
+                    .enterAddressSubmit(
+                      formTemplateId,
+                      maybeAccessCode,
+                      formComponentId,
+                      sectionNumber,
+                      maybeSectionNumber
+                    )
+                val backHref =
+                  if (cache.form.thirdPartyData.addressRecordFor(formComponentId).isDefined) {
+                    routes.AddressLookupController
+                      .chooseAddress(
+                        formTemplateId,
+                        maybeAccessCode,
+                        formComponentId,
+                        sectionNumber,
+                        maybeSectionNumber
+                      )
+                  } else {
+                    backLink(cache, realFormModelOptics, sectionNumber, maybeAccessCode)
+                  }
+                Ok(
+                  addresslookup
+                    .enter_address(
+                      cache.formTemplate,
+                      frontendAppConfig,
+                      enterAddressPage,
+                      formAction,
+                      backHref
+                    )
+                )
+              }
         }
     }
+
+  def enterAddressSubmit(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    formComponentId: FormComponentId,
+    sectionNumber: SectionNumber,
+    maybeSectionNumber: Option[SectionNumber]
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
+      implicit request => implicit l => cache => implicit sse => _ =>
+        mkSyntheticFormModelOptics(formComponentId, cache, maybeAccessCode) {
+          syntheticFormComponent => syntheticCache => formModelOptics =>
+            processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics, None) {
+              requestRelatedData => variadicFormData => enteredVariadicFormData =>
+                val browserFormModelOpticsF = FormModelOptics
+                  .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
+                    variadicFormData,
+                    syntheticCache,
+                    recalculation
+                  )
+
+                val envelopeWithMapping: EnvelopeWithMapping = EnvelopeWithMapping(Envelope.empty, syntheticCache.form)
+
+                val cacheData = syntheticCache.toCacheData
+
+                browserFormModelOpticsF.flatMap { browserFormModelOptics =>
+                  addressLookupService.saveEnteredAddress(
+                    cache.form,
+                    maybeAccessCode,
+                    formComponentId,
+                    variadicFormData.toFormData
+                  ) >>
+                    formControllerRequestHandler
+                      .handleFormValidation(
+                        browserFormModelOptics,
+                        SectionNumber(0),
+                        cacheData,
+                        envelopeWithMapping,
+                        validationService.validatePageModel,
+                        enteredVariadicFormData
+                      )
+                      .map { formValidationOutcome =>
+                        if (formValidationOutcome.isValid) {
+                          Redirect(
+                            routes.AddressLookupController.confirmAddressAndContinue(
+                              formTemplateId,
+                              maybeAccessCode,
+                              formComponentId,
+                              sectionNumber,
+                              maybeSectionNumber
+                            )
+                          )
+                        } else {
+                          Redirect(
+                            routes.AddressLookupController
+                              .enterAddress(
+                                formTemplateId,
+                                maybeAccessCode,
+                                formComponentId,
+                                sectionNumber,
+                                maybeSectionNumber,
+                                SuppressErrors.No
+                              )
+                          )
+                        }
+                      }
+                }
+            }
+        }
+    }
+
+  private def mkSyntheticFormComponent(formComponentId: FormComponentId)(implicit messages: Messages): FormComponent =
+    FormComponent(
+      id = formComponentId,
+      `type` = Address(false),
+      label =
+        SmartString(LocalisedString(Map(LangADT.En -> messages("postcodeLookup.enter.address"))), List.empty[Expr]),
+      helpText = None,
+      shortName = None,
+      includeIf = None,
+      validIf = None,
+      mandatory = true,
+      editable = true,
+      submissible = true,
+      derived = false,
+      errorMessage = None
+    )
+
+  private def mkSyntheticCache(
+    cache: AuthCacheWithForm,
+    syntheticFormComponent: FormComponent
+  ): AuthCacheWithForm = {
+    val title = SmartString(LocalisedString(Map.empty), List.empty[Expr])
+    val fields = List(syntheticFormComponent)
+    val page: Page[Basic] = Page(
+      title = title,
+      id = None,
+      noPIITitle = None,
+      description = None,
+      shortName = None,
+      progressIndicator = None,
+      includeIf = None,
+      validators = None,
+      fields = fields,
+      continueLabel = None,
+      continueIf = None,
+      instruction = None,
+      presentationHint = None,
+      dataRetrieve = None,
+      confirmation = None
+    )
+    val enterAddressSection = Section.NonRepeatingPage(page)
+    val syntheticFormTemplate = cache.formTemplate.copy(sections = List(enterAddressSection))
+
+    val formData =
+      cache.form.thirdPartyData
+        .enteredAddressDataForWithFallback(syntheticFormComponent.id)
+        .getOrElse(FormData(List.empty))
+
+    cache
+      .copy(formTemplateWithRedirects = FormTemplateWithRedirects.noRedirects(syntheticFormTemplate))
+      .copy(form = cache.form.copy(formData = formData))
+  }
+
+  private def mkSyntheticFormModelOptics(
+    formComponentId: FormComponentId,
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode]
+  )(f: FormComponent => AuthCacheWithForm => FormModelOptics[DataOrigin.Mongo] => Future[Result])(implicit
+    messages: Messages,
+    l: LangADT,
+    hc: HeaderCarrier
+  ): Future[Result] = {
+
+    val syntheticFormComponent = mkSyntheticFormComponent(formComponentId)
+    val syntheticCache = mkSyntheticCache(cache, syntheticFormComponent)
+
+    val formModelBuilder = new FormModelBuilder[Throwable, Future](
+      syntheticCache.retrievals,
+      syntheticCache.formTemplate,
+      syntheticCache.form.thirdPartyData,
+      syntheticCache.form.envelopeId,
+      maybeAccessCode,
+      recalculation,
+      FormComponentIdToFileIdMapping.empty
+    )
+
+    val data = syntheticCache.variadicFormData[SectionSelectorType.Normal]
+
+    val formModelVisibilityOpticsF: Future[FormModelVisibilityOptics[DataOrigin.Mongo]] =
+      formModelBuilder.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+
+    formModelVisibilityOpticsF
+      .map { formModelVisibilityOptics =>
+        formModelBuilder
+          .renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](formModelVisibilityOptics, None)
+      }
+      .flatMap(f(syntheticFormComponent)(syntheticCache))
+  }
 }

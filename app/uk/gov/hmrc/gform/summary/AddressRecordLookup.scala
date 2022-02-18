@@ -16,12 +16,17 @@
 
 package uk.gov.hmrc.gform.summary
 
-import uk.gov.hmrc.gform.addresslookup.PostcodeLookup
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
-final case class AddressRecordLookup(lookup: FormComponentId => Option[PostcodeLookup.AddressRecord]) extends AnyVal
+final case class AddressRecordLookup(
+  lookup: FormComponentId => Option[List[String]],
+  isEntered: FormComponentId => Boolean
+)
 
 object AddressRecordLookup {
-  def from(thirdPartyData: ThirdPartyData): AddressRecordLookup = AddressRecordLookup(thirdPartyData.addressFor)
+  def from(thirdPartyData: ThirdPartyData): AddressRecordLookup = AddressRecordLookup(
+    thirdPartyData.addressLines,
+    thirdPartyData.enteredAddressDataFor(_).isDefined
+  )
 }

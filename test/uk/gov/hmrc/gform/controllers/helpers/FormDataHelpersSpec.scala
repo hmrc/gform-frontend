@@ -59,7 +59,18 @@ class FormDataHelpersSpec extends Spec {
       FormData(formFields),
       Accepted,
       VisitIndex(Set.empty),
-      ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty, None, BooleanExprCache.empty, None, None, None),
+      ThirdPartyData(
+        None,
+        NotChecked,
+        Map.empty,
+        QueryParams.empty,
+        None,
+        BooleanExprCache.empty,
+        None,
+        None,
+        None,
+        None
+      ),
       None,
       FormComponentIdToFileIdMapping.empty
       //EvaluationResults.empty

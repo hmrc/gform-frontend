@@ -19,8 +19,7 @@ package uk.gov.hmrc.gform.summary
 import cats.syntax.all._
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
-import uk.gov.hmrc.gform.addresslookup.PostcodeLookup.AddressRecord
-import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
@@ -647,19 +646,40 @@ object FormComponentSummaryRenderer {
 
     val keyClasses = getKeyClasses(hasErrors)
 
-    def printAddress(addressRecord: AddressRecord): Html = {
-      import addressRecord.address._
-      List(line1, line2, line3, line4, town, postcode)
+    def printAddress(addressLines: List[String]): Html =
+      addressLines
         .filter(_.nonEmpty)
         .map(Html(_))
         .intercalate(br())
-    }
 
     val value =
       if (hasErrors) errors
       else List(addressRecordLookup.lookup(fieldValue.id).map(printAddress).getOrElse(Html("")))
 
     val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
+
+    val changeLink =
+      if (addressRecordLookup.isEntered(fieldValue.id)) {
+
+        uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
+          .enterAddress(
+            formTemplateId,
+            maybeAccessCode,
+            fieldValue.id,
+            sectionNumber,
+            None,
+            SuppressErrors.Yes
+          )
+      } else
+        uk.gov.hmrc.gform.gform.routes.FormController
+          .form(
+            formTemplateId,
+            maybeAccessCode,
+            sectionNumber,
+            sectionTitle4Ga,
+            SuppressErrors.Yes,
+            fastForward
+          )
 
     List(
       summaryListRow(
@@ -674,15 +694,7 @@ object FormComponentSummaryRenderer {
         else
           List(
             (
-              uk.gov.hmrc.gform.gform.routes.FormController
-                .form(
-                  formTemplateId,
-                  maybeAccessCode,
-                  sectionNumber,
-                  sectionTitle4Ga,
-                  SuppressErrors.Yes,
-                  fastForward
-                ),
+              changeLink,
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )

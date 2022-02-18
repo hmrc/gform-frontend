@@ -22,6 +22,7 @@
   frontendAppConfig: FrontendAppConfig,
   address: Html,
   confirmAddressAndContinue: Call,
+  enterAddressHref: Call,
   backHref: Call
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
@@ -44,7 +45,7 @@
 
     @address
 
-    <p><a class="govuk-link" href="todo">@messages("postcodeLookup.chage.address")</a></p>
+    <p class="govuk-body"><a class="govuk-link" href="@enterAddressHref.url">@messages("postcodeLookup.chage.address")</a></p>
 
     <button type="submit" name="continue" class="govuk-button" data-module="govuk-button">@messages("postcodeLookup.confirm.address")</button>
   }

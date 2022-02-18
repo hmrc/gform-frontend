@@ -67,7 +67,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ Content, Empty, HtmlContent }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.DateInput
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
-import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 import uk.gov.hmrc.govukfrontend.views.viewmodels.fieldset.{ Fieldset, Legend }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.fileupload
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
@@ -83,24 +83,9 @@ import uk.gov.hmrc.hmrcfrontend.views.Aliases.CharacterCount
 import uk.gov.hmrc.hmrcfrontend.views.html.components.{ HmrcCharacterCount, HmrcCurrencyInput }
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 
-sealed trait HasErrors {
-
-  def hasErrors: Boolean = this match {
-    case Errors(_) => true
-    case NoErrors  => false
-  }
-
-  def render: Html = this match {
-    case Errors(html) => html
-    case NoErrors     => Html("")
-  }
-}
-
-case object NoErrors extends HasErrors
-case class Errors(html: Html) extends HasErrors
-
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
+
 class SectionRenderingService(
   frontendAppConfig: FrontendAppConfig,
   lookupRegistry: LookupRegistry
@@ -148,7 +133,7 @@ class SectionRenderingService(
   ): Html = {
 
     val listResult = validationResult.formFieldValidationResults
-    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
+    val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val renderComeBackLater =
       cache.retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
     val isFirstVisit = !cache.form.visitsIndex.contains(sectionNumber.value)
@@ -230,7 +215,7 @@ class SectionRenderingService(
   ): Html = {
 
     val listResult = validationResult.formFieldValidationResults
-    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
+    val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, SaveAndContinue)
 
@@ -405,8 +390,9 @@ class SectionRenderingService(
       JavascriptMaker.generateJs(sectionNumber, formModelOptics)
 
     val pageLevelErrorHtml = request.flash.get(GformFlashKeys.FileUploadError) match {
-      case Some(message) => noJSFileUploadError(message, request.flash.get(GformFlashKeys.FileUploadFileId))
-      case None          => generatePageLevelErrorHtml(listResult, List.empty)
+      case Some(message) =>
+        PageLevelErrorHtml.noJSFileUploadError(message, request.flash.get(GformFlashKeys.FileUploadFileId))
+      case None => PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     }
 
     val originSection = Origin(DataOrigin.unSwapDataOrigin(formModelOptics)).minSectionNumber
@@ -493,86 +479,6 @@ class SectionRenderingService(
       specimen.navigation(formTemplate, sectionNumber, pages.toList)
     } else HtmlFormat.empty
 
-  private val toErrorLink: PartialFunction[(HtmlFieldId, FormFieldValidationResult), ErrorLink] = {
-    case (multiFieldId, ffvr) if ffvr.isNotOk =>
-      ErrorLink(
-        href = Some("#" + multiFieldId.toHtmlId),
-        content = content.Text(ffvr.fieldErrors.headOption.getOrElse(""))
-      )
-  }
-
-  private def addressFieldSorted(
-    fields: NonEmptyList[ModelComponentId.Atomic],
-    data: Map[HtmlFieldId, FormFieldValidationResult]
-  ) =
-    // We need to sort errors based on elements position on screen
-    fields.toList
-      .flatMap { modelComponentId =>
-        val multiFieldId = HtmlFieldId.pure(modelComponentId)
-        data.get(multiFieldId).map(multiFieldId -> _)
-      }
-      .collect(toErrorLink)
-
-  private def noJSFileUploadError(message: String, fileId: Option[String])(implicit messages: Messages): HasErrors = {
-    val errorSummary = ErrorSummary(
-      errorList = List(
-        ErrorLink(href = fileId.map("#" + _), content = content.Text(message))
-      ),
-      title = content.Text(messages("error.summary.heading"))
-    )
-
-    val errorHtml: Html = new components.GovukErrorSummary()(errorSummary)
-
-    Errors(errorHtml)
-  }
-
-  private def generatePageLevelErrorHtml(
-    listValidation: List[FormFieldValidationResult],
-    globalErrors: List[ErrorLink]
-  )(implicit
-    messages: Messages
-  ): HasErrors = {
-
-    val errorsHtml: List[ErrorLink] = globalErrors ++ listValidation
-      .filter(_.isNotOk)
-      .flatMap { formFieldValidationResult =>
-        formFieldValidationResult match {
-          case ComponentField(formComponent @ IsAddress(_), data) =>
-            addressFieldSorted(Address.fields(formComponent.modelComponentId.indexedComponentId), data)
-          case ComponentField(formComponent @ IsOverseasAddress(overseasAddress), data) =>
-            addressFieldSorted(OverseasAddress.fields(formComponent.modelComponentId.indexedComponentId), data)
-          case ComponentField(_, data) => data.toList.collectFirst(toErrorLink)
-          case otherwise =>
-            otherwise.fieldErrors
-              .map { errorMessage =>
-                val formComponent = otherwise.formComponent
-                val multiFieldId =
-                  otherwise.formComponent match {
-                    case IsChoice(_) | IsRevealingChoice(_) => HtmlFieldId.indexed(formComponent.id, 0)
-                    case _                                  => HtmlFieldId.pure(formComponent.modelComponentId)
-                  }
-                ErrorLink(
-                  href = Some("#" + multiFieldId.toHtmlId),
-                  content = content.Text(errorMessage)
-                )
-              }
-        }
-      }
-
-    if (errorsHtml.nonEmpty) {
-
-      val errorSummary = ErrorSummary(
-        errorList = errorsHtml,
-        title = content.Text(messages("error.summary.heading"))
-      )
-
-      val errorHtml: Html = new components.GovukErrorSummary()(errorSummary)
-
-      Errors(errorHtml)
-    } else
-      NoErrors
-  }
-
   def renderSummarySectionDeclaration(
     cache: AuthCacheWithForm,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
@@ -652,7 +558,7 @@ class SectionRenderingService(
     val snippets = declarationPage.renderUnits.map(renderUnit =>
       htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked, UpscanInitiate.empty)
     )
-    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
+    val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -804,7 +710,7 @@ class SectionRenderingService(
       page.renderUnits.map { renderUnit =>
         htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked, UpscanInitiate.empty)
       }
-    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, globalErrors)
+    val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, globalErrors)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -2000,7 +1906,22 @@ class SectionRenderingService(
 
     val maker = new components.GovukInput(govukErrorMessage, govukHint, govukLabel)
 
-    items.map(maker(_)).intercalate(html.form.snippets.manual_address())
+    val nextSectionNumber: Option[SectionNumber] =
+      ei.formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
+        .dropWhile(_ <= ei.sectionNumber)
+        .headOption
+
+    val enterAddressHref = uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
+      .enterAddress(
+        ei.formTemplate._id,
+        ei.maybeAccessCode,
+        formComponent.id,
+        ei.sectionNumber,
+        nextSectionNumber,
+        SuppressErrors.Yes
+      )
+
+    items.map(maker(_)).intercalate(html.form.snippets.manual_address(enterAddressHref))
   }
 
   private def htmlForTaxPeriodDate(

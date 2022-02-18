@@ -363,6 +363,9 @@ class GformModule(
       addressLookupModule.addressLookupService,
       configModule.frontendAppConfig,
       playBuiltInsModule.i18nSupport,
-      controllersModule.messagesControllerComponents
+      controllersModule.messagesControllerComponents,
+      graphModule.recalculation,
+      formControllerRequestHandler,
+      validationModule.validationService
     )
 }

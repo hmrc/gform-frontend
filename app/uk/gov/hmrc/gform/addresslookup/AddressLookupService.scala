@@ -23,14 +23,14 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormIdData, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormIdData, UserData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, NotFound, ServiceResponse }
 import uk.gov.hmrc.http.HeaderCarrier
 
 sealed trait AddressLookupService[F[_]] {
-  def postcodeLookup(
+  def retrievePostcodeLookupData(
     formComponent: FormComponent,
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
   )(implicit
@@ -53,6 +53,25 @@ sealed trait AddressLookupService[F[_]] {
   )(implicit
     hc: HeaderCarrier
   ): F[Unit]
+
+  def saveEnteredAddress(
+    form: Form,
+    maybeAccessCode: Option[AccessCode],
+    formComponentId: FormComponentId,
+    formData: FormData
+  )(implicit
+    hc: HeaderCarrier
+  ): Future[Unit]
+
+  def populatePostcodeIfEmpty(
+    form: Form,
+    maybeAccessCode: Option[AccessCode],
+    formComponentId: FormComponentId,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    sectionNumber: SectionNumber
+  )(implicit
+    hc: HeaderCarrier
+  ): Future[Unit]
 }
 
 object AddressLookupService {
@@ -62,7 +81,7 @@ object AddressLookupService {
   )(implicit
     ex: ExecutionContext
   ): AddressLookupService[Future] = new AddressLookupService[Future] {
-    def postcodeLookup(
+    def retrievePostcodeLookupData(
       formComponent: FormComponent,
       formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
     )(implicit
@@ -80,17 +99,38 @@ object AddressLookupService {
       maybePostcode match {
         case None => Future.successful(None)
         case Some(postcode) =>
-          val request: PostcodeLookup.Request = PostcodeLookup.Request(
-            postcode,
-            maybeFilter
-          )
-
-          addressLookupConnector.postcodeLookup(request).map {
-            case ServiceResponse(postcodeLookup)   => Some(AddressLookupResult(request, postcodeLookup))
-            case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve PostcodeLookup data")
+          fetchRequest(postcode, maybeFilter, false).flatMap {
+            case None => None.pure[Future]
+            case Some(result) =>
+              if (result.response.addresses.isDefined) {
+                Some(result).pure[Future]
+              } else {
+                fetchRequest(postcode, maybeFilter, true) // No addresses found, try again without filter
+              }
           }
       }
     }
+
+    private def fetchRequest(postcode: String, maybeFilter: Option[String], filterDisabled: Boolean)(implicit
+      hc: HeaderCarrier
+    ): Future[Option[AddressLookupResult]] = {
+      val actualRequest: PostcodeLookup.Request = PostcodeLookup.Request(
+        postcode,
+        if (filterDisabled) None else maybeFilter
+      )
+
+      val requestData: PostcodeLookup.Request = PostcodeLookup.Request(
+        postcode,
+        maybeFilter
+      )
+
+      addressLookupConnector.postcodeLookup(actualRequest).map {
+        case ServiceResponse(postcodeLookup) =>
+          Some(AddressLookupResult(requestData, PostcodeLookup.Response(filterDisabled, postcodeLookup)))
+        case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve PostcodeLookup data")
+      }
+    }
+
     def saveAddress(
       form: Form,
       maybeAccessCode: Option[AccessCode],
@@ -101,7 +141,7 @@ object AddressLookupService {
     ): Future[Unit] = {
       val isAddressIdValid: Boolean = form.thirdPartyData.postcodeLookup
         .flatMap(_.get(formComponentId))
-        .flatMap(_.addresses)
+        .flatMap(_.response.addresses)
         .fold(false)(_.exists(_.id === addressId))
 
       if (isAddressIdValid) {
@@ -148,6 +188,60 @@ object AddressLookupService {
       )
       gformConnector.updateUserData(formIdData, userData)
     }
-  }
 
+    def saveEnteredAddress(
+      form: Form,
+      maybeAccessCode: Option[AccessCode],
+      formComponentId: FormComponentId,
+      formData: FormData
+    )(implicit
+      hc: HeaderCarrier
+    ): Future[Unit] = {
+      val updatedThirdPartyData = form.thirdPartyData.updateEnteredAddresses(formComponentId, formData)
+      val formIdData: FormIdData = FormIdData.fromForm(form, maybeAccessCode)
+      val userData: UserData = UserData(
+        formData = form.formData,
+        formStatus = form.status,
+        visitsIndex = form.visitsIndex,
+        thirdPartyData = updatedThirdPartyData,
+        componentIdToFileId = form.componentIdToFileId
+      )
+      gformConnector.updateUserData(formIdData, userData)
+    }
+
+    def populatePostcodeIfEmpty(
+      form: Form,
+      maybeAccessCode: Option[AccessCode],
+      formComponentId: FormComponentId,
+      formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+      sectionNumber: SectionNumber
+    )(implicit
+      hc: HeaderCarrier
+    ): Future[Unit] = {
+
+      val enteredAddressPostcode = form.thirdPartyData.enteredAddressPostcode(formComponentId)
+
+      val postcodeComponentId: ModelComponentId.Atomic =
+        formComponentId.toAtomicFormComponentId(formtemplate.PostcodeLookup.postcode)
+
+      val maybePostcode: Option[String] = formModelVisibilityOptics.data.one(postcodeComponentId)
+
+      if (maybePostcode.isEmpty) {
+        val formDaataUpdated =
+          form.formData ++ FormData(List(FormField(postcodeComponentId, enteredAddressPostcode.getOrElse(""))))
+
+        val formIdData: FormIdData = FormIdData.fromForm(form, maybeAccessCode)
+        val userData: UserData = UserData(
+          formData = formDaataUpdated,
+          formStatus = form.status,
+          visitsIndex = form.visitsIndex.visit(sectionNumber),
+          thirdPartyData = form.thirdPartyData,
+          componentIdToFileId = form.componentIdToFileId
+        )
+        gformConnector.updateUserData(formIdData, userData)
+      } else {
+        ().pure[Future]
+      }
+    }
+  }
 }

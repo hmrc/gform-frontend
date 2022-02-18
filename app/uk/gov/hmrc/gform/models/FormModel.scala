@@ -54,6 +54,10 @@ case class FormModel[A <: PageMode](
   val fcLookup: Map[FormComponentId, FormComponent] =
     allFormComponents.map(fc => fc.id -> fc).toMap
 
+  val postcodeLookup: Set[FormComponentId] = allFormComponents.collect { case fc @ IsPostcodeLookup() =>
+    fc.modelComponentId.toAtomicFormComponentId(PostcodeLookup.postcode).toFormComponentId
+  }.toSet
+
   val allMultiValueIds: List[MultiValueId] =
     allFormComponents.map(_.multiValueId)
 
