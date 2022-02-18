@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicV
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber }
 import uk.gov.hmrc.gform.ops.FormComponentOps
-import uk.gov.hmrc.gform.validation.ComponentValidator
+import uk.gov.hmrc.gform.validation.{ ComponentValidator, PostcodeLookupValidation }
 
 import scala.concurrent.Future
 
@@ -212,6 +212,7 @@ object FormDataHelpers {
         val poundOrComma = "[£,]".r
         poundOrComma.replaceAllIn(value, "")
       case Some(formComponent) if formComponent.isReferenceNumber => value.replace(" ", "")
+      case None if formModel.postcodeLookup(formComponentId)      => PostcodeLookupValidation.normalisePostcode(value)
       case _                                                      => value
     }
 

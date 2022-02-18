@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.Monoid
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
@@ -45,16 +44,21 @@ class PostcodeLookupValidation[D <: DataOrigin](formModelVisibilityOptics: FormM
       .atomsModelComponentIdsFilterByAtom(_.atom =!= PostcodeLookup.filter)
       .map(m => ModelComponentIdValue(m, formModelVisibilityOptics.data.one(m)))
 
-    val validatedResult = if (formComponent.mandatory) {
-      atomsWithValues.map { mcv =>
+    if (formComponent.mandatory) {
+      atomsWithValues.foldMap { mcv =>
         mcv.value
           .filter(_.nonEmpty)
-          .fold(requiredError(formComponent, mcv.modelComponentId))(_ => validationSuccess)
+          .fold(requiredError(formComponent, mcv.modelComponentId)) { postcode =>
+            if (PostcodeLookupValidation.checkPostcode(postcode)) {
+              validationSuccess
+            } else {
+              enterRealPostcode(formComponent, mcv.modelComponentId)
+            }
+          }
       }
     } else {
-      List(validationSuccess)
+      validationSuccess
     }
-    Monoid[ValidatedType[Unit]].combineAll(validatedResult)
   }
 
   private def requiredError(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] =
@@ -62,4 +66,49 @@ class PostcodeLookupValidation[D <: DataOrigin](formModelVisibilityOptics: FormM
       modelComponentId -> errors(formComponent, "field.error.required", None)
     ).invalid
 
+  private def enterRealPostcode(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] =
+    Map[ModelComponentId, Set[String]](
+      modelComponentId -> errors(formComponent, "postcode.error.real", None)
+    ).invalid
+}
+
+object PostcodeLookupValidation {
+
+  // Taken from https://github.com/hmrc/address-lookup/blob/d2409b5b3956b5d010135da86b75e401c4611f89/app/model/address/Postcode.scala#L36-L76
+  // The basic syntax of a postcode (ignores the rules on valid letter ranges because they don't matter here).
+  private val oPattern = "^[A-Z]{1,2}[0-9][0-9A-Z]?$".r
+  private val iPattern = "^[0-9][A-Z]{2}$".r
+
+  def checkPostcode(p: String): Boolean = checkPostcode0(p).isDefined
+
+  private def checkPostcode0(p: String): Option[(String, String)] = {
+    val norm = PostcodeLookupValidation.normalisePostcode0(p)
+    if (norm.length < 5) None
+    else {
+      val incodeLength = norm.length - 3
+      val out = norm.substring(0, incodeLength)
+      val in = norm.substring(incodeLength, norm.length)
+      checkSyntax(out, in)
+    }
+  }
+
+  private def checkSyntax(out: String, in: String): Option[(String, String)] =
+    (out, in) match {
+      case (oPattern(), iPattern()) => Some(out -> in)
+      case _                        => None
+    }
+
+  /** Removes all whitespace from a postcode string. */
+  private def normalisePostcode0(postcode: String): String =
+    postcode.trim.replaceAll("[ \\t]+", "").toUpperCase
+
+  def normalisePostcode(postcode: String): String = {
+    val containsNoWhiteSpace = normalisePostcode0(postcode).length === postcode.length
+
+    checkPostcode0(postcode) match {
+      case Some((out, in)) => if (containsNoWhiteSpace) out + in else out + " " + in
+      case None            => postcode
+
+    }
+  }
 }

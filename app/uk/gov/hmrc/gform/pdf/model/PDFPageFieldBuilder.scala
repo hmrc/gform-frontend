@@ -16,10 +16,8 @@
 
 package uk.gov.hmrc.gform.pdf.model
 
-import cats.implicits._
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
-import uk.gov.hmrc.gform.addresslookup.PostcodeLookup.AddressRecord
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
@@ -91,14 +89,10 @@ object PDFPageFieldBuilder {
         )
 
       case IsPostcodeLookup() =>
-        def printAddress(addressRecord: AddressRecord): List[String] = {
-          import addressRecord.address._
-          List(line1, line2, line3, line4, town, postcode)
-            .filter(_.nonEmpty)
-        }
-
         val addressLines: List[String] =
-          cache.form.thirdPartyData.addressFor(formComponent.id).map(printAddress).getOrElse(Nil)
+          cache.form.thirdPartyData
+            .addressLines(formComponent.id)
+            .getOrElse(Nil)
 
         SimpleField(
           getFormComponentLabel(formComponent),

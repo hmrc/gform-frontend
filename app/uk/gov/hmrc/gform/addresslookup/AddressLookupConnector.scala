@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.libs.json.{ Format, Json }
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
@@ -83,6 +84,16 @@ object PostcodeLookup {
 
   object Request {
     implicit val format: Format[Request] = Json.format[Request]
+  }
+
+  final case class Response(
+    filterDisabled: Boolean,
+    addresses: Option[NonEmptyList[PostcodeLookup.AddressRecord]]
+  )
+
+  object Response {
+    import JsonUtils._
+    implicit val format: Format[Response] = Json.format[Response]
   }
 
   // AddressRecord model taken from https://github.com/hmrc/address-lookup-frontend/tree/f1f4b9b35c51889e36cb5240cfc227f9c85485af/app/address/v2

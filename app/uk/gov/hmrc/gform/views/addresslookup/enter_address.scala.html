@@ -14,18 +14,16 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.addresslookup.{AddressSelectionPage, AddressLookupResult}
+@import uk.gov.hmrc.gform.addresslookup.EnterAddressPage
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 
 @(
   formTemplate: FormTemplate,
   frontendAppConfig: FrontendAppConfig,
-  addressSelectionPage: AddressSelectionPage,
+  enterAddressPage: EnterAddressPage,
   formAction: Call,
-  enterAddressHref: Call,
   backHref: Call,
-  addressLookupResult: AddressLookupResult
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
@@ -36,32 +34,19 @@
 }
 
 @uk.gov.hmrc.gform.views.html.main_template(
-  title = messages("postcodeLookup.choose.address"),
+  title = messages("postcodeLookup.enter.address"),
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
   backLink = Some(backLink),
-  containsErrors = addressSelectionPage.hasErrors
+  containsErrors = enterAddressPage.hasErrors
 ) {
 
-  @if(addressSelectionPage.hasErrors) {
-     @govukErrorSummary(addressSelectionPage.errorSummary)
+  @if(enterAddressPage.hasErrors) {
+     @enterAddressPage.errorSummary.render
   }
 
-  <h1 class="govuk-heading-xl" id="pageHeading">
-    @if(addressLookupResult.response.filterDisabled) {
-      @messages("postcodeLookup.choose.address.all", addressLookupResult.request.postcode)
-    } else {
-      @messages("postcodeLookup.choose.address")
-    }
-  </h1>
   @formWithCSRF(action = formAction, 'novalidate -> "novalidate") {
-    @if(addressLookupResult.response.filterDisabled) {
-      <p class="govuk-body">We could not find a match with '@addressLookupResult.request.filter'.</p>
-      <p class="govuk-body"><a class="govuk-link" href="@backHref.url">@messages("postcodeLookup.enter.address.try.different")</a></p>
-    }
-
-    <p class="govuk-body"><a class="govuk-link" href="@enterAddressHref.url">@messages("postcodeLookup.enter.address.manually")</a></p>
-    @addressSelectionPage.render
+    @enterAddressPage.render
     <button type="submit" name="continue" class="govuk-button" data-module="govuk-button">
        @messages("postcodeLookup.continue")
     </button>

@@ -167,7 +167,7 @@ object Address {
   val fields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
     mandatoryFields(indexedComponentId).concatNel(optionalFields(indexedComponentId))
 
-  private val summaryPageFields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
+  val summaryPageFields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
     NonEmptyList
       .of(street1, street2, street3, street4, postcode, country)
       .map(ModelComponentId.atomicCurry(indexedComponentId))

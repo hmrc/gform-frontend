@@ -220,7 +220,7 @@ class FormProcessor(
         if (isValid) {
           pageModel.postcodeLookup.flatTraverse { formComponent =>
             addressLookupService
-              .postcodeLookup(formComponent, formModelVisibilityOptics)
+              .retrievePostcodeLookupData(formComponent, formModelVisibilityOptics)
               .map(_.map(resp => formComponent.id -> resp))
           }
         } else Option.empty.pure[Future]
