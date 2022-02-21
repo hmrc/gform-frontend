@@ -115,8 +115,11 @@ class FormValidator(implicit ec: ExecutionContext) {
             case FormValidationOutcome(isValid, _, _) =>
               val page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
               val hasBeenVisited = processData.visitsIndex.contains(currentSn.value)
+              val postcodeLookupHasAddress = page.postcodeLookup.fold(true) { formComponent =>
+                cache.thirdPartyData.addressExistsFor(formComponent.id)
+              }
 
-              val stop = page.isTerminationPage || !hasBeenVisited
+              val stop = page.isTerminationPage || !hasBeenVisited || !postcodeLookupHasAddress
 
               if (isValid && !stop && fastForward.goOn(currentSn)) None else Some(currentSn)
           }

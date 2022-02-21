@@ -366,6 +366,7 @@ class GformModule(
       controllersModule.messagesControllerComponents,
       graphModule.recalculation,
       formControllerRequestHandler,
-      validationModule.validationService
+      validationModule.validationService,
+      fastForwardService
     )
 }

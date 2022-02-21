@@ -461,26 +461,41 @@ class FormController(
                     fastForward,
                     formModelOptics,
                     enteredVariadicFormData
-                  ) {
-                    case Some(sn) =>
-                      val isFirstLanding = sectionNumber < sn
-                      val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processDataUpd, sn)
+                  ) { updatePostcodeLookup => maybeSn =>
+                    def continueJourney =
+                      maybeSn match {
+                        case Some(sn) =>
+                          val isFirstLanding = sectionNumber < sn
+                          val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processDataUpd, sn)
+                          Redirect(
+                            routes.FormController
+                              .form(
+                                cache.formTemplateId,
+                                maybeAccessCode,
+                                sn,
+                                sectionTitle4Ga,
+                                SuppressErrors(isFirstLanding),
+                                if (isFirstLanding && !isConfirmationPage)
+                                  fastForward.next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel)
+                                else
+                                  fastForward
+                              )
+                          )
+                        case None =>
+                          Redirect(routes.SummaryController.summaryById(cache.formTemplateId, maybeAccessCode))
+                      }
+
+                    updatePostcodeLookup.fold(continueJourney) { case (formComponentId, _) =>
                       Redirect(
-                        routes.FormController
-                          .form(
-                            cache.formTemplateId,
+                        uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
+                          .chooseAddress(
+                            cache.formTemplate._id,
                             maybeAccessCode,
-                            sn,
-                            sectionTitle4Ga,
-                            SuppressErrors(isFirstLanding),
-                            if (isFirstLanding && !isConfirmationPage)
-                              fastForward.next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel)
-                            else
-                              fastForward
+                            formComponentId,
+                            sectionNumber
                           )
                       )
-                    case None =>
-                      Redirect(routes.SummaryController.summaryById(cache.formTemplateId, maybeAccessCode))
+                    }
                   }
               }
 
@@ -497,7 +512,7 @@ class FormController(
                 fastForward,
                 formModelOptics,
                 purgeConfirmationData.enteredVariadicFormData
-              ) { maybeSn =>
+              ) { _ => maybeSn =>
                 val formTemplate = cache.formTemplate
                 val envelopeExpiryDate = cache.form.envelopeExpiryDate
                 maybeAccessCode match {
@@ -517,6 +532,7 @@ class FormController(
                         processSaveAndExitAcknowledgementPage(Some(config), processData, maybeSn, envelopeExpiryDate)
                     }
                 }
+
               }
             }
 
@@ -571,7 +587,7 @@ class FormController(
                     fastForward,
                     formModelOptics,
                     purgeConfirmationData.enteredVariadicFormData
-                  )(_ => goBackLink)
+                  )(_ => _ => goBackLink)
                 } else {
                   goBackLink.pure[Future]
                 }
@@ -630,7 +646,7 @@ class FormController(
                 fastForward,
                 formModelOptics,
                 enteredVariadicFormData
-              ) { _ =>
+              ) { _ => _ =>
                 val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
                 Redirect(
                   routes.FormController

@@ -39,10 +39,26 @@ case class ThirdPartyData(
   enteredAddresses: Option[Map[FormComponentId, FormData]]
 ) {
 
+  def addressesFor(
+    formComponentId: FormComponentId
+  ): Option[(NonEmptyList[PostcodeLookup.AddressRecord], AddressLookupResult)] = for {
+    lookup              <- postcodeLookup
+    addressLookupResult <- lookup.get(formComponentId)
+    addresses           <- addressLookupResult.response.addresses
+  } yield (addresses, addressLookupResult)
+
+  def addressSelectionFor(formComponentId: FormComponentId): Option[String] = for {
+    selections <- selectedAddresses
+    addressId  <- selections.get(formComponentId)
+  } yield addressId
+
   def enteredAddressFor(formComponentId: FormComponentId): Option[FormData] = for {
     adresses <- enteredAddresses
     formData <- adresses.get(formComponentId)
   } yield formData
+
+  def addressExistsFor(formComponentId: FormComponentId): Boolean =
+    enteredAddressFor(formComponentId).orElse(addressSelectionFor(formComponentId)).isDefined
 
   def enteredAddressPostcode(formComponentId: FormComponentId): Option[String] =
     enteredAddressFor(formComponentId).flatMap { formData =>
@@ -56,12 +72,9 @@ case class ThirdPartyData(
     }
 
   def addressRecordFor(formComponentId: FormComponentId): Option[PostcodeLookup.AddressRecord] = for {
-    lookup              <- postcodeLookup
-    selections          <- selectedAddresses
-    addressId           <- selections.get(formComponentId)
-    addressLookupResult <- lookup.get(formComponentId)
-    addresses           <- addressLookupResult.response.addresses
-    address             <- addresses.find(_.id === addressId)
+    (addresses, _) <- addressesFor(formComponentId)
+    addressId      <- addressSelectionFor(formComponentId)
+    address        <- addresses.find(_.id === addressId)
   } yield address
 
   private def addressFor(formComponentId: FormComponentId): Option[Either[FormData, PostcodeLookup.AddressRecord]] =
@@ -82,24 +95,9 @@ case class ThirdPartyData(
       List(line1, line2, line3, line4, town, postcode).filter(_.nonEmpty)
   }
 
-  def addressesFor(
-    formComponentId: FormComponentId
-  ): Option[(NonEmptyList[PostcodeLookup.AddressRecord], AddressLookupResult)] = for {
-    lookup              <- postcodeLookup
-    addressLookupResult <- lookup.get(formComponentId)
-    addresses           <- addressLookupResult.response.addresses
-  } yield (addresses, addressLookupResult)
-
-  def enteredAddressDataFor(
-    formComponentId: FormComponentId
-  ): Option[FormData] = for {
-    lookup   <- enteredAddresses
-    formData <- lookup.get(formComponentId)
-  } yield formData
-
   def enteredAddressDataForWithFallback(
     formComponentId: FormComponentId
-  ): Option[FormData] = enteredAddressDataFor(formComponentId).orElse(
+  ): Option[FormData] = enteredAddressFor(formComponentId).orElse(
     addressRecordFor(formComponentId).map { addressRecord =>
       import addressRecord.address
       FormData(
@@ -116,11 +114,6 @@ case class ThirdPartyData(
       )
     }
   )
-
-  def addressSelectionFor(formComponentId: FormComponentId): Option[String] = for {
-    selections <- selectedAddresses
-    addressId  <- selections.get(formComponentId)
-  } yield addressId
 
   def updateDataRetrieve(dataRetrieveResult: Option[DataRetrieveResult]): ThirdPartyData = dataRetrieveResult match {
     case Some(drd @ DataRetrieveResult(id, _, _)) =>
