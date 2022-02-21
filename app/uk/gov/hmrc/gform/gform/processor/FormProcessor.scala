@@ -22,7 +22,7 @@ import cats.syntax.all._
 import play.api.i18n.I18nSupport
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
-import uk.gov.hmrc.gform.addresslookup.AddressLookupService
+import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, AddressLookupService }
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
@@ -39,6 +39,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
@@ -123,7 +124,7 @@ class FormProcessor(
         ff,
         formModelOptics,
         EnteredVariadicFormData.empty
-      ) { maybeSectionNumber =>
+      ) { _ => maybeSectionNumber =>
         val sectionNumber =
           if (isLastIteration)
             maybeSectionNumber
@@ -180,7 +181,7 @@ class FormProcessor(
     formModelOptics: FormModelOptics[Mongo],
     enteredVariadicFormData: EnteredVariadicFormData
   )(
-    toResult: Option[SectionNumber] => Result
+    toResult: Option[(FormComponentId, AddressLookupResult)] => Option[SectionNumber] => Result
   )(implicit hc: HeaderCarrier, request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Future[Result] = {
 
     val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
@@ -284,20 +285,7 @@ class FormProcessor(
               maybeAccessCode,
               fastForward,
               envelopeWithMapping
-            ) { maybeSectionNumber =>
-              updatePostcodeLookup.fold(toResult(maybeSectionNumber)) { case (formComponentId, _) =>
-                Redirect(
-                  uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
-                    .chooseAddress(
-                      cache.formTemplate._id,
-                      maybeAccessCode,
-                      formComponentId,
-                      sectionNumber,
-                      maybeSectionNumber
-                    )
-                )
-              }
-            }
+            )(toResult(updatePostcodeLookup))
         }
       }
     } yield res

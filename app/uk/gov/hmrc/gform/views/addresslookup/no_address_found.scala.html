@@ -22,6 +22,7 @@
   frontendAppConfig: FrontendAppConfig,
   postcode: String,
   tryDifferentAddress: Call,
+  enterAddressHref: Call,
   backHref: Call
 )(implicit request: Request[_], messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
@@ -42,7 +43,7 @@
 
   @formWithCSRF(action = tryDifferentAddress, 'novalidate -> "novalidate", 'method -> "GET") {
 
-    <p><a class="govuk-link" href="todo">@messages("postcodeLookup.enter.address.manually")</a></p>
+    <p><a class="govuk-link" href="@enterAddressHref.url">@messages("postcodeLookup.enter.address.manually")</a></p>
 
     <button type="submit" name="continue" class="govuk-button" data-module="govuk-button">@messages("postcodeLookup.try.different.postcode")</button>
 

@@ -1906,18 +1906,12 @@ class SectionRenderingService(
 
     val maker = new components.GovukInput(govukErrorMessage, govukHint, govukLabel)
 
-    val nextSectionNumber: Option[SectionNumber] =
-      ei.formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
-        .dropWhile(_ <= ei.sectionNumber)
-        .headOption
-
     val enterAddressHref = uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
       .enterAddress(
         ei.formTemplate._id,
         ei.maybeAccessCode,
         formComponent.id,
         ei.sectionNumber,
-        nextSectionNumber,
         SuppressErrors.Yes
       )
 

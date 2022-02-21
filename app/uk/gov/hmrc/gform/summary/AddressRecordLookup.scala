@@ -27,6 +27,6 @@ final case class AddressRecordLookup(
 object AddressRecordLookup {
   def from(thirdPartyData: ThirdPartyData): AddressRecordLookup = AddressRecordLookup(
     thirdPartyData.addressLines,
-    thirdPartyData.enteredAddressDataFor(_).isDefined
+    thirdPartyData.enteredAddressFor(_).isDefined
   )
 }

@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
+import uk.gov.hmrc.gform.gform.FastForwardService
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.{ Basic, FormModelBuilder }
@@ -56,7 +57,8 @@ class AddressLookupController(
   messagesControllerComponents: MessagesControllerComponents,
   recalculation: Recalculation[Future, Throwable],
   formControllerRequestHandler: FormControllerRequestHandler,
-  validationService: ValidationService
+  validationService: ValidationService,
+  fastForwardService: FastForwardService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -66,8 +68,7 @@ class AddressLookupController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
-    sectionNumber: SectionNumber,
-    maybeSectionNumber: Option[SectionNumber]
+    sectionNumber: SectionNumber
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
@@ -91,10 +92,17 @@ class AddressLookupController(
                         cache.formTemplate._id,
                         maybeAccessCode,
                         formComponentId,
-                        sectionNumber,
-                        maybeSectionNumber
+                        sectionNumber
                       ),
-                    backLink(cache, formModelOptics, sectionNumber, maybeAccessCode)
+                    routes.AddressLookupController
+                      .enterAddress(
+                        cache.formTemplate._id,
+                        maybeAccessCode,
+                        formComponentId,
+                        sectionNumber,
+                        SuppressErrors.Yes
+                      ),
+                    goToSectionNumberLink(cache, formModelOptics, sectionNumber, maybeAccessCode)
                   )
                 )
               ) { addressRecords =>
@@ -107,7 +115,6 @@ class AddressLookupController(
                     formModelOptics,
                     sectionNumber,
                     maybeAccessCode,
-                    maybeSectionNumber,
                     addressLookupResult
                   )
                 )
@@ -122,7 +129,7 @@ class AddressLookupController(
     )
   )
 
-  private def backLink(
+  private def goToSectionNumberLink(
     cache: AuthCacheWithForm,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     sectionNumber: SectionNumber,
@@ -152,7 +159,6 @@ class AddressLookupController(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     sectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode],
-    maybeSectionNumber: Option[SectionNumber],
     addressLookupResult: AddressLookupResult
   )(implicit request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Html = {
     val addressSelectionPage = new AddressSelectionPage(
@@ -161,21 +167,20 @@ class AddressLookupController(
       cache.form.thirdPartyData.addressSelectionFor(formComponentId)
     )
 
-    val backHref = backLink(cache, formModelOptics, sectionNumber, maybeAccessCode)
+    val backHref = goToSectionNumberLink(cache, formModelOptics, sectionNumber, maybeAccessCode)
 
     addresslookup.choose_address(
       cache.formTemplate,
       frontendAppConfig,
       addressSelectionPage,
       routes.AddressLookupController
-        .submitAddress(cache.formTemplate._id, maybeAccessCode, formComponentId, sectionNumber, maybeSectionNumber),
+        .submitAddress(cache.formTemplate._id, maybeAccessCode, formComponentId, sectionNumber),
       routes.AddressLookupController
         .enterAddress(
           cache.formTemplate._id,
           maybeAccessCode,
           formComponentId,
           sectionNumber,
-          maybeSectionNumber,
           SuppressErrors.Yes
         ),
       backHref,
@@ -187,8 +192,7 @@ class AddressLookupController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
-    sectionNumber: SectionNumber,
-    maybeSectionNumber: Option[SectionNumber]
+    sectionNumber: SectionNumber
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
@@ -209,7 +213,6 @@ class AddressLookupController(
                       formModelOptics,
                       sectionNumber,
                       maybeAccessCode,
-                      maybeSectionNumber,
                       addressLookupResult
                     )
                   )
@@ -225,8 +228,7 @@ class AddressLookupController(
                         formTemplateId,
                         maybeAccessCode,
                         formComponentId,
-                        sectionNumber,
-                        maybeSectionNumber
+                        sectionNumber
                       )
                   )
                 )
@@ -238,8 +240,7 @@ class AddressLookupController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
-    sectionNumber: SectionNumber,
-    maybeSectionNumber: Option[SectionNumber]
+    sectionNumber: SectionNumber
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
@@ -254,12 +255,11 @@ class AddressLookupController(
                     maybeAccessCode,
                     formComponentId,
                     sectionNumber,
-                    maybeSectionNumber,
                     SuppressErrors.Yes
                   )
               } else {
                 routes.AddressLookupController
-                  .chooseAddress(formTemplateId, maybeAccessCode, formComponentId, sectionNumber, maybeSectionNumber)
+                  .chooseAddress(formTemplateId, maybeAccessCode, formComponentId, sectionNumber)
               }
 
             val address =
@@ -272,8 +272,7 @@ class AddressLookupController(
                 formTemplateId,
                 maybeAccessCode,
                 formComponentId,
-                sectionNumber,
-                maybeSectionNumber
+                sectionNumber
               )
             val enterAddressHref = routes.AddressLookupController
               .enterAddress(
@@ -281,7 +280,6 @@ class AddressLookupController(
                 maybeAccessCode,
                 formComponentId,
                 sectionNumber,
-                maybeSectionNumber,
                 SuppressErrors.Yes
               )
             Ok(
@@ -303,15 +301,14 @@ class AddressLookupController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
-    sectionNumber: SectionNumber,
-    maybeSectionNumber: Option[SectionNumber]
+    sectionNumber: SectionNumber
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => l => cache => sse => formModelOptics =>
         addressLookupService
           .cleanAddress(cache.form, maybeAccessCode, formComponentId)
           .as(
-            Redirect(backLink(cache, formModelOptics, sectionNumber, maybeAccessCode))
+            Redirect(goToSectionNumberLink(cache, formModelOptics, sectionNumber, maybeAccessCode))
           )
     }
 
@@ -319,11 +316,10 @@ class AddressLookupController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
-    sectionNumber: SectionNumber,
-    maybeSectionNumber: Option[SectionNumber]
+    sectionNumber: SectionNumber
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => l => cache => sse => formModelOptics =>
+      implicit request => implicit l => cache => sse => formModelOptics =>
         addressLookupService
           .populatePostcodeIfEmpty(
             cache.form,
@@ -331,16 +327,9 @@ class AddressLookupController(
             formComponentId,
             formModelOptics.formModelVisibilityOptics,
             sectionNumber
-          )
-          .as(
-            maybeSectionNumber match {
-              case None =>
-                Redirect(
-                  uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(cache.formTemplateId, maybeAccessCode)
-                )
-              case Some(sn) => Redirect(backLink(cache, formModelOptics, sn, maybeAccessCode))
-            }
-          )
+          ) >> fastForwardService
+          .redirectFastForward[SectionSelectorType.Normal](cache, maybeAccessCode, formModelOptics)
+
     }
 
   def enterAddress(
@@ -348,7 +337,6 @@ class AddressLookupController(
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
     sectionNumber: SectionNumber,
-    maybeSectionNumber: Option[SectionNumber],
     se: SuppressErrors
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
@@ -379,8 +367,7 @@ class AddressLookupController(
                       formTemplateId,
                       maybeAccessCode,
                       formComponentId,
-                      sectionNumber,
-                      maybeSectionNumber
+                      sectionNumber
                     )
                 val backHref =
                   if (cache.form.thirdPartyData.addressRecordFor(formComponentId).isDefined) {
@@ -389,11 +376,10 @@ class AddressLookupController(
                         formTemplateId,
                         maybeAccessCode,
                         formComponentId,
-                        sectionNumber,
-                        maybeSectionNumber
+                        sectionNumber
                       )
                   } else {
-                    backLink(cache, realFormModelOptics, sectionNumber, maybeAccessCode)
+                    goToSectionNumberLink(cache, realFormModelOptics, sectionNumber, maybeAccessCode)
                   }
                 Ok(
                   addresslookup
@@ -413,8 +399,7 @@ class AddressLookupController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
-    sectionNumber: SectionNumber,
-    maybeSectionNumber: Option[SectionNumber]
+    sectionNumber: SectionNumber
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => _ =>
@@ -456,8 +441,7 @@ class AddressLookupController(
                               formTemplateId,
                               maybeAccessCode,
                               formComponentId,
-                              sectionNumber,
-                              maybeSectionNumber
+                              sectionNumber
                             )
                           )
                         } else {
@@ -468,7 +452,6 @@ class AddressLookupController(
                                 maybeAccessCode,
                                 formComponentId,
                                 sectionNumber,
-                                maybeSectionNumber,
                                 SuppressErrors.No
                               )
                           )

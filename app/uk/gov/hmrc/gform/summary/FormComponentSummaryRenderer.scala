@@ -667,7 +667,6 @@ object FormComponentSummaryRenderer {
             maybeAccessCode,
             fieldValue.id,
             sectionNumber,
-            None,
             SuppressErrors.Yes
           )
       } else
