@@ -39,13 +39,13 @@
   backLink = Some(backLink)
 ) {
 
-  <h1 class="govuk-heading-xl">@messages("postcodeLookup.review.and.confirm")</h1>
+  <h1 class="govuk-heading-l">@messages("postcodeLookup.review.and.confirm")</h1>
 
   @formWithCSRF(action = confirmAddressAndContinue, 'novalidate -> "novalidate") {
 
-    @address
+    <div>@address</div>
 
-    <p class="govuk-body"><a class="govuk-link" href="@enterAddressHref.url">@messages("postcodeLookup.chage.address")</a></p>
+    <p class="govuk-!-margin-bottom-7"><a class="govuk-link" href="@enterAddressHref.url">@messages("postcodeLookup.chage.address")</a></p>
 
     <button type="submit" name="continue" class="govuk-button" data-module="govuk-button">@messages("postcodeLookup.confirm.address")</button>
   }

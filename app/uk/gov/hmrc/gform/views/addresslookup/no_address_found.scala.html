@@ -39,7 +39,7 @@
   backLink = Some(backLink)
 ) {
 
-  <h1 class="govuk-heading-xl">@messages("postcodeLookup.cannot.find.address", postcode)</h1>
+  <h1 class="govuk-heading-l">@messages("postcodeLookup.cannot.find.address", postcode)</h1>
 
   @formWithCSRF(action = tryDifferentAddress, 'novalidate -> "novalidate", 'method -> "GET") {
 

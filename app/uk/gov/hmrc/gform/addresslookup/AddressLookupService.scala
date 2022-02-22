@@ -224,15 +224,16 @@ object AddressLookupService {
       val postcodeComponentId: ModelComponentId.Atomic =
         formComponentId.toAtomicFormComponentId(formtemplate.PostcodeLookup.postcode)
 
-      val maybePostcode: Option[String] = formModelVisibilityOptics.data.one(postcodeComponentId)
+      val maybePostcode: Option[String] =
+        formModelVisibilityOptics.data.one(postcodeComponentId).filterNot(_.trim.isEmpty)
 
       if (maybePostcode.isEmpty) {
-        val formDaataUpdated =
+        val formDataUpdated =
           form.formData ++ FormData(List(FormField(postcodeComponentId, enteredAddressPostcode.getOrElse(""))))
 
         val formIdData: FormIdData = FormIdData.fromForm(form, maybeAccessCode)
         val userData: UserData = UserData(
-          formData = formDaataUpdated,
+          formData = formDataUpdated,
           formStatus = form.status,
           visitsIndex = form.visitsIndex.visit(sectionNumber),
           thirdPartyData = form.thirdPartyData,

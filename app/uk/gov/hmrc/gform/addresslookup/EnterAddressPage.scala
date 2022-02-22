@@ -46,8 +46,8 @@ class EnterAddressPage(
         false,
         formComponent,
         formFieldValidationResult,
-        true,
-        "govuk-label--xl"
+        false,
+        ""
       )
 
 }

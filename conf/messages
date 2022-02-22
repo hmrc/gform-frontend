@@ -485,6 +485,7 @@ postcodeLookup.Postcode=Postcode
 postcodeLookup.Filter=Property name or number (optional)
 postcodeLookup.Filter.hint=For example, The Mill, 116 or Flat 37a
 postcodeLookup.enter.address.manually=Enter the address manually
+postcodeLookup.not.match=We could not find a match with ''{0}''.
 postcodeLookup.enter.address.try.different=Try a different name or number
 postcodeLookup.choose.address=Choose address
 postcodeLookup.choose.address.all=Showing all results for {0}

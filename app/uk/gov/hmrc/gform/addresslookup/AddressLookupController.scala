@@ -104,22 +104,38 @@ class AddressLookupController(
                       ),
                     goToSectionNumberLink(cache, formModelOptics, sectionNumber, maybeAccessCode)
                   )
-                )
+                ).pure[Future]
               ) { addressRecords =>
-                Ok(
-                  renderChooseAddressPage(
-                    formComponentId,
-                    addressIdForm,
-                    addressRecords,
-                    cache,
-                    formModelOptics,
-                    sectionNumber,
-                    maybeAccessCode,
-                    addressLookupResult
-                  )
-                )
+                if (addressRecords.size === 1) {
+                  val addressId = addressRecords.head.id
+                  addressLookupService
+                    .saveAddress(cache.form, maybeAccessCode, formComponentId, addressId)
+                    .as(
+                      Redirect(
+                        routes.AddressLookupController
+                          .confirmAddress(
+                            formTemplateId,
+                            maybeAccessCode,
+                            formComponentId,
+                            sectionNumber
+                          )
+                      )
+                    )
+                } else
+                  Ok(
+                    renderChooseAddressPage(
+                      formComponentId,
+                      addressIdForm,
+                      addressRecords,
+                      cache,
+                      formModelOptics,
+                      sectionNumber,
+                      maybeAccessCode,
+                      addressLookupResult
+                    )
+                  ).pure[Future]
               }
-              .pure[Future]
+
           }
     }
 
@@ -258,8 +274,16 @@ class AddressLookupController(
                     SuppressErrors.Yes
                   )
               } else {
-                routes.AddressLookupController
-                  .chooseAddress(formTemplateId, maybeAccessCode, formComponentId, sectionNumber)
+                val isSingleAddress = cache.form.thirdPartyData.addressesFor(formComponentId).fold(false) {
+                  case (addressRecords, _) => addressRecords.size === 1
+                }
+
+                if (isSingleAddress) {
+                  goToSectionNumberLink(cache, formModelOptics, sectionNumber, maybeAccessCode)
+                } else {
+                  routes.AddressLookupController
+                    .chooseAddress(formTemplateId, maybeAccessCode, formComponentId, sectionNumber)
+                }
               }
 
             val address =
@@ -319,7 +343,7 @@ class AddressLookupController(
     sectionNumber: SectionNumber
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => sse => formModelOptics =>
+      implicit request => l => cache => sse => formModelOptics =>
         addressLookupService
           .populatePostcodeIfEmpty(
             cache.form,
@@ -327,9 +351,24 @@ class AddressLookupController(
             formComponentId,
             formModelOptics.formModelVisibilityOptics,
             sectionNumber
-          ) >> fastForwardService
-          .redirectFastForward[SectionSelectorType.Normal](cache, maybeAccessCode, formModelOptics)
+          )
+          .as(
+            Redirect(
+              routes.AddressLookupController.fastForwardAfterConfirmation(
+                formTemplateId,
+                maybeAccessCode
+              )
+            )
+          )
+    }
 
+  def fastForwardAfterConfirmation(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
+      implicit request => implicit l => cache => sse => formModelOptics =>
+        fastForwardService.redirectFastForward[SectionSelectorType.Normal](cache, maybeAccessCode, formModelOptics)
     }
 
   def enterAddress(
@@ -462,12 +501,11 @@ class AddressLookupController(
         }
     }
 
-  private def mkSyntheticFormComponent(formComponentId: FormComponentId)(implicit messages: Messages): FormComponent =
+  private def mkSyntheticFormComponent(formComponentId: FormComponentId): FormComponent =
     FormComponent(
       id = formComponentId,
       `type` = Address(false),
-      label =
-        SmartString(LocalisedString(Map(LangADT.En -> messages("postcodeLookup.enter.address"))), List.empty[Expr]),
+      label = SmartString(LocalisedString(Map.empty), List.empty[Expr]),
       helpText = None,
       shortName = None,
       includeIf = None,
