@@ -40,6 +40,6 @@ case class SectionRenderingInformation(
   formMaxAttachmentSizeMB: Int,
   contentTypes: List[ContentType],
   restrictedFileExtensions: List[FileExtension],
-  progressIndicator: Option[String] = None,
+  progressIndicator: Option[ProgressIndicatorRenderingInformation] = None,
   upscanData: Map[FormComponentId, UpscanData] = Map.empty
 )

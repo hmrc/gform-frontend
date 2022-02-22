@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.fileupload.routes.FileUploadController
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
+import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FormModel, PageMode, PageModel, ProgressIndicatorRenderingInformation, Repeater, SectionRenderingInformation, Singleton, Visibility }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
@@ -459,7 +459,9 @@ class SectionRenderingService(
       formMaxAttachmentSizeMB,
       contentTypes,
       restrictedFileExtensions,
-      page.progressIndicator.map(ls => ls.value),
+      page.progressIndicator.map(ls =>
+        ProgressIndicatorRenderingInformation(ls.label.value, getCaptionLabelClass(ls.labelSize))
+      ),
       upscanData
     )
     html.form.form(
@@ -2416,6 +2418,13 @@ class SectionRenderingService(
         }
     }
   }
+
+  private def getCaptionLabelClass(labelSize: LabelSize): String =
+    labelSize match {
+      case ExtraLarge => "govuk-caption-xl"
+      case Large      => "govuk-caption-l"
+      case _          => "govuk-caption-m"
+    }
 
   private def getLabelClasses(isPageHeading: Boolean, labelSize: Option[LabelSize]): String =
     (isPageHeading, labelSize) match {

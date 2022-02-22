@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,14 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@(text: String = "", section: Option[String] = None, captionClass: Option[String] = None)(implicit messages: Messages)
+package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-<header class="hmrc-page-heading">
-    <h1 class="govuk-heading-l">@text</h1>
-    @section match {
-      case Some(NonEmptyString(x)) => {<p class="govuk-!-margin-bottom-0 @captionClass.getOrElse("govuk-caption-m") hmrc-caption-xl"><span class="govuk-visually-hidden">@messages("this.section.is")</span>@x</p>}
-      case _ => {}
-    }
-</header>
+import play.api.libs.json.{ Json, OFormat }
+import uk.gov.hmrc.gform.sharedmodel.SmartString
+
+case class ProgressIndicator(label: SmartString, labelSize: LabelSize = Medium)
+
+case object ProgressIndicator {
+
+  implicit val progressIndicatorFormat: OFormat[ProgressIndicator] = Json.format[ProgressIndicator]
+
+}
