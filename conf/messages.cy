@@ -467,3 +467,22 @@ this.section.is=Teitl yr adran hon yw
 lookup.select.default.option.text=Dewiswch a
 
 signOut.toContinueSignBackInWithEmail=I fynd yn eich blaen, mewngofnodwch eto gyda’ch cyfeiriad e-bost
+
+postcodeLookup.Postcode=Cod post
+postcodeLookup.Filter=Enw neu rif yr eiddo (dewisol)
+postcodeLookup.Filter.hint=Er enghraifft, Tegfan, 116 neu Fflat 37a
+postcodeLookup.enter.address.manually=Nodwch y cyfeiriad â llaw
+postcodeLookup.not.match=Nid oeddem yn gallu dod o hyd i rywbeth sy’n cydweddu â ''{0}''.
+postcodeLookup.enter.address.try.different=Rhowch gynnig ar enw neu rif gwahanol
+postcodeLookup.choose.address=Dewiswch gyfeiriad
+postcodeLookup.choose.address.all=Yn dangos pob canlyniad ar gyfer {0}
+postcodeLookup.chage.address=Newid y cyfeiriad
+postcodeLookup.continue=Yn eich blaen
+postcodeLookup.confirm.address=Cadarnhau’r cyfeiriad
+postcodeLookup.review.and.confirm=Adolygu a chadarnhau
+postcodeLookup.cannot.find.address.title=Ni allwn ddod o hyd i unrhyw gyfeiriadau
+postcodeLookup.cannot.find.address=Ni allwn ddod o hyd i unrhyw gyfeiriadau ar gyfer {0}
+postcodeLookup.try.different.postcode=Rhowch gynnig ar god post gwahanol
+addressId.error.required=Dewiswch yr eiddo ar gyfer y cyfeiriad
+postcode.error.real=Nodwch god post go iawn, e.e. AA1 1AA
+postcodeLookup.enter.address=Nodwch gyfeiriad
