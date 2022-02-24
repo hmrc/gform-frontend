@@ -457,7 +457,7 @@ object SummaryRenderingService {
         ) :: Nil
       )
 
-      new GovukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-5")) :: htmls
+      new GovukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-1")) :: htmls
     }
 
     val brackets: NonEmptyList[Bracket[Visibility]] = formModel.brackets.brackets
