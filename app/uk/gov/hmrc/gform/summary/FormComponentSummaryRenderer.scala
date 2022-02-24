@@ -1066,7 +1066,7 @@ object FormComponentSummaryRenderer {
       else
         choice
           .renderToString(formComponent, formFieldValidationResult)
-          .map(s => uk.gov.hmrc.gform.views.html.hardcoded.pages.pWrapper(HtmlFormat.escape(s)))
+          .map(s => HtmlFormat.escape(s))
 
     List(
       summaryListRow(
