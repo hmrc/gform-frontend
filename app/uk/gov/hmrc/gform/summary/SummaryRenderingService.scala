@@ -397,7 +397,12 @@ object SummaryRenderingService {
       if (middleRows.isEmpty) {
         Nil
       } else {
-        val middleRowsHtml = new GovukSummaryList()(SummaryList(middleRows, "govuk-!-margin-bottom-5"))
+        val middleRowsHtml = new GovukSummaryList()(
+          SummaryList(
+            middleRows,
+            "govuk-!-margin-bottom-1"
+          )
+        )
         List(begin, middleRowsHtml)
       }
     }
