@@ -50,7 +50,7 @@ object ExpandUtils {
 
   def expandSmartString(smartString: SmartString, index: Int, ids: List[FormComponentId]): SmartString = {
     val interpolations: List[Expr] = smartString.interpolations.map(expr => ExprUpdater(expr, index, ids))
-    smartString.copy(interpolations = interpolations).replace("$n", index.toString)
+    smartString.copy(interpolations = interpolations).replace("$n", "")
   }
 
   def expandGroup[S <: SourceOrigin](fc: FormComponent, group: Group, data: VariadicFormData[S]): List[FormComponent] =

@@ -438,7 +438,13 @@ object SummaryRenderingService {
       val url: Call = routes.FormController
         .form(formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
 
-      val addToListSummary = HtmlFormat.fill(addToListItemSummaries.map(ss => markDownParser(ss)).toList)
+      val addToListSummaryItems: List[Html] = addToListItemSummaries.map(ss => markDownParser(ss)).toList
+
+      val addToListSummary = if (bracket.source.description.valueWithoutInterpolations.contains("$n")) {
+        ordered_list(addToListSummaryItems)
+      } else {
+        unordered_list(addToListSummaryItems)
+      }
 
       val label = repeater.title.value
 
