@@ -131,6 +131,7 @@ generic.longText.error.pattern=Ni all {0} gynnwys y cymeriadau {1}
 generic.referenceNumber.error.pattern=Gall {0} ond cynnwys rhifau
 generic.successfullyRemoved=Eitem wedi’i dileu
 generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
+generic.error.telephoneNumber.minLength=Rhaid i {0} gynnwys o leiaf {1} rhif
 
 generic.error.submissionRef=Ni ellir dod o hyd i {0}. Nodwch {0} dilys yn y fformat cywir. Mae’n rhaid i hyn fod yn 14 o gymeriadau a chynnwys rhifau, cysylltnodau a phriflythrennau yn unig, er enghraifft ABCD-1234-1234
 generic.error.parentSubmissionRefSameAsFormSubmissionRef=Mae’n rhaid i {0} fod yn gyfeirnod cyflwyno ffurflen rhiant. Yr hyn a nodwyd yw cyfeirnod cyflwyno’r ffurflen hon.
