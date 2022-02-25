@@ -46,7 +46,8 @@ object ComponentValidator {
   val genericChildBenefitNumberErrorPattern                  = "generic.childBenefitNumber.error.pattern"
   val genericNonUKCountryCodeErrorPattern                    = "generic.nonUKCountryCode.error.pattern"
   val genericCountryCodeErrorPattern                         = "generic.countryCode.error.pattern"
-  val genericErrorTelephoneNumber                            = "generic.error.telephoneNumber.minLength"
+  val genericErrorTelephoneNumber                            = "generic.error.telephoneNumber"
+  val genericErrorTelephoneNumberMinLength                   = "generic.error.telephoneNumber.minLength"
   val genericShortTextErrorPattern                           = "generic.shortText.error.pattern"
   val genericErrorLookup                                     = "generic.error.lookup"
   val genericErrorRegistry                                   = "generic.error.registry"
@@ -566,7 +567,7 @@ object ComponentValidator {
       case tooShort if tooShort.length < minChars =>
         val vars: List[String] = minChars.toString :: Nil
         val errorMinLength = fieldValue match {
-          case IsTelephone() => messageKey
+          case IsTelephone() => genericErrorTelephoneNumberMinLength
           case _             => genericErrorMinLength
         }
         validationFailure(fieldValue, errorMinLength, Some(vars))
