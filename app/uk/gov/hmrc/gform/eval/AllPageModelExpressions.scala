@@ -32,7 +32,7 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
       val pageExprs = page.title.interpolations ++ fromOption(
         page.description,
         page.shortName,
-        page.progressIndicator,
+        page.progressIndicator.map(_.label),
         page.continueLabel,
         page.instruction.flatMap(_.name)
       )
