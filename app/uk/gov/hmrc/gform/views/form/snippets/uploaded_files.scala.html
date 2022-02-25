@@ -36,7 +36,7 @@
         <dl class="govuk-summary-list app-file-upload__list">
           <div class="govuk-summary-list__row">
             <dd class="govuk-summary-list__value">
-              <span id="fileupload" role="status" aria-live="polite">@{Html(messages("file.upload.done", fileName))}</span>
+              <span id="fileupload" role="alert">@{Html(messages("file.upload.done", fileName))}</span>
             </dd>
             <dd class="govuk-summary-list__actions app-file-upload__actions">
               @govukButton(Button(content = Text(messages("file.delete")),
