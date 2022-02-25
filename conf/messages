@@ -133,6 +133,7 @@ generic.longText.error.pattern={0} cannot include the characters {1}
 generic.referenceNumber.error.pattern={0} can only include numbers
 generic.successfullyRemoved=Item removed
 generic.error.telephoneNumber={0} can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens
+generic.error.telephoneNumber.minLength={0} must be at least {1} numbers
 
 generic.error.submissionRef={0} not found. Enter a valid {0} in the correct format. This must be 14 characters and only include numbers, hyphens and upper case letters, for example ABCD-1234-1234
 generic.error.parentSubmissionRefSameAsFormSubmissionRef={0} must be the submission reference of a parent form. The value entered is the submission reference of this form.
