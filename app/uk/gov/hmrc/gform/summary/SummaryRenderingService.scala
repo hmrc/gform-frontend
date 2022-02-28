@@ -414,7 +414,7 @@ object SummaryRenderingService {
       val repeaters: NonEmptyList[RepeaterWithNumber[Visibility]] = bracket.iterations.map(_.repeater)
 
       val htmls: List[Html] = bracket.iterations.toList.flatMap { iteration =>
-        begin_section(iteration.repeater.repeater.expandedShortName) :: {
+        begin_addToList_section(iteration.repeater.repeater.expandedShortName) :: {
           iteration.singletons.toList.flatMap { singletonWithNumber =>
             renderHtmls(
               singletonWithNumber.singleton,
