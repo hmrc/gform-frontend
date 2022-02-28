@@ -71,6 +71,14 @@ sealed trait AddressLookupService[F[_]] {
     sectionNumber: SectionNumber
   )(implicit
     hc: HeaderCarrier
+  ): Form
+
+  def flagAddressAsConfirmed(
+    form: Form,
+    maybeAccessCode: Option[AccessCode],
+    formComponentId: FormComponentId
+  )(implicit
+    hc: HeaderCarrier
   ): Future[Unit]
 }
 
@@ -217,7 +225,7 @@ object AddressLookupService {
       sectionNumber: SectionNumber
     )(implicit
       hc: HeaderCarrier
-    ): Future[Unit] = {
+    ): Form = {
 
       val enteredAddressPostcode = form.thirdPartyData.enteredAddressPostcode(formComponentId)
 
@@ -231,18 +239,31 @@ object AddressLookupService {
         val formDataUpdated =
           form.formData ++ FormData(List(FormField(postcodeComponentId, enteredAddressPostcode.getOrElse(""))))
 
-        val formIdData: FormIdData = FormIdData.fromForm(form, maybeAccessCode)
-        val userData: UserData = UserData(
+        form.copy(
           formData = formDataUpdated,
-          formStatus = form.status,
-          visitsIndex = form.visitsIndex.visit(sectionNumber),
-          thirdPartyData = form.thirdPartyData,
-          componentIdToFileId = form.componentIdToFileId
+          visitsIndex = form.visitsIndex.visit(sectionNumber)
         )
-        gformConnector.updateUserData(formIdData, userData)
       } else {
-        ().pure[Future]
+        form
       }
+    }
+
+    def flagAddressAsConfirmed(
+      form: Form,
+      maybeAccessCode: Option[AccessCode],
+      formComponentId: FormComponentId
+    )(implicit
+      hc: HeaderCarrier
+    ): Future[Unit] = {
+      val formIdData: FormIdData = FormIdData.fromForm(form, maybeAccessCode)
+      val userData: UserData = UserData(
+        formData = form.formData,
+        formStatus = form.status,
+        visitsIndex = form.visitsIndex,
+        thirdPartyData = form.thirdPartyData.confirmAddress(formComponentId),
+        componentIdToFileId = form.componentIdToFileId
+      )
+      gformConnector.updateUserData(formIdData, userData)
     }
   }
 }

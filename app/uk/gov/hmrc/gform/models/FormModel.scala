@@ -54,10 +54,6 @@ case class FormModel[A <: PageMode](
   val fcLookup: Map[FormComponentId, FormComponent] =
     allFormComponents.map(fc => fc.id -> fc).toMap
 
-  val postcodeLookup: Set[FormComponentId] = allFormComponents.collect { case fc @ IsPostcodeLookup() =>
-    fc.modelComponentId.toAtomicFormComponentId(PostcodeLookup.postcode).toFormComponentId
-  }.toSet
-
   val allMultiValueIds: List[MultiValueId] =
     allFormComponents.map(_.multiValueId)
 
@@ -101,6 +97,10 @@ case class FormModel[A <: PageMode](
 
   val overseasAddressLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsOverseasAddress(_) =>
     fc.id.baseComponentId
+  }.toSet
+
+  val postcodeLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsPostcodeLookup() =>
+    fc.modelComponentId.toAtomicFormComponentId(PostcodeLookup.postcode).baseComponentId
   }.toSet
 
   val exprsMetadata: List[ExprMetadata] = brackets.toBracketsPlains.toList.flatMap {
