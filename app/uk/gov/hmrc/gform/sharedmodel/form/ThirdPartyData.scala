@@ -36,8 +36,46 @@ case class ThirdPartyData(
   dataRetrieve: Option[Map[DataRetrieveId, DataRetrieveResult]],
   postcodeLookup: Option[Map[FormComponentId, AddressLookupResult]],
   selectedAddresses: Option[Map[FormComponentId, String]],
-  enteredAddresses: Option[Map[FormComponentId, FormData]]
+  enteredAddresses: Option[Map[FormComponentId, FormData]],
+  confirmedAddresses: Option[Set[FormComponentId]]
 ) {
+
+  def confirmAddress(formComponentId: FormComponentId): ThirdPartyData =
+    this.copy(
+      confirmedAddresses = Some(confirmedAddresses.fold(Set(formComponentId))(_ + formComponentId))
+    )
+
+  def removePostcodeData(idx: Int, postcodeLookupIds: Set[FormComponentId]): ThirdPartyData = {
+    def decrementKeyIfNeeded(formComponentId: FormComponentId): FormComponentId = {
+      val mcId = formComponentId.modelComponentId
+      mcId.maybeIndex.fold(formComponentId) { index =>
+        if (index > idx) {
+          mcId.decrement.toFormComponentId
+        } else formComponentId
+      }
+    }
+
+    def decrementIfNeeded[V](maybeMap: Option[Map[FormComponentId, V]]): Option[Map[FormComponentId, V]] =
+      maybeMap.map { map =>
+        val u = map -- postcodeLookupIds
+        u.map { case (k, v) =>
+          decrementKeyIfNeeded(k) -> v
+        }
+      }
+
+    def decrementIfNeededSet(maybeSet: Option[Set[FormComponentId]]): Option[Set[FormComponentId]] =
+      maybeSet.map { set =>
+        val u = set -- postcodeLookupIds
+        u.map(decrementKeyIfNeeded)
+      }
+
+    this.copy(
+      postcodeLookup = decrementIfNeeded(postcodeLookup),
+      selectedAddresses = decrementIfNeeded(selectedAddresses),
+      enteredAddresses = decrementIfNeeded(enteredAddresses),
+      confirmedAddresses = decrementIfNeededSet(confirmedAddresses)
+    )
+  }
 
   def addressesFor(
     formComponentId: FormComponentId
@@ -57,8 +95,8 @@ case class ThirdPartyData(
     formData <- adresses.get(formComponentId)
   } yield formData
 
-  def addressExistsFor(formComponentId: FormComponentId): Boolean =
-    enteredAddressFor(formComponentId).orElse(addressSelectionFor(formComponentId)).isDefined
+  def addressIsConfirmed(formComponentId: FormComponentId): Boolean =
+    confirmedAddresses.fold(false)(_.apply(formComponentId))
 
   def enteredAddressPostcode(formComponentId: FormComponentId): Option[String] =
     enteredAddressFor(formComponentId).flatMap { formData =>
@@ -80,7 +118,7 @@ case class ThirdPartyData(
   private def addressFor(formComponentId: FormComponentId): Option[Either[FormData, PostcodeLookup.AddressRecord]] =
     enteredAddressFor(formComponentId).map(Left(_)).orElse(addressRecordFor(formComponentId).map(Right(_)))
 
-  def addressLines(formComponentId: FormComponentId) = addressFor(formComponentId).map {
+  def addressLines(formComponentId: FormComponentId): Option[List[String]] = addressFor(formComponentId).map {
 
     case Left(formData) =>
       val lookup = formData.toData
@@ -104,8 +142,7 @@ case class ThirdPartyData(
         List(
           Address.street1  -> address.line1,
           Address.street2  -> address.line2,
-          Address.street3  -> address.line3,
-          Address.street4  -> address.line4,
+          Address.street3  -> address.town,
           Address.postcode -> address.postcode,
           Address.uk       -> "true"
         ).map { case (atom, value) =>
@@ -144,30 +181,13 @@ case class ThirdPartyData(
   def updateFrom(vr: Option[ValidatorsResult]): ThirdPartyData =
     vr match {
       case Some(ValidatorsResult(Some(desRegistrationResponse), m)) =>
-        ThirdPartyData(
-          Some(desRegistrationResponse),
-          obligations,
-          emailVerification ++ m,
-          queryParams,
-          reviewData,
-          booleanExprCache,
-          dataRetrieve,
-          postcodeLookup,
-          selectedAddresses,
-          enteredAddresses
+        this.copy(
+          desRegistrationResponse = Some(desRegistrationResponse),
+          emailVerification = emailVerification ++ m
         )
       case Some(ValidatorsResult(None, m)) =>
-        ThirdPartyData(
-          desRegistrationResponse,
-          obligations,
-          emailVerification ++ m,
-          queryParams,
-          reviewData,
-          booleanExprCache,
-          dataRetrieve,
-          postcodeLookup,
-          selectedAddresses,
-          enteredAddresses
+        this.copy(
+          emailVerification = emailVerification ++ m
         )
       case _ => this
     }
@@ -177,16 +197,30 @@ case class ThirdPartyData(
 
 object ThirdPartyData {
   val empty =
-    ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty, None, BooleanExprCache.empty, None, None, None, None)
+    ThirdPartyData(
+      None,
+      NotChecked,
+      Map.empty,
+      QueryParams.empty,
+      None,
+      BooleanExprCache.empty,
+      None,
+      None,
+      None,
+      None,
+      None
+    )
   implicit val formatMap: Format[Map[EmailFieldId, EmailAndCode]] =
     JsonUtils.formatMap(a => emailFieldId(FormComponentId(a)), _.value)
   implicit val formatDataRetrieve: Format[Map[DataRetrieveId, DataRetrieveResult]] =
-    JsonUtils.formatMap(a => DataRetrieveId(a), _.value)
+    JsonUtils.formatMap(DataRetrieveId(_), _.value)
   implicit val formatPostcodeLookup: Format[Map[FormComponentId, AddressLookupResult]] =
-    JsonUtils.formatMap(a => FormComponentId(a), _.value)
+    JsonUtils.formatMap(FormComponentId(_), _.value)
   implicit val formatSelectedAddresses: Format[Map[FormComponentId, String]] =
-    JsonUtils.formatMap(a => FormComponentId(a), _.value)
+    JsonUtils.formatMap(FormComponentId(_), _.value)
   implicit val formatEnteredAddresses: Format[Map[FormComponentId, FormData]] =
-    JsonUtils.formatMap(a => FormComponentId(a), _.value)
+    JsonUtils.formatMap(FormComponentId(_), _.value)
+  implicit val formatFormComponentId: Format[FormComponentId] =
+    implicitly[Format[String]].bimap(FormComponentId(_), _.value)
   implicit val format: OFormat[ThirdPartyData] = Json.format
 }

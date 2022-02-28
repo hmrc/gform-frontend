@@ -38,6 +38,7 @@ final case class EvaluationContext(
   dateLookup: Map[ModelComponentId, DateValue],
   addressLookup: Set[BaseComponentId],
   overseasAddressLookup: Set[BaseComponentId],
+  postcodeLookup: Set[BaseComponentId],
   pageIdSectionNumberMap: Map[ModelPageId, SectionNumber],
   lang: LangADT,
   messages: Messages,
