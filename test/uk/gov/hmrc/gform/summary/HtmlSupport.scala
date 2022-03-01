@@ -32,12 +32,12 @@ trait HtmlSupport {
     val title = document.title()
 
     def summaryElements: List[SummaryElement] =
-      buildSummaryLists(document.select("h3,dl").asScala)
+      buildSummaryLists(document.select("h2,dl").asScala)
 
     def buildSummaryLists(summaryElms: Seq[Element]): List[SummaryElement] =
       summaryElms.map { e =>
         e.tagName() match {
-          case "h3" => buildHeaderElement(e)
+          case "h2" => buildHeaderElement(e)
           case "dl" => buildSummaryListElement(e)
         }
       }.toList
@@ -63,7 +63,7 @@ trait HtmlSupport {
       buildSummaryLists(
         document
           .select(
-            "h3[class='govuk-heading-s govuk-!-margin-top-5'],dl[class='govuk-summary-list govuk-!-margin-bottom-1']"
+            "h2[class='govuk-heading-m govuk-!-margin-top-5'],h3[class='govuk-heading-m govuk-!-margin-top-5'],dl[class='govuk-summary-list govuk-!-margin-bottom-1']"
           )
           .asScala
       )
@@ -71,8 +71,8 @@ trait HtmlSupport {
     def buildSummaryLists(summaryElms: Seq[Element]): List[SummaryElement] =
       summaryElms.map { e =>
         e.tagName() match {
-          case "h3" => buildHeaderElement(e)
-          case "dl" => buildSummaryListElement(e)
+          case "h2" | "h3" => buildHeaderElement(e)
+          case "dl"        => buildSummaryListElement(e)
         }
       }.toList
 
