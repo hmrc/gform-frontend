@@ -372,7 +372,7 @@ object SummaryRenderingService {
         if (hidePageTitle)
           HtmlFormat.empty
         else
-          begin_section(pageTitle)
+          begin_addToList_section(pageTitle)
       }
 
       val middleRows: List[SummaryListRow] = page.fields
