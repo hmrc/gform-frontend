@@ -39,7 +39,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IsPostcodeLookup }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
@@ -80,7 +80,8 @@ class FormProcessor(
 
     def saveAndRedirect(
       updFormModelOptics: FormModelOptics[DataOrigin.Browser],
-      componentIdToFileId: FormComponentIdToFileIdMapping
+      componentIdToFileId: FormComponentIdToFileIdMapping,
+      postcodeLookupIds: Set[FormComponentId]
     ): Future[Result] = {
       val updFormModel: FormModel[DataExpanded] = updFormModelOptics.formModelRenderPageOptics.formModel
 
@@ -112,7 +113,11 @@ class FormProcessor(
       )
 
       val cacheUpd = cache.copy(
-        form = cache.form.copy(visitsIndex = VisitIndex(visitsIndexUpd), componentIdToFileId = componentIdToFileId)
+        form = cache.form.copy(
+          visitsIndex = VisitIndex(visitsIndexUpd),
+          thirdPartyData = cache.form.thirdPartyData.removePostcodeData(idx, postcodeLookupIds),
+          componentIdToFileId = componentIdToFileId
+        )
       )
 
       validateAndUpdateData(
@@ -159,6 +164,16 @@ class FormProcessor(
         FileIdsWithMapping(formModel.allFileIds, cache.form.componentIdToFileId)
       )
 
+    val postcodeLookupIds: Set[FormComponentId] = bracket.iterations
+      .toList(idx)
+      .toPageModel
+      .toList
+      .flatMap(_.allFormComponents)
+      .collect { case fc @ IsPostcodeLookup() =>
+        fc.id
+      }
+      .toSet
+
     for {
       updFormModelOptics <- FormModelOptics
                               .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
@@ -166,7 +181,7 @@ class FormProcessor(
                                 cache,
                                 recalculation
                               )
-      redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping)
+      redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping, postcodeLookupIds)
       _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
     } yield redirect
   }

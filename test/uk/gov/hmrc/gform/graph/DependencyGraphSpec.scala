@@ -486,7 +486,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ("title",             emptyPage.copy(title = stringExpr)),
       ("description",       emptyPage.copy(description = Some(stringExpr))),
       ("shortName",         emptyPage.copy(shortName = Some(stringExpr))),
-      ("progressIndicator", emptyPage.copy(progressIndicator = Some(ProgressIndicator(stringExpr, Medium)))),
+      ("progressIndicator", emptyPage.copy(progressIndicator = Some(stringExpr))),
       ("continueLabel",     emptyPage.copy(continueLabel = Some(stringExpr)))
       // format: on
     )

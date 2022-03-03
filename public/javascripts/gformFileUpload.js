@@ -445,7 +445,7 @@
 
     // Display uploading file message
     function startProgressBar() {
-      return progressBarWrapper("<span class='app-progress-spinner'></span><span id='fileupload' role='status' aria-live='polite'>" + strings.uploadingFile[lang] + "</span>", "");
+      return progressBarWrapper("<span class='app-progress-spinner'></span><span id='fileupload' role='alert'>" + strings.uploadingFile[lang] + "</span>", "");
     }
 
     // Display the uploaded file name and delete button
@@ -457,7 +457,7 @@
         " <strong>" + name + "</strong> "
       ])
       return progressBarWrapper(
-        "<span id='fileupload' role='status' aria-live='polite'>" + hasBeenUploadedMessage +  "</span>",
+        "<span id='fileupload' role='alert'>" + hasBeenUploadedMessage +  "</span>",
         "<button type='submit' class='govuk-button govuk-button--secondary govuk-!-margin-bottom-0' data-module='govuk-button' id='fileDelete' aria-label='" + ariaLabel + "' formaction='" + deleteUrl + "'>" +
           strings.deleteLabel[lang] +
         "</button>"

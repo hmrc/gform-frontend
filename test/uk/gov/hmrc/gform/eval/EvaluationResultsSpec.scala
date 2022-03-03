@@ -70,6 +70,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       Map.empty,
       Set.empty,
       Set.empty,
+      Set.empty,
       pageIdSectionNumberMap,
       LangADT.En,
       Helpers.stubMessages(

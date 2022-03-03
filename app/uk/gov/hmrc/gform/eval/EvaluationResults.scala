@@ -283,6 +283,13 @@ case class EvaluationResults(
           ExpressionResult.AddressResult(addressLines)
         }
       case FormCtx(formComponentId: FormComponentId)
+          if evaluationContext.postcodeLookup(formComponentId.baseComponentId) =>
+        whenVisible(formComponentId) {
+          ExpressionResult.StringResult(
+            evaluationContext.thirdPartyData.addressLines(formComponentId).fold("")(_.mkString(", "))
+          )
+        }
+      case FormCtx(formComponentId: FormComponentId)
           if evaluationContext.taxPeriodYear(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {
           evalTaxPeriodYear(formComponentId, recData, evaluationContext.messages)

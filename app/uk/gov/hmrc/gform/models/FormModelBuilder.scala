@@ -195,6 +195,7 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.dateLookup,
         formModel.addressLookup,
         formModel.overseasAddressLookup,
+        formModel.postcodeLookup,
         formModel.pageIdSectionNumberMap,
         lang,
         messages,

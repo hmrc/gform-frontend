@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.addresslookup
 import cats.data.NonEmptyList
 import cats.implicits._
 import play.api.i18n.{ I18nSupport, Messages }
-import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
+import play.api.mvc.{ Action, AnyContent, Call, MessagesControllerComponents, Request, Result }
 import play.twirl.api.Html
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.gform.FastForwardService
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.graph.Recalculation
-import uk.gov.hmrc.gform.models.{ Basic, FormModelBuilder }
+import uk.gov.hmrc.gform.models.{ Basic, Bracket, FormModelBuilder, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ FastForward, SectionSelectorType }
 import uk.gov.hmrc.gform.monoidHtml
@@ -150,7 +150,7 @@ class AddressLookupController(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     sectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode]
-  ) = {
+  ): Call = {
 
     val sectionTitle4Ga = SectionTitle4Ga.sectionTitle4GaFactory(
       formModelOptics.formModelVisibilityOptics.formModel(sectionNumber),
@@ -344,7 +344,33 @@ class AddressLookupController(
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => l => cache => sse => formModelOptics =>
-        addressLookupService
+        def resolveRedirect: Call = {
+          val ff =
+            routes.AddressLookupController.fastForwardAfterConfirmation(
+              formTemplateId,
+              maybeAccessCode,
+              None
+            )
+          val maybeBracket: Option[Bracket[Visibility]] =
+            formModelOptics.formModelVisibilityOptics.formModel.brackets.withSectionNumber(sectionNumber)
+
+          maybeBracket.fold(ff)(_.fold { nonRepeatingPage =>
+            ff
+          } { repeatingPage =>
+            ff
+          } { addToList =>
+            val iteration: Bracket.AddToListIteration[Visibility] = addToList.iterationForSectionNumber(sectionNumber)
+            routes.AddressLookupController.fastForwardAfterConfirmation(
+              formTemplateId,
+              maybeAccessCode,
+              iteration.checkYourAnswers
+                .map(_.sectionNumber)
+                .orElse(iteration.allSingletonSectionNumbers.find(_ > sectionNumber))
+            )
+          })
+        }
+
+        val updatedForm = addressLookupService
           .populatePostcodeIfEmpty(
             cache.form,
             maybeAccessCode,
@@ -352,23 +378,25 @@ class AddressLookupController(
             formModelOptics.formModelVisibilityOptics,
             sectionNumber
           )
-          .as(
-            Redirect(
-              routes.AddressLookupController.fastForwardAfterConfirmation(
-                formTemplateId,
-                maybeAccessCode
-              )
-            )
-          )
+
+        addressLookupService
+          .flagAddressAsConfirmed(updatedForm, maybeAccessCode, formComponentId)
+          .as(Redirect(resolveRedirect))
     }
 
   def fastForwardAfterConfirmation(
     formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode]
+    maybeAccessCode: Option[AccessCode],
+    maybeSectionNumber: Option[SectionNumber]
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => sse => formModelOptics =>
-        fastForwardService.redirectFastForward[SectionSelectorType.Normal](cache, maybeAccessCode, formModelOptics)
+        maybeSectionNumber.fold(
+          fastForwardService.redirectFastForward[SectionSelectorType.Normal](cache, maybeAccessCode, formModelOptics)
+        ) { sn =>
+          fastForwardService.redirectStopAt[SectionSelectorType.Normal](sn, cache, maybeAccessCode, formModelOptics)
+        }
+
     }
 
   def enterAddress(

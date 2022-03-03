@@ -87,7 +87,7 @@ object Bracket {
     repeater: RepeaterWithNumber[A]
   ) {
 
-    def allSingletonSectionNumbers = singletons.map(_.sectionNumber).toList
+    def allSingletonSectionNumbers: List[SectionNumber] = singletons.map(_.sectionNumber).toList
 
     def toPageModelWithNumber: NonEmptyList[(PageModel[A], SectionNumber)] =
       singletons.map(_.toPageModelWithNumber) ++ checkYourAnswers.toList.map(c =>

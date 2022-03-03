@@ -1,4 +1,4 @@
-/*
+@*
  * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,8 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *@
 
-package uk.gov.hmrc.gform.models
+@(title: SmartString)(implicit l: LangADT, sse: SmartStringEvaluator)
 
-case class ProgressIndicatorRenderingInformation(label: String, classes: String)
+<h3 class="govuk-heading-m govuk-!-margin-top-5">
+  @{title.value}
+</h3>

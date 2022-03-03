@@ -116,7 +116,7 @@ class FormValidator(implicit ec: ExecutionContext) {
               val page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
               val hasBeenVisited = processData.visitsIndex.contains(currentSn.value)
               val postcodeLookupHasAddress = page.postcodeLookup.fold(true) { formComponent =>
-                cache.thirdPartyData.addressExistsFor(formComponent.id)
+                cache.thirdPartyData.addressIsConfirmed(formComponent.id)
               }
 
               val stop = page.isTerminationPage || !hasBeenVisited || !postcodeLookupHasAddress
