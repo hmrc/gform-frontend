@@ -105,7 +105,7 @@ trait SectionGen {
       noPIITitle,
       description,
       shortName,
-      progressIndicator.map(x => ProgressIndicator(x, Medium)),
+      progressIndicator,
       includeIf,
       validators,
       fields.toList,

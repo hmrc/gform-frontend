@@ -130,7 +130,7 @@ object FormModelExpander {
         id = page.id.map(id => id.withIndex(index)),
         description = page.description.map(expand),
         shortName = page.shortName.map(expand),
-        progressIndicator = page.progressIndicator.map(x => x.copy(label = expand(x.label))),
+        progressIndicator = page.progressIndicator.map(expand),
         continueLabel = page.continueLabel.map(expand),
         fields = page.fields.map { field =>
           new FormComponentUpdater(field, index, source.allIds).updatedWithId
