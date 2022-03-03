@@ -106,7 +106,7 @@
     }
 
     @if(shouldDisplayHeading) {
-      @pageHeading(heading, page.progressIndicator.map(_.label), page.progressIndicator.map(_.classes))
+      @pageHeading(heading, page.progressIndicator)
 
       @if(page.sectionDescription.exists(_.trim.nonEmpty)){
         <p class="govuk-body">@{page.sectionDescription.get}</p>
@@ -114,7 +114,7 @@
     } else {
       @* This is here to support caption in case of isPageHading case *@
       @page.progressIndicator.fold(HtmlFormat.empty){ caption =>
-        <p class="govuk-!-margin-bottom-0 @caption.classes hmrc-caption-xl"><span class="govuk-visually-hidden">@messages("this.section.is")</span>@caption.label</p>
+        <p class="govuk-!-margin-bottom-0 govuk-caption-l hmrc-caption-xl"><span class="govuk-visually-hidden">@messages("this.section.is")</span>@caption</p>
       }
     }
 
