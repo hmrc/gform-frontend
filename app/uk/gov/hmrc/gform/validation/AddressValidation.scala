@@ -155,7 +155,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   )(
     xs: Seq[String]
   ): ValidatedType[Unit] =
-    stringValidator(fieldValue, atomicFcId, "postcode.error.real", Nil, PostcodeLookupValidation.checkPostcode)(
+    stringValidator(fieldValue, atomicFcId, "postcode.error.real", Nil, !PostcodeLookupValidation.checkPostcode(_))(
       xs
     )
 
