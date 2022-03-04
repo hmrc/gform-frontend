@@ -426,7 +426,7 @@ object SummaryRenderingService {
         }
       }
 
-      val addToListItemSummaries: NonEmptyList[SmartString] = repeaters.map(_.repeater.expandedDescription)
+      val addToListItemSummaries: NonEmptyList[SmartString] = repeaters.map(_.repeater.expandedSummaryDescription)
 
       val lastRepeaterWithNumber = repeaters.last
 
@@ -440,11 +440,7 @@ object SummaryRenderingService {
 
       val addToListSummaryItems: List[Html] = addToListItemSummaries.map(ss => markDownParser(ss)).toList
 
-      val addToListSummary = if (bracket.source.description.valueWithoutInterpolations.contains("$n")) {
-        ordered_list(addToListSummaryItems)
-      } else {
-        unordered_list(addToListSummaryItems)
-      }
+      val addToListSummary = ordered_list(addToListSummaryItems)
 
       val label = repeater.title.value
 

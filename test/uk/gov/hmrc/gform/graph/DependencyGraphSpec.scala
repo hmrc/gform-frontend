@@ -59,6 +59,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     toSmartString(""),
     toSmartString(""),
     toSmartString(""),
+    toSmartString(""),
     None,
     None,
     NonEmptyList.one(emptyPage),

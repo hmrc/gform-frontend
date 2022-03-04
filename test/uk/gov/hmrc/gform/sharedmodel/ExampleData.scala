@@ -615,6 +615,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
   def addToListSection(
     title: String,
     description: String,
+    summaryDescription: String,
     shortName: String,
     summaryName: String,
     addAnotherQuestion: FormComponent,
@@ -629,6 +630,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       toSmartString(title),
       Some(toSmartString(title)),
       toSmartString(description),
+      toSmartString(summaryDescription),
       toSmartString(shortName),
       toSmartString(summaryName),
       None,
