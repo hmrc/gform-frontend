@@ -155,7 +155,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   )(
     xs: Seq[String]
   ): ValidatedType[Unit] =
-    checkPostcode(fieldValue, atomicFcId, "postcode.error.real")(
+    checkUKPostcode(fieldValue, atomicFcId, "postcode.error.real")(
       xs
     )
 
@@ -187,7 +187,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
       case _ => validationSuccess
     }
 
-  private def checkPostcode(
+  private def checkUKPostcode(
     fieldValue: FormComponent,
     atomicFcId: ModelComponentId.Atomic,
     messageKey: String
