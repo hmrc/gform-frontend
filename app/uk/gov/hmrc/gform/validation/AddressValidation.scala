@@ -61,7 +61,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
           ukStreetValidation(Address.street4),
           validateRequiredFieldSub(Address.postcode, messages("ukAddress.postcode.label")),
           validateForbiddenField(Address.country, fieldValue)(addressValueOf(Address.country)),
-          postcodeLengthValidation(Address.postcode, fieldValue)(addressValueOf(Address.postcode))
+          validatePostcode(Address.postcode, fieldValue)(addressValueOf(Address.postcode))
         )
       case _ =>
         List(
@@ -91,7 +91,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   private def ukLengthValidation(value: Atom, fieldValue: FormComponent) =
     ukAddressLineValidation(fieldValue, fieldValue.atomicFormComponentId(value)) _
 
-  private def postcodeLengthValidation(value: Atom, fieldValue: FormComponent) =
+  private def validatePostcode(value: Atom, fieldValue: FormComponent) =
     postcodeValidation(fieldValue, fieldValue.atomicFormComponentId(value)) _
 
   private def countryLengthValidation(value: Atom, fieldValue: FormComponent) =
