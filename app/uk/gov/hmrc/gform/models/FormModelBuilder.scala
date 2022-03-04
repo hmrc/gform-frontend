@@ -378,6 +378,7 @@ class FormModelBuilder[E, F[_]: Functor](
       s.pageId.withIndex(index),
       s.noPIITitle.map(expand),
       expand(s.description),
+      expand(s.summaryDescription),
       expand(s.shortName),
       expand(s.summaryName),
       s.includeIf,

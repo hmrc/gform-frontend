@@ -364,7 +364,8 @@ class SummaryRenderingServiceSpec
             List(
               addToListSection(
                 "addToList",
-                "addToList",
+                "addToListDesc",
+                "addToListSumDesc",
                 "addToList",
                 "addToListSummary",
                 addToListQuestionComponent,
@@ -427,7 +428,7 @@ class SummaryRenderingServiceSpec
 
           html.summaryElements shouldBe List(
             HeaderElement("addToListSummary"),
-            SummaryListElement(List(SummaryListRow("addToList", "addToList addToList"))),
+            SummaryListElement(List(SummaryListRow("addToList", "addToListSumDesc addToListSumDesc"))),
             HeaderElement("addToList"),
             SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value1"))),
             SummaryListElement(List(SummaryListRow("page2Field", "page2Field-value1"))),
@@ -449,6 +450,7 @@ class SummaryRenderingServiceSpec
               addToListSection(
                 "addToList",
                 "addToListDesc",
+                "addToListSumDesc",
                 "addToList",
                 "addToListSummary",
                 addToListQuestionComponent,
@@ -511,7 +513,7 @@ class SummaryRenderingServiceSpec
 
           html.summaryElements shouldBe List(
             HeaderElement("addToListSummary"),
-            SummaryListElement(List(SummaryListRow("addToList", "addToListDesc addToListDesc"))),
+            SummaryListElement(List(SummaryListRow("addToList", "addToListSumDesc addToListSumDesc"))),
             HeaderElement("addToList"),
             HeaderElement("page1"),
             SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value1"))),

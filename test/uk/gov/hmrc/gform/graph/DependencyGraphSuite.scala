@@ -63,6 +63,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     toSmartString(""),
     toSmartString(""),
     toSmartString(""),
+    toSmartString(""),
     None,
     None,
     NonEmptyList.one(emptyPage),

@@ -426,7 +426,7 @@ object SummaryRenderingService {
         }
       }
 
-      val addToListItemSummaries: NonEmptyList[SmartString] = repeaters.map(_.repeater.expandedDescription)
+      val addToListItemSummaries: NonEmptyList[SmartString] = repeaters.map(_.repeater.expandedSummaryDescription)
 
       val lastRepeaterWithNumber = repeaters.last
 
@@ -438,7 +438,9 @@ object SummaryRenderingService {
       val url: Call = routes.FormController
         .form(formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
 
-      val addToListSummary = HtmlFormat.fill(addToListItemSummaries.map(ss => markDownParser(ss)).toList)
+      val addToListSummaryItems: List[Html] = addToListItemSummaries.map(ss => markDownParser(ss)).toList
+
+      val addToListSummary = ordered_list(addToListSummaryItems)
 
       val label = repeater.title.value
 

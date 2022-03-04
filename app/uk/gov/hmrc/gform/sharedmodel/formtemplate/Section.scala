@@ -56,6 +56,7 @@ object Section {
     title: SmartString,
     noPIITitle: Option[SmartString],
     description: SmartString,
+    summaryDescription: SmartString,
     shortName: SmartString,
     summaryName: SmartString,
     includeIf: Option[IncludeIf],

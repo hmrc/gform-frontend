@@ -94,6 +94,7 @@ case class Repeater[A <: PageMode](
   expandedId: PageId,
   expandedNoPIITitle: Option[SmartString],
   expandedDescription: SmartString,
+  expandedSummaryDescription: SmartString,
   expandedShortName: SmartString,
   expandedSummaryName: SmartString,
   includeIf: Option[IncludeIf],
