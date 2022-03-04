@@ -37,7 +37,6 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   )(
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   ): ValidatedType[Unit] = {
-
     val addressValueOf: Atom => Seq[String] = suffix =>
       formModelVisibilityOptics.data
         .get(fieldValue.atomicFormComponentId(suffix))
