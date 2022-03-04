@@ -60,7 +60,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
           ukStreetValidation(Address.street4),
           validateRequiredFieldSub(Address.postcode, messages("ukAddress.postcode.label")),
           validateForbiddenField(Address.country, fieldValue)(addressValueOf(Address.country)),
-          postcodeLengthValidation(Address.postcode, fieldValue)(addressValueOf(Address.postcode))
+          validatePostcode(Address.postcode, fieldValue)(addressValueOf(Address.postcode))
         )
       case _ =>
         List(
@@ -90,7 +90,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   private def ukLengthValidation(value: Atom, fieldValue: FormComponent) =
     ukAddressLineValidation(fieldValue, fieldValue.atomicFormComponentId(value)) _
 
-  private def postcodeLengthValidation(value: Atom, fieldValue: FormComponent) =
+  private def validatePostcode(value: Atom, fieldValue: FormComponent) =
     postcodeValidation(fieldValue, fieldValue.atomicFormComponentId(value)) _
 
   private def countryLengthValidation(value: Atom, fieldValue: FormComponent) =
@@ -155,9 +155,10 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   )(
     xs: Seq[String]
   ): ValidatedType[Unit] =
-    lengthLimitValidation(fieldValue, atomicFcId, ValidationValues.postcodeLimit, "ukAddress.postcode.error.maxLength")(
-      xs
-    )
+    stringValidator(
+      !PostcodeLookupValidation.checkPostcode(_),
+      mkErrors(fieldValue, atomicFcId)("postcode.error.real", Nil)
+    )(xs)
 
   private def countryValidation(
     fieldValue: FormComponent,
@@ -165,25 +166,22 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   )(
     xs: Seq[String]
   ): ValidatedType[Unit] =
-    lengthLimitValidation(
-      fieldValue,
-      atomicFcId,
-      ValidationValues.countryLimit,
-      "internationalAddress.country.error.maxLength"
+    stringValidator(
+      _.length > ValidationValues.countryLimit,
+      mkErrors(fieldValue, atomicFcId)(
+        "internationalAddress.country.error.maxLength",
+        ValidationValues.countryLimit.toString :: Nil
+      )
     )(xs)
 
-  private def lengthLimitValidation(
-    fieldValue: FormComponent,
-    atomicFcId: ModelComponentId.Atomic,
-    limit: Int,
-    messageKey: String
+  private def stringValidator(
+    predicate: String => Boolean,
+    onError: ValidatedType[Unit]
   )(
     xs: Seq[String]
   ): ValidatedType[Unit] =
     xs.filterNot(_.isEmpty) match {
-      case value :: Nil if value.length > limit =>
-        val vars: List[String] = limit.toString :: Nil
-        mkErrors(fieldValue, atomicFcId)(messageKey, vars)
-      case _ => validationSuccess
+      case value :: Nil if predicate(value) => onError
+      case _                                => validationSuccess
     }
 }
