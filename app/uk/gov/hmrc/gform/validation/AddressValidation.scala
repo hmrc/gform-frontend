@@ -155,7 +155,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   )(
     xs: Seq[String]
   ): ValidatedType[Unit] =
-    checkUKPostcode(fieldValue, atomicFcId, "postcode.error.real")(
+    stringValidator(fieldValue, atomicFcId, "postcode.error.real", Nil, PostcodeLookupValidation.checkPostcode)(
       xs
     )
 
@@ -165,38 +165,25 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   )(
     xs: Seq[String]
   ): ValidatedType[Unit] =
-    lengthLimitValidation(
+    stringValidator(
       fieldValue,
       atomicFcId,
-      ValidationValues.countryLimit,
-      "internationalAddress.country.error.maxLength"
+      "internationalAddress.country.error.maxLength",
+      ValidationValues.countryLimit.toString :: Nil,
+      _.length > ValidationValues.countryLimit
     )(xs)
 
-  private def lengthLimitValidation(
+  private def stringValidator(
     fieldValue: FormComponent,
     atomicFcId: ModelComponentId.Atomic,
-    limit: Int,
-    messageKey: String
+    messageKey: String,
+    vars: List[String],
+    predicate: String => Boolean
   )(
     xs: Seq[String]
   ): ValidatedType[Unit] =
     xs.filterNot(_.isEmpty) match {
-      case value :: Nil if value.length > limit =>
-        val vars: List[String] = limit.toString :: Nil
-        mkErrors(fieldValue, atomicFcId)(messageKey, vars)
-      case _ => validationSuccess
-    }
-
-  private def checkUKPostcode(
-    fieldValue: FormComponent,
-    atomicFcId: ModelComponentId.Atomic,
-    messageKey: String
-  )(
-    xs: Seq[String]
-  ): ValidatedType[Unit] =
-    xs.filterNot(_.isEmpty) match {
-      case value :: Nil if !PostcodeLookupValidation.checkPostcode(value) =>
-        val vars: List[String] = Nil
+      case value :: Nil if predicate(value) =>
         mkErrors(fieldValue, atomicFcId)(messageKey, vars)
       case _ => validationSuccess
     }
