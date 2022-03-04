@@ -37,6 +37,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   )(
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   ): ValidatedType[Unit] = {
+
     val addressValueOf: Atom => Seq[String] = suffix =>
       formModelVisibilityOptics.data
         .get(fieldValue.atomicFormComponentId(suffix))
@@ -155,7 +156,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   )(
     xs: Seq[String]
   ): ValidatedType[Unit] =
-    lengthLimitValidation(fieldValue, atomicFcId, ValidationValues.postcodeLimit, "ukAddress.postcode.error.maxLength")(
+    checkPostcode(fieldValue, atomicFcId, "postcode.error.real")(
       xs
     )
 
@@ -183,6 +184,20 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
     xs.filterNot(_.isEmpty) match {
       case value :: Nil if value.length > limit =>
         val vars: List[String] = limit.toString :: Nil
+        mkErrors(fieldValue, atomicFcId)(messageKey, vars)
+      case _ => validationSuccess
+    }
+
+  private def checkPostcode(
+    fieldValue: FormComponent,
+    atomicFcId: ModelComponentId.Atomic,
+    messageKey: String
+  )(
+    xs: Seq[String]
+  ): ValidatedType[Unit] =
+    xs.filterNot(_.isEmpty) match {
+      case value :: Nil if !PostcodeLookupValidation.checkPostcode(value) =>
+        val vars: List[String] = Nil
         mkErrors(fieldValue, atomicFcId)(messageKey, vars)
       case _ => validationSuccess
     }
