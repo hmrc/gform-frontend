@@ -109,7 +109,13 @@
                 }
             }
         }
-        @{summarySectionDeclaration.getOrElse(HtmlFormat.empty)}
+        @summarySectionDeclaration.map { declaration =>
+            @if(declaration.body.nonEmpty) {
+                <dl>
+                    <dd>@declaration</dd>
+                </dl>
+            }
+       }
         @for(headerFooter <- maybeHeaderFooter) {
             @for(footer <- headerFooter.footer) {
                 @markDownParser(footer)
