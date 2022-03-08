@@ -201,6 +201,7 @@ sealed trait TextConstraint {
     case EmailVerifiedBy(_, _)        => CssClassSize._10
     case UTR                          => CssClassSize._10
     case NINO                         => CssClassSize._10
+    case PayeReference                => CssClassSize._10
     case UkVrn                        => CssClassSize._10
     case CountryCode                  => CssClassSize._5
     case NonUkCountryCode             => CssClassSize._5
@@ -277,6 +278,7 @@ case class EmailVerifiedBy(formComponentId: FormComponentId, emailVerifierServic
 case object UTR extends TextConstraint
 case object NINO extends TextConstraint
 case object UkVrn extends TextConstraint
+case object PayeReference extends TextConstraint
 case object CountryCode extends TextConstraint
 case object NonUkCountryCode extends TextConstraint
 case object CompanyRegistrationNumber extends TextConstraint

@@ -189,6 +189,7 @@ object ComponentValidator {
       case (_, Some(value), UTR)                       => checkUtr(fieldValue, value)
       case (_, Some(value), NINO)                      => checkNino(fieldValue, value)
       case (_, Some(value), UkVrn)                     => checkVrn(fieldValue, value)
+      case (_, Some(value), PayeReference)             => checkPayeReference(fieldValue, value)
       case (_, Some(value), CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
       case (_, Some(value), EORI)                      => checkEORI(fieldValue, value)
       case (_, Some(value), UkEORI)                    => checkUkEORI(fieldValue, value)
@@ -493,6 +494,18 @@ object ComponentValidator {
       case x if Nino.isValid(x) => validationSuccess
       case _                    => validationFailure(fieldValue, genericGovernmentIdErrorPattern, None)
     }
+
+  private def checkPayeReference(
+    fieldValue: FormComponent,
+    value: String
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ) = {
+    val ValidPaye = "^[0-9]{3}/[0-9A-Z]{1,10}$".r
+    val str = value.replace(" ", "")
+    sharedTextComponentValidator(fieldValue, str, 5, 14, ValidPaye, genericGovernmentIdErrorPattern)
+  }
 
   def validatePhoneNumber(
     fieldValue: FormComponent,
