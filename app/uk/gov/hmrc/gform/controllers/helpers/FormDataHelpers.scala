@@ -212,6 +212,7 @@ object FormDataHelpers {
         val poundOrComma = "[£,]".r
         poundOrComma.replaceAllIn(value, "")
       case Some(formComponent) if formComponent.isReferenceNumber => value.replace(" ", "")
+      case Some(formComponent) if formComponent.isPayeReference   => value.replace(" ", "")
       case None if formModel.postcodeLookup(formComponentId.baseComponentId) =>
         PostcodeLookupValidation.normalisePostcode(value)
       case _ => value
