@@ -21,6 +21,7 @@ import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import java.net.URLEncoder
 
 object RecoverAuthResult {
 
@@ -40,6 +41,29 @@ object RecoverAuthResult {
       AuthRedirectFlashingFormName(
         uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments(formTemplateId).url
       )
+  }
+
+  def recoverPost(
+    request: Request[AnyContent],
+    appConfig: AppConfig,
+    formTemplateId: FormTemplateId
+  ): PartialFunction[Throwable, AuthResult] =
+    recoverNoActiveSessionPost(request, appConfig, formTemplateId) orElse RecoverAuthResult.noop
+
+  def recoverNoActiveSessionPost(
+    request: Request[AnyContent],
+    appConfig: AppConfig,
+    formTemplateId: FormTemplateId
+  ): PartialFunction[Throwable, AuthResult] = {
+    case _: NoActiveSession if request.method == "POST" =>
+      logger.debug("No Active Session")
+      val continueUrl = URLEncoder.encode(
+        s"${appConfig.`gform-frontend-base-url`}/submissions/new-form/${formTemplateId.value}",
+        "UTF-8"
+      )
+      val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
+      val url = s"$ggLoginUrl?continue=$continueUrl"
+      AuthRedirectFlashingFormName(url)
   }
 
   def basicRecover(request: Request[AnyContent], appConfig: AppConfig): PartialFunction[Throwable, AuthResult] =
