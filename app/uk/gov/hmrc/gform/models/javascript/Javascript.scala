@@ -99,10 +99,6 @@ object Javascript {
          |function multiply(a, b) {
          |  return BigNumber(a).times(BigNumber(b));
          |};
-         |
-         |function divide(a, b) {
-         |  return BigNumber(a).div(BigNumber(b));
-         |};
          |function displaySterling(result, precision, rounding) {
          |  var r = BigNumber(result).toFormat(precision, rounding);
          |  return result < 0 ? r.replace("-", "-£") : '£' + r;
@@ -173,7 +169,6 @@ object Javascript {
         case Add(a, b)              => compute("add", a, b)
         case Subtraction(a, b)      => compute("subtract", a, b)
         case Multiply(a, b)         => compute("multiply", a, b)
-        case Divide(a, b)           => compute("divide", a, b)
         case sum @ Sum(FormCtx(id)) => sumCalc(id, sum)
         case otherwise              => ""
       }

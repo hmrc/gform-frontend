@@ -30,7 +30,6 @@ sealed trait Expr extends Product with Serializable {
       case Add(field1: Expr, field2: Expr)         => loop(field1) ++ loop(field2)
       case Multiply(field1: Expr, field2: Expr)    => loop(field1) ++ loop(field2)
       case Subtraction(field1: Expr, field2: Expr) => loop(field1) ++ loop(field2)
-      case Divide(field1: Expr, field2: Expr)      => loop(field1) ++ loop(field2)
       case IfElse(_, field1: Expr, field2: Expr)   => loop(field1) ++ loop(field2)
       case Else(field1: Expr, field2: Expr)        => loop(field1) ++ loop(field2)
       case FormCtx(_)                              => expr :: Nil
@@ -67,7 +66,6 @@ sealed trait Expr extends Product with Serializable {
     case Add(field1: Expr, field2: Expr)         => field1.leafs(formModel) ++ field2.leafs(formModel)
     case Multiply(field1: Expr, field2: Expr)    => field1.leafs(formModel) ++ field2.leafs(formModel)
     case Subtraction(field1: Expr, field2: Expr) => field1.leafs(formModel) ++ field2.leafs(formModel)
-    case Divide(field1: Expr, field2: Expr)      => field1.leafs(formModel) ++ field2.leafs(formModel)
     case IfElse(cond, field1: Expr, field2: Expr) =>
       cond.allExpressions.flatMap(_.leafs(formModel)) ++
         field1.leafs(formModel) ++ field2.leafs(formModel)
@@ -104,7 +102,6 @@ sealed trait Expr extends Product with Serializable {
     case Add(field1: Expr, field2: Expr)            => field1.sums ++ field2.sums
     case Multiply(field1: Expr, field2: Expr)       => field1.sums ++ field2.sums
     case Subtraction(field1: Expr, field2: Expr)    => field1.sums ++ field2.sums
-    case Divide(field1: Expr, field2: Expr)         => field1.sums ++ field2.sums
     case IfElse(cond, field1: Expr, field2: Expr)   => cond.allExpressions.flatMap(_.sums) ++ field1.sums ++ field2.sums
     case Else(field1: Expr, field2: Expr)           => field1.sums ++ field2.sums
     case FormCtx(formComponentId: FormComponentId)  => Nil
@@ -132,7 +129,6 @@ sealed trait Expr extends Product with Serializable {
 final case class Add(field1: Expr, field2: Expr) extends Expr
 final case class Multiply(field1: Expr, field2: Expr) extends Expr
 final case class Subtraction(field1: Expr, field2: Expr) extends Expr
-final case class Divide(field1: Expr, field2: Expr) extends Expr
 final case class IfElse(cond: BooleanExpr, field1: Expr, field2: Expr) extends Expr
 final case class Else(field1: Expr, field2: Expr) extends Expr
 final case class FormCtx(formComponentId: FormComponentId) extends Expr

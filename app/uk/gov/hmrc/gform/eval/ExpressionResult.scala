@@ -43,9 +43,6 @@ sealed trait ExpressionResult extends Product with Serializable {
   private def invalidMult(er: ExpressionResult): ExpressionResult =
     Invalid(s"Unsupported operation, cannot multiply $this and $er")
 
-  private def invalidDivide(er: ExpressionResult): ExpressionResult =
-    Invalid(s"Unsupported operation, cannot divide $this and $er")
-
   def +(er: ExpressionResult)(implicit messages: Messages): ExpressionResult = er match {
     // format: off
     case t: Invalid     => t // TODO we are loosing 'this' which can potentionally be invalid as well
@@ -92,21 +89,6 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: PeriodResult => Invalid("Unsupported operation, cannot multiply PeriodResult")
     case t: AddressResult => Invalid("Unsupported operation, cannot multiply AddressResult")
     case t: ListResult => Invalid(s"Unsupported operation, cannot multiply ListResult and $t")
-    // format: on
-  }
-
-  def /(er: ExpressionResult): ExpressionResult = er match {
-    // format: off
-    case t: Invalid      => t
-    case t: Hidden.type  => fold[ExpressionResult](identity)(identity)(identity)(_ => NumberResult(0))(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)
-    case t: Empty.type   => this
-    case t: NumberResult => fold[ExpressionResult](identity)(_ => NumberResult(0))(identity)(_ / t)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)
-    case t: StringResult => Invalid("Unsupported operation, cannot divide strings")
-    case t: OptionResult => Invalid("Unsupported operation, cannot divide options")
-    case t: DateResult => Invalid("Unsupported operation, cannot divide DateResult")
-    case t: PeriodResult => Invalid("Unsupported operation, cannot divide PeriodResult")
-    case t: AddressResult => Invalid("Unsupported operation, cannot divide AddressResult")
-    case t: ListResult => Invalid(s"Unsupported operation, cannot divide ListResult and $t")
     // format: on
   }
 
@@ -384,7 +366,6 @@ object ExpressionResult {
     def +(nr: NumberResult): NumberResult = NumberResult(value + nr.value)
     def -(nr: NumberResult): NumberResult = NumberResult(value - nr.value)
     def *(nr: NumberResult): NumberResult = NumberResult(value * nr.value)
-    def /(nr: NumberResult): NumberResult = NumberResult(value / nr.value)
   }
   case class StringResult(value: String) extends ExpressionResult {
     def +(sr: StringResult): StringResult = StringResult(value + sr.value)
