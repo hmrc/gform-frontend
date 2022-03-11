@@ -240,6 +240,7 @@ class ExprInspector(formModel: FormModel[DataExpanded]) {
       case Add(expr1: Expr, expr2: Expr)         => inner(expr1, expr2)
       case Multiply(expr1: Expr, expr2: Expr)    => inner(expr1, expr2)
       case Subtraction(expr1: Expr, expr2: Expr) => inner(expr1, expr2)
+      case Divide(expr1: Expr, expr2: Expr)      => inner(expr1, expr2)
       case Else(expr1: Expr, expr2: Expr)        => inner(expr1, expr2)
       case otherwise                             => Nil
     }
