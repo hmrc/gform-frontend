@@ -50,30 +50,28 @@ object RecoverAuthResult {
   def recoverNoActiveSession(
     request: Request[AnyContent],
     appConfig: AppConfig
-  ): PartialFunction[Throwable, AuthResult] = { 
-      case _: NoActiveSession if request.method == "POST" =>
-        val formTemplateWithRedirect = request.attrs(FormTemplateKey)
-        val formTemplate = formTemplateWithRedirect.formTemplate
-        logger.debug("No Active Session")
-        val continueUrl = URLEncoder.encode(
-          s"${appConfig.`gform-frontend-base-url`}/submissions/new-form/${formTemplate._id.value}",
-          "UTF-8"
-        )
-        val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
-        val url = s"$ggLoginUrl?continue=$continueUrl"
-        AuthRedirectFlashingFormName(url)
-      case _: NoActiveSession =>
-        logger.debug("No Active Session")
-        val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
-        val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
-        val url = s"$ggLoginUrl?continue=$continueUrl"
-        AuthRedirectFlashingFormName(url)
+  ): PartialFunction[Throwable, AuthResult] = {
+    case _: NoActiveSession if request.method == "POST" =>
+      val formTemplateWithRedirect = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirect.formTemplate
+      logger.debug("No Active Session")
+      val continueUrl = URLEncoder.encode(
+        s"${appConfig.`gform-frontend-base-url`}/submissions/new-form/${formTemplate._id.value}",
+        "UTF-8"
+      )
+      val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
+      val url = s"$ggLoginUrl?continue=$continueUrl"
+      AuthRedirectFlashingFormName(url)
+    case _: NoActiveSession =>
+      logger.debug("No Active Session")
+      val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
+      val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
+      val url = s"$ggLoginUrl?continue=$continueUrl"
+      AuthRedirectFlashingFormName(url)
   }
 
   val logAndRethrow: PartialFunction[Throwable, AuthResult] = { case otherException =>
     logger.debug(s"Exception thrown on authorization with message : ${otherException.getMessage}")
     throw otherException
   }
-
-
 }
