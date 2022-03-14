@@ -259,21 +259,24 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       "a" -> "100",
       "b" -> "100",
       "c" -> "100",
-      "d" -> "100"
+      "d" -> "100",
+      "e" -> "100"
     )
 
     val expectedOutputData = mkDataCurrent(
       "a" -> "100",
       "b" -> "110.00",
       "c" -> "220.00",
-      "d" -> "330.00"
+      "d" -> "330.00",
+      "e" -> "55.00"
     )
 
     val sections = List(
       mkSection(mkFormComponent("a", Value, sterling) :: Nil),
       mkSection(mkFormComponent("b", Add(ctx("a"), Constant("10")), sterling) :: Nil),
       mkSection(mkFormComponent("c", Multiply(ctx("b"), Constant("2")), sterling) :: Nil),
-      mkSection(mkFormComponent("d", Add(ctx("b"), ctx("c")), sterling) :: Nil)
+      mkSection(mkFormComponent("d", Add(ctx("b"), ctx("c")), sterling) :: Nil),
+      mkSection(mkFormComponent("e", Divide(ctx("b"), Constant("2")), sterling) :: Nil)
     )
 
     val expectedExprMap = Map(
