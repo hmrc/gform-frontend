@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.FormTemplateKey
 import java.net.URLEncoder
+import uk.gov.hmrc.gform.gform.routes
 
 object RecoverAuthResult {
 
@@ -50,24 +51,15 @@ object RecoverAuthResult {
   def recoverNoActiveSession(
     request: Request[AnyContent],
     appConfig: AppConfig
-  ): PartialFunction[Throwable, AuthResult] = {
-    case _: NoActiveSession if request.method == "POST" =>
-      val formTemplateWithRedirect = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirect.formTemplate
-      logger.debug("No Active Session")
-      val continueUrl = URLEncoder.encode(
-        s"${appConfig.`gform-frontend-base-url`}/submissions/new-form/${formTemplate._id.value}",
-        "UTF-8"
-      )
-      val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
-      val url = s"$ggLoginUrl?continue=$continueUrl"
-      AuthRedirectFlashingFormName(url)
-    case _: NoActiveSession =>
-      logger.debug("No Active Session")
-      val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
-      val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
-      val url = s"$ggLoginUrl?continue=$continueUrl"
-      AuthRedirectFlashingFormName(url)
+  ): PartialFunction[Throwable, AuthResult] = { case _: NoActiveSession =>
+    val formTemplateWithRedirect = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateWithRedirect.formTemplate
+    logger.debug("No Active Session")
+    val dashboardUrl = routes.NewFormController.dashboard(formTemplate._id).url
+    val continueUrl = URLEncoder.encode(s"${appConfig.`gform-frontend-base-url`}" + dashboardUrl, "UTF-8")
+    val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
+    val url = s"$ggLoginUrl?continue=$continueUrl"
+    AuthRedirectFlashingFormName(url)
   }
 
   val logAndRethrow: PartialFunction[Throwable, AuthResult] = { case otherException =>
