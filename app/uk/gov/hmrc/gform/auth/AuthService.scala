@@ -71,33 +71,20 @@ class AuthService(
           )
           .pure[Future]
       case AWSALBAuth => performAWSALBAuth(assumedIdentity).pure[Future]
-      case HmrcAny    => performHmrcAny(ggAuthorised(RecoverAuthResult.recoverPost(request, appConfig, formTemplate._id)))
+      case HmrcAny    => performHmrcAny(ggAuthorised(RecoverAuthResult.noop))
       case HmrcVerified(_, _) =>
-        performGGAuth(ggAuthorised(RecoverAuthResult.recoverPost(request, appConfig, formTemplate._id))).map(
-          authResult => isHmrcVerified(authResult, formTemplate)
-        )
-      case HmrcSimpleModule =>
-        performGGAuth(ggAuthorised(RecoverAuthResult.recoverPost(request, appConfig, formTemplate._id)))
+        performGGAuth(ggAuthorised(RecoverAuthResult.noop)).map(authResult => isHmrcVerified(authResult, formTemplate))
+      case HmrcSimpleModule => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>
         performEnrolment(formTemplate, enrolmentAuth, getAffinityGroup, ggAuthorised)
       case HmrcAgentModule(agentAccess) =>
-        performAgent(
-          agentAccess,
-          formTemplate,
-          ggAuthorised(RecoverAuthResult.recoverPost(request, appConfig, formTemplate._id)),
-          Future.successful
-        )
+        performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), Future.successful)
       case HmrcAgentWithEnrolmentModule(agentAccess, enrolmentAuth) =>
         def ifSuccessPerformEnrolment(authResult: AuthResult) = authResult match {
           case AuthSuccessful(_, _) => performEnrolment(formTemplate, enrolmentAuth, getAffinityGroup, ggAuthorised)
           case authUnsuccessful     => Future.successful(authUnsuccessful)
         }
-        performAgent(
-          agentAccess,
-          formTemplate,
-          ggAuthorised(RecoverAuthResult.recoverPost(request, appConfig, formTemplate._id)),
-          ifSuccessPerformEnrolment
-        )
+        performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
       case EmailAuthConfig(_, _, _, _) =>
         isEmailConfirmed(formTemplateWithRedirects) match {
           case Some(email) =>
@@ -124,7 +111,7 @@ class AuthService(
 
         getGovermentGatewayId(()) flatMap {
           case Some(id) if List(AuthConfig.hmrcSimpleModule, id.ggId) contains compositeAuthDetails.getOrElse("") =>
-            performGGAuth(ggAuthorised(RecoverAuthResult.recoverPost(request, appConfig, formTemplate._id)))
+            performGGAuth(ggAuthorised(RecoverAuthResult.noop))
 
           case Some(id) if compositeAuthDetails.isEmpty =>
             AuthCustomRedirect(
