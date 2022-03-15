@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.TextConstraint
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ExplicitExprType, Number, Sterling, TextConstraint }
 
 case class StaticTypeInfo(lookup: Map[BaseComponentId, StaticTypeData]) extends AnyVal {
   def get(baseComponentId: BaseComponentId): Option[StaticTypeData] = lookup.get(baseComponentId)
@@ -28,10 +28,26 @@ case class StaticTypeInfo(lookup: Map[BaseComponentId, StaticTypeData]) extends 
 
 object StaticTypeInfo {
   val empty: StaticTypeInfo = StaticTypeInfo(Map.empty[BaseComponentId, StaticTypeData])
+
 }
 
 case class StaticTypeData(exprType: ExprType, textConstraint: Option[TextConstraint])
 
 object StaticTypeData {
   val illegal: StaticTypeData = StaticTypeData(ExprType.illegal, None)
+  def from(explicit: ExplicitExprType): StaticTypeData = explicit match {
+    case ExplicitExprType.Text => StaticTypeData(ExprType.string, None)
+    case ExplicitExprType.Sterling(roundingMode) =>
+      StaticTypeData(ExprType.number, Some(Sterling(roundingMode, false)))
+    case ExplicitExprType.Number(fractionalDigits, roundingMode) =>
+      StaticTypeData(
+        ExprType.number,
+        Some(
+          Number(
+            maxFractionalDigits = fractionalDigits,
+            roundingMode = roundingMode
+          )
+        )
+      )
+  }
 }
