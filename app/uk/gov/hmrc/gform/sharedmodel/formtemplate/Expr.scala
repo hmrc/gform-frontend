@@ -59,6 +59,7 @@ sealed trait Expr extends Product with Serializable {
       case AddressLens(_, _)                       => expr :: Nil
       case DataRetrieveCtx(_, _)                   => expr :: Nil
       case Size(_, _)                              => expr :: Nil
+      case Typed(e, _)                             => expr :: Nil
     }
     loop(this).headOption
   }
@@ -98,6 +99,7 @@ sealed trait Expr extends Product with Serializable {
     case AddressLens(formComponentId, _)            => this :: Nil
     case DataRetrieveCtx(_, _)                      => this :: Nil
     case Size(_, _)                                 => this :: Nil
+    case Typed(expr, _)                             => expr.leafs(formModel)
   }
 
   def sums: List[Sum] = this match {
@@ -126,6 +128,7 @@ sealed trait Expr extends Product with Serializable {
     case AddressLens(_, _)                          => Nil
     case DataRetrieveCtx(id, attribute)             => Nil
     case Size(_, _)                                 => Nil
+    case Typed(expr, _)                             => expr.sums
   }
 }
 
@@ -153,6 +156,21 @@ final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
 final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieveAttribute) extends Expr
 final case class Size(formComponentId: FormComponentId, index: Int) extends Expr
+final case class Typed(expr: Expr, tpe: ExplicitExprType) extends Expr
+
+sealed trait ExplicitExprType extends Product with Serializable
+object ExplicitExprType {
+  case object Text extends ExplicitExprType
+  case class Sterling(
+    roundingMode: RoundingMode
+  ) extends ExplicitExprType
+  case class Number(
+    fractionalDigits: Int,
+    roundingMode: RoundingMode
+  ) extends ExplicitExprType
+
+  implicit val format: OFormat[ExplicitExprType] = derived.oformat()
+}
 
 sealed trait PeriodFn
 object PeriodFn {

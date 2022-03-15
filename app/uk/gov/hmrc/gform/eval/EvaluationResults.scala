@@ -215,6 +215,7 @@ case class EvaluationResults(
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
       case DataRetrieveCtx(_, _)                      => unsupportedOperation("Number")(expr)
       case Size(formComponentId, index)               => evalSize(formComponentId, recData, index)
+      case Typed(expr, _)                             => loop(expr)
     }
 
     loop(typeInfo.expr)
@@ -390,6 +391,7 @@ case class EvaluationResults(
           )
         )
       case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
+      case Typed(expr, _)               => loop(expr)
     }
 
     loop(typeInfo.expr)
