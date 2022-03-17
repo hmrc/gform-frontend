@@ -176,7 +176,12 @@ object Javascript {
         case Multiply(a, b)         => compute("multiply", a, b)
         case Divide(a, b)           => compute("divide", a, b)
         case sum @ Sum(FormCtx(id)) => sumCalc(id, sum)
-        case otherwise              => ""
+        case IfElse(cond, a, b) =>
+          if (formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(cond))
+            computeExpr(a)
+          else
+            computeExpr(b)
+        case otherwise => ""
       }
     }
 
