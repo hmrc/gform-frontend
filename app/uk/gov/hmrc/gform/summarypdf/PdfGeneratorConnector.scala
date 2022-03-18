@@ -35,7 +35,7 @@ class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp)(impl
   def generatePDF(payload: Map[String, Seq[PdfHtml]], headers: Seq[(String, String)]): Future[Source[ByteString, _]] = {
     val url = s"$baseURL/pdf-generator-service/generate"
 
-    val payloadMap: Map[String, Seq[String]] = payload.mapValues(_.map(_.html))
+    val payloadMap: Map[String, Seq[String]] = payload.mapValues(_.map(_.html.replaceAllLiterally("<br>", "<br/>")))
     val payloadSize = payloadMap.foldLeft(0) { case (acc, (key, value)) => acc + key.size + value.map(_.size).sum }
     logger.info(s"Generate pdf. Html payload size is: $payloadSize bytes.")
     wSHttp
