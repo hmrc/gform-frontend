@@ -44,7 +44,7 @@ class PdfGeneratorService(
         builder.usePdfAConformance(PdfRendererBuilder.PdfAConformance.PDFA_3_U)
         builder.useFont(() => environment.classLoader.getResourceAsStream("arial.ttf"), "Arial")
         builder.useFastMode()
-        builder.withHtmlContent(pdfHtml.html, null)
+        builder.withHtmlContent(pdfHtml.html.replaceAllLiterally("<br>", "<br/>"), null)
         builder.toStream(os)
         builder.run()
       }
