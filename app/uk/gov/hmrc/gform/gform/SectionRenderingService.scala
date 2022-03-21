@@ -1235,7 +1235,7 @@ class SectionRenderingService(
       case Checkbox =>
         val items = dividerPosition.foldLeft(optionsWithHintAndHelpText.zipWithIndex.map {
           case ((option, maybeHint, maybeHelpText), index) =>
-            if (noneChoice == Some(index)) {
+            if (noneChoice == Some(index + 1)) {
               CheckboxItem(
                 id = Some(formComponent.id.value + index),
                 value = index.toString,
