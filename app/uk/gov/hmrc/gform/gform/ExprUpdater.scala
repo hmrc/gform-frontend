@@ -42,7 +42,20 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case LinkCtx(PageLink(id))                => LinkCtx(PageLink(id.withIndex(index)))
     case DataRetrieveCtx(id, attribute)       => DataRetrieveCtx(id.withIndex(index), attribute)
     case Size(formComponentId, index)         => Size(expandFcId(formComponentId), index)
-    case otherwise                            => otherwise
+    case Typed(expr, tpe)                     => Typed(expandExpr(expr), tpe)
+    case Count(_)                             => expr
+    case AuthCtx(_)                           => expr
+    case UserCtx(_)                           => expr
+    case Constant(_)                          => expr
+    case PeriodValue(_)                       => expr
+    case HmrcRosmRegistrationCheck(_)         => expr
+    case Value                                => expr
+    case FormTemplateCtx(_)                   => expr
+    case ParamCtx(_)                          => expr
+    case LinkCtx(_)                           => expr
+    case LangCtx                              => expr
+    case Period(_, _)                         => expr
+    case PeriodExt(_, _)                      => expr
   }
 
   private def expandDateExpr(dateExpr: DateExpr): DateExpr = dateExpr match {
