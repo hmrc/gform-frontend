@@ -69,7 +69,8 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     None
   )
 
-  private val emptyChoice = Choice(Checkbox, NonEmptyList.one(toSmartString("")), Vertical, List.empty, None, None)
+  private val emptyChoice =
+    Choice(Checkbox, NonEmptyList.one(toSmartString("")), Vertical, List.empty, None, None, None, "or", None)
 
   private val emptyInformationMessage = InformationMessage(StandardInfo, toSmartString(""))
 

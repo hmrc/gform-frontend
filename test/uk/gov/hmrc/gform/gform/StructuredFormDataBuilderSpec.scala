@@ -1137,6 +1137,9 @@ class StructuredFormDataBuilderSpec
         Vertical,
         Nil,
         None,
+        None,
+        None,
+        "or",
         None
       )
     )
@@ -1150,6 +1153,9 @@ class StructuredFormDataBuilderSpec
         Vertical,
         Nil,
         None,
+        None,
+        None,
+        "or",
         None
       )
     )

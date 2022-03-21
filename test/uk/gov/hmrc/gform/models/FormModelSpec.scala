@@ -334,7 +334,17 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     val fcA2 =
       mkFormComponent(
         "a2",
-        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None)
+        Choice(
+          Radio,
+          NonEmptyList.one(toSmartString("Option A")),
+          Vertical,
+          List.empty[Int],
+          None,
+          None,
+          None,
+          "or",
+          None
+        )
       )
     val fcB = mkFormComponent("b", Text(TextConstraint.default, Constant("456")))
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
@@ -420,7 +430,17 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     val fcB =
       mkFormComponent(
         "b",
-        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None)
+        Choice(
+          Radio,
+          NonEmptyList.one(toSmartString("Option A")),
+          Vertical,
+          List.empty[Int],
+          None,
+          None,
+          None,
+          "or",
+          None
+        )
       )
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
     val fcD = mkFormComponent("d", Text(TextConstraint.default, Value))
@@ -497,7 +517,17 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     val fcB =
       mkFormComponent(
         "b",
-        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None)
+        Choice(
+          Radio,
+          NonEmptyList.one(toSmartString("Option A")),
+          Vertical,
+          List.empty[Int],
+          None,
+          None,
+          None,
+          "or",
+          None
+        )
       )
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
     val fcD = mkFormComponent("d", Text(TextConstraint.default, Value))

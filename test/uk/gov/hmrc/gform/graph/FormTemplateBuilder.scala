@@ -281,7 +281,17 @@ object FormTemplateBuilder {
   def addToListQuestion(addAnotherQuestionName: String): FormComponent =
     mkFormComponent(
       addAnotherQuestionName,
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None)
+      Choice(
+        YesNo,
+        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        "or",
+        None
+      )
     )
 
   def mkPage(formComponents: List[FormComponent]): Page[Visibility] = Page[Visibility](

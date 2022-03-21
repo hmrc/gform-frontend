@@ -184,6 +184,9 @@ class FormDataHelpersSpec extends Spec {
           Horizontal,
           List.empty,
           None,
+          None,
+          None,
+          "or",
           None
         )
       ),

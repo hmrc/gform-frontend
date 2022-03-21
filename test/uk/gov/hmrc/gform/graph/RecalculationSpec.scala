@@ -357,7 +357,17 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
   it should "not recalculate sections which are invisible based on choice component" in {
 
     val choice =
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None)
+      Choice(
+        YesNo,
+        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        "or",
+        None
+      )
 
     val formComponentIds = Table(
       ("input", "output", "expectedExprMap"),
@@ -434,7 +444,17 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
   it should "handle Else expression (in SmartString label) depending on IncludeIf page" in {
 
     val choice =
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None)
+      Choice(
+        YesNo,
+        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        "or",
+        None
+      )
 
     val formComponentIds = Table(
       ("input", "output", "expectedExprMap"),
@@ -747,7 +767,17 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     )
 
     val choice =
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None)
+      Choice(
+        YesNo,
+        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        "or",
+        None
+      )
 
     val includeIf1 = IncludeIf(Contains(ctx("a"), Constant("0")))
     val includeIf2 = IncludeIf(Contains(ctx("b"), Constant("0")))
@@ -870,7 +900,17 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     )
 
     val choice =
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None)
+      Choice(
+        YesNo,
+        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        "or",
+        None
+      )
 
     val includeIf1 = IncludeIf(Contains(ctx("a"), Constant("1")))
     val includeIf2 = IncludeIf(Contains(ctx("b"), Constant("1")))

@@ -427,7 +427,17 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def `fieldValue - choice` = FormComponent(
     `fieldId - choice`,
-    Choice(Radio, NonEmptyList.of(toSmartString("u"), toSmartString("v")), Vertical, List(), None, None),
+    Choice(
+      Radio,
+      NonEmptyList.of(toSmartString("u"), toSmartString("v")),
+      Vertical,
+      List(),
+      None,
+      None,
+      None,
+      "or",
+      None
+    ),
     toSmartString("sample label"),
     None,
     None,
@@ -511,7 +521,17 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def addToListQuestion(addAnotherQuestionName: String): FormComponent =
     FormComponent(
       FormComponentId(addAnotherQuestionName),
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None),
+      Choice(
+        YesNo,
+        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        "or",
+        None
+      ),
       ls,
       None,
       None,
