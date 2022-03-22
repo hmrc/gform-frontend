@@ -1137,7 +1137,7 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     ei: ExtraInfo,
     dividerPosition: Option[Int],
-    dividerText: String,
+    dividerText: LocalisedString,
     noneChoice: Option[Int]
   )(implicit
     l: LangADT,
@@ -1259,7 +1259,7 @@ class SectionRenderingService(
             }
         }.toList)((ls, pos) =>
           ls.take(pos) ++
-            List(CheckboxItem(divider = Some(dividerText))) ++
+            List(CheckboxItem(divider = Some(dividerText.value))) ++
             ls.takeRight(ls.length - pos)
         )
 
