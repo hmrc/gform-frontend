@@ -435,7 +435,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
       None,
       None,
       None,
-      "or",
+      LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
       None
     ),
     toSmartString("sample label"),
@@ -529,7 +529,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
         None,
         None,
         None,
-        "or",
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None
       ),
       ls,

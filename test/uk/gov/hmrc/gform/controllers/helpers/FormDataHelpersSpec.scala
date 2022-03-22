@@ -186,7 +186,7 @@ class FormDataHelpersSpec extends Spec {
           None,
           None,
           None,
-          "or",
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None
         )
       ),

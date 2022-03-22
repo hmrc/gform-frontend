@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 
 class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
@@ -342,7 +343,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           None,
           None,
-          "or",
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None
         )
       )
@@ -438,7 +439,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           None,
           None,
-          "or",
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None
         )
       )
@@ -525,7 +526,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           None,
           None,
-          "or",
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None
         )
       )
