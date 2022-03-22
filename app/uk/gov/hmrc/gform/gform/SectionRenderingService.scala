@@ -1208,17 +1208,22 @@ class SectionRenderingService(
 
     choice match {
       case Radio | YesNo =>
-        val items = optionsWithHintAndHelpText.zipWithIndex.map { case ((option, maybeHint, maybeHelpText), index) =>
-          RadioItem(
-            id = Some(formComponent.id.value + index),
-            value = Some(index.toString),
-            content = content.Text(option.value),
-            checked = isChecked(index),
-            conditionalHtml = helpTextHtml(maybeHelpText),
-            attributes = dataLabelAttribute(option),
-            hint = maybeHint
-          )
-        }
+        val items = dividerPosition.foldLeft(optionsWithHintAndHelpText.zipWithIndex.map {
+          case ((option, maybeHint, maybeHelpText), index) =>
+            RadioItem(
+              id = Some(formComponent.id.value + index),
+              value = Some(index.toString),
+              content = content.Text(option.value),
+              checked = isChecked(index),
+              conditionalHtml = helpTextHtml(maybeHelpText),
+              attributes = dataLabelAttribute(option),
+              hint = maybeHint
+            )
+        }.toList)((ls, pos) =>
+          ls.take(pos) ++
+            List(RadioItem(divider = Some(dividerText.value))) ++
+            ls.takeRight(ls.length - pos)
+        )
 
         val radios = Radios(
           idPrefix = Some(formComponent.id.value),
