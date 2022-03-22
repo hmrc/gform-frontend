@@ -1208,7 +1208,7 @@ class SectionRenderingService(
 
     choice match {
       case Radio | YesNo =>
-        val items = dividerPosition.foldLeft(optionsWithHintAndHelpText.zipWithIndex.map {
+        val itemsWithNoDivider = optionsWithHintAndHelpText.zipWithIndex.map {
           case ((option, maybeHint, maybeHelpText), index) =>
             RadioItem(
               id = Some(formComponent.id.value + index),
@@ -1219,11 +1219,11 @@ class SectionRenderingService(
               attributes = dataLabelAttribute(option),
               hint = maybeHint
             )
-        }.toList)((ls, pos) =>
-          ls.take(pos) ++
-            List(RadioItem(divider = Some(dividerText.value))) ++
-            ls.takeRight(ls.length - pos)
-        )
+        }
+        val items = dividerPosition.foldLeft(itemsWithNoDivider.toList) { (ls, pos) =>
+          val (before, after) = ls.splitAt(pos)
+          before ++ List(RadioItem(divider = Some(dividerText.value))) ++ after
+        }
 
         val radios = Radios(
           idPrefix = Some(formComponent.id.value),
@@ -1238,35 +1238,27 @@ class SectionRenderingService(
         new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
       case Checkbox =>
-        val items = dividerPosition.foldLeft(optionsWithHintAndHelpText.zipWithIndex.map {
+        val itemsWithNoDivider = optionsWithHintAndHelpText.zipWithIndex.map {
           case ((option, maybeHint, maybeHelpText), index) =>
-            if (noneChoice == Some(index + 1)) {
-              CheckboxItem(
-                id = Some(formComponent.id.value + index),
-                value = index.toString,
-                content = content.Text(option.value),
-                checked = isChecked(index),
-                conditionalHtml = helpTextHtml(maybeHelpText),
-                attributes = dataLabelAttribute(option),
-                hint = maybeHint,
-                behaviour = Some(ExclusiveCheckbox)
-              )
+            val item = CheckboxItem(
+              id = Some(formComponent.id.value + index),
+              value = index.toString,
+              content = content.Text(option.value),
+              checked = isChecked(index),
+              conditionalHtml = helpTextHtml(maybeHelpText),
+              attributes = dataLabelAttribute(option),
+              hint = maybeHint
+            )
+            if (noneChoice.contains(index + 1)) {
+              item.copy(behaviour = Some(ExclusiveCheckbox))
             } else {
-              CheckboxItem(
-                id = Some(formComponent.id.value + index),
-                value = index.toString,
-                content = content.Text(option.value),
-                checked = isChecked(index),
-                conditionalHtml = helpTextHtml(maybeHelpText),
-                attributes = dataLabelAttribute(option),
-                hint = maybeHint
-              )
+              item
             }
-        }.toList)((ls, pos) =>
-          ls.take(pos) ++
-            List(CheckboxItem(divider = Some(dividerText.value))) ++
-            ls.takeRight(ls.length - pos)
-        )
+        }
+        val items = dividerPosition.foldLeft(itemsWithNoDivider.toList) { (ls, pos) =>
+          val (before, after) = ls.splitAt(pos)
+          before ++ List(CheckboxItem(divider = Some(dividerText.value))) ++ after
+        }
 
         val checkboxes: Checkboxes = Checkboxes(
           idPrefix = Some(formComponent.id.value),
