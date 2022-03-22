@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 
 class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
@@ -334,7 +335,17 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     val fcA2 =
       mkFormComponent(
         "a2",
-        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None)
+        Choice(
+          Radio,
+          NonEmptyList.one(toSmartString("Option A")),
+          Vertical,
+          List.empty[Int],
+          None,
+          None,
+          None,
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None
+        )
       )
     val fcB = mkFormComponent("b", Text(TextConstraint.default, Constant("456")))
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
@@ -420,7 +431,17 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     val fcB =
       mkFormComponent(
         "b",
-        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None)
+        Choice(
+          Radio,
+          NonEmptyList.one(toSmartString("Option A")),
+          Vertical,
+          List.empty[Int],
+          None,
+          None,
+          None,
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None
+        )
       )
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
     val fcD = mkFormComponent("d", Text(TextConstraint.default, Value))
@@ -497,7 +518,17 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     val fcB =
       mkFormComponent(
         "b",
-        Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None)
+        Choice(
+          Radio,
+          NonEmptyList.one(toSmartString("Option A")),
+          Vertical,
+          List.empty[Int],
+          None,
+          None,
+          None,
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None
+        )
       )
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
     val fcD = mkFormComponent("d", Text(TextConstraint.default, Value))

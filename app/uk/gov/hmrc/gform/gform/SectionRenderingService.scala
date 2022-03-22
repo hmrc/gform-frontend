@@ -62,7 +62,7 @@ import uk.gov.hmrc.gform.views.html.specimen
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
-import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes, ExclusiveCheckbox }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ Content, Empty, HtmlContent }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.DateInput
@@ -804,7 +804,17 @@ class SectionRenderingService(
             renderText(t, formComponent, validationResult, ei)
           case t @ TextArea(_, _, _, _, _) =>
             renderTextArea(t, formComponent, validationResult, ei)
-          case Choice(choice, options, orientation, selections, hints, optionalHelpText) =>
+          case Choice(
+                choice,
+                options,
+                orientation,
+                selections,
+                hints,
+                optionalHelpText,
+                dividerPosition,
+                dividerText,
+                noneChoice
+              ) =>
             htmlForChoice(
               formComponent,
               choice,
@@ -814,7 +824,10 @@ class SectionRenderingService(
               hints,
               optionalHelpText,
               validationResult,
-              ei
+              ei,
+              dividerPosition,
+              dividerText,
+              noneChoice
             )
           case RevealingChoice(options, multiValue) =>
             htmlForRevealingChoice(
@@ -1122,12 +1135,14 @@ class SectionRenderingService(
     hints: Option[NonEmptyList[SmartString]],
     optionalHelpText: Option[NonEmptyList[SmartString]],
     validationResult: ValidationResult,
-    ei: ExtraInfo
+    ei: ExtraInfo,
+    dividerPosition: Option[Int],
+    dividerText: LocalisedString,
+    noneChoice: Option[Int]
   )(implicit
     l: LangADT,
     sse: SmartStringEvaluator
   ) = {
-
     val prepopValues =
       if (ei.formModelOptics.pageOpticsData.contains(formComponent.modelComponentId))
         Set.empty[String] // Don't prepop something we already submitted
@@ -1193,16 +1208,21 @@ class SectionRenderingService(
 
     choice match {
       case Radio | YesNo =>
-        val items = optionsWithHintAndHelpText.zipWithIndex.map { case ((option, maybeHint, maybeHelpText), index) =>
-          RadioItem(
-            id = Some(formComponent.id.value + index),
-            value = Some(index.toString),
-            content = content.Text(option.value),
-            checked = isChecked(index),
-            conditionalHtml = helpTextHtml(maybeHelpText),
-            attributes = dataLabelAttribute(option),
-            hint = maybeHint
-          )
+        val itemsWithNoDivider = optionsWithHintAndHelpText.zipWithIndex.map {
+          case ((option, maybeHint, maybeHelpText), index) =>
+            RadioItem(
+              id = Some(formComponent.id.value + index),
+              value = Some(index.toString),
+              content = content.Text(option.value),
+              checked = isChecked(index),
+              conditionalHtml = helpTextHtml(maybeHelpText),
+              attributes = dataLabelAttribute(option),
+              hint = maybeHint
+            )
+        }
+        val items = dividerPosition.foldLeft(itemsWithNoDivider.toList) { (ls, pos) =>
+          val (before, after) = ls.splitAt(pos)
+          before ++ List(RadioItem(divider = Some(dividerText.value))) ++ after
         }
 
         val radios = Radios(
@@ -1218,16 +1238,26 @@ class SectionRenderingService(
         new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
       case Checkbox =>
-        val items = optionsWithHintAndHelpText.zipWithIndex.map { case ((option, maybeHint, maybeHelpText), index) =>
-          CheckboxItem(
-            id = Some(formComponent.id.value + index),
-            value = index.toString,
-            content = content.Text(option.value),
-            checked = isChecked(index),
-            conditionalHtml = helpTextHtml(maybeHelpText),
-            attributes = dataLabelAttribute(option),
-            hint = maybeHint
-          )
+        val itemsWithNoDivider = optionsWithHintAndHelpText.zipWithIndex.map {
+          case ((option, maybeHint, maybeHelpText), index) =>
+            val item = CheckboxItem(
+              id = Some(formComponent.id.value + index),
+              value = index.toString,
+              content = content.Text(option.value),
+              checked = isChecked(index),
+              conditionalHtml = helpTextHtml(maybeHelpText),
+              attributes = dataLabelAttribute(option),
+              hint = maybeHint
+            )
+            if (noneChoice.contains(index + 1)) {
+              item.copy(behaviour = Some(ExclusiveCheckbox))
+            } else {
+              item
+            }
+        }
+        val items = dividerPosition.foldLeft(itemsWithNoDivider.toList) { (ls, pos) =>
+          val (before, after) = ls.splitAt(pos)
+          before ++ List(CheckboxItem(divider = Some(dividerText.value))) ++ after
         }
 
         val checkboxes: Checkboxes = Checkboxes(
@@ -1236,7 +1266,7 @@ class SectionRenderingService(
           hint = hint,
           errorMessage = errorMessage,
           name = formComponent.id.value,
-          items = items.toList,
+          items = items,
           classes = if (orientation === Horizontal && optionalHelpText.isEmpty) "gform-checkbox--inline" else ""
         )
 

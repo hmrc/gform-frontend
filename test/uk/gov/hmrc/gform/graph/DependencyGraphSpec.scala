@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, De
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode._
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import FormTemplateBuilder._
 
 class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
@@ -69,7 +70,18 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     None
   )
 
-  private val emptyChoice = Choice(Checkbox, NonEmptyList.one(toSmartString("")), Vertical, List.empty, None, None)
+  private val emptyChoice =
+    Choice(
+      Checkbox,
+      NonEmptyList.one(toSmartString("")),
+      Vertical,
+      List.empty,
+      None,
+      None,
+      None,
+      LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+      None
+    )
 
   private val emptyInformationMessage = InformationMessage(StandardInfo, toSmartString(""))
 

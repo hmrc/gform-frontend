@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.Log
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 
 object FormTemplateBuilder {
 
@@ -281,7 +282,17 @@ object FormTemplateBuilder {
   def addToListQuestion(addAnotherQuestionName: String): FormComponent =
     mkFormComponent(
       addAnotherQuestionName,
-      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None, None)
+      Choice(
+        YesNo,
+        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None
+      )
     )
 
   def mkPage(formComponents: List[FormComponent]): Page[Visibility] = Page[Visibility](

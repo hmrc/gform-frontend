@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, Destinations }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform._
@@ -1137,6 +1137,9 @@ class StructuredFormDataBuilderSpec
         Vertical,
         Nil,
         None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None
       )
     )
@@ -1150,6 +1153,9 @@ class StructuredFormDataBuilderSpec
         Vertical,
         Nil,
         None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None
       )
     )

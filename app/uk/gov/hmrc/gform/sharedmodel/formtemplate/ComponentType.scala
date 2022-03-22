@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.sharedmodel.{ SmartString, SourceOrigin, ValueClassFormat, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString, SourceOrigin, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
@@ -291,7 +291,10 @@ case class Choice(
   orientation: Orientation,
   selections: List[Int],
   hints: Option[NonEmptyList[SmartString]],
-  optionHelpText: Option[NonEmptyList[SmartString]]
+  optionHelpText: Option[NonEmptyList[SmartString]],
+  dividerPositon: Option[Int],
+  dividerText: LocalisedString,
+  noneChoice: Option[Int]
 ) extends ComponentType {
   def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult)(implicit
     evaluator: SmartStringEvaluator

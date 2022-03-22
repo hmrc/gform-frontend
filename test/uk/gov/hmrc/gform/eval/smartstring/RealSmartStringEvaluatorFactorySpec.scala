@@ -138,7 +138,17 @@ class RealSmartStringEvaluatorFactorySpec
 
       lazy val choiceField: FormComponent = buildFormComponent(
         "choiceField",
-        Choice(Radio, NonEmptyList.of(toSmartString("Yes"), toSmartString("No")), Horizontal, List.empty, None, None),
+        Choice(
+          Radio,
+          NonEmptyList.of(toSmartString("Yes"), toSmartString("No")),
+          Horizontal,
+          List.empty,
+          None,
+          None,
+          None,
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None
+        ),
         None
       )
       override lazy val form: Form =
@@ -178,6 +188,9 @@ class RealSmartStringEvaluatorFactorySpec
           Horizontal,
           List.empty,
           None,
+          None,
+          None,
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None
         ),
         None
@@ -212,6 +225,9 @@ class RealSmartStringEvaluatorFactorySpec
           Horizontal,
           List.empty,
           None,
+          None,
+          None,
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None
         ),
         None
@@ -245,6 +261,9 @@ class RealSmartStringEvaluatorFactorySpec
           Horizontal,
           List.empty,
           None,
+          None,
+          None,
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None
         ),
         None

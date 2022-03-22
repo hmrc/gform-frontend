@@ -216,7 +216,17 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
       mkSection(
         mkFormComponent(
           "a",
-          Choice(Radio, NonEmptyList.one(toSmartString("Option A")), Vertical, List.empty[Int], None, None)
+          Choice(
+            Radio,
+            NonEmptyList.one(toSmartString("Option A")),
+            Vertical,
+            List.empty[Int],
+            None,
+            None,
+            None,
+            LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+            None
+          )
         )
       )
     )

@@ -184,6 +184,9 @@ class FormDataHelpersSpec extends Spec {
           Horizontal,
           List.empty,
           None,
+          None,
+          None,
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None
         )
       ),
