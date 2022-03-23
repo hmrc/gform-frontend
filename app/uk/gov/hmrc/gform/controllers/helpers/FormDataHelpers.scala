@@ -20,6 +20,7 @@ import cats.instances.string._
 import cats.syntax.eq._
 import cats.syntax.show._
 import com.softwaremill.quicklens._
+import org.apache.commons.text.StringEscapeUtils
 import org.slf4j.LoggerFactory
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
@@ -52,22 +53,23 @@ object FormDataHelpers {
       .map(_.map { case (field, values) =>
         (
           field,
-          values.map { value =>
-            val matches = invisibleCharMatches(value)
-            if (matches.isEmpty) {
-              trimAndReplaceCRLFWithLF(value)
-            } else {
-              logger.info(
-                s"Found invisible characters in field $field. " +
-                  s"Matches are [${matches
-                    .map { case (m, count) =>
-                      s"${getUnicode(m)}:${getDesc(m)}($count)"
-                    }
-                    .mkString(", ")}]"
-              )
-              replaceInvisibleChars(value).trim
+          values
+            .map { value =>
+              val matches = invisibleCharMatches(StringEscapeUtils.unescapeHtml4(value))
+              if (matches.isEmpty) {
+                trimAndReplaceCRLFWithLF(value)
+              } else {
+                logger.info(
+                  s"Found invisible characters in field $field. " +
+                    s"Matches are [${matches
+                      .map { case (m, count) =>
+                        s"${getUnicode(m)}:${getDesc(m)}($count)"
+                      }
+                      .mkString(", ")}]"
+                )
+                replaceInvisibleChars(StringEscapeUtils.unescapeHtml4(value)).trim
+              }
             }
-          }
         )
       }) match {
       case Some(requestData) =>

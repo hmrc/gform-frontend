@@ -246,6 +246,28 @@ class FormDataHelpersSpec extends Spec {
     future.futureValue shouldBe Results.Ok
   }
 
+  it should "remove unicode values from body response" in new TestFixture {
+
+    override lazy val requestBodyParams = Map("formField1" -> Seq("\u2008&#2;"))
+
+    val continuationFunction = (requestRelatedData: RequestRelatedData) =>
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
+        (_: EnteredVariadicFormData) => {
+          variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+            Map(
+              purePure("formField1") -> VariadicValue.One("")
+            )
+          )
+          Future.successful(Results.Ok)
+        }
+
+    val future = FormDataHelpers
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
+        continuationFunction
+      )
+    future.futureValue shouldBe Results.Ok
+  }
+
   trait TestFixture {
     lazy val fields = List(mkFormComponent("formField1", Constant("value1")))
     lazy val section = mkSection(fields)
