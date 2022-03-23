@@ -54,8 +54,9 @@ object FormDataHelpers {
         (
           field,
           values
+            .map(StringEscapeUtils.unescapeHtml4)
             .map { value =>
-              val matches = invisibleCharMatches(StringEscapeUtils.unescapeHtml4(value))
+              val matches = invisibleCharMatches(value)
               if (matches.isEmpty) {
                 trimAndReplaceCRLFWithLF(value)
               } else {
@@ -67,7 +68,7 @@ object FormDataHelpers {
                       }
                       .mkString(", ")}]"
                 )
-                replaceInvisibleChars(StringEscapeUtils.unescapeHtml4(value)).trim
+                replaceInvisibleChars(value).trim
               }
             }
         )
