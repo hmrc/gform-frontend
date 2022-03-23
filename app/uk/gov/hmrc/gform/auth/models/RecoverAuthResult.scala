@@ -52,9 +52,9 @@ object RecoverAuthResult {
     request: Request[AnyContent],
     appConfig: AppConfig
   ): PartialFunction[Throwable, AuthResult] = { case _: NoActiveSession =>
+    logger.debug("No Active Session " + request.uri)
     val formTemplateWithRedirect = request.attrs(FormTemplateKey)
     val formTemplate = formTemplateWithRedirect.formTemplate
-    logger.debug("No Active Session")
     val dashboardUrl = routes.NewFormController.dashboard(formTemplate._id).url
     val continueUrl = URLEncoder.encode(s"${appConfig.`gform-frontend-base-url`}" + dashboardUrl, "UTF-8")
     val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
