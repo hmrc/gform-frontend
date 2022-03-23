@@ -52,7 +52,7 @@ object RecoverAuthResult {
     request: Request[AnyContent],
     appConfig: AppConfig
   ): PartialFunction[Throwable, AuthResult] = { case _: NoActiveSession =>
-    logger.debug("No Active Session " + request.uri)
+    logger.warn("No Active Session " + request.uri)
     val formTemplateWithRedirect = request.attrs(FormTemplateKey)
     val formTemplate = formTemplateWithRedirect.formTemplate
     val dashboardUrl = routes.NewFormController.dashboard(formTemplate._id).url
