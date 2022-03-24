@@ -20,7 +20,8 @@ object InvisibleCharsHelper {
 
   case class UnicodeDescMapping(code: Char, desc: String, mapping: String)
 
-  /** All invisible characters from the U+2000 block
+  /** All invisible characters from the U+2000 block and ctrl+* characters [https://unicodelookup.com/#ctrl]
+    * We accept only `Line Feed` and `Carriage Return`
     */
   private val INVISIBLE_UNICODE_DESC_MAPPING: Seq[UnicodeDescMapping] = Seq(
     UnicodeDescMapping('\u2000', "En Quad", " "),

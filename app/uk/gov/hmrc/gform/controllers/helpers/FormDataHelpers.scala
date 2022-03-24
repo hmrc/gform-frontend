@@ -40,6 +40,9 @@ object FormDataHelpers {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
+  /** This filters HTML Entities (decimal/hex) or unicode from request body when entered.
+    * The pdf generator does not accept these characters.
+    */
   def processResponseDataFromBody(
     request: Request[AnyContent],
     formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo],
