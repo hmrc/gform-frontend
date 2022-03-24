@@ -23,6 +23,8 @@ import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.controllers.helpers.InvisibleCharsHelper.replaceInvisibleChars
+
 import scala.collection.JavaConverters._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString }
@@ -68,8 +70,10 @@ object MarkDownUtil {
     }
   }
 
-  def unescapeMarkdownHtml(html: String): String =
-    markdownControlCharacters.foldLeft(html) { case (acc, specialChar) =>
+  def unescapeMarkdownHtml(html: String): String = {
+    val unescapeHtml = markdownControlCharacters.foldLeft(html) { case (acc, specialChar) =>
       acc.replace("\\" + specialChar, specialChar)
     }
+    replaceInvisibleChars(unescapeHtml)
+  }
 }
