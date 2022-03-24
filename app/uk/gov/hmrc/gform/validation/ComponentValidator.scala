@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.data.NonEmptyList
 import cats.Monoid
 import cats.implicits._
 import org.typelevel.ci._
@@ -557,7 +556,6 @@ object ComponentValidator {
 
   def validateChoiceNoneError[D <: DataOrigin](
     fieldValue: FormComponent,
-    options: NonEmptyList[SmartString],
     noneChoice: Int,
     error: LocalisedString
   )(
