@@ -566,7 +566,7 @@ object ComponentValidator {
       .toSeq
       .flatMap(_.toSeq)
       .filterNot(_.isEmpty)
-    if (choiceValue.contains(s"${noneChoice - 1}"))
+    if (choiceValue.contains(s"${noneChoice - 1}") && choiceValue.length > 1)
       Map(fieldValue.modelComponentId -> Set(error.value)).invalid
     else validationSuccess
   }
