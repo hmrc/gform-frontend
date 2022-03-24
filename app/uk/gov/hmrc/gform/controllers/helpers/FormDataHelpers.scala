@@ -20,7 +20,6 @@ import cats.instances.string._
 import cats.syntax.eq._
 import cats.syntax.show._
 import com.softwaremill.quicklens._
-import org.apache.commons.text.StringEscapeUtils
 import org.slf4j.LoggerFactory
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
@@ -40,9 +39,6 @@ object FormDataHelpers {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  /** This filters HTML Entities (decimal/hex) or unicode from request body when entered.
-    * The pdf generator does not accept these characters.
-    */
   def processResponseDataFromBody(
     request: Request[AnyContent],
     formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo],
@@ -57,7 +53,6 @@ object FormDataHelpers {
         (
           field,
           values
-            .map(StringEscapeUtils.unescapeHtml4)
             .map { value =>
               val matches = invisibleCharMatches(value)
               if (matches.isEmpty) {

@@ -23,6 +23,8 @@ import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.controllers.helpers.InvisibleCharsHelper.replaceInvisibleChars
+
 import scala.collection.JavaConverters._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString }
@@ -58,7 +60,7 @@ object MarkDownUtil {
     val flavour = new GFMFlavourDescriptor
     val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
     val html = new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
-    Html(unescapeMarkdownHtml(addTargetToLinks(html)))
+    Html(replaceInvisibleChars(unescapeMarkdownHtml(addTargetToLinks(html))))
   }
 
   def escapeMarkdown(s: String): String = {
