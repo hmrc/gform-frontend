@@ -147,6 +147,7 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None,
           None
         ),
         None
@@ -191,6 +192,7 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None,
           None
         ),
         None
@@ -228,6 +230,7 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None,
           None
         ),
         None
@@ -264,6 +267,7 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None,
           None
         ),
         None
