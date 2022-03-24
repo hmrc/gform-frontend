@@ -60,7 +60,7 @@ object MarkDownUtil {
     val flavour = new GFMFlavourDescriptor
     val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
     val html = new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
-    Html(replaceInvisibleChars(unescapeMarkdownHtml(addTargetToLinks(html))))
+    Html(unescapeMarkdownHtml(addTargetToLinks(html)))
   }
 
   def escapeMarkdown(s: String): String = {
@@ -70,8 +70,10 @@ object MarkDownUtil {
     }
   }
 
-  def unescapeMarkdownHtml(html: String): String =
-    markdownControlCharacters.foldLeft(html) { case (acc, specialChar) =>
+  def unescapeMarkdownHtml(html: String): String = {
+    val unescapeHtml = markdownControlCharacters.foldLeft(html) { case (acc, specialChar) =>
       acc.replace("\\" + specialChar, specialChar)
     }
+    replaceInvisibleChars(unescapeHtml)
+  }
 }
