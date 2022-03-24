@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.validation
 
+import cats.data.NonEmptyList
 import cats.Monoid
 import cats.implicits._
 import org.typelevel.ci._
@@ -29,7 +30,7 @@ import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString, SubmissionRef }
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.referencechecker.CorporationTaxReferenceChecker
@@ -551,6 +552,24 @@ object ComponentValidator {
       .filterNot(_.isEmpty)
 
     if (fieldValue.mandatory && choiceValue.isEmpty) validationFailure(fieldValue, choiceErrorRequired, None)
+    else validationSuccess
+  }
+
+  def validateChoiceNoneError[D <: DataOrigin](
+    fieldValue: FormComponent,
+    options: NonEmptyList[SmartString],
+    noneChoice: Int,
+    error: LocalisedString
+  )(
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  )(implicit l: LangADT): ValidatedType[Unit] = {
+    val choiceValue = formModelVisibilityOptics.data
+      .get(fieldValue.modelComponentId)
+      .toSeq
+      .flatMap(_.toSeq)
+      .filterNot(_.isEmpty)
+    if (choiceValue.contains(s"${noneChoice - 1}"))
+      Map(fieldValue.modelComponentId -> Set(error.value)).invalid
     else validationSuccess
   }
 

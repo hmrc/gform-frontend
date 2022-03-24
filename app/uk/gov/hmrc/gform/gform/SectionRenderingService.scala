@@ -813,7 +813,8 @@ class SectionRenderingService(
                 optionalHelpText,
                 dividerPosition,
                 dividerText,
-                noneChoice
+                noneChoice,
+                _
               ) =>
             htmlForChoice(
               formComponent,

@@ -294,7 +294,8 @@ case class Choice(
   optionHelpText: Option[NonEmptyList[SmartString]],
   dividerPositon: Option[Int],
   dividerText: LocalisedString,
-  noneChoice: Option[Int]
+  noneChoice: Option[Int],
+  noneChoiceError: Option[LocalisedString]
 ) extends ComponentType {
   def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult)(implicit
     evaluator: SmartStringEvaluator

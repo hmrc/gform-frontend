@@ -198,7 +198,13 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
           new OverseasAddressValidation[D](formComponent, formModelVisibilityOptics, lookupRegistry)
             .validateOverseasAddress(overseasAddress)
         )
-      case c @ Choice(_, _, _, _, _, _, _, _, _) =>
+      case c @ Choice(_, options, _, _, _, _, _, _, Some(noneChoice), Some(error)) =>
+        validIf(
+          ComponentValidator
+            .validateChoiceNoneError(formComponent, options, noneChoice, error)(formModelVisibilityOptics)
+            .combine(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
+        )
+      case c @ Choice(_, _, _, _, _, _, _, _, _, _) =>
         validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
       case _: RevealingChoice =>
         validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
