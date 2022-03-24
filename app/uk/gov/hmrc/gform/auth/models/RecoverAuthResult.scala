@@ -52,11 +52,13 @@ object RecoverAuthResult {
     request: Request[AnyContent],
     appConfig: AppConfig
   ): PartialFunction[Throwable, AuthResult] = { case _: NoActiveSession =>
-    logger.warn("No Active Session " + request.uri)
-    val formTemplateWithRedirect = request.attrs(FormTemplateKey)
-    val formTemplate = formTemplateWithRedirect.formTemplate
-    val dashboardUrl = routes.NewFormController.dashboard(formTemplate._id).url
-    val continueUrl = URLEncoder.encode(s"${appConfig.`gform-frontend-base-url`}" + dashboardUrl, "UTF-8")
+    val maybeFormTemplateWithRedirect = request.attrs.get(FormTemplateKey)
+    val uri = maybeFormTemplateWithRedirect.fold(request.uri) { formTemplateWithRedirect =>
+      val formTemplate = formTemplateWithRedirect.formTemplate
+      routes.NewFormController.dashboard(formTemplate._id).url
+    }
+    logger.info("No Active Session. Redirecting user to: " + uri)
+    val continueUrl = URLEncoder.encode(appConfig.`gform-frontend-base-url` + uri, "UTF-8")
     val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
     val url = s"$ggLoginUrl?continue=$continueUrl"
     AuthRedirectFlashingFormName(url)
