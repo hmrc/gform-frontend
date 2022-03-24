@@ -562,7 +562,7 @@ object ComponentValidator {
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit l: LangADT): ValidatedType[Unit] = {
     val choiceValue = formModelVisibilityOptics.data
-      .get(fieldValue.modelComponentId)
+      .many(fieldValue.modelComponentId)
       .toSeq
       .flatMap(_.toSeq)
       .filterNot(_.isEmpty)
