@@ -52,23 +52,22 @@ object FormDataHelpers {
       .map(_.map { case (field, values) =>
         (
           field,
-          values
-            .map { value =>
-              val matches = invisibleCharMatches(value)
-              if (matches.isEmpty) {
-                trimAndReplaceCRLFWithLF(value)
-              } else {
-                logger.info(
-                  s"Found invisible characters in field $field. " +
-                    s"Matches are [${matches
-                      .map { case (m, count) =>
-                        s"${getUnicode(m)}:${getDesc(m)}($count)"
-                      }
-                      .mkString(", ")}]"
-                )
-                replaceInvisibleChars(value).trim
-              }
+          values.map { value =>
+            val matches = invisibleCharMatches(value)
+            if (matches.isEmpty) {
+              trimAndReplaceCRLFWithLF(value)
+            } else {
+              logger.info(
+                s"Found invisible characters in field $field. " +
+                  s"Matches are [${matches
+                    .map { case (m, count) =>
+                      s"${getUnicode(m)}:${getDesc(m)}($count)"
+                    }
+                    .mkString(", ")}]"
+              )
+              replaceInvisibleChars(value).trim
             }
+          }
         )
       }) match {
       case Some(requestData) =>
