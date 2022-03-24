@@ -219,7 +219,7 @@ class LookupLoader {
   private val origin                   = read("BCD-Origin.csv",                   "ID",           "en",   "cy",   mkAjaxLookup(ShowAll.Enabled))
   private val country                  = readCountries("BCD-Country.csv",         "CountryCode",  "Name", "Name-cy", "KeyWords", "Priority", "Region", mkAjaxLookup(ShowAll.Disabled))
   private val currency                 = readCurrencies("BCD-Currency.csv",       "CurrencyCode", "Name", "Name-cy", "KeyWords", "Priority", "CountryCode", mkAjaxLookup(ShowAll.Disabled))
-  private val port                     = readPorts("BCD-Port.csv",                "PortCode",     "Name", "Name",    "KeyWords", "Priority", "Region", "PortType",  "CountryCode", "PortCode", mkAjaxLookup(ShowAll.Disabled))
+  private val port                     = readPorts("BCD-Port.csv",                "PortCode",     "Name", "Name-cy",    "KeyWords", "Priority", "Region", "PortType",  "CountryCode", "PortCode", mkAjaxLookup(ShowAll.Disabled))
   // format: on
 
   val registerLookup: Map[Register, LookupType] =
