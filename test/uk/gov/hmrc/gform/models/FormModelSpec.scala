@@ -344,6 +344,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None,
           None
         )
       )
@@ -440,6 +441,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None,
           None
         )
       )
@@ -527,6 +529,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None,
           None
         )
       )

@@ -366,6 +366,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
         None
       )
 
@@ -453,6 +454,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
         None
       )
 
@@ -776,6 +778,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
         None
       )
 
@@ -909,6 +912,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
         None
       )
 
