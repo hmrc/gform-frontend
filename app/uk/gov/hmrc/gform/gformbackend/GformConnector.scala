@@ -107,60 +107,73 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
           logger.info(
             s"FormTemplate ${formTemplate._id.value} version and Form version mismatch. FormTemplate version: ${formTemplate.version}, Form version: ${form.formTemplateVersion}"
           )
-          formTemplate.legacyFormIds.fold(Option.empty[Form].pure[Future]) { legacyFormIds =>
-            val legacyFormTemplateId = legacyFormIds.head
-            logger.info(
-              s"FormTemplate ${formTemplate._id.value} checking legacy FormTemplateId: ${legacyFormTemplateId.value}"
-            )
-            existsFormTemplate(legacyFormTemplateId).flatMap { exists =>
-              if (exists) {
-                logger.info(s"Legacy FormTemplate ${legacyFormTemplateId.value} exists. Trying to load legacy form.")
-                val legacyFormIdData = formIdData.withTemplateId(legacyFormTemplateId)
-                maybeForm(legacyFormIdData).flatMap {
-                  case None =>
-                    if (form.status === Submitted) {
-                      logger.info(
-                        s"Legacy form for FormTemplate ${legacyFormTemplateId.value} not found, but form status is Submitted"
-                      )
-                      Some(
-                        form.copy(
-                          formTemplateId = legacyFormTemplateId
-                        )
-                      ).pure[Future]
-                    } else {
-                      logger.info(
-                        s"Legacy form for FormTemplate ${legacyFormTemplateId.value} not found, transferring form data..."
-                      )
-                      changeFormTemplateIdVersion(formIdData, legacyFormIds.head).map { newForm =>
-                        logger.info(
-                          s"Form data transferred from ${formIdData.formTemplateId.value} to ${legacyFormTemplateId.value}"
-                        )
-                        Some(newForm)
-                      }
-                    }
-                  case Some(form) =>
-                    logger.info(
-                      s"Legacy form for FormTemplate ${legacyFormTemplateId.value} found (status = ${form.status})"
-                    )
-                    Some(form).pure[Future]
-                }
-              } else {
-                logger.info(
-                  s"Legacy FormTemplate: ${legacyFormTemplateId.value} do not exists. Trying to resolve legacyFormIds: $legacyFormIds"
-                )
-                getFormByLegacyIds(formIdData)(legacyFormIds).map {
-                  case Some(form) if formTemplate.version === form.formTemplateVersion => Some(form)
-                  case _                                                               => None
-                }
-              }
-            }
-          }
+          getFormByLegacyFormTemplate(formTemplate: FormTemplate, form: Form, formIdData: FormIdData)
         }
       }
       .recoverWith {
         case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode === StatusCodes.NotFound.intValue =>
           formTemplate.legacyFormIds.fold(Future.successful(none[Form]))(getFormByLegacyIds(formIdData))
       }
+
+  private def getFormByLegacyFormTemplate(
+    formTemplate: FormTemplate,
+    form: Form,
+    formIdData: FormIdData
+  )(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Option[Form]] =
+    formTemplate.legacyFormIds.fold(Option.empty[Form].pure[Future]) { legacyFormIds =>
+      val legacyFormTemplateId = legacyFormIds.head
+      logger.info(
+        s"FormTemplate ${formTemplate._id.value} checking legacy FormTemplateId: ${legacyFormTemplateId.value}"
+      )
+      maybeFormTemplate(legacyFormTemplateId).flatMap {
+        case Some(legacyFormTemplate) =>
+          logger.info(s"Legacy FormTemplate ${legacyFormTemplateId.value} exists. Trying to load legacy form.")
+          val legacyFormIdData = formIdData.withTemplateId(legacyFormTemplateId)
+          maybeForm(legacyFormIdData).flatMap {
+            case None =>
+              if (legacyFormTemplate.version === form.formTemplateVersion) {
+                if (form.status === Submitted) {
+                  logger.info(
+                    s"Legacy form for FormTemplate ${legacyFormTemplateId.value} not found, but form status is Submitted"
+                  )
+                  Some(
+                    form.copy(
+                      formTemplateId = legacyFormTemplateId
+                    )
+                  ).pure[Future]
+                } else {
+                  logger.info(
+                    s"Legacy form for FormTemplate ${legacyFormTemplateId.value} not found, transferring form data..."
+                  )
+                  changeFormTemplateIdVersion(formIdData, legacyFormTemplateId).map { newForm =>
+                    logger.info(
+                      s"Form data transferred from ${formIdData.formTemplateId.value} to ${legacyFormTemplateId.value}"
+                    )
+                    Some(newForm)
+                  }
+                }
+              } else {
+                getFormByLegacyFormTemplate(legacyFormTemplate, form, formIdData)
+              }
+            case Some(form) =>
+              logger.info(
+                s"Legacy form for FormTemplate ${legacyFormTemplateId.value} found (status = ${form.status})"
+              )
+              Some(form).pure[Future]
+          }
+        case None =>
+          logger.info(
+            s"Legacy FormTemplate: ${legacyFormTemplateId.value} do not exists. Trying to resolve legacyFormIds: $legacyFormIds"
+          )
+          getFormByLegacyIds(formIdData)(legacyFormIds).map {
+            case Some(form) if formTemplate.version === form.formTemplateVersion => Some(form)
+            case _                                                               => None
+          }
+      }
+    }
 
   def getFormByLegacyIds(
     formIdData: FormIdData
@@ -330,14 +343,14 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       Seq("Content-Type" -> ContentType.`application/json`.value)
     ).void
 
-  def existsFormTemplate(
+  def maybeFormTemplate(
     formTemplateId: FormTemplateId
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}")
-      .map(_ => true)
+      .map(Some(_))
       .recoverWith {
         case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode === StatusCodes.NotFound.intValue =>
-          false.pure[Future]
+          Option.empty[FormTemplate].pure[Future]
       }
 
   def getFormTemplate(
