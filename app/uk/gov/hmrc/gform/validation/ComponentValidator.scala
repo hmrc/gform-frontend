@@ -545,9 +545,9 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val choiceValue = formModelVisibilityOptics.data
-      .get(fieldValue.modelComponentId)
+      .many(fieldValue.modelComponentId)
       .toSeq
-      .flatMap(_.toSeq)
+      .flatten
       .filterNot(_.isEmpty)
 
     if (fieldValue.mandatory && choiceValue.isEmpty) validationFailure(fieldValue, choiceErrorRequired, None)
@@ -564,7 +564,7 @@ object ComponentValidator {
     val choiceValue = formModelVisibilityOptics.data
       .many(fieldValue.modelComponentId)
       .toSeq
-      .flatMap(_.toSeq)
+      .flatten
       .filterNot(_.isEmpty)
     if (choiceValue.contains(s"${noneChoice - 1}") && choiceValue.length > 1)
       Map(fieldValue.modelComponentId -> Set(error.value)).invalid
