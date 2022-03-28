@@ -680,8 +680,8 @@ class FormController(
                   }
                   .headOption
                   .map {
-                    case fc @ IsChoice(_)          => HtmlFieldId.indexed(fc.id, 0)
-                    case fc @ IsRevealingChoice(_) => HtmlFieldId.indexed(fc.id, 0)
+                    case fc @ IsChoice(_)          => HtmlFieldId.indexed(fc.id, "0")
+                    case fc @ IsRevealingChoice(_) => HtmlFieldId.indexed(fc.id, "0")
                     case fc =>
                       HtmlFieldId.pure(fc.multiValueId.fold[ModelComponentId](_.modelComponentId)(_.atoms.head))
                   }

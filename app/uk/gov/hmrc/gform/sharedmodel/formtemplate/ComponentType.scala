@@ -285,16 +285,57 @@ object DisplayWidth extends Enumeration {
   implicit val displayWidthWrites: Writes[DisplayWidth] = Writes.enumNameWrites
 }
 
+sealed trait OptionData extends Product with Serializable {
+  def label: SmartString
+
+  def value(index: Int): String = this match {
+    case o: OptionData.IndexBased => index.toString
+    case o: OptionData.ValueBased => o.value
+  }
+}
+
+object OptionData {
+
+  case class IndexBased(
+    label: SmartString
+  ) extends OptionData
+
+  case class ValueBased(
+    label: SmartString,
+    value: String
+  ) extends OptionData
+
+  implicit val format: OFormat[OptionData] = derived.oformat()
+}
+sealed trait NoneChoice extends Product with Serializable {
+  def value(index: Int): String = this match {
+    case o: NoneChoice.IndexBased => index.toString
+    case o: NoneChoice.ValueBased => o.value
+  }
+  def selection: String = this match {
+    case o: NoneChoice.IndexBased => (o.index - 1).toString
+    case o: NoneChoice.ValueBased => o.value
+  }
+}
+
+object NoneChoice {
+
+  case class IndexBased(index: Int) extends NoneChoice
+  case class ValueBased(value: String) extends NoneChoice
+
+  implicit val format: OFormat[NoneChoice] = derived.oformat()
+}
+
 case class Choice(
   `type`: ChoiceType,
-  options: NonEmptyList[SmartString],
+  options: NonEmptyList[OptionData],
   orientation: Orientation,
   selections: List[Int],
   hints: Option[NonEmptyList[SmartString]],
   optionHelpText: Option[NonEmptyList[SmartString]],
   dividerPositon: Option[Int],
   dividerText: LocalisedString,
-  noneChoice: Option[Int],
+  noneChoice: Option[NoneChoice],
   noneChoiceError: Option[LocalisedString]
 ) extends ComponentType {
   def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult)(implicit
@@ -303,8 +344,8 @@ case class Choice(
     options.toList.zipWithIndex
       .map { case (option, index) =>
         formFieldValidationResult
-          .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
-          .map(_ => option.value)
+          .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, option.value(index)))
+          .map(_ => option.label.value)
       }
       .collect { case Some(selection) => selection }
 }
@@ -321,7 +362,7 @@ object ChoiceType {
 }
 
 case class RevealingChoiceElement(
-  choice: SmartString,
+  choice: OptionData,
   revealingFields: List[FormComponent],
   hint: Option[SmartString],
   selected: Boolean

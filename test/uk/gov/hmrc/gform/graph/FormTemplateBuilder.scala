@@ -31,6 +31,9 @@ import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 
 object FormTemplateBuilder {
 
+  private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
+    xs.map(l => OptionData.IndexBased(toSmartString(l)))
+
   def mkGroup(max: Int, formComponents: List[FormComponent]): Group =
     Group(
       formComponents,
@@ -284,7 +287,7 @@ object FormTemplateBuilder {
       addAnotherQuestionName,
       Choice(
         YesNo,
-        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        toOptionData(NonEmptyList.of("yes", "no")),
         Vertical,
         List.empty,
         None,

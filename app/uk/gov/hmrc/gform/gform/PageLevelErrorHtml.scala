@@ -49,7 +49,7 @@ object PageLevelErrorHtml {
                 val formComponent = otherwise.formComponent
                 val multiFieldId =
                   otherwise.formComponent match {
-                    case IsChoice(_) | IsRevealingChoice(_) => HtmlFieldId.indexed(formComponent.id, 0)
+                    case IsChoice(_) | IsRevealingChoice(_) => HtmlFieldId.indexed(formComponent.id, "0")
                     case _                                  => HtmlFieldId.pure(formComponent.modelComponentId)
                   }
                 ErrorLink(

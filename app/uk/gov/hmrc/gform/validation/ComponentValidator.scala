@@ -556,7 +556,7 @@ object ComponentValidator {
 
   def validateChoiceNoneError[D <: DataOrigin](
     fieldValue: FormComponent,
-    noneChoice: Int,
+    noneChoice: NoneChoice,
     error: LocalisedString
   )(
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
@@ -566,7 +566,8 @@ object ComponentValidator {
       .toSeq
       .flatten
       .filterNot(_.isEmpty)
-    if (choiceValue.contains(s"${noneChoice - 1}") && choiceValue.length > 1)
+
+    if (choiceValue.contains(noneChoice.selection) && choiceValue.length > 1)
       Map(fieldValue.modelComponentId -> Set(error.value)).invalid
     else validationSuccess
   }

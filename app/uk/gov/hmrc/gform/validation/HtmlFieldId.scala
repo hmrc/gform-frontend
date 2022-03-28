@@ -31,9 +31,9 @@ sealed trait HtmlFieldId extends Product with Serializable {
 
 object HtmlFieldId {
   def pure(modelComponentId: ModelComponentId): HtmlFieldId = Pure(modelComponentId)
-  def indexed(formComponentId: FormComponentId, index: Int): HtmlFieldId = Indexed(formComponentId, index)
+  def indexed(formComponentId: FormComponentId, index: String): HtmlFieldId = Indexed(formComponentId, index)
   // This is used for fields with atomic ids, see getOptionalCurrentValue
   case class Pure(modelComponentId: ModelComponentId) extends HtmlFieldId
   // This is used for choice, to determine what field is checked and which field is not, see getOptionalCurrentValue
-  case class Indexed(formComponentId: FormComponentId, index: Int) extends HtmlFieldId
+  case class Indexed(formComponentId: FormComponentId, index: String) extends HtmlFieldId
 }

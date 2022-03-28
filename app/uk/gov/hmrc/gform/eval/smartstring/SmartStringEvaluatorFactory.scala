@@ -104,10 +104,19 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
                   .get(formComponentId)
                   .map {
                     case IsChoice(choice) =>
-                      val optionsList = choice.options.toList
-                      mapChoiceSelectedIndexes(typeInfo, _.map(i => apply(optionsList(i), markDown)).mkString(","))
+                      val optionsList = choice.options.zipWithIndex
+                        .map {
+                          case (OptionData.IndexBased(label), i)        => i.toString -> label
+                          case (OptionData.ValueBased(label, value), i) => value      -> label
+                        }
+                        .toList
+                        .toMap
+                      mapChoiceSelectedIndexes(
+                        typeInfo,
+                        _.map(i => apply(optionsList(i), markDown)).mkString(",")
+                      )
                     case IsRevealingChoice(revealingChoice) =>
-                      revealingChoice.options.map(c => apply(c.choice, markDown)).mkString(",")
+                      revealingChoice.options.map(c => apply(c.choice.label, markDown)).mkString(",")
                     case _ =>
                       stringRepresentation(typeInfo)
                   }
@@ -138,7 +147,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
       private def addressRepresentation(typeInfo: TypeInfo): List[String] =
         formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).addressRepresentation
 
-      private def mapChoiceSelectedIndexes(typeInfo: TypeInfo, f: Seq[Int] => String): String =
+      private def mapChoiceSelectedIndexes(typeInfo: TypeInfo, f: Seq[String] => String): String =
         formModelVisibilityOptics
           .evalAndApplyTypeInfo(typeInfo)
           .optionRepresentation

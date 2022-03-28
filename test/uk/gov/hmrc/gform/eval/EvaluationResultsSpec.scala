@@ -412,7 +412,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             FormComponentId("2_addToListChoiceField").modelComponentId
           )
         ),
-        ListResult(List(OptionResult(Seq(1)), OptionResult(Seq(0)))),
+        ListResult(List(OptionResult(Seq("1")), OptionResult(Seq("0")))),
         "Ref to AddToList string field from outside ATL"
       )
     )

@@ -21,6 +21,7 @@ import cats.instances.bigDecimal._
 import cats.instances.string._
 import cats.syntax.eq._
 import play.api.i18n.Messages
+import scala.util.Try
 
 import scala.util.matching.Regex
 import uk.gov.hmrc.gform.commons.NumberSetScale
@@ -122,9 +123,9 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: NumberResult => false
     case t: StringResult => false
     case t: OptionResult =>
-      er.fold[Boolean](_ => false)(_ => false)(_ => false)(n => t.contains(n.value))(_ => false)(_ => false)(_ =>
+      er.fold[Boolean](_ => false)(_ => false)(_ => false)(n => t.contains(n.value))(n => t.contains(n.value))(_ =>
         false
-      )(_ => false)(_ => false)(_ => false)
+      )(_ => false)(_ => false)(_ => false)(_ => false)
     case t: DateResult    => false
     case t: PeriodResult  => false
     case t: AddressResult => false
@@ -240,7 +241,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(r => f(r.value))(_ => false)(_ => false)(_ => false)(
       _ => false
     )(_ => false)
-  private def ifOptionResult(f: Seq[Int] => Boolean): Boolean =
+  private def ifOptionResult(f: Seq[String] => Boolean): Boolean =
     fold[Boolean](_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(r => f(r.value))(_ => false)(_ => false)(
       _ => false
     )(_ => false)
@@ -309,8 +310,8 @@ sealed trait ExpressionResult extends Product with Serializable {
       _ => None
     )(_ => None)(_ => None)
 
-  def optionRepresentation: Option[Seq[Int]] =
-    fold[Option[Seq[Int]]](_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(o => Some(o.value))(_ => None)(_ =>
+  def optionRepresentation: Option[Seq[String]] =
+    fold[Option[Seq[String]]](_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(o => Some(o.value))(_ => None)(_ =>
       None
     )(_ => None)(_ => None)
 
@@ -401,8 +402,9 @@ object ExpressionResult {
     def +(pr: PeriodResult): PeriodResult = PeriodResult(pr.value.plus(value).normalized())
     def asString = value.toString
   }
-  case class OptionResult(value: Seq[Int]) extends ExpressionResult {
-    def contains(bd: BigDecimal): Boolean = value.contains(bd.toInt)
+  case class OptionResult(value: Seq[String]) extends ExpressionResult {
+    def contains(v: String): Boolean = value.contains(v)
+    def contains(bd: BigDecimal): Boolean = Try(value.map(_.toInt)).fold(_ => false, _.contains(bd.toInt))
   }
   case class ListResult(list: List[ExpressionResult]) extends ExpressionResult
   case class AddressResult(address: List[String]) extends ExpressionResult

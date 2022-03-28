@@ -136,8 +136,8 @@ class ExpressionResultSpec extends FunSuite {
 
     val table = TableDrivenPropertyChecks.Table(
       ("listResult", "containsValue", "expected"),
-      (ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2, 3)))), NumberResult(1), true),
-      (ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2)))), NumberResult(3), false)
+      (ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2", "3")))), NumberResult(1), true),
+      (ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2")))), NumberResult(3), false)
     )
 
     TableDrivenPropertyChecks.forAll(table) { (listResult, containsValue, expected) =>
@@ -158,13 +158,13 @@ class ExpressionResultSpec extends FunSuite {
       (ListResult(List(NumberResult(1), NumberResult(2))), ListResult(List(NumberResult(1), NumberResult(2))), true),
       (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), false),
       (
-        ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2, 3)))),
-        ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2, 3)))),
+        ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2", "3")))),
+        ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2", "3")))),
         true
       ),
       (
-        ListResult(List(OptionResult(Seq(0, 1)), OptionResult(Seq(2)))),
-        ListResult(List(OptionResult(Seq(0, 1)))),
+        ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2")))),
+        ListResult(List(OptionResult(Seq("0", "1")))),
         false
       )
     )

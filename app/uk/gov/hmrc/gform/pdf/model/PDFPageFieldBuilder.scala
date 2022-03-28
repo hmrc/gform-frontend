@@ -166,13 +166,13 @@ object PDFPageFieldBuilder {
           .zip(validationResult(formComponent).getComponentFieldIndices(formComponent.id))
           .flatMap { case (element, index) =>
             validationResult(formComponent)
-              .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
+              .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index.toString))
               .map { _ =>
                 val filteredFields = doFilter(element.revealingFields)
                 val revealingFields = formComponentOrdering
                   .fold(filteredFields)(filteredFields.sorted(_))
                   .map(f => build(f, cache, sectionNumber, validationResult, envelopeWithMapping))
-                ChoiceElement(element.choice.value(), revealingFields)
+                ChoiceElement(element.choice.label.value, revealingFields)
               }
           }
         RevealingChoiceField(

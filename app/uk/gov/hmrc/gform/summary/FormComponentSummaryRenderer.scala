@@ -1142,7 +1142,7 @@ object FormComponentSummaryRenderer {
           if (hasErrors)
             errors.head
           else
-            HtmlFormat.escape(element.choice.value())
+            HtmlFormat.escape(element.choice.label.value)
 
         formFieldValidationResult
           .getOptionalCurrentValue(HtmlFieldId.indexed(fieldValue.id, index))

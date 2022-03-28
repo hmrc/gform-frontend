@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.sharedmodel
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
-import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
@@ -218,7 +217,7 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
           "a",
           Choice(
             Radio,
-            NonEmptyList.one(toSmartString("Option A")),
+            NonEmptyList.one(toOptionData("Option A")),
             Vertical,
             List.empty[Int],
             None,

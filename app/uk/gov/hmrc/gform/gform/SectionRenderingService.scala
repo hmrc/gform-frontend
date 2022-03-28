@@ -250,7 +250,7 @@ class SectionRenderingService(
       )
     )
 
-    def isChecked(index: Int): Boolean =
+    def isChecked(index: String): Boolean =
       formFieldValidationResult
         .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
         .isDefined
@@ -258,10 +258,10 @@ class SectionRenderingService(
     val items = choice.options.zipWithIndex.map { case (option, index) =>
       RadioItem(
         id = Some(formComponent.id.value + index),
-        value = Some(index.toString),
-        content = content.Text(option.value),
-        checked = isChecked(index),
-        attributes = dataLabelAttribute(option)
+        value = Some(option.value(index)),
+        content = content.Text(option.label.value),
+        checked = isChecked(option.value(index)),
+        attributes = dataLabelAttribute(option.label)
       )
     }
 
@@ -1130,7 +1130,7 @@ class SectionRenderingService(
   private def htmlForChoice(
     formComponent: FormComponent,
     choice: ChoiceType,
-    options: NonEmptyList[SmartString],
+    options: NonEmptyList[OptionData],
     orientation: Orientation,
     selections: List[Int],
     hints: Option[NonEmptyList[SmartString]],
@@ -1139,7 +1139,7 @@ class SectionRenderingService(
     ei: ExtraInfo,
     dividerPosition: Option[Int],
     dividerText: LocalisedString,
-    noneChoice: Option[Int]
+    maybeNoneChoice: Option[NoneChoice]
   )(implicit
     l: LangADT,
     sse: SmartStringEvaluator
@@ -1149,7 +1149,7 @@ class SectionRenderingService(
         Set.empty[String] // Don't prepop something we already submitted
       else selections.map(_.toString).toSet
 
-    val optionsWithHelpText: NonEmptyList[(SmartString, Option[Html])] =
+    val optionsWithHelpText: NonEmptyList[(OptionData, Option[Html])] =
       optionalHelpText
         .map(
           _.zipWith(options)((helpText, option) =>
@@ -1162,7 +1162,7 @@ class SectionRenderingService(
         )
         .getOrElse(options.map(option => (option, None)))
 
-    val optionsWithHintAndHelpText: NonEmptyList[(SmartString, Option[Hint], Option[Html])] =
+    val optionsWithHintAndHelpText: NonEmptyList[(OptionData, Option[Hint], Option[Html])] =
       hints
         .map(_.zipWith(optionsWithHelpText) { case (hint, (option, helpText)) =>
           (option, if (hint.isEmpty) None else toHint(Some(hint)), helpText)
@@ -1198,7 +1198,7 @@ class SectionRenderingService(
       )
     )
 
-    def isChecked(index: Int): Boolean =
+    def isChecked(index: String): Boolean =
       formFieldValidationResult
         .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
         .orElse(prepopValues.find(_ === index.toString))
@@ -1213,11 +1213,11 @@ class SectionRenderingService(
           case ((option, maybeHint, maybeHelpText), index) =>
             RadioItem(
               id = Some(formComponent.id.value + index),
-              value = Some(index.toString),
-              content = content.Text(option.value),
-              checked = isChecked(index),
+              value = Some(option.value(index)),
+              content = content.Text(option.label.value),
+              checked = isChecked(option.value(index)),
               conditionalHtml = helpTextHtml(maybeHelpText),
-              attributes = dataLabelAttribute(option),
+              attributes = dataLabelAttribute(option.label),
               hint = maybeHint
             )
         }
@@ -1243,14 +1243,14 @@ class SectionRenderingService(
           case ((option, maybeHint, maybeHelpText), index) =>
             val item = CheckboxItem(
               id = Some(formComponent.id.value + index),
-              value = index.toString,
-              content = content.Text(option.value),
-              checked = isChecked(index),
+              value = option.value(index),
+              content = content.Text(option.label.value),
+              checked = isChecked(option.value(index)),
               conditionalHtml = helpTextHtml(maybeHelpText),
-              attributes = dataLabelAttribute(option),
+              attributes = dataLabelAttribute(option.label),
               hint = maybeHint
             )
-            if (noneChoice.contains(index + 1)) {
+            if (maybeNoneChoice.exists(noneChoice => noneChoice.value(index) === option.value(index))) {
               item.copy(behaviour = Some(ExclusiveCheckbox))
             } else {
               item
@@ -1304,7 +1304,7 @@ class SectionRenderingService(
               Map("data-checkbox" -> (formComponent.id.value + index)) // Used by javascript for dynamic calculations
           )
     val revealingChoicesList
-      : List[(SmartString, Option[Hint], Int => Boolean, FormComponentId => Int => Option[NonEmptyList[Html]])] =
+      : List[(OptionData, Option[Hint], Int => Boolean, FormComponentId => Int => Option[NonEmptyList[Html]])] =
       options.map { o =>
         val isSelected: Int => Boolean =
           index =>
@@ -1373,10 +1373,10 @@ class SectionRenderingService(
           CheckboxItem(
             id = Some(formComponent.id.value + index),
             value = index.toString,
-            content = content.Text(option.value),
+            content = content.Text(option.label.value),
             checked = isChecked(index),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
-            attributes = dataLabelAttribute(option),
+            attributes = dataLabelAttribute(option.label),
             hint = maybeHint
           )
       }
@@ -1398,10 +1398,10 @@ class SectionRenderingService(
           RadioItem(
             id = Some(formComponent.id.value + index),
             value = Some(index.toString),
-            content = content.Text(option.value),
+            content = content.Text(option.label.value),
             checked = isChecked(index),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
-            attributes = dataLabelAttribute(option),
+            attributes = dataLabelAttribute(option.label),
             hint = maybeHint
           )
       }

@@ -148,7 +148,7 @@ object ValidationUtil {
                 case Some(errors) => FieldError(formComponent, currentValue, errors)
                 case None         => FieldOk(formComponent, currentValue)
               }
-              HtmlFieldId.indexed(formComponent.id, index.toInt) -> formFieldValidationResult
+              HtmlFieldId.indexed(formComponent.id, index) -> formFieldValidationResult
             }.toMap
             ComponentField(formComponent, optionalData)
           }
