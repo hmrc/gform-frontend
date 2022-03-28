@@ -32,8 +32,8 @@ trait VariadicFormDataSupport {
   def variadicFormData[S <: SourceOrigin](kv: (String, String)*): VariadicFormData[S] =
     kv.toList.foldMap { case (id, v) => VariadicFormData.one(mkModelComponentId(id), v) }
 
-  def variadicFormDataMany(kv: (String, List[Int])*): VariadicFormData[SourceOrigin.OutOfDate] =
-    kv.toList.foldMap { case (id, v) => VariadicFormData.many(mkModelComponentId(id), v.map(_.toString)) }
+  def variadicFormDataMany(kv: (String, List[String])*): VariadicFormData[SourceOrigin.OutOfDate] =
+    kv.toList.foldMap { case (id, v) => VariadicFormData.many(mkModelComponentId(id), v) }
 
   def mkVariadicFormData[T <: SourceOrigin](data: (String, VariadicValue)*): VariadicFormData[T] = {
     val fcData = data.map { case (k, v) => (mkModelComponentId(k), v) }

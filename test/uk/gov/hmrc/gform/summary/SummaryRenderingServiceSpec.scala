@@ -402,7 +402,7 @@ class SummaryRenderingServiceSpec
               addToListQuestionComponent.withIndex(1).id -> ComponentField(
                 addToListQuestionComponent.withIndex(1),
                 Map(
-                  Indexed(addToListQuestionComponent.withIndex(1).id, 0) -> FieldOk(
+                  Indexed(addToListQuestionComponent.withIndex(1).id, "0") -> FieldOk(
                     addToListQuestionComponent.withIndex(1),
                     "1"
                   )
@@ -411,7 +411,7 @@ class SummaryRenderingServiceSpec
               addToListQuestionComponent.withIndex(2).id -> ComponentField(
                 addToListQuestionComponent.withIndex(2),
                 Map(
-                  Indexed(addToListQuestionComponent.withIndex(2).id, 1) -> FieldOk(
+                  Indexed(addToListQuestionComponent.withIndex(2).id, "1") -> FieldOk(
                     addToListQuestionComponent.withIndex(2),
                     "0"
                   )
@@ -487,7 +487,7 @@ class SummaryRenderingServiceSpec
               addToListQuestionComponent.withIndex(1).id -> ComponentField(
                 addToListQuestionComponent.withIndex(1),
                 Map(
-                  Indexed(addToListQuestionComponent.withIndex(1).id, 0) -> FieldOk(
+                  Indexed(addToListQuestionComponent.withIndex(1).id, "0") -> FieldOk(
                     addToListQuestionComponent.withIndex(1),
                     "1"
                   )
@@ -496,7 +496,7 @@ class SummaryRenderingServiceSpec
               addToListQuestionComponent.withIndex(2).id -> ComponentField(
                 addToListQuestionComponent.withIndex(2),
                 Map(
-                  Indexed(addToListQuestionComponent.withIndex(2).id, 1) -> FieldOk(
+                  Indexed(addToListQuestionComponent.withIndex(2).id, "1") -> FieldOk(
                     addToListQuestionComponent.withIndex(2),
                     "0"
                   )

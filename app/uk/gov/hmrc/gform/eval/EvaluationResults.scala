@@ -259,7 +259,7 @@ case class EvaluationResults(
 
     def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
       variadicValue.fold[ExpressionResult](one => nonEmpty(StringResult(one.value)))(many =>
-        ExpressionResult.OptionResult(many.value.map(_.toInt))
+        ExpressionResult.OptionResult(many.value)
       )
 
     def loop(expr: Expr): ExpressionResult = expr match {

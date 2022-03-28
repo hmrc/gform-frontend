@@ -94,8 +94,8 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     )
     val variadicData: VariadicFormData[SourceOrigin.OutOfDate] =
       variadicFormDataMany(
-        "1_choice" -> List(0),
-        "2_choice" -> List.empty[Int]
+        "1_choice" -> List("0"),
+        "2_choice" -> List.empty[String]
       ) ++
         variadicFormData(
           "1_offset" -> "1000",
@@ -129,8 +129,8 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     )
     val variadicData: VariadicFormData[SourceOrigin.OutOfDate] =
       variadicFormDataMany(
-        "1_choice" -> List(0),
-        "2_choice" -> List.empty[Int]
+        "1_choice" -> List("0"),
+        "2_choice" -> List.empty[String]
       ) ++
         variadicFormData(
           "1_offset" -> "1000",

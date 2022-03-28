@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded, EnteredVariadicFormData, FormModel, Singleton }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponentId, FormTemplateId, Horizontal, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SectionNumber, Sterling, Text, Value, WholeSterling }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponentId, FormTemplateId, Horizontal, OptionData, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SectionNumber, Sterling, Text, Value, WholeSterling }
 
 import scala.concurrent.Future
 
@@ -40,6 +40,11 @@ class FormDataHelpersSpec extends Spec {
   private def toFormFields(xs: List[(String, String)]): List[FormField] = xs.map { case (fcId, value) =>
     FormField(FormComponentId(fcId).modelComponentId, value)
   }
+
+  private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
+    xs.map(l => OptionData.IndexBased(toSmartString(l)))
+
+  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s))
 
   "updateFormField" should "update FormField in form data" in {
     val formFields = toFormFields(
@@ -180,7 +185,7 @@ class FormDataHelpersSpec extends Spec {
         "choice1",
         Choice(
           Checkbox,
-          NonEmptyList.of(toSmartString("Label1"), toSmartString("Label2")),
+          toOptionData(NonEmptyList.of("Label1", "Label2")),
           Horizontal,
           List.empty,
           None,
@@ -196,13 +201,13 @@ class FormDataHelpersSpec extends Spec {
         RevealingChoice(
           List(
             RevealingChoiceElement(
-              toSmartString("Label1"),
+              toOptionData("Label1"),
               List(mkFormComponent("revealingChoiceField1", Value)),
               None,
               false
             ),
             RevealingChoiceElement(
-              toSmartString("Label2"),
+              toOptionData("Label2"),
               List(mkFormComponent("revealingChoiceField2", Value)),
               None,
               false

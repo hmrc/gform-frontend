@@ -359,7 +359,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     val choice =
       Choice(
         YesNo,
-        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        toOptionData(NonEmptyList.of("yes", "no")),
         Vertical,
         List.empty,
         None,
@@ -376,8 +376,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyOutOfDate("a" -> "0", "b" -> "0", "c" -> "100", "d" -> "200"),
         mkDataManyCurrent("a"   -> "0", "b" -> "0", "c" -> "100", "d" -> "200"),
         Map(
-          ctx("a")   -> OptionResult(List(0)),
-          ctx("b")   -> OptionResult(List(0)),
+          ctx("a")   -> OptionResult(List("0")),
+          ctx("b")   -> OptionResult(List("0")),
           ctx("d")   -> Hidden,
           const("0") -> NumberResult(0),
           const("1") -> NumberResult(1)
@@ -387,8 +387,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyOutOfDate("a" -> "0", "b" -> "1", "c" -> "100", "d" -> "200"),
         mkDataManyCurrent("a"   -> "0", "b" -> "1", "c" -> "100", "d" -> "200"),
         Map(
-          ctx("a")   -> OptionResult(List(0)),
-          ctx("b")   -> OptionResult(List(1)),
+          ctx("a")   -> OptionResult(List("0")),
+          ctx("b")   -> OptionResult(List("1")),
           ctx("c")   -> Hidden,
           const("0") -> NumberResult(0),
           const("1") -> NumberResult(1)
@@ -398,7 +398,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyOutOfDate("a" -> "1", "b" -> "0", "c" -> "100", "d" -> "200"),
         mkDataManyCurrent("a"   -> "1", "b" -> "0", "c" -> "100", "d" -> "200"),
         Map(
-          ctx("a")   -> OptionResult(List(1)),
+          ctx("a")   -> OptionResult(List("1")),
           ctx("b")   -> Hidden,
           ctx("c")   -> Hidden,
           ctx("d")   -> Hidden,
@@ -410,7 +410,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyOutOfDate("a" -> "1", "b" -> "1", "c" -> "100", "d" -> "200"),
         mkDataManyCurrent("a"   -> "1", "b" -> "1", "c" -> "100", "d" -> "200"),
         Map(
-          ctx("a")   -> OptionResult(List(1)),
+          ctx("a")   -> OptionResult(List("1")),
           ctx("b")   -> Hidden,
           ctx("c")   -> Hidden,
           ctx("d")   -> Hidden,
@@ -447,7 +447,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     val choice =
       Choice(
         YesNo,
-        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        toOptionData(NonEmptyList.of("yes", "no")),
         Vertical,
         List.empty,
         None,
@@ -464,7 +464,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyOutOfDate("a" -> "0", "c" -> "0") ++ mkDataOutOfDate("b" -> "Your class"),
         mkDataManyCurrent("a" -> "0", "c" -> "0") ++ mkDataCurrent("b" -> "your client"),
         Map(
-          ctx("a")             -> OptionResult(List(0)),
+          ctx("a")             -> OptionResult(List("0")),
           ctx("b")             -> StringResult("your client"),
           const("0")           -> NumberResult(0),
           const("you")         -> StringResult("you"),
@@ -475,7 +475,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyOutOfDate("a" -> "1", "c" -> "0") ++ mkDataOutOfDate("b" -> "Your class"),
         mkDataManyCurrent("a" -> "1", "c" -> "0") ++ mkDataCurrent("b" -> "Your class"),
         Map(
-          ctx("a")             -> OptionResult(List(1)),
+          ctx("a")             -> OptionResult(List("1")),
           ctx("b")             -> Hidden,
           const("0")           -> NumberResult(0),
           const("you")         -> StringResult("you"),
@@ -560,7 +560,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
               RevealingChoice(
                 List(
                   RevealingChoiceElement(
-                    toSmartString("Yes"),
+                    toOptionData("Yes"),
                     mkFormComponent(
                       "d",
                       Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))),
@@ -570,7 +570,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
                     false
                   ),
                   RevealingChoiceElement(
-                    toSmartString("No"),
+                    toOptionData("No"),
                     mkFormComponent(
                       "e",
                       Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))),
@@ -631,8 +631,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
             "rc",
             RevealingChoice(
               List(
-                RevealingChoiceElement(toSmartString("Yes"), mkFormComponent("a", Value, sterling) :: Nil, None, false),
-                RevealingChoiceElement(toSmartString("No"), mkFormComponent("b", Value, sterling) :: Nil, None, false)
+                RevealingChoiceElement(toOptionData("Yes"), mkFormComponent("a", Value, sterling) :: Nil, None, false),
+                RevealingChoiceElement(toOptionData("No"), mkFormComponent("b", Value, sterling) :: Nil, None, false)
               ),
               true
             )
@@ -705,7 +705,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyCurrent("a"   -> "1"),
         Map(
           const("0") -> NumberResult(0),
-          ctx("a")   -> OptionResult(List(1)),
+          ctx("a")   -> OptionResult(List("1")),
           ctx("b")   -> Hidden,
           ctx("c")   -> Hidden,
           ctx("d")   -> Hidden
@@ -716,7 +716,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyCurrent("a" -> "0") ++ mkDataCurrent("e" -> ""),
         Map(
           const("0") -> NumberResult(0),
-          ctx("a")   -> OptionResult(List(0)),
+          ctx("a")   -> OptionResult(List("0")),
           ctx("b")   -> Empty,
           ctx("c")   -> Empty,
           ctx("d")   -> Hidden
@@ -727,8 +727,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyCurrent("a" -> "0", "b" -> "1") ++ mkDataCurrent("e" -> ""),
         Map(
           const("0") -> NumberResult(0),
-          ctx("a")   -> OptionResult(List(0)),
-          ctx("b")   -> OptionResult(List(1)),
+          ctx("a")   -> OptionResult(List("0")),
+          ctx("b")   -> OptionResult(List("1")),
           ctx("c")   -> Empty,
           ctx("d")   -> Hidden
         )
@@ -738,8 +738,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyCurrent("a" -> "0", "b" -> "1") ++ mkDataCurrent("c" -> "10", "e" -> "10.00"),
         Map(
           const("0") -> NumberResult(0),
-          ctx("a")   -> OptionResult(List(0)),
-          ctx("b")   -> OptionResult(List(1)),
+          ctx("a")   -> OptionResult(List("0")),
+          ctx("b")   -> OptionResult(List("1")),
           ctx("c")   -> NumberResult(10.00),
           ctx("d")   -> Hidden
         )
@@ -749,8 +749,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyCurrent("a" -> "0", "b" -> "0") ++ mkDataCurrent("e" -> ""),
         Map(
           const("0") -> NumberResult(0),
-          ctx("a")   -> OptionResult(List(0)),
-          ctx("b")   -> OptionResult(List(0)),
+          ctx("a")   -> OptionResult(List("0")),
+          ctx("b")   -> OptionResult(List("0")),
           ctx("c")   -> Empty,
           ctx("d")   -> Empty
         )
@@ -760,8 +760,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyCurrent("a" -> "0", "b" -> "0") ++ mkDataCurrent("c" -> "10", "d" -> "11", "e" -> "21.00"),
         Map(
           const("0") -> NumberResult(0),
-          ctx("a")   -> OptionResult(List(0)),
-          ctx("b")   -> OptionResult(List(0)),
+          ctx("a")   -> OptionResult(List("0")),
+          ctx("b")   -> OptionResult(List("0")),
           ctx("c")   -> NumberResult(10.00),
           ctx("d")   -> NumberResult(11.00)
         )
@@ -771,7 +771,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     val choice =
       Choice(
         YesNo,
-        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        toOptionData(NonEmptyList.of("yes", "no")),
         Vertical,
         List.empty,
         None,
@@ -805,8 +805,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyCurrent("a" -> "1", "b" -> "1") ++ mkDataCurrent("bb" -> "10", "d" -> "10", "e" -> ""),
         Map(
           const("1") -> NumberResult(1),
-          ctx("a")   -> OptionResult(List(1)),
-          ctx("b")   -> OptionResult(List(1)),
+          ctx("a")   -> OptionResult(List("1")),
+          ctx("b")   -> OptionResult(List("1")),
           ctx("c")   -> Empty,
           ctx("cc")  -> Empty,
           ctx("d")   -> Hidden
@@ -822,8 +822,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         ),
         Map(
           const("1") -> NumberResult(1),
-          ctx("a")   -> OptionResult(List(1)),
-          ctx("b")   -> OptionResult(List(1)),
+          ctx("a")   -> OptionResult(List("1")),
+          ctx("b")   -> OptionResult(List("1")),
           ctx("c")   -> Empty,
           ctx("cc")  -> NumberResult(10.00),
           ctx("d")   -> Hidden
@@ -834,8 +834,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyCurrent("a" -> "1", "b" -> "0") ++ mkDataCurrent("bb" -> "10", "d" -> "10"),
         Map(
           const("1") -> NumberResult(1),
-          ctx("a")   -> OptionResult(List(1)),
-          ctx("b")   -> OptionResult(List(0)),
+          ctx("a")   -> OptionResult(List("1")),
+          ctx("b")   -> OptionResult(List("0")),
           ctx("c")   -> Hidden,
           ctx("cc")  -> Hidden,
           ctx("d")   -> Hidden
@@ -855,9 +855,9 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         ),
         Map(
           const("1") -> NumberResult(1),
-          ctx("a")   -> OptionResult(List(1)),
-          ctx("b")   -> OptionResult(List(1)),
-          ctx("c")   -> OptionResult(List(0)),
+          ctx("a")   -> OptionResult(List("1")),
+          ctx("b")   -> OptionResult(List("1")),
+          ctx("c")   -> OptionResult(List("0")),
           ctx("cc")  -> NumberResult(10.00),
           ctx("d")   -> Hidden
         )
@@ -876,9 +876,9 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         ),
         Map(
           const("1") -> NumberResult(1),
-          ctx("a")   -> OptionResult(List(1)),
-          ctx("b")   -> OptionResult(List(1)),
-          ctx("c")   -> OptionResult(List(1)),
+          ctx("a")   -> OptionResult(List("1")),
+          ctx("b")   -> OptionResult(List("1")),
+          ctx("c")   -> OptionResult(List("1")),
           ctx("cc")  -> NumberResult(10.00),
           ctx("d")   -> NumberResult(10.00)
         )
@@ -892,7 +892,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkDataManyCurrent("a" -> "0", "b" -> "1", "c" -> "1") ++ mkDataCurrent("bb" -> "10", "cc" -> "10", "d" -> "10"),
         Map(
           const("1") -> NumberResult(1),
-          ctx("a")   -> OptionResult(List(0)),
+          ctx("a")   -> OptionResult(List("0")),
           ctx("b")   -> Hidden,
           ctx("bb")  -> Hidden,
           ctx("c")   -> Hidden,
@@ -905,7 +905,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     val choice =
       Choice(
         YesNo,
-        NonEmptyList.of(toSmartString("yes"), toSmartString("no")),
+        toOptionData(NonEmptyList.of("yes", "no")),
         Vertical,
         List.empty,
         None,

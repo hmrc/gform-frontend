@@ -100,7 +100,7 @@ trait FormFieldValidationResult {
 
   def getCurrentValue(key: HtmlFieldId): String = getOptionalCurrentValue(key).getOrElse("")
 
-  def getComponentFieldIndices(formComponentId: FormComponentId): List[Int] =
+  def getComponentFieldIndices(formComponentId: FormComponentId): List[String] =
     this match {
       case ComponentField(_, data) =>
         data

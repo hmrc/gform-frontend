@@ -28,7 +28,7 @@ case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, type
 
   def numberRepresentation: Option[BigDecimal] = expressionResult.numberRepresentation
 
-  def optionRepresentation: Option[Seq[Int]] = expressionResult.optionRepresentation
+  def optionRepresentation: Option[Seq[String]] = expressionResult.optionRepresentation
 
   def isEmpty = expressionResult === ExpressionResult.empty
 

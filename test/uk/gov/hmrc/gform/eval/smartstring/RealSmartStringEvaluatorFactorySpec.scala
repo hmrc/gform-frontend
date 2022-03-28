@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateWithRedirects, Horizontal, Radio, RevealingChoice, RevealingChoiceElement, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateWithRedirects, Horizontal, OptionData, Radio, RevealingChoice, RevealingChoiceElement, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
@@ -49,6 +49,11 @@ class RealSmartStringEvaluatorFactorySpec
 
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
+
+  private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
+    xs.map(l => OptionData.IndexBased(toSmartString(l)))
+
+  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s))
 
   "SmartStringEvaluator" should {
 
@@ -140,7 +145,7 @@ class RealSmartStringEvaluatorFactorySpec
         "choiceField",
         Choice(
           Radio,
-          NonEmptyList.of(toSmartString("Yes"), toSmartString("No")),
+          toOptionData(NonEmptyList.of("Yes", "No")),
           Horizontal,
           List.empty,
           None,
@@ -182,10 +187,12 @@ class RealSmartStringEvaluatorFactorySpec
         "choiceField",
         Choice(
           Radio,
-          NonEmptyList.of(
-            toSmartStringExpression("Yes {0}", FormCtx(FormComponentId("textField"))),
-            toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))
-          ),
+          NonEmptyList
+            .of(
+              toSmartStringExpression("Yes {0}", FormCtx(FormComponentId("textField"))),
+              toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))
+            )
+            .map(l => OptionData.IndexBased(l)),
           Horizontal,
           List.empty,
           None,
@@ -223,7 +230,7 @@ class RealSmartStringEvaluatorFactorySpec
         "multiChoiceField",
         Choice(
           Checkbox,
-          NonEmptyList.of(toSmartString("Choice1"), toSmartString("Choice2")),
+          toOptionData(NonEmptyList.of("Choice1", "Choice2")),
           Horizontal,
           List.empty,
           None,
@@ -260,7 +267,7 @@ class RealSmartStringEvaluatorFactorySpec
         "multiChoiceField",
         Choice(
           Checkbox,
-          NonEmptyList.of(toSmartString("Choice1"), toSmartString("Choice2")),
+          toOptionData(NonEmptyList.of("Choice1", "Choice2")),
           Horizontal,
           List.empty,
           None,
@@ -299,8 +306,8 @@ class RealSmartStringEvaluatorFactorySpec
         "revealingChoiceField",
         RevealingChoice(
           List(
-            RevealingChoiceElement(toSmartString("Option1"), List(choice1TextField), None, true),
-            RevealingChoiceElement(toSmartString("Option2"), List(choice2TextField), None, true)
+            RevealingChoiceElement(toOptionData("Option1"), List(choice1TextField), None, true),
+            RevealingChoiceElement(toOptionData("Option2"), List(choice2TextField), None, true)
           ),
           true
         ),
@@ -335,8 +342,8 @@ class RealSmartStringEvaluatorFactorySpec
         "revealingChoiceField",
         RevealingChoice(
           List(
-            RevealingChoiceElement(toSmartString("Option1"), List(choice1TextField), None, true),
-            RevealingChoiceElement(toSmartString("Option2"), List(choice2TextField), None, true)
+            RevealingChoiceElement(toOptionData("Option1"), List(choice1TextField), None, true),
+            RevealingChoiceElement(toOptionData("Option2"), List(choice2TextField), None, true)
           ),
           true
         ),

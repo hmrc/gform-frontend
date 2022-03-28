@@ -104,19 +104,19 @@ class StructuredFormDataBuilderSpec
           )
         ),
         variadicFormDataMany(
-          "standardRevealingChoice"                         -> List(0),
-          "1_revealingChoiceInAddToList"                    -> List(0),
-          "2_revealingChoiceInAddToList"                    -> List(0),
-          "3_revealingChoiceInAddToList"                    -> List(0),
-          "1_addAnotherQuestionWithText"                    -> List(0),
-          "2_addAnotherQuestionWithText"                    -> List(0),
-          "3_addAnotherQuestionWithText"                    -> List(1),
-          "1_addAnotherQuestionWithRevealingChoiceWithText" -> List(0),
-          "2_addAnotherQuestionWithRevealingChoiceWithText" -> List(0),
-          "3_addAnotherQuestionWithRevealingChoiceWithText" -> List(1),
-          "1_revealingChoiceInRepeatedSection"              -> List(0),
-          "2_revealingChoiceInRepeatedSection"              -> List(0),
-          "3_revealingChoiceInRepeatedSection"              -> List(0)
+          "standardRevealingChoice"                         -> List("0"),
+          "1_revealingChoiceInAddToList"                    -> List("0"),
+          "2_revealingChoiceInAddToList"                    -> List("0"),
+          "3_revealingChoiceInAddToList"                    -> List("0"),
+          "1_addAnotherQuestionWithText"                    -> List("0"),
+          "2_addAnotherQuestionWithText"                    -> List("0"),
+          "3_addAnotherQuestionWithText"                    -> List("1"),
+          "1_addAnotherQuestionWithRevealingChoiceWithText" -> List("0"),
+          "2_addAnotherQuestionWithRevealingChoiceWithText" -> List("0"),
+          "3_addAnotherQuestionWithRevealingChoiceWithText" -> List("1"),
+          "1_revealingChoiceInRepeatedSection"              -> List("0"),
+          "2_revealingChoiceInRepeatedSection"              -> List("0"),
+          "3_revealingChoiceInRepeatedSection"              -> List("0")
         ) ++
           variadicFormData(
             "standardLookup"                             -> "fieldValue",
@@ -278,19 +278,19 @@ class StructuredFormDataBuilderSpec
           )
         ),
         variadicFormDataMany(
-          "standardRevealingChoice"                         -> List(0),
-          "1_revealingChoiceInAddToList"                    -> List(0),
-          "2_revealingChoiceInAddToList"                    -> List(0),
-          "3_revealingChoiceInAddToList"                    -> List(0),
-          "1_addAnotherQuestionWithText"                    -> List(0),
-          "2_addAnotherQuestionWithText"                    -> List(0),
-          "3_addAnotherQuestionWithText"                    -> List(1),
-          "1_addAnotherQuestionWithRevealingChoiceWithText" -> List(0),
-          "2_addAnotherQuestionWithRevealingChoiceWithText" -> List(0),
-          "3_addAnotherQuestionWithRevealingChoiceWithText" -> List(1),
-          "1_revealingChoiceInRepeatedSection"              -> List(0),
-          "2_revealingChoiceInRepeatedSection"              -> List(0),
-          "3_revealingChoiceInRepeatedSection"              -> List(0)
+          "standardRevealingChoice"                         -> List("0"),
+          "1_revealingChoiceInAddToList"                    -> List("0"),
+          "2_revealingChoiceInAddToList"                    -> List("0"),
+          "3_revealingChoiceInAddToList"                    -> List("0"),
+          "1_addAnotherQuestionWithText"                    -> List("0"),
+          "2_addAnotherQuestionWithText"                    -> List("0"),
+          "3_addAnotherQuestionWithText"                    -> List("1"),
+          "1_addAnotherQuestionWithRevealingChoiceWithText" -> List("0"),
+          "2_addAnotherQuestionWithRevealingChoiceWithText" -> List("0"),
+          "3_addAnotherQuestionWithRevealingChoiceWithText" -> List("1"),
+          "1_revealingChoiceInRepeatedSection"              -> List("0"),
+          "2_revealingChoiceInRepeatedSection"              -> List("0"),
+          "3_revealingChoiceInRepeatedSection"              -> List("0")
         ) ++
           variadicFormData(
             "standardText"                             -> "Standard text",
@@ -466,7 +466,7 @@ class StructuredFormDataBuilderSpec
         createNonRepeatingSection(
           createMultiChoice("field")
         ) :: Nil,
-        variadicFormDataMany("field" -> List(1, 2))
+        variadicFormDataMany("field" -> List("1", "2"))
       ),
       objectStructure(field("field", arrayNode(textNode("1"), textNode("2")))).asRight
     )
@@ -526,8 +526,8 @@ class StructuredFormDataBuilderSpec
           createGroup(createMultiChoice("field"))
         ) :: Nil,
         variadicFormDataMany(
-          "1_field" -> List(1, 2),
-          "2_field" -> List(1, 3, 4)
+          "1_field" -> List("1", "2"),
+          "2_field" -> List("1", "3", "4")
         ) ++
           variadicFormData(
             "1_a_group" -> "",
@@ -610,8 +610,8 @@ class StructuredFormDataBuilderSpec
           createMultiChoice("field")
         ) :: Nil,
         variadicFormDataMany(
-          "1_field" -> List(1, 2),
-          "2_field" -> List(1, 3, 4)
+          "1_field" -> List("1", "2"),
+          "2_field" -> List("1", "3", "4")
         )
       ),
       objectStructure(
@@ -667,7 +667,7 @@ class StructuredFormDataBuilderSpec
           )
         ) :: Nil,
         variadicFormDataMany(
-          "revealYourSecrets" -> List(0)
+          "revealYourSecrets" -> List("0")
         ) ++
           variadicFormData(
             "revealedField1"     -> "revealedField1Value",
@@ -715,7 +715,7 @@ class StructuredFormDataBuilderSpec
           )
         ) :: Nil,
         variadicFormDataMany(
-          "revealYourSecrets" -> List(0, 2)
+          "revealYourSecrets" -> List("0", "2")
         ) ++
           variadicFormData(
             "revealedField1"     -> "revealedField1Value",
@@ -769,10 +769,10 @@ class StructuredFormDataBuilderSpec
           )
         ) :: Nil,
         variadicFormDataMany(
-          "1_cake"                     -> List(0, 1),
-          "2_cake"                     -> List(0, 1),
-          "1_addToListAnotherQuestion" -> List(0),
-          "2_addToListAnotherQuestion" -> List(1)
+          "1_cake"                     -> List("0", "1"),
+          "2_cake"                     -> List("0", "1"),
+          "1_addToListAnotherQuestion" -> List("0"),
+          "2_addToListAnotherQuestion" -> List("1")
         ) ++
           variadicFormData(
             "1_cakeName"           -> "lemonCake",
@@ -923,8 +923,8 @@ class StructuredFormDataBuilderSpec
           )
         ) :: Nil,
         variadicFormDataMany(
-          "1_addToListAnotherQuestion" -> List(0),
-          "2_addToListAnotherQuestion" -> List(1)
+          "1_addToListAnotherQuestion" -> List("0"),
+          "2_addToListAnotherQuestion" -> List("1")
         ) ++
           variadicFormData(
             "1_field-street1"  -> "1",
@@ -1133,7 +1133,7 @@ class StructuredFormDataBuilderSpec
       id,
       Choice(
         Checkbox,
-        NonEmptyList.of(toSmartString("One"), toSmartString("Two"), toSmartString("Three")),
+        toOptionData(NonEmptyList.of("One", "Two", "Three")),
         Vertical,
         Nil,
         None,
@@ -1150,7 +1150,7 @@ class StructuredFormDataBuilderSpec
       id,
       Choice(
         Radio,
-        NonEmptyList.of(toSmartString("One"), toSmartString("Two"), toSmartString("Three")),
+        toOptionData(NonEmptyList.of("One", "Two", "Three")),
         Vertical,
         Nil,
         None,
@@ -1174,7 +1174,7 @@ class StructuredFormDataBuilderSpec
     createFormComponent(id, RevealingChoice(element1 :: elements.toList, multiValue))
 
   def createRevealingChoiceElement(fields: FormComponent*): RevealingChoiceElement =
-    RevealingChoiceElement(toSmartString("foo"), fields.toList, None, false)
+    RevealingChoiceElement(toOptionData("foo"), fields.toList, None, false)
 
   def createAddress(id: String): FormComponent = createFormComponent(id, Address(false))
 

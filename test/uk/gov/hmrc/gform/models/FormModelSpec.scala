@@ -45,8 +45,8 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     val fcA = mkFormComponent("a", Value)
     val fcB = mkFormComponent("b", Value)
 
-    val rcElementA = RevealingChoiceElement(toSmartString("Yes"), fcA :: Nil, None, false)
-    val rcElementB = RevealingChoiceElement(toSmartString("No"), fcB :: Nil, None, false)
+    val rcElementA = RevealingChoiceElement(toOptionData("Yes"), fcA :: Nil, None, false)
+    val rcElementB = RevealingChoiceElement(toOptionData("No"), fcB :: Nil, None, false)
 
     val sliceA = mkFormComponent("rc", RevealingChoice(Nil, true))
     val sliceB = mkFormComponent("rc", RevealingChoice(List(rcElementA), true))
@@ -76,9 +76,9 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     val table = Table(
       ("data", "expected"),
       (variadicFormDataMany(), sliceA :: Nil),
-      (variadicFormDataMany("rc" -> List(0)), sliceB :: Nil),
-      (variadicFormDataMany("rc" -> List(1)), sliceC :: Nil),
-      (variadicFormDataMany("rc" -> List(0, 1)), rc :: Nil)
+      (variadicFormDataMany("rc" -> List("0")), sliceB :: Nil),
+      (variadicFormDataMany("rc" -> List("1")), sliceC :: Nil),
+      (variadicFormDataMany("rc" -> List("0", "1")), rc :: Nil)
     )
 
     forAll(table) { case (data, expectedFcs) =>
@@ -337,7 +337,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
         "a2",
         Choice(
           Radio,
-          NonEmptyList.one(toSmartString("Option A")),
+          NonEmptyList.one(toOptionData("Option A")),
           Vertical,
           List.empty[Int],
           None,
@@ -398,12 +398,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
         )
       ),
       (
-        variadicFormDataMany("a2" -> List(0)) ++ variadicFormData[SourceOrigin.OutOfDate]("c" -> "X"),
+        variadicFormDataMany("a2" -> List("0")) ++ variadicFormData[SourceOrigin.OutOfDate]("c" -> "X"),
         Map(
           Constant("123") -> NumberResult(123),
           Constant("456") -> NumberResult(456),
           Constant("0")   -> NumberResult(0),
-          FormCtx("a2")   -> OptionResult(List(0)),
+          FormCtx("a2")   -> OptionResult(List("0")),
           FormCtx("c")    -> StringResult("X")
         ),
         NonEmptyList.of(
@@ -434,7 +434,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
         "b",
         Choice(
           Radio,
-          NonEmptyList.one(toSmartString("Option A")),
+          NonEmptyList.one(toOptionData("Option A")),
           Vertical,
           List.empty[Int],
           None,
@@ -476,11 +476,11 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       ("data", "expected", "expectedFormModel"),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "123") ++
-          variadicFormDataMany("b"                   -> List(123)),
+          variadicFormDataMany("b"                   -> List("123")),
         Map(
           Constant("123") -> NumberResult(123),
           FormCtx("a")    -> NumberResult(123),
-          FormCtx("b")    -> OptionResult(List(123))
+          FormCtx("b")    -> OptionResult(List("123"))
         ),
         NonEmptyList.of(
           Bracket.NonRepeatingPage(Singleton(expectedPage1), SectionNumber(0), section1),
@@ -489,11 +489,11 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
         )
       ),
       (
-        variadicFormDataMany("b" -> List(124)),
+        variadicFormDataMany("b" -> List("124")),
         Map(
           Constant("123") -> NumberResult(123),
           FormCtx("a")    -> NumberResult(123),
-          FormCtx("b")    -> OptionResult(List(124)),
+          FormCtx("b")    -> OptionResult(List("124")),
           FormCtx("c")    -> Hidden
         ),
         NonEmptyList.of(
@@ -522,7 +522,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
         "b",
         Choice(
           Radio,
-          NonEmptyList.one(toSmartString("Option A")),
+          toOptionData(NonEmptyList.one("Option A")),
           Vertical,
           List.empty[Int],
           None,
@@ -564,11 +564,11 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       ("data", "expected", "expectedFormModel"),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "123.45") ++
-          variadicFormDataMany("b"                   -> List(123)),
+          variadicFormDataMany("b"                   -> List("123")),
         Map(
           Constant("123.45") -> NumberResult(123.45),
           FormCtx("a")       -> NumberResult(123.45),
-          FormCtx("b")       -> OptionResult(List(123))
+          FormCtx("b")       -> OptionResult(List("123"))
         ),
         NonEmptyList.of(
           Bracket.NonRepeatingPage(Singleton(expectedPage1), SectionNumber(0), section1),

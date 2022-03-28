@@ -70,19 +70,18 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     None
   )
 
-  private val emptyChoice =
-    Choice(
-      Checkbox,
-      NonEmptyList.one(toSmartString("")),
-      Vertical,
-      List.empty,
-      None,
-      None,
-      None,
-      LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
-      None,
-      None
-    )
+  private val emptyChoice = Choice(
+    Checkbox,
+    toOptionData(NonEmptyList.one("")),
+    Vertical,
+    List.empty,
+    None,
+    None,
+    None,
+    LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+    None,
+    None
+  )
 
   private val emptyInformationMessage = InformationMessage(StandardInfo, toSmartString(""))
 
@@ -177,8 +176,8 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val revealingChoice =
       RevealingChoice(
         List(
-          RevealingChoiceElement(toSmartString("Yes"), fcA :: Nil, None, false),
-          RevealingChoiceElement(toSmartString("No"), fcB :: Nil, None, false)
+          RevealingChoiceElement(toOptionData("Yes"), fcA :: Nil, None, false),
+          RevealingChoiceElement(toOptionData("No"), fcB :: Nil, None, false)
         ),
         true
       )
@@ -245,7 +244,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val stringExpr = toSmartStringExpression("", FormCtx("a"))
     Table(
       ("prop", "propSetter"),
-      ("options", (choice: Choice) => choice.copy(options = NonEmptyList.one(stringExpr))),
+      ("options", (choice: Choice) => choice.copy(options = NonEmptyList.one(OptionData.IndexBased(stringExpr)))),
       ("optionHelpText", (choice: Choice) => choice.copy(optionHelpText = Some(NonEmptyList.one(stringExpr))))
     )
   }
@@ -398,7 +397,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val revealingChoice =
       RevealingChoice(
         List(
-          RevealingChoiceElement(choice, fcA :: fcB :: Nil, None, false)
+          RevealingChoiceElement(OptionData.IndexBased(choice), fcA :: fcB :: Nil, None, false)
         ),
         true
       )
@@ -425,7 +424,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       val revealingChoice =
         RevealingChoice(
           List(
-            RevealingChoiceElement(toSmartString(""), fcA :: Nil, None, false)
+            RevealingChoiceElement(toOptionData(""), fcA :: Nil, None, false)
           ),
           true
         )
@@ -449,7 +448,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       val revealingChoice =
         RevealingChoice(
           List(
-            RevealingChoiceElement(toSmartString(""), fcA :: fcB :: Nil, None, false)
+            RevealingChoiceElement(toOptionData(""), fcA :: fcB :: Nil, None, false)
           ),
           true
         )
@@ -559,7 +558,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ("title",                             expect1, emptyAddToList.copy(title = stringExpr)),
       ("description",                       expect1, emptyAddToList.copy(description = stringExpr)),
       ("shortName",                         expect1, emptyAddToList.copy(shortName = stringExpr)),
-      ("addAnotherQuestion.options",        expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(options = NonEmptyList.one(stringExpr))))),
+      ("addAnotherQuestion.options",        expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(options = NonEmptyList.one(OptionData.IndexBased(stringExpr)))))),
       ("addAnotherQuestion.optionHelpText", expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(optionHelpText = Some(NonEmptyList.one(stringExpr))))))
       // format: on
     )
