@@ -128,7 +128,8 @@ class FormProcessor(
         maybeAccessCode,
         ff,
         formModelOptics,
-        EnteredVariadicFormData.empty
+        EnteredVariadicFormData.empty,
+        true
       ) { _ => maybeSectionNumber =>
         val sectionNumber =
           if (isLastIteration)
@@ -194,7 +195,8 @@ class FormProcessor(
     maybeAccessCode: Option[AccessCode],
     fastForward: FastForward,
     formModelOptics: FormModelOptics[Mongo],
-    enteredVariadicFormData: EnteredVariadicFormData
+    enteredVariadicFormData: EnteredVariadicFormData,
+    visitPage: Boolean
   )(
     toResult: Option[(FormComponentId, AddressLookupResult)] => Option[SectionNumber] => Result
   )(implicit hc: HeaderCarrier, request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Future[Result] = {
@@ -258,7 +260,10 @@ class FormProcessor(
             .getOrElse(false) ||
             before.dataRetrieve != after.dataRetrieve
 
-        val visitsIndex = processData.visitsIndex.visit(sectionNumber)
+        val visitsIndex =
+          if (visitPage)
+            processData.visitsIndex.visit(sectionNumber)
+          else processData.visitsIndex
 
         val cacheUpd =
           cache.copy(
@@ -289,7 +294,8 @@ class FormProcessor(
                         maybeAccessCode,
                         fastForward,
                         formModelOptics,
-                        enteredVariadicFormData
+                        enteredVariadicFormData,
+                        visitPage
                       )(toResult) // recursive call
           } yield result
         } else {
