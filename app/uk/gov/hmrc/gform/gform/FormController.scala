@@ -460,7 +460,8 @@ class FormController(
                     maybeAccessCode,
                     fastForward,
                     formModelOptics,
-                    enteredVariadicFormData
+                    enteredVariadicFormData,
+                    true
                   ) { updatePostcodeLookup => maybeSn =>
                     def continueJourney =
                       maybeSn match {
@@ -500,6 +501,7 @@ class FormController(
               }
 
             def processSaveAndExit(processData: ProcessData): Future[Result] = {
+
               val purgeConfirmationData: PurgeConfirmationData =
                 confirmationService.purgeConfirmationData(sectionNumber, processData, enteredVariadicFormData)
 
@@ -511,7 +513,8 @@ class FormController(
                 maybeAccessCode,
                 fastForward,
                 formModelOptics,
-                purgeConfirmationData.enteredVariadicFormData
+                purgeConfirmationData.enteredVariadicFormData,
+                false
               ) { _ => maybeSn =>
                 val formTemplate = cache.formTemplate
                 val envelopeExpiryDate = cache.form.envelopeExpiryDate
@@ -586,7 +589,8 @@ class FormController(
                     maybeAccessCode,
                     fastForward,
                     formModelOptics,
-                    purgeConfirmationData.enteredVariadicFormData
+                    purgeConfirmationData.enteredVariadicFormData,
+                    true
                   )(_ => _ => goBackLink)
                 } else {
                   goBackLink.pure[Future]
@@ -645,7 +649,8 @@ class FormController(
                 maybeAccessCode,
                 fastForward,
                 formModelOptics,
-                enteredVariadicFormData
+                enteredVariadicFormData,
+                true
               ) { _ => _ =>
                 val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
                 Redirect(
