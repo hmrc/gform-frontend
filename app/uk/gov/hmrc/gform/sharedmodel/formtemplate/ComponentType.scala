@@ -332,7 +332,7 @@ case class Choice(
   selections: List[Int],
   hints: Option[NonEmptyList[SmartString]],
   optionHelpText: Option[NonEmptyList[SmartString]],
-  dividerPositon: Option[Int],
+  dividerPosition: Option[Int],
   dividerText: LocalisedString,
   noneChoice: Option[NoneChoice],
   noneChoiceError: Option[LocalisedString]
