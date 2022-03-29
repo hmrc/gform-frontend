@@ -1304,13 +1304,13 @@ class SectionRenderingService(
               Map("data-checkbox" -> (formComponent.id.value + index)) // Used by javascript for dynamic calculations
           )
     val revealingChoicesList
-      : List[(OptionData, Option[Hint], Int => Boolean, FormComponentId => Int => Option[NonEmptyList[Html]])] =
+      : List[(OptionData, Option[Hint], String => Boolean, FormComponentId => Int => Option[NonEmptyList[Html]])] =
       options.map { o =>
-        val isSelected: Int => Boolean =
+        val isSelected: String => Boolean =
           index =>
             extraInfo.formModelOptics.pageOpticsData
               .get(formComponent.modelComponentId)
-              .fold(o.selected)(_.contains(index.toString))
+              .fold(o.selected)(_.contains(index))
 
         val revealingFieldsHtml: FormComponentId => Int => List[Html] = controlledBy =>
           index =>
@@ -1372,9 +1372,9 @@ class SectionRenderingService(
         case ((option, maybeHint, isChecked, maybeRevealingFieldsHtml), index) =>
           CheckboxItem(
             id = Some(formComponent.id.value + index),
-            value = index.toString,
+            value = option.value(index),
             content = content.Text(option.label.value),
-            checked = isChecked(index),
+            checked = isChecked(option.value(index)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(option.label),
             hint = maybeHint
@@ -1397,9 +1397,9 @@ class SectionRenderingService(
         case ((option, maybeHint, isChecked, maybeRevealingFieldsHtml), index) =>
           RadioItem(
             id = Some(formComponent.id.value + index),
-            value = Some(index.toString),
+            value = Some(option.value(index)),
             content = content.Text(option.label.value),
-            checked = isChecked(index),
+            checked = isChecked(option.value(index)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(option.label),
             hint = maybeHint

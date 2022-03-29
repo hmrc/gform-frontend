@@ -25,7 +25,6 @@ import cats.syntax.foldable._
 import julienrf.json.derived
 import play.api.libs.json._
 
-import scala.util.Try
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.Atom
@@ -379,10 +378,14 @@ object RevealingChoice {
   def slice[S <: SourceOrigin](fcId: FormComponentId): VariadicFormData[S] => RevealingChoice => RevealingChoice =
     data =>
       revealingChoice => {
-        val indices: List[Int] =
-          data.many(fcId.modelComponentId).toList.flatten.flatMap(index => Try(index.toInt).toOption.toList).sorted
+        val indices: List[String] =
+          data.many(fcId.modelComponentId).toList.flatten.sorted
 
-        val rcElements: List[RevealingChoiceElement] = indices.map(revealingChoice.options)
+        val rcElements: List[RevealingChoiceElement] =
+          revealingChoice.options.zipWithIndex.collect {
+            case (rcElement, index) if indices.contains(rcElement.choice.value(index)) =>
+              rcElement
+          }
 
         revealingChoice.copy(options = rcElements)
       }
