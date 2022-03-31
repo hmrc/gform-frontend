@@ -1250,7 +1250,7 @@ class SectionRenderingService(
               attributes = dataLabelAttribute(option.label),
               hint = maybeHint
             )
-            if (maybeNoneChoice.exists(noneChoice => noneChoice.value(index) === option.value(index))) {
+            if (maybeNoneChoice.exists(noneChoice => noneChoice.selection === option.value(index + 1))) {
               item.copy(behaviour = Some(ExclusiveCheckbox))
             } else {
               item
