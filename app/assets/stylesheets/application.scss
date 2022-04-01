@@ -18,9 +18,6 @@ $govuk-new-link-styles: true;
 
 // accessible-autocomplete doesn't support class customization.
 .gform-lookup-error .autocomplete__input {
-    // Copied from .govuk-input--error in _input.scss
-    border: $govuk-border-width-form-element-error solid $govuk-error-colour;
-
     &:focus {
       border-color: $govuk-input-border-colour;
       // Remove `box-shadow` inherited from `:focus` as `input--error`
