@@ -48,7 +48,7 @@
      @enterAddressPage.errorSummary.render
   }
 
-  @hmrcPageHeading(PageHeading(messages("postcodeLookup.enter.address")))
+  @hmrcPageHeading(PageHeading(text = messages("postcodeLookup.enter.address"), headingClasses = Some("govuk-heading-l")))
 
   @formWithCSRF(action = formAction, 'novalidate -> "novalidate") {
     @enterAddressPage.render

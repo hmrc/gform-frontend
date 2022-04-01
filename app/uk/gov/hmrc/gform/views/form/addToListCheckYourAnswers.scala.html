@@ -55,7 +55,7 @@
     frontendAppConfig = frontendAppConfig,
     backLink = None
 ) {
-    @hmrcPageHeading(PageHeading(heading))
+    @hmrcPageHeading(PageHeading(text = heading, headingClasses = Some("govuk-heading-l")))
 
     @header.map{ h =>
         <div class="govuk-body govuk-!-margin-bottom-9">
