@@ -30,6 +30,8 @@
 @import uk.gov.hmrc.gform.controllers.Back
 @import uk.gov.hmrc.gform.commons.MarkDownUtil._
 
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
 @(
     title: String,
     noPIITitle: String,
@@ -57,6 +59,7 @@
 @formWithCSRF = @{new FormWithCSRF()}
 @govukButton = @{new GovukButton()}
 @govukNotificationBanner = @{new GovukNotificationBanner()}
+@hmrcPageHeading = @{new HmrcPageHeading()}
 @heading = @{title}
 
 @backLink = @{
@@ -88,7 +91,7 @@
         )
     }
 
-    @pageHeading(heading)
+    @hmrcPageHeading(PageHeading(heading))
 
     <div class="govuk-form-group">
       <dl class="hmrc-add-to-a-list hmrc-add-to-a-list--wide">
