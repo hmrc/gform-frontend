@@ -25,8 +25,6 @@
 @import uk.gov.hmrc.gform.views.html.form.FormWithoutCSRF
 @import uk.gov.hmrc.gform.controllers.{ SaveAndExit, Back }
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
-@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
 
 @(
   formTemplate: FormTemplate,
@@ -78,7 +76,6 @@
 @formWithoutCSRF = @{new FormWithoutCSRF()}
 @govukButton = @{new GovukButton()}
 @govukNotificationBanner = @{new GovukNotificationBanner()}
-@hmrcPageHeading = @{new HmrcPageHeading()}
 
 @displaySaveContinueButton(classes: String = "", otherAttributes: Map[String, String] = Map.empty) = @{
     if(shouldDisplayContinue) {
@@ -109,11 +106,7 @@
     }
 
     @if(shouldDisplayHeading) {
-       @hmrcPageHeading(PageHeading(
-           text = heading,
-           section = page.progressIndicator,
-           captionClasses = Some("govuk-caption-l")
-       ))
+      @pageHeading(heading, page.progressIndicator)
 
       @if(page.sectionDescription.exists(_.trim.nonEmpty)){
         <p class="govuk-body">@{page.sectionDescription.get}</p>
@@ -121,13 +114,7 @@
     } else {
       @* This is here to support caption in case of isPageHading case *@
       @page.progressIndicator.fold(HtmlFormat.empty){ caption =>
-          @hmrcPageHeading(PageHeading(
-              text = "",
-              section = Some(caption),
-              classes = Some("govuk-!-margin-0"),
-              headingClasses = Some("govuk-!-margin-0"),
-              captionClasses = Some("govuk-caption-l")
-          ))
+        <p class="govuk-!-margin-bottom-0 govuk-caption-l hmrc-caption-xl"><span class="govuk-visually-hidden">@messages("this.section.is")</span>@caption</p>
       }
     }
 
