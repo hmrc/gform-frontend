@@ -72,7 +72,16 @@ object DataRetrieveService {
                 DataRetrieveResult(
                   validateBankDetails.id,
                   Map(
-                    DataRetrieveAttribute.IsValid -> validateResult.accountNumberWithSortCodeIsValid
+                    DataRetrieveAttribute.IsValid                                  -> validateResult.accountNumberWithSortCodeIsValid,
+                    DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> validateResult.sortCodeIsPresentOnEISCD,
+                    DataRetrieveAttribute.SortCodeBankName                         -> validateResult.sortCodeBankName.getOrElse("asdfasf"),
+                    DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> validateResult.nonStandardAccountDetailsRequiredForBacs,
+                    DataRetrieveAttribute.SupportsBACS                             -> validateResult.supportsBACS.getOrElse(""),
+                    DataRetrieveAttribute.DdiVoucherFlag                           -> validateResult.ddiVoucherFlag.getOrElse(""),
+                    DataRetrieveAttribute.DirectDebitsDisallowed                   -> validateResult.directDebitsDisallowed.getOrElse(""),
+                    DataRetrieveAttribute.DirectDebitInstructionsDisallowed -> validateResult.directDebitInstructionsDisallowed
+                      .getOrElse(""),
+                    DataRetrieveAttribute.Iban -> validateResult.iban.getOrElse("")
                   ),
                   requestParams
                 )
