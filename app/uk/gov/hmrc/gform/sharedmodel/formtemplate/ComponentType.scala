@@ -307,12 +307,8 @@ object OptionData {
   implicit val format: OFormat[OptionData] = derived.oformat()
 }
 sealed trait NoneChoice extends Product with Serializable {
-  def value(index: Int): String = this match {
-    case o: NoneChoice.IndexBased => index.toString
-    case o: NoneChoice.ValueBased => o.value
-  }
   def selection: String = this match {
-    case o: NoneChoice.IndexBased => (o.index - 1).toString
+    case o: NoneChoice.IndexBased => o.index.toString
     case o: NoneChoice.ValueBased => o.value
   }
 }
