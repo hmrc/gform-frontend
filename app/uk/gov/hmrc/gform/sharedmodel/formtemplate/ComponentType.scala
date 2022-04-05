@@ -308,7 +308,7 @@ object OptionData {
 }
 sealed trait NoneChoice extends Product with Serializable {
   def selection: String = this match {
-    case o: NoneChoice.IndexBased => o.index.toString
+    case o: NoneChoice.IndexBased => (o.index - 1).toString
     case o: NoneChoice.ValueBased => o.value
   }
 }
