@@ -74,7 +74,7 @@ object DataRetrieveService {
                   Map(
                     DataRetrieveAttribute.IsValid                                  -> validateResult.accountNumberWithSortCodeIsValid,
                     DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> validateResult.sortCodeIsPresentOnEISCD,
-                    DataRetrieveAttribute.SortCodeBankName                         -> validateResult.sortCodeBankName.getOrElse("asdfasf"),
+                    DataRetrieveAttribute.SortCodeBankName                         -> validateResult.sortCodeBankName.getOrElse(""),
                     DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> validateResult.nonStandardAccountDetailsRequiredForBacs,
                     DataRetrieveAttribute.SupportsBACS                             -> validateResult.supportsBACS.getOrElse(""),
                     DataRetrieveAttribute.DdiVoucherFlag                           -> validateResult.ddiVoucherFlag.getOrElse(""),
