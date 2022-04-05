@@ -71,6 +71,17 @@ sealed trait Obligations {
         .flatMap(_.obligationDetails)
         .find(_.periodKey === periodKey)
   }
+
+  def findByFcPeriodKey(formComponentId: FormComponentId, periodKey: String): Option[ObligationDetail] = this match {
+    case NotChecked => None
+    case RetrievedObligations(taxResponses) =>
+      taxResponses
+        .filter(_.id.recalculatedTaxPeriodKey.fcId === formComponentId)
+        .map(_.obligation)
+        .flatMap(_.obligations)
+        .flatMap(_.obligationDetails)
+        .find(_.periodKey === periodKey)
+  }
 }
 final case object NotChecked extends Obligations
 final case class RetrievedObligations(obligation: NonEmptyList[TaxResponse]) extends Obligations

@@ -20,11 +20,11 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, OffsetUnit, OffsetYMD, TodayDateExprValue }
-import java.time.LocalDate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, HmrcTaxPeriodCtx, HmrcTaxPeriodInfo, OffsetUnit, OffsetYMD, TodayDateExprValue }
 
+import java.time.LocalDate
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ ObligationDetail, SourceOrigin, VariadicValue }
 
 import scala.util.Try
 
@@ -45,6 +45,8 @@ object DateExprEval {
         eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(dExpr).map(r =>
           DateResult(addOffset(r.value, offset))
         )
+      case HmrcTaxPeriodCtx(FormCtx(formComponentId), hmrcTaxPeriodInfo) =>
+        evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext)
     }
 
   def evalDateExpr(
@@ -78,7 +80,33 @@ object DateExprEval {
         exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => exprResult)(identity)(identity)(identity)(d =>
           d.copy(value = addOffset(d.value, offset))
         )(identity)(identity)(identity)
+      case HmrcTaxPeriodCtx(FormCtx(formComponentId), hmrcTaxPeriodInfo) =>
+        evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext).getOrElse(
+          ExpressionResult.empty
+        )
     }
+
+  private def evalHmrcTaxPeriod(
+    formComponentId: FormComponentId,
+    hmrcTaxPeriodInfo: HmrcTaxPeriodInfo,
+    recData: RecData[OutOfDate],
+    evaluationContext: EvaluationContext
+  ): Option[DateResult] = {
+    val period: String = recData.variadicFormData.one(formComponentId.modelComponentId).getOrElse("")
+    val maybeObligationDetail: Option[ObligationDetail] =
+      evaluationContext.thirdPartyData.obligations.findByFcPeriodKey(formComponentId, period)
+
+    maybeObligationDetail
+      .map { value =>
+        DateResult(
+          hmrcTaxPeriodInfo match {
+            case HmrcTaxPeriodInfo.PeriodTo   => value.inboundCorrespondenceToDate
+            case HmrcTaxPeriodInfo.PeriodFrom => value.inboundCorrespondenceFromDate
+            case HmrcTaxPeriodInfo.PeriodDue  => value.inboundCorrespondenceDueDate
+          }
+        )
+      }
+  }
 
   // for "submitMode": "summaryinfoonly" fields, since they don't exist in form data.
   private def fromValue(evaluationContext: EvaluationContext, formComponentId: FormComponentId): ExpressionResult =
