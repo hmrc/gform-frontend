@@ -26,6 +26,7 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case de @ DateValueExpr(value: DateExprValue)               => de
     case DateFormCtxVar(formCtx: FormCtx)                       => DateFormCtxVar(expandFormCtx(formCtx))
     case DateExprWithOffset(dExpr: DateExpr, offset: OffsetYMD) => DateExprWithOffset(expandDateExpr(dExpr), offset)
+    case HmrcTaxPeriodCtx(formCtx: FormCtx, _)                  => DateFormCtxVar(expandFormCtx(formCtx))
   }
 
   def apply(booleanExpr: BooleanExpr): BooleanExpr = booleanExpr match {

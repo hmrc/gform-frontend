@@ -291,3 +291,12 @@ object FormTemplateProp {
 
   implicit val format: OFormat[FormTemplateProp] = derived.oformat()
 }
+
+sealed trait HmrcTaxPeriodInfo
+object HmrcTaxPeriodInfo {
+  case object PeriodTo extends HmrcTaxPeriodInfo
+  case object PeriodFrom extends HmrcTaxPeriodInfo
+  case object PeriodDue extends HmrcTaxPeriodInfo
+
+  implicit val format: OFormat[HmrcTaxPeriodInfo] = derived.oformat()
+}
