@@ -22,7 +22,7 @@ import cats.syntax.applicative._
 import cats.syntax.flatMap._
 import org.slf4j.LoggerFactory
 import play.api.http.HttpEntity
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
 import uk.gov.hmrc.gform.auditing.loggingHelpers
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
@@ -256,6 +256,16 @@ class SummaryController(
       maybeAccessCode,
       OperationWithForm.DownloadSummaryPdf
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      val maybeWatermark = cache.formTemplate.summarySection.default.flatMap { isDefault =>
+        if (isDefault) {
+          cache.formTemplate.formCategory match {
+            case HMRCReturnForm => Some(Messages("summary.pdf.formCategory.return"))
+            case HMRCClaimForm  => Some(Messages("summary.pdf.formCategory.claim"))
+            case _              => Some(Messages("summary.pdf.formCategory.form"))
+          }
+        } else None
+      }
+
       pdfRenderService
         .createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
           request.messages.messages(
@@ -267,7 +277,8 @@ class SummaryController(
           Some(PDFModel.HeaderFooter(Some(cache.formTemplate.summarySection.header), None)),
           None,
           SummaryPagePurpose.ForUser,
-          None
+          None,
+          maybeWatermark
         )
         .flatMap(pdfGeneratorService.generatePDFLocal)
         .map { pdfSource =>

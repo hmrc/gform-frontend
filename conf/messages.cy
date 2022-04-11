@@ -487,3 +487,8 @@ postcodeLookup.try.different.postcode=Rhowch gynnig ar god post gwahanol
 addressId.error.required=Dewiswch yr eiddo ar gyfer y cyfeiriad
 postcode.error.real=Nodwch god post go iawn, e.e. AA1 1AA
 postcodeLookup.enter.address=Nodwch gyfeiriad
+
+#Summary pdf
+summary.pdf.formCategory.return=Copi drafft yw hwn. Bydd angen i chi gyflwyno’ch Ffurflen Dreth i anfon eich atebion.
+summary.pdf.formCategory.claim=Copi drafft yw hwn. Bydd angen i chi gyflwyno’ch hawliad i anfon eich atebion.
+summary.pdf.formCategory.form=Copi drafft yw hwn. Bydd angen i chi gyflwyno’ch ffurflen i anfon eich atebion.

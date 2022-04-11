@@ -49,7 +49,8 @@ class PDFRenderService(
     maybeHeaderFooter: Option[HeaderFooter],
     maybeSubmissionDetails: Option[SubmissionDetails],
     purpose: SummaryPagePurpose,
-    summaryDeclaration: Option[Html]
+    summaryDeclaration: Option[Html],
+    maybeWatermark: Option[String] = None
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -79,7 +80,8 @@ class PDFRenderService(
             maybeHeaderFooter,
             maybeSubmissionDetails,
             cache.formTemplate,
-            summaryDeclaration
+            summaryDeclaration,
+            maybeWatermark
           ).toString
         case PDFLayout.Tabular =>
           summaryTabularPdf(

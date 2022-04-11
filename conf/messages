@@ -500,3 +500,8 @@ postcodeLookup.try.different.postcode=Try a different postcode
 addressId.error.required=Select the property for the address
 postcode.error.real=Enter a real Postcode e.g. AA1 1AA
 postcodeLookup.enter.address=Enter address
+
+#Summary pdf
+summary.pdf.formCategory.return=This is a draft copy. You will need to submit your return to send your answers.
+summary.pdf.formCategory.claim=This is a draft copy. You will need to submit your claim to send your answers.
+summary.pdf.formCategory.form=This is a draft copy. You will need to submit your form to send your answers.
