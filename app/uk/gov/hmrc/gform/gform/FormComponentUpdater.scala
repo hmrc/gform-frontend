@@ -19,10 +19,12 @@ package uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import SelectionCriteriaValue._
 
 class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: List[FormComponentId]) {
 
   private def expandExpr(expr: Expr): Expr = ExprUpdater(expr, index, baseIds)
+  private def expandFormCtx(formCtx: FormCtx): FormCtx = ExprUpdater.formCtx(formCtx, index, baseIds)
 
   private def expandBooleanExpr(booleanExpr: BooleanExpr): BooleanExpr = BooleanExprUpdater(booleanExpr, index, baseIds)
 
@@ -63,11 +65,25 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
 
   private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds)
 
+  private def expandSelectionCriteria(text: Text): Text =
+    text match {
+      case txt @ Text(constraint @ Lookup(_, Some(scs)), _, _, _, _, _) =>
+        val updatedSelectionCriteria = scs.map {
+          case sc @ SelectionCriteria(_, SelectionCriteriaExpr(expr)) =>
+            sc.copy(value = SelectionCriteriaExpr(expandFormCtx(expr)))
+          case sc @ SelectionCriteria(_, SelectionCriteriaReference(expr, n)) =>
+            sc.copy(value = SelectionCriteriaReference(expandFormCtx(expr), n))
+          case othewise => othewise
+        }
+        txt.copy(constraint = constraint.copy(selectionCriteria = Some(updatedSelectionCriteria)))
+      case otherwise => otherwise
+    }
+
   private val updated = formComponent.copy(
     includeIf = formComponent.includeIf.map(expandIncludeIf),
     validIf = formComponent.validIf.map(expandValidIf),
     `type` = formComponent.`type` match {
-      case t: Text               => t.copy(value = expandExpr(t.value))
+      case t: Text               => expandSelectionCriteria(t.copy(value = expandExpr(t.value)))
       case t: TextArea           => t.copy(value = expandExpr(t.value))
       case t: HmrcTaxPeriod      => t.copy(idNumber = expandExpr(t.idNumber))
       case t: Choice             => expandChoice(t)

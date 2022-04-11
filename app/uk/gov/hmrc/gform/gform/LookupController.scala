@@ -52,7 +52,7 @@ class LookupController(
       implicit request => implicit l => cache => sse => formModelOptics =>
         import i18nSupport._
         val aFormComponents: Seq[FormComponent] = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
-        val oFormComponent = aFormComponents.find(_.id.baseComponentId === baseComponentId)
+        val oFormComponent = aFormComponents.find(_.id.value === baseComponentId.value)
 
         val sSelectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
           case IsText(Text(Lookup(_, sc), _, _, _, _, _)) => sc
