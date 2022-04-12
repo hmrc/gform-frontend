@@ -122,10 +122,21 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   ): ValidatedType[Unit] =
     formComponent match {
       case IsMultiField(_) =>
-        Map[ModelComponentId, Set[String]](
-          formComponent.multiValueId.firstAtomModelComponentId -> Set(message.value)
-        ).invalid
+        val evaluationResults = formModelVisibilityOptics.evaluationResults
+        val maybeAddressDetail = evaluationResults.exprMap.map(_._1).collectFirst {
+          case AddressLens(fcId, addressDetail) => if (fcId === formComponent.id) addressDetail else AddressDetail.Line1
+        }
+        val modelComponentId = maybeAddressDetail.fold(formComponent.multiValueId.firstAtomModelComponentId) {
+          addressDetail =>
+            formComponent match {
+              case IsOverseasAddress(_) =>
+                formComponent.atomicFormComponentId(addressDetail.toOverseasAddressAtom)
+              case IsAddress(_) =>
+                formComponent.atomicFormComponentId(addressDetail.toAddressAtom)
+            }
+        }
 
+        Map[ModelComponentId, Set[String]](modelComponentId -> Set(message.value)).invalid
       case _ =>
         Map[ModelComponentId, Set[String]](formComponent.modelComponentId -> Set(message.value)).invalid
     }
