@@ -50,7 +50,7 @@ class PDFRenderService(
     maybeSubmissionDetails: Option[SubmissionDetails],
     purpose: SummaryPagePurpose,
     summaryDeclaration: Option[Html],
-    maybeWatermark: Option[String] = None
+    maybeDraftText: Option[String] = None
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -81,7 +81,7 @@ class PDFRenderService(
             maybeSubmissionDetails,
             cache.formTemplate,
             summaryDeclaration,
-            maybeWatermark
+            maybeDraftText
           ).toString
         case PDFLayout.Tabular =>
           summaryTabularPdf(
