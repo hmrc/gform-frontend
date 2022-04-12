@@ -21,7 +21,7 @@
       var lookup = $container.attr('data-lookup');
       var formTemplateId = $container.attr('data-formTemplateId');
       var id = $container.attr('data-field-id');
-      var formComponentId = $container.attr('data-basefield-id');
+      var formComponentId = $container.attr('data-component-id');
       var value = $container.attr('data-value');
       var showAll = $container.attr('data-show-all');
       var maybeAccessCode = $container.attr('data-accessCode');
