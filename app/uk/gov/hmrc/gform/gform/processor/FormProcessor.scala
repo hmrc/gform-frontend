@@ -263,7 +263,7 @@ class FormProcessor(
         val visitsIndex =
           if (visitPage)
             processData.visitsIndex.visit(sectionNumber)
-          else processData.visitsIndex
+          else processData.visitsIndex.unvisit(sectionNumber)
 
         val cacheUpd =
           cache.copy(
