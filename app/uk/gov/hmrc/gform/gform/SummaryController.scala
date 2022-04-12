@@ -256,14 +256,12 @@ class SummaryController(
       maybeAccessCode,
       OperationWithForm.DownloadSummaryPdf
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
-      val maybeWatermark = cache.formTemplate.summarySection.default.flatMap { isDefault =>
-        if (isDefault) {
-          cache.formTemplate.formCategory match {
-            case HMRCReturnForm => Some(Messages("summary.pdf.formCategory.return"))
-            case HMRCClaimForm  => Some(Messages("summary.pdf.formCategory.claim"))
-            case _              => Some(Messages("summary.pdf.formCategory.form"))
-          }
-        } else None
+      val maybeWatermark = cache.formTemplate.summarySection.default.collect { case true =>
+        cache.formTemplate.formCategory match {
+          case HMRCReturnForm => Messages("summary.pdf.formCategory.return")
+          case HMRCClaimForm  => Messages("summary.pdf.formCategory.claim")
+          case _              => Messages("summary.pdf.formCategory.form")
+        }
       }
 
       pdfRenderService
