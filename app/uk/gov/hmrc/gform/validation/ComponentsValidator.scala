@@ -124,7 +124,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
       case IsMultiField(_) =>
         val evaluationResults = formModelVisibilityOptics.evaluationResults
         val maybeAddressDetail = evaluationResults.exprMap.map(_._1).collectFirst {
-          case AddressLens(fcId, addressDetail) => if (fcId === formComponent.id) addressDetail else AddressDetail.Line1
+          case AddressLens(fcId, addressDetail) if fcId === formComponent.id => addressDetail
         }
         val modelComponentId = maybeAddressDetail.fold(formComponent.multiValueId.firstAtomModelComponentId) {
           addressDetail =>
