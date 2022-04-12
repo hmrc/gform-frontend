@@ -91,8 +91,8 @@
             formTemplate.formName.value
         }</h1>
         @if(maybeWatermark.isDefined){
-            @maybeWatermark.map{w =>
-                <h2>@w</h2>
+            @maybeWatermark.map{watermark =>
+                <h2>@watermark</h2>
             }
         } else {
             @for(pageTitle <- maybePageTitle) {
