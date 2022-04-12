@@ -68,7 +68,7 @@ GET           /exit-survey/:formTemplateId                                      
 
 GET           /language/:lang                                                                                    uk.gov.hmrc.gform.gform.LanguageSwitchController.switchToLanguage(lang: String)
 
-GET           /lookup/:formTemplateId/:baseComponentId/:register/:maybeAccessCode                                uk.gov.hmrc.gform.gform.LookupController.lookupWithSelectionCriteria(formTemplateId: FormTemplateId, baseComponentId: BaseComponentId, register: Register, maybeAccessCode: Option[AccessCode], query: LookupQuery)
+GET           /lookup/:formTemplateId/:formComponentId/:register/:maybeAccessCode                                uk.gov.hmrc.gform.gform.LookupController.lookupWithSelectionCriteria(formTemplateId: FormTemplateId, formComponentId: FormComponentId, register: Register, maybeAccessCode: Option[AccessCode], query: LookupQuery)
 
 GET           /sign-out/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.SignOutController.signOut(formTemplateId: FormTemplateId)
 GET           /signed-out/:formTemplateId                                                                        uk.gov.hmrc.gform.gform.SignOutController.showSignedOutPage(formTemplateId: FormTemplateId)
