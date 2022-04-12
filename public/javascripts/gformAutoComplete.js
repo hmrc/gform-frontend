@@ -21,7 +21,7 @@
       var lookup = $container.attr('data-lookup');
       var formTemplateId = $container.attr('data-formTemplateId');
       var id = $container.attr('data-field-id');
-      var baseComponentId = $container.attr('data-basefield-id');
+      var formComponentId = $container.attr('data-component-id');
       var value = $container.attr('data-value');
       var showAll = $container.attr('data-show-all');
       var maybeAccessCode = $container.attr('data-accessCode');
@@ -32,7 +32,7 @@
         element: $container[0],
         id: id,
 	    name: id,
-        source: generateSourceFn(lookup, formTemplateId, baseComponentId, maybeAccessCode),
+        source: generateSourceFn(lookup, formTemplateId, formComponentId, maybeAccessCode),
         showNoOptionsFound: false,
         defaultValue: value,
         showAllValues: showAll === "true"

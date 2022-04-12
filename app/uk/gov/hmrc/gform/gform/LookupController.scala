@@ -23,7 +23,6 @@ import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ LookupQuery, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -43,7 +42,7 @@ class LookupController(
 
   def lookupWithSelectionCriteria(
     formTemplateId: FormTemplateId,
-    baseComponentId: BaseComponentId,
+    formComponentId: FormComponentId,
     register: Register,
     maybeAccessCode: Option[AccessCode],
     lookupQuery: LookupQuery
@@ -52,7 +51,7 @@ class LookupController(
       implicit request => implicit l => cache => sse => formModelOptics =>
         import i18nSupport._
         val aFormComponents: Seq[FormComponent] = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
-        val oFormComponent = aFormComponents.find(_.id.baseComponentId === baseComponentId)
+        val oFormComponent = aFormComponents.find(_.id.value === formComponentId.value)
 
         val sSelectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
           case IsText(Text(Lookup(_, sc), _, _, _, _, _)) => sc

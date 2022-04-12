@@ -58,7 +58,7 @@ class LookupControllerSpec
     val future = lookupController
       .lookupWithSelectionCriteria(
         FormTemplateId("someTemplateId"),
-        BaseComponentId("country"),
+        FormComponentId("country"),
         Register.Country,
         None,
         LookupQuery.Empty
@@ -79,7 +79,7 @@ class LookupControllerSpec
     val future = lookupController
       .lookupWithSelectionCriteria(
         FormTemplateId("someTemplateId"),
-        BaseComponentId("country"),
+        FormComponentId("country"),
         Register.Country,
         None,
         LookupQuery.Empty
@@ -97,7 +97,7 @@ class LookupControllerSpec
     val future = lookupController
       .lookupWithSelectionCriteria(
         FormTemplateId("someTemplateId"),
-        BaseComponentId("country"),
+        FormComponentId("country"),
         Register.Country,
         None,
         LookupQuery.Value("States")
@@ -117,7 +117,7 @@ class LookupControllerSpec
     val future = lookupController
       .lookupWithSelectionCriteria(
         FormTemplateId("someTemplateId"),
-        BaseComponentId("country"),
+        FormComponentId("country"),
         Register.Country,
         None,
         LookupQuery.Value("States")
@@ -138,7 +138,7 @@ class LookupControllerSpec
     val future = lookupController
       .lookupWithSelectionCriteria(
         FormTemplateId("someTemplateId"),
-        BaseComponentId("country"),
+        FormComponentId("country"),
         Register.Country,
         None,
         LookupQuery.Value("United")
@@ -164,7 +164,7 @@ class LookupControllerSpec
     val future = lookupController
       .lookupWithSelectionCriteria(
         FormTemplateId("someTemplateId"),
-        BaseComponentId("port"),
+        FormComponentId("port"),
         Register.Port,
         None,
         LookupQuery.Value("Port")
@@ -197,7 +197,7 @@ class LookupControllerSpec
     val future = lookupController
       .lookupWithSelectionCriteria(
         FormTemplateId("someTemplateId"),
-        BaseComponentId("port"),
+        FormComponentId("port"),
         Register.Port,
         None,
         LookupQuery.Value("Port")
@@ -214,7 +214,7 @@ class LookupControllerSpec
     val future = lookupController
       .lookupWithSelectionCriteria(
         FormTemplateId("someTemplateId"),
-        BaseComponentId("port"),
+        FormComponentId("port"),
         Register.Port,
         None,
         LookupQuery.Value("Port")
