@@ -256,7 +256,7 @@ class SummaryController(
       maybeAccessCode,
       OperationWithForm.DownloadSummaryPdf
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
-      val maybeWatermark = cache.formTemplate.formCategory match {
+      val draftText = cache.formTemplate.formCategory match {
         case HMRCReturnForm => Messages("summary.pdf.formCategory.return")
         case HMRCClaimForm  => Messages("summary.pdf.formCategory.claim")
         case _              => Messages("summary.pdf.formCategory.form")
@@ -274,7 +274,7 @@ class SummaryController(
           None,
           SummaryPagePurpose.ForUser,
           None,
-          Some(maybeWatermark)
+          Some(draftText)
         )
         .flatMap(pdfGeneratorService.generatePDFLocal)
         .map { pdfSource =>

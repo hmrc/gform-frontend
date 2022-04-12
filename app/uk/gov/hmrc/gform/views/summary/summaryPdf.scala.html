@@ -31,7 +31,7 @@
     maybeSubmissionDetails: Option[SubmissionDetails],
     formTemplate: FormTemplate,
     summarySectionDeclaration: Option[Html],
-    maybeWatermark: Option[String]
+    maybeDraftText: Option[String]
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 @* check https://github.com/danfickle/openhtmltopdf/blob/open-dev-v1/openhtmltopdf-examples/src/main/resources/documentation/documentation.md *@
 <!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
@@ -43,7 +43,7 @@
         dl{border-bottom: 1px solid #bfc1c3;}
         dt{font-weight: bold;}
         dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:15px;}
-        @if(maybeWatermark.isDefined) {
+        @if(maybeDraftText.isDefined) {
             body:before {
                 content: "DRAFT";
                 position: fixed;
@@ -90,9 +90,9 @@
         <h1>@{
             formTemplate.formName.value
         }</h1>
-        @if(maybeWatermark.isDefined){
-            @maybeWatermark.map{watermark =>
-                <h2>@watermark</h2>
+        @if(maybeDraftText.isDefined){
+            @maybeDraftText.map{ draftText =>
+                <h2>@draftText</h2>
             }
         } else {
             @for(pageTitle <- maybePageTitle) {
