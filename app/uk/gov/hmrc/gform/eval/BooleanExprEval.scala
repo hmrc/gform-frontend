@@ -24,9 +24,10 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, Equals, FormPhase, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, MatchRegex, Not, Or }
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, Equals, First, FormComponentId, FormCtx, FormPhase, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, MatchRegex, Not, Or }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 
@@ -106,6 +107,15 @@ class BooleanExprEval[F[_]: Monad] {
           formModelVisibilityOptics.evalAndApplyTypeInfoFirst(formCtx).expressionResult
         expressionResult.matchRegex(regex).pure[F]
 
+      case First(FormCtx(formComponentId)) =>
+        val recData = formModelVisibilityOptics.recData
+        BooleanExprEval
+          .evalFirstExpr(
+            formComponentId,
+            recData
+          )
+          .pure[F]
+
       case FormPhase(_) =>
         false.pure[F]
     }
@@ -153,5 +163,16 @@ object BooleanExprEval {
         expressionResult.stringRepresentation(typeInfo, recalculationResult.evaluationContext.messages)
       )
     maybeBoolean.getOrElse(false)
+  }
+
+  def evalFirstExpr[T <: PageMode](
+    formComponentId: FormComponentId,
+    recData: RecData[SourceOrigin.Current]
+  ): Boolean = {
+    val xs: Iterable[(ModelComponentId, VariadicValue)] =
+      recData.variadicFormData.forBaseComponentIdLessThen(formComponentId.modelComponentId)
+
+    val size: Int = xs.map(_._2).size
+    size == 1
   }
 }

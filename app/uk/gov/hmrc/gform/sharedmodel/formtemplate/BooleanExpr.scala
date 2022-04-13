@@ -38,6 +38,7 @@ sealed trait BooleanExpr {
     case In(formCtx, _)                   => formCtx :: Nil
     case MatchRegex(formCtx, _)           => formCtx :: Nil
     case FormPhase(_)                     => Nil
+    case First(formCtx)                   => formCtx :: Nil
   }
 }
 
@@ -57,6 +58,7 @@ final case class MatchRegex(formCtx: FormCtx, regex: Regex) extends BooleanExpr
 
 final case class DateBefore(left: DateExpr, right: DateExpr) extends BooleanExpr
 final case class DateAfter(left: DateExpr, right: DateExpr) extends BooleanExpr
+final case class First(formCtx: FormCtx) extends BooleanExpr
 
 final case class FormPhase(value: FormPhaseValue) extends BooleanExpr
 sealed trait FormPhaseValue
