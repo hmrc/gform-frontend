@@ -53,6 +53,6 @@ object RevealingChoiceInfo {
 }
 
 case class RevealingChoiceData(
-  index: Int, // This is index of RevealingChoiceElement inside of RevealingChoice
+  index: String, // This is index of RevealingChoiceElement inside of RevealingChoice
   baseComponentId: BaseComponentId // This is baseComponentId of RevealingChoice component
 )

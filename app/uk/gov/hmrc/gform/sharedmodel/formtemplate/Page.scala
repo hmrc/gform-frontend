@@ -59,7 +59,10 @@ case class Page[A <: PageMode](
       .collect { case fc @ IsRevealingChoice(revealingChoice) =>
         revealingChoice.options.zipWithIndex.flatMap { case (revealingChoiceElement, index) =>
           revealingChoiceElement.revealingFields.map { rf =>
-            rf.id.baseComponentId -> RevealingChoiceData(index, fc.id.baseComponentId)
+            rf.id.baseComponentId -> RevealingChoiceData(
+              revealingChoiceElement.choice.value(index),
+              fc.id.baseComponentId
+            )
           }
         }.toMap
       }
