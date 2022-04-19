@@ -69,8 +69,8 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     )
 
     val expectedRevealinChoiceInfo = RevealingChoiceInfoBuilder(
-      "a" -> (0 -> "rc"),
-      "b" -> (1 -> "rc")
+      "a" -> ("0" -> "rc"),
+      "b" -> ("1" -> "rc")
     )
 
     val table = Table(
@@ -823,7 +823,7 @@ object StaticTypeInfoBuilder {
 }
 
 object RevealingChoiceInfoBuilder {
-  def apply(ts: (String, (Int, String))*): RevealingChoiceInfo = RevealingChoiceInfo {
+  def apply(ts: (String, (String, String))*): RevealingChoiceInfo = RevealingChoiceInfo {
     ts.map { case (baseComponentId, (index, parent)) =>
       BaseComponentId(baseComponentId) -> RevealingChoiceData(index, BaseComponentId(parent))
     }.toMap
