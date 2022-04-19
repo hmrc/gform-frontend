@@ -172,7 +172,7 @@ object BooleanExprEval {
     val xs: Iterable[(ModelComponentId, VariadicValue)] =
       recData.variadicFormData.forBaseComponentIdLessThen(formComponentId.modelComponentId)
 
-    val sumOfIndex = xs.map(_._1).flatMap(_.maybeIndex).sum
-    sumOfIndex <= 1
+    val sumOfIndexes = xs.map(_._1).flatMap(_.maybeIndex).sum
+    sumOfIndexes <= 1
   }
 }
