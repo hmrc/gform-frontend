@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import cats.Monad
+import cats.implicits.catsSyntaxEq
 import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.applicative._
@@ -26,7 +27,7 @@ import scala.language.higherKinds
 import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, Equals, FormPhase, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, MatchRegex, Not, Or }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, Equals, First, FormComponentId, FormCtx, FormPhase, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, MatchRegex, Not, Or }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 
@@ -106,6 +107,13 @@ class BooleanExprEval[F[_]: Monad] {
           formModelVisibilityOptics.evalAndApplyTypeInfoFirst(formCtx).expressionResult
         expressionResult.matchRegex(regex).pure[F]
 
+      case First(FormCtx(formComponentId)) =>
+        BooleanExprEval
+          .evalFirstExpr(
+            formComponentId
+          )
+          .pure[F]
+
       case FormPhase(_) =>
         false.pure[F]
     }
@@ -154,4 +162,9 @@ object BooleanExprEval {
       )
     maybeBoolean.getOrElse(false)
   }
+
+  def evalFirstExpr[T <: PageMode](
+    formComponentId: FormComponentId
+  ): Boolean =
+    formComponentId.modelComponentId.indexedComponentId.fold(pure => false)(indexed => indexed.index === 1)
 }

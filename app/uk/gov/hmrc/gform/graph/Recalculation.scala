@@ -210,6 +210,7 @@ class Recalculation[F[_]: Monad, E](
       case MatchRegex(formCtx, regex)          => rr.matchRegex(formCtx, regex)
       case FormPhase(value)                    => rr.compareFormPhase(value)
       case In(expr, dataSource)                => false
+      case First(_)                            => false
     }
 
     loop(booleanExpr)
@@ -279,6 +280,7 @@ class Recalculation[F[_]: Monad, E](
               })((updS, _).pure[F])
           }
         }
+      case First(_) => noStateChange(false)
     }
     loop(booleanExpr)
   }

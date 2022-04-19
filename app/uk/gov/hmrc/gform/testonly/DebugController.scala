@@ -136,6 +136,7 @@ class DebugController(
         case In(formCtx, dataSource)    => Nil
         case MatchRegex(formCtx, regex) => Nil
         case FormPhase(value)           => Nil
+        case First(_)                   => Nil
       }
     }
 

@@ -43,6 +43,7 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case MatchRegex(formCtx, regex)       => MatchRegex(expandFormCtx(formCtx), regex)
     case DateAfter(left, right)           => DateAfter(expandDateExpr(left), expandDateExpr(right))
     case DateBefore(left, right)          => DateBefore(expandDateExpr(left), expandDateExpr(right))
+    case First(formCtx)                   => First(expandFormCtx(formCtx))
     case otherwise                        => otherwise
   }
 }
