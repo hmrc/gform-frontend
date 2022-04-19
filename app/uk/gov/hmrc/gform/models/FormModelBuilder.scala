@@ -128,7 +128,7 @@ object FormModelBuilder {
       case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, formModel, recalculationResult, booleanExprResolver, recData)
       case MatchRegex(formCtx, regex)          => matchRegex(formCtx, regex)
       case FormPhase(value)                    => phase.fold(false)(_.value == value)
-      case First(FormCtx(formComponentId))     => BooleanExprEval.evalFirstExpr(formComponentId, recData)
+      case First(FormCtx(formComponentId))     => BooleanExprEval.evalFirstExpr(formComponentId)
     }
 
     loop(includeIf.booleanExpr)
