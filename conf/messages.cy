@@ -1,7 +1,10 @@
 ## Global
-global.error.InternalServerError500.title=Mae problemau technegol wedi codi
-global.error.InternalServerError500.heading=Mae problemau technegol wedi codi
-global.error.InternalServerError500.message=Rhowch gynnig arall ar fewngofnodi mewn ychydig o funudau.
+global.error.pageNotFound404.heading=Heb ddod o hyd i’r dudalen
+global.error.pageNotFound404.message.a=Os gwnaethoch deipio’r cyfeiriad gwe, gwiriwch ei fod yn gywir.
+global.error.pageNotFound404.message.b=Os gwnaethoch ludo’r cyfeiriad gwe, gwiriwch eich bod wedi copïo’r cyfeiriad yn llawn.
+global.error.InternalServerError500.heading=Mae’n ddrwg gennym, mae problem gyda’r gwasanaeth
+global.error.InternalServerError500.message.a=Rhowch gynnig arall arni yn nes ymlaen.
+global.error.InternalServerError500.message.b=Gwnaethom gadw’ch atebion. Byddant ar gael am 28 diwrnod.
 
 global.lang=cy
 

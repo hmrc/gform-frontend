@@ -113,7 +113,7 @@ class ErrResponder(
         renderErrorPage(
           messages("generic.error.accessForbidden"),
           messages("generic.error.pageRestricted"),
-          messages(reason),
+          messages(reason) :: Nil,
           maybeFormTemplate,
           reasonHtml
         )
@@ -149,42 +149,37 @@ class ErrResponder(
     maybeFormTemplate: Option[FormTemplate]
   )(implicit request: RequestHeader, l: LangADT) =
     renderErrorPage(
-      pageTitle =
-        maybeFormTemplate.map(_.formName.value).getOrElse(Messages("global.error.InternalServerError500.title")),
+      pageTitle = maybeFormTemplate.map(_.formName.value).getOrElse(Messages("")),
       heading = Messages("global.error.InternalServerError500.heading"),
-      message = Messages("global.error.InternalServerError500.message"),
+      messages = List("global.error.InternalServerError500.message.a", "global.error.InternalServerError500.message.b")
+        .map(Messages.apply(_)),
       maybeFormTemplate = maybeFormTemplate
     )
 
   private def renderNotFound(maybeFormTemplate: Option[FormTemplate])(implicit request: RequestHeader, lang: LangADT) =
     renderErrorPage(
-      pageTitle = Messages("global.error.pageNotFound404.title"),
+      pageTitle = "",
       heading = Messages("global.error.pageNotFound404.heading"),
-      message = Messages("global.error.pageNotFound404.message"),
+      messages =
+        List("global.error.pageNotFound404.message.a", "global.error.pageNotFound404.message.b").map(Messages.apply(_)),
       maybeFormTemplate = maybeFormTemplate
     )
 
   private def renderBadRequest(
     maybeFormTemplate: Option[FormTemplate]
-  )(implicit request: RequestHeader, lang: LangADT) =
-    renderErrorPage(
-      pageTitle = Messages("global.error.badRequest400.title"),
-      heading = Messages("global.error.badRequest400.heading"),
-      message = Messages("global.error.badRequest400.message"),
-      maybeFormTemplate = maybeFormTemplate
-    )
+  )(implicit request: RequestHeader, lang: LangADT) = renderNotFound(maybeFormTemplate)
 
   private def renderErrorPage(
     pageTitle: String,
     heading: String,
-    message: String,
+    messages: List[String],
     maybeFormTemplate: Option[FormTemplate],
     maybeMessageHtml: Option[Html] = None
   )(implicit requestHeader: RequestHeader, lang: LangADT) =
     views.html.error_template(
       pageTitle,
       heading,
-      message,
+      messages,
       maybeFormTemplate,
       maybeMessageHtml,
       frontendAppConfig

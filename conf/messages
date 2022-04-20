@@ -1,7 +1,10 @@
 ## Global
-global.error.InternalServerError500.title=We’re experiencing technical difficulties
-global.error.InternalServerError500.heading=We’re experiencing technical difficulties
-global.error.InternalServerError500.message=Try signing in again in a few minutes.
+global.error.pageNotFound404.heading=Page not found
+global.error.pageNotFound404.message.a=If you typed the web address, check it is correct.
+global.error.pageNotFound404.message.b=If you pasted the web address, check you copied the entire address.
+global.error.InternalServerError500.heading=Sorry, there is a problem with the service
+global.error.InternalServerError500.message.a=Try again later.
+global.error.InternalServerError500.message.b=We saved your answers. They will be available for 28 days.
 
 global.lang=en
 

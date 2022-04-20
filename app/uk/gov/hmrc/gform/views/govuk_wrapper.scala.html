@@ -41,7 +41,8 @@
   backLink: Option[BackLink],
   displayTimeoutDialog: Boolean,
   displaySignOut: Boolean,
-  displayLanguageSwitcher: Boolean
+  displayLanguageSwitcher: Boolean,
+  suppressPhaseBanner: Boolean = false
 )(implicit requestHeader: RequestHeader, messages: Messages, l: LangADT)
 
 @authConfig = @{
@@ -168,7 +169,7 @@
     serviceName = Some(serviceTitle),
     signOutUrl = timeoutDialog.flatMap(_.signOutUrl),
     userResearchBanner = userResearchUrl.map(url => UserResearchBanner(language, url)),
-    phaseBanner = developmentPhase.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
+    phaseBanner = if(suppressPhaseBanner) None else developmentPhase.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
     displayHmrcBanner = displayHMRCLogo
   )
 }
