@@ -21,7 +21,7 @@
 @(
   pageTitle: String,
   heading: String,
-  message: String,
+  instructions: List[String],
   maybeFormTemplate: Option[FormTemplate],
   maybeMessageHtml: Option[Html] = None,
   frontendAppConfig: FrontendAppConfig
@@ -30,7 +30,9 @@
 @mainContent = {
   <h1 class="govuk-heading-l">@heading</h1>
   @maybeMessageHtml.fold {
-    <p class="govuk-body">@message</p>
+    @instructions.map { instruction =>
+      <p class="govuk-body">@instruction</p>
+    }
   } { mHtml =>
     @mHtml
   }
@@ -45,5 +47,6 @@
     backLink = None,
     displayTimeoutDialog = true,
     displaySignOut = true,
-    displayLanguageSwitcher = false
+    displayLanguageSwitcher = false,
+    suppressPhaseBanner = true
 )
