@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SubmissionRef }
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.referencechecker.CorporationTaxReferenceChecker
+import uk.gov.hmrc.referencechecker.{ CorporationTaxReferenceChecker, VatReferenceChecker }
 
 import scala.util.matching.Regex
 
@@ -376,7 +376,7 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
-    val Standard = "GB[0-9]{9}".r
+    val Standard = "(GB|XI)?([0-9]{9})".r
     val Branch = "GB[0-9]{12}".r
     val Government = "GBGD[0-4][0-9]{2}".r
     val Health = "GBHA[5-9][0-9]{2}".r
@@ -388,11 +388,11 @@ object ComponentValidator {
       case tooShort if tooShort.length < 7 =>
         val vars: List[String] = 7.toString :: Nil
         validationFailure(fieldValue, genericErrorMinLength, Some(vars))
-      case Standard()   => validationSuccess
-      case Branch()     => validationSuccess
-      case Government() => validationSuccess
-      case Health()     => validationSuccess
-      case _            => validationFailure(fieldValue, genericVrnErrorPattern, None)
+      case Standard(_, s) if VatReferenceChecker.isValid(s) => validationSuccess
+      case Branch()                                         => validationSuccess
+      case Government()                                     => validationSuccess
+      case Health()                                         => validationSuccess
+      case _                                                => validationFailure(fieldValue, genericVrnErrorPattern, None)
     }
   }
 

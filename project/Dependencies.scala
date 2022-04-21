@@ -10,7 +10,7 @@ object Dependencies {
     "uk.gov.hmrc"                 %% "play-language"              % "5.1.0-play-28",
     "uk.gov.hmrc"                 %% "play-frontend-hmrc"         % "2.0.0-play-28",
     "uk.gov.hmrc"                 %% "auth-client"                % "5.6.0-play-28",
-    "uk.gov.hmrc"                 %% "domain"                     % "5.11.0-play-27",
+    "uk.gov.hmrc"                 %% "domain"                     % "8.0.0-play-28",
     "uk.gov.hmrc"                 %% "play-partials"              % "8.1.0-play-28",
     "com.typesafe.play"           %% "play-json-joda"             % "2.9.2",
     "org.julienrf"                %% "play-json-derived-codecs"   % "10.0.2",
