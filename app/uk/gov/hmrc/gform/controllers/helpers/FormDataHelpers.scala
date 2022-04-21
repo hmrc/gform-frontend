@@ -213,6 +213,7 @@ object FormDataHelpers {
         poundOrComma.replaceAllIn(value, "")
       case Some(formComponent) if formComponent.isReferenceNumber => value.replace(" ", "")
       case Some(formComponent) if formComponent.isPayeReference   => value.replace(" ", "")
+      case Some(formComponent) if formComponent.isUkVrn           => value.toUpperCase
       case None if formModel.postcodeLookup(formComponentId.baseComponentId) =>
         PostcodeLookupValidation.normalisePostcode(value)
       case _ => value
