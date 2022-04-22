@@ -50,6 +50,5 @@ case class SummarySection(
 }
 
 object SummarySection extends JsonUtils {
-  val jsWithDefaults = Json.using[Json.WithDefaultValues]
-  implicit val format: OFormat[SummarySection] = jsWithDefaults.format[SummarySection]
+  implicit val format: OFormat[SummarySection] = Json.format[SummarySection]
 }
