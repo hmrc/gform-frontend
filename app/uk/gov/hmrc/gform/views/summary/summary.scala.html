@@ -22,6 +22,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 @import uk.gov.hmrc.gform.views.html.summary.snippets.alert
+@import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 @import uk.gov.hmrc.govukfrontend.views.html.components._
@@ -43,7 +44,8 @@
     header: Html,
     summaryDeclaration: Html,
     footer: Html,
-    formDataFingerprint: String
+    formDataFingerprint: String,
+    displayWidth: DisplayWidth.DisplayWidth
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @heading = @{formTemplate.summarySection.title.value}
@@ -55,21 +57,37 @@
     new BackLink(href = href, content = new Text(messages("linkText.back")))
 }
 
+@twoThirdsMainContent = @{new TwoThirdsMainContent}
+@fullMainContent = @{new FullMainContent}
+@threeQuartersMainContent = @{new ThreeQuartersMainContent}
+
+@mainContent = @{
+  contentBlock: Html => displayWidth match {
+    case DisplayWidth.L  => threeQuartersMainContent(contentBlock)
+    case DisplayWidth.XL => fullMainContent(contentBlock)
+    case _               => twoThirdsMainContent(contentBlock)
+  }
+}
+
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
-  backLink = Some(backLink)
+  backLink = Some(backLink),
+  isMainContentFullWidth = true
 ) {
 
 
+    @twoThirdsMainContent {
     <h1 class="govuk-heading-l">
         @heading
     </h1>
     <div class="govuk-body govuk-!-margin-bottom-9">
 	  @header
     </div>
+    }
 
+    @mainContent {
     @reviewerComments.map(c => alert(messages("summary.alert.title"), c))
 
     @formWithCSRF(action = SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint), args =  'method -> "POST", 'class -> "js-form govuk-!-margin-bottom-9", 'autocomplete -> "off", 'novalidate -> "novalidate", 'id -> "gf-form") {
@@ -79,7 +97,10 @@
         }
 
       	@snippets
+    }
 
+
+    @twoThirdsMainContent {
         <div class="govuk-body">
             @summaryDeclaration
         </div>
@@ -103,6 +124,7 @@
                 )
             }
         </div>
+        }
 
     }
 }

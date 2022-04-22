@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, LiveBanner, DevelopmentPhase, Anonymous, FormTemplate }
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.components._
+@import uk.gov.hmrc.gform.views.html.summary.FullMainContent
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.footer.FooterItem
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
@@ -42,7 +43,8 @@
   displayTimeoutDialog: Boolean,
   displaySignOut: Boolean,
   displayLanguageSwitcher: Boolean,
-  suppressPhaseBanner: Boolean = false
+  suppressPhaseBanner: Boolean = false,
+  isMainContentFullWidth: Boolean = false
 )(implicit requestHeader: RequestHeader, messages: Messages, l: LangADT)
 
 @authConfig = @{
@@ -146,6 +148,8 @@
 @fixedWidthPageLayout = @{new FixedWidthPageLayout()}
 @govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink, fixedWidthPageLayout)}
 @twoThirdsMainContent = @{new TwoThirdsMainContent}
+@fullMainContent = @{new FullMainContent}
+
 @govukLayout = @{new GovukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink, twoThirdsMainContent, fixedWidthPageLayout)}
 @hmrcReportTechnicalIssue = @{new components.HmrcReportTechnicalIssue()}
 
@@ -205,5 +209,6 @@
   beforeContentBlock = Some(beforeContentBlock),
   bodyEndBlock = None,
   scriptsBlock = Some(scripts),
-  footerBlock = Some(hmrcStandardFooter(accessibilityStatementUrl = accessibilityUrl.map(_.value).orElse(maybeFormTemplate.map(_._id.value)).map(path => s"${appConfig.footerAccessibilityStatementUrl}/$path")))
+  footerBlock = Some(hmrcStandardFooter(accessibilityStatementUrl = accessibilityUrl.map(_.value).orElse(maybeFormTemplate.map(_._id.value)).map(path => s"${appConfig.footerAccessibilityStatementUrl}/$path"))),
+  mainContentLayout = if ( isMainContentFullWidth) Some(fullMainContent(_)) else Some(twoThirdsMainContent(_))
 )(contentBlock)
