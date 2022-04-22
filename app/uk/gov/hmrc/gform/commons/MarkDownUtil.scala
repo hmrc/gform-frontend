@@ -53,8 +53,10 @@ object MarkDownUtil {
 
   def markDownParser(ls: LocalisedString)(implicit l: LangADT): Html = markDownParser(ls.value)
 
-  def markDownParser(ls: SmartString)(implicit sse: SmartStringEvaluator): Html =
-    markDownParser(ls.valueForMarkdown())
+  def markDownParser(ls: SmartString)(implicit sse: SmartStringEvaluator): Html = {
+    val markDownText = removeSpacesForStrong(ls.valueForMarkdown())
+    markDownParser(markDownText)
+  }
 
   def markDownParser(markDownText: String): Html = {
     val flavour = new GFMFlavourDescriptor
@@ -76,4 +78,8 @@ object MarkDownUtil {
     }
     replaceInvisibleChars(unescapeHtml)
   }
+
+  def removeSpacesForStrong(s: String): String =
+    // removing spaces after double asterisk (**) for bold <strong> markdown
+    s.replaceAll("(\\*\\*+)\\s*(.*?)\\s*(\\*\\*+)", "$1$2$3")
 }
