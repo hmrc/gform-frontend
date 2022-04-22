@@ -45,7 +45,7 @@
     summaryDeclaration: Html,
     footer: Html,
     formDataFingerprint: String,
-    displayWidth: DisplayWidth.DisplayWidth
+    displayWidth: SummaryDisplayWidth.SummaryDisplayWidth
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @heading = @{formTemplate.summarySection.title.value}
@@ -63,9 +63,10 @@
 
 @mainContent = @{
   contentBlock: Html => displayWidth match {
-    case DisplayWidth.L  => threeQuartersMainContent(contentBlock)
-    case DisplayWidth.XL => fullMainContent(contentBlock)
-    case _               => twoThirdsMainContent(contentBlock)
+    case SummaryDisplayWidth.L  => threeQuartersMainContent(contentBlock)
+    case SummaryDisplayWidth.XL => fullMainContent(contentBlock)
+    case SummaryDisplayWidth.M  => twoThirdsMainContent(contentBlock)
+    case _                      => twoThirdsMainContent(contentBlock)
   }
 }
 
