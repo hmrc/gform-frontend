@@ -22,6 +22,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 @import uk.gov.hmrc.gform.views.html.summary.snippets.alert
+@import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 @import uk.gov.hmrc.govukfrontend.views.html.components._
@@ -43,7 +44,8 @@
     header: Html,
     summaryDeclaration: Html,
     footer: Html,
-    formDataFingerprint: String
+    formDataFingerprint: String,
+    displayWidth: SummaryDisplayWidth.SummaryDisplayWidth
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @heading = @{formTemplate.summarySection.title.value}
@@ -55,54 +57,75 @@
     new BackLink(href = href, content = new Text(messages("linkText.back")))
 }
 
+@twoThirdsMainContent = @{new TwoThirdsMainContent}
+@fullMainContent = @{new FullMainContent}
+@threeQuartersMainContent = @{new ThreeQuartersMainContent}
+
+@mainContent = @{
+  contentBlock: Html => displayWidth match {
+    case SummaryDisplayWidth.L  => threeQuartersMainContent(contentBlock)
+    case SummaryDisplayWidth.XL => fullMainContent(contentBlock)
+    case SummaryDisplayWidth.M  => twoThirdsMainContent(contentBlock)
+    case _                      => twoThirdsMainContent(contentBlock)
+  }
+}
+
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
-  backLink = Some(backLink)
+  backLink = Some(backLink),
+  isMainContentFullWidth = true
 ) {
 
+    @twoThirdsMainContent {
+        <h1 class="govuk-heading-l">
+            @heading
+        </h1>
+        <div class="govuk-body govuk-!-margin-bottom-9">
+	      @header
+        </div>
+    }
 
-    <h1 class="govuk-heading-l">
-        @heading
-    </h1>
-    <div class="govuk-body govuk-!-margin-bottom-9">
-	  @header
-    </div>
-
-    @reviewerComments.map(c => alert(messages("summary.alert.title"), c))
+    @mainContent {
+        @reviewerComments.map(c => alert(messages("summary.alert.title"), c))
+    }
 
     @formWithCSRF(action = SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint), args =  'method -> "POST", 'class -> "js-form govuk-!-margin-bottom-9", 'autocomplete -> "off", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
-        @if(summaryPagePurpose.forUser) {
-            @CSRF.formField
+        @mainContent {
+            @if(summaryPagePurpose.forUser) {
+                @CSRF.formField
+            }
+
+      	    @snippets
         }
 
-      	@snippets
+        @twoThirdsMainContent {
+            <div class="govuk-body">
+                @summaryDeclaration
+            </div>
+            <div class="govuk-body">
+                @footer
+            </div>
 
-        <div class="govuk-body">
-            @summaryDeclaration
-        </div>
-        <div class="govuk-body">
-            @footer
-        </div>
-
-        <div class="govuk-button-group">
-            @govukButton(Button(content = Text(messages(continueLabelKey)),
-                inputType=Some("submit"),
-                value=Some("SummaryContinue"),
-                attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint).path)
-                )
-            )
-            @if(renderComeBackLater) {
-                @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+            <div class="govuk-button-group">
+                @govukButton(Button(content = Text(messages(continueLabelKey)),
                     inputType=Some("submit"),
-                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, Exit, formDataFingerprint).path),
-                    classes="govuk-button--secondary"
+                    value=Some("SummaryContinue"),
+                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint).path)
                     )
                 )
-            }
-        </div>
+                @if(renderComeBackLater) {
+                    @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+                        inputType=Some("submit"),
+                        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, Exit, formDataFingerprint).path),
+                        classes="govuk-button--secondary"
+                        )
+                    )
+                }
+            </div>
 
+        }
     }
 }

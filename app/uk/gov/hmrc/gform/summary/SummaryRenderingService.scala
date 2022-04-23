@@ -274,7 +274,8 @@ object SummaryRenderingService {
       headerHtml,
       summaryDeclaration,
       footerHtml,
-      formDataFingerprint
+      formDataFingerprint,
+      formTemplate.summarySection.displayWidth
     )
   }
 
@@ -325,7 +326,8 @@ object SummaryRenderingService {
       headerHtml,
       HtmlFormat.empty,
       footerHtml,
-      formDataFingerprint
+      formDataFingerprint,
+      formTemplate.summarySection.displayWidth
     )
   }
 

@@ -26,7 +26,8 @@ case class SummarySection(
   header: SmartString,
   footer: SmartString,
   continueLabel: Option[SmartString],
-  fields: Option[NonEmptyList[FormComponent]]
+  fields: Option[NonEmptyList[FormComponent]],
+  displayWidth: SummaryDisplayWidth.SummaryDisplayWidth = SummaryDisplayWidth.M
 ) {
   def toPage: Page[Basic] =
     Page(

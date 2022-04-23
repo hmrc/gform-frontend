@@ -25,7 +25,8 @@
   frontendAppConfig: FrontendAppConfig,
   backLink: Option[BackLink] = None,
   displayTimeoutDialog: Boolean = true,
-  displaySignOut: Boolean = true
+  displaySignOut: Boolean = true,
+  isMainContentFullWidth: Boolean = false
 )(content: Html)(implicit request: Request[_], messages: Messages, l: LangADT)
 
 @serviceName = @{
@@ -84,5 +85,6 @@
   backLink = backLink,
   displayTimeoutDialog = displayTimeoutDialog,
   displaySignOut = displaySignOut,
-  displayLanguageSwitcher = true
+  displayLanguageSwitcher = true,
+  isMainContentFullWidth = isMainContentFullWidth
 )

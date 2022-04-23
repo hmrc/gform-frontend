@@ -284,6 +284,14 @@ object DisplayWidth extends Enumeration {
   implicit val displayWidthWrites: Writes[DisplayWidth] = Writes.enumNameWrites
 }
 
+object SummaryDisplayWidth extends Enumeration {
+  type SummaryDisplayWidth = Value
+  val M, L, XL = Value
+
+  implicit val displayWidthReads: Reads[SummaryDisplayWidth] = Reads.enumNameReads(SummaryDisplayWidth)
+  implicit val displayWidthWrites: Writes[SummaryDisplayWidth] = Writes.enumNameWrites
+}
+
 sealed trait OptionData extends Product with Serializable {
   def label: SmartString
 
