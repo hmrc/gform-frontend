@@ -82,12 +82,12 @@ class RecalculationResolver[F[_]: Applicative](
     res
   }
 
-  def matchRegexF(formCtx: FormCtx, regex: Regex): StateT[F, RecalculationState, Boolean] = noStateChange(
-    matchRegex(formCtx, regex)
+  def matchRegexF(expr: Expr, regex: Regex): StateT[F, RecalculationState, Boolean] = noStateChange(
+    matchRegex(expr, regex)
   )
 
-  def matchRegex(formCtx: FormCtx, regex: Regex): Boolean = {
-    val typeInfo1 = formModel.toFirstOperandTypeInfo(formCtx)
+  def matchRegex(expr: Expr, regex: Regex): Boolean = {
+    val typeInfo1 = formModel.toFirstOperandTypeInfo(expr)
     val exprRes1: ExpressionResult =
       evaluationResults
         .evalExpr(typeInfo1, recData, booleanExprResolver, evaluationContext)

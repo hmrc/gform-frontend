@@ -207,7 +207,7 @@ class Recalculation[F[_]: Monad, E](
       case IsTrue                              => true
       case IsFalse                             => false
       case Contains(field1, field2)            => rr.compare(field1, field2, _ contains _)
-      case MatchRegex(formCtx, regex)          => rr.matchRegex(formCtx, regex)
+      case MatchRegex(expr, regex)             => rr.matchRegex(expr, regex)
       case FormPhase(value)                    => rr.compareFormPhase(value)
       case In(expr, dataSource)                => false
       case First(_)                            => false
@@ -248,7 +248,7 @@ class Recalculation[F[_]: Monad, E](
       case IsTrue                              => noStateChange(true)
       case IsFalse                             => noStateChange(false)
       case Contains(field1, field2)            => rr.compareF(field1, field2, _ contains _)
-      case MatchRegex(formCtx, regex)          => rr.matchRegexF(formCtx, regex)
+      case MatchRegex(expr, regex)             => rr.matchRegexF(expr, regex)
       case FormPhase(value)                    => rr.compareFormPhaseF(value)
       case In(expr, dataSource) =>
         val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
