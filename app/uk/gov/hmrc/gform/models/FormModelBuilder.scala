@@ -102,8 +102,8 @@ object FormModelBuilder {
       }
     }
 
-    def matchRegex(formCtx: FormCtx, regex: Regex): Boolean = {
-      val typeInfo1 = formModel.toFirstOperandTypeInfo(formCtx)
+    def matchRegex(expr: Expr, regex: Regex): Boolean = {
+      val typeInfo1 = formModel.toFirstOperandTypeInfo(expr)
       val expressionResult = recalculationResult.evaluationResults
         .evalExprCurrent(typeInfo1, recData, booleanExprResolver, recalculationResult.evaluationContext)
         .applyTypeInfo(typeInfo1)
@@ -126,7 +126,7 @@ object FormModelBuilder {
       case IsFalse                             => false
       case Contains(field1, field2)            => compare(field1, field2, _ contains _)
       case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, formModel, recalculationResult, booleanExprResolver, recData)
-      case MatchRegex(formCtx, regex)          => matchRegex(formCtx, regex)
+      case MatchRegex(expr, regex)             => matchRegex(expr, regex)
       case FormPhase(value)                    => phase.fold(false)(_.value == value)
       case First(FormCtx(formComponentId))     => BooleanExprEval.evalFirstExpr(formComponentId)
     }

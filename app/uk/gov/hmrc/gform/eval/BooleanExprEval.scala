@@ -102,9 +102,9 @@ class BooleanExprEval[F[_]: Monad] {
           .evalInExpr(in, formModel, recalculationResult, formModelVisibilityOptics.booleanExprResolver, recData)
           .pure[F]
 
-      case MatchRegex(formCtx, regex) =>
+      case MatchRegex(expr, regex) =>
         val expressionResult: ExpressionResult =
-          formModelVisibilityOptics.evalAndApplyTypeInfoFirst(formCtx).expressionResult
+          formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).expressionResult
         expressionResult.matchRegex(regex).pure[F]
 
       case First(FormCtx(formComponentId)) =>
