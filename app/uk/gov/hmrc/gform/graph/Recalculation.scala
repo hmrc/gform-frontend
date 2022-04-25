@@ -26,7 +26,7 @@ import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, BooleanExprResolver, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, BooleanExprEval, BooleanExprResolver, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
@@ -210,7 +210,7 @@ class Recalculation[F[_]: Monad, E](
       case MatchRegex(formCtx, regex)          => rr.matchRegex(formCtx, regex)
       case FormPhase(value)                    => rr.compareFormPhase(value)
       case In(expr, dataSource)                => false
-      case First(_)                            => false
+      case First(FormCtx(formComponentId))     => BooleanExprEval.evalFirstExpr(formComponentId)
     }
 
     loop(booleanExpr)
@@ -280,7 +280,7 @@ class Recalculation[F[_]: Monad, E](
               })((updS, _).pure[F])
           }
         }
-      case First(_) => noStateChange(false)
+      case First(FormCtx(formComponentId)) => noStateChange(BooleanExprEval.evalFirstExpr(formComponentId))
     }
     loop(booleanExpr)
   }
