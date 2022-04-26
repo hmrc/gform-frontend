@@ -297,7 +297,7 @@ class EmailAuthController(
               .checkCodeAndConfirm(
                 formTemplateId,
                 formTemplate,
-                EmailAndCode(CIString(email), EmailConfirmationCode(CIString(code)))
+                EmailAndCode(CIString(email), EmailConfirmationCode(CIString(code.trim)))
               )
               .fold {
                 Redirect(
