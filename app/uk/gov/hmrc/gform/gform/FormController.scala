@@ -358,9 +358,7 @@ class FormController(
       implicit request => implicit l => cache => _ => formModelOptics =>
         def processEditAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
 
-          val brackets: BracketsWithSectionNumber[Visibility] =
-            processData.formModelOptics.formModelVisibilityOptics.formModel.brackets
-          val addToListIteration = brackets.addToListById(addToListId, idx)
+          val addToListIteration = processData.formModel.brackets.addToListById(addToListId, idx)
 
           def defaultNavigation(): (SectionNumber, FastForward) = {
             val firstAddToListPageSN: SectionNumber = processData.formModel.brackets
@@ -368,17 +366,19 @@ class FormController(
               .source
               .defaultPage
               .fold(addToListIteration.firstSectionNumber) { _ =>
-                val itemCount = brackets.addToListBracket(addToListId).iterations.size
-                if (itemCount == 1) {
-                  addToListIteration.secondSectionNumber
-                } else {
-                  addToListIteration.firstSectionNumber
-                }
+                addToListIteration.secondSectionNumber
               }
 
-            (firstAddToListPageSN, FastForward.StopAt(firstAddToListPageSN.increment))
+            val availableSectionNumbers =
+              processData.formModelOptics.formModelVisibilityOptics.formModel.brackets
+                .addToListById(addToListId, idx)
+                .allSingletonSectionNumbers
+
+            val sectionNumber: SectionNumber = availableSectionNumbers.find(_ >= firstAddToListPageSN).head
+
+            (sectionNumber, FastForward.StopAt(sectionNumber.increment))
           }
-          def checkYourAnswersNavigation(cya: CheckYourAnswersWithNumber[Visibility]): (SectionNumber, FastForward) =
+          def checkYourAnswersNavigation(cya: CheckYourAnswersWithNumber[DataExpanded]): (SectionNumber, FastForward) =
             (cya.sectionNumber, FastForward.Yes)
           val (gotoSectionNumber, fastForward) =
             addToListIteration.checkYourAnswers.fold(defaultNavigation())(checkYourAnswersNavigation)
