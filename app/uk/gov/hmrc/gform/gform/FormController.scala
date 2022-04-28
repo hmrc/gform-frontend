@@ -358,15 +358,27 @@ class FormController(
       implicit request => implicit l => cache => _ => formModelOptics =>
         def processEditAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
 
-          val addToListIteration =
-            processData.formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListById(addToListId, idx)
+          val addToListIteration = processData.formModel.brackets.addToListById(addToListId, idx)
 
           def defaultNavigation(): (SectionNumber, FastForward) = {
-            val firstAddToListPageSN: SectionNumber = addToListIteration.firstSectionNumber
+            val firstAddToListPageSN: SectionNumber = processData.formModel.brackets
+              .addToListBracket(addToListId)
+              .source
+              .defaultPage
+              .fold(addToListIteration.firstSectionNumber) { _ =>
+                addToListIteration.secondSectionNumber
+              }
 
-            (firstAddToListPageSN, FastForward.StopAt(firstAddToListPageSN.increment))
+            val availableSectionNumbers =
+              processData.formModelOptics.formModelVisibilityOptics.formModel.brackets
+                .addToListById(addToListId, idx)
+                .allSingletonSectionNumbers
+
+            val sectionNumber: SectionNumber = availableSectionNumbers.find(_ >= firstAddToListPageSN).head
+
+            (sectionNumber, FastForward.StopAt(sectionNumber.increment))
           }
-          def checkYourAnswersNavigation(cya: CheckYourAnswersWithNumber[Visibility]): (SectionNumber, FastForward) =
+          def checkYourAnswersNavigation(cya: CheckYourAnswersWithNumber[DataExpanded]): (SectionNumber, FastForward) =
             (cya.sectionNumber, FastForward.Yes)
           val (gotoSectionNumber, fastForward) =
             addToListIteration.checkYourAnswers.fold(defaultNavigation())(checkYourAnswersNavigation)
