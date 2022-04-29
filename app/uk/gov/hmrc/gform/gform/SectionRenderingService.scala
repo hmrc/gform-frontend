@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.data.NonEmptyList
 import java.time.LocalDate
 import cats.data.NonEmptyList
 import cats.instances.int._
@@ -26,9 +27,10 @@ import shapeless.syntax.typeable._
 import play.api.i18n.Messages
 import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.auth.core.Enrolments
+import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
-import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -43,7 +45,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, FileExtension }
+import uk.gov.hmrc.gform.sharedmodel.config.FileExtension
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
@@ -348,7 +350,7 @@ class SectionRenderingService(
     envelopeId: EnvelopeId,
     singleton: Singleton[DataExpanded],
     formMaxAttachmentSizeMB: Int,
-    contentTypes: List[ContentType],
+    allowedFileTypes: AllowedFileTypes,
     restrictedFileExtensions: List[FileExtension],
     retrievals: MaterialisedRetrievals,
     obligations: Obligations,
@@ -443,7 +445,7 @@ class SectionRenderingService(
         page.continueLabel
       ),
       formMaxAttachmentSizeMB,
-      contentTypes,
+      allowedFileTypes,
       restrictedFileExtensions,
       page.caption.map(ls => ls.value),
       upscanData
@@ -574,7 +576,7 @@ class SectionRenderingService(
       false,
       continueLabel,
       0,
-      Nil,
+      FileInfoConfig.allAllowedFileTypes,
       Nil
     )
     html.form.form(
@@ -669,7 +671,7 @@ class SectionRenderingService(
       false,
       messages("button.confirmAndSend"),
       0,
-      Nil,
+      FileInfoConfig.allAllowedFileTypes,
       Nil
     )
     uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
@@ -726,7 +728,7 @@ class SectionRenderingService(
       false,
       messages("button.confirmAndSend"),
       0,
-      Nil,
+      FileInfoConfig.allAllowedFileTypes,
       Nil
     )
     html.form

@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import play.api.ApplicationLoader.Context
 import play.api.i18n.Lang
 import play.api.{ Environment, Mode }
+import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
@@ -806,6 +807,7 @@ trait ExampleFormTemplate {
       None,
       summarySection,
       true,
+      FileInfoConfig.allAllowedFileTypes,
       Some(userResearchUrl)
     )
 }

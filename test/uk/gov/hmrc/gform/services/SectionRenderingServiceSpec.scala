@@ -27,6 +27,7 @@ import play.api.mvc.{ AnyContentAsEmpty, Request }
 import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, Role }
+import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
@@ -154,7 +155,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         envelopeId,
         formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
         0,
-        Nil,
+        FileInfoConfig.allAllowedFileTypes,
         Nil,
         authContext,
         NotChecked,
@@ -193,7 +194,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         envelopeId,
         formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
         0,
-        Nil,
+        FileInfoConfig.allAllowedFileTypes,
         Nil,
         authContext,
         NotChecked,
@@ -231,7 +232,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         envelopeId,
         formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
         0,
-        Nil,
+        FileInfoConfig.allAllowedFileTypes,
         Nil,
         authContext,
         NotChecked,
@@ -274,7 +275,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         envelopeId,
         formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
         0,
-        Nil,
+        FileInfoConfig.allAllowedFileTypes,
         Nil,
         authContext,
         NotChecked,

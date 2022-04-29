@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
 import cats.data.NonEmptyList
 import org.scalacheck.Gen
+import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -108,6 +109,7 @@ trait FormTemplateGen {
       save4LaterInfoText,
       summarySection,
       displayHMRCLogo,
+      FileInfoConfig.allAllowedFileTypes,
       userResearchUrl
     )
 }

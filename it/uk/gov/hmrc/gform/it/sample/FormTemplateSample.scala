@@ -2,6 +2,7 @@ package uk.gov.hmrc.gform.it.sample
 
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.Helpers.toSmartString
+import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.email.{ EmailTemplateId, LocalisedEmailTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
@@ -113,6 +114,7 @@ trait FormTemplateSample {
     emailTemplateId = LocalisedEmailTemplateId("some_email_template", None),
     emailParameters = None,
     save4LaterInfoText = None,
+    allowedFileTypes = FileInfoConfig.allAllowedFileTypes,
     userResearchUrl = Some(UserResearchUrl("https://test.service.gov.uk"))
   )
 
