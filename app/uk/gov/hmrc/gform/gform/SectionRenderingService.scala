@@ -445,7 +445,7 @@ class SectionRenderingService(
       formMaxAttachmentSizeMB,
       contentTypes,
       restrictedFileExtensions,
-      page.progressIndicator.map(ls => ls.value),
+      page.caption.map(ls => ls.value),
       upscanData
     )
     html.form.form(

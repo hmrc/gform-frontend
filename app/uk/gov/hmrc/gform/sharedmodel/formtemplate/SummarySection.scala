@@ -36,7 +36,7 @@ case class SummarySection(
       noPIITitle = None,
       description = None,
       shortName = None,
-      progressIndicator = None,
+      caption = None,
       includeIf = None,
       validators = None,
       fields = fields.fold(List.empty[FormComponent])(_.toList),

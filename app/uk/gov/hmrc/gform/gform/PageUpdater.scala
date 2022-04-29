@@ -43,7 +43,7 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
       id = page.id.map(id => id.withIndex(index)),
       description = page.description.map(expandSmartString),
       shortName = page.shortName.map(expandSmartString),
-      progressIndicator = page.progressIndicator.map(expandSmartString),
+      caption = page.caption.map(expandSmartString),
       includeIf = page.includeIf.map(expandIncludeIf),
       fields = page.fields.map { field =>
         new FormComponentUpdater(field, index, baseIds).updatedWithId
