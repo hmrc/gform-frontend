@@ -61,7 +61,7 @@
       class='lookup @{if(hasErrors) "gform-lookup-error" else ""}'
       data-field-id="@fcId"
       data-component-id="@{formComponentId.value}"
-      data-value="@prepopValue"
+      data-value="@{if(hasErrors) "" else prepopValue}"
       data-lookup="@register.asString"
       data-formTemplateId="@formTemplateId.value"
       data-show-all="@showAll.enabled"
