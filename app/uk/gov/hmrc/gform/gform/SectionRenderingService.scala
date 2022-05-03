@@ -1770,6 +1770,9 @@ class SectionRenderingService(
       case RadioLookup(options)                       => options
     }
 
+    val countryHtmlFieldId: HtmlFieldId = HtmlFieldId.Pure(formComponent.atomicFormComponentId(OverseasAddress.country))
+    val formFieldValidationResultCountry = formFieldValidationResult.forHtmlFieldId(countryHtmlFieldId)
+
     html.form.snippets
       .field_template_overseas_address(
         ei.formTemplate._id,
@@ -1781,14 +1784,10 @@ class SectionRenderingService(
           Register.Country,
           ei,
           lookupOptions,
-          Option(
-            fetchValue(
-              HtmlFieldId.Pure(formComponent.atomicFormComponentId(OverseasAddress.country)),
-              OverseasAddress.country
-            )
-          ).filter(_.nonEmpty)
+          Some(fetchValue(countryHtmlFieldId, OverseasAddress.country)).filter(_.nonEmpty)
         ),
         formFieldValidationResult,
+        formFieldValidationResultCountry,
         isPageHeading,
         getLabelClasses(isPageHeading, formComponent.labelSize),
         fetchValue

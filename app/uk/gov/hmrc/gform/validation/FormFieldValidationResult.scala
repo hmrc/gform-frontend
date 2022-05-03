@@ -76,6 +76,12 @@ trait FormFieldValidationResult {
 
   def formComponent: FormComponent
 
+  def forHtmlFieldId(htmlFieldId: HtmlFieldId): FormFieldValidationResult = this match {
+    case ComponentField(id, data) =>
+      data.get(htmlFieldId).getOrElse(ComponentField(id, Map.empty[HtmlFieldId, FormFieldValidationResult]))
+    case unsupported => throw new Exception("Wrong invocation. Expected 'ComponentField', but got: " + unsupported)
+  }
+
   def isOk: Boolean = this match {
     case FieldOk(_, _)           => true
     case FieldGlobalOk(_, _)     => true
