@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.models
 import play.api.mvc.Call
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, FileExtension }
+import uk.gov.hmrc.gform.sharedmodel.config.FileExtension
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.upscan.UpscanData
@@ -38,7 +38,7 @@ case class SectionRenderingInformation(
   renderComeBackLater: Boolean,
   continueLabel: String,
   formMaxAttachmentSizeMB: Int,
-  contentTypes: List[ContentType],
+  allowedFileTypes: AllowedFileTypes,
   restrictedFileExtensions: List[FileExtension],
   caption: Option[String] = None,
   upscanData: Map[FormComponentId, UpscanData] = Map.empty

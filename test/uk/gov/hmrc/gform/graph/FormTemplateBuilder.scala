@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.graph
 
 import cats.data.NonEmptyList
+import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.models.{ Basic, Bracket, BracketsWithSectionNumber, FormModel, PageMode, Visibility }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -279,6 +280,7 @@ object FormTemplateBuilder {
       None
     ),
     true,
+    FileInfoConfig.allAllowedFileTypes,
     Some(UserResearchUrl("https://test.service.gov.uk"))
   )
 

@@ -124,7 +124,7 @@ class FormController(
                     cache.form.envelopeId,
                     singleton,
                     formMaxAttachmentSizeMB,
-                    contentTypes,
+                    cache.formTemplate.allowedFileTypes,
                     restrictedFileExtensions,
                     cache.retrievals,
                     cache.form.thirdPartyData.obligations,
@@ -784,6 +784,5 @@ class FormController(
   }
 
   private val formMaxAttachmentSizeMB = appConfig.formMaxAttachmentSizeMB
-  private val contentTypes = appConfig.contentTypes
   private val restrictedFileExtensions = appConfig.restrictedFileExtensions
 }

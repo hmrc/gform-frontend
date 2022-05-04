@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 import org.typelevel.ci.CIString
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Flash, MessagesControllerComponents }
-import uk.gov.hmrc.gform.gform
+import uk.gov.hmrc.gform.{ FormTemplateKey, gform }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.{ FastForward, FileUploadUtils, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormData, FormField, FormIdData, FormModelOptics, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowedFileTypes, FormComponentId, FormTemplateId, SectionNumber, SuppressErrors }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.gform.FastForwardService
@@ -72,9 +72,11 @@ class FileUploadController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => _ => implicit formModelOptics =>
+        val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+        val formTemplate = formTemplateWithRedirects.formTemplate
         for {
           envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
-          flash    <- checkFile(fileId, envelope, cache.form.envelopeId)
+          flash    <- checkFile(fileId, envelope, cache.form.envelopeId, formTemplate.allowedFileTypes)
           cacheUpd = cache
                        .modify(_.form.componentIdToFileId)
                        .using(_ + (formComponentId, fileId))
@@ -114,12 +116,13 @@ class FileUploadController(
       }
       .getOrElse(formData)
 
-  private def checkFile(fileId: FileId, envelope: Envelope, envelopeId: EnvelopeId)(implicit
+  private def checkFile(fileId: FileId, envelope: Envelope, envelopeId: EnvelopeId, allowedFileTypes: AllowedFileTypes)(
+    implicit
     messages: Messages,
     hc: HeaderCarrier
   ): Future[Flash] = {
 
-    val validated: Validated[Flash, Unit] = validateFile(fileId, envelope)
+    val validated: Validated[Flash, Unit] = validateFile(fileId, envelope, allowedFileTypes)
 
     validated match {
       case Invalid(flash) =>
@@ -134,7 +137,9 @@ class FileUploadController(
   private def flashWithFileId(flash: Flash, fileId: FileId): Flash =
     flash + (GformFlashKeys.FileUploadFileId -> fileId.value)
 
-  private def validateFile(fileId: FileId, envelope: Envelope)(implicit messages: Messages): Validated[Flash, Unit] =
+  private def validateFile(fileId: FileId, envelope: Envelope, allowedFileTypes: AllowedFileTypes)(implicit
+    messages: Messages
+  ): Validated[Flash, Unit] =
     envelope.find(fileId).fold[Validated[Flash, Unit]](Valid(())) { file =>
       Valid(file)
         .ensure(mkFlash("file.error.empty"))(_.length =!= 0)
@@ -145,7 +150,7 @@ class FileUploadController(
             else file.contentType.value,
             "PDF, JPEG, XLSX, ODS, DOCX, ODT, PPTX, ODP"
           )
-        )(_ => validateFileExtension(file) && validateFileType(file))
+        )(_ => validateFileExtension(file) && validateFileType(file, allowedFileTypes))
         .map(_ => ())
     }
 
@@ -161,8 +166,8 @@ class FileUploadController(
       !appConfig.restrictedFileExtensions.map(_.value).contains(CIString(v))
     }
 
-  private def validateFileType(file: File): Boolean =
-    appConfig.contentTypes.exists(_ === file.contentType)
+  private def validateFileType(file: File, allowedFileTypes: AllowedFileTypes): Boolean =
+    allowedFileTypes.contentTypes.exists(_ === file.contentType)
 
   case class FileUploadError(
     errorCode: String,

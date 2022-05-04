@@ -149,7 +149,7 @@
       window.gform = window.gform || {};
       window.gform.envelopeId = "@page.envelopeId.value";
       window.gform.formMaxAttachmentSizeMB = "@page.formMaxAttachmentSizeMB";
-      window.gform.contentTypes = "@page.contentTypes.map(_.value).mkString(", ")";
+      window.gform.contentTypes = "@page.allowedFileTypes.contentTypes.map(_.value).toList.mkString(", ")";
       window.gform.restrictedFileExtensions = "@page.restrictedFileExtensions.map(_.value).mkString(", ")";
       @Html(page.javascripts)
     </script>
