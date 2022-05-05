@@ -410,7 +410,7 @@ class SectionRenderingService(
 
     val upscanData: Map[FormComponentId, UpscanData] =
       fileUploadProviders.flatMap {
-        case (fc, FileUploadProvider.Upscan) =>
+        case (fc, FileUploadProvider.Upscan(_)) =>
           val uploadRequest = upscanInitiate.get(fc.id).uploadRequest
           val snippetsForUpscan = List(htmlForUpscan(fc, ei, uploadRequest.fields))
           Some(
@@ -851,7 +851,7 @@ class SectionRenderingService(
                 .getOrElse(ei.envelope.mapping.fileIdFor(formComponent.id))
 
             fileUploadProvider match {
-              case FileUploadProvider.Upscan =>
+              case FileUploadProvider.Upscan(_) =>
                 upscanData.get(formComponent.id) match {
                   case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
                   case Some(upscanData) =>
