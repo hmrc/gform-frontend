@@ -214,7 +214,7 @@ object AllValidIfs {
 object IsUpscanInitiateFileUpload {
   def unapply(formComponent: FormComponent): Option[FormComponent] =
     formComponent.`type` match {
-      case FileUpload(FileUploadProvider.Upscan) => Some(formComponent)
-      case _                                     => None
+      case FileUpload(FileUploadProvider.Upscan(_)) => Some(formComponent)
+      case _                                        => None
     }
 }
