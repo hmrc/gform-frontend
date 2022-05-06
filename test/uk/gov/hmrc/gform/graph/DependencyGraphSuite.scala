@@ -26,8 +26,8 @@ import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExprMetadata }
 import uk.gov.hmrc.gform.models.{ Basic, FormModelBuilder, Interim, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelSupport, SectionSelectorType }
-import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormComponentId, FormComponentValidator, FormCtx, GreaterThan, Number, Page, Section, Sum, ValidIf, Value }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Constant, Contains, FormComponent, FormComponentId, FormComponentValidator, FormCtx, GreaterThan, IncludeIf, Number, Page, Radio, Section, Sum, ValidIf, Value, Vertical }
 import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
@@ -103,9 +103,10 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
         )
 
     val expected: List[(Int, Set[GraphNode])] = List(
-      (0, Set(GraphNode.Expr(FormCtx("2_offset")), GraphNode.Expr(FormCtx("1_offset")))),
-      (1, Set(GraphNode.Simple("2_offset"), GraphNode.Simple("1_offset"))),
-      (2, Set(GraphNode.Expr(Constant("1000"))))
+      (0, Set(GraphNode.Simple("offset"))),
+      (1, Set(GraphNode.Expr(FormCtx("2_offset")), GraphNode.Expr(FormCtx("1_offset")))),
+      (2, Set(GraphNode.Simple("2_offset"), GraphNode.Simple("1_offset"))),
+      (3, Set(GraphNode.Expr(Constant("1000"))))
     )
 
     val res: List[(Int, Set[GraphNode])] = layers(sections, variadicData)
@@ -138,8 +139,62 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
         )
 
     val expected: List[(Int, Set[GraphNode])] = List(
-      (0, Set(GraphNode.Expr(FormCtx("2_offset")), GraphNode.Expr(FormCtx("1_offset")))),
-      (1, Set(GraphNode.Simple("2_offset"), GraphNode.Simple("1_offset")))
+      (0, Set(GraphNode.Simple("offset"))),
+      (1, Set(GraphNode.Expr(FormCtx("2_offset")), GraphNode.Expr(FormCtx("1_offset")))),
+      (2, Set(GraphNode.Simple("2_offset"), GraphNode.Simple("1_offset")))
+    )
+
+    val res: List[(Int, Set[GraphNode])] = layers(sections, variadicData)
+
+    assertEquals(res, expected)
+  }
+
+  test("DependencyGraph must allow add-to-list field to be referred outside add-to-list") {
+
+    val choice =
+      Choice(
+        Radio,
+        toOptionData(NonEmptyList.of("yes", "no", "maybe")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
+        None
+      )
+
+    val sections: List[Section] = List(
+      emptyAddToList.copy(
+        title = toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("benefitTypeChoice"))),
+        pages = NonEmptyList.of(
+          emptyPage.copy(fields =
+            List(
+              mkFormComponent("benefitTypeChoice", choice)
+            )
+          )
+        )
+      ),
+      Section.NonRepeatingPage(
+        emptyPage.copy(
+          includeIf = Some(IncludeIf(Contains(FormCtx(FormComponentId("benefitTypeChoice")), Constant("1")))),
+          fields = List(
+            mkFormComponent("test", Value, Number())
+          )
+        )
+      )
+    )
+    val variadicData: VariadicFormData[SourceOrigin.OutOfDate] = variadicFormDataMany(
+      "1_benefitTypeChoice" -> List("1")
+    )
+
+    val expected: List[(Int, Set[GraphNode])] = List(
+      (0, Set(GraphNode.Simple("test"))),
+      (1, Set(GraphNode.Expr(FormCtx("benefitTypeChoice")), GraphNode.Expr(Constant("1")))),
+      (2, Set(GraphNode.Simple("benefitTypeChoice"))),
+      (3, Set(GraphNode.Expr(FormCtx("1_benefitTypeChoice")))),
+      (4, Set(GraphNode.Simple("1_benefitTypeChoice")))
     )
 
     val res: List[(Int, Set[GraphNode])] = layers(sections, variadicData)

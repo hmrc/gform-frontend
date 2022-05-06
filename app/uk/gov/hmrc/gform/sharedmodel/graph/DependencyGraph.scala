@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.gform.sharedmodel.graph
 
-import cats.syntax.eq._
-import cats.syntax.option._
+import cats.implicits._
 import scalax.collection.Graph
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, IsSelfReferring, SelfReferenceProjection, StandaloneSumInfo, SumInfo }
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -37,6 +37,15 @@ object DependencyGraph {
     formModel: FormModel[T],
     formTemplateExprs: List[ExprMetadata]
   ): Graph[GraphNode, DiEdge] = {
+
+    val atlFieldsBaseIds: Set[BaseComponentId] =
+      formModel.brackets.addToListBrackets
+        .flatMap(
+          _.iterations.toList.flatMap(
+            _.singletons.toList.flatMap(_.singleton.page.allIds.map(_.modelComponentId.baseComponentId))
+          )
+        )
+        .toSet
 
     val isSum = new IsOneOfSum(formModel.sumInfo)
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
@@ -142,9 +151,36 @@ object DependencyGraph {
       allSectionDeps ++ allRepeatExprDeps
     }
 
-    formModel.allFormComponents
-      .flatMap(edges)
-      .foldLeft(emptyGraph)(_ + _) ++ includeIfs ++ componentIncludeIfs ++ validIfs ++ sections
+    val allEdges: List[DiEdge[GraphNode]] =
+      formModel.allFormComponents
+        .flatMap(edges) ++ includeIfs ++ componentIncludeIfs ++ validIfs ++ sections
+
+    val allFcIds: List[FormComponentId] = allEdges.flatMap { diEdge =>
+      diEdge.collectFirst {
+        case GraphNode.Expr(FormCtx(fcId)) => fcId
+        case GraphNode.Simple(fcId)        => fcId
+      }
+    }
+
+    // This represents references to atl fields made outside of atl.
+    val addToListEdges =
+      allFcIds
+        .map(_.modelComponentId)
+        .groupBy(_.baseComponentId)
+        .mapValues(xs => xs.map(_.indexedComponentId).collect { case x: IndexedComponentId.Indexed => x }.toNel)
+        .collect {
+          case (k, Some(v)) if atlFieldsBaseIds(k) =>
+            k -> v
+        }
+        .flatMap { case (k, nel) =>
+          nel.toList.map { v =>
+            GraphNode.Simple(ModelComponentId.pure(IndexedComponentId.pure(k)).toFormComponentId) ~> GraphNode.Expr(
+              FormCtx(ModelComponentId.pure(v).toFormComponentId)
+            )
+          }
+        }
+
+    (allEdges ++ addToListEdges).foldLeft(emptyGraph)(_ + _)
   }
 
   def constructDependencyGraph(
