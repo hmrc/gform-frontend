@@ -156,12 +156,17 @@ case class EvaluationResults(
   private def evalSize(
     formComponentId: FormComponentId,
     recData: RecData[SourceOrigin.OutOfDate],
-    index: Int
+    index: SizeRefType
   ): ExpressionResult = {
     val xs: Iterable[(ModelComponentId, VariadicValue)] =
       recData.variadicFormData.forBaseComponentIdLessThen(formComponentId.modelComponentId)
 
-    val size: Int = xs.map(_._2).count(_.contains(index.toString))
+    val indexString = index match {
+      case SizeRefType.IndexBased(index) => index.toString
+      case SizeRefType.ValueBased(value) => value
+    }
+
+    val size: Int = xs.map(_._2).count(_.contains(indexString))
 
     NumberResult(size)
   }
