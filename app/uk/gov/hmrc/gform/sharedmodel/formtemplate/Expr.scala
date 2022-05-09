@@ -155,8 +155,16 @@ final case class AddressLens(formComponentId: FormComponentId, detail: AddressDe
 final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
 final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieveAttribute) extends Expr
-final case class Size(formComponentId: FormComponentId, index: Int) extends Expr
+final case class Size(formComponentId: FormComponentId, index: SizeRefType) extends Expr
 final case class Typed(expr: Expr, tpe: ExplicitExprType) extends Expr
+
+sealed trait SizeRefType extends Product with Serializable
+object SizeRefType {
+  case class IndexBased(index: Int) extends SizeRefType
+  case class ValueBased(value: String) extends SizeRefType
+
+  implicit val format: OFormat[SizeRefType] = derived.oformat()
+}
 
 sealed trait ExplicitExprType extends Product with Serializable
 object ExplicitExprType {
