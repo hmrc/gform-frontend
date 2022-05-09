@@ -29,13 +29,14 @@ import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers._
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
-import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
+import uk.gov.hmrc.gform.eval.ExpressionResult._
+import uk.gov.hmrc.gform.graph.{ GraphData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateWithRedirects, Horizontal, OptionData, Radio, RevealingChoice, RevealingChoiceElement, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, Expr, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateWithRedirects, Horizontal, OptionData, Radio, RevealingChoice, RevealingChoiceElement, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
@@ -93,20 +94,27 @@ class RealSmartStringEvaluatorFactorySpec
         "textField",
         Value
       )
+      lazy val (modelCompId1, modelCompId2) =
+        (textField.modelComponentId.expandWithPrefix(1), textField.modelComponentId.expandWithPrefix(2))
       override lazy val indexedComponentIds: List[ModelComponentId] =
-        List(textField.modelComponentId.expandWithPrefix(1), textField.modelComponentId.expandWithPrefix(2))
+        List(modelCompId1, modelCompId2)
       override lazy val form: Form =
         buildForm(
           FormData(
             List(
-              FormField(textField.modelComponentId.expandWithPrefix(1), "value1"),
-              FormField(textField.modelComponentId.expandWithPrefix(2), "value2")
+              FormField(modelCompId1, "value1"),
+              FormField(modelCompId2, "value2")
             )
           )
         )
       override lazy val formTemplate: FormTemplate = buildFormTemplate(
         destinationList,
         sections = List(repeatingSection(title = "page1", fields = List(textField), None, Constant("2")))
+      )
+
+      override lazy val exprMap: Map[Expr, ExpressionResult] = Map(
+        FormCtx(modelCompId1.toFormComponentId) -> StringResult("value1"),
+        FormCtx(modelCompId2.toFormComponentId) -> StringResult("value2")
       )
 
       val result: String = smartStringEvaluator
@@ -398,6 +406,7 @@ class RealSmartStringEvaluatorFactorySpec
       )
     lazy val indexedComponentIds: List[ModelComponentId] = List.empty
 
+    lazy val exprMap: Map[Expr, ExpressionResult] = Map.empty
     val mockRecalculation = mock[Recalculation[Future, Throwable]]
     mockRecalculation.recalculateFormDataNew(
       *[VariadicFormData[SourceOrigin.OutOfDate]],
@@ -407,7 +416,10 @@ class RealSmartStringEvaluatorFactorySpec
       *[ThirdPartyData],
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
-      RecalculationResult.empty(
+      RecalculationResult(
+        EvaluationResults(exprMap),
+        GraphData.empty,
+        BooleanExprCache.empty,
         EvaluationContext(
           formTemplate._id,
           submissionRef,

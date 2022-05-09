@@ -67,15 +67,17 @@ case class EvaluationResults(
 
     if (isModelFormComponentIdPure && isReferenceIndexed) {
       ListResult(
-        recData.variadicFormData
-          .forBaseComponentId(modelComponentId.baseComponentId)
+        exprMap
+          .collect {
+            case (FormCtx(c), r)
+                if c.baseComponentId === modelComponentId.baseComponentId && c.modelComponentId.maybeIndex.nonEmpty =>
+              (c.modelComponentId, r)
+          }
           .toList
           .sortBy { case (id, _) =>
             id.maybeIndex
           }
-          .map { case (_, variadicValue) =>
-            fromVariadicValue(variadicValue)
-          }
+          .map(_._2)
       )
     } else {
       val expressionResult = exprMap.getOrElse(
@@ -191,9 +193,13 @@ case class EvaluationResults(
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId)   => get(ctx, recData, fromVariadicValue, evaluationContext)
       case Sum(FormCtx(formComponentId))    => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
-      case Sum(_)                           => unsupportedOperation("Number")(expr)
-      case Count(formComponentId)           => addToListCount(formComponentId, recData)
-      case AuthCtx(value: AuthInfo)         => unsupportedOperation("Number")(expr)
+      case Sum(field1) =>
+        loop(field1) match {
+          case lrs: ListResult => lrs.list.fold(NumberResult(0)) { case (a, b) => a + b }
+          case _               => unsupportedOperation("Number")(expr)
+        }
+      case Count(formComponentId)   => addToListCount(formComponentId, recData)
+      case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField) =>
         value.fold(_ => unsupportedOperation("Number")(expr))(enrolment =>
           toNumberResult(

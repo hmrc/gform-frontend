@@ -267,4 +267,55 @@ class ExpressionResultSpec extends FunSuite {
       assertEquals(lhs after rhs, expected)
     }
   }
+
+  test("ListResult and NumberResult operations") {
+    val nr1 = NumberResult(1)
+    val nr2 = NumberResult(2)
+    val lr12 = ListResult(List(nr1, nr2))
+
+    assertEquals(nr2 + lr12, ListResult(List(NumberResult(3), NumberResult(4))))
+    assertEquals(lr12 + nr2, ListResult(List(NumberResult(3), NumberResult(4))))
+    assertEquals(nr2 - lr12, ListResult(List(NumberResult(1), NumberResult(0))))
+    assertEquals(lr12 - nr2, ListResult(List(NumberResult(-1), NumberResult(0))))
+    assertEquals(nr2 * lr12, ListResult(List(NumberResult(2), NumberResult(4))))
+    assertEquals(lr12 * nr2, ListResult(List(NumberResult(2), NumberResult(4))))
+    assertEquals(nr2 / lr12, ListResult(List(NumberResult(2), NumberResult(1))))
+    assertEquals(lr12 / nr2, ListResult(List(NumberResult(0.5), NumberResult(1))))
+
+    assertEquals(lr12 + Hidden, lr12)
+    assertEquals(lr12 - Hidden, lr12)
+    assertEquals(lr12 * Hidden, ListResult(List(NumberResult(0), NumberResult(0))))
+    assertEquals(lr12 / Hidden, ListResult(List(NumberResult(0), NumberResult(0))))
+
+    assertEquals(Hidden + lr12, lr12)
+    assertEquals(Hidden - lr12, lr12)
+    assertEquals(Hidden * lr12, ListResult(List(NumberResult(0), NumberResult(0))))
+    assertEquals(Hidden / lr12, ListResult(List(NumberResult(0), NumberResult(0))))
+  }
+
+  test("ListResult and ListResult operations") {
+    val nr1 = NumberResult(1)
+    val nr2 = NumberResult(2)
+    val nr3 = NumberResult(3)
+    val lr12 = ListResult(List(nr1, nr2))
+    val lr13 = ListResult(List(nr1, nr3))
+    val lrH2 = ListResult(List(Hidden, nr2))
+    val lrH3 = ListResult(List(Hidden, nr3))
+
+    assertEquals(lr13 + lr12, ListResult(List(NumberResult(2), NumberResult(5))))
+    assertEquals(lr13 - lr12, ListResult(List(NumberResult(0), NumberResult(1))))
+    assertEquals(lr13 * lr12, ListResult(List(NumberResult(1), NumberResult(6))))
+    assertEquals(lr13 / lr12, ListResult(List(NumberResult(1), NumberResult(1.5))))
+
+    assertEquals(lr13 + lrH2, ListResult(List(NumberResult(1), NumberResult(5))))
+    assertEquals(lr13 - lrH2, ListResult(List(NumberResult(1), NumberResult(1))))
+    assertEquals(lr13 * lrH2, ListResult(List(NumberResult(0), NumberResult(6))))
+    assertEquals(lr13 / lrH2, ListResult(List(NumberResult(0), NumberResult(1.5))))
+
+    assertEquals(lrH3 + lr12, ListResult(List(NumberResult(1), NumberResult(5))))
+    assertEquals(lrH3 - lr12, ListResult(List(NumberResult(1), NumberResult(1))))
+    assertEquals(lrH3 * lr12, ListResult(List(NumberResult(0), NumberResult(6))))
+    assertEquals(lrH3 / lr12, ListResult(List(NumberResult(0), NumberResult(1.5))))
+
+  }
 }
