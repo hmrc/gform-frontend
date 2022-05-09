@@ -53,7 +53,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: Hidden.type => this
     case t: Empty.type  => this
     case t: NumberResult =>
-      fold[ExpressionResult](identity)(_ => t)(_ => t)(_ + t)(s => StringResult(s.value + t.value.toString))(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)
+      fold[ExpressionResult](identity)(_ => t)(_ => t)(_ + t)(s => StringResult(s.value + t.value.toString))(invalidAdd)(invalidAdd)(invalidAdd)(invalidAdd)(l => ListResult(l.list.map(_ + t)))
     case t: StringResult =>
       fold[ExpressionResult](identity)(_ => t)(_ => t)(n => StringResult(n.value.toString + t.value))(_ + t)(invalidAdd)(d => StringResult(d.asString + t.value))(invalidAdd)(p => StringResult(p.asString + t.value))(invalidAdd)
     case t: OptionResult  => Invalid(s"Unsupported operation, cannot add OptionResult and $t")
@@ -62,7 +62,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: PeriodResult  =>
       fold[ExpressionResult](identity)(_ => t)(_ => t)(invalidAdd)(_ + StringResult(t.asString))(invalidAdd)(invalidAdd)(invalidAdd)(_ + t)(invalidAdd)
     case t: AddressResult => Invalid(s"Unsupported operation, cannot add AddressResult and $t")
-    case t: ListResult => Invalid(s"Unsupported operation, cannot add ListResult and $t")
+    case t: ListResult => fold[ExpressionResult](identity)(_ => t)(identity)(e => ListResult(t.list.map(_ + e)))(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)(l => ListResult(l.list.zip(t.list).map{case (a,b) => a + b }))
     // format: on
   }
 
@@ -71,43 +71,43 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: Invalid      => t
     case t: Hidden.type  => this
     case t: Empty.type   => this
-    case t: NumberResult => fold[ExpressionResult](identity)(_ => t)(identity)(_ - t)(invalidSubstract)(invalidSubstract)(invalidSubstract)(invalidSubstract)(invalidSubstract)(invalidSubstract)
+    case t: NumberResult => fold[ExpressionResult](identity)(_ => t)(identity)(_ - t)(invalidSubstract)(invalidSubstract)(invalidSubstract)(invalidSubstract)(invalidSubstract)(l => ListResult(l.list.map(_ - t)))
     case t: StringResult => Invalid("Unsupported operation, cannot substract strings")
     case t: OptionResult => Invalid("Unsupported operation, cannot substract options")
     case t: DateResult => Invalid(s"Unsupported operation, cannot substract DateResult$t")
     case t: PeriodResult => Invalid(s"Unsupported operation, cannot substract PeriodResult$t")
     case t: AddressResult => Invalid(s"Unsupported operation, cannot substract AddressResult$t")
-    case t: ListResult => Invalid(s"Unsupported operation, cannot substract ListResult and $t")
+    case t: ListResult => fold[ExpressionResult](identity)(_ => t)(identity)(e => ListResult(t.list.map(e - _)))(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)(l => ListResult(l.list.zip(t.list).map{case (a,b) => a - b }))
     // format: on
   }
 
   def *(er: ExpressionResult): ExpressionResult = er match {
     // format: off
     case t: Invalid      => t
-    case t: Hidden.type  => fold[ExpressionResult](identity)(identity)(identity)(_ => NumberResult(0))(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)
+    case t: Hidden.type  => fold[ExpressionResult](identity)(identity)(identity)(_ => NumberResult(0))(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)(l => ListResult(l.list.map(_ => NumberResult(0))))
     case t: Empty.type   => this
-    case t: NumberResult => fold[ExpressionResult](identity)(_ => NumberResult(0))(identity)(_ * t)(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)
+    case t: NumberResult => fold[ExpressionResult](identity)(_ => NumberResult(0))(identity)(_ * t)(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)(l => ListResult(l.list.map(_ * t)))
     case t: StringResult => Invalid("Unsupported operation, cannot multiply strings")
     case t: OptionResult => Invalid("Unsupported operation, cannot multiply options")
     case t: DateResult => Invalid("Unsupported operation, cannot multiply DateResult")
     case t: PeriodResult => Invalid("Unsupported operation, cannot multiply PeriodResult")
     case t: AddressResult => Invalid("Unsupported operation, cannot multiply AddressResult")
-    case t: ListResult => Invalid(s"Unsupported operation, cannot multiply ListResult and $t")
+    case t: ListResult => fold[ExpressionResult](identity)(_ => ListResult(t.list.map(_ => NumberResult(0))))(identity)(e => ListResult(t.list.map(_ * e)))(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)(l => ListResult(l.list.zip(t.list).map{case (a,b) => a * b }))
     // format: on
   }
 
   def /(er: ExpressionResult): ExpressionResult = er match {
     // format: off
     case t: Invalid      => t
-    case t: Hidden.type  => fold[ExpressionResult](identity)(identity)(identity)(_ => NumberResult(0))(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)
+    case t: Hidden.type  => fold[ExpressionResult](identity)(identity)(identity)(_ => NumberResult(0))(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(l => ListResult(l.list.map(_ => NumberResult(0))))
     case t: Empty.type   => this
-    case t: NumberResult => fold[ExpressionResult](identity)(_ => NumberResult(0))(identity)(_ / t)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)
+    case t: NumberResult => fold[ExpressionResult](identity)(_ => NumberResult(0))(identity)(_ / t)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(invalidDivide)(l => ListResult(l.list.map( _ / t)))
     case t: StringResult => Invalid("Unsupported operation, cannot divide strings")
     case t: OptionResult => Invalid("Unsupported operation, cannot divide options")
     case t: DateResult => Invalid("Unsupported operation, cannot divide DateResult")
     case t: PeriodResult => Invalid("Unsupported operation, cannot divide PeriodResult")
     case t: AddressResult => Invalid("Unsupported operation, cannot divide AddressResult")
-    case t: ListResult => Invalid(s"Unsupported operation, cannot divide ListResult and $t")
+    case t: ListResult => fold[ExpressionResult](identity)(_ => ListResult(t.list.map(_ => NumberResult(0))))(identity)(e => ListResult(t.list.map(e / _)))(invalidMult)(invalidMult)(invalidMult)(invalidMult)(invalidMult)(l => ListResult(l.list.zip(t.list).map{case (a,b) => a / b }))
     // format: on
   }
 
@@ -293,7 +293,7 @@ sealed trait ExpressionResult extends Product with Serializable {
       _.asString(messages)
     )(
       _.address.mkString(", ")
-    )(_.value.toString)(_.list.map(_.stringRepresentation(typeInfo, messages)).mkString(", "))
+    )(_.value.toString)(_.list.map(_.stringRepresentation(typeInfo, messages)).filterNot(_ === "").mkString(", "))
 
   def addressRepresentation(typeInfo: TypeInfo): List[String] =
     fold[List[String]](_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(
