@@ -214,8 +214,11 @@ class NewFormController(
         val queryParams: QueryParams = QueryParams.fromRequest(request)
 
         for {
-          latestFormTemplate <- gformConnector.getLatestFormTemplate(formTemplateId)
-          formIdData         <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), latestFormTemplate._id))
+          formTemplate <- gformConnector.getFormTemplate(formTemplateId)
+          latestFormTemplate <- if (formTemplate.formTemplate.version.isDefined)
+                                  gformConnector.getLatestFormTemplate(formTemplateId)
+                                else Future.successful(formTemplate.formTemplate)
+          formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), latestFormTemplate._id))
           res <-
             handleForm(formIdData, latestFormTemplate)(
               newForm(latestFormTemplate._id, cache.copy(formTemplate = latestFormTemplate), queryParams)
