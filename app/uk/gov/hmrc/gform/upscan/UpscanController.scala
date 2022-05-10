@@ -23,7 +23,7 @@ import play.api.mvc.{ Action, AnyContent, Flash, MessagesControllerComponents }
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
-import uk.gov.hmrc.gform.config.AppConfig
+import uk.gov.hmrc.gform.config.{ AppConfig, FileInfoConfig }
 import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, GformFlashKeys }
 import uk.gov.hmrc.gform.gform.FastForwardService
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
@@ -86,14 +86,14 @@ class UpscanController(
                     s"Upscan failed - status: ${confirmation.status}, failureReason: ${confirmation.failureDetails.failureReason}, message: ${confirmation.failureDetails.message}"
                   )
                   val flash = confirmation.failureDetails match {
-                    case FailureDetails("EntityTooLarge", _) =>
+                    case FailureDetails("EntityTooLarge", _, _) =>
                       mkFlash("file.error.size", appConfig.formMaxAttachmentSizeMB.toString)
-                    case FailureDetails("EntityTooSmall", _) => mkFlash("file.error.empty")
-                    case FailureDetails("InvalidFileType", _) | FailureDetails("REJECTED", _) =>
+                    case FailureDetails("EntityTooSmall", _, _) => mkFlash("file.error.empty")
+                    case FailureDetails("InvalidFileType" | "REJECTED", _, fileMimeType) =>
                       mkFlash(
                         "file.error.type",
-                        "",
-                        "PDF, JPEG, XLSX, ODS, DOCX, ODT, PPTX, ODP"
+                        FileInfoConfig.reverseLookup.getOrElse(fileMimeType, "").toUpperCase,
+                        cache.formTemplate.allowedFileTypes.fileExtensions.toList.map(_.toUpperCase).mkString(", ")
                       )
                     case _ => mkFlash("file.error.upload.one.only")
                   }
