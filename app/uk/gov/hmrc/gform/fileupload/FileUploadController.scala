@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory
 import org.typelevel.ci.CIString
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Flash, MessagesControllerComponents }
+import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.{ FormTemplateKey, gform }
 
 import scala.concurrent.Future
@@ -146,9 +147,8 @@ class FileUploadController(
         .ensure(
           mkFlash(
             "file.error.type",
-            if (!validateFileExtension(file)) getFileExtension(file.fileName).getOrElse("unknown")
-            else file.contentType.value,
-            "PDF, JPEG, XLSX, ODS, DOCX, ODT, PPTX, ODP"
+            FileInfoConfig.reverseLookup.getOrElse(file.contentType, "").toUpperCase,
+            allowedFileTypes.fileExtensions.toList.map(_.toUpperCase).mkString(", ")
           )
         )(_ => validateFileExtension(file) && validateFileType(file, allowedFileTypes))
         .map(_ => ())

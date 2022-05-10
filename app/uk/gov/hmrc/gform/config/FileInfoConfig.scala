@@ -36,6 +36,8 @@ object FileInfoConfig {
 
   private val lookup: Map[String, ContentType] = allowedFileInfo.toList.toMap
 
+  val reverseLookup: Map[ContentType, String] = lookup.map { case (k, v) => (v, k) }
+
   def contentTypes(fileExtensions: NonEmptyList[String]): NonEmptyList[ContentType] = fileExtensions.map(lookup)
 
   val allAllowedFileTypes: AllowedFileTypes = AllowedFileTypes(allowedFileInfo.map { case (extension, _) => extension })

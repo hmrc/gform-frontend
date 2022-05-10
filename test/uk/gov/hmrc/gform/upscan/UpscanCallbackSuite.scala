@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.upscan
 import java.time.Instant
 import munit.FunSuite
 import play.api.libs.json.{ JsPath, JsResult, JsSuccess, JsValue, Json, PathNode }
+import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 
 class UpscanCallbackSuite extends FunSuite {
 
@@ -68,7 +69,8 @@ class UpscanCallbackSuite extends FunSuite {
          |  "fileStatus": "FAILED",
          |  "failureDetails": {
          |    "failureReason": "QUARANTINE",
-         |    "message": "Eicar-Test-Signature"
+         |    "message": "Eicar-Test-Signature",
+         |    "fileMimeType": "pdf"
          |  }
          |}""".stripMargin
 
@@ -80,7 +82,8 @@ class UpscanCallbackSuite extends FunSuite {
         UpscanFileStatus.Failed,
         FailureDetails(
           "QUARANTINE",
-          "Eicar-Test-Signature"
+          "Eicar-Test-Signature",
+          ContentType("pdf")
         )
       ),
       JsPath(List.empty[PathNode])
