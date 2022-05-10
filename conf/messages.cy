@@ -24,7 +24,8 @@ emailAuth.searchYouEmails=Chwiliwch drwy’ch e-byst am ’Cadarnhau’ch cyfeir
 emailAuth.checkYourSpam=Gwiriwch eich ffolder sbam neu sothach – os nad yw wedi dod i law o hyd, bydd angen i chi
 emailAuth.startAgain=ddechrau eto
 emailAuth.emailAddress=Cyfeiriad e-bost
-emailAuth.confirmCodeError=Nodwch y cod y gwnaethom ei anfon atoch drwy e-bost. Mae hwn yn 4 llythyren megis DNLC
+emailAuth.error.invalidCodeLength=Nodwch y cod y gwnaethom ei anfon atoch drwy e-bost. Mae hwn yn 4 llythyren megis DNLC.
+emailAuth.error.invalidCode=Nodwch y cod o’r e-bost diweddaraf y gwnaethom ei anfon atoch
 emailAuth.emailConfirmation=Cyfeiriad e-bost wedi’i gadarnhau
 
 compositeAuth.title=Sut rydych am fewngofnodi?

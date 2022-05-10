@@ -25,7 +25,8 @@ emailAuth.searchYouEmails=Search your emails for ''Confirm your email address - 
 emailAuth.checkYourSpam=Check your spam or junk folder – if it still has not arrived, you will need to
 emailAuth.startAgain=start again
 emailAuth.emailAddress=Email address
-emailAuth.confirmCodeError=Enter the code we emailed you. This is 4 letters, like DNLC
+emailAuth.error.invalidCodeLength=Enter the code we emailed you. This is 4 letters, like DNLC.
+emailAuth.error.invalidCode=Enter the code from the latest email we sent you
 emailAuth.emailConfirmation=Email address confirmed
 
 compositeAuth.title=How do you want to sign in?
