@@ -206,8 +206,8 @@ class EmailAuthController(
       val (pageErrors, maybeCodeFieldError) = error match {
         case Some(true) =>
           val errorMessage = maybeCodeLength match {
-            case Some(value) if value === 4 => "emailAuth.error.invalidCode"
-            case _                          => "emailAuth.error.invalidCodeLength"
+            case Some(4) => "emailAuth.error.invalidCode"
+            case _       => "emailAuth.error.invalidCodeLength"
           }
           (
             Errors(
