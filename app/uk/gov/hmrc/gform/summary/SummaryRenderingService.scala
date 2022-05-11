@@ -529,16 +529,16 @@ object SummaryRenderingService {
 
   val dateTimeFormat =
     //DateTimeFormatter.ofPattern("d MMM yyyy HH:mm").withLocale(Locale.UK).withZone(ZoneId.of("Europe/London"))
-    DateTimeFormatter.ofPattern("d MMM yyyy HH:mm").withLocale(Locale.UK).withZone(ZoneId.of("GMT"))
+    DateTimeFormatter.ofPattern("d MMM yyyy HH:mm").withLocale(Locale.UK).withZone(ZoneId.of("UTC"))
   def submissionDetailsAsHTML(maybeSubmissionDetails: Option[SubmissionDetails])(implicit
     messages: Messages
   ): Html =
     maybeSubmissionDetails
       .map { sd =>
         val formattedTime = sd.submission.submittedDate.format(dateTimeFormat)
-        logger.error("### TIME" + formattedTime)
+        logger.error("### FORMATTEDTIME" + formattedTime)
         val rows = List(
-          cya_row(messages("submission.date"), formattedTime),
+          cya_row(messages("submission.date"), s"TEST DATE TIME ${sd.submission.submittedDate}"),
           cya_row(messages("submission.reference"), sd.submission.submissionRef.toString),
           cya_row(messages("submission.mark"), sd.hashedValue)
         )
