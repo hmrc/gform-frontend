@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.summary
 
+import org.slf4j.LoggerFactory
 import cats.data.NonEmptyList
 import cats.syntax.eq._
 import play.api.i18n.{ I18nSupport, Messages }
@@ -46,6 +47,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
 
 import java.time.format.DateTimeFormatter
+import java.time.ZoneId
+import java.util.Locale
 import scala.concurrent.{ ExecutionContext, Future }
 
 class SummaryRenderingService(
@@ -225,6 +228,7 @@ class SummaryRenderingService(
 
 object SummaryRenderingService {
 
+  private val logger = LoggerFactory.getLogger(getClass)
   def renderSummary[D <: DataOrigin](
     formTemplate: FormTemplate,
     validationResult: ValidationResult,
@@ -523,15 +527,15 @@ object SummaryRenderingService {
     renderHtmls(sortedFcs)
   }
 
+  val dateTimeFormat =
+    DateTimeFormatter.ofPattern("d MMM yyyy HH:mm").withLocale(Locale.UK).withZone(ZoneId.of("Europe/London"))
   def submissionDetailsAsHTML(maybeSubmissionDetails: Option[SubmissionDetails])(implicit
     messages: Messages
   ): Html =
     maybeSubmissionDetails
       .map { sd =>
-        val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
-        val dateFormat = DateTimeFormatter.ofPattern("d MMM yyyy")
-        val formattedTime =
-          s"${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}"
+        val formattedTime = sd.submission.submittedDate.format(dateTimeFormat)
+        logger.error("### TIME" + formattedTime)
         val rows = List(
           cya_row(messages("submission.date"), formattedTime),
           cya_row(messages("submission.reference"), sd.submission.submissionRef.toString),

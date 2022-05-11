@@ -52,6 +52,7 @@ import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import java.time._
 
 class SummaryRenderingServiceSpec
     extends AnyWordSpecLike with Matchers with ScalaFutures with ExampleData with ArgumentMatchersSugar
@@ -529,6 +530,16 @@ class SummaryRenderingServiceSpec
           )
         }
       }
+    }
+  }
+  "dateTimeFormat" should {
+    "format BST time" in {
+      val dateSubmittedBST = Instant.from(LocalDate.of(2019, 6, 1).atStartOfDay(ZoneId.of("Europe/London")))
+      SummaryRenderingService.dateTimeFormat.format(dateSubmittedBST) shouldBe "1 Jun 2019 00:00"
+    }
+    "format non BST time" in {
+      val dateSubmittedBST = Instant.from(LocalDate.of(2019, 1, 1).atStartOfDay(ZoneId.of("Europe/London")))
+      SummaryRenderingService.dateTimeFormat.format(dateSubmittedBST) shouldBe "1 Jan 2019 00:00"
     }
   }
 }
