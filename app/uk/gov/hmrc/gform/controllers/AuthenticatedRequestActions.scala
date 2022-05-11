@@ -162,7 +162,8 @@ class AuthenticatedRequestActions(
       authResult <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
       result <- authResult match {
                   case _: AuthSuccessful => Future.successful(Ok("success"))
-                  case _                 => errResponder.forbidden("Access denied", Option.empty[FormTemplate])
+                  case _ =>
+                    errResponder.forbidden("Access denied -Unsuccessful Auth", Option.empty[FormTemplate])
                 }
     } yield result
   }
@@ -242,9 +243,10 @@ class AuthenticatedRequestActions(
                       Permissions.apply(operation, cache.role) match {
                         case PermissionResult.Permitted => f(request)(lang)(cache)
                         case PermissionResult.NotPermitted =>
-                          errResponder.forbidden("Access denied", Some(formTemplate))
+                          errResponder.forbidden("Access denied -The form has not been permitted", Some(formTemplate))
                         case PermissionResult.FormSubmitted =>
-                          errResponder.forbidden("Access denied", Some(formTemplate))
+                          errResponder
+                            .forbidden("Access denied -The form has already been submitted", Some(formTemplate))
                       }
                     }
                 )
@@ -276,7 +278,8 @@ class AuthenticatedRequestActions(
         result <- authResult match {
                     case AuthSuccessful(retrievals, role) =>
                       f(request)(getCurrentLanguage(request))(AuthCacheWithoutForm(retrievals, formTemplate, role))
-                    case _ => errResponder.forbidden("Access denied", Some(formTemplate))
+                    case _ =>
+                      errResponder.forbidden("Access denied -Unsuccessful GGAuth", Some(formTemplate))
                   }
       } yield result
     }
@@ -295,8 +298,12 @@ class AuthenticatedRequestActions(
         val formTemplateWithRedirects = request.attrs(FormTemplateKey)
         val formTemplate = formTemplateWithRedirects.formTemplate
         Permissions.apply(operation, cache.role, cache.form.status) match {
-          case PermissionResult.Permitted    => f(request)(lang)(cache)(smartStringEvaluator)(formModelOptics)
-          case PermissionResult.NotPermitted => errResponder.forbidden("Access denied", Some(formTemplate))
+          case PermissionResult.Permitted => f(request)(lang)(cache)(smartStringEvaluator)(formModelOptics)
+          case PermissionResult.NotPermitted =>
+            errResponder.forbidden(
+              "Access denied -The retrieved form has not been permitted",
+              Some(formTemplate)
+            )
           case PermissionResult.FormSubmitted =>
             Redirect(
               uk.gov.hmrc.gform.gform.routes.AcknowledgementController
