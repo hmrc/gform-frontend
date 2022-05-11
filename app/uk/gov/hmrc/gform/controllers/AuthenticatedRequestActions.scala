@@ -163,7 +163,7 @@ class AuthenticatedRequestActions(
       result <- authResult match {
                   case _: AuthSuccessful => Future.successful(Ok("success"))
                   case _ =>
-                    errResponder.forbidden("Access denied -Unsuccessful Auth", Option.empty[FormTemplate])
+                    errResponder.forbidden("Access denied - Unsuccessful Auth", Option.empty[FormTemplate])
                 }
     } yield result
   }
@@ -243,10 +243,10 @@ class AuthenticatedRequestActions(
                       Permissions.apply(operation, cache.role) match {
                         case PermissionResult.Permitted => f(request)(lang)(cache)
                         case PermissionResult.NotPermitted =>
-                          errResponder.forbidden("Access denied -The form has not been permitted", Some(formTemplate))
+                          errResponder.forbidden("Access denied - The form has not been permitted", Some(formTemplate))
                         case PermissionResult.FormSubmitted =>
                           errResponder
-                            .forbidden("Access denied -The form has already been submitted", Some(formTemplate))
+                            .forbidden("Access denied - The form has already been submitted", Some(formTemplate))
                       }
                     }
                 )
@@ -279,7 +279,7 @@ class AuthenticatedRequestActions(
                     case AuthSuccessful(retrievals, role) =>
                       f(request)(getCurrentLanguage(request))(AuthCacheWithoutForm(retrievals, formTemplate, role))
                     case _ =>
-                      errResponder.forbidden("Access denied -Unsuccessful GGAuth", Some(formTemplate))
+                      errResponder.forbidden("Access denied - Unsuccessful GGAuth", Some(formTemplate))
                   }
       } yield result
     }
@@ -301,7 +301,7 @@ class AuthenticatedRequestActions(
           case PermissionResult.Permitted => f(request)(lang)(cache)(smartStringEvaluator)(formModelOptics)
           case PermissionResult.NotPermitted =>
             errResponder.forbidden(
-              "Access denied -The retrieved form has not been permitted",
+              "Access denied - The retrieved form has not been permitted",
               Some(formTemplate)
             )
           case PermissionResult.FormSubmitted =>
