@@ -528,7 +528,8 @@ object SummaryRenderingService {
   }
 
   val dateTimeFormat =
-    DateTimeFormatter.ofPattern("d MMM yyyy HH:mm").withLocale(Locale.UK).withZone(ZoneId.of("Europe/London"))
+    //DateTimeFormatter.ofPattern("d MMM yyyy HH:mm").withLocale(Locale.UK).withZone(ZoneId.of("Europe/London"))
+    DateTimeFormatter.ofPattern("d MMM yyyy HH:mm").withLocale(Locale.UK).withZone(ZoneId.of("GMT"))
   def submissionDetailsAsHTML(maybeSubmissionDetails: Option[SubmissionDetails])(implicit
     messages: Messages
   ): Html =
