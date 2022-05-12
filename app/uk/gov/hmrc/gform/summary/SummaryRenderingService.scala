@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.summary
 
+import java.time._
 import org.slf4j.LoggerFactory
 import cats.data.NonEmptyList
 import cats.syntax.eq._
@@ -537,8 +538,13 @@ object SummaryRenderingService {
       .map { sd =>
         val formattedTime = sd.submission.submittedDate.format(dateTimeFormat)
         logger.error("### FORMATTEDTIME" + formattedTime)
+        val ldt = LocalDateTime.now
+        val idt = Instant.now
         val rows = List(
-          cya_row(messages("submission.date"), s"TEST DATE TIME ${sd.submission.submittedDate}"),
+          cya_row(
+            messages("submission.date"),
+            s"TEST DATE TIME ${sd.submission.submittedDate} LDT: $ldt, Instant: $idt"
+          ),
           cya_row(messages("submission.reference"), sd.submission.submissionRef.toString),
           cya_row(messages("submission.mark"), sd.hashedValue)
         )
