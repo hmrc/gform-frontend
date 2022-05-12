@@ -18,7 +18,7 @@ object Dependencies {
     "org.typelevel"               %% "cats-mtl"                   % "1.0.0",
     "org.typelevel"               %% "case-insensitive"           % "1.1.0",
     "com.github.pureconfig"       %% "pureconfig"                 % "0.14.0",
-    "org.jetbrains"                % "markdown"                   % "0.1.41",
+    "org.jetbrains"                % "markdown"                   % "0.1.46",
     "com.chuusai"                 %% "shapeless"                  % "2.3.3",
     "uk.gov.hmrc"                 %% "emailaddress"               % "3.3.0",
     "org.scala-graph"             %% "graph-core"                 % "1.12.5",

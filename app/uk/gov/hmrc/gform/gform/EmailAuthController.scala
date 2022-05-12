@@ -168,7 +168,8 @@ class EmailAuthController(
               case true =>
                 sendEmailWithConfirmationCode(formTemplateWithRedirects, emailId).map { emailAndCode =>
                   Redirect(
-                    uk.gov.hmrc.gform.gform.routes.EmailAuthController.confirmCodeForm(formTemplateId, None, continue)
+                    uk.gov.hmrc.gform.gform.routes.EmailAuthController
+                      .confirmCodeForm(formTemplateId, None, continue, None)
                   ).addingToSession(
                     EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
                       emailAuthDetails + (formTemplateId -> ValidEmail(emailAndCode))
@@ -190,7 +191,12 @@ class EmailAuthController(
 
     }
 
-  def confirmCodeForm(formTemplateId: FormTemplateId, error: Option[Boolean], continue: String): Action[AnyContent] =
+  def confirmCodeForm(
+    formTemplateId: FormTemplateId,
+    error: Option[Boolean],
+    continue: String,
+    maybeCodeLength: Option[Int]
+  ): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplateWithRedirects = request.attrs(FormTemplateKey)
       val formTemplate = formTemplateWithRedirects.formTemplate
@@ -199,6 +205,10 @@ class EmailAuthController(
 
       val (pageErrors, maybeCodeFieldError) = error match {
         case Some(true) =>
+          val errorMessage = maybeCodeLength match {
+            case Some(4) => "emailAuth.error.invalidCode"
+            case _       => "emailAuth.error.invalidCodeLength"
+          }
           (
             Errors(
               new components.GovukErrorSummary()(
@@ -206,7 +216,7 @@ class EmailAuthController(
                   errorList = List(
                     ErrorLink(
                       href = Some("#code"),
-                      content = content.Text(request.messages.messages("emailAuth.confirmCodeError"))
+                      content = content.Text(request.messages.messages(errorMessage))
                     )
                   ),
                   title = content.Text(request.messages.messages("error.summary.heading"))
@@ -215,7 +225,7 @@ class EmailAuthController(
             ),
             Some(
               ErrorMessage(
-                content = content.Text(request.messages.messages("emailAuth.confirmCodeError"))
+                content = content.Text(request.messages.messages(errorMessage))
               )
             )
           )
@@ -288,7 +298,7 @@ class EmailAuthController(
           _ =>
             Redirect(
               uk.gov.hmrc.gform.gform.routes.EmailAuthController
-                .confirmCodeForm(formTemplateId, Some(true), continue)
+                .confirmCodeForm(formTemplateId, Some(true), continue, None)
             ).pure[Future],
           { case (email: String, code: String) =>
             val emailAuthDetails: EmailAuthDetails =
@@ -302,7 +312,7 @@ class EmailAuthController(
               .fold {
                 Redirect(
                   uk.gov.hmrc.gform.gform.routes.EmailAuthController
-                    .confirmCodeForm(formTemplateId, Some(true), continue)
+                    .confirmCodeForm(formTemplateId, Some(true), continue, Some(code.length))
                 )
               } { confirmedEmailAuthDetails =>
                 val confirmedEmailAuthDetailsStr = toJsonStr(confirmedEmailAuthDetails)
