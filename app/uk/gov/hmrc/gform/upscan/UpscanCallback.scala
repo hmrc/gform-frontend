@@ -85,20 +85,45 @@ object UpscanFileStatus {
 
 final case class FailureDetails(
   failureReason: String,
-  message: String,
-  fileMimeType: ContentType
+  message: String
 )
 
 object FailureDetails {
   implicit val reads: Reads[FailureDetails] = derived.reads()
 }
 
+sealed trait UpscanValidationFailure extends Product with Serializable {
+  def toJsCode: String = this match {
+    case UpscanValidationFailure.EntityTooLarge        => "EntityTooLarge"
+    case UpscanValidationFailure.EntityTooSmall        => "EntityTooSmall"
+    case UpscanValidationFailure.InvalidFileType(_, _) => "InvalidFileType"
+  }
+}
+
+object UpscanValidationFailure {
+  case object EntityTooLarge extends UpscanValidationFailure
+  case object EntityTooSmall extends UpscanValidationFailure
+  case class InvalidFileType(errorDetail: String, fileMimeType: ContentType) extends UpscanValidationFailure
+
+  implicit val reads: Reads[UpscanValidationFailure] = derived.reads()
+}
+
 final case class UpscanConfirmation(
   _id: UpscanReference,
   status: UpscanFileStatus,
-  failureDetails: FailureDetails
+  confirmationFailure: ConfirmationFailure
 )
 
 object UpscanConfirmation {
   implicit val reads: Reads[UpscanConfirmation] = derived.reads()
+}
+
+sealed trait ConfirmationFailure extends Product with Serializable
+
+object ConfirmationFailure {
+  case object AllOk extends ConfirmationFailure
+  case class UpscanFailure(failureDetails: FailureDetails) extends ConfirmationFailure
+  case class GformValidationFailure(validationFailure: UpscanValidationFailure) extends ConfirmationFailure
+
+  implicit val reads: Reads[ConfirmationFailure] = derived.reads()
 }

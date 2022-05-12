@@ -83,13 +83,16 @@ class UpscanController(
                   val fileId = FileId(formComponentId.value)
 
                   logger.info(
-                    s"Upscan failed - status: ${confirmation.status}, failureReason: ${confirmation.failureDetails.failureReason}, message: ${confirmation.failureDetails.message}"
+                    s"Upscan failed - status: ${confirmation.status}, failureReason: ${confirmation.confirmationFailure}"
                   )
-                  val flash = confirmation.failureDetails match {
-                    case FailureDetails("EntityTooLarge", _, _) =>
+                  val flash = confirmation.confirmationFailure match {
+                    case ConfirmationFailure.GformValidationFailure(UpscanValidationFailure.EntityTooLarge) =>
                       mkFlash("file.error.size", appConfig.formMaxAttachmentSizeMB.toString)
-                    case FailureDetails("EntityTooSmall", _, _) => mkFlash("file.error.empty")
-                    case FailureDetails("InvalidFileType" | "REJECTED", _, fileMimeType) =>
+                    case ConfirmationFailure.GformValidationFailure(UpscanValidationFailure.EntityTooSmall) =>
+                      mkFlash("file.error.empty")
+                    case ConfirmationFailure.GformValidationFailure(
+                          UpscanValidationFailure.InvalidFileType(_, fileMimeType)
+                        ) =>
                       mkFlash(
                         "file.error.type",
                         FileInfoConfig.reverseLookup.getOrElse(fileMimeType, "").toUpperCase,
@@ -115,8 +118,23 @@ class UpscanController(
         upscanService.deleteConfirmation(upscanReference).map { _ =>
           confirmation match {
             case Some(UpscanConfirmation(_, UpscanFileStatus.Ready, _)) | None => NoContent
-            case Some(UpscanConfirmation(_, UpscanFileStatus.Failed, failureDetails)) =>
+            case Some(
+                  UpscanConfirmation(
+                    _,
+                    UpscanFileStatus.Failed,
+                    ConfirmationFailure.GformValidationFailure(failureDetails)
+                  )
+                ) =>
+              Ok(failureDetails.toJsCode)
+            case Some(
+                  UpscanConfirmation(_, UpscanFileStatus.Failed, ConfirmationFailure.UpscanFailure(failureDetails))
+                ) =>
               Ok(failureDetails.failureReason)
+
+            case Some(
+                  UpscanConfirmation(_, UpscanFileStatus.Failed, ConfirmationFailure.AllOk)
+                ) =>
+              throw new Exception("Upscan problem - 'Failed' status cannot have ConfirmationFailure.AllOk")
           }
         }
       }
