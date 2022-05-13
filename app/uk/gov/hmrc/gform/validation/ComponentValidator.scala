@@ -68,6 +68,7 @@ object ComponentValidator {
   val genericErrorMaxLength                                  = "generic.error.maxLength"
   val genericErrorMinLength                                  = "generic.error.minLength"
   val genericVrnErrorPattern                                 = "generic.vrn.error.pattern"
+  val genericVrnErrorDigitCheck                              = "generic.vrn.error.digitcheck"
   val genericGovernmentIdNotExist                            = "generic.governmentId.not.exist"
   val genericGovernmentIdErrorPattern                        = "generic.governmentId.error.pattern"
   val genericErrorEmail                                      = "generic.error.email"
@@ -389,6 +390,7 @@ object ComponentValidator {
         val vars: List[String] = 7.toString :: Nil
         validationFailure(fieldValue, genericErrorMinLength, Some(vars))
       case Standard(_, s) if VatReferenceChecker.isValid(s) => validationSuccess
+      case Standard(_, s)                                   => validationFailure(fieldValue, genericVrnErrorDigitCheck, None)
       case Branch()                                         => validationSuccess
       case Government()                                     => validationSuccess
       case Health()                                         => validationSuccess

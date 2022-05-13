@@ -115,6 +115,7 @@ generic.error.wholeNumber={0} must be a whole number
 generic.error.maxDecimals={0} must be no more than {1} decimal places
 generic.error.invalid={0} is not valid
 generic.vrn.error.pattern=Enter a VAT number in the correct format
+generic.vrn.error.digitcheck=The VAT number you entered does not exist. Enter a real VAT number
 generic.eori.error.pattern={0} must be between 7 and 15 numbers and start with your country code, for example GB164538549000
 generic.ukEori.error.pattern={0} must be 12 numbers and start with GB, for example GB123456789012
 generic.childBenefitNumber.error.pattern={0} must start with ‘CHB’, followed by 8 numbers and 2 letters, like CHB 12345678 AB
