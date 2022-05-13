@@ -188,4 +188,33 @@ class ComponentValidatorSpec
       result shouldBe expected
     }
   }
+
+  "validateText (2)" should "validate when FormComponent constraint is UkVrn" in {
+    val constraint = UkVrn
+    val fc = textComponent.copy(`type` = Text(constraint, Value))
+    val table = TableDrivenPropertyChecks.Table(
+      ("input", "expected"),
+      ("107 5563 20", Valid(())),
+      ("XI 107556375", Valid(())),
+      ("GB107556375", Valid(())),
+      ("107 5563 201", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.pattern")))),
+      ("XI10755637", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.pattern")))),
+      ("GL107556375", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.pattern")))),
+      ("107 5563 21", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.digitcheck")))),
+      ("XI 107556376", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.digitcheck")))),
+      ("GB107556376", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.digitcheck"))))
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
+      val formModelOptics = mkFormModelOptics(
+        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
+        mkDataOutOfDate(textComponent.id.value -> inputData)
+      )
+      val result = ComponentValidator.validateText(fc, constraint)(
+        formModelOptics.formModelVisibilityOptics,
+        new LookupRegistry(Map.empty)
+      )
+      result shouldBe expected
+    }
+  }
 }

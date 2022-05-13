@@ -114,6 +114,7 @@ generic.error.wholeNumber=Rhaid i {0} fod yn rhif cyfan
 generic.error.maxDecimals=Rhaid i {0} beidio â chynnwys mwy na {1} lle degol
 generic.error.invalid=Nid yw {0} yn ddilys
 generic.vrn.error.pattern=Rhowch rif TAW yn y fformat cywir
+generic.vrn.error.digitcheck=Nid yw’r rhif TAW a nodoch yn bodoli. Nodwch rif TAW go iawn
 generic.eori.error.pattern=Rhaid i {0} fod rhwng 7 a 15 rhif, a rhaid iddo ddechrau gyda chod eich gwlad, er enghraifft GC164538549000
 generic.ukEori.error.pattern=Rhaid i {0} fod yn rhif 12 digid gyda ‘GB’ ar y dechrau, er enghraifft GB123456789012
 generic.childBenefitNumber.error.pattern=Mae’n rhaid i rif Budd-dal Plant ddechrau gyda ‘CHB’, wedi’i ddilyn gan 8 digid a 2 lythyren, megis CHB 12345678 AB
