@@ -2304,13 +2304,16 @@ class SectionRenderingService(
 
   private def shouldDisplayHeading(singleton: Singleton[DataExpanded])(implicit sse: SmartStringEvaluator): Boolean = {
     val page = singleton.page
-    page.allFields match {
-      case IsGroup(g) :: _              => false
-      case IsInformationMessage(_) :: _ => false
+    def aux(allFields: List[FormComponent]): Boolean = allFields match {
+      case IsGroup(g) :: fcs =>
+        false || aux(fcs)
+      case IsInformationMessage(a) :: fcs =>
+        false || aux(fcs)
       case formComponent :: IsNilOrInfoOnly() =>
         formComponent.editable && formComponent.label.value === page.title.value
       case _ => false
     }
+    aux(page.allFields)
   }
 
   private def dataLabelAttribute(label: SmartString): Map[String, String] =
@@ -2366,12 +2369,12 @@ class SectionRenderingService(
 
   private def getLabelClasses(isPageHeading: Boolean, labelSize: Option[LabelSize]): String =
     (isPageHeading, labelSize) match {
+      case (true, _)             => "govuk-label--l"
       case (_, Some(ExtraLarge)) => "govuk-label--xl"
       case (_, Some(Large))      => "govuk-label--l"
       case (_, Some(Medium))     => "govuk-label--m"
       case (_, Some(Small))      => "govuk-label--s"
       case (_, Some(ExtraSmall)) => "govuk-label--xs"
-      case (true, _)             => "govuk-label--l"
       case _                     => ""
     }
 
