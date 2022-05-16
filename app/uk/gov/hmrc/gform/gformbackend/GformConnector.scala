@@ -146,23 +146,23 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
                   ).pure[Future]
                 } else {
                   logger.info(
-                    s"Legacy form for FormTemplate ${legacyFormTemplateId.value} not found, transferring form data..."
+                    s"Legacy form for FormTemplate ${formIdData.formTemplateId.value} not found but the same version found"
                   )
-                  changeFormTemplateIdVersion(formIdData, legacyFormTemplateId).map { newForm =>
-                    logger.info(
-                      s"Form data transferred from ${formIdData.formTemplateId.value} to ${legacyFormTemplateId.value}"
-                    )
-                    Some(newForm)
-                  }
+                  Some(form).pure[Future]
                 }
               } else {
                 getFormByLegacyFormTemplate(legacyFormTemplate, form, formIdData)
               }
             case Some(form) =>
               logger.info(
-                s"Legacy form for FormTemplate ${legacyFormTemplateId.value} found (status = ${form.status})"
+                s"Legacy form for FormTemplate ${legacyFormTemplateId.value} found (status = ${form.status}), transferring form data..."
               )
-              Some(form).pure[Future]
+              changeFormTemplateIdVersion(legacyFormIdData, formIdData.formTemplateId).map { newForm =>
+                logger.info(
+                  s"Form data transferred from ${legacyFormIdData.formTemplateId.value} to ${formIdData.formTemplateId.value}"
+                )
+                Some(newForm)
+              }
           }
         case None =>
           logger.info(

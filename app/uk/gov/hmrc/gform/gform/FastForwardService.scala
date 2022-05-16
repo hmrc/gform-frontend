@@ -134,12 +134,9 @@ class FastForwardService(
   )(implicit
     hc: HeaderCarrier
   ): Future[Result] = {
-    val latestFormTemplateId =
-      cache.formTemplateWithRedirects.latestFormTemplate.getOrElse(cache.formTemplateWithRedirects.formTemplate)._id
-
     val formsToDelete =
       if (cache.formTemplateId === formTemplateId)
-        List(cache.form._id, FormIdData(cache, None).withTemplateId(latestFormTemplateId).toFormId)
+        List(cache.form._id)
       else {
         List(cache.form._id, FormIdData.apply(cache, None).withTemplateId(formTemplateId).toFormId)
       }
@@ -148,7 +145,7 @@ class FastForwardService(
 
     formsToDelete
       .traverse(formId => gformConnector.deleteForm(formId))
-      .map(_ => Redirect(routes.NewFormController.dashboard(latestFormTemplateId).url, queryParams.toPlayQueryParams))
+      .map(_ => Redirect(routes.NewFormController.dashboard(formTemplateId).url, queryParams.toPlayQueryParams))
 
   }
 
