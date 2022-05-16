@@ -358,11 +358,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplateWithRedirects] =
     ws.GET[FormTemplateWithRedirects](s"$baseUrl/formtemplates-with-redirects/${formTemplateId.value}")
 
-  def getLatestFormTemplate(
-    formTemplateId: FormTemplateId
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
-    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}/latest")
-
   /** ****file-upload******
     */
   def deleteFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
