@@ -366,7 +366,7 @@ class SectionRenderingService(
 
     val FormHandlerResult(validationResult, envelope) = formHandlerResult
 
-    val formLevelHeading = shouldDisplayHeading(singleton)
+    val formLevelHeading = shouldDisplayHeading(singleton, formModelOptics)
 
     val ei = ExtraInfo(
       singleton,
@@ -746,9 +746,11 @@ class SectionRenderingService(
       )
   }
 
-  private def isVisible(formComponent: FormComponent, ei: ExtraInfo): Boolean = formComponent.includeIf.fold(true) {
-    includeIf =>
-      ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+  private def isVisible(
+    formComponent: FormComponent,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  ): Boolean = formComponent.includeIf.fold(true) { includeIf =>
+    formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
   }
 
   private def htmlForUpscan(
@@ -756,7 +758,7 @@ class SectionRenderingService(
     ei: ExtraInfo,
     fields: Map[String, String]
   ): Html =
-    if (!isVisible(formComponent, ei) || formComponent.onlyShowOnSummary) HtmlFormat.empty
+    if (!isVisible(formComponent, ei.formModelOptics) || formComponent.onlyShowOnSummary) HtmlFormat.empty
     else {
       val hiddenFields: List[Html] = fields.toList.map { case (name, value) =>
         html.form.snippets.hidden(name, value)
@@ -779,7 +781,7 @@ class SectionRenderingService(
     sse: SmartStringEvaluator
   ): Html =
     renderUnit.fold { case RenderUnit.Pure(formComponent) =>
-      if (!isVisible(formComponent, ei) || formComponent.onlyShowOnSummary) {
+      if (!isVisible(formComponent, ei.formModelOptics) || formComponent.onlyShowOnSummary) {
         HtmlFormat.empty
       } else {
 
@@ -2302,9 +2304,12 @@ class SectionRenderingService(
     maybeNino = None
   )
 
-  private def shouldDisplayHeading(singleton: Singleton[DataExpanded])(implicit sse: SmartStringEvaluator): Boolean = {
+  private def shouldDisplayHeading(
+    singleton: Singleton[DataExpanded],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(implicit sse: SmartStringEvaluator): Boolean = {
     val page = singleton.page
-    page.allFields match {
+    page.allFields.filter(isVisible(_, formModelOptics)) match {
       case IsGroup(g) :: _              => false
       case IsInformationMessage(_) :: _ => false
       case formComponent :: IsNilOrInfoOnly() =>
@@ -2366,12 +2371,12 @@ class SectionRenderingService(
 
   private def getLabelClasses(isPageHeading: Boolean, labelSize: Option[LabelSize]): String =
     (isPageHeading, labelSize) match {
+      case (true, _)             => "govuk-label--l"
       case (_, Some(ExtraLarge)) => "govuk-label--xl"
       case (_, Some(Large))      => "govuk-label--l"
       case (_, Some(Medium))     => "govuk-label--m"
       case (_, Some(Small))      => "govuk-label--s"
       case (_, Some(ExtraSmall)) => "govuk-label--xs"
-      case (true, _)             => "govuk-label--l"
       case _                     => ""
     }
 
