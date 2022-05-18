@@ -123,7 +123,11 @@ object ComponentValidator {
 
     def lookupError: ValidatedType[Unit] = {
       val vars: List[String] = lookupLabel.label :: Nil
-      validationFailure(fieldValue, genericErrorLookup, Some(vars))
+      val uncapitalizedFieldValue = fieldValue.copy(
+        label = fieldValue.label.uncapitalize(),
+        shortName = fieldValue.shortName.map(_.uncapitalize())
+      )
+      validationFailure(uncapitalizedFieldValue, genericErrorLookup, Some(vars))
     }
 
     def existsLabel(options: LookupOptions) =
