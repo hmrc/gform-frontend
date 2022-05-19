@@ -190,7 +190,7 @@ class OverseasAddressValidation[D <: DataOrigin](
           formModelVisibilityOptics
         )
         .fold(
-          _ => mkErrors(atomicFcId)("generic.error.lookup", messages("overseasAddress.country.label"), List.empty),
+          _ => mkErrors(atomicFcId)("generic.error.lookup", messages("overseasAddress.country.label"), List(value)),
           _ => validationSuccess
         )
     }
