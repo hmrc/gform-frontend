@@ -36,8 +36,6 @@ case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
     import scala.collection.JavaConverters._
     new MessageFormat(rawValue(l)).format(interpolations.map(_ => "").asJava.toArray)
   }
-
-  def uncapitalize(): SmartString = copy(localised = localised.uncapitalize())
 }
 
 object SmartString {
