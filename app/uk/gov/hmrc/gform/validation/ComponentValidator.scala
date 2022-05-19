@@ -125,7 +125,7 @@ object ComponentValidator {
       val vars: List[String] = lookupLabel.label :: Nil
 
       val shortNameForErrorMessage =
-        SmartString(LocalisedString(Map(LangADT.En -> "a value", LangADT.Cy -> "Neu Adsf asdfa")), Nil)
+        SmartString(LocalisedString(Map(LangADT.En -> "a value", LangADT.Cy -> " werth")), Nil)
       val fieldValueForErrorMessage = fieldValue.copy(shortName = Some(shortNameForErrorMessage))
       validationFailure(fieldValueForErrorMessage, genericErrorLookup, Some(vars))
     }
