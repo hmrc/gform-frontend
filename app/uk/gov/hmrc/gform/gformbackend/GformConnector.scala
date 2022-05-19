@@ -146,23 +146,23 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
                   ).pure[Future]
                 } else {
                   logger.info(
-                    s"Legacy form for FormTemplate ${formIdData.formTemplateId.value} not found but the same version found"
+                    s"Legacy form for FormTemplate ${legacyFormTemplateId.value} not found, transferring form data..."
                   )
-                  Some(form).pure[Future]
+                  changeFormTemplateIdVersion(formIdData, legacyFormTemplateId).map { newForm =>
+                    logger.info(
+                      s"Form data transferred from ${formIdData.formTemplateId.value} to ${legacyFormTemplateId.value}"
+                    )
+                    Some(newForm)
+                  }
                 }
               } else {
                 getFormByLegacyFormTemplate(legacyFormTemplate, form, formIdData)
               }
             case Some(form) =>
               logger.info(
-                s"Legacy form for FormTemplate ${legacyFormTemplateId.value} found (status = ${form.status}), transferring form data..."
+                s"Legacy form for FormTemplate ${legacyFormTemplateId.value} found (status = ${form.status})"
               )
-              changeFormTemplateIdVersion(legacyFormIdData, formIdData.formTemplateId).map { newForm =>
-                logger.info(
-                  s"Form data transferred from ${legacyFormIdData.formTemplateId.value} to ${formIdData.formTemplateId.value}"
-                )
-                Some(newForm)
-              }
+              Some(form).pure[Future]
           }
         case None =>
           logger.info(
@@ -357,6 +357,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     formTemplateId: FormTemplateId
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplateWithRedirects] =
     ws.GET[FormTemplateWithRedirects](s"$baseUrl/formtemplates-with-redirects/${formTemplateId.value}")
+
+  def getLatestFormTemplate(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
+    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}/latest")
 
   /** ****file-upload******
     */

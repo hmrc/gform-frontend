@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.syntax.eq._
 import cats.instances.future._
 import cats.syntax.applicative._
 import org.slf4j.LoggerFactory
@@ -213,31 +214,39 @@ class NewFormController(
         val queryParams: QueryParams = QueryParams.fromRequest(request)
 
         for {
-          formTemplate <- gformConnector.getFormTemplate(formTemplateId).map(_.formTemplate)
-          formIdData   <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
+          formTemplate <- gformConnector.getFormTemplate(formTemplateId)
+          latestFormTemplate <- if (formTemplate.formTemplate.version.isDefined)
+                                  gformConnector.getLatestFormTemplate(formTemplateId)
+                                else Future.successful(formTemplate.formTemplate)
+          formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), latestFormTemplate._id))
           res <-
-            handleForm(formIdData, formTemplate)(
-              newForm(formTemplate._id, cache.copy(formTemplate = formTemplate), queryParams)
+            handleForm(formIdData, latestFormTemplate)(
+              newForm(latestFormTemplate._id, cache.copy(formTemplate = latestFormTemplate), queryParams)
             ) { form =>
-              formTemplate.draftRetrievalMethod match {
-                case NotPermitted =>
-                  fastForwardService.deleteForm(
-                    formTemplate._id,
-                    cache.toAuthCacheWithForm(form, noAccessCode),
-                    queryParams
-                  )
-                case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
-                  auditService.sendFormResumeEvent(form, cache.retrievals)
-                  redirectContinue[SectionSelectorType.Normal](
-                    cache.copy(formTemplate = formTemplate),
-                    form,
-                    noAccessCode
-                  )
-                case _ =>
-                  auditService.sendFormResumeEvent(form, cache.retrievals)
-                  val continueFormPage = new ContinueFormPage(formTemplate, choice)
-                  Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
-              }
+              for {
+                formTemplate <- if (latestFormTemplate._id === form.formTemplateId) latestFormTemplate.pure[Future]
+                                else gformConnector.getFormTemplate(form.formTemplateId).map(_.formTemplate)
+                res <-
+                  formTemplate.draftRetrievalMethod match {
+                    case NotPermitted =>
+                      fastForwardService.deleteForm(
+                        formTemplate._id,
+                        cache.toAuthCacheWithForm(form, noAccessCode),
+                        queryParams
+                      )
+                    case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
+                      auditService.sendFormResumeEvent(form, cache.retrievals)
+                      redirectContinue[SectionSelectorType.Normal](
+                        cache.copy(formTemplate = formTemplate),
+                        form,
+                        noAccessCode
+                      )
+                    case _ =>
+                      auditService.sendFormResumeEvent(form, cache.retrievals)
+                      val continueFormPage = new ContinueFormPage(formTemplate, choice)
+                      Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
+                  }
+              } yield res
             }
         } yield res
     }

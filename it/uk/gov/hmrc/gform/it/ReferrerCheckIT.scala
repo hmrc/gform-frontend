@@ -85,6 +85,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
         )
       )
     )
+    gformLatestFormTemplateStub(formTemplateAuthAnonymous)
     gformFormStub(formTemplateAuthAnonymous)
     getFileUploadEnvelopeStub()
 
@@ -112,6 +113,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
         )
       )
     )
+    gformLatestFormTemplateStub(formTemplateAuthAnonymous)
     gformFormStub(formTemplateAuthAnonymous)
     getFileUploadEnvelopeStub()
 

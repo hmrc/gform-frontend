@@ -182,6 +182,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuth)
 
+    Given("I have a form template with latest version")
+    gformLatestFormTemplateStub(formTemplateEmailAuth)
+
     And("Gform get form returns 404 not found")
     gformFormNotFoundStub(formTemplateEmailAuth)
 
