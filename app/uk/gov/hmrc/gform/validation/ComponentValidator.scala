@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SubmissionRef }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString, SubmissionRef }
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.referencechecker.{ CorporationTaxReferenceChecker, VatReferenceChecker }
@@ -123,11 +123,11 @@ object ComponentValidator {
 
     def lookupError: ValidatedType[Unit] = {
       val vars: List[String] = lookupLabel.label :: Nil
-      val uncapitalizedFieldValue = fieldValue.copy(
-        label = fieldValue.label.uncapitalize(),
-        shortName = fieldValue.shortName.map(_.uncapitalize())
-      )
-      validationFailure(uncapitalizedFieldValue, genericErrorLookup, Some(vars))
+
+      val shortNameForErrorMessage =
+        SmartString(LocalisedString(Map(LangADT.En -> "a value", LangADT.Cy -> "Neu Adsf asdfa")), Nil)
+      val fieldValueForErrorMessage = fieldValue.copy(shortName = Some(shortNameForErrorMessage))
+      validationFailure(fieldValueForErrorMessage, genericErrorLookup, Some(vars))
     }
 
     def existsLabel(options: LookupOptions) =
