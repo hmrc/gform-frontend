@@ -30,7 +30,9 @@ sealed trait ExprType extends Product with Serializable {
   )(
     f: ExprType.Period.type => B
   )(
-    g: ExprType.Illegal.type => B
+    g: ExprType.TaxPeriod.type => B
+  )(
+    h: ExprType.Illegal.type => B
   ): B =
     this match {
       case t: ExprType.Number.type          => a(t)
@@ -39,7 +41,8 @@ sealed trait ExprType extends Product with Serializable {
       case t: ExprType.DateString.type      => d(t)
       case t: ExprType.AddressString.type   => e(t)
       case t: ExprType.Period.type          => f(t)
-      case t: ExprType.Illegal.type         => g(t)
+      case t: ExprType.TaxPeriod.type       => g(t)
+      case t: ExprType.Illegal.type         => h(t)
     }
 }
 
@@ -56,6 +59,7 @@ object ExprType {
   case object String extends ExprType
   case object DateString extends ExprType
   case object Period extends ExprType
+  case object TaxPeriod extends ExprType
   case object AddressString extends ExprType
   case object Illegal extends ExprType
   case object ChoiceSelection extends ExprType
