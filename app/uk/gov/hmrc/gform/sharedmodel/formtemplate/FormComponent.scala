@@ -76,6 +76,7 @@ case class FormComponent(
     case IsRevealingChoice(_)                                    => ExprType.ChoiceSelection
     case IsDate(_)                                               => ExprType.DateString
     case IsAddress(_) | IsOverseasAddress(_)                     => ExprType.AddressString
+    case IsTaxPeriodDate()                                       => ExprType.TaxPeriod
     case _                                                       => ExprType.String
   }
 

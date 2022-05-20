@@ -150,6 +150,8 @@ object FormModelBuilder {
         VariadicFormData.many[SourceOrigin.Current](modelComponentId, value.map(_.toString))
       case d @ ExpressionResult.DateResult(_) =>
         VariadicFormData.one[SourceOrigin.Current](modelComponentId, d.asString)
+      case d @ ExpressionResult.TaxPeriodResult(_, _) =>
+        VariadicFormData.one[SourceOrigin.Current](modelComponentId, d.asString)
       case p @ ExpressionResult.PeriodResult(_) =>
         VariadicFormData.one[SourceOrigin.Current](modelComponentId, p.asString)
       case ExpressionResult.AddressResult(_) =>

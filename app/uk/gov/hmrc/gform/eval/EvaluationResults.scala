@@ -22,6 +22,7 @@ import cats.instances.list._
 import cats.syntax.eq._
 import cats.syntax.traverse._
 import play.api.i18n.Messages
+import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
@@ -493,7 +494,7 @@ case class EvaluationResults(
                 )
               )
               .reduce(_ + _)
-              .fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(identity)(
+              .fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(identity)(identity)(
                 identity
               )(mapper)(identity)
           }
@@ -512,6 +513,26 @@ case class EvaluationResults(
     }
     loop(typeInfo.expr)
   }
+
+  private def safeToInt(s: String): Option[Int] = Try(s.toInt).toOption
+
+  private def evalTaxPeriod(
+    typeInfo: TypeInfo,
+    recData: RecData[SourceOrigin.OutOfDate],
+    booleanExprResolver: BooleanExprResolver,
+    evaluationContext: EvaluationContext
+  ): ExpressionResult =
+    typeInfo.expr match {
+      case FormCtx(fcId) =>
+        val maybeTaxPeriodResult = for {
+          year  <- recData.variadicFormData.one(fcId.toAtomicFormComponentId(Date.year))
+          month <- recData.variadicFormData.one(fcId.toAtomicFormComponentId(Date.month))
+          y     <- safeToInt(year)
+          m     <- safeToInt(month).map(m => java.time.Month.of(m))
+        } yield TaxPeriodResult(m, y)
+        maybeTaxPeriodResult.getOrElse(ExpressionResult.empty)
+      case _ => ExpressionResult.empty
+    }
 
   private def periodBetween(
     recData: RecData[SourceOrigin.OutOfDate],
@@ -551,6 +572,8 @@ case class EvaluationResults(
       evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
     } { period =>
       evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+    } { taxPeriod =>
+      evalTaxPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
     } { illegal =>
       ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
     }

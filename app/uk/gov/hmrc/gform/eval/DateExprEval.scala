@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, HmrcTaxPeriodCtx, HmrcTaxPeriodInfo, OffsetUnit, OffsetYMD, TodayDateExprValue }
 
 import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ ObligationDetail, SourceOrigin, VariadicValue }
 
@@ -79,7 +80,7 @@ object DateExprEval {
         val exprResult = evalDateExpr(recData, evaluationContext, evaluationResults)(dExpr)
         exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => exprResult)(identity)(identity)(identity)(d =>
           d.copy(value = addOffset(d.value, offset))
-        )(identity)(identity)(identity)
+        )(identity)(identity)(identity)(identity)
       case HmrcTaxPeriodCtx(FormCtx(formComponentId), hmrcTaxPeriodInfo) =>
         evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext).getOrElse(
           ExpressionResult.empty
@@ -127,7 +128,11 @@ object DateExprEval {
       evaluationResults.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
     expressionResult.fold(_ => Option.empty[DateResult])(_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(
       dateResult => Some(dateResult)
-    )(_ => None)(_ => None)(_ => None)
+    ) { tp =>
+      Some(
+        DateResult(LocalDate.of(tp.year, tp.month, 1).`with`(TemporalAdjusters.lastDayOfMonth()))
+      )
+    }(_ => None)(_ => None)(_ => None)
   }
 
   private def addOffset(d: LocalDate, offset: OffsetYMD): LocalDate =
