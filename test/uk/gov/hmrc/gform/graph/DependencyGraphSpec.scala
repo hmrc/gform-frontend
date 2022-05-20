@@ -775,7 +775,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
 
     val fm: FormModel[DependencyGraphVerification] = fmb.dependencyGraphValidation[SectionSelectorType.Normal]
 
-    val formTemplateExprs: List[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
+    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
     DependencyGraph.constructDependencyGraph(
       DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs)

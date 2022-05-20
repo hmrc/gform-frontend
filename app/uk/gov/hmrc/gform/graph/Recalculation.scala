@@ -64,7 +64,7 @@ class Recalculation[F[_]: Monad, E](
 
     implicit val fm: FormModel[Interim] = formModel
 
-    val formTemplateExprs: List[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
+    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
     val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formModel, formTemplateExprs)
 

@@ -220,7 +220,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     val fm: FormModel[DataExpanded] =
       fmb.expand[DataExpanded, SectionSelectorType.Normal](variadicData)
 
-    val formTemplateExprs: List[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
+    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
     DependencyGraph.constructDependencyGraph(
       DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs)
