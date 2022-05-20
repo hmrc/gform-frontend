@@ -34,6 +34,7 @@
 	    name: id,
         source: generateSourceFn(lookup, formTemplateId, formComponentId, maybeAccessCode),
         showNoOptionsFound: false,
+        autoselect: true,
         defaultValue: value,
         showAllValues: showAll === "true"
       });
