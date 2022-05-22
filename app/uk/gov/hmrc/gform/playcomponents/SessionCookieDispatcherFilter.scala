@@ -61,7 +61,7 @@ class SessionCookieDispatcherFilter(
     maybeFormTemplateWithRedirects.flatMap {
       case Some(formTemplateWithRedirects) =>
         val formTemplate =
-          formTemplateWithRedirects.latestFormTemplate.getOrElse(formTemplateWithRedirects.formTemplate)
+          formTemplateWithRedirects.formTemplate
         val (result, cookieValue) =
           formTemplate.authConfig match {
             case Anonymous =>
