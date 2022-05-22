@@ -133,24 +133,29 @@ class FastForwardService(
     queryParams: QueryParams
   )(implicit
     hc: HeaderCarrier
-  ): Future[Result] = {
-    val latestFormTemplateId =
-      cache.formTemplateWithRedirects.latestFormTemplate.getOrElse(cache.formTemplateWithRedirects.formTemplate)._id
-
-    val formsToDelete =
-      if (cache.formTemplateId === formTemplateId)
-        List(cache.form._id, FormIdData(cache, None).withTemplateId(latestFormTemplateId).toFormId)
-      else {
-        List(cache.form._id, FormIdData.apply(cache, None).withTemplateId(formTemplateId).toFormId)
+  ): Future[Result] =
+    for {
+      latestFormTemplate <- gformConnector.getLatestFormTemplate(formTemplateId)
+      formsToDelete <- {
+        val formsToDelete =
+          if (cache.formTemplateId === formTemplateId)
+            List(cache.form._id)
+          else {
+            List(cache.form._id, FormIdData.apply(cache, None).withTemplateId(formTemplateId).toFormId)
+          }
+        Future.successful(
+          FormIdData.apply(cache, None).withTemplateId(latestFormTemplate._id).toFormId :: formsToDelete
+        )
       }
-
-    logger.info("User decided not to continue in his form, deleting form(s): " + formsToDelete.mkString(", "))
-
-    formsToDelete
-      .traverse(formId => gformConnector.deleteForm(formId))
-      .map(_ => Redirect(routes.NewFormController.dashboard(latestFormTemplateId).url, queryParams.toPlayQueryParams))
-
-  }
+      res <- {
+        logger.info("User decided not to continue in his form, deleting form(s): " + formsToDelete.mkString(", "))
+        formsToDelete
+          .traverse(formId => gformConnector.deleteForm(formId))
+          .map(_ =>
+            Redirect(routes.NewFormController.dashboard(latestFormTemplate._id).url, queryParams.toPlayQueryParams)
+          )
+      }
+    } yield res
 
   def updateUserData(
     cache: AuthCacheWithForm,

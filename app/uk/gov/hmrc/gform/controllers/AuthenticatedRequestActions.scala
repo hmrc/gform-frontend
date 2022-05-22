@@ -374,12 +374,19 @@ class AuthenticatedRequestActions(
     def whenFormExists(form: Form): Future[Result] =
       for {
         _ <- MDCHelpers.addFormIdToMdc(form._id)
-        formTemplateForForm <- if (form.formTemplateId === formTemplate._id) formTemplateWithRedirects.pure[Future]
+        formTemplateForForm <- if (form.formTemplateId === formTemplate._id)
+                                 formTemplateWithRedirects.formTemplate.pure[Future]
                                else gformConnector.getFormTemplate(form.formTemplateId)
         formUpd = if (form.status === Submitted) {
                     form.copy(formTemplateId = formTemplate._id)
                   } else form
-        cache = AuthCacheWithForm(retrievals, formUpd, formTemplateForForm, role, maybeAccessCode)
+        cache = AuthCacheWithForm(
+                  retrievals,
+                  formUpd,
+                  FormTemplateWithRedirects.noRedirects(formTemplateForForm),
+                  role,
+                  maybeAccessCode
+                )
 
         formModelOptics <-
           FormModelOptics
@@ -397,7 +404,7 @@ class AuthenticatedRequestActions(
               retrievals,
               maybeAccessCode,
               form,
-              formTemplateForForm.formTemplate
+              formTemplateForForm
             )
         envelope <- fileUploadConnector.getEnvelope(cache.form.envelopeId)
         result   <- f(cache)(smartStringEvaluator)(formModelOptics)

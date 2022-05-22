@@ -102,7 +102,7 @@ class GformBackEndService(
   def getForm(id: FormIdData)(implicit hc: HeaderCarrier): Future[Form] = gformConnector.getForm(id)
 
   def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): Future[FormTemplateWithRedirects] =
-    gformConnector.getFormTemplate(id)
+    gformConnector.getFormTemplateWithRedirects(id)
 
   def getFormBundle(rootFormId: FormIdData)(implicit hc: HeaderCarrier): Future[NonEmptyList[FormIdData]] =
     gformConnector.getFormBundle(rootFormId)
