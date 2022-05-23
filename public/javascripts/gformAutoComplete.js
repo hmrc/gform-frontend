@@ -33,7 +33,7 @@
         id: id,
 	    name: id,
         source: generateSourceFn(lookup, formTemplateId, formComponentId, maybeAccessCode),
-        showNoOptionsFound: false,
+        showNoOptionsFound: true,
         autoselect: true,
         defaultValue: value,
         showAllValues: showAll === "true"
