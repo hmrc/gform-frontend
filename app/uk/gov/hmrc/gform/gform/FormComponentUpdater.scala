@@ -29,8 +29,10 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
   private def expandBooleanExpr(booleanExpr: BooleanExpr): BooleanExpr = BooleanExprUpdater(booleanExpr, index, baseIds)
 
   private def expandOptionData(optionData: OptionData): OptionData = optionData match {
-    case o: OptionData.IndexBased => o.copy(label = expandSmartString(o.label))
-    case o: OptionData.ValueBased => o.copy(label = expandSmartString(o.label))
+    case o: OptionData.IndexBased =>
+      o.copy(label = expandSmartString(o.label), includeIf = o.includeIf.map(expandIncludeIf))
+    case o: OptionData.ValueBased =>
+      o.copy(label = expandSmartString(o.label), includeIf = o.includeIf.map(expandIncludeIf))
   }
 
   private def expandRevealingChoice(revealingChoice: RevealingChoice): RevealingChoice =
