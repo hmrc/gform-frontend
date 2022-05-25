@@ -55,11 +55,9 @@ class EmailAuthSessionPurgeFilter(
 )(implicit
   ec: ExecutionContext,
   override val mat: Materializer
-) extends Filter with FrontendHeaderCarrierProvider with AuthorisedFunctions {
+) extends Filter with NewFormDetector with FrontendHeaderCarrierProvider with AuthorisedFunctions {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
-
-  private val NEW_FORM_PATTERN = """^(.+)/new-form/([^/]+)$""".r
 
   def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
     implicit val requestHeader: RequestHeader = rh
@@ -172,7 +170,4 @@ class EmailAuthSessionPurgeFilter(
       case None =>
         next(rh.addAttr(emailSessionClearAttrKey, "true"))
     }
-
-  private def isNewFormRoute(implicit rh: RequestHeader) =
-    rh.method == "GET" && NEW_FORM_PATTERN.pattern.matcher(rh.path).matches()
 }

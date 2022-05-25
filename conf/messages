@@ -510,3 +510,8 @@ postcodeLookup.enter.address=Enter address
 summary.pdf.formCategory.return=This is a draft copy. You will need to submit your return to send your answers.
 summary.pdf.formCategory.claim=This is a draft copy. You will need to submit your claim to send your answers.
 summary.pdf.formCategory.form=This is a draft copy. You will need to submit your form to send your answers.
+
+browser.forbidden.title=Sorry, you cannot complete this form using this web browser
+browser.forbidden.p1=This service does not support Internet Explorer.
+browser.forbidden.p2=You need to use another web browser, such as Microsoft Edge, Google Chrome or Mozilla Firefox.
+browser.forbidden.link=Find out how to switch to a new browser (opens in new tab)
