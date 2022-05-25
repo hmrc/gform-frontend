@@ -119,7 +119,7 @@ class SummaryController(
     request: Request[AnyContent],
     l: LangADT
   ): Result = {
-    val formTemplate = formTemplateWithRedirects.latestFormTemplate.getOrElse(formTemplateWithRedirects.formTemplate)
+    val formTemplate = formTemplateWithRedirects.formTemplate
     maybeAccessCode match {
       case Some(accessCode) =>
         val saveWithAccessCode = new SaveWithAccessCode(formTemplate, accessCode)

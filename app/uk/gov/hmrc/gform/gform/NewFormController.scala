@@ -214,18 +214,16 @@ class NewFormController(
         val queryParams: QueryParams = QueryParams.fromRequest(request)
 
         for {
-          formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-          latestFormTemplate <- if (formTemplate.formTemplate.version.isDefined)
-                                  gformConnector.getLatestFormTemplate(formTemplateId)
-                                else Future.successful(formTemplate.formTemplate)
-          formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), latestFormTemplate._id))
+          formTemplate <- gformConnector.getFormTemplateWithRedirects(formTemplateId).map(_.formTemplate)
+          formIdData   <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
           res <-
-            handleForm(formIdData, latestFormTemplate)(
-              newForm(latestFormTemplate._id, cache.copy(formTemplate = latestFormTemplate), queryParams)
+            handleForm(formIdData, formTemplate)(
+              newForm(formTemplate._id, cache.copy(formTemplate = formTemplate), queryParams)
             ) { form =>
               for {
-                formTemplate <- if (latestFormTemplate._id === form.formTemplateId) latestFormTemplate.pure[Future]
-                                else gformConnector.getFormTemplate(form.formTemplateId).map(_.formTemplate)
+                formTemplate <- if (formTemplate._id === form.formTemplateId || formTemplate.version.isEmpty)
+                                  formTemplate.pure[Future]
+                                else gformConnector.getFormTemplate(form.formTemplateId)
                 res <-
                   formTemplate.draftRetrievalMethod match {
                     case NotPermitted =>

@@ -32,7 +32,7 @@ class GformConnectorSpec extends Spec {
     val status = 200
     val responseJson = Some(Json.toJson(buildFormTemplateWithRedirects))
     connector
-      .getFormTemplate(formTemplateId)
+      .getFormTemplateWithRedirects(formTemplateId)
       .futureValue shouldBe buildFormTemplateWithRedirects
   }
 

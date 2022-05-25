@@ -21,12 +21,11 @@ import play.api.libs.json.OFormat
 
 final case class FormTemplateWithRedirects(
   formTemplate: FormTemplate,
-  redirect: Option[FormTemplateId], // FormTemplateId which has formTemplate._id in its legacyIds
-  latestFormTemplate: Option[FormTemplate]
+  redirect: Option[FormTemplateId] // FormTemplateId which has formTemplate._id in its legacyIds
 )
 
 object FormTemplateWithRedirects {
   def noRedirects(formTemplate: FormTemplate): FormTemplateWithRedirects =
-    FormTemplateWithRedirects(formTemplate, Option.empty[FormTemplateId], Option.empty[FormTemplate])
+    FormTemplateWithRedirects(formTemplate, Option.empty[FormTemplateId])
   implicit val format: OFormat[FormTemplateWithRedirects] = derived.oformat()
 }
