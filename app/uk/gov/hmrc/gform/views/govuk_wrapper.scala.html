@@ -210,5 +210,5 @@
   bodyEndBlock = None,
   scriptsBlock = Some(scripts),
   footerBlock = Some(hmrcStandardFooter(accessibilityStatementUrl = accessibilityUrl.map(_.value).orElse(maybeFormTemplate.map(_._id.value)).map(path => s"${appConfig.footerAccessibilityStatementUrl}/$path"))),
-  mainContentLayout = if ( isMainContentFullWidth) Some(fullMainContent(_)) else Some(twoThirdsMainContent(_))
+  mainContentLayout = if (isMainContentFullWidth) Some(fullMainContent(_)) else Some(twoThirdsMainContent(_))
 )(contentBlock)

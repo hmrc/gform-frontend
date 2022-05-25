@@ -497,3 +497,8 @@ postcodeLookup.enter.address=Nodwch gyfeiriad
 summary.pdf.formCategory.return=Copi drafft yw hwn. Bydd angen i chi gyflwyno’ch Ffurflen Dreth i anfon eich atebion.
 summary.pdf.formCategory.claim=Copi drafft yw hwn. Bydd angen i chi gyflwyno’ch hawliad i anfon eich atebion.
 summary.pdf.formCategory.form=Copi drafft yw hwn. Bydd angen i chi gyflwyno’ch ffurflen i anfon eich atebion.
+
+browser.forbidden.title=Mae’n ddrwg gennym, ni allwch lenwi’r ffurflen hon gan ddefnyddio'r porwr gwe hwn.
+browser.forbidden.p1=Nid yw'r gwasanaeth hwn yn cynnal Internet Explorer.
+browser.forbidden.p2=Mae angen i chi ddefnyddio porwr gwe arall, fel Microsoft Edge, Google Chrome neu Mozilla Firefox.
+browser.forbidden.link=Rhagor o wybodaeth am sut i newid porwr (yn agor tab newydd)

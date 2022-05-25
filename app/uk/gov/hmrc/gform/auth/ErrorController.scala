@@ -41,4 +41,11 @@ class ErrorController(
     val pageTitle = request.flash.get("formTitle").getOrElse("")
     Ok(views.html.hardcoded.pages.insufficient_enrolments(formTemplate, pageTitle, frontendAppConfig))
   }
+
+  def browserForbidden(formTemplateId: FormTemplateId) = nonAuth { implicit request => implicit l =>
+    val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateWithRedirects.formTemplate
+    val pageTitle = request.flash.get("formTitle").getOrElse("")
+    Ok(views.html.hardcoded.pages.browser_forbidden(formTemplate, pageTitle, frontendAppConfig))
+  }
 }
