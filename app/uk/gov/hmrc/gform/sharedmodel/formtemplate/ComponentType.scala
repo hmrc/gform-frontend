@@ -346,7 +346,7 @@ case class Choice(
   def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult)(implicit
     evaluator: SmartStringEvaluator
   ): List[String] =
-    options.zipWithIndex
+    options.toList.zipWithIndex
       .map { case (option, index) =>
         formFieldValidationResult
           .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, option.value(index)))
