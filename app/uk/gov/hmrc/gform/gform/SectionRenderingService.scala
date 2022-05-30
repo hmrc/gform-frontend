@@ -1317,9 +1317,12 @@ class SectionRenderingService(
             specialAttributes =
               Map("data-checkbox" -> (formComponent.id.value + index)) // Used by javascript for dynamic calculations
           )
+
+    val visibleOptions = options.filter(o => isVisibleOption(o.choice, extraInfo.formModelOptics))
+
     val revealingChoicesList
       : List[(OptionData, Option[Hint], String => Boolean, FormComponentId => Int => Option[NonEmptyList[Html]])] =
-      options.map { o =>
+      visibleOptions.map { o =>
         val isSelected: String => Boolean =
           index =>
             extraInfo.formModelOptics.pageOpticsData
