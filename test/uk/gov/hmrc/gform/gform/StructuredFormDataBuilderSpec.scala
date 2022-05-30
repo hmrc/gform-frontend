@@ -1133,7 +1133,7 @@ class StructuredFormDataBuilderSpec
       id,
       Choice(
         Checkbox,
-        toOptionData(List("One", "Two", "Three")),
+        toOptionData(NonEmptyList.of("One", "Two", "Three")),
         Vertical,
         Nil,
         None,
@@ -1150,7 +1150,7 @@ class StructuredFormDataBuilderSpec
       id,
       Choice(
         Radio,
-        toOptionData(List("One", "Two", "Three")),
+        toOptionData(NonEmptyList.of("One", "Two", "Three")),
         Vertical,
         Nil,
         None,

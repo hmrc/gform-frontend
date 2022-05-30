@@ -333,7 +333,7 @@ object NoneChoice {
 
 case class Choice(
   `type`: ChoiceType,
-  options: List[OptionData],
+  options: NonEmptyList[OptionData],
   orientation: Orientation,
   selections: List[Int],
   hints: Option[NonEmptyList[SmartString]],

@@ -154,7 +154,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     val choice =
       Choice(
         Radio,
-        toOptionData(List("yes", "no", "maybe")),
+        toOptionData(NonEmptyList.of("yes", "no", "maybe")),
         Vertical,
         List.empty,
         None,

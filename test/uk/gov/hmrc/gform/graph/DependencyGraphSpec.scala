@@ -72,7 +72,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
 
   private val emptyChoice = Choice(
     Checkbox,
-    toOptionData(List("")),
+    toOptionData(NonEmptyList.one("")),
     Vertical,
     List.empty,
     None,
@@ -244,7 +244,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val stringExpr = toSmartStringExpression("", FormCtx("a"))
     Table(
       ("prop", "propSetter"),
-      ("options", (choice: Choice) => choice.copy(options = List(OptionData.IndexBased(stringExpr, None)))),
+      ("options", (choice: Choice) => choice.copy(options = NonEmptyList.one(OptionData.IndexBased(stringExpr, None)))),
       ("optionHelpText", (choice: Choice) => choice.copy(optionHelpText = Some(NonEmptyList.one(stringExpr))))
     )
   }
@@ -558,7 +558,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ("title",                             expect1, emptyAddToList.copy(title = stringExpr)),
       ("description",                       expect1, emptyAddToList.copy(description = stringExpr)),
       ("shortName",                         expect1, emptyAddToList.copy(shortName = stringExpr)),
-      ("addAnotherQuestion.options",        expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(options = List(OptionData.IndexBased(stringExpr, None)))))),
+      ("addAnotherQuestion.options",        expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(options = NonEmptyList.one(OptionData.IndexBased(stringExpr, None)))))),
       ("addAnotherQuestion.optionHelpText", expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(optionHelpText = Some(NonEmptyList.one(stringExpr))))))
       // format: on
     )

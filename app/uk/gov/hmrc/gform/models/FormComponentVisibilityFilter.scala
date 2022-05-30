@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.data.NonEmptyList
 import com.softwaremill.quicklens._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponent, FormPhase, Group, OptionData, RevealingChoice }
@@ -45,7 +46,12 @@ class FormComponentVisibilityFilter[D <: DataOrigin, P <: PageMode](
   }
 
   private def stripHiddenFormComponentsFromChoice(c: Choice): Choice =
-    c.modify(_.options).using(_.filter(isVisibleOption))
+    c.modify(_.options)
+      .using(o =>
+        NonEmptyList
+          .fromList(o.filter(isVisibleOption))
+          .getOrElse(throw new IllegalArgumentException("All options of the choice component are invisible"))
+      )
 
   def stripHiddenFormComponents(formModel: FormModel[P]): FormModel[P] =
     formModel.map[P] { singleton =>

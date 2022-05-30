@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.data.NonEmptyList
 import cats.{ Id, Monad }
 import cats.syntax.applicative._
 import play.api.i18n.Messages
@@ -120,7 +121,7 @@ trait FormModelSupport extends GraphSpec {
     ProcessData(formModelOptics, visitsIndex, obligations, booleanExprCache)
   }
 
-  def toOptionData(xs: List[String]): List[OptionData.IndexBased] =
+  def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
     xs.map(l => OptionData.IndexBased(toSmartString(l), None))
 
   def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None)

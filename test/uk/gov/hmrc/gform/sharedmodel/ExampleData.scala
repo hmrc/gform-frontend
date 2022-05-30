@@ -426,7 +426,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     None
   )
 
-  private def toOptionData(xs: List[String]): List[OptionData.IndexBased] =
+  private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
     xs.map(l => OptionData.IndexBased(toSmartString(l), None))
 
   private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None)
@@ -435,7 +435,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     `fieldId - choice`,
     Choice(
       Radio,
-      toOptionData(List("u", "v")),
+      toOptionData(NonEmptyList.of("u", "v")),
       Vertical,
       List(),
       None,
@@ -530,7 +530,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
       FormComponentId(addAnotherQuestionName),
       Choice(
         YesNo,
-        toOptionData(List("yes", "no")),
+        toOptionData(NonEmptyList.of("yes", "no")),
         Vertical,
         List.empty,
         None,
