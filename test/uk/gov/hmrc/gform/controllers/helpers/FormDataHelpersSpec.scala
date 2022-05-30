@@ -41,10 +41,10 @@ class FormDataHelpersSpec extends Spec {
     FormField(FormComponentId(fcId).modelComponentId, value)
   }
 
-  private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
-    xs.map(l => OptionData.IndexBased(toSmartString(l)))
+  private def toOptionData(xs: List[String]): List[OptionData.IndexBased] =
+    xs.map(l => OptionData.IndexBased(toSmartString(l), None))
 
-  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s))
+  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None)
 
   "updateFormField" should "update FormField in form data" in {
     val formFields = toFormFields(
@@ -185,7 +185,7 @@ class FormDataHelpersSpec extends Spec {
         "choice1",
         Choice(
           Checkbox,
-          toOptionData(NonEmptyList.of("Label1", "Label2")),
+          toOptionData(List("Label1", "Label2")),
           Horizontal,
           List.empty,
           None,

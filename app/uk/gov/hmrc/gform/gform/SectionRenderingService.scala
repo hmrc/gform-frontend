@@ -1134,7 +1134,7 @@ class SectionRenderingService(
   private def htmlForChoice(
     formComponent: FormComponent,
     choice: ChoiceType,
-    options: NonEmptyList[OptionData],
+    options: List[OptionData],
     orientation: Orientation,
     selections: List[Int],
     hints: Option[NonEmptyList[SmartString]],
@@ -1153,22 +1153,22 @@ class SectionRenderingService(
         Set.empty[String] // Don't prepop something we already submitted
       else selections.map(_.toString).toSet
 
-    val optionsWithHelpText: NonEmptyList[(OptionData, Option[Html])] =
+    val optionsWithHelpText: List[(OptionData, Option[Html])] =
       optionalHelpText
         .map(
-          _.zipWith(options)((helpText, option) =>
+          _.toList.zip(options).map { case (helpText, option) =>
             (
               option,
               if (helpText.isEmpty) None
               else Some(markDownParser(helpText))
             )
-          )
+          }
         )
         .getOrElse(options.map(option => (option, None)))
 
-    val optionsWithHintAndHelpText: NonEmptyList[(OptionData, Option[Hint], Option[Html])] =
+    val optionsWithHintAndHelpText: List[(OptionData, Option[Hint], Option[Html])] =
       hints
-        .map(_.zipWith(optionsWithHelpText) { case (hint, (option, helpText)) =>
+        .map(_.toList.zip(optionsWithHelpText).map { case (hint, (option, helpText)) =>
           (option, if (hint.isEmpty) None else toHint(Some(hint)), helpText)
         })
         .getOrElse(optionsWithHelpText.map { case (option, helpText) => (option, None, helpText) })

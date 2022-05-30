@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import com.softwaremill.quicklens._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormPhase, Group, RevealingChoice }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponent, FormPhase, Group, OptionData, RevealingChoice }
 
 class FormComponentVisibilityFilter[D <: DataOrigin, P <: PageMode](
   formModelVisibilityOptics: FormModelVisibilityOptics[D],
@@ -37,6 +37,16 @@ class FormComponentVisibilityFilter[D <: DataOrigin, P <: PageMode](
   private def stripHiddenFormComponentsFromGroup(group: Group): Group =
     group.modify(_.fields).using(_.filter(isVisible))
 
+  private def isVisibleOption(optionData: OptionData): Boolean = optionData match {
+    case OptionData.ValueBased(_, _, includeIf) =>
+      includeIf.fold(true)(includeIf => formModelVisibilityOptics.evalIncludeIfExpr(includeIf, phase))
+    case OptionData.IndexBased(_, includeIf) =>
+      includeIf.fold(true)(includeIf => formModelVisibilityOptics.evalIncludeIfExpr(includeIf, phase))
+  }
+
+  private def stripHiddenFormComponentsFromChoice(c: Choice): Choice =
+    c.modify(_.options).using(_.filter(isVisibleOption))
+
   def stripHiddenFormComponents(formModel: FormModel[P]): FormModel[P] =
     formModel.map[P] { singleton =>
       singleton
@@ -45,6 +55,7 @@ class FormComponentVisibilityFilter[D <: DataOrigin, P <: PageMode](
         .modify(_.page.fields.each.`type`)
         .using {
           case rc: RevealingChoice => stripHiddenFormComponentsFromRevealingCoice(rc)
+          case c: Choice           => stripHiddenFormComponentsFromChoice(c)
           case group: Group        => stripHiddenFormComponentsFromGroup(group)
           case i                   => i
         }

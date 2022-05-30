@@ -337,7 +337,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
         "a2",
         Choice(
           Radio,
-          NonEmptyList.one(toOptionData("Option A")),
+          List(toOptionData("Option A")),
           Vertical,
           List.empty[Int],
           None,
@@ -434,7 +434,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
         "b",
         Choice(
           Radio,
-          NonEmptyList.one(toOptionData("Option A")),
+          List(toOptionData("Option A")),
           Vertical,
           List.empty[Int],
           None,
@@ -522,7 +522,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
         "b",
         Choice(
           Radio,
-          toOptionData(NonEmptyList.one("Option A")),
+          toOptionData(List("Option A")),
           Vertical,
           List.empty[Int],
           None,

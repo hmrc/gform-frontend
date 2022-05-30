@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.eval.smartstring
 
 import cats.MonadError
-import cats.data.NonEmptyList
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.wordspec.AnyWordSpecLike
@@ -51,10 +50,10 @@ class RealSmartStringEvaluatorFactorySpec
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
 
-  private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
-    xs.map(l => OptionData.IndexBased(toSmartString(l)))
+  private def toOptionData(xs: List[String]): List[OptionData.IndexBased] =
+    xs.map(l => OptionData.IndexBased(toSmartString(l), None))
 
-  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s))
+  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None)
 
   "SmartStringEvaluator" should {
 
@@ -153,7 +152,7 @@ class RealSmartStringEvaluatorFactorySpec
         "choiceField",
         Choice(
           Radio,
-          toOptionData(NonEmptyList.of("Yes", "No")),
+          toOptionData(List("Yes", "No")),
           Horizontal,
           List.empty,
           None,
@@ -195,12 +194,11 @@ class RealSmartStringEvaluatorFactorySpec
         "choiceField",
         Choice(
           Radio,
-          NonEmptyList
-            .of(
-              toSmartStringExpression("Yes {0}", FormCtx(FormComponentId("textField"))),
-              toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))
-            )
-            .map(l => OptionData.IndexBased(l)),
+          List(
+            toSmartStringExpression("Yes {0}", FormCtx(FormComponentId("textField"))),
+            toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))
+          )
+            .map(l => OptionData.IndexBased(l, None)),
           Horizontal,
           List.empty,
           None,
@@ -238,7 +236,7 @@ class RealSmartStringEvaluatorFactorySpec
         "multiChoiceField",
         Choice(
           Checkbox,
-          toOptionData(NonEmptyList.of("Choice1", "Choice2")),
+          toOptionData(List("Choice1", "Choice2")),
           Horizontal,
           List.empty,
           None,
@@ -275,7 +273,7 @@ class RealSmartStringEvaluatorFactorySpec
         "multiChoiceField",
         Choice(
           Checkbox,
-          toOptionData(NonEmptyList.of("Choice1", "Choice2")),
+          toOptionData(List("Choice1", "Choice2")),
           Horizontal,
           List.empty,
           None,

@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats.data.NonEmptyList
 import org.scalactic.source.Position
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.prop.TableFor3
@@ -359,7 +358,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     val choice =
       Choice(
         YesNo,
-        toOptionData(NonEmptyList.of("yes", "no")),
+        toOptionData(List("yes", "no")),
         Vertical,
         List.empty,
         None,
@@ -447,7 +446,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     val choice =
       Choice(
         YesNo,
-        toOptionData(NonEmptyList.of("yes", "no")),
+        toOptionData(List("yes", "no")),
         Vertical,
         List.empty,
         None,
@@ -771,7 +770,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     val choice =
       Choice(
         YesNo,
-        toOptionData(NonEmptyList.of("yes", "no")),
+        toOptionData(List("yes", "no")),
         Vertical,
         List.empty,
         None,
@@ -905,7 +904,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     val choice =
       Choice(
         YesNo,
-        toOptionData(NonEmptyList.of("yes", "no")),
+        toOptionData(List("yes", "no")),
         Vertical,
         List.empty,
         None,

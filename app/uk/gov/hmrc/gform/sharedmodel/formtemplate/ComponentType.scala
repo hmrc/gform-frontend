@@ -333,7 +333,7 @@ object NoneChoice {
 
 case class Choice(
   `type`: ChoiceType,
-  options: NonEmptyList[OptionData],
+  options: List[OptionData],
   orientation: Orientation,
   selections: List[Int],
   hints: Option[NonEmptyList[SmartString]],
@@ -346,7 +346,7 @@ case class Choice(
   def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult)(implicit
     evaluator: SmartStringEvaluator
   ): List[String] =
-    options.toList.zipWithIndex
+    options.zipWithIndex
       .map { case (option, index) =>
         formFieldValidationResult
           .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, option.value(index)))
