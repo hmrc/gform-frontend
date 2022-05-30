@@ -1131,6 +1131,14 @@ class SectionRenderingService(
     HtmlFormat.fill(hiddenFields ++ List(fileInput, uploadedFiles))
   }
 
+  private def isVisibleOption(optionData: OptionData, formModelOptics: FormModelOptics[DataOrigin.Mongo]): Boolean =
+    optionData match {
+      case OptionData.ValueBased(_, _, includeIf) =>
+        includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+      case OptionData.IndexBased(_, includeIf) =>
+        includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+    }
+
   private def htmlForChoice(
     formComponent: FormComponent,
     choice: ChoiceType,
@@ -1153,10 +1161,12 @@ class SectionRenderingService(
         Set.empty[String] // Don't prepop something we already submitted
       else selections.map(_.toString).toSet
 
+    val visibleOptions = options.filter(o => isVisibleOption(o, ei.formModelOptics))
+
     val optionsWithHelpText: List[(OptionData, Option[Html])] =
       optionalHelpText
         .map(
-          _.toList.zip(options).map { case (helpText, option) =>
+          _.toList.zip(visibleOptions).map { case (helpText, option) =>
             (
               option,
               if (helpText.isEmpty) None
@@ -1164,7 +1174,7 @@ class SectionRenderingService(
             )
           }
         )
-        .getOrElse(options.map(option => (option, None)))
+        .getOrElse(visibleOptions.map(option => (option, None)))
 
     val optionsWithHintAndHelpText: List[(OptionData, Option[Hint], Option[Html])] =
       hints
