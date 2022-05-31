@@ -83,9 +83,9 @@ generic.Warning=Rhybudd
 generic.Success=Llwyddiant
 
 # Form categories
-formCategory.form=Ffurflen
-formCategory.return=Datganiad
-formCategory.claim=Hawlio
+formCategory.form=ffurflen
+formCategory.return=datganiad
+formCategory.claim=hawlio
 
 
 # Field labelled errors

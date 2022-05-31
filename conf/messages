@@ -84,10 +84,9 @@ generic.Warning=Warning
 generic.Success=Success
 
 # Form categories
-formCategory.form=Form
-formCategory.return=Return
-formCategory.claim=Claim
-
+formCategory.form=form
+formCategory.return=return
+formCategory.claim=claim
 
 # Field labelled errors
 field.error.required={0} must be entered
