@@ -34,7 +34,7 @@
   l: LangADT)
 
 @formCat = @{messages(s"formCategory.${formCategory.getString}")}
-@heading = @{messages("ack.title", formCat)}
+@heading = @{messages("ack.title", formCat.capitalize)}
 
 @govukPanel = @{new GovukPanel()}
 

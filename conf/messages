@@ -88,7 +88,6 @@ formCategory.form=form
 formCategory.return=return
 formCategory.claim=claim
 
-
 # Field labelled errors
 field.error.required={0} must be entered
 field.error.number={0} must be a number
@@ -327,8 +326,8 @@ summary.acknowledgement.pdf=Acknowledgement PDF
 summary.checkYourAnswers=Check your answers
 
 # Acknowledgement
-ack.title=Your {0} has been submitted
-ack.submissionReference=Your submission reference is
+ack.title={0} submitted
+ack.submissionReference=Your reference is
 ack.beforeYouGo=Before you go
 ack.feedbackText1=We use feedback to make our services better. Please take the
 ack.feedbackLink=feedback survey

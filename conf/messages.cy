@@ -85,7 +85,7 @@ generic.Success=Llwyddiant
 # Form categories
 formCategory.form=ffurflen
 formCategory.return=datganiad
-formCategory.claim=hawliad
+formCategory.claim=hawlio
 
 
 # Field labelled errors
@@ -325,8 +325,8 @@ summary.acknowledgement.pdf=Cydnabyddiaeth PDF
 summary.checkYourAnswers=Gwiriwch eich atebion
 
 # Acknowledgement
-ack.title=Cyflwynwyd eich {0}
-ack.submissionReference=Cyfeirnod eich cyflwyniad yw
+ack.title={0} wedi’i chyflwyno
+ack.submissionReference=Eich cyfeirnod
 ack.beforeYouGo=Cyn i chi fynd
 ack.feedbackText1=Rydym yn defnyddio adborth i wella ein gwasanaethau. Cwblhewch yr
 ack.feedbackLink=arolwg adborth
