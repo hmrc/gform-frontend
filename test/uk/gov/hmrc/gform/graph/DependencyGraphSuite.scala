@@ -167,7 +167,6 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
 
     val sections: List[Section] = List(
       emptyAddToList.copy(
-        title = toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("benefitTypeChoice"))),
         pages = NonEmptyList.of(
           emptyPage.copy(fields =
             List(
