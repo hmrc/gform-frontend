@@ -170,7 +170,20 @@ object DependencyGraph {
                 )
               }
         }
-        .flatten
+        .flatten ++
+        formModel.brackets.addToListBrackets
+          .flatMap(_.iterations.toList.flatMap(_.singletons.toList.map(x => x.singleton.page)))
+          .flatMap(_.fields)
+          .groupBy(_.baseComponentId)
+          .collect {
+            case (k, fcs) if atlFieldsBaseIds(k) =>
+              fcs.flatMap { fc =>
+                GraphNode.Simple(ModelComponentId.pure(IndexedComponentId.pure(k)).toFormComponentId) ~> GraphNode.Expr(
+                  FormCtx(fc.id)
+                ) :: GraphNode.Expr(FormCtx(fc.id)) ~> GraphNode.Simple(fc.id) :: Nil
+              }
+          }
+          .flatten
 
     val emptyGraph: Graph[GraphNode, DiEdge] = Graph.empty
     emptyGraph ++ (allEdges ++ addToListEdges)
