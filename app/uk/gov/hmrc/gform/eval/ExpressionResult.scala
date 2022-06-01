@@ -126,8 +126,8 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: Invalid      => false
     case t: Hidden.type  => false
     case t: Empty.type   => false
-    case t: NumberResult => false
-    case t: StringResult => false
+    case t: NumberResult => identical(er)
+    case t: StringResult => identical(er)
     case t: OptionResult =>
       er.fold[Boolean](_ => false)(_ => false)(_ => false)(n => t.contains(n.value))(n => t.contains(n.value))(_ =>
         false
