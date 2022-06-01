@@ -22,7 +22,7 @@ import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, IsSelfReferring, SelfReferenceProjection, StandaloneSumInfo, SumInfo }
-import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -144,6 +144,9 @@ object DependencyGraph {
       formModel.allFormComponents.toSet
         .flatMap(edges) ++ includeIfs ++ componentIncludeIfs ++ validIfs ++ sections
 
+    val atlFieldsBaseIds: Set[BaseComponentId] =
+      formModel.brackets.addToListBrackets.flatMap(_.source.pages.toList.flatMap(_.fields.map(_.baseComponentId))).toSet
+
     // This represents references to atl fields made outside of atl.
     val addToListEdges: Iterable[DiEdge[GraphNode]] =
       formModel.brackets.addToListBrackets
@@ -153,7 +156,7 @@ object DependencyGraph {
         .collect { case (k, fcs) =>
           fcs.flatMap { fc =>
             (fc match {
-              case f @ IsRevealingChoice(revealingChoice) =>
+              case f @ IsRevealingChoice(revealingChoice) if atlFieldsBaseIds(k) =>
                 revealingChoice.options
                   .flatMap(_.revealingFields)
                   .map(rf =>
