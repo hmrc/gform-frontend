@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Constant, Contains, FormComponent, FormComponentId, FormComponentValidator, FormCtx, GreaterThan, IncludeIf, Number, Page, Radio, Section, Sum, ValidIf, Value, Vertical }
 import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, RevealingChoice, RevealingChoiceElement }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 import FormTemplateBuilder._
 
@@ -201,6 +201,82 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     assertEquals(res, expected)
   }
 
+  test("DependencyGraph must allow add-to-list with Revealingchoice fields to be referred outside add-to-list") {
+
+    val rc1 = mkFormComponent(
+      "revealingChoice1",
+      RevealingChoice(
+        List(
+          RevealingChoiceElement(
+            toOptionData("Label1"),
+            List(mkFormComponent("revealingChoiceField1", Value)),
+            None,
+            false
+          ),
+          RevealingChoiceElement(
+            toOptionData("Label2"),
+            List(mkFormComponent("revealingChoiceField2", Value)),
+            None,
+            false
+          )
+        ),
+        true
+      )
+    )
+
+    val sections = List(
+      emptyAddToList.copy(pages =
+        NonEmptyList.of(
+          emptyPage.copy(fields = List(rc1))
+        )
+      ),
+      Section.NonRepeatingPage(
+        emptyPage.copy(
+          includeIf = Some(IncludeIf(Contains(FormCtx(FormComponentId("revealingChoiceField1")), Constant("1")))),
+          fields = List()
+        )
+      )
+    )
+
+    val variadicData: VariadicFormData[SourceOrigin.OutOfDate] =
+      variadicFormDataWithSingleValue("1_revealingChoiceField1", "1")
+
+    val expected: List[(Int, Set[GraphNode])] = List(
+      (
+        0,
+        Set(
+          GraphNode.Expr(FormCtx(FormComponentId("revealingChoiceField1"))),
+          GraphNode.Simple(FormComponentId("revealingChoice1"))
+        )
+      ),
+      (
+        1,
+        Set(
+          GraphNode.Simple(FormComponentId("revealingChoiceField1")),
+          GraphNode.Expr(FormCtx(FormComponentId("1_revealingChoice1")))
+        )
+      ),
+      (2, Set(GraphNode.Simple(FormComponentId("1_revealingChoice1")))),
+      (
+        3,
+        Set(
+          GraphNode.Expr(FormCtx(FormComponentId("1_revealingChoiceField2"))),
+          GraphNode.Expr(FormCtx(FormComponentId("1_revealingChoiceField1")))
+        )
+      ),
+      (
+        4,
+        Set(
+          GraphNode.Simple(FormComponentId("1_revealingChoiceField2")),
+          GraphNode.Simple(FormComponentId("1_revealingChoiceField1"))
+        )
+      )
+    )
+
+    val res: List[(Int, Set[GraphNode])] = layers(sections, variadicData)
+
+    assertEquals(res, expected)
+  }
   private def layers(
     sections: List[Section],
     variadicData: VariadicFormData[SourceOrigin.OutOfDate]

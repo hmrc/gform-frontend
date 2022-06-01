@@ -22,7 +22,7 @@ import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, IsSelfReferring, SelfReferenceProjection, StandaloneSumInfo, SumInfo }
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -35,9 +35,6 @@ object DependencyGraph {
     formModel: FormModel[T],
     formTemplateExprs: Set[ExprMetadata]
   ): Graph[GraphNode, DiEdge] = {
-
-    val atlFieldsBaseIds: Set[BaseComponentId] =
-      formModel.brackets.addToListBrackets.flatMap(_.source.pages.toList.flatMap(_.fields.map(_.baseComponentId))).toSet
 
     val isSum = new IsOneOfSum(formModel.sumInfo)
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
@@ -147,43 +144,31 @@ object DependencyGraph {
       formModel.allFormComponents.toSet
         .flatMap(edges) ++ includeIfs ++ componentIncludeIfs ++ validIfs ++ sections
 
-    val allFcIds: Set[ModelComponentId] = allEdges.flatMap { diEdge =>
-      diEdge.collectFirst {
-        case GraphNode.Expr(FormCtx(fcId)) => fcId.modelComponentId
-        case GraphNode.Simple(fcId)        => fcId.modelComponentId
-      }
-    }
-
     // This represents references to atl fields made outside of atl.
     val addToListEdges: Iterable[DiEdge[GraphNode]] =
-      allFcIds
+      formModel.brackets.addToListBrackets
+        .flatMap(_.iterations.toList.flatMap(_.singletons.toList.map(x => x.singleton.page)))
+        .flatMap(_.fields)
         .groupBy(_.baseComponentId)
-        .collect {
-          case (k, v) if atlFieldsBaseIds(k) =>
-            v.map(_.indexedComponentId)
-              .collect { case x: IndexedComponentId.Indexed =>
-                x
-              }
-              .map { v =>
-                GraphNode.Simple(ModelComponentId.pure(IndexedComponentId.pure(k)).toFormComponentId) ~> GraphNode.Expr(
-                  FormCtx(ModelComponentId.pure(v).toFormComponentId)
-                )
-              }
-        }
-        .flatten ++
-        formModel.brackets.addToListBrackets
-          .flatMap(_.iterations.toList.flatMap(_.singletons.toList.map(x => x.singleton.page)))
-          .flatMap(_.fields)
-          .groupBy(_.baseComponentId)
-          .collect {
-            case (k, fcs) if atlFieldsBaseIds(k) =>
-              fcs.flatMap { fc =>
-                GraphNode.Simple(ModelComponentId.pure(IndexedComponentId.pure(k)).toFormComponentId) ~> GraphNode.Expr(
-                  FormCtx(fc.id)
-                ) :: GraphNode.Expr(FormCtx(fc.id)) ~> GraphNode.Simple(fc.id) :: Nil
-              }
+        .collect { case (k, fcs) =>
+          fcs.flatMap { fc =>
+            (fc match {
+              case f @ IsRevealingChoice(revealingChoice) =>
+                revealingChoice.options
+                  .flatMap(_.revealingFields)
+                  .map(rf =>
+                    GraphNode.Simple(fc.id) ~> GraphNode.Expr(
+                      FormCtx(rf.id)
+                    ) :: GraphNode.Expr(FormCtx(rf.id)) ~> GraphNode.Simple(rf.id) :: Nil
+                  )
+              case _ => List()
+            }).flatten ++
+              (GraphNode.Simple(ModelComponentId.pure(IndexedComponentId.pure(k)).toFormComponentId) ~> GraphNode.Expr(
+                FormCtx(fc.id)
+              ) :: GraphNode.Expr(FormCtx(fc.id)) ~> GraphNode.Simple(fc.id) :: Nil)
           }
-          .flatten
+        }
+        .flatten
 
     val emptyGraph: Graph[GraphNode, DiEdge] = Graph.empty
     emptyGraph ++ (allEdges ++ addToListEdges)
