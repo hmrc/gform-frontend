@@ -212,6 +212,17 @@ object AllValidIfs {
   }
 }
 
+object AllChoiceIncludeIfs {
+  def unapply(fc: FormComponent): Option[List[IncludeIf]] = fc match {
+    case IsChoice(c) =>
+      Some(c.options.toList.collect {
+        case OptionData.IndexBased(_, Some(includeIf))    => includeIf
+        case OptionData.ValueBased(_, _, Some(includeIf)) => includeIf
+      })
+    case _ => None
+  }
+}
+
 object IsUpscanInitiateFileUpload {
   def unapply(formComponent: FormComponent): Option[FormComponent] =
     formComponent.`type` match {
