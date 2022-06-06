@@ -239,35 +239,35 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     )
 
     val variadicData: VariadicFormData[SourceOrigin.OutOfDate] =
-      variadicFormDataWithSingleValue("1_revealingChoiceField1", "1")
+      variadicFormDataMany(
+        "1_choice" -> List("0"),
+        "2_choice" -> List.empty[String]
+      )
 
     val expected: List[(Int, Set[GraphNode])] = List(
       (
         0,
         Set(
-          GraphNode.Expr(FormCtx(FormComponentId("revealingChoiceField1"))),
-          GraphNode.Simple(FormComponentId("revealingChoice1"))
+          GraphNode.Expr(FormCtx(FormComponentId("revealingChoiceField1")))
         )
       ),
       (
         1,
         Set(
-          GraphNode.Simple(FormComponentId("revealingChoiceField1")),
-          GraphNode.Expr(FormCtx(FormComponentId("1_revealingChoice1")))
+          GraphNode.Simple(FormComponentId("revealingChoiceField1"))
         )
       ),
-      (2, Set(GraphNode.Simple(FormComponentId("1_revealingChoice1")))),
       (
-        3,
+        2,
         Set(
-          GraphNode.Expr(FormCtx(FormComponentId("1_revealingChoiceField2"))),
+          GraphNode.Expr(FormCtx(FormComponentId("2_revealingChoiceField1"))),
           GraphNode.Expr(FormCtx(FormComponentId("1_revealingChoiceField1")))
         )
       ),
       (
-        4,
+        3,
         Set(
-          GraphNode.Simple(FormComponentId("1_revealingChoiceField2")),
+          GraphNode.Simple(FormComponentId("2_revealingChoiceField1")),
           GraphNode.Simple(FormComponentId("1_revealingChoiceField1"))
         )
       )

@@ -144,32 +144,43 @@ object DependencyGraph {
       formModel.allFormComponents.toSet
         .flatMap(edges) ++ includeIfs ++ componentIncludeIfs ++ validIfs ++ sections
 
+    val allFcIds: Set[ModelComponentId] = allEdges.flatMap { diEdge =>
+      diEdge.collectFirst {
+        case GraphNode.Expr(FormCtx(fcId)) => fcId.modelComponentId
+        case GraphNode.Simple(fcId)        => fcId.modelComponentId
+      }
+    }
+
     val atlFieldsBaseIds: Set[BaseComponentId] =
-      formModel.brackets.addToListBrackets.flatMap(_.source.pages.toList.flatMap(_.fields.map(_.baseComponentId))).toSet
+      formModel.brackets.addToListBrackets
+        .flatMap(_.source.pages.toList.flatMap(_.allFieldsNested.map(_.baseComponentId)))
+        .toSet
+
+    val atlLookup: Map[BaseComponentId, List[FormComponent]] = formModel.brackets.addToListBrackets
+      .flatMap(_.iterations.toList.flatMap(_.singletons.toList.flatMap(x => x.singleton.page.allFieldsNested)))
+      .groupBy(_.baseComponentId)
 
     // This represents references to atl fields made outside of atl.
     val addToListEdges: Iterable[DiEdge[GraphNode]] =
-      formModel.brackets.addToListBrackets
-        .flatMap(_.iterations.toList.flatMap(_.singletons.toList.map(x => x.singleton.page)))
-        .flatMap(_.fields)
+      allFcIds
         .groupBy(_.baseComponentId)
-        .collect { case (k, fcs) =>
-          fcs.flatMap { fc =>
-            (fc match {
-              case f @ IsRevealingChoice(revealingChoice) if atlFieldsBaseIds(k) =>
-                revealingChoice.options
-                  .flatMap(_.revealingFields)
-                  .map(rf =>
-                    GraphNode.Simple(fc.id) ~> GraphNode.Expr(
-                      FormCtx(rf.id)
-                    ) :: GraphNode.Expr(FormCtx(rf.id)) ~> GraphNode.Simple(rf.id) :: Nil
-                  )
-              case _ => List()
-            }).flatten ++
-              (GraphNode.Simple(ModelComponentId.pure(IndexedComponentId.pure(k)).toFormComponentId) ~> GraphNode.Expr(
-                FormCtx(fc.id)
-              ) :: GraphNode.Expr(FormCtx(fc.id)) ~> GraphNode.Simple(fc.id) :: Nil)
-          }
+        .collect {
+          case (k, _) if atlFieldsBaseIds(k) =>
+            val indexedComponentIds: List[IndexedComponentId] =
+              atlLookup.get(k).toList.flatten.map(_.modelComponentId.indexedComponentId)
+
+            indexedComponentIds
+              .collect { case x: IndexedComponentId.Indexed =>
+                x
+              }
+              .flatMap { v =>
+                val kFcId = ModelComponentId.pure(IndexedComponentId.pure(k)).toFormComponentId
+                val vFcId = ModelComponentId.pure(v).toFormComponentId
+                Set(
+                  GraphNode.Simple(kFcId) ~> GraphNode.Expr(FormCtx(vFcId)),
+                  GraphNode.Expr(FormCtx(vFcId)) ~> GraphNode.Simple(vFcId)
+                )
+              }
         }
         .flatten
 

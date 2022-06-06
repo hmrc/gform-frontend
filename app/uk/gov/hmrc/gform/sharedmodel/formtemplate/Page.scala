@@ -47,6 +47,8 @@ case class Page[A <: PageMode](
 
   val allIds: List[FormComponentId] = allFields.map(_.id) ++ allFields.flatMap(_.childrenFormComponents.map(_.id))
 
+  val allFieldsNested: List[FormComponent] = allFields ++ allFields.flatMap(_.childrenFormComponents)
+
   val staticTypeInfo: StaticTypeInfo = StaticTypeInfo {
     (allFields ++ allFields
       .flatMap(_.childrenFormComponents))
