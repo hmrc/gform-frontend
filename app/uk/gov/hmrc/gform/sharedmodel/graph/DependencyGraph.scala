@@ -36,9 +36,6 @@ object DependencyGraph {
     formTemplateExprs: Set[ExprMetadata]
   ): Graph[GraphNode, DiEdge] = {
 
-    val atlFieldsBaseIds: Set[BaseComponentId] =
-      formModel.brackets.addToListBrackets.flatMap(_.source.pages.toList.flatMap(_.fields.map(_.baseComponentId))).toSet
-
     val isSum = new IsOneOfSum(formModel.sumInfo)
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
 
@@ -154,19 +151,34 @@ object DependencyGraph {
       }
     }
 
+    val atlFieldsBaseIds: Set[BaseComponentId] =
+      formModel.brackets.addToListBrackets
+        .flatMap(_.source.pages.toList.flatMap(_.allFieldsNested.map(_.baseComponentId)))
+        .toSet
+
+    val atlLookup: Map[BaseComponentId, List[FormComponent]] = formModel.brackets.addToListBrackets
+      .flatMap(_.iterations.toList.flatMap(_.singletons.toList.flatMap(x => x.singleton.page.allFieldsNested)))
+      .groupBy(_.baseComponentId)
+
     // This represents references to atl fields made outside of atl.
     val addToListEdges: Iterable[DiEdge[GraphNode]] =
       allFcIds
         .groupBy(_.baseComponentId)
         .collect {
-          case (k, v) if atlFieldsBaseIds(k) =>
-            v.map(_.indexedComponentId)
+          case (k, _) if atlFieldsBaseIds(k) =>
+            val indexedComponentIds: List[IndexedComponentId] =
+              atlLookup.get(k).toList.flatten.map(_.modelComponentId.indexedComponentId)
+
+            indexedComponentIds
               .collect { case x: IndexedComponentId.Indexed =>
                 x
               }
-              .map { v =>
-                GraphNode.Simple(ModelComponentId.pure(IndexedComponentId.pure(k)).toFormComponentId) ~> GraphNode.Expr(
-                  FormCtx(ModelComponentId.pure(v).toFormComponentId)
+              .flatMap { v =>
+                val kFcId = ModelComponentId.pure(IndexedComponentId.pure(k)).toFormComponentId
+                val vFcId = ModelComponentId.pure(v).toFormComponentId
+                Set(
+                  GraphNode.Simple(kFcId) ~> GraphNode.Expr(FormCtx(vFcId)),
+                  GraphNode.Expr(FormCtx(vFcId)) ~> GraphNode.Simple(vFcId)
                 )
               }
         }
