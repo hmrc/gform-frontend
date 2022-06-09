@@ -170,12 +170,14 @@ class Recalculation[F[_]: Monad, E](
             isHiddenRevealingChoice <- isHiddenByRevealingChoice(fcId, recData)
             isHiddenRepeatsExpr <-
               isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
-          } yield {
-            if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
+          } yield
+            if (
+              isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr || isOptionHidden
+            ) {
               evResult + (FormCtx(fcId), ExpressionResult.Hidden)
-            } else {}
-            evResult
-          }
+            } else {
+              evResult
+            }
 
           res
 
