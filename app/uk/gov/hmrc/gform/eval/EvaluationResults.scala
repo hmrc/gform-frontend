@@ -57,7 +57,6 @@ case class EvaluationResults(
 
   private def get(
     expr: FormCtx,
-    recData: RecData[SourceOrigin.OutOfDate],
     fromVariadicValue: VariadicValue => ExpressionResult,
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
@@ -198,7 +197,7 @@ case class EvaluationResults(
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
-      case ctx @ FormCtx(formComponentId)   => get(ctx, recData, fromVariadicValue, evaluationContext)
+      case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
       case Sum(FormCtx(formComponentId))    => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
       case Sum(field1) =>
         loop(field1) match {
@@ -311,7 +310,7 @@ case class EvaluationResults(
           evalTaxPeriodYear(formComponentId, recData, evaluationContext.messages)
         }
       case ctx @ FormCtx(formComponentId: FormComponentId) =>
-        get(ctx, recData, fromVariadicValue, evaluationContext)
+        get(ctx, fromVariadicValue, evaluationContext)
       case Sum(field1: Expr) => unsupportedOperation("String")(expr)
       case Count(formComponentId) =>
         nonEmpty(

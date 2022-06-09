@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.graph
 
 import cats.{ Monad, MonadError, Monoid }
 import cats.syntax.all._
-import cats.data.{ StateT }
+import cats.data.StateT
 
 import scala.language.higherKinds
 import scalax.collection.Graph
