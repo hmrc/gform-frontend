@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.graph
 
 import cats.{ Monad, MonadError, Monoid }
 import cats.syntax.all._
-import cats.data.StateT
+import cats.data.{ StateT }
 
 import scala.language.higherKinds
 import scalax.collection.Graph
@@ -124,7 +124,45 @@ class Recalculation[F[_]: Monad, E](
       val graphLayerResult: StateT[F, RecalculationState, EvaluationResults] = graphLayer.foldMapM {
 
         case GraphNode.Simple(fcId) =>
-          for {
+          println(s"fc : $fcId")
+          val fc: Option[FormComponent] = formModel.fcLookup.get(fcId)
+          val isOptionHidden = fc.exists { case IsChoice(choice) =>
+            val userResponse: Seq[String] = recData.variadicFormData.many(fcId.modelComponentId).toSeq.flatten
+            println(s"userResponse : $userResponse")
+            val optionData: List[OptionData] = choice.options.toList.collect {
+              case o: OptionData.ValueBased if userResponse.contains(o.value)    => o
+              case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
+            }
+            println(s"optionData : $optionData")
+            val includeIfs: List[IncludeIf] = optionData.collect {
+              case OptionData.ValueBased(_, _, Some(includeIf)) => includeIf
+              case OptionData.IndexBased(_, Some(includeIf))    => includeIf
+            }
+            println(s"includeIfs : $includeIfs")
+            val isHidden =
+              includeIfs
+                .map { i =>
+                  val res = booleanExprResolver.resolve(i.booleanExpr)
+                  println(s"includeIf : $i res : $res ")
+                  res
+                }
+                .reduceOption(_ && _)
+                .getOrElse(true)
+            println(s"isHidden : $isHidden")
+            !isHidden
+          }
+
+          println(s"isChoiceHidden = $isOptionHidden")
+          val recDataUpd: RecData[OutOfDate] =
+            if (isOptionHidden) {
+              RecData.fromData(recData.variadicFormData -- List(fcId.modelComponentId))
+            } else {
+              recData
+            }
+
+          println(s"fcId = $fcId recDataUpd = $recDataUpd")
+
+          val res = for {
             isHiddenIncludeIf <-
               isHiddenByIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
             isHiddenComponentIncludeIf <-
@@ -132,12 +170,14 @@ class Recalculation[F[_]: Monad, E](
             isHiddenRevealingChoice <- isHiddenByRevealingChoice(fcId, recData)
             isHiddenRepeatsExpr <-
               isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
-          } yield
+          } yield {
             if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
               evResult + (FormCtx(fcId), ExpressionResult.Hidden)
-            } else {
-              evResult
-            }
+            } else {}
+            evResult
+          }
+
+          res
 
         case GraphNode.Expr(formCtx @ FormCtx(formComponentId)) =>
           val expr: Expr = formModel.fcLookup
