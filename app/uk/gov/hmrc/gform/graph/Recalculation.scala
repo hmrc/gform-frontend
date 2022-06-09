@@ -124,43 +124,43 @@ class Recalculation[F[_]: Monad, E](
       val graphLayerResult: StateT[F, RecalculationState, EvaluationResults] = graphLayer.foldMapM {
 
         case GraphNode.Simple(fcId) =>
-          println(s"fc : $fcId")
           val fc: Option[FormComponent] = formModel.fcLookup.get(fcId)
-          val isOptionHidden = fc.exists { case IsChoice(choice) =>
+          val isOptionHidden = fc.exists { case IsChoice(_) | IsRevealingChoice(_) =>
             val userResponse: Seq[String] = recData.variadicFormData.many(fcId.modelComponentId).toSeq.flatten
-            println(s"userResponse : $userResponse")
-            val optionData: List[OptionData] = choice.options.toList.collect {
-              case o: OptionData.ValueBased if userResponse.contains(o.value)    => o
-              case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
-            }
-            println(s"optionData : $optionData")
+
+            val optionData: List[OptionData] = fc
+              .collect {
+                case IsChoice(c) =>
+                  c.options.toList.collect {
+                    case o: OptionData.ValueBased if userResponse.contains(o.value)    => o
+                    case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
+                  }
+                case IsRevealingChoice(rc) =>
+                  rc.options.map(_.choice).collect {
+                    case o: OptionData.ValueBased if userResponse.contains(o.value)    => o
+                    case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
+                  }
+              }
+              .getOrElse(List.empty[OptionData])
+
             val includeIfs: List[IncludeIf] = optionData.collect {
               case OptionData.ValueBased(_, _, Some(includeIf)) => includeIf
               case OptionData.IndexBased(_, Some(includeIf))    => includeIf
             }
-            println(s"includeIfs : $includeIfs")
-            val isHidden =
-              includeIfs
-                .map { i =>
-                  val res = booleanExprResolver.resolve(i.booleanExpr)
-                  println(s"includeIf : $i res : $res ")
-                  res
-                }
-                .reduceOption(_ && _)
-                .getOrElse(true)
-            println(s"isHidden : $isHidden")
+
+            val isHidden = includeIfs
+              .map(i => booleanExprResolver.resolve(i.booleanExpr))
+              .reduceOption(_ && _)
+              .getOrElse(true)
             !isHidden
           }
 
-          println(s"isChoiceHidden = $isOptionHidden")
           val recDataUpd: RecData[OutOfDate] =
             if (isOptionHidden) {
               RecData.fromData(recData.variadicFormData -- List(fcId.modelComponentId))
             } else {
               recData
             }
-
-          println(s"fcId = $fcId recDataUpd = $recDataUpd")
 
           val res = for {
             isHiddenIncludeIf <-
@@ -171,15 +171,13 @@ class Recalculation[F[_]: Monad, E](
             isHiddenRepeatsExpr <-
               isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
           } yield
-            if (
-              isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr || isOptionHidden
-            ) {
+            if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
               evResult + (FormCtx(fcId), ExpressionResult.Hidden)
             } else {
               evResult
             }
 
-          res
+          res.map(_.copy(recData = SourceOrigin.changeSource(recDataUpd)))
 
         case GraphNode.Expr(formCtx @ FormCtx(formComponentId)) =>
           val expr: Expr = formModel.fcLookup

@@ -37,7 +37,8 @@ import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveResult, SourceOrigin, Variadi
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 
 case class EvaluationResults(
-  exprMap: Map[Expr, ExpressionResult]
+  exprMap: Map[Expr, ExpressionResult],
+  recData: RecData[SourceOrigin.Current]
 ) {
 
   def +(expr: Expr, result: ExpressionResult): EvaluationResults = this.copy(exprMap = exprMap + (expr -> result))
@@ -580,16 +581,18 @@ case class EvaluationResults(
 }
 
 object EvaluationResults {
-  val empty = EvaluationResults(Map.empty)
+  val empty = EvaluationResults(Map.empty, RecData.empty)
 
   def one(expr: Expr, result: ExpressionResult): EvaluationResults = empty.+(expr, result)
 
-  def unapply(a: EvaluationResults): Option[Map[Expr, ExpressionResult]] = Some(a.exprMap)
+  def unapply(a: EvaluationResults): Option[(Map[Expr, ExpressionResult], RecData[SourceOrigin.Current])] =
+    Some((a.exprMap, a.recData))
 
   implicit val monoidEvaluationResults: Monoid[EvaluationResults] = new Monoid[EvaluationResults] {
     def empty = EvaluationResults.empty
     def combine(l: EvaluationResults, r: EvaluationResults): EvaluationResults = (l, r) match {
-      case (EvaluationResults(em1), EvaluationResults(em2)) => EvaluationResults(em1 ++ em2)
+      case (EvaluationResults(em1, rd1), EvaluationResults(em2, rd2)) =>
+        EvaluationResults(em1 ++ em2, RecData.fromData(rd1.variadicFormData ++ rd2.variadicFormData))
     }
   }
 }
