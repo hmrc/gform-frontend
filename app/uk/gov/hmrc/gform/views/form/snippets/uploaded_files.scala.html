@@ -24,7 +24,8 @@
   maybeCurrentValue: Option[String],
   noJsButton: Button,
   deleteUrl: Call,
-  sectionNumber: SectionNumber
+  sectionNumber: SectionNumber,
+  fileSize: String
 )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
 @govukButton = @{new GovukButton()}
@@ -33,16 +34,16 @@
   @maybeCurrentValue.map { currentValue =>
     @defining(currentValue.replace(fileId.value + "_", "")) { fileName =>
       @defining(fileName + " " + messages("file.delete")) { ariaLabel =>
-        <dl class="govuk-summary-list app-file-upload__list">
+        <dl class="govuk-summary-list--no-border app-file-upload__list">
           <div class="govuk-summary-list__row">
             <dd class="govuk-summary-list__value">
               <span id="fileupload" role="alert">@{Html(messages("file.upload.done", fileName))}</span>
             </dd>
+            <dd class='govuk-summary-list__value'>
+              @fileSize
+            </dd>
             <dd class="govuk-summary-list__actions app-file-upload__actions">
-              @govukButton(Button(content = Text(messages("file.delete")),
-              inputType=Some("submit"),
-              attributes = Map("id" -> "fileDelete", "aria-label" -> ariaLabel, "formaction" -> deleteUrl.path),
-              classes="govuk-button--secondary govuk-!-margin-bottom-0"))
+                <a href=@deleteUrl.path role="button" draggable="false" class="govuk-link" data-module="govuk-button">@messages("file.remove")</a>
             </dd>
           </div>
         </dl>
@@ -50,8 +51,3 @@
     }
   }
 </div>
-<noscript>
-  <div>
-    @govukButton(noJsButton)
-  </div>
-</noscript>

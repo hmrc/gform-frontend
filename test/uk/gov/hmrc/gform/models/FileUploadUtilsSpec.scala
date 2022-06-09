@@ -149,6 +149,21 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     }
   }
 
+  "FileUploadUtils.formatSize" should
+    "format the file size" in {
+      FileUploadUtils.formatSize(0L) shouldBe "0 Bytes"
+      FileUploadUtils.formatSize(1L) shouldBe "1 Bytes"
+      FileUploadUtils.formatSize(10L) shouldBe "10 Bytes"
+      FileUploadUtils.formatSize(100L) shouldBe "100 Bytes"
+      FileUploadUtils.formatSize(1000L) shouldBe "1000 Bytes"
+      FileUploadUtils.formatSize(10000L) shouldBe "9.77 KB"
+      FileUploadUtils.formatSize(100000L) shouldBe "97.66 KB"
+      FileUploadUtils.formatSize(1000000L) shouldBe "976.56 KB"
+      FileUploadUtils.formatSize(10000000L) shouldBe "9.54 MB"
+      FileUploadUtils.formatSize(1000000000L) shouldBe "953.67 MB"
+      FileUploadUtils.formatSize(10000000000L) shouldBe "9.31 GB"
+    }
+
   implicit class MapOps(map: Map[String, String]) {
     def toMapping: FormComponentIdToFileIdMapping =
       FormComponentIdToFileIdMapping(map.map { case (k, v) => FormComponentId(k) -> FileId(v) })

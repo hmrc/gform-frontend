@@ -53,4 +53,18 @@ object FileUploadUtils {
       (fileToDelete, formDataUpd, mappingUpd)
     }
   }
+
+  def formatSize(size: Long): String =
+    if (size == 0) {
+      "0 Bytes"
+    } else {
+      val k = 1024d
+      val sizes = List("Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
+      val i = Math.floor(Math.log(size.toDouble) / Math.log(k));
+      val v = size / Math.pow(k, i)
+      if (i == 0)
+        s"${v.toInt} ${sizes(i.toInt)}"
+      else
+        f"$v%1.2f ${sizes(i.toInt)}"
+    }
 }
