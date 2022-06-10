@@ -22,7 +22,6 @@ import play.api.mvc.Results.Redirect
 import play.api.mvc.{ Filter, RequestHeader, Result }
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.FormTemplateKey
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.IsUpscanInitiateFileUpload
 
 class InternetExplorerBlockerFilter(implicit override val mat: Materializer) extends Filter with NewFormDetector {
 
@@ -38,28 +37,12 @@ class InternetExplorerBlockerFilter(implicit override val mat: Materializer) ext
 
       val formTemplateWithRedirects = rh.attrs(FormTemplateKey)
       val formTemplate = formTemplateWithRedirects.formTemplate
-
-      val hasUpscan: Boolean = formTemplate.sections
-        .flatMap(
-          _.fold(nonRepeatingPage => List(nonRepeatingPage.page))(repeatingPage => List(repeatingPage.page))(
-            addToListPage => addToListPage.pages.toList
-          )
-        )
-        .flatMap(_.allFields)
-        .exists {
-          case IsUpscanInitiateFileUpload(formComponent) => true
-          case _                                         => false
-        }
-      if (hasUpscan) {
-        logger.info(
-          s"Internet explorer detected while trying to access ${formTemplate._id.value}. User agent used: $userAgent"
-        )
-        Future.successful(
-          Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.browserForbidden(formTemplate._id).url)
-        )
-      } else {
-        next(rh)
-      }
+      logger.info(
+        s"Internet explorer detected while trying to access ${formTemplate._id.value}. User agent used: $userAgent"
+      )
+      Future.successful(
+        Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.browserForbidden(formTemplate._id).url)
+      )
     } else {
       next(rh)
     }
