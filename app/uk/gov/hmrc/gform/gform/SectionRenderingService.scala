@@ -39,7 +39,7 @@ import uk.gov.hmrc.gform.fileupload.routes.FileUploadController
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
+import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FileUploadUtils, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
@@ -852,6 +852,12 @@ class SectionRenderingService(
                 .map(_.fileId)
                 .getOrElse(ei.envelope.mapping.fileIdFor(formComponent.id))
 
+            val fileSize: Long =
+              ei.envelope
+                .find(formComponent.modelComponentId)
+                .map(_.length)
+                .getOrElse(0)
+
             fileUploadProvider match {
               case FileUploadProvider.Upscan(_) =>
                 upscanData.get(formComponent.id) match {
@@ -867,6 +873,7 @@ class SectionRenderingService(
                       ei,
                       validationResult,
                       fileId,
+                      fileSize,
                       fileUploadName,
                       upscanData.url,
                       attributes,
@@ -903,6 +910,7 @@ class SectionRenderingService(
                   ei,
                   validationResult,
                   fileId,
+                  fileSize,
                   fileUploadName,
                   formAction,
                   Map.empty[String, String],
@@ -1042,6 +1050,7 @@ class SectionRenderingService(
     ei: ExtraInfo,
     validationResult: ValidationResult,
     fileId: FileId,
+    fileSize: Long,
     fileUploadName: String,
     formAction: String,
     fileUploadAttributes: Map[String, String],
@@ -1086,14 +1095,7 @@ class SectionRenderingService(
       name = fileUploadName,
       label = label,
       hint = hint,
-      errorMessage = errorMessage,
-      attributes = fileUploadAttributes ++ Map(
-        "data-file-id"          -> fileId.value,
-        "data-form-template-id" -> formTemplateId.value,
-        "data-max-file-size-MB" -> ei.formMaxAttachmentSizeMB.toString,
-        "data-access-code"      -> ei.maybeAccessCode.fold("-")(_.value),
-        "data-section-number"   -> ei.sectionNumber.value.toString
-      )
+      errorMessage = errorMessage
     )
 
     val deleteUrl =
@@ -1107,6 +1109,7 @@ class SectionRenderingService(
     val fileInput: Html = new components.GovukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
 
     val noJsButton: Button = Button(
+      name = Some(formComponent.id + "-uploadButton"),
       content = content.Text(messages("file.upload")),
       inputType = Some("submit"),
       classes = "govuk-button--secondary",
@@ -1117,6 +1120,8 @@ class SectionRenderingService(
       preventDoubleClick = true
     )
 
+    val noJsButtonHtml: Html = new components.GovukButton()(noJsButton)
+
     val uploadedFiles: Html =
       html.form.snippets
         .uploaded_files(
@@ -1125,10 +1130,14 @@ class SectionRenderingService(
           currentValue,
           noJsButton,
           deleteUrl,
-          ei.sectionNumber
+          ei.sectionNumber,
+          FileUploadUtils.formatSize(fileSize)
         )
 
-    HtmlFormat.fill(hiddenFields ++ List(fileInput, uploadedFiles))
+    currentValue match {
+      case Some(_) => HtmlFormat.fill(hiddenFields ++ List(uploadedFiles))
+      case None    => HtmlFormat.fill(hiddenFields ++ List(fileInput, uploadedFiles, noJsButtonHtml))
+    }
   }
 
   private def htmlForChoice(

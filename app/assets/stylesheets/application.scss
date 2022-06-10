@@ -102,6 +102,11 @@ button.defaultsink {
     margin: 0;
 }
 
+.app-summary-list__spinner {
+    @extend .govuk-summary-list__actions;
+    border-top: 1px solid #b1b4b6;
+}
+
 .govuk-fieldset__legend + div.unhintify {
     margin-top: 10px;
     padding-bottom: 15px;
@@ -109,7 +114,6 @@ button.defaultsink {
 }
 
 .app-file-upload__list {
-    border-top: 1px solid #b1b4b6;
     padding-top: 6px;
 }
 

@@ -308,8 +308,9 @@ taxPeriod.noResults.getHelp=Contact HMRC to get help.
 
 # File upload
 file.upload=Upload a file
-file.upload.done=<strong>{0}</strong> has been uploaded
+file.upload.done=<strong>{0} has been uploaded</strong>
 file.delete=Delete
+file.remove=Remove
 file.delete.file=Delete {0}
 file.error.upload.one.only=Only one file at a time can be uploaded
 file.error.empty=This file is empty
