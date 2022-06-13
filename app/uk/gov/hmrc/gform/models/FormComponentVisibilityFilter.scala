@@ -31,8 +31,10 @@ class FormComponentVisibilityFilter[D <: DataOrigin, P <: PageMode](
       formModelVisibilityOptics.evalIncludeIfExpr(includeIf, phase)
     }
 
-  private def stripHiddenFormComponentsFromRevealingCoice(rc: RevealingChoice): RevealingChoice =
-    rc.modify(_.options.each.revealingFields)
+  private def stripHiddenFormComponentsFromRevealingChoice(rc: RevealingChoice): RevealingChoice =
+    rc.modify(_.options)
+      .using(_.filter(rce => isVisibleOption(rce.choice)))
+      .modify(_.options.each.revealingFields)
       .using(_.filter(isVisible))
 
   private def stripHiddenFormComponentsFromGroup(group: Group): Group =
@@ -60,7 +62,7 @@ class FormComponentVisibilityFilter[D <: DataOrigin, P <: PageMode](
         .using(_.filter(isVisible))
         .modify(_.page.fields.each.`type`)
         .using {
-          case rc: RevealingChoice => stripHiddenFormComponentsFromRevealingCoice(rc)
+          case rc: RevealingChoice => stripHiddenFormComponentsFromRevealingChoice(rc)
           case c: Choice           => stripHiddenFormComponentsFromChoice(c)
           case group: Group        => stripHiddenFormComponentsFromGroup(group)
           case i                   => i

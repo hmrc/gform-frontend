@@ -83,6 +83,7 @@ object SourceOrigin {
   trait Current extends SourceOrigin
 
   def changeSource[M[_ <: SourceOrigin]](in: M[OutOfDate]): M[Current] = in.asInstanceOf[M[Current]]
+  def changeSourceToOutOfDate[M[_ <: SourceOrigin]](in: M[Current]): M[OutOfDate] = in.asInstanceOf[M[OutOfDate]]
 }
 
 case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, VariadicValue]) {

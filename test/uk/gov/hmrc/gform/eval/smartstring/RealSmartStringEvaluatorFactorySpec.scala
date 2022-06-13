@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrieva
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
 import uk.gov.hmrc.gform.eval.ExpressionResult._
-import uk.gov.hmrc.gform.graph.{ GraphData, Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.graph.{ GraphData, RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
@@ -417,7 +417,7 @@ class RealSmartStringEvaluatorFactorySpec
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
       RecalculationResult(
-        EvaluationResults(exprMap),
+        EvaluationResults(exprMap, SourceOrigin.changeSource(RecData.fromData(cache.variadicFormData))),
         GraphData.empty,
         BooleanExprCache.empty,
         EvaluationContext(

@@ -546,7 +546,7 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
-    val choiceValue = formModelVisibilityOptics.data
+    val choiceValue = formModelVisibilityOptics.evaluationResults.recData.variadicFormData
       .get(fieldValue.modelComponentId)
       .toSeq
       .flatMap(_.toSeq)

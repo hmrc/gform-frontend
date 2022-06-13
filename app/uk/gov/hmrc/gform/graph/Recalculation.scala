@@ -72,7 +72,9 @@ class Recalculation[F[_]: Monad, E](
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
-    val startState = StateT[F, RecalculationState, EvaluationResults](s => (s, EvaluationResults.empty).pure[F])
+    val startState = StateT[F, RecalculationState, EvaluationResults] { s =>
+      (s, EvaluationResults(Map.empty, SourceOrigin.changeSource(RecData.fromData(data)))).pure[F]
+    }
 
     val res: Either[GraphException, StateT[
       F,
@@ -83,7 +85,12 @@ class Recalculation[F[_]: Monad, E](
         graphTopologicalOrder <- orderedGraph
       } yield {
         val recalc = graphTopologicalOrder.toList.reverse.foldLeft(startState) { case (state, (_, graphLayer)) =>
-          recalculateGraphLayer(graphLayer, state, retrievals, RecData.fromData(data), evaluationContext)
+          recalculateGraphLayer(
+            graphLayer,
+            state,
+            retrievals,
+            evaluationContext
+          )
         }
 
         recalc.map { evResult =>
@@ -113,10 +120,11 @@ class Recalculation[F[_]: Monad, E](
     graphLayer: List[GraphNode],
     state: StateT[F, RecalculationState, EvaluationResults],
     retrievals: MaterialisedRetrievals,
-    recData: RecData[OutOfDate],
     evaluationContext: EvaluationContext
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
     state.flatMap { evResult =>
+      val recData = SourceOrigin.changeSourceToOutOfDate(evResult.recData)
+
       val booleanExprResolver = BooleanExprResolver { booleanExpr =>
         evalBooleanExprPure(booleanExpr, evResult, recData, retrievals, evaluationContext)
       }
@@ -125,34 +133,31 @@ class Recalculation[F[_]: Monad, E](
 
         case GraphNode.Simple(fcId) =>
           val fc: Option[FormComponent] = formModel.fcLookup.get(fcId)
-          val isOptionHidden = fc.exists { case IsChoice(_) | IsRevealingChoice(_) =>
-            val userResponse: Seq[String] = recData.variadicFormData.many(fcId.modelComponentId).toSeq.flatten
+          val isOptionHidden = fc.exists {
+            case IsChoice(_) | IsRevealingChoice(_) =>
+              val userResponse: Seq[String] = recData.variadicFormData.many(fcId.modelComponentId).toSeq.flatten
+              val optionData: List[OptionData] = fc
+                .collect {
+                  case IsChoice(c) =>
+                    c.options.toList.collect {
+                      case o: OptionData.ValueBased if userResponse.contains(o.value)    => o
+                      case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
+                    }
+                  case IsRevealingChoice(rc) => rc.options.map(_.choice)
+                }
+                .getOrElse(List.empty[OptionData])
 
-            val optionData: List[OptionData] = fc
-              .collect {
-                case IsChoice(c) =>
-                  c.options.toList.collect {
-                    case o: OptionData.ValueBased if userResponse.contains(o.value)    => o
-                    case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
-                  }
-                case IsRevealingChoice(rc) =>
-                  rc.options.map(_.choice).collect {
-                    case o: OptionData.ValueBased if userResponse.contains(o.value)    => o
-                    case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
-                  }
+              val includeIfs: List[IncludeIf] = optionData.collect {
+                case OptionData.ValueBased(_, _, Some(includeIf)) => includeIf
+                case OptionData.IndexBased(_, Some(includeIf))    => includeIf
               }
-              .getOrElse(List.empty[OptionData])
 
-            val includeIfs: List[IncludeIf] = optionData.collect {
-              case OptionData.ValueBased(_, _, Some(includeIf)) => includeIf
-              case OptionData.IndexBased(_, Some(includeIf))    => includeIf
-            }
-
-            val isHidden = includeIfs
-              .map(i => booleanExprResolver.resolve(i.booleanExpr))
-              .reduceOption(_ && _)
-              .getOrElse(true)
-            !isHidden
+              val isHidden = includeIfs
+                .map(i => booleanExprResolver.resolve(i.booleanExpr))
+                .reduceOption(_ && _)
+                .getOrElse(true)
+              !isHidden
+            case _ => false
           }
 
           val recDataUpd: RecData[OutOfDate] =

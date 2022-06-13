@@ -349,7 +349,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         expectedResult: ExpressionResult,
         _
       ) =>
-        EvaluationResults.empty
+        EvaluationResults(Map.empty, SourceOrigin.changeSource(recData))
           .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
@@ -460,7 +460,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         exprMap: Map[Expr, ExpressionResult],
         _
       ) =>
-        EvaluationResults(exprMap)
+        EvaluationResults(exprMap, SourceOrigin.changeSource(recData))
           .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
@@ -543,7 +543,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         exprMap: Map[Expr, ExpressionResult],
         _
       ) =>
-        EvaluationResults(exprMap)
+        EvaluationResults(exprMap, SourceOrigin.changeSource(recData))
           .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
