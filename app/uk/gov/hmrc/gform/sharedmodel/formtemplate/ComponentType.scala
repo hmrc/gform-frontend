@@ -304,12 +304,14 @@ sealed trait OptionData extends Product with Serializable {
 object OptionData {
 
   case class IndexBased(
-    label: SmartString
+    label: SmartString,
+    includeIf: Option[IncludeIf]
   ) extends OptionData
 
   case class ValueBased(
     label: SmartString,
-    value: String
+    value: String,
+    includeIf: Option[IncludeIf]
   ) extends OptionData
 
   implicit val format: OFormat[OptionData] = derived.oformat()

@@ -122,8 +122,8 @@ trait FormModelSupport extends GraphSpec {
   }
 
   def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
-    xs.map(l => OptionData.IndexBased(toSmartString(l)))
+    xs.map(l => OptionData.IndexBased(toSmartString(l), None))
 
-  def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s))
+  def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None)
 
 }

@@ -427,9 +427,9 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   )
 
   private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
-    xs.map(l => OptionData.IndexBased(toSmartString(l)))
+    xs.map(l => OptionData.IndexBased(toSmartString(l), None))
 
-  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s))
+  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None)
 
   def `fieldValue - choice` = FormComponent(
     `fieldId - choice`,

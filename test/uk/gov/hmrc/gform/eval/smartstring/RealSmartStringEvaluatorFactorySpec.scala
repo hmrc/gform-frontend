@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrieva
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
 import uk.gov.hmrc.gform.eval.ExpressionResult._
-import uk.gov.hmrc.gform.graph.{ GraphData, Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.graph.{ GraphData, RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
@@ -52,9 +52,9 @@ class RealSmartStringEvaluatorFactorySpec
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
 
   private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
-    xs.map(l => OptionData.IndexBased(toSmartString(l)))
+    xs.map(l => OptionData.IndexBased(toSmartString(l), None))
 
-  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s))
+  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None)
 
   "SmartStringEvaluator" should {
 
@@ -200,7 +200,7 @@ class RealSmartStringEvaluatorFactorySpec
               toSmartStringExpression("Yes {0}", FormCtx(FormComponentId("textField"))),
               toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))
             )
-            .map(l => OptionData.IndexBased(l)),
+            .map(l => OptionData.IndexBased(l, None)),
           Horizontal,
           List.empty,
           None,
@@ -417,7 +417,7 @@ class RealSmartStringEvaluatorFactorySpec
       *[EvaluationContext]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
       RecalculationResult(
-        EvaluationResults(exprMap),
+        EvaluationResults(exprMap, SourceOrigin.changeSource(RecData.fromData(cache.variadicFormData))),
         GraphData.empty,
         BooleanExprCache.empty,
         EvaluationContext(

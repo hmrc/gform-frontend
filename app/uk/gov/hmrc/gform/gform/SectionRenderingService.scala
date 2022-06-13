@@ -1140,6 +1140,14 @@ class SectionRenderingService(
     }
   }
 
+  private def isVisibleOption(optionData: OptionData, formModelOptics: FormModelOptics[DataOrigin.Mongo]): Boolean =
+    optionData match {
+      case OptionData.ValueBased(_, _, includeIf) =>
+        includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+      case OptionData.IndexBased(_, includeIf) =>
+        includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+    }
+
   private def htmlForChoice(
     formComponent: FormComponent,
     choice: ChoiceType,
@@ -1162,10 +1170,15 @@ class SectionRenderingService(
         Set.empty[String] // Don't prepop something we already submitted
       else selections.map(_.toString).toSet
 
+    val visibleOptions: NonEmptyList[OptionData] = options
+      .filter(o => isVisibleOption(o, ei.formModelOptics))
+      .toNel
+      .getOrElse(throw new IllegalArgumentException("All options of the choice component are invisible"))
+
     val optionsWithHelpText: NonEmptyList[(OptionData, Option[Html])] =
       optionalHelpText
         .map(
-          _.zipWith(options)((helpText, option) =>
+          _.zipWith(visibleOptions)((helpText, option) =>
             (
               option,
               if (helpText.isEmpty) None
@@ -1173,7 +1186,7 @@ class SectionRenderingService(
             )
           )
         )
-        .getOrElse(options.map(option => (option, None)))
+        .getOrElse(visibleOptions.map(option => (option, None)))
 
     val optionsWithHintAndHelpText: NonEmptyList[(OptionData, Option[Hint], Option[Html])] =
       hints
@@ -1316,9 +1329,16 @@ class SectionRenderingService(
             specialAttributes =
               Map("data-checkbox" -> (formComponent.id.value + index)) // Used by javascript for dynamic calculations
           )
+
+    val visibleOptions = options.filter(o => isVisibleOption(o.choice, extraInfo.formModelOptics))
+    if (visibleOptions.length === 0)
+      throw new IllegalArgumentException(
+        s"All options of the revealing choice component are invisible for${formComponent.id}"
+      )
+
     val revealingChoicesList
       : List[(OptionData, Option[Hint], String => Boolean, FormComponentId => Int => Option[NonEmptyList[Html]])] =
-      options.map { o =>
+      visibleOptions.map { o =>
         val isSelected: String => Boolean =
           index =>
             extraInfo.formModelOptics.pageOpticsData
