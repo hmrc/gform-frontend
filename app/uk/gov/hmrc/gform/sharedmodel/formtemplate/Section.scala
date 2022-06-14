@@ -137,7 +137,8 @@ case class AcknowledgementSection(
   showReference: Boolean,
   pdf: Option[AcknowledgementSectionPdf],
   instructionPdf: Option[AcknowledgementSectionPdf],
-  displayFeedbackLink: Boolean
+  displayFeedbackLink: Boolean,
+  panelTitle: Option[SmartString]
 ) {
 
   def toSection = Section.NonRepeatingPage(toPage)

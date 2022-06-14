@@ -98,7 +98,8 @@ trait FormTemplateSample {
         showReference = true,
         pdf = None,
         instructionPdf = None,
-        displayFeedbackLink = true
+        displayFeedbackLink = true,
+        panelTitle = None
       ),
       declarationSection = Some(
         DeclarationSection(

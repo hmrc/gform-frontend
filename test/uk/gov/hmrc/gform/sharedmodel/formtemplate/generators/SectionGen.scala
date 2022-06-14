@@ -55,6 +55,7 @@ trait SectionGen {
       pdf                 <- Gen.option(acknowledgementSectionPdfGen)
       instructionPdf      <- Gen.option(acknowledgementSectionPdfGen)
       displayFeedbackLink <- PrimitiveGen.booleanGen
+      panelTitle          <- Gen.option(smartStringGen)
     } yield AcknowledgementSection(
       title,
       description,
@@ -63,7 +64,8 @@ trait SectionGen {
       showReference,
       pdf,
       instructionPdf,
-      displayFeedbackLink
+      displayFeedbackLink,
+      panelTitle
     )
 
   def acknowledgementSectionPdfGen: Gen[AcknowledgementSectionPdf] =

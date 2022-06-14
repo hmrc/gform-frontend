@@ -653,6 +653,7 @@ class SectionRenderingService(
       }
 
     val formCategory = formTemplate.formCategory
+    val panelTitle = destinationList.acknowledgementSection.panelTitle.map(_.value)
     val snippets = destinationList.acknowledgementSection.toPage.renderUnits.map(renderUnit =>
       htmlFor(renderUnit, formTemplateId, ei, ValidationResult.empty, obligations = NotChecked, UpscanInitiate.empty)
     )
@@ -675,7 +676,15 @@ class SectionRenderingService(
       Nil
     )
     uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
-      .acknowledgement(formTemplateId, renderingInfo, htmlContent, formCategory, formTemplate, frontendAppConfig)
+      .acknowledgement(
+        formTemplateId,
+        renderingInfo,
+        htmlContent,
+        formCategory,
+        formTemplate,
+        panelTitle,
+        frontendAppConfig
+      )
   }
 
   def renderEnrolmentSection(

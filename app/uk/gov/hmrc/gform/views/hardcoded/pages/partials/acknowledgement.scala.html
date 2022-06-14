@@ -27,6 +27,7 @@
   htmlContent: Content,
   formCategory: FormCategory,
   formTemplate: FormTemplate,
+  panelTitle: Option[String],
   frontendAppConfig: FrontendAppConfig
 )(implicit
   request: Request[_],
@@ -46,7 +47,7 @@
 
 
   @govukPanel(Panel(
-    title = Text(heading),
+    title = Text(panelTitle.getOrElse(heading)),
     content = htmlContent
   ))
 
