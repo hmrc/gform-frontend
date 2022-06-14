@@ -1104,7 +1104,8 @@ class SectionRenderingService(
       name = fileUploadName,
       label = label,
       hint = hint,
-      errorMessage = errorMessage
+      errorMessage = errorMessage,
+      attributes = fileUploadAttributes
     )
 
     val deleteUrl =
