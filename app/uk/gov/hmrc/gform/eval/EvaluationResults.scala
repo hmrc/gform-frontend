@@ -22,8 +22,10 @@ import cats.instances.list._
 import cats.syntax.eq._
 import cats.syntax.traverse._
 import play.api.i18n.Messages
+
 import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
+import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
@@ -227,11 +229,18 @@ case class EvaluationResults(
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
       case DataRetrieveCtx(_, _)                      => unsupportedOperation("Number")(expr)
       case Size(formComponentId, index)               => evalSize(formComponentId, recData, index)
-      case Typed(expr, _)                             => loop(expr)
+      case Typed(expr, tpe)                           => evalTyped(loop(expr), tpe)
     }
 
     loop(typeInfo.expr)
   }
+
+  def evalTyped(er: ExpressionResult, tpe: ExplicitExprType): ExpressionResult =
+    tpe match {
+      case ExplicitExprType.Sterling(roundingMode) =>
+        er.withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 2, roundingMode))
+      case _ => er
+    }
 
   def evalTaxPeriodYear(
     componentId: FormComponentId,
