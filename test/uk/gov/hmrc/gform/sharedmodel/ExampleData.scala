@@ -76,7 +76,8 @@ trait ExampleEvaluationContext {
       LangADT.En,
       Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty)),
       List.empty,
-      Set.empty
+      Set.empty,
+      FileSizeLimit(1)
     )
 }
 
@@ -810,6 +811,7 @@ trait ExampleFormTemplate {
       summarySection,
       true,
       FileInfoConfig.allAllowedFileTypes,
+      None,
       Some(userResearchUrl)
     )
 }
