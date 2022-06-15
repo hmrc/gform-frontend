@@ -43,5 +43,6 @@ final case class EvaluationContext(
   lang: LangADT,
   messages: Messages,
   indexedComponentIds: List[ModelComponentId],
-  taxPeriodYear: Set[BaseComponentId]
+  taxPeriodYear: Set[BaseComponentId],
+  fileSizeLimit: FileSizeLimit
 )

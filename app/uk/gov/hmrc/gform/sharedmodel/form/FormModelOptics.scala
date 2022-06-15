@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, Sec
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormPhase }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileSizeLimit, FormPhase }
 import uk.gov.hmrc.http.HeaderCarrier
 
 case class FormModelOptics[D <: DataOrigin](
@@ -75,7 +75,8 @@ object FormModelOptics {
         lang,
         messages,
         List.empty,
-        Set.empty[BaseComponentId]
+        Set.empty[BaseComponentId],
+        FileSizeLimit("1")
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),

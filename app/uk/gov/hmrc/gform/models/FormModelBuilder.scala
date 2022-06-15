@@ -203,7 +203,8 @@ class FormModelBuilder[E, F[_]: Functor](
         lang,
         messages,
         formModel.allIndexedComponentIds,
-        formModel.taxPeriodDate
+        formModel.taxPeriodDate,
+        FileSizeLimit("1")
       )
 
     recalculation

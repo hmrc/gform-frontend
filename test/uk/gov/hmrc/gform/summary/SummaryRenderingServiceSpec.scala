@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormPhase, FormTemplate, FormTemplateWithRedirects, InvisibleInSummary, InvisiblePageTitle, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FileSizeLimit, FormPhase, FormTemplate, FormTemplateWithRedirects, InvisibleInSummary, InvisiblePageTitle, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
@@ -127,7 +127,8 @@ class SummaryRenderingServiceSpec
           LangADT.En,
           messages,
           List.empty,
-          Set.empty
+          Set.empty,
+          FileSizeLimit("1")
         )
       )
     )

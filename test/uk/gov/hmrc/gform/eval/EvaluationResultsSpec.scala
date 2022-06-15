@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.{ QueryParamValue, QueryParams, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DataRetrieveCtx, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, Expr, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, ParamCtx, Period, PeriodExt, PeriodFn, PeriodValue, QueryParam, RoundingMode, SectionNumber, ServiceName, Sterling, Sum, UserCtx, UserField, UserFieldFunc }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, DataRetrieveCtx, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, Expr, FileSizeLimit, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, ParamCtx, Period, PeriodExt, PeriodFn, PeriodValue, QueryParam, RoundingMode, SectionNumber, ServiceName, Sterling, Sum, UserCtx, UserField, UserFieldFunc }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -83,7 +83,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         )
       ),
       indexedComponentIds,
-      Set.empty
+      Set.empty,
+      FileSizeLimit("1")
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()

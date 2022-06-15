@@ -345,6 +345,7 @@ case class EvaluationResults(
           value match {
             case FormTemplateProp.Id                  => StringResult(evaluationContext.formTemplateId.value)
             case FormTemplateProp.SubmissionReference => StringResult(evaluationContext.submissionRef.value)
+            case FormTemplateProp.FileSizeLimit       => StringResult(evaluationContext.fileSizeLimit.value)
           }
         }
 

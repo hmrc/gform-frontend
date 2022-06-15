@@ -281,6 +281,7 @@ object FormTemplateBuilder {
     ),
     true,
     FileInfoConfig.allAllowedFileTypes,
+    None,
     Some(UserResearchUrl("https://test.service.gov.uk"))
   )
 
