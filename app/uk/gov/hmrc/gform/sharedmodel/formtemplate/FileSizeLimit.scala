@@ -16,10 +16,8 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import cats.Eq
-
-case class FileSizeLimit(value: String) extends AnyVal
+case class FileSizeLimit(value: Int) extends AnyVal
 
 object FileSizeLimit {
-  implicit val equal: Eq[FormTemplateId] = Eq.fromUniversalEquals
+  val defaultFileLimitSize = 10 // default file size limit is 10MB
 }

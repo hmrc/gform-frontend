@@ -122,7 +122,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
           messages,
           List.empty,
           Set.empty,
-          FileSizeLimit("1")
+          FileSizeLimit(1)
         )
       )
     )

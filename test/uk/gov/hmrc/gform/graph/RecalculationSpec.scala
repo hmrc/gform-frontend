@@ -67,7 +67,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       messages,
       List.empty,
       Set.empty,
-      FileSizeLimit("1")
+      FileSizeLimit(1)
     )
 
   "recalculation" should "recalculate single dependency" in {

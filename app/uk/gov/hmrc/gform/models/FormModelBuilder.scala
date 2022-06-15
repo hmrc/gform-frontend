@@ -204,7 +204,7 @@ class FormModelBuilder[E, F[_]: Functor](
         messages,
         formModel.allIndexedComponentIds,
         formModel.taxPeriodDate,
-        FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(10).toString) // default file size limit is 10MB
+        FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize))
       )
 
     recalculation

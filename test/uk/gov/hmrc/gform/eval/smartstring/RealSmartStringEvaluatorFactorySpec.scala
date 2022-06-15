@@ -439,7 +439,7 @@ class RealSmartStringEvaluatorFactorySpec
           messages,
           indexedComponentIds,
           Set.empty,
-          FileSizeLimit("1")
+          FileSizeLimit(1)
         )
       )
     )

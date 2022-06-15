@@ -84,7 +84,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       indexedComponentIds,
       Set.empty,
-      FileSizeLimit("1")
+      FileSizeLimit(1)
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()
