@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.auth.models.OperationWithForm.EditForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, GformFlashKeys }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ Bracket, FastForward, FileUploadUtils, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ FastForward, FileUploadUtils, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormData, FormField, FormIdData, FormModelOptics, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowedFileTypes, FormComponentId, FormTemplateId, SectionNumber, SuppressErrors }
@@ -241,7 +241,7 @@ class FileUploadController(
     sectionNumber: SectionNumber,
     formComponentId: FormComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
-    implicit request => implicit lang => _ => implicit sse => formModelOptics =>
+    implicit request => implicit lang => _ => implicit sse => _ =>
       val formTemplateWithRedirects = request.attrs(FormTemplateKey)
       val formTemplate = formTemplateWithRedirects.formTemplate
 
@@ -252,55 +252,43 @@ class FileUploadController(
           sectionNumber,
           formComponentId
         )
-
-      val formModel = formModelOptics.formModelRenderPageOptics.formModel
-      val maybeBracket = formModel.maybeBracket(sectionNumber)
       val heading = request.messages.messages("file.delete.confirm")
-      maybeBracket match {
-        case Some(Bracket.NonRepeatingPage(_, sectionNumber, _)) =>
-          val (pageError, fieldErrors) =
-            request.flash.get("removeParamMissing").fold((NoErrors: HasErrors, Map.empty[String, ErrorMessage])) { _ =>
-              (
-                Errors(
-                  new components.GovukErrorSummary()(
-                    ErrorSummary(
-                      errorList = List(
-                        ErrorLink(
-                          href = Some("#remove"),
-                          content = content.Text(request.messages.messages("generic.error.selectOption"))
-                        )
-                      ),
-                      title = content.Text(request.messages.messages("error.summary.heading"))
+      val (pageError, fieldErrors) =
+        request.flash.get("removeParamMissing").fold((NoErrors: HasErrors, Map.empty[String, ErrorMessage])) { _ =>
+          (
+            Errors(
+              new components.GovukErrorSummary()(
+                ErrorSummary(
+                  errorList = List(
+                    ErrorLink(
+                      href = Some("#remove"),
+                      content = content.Text(request.messages.messages("generic.error.selectOption"))
                     )
-                  )
-                ),
-                Map(
-                  "remove" -> ErrorMessage(
-                    content = Text(request.messages.messages("generic.error.selectOption"))
-                  )
+                  ),
+                  title = content.Text(request.messages.messages("error.summary.heading"))
                 )
               )
-            }
-          Ok(
-            html.form.snippets.confirmation(
-              formTemplate,
-              maybeAccessCode,
-              sectionNumber,
-              frontendAppConfig,
-              deleteUrl,
-              heading,
-              pageError,
-              fieldErrors
+            ),
+            Map(
+              "remove" -> ErrorMessage(
+                content = Text(request.messages.messages("generic.error.selectOption"))
+              )
             )
-          ).pure[Future]
-        case Some(_) =>
-          throw new IllegalArgumentException(
-            "FormAddToListController.requestRemoval can only be requested from AddToList section"
           )
-        case None =>
-          Redirect(gform.routes.FormController.formSection(formTemplateId, maybeAccessCode, SectionNumber(0)))
-            .pure[Future]
-      }
+        }
+      Ok(
+        html.form.snippets.confirmation(
+          formTemplate,
+          maybeAccessCode,
+          sectionNumber,
+          frontendAppConfig,
+          deleteUrl,
+          heading,
+          pageError,
+          fieldErrors
+        )
+      ).pure[Future]
+
   }
 
   private val form: data.Form[String] = play.api.data.Form(
