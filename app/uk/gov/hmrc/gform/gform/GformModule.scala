@@ -117,7 +117,8 @@ class GformModule(
     gformBackendModule.gformConnector,
     fastForwardService,
     playBuiltInsModule.i18nSupport,
-    controllersModule.messagesControllerComponents
+    controllersModule.messagesControllerComponents,
+    configModule.frontendAppConfig
   )
 
   val newFormController: NewFormController = new NewFormController(

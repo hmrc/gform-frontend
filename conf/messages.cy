@@ -309,6 +309,7 @@ taxPeriod.noResults.getHelp=Cysylltwch â CThEM i gael help.
 file.upload=Uwchlwytho ffeil
 file.upload.done=<strong>Uwchlwythwyd {0}</strong>
 file.delete=Dileu
+file.delete.confirm=A ydych yn siŵr eich bod am ddileu’r y ffeil?
 file.remove=Tynnu
 file.delete.file=Dileu {0}
 file.error.upload.one.only=Gallwch ond uwchlwytho un ffeil ar y tro

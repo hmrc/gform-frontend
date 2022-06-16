@@ -23,27 +23,33 @@ import cats.data.Validated.{ Invalid, Valid }
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
 import org.typelevel.ci.CIString
+import play.api.data
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Flash, MessagesControllerComponents }
-import uk.gov.hmrc.gform.config.FileInfoConfig
+import uk.gov.hmrc.gform.config.{ AppConfig, FileInfoConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.{ FormTemplateKey, gform }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.EditForm
-import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, GformFlashKeys }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ FastForward, FileUploadUtils, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ Bracket, FastForward, FileUploadUtils, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormData, FormField, FormIdData, FormModelOptics, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowedFileTypes, FormComponentId, FormTemplateId, SectionNumber, SuppressErrors }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.gform.FastForwardService
+import uk.gov.hmrc.gform.gform.{ Errors, FastForwardService, HasErrors, NoErrors }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
+import uk.gov.hmrc.gform.views.html
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
+import uk.gov.hmrc.govukfrontend.views.html.components
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 
 import scala.concurrent.ExecutionContext
 
@@ -54,7 +60,8 @@ class FileUploadController(
   gformConnector: GformConnector,
   fastForwardService: FastForwardService,
   i18nSupport: I18nSupport,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  frontendAppConfig: FrontendAppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -226,6 +233,115 @@ class FileUploadController(
     for {
       _ <- gformConnector.updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)
     } yield ()
+  }
+
+  def requestRemoval(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    formComponentId: FormComponentId
+  ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
+    implicit request => implicit lang => _ => implicit sse => formModelOptics =>
+      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirects.formTemplate
+
+      val deleteUrl =
+        routes.FileUploadController.confirmRemoval(
+          formTemplateId,
+          maybeAccessCode,
+          sectionNumber,
+          formComponentId
+        )
+
+      val formModel = formModelOptics.formModelRenderPageOptics.formModel
+      val maybeBracket = formModel.maybeBracket(sectionNumber)
+      val heading = request.messages.messages("file.delete.confirm")
+      maybeBracket match {
+        case Some(Bracket.NonRepeatingPage(_, sectionNumber, _)) =>
+          val (pageError, fieldErrors) =
+            request.flash.get("removeParamMissing").fold((NoErrors: HasErrors, Map.empty[String, ErrorMessage])) { _ =>
+              (
+                Errors(
+                  new components.GovukErrorSummary()(
+                    ErrorSummary(
+                      errorList = List(
+                        ErrorLink(
+                          href = Some("#remove"),
+                          content = content.Text(request.messages.messages("generic.error.selectOption"))
+                        )
+                      ),
+                      title = content.Text(request.messages.messages("error.summary.heading"))
+                    )
+                  )
+                ),
+                Map(
+                  "remove" -> ErrorMessage(
+                    content = Text(request.messages.messages("generic.error.selectOption"))
+                  )
+                )
+              )
+            }
+          Ok(
+            html.form.snippets.confirmation(
+              formTemplate,
+              maybeAccessCode,
+              sectionNumber,
+              frontendAppConfig,
+              deleteUrl,
+              heading,
+              pageError,
+              fieldErrors
+            )
+          ).pure[Future]
+        case Some(_) =>
+          throw new IllegalArgumentException(
+            "FormAddToListController.requestRemoval can only be requested from AddToList section"
+          )
+        case None =>
+          Redirect(gform.routes.FormController.formSection(formTemplateId, maybeAccessCode, SectionNumber(0)))
+            .pure[Future]
+      }
+  }
+
+  private val form: data.Form[String] = play.api.data.Form(
+    play.api.data.Forms.single(
+      "remove" -> play.api.data.Forms.nonEmptyText
+    )
+  )
+
+  def confirmRemoval(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    formComponentId: FormComponentId
+  ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
+    implicit request => _ => _ => _ => _ =>
+      val deleteUrl =
+        routes.FileUploadController.deleteFile(
+          formTemplateId,
+          maybeAccessCode,
+          sectionNumber,
+          formComponentId
+        )
+
+      form
+        .bindFromRequest()
+        .fold(
+          _ =>
+            Redirect(
+              routes.FileUploadController
+                .requestRemoval(formTemplateId, maybeAccessCode, sectionNumber, formComponentId)
+            )
+              .flashing("removeParamMissing" -> "true")
+              .pure[Future],
+          {
+            case "Yes" =>
+              Redirect(deleteUrl).pure[Future]
+            case "No" =>
+              Redirect(gform.routes.FormController.formSection(formTemplateId, maybeAccessCode, sectionNumber))
+                .pure[Future]
+          }
+        )
   }
 
   def deleteFile(

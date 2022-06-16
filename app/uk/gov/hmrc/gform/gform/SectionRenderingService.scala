@@ -1109,7 +1109,7 @@ class SectionRenderingService(
     )
 
     val deleteUrl =
-      FileUploadController.deleteFile(
+      FileUploadController.requestRemoval(
         formTemplateId,
         ei.maybeAccessCode,
         ei.sectionNumber,
