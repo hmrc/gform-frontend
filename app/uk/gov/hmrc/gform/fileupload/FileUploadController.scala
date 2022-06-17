@@ -202,8 +202,12 @@ class FileUploadController(
         logger.warn(fileUploadError.toString)
 
         val flash = fileUploadError.errorCode match {
-          case "413" => mkFlash("file.error.size", appConfig.formMaxAttachmentSizeMB.toString)
-          case _     => mkFlash("file.error.upload.one.only")
+          case "413" =>
+            mkFlash(
+              "file.error.size",
+              cache.formTemplate.fileSizeLimit.getOrElse(appConfig.formMaxAttachmentSizeMB).toString
+            )
+          case _ => mkFlash("file.error.upload.one.only")
         }
 
         fastForwardService

@@ -87,7 +87,10 @@ class UpscanController(
                   )
                   val flash = confirmation.confirmationFailure match {
                     case ConfirmationFailure.GformValidationFailure(UpscanValidationFailure.EntityTooLarge) =>
-                      mkFlash("file.error.size", appConfig.formMaxAttachmentSizeMB.toString)
+                      mkFlash(
+                        "file.error.size",
+                        cache.formTemplate.fileSizeLimit.getOrElse(appConfig.formMaxAttachmentSizeMB).toString
+                      )
                     case ConfirmationFailure.GformValidationFailure(UpscanValidationFailure.EntityTooSmall) =>
                       mkFlash("file.error.empty")
                     case ConfirmationFailure.GformValidationFailure(
@@ -168,7 +171,11 @@ class UpscanController(
                 .map(_.label.value)
                 .getOrElse("")
             )
-          case Some("EntityTooLarge") => mkFlash("file.error.size", appConfig.formMaxAttachmentSizeMB.toString)
+          case Some("EntityTooLarge") =>
+            mkFlash(
+              "file.error.size",
+              cache.formTemplate.fileSizeLimit.getOrElse(appConfig.formMaxAttachmentSizeMB).toString
+            )
           case Some("EntityTooSmall") => mkFlash("file.error.empty")
           case _                      => mkFlash("file.error.upload.one.only")
         }

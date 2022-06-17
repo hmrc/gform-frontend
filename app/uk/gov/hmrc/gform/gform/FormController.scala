@@ -123,7 +123,7 @@ class FormController(
                     cache.formTemplate,
                     cache.form.envelopeId,
                     singleton,
-                    formMaxAttachmentSizeMB,
+                    cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB),
                     cache.formTemplate.allowedFileTypes,
                     restrictedFileExtensions,
                     cache.retrievals,
