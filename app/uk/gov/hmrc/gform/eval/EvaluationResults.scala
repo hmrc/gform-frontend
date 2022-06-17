@@ -238,7 +238,12 @@ case class EvaluationResults(
   def evalTyped(er: ExpressionResult, tpe: ExplicitExprType): ExpressionResult =
     tpe match {
       case ExplicitExprType.Sterling(roundingMode) =>
-        er.withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 2, roundingMode))
+        er match {
+          case NumberResult(_) =>
+            er.withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 2, roundingMode))
+          case _ => er
+        }
+
       case _ => er
     }
 
