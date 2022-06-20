@@ -27,7 +27,8 @@ trait UpscanAlgebra[F[_]] {
     formTemplateId: FormTemplateId,
     sectionNumber: SectionNumber,
     form: Form,
-    formIdData: FormIdData
+    formIdData: FormIdData,
+    maximumFileSizeMB: Int
   )(implicit hc: HeaderCarrier): F[UpscanInitiate]
 
   def retrieveConfirmationOrFail(

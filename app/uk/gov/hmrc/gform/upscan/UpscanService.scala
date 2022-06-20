@@ -42,7 +42,8 @@ class UpscanService(
     formTemplateId: FormTemplateId,
     sectionNumber: SectionNumber,
     form: Form,
-    formIdData: FormIdData
+    formIdData: FormIdData,
+    maximumFileSizeMB: Int
   )(implicit
     hc: HeaderCarrier
   ): Future[UpscanInitiate] =
@@ -58,7 +59,8 @@ class UpscanService(
                 formComponentId,
                 form.envelopeId,
                 formIdData,
-                formIdDataCrypted
+                formIdDataCrypted,
+                maximumFileSizeMB
               )
             )
             .map(formComponentId -> _)
@@ -71,7 +73,8 @@ class UpscanService(
     formComponentId: FormComponentId,
     envelopeId: EnvelopeId,
     formIdData: FormIdData,
-    formIdDataCrypted: Crypted
+    formIdDataCrypted: Crypted,
+    maximumFileSizeMB: Int
   ): UpscanInitiateRequest = {
 
     val baseUrl = appConfig.`gform-frontend-base-url`
@@ -85,10 +88,13 @@ class UpscanService(
     val errorRedirect: String =
       baseUrl + UpscanController.error(formTemplateId, sectionNumber, formIdData.maybeAccessCode, formComponentId).url
 
+    val maximumFileSize = maximumFileSizeMB * 1024 * 1024
+
     UpscanInitiateRequest(
       callback,
       successRedirect,
-      errorRedirect
+      errorRedirect,
+      maximumFileSize
     )
   }
 

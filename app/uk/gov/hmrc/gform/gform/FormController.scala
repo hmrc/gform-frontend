@@ -112,7 +112,8 @@ class FormController(
                 cache.formTemplateId,
                 sectionNumber,
                 cache.form,
-                FormIdData(cache, maybeAccessCode)
+                FormIdData(cache, maybeAccessCode),
+                cache.formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)
               )
               .map { upscanInitiate =>
                 Ok {

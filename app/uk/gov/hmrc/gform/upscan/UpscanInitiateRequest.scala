@@ -22,7 +22,8 @@ import play.api.libs.json.OFormat
 final case class UpscanInitiateRequest(
   callbackUrl: String,
   successRedirect: String,
-  errorRedirect: String
+  errorRedirect: String,
+  maximumFileSize: Int
 )
 
 object UpscanInitiateRequest {
