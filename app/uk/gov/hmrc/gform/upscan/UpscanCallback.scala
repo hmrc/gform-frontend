@@ -96,7 +96,7 @@ sealed trait UpscanValidationFailure extends Product with Serializable {
   def toJsCode: String = this match {
     case UpscanValidationFailure.EntityTooLarge        => "EntityTooLarge"
     case UpscanValidationFailure.EntityTooSmall        => "EntityTooSmall"
-    case UpscanValidationFailure.Rejected(_, _)        => "REJECTED"
+    case UpscanValidationFailure.Rejected(_)           => "REJECTED"
     case UpscanValidationFailure.InvalidFileType(_, _) => "InvalidFileType"
   }
 }
@@ -104,7 +104,7 @@ sealed trait UpscanValidationFailure extends Product with Serializable {
 object UpscanValidationFailure {
   case object EntityTooLarge extends UpscanValidationFailure
   case object EntityTooSmall extends UpscanValidationFailure
-  case class Rejected(errorDetail: String, fileMimeType: ContentType) extends UpscanValidationFailure
+  case class Rejected(failureDetails: FailureDetails) extends UpscanValidationFailure
   case class InvalidFileType(errorDetail: String, fileMimeType: ContentType) extends UpscanValidationFailure
 
   implicit val reads: Reads[UpscanValidationFailure] = derived.reads()
