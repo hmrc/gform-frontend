@@ -101,7 +101,7 @@ class UpscanController(
                         FileInfoConfig.reverseLookup.getOrElse(fileMimeType, "").toUpperCase,
                         cache.formTemplate.allowedFileTypes.fileExtensions.toList.map(_.toUpperCase).mkString(", ")
                       )
-                    case ConfirmationFailure.GformValidationFailure(UpscanValidationFailure.Rejected(_, _)) =>
+                    case ConfirmationFailure.UpscanFailure(FailureDetails("REJECTED", _)) =>
                       mkFlash(
                         "file.error.type",
                         "",
