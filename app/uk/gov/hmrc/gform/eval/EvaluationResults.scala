@@ -203,8 +203,15 @@ case class EvaluationResults(
       case Sum(FormCtx(formComponentId))    => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
       case Sum(field1) =>
         loop(field1) match {
-          case lrs: ListResult => lrs.list.fold(NumberResult(0)) { case (a, b) => a + b }
-          case _               => unsupportedOperation("Number")(expr)
+          case lrs: ListResult =>
+            lrs.list.fold(NumberResult(0)) { case (a, b) =>
+              val roundedB = field1 match {
+                case Typed(_, tpe) => evalTyped(b, tpe)
+                case _             => b
+              }
+              a + roundedB
+            }
+          case _ => unsupportedOperation("Number")(expr)
         }
       case Count(formComponentId)   => addToListCount(formComponentId, recData)
       case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
@@ -238,12 +245,7 @@ case class EvaluationResults(
   def evalTyped(er: ExpressionResult, tpe: ExplicitExprType): ExpressionResult =
     tpe match {
       case ExplicitExprType.Sterling(roundingMode) =>
-        er match {
-          case NumberResult(_) =>
-            er.withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 2, roundingMode))
-          case _ => er
-        }
-
+        er.withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 2, roundingMode))
       case _ => er
     }
 
