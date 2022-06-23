@@ -129,101 +129,93 @@ class Recalculation[F[_]: Monad, E](
         evalBooleanExprPure(booleanExpr, evResult, recData, retrievals, evaluationContext)
       }
 
-      val graphLayerResult: StateT[F, RecalculationState, EvaluationResults] = graphLayer match {
-        case Nil => noStateChange(evResult)
-        case _ =>
-          graphLayer.foldMapM {
-            case GraphNode.Simple(fcId) =>
-              val fc: Option[FormComponent] = formModel.fcLookup.get(fcId)
-              val isOptionHidden = fc.exists {
-                case IsChoice(_) | IsRevealingChoice(_) =>
-                  val userResponse: Seq[String] = recData.variadicFormData.many(fcId.modelComponentId).toSeq.flatten
-                  val optionData: List[OptionData] = fc
-                    .collect {
-                      case IsChoice(c) =>
-                        c.options.toList.collect {
-                          case o: OptionData.ValueBased if userResponse.contains(o.value)    => o
-                          case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
-                        }
-                      case IsRevealingChoice(rc) => rc.options.map(_.choice)
+      val graphLayerResult: StateT[F, RecalculationState, EvaluationResults] = graphLayer.foldMapM {
+
+        case GraphNode.Simple(fcId) =>
+          val fc: Option[FormComponent] = formModel.fcLookup.get(fcId)
+          val isOptionHidden = fc.exists {
+            case IsChoice(_) | IsRevealingChoice(_) =>
+              val userResponse: Seq[String] = recData.variadicFormData.many(fcId.modelComponentId).toSeq.flatten
+              val optionData: List[OptionData] = fc
+                .collect {
+                  case IsChoice(c) =>
+                    c.options.toList.collect {
+                      case o: OptionData.ValueBased if userResponse.contains(o.value)    => o
+                      case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
                     }
-                    .getOrElse(List.empty[OptionData])
+                  case IsRevealingChoice(rc) => rc.options.map(_.choice)
+                }
+                .getOrElse(List.empty[OptionData])
 
-                  val includeIfs: List[IncludeIf] = optionData.collect {
-                    case OptionData.ValueBased(_, _, Some(includeIf)) => includeIf
-                    case OptionData.IndexBased(_, Some(includeIf))    => includeIf
-                  }
-
-                  val isHidden = includeIfs
-                    .map(i => booleanExprResolver.resolve(i.booleanExpr))
-                    .reduceOption(_ && _)
-                    .getOrElse(true)
-                  !isHidden
-                case _ => false
+              val includeIfs: List[IncludeIf] = optionData.collect {
+                case OptionData.ValueBased(_, _, Some(includeIf)) => includeIf
+                case OptionData.IndexBased(_, Some(includeIf))    => includeIf
               }
 
-              val recDataUpd: RecData[OutOfDate] =
-                if (isOptionHidden) {
-                  RecData.fromData(recData.variadicFormData -- List(fcId.modelComponentId))
-                } else {
-                  recData
-                }
-
-              val res = for {
-                isHiddenIncludeIf <-
-                  isHiddenByIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
-                isHiddenComponentIncludeIf <-
-                  isHiddenByComponentIncludeIf(
-                    fcId,
-                    evResult,
-                    recData,
-                    retrievals,
-                    booleanExprResolver,
-                    evaluationContext
-                  )
-                isHiddenRevealingChoice <- isHiddenByRevealingChoice(fcId, recData)
-                isHiddenRepeatsExpr <-
-                  isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
-              } yield
-                if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
-                  evResult + (FormCtx(fcId), ExpressionResult.Hidden)
-                } else {
-                  evResult
-                }
-
-              res.map(_.copy(recData = SourceOrigin.changeSource(recDataUpd)))
-
-            case GraphNode.Expr(formCtx @ FormCtx(formComponentId)) =>
-              val expr: Expr = formModel.fcLookup
-                .get(formComponentId)
-                .collect { case HasValueExpr(expr) =>
-                  expr
-                }
-                .getOrElse(formCtx)
-              val typeInfo: TypeInfo = formModel.explicitTypedExpr(expr, formComponentId)
-
-              val exprResult: ExpressionResult =
-                evResult
-                  .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
-                  .applyTypeInfo(typeInfo)
-
-              noStateChange(evResult + (formCtx, evResult.get(formCtx).fold(exprResult) {
-                case ExpressionResult.Hidden => ExpressionResult.Hidden // If something is Hidden keep it so.
-                case _                       => exprResult
-              }))
-
-            case GraphNode.Expr(expr) =>
-              val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
-
-              val exprResult: ExpressionResult =
-                evResult.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
-
-              noStateChange(evResult + (expr, exprResult))
+              val isHidden = includeIfs
+                .map(i => booleanExprResolver.resolve(i.booleanExpr))
+                .reduceOption(_ && _)
+                .getOrElse(true)
+              !isHidden
+            case _ => false
           }
+
+          val recDataUpd: RecData[OutOfDate] =
+            if (isOptionHidden) {
+              RecData.fromData(recData.variadicFormData -- List(fcId.modelComponentId))
+            } else {
+              recData
+            }
+
+          val res = for {
+            isHiddenIncludeIf <-
+              isHiddenByIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
+            isHiddenComponentIncludeIf <-
+              isHiddenByComponentIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
+            isHiddenRevealingChoice <- isHiddenByRevealingChoice(fcId, recData)
+            isHiddenRepeatsExpr <-
+              isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
+          } yield
+            if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
+              evResult + (FormCtx(fcId), ExpressionResult.Hidden)
+            } else {
+              evResult
+            }
+
+          res.map(_.copy(recData = SourceOrigin.changeSource(recDataUpd)))
+
+        case GraphNode.Expr(formCtx @ FormCtx(formComponentId)) =>
+          val expr: Expr = formModel.fcLookup
+            .get(formComponentId)
+            .collect { case HasValueExpr(expr) =>
+              expr
+            }
+            .getOrElse(formCtx)
+          val typeInfo: TypeInfo = formModel.explicitTypedExpr(expr, formComponentId)
+
+          val exprResult: ExpressionResult =
+            evResult
+              .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
+              .applyTypeInfo(typeInfo)
+
+          noStateChange(evResult + (formCtx, evResult.get(formCtx).fold(exprResult) {
+            case ExpressionResult.Hidden => ExpressionResult.Hidden // If something is Hidden keep it so.
+            case _                       => exprResult
+          }))
+
+        case GraphNode.Expr(expr) =>
+          val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
+
+          val exprResult: ExpressionResult =
+            evResult.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
+
+          noStateChange(evResult + (expr, exprResult))
       }
 
       // We are only interested in `ValidIf` with `In` expression and any other `validIf` is being ignored
-      evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext) >> graphLayerResult
+      evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext) >> {
+        if (graphLayer.isEmpty) noStateChange(evResult) else graphLayerResult
+      }
 
     }
 
