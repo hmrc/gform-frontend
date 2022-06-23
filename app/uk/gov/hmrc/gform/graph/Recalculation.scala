@@ -213,7 +213,9 @@ class Recalculation[F[_]: Monad, E](
       }
 
       // We are only interested in `ValidIf` with `In` expression and any other `validIf` is being ignored
-      evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext) >> graphLayerResult
+      evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext) >> {
+        if (graphLayer.isEmpty) noStateChange(evResult) else graphLayerResult
+      }
 
     }
 
