@@ -226,6 +226,8 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
       case t @ Time(_, _) =>
         validIf(ComponentValidator.validateTime(formComponent, t, formModelVisibilityOptics))
+      //TODO: GFORMS-1720 not sure this is correct
+      case s @ MiniSummaryList(_) => validationSuccess.pure[F]
     }
   }
 

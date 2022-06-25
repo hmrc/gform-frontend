@@ -54,6 +54,8 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
+import MiniSummaryListValue._
+import MiniSummaryList._
 
 class FormController(
   appConfig: AppConfig,
@@ -154,7 +156,26 @@ class FormController(
 
             bracket match {
               case Bracket.NonRepeatingPage(singleton, sectionNumber, _) =>
-                validateSections(suppressErrors, sectionNumber)(renderSingleton(singleton, sectionNumber, _))
+                val formModel = formModelOptics.formModelVisibilityOptics.formModel
+                // section numbers with form components that miniSummaryList may refer to
+                val sns = formModel.pageModelLookup
+                  .get(sectionNumber)
+                  .map { pageModel =>
+                    pageModel.allFormComponents
+                      .collect { fc =>
+                        fc.`type` match {
+                          case MiniSummaryList(rows) =>
+                            rows.collect { case Row(_, MiniSummaryListReference(FormCtx(r)), _) => r }
+                        }
+                      }
+                      .flatten
+                      .flatMap(fcId => formModel.maybeSectionNumbersFrom(fcId))
+                  }
+                  .getOrElse(List())
+
+                validateSections(suppressErrors, (sectionNumber :: sns): _*)(
+                  renderSingleton(singleton, sectionNumber, _)
+                )
               case bracket @ Bracket.RepeatingPage(_, _) =>
                 validateSections(suppressErrors, sectionNumber)(
                   renderSingleton(bracket.singletonForSectionNumber(sectionNumber), sectionNumber, _)

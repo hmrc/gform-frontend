@@ -215,10 +215,12 @@ case class FormModel[A <: PageMode](
   }
   def allChoiceIncludeIfs: List[(IncludeIf, FormComponent)] = pages.flatMap(_.allChoiceIncludeIfs)
 
+  def allMiniSummaryListIncludeIfs: List[(IncludeIf, FormComponent)] = pages.flatMap(_.allMiniSummaryListIncludeIfs)
+
   def allIncludeIfsWithDependingFormComponents: List[(IncludeIf, List[FormComponent])] = pages.collect {
     case pm @ HasIncludeIf(includeIf) =>
       (includeIf, pm.fold(_.page.allFields)(_ => Nil)(_.addAnotherQuestion :: Nil))
-  } ++ allChoiceIncludeIfs.map(i => (i._1, List(i._2)))
+  } ++ allChoiceIncludeIfs.map(i => (i._1, List(i._2))) ++ allMiniSummaryListIncludeIfs.map(i => (i._1, List(i._2)))
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] = pages.flatMap(_.allValidIfs)
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
@@ -234,6 +236,14 @@ case class FormModel[A <: PageMode](
         case head :: _ => availableSectionNumbers.reverse.find(_ < sectionNumber).getOrElse(head)
       }
     }
+  def maybeSectionNumbersFrom(fcId: FormComponentId): List[SectionNumber] =
+    pageLookup
+      .get(fcId)
+      .map { pageModel =>
+        pagesWithIndex.collect { case (pm, sn) if pm == pageModel => sn }
+      }
+      .getOrElse(List())
+
 }
 
 object FormModel {

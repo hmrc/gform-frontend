@@ -163,6 +163,8 @@ object ValidationUtil {
 
       case IsInformationMessage(_) => FieldOk(formComponent, "")
 
+      case IsMiniSummaryList(_) => FieldOk(formComponent, "")
+
       case IsHmrcTaxPeriod(_) =>
         val atomicFcId = formComponent.modelComponentId
         gFormErrors.get(atomicFcId) match {
