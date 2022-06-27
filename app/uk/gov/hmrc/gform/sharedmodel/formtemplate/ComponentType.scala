@@ -31,7 +31,6 @@ import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString, SourceOrigin, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryListValue._
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 
