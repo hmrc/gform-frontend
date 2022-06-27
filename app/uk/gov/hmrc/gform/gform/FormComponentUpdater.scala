@@ -20,8 +20,6 @@ import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import SelectionCriteriaValue._
-import MiniSummaryListValue._
-import MiniSummaryList._
 
 class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: List[FormComponentId]) {
 
@@ -88,12 +86,13 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
   private def expandSummaryList(summaryList: MiniSummaryList): MiniSummaryList = {
     val expRows = summaryList.rows
       .map {
-        case r @ Row(_, MiniSummaryListExpr(exp), _) => r.copy(value = MiniSummaryListExpr(expandExpr(exp)))
-        case r @ Row(_, MiniSummaryListReference(ref), _) =>
-          r.copy(value = MiniSummaryListReference(expandFormCtx(ref)))
+        case r @ MiniSummaryList.Row(_, MiniSummaryListValue.MiniSummaryListExpr(exp), _) =>
+          r.copy(value = MiniSummaryListValue.MiniSummaryListExpr(expandExpr(exp)))
+        case r @ MiniSummaryList.Row(_, MiniSummaryListValue.MiniSummaryListReference(ref), _) =>
+          r.copy(value = MiniSummaryListValue.MiniSummaryListReference(expandFormCtx(ref)))
       }
       .map {
-        case r @ Row(ss, _, includeIf) =>
+        case r @ MiniSummaryList.Row(ss, _, includeIf) =>
           r.copy(key = ss.map(expandSmartString), includeIf = includeIf.map(expandIncludeIf))
         case otherwise => otherwise
       }

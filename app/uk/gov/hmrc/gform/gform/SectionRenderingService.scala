@@ -88,8 +88,6 @@ import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
 import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
-import MiniSummaryListValue._
-import MiniSummaryList._
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
@@ -1082,10 +1080,10 @@ class SectionRenderingService(
     fcrd: FormComponentRenderDetails[SummaryRender]
   ) = {
 
-    val visibleRows: List[Row] = rows
+    val visibleRows: List[MiniSummaryList.Row] = rows
       .filter(r => isVisibleMiniSummaryListRow(r, ei.formModelOptics))
     val slRows = visibleRows.map {
-      case Row(key, MiniSummaryListExpr(e), _) =>
+      case MiniSummaryList.Row(key, MiniSummaryListValue.MiniSummaryListExpr(e), _) =>
         val expStr = ei.formModelOptics.formModelVisibilityOptics
           .evalAndApplyTypeInfoFirst(e)
           .stringRepresentation
@@ -1100,7 +1098,7 @@ class SectionRenderingService(
             List()
           )
         )
-      case Row(key, MiniSummaryListReference(FormCtx(formComponentId)), _) =>
+      case MiniSummaryList.Row(key, MiniSummaryListValue.MiniSummaryListReference(FormCtx(formComponentId)), _) =>
         val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
         formModel
           .maybeSectionNumbersFrom(formComponentId)
@@ -1232,7 +1230,10 @@ class SectionRenderingService(
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
     }
 
-  private def isVisibleMiniSummaryListRow(row: Row, formModelOptics: FormModelOptics[DataOrigin.Mongo]): Boolean =
+  private def isVisibleMiniSummaryListRow(
+    row: MiniSummaryList.Row,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  ): Boolean =
     row.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
 
   private def htmlForChoice(

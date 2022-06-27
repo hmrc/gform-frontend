@@ -20,8 +20,6 @@ import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SelectionCriteriaValue._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import MiniSummaryList._
-import MiniSummaryListValue._
 
 /*
  * Extracts metadata for all expressions of FormComponent.
@@ -79,9 +77,9 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       case HasExpr(expr) => toPlainExprs(expr :: Nil)
       case IsMiniSummaryList(MiniSummaryList(rows)) =>
         toPlainExprs(
-          (rows.collect { case Row(Some(key), _, _) => key.interpolations }).flatten,
-          rows.collect { case Row(_, MiniSummaryListExpr(e), _) => e },
-          rows.collect { case Row(_, MiniSummaryListReference(e), _) => e }
+          (rows.collect { case MiniSummaryList.Row(Some(key), _, _) => key.interpolations }).flatten,
+          rows.collect { case MiniSummaryList.Row(_, MiniSummaryListValue.MiniSummaryListExpr(e), _) => e },
+          rows.collect { case MiniSummaryList.Row(_, MiniSummaryListValue.MiniSummaryListReference(e), _) => e }
         )
 
       case _ => Nil

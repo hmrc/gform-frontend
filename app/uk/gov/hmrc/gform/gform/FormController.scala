@@ -54,8 +54,6 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
-import MiniSummaryListValue._
-import MiniSummaryList._
 
 class FormController(
   appConfig: AppConfig,
@@ -166,7 +164,14 @@ class FormController(
                       .collect { fc =>
                         fc.`type` match {
                           case MiniSummaryList(rows) =>
-                            rows.collect { case Row(_, MiniSummaryListReference(FormCtx(r)), _) => r }
+                            rows.collect {
+                              case MiniSummaryList.Row(
+                                    _,
+                                    MiniSummaryListValue.MiniSummaryListReference(FormCtx(r)),
+                                    _
+                                  ) =>
+                                r
+                            }
                         }
                       }
                       .flatten
