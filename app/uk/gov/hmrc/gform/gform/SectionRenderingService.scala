@@ -110,7 +110,8 @@ class SectionRenderingService(
     formMaxAttachmentSizeMB: Int,
     retrievals: MaterialisedRetrievals,
     formLevelHeading: Boolean,
-    specialAttributes: Map[String, String]
+    specialAttributes: Map[String, String],
+    addressRecordLookup: AddressRecordLookup
   ) {
     private val modelComponentIds: List[ModelComponentId] =
       singleton.allFormComponents.flatMap(_.multiValueId.toModelComponentIds)
@@ -362,7 +363,8 @@ class SectionRenderingService(
     obligations: Obligations,
     fastForward: FastForward,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    upscanInitiate: UpscanInitiate
+    upscanInitiate: UpscanInitiate,
+    addressRecordLookup: AddressRecordLookup
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -385,7 +387,8 @@ class SectionRenderingService(
       formMaxAttachmentSizeMB,
       retrievals,
       formLevelHeading,
-      specialAttributes = Map.empty
+      specialAttributes = Map.empty,
+      addressRecordLookup
     )
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
@@ -514,7 +517,8 @@ class SectionRenderingService(
       0,
       retrievals,
       formLevelHeading = false,
-      specialAttributes = Map.empty
+      specialAttributes = Map.empty,
+      AddressRecordLookup.from(cache.form.thirdPartyData)
     )
 
     val snippets = page.renderUnits.map(renderUnit =>
@@ -549,7 +553,8 @@ class SectionRenderingService(
       0,
       retrievals,
       formLevelHeading = false,
-      specialAttributes = Map.empty
+      specialAttributes = Map.empty,
+      AddressRecordLookup.from(ThirdPartyData.empty)
     )
 
     val declarationPage = singleton.page
@@ -646,7 +651,8 @@ class SectionRenderingService(
       0,
       retrievals,
       formLevelHeading = false,
-      specialAttributes = Map.empty
+      specialAttributes = Map.empty,
+      AddressRecordLookup.from(cache.form.thirdPartyData)
     )
 
     val htmlContent: Content =
@@ -719,7 +725,8 @@ class SectionRenderingService(
       0,
       emptyRetrievals,
       formLevelHeading = false,
-      specialAttributes = Map.empty
+      specialAttributes = Map.empty,
+      AddressRecordLookup.from(ThirdPartyData.empty)
     )
     val page = singleton.page
     val listResult = validationResult.formFieldValidationResults(singleton)
@@ -1111,7 +1118,7 @@ class SectionRenderingService(
                 obligations,
                 validationResult,
                 ei.envelope,
-                AddressRecordLookup.from(ThirdPartyData.empty), // TODO: 1720 should be real third party data here ?
+                ei.addressRecordLookup,
                 None,
                 FastForward.StopAt(ei.sectionNumber)
               )

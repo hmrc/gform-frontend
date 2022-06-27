@@ -132,7 +132,8 @@ class FormController(
                     cache.form.thirdPartyData.obligations,
                     fastForward,
                     formModelOptics,
-                    upscanInitiate
+                    upscanInitiate,
+                    AddressRecordLookup.from(cache.form.thirdPartyData)
                   )
                 }
               }
