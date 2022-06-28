@@ -175,7 +175,7 @@ class FormController(
                         }
                       }
                       .flatten
-                      .flatMap(fcId => formModel.maybeSectionNumbersFrom(fcId))
+                      .flatMap(fcId => formModel.sectionNumberLookup.get(fcId).toList)
                   }
                   .getOrElse(List())
 

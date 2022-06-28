@@ -236,13 +236,14 @@ case class FormModel[A <: PageMode](
         case head :: _ => availableSectionNumbers.reverse.find(_ < sectionNumber).getOrElse(head)
       }
     }
-  def maybeSectionNumbersFrom(fcId: FormComponentId): List[SectionNumber] =
+
+  val sectionNumberLookup: Map[FormComponentId, SectionNumber] =
     pageLookup
-      .get(fcId)
-      .map { pageModel =>
-        pagesWithIndex.collect { case (pm, sn) if pm == pageModel => sn }
+      .map { case (fcId, pageModel) =>
+        pagesWithIndex.collect { case (pm, sn) if pm == pageModel => (fcId, sn) }.headOption
       }
-      .getOrElse(List())
+      .flatten
+      .toMap
 
 }
 

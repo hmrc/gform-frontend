@@ -1100,8 +1100,8 @@ class SectionRenderingService(
         )
       case MiniSummaryList.Row(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _) =>
         val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
-        formModel
-          .maybeSectionNumbersFrom(formComponentId)
+        formModel.sectionNumberLookup
+          .get(formComponentId)
           .map { sn =>
             val sectionTitle4Ga = sectionTitle4GaFactory(formModel.pageModelLookup(sn), sn)
             FormComponentSummaryRenderer
@@ -1121,6 +1121,7 @@ class SectionRenderingService(
                 FastForward.StopAt(ei.sectionNumber)
               )
           }
+          .toList
           .flatten
     }.flatten
     new GovukSummaryList()(SummaryList(slRows))
