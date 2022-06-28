@@ -258,6 +258,7 @@ object FormComponentSummaryRenderer {
           fastForward,
           addressRecordLookup
         )
+      case IsMiniSummaryList(_) => List(SummaryListRow())
     }
   }
 

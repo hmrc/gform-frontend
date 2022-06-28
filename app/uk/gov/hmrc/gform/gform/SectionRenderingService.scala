@@ -84,6 +84,10 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.Aliases.CharacterCount
 import uk.gov.hmrc.hmrcfrontend.views.html.components.{ HmrcCharacterCount, HmrcCurrencyInput }
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
+import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
+import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
+import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
@@ -104,7 +108,8 @@ class SectionRenderingService(
     formMaxAttachmentSizeMB: Int,
     retrievals: MaterialisedRetrievals,
     formLevelHeading: Boolean,
-    specialAttributes: Map[String, String]
+    specialAttributes: Map[String, String],
+    addressRecordLookup: AddressRecordLookup
   ) {
     private val modelComponentIds: List[ModelComponentId] =
       singleton.allFormComponents.flatMap(_.multiValueId.toModelComponentIds)
@@ -356,7 +361,8 @@ class SectionRenderingService(
     obligations: Obligations,
     fastForward: FastForward,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    upscanInitiate: UpscanInitiate
+    upscanInitiate: UpscanInitiate,
+    addressRecordLookup: AddressRecordLookup
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -379,7 +385,8 @@ class SectionRenderingService(
       formMaxAttachmentSizeMB,
       retrievals,
       formLevelHeading,
-      specialAttributes = Map.empty
+      specialAttributes = Map.empty,
+      addressRecordLookup
     )
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
@@ -508,7 +515,8 @@ class SectionRenderingService(
       0,
       retrievals,
       formLevelHeading = false,
-      specialAttributes = Map.empty
+      specialAttributes = Map.empty,
+      AddressRecordLookup.from(cache.form.thirdPartyData)
     )
 
     val snippets = page.renderUnits.map(renderUnit =>
@@ -543,7 +551,8 @@ class SectionRenderingService(
       0,
       retrievals,
       formLevelHeading = false,
-      specialAttributes = Map.empty
+      specialAttributes = Map.empty,
+      AddressRecordLookup.from(ThirdPartyData.empty)
     )
 
     val declarationPage = singleton.page
@@ -640,7 +649,8 @@ class SectionRenderingService(
       0,
       retrievals,
       formLevelHeading = false,
-      specialAttributes = Map.empty
+      specialAttributes = Map.empty,
+      AddressRecordLookup.from(cache.form.thirdPartyData)
     )
 
     val htmlContent: Content =
@@ -713,7 +723,8 @@ class SectionRenderingService(
       0,
       emptyRetrievals,
       formLevelHeading = false,
-      specialAttributes = Map.empty
+      specialAttributes = Map.empty,
+      AddressRecordLookup.from(ThirdPartyData.empty)
     )
     val page = singleton.page
     val listResult = validationResult.formFieldValidationResults(singleton)
@@ -931,6 +942,8 @@ class SectionRenderingService(
             htmlForInformationMessage(formComponent, infoType, infoText)
           case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>
             htmlForHmrcTaxPeriod(formComponent, ei, validationResult, obligations, htp)
+          case MiniSummaryList(rows) =>
+            htmlForMiniSummaryList(formComponent, formTemplateId, rows, ei, validationResult, obligations)
         }
       }
     } { case r @ RenderUnit.Group(_, _) =>
@@ -1053,6 +1066,66 @@ class SectionRenderingService(
       getLabelClasses(false, formComponent.labelSize)
     )
 
+  private def htmlForMiniSummaryList(
+    formComponent: FormComponent,
+    formTemplateId: FormTemplateId,
+    rows: List[MiniSummaryList.Row],
+    ei: ExtraInfo,
+    validationResult: ValidationResult,
+    obligations: Obligations
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator,
+    l: LangADT,
+    fcrd: FormComponentRenderDetails[SummaryRender]
+  ) = {
+
+    val visibleRows: List[MiniSummaryList.Row] = rows
+      .filter(r => isVisibleMiniSummaryListRow(r, ei.formModelOptics))
+    val slRows = visibleRows.map {
+      case MiniSummaryList.Row(key, MiniSummaryListValue.AnyExpr(e), _) =>
+        val expStr = ei.formModelOptics.formModelVisibilityOptics
+          .evalAndApplyTypeInfoFirst(e)
+          .stringRepresentation
+        List(
+          SummaryListRowHelper.summaryListRow(
+            key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+            Html(expStr),
+            Some(""),
+            "",
+            "",
+            "",
+            List()
+          )
+        )
+      case MiniSummaryList.Row(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _) =>
+        val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
+        formModel.sectionNumberLookup
+          .get(formComponentId)
+          .map { sn =>
+            val sectionTitle4Ga = sectionTitle4GaFactory(formModel.pageModelLookup(sn), sn)
+            FormComponentSummaryRenderer
+              .summaryListRows[DataOrigin.Mongo, SummaryRender](
+                formModel.fcLookup.get(formComponentId).get,
+                ei.singleton.page.id.map(_.modelPageId),
+                formTemplateId,
+                ei.formModelOptics.formModelVisibilityOptics,
+                ei.maybeAccessCode,
+                sn,
+                sectionTitle4Ga,
+                obligations,
+                validationResult,
+                ei.envelope,
+                ei.addressRecordLookup,
+                None,
+                FastForward.StopAt(ei.sectionNumber)
+              )
+          }
+          .toList
+          .flatten
+    }.flatten
+    new GovukSummaryList()(SummaryList(slRows))
+  }
   private def htmlForFileUpload(
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
@@ -1157,6 +1230,12 @@ class SectionRenderingService(
       case OptionData.IndexBased(_, includeIf) =>
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
     }
+
+  private def isVisibleMiniSummaryListRow(
+    row: MiniSummaryList.Row,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  ): Boolean =
+    row.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
 
   private def htmlForChoice(
     formComponent: FormComponent,

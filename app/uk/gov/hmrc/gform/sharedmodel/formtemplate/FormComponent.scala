@@ -175,6 +175,10 @@ object IsInformationMessage {
   def unapply(fc: FormComponent): Option[InformationMessage] = fc.`type`.cast[InformationMessage]
 }
 
+object IsMiniSummaryList {
+  def unapply(fc: FormComponent): Option[MiniSummaryList] = fc.`type`.cast[MiniSummaryList]
+}
+
 object IsHmrcTaxPeriod {
   def unapply(fc: FormComponent): Option[HmrcTaxPeriod] = fc.`type`.cast[HmrcTaxPeriod]
 }
@@ -223,6 +227,16 @@ object AllChoiceIncludeIfs {
       Some(rc.options.map(_.choice).flatMap {
         case OptionData.IndexBased(_, includeIf)    => includeIf
         case OptionData.ValueBased(_, _, includeIf) => includeIf
+      })
+    case _ => None
+  }
+}
+
+object AllMiniSummaryListIncludeIfs {
+  def unapply(fc: FormComponent): Option[List[IncludeIf]] = fc match {
+    case IsMiniSummaryList(c) =>
+      Some(c.rows.flatMap { case MiniSummaryList.Row(_, _, includeIf) =>
+        includeIf
       })
     case _ => None
   }

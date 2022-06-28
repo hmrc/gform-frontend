@@ -502,3 +502,10 @@ object TextExpression {
 
   implicit val equal: Eq[TextExpression] = Eq.fromUniversalEquals
 }
+
+sealed trait MiniSummaryListValue
+object MiniSummaryListValue {
+  case class AnyExpr(expr: Expr) extends MiniSummaryListValue
+  case class Reference(expr: FormCtx) extends MiniSummaryListValue
+  implicit val format: OFormat[MiniSummaryListValue] = derived.oformat()
+}

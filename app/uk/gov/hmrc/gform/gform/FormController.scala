@@ -130,7 +130,8 @@ class FormController(
                     cache.form.thirdPartyData.obligations,
                     fastForward,
                     formModelOptics,
-                    upscanInitiate
+                    upscanInitiate,
+                    AddressRecordLookup.from(cache.form.thirdPartyData)
                   )
                 }
               }
@@ -154,7 +155,33 @@ class FormController(
 
             bracket match {
               case Bracket.NonRepeatingPage(singleton, sectionNumber, _) =>
-                validateSections(suppressErrors, sectionNumber)(renderSingleton(singleton, sectionNumber, _))
+                val formModel = formModelOptics.formModelVisibilityOptics.formModel
+                // section numbers with form components that miniSummaryList may refer to
+                val sns = formModel.pageModelLookup
+                  .get(sectionNumber)
+                  .map { pageModel =>
+                    pageModel.allFormComponents
+                      .collect { fc =>
+                        fc.`type` match {
+                          case MiniSummaryList(rows) =>
+                            rows.collect {
+                              case MiniSummaryList.Row(
+                                    _,
+                                    MiniSummaryListValue.Reference(FormCtx(r)),
+                                    _
+                                  ) =>
+                                r
+                            }
+                        }
+                      }
+                      .flatten
+                      .flatMap(fcId => formModel.sectionNumberLookup.get(fcId).toList)
+                  }
+                  .getOrElse(List())
+
+                validateSections(suppressErrors, (sectionNumber :: sns): _*)(
+                  renderSingleton(singleton, sectionNumber, _)
+                )
               case bracket @ Bracket.RepeatingPage(_, _) =>
                 validateSections(suppressErrors, sectionNumber)(
                   renderSingleton(bracket.singletonForSectionNumber(sectionNumber), sectionNumber, _)

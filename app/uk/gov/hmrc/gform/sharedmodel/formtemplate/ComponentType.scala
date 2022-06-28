@@ -62,6 +62,7 @@ sealed trait ComponentType {
     case _: Group               => "group"
     case _: InformationMessage  => "informationMessage"
     case _: FileUpload          => "fileUpload"
+    case _: MiniSummaryList     => "miniSummaryList"
   }
 }
 
@@ -513,6 +514,20 @@ case class Time(ranges: List[Range], intervalMins: IntervalMins) extends Compone
 
 object Time {
   implicit val format: OFormat[Time] = derived.oformat()
+}
+
+case class MiniSummaryList(rows: List[MiniSummaryList.Row]) extends ComponentType
+
+object MiniSummaryList {
+  case class Row(
+    key: Option[SmartString],
+    value: MiniSummaryListValue,
+    includeIf: Option[IncludeIf]
+  )
+  object Row {
+    implicit val format: Format[Row] = derived.oformat()
+  }
+  implicit val format: Format[MiniSummaryList] = derived.oformat()
 }
 
 object ComponentType {

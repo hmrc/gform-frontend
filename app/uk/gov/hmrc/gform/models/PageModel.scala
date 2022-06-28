@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.models
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsPostcodeLookup, IsUpscanInitiateFileUpload, Page, PageId, ValidIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.AllMiniSummaryListIncludeIfs
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)
@@ -59,6 +60,11 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
     fold(_.page.allFields.collect { case fc @ AllChoiceIncludeIfs(includeIfs) => includeIfs.map((_, fc)) }.flatten)(_ =>
       Nil
     )(_ => Nil)
+
+  def allMiniSummaryListIncludeIfs: List[(IncludeIf, FormComponent)] =
+    fold(_.page.allFields.collect { case fc @ AllMiniSummaryListIncludeIfs(includeIfs) =>
+      includeIfs.map((_, fc))
+    }.flatten)(_ => Nil)(_ => Nil)
 
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
     fold(_.page.allFields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)(_ => Nil)
