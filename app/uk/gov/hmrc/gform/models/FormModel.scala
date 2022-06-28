@@ -238,12 +238,9 @@ case class FormModel[A <: PageMode](
     }
 
   val sectionNumberLookup: Map[FormComponentId, SectionNumber] =
-    pageLookup
-      .map { case (fcId, pageModel) =>
-        pagesWithIndex.collect { case (pm, sn) if pm == pageModel => (fcId, sn) }.headOption
-      }
-      .flatten
-      .toMap
+    pagesWithIndex.toList.foldLeft(Map.empty[FormComponentId, SectionNumber]) { case (acc, (pm, sn)) =>
+      acc ++ pm.allFormComponentIds.map(fcId => fcId -> sn).toMap
+    }
 
 }
 
