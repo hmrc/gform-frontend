@@ -1083,7 +1083,7 @@ class SectionRenderingService(
     val visibleRows: List[MiniSummaryList.Row] = rows
       .filter(r => isVisibleMiniSummaryListRow(r, ei.formModelOptics))
     val slRows = visibleRows.map {
-      case MiniSummaryList.Row(key, MiniSummaryListValue.MiniSummaryListExpr(e), _) =>
+      case MiniSummaryList.Row(key, MiniSummaryListValue.AnyExpr(e), _) =>
         val expStr = ei.formModelOptics.formModelVisibilityOptics
           .evalAndApplyTypeInfoFirst(e)
           .stringRepresentation
@@ -1098,7 +1098,7 @@ class SectionRenderingService(
             List()
           )
         )
-      case MiniSummaryList.Row(key, MiniSummaryListValue.MiniSummaryListReference(FormCtx(formComponentId)), _) =>
+      case MiniSummaryList.Row(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _) =>
         val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
         formModel
           .maybeSectionNumbersFrom(formComponentId)

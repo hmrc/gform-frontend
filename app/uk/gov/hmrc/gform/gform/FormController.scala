@@ -167,7 +167,7 @@ class FormController(
                             rows.collect {
                               case MiniSummaryList.Row(
                                     _,
-                                    MiniSummaryListValue.MiniSummaryListReference(FormCtx(r)),
+                                    MiniSummaryListValue.Reference(FormCtx(r)),
                                     _
                                   ) =>
                                 r
