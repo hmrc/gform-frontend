@@ -279,7 +279,7 @@ sealed trait ExpressionResult extends Product with Serializable {
       identity
     )(
       identity
-    )(identity)
+    )(lr => ListResult(lr.list.map(_.withNumberResult(f))))
 
   def withStringResult[B](noString: B)(f: String => B): B =
     fold[B](_ => noString)(_ => noString)(_ => noString)(_ => noString)(r => f(r.value))(_ => noString)(_ => noString)(
