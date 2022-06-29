@@ -1218,8 +1218,11 @@ class SectionRenderingService(
         )
 
     currentValue match {
-      case Some(_) => HtmlFormat.fill(hiddenFields ++ List(uploadedFiles))
-      case None    => HtmlFormat.fill(hiddenFields ++ List(fileInput, uploadedFiles, noJsButtonHtml))
+      case Some(v) =>
+        val fileName = v.replace(fileId.value + "_", "")
+        val hiddenInput = html.form.snippets.hidden(formComponent.id.value, fileName)
+        HtmlFormat.fill(hiddenFields ++ List(hiddenInput, uploadedFiles))
+      case None => HtmlFormat.fill(hiddenFields ++ List(fileInput, uploadedFiles, noJsButtonHtml))
     }
   }
 
