@@ -306,7 +306,7 @@ taxPeriod.noResults.think=Os ydych o’r farn y dylai cyfnod treth fod ar agor a
 taxPeriod.noResults.getHelp=Cysylltwch â CThEM i gael help.
 
 # File upload
-file.upload=Uwchlwytho ffeil
+file.upload=Uwchlwytho'r ffeil
 file.upload.done=<strong>Uwchlwythwyd {0}</strong>
 file.delete=Dileu
 file.delete.confirm=A ydych yn siŵr eich bod am ddileu’r y ffeil?
