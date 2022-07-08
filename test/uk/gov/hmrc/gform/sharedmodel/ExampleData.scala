@@ -707,11 +707,11 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 }
 
 trait ExampleSectionNumber {
-  val `sectionNumber-1` = SectionNumber(-1)
-  val sectionNumber0 = SectionNumber(0)
-  val sectionNumber1 = SectionNumber(1)
-  val sectionNumber2 = SectionNumber(2)
-  val sectionNumber3 = SectionNumber(3)
+  val `sectionNumber-1` = SectionNumber.Classic(-1)
+  val sectionNumber0 = SectionNumber.Classic(0)
+  val sectionNumber1 = SectionNumber.Classic(1)
+  val sectionNumber2 = SectionNumber.Classic(2)
+  val sectionNumber3 = SectionNumber.Classic(3)
 }
 
 trait ExampleValidator {
@@ -804,7 +804,7 @@ trait ExampleFormTemplate {
       emailTemplateId,
       emailParameters,
       webChat,
-      sections,
+      FormKind.Classic(sections),
       Nil,
       AvailableLanguages.default,
       None,
@@ -897,7 +897,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     None,
     formData,
     InProgress,
-    VisitIndex(Set.empty),
+    VisitIndex.Classic(Set.empty),
     ThirdPartyData.empty,
     envelopeExpiryDate,
     FormComponentIdToFileIdMapping.empty

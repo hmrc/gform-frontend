@@ -224,7 +224,7 @@ class FormController(
                        * When new page is added to AddToList bracket, we need to visits repeater which
                        * has not been visited before, otherwise inflight users would be stuck in a loop.
                        */
-                      val hasBeenVisited: Boolean = cache.form.visitsIndex.contains(sectionNumber.value)
+                      val hasBeenVisited: Boolean = cache.form.visitsIndex.contains(sectionNumber)
                       if (sectionNumber === lastRepeaterSectionNumber || !hasBeenVisited) {
                         // display current (which happens to be last) repeater
                         validateSections(suppressErrors, sectionNumber)(handlerResult =>
@@ -501,24 +501,44 @@ class FormController(
                     def continueJourney =
                       maybeSn match {
                         case Some(sn) =>
-                          val isFirstLanding = sectionNumber < sn
-                          val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processDataUpd, sn)
-                          Redirect(
-                            routes.FormController
-                              .form(
-                                cache.formTemplateId,
-                                maybeAccessCode,
-                                sn,
-                                sectionTitle4Ga,
-                                SuppressErrors(isFirstLanding),
-                                if (isFirstLanding && !isConfirmationPage)
-                                  fastForward.next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel)
-                                else
-                                  fastForward
-                              )
-                          )
+                          val endOfTask: Option[Coordinates] =
+                            sn.fold[Option[Coordinates]] { classic =>
+                              None
+                            } { taskList =>
+                              val cur = sectionNumber.unsafeToTaskList.coordinates
+                              if (taskList.coordinates === cur) {
+                                None
+                              } else {
+                                Some(cur)
+                              }
+                            }
+                          if (endOfTask.isDefined) {
+                            Redirect(
+                              routes.SummaryController.summaryById(cache.formTemplateId, maybeAccessCode, endOfTask)
+                            )
+                          } else {
+                            val isFirstLanding = sectionNumber < sn
+                            val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processDataUpd, sn)
+                            Redirect(
+                              routes.FormController
+                                .form(
+                                  cache.formTemplateId,
+                                  maybeAccessCode,
+                                  sn,
+                                  sectionTitle4Ga,
+                                  SuppressErrors(isFirstLanding),
+                                  if (isFirstLanding && !isConfirmationPage)
+                                    fastForward.next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel)
+                                  else
+                                    fastForward
+                                )
+                            )
+                          }
                         case None =>
-                          Redirect(routes.SummaryController.summaryById(cache.formTemplateId, maybeAccessCode))
+                          Redirect(
+                            routes.SummaryController
+                              .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates)
+                          )
                       }
 
                     updatePostcodeLookup.fold(continueJourney) { case (formComponentId, _) =>
@@ -610,10 +630,27 @@ class FormController(
               def goBack(saveData: Boolean) = {
 
                 val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
-                val goBackLink = Redirect(
-                  routes.FormController
-                    .form(cache.formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, fastForward)
-                )
+                val fastForwardSn = routes.FormController
+                  .form(
+                    cache.formTemplateId,
+                    maybeAccessCode,
+                    sn,
+                    sectionTitle4Ga,
+                    SuppressErrors.Yes,
+                    fastForward
+                  )
+                val goBackLink = Redirect {
+                  commingFromSn.fold { classic =>
+                    fastForwardSn
+                  } { taskList =>
+                    if (taskList.sectionNumber == 0) {
+                      uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                        .landingPage(cache.formTemplateId, maybeAccessCode)
+                    } else {
+                      fastForwardSn
+                    }
+                  }
+                }
 
                 if (saveData) {
                   formProcessor.validateAndUpdateData(
@@ -804,7 +841,7 @@ class FormController(
         val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
         routes.FormController
           .form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
-      case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode)
+      case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None)
     }
     val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)
     Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))

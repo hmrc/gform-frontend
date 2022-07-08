@@ -38,6 +38,7 @@ import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.{ PdfGeneratorConnector, PdfGeneratorService }
+import uk.gov.hmrc.gform.tasklist.{ TaskListController, TaskListModule }
 import uk.gov.hmrc.gform.upscan.{ UpscanController, UpscanModule }
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
@@ -52,6 +53,7 @@ class GformModule(
   authModule: AuthModule,
   gformBackendModule: GformBackendModule,
   fileUploadModule: FileUploadModule,
+  taskListModule: TaskListModule,
   upscanModule: UpscanModule,
   addressLookupModule: AddressLookupModule,
   validationModule: ValidationModule,
@@ -121,12 +123,23 @@ class GformModule(
     configModule.frontendAppConfig
   )
 
+  val taskListController: TaskListController =
+    new TaskListController(
+      configModule.frontendAppConfig,
+      playBuiltInsModule.i18nSupport,
+      controllersModule.authenticatedRequestActions,
+      taskListModule.taskListRenderingService,
+      fileUploadModule.fileUploadService,
+      controllersModule.messagesControllerComponents
+    )
+
   val newFormController: NewFormController = new NewFormController(
     configModule.frontendAppConfig,
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     fileUploadModule.fileUploadService,
     gformBackendModule.gformConnector,
+    taskListController,
     fastForwardService,
     auditingModule.auditService,
     graphModule.recalculation,

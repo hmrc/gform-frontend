@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
+package uk.gov.hmrc.gform.tasklist
 
-import org.scalacheck.Gen
-import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
+import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.validation.ValidationModule
 
-trait VisitIndexGen {
-  def visitIndexGen = Gen.containerOf[Set, Int](Gen.posNum[Int]).map(VisitIndex.Classic(_))
+class TaskListModule(
+  configModule: ConfigModule,
+  validationModule: ValidationModule
+)(implicit
+  ec: ExecutionContext
+) {
+
+  val taskListRenderingService = new TaskListRenderingService(
+    configModule.frontendAppConfig,
+    validationModule.validationService
+  )
+
 }
-
-object VisitIndexGen extends VisitIndexGen

@@ -116,7 +116,7 @@ class ProcessDataService[F[_]: Monad](
 
       ProcessData(
         dataUpd,
-        VisitIndex(newVisitIndex),
+        newVisitIndex,
         obligations,
         browserFormModelOptics.formModelVisibilityOptics.booleanExprCache
       )

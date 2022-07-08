@@ -63,6 +63,7 @@ import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.views.html.specimen
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
+import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes, ExclusiveCheckbox }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
@@ -143,7 +144,7 @@ class SectionRenderingService(
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val renderComeBackLater =
       cache.retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
-    val isFirstVisit = !cache.form.visitsIndex.contains(sectionNumber.value)
+    val isFirstVisit = !cache.form.visitsIndex.contains(sectionNumber)
 
     val summaryListRecords: List[SummaryListRow] = addToListIteration.singletons.toList.flatMap { singletonWithNumber =>
       val sectionTitle4Ga = sectionTitle4GaFactory(
@@ -461,12 +462,11 @@ class SectionRenderingService(
       formTemplate,
       pageLevelErrorHtml,
       renderingInfo,
-      shouldDisplayBack = sectionNumber > originSection,
+      backLink = mkBackLink(formTemplate, maybeAccessCode, sectionNumber, originSection),
       shouldDisplayHeading = !formLevelHeading,
       shouldDisplayContinue = !page.isTerminationPage,
       frontendAppConfig,
       specimenNavigation = specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics),
-      isDeclaration = false,
       maybeAccessCode,
       sectionNumber,
       fastForward
@@ -507,7 +507,7 @@ class SectionRenderingService(
     val ei = ExtraInfo(
       Singleton(page.asInstanceOf[Page[DataExpanded]]),
       maybeAccessCode,
-      SectionNumber(0),
+      formTemplate.sectionNumberZero,
       formModelOptics,
       formTemplate,
       envelopeId,
@@ -543,7 +543,7 @@ class SectionRenderingService(
     val ei = ExtraInfo(
       singleton,
       maybeAccessCode,
-      SectionNumber(0),
+      formTemplate.sectionNumberZero,
       formModelOptics,
       formTemplate,
       EnvelopeId(""),
@@ -573,7 +573,7 @@ class SectionRenderingService(
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
-      SectionNumber(0),
+      formTemplate.sectionNumberZero,
       declarationPage.title.value,
       declarationPage.noPIITitle.fold(declarationPage.title.valueWithoutInterpolations)(_.value),
       declarationPage.description.map(ls => ls.value),
@@ -592,15 +592,48 @@ class SectionRenderingService(
       formTemplate,
       pageLevelErrorHtml,
       renderingInfo,
-      shouldDisplayBack = true,
+      backLink = Some(mkBackLinkDeclaration(formTemplate, maybeAccessCode, formTemplate.sectionNumberZero)),
       shouldDisplayHeading = true,
       shouldDisplayContinue = true,
       frontendAppConfig,
-      isDeclaration = true,
       maybeAccessCode = maybeAccessCode,
-      sectionNumber = SectionNumber(0),
+      sectionNumber = formTemplate.sectionNumberZero,
       fastForward = FastForward.Yes
     )
+  }
+
+  def mkBackLinkDeclaration(
+    formTemplate: FormTemplate,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber
+  )(implicit messages: Messages): BackLink = {
+    val href = uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id, maybeAccessCode, None).url
+    new BackLink(href = href, content = new content.Text(messages("linkText.back")))
+  }
+
+  def mkBackLink(
+    formTemplate: FormTemplate,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    originSection: SectionNumber
+  )(implicit messages: Messages): Option[BackLink] = {
+
+    val href =
+      uk.gov.hmrc.gform.gform.routes.FormController
+        .backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber))
+
+    val attributes = Map(
+      "id"                    -> "backButton",
+      "data-form-template-id" -> formTemplate._id.value,
+      "data-access-code"      -> maybeAccessCode.fold("-")(_.value),
+      "data-section-number"   -> sectionNumber.value.toString
+    )
+    val backLink =
+      new BackLink(attributes = attributes, href = href.path, content = new content.Text(messages("linkText.back")))
+
+    if (sectionNumber > originSection || sectionNumber.isTaskList) {
+      Some(backLink)
+    } else None
   }
 
   def renderPrintSection(
@@ -641,7 +674,7 @@ class SectionRenderingService(
     val ei = ExtraInfo(
       Singleton(ackSection.page.asInstanceOf[Page[DataExpanded]]),
       maybeAccessCode,
-      SectionNumber(0),
+      formTemplate.sectionNumberZero,
       formModelOptics,
       formTemplate,
       envelopeId,
@@ -670,7 +703,7 @@ class SectionRenderingService(
     val renderingInfo = SectionRenderingInformation(
       formTemplateId,
       maybeAccessCode,
-      SectionNumber(0),
+      formTemplate.sectionNumberZero,
       destinationList.acknowledgementSection.title.value,
       "",
       destinationList.acknowledgementSection.description.map(ls => ls.value),
@@ -715,7 +748,7 @@ class SectionRenderingService(
     val ei = ExtraInfo(
       singleton,
       maybeAccessCode,
-      SectionNumber(0),
+      formTemplate.sectionNumberZero,
       formModelOptics,
       formTemplate,
       EnvelopeId(""),
@@ -736,7 +769,7 @@ class SectionRenderingService(
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
-      SectionNumber(0),
+      formTemplate.sectionNumberZero,
       page.title.value,
       page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value),
       None,
@@ -756,12 +789,12 @@ class SectionRenderingService(
         formTemplate,
         pageLevelErrorHtml,
         renderingInfo,
-        false,
+        None,
         true,
         true,
         frontendAppConfig,
         maybeAccessCode = maybeAccessCode,
-        sectionNumber = SectionNumber(0),
+        sectionNumber = formTemplate.sectionNumberZero,
         fastForward = FastForward.Yes
       )
   }

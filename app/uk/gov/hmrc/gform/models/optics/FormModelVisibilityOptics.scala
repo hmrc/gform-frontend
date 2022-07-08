@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models.optics
 
 import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationResults, ExpressionResultWithTypeInfo, TypeInfo }
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
-import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, Visibility }
+import uk.gov.hmrc.gform.models.{ Coordinates, FormModel, FormModelBuilder, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormPhase, IncludeIf, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicValue }
@@ -35,6 +35,9 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
   val booleanExprCache: BooleanExprCache = recalculationResult.booleanExprCache
 
   def allFormComponents: List[FormComponent] = formModel.allFormComponents
+
+  def allFormComponentsForCoordinates(coordinates: Coordinates): List[FormComponent] =
+    formModel.taskList.allFormComponents(coordinates)
 
   def allFormComponentIds: List[FormComponentId] =
     allFormComponents.map(_.id)
@@ -89,6 +92,14 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
 
     def forSectionNumber[A](sectionNumber: SectionNumber): Set[VariadicValue] =
       formModel(sectionNumber).allModelComponentIds.flatMap(recData.variadicFormData.get)
+
+    def forCoordinate[A](coordinates: Coordinates): Set[VariadicValue] = {
+      val abc: List[uk.gov.hmrc.gform.models.ids.ModelComponentId] =
+        allFormComponentsForCoordinates(coordinates).map(_.multiValueId).flatMap(_.toModelComponentIds)
+
+      abc.toSet.flatMap(recData.variadicFormData.get)
+
+    }
   }
 
 }

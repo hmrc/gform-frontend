@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, Section }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.HasEnrolmentSection
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, HasEnrolmentSection, Section }
 
 sealed trait SectionSelectorType extends Product with Serializable
 
@@ -26,52 +25,47 @@ object SectionSelectorType {
   trait Normal extends SectionSelectorType
   trait WithDeclaration extends SectionSelectorType
   trait WithAcknowledgement extends SectionSelectorType
-
 }
 
 trait SectionSelector[T <: SectionSelectorType] {
-  def getSections(formTemplate: FormTemplate): List[Section]
+  def getSections(formTemplate: FormTemplate): AllSections
 }
 
 object SectionSelector {
   implicit val normal = new SectionSelector[SectionSelectorType.Normal] {
-    def getSections(formTemplate: FormTemplate): List[Section] = formTemplate.sections
-
+    def getSections(formTemplate: FormTemplate): AllSections = formTemplate.formKind.allSections
   }
 
   implicit val withDeclaration = new SectionSelector[SectionSelectorType.WithDeclaration] {
 
-    def getSections(formTemplate: FormTemplate): List[Section] = {
+    def getSections(formTemplate: FormTemplate): AllSections = {
       val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
         destinationList.declarationSection.toList.map(_.toSection)
       )(destinationPrint => Nil)
 
-      formTemplate.sections ::: destinationSections
+      formTemplate.formKind.allSections + destinationSections
     }
-
   }
 
   implicit val enrolmentOnly = new SectionSelector[SectionSelectorType.EnrolmentOnly] {
 
-    def getSections(formTemplate: FormTemplate): List[Section] =
+    def getSections(formTemplate: FormTemplate): AllSections =
       formTemplate.authConfig match {
         case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
-          enrolmentSection.toSection :: Nil
-        case _ => Nil
+          AllSections.Classic(Nil, enrolmentSection.toSection :: Nil)
+        case _ => AllSections.Classic(Nil, Nil)
       }
   }
 
   implicit val withAcknowledgement = new SectionSelector[SectionSelectorType.WithAcknowledgement] {
 
-    def getSections(formTemplate: FormTemplate): List[Section] = {
+    def getSections(formTemplate: FormTemplate): AllSections = {
       val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
         destinationList.declarationSection.toList.map(_.toSection) ++ List(
           destinationList.acknowledgementSection.toSection
         )
       )(destinationPrint => Nil)
-      formTemplate.sections ::: destinationSections
+      formTemplate.formKind.allSections + destinationSections
     }
-
   }
-
 }

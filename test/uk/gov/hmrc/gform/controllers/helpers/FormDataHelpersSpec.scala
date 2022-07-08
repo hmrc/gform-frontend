@@ -63,7 +63,7 @@ class FormDataHelpersSpec extends Spec {
       None,
       FormData(formFields),
       Accepted,
-      VisitIndex(Set.empty),
+      VisitIndex.Classic(Set.empty),
       ThirdPartyData(
         None,
         NotChecked,
@@ -248,7 +248,7 @@ class FormDataHelpersSpec extends Spec {
           formModel,
           persistedData
         ),
-        Some(SectionNumber(0))
+        Some(SectionNumber.classicZero)
       )(
         continuationFunction
       )
@@ -259,11 +259,11 @@ class FormDataHelpersSpec extends Spec {
     lazy val fields = List(mkFormComponent("formField1", Constant("value1")))
     lazy val section = mkSection(fields)
     lazy val formModel = FormModel[DataExpanded](
-      BracketsWithSectionNumber[DataExpanded](
+      BracketsWithSectionNumber.Classic[DataExpanded](
         NonEmptyList.one(
           NonRepeatingPage[DataExpanded](
             Singleton(section.page.asInstanceOf[Page[DataExpanded]]),
-            SectionNumber(0),
+            SectionNumber.classicZero,
             section
           )
         )

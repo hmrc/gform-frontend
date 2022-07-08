@@ -31,8 +31,8 @@ import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, Sma
 import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormTemplate, mkSection }
+import uk.gov.hmrc.gform.models.{ Coordinates, FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
 import uk.gov.hmrc.gform.pdf.model.PDFType
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent }
@@ -124,7 +124,8 @@ class PDFRenderServiceSpec
     validationService.validateFormModel(
       *[CacheData],
       *[EnvelopeWithMapping],
-      *[FormModelVisibilityOptics[DataOrigin.Mongo]]
+      *[FormModelVisibilityOptics[DataOrigin.Mongo]],
+      *[Option[Coordinates]]
     )(
       *[HeaderCarrier],
       *[Messages],

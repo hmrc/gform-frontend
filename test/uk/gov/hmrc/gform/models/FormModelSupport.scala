@@ -76,7 +76,7 @@ trait FormModelSupport extends GraphSpec {
     formTemplateVersion = None,
     formData = FormData(List.empty[FormField]),
     status = InProgress,
-    visitsIndex = VisitIndex(Set.empty[Int]),
+    visitsIndex = VisitIndex.Classic(Set.empty[Int]),
     thirdPartyData = thirdPartyData,
     envelopeExpiryDate = None,
     componentIdToFileId = FormComponentIdToFileIdMapping.empty
@@ -114,7 +114,7 @@ trait FormModelSupport extends GraphSpec {
     formModelOptics: FormModelOptics[DataOrigin.Browser]
   ): ProcessData = {
 
-    val visitsIndex: VisitIndex = VisitIndex(Set.empty[Int])
+    val visitsIndex: VisitIndex = VisitIndex.Classic(Set.empty[Int])
     val booleanExprCache: BooleanExprCache = BooleanExprCache.empty
     val obligations: Obligations = NotChecked
 

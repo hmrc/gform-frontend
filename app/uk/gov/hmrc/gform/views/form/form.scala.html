@@ -30,12 +30,11 @@
   formTemplate: FormTemplate,
   pageLevelError: HasErrors,
   page: SectionRenderingInformation,
-  shouldDisplayBack: Boolean,
+  backLink: Option[BackLink],
   shouldDisplayHeading: Boolean,
   shouldDisplayContinue: Boolean,
   frontendAppConfig: FrontendAppConfig,
   specimenNavigation: Html = HtmlFormat.empty,
-  isDeclaration: Boolean = false,
   maybeAccessCode: Option[AccessCode],
   sectionNumber: SectionNumber,
   fastForward: FastForward
@@ -57,21 +56,6 @@
   }
 }
 
-@backLink = @{
-  val (href, attributes) =
-    if(isDeclaration) {
-      (uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode).url,
-        Map.empty[String, String])
-    } else {
-      (uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber)).path,
-        Map("id" -> "backButton",
-            "data-form-template-id" -> formTemplate._id.value,
-            "data-access-code" -> maybeAccessCode.fold("-")(_.value),
-            "data-section-number" -> sectionNumber.value.toString))
-    }
-  new BackLink(attributes = attributes, href = href, content = new Text(messages("linkText.back")))
-}
-
 @formWithCSRF = @{new FormWithCSRF()}
 @formWithoutCSRF = @{new FormWithoutCSRF()}
 @govukButton = @{new GovukButton()}
@@ -91,7 +75,7 @@
   formTemplate = formTemplate,
   containsErrors = pageLevelError.hasErrors,
   frontendAppConfig = frontendAppConfig,
-  backLink = if(shouldDisplayBack) Some(backLink) else None
+  backLink = backLink
 ) {
 
     @pageLevelError.render

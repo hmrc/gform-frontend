@@ -42,6 +42,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.metrics.{ GraphiteModule, MetricsModule }
 import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsModule, RequestHeaderService, RoutingModule }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorConnector
+import uk.gov.hmrc.gform.tasklist.TaskListModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.upscan.UpscanModule
 import uk.gov.hmrc.gform.validation.ValidationModule
@@ -174,6 +175,11 @@ class ApplicationModule(context: Context)
     playBuiltInsModule
   )
 
+  private val taskListModule = new TaskListModule(
+    configModule,
+    validationModule
+  )
+
   private val gformModule = new GformModule(
     akkaModule,
     configModule,
@@ -183,6 +189,7 @@ class ApplicationModule(context: Context)
     authModule,
     gformBackendModule,
     fileUploadModule,
+    taskListModule,
     upscanModule,
     addressLookupModule,
     validationModule,

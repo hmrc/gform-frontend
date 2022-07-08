@@ -17,52 +17,7 @@
 package uk.gov.hmrc.gform.controllers
 
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ Bracket, Visibility }
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-
-trait Navigation {
-
-  def formModelOptics: FormModelOptics[DataOrigin.Browser]
-
-  val availableSectionNumbers: List[SectionNumber] =
-    formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
-
-  val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).value))
-
-  val addToListBrackets: List[Bracket.AddToList[Visibility]] =
-    formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
-
-  val addToListSectionNumbers: List[SectionNumber] =
-    addToListBrackets.flatMap(_.toPageModelWithNumber.toList).map(_._2)
-
-  val addToListRepeaterSectionNumbers: List[SectionNumber] =
-    addToListBrackets.flatMap(_.iterations.toList).map(_.repeater.sectionNumber)
-
-  val addToListNonRepeaterSectionNumbers: List[SectionNumber] =
-    addToListSectionNumbers.filterNot(addToListRepeaterSectionNumbers.toSet)
-
-  val samePageRepeatersSectionNumbers: List[List[SectionNumber]] =
-    formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
-      .map(_.iterations.toList.map(_.repeater.sectionNumber))
-
-  val filteredSectionNumbers: SectionNumber => List[SectionNumber] = sectionNumber =>
-    if (addToListRepeaterSectionNumbers.contains(sectionNumber)) {
-      val excludesAddToListNonRepeaterSectionNumbers = availableSectionNumbers
-        .filterNot(addToListNonRepeaterSectionNumbers.toSet)
-
-      samePageRepeatersSectionNumbers
-        .find(_.contains(sectionNumber))
-        .fold(excludesAddToListNonRepeaterSectionNumbers) { l =>
-          excludesAddToListNonRepeaterSectionNumbers.filterNot(l.toSet)
-        }
-    } else
-      availableSectionNumbers
-}
-
-// TODO: Origin should not be in controllers, but Navigator probably should!
-case class Origin(formModelOptics: FormModelOptics[DataOrigin.Browser]) extends Navigation
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddToListId
 
 sealed trait Direction
 
@@ -75,25 +30,3 @@ case object Continue extends Direction
 case class AddGroup(modelComponentId: ModelComponentId) extends Direction
 case class RemoveGroup(modelComponentId: ModelComponentId) extends Direction
 case class EditAddToList(idx: Int, addToListId: AddToListId) extends Direction
-
-case class Navigator(
-  sectionNumber: SectionNumber,
-  formModelOptics: FormModelOptics[DataOrigin.Browser]
-) extends Navigation {
-  require(
-    sectionNumber >= minSectionNumber,
-    s"section number is too low: ${sectionNumber.value} is not >= $minSectionNumber"
-  )
-  require(
-    sectionNumber <= maxSectionNumber,
-    s"section number is too big: ${sectionNumber.value} is not <= $maxSectionNumber"
-  )
-
-  private lazy val maxSectionNumber: SectionNumber = availableSectionNumbers.max(Ordering.by((_: SectionNumber).value))
-
-  val previousOrCurrentSectionNumber: SectionNumber =
-    filteredSectionNumbers(sectionNumber).reverse
-      .find(_ < sectionNumber)
-      .getOrElse(sectionNumber)
-
-}

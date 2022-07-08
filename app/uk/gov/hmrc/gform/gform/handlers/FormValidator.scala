@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform.handlers
 import cats.Monoid
 import uk.gov.hmrc.gform.controllers.{ CacheData, Origin }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.models.Coordinates
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
@@ -95,12 +96,18 @@ class FormValidator(implicit ec: ExecutionContext) {
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
-    fastForward: FastForward
+    fastForward: FastForward,
+    maybeCoordinates: Option[Coordinates]
   ): Future[Option[SectionNumber]] = {
 
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
 
-    val availableSectionNumbers: List[SectionNumber] = Origin(formModelOptics).availableSectionNumbers
+    val availableSectionNumbers0: List[SectionNumber] = Origin(formModelOptics).availableSectionNumbers
+
+    val availableSectionNumbers = maybeCoordinates.fold(availableSectionNumbers0)(coordinates =>
+      availableSectionNumbers0.filter(_.contains(coordinates))
+    )
+
     availableSectionNumbers.foldLeft(Future.successful(None: Option[SectionNumber])) { case (accF, currentSn) =>
       accF.flatMap {
         case Some(sn) => Future.successful(Some(sn))
@@ -114,7 +121,7 @@ class FormValidator(implicit ec: ExecutionContext) {
           ).map(fhr => toFormValidationOutcome(fhr, EnteredVariadicFormData.empty)).map {
             case FormValidationOutcome(isValid, _, _) =>
               val page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
-              val hasBeenVisited = processData.visitsIndex.contains(currentSn.value)
+              val hasBeenVisited = processData.visitsIndex.contains(currentSn)
               val postcodeLookupHasAddress = page.postcodeLookup.fold(true) { formComponent =>
                 cache.thirdPartyData.addressIsConfirmed(formComponent.id)
               }

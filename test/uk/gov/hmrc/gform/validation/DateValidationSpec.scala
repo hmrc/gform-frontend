@@ -93,7 +93,7 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
     data: VariadicFormData[SourceOrigin.OutOfDate]
   ) = {
 
-    val fmb = mkFormModelFromSections(formTemplate.sections)
+    val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections)
 
     val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 

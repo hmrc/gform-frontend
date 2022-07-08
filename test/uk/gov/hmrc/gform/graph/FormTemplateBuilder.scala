@@ -268,7 +268,7 @@ object FormTemplateBuilder {
     LocalisedEmailTemplateId("randd_confirmation_submission", None),
     None,
     None,
-    sections,
+    FormKind.Classic(sections),
     Nil,
     AvailableLanguages.default,
     None,
@@ -344,7 +344,7 @@ object FormTemplateBuilder {
     staticTypeInfo: StaticTypeInfo
   ): FormModel[A] =
     FormModel(
-      BracketsWithSectionNumber(brackets),
+      BracketsWithSectionNumber.Classic(brackets),
       staticTypeInfo,
       RevealingChoiceInfo.empty,
       SumInfo.empty,

@@ -195,7 +195,7 @@ class EnrolmentController(
                 val formHandlerResultF: Future[FormHandlerResult] =
                   formValidator.validatePageModelBySectionNumber[DataOrigin.Mongo](
                     formModelOptics,
-                    SectionNumber(0),
+                    formTemplate.sectionNumberZero,
                     cache.toCacheData,
                     EnvelopeWithMapping.empty,
                     validationService.validatePageModel
@@ -207,6 +207,10 @@ class EnrolmentController(
                   retrievals,
                   enrolmentSection,
                   formModelOptics,
+                  //formTemplate.sectionNumberZero,
+                  //cache.toCacheData,
+                  //EnvelopeWithMapping.empty,
+                  //validationService.validatePageModel,
                   frontendAppConfig
                 )
                 for {

@@ -22,7 +22,7 @@ import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.{ Coordinates, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationPrint
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
@@ -66,7 +66,11 @@ class PrintSectionController(
     renderer.renderPrintSection(maybeAccessCode, cache.formTemplate, destinationPrint)
   }
 
-  def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+  def downloadPDF(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    maybeCoordinates: Option[Coordinates]
+  ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
@@ -82,7 +86,8 @@ class PrintSectionController(
                               cache,
                               SummaryPagePurpose.ForUser,
                               pdf,
-                              formModelOptics
+                              formModelOptics,
+                              maybeCoordinates
                             )
             pdfStream <- pdfService.generatePDF(htmlForPDF)
           } yield Result(
