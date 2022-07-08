@@ -217,21 +217,23 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       (
         TypeInfo(LinkCtx(PageLink(PageId("page1"))), StaticTypeData(ExprType.string, None)),
         recDataEmpty,
-        buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Pure("page1") -> SectionNumber(1))),
+        buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Pure("page1") -> SectionNumber.Classic(1))),
         StringResult("/form/section/aaa999/-/1"),
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (exact match)"
       ),
       (
         TypeInfo(LinkCtx(PageLink(PageId("1_page1"))), StaticTypeData(ExprType.string, None)),
         recDataEmpty,
-        buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Pure("page1") -> SectionNumber(1))),
+        buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Pure("page1") -> SectionNumber.Classic(1))),
         StringResult("/form/section/aaa999/-/1"),
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (link from repeating/add-to-list page to non-repeating page)"
       ),
       (
         TypeInfo(LinkCtx(PageLink(PageId("page1"))), StaticTypeData(ExprType.string, None)),
         recDataEmpty,
-        buildEvaluationContext(pageIdSectionNumberMap = Map(ModelPageId.Indexed("page1", 1) -> SectionNumber(1))),
+        buildEvaluationContext(pageIdSectionNumberMap =
+          Map(ModelPageId.Indexed("page1", 1) -> SectionNumber.Classic(1))
+        ),
         StringResult("/form/section/aaa999/-/1"),
         "Eval LinkCtx(PageLink(PageId(xxx))) as string (link from non-repeating page to repeating page)"
       ),

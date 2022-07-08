@@ -118,7 +118,7 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
     forAll(variations) { case (index, (expectedVariadicData, expectedMapping, expectedFilesToDelete)) ⇒
       val modelComponentId: ModelComponentId = FormComponentId(index + "_group").modelComponentId
       val (updatedVariadicData, updatedMapping, filesToDelete) =
-        GroupUtils.removeRecord(processData, modelComponentId, SectionNumber(1), originalMapping)
+        GroupUtils.removeRecord(processData, modelComponentId, SectionNumber.Classic(1), originalMapping)
 
       updatedMapping shouldBe expectedMapping
       filesToDelete shouldBe expectedFilesToDelete

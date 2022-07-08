@@ -45,6 +45,24 @@ case class FormModel[A <: PageMode](
       )
   }.toMap
 
+  object taskList {
+
+    def availablePages(coordinates: Coordinates): List[PageModel[A]] = {
+      val xs: NonEmptyList[Bracket[A]] = brackets.unsafeToTaskList.bracketsFor(coordinates)
+      val pagesWithIndex: NonEmptyList[(PageModel[A], SectionNumber)] = xs.flatMap(_.toPageModelWithNumber)
+      val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
+      pages
+    }
+
+    def allFormComponents(coordinates: Coordinates): List[FormComponent] = {
+      val xs: NonEmptyList[Bracket[A]] = brackets.unsafeToTaskList.bracketsFor(coordinates)
+      val pagesWithIndex: NonEmptyList[(PageModel[A], SectionNumber)] = xs.flatMap(_.toPageModelWithNumber)
+      val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
+      val allFormComponents: List[FormComponent] = pages.flatMap(_.allFormComponents)
+      allFormComponents
+    }
+  }
+
   val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
 
   val allFormComponents: List[FormComponent] = pages.flatMap(_.allFormComponents)
@@ -118,8 +136,12 @@ case class FormModel[A <: PageMode](
 
   def map[B <: PageMode](
     e: Singleton[A] => Singleton[B]
-  )(f: CheckYourAnswers[A] => CheckYourAnswers[B])(g: Repeater[A] => Repeater[B]): FormModel[B] = FormModel(
-    BracketsWithSectionNumber(brackets.brackets.map(_.map(e, f, g))),
+  )(
+    f: CheckYourAnswers[A] => CheckYourAnswers[B]
+  )(
+    g: Repeater[A] => Repeater[B]
+  ): FormModel[B] = FormModel(
+    brackets.map(e)(f)(g),
     staticTypeInfo,
     revealingChoiceInfo,
     sumInfo,
@@ -132,22 +154,28 @@ case class FormModel[A <: PageMode](
       Section.AddToList
     ) => NonEmptyList[BracketPlain.AddToListIteration[A]]
   ): FormModel[A] = {
-    val bracketPlains = brackets.toBracketsPlains.map {
-      case BracketPlain.AddToList(iterations, source) => BracketPlain.AddToList(f(iterations, source), source)
-      case o                                          => o
-    }
-    FormModel.fromPages(bracketPlains, staticTypeInfo, revealingChoiceInfo, sumInfo)
+
+    def applyFToRepeater(bracketPlains: NonEmptyList[BracketPlain[A]]): NonEmptyList[BracketPlain[A]] =
+      bracketPlains.map {
+        case BracketPlain.AddToList(iterations, source) => BracketPlain.AddToList(f(iterations, source), source)
+        case o                                          => o
+      }
+
+    def bracketPlainCoordinated: BracketPlainCoordinated[A] =
+      brackets.toBracketPlainCoordinated.fold[BracketPlainCoordinated[A]] { classic =>
+        BracketPlainCoordinated.Classic[A](applyFToRepeater(classic.bracketPlains))
+      } { taskList =>
+        BracketPlainCoordinated.TaskList[A](taskList.bracketPlains.map { case (coor, bracketPlains) =>
+          coor -> applyFToRepeater(bracketPlains)
+        })
+      }
+
+    FormModel.fromPages(bracketPlainCoordinated, staticTypeInfo, revealingChoiceInfo, sumInfo)
   }
 
   def apply(sectionNumber: SectionNumber): PageModel[A] = pageModelLookup(sectionNumber)
-  def apply(sectionNumber: Int): PageModel[A] = pageModelLookup(SectionNumber(sectionNumber))
 
   def bracket(sectionNumber: SectionNumber): Bracket[A] =
-    brackets
-      .withSectionNumber(sectionNumber)
-      .getOrElse(throw new IllegalArgumentException(s"Wrong sectionNumber $sectionNumber"))
-
-  def maybeBracket(sectionNumber: SectionNumber): Option[Bracket[A]] =
     brackets.withSectionNumber(sectionNumber)
 
   def addToListBrackets: List[Bracket.AddToList[A]] = brackets.addToListBrackets
@@ -157,20 +185,36 @@ case class FormModel[A <: PageMode](
   def isDefinedAt(modelComponentId: ModelComponentId): Boolean = allModelComponentIds(modelComponentId)
 
   def filter[B <: PageMode](predicate: PageModel[A] => Boolean): FormModel[B] = {
-    val filtered: List[Bracket[A]] = brackets.brackets.map(_.filter(predicate)).collect { case Some(bracket) =>
-      bracket
-    }
-    NonEmptyList
-      .fromList(filtered)
-      .fold(throw new IllegalArgumentException("All pages of the form are invisible")) { brackets =>
-        FormModel[A](
-          BracketsWithSectionNumber(brackets),
-          staticTypeInfo,
-          revealingChoiceInfo,
-          sumInfo,
-          standaloneSumInfo
-        ).asInstanceOf[FormModel[B]]
+
+    def applyPredicate(brackets: NonEmptyList[Bracket[A]]): List[Bracket[A]] =
+      brackets.map(_.filter(predicate)).collect { case Some(bracket) =>
+        bracket
       }
+
+    val bracketsWithSectionNumber = brackets.fold[BracketsWithSectionNumber[A]] { classic =>
+      val filtered: List[Bracket[A]] = applyPredicate(classic.brackets)
+      NonEmptyList
+        .fromList(filtered)
+        .fold(throw new IllegalArgumentException("All pages of the form are invisible")) { brackets =>
+          BracketsWithSectionNumber.Classic(brackets)
+        }
+    } { taskList =>
+      BracketsWithSectionNumber.TaskList(
+        taskList.brackets.map { case (coor, brackets) =>
+          val filtered: List[Bracket[A]] = applyPredicate(brackets)
+          coor -> NonEmptyList
+            .fromList(filtered)
+            .getOrElse(throw new IllegalArgumentException("All pages of the task are invisible"))
+        }
+      )
+    }
+    FormModel[A](
+      bracketsWithSectionNumber,
+      staticTypeInfo,
+      revealingChoiceInfo,
+      sumInfo,
+      standaloneSumInfo
+    ).asInstanceOf[FormModel[B]]
   }
 
   private def toStaticTypeData(formComponentId: FormComponentId): Option[StaticTypeData] =
@@ -249,7 +293,9 @@ object FormModel {
   def fromEnrolmentSection[A <: PageMode](enrolmentSection: EnrolmentSection): FormModel[A] = {
     val singleton = Singleton(enrolmentSection.toPage).asInstanceOf[Singleton[A]]
     FormModel.fromPages(
-      NonEmptyList.one(BracketPlain.NonRepeatingPage(singleton, enrolmentSection.toSection)),
+      BracketPlainCoordinated.Classic(
+        NonEmptyList.one(BracketPlain.NonRepeatingPage(singleton, enrolmentSection.toSection))
+      ),
       StaticTypeInfo.empty,
       RevealingChoiceInfo.empty,
       SumInfo.empty
@@ -257,15 +303,15 @@ object FormModel {
   }
 
   def fromPages[A <: PageMode](
-    bracketPlains: NonEmptyList[BracketPlain[A]],
+    bracketPlains: BracketPlainCoordinated[A],
     staticTypeInfo: StaticTypeInfo,
     revealingChoiceInfo: RevealingChoiceInfo,
     sumInfo: SumInfo
   ): FormModel[A] = {
 
-    val standaloneSumInfo = StandaloneSumInfo.from(bracketPlains, sumInfo)
+    def standaloneSumInfo: StandaloneSumInfo = StandaloneSumInfo.from(bracketPlains, sumInfo)
 
-    val bracketsWithSectionNumber = BracketsWithSectionNumber(Bracket.fromBracketsPlains(bracketPlains))
+    val bracketsWithSectionNumber = BracketsWithSectionNumber.fromBracketsPlains(bracketPlains)
 
     FormModel(
       bracketsWithSectionNumber,

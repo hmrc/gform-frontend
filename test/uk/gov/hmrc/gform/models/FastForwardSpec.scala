@@ -88,7 +88,9 @@ class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with Variadi
           val fmb = mkFormModelFromSections(sections)
           val variadicData = variadicFormData[SourceOrigin.OutOfDate](data: _*)
           val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](variadicData, None)
-          StopAt(SectionNumber(stopAt)).next(fmvo.formModel) shouldBe StopAt(SectionNumber(expectedStopAt))
+          StopAt(SectionNumber.Classic(stopAt)).next(fmvo.formModel) shouldBe StopAt(
+            SectionNumber.Classic(expectedStopAt)
+          )
         }
       }
     }

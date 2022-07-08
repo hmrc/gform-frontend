@@ -70,9 +70,9 @@ class FormAddToListController(
         val formAction =
           routes.FormAddToListController
             .confirmRemoval(formTemplateId, maybeAccessCode, sectionNumber, index, addToListId)
-        val maybeBracket = formModel.maybeBracket(sectionNumber)
+        val maybeBracket = formModel.bracket(sectionNumber)
         maybeBracket match {
-          case Some(Bracket.AddToList(iterations, _)) =>
+          case Bracket.AddToList(iterations, _) =>
             val (pageError, fieldErrors) =
               request.flash.get("removeParamMissing").fold((NoErrors: HasErrors, Map.empty[String, ErrorMessage])) {
                 _ =>
@@ -110,12 +110,10 @@ class FormAddToListController(
                   fieldErrors
                 )
             ).pure[Future]
-          case Some(_) =>
+          case _ =>
             throw new IllegalArgumentException(
               "FormAddToListController.requestRemoval can only be requested from AddToList section"
             )
-          case None =>
-            Redirect(routes.FormController.formSection(formTemplateId, maybeAccessCode, SectionNumber(0))).pure[Future]
         }
 
     }

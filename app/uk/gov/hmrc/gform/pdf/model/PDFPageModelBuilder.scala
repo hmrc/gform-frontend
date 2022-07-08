@@ -45,7 +45,8 @@ object PDFPageModelBuilder {
 
     import pdfFunctions._
 
-    val brackets = formModelOptics.formModelVisibilityOptics.formModel.brackets.brackets.toList
+    def brackets: List[Bracket[Visibility]] =
+      formModelOptics.formModelVisibilityOptics.formModel.brackets.fold(_.brackets)(_.allBrackets).toList
     val bracketsSorted: List[Bracket[Visibility]] = bracketOrdering.fold(brackets)(brackets.sorted(_))
 
     bracketsSorted.flatMap {

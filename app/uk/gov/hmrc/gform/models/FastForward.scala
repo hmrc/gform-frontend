@@ -21,6 +21,12 @@ import uk.gov.hmrc.gform.models.FastForward.StopAt
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
 sealed trait FastForward extends Product with Serializable {
+
+  private def fold[B](f: FastForward.Yes.type => B)(g: FastForward.StopAt => B): B = this match {
+    case y: FastForward.Yes.type => f(y)
+    case s: FastForward.StopAt   => g(s)
+  }
+
   def asString: String = fold(_ => FastForward.ffYes)(_.stopAt.value.toString)
 
   def next(formModel: FormModel[Visibility]): FastForward = fold[FastForward](identity) { st =>
@@ -32,10 +38,6 @@ sealed trait FastForward extends Product with Serializable {
 
   def goOn(sectionNumber: SectionNumber): Boolean = fold(_ => true)(_.stopAt > sectionNumber)
 
-  private def fold[B](f: FastForward.Yes.type => B)(g: FastForward.StopAt => B): B = this match {
-    case y: FastForward.Yes.type => f(y)
-    case s: FastForward.StopAt   => g(s)
-  }
 }
 
 object FastForward {

@@ -39,7 +39,7 @@ case class FormTemplate(
   emailTemplateId: LocalisedEmailTemplateId,
   emailParameters: Option[NonEmptyList[EmailParameter]],
   webChat: Option[WebChat],
-  sections: List[Section],
+  formKind: FormKind,
   parentFormSubmissionRefs: List[FormComponentId],
   languages: AvailableLanguages,
   save4LaterInfoText: Option[Save4LaterInfoText],
@@ -54,6 +54,9 @@ case class FormTemplate(
 ) {
 
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")
+
+  val sectionNumberZero: SectionNumber =
+    formKind.fold[SectionNumber](_ => SectionNumber.classicZero)(_ => SectionNumber.taskListZero)
 
 }
 

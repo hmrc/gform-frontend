@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
+package uk.gov.hmrc.gform.tasklist
 
-import org.scalacheck.Gen
-import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
+import cats.Eq
 
-trait VisitIndexGen {
-  def visitIndexGen = Gen.containerOf[Set, Int](Gen.posNum[Int]).map(VisitIndex.Classic(_))
+sealed trait TaskStatus extends Product with Serializable
+
+object TaskStatus {
+  implicit val equal: Eq[TaskStatus] = Eq.fromUniversalEquals
+  case object NotStarted extends TaskStatus
+  case object InProgress extends TaskStatus
+  case object Completed extends TaskStatus
+  case object CannotStartYet extends TaskStatus
 }
-
-object VisitIndexGen extends VisitIndexGen

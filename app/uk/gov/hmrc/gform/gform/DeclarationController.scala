@@ -246,7 +246,7 @@ class DeclarationController(
         if (validationResult.errorsFieldIds.exists(declarationSectionFieldIds.contains))
           routes.DeclarationController.showDeclaration(maybeAccessCode, cache.formTemplate._id, SuppressErrors.No)
         else
-          routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
+          routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None)
 
       Redirect(call)
     }

@@ -17,10 +17,10 @@
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form.FormId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.gform.routes.SummaryController
-@import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.gform.routes.SummaryController
 @import uk.gov.hmrc.gform.gform.SummaryPagePurpose
+@import uk.gov.hmrc.gform.models.Coordinates
 @import uk.gov.hmrc.gform.views.html.summary.snippets.alert
 @import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
@@ -29,6 +29,7 @@
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.controllers.{Exit, SummaryContinue}
+@import views.html.helper.CSRF
 
 @(
     formTemplate: FormTemplate,
@@ -45,7 +46,8 @@
     summaryDeclaration: Html,
     footer: Html,
     formDataFingerprint: String,
-    displayWidth: SummaryDisplayWidth.SummaryDisplayWidth
+    displayWidth: SummaryDisplayWidth.SummaryDisplayWidth,
+    maybeCoordinates: Option[Coordinates]
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @heading = @{formTemplate.summarySection.title.value}
@@ -91,7 +93,7 @@
         @reviewerComments.map(c => alert(messages("summary.alert.title"), c))
     }
 
-    @formWithCSRF(action = SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint), args =  'method -> "POST", 'class -> "js-form govuk-!-margin-bottom-9", 'autocomplete -> "off", 'novalidate -> "novalidate", 'id -> "gf-form") {
+    @formWithCSRF(action = SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint, maybeCoordinates), args =  'method -> "POST", 'class -> "js-form govuk-!-margin-bottom-9", 'autocomplete -> "off", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
         @mainContent {
             @if(summaryPagePurpose.forUser) {
@@ -113,13 +115,13 @@
                 @govukButton(Button(content = Text(messages(continueLabelKey)),
                     inputType=Some("submit"),
                     value=Some("SummaryContinue"),
-                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint).path)
+                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint, maybeCoordinates).path)
                     )
                 )
                 @if(renderComeBackLater) {
                     @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
                         inputType=Some("submit"),
-                        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, Exit, formDataFingerprint).path),
+                        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, Exit, formDataFingerprint, maybeCoordinates).path),
                         classes="govuk-button--secondary"
                         )
                     )

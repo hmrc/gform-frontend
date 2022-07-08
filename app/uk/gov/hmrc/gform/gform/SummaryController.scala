@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.{ Coordinates, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
@@ -74,12 +74,16 @@ class SummaryController(
 
   import i18nSupport._
 
-  def summaryById(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+  def summaryById(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    maybeCoordinates: Option[Coordinates]
+  ): Action[AnyContent] =
     auth
       .authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.ViewSummary) {
         implicit request => implicit l => cache => implicit sse => formModelOptics =>
           summaryRenderingService
-            .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForUser, formModelOptics)
+            .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForUser, formModelOptics, maybeCoordinates)
             .map(Ok(_))
       }
 
@@ -87,7 +91,8 @@ class SummaryController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     save: Direction,
-    formDataFingerprint: String
+    formDataFingerprint: String,
+    maybeCoordinates: Option[Coordinates]
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
@@ -97,14 +102,16 @@ class SummaryController(
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
         requestRelatedData => variadicFormData => _ =>
           save match {
-            case Exit => handleExit(cache.formTemplateWithRedirects, maybeAccessCode, cache).pure[Future]
+            case Exit =>
+              handleExit(cache.formTemplateWithRedirects, maybeAccessCode, cache).pure[Future]
             case SummaryContinue =>
               handleSummaryContinue(
                 cache.form.formTemplateId,
                 maybeAccessCode,
                 cache,
                 formModelOptics,
-                formDataFingerprint
+                formDataFingerprint,
+                maybeCoordinates
               )
             case _ => BadRequest("Cannot determine action").pure[Future]
           }
@@ -140,7 +147,8 @@ class SummaryController(
           case Some(c) if c.isEmailAuthConfig =>
             Redirect(gform.routes.SaveAcknowledgementController.show(formTemplate._id))
           case _ =>
-            val call = routes.SummaryController.summaryById(formTemplate._id, maybeAccessCode)
+            val call = routes.SummaryController
+              .summaryById(formTemplate._id, maybeAccessCode, None) // TODO JoVl why are Coordinates needed here?
             val saveAcknowledgement = new SaveAcknowledgement(formTemplate, cache.form.envelopeExpiryDate)
             Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
         }
@@ -152,7 +160,8 @@ class SummaryController(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    formDataFingerprint: String
+    formDataFingerprint: String,
+    maybeCoordinates: Option[Coordinates]
   )(implicit
     request: Request[AnyContent],
     hc: HeaderCarrier,
@@ -167,7 +176,8 @@ class SummaryController(
                             .validateFormModel(
                               cache.toCacheData,
                               EnvelopeWithMapping(envelope, cache.form),
-                              formModelOptics.formModelVisibilityOptics
+                              formModelOptics.formModelVisibilityOptics,
+                              maybeCoordinates
                             )
       isTokenValid <- Future.successful(formDataFingerprint === cache.form.formData.fingerprint)
     } yield validationResult.isFormValid && isTokenValid
@@ -184,24 +194,37 @@ class SummaryController(
         )
       )
       .flatMap { _ =>
-        cache.formTemplate.destinations match {
-          case DestinationList(_, _, Some(declarationSection)) =>
+        maybeCoordinates match {
+          case Some(coordinates) =>
             Redirect(
-              routes.DeclarationController
-                .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes)
-            ).pure[Future]
-          case DestinationList(_, _, None) =>
-            processSubmission(maybeAccessCode, cache, formModelOptics)
-          case _: DestinationPrint =>
-            Redirect(
-              routes.PrintSectionController
-                .showPrintSection(formTemplateId, maybeAccessCode)
-            ).pure[Future]
+              uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                .landingPage(formTemplateId, maybeAccessCode)
+            )
+              .pure[Future]
+          case None =>
+            cache.formTemplate.destinations match {
+              case DestinationList(_, _, Some(declarationSection)) =>
+                Redirect(
+                  routes.DeclarationController
+                    .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes)
+                ).pure[Future]
+              case DestinationList(_, _, None) =>
+                processSubmission(maybeAccessCode, cache, formModelOptics)
+              case _: DestinationPrint =>
+                Redirect(
+                  routes.PrintSectionController
+                    .showPrintSection(formTemplateId, maybeAccessCode)
+                ).pure[Future]
+            }
         }
+
       }
     val redirectToSummary: Result =
-      Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
+      Redirect(
+        routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, maybeCoordinates)
+      )
     for {
+      valid <- isFormValidF
       result <- isFormValidF.ifM(
                   changeStateAndRedirectToDeclarationOrPrint,
                   redirectToSummary.pure[Future]
@@ -246,7 +269,8 @@ class SummaryController(
                     )
                   }
                 } else {
-                  Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)).pure[Future]
+                  Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None))
+                    .pure[Future]
                 }
     } yield result
 

@@ -92,29 +92,48 @@ class FormProcessor(
 
       val isLastIteration = addToListBracket.iterations.size === 1
 
-      val visitsIndex = VisitIndex
+      val visitsIndex: VisitIndex = VisitIndex
         .updateSectionVisits(updFormModel, processData.formModel, processData.visitsIndex)
 
       val visitsIndexUpd =
         if (isLastIteration) {
-          val iterationForSectionNumber = addToListBracket
+          val iterationForSectionNumber: Bracket.AddToListIteration[DataExpanded] = addToListBracket
             .iterationForSectionNumber(sn)
-          val visitsIndexForLastIteration = iterationForSectionNumber.singletons
-            .map(_.sectionNumber.value)
-            .toList ++ iterationForSectionNumber.checkYourAnswers.map(_.sectionNumber.value)
 
-          visitsIndex -- visitsIndexForLastIteration
+          val visitsIndexForLastIteration: List[SectionNumber] = iterationForSectionNumber.singletons
+            .map(_.sectionNumber)
+            .toList ++ iterationForSectionNumber.checkYourAnswers.map(_.sectionNumber)
+
+          val toBeRemoved = visitsIndexForLastIteration.map(_.unsafeToClassic.sectionNumber)
+
+          visitsIndex.fold[VisitIndex](classic =>
+            VisitIndex.Classic(
+              classic.visitsIndex -- toBeRemoved
+            )
+          ) { taskList =>
+            val coordinates = sn.toCoordinatesUnsafe
+
+            val indexes =
+              taskList.visitsIndex
+                .getOrElse(coordinates, throw new Exception(s"No VisitIndex found for coordinates $coordinates"))
+
+            val updated = indexes -- toBeRemoved
+
+            VisitIndex.TaskList(
+              taskList.visitsIndex + (coordinates -> updated)
+            )
+          }
         } else
           visitsIndex
 
       val processDataUpd = processData.copy(
         formModelOptics = updFormModelOptics,
-        visitsIndex = VisitIndex(visitsIndexUpd)
+        visitsIndex = visitsIndexUpd
       )
 
       val cacheUpd = cache.copy(
         form = cache.form.copy(
-          visitsIndex = VisitIndex(visitsIndexUpd),
+          visitsIndex = visitsIndexUpd,
           thirdPartyData = cache.form.thirdPartyData.removePostcodeData(idx, postcodeLookupIds),
           componentIdToFileId = componentIdToFileId
         )
@@ -305,7 +324,8 @@ class FormProcessor(
               processData.copy(visitsIndex = visitsIndex),
               maybeAccessCode,
               fastForward,
-              envelopeWithMapping
+              envelopeWithMapping,
+              sectionNumber.toCoordinates
             )(toResult(updatePostcodeLookup))
         }
       }

@@ -37,8 +37,8 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadA
 import uk.gov.hmrc.gform.gform.{ SectionRenderingService, SummaryPagePurpose }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.{ Coordinates, FormModel, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
@@ -94,7 +94,12 @@ class SummaryRenderingServiceSpec
 
     mockFileUploadService.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]) returns Future.successful(Envelope(List.empty))
     mockValidationService
-      .validateFormModel(*[CacheData], *[EnvelopeWithMapping], *[FormModelVisibilityOptics[DataOrigin.Mongo]])(
+      .validateFormModel(
+        *[CacheData],
+        *[EnvelopeWithMapping],
+        *[FormModelVisibilityOptics[DataOrigin.Mongo]],
+        *[Option[Coordinates]]
+      )(
         *[HeaderCarrier],
         *[Messages],
         *[LangADT],
@@ -165,7 +170,8 @@ class SummaryRenderingServiceSpec
               cache,
               SummaryPagePurpose.ForDms,
               PrintSection.Pdf(toSmartString("header"), toSmartString("footer")),
-              formModelOptics
+              formModelOptics,
+              Option.empty[Coordinates]
             )
             .futureValue
 
@@ -220,7 +226,13 @@ class SummaryRenderingServiceSpec
           import testFixture._
 
           val generatedHtml = summaryRenderingService
-            .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForDms, formModelOptics)
+            .getSummaryHTML(
+              maybeAccessCode,
+              cache,
+              SummaryPagePurpose.ForDms,
+              formModelOptics,
+              Option.empty[Coordinates]
+            )
             .futureValue
 
           val pageButton = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button").first
@@ -285,7 +297,13 @@ class SummaryRenderingServiceSpec
             }
             import testFixture._
             summaryRenderingService
-              .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForDms, formModelOptics)
+              .getSummaryHTML(
+                maybeAccessCode,
+                cache,
+                SummaryPagePurpose.ForDms,
+                formModelOptics,
+                Option.empty[Coordinates]
+              )
               .futureValue
               .summaryElements shouldBe expectedSummaryElements
           }
@@ -350,7 +368,13 @@ class SummaryRenderingServiceSpec
             }
             import testFixture._
             summaryRenderingService
-              .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForDms, formModelOptics)
+              .getSummaryHTML(
+                maybeAccessCode,
+                cache,
+                SummaryPagePurpose.ForDms,
+                formModelOptics,
+                Option.empty[Coordinates]
+              )
               .futureValue
               .summaryElements shouldBe expectedSummaryElements
           }
@@ -424,7 +448,13 @@ class SummaryRenderingServiceSpec
 
           val html: Html =
             summaryRenderingService
-              .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForDms, formModelOptics)
+              .getSummaryHTML(
+                maybeAccessCode,
+                cache,
+                SummaryPagePurpose.ForDms,
+                formModelOptics,
+                Option.empty[Coordinates]
+              )
               .futureValue
 
           html.summaryElements shouldBe List(
@@ -509,7 +539,13 @@ class SummaryRenderingServiceSpec
 
           val html: Html =
             summaryRenderingService
-              .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForDms, formModelOptics)
+              .getSummaryHTML(
+                maybeAccessCode,
+                cache,
+                SummaryPagePurpose.ForDms,
+                formModelOptics,
+                Option.empty[Coordinates]
+              )
               .futureValue
 
           html.summaryElements shouldBe List(

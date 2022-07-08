@@ -132,7 +132,7 @@ object Bracket {
 
     def isCommited(visitsIndex: VisitIndex): Boolean =
       singletons.forall { singletonWithNumber =>
-        visitsIndex.contains(singletonWithNumber.sectionNumber.value)
+        visitsIndex.contains(singletonWithNumber.sectionNumber)
       }
   }
 
@@ -225,27 +225,5 @@ object Bracket {
     def repeaters: NonEmptyList[Repeater[A]] = iterations.map(_.repeater.repeater)
 
     def lastSectionNumber: SectionNumber = iterations.last.repeater.sectionNumber
-  }
-
-  def fromBracketsPlains[A <: PageMode](bracketPlains: NonEmptyList[BracketPlain[A]]): NonEmptyList[Bracket[A]] = {
-    val iterator = Stream.from(0).map(SectionNumber(_)).iterator
-    bracketPlains.map {
-      case BracketPlain.AddToList(iterations, source) =>
-        Bracket.AddToList(
-          iterations.map { it =>
-            Bracket
-              .AddToListIteration(
-                it.singletons.map(singleton => SingletonWithNumber(singleton, iterator.next)),
-                it.checkYourAnswers.map(CheckYourAnswersWithNumber(_, iterator.next)),
-                RepeaterWithNumber(it.repeater, iterator.next)
-              )
-          },
-          source
-        )
-      case BracketPlain.RepeatingPage(singletons, source) =>
-        Bracket.RepeatingPage(singletons.map(singleton => SingletonWithNumber(singleton, iterator.next)), source)
-      case BracketPlain.NonRepeatingPage(singleton, source) =>
-        Bracket.NonRepeatingPage(singleton, iterator.next, source)
-    }
   }
 }

@@ -103,7 +103,7 @@ trait FormTemplateGen {
       emailTemplateId,
       emailParameters,
       webChat,
-      sections.toList,
+      FormKind.Classic(sections.toList),
       parentFormSubmissionRefs,
       AvailableLanguages.default,
       save4LaterInfoText,

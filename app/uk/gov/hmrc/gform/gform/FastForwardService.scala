@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ FastForward, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ Coordinates, FastForward, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.sharedmodel._
@@ -55,13 +55,14 @@ class FastForwardService(
   def redirectFastForward[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    maybeCoordinates: Option[Coordinates]
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
     l: LangADT
   ): Future[Result] =
-    redirectWithRecalculation(cache, maybeAccessCode, FastForward.Yes, formModelOptics)
+    redirectWithRecalculation(cache, maybeAccessCode, FastForward.Yes, formModelOptics, maybeCoordinates)
 
   def redirectStopAt[U <: SectionSelectorType: SectionSelector](
     sectionNumber: SectionNumber,
@@ -73,13 +74,20 @@ class FastForwardService(
     hc: HeaderCarrier,
     l: LangADT
   ): Future[Result] =
-    redirectWithRecalculation(cache, maybeAccessCode, FastForward.StopAt(sectionNumber), formModelOptics)
+    redirectWithRecalculation(
+      cache,
+      maybeAccessCode,
+      FastForward.StopAt(sectionNumber),
+      formModelOptics,
+      sectionNumber.toCoordinates
+    )
 
   private def redirectWithRecalculation[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     fastForward: FastForward,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    maybeCoordinates: Option[Coordinates]
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
@@ -102,7 +110,14 @@ class FastForwardService(
         for {
           envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
           res <-
-            updateUserData(cache, processData, maybeAccessCode, fastForward, EnvelopeWithMapping(envelope, cache.form))(
+            updateUserData(
+              cache,
+              processData,
+              maybeAccessCode,
+              fastForward,
+              EnvelopeWithMapping(envelope, cache.form),
+              maybeCoordinates
+            )(
               redirectResult(cache, maybeAccessCode, processData, _)
             )
         } yield res
@@ -124,7 +139,7 @@ class FastForwardService(
             .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
         )
       case None =>
-        Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode))
+        Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None))
     }
 
   def deleteForm(
@@ -162,7 +177,8 @@ class FastForwardService(
     processData: ProcessData,
     maybeAccessCode: Option[AccessCode],
     fastForward: FastForward,
-    envelope: EnvelopeWithMapping
+    envelope: EnvelopeWithMapping,
+    maybeCoordinates: Option[Coordinates]
   )(
     toResult: Option[SectionNumber] => Result
   )(implicit
@@ -177,7 +193,8 @@ class FastForwardService(
                    cache.toCacheData,
                    envelope,
                    validationService.validatePageModel,
-                   fastForward
+                   fastForward,
+                   maybeCoordinates
                  )
       userData = UserData(
                    cache.form.formData,

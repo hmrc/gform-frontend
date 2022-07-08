@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.gform.eval
 
-import cats.data.NonEmptyList
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode }
+import uk.gov.hmrc.gform.models.{ BracketPlainCoordinated, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, Sum }
 
 /** This represents \${abc.sum} expression, where this expression
@@ -36,12 +35,21 @@ object StandaloneSumInfo {
   val empty: StandaloneSumInfo = StandaloneSumInfo(Set.empty[Sum])
 
   def from[A <: PageMode](
-    brackets: NonEmptyList[BracketPlain[A]],
+    brackets: BracketPlainCoordinated[A],
     sumInfo: SumInfo
   ): StandaloneSumInfo = {
-    val allSums: List[Set[Sum]] = brackets.collect { case AllPageModelSums(sums) =>
-      sums
-    }
+
+    val allSums: List[Set[Sum]] =
+      brackets.fold { classic =>
+        classic.bracketPlains.collect { case AllPageModelSums(sums) =>
+          sums
+        }
+      } { taskList =>
+        taskList.bracketPlains.flatMap(_._2).collect { case AllPageModelSums(sums) =>
+          sums
+        }
+      }
+
     val sums = sumInfo.keys
     val standaloneSums: Set[Sum] = allSums.toSet.flatten.filterNot(sums)
     StandaloneSumInfo(standaloneSums)

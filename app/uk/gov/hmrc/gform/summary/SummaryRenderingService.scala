@@ -61,7 +61,8 @@ class SummaryRenderingService(
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
     pdf: PrintSection.Pdf,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    maybeCoordinates: Option[Coordinates]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -71,7 +72,7 @@ class SummaryRenderingService(
     lise: SmartStringEvaluator
   ): Future[PdfHtml] =
     for {
-      summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics)
+      summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics, maybeCoordinates)
     } yield {
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdf.header, pdf.footer)
       PdfHtml(
@@ -146,7 +147,8 @@ class SummaryRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    maybeCoordinates: Option[Coordinates]
   )(implicit
     request: Request[_],
     l: LangADT,
@@ -160,8 +162,9 @@ class SummaryRenderingService(
 
     for {
       envelope <- envelopeF
-      validationResult <- validationService
-                            .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics)
+      validationResult <-
+        validationService
+          .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics, maybeCoordinates)
     } yield {
       val summaryDeclaration: Html =
         renderer.renderSummarySectionDeclaration(cache, formModelOptics, maybeAccessCode)
@@ -177,7 +180,8 @@ class SummaryRenderingService(
         summaryPagePurpose,
         summaryDeclaration,
         cache.form.formData.fingerprint,
-        AddressRecordLookup.from(cache.form.thirdPartyData)
+        AddressRecordLookup.from(cache.form.thirdPartyData),
+        maybeCoordinates
       )
     }
 
@@ -204,8 +208,9 @@ class SummaryRenderingService(
 
     for {
       envelope <- envelopeF
-      validationResult <- validationService
-                            .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics)
+      validationResult <-
+        validationService
+          .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics, None)
     } yield SummaryRenderingService.renderNotificationPdfSummary(
       cache.formTemplate,
       validationResult,
@@ -237,7 +242,8 @@ object SummaryRenderingService {
     summaryPagePurpose: SummaryPagePurpose,
     summaryDeclaration: Html,
     formDataFingerprint: String,
-    addressRecordLookup: AddressRecordLookup
+    addressRecordLookup: AddressRecordLookup,
+    maybeCoordinates: Option[Coordinates]
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
@@ -254,7 +260,8 @@ object SummaryRenderingService {
         formTemplate,
         envelopeUpd,
         obligations,
-        addressRecordLookup
+        addressRecordLookup,
+        maybeCoordinates
       )
     summary(
       formTemplate,
@@ -275,7 +282,8 @@ object SummaryRenderingService {
       summaryDeclaration,
       footerHtml,
       formDataFingerprint,
-      formTemplate.summarySection.displayWidth
+      formTemplate.summarySection.displayWidth,
+      maybeCoordinates
     )
   }
 
@@ -316,7 +324,7 @@ object SummaryRenderingService {
       formTemplate,
       sfr,
       maybeAccessCode,
-      SectionNumber(0),
+      formTemplate.sectionNumberZero,
       formTemplate.formCategory,
       renderComeBackLater,
       determineContinueLabelKey(retrievals.continueLabelKey, formTemplate.draftRetrievalMethod.isNotPermitted, None),
@@ -327,7 +335,8 @@ object SummaryRenderingService {
       HtmlFormat.empty,
       footerHtml,
       formDataFingerprint,
-      formTemplate.summarySection.displayWidth
+      formTemplate.summarySection.displayWidth,
+      None
     )
   }
 
@@ -338,7 +347,8 @@ object SummaryRenderingService {
     formTemplate: FormTemplate,
     envelope: EnvelopeWithMapping,
     obligations: Obligations,
-    addressRecordLookup: AddressRecordLookup
+    addressRecordLookup: AddressRecordLookup,
+    maybeCoordinates: Option[Coordinates]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -464,7 +474,11 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-0")) :: htmls
     }
 
-    val brackets: NonEmptyList[Bracket[Visibility]] = formModel.brackets.brackets
+    def brackets: NonEmptyList[Bracket[Visibility]] = formModel.brackets.fold(_.brackets)(
+      _.bracketsFor(
+        maybeCoordinates.getOrElse(throw new Exception("No coordinates provided when trying to render Summary page"))
+      )
+    )
 
     brackets.toList.flatMap {
       case bracket @ Bracket.AddToList(_, _) => List(addToListSummary(bracket)) ++ addToListRenderBracket(bracket)
@@ -497,7 +511,7 @@ object SummaryRenderingService {
             formTemplate._id,
             formModelVisibilityOptics,
             maybeAccessCode,
-            SectionNumber(0),
+            formTemplate.sectionNumberZero,
             SectionTitle4Ga(""),
             obligations,
             validationResult,

@@ -66,8 +66,7 @@ class PDFRenderService(
                                .map(EnvelopeWithMapping(_, cache.form))
       validationResult <-
         validationService
-          .validateFormModel(cache.toCacheData, envelopeWithMapping, formModelOptics.formModelVisibilityOptics)
-
+          .validateFormModel(cache.toCacheData, envelopeWithMapping, formModelOptics.formModelVisibilityOptics, None)
     } yield {
       val envelopeByPurpose = envelopeWithMapping.byPurpose(purpose)
       val pdfModel = PDFPageModelBuilder.makeModel(formModelOptics, cache, envelopeByPurpose, validationResult)
