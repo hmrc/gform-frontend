@@ -349,7 +349,7 @@ class AddressLookupController(
             routes.AddressLookupController.fastForwardAfterConfirmation(
               formTemplateId,
               maybeAccessCode,
-              None
+              None // TODO JoVl fastforward in tasklist will start with a first task, which is not what we want
             )
           val bracket: Bracket[Visibility] =
             formModelOptics.formModelVisibilityOptics.formModel.brackets.withSectionNumber(sectionNumber)
