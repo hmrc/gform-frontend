@@ -1104,9 +1104,11 @@ class SectionRenderingService(
           .get(formComponentId)
           .map { sn =>
             val sectionTitle4Ga = sectionTitle4GaFactory(formModel.pageModelLookup(sn), sn)
+            val fc = formModel.fcLookup.get(formComponentId).get
+            val fcUpdated = key.map(k => fc.copy(shortName = Some(k))).getOrElse(fc)
             FormComponentSummaryRenderer
               .summaryListRows[DataOrigin.Mongo, SummaryRender](
-                formModel.fcLookup.get(formComponentId).get,
+                fcUpdated,
                 ei.singleton.page.id.map(_.modelPageId),
                 formTemplateId,
                 ei.formModelOptics.formModelVisibilityOptics,
