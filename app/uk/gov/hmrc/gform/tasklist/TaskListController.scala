@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
+import uk.gov.hmrc.gform.gform.routes.SummaryController
 import uk.gov.hmrc.gform.models.{ Coordinates, FastForward, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -85,5 +86,20 @@ class TaskListController(
           )
           Redirect(href).pure[Future]
         }
+    }
+
+  def summaryPage(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
+      request => l => cache => sse => formModelOptics =>
+        Redirect(
+          SummaryController.summaryById(
+            formTemplateId,
+            maybeAccessCode,
+            None // No coordinates means show all tasks in summary page
+          )
+        ).pure[Future]
     }
 }

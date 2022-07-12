@@ -474,10 +474,8 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-0")) :: htmls
     }
 
-    def brackets: NonEmptyList[Bracket[Visibility]] = formModel.brackets.fold(_.brackets)(
-      _.bracketsFor(
-        maybeCoordinates.getOrElse(throw new Exception("No coordinates provided when trying to render Summary page"))
-      )
+    def brackets: NonEmptyList[Bracket[Visibility]] = formModel.brackets.fold(_.brackets)(taskListBrackets =>
+      maybeCoordinates.fold(taskListBrackets.allBrackets)(coordinates => taskListBrackets.bracketsFor(coordinates))
     )
 
     brackets.toList.flatMap {

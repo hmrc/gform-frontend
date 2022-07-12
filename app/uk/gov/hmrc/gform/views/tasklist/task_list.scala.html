@@ -41,6 +41,8 @@
   sse: SmartStringEvaluator
 )
 
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
 
 @main_template(
   title = "TODO TITLE",
@@ -64,6 +66,11 @@
           }
         }
       </ol>
+      @if(completedSection == taskList.sections.size) {
+        @formWithCSRF(action = uk.gov.hmrc.gform.tasklist.routes.TaskListController.summaryPage(formTemplate._id, maybeAccessCode)) {
+          @govukButton(Button(content = Text(messages("taskList.button.submit")), value = None))
+        }
+      }
     </div>
   </div>
 }
