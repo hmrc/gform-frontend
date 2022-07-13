@@ -101,7 +101,9 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       )
 
       val expected: FormModel[Visibility] = FormModel.fromPages(
-        NonEmptyList.one(BracketPlain.NonRepeatingPage(Singleton(expectedPage), section1)),
+        BracketPlainCoordinated.Classic(
+          NonEmptyList.one(BracketPlain.NonRepeatingPage(Singleton(expectedPage), section1))
+        ),
         expectedStaticTypeInfo,
         expectedRevealinChoiceInfo,
         SumInfo.empty
@@ -392,9 +394,9 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           FormCtx("c")    -> Hidden
         ),
         NonEmptyList.of(
-          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
-          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber(3), section4)
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber.Classic(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber.Classic(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber.Classic(3), section4)
         )
       ),
       (
@@ -407,10 +409,10 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           FormCtx("c")    -> StringResult("X")
         ),
         NonEmptyList.of(
-          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
-          Bracket.NonRepeatingPage(Singleton(expectedPageC), SectionNumber(2), section3),
-          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber(3), section4)
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber.Classic(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber.Classic(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageC), SectionNumber.Classic(2), section3),
+          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber.Classic(3), section4)
         )
       )
     )
@@ -483,9 +485,9 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           FormCtx("b")    -> OptionResult(List("123"))
         ),
         NonEmptyList.of(
-          Bracket.NonRepeatingPage(Singleton(expectedPage1), SectionNumber(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPage2), SectionNumber(1), section2),
-          Bracket.NonRepeatingPage(Singleton(expectedPage3), SectionNumber(2), section3)
+          Bracket.NonRepeatingPage(Singleton(expectedPage1), SectionNumber.Classic(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPage2), SectionNumber.Classic(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPage3), SectionNumber.Classic(2), section3)
         )
       ),
       (
@@ -497,8 +499,8 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           FormCtx("c")    -> Hidden
         ),
         NonEmptyList.of(
-          Bracket.NonRepeatingPage(Singleton(expectedPage1), SectionNumber(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPage3), SectionNumber(2), section3)
+          Bracket.NonRepeatingPage(Singleton(expectedPage1), SectionNumber.Classic(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPage3), SectionNumber.Classic(2), section3)
         )
       )
     )
@@ -571,9 +573,9 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           FormCtx("b")       -> OptionResult(List("123"))
         ),
         NonEmptyList.of(
-          Bracket.NonRepeatingPage(Singleton(expectedPage1), SectionNumber(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPage2), SectionNumber(1), section2),
-          Bracket.NonRepeatingPage(Singleton(expectedPage3), SectionNumber(2), section3)
+          Bracket.NonRepeatingPage(Singleton(expectedPage1), SectionNumber.Classic(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPage2), SectionNumber.Classic(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPage3), SectionNumber.Classic(2), section3)
         )
       )
     )
@@ -715,10 +717,10 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "HELLO", "b" -> "WORLD2", "c" -> "C", "e" -> "E", "d" -> "D"),
         variadicFormData[SourceOrigin.Current]("a"   -> "HELLO", "b" -> "WORLD2", "c" -> "C", "e" -> "E", "d" -> "D"),
         NonEmptyList.of(
-          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
-          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber(4), section5),
-          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber(5), section6)
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber.Classic(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber.Classic(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber.Classic(4), section5),
+          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber.Classic(5), section6)
         )
       ),
       (
@@ -738,11 +740,11 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           "f" -> "C"
         ),
         NonEmptyList.of(
-          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
-          Bracket.NonRepeatingPage(Singleton(expectedPageC), SectionNumber(2), section3),
-          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber(4), section5),
-          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber(5), section6)
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber.Classic(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber.Classic(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageC), SectionNumber.Classic(2), section3),
+          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber.Classic(4), section5),
+          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber.Classic(5), section6)
         )
       ),
       (
@@ -762,11 +764,11 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           "f" -> "D"
         ),
         NonEmptyList.of(
-          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
-          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber(3), section4),
-          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber(4), section5),
-          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber(5), section6)
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber.Classic(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber.Classic(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber.Classic(3), section4),
+          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber.Classic(4), section5),
+          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber.Classic(5), section6)
         )
       ),
       (
@@ -786,12 +788,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           "f" -> "C"
         ),
         NonEmptyList.of(
-          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber(1), section2),
-          Bracket.NonRepeatingPage(Singleton(expectedPageC), SectionNumber(2), section3),
-          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber(3), section4),
-          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber(4), section5),
-          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber(5), section6)
+          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber.Classic(0), section1),
+          Bracket.NonRepeatingPage(Singleton(expectedPageB), SectionNumber.Classic(1), section2),
+          Bracket.NonRepeatingPage(Singleton(expectedPageC), SectionNumber.Classic(2), section3),
+          Bracket.NonRepeatingPage(Singleton(expectedPageD), SectionNumber.Classic(3), section4),
+          Bracket.NonRepeatingPage(Singleton(expectedPageF), SectionNumber.Classic(4), section5),
+          Bracket.NonRepeatingPage(Singleton(expectedPageG), SectionNumber.Classic(5), section6)
         )
       )
     )

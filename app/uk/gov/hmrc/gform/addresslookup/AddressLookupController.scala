@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ FastForward, SectionSelectorType }
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.form.FormData
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Expr, FormComponent, FormTemplateWithRedirects, Page, Section }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Expr, FormComponent, FormKind, FormTemplateWithRedirects, Page, Section }
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
@@ -349,12 +349,12 @@ class AddressLookupController(
             routes.AddressLookupController.fastForwardAfterConfirmation(
               formTemplateId,
               maybeAccessCode,
-              None
+              None // TODO JoVl fastforward in tasklist will start with a first task, which is not what we want
             )
-          val maybeBracket: Option[Bracket[Visibility]] =
+          val bracket: Bracket[Visibility] =
             formModelOptics.formModelVisibilityOptics.formModel.brackets.withSectionNumber(sectionNumber)
 
-          maybeBracket.fold(ff)(_.fold { nonRepeatingPage =>
+          bracket.fold { nonRepeatingPage =>
             ff
           } { repeatingPage =>
             ff
@@ -367,7 +367,7 @@ class AddressLookupController(
                 .map(_.sectionNumber)
                 .orElse(iteration.allSingletonSectionNumbers.find(_ > sectionNumber))
             )
-          })
+          }
         }
 
         val updatedForm = addressLookupService
@@ -392,7 +392,13 @@ class AddressLookupController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => sse => formModelOptics =>
         maybeSectionNumber.fold(
-          fastForwardService.redirectFastForward[SectionSelectorType.Normal](cache, maybeAccessCode, formModelOptics)
+          fastForwardService
+            .redirectFastForward[SectionSelectorType.Normal](
+              cache,
+              maybeAccessCode,
+              formModelOptics,
+              None
+            ) // TODO JoVl Revisit maybeCoordinates param
         ) { sn =>
           fastForwardService.redirectStopAt[SectionSelectorType.Normal](sn, cache, maybeAccessCode, formModelOptics)
         }
@@ -417,7 +423,7 @@ class AddressLookupController(
             formControllerRequestHandler
               .handleSuppressErrors(
                 formModelOptics,
-                List(SectionNumber(0)),
+                List(cache.formTemplate.sectionNumberZero),
                 cacheData,
                 envelopeWithMapping,
                 validationService.validatePageModel,
@@ -495,7 +501,7 @@ class AddressLookupController(
                     formControllerRequestHandler
                       .handleFormValidation(
                         browserFormModelOptics,
-                        SectionNumber(0),
+                        cache.formTemplate.sectionNumberZero,
                         cacheData,
                         envelopeWithMapping,
                         validationService.validatePageModel,
@@ -569,7 +575,10 @@ class AddressLookupController(
       confirmation = None
     )
     val enterAddressSection = Section.NonRepeatingPage(page)
-    val syntheticFormTemplate = cache.formTemplate.copy(sections = List(enterAddressSection))
+    val syntheticFormTemplate = cache.formTemplate.copy(formKind =
+      cache.formTemplate.formKind
+        .fold[FormKind](classic => classic.copy(sections = List(enterAddressSection)))(identity)
+    )
 
     val formData =
       cache.form.thirdPartyData

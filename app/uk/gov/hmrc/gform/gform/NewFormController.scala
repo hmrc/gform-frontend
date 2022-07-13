@@ -40,11 +40,11 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, QueryParams, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.tasklist.TaskListController
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode }
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class AccessCodeForm(accessCode: Option[String], accessOption: String)
@@ -55,6 +55,7 @@ class NewFormController(
   auth: AuthenticatedRequestActions,
   fileUploadService: FileUploadService,
   gformConnector: GformConnector,
+  taskListController: TaskListController,
   fastForwardService: FastForwardService,
   auditService: AuditService,
   recalculation: Recalculation[Future, Throwable],
@@ -195,7 +196,8 @@ class NewFormController(
             },
             {
               case "continue" =>
-                fastForwardService.redirectFastForward[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics)
+                fastForwardService
+                  .redirectFastForward[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics, None)
               case "delete" => fastForwardService.deleteForm(formTemplateId, cache, queryParams)
               case _        => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
             }
@@ -414,15 +416,20 @@ class NewFormController(
   ): Future[Result] = {
     val cacheWithForm = cache.toAuthCacheWithForm(form, accessCode)
 
-    for {
-      formModelOptics <- FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Future, U](
-                           cacheWithForm.variadicFormData[SectionSelectorType.Normal],
-                           cacheWithForm,
-                           recalculation
-                         )
-      res <- fastForwardService.redirectFastForward(cacheWithForm, accessCode, formModelOptics)
-    } yield res
+    cache.formTemplate.formKind.fold { classic =>
+      for {
+        formModelOptics <- FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Future, U](
+                             cacheWithForm.variadicFormData[SectionSelectorType.Normal],
+                             cacheWithForm,
+                             recalculation
+                           )
+        res <- fastForwardService.redirectFastForward(cacheWithForm, accessCode, formModelOptics, None)
+      } yield res
 
+    } { taskList =>
+      val url = uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplate._id, accessCode)
+      Redirect(url).pure[Future]
+
+    }
   }
-
 }

@@ -9,7 +9,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anonymous, AuthCtx, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, FormComponent, FormComponentId, FormTemplate, FormTemplateId, GG, OnePerUser, Page, SummarySection, TextConstraint, UserResearchUrl }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anonymous, AuthCtx, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, FormComponent, FormComponentId, FormKind, FormTemplate, FormTemplateId, GG, OnePerUser, Page, SummarySection, TextConstraint, UserResearchUrl }
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, EmailVerifierService, LangADT, LocalisedString }
 
 trait FormTemplateSample {
@@ -36,44 +36,47 @@ trait FormTemplateSample {
     authConfig =
       EmailAuthConfig(EmailVerifierService.digitalContact(EmailTemplateId("code_template"), None), None, None, None),
     displayHMRCLogo = true,
-    sections = List(
-      NonRepeatingPage(
-        Page[Basic](
-          title = toSmartString("Page1"),
-          id = None,
-          noPIITitle = None,
-          description = None,
-          shortName = None,
-          fields = List(
-            FormComponent(
-              id = FormComponentId("textField1"),
-              `type` = uk.gov.hmrc.gform.sharedmodel.formtemplate.Text(
-                constraint = TextConstraint.default,
-                value = uk.gov.hmrc.gform.sharedmodel.formtemplate.Value
-              ),
-              label = toSmartString("Text field 1"),
-              helpText = None,
+    formKind = FormKind
+      .Classic(
+        List(
+          NonRepeatingPage(
+            Page[Basic](
+              title = toSmartString("Page1"),
+              id = None,
+              noPIITitle = None,
+              description = None,
               shortName = None,
+              fields = List(
+                FormComponent(
+                  id = FormComponentId("textField1"),
+                  `type` = uk.gov.hmrc.gform.sharedmodel.formtemplate.Text(
+                    constraint = TextConstraint.default,
+                    value = uk.gov.hmrc.gform.sharedmodel.formtemplate.Value
+                  ),
+                  label = toSmartString("Text field 1"),
+                  helpText = None,
+                  shortName = None,
+                  includeIf = None,
+                  validIf = None,
+                  mandatory = true,
+                  editable = true,
+                  submissible = true,
+                  derived = false,
+                  errorMessage = None
+                )
+              ),
               includeIf = None,
-              validIf = None,
-              mandatory = true,
-              editable = true,
-              submissible = true,
-              derived = false,
-              errorMessage = None
+              validators = None,
+              continueLabel = None,
+              continueIf = None,
+              instruction = None,
+              presentationHint = None,
+              dataRetrieve = None,
+              confirmation = None
             )
-          ),
-          includeIf = None,
-          validators = None,
-          continueLabel = None,
-          continueIf = None,
-          instruction = None,
-          presentationHint = None,
-          dataRetrieve = None,
-          confirmation = None
+          )
         )
-      )
-    ),
+      ),
     destinations = DestinationList(
       destinations = NonEmptyList.one(
         HmrcDms(

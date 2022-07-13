@@ -203,8 +203,9 @@ case class EvaluationResults(
       case Sum(FormCtx(formComponentId))    => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
       case Sum(field1) =>
         loop(field1) match {
-          case lrs: ListResult => lrs.list.fold(NumberResult(0)) { case (a, b) => a + b }
-          case _               => unsupportedOperation("Number")(expr)
+          case lrs: ListResult =>
+            lrs.list.fold(NumberResult(0)) { case (a, b) => a + b }
+          case _ => unsupportedOperation("Number")(expr)
         }
       case Count(formComponentId)   => addToListCount(formComponentId, recData)
       case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)

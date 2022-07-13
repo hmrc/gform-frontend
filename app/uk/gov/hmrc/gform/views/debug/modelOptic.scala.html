@@ -29,7 +29,7 @@
 <tbody>
     <tr>
 	@for(columnNumber <- 0 until totalColumns) {
-	    @defining(SectionNumber(columnNumber)) { sectionNumber =>
+	    @defining(SectionNumber.Classic(columnNumber)) { sectionNumber =>
 		@if(formModel.availableSectionNumbers.contains(sectionNumber)) {
 		    @defining(formModel(sectionNumber)) { pageModel =>
 			@pageModelHeader(pageModel)
@@ -43,7 +43,7 @@
 
     <tr>
 	@for(columnNumber <- 0 until totalColumns) {
-	    @defining(SectionNumber(columnNumber)) { sectionNumber =>
+	    @defining(SectionNumber.Classic(columnNumber)) { sectionNumber =>
 		@if(formModel.availableSectionNumbers.contains(sectionNumber)) {
 		    @defining(formModel(sectionNumber)) { pageModel =>
 			@pageModelBody(pageModel)

@@ -355,7 +355,12 @@ class FileUploadController(
               s"Attempt to delete file associated with component $formComponentId from envelope. But file is not registered in mapping: ${cacheU.form.componentIdToFileId.mapping}"
             )
             fastForwardService
-              .redirectFastForward[SectionSelectorType.Normal](cacheU, maybeAccessCode, formModelOptics)
+              .redirectFastForward[SectionSelectorType.Normal](
+                cacheU,
+                maybeAccessCode,
+                formModelOptics,
+                sectionNumber.toCoordinates
+              )
           case Some((fileToDelete, formDataUpd, mappingUpd)) =>
             logger.info(
               s"Deleting file ${fileToDelete.value} from envelope associated with component $formComponentId."

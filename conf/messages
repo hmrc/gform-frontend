@@ -516,3 +516,10 @@ browser.forbidden.title=Sorry, you cannot complete this form using this web brow
 browser.forbidden.p1=This service does not support Internet Explorer.
 browser.forbidden.p2=You need to use another web browser, such as Microsoft Edge, Google Chrome or Mozilla Firefox.
 browser.forbidden.link=Find out how to switch to a new browser (opens in new tab)
+
+taskList.NotStarted=NOT STARTED
+taskList.InProgress=IN PROGRESS
+taskList.Completed=COMPLETED
+taskList.CannotStartYet=CANNOT START YET
+
+taskList.button.submit=Check and submit

@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform.handlers
 
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.models.Coordinates
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
@@ -70,14 +71,16 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
-    fastForward: FastForward
+    fastForward: FastForward,
+    maybeCoordinates: Option[Coordinates]
   ): Future[Option[SectionNumber]] =
     formValidator.fastForwardValidate(
       processData,
       cache,
       envelope,
       validatePageModel,
-      fastForward
+      fastForward,
+      maybeCoordinates
     )
 }
 

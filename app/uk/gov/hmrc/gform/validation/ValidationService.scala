@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ CheckYourAnswers, PageModel, Repeater, Singleton, Visibility }
+import uk.gov.hmrc.gform.models.{ CheckYourAnswers, Coordinates, PageModel, Repeater, Singleton, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
@@ -83,7 +83,8 @@ class ValidationService(
   def validateFormModel[D <: DataOrigin](
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    maybeCoordinates: Option[Coordinates]
   )(implicit
     hc: HeaderCarrier,
     messages: Messages,
@@ -92,7 +93,9 @@ class ValidationService(
   ): Future[ValidationResult] = {
 
     val formModel = formModelVisibilityOptics.formModel
-    val allFields = formModelVisibilityOptics.allFormComponents
+    val allFields = maybeCoordinates.fold(formModelVisibilityOptics.allFormComponents)(
+      formModelVisibilityOptics.allFormComponentsForCoordinates
+    )
 
     val emailCodeMatcher = GetEmailCodeFieldMatcher(formModel)
 

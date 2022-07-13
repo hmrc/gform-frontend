@@ -21,6 +21,7 @@ import play.api.libs.json._
 import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
 import scala.util.{ Failure, Success }
 import uk.gov.hmrc.gform.controllers.{ AddGroup, Back, Direction, EditAddToList, Exit, RemoveGroup, SaveAndContinue, SaveAndExit, SummaryContinue }
+import uk.gov.hmrc.gform.models.Coordinates
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ ExpandUtils, FastForward, LookupQuery }
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
@@ -58,9 +59,29 @@ object ValueClassBinder {
   implicit val destinationIdBinder: PathBindable[DestinationId] = valueClassBinder(_.id)
   implicit val sectionTitle4GaBinder: PathBindable[SectionTitle4Ga] = valueClassBinder(_.value)
   implicit val sectionNumberBinder: PathBindable[SectionNumber] = new PathBindable[SectionNumber] {
-    override def bind(key: String, value: String): Either[String, SectionNumber] =
-      Try(SectionNumber(value.toInt)).map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
-    override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value.toString
+    override def bind(key: String, value: String): Either[String, SectionNumber] = {
+      val sectionNumber: Try[SectionNumber] = SectionNumber.parse(value)
+      sectionNumber.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
+    }
+    override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value
+  }
+
+  implicit val coordinatesBinder: PathBindable[Coordinates] = new PathBindable[Coordinates] {
+    override def bind(key: String, value: String): Either[String, Coordinates] = {
+      val coordinates: Try[Coordinates] = Coordinates.parse(value)
+      coordinates.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
+    }
+    override def unbind(key: String, coordinates: Coordinates): String = coordinates.value
+  }
+  implicit val taskNumberBinder: PathBindable[TaskNumber] = new PathBindable[TaskNumber] {
+    override def bind(key: String, value: String): Either[String, TaskNumber] =
+      Try(TaskNumber(value.toInt)).map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
+    override def unbind(key: String, taskNumber: TaskNumber): String = taskNumber.value.toString
+  }
+  implicit val taskSectionNumberBinder: PathBindable[TaskSectionNumber] = new PathBindable[TaskSectionNumber] {
+    override def bind(key: String, value: String): Either[String, TaskSectionNumber] =
+      Try(TaskSectionNumber(value.toInt)).map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
+    override def unbind(key: String, taskSectionNumber: TaskSectionNumber): String = taskSectionNumber.value.toString
   }
 
   implicit val addToListIdQueryBindable: QueryStringBindable[AddToListId] = new QueryStringBindable[AddToListId] {
@@ -137,21 +158,20 @@ object ValueClassBinder {
 
   implicit def optionSectionNumberBinder(implicit
     stringBinder: PathBindable[String]
-  ): PathBindable[Option[SectionNumber]] =
-    new PathBindable[Option[SectionNumber]] {
-      override def bind(key: String, value: String): Either[String, Option[SectionNumber]] =
-        stringBinder.bind(key, value).right.flatMap(parseString[String]).right.flatMap {
-          case "-" => Right(None)
-          case a =>
-            Try(value.toInt) match {
-              case Success(a)     => Right(Some(SectionNumber(a)))
-              case Failure(error) => Left(("No valid value in url binding: " + value + ". Error: " + error))
-            }
-        }
+  ): PathBindable[Option[SectionNumber]] = new PathBindable[Option[SectionNumber]] {
+    override def bind(key: String, value: String): Either[String, Option[SectionNumber]] =
+      stringBinder.bind(key, value).right.flatMap(parseString[String]).right.flatMap {
+        case "-" => Right(None)
+        case a =>
+          Try(value.toInt) match {
+            case Success(a)     => Right(Some(SectionNumber.Classic(a)))
+            case Failure(error) => Left(("No valid value in url binding: " + value + ". Error: " + error))
+          }
+      }
 
-      override def unbind(key: String, maybeAccessCode: Option[SectionNumber]): String =
-        maybeAccessCode.fold("-")(a => a.value.toString)
-    }
+    override def unbind(key: String, maybeAccessCode: Option[SectionNumber]): String =
+      maybeAccessCode.fold("-")(a => a.value.toString)
+  }
 
   implicit val formIdQueryBinder: QueryStringBindable[FormId] = valueClassQueryBinder(_.value)
 
@@ -159,13 +179,28 @@ object ValueClassBinder {
 
     override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, SectionNumber]] =
       params.get(key).flatMap(_.headOption).map { value =>
-        Try(SectionNumber(value.toInt))
+        SectionNumber
+          .parse(value)
           .map(_.asRight)
           .getOrElse(s"No valid value in path $key: $value".asLeft)
       }
 
     override def unbind(key: String, sectionNumber: SectionNumber): String =
       s"""$key=${sectionNumber.value.toString}"""
+  }
+
+  implicit val coordinatesQueryBinder: QueryStringBindable[Coordinates] = new QueryStringBindable[Coordinates] {
+
+    override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Coordinates]] =
+      params.get(key).flatMap(_.headOption).map { value =>
+        Coordinates
+          .parse(value)
+          .map(_.asRight)
+          .getOrElse(s"No valid value in path $key: $value".asLeft)
+      }
+
+    override def unbind(key: String, coordinates: Coordinates): String =
+      s"""$key=${coordinates.value.toString}"""
   }
 
   implicit val suppressErrorsQueryBinder: QueryStringBindable[SuppressErrors] =
@@ -188,10 +223,12 @@ object ValueClassBinder {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, FastForward]] =
         params.get(key).flatMap(_.headOption).map {
           case FastForward.ffYes => FastForward.Yes.asRight
-          case value @ maybeSectionNumber =>
-            Try(maybeSectionNumber.toInt).toOption
+          case value =>
+            SectionNumber
+              .parse(value)
+              .toOption
               .fold[Either[String, FastForward]](s"No valid value in path $key: $value".asLeft)(sn =>
-                FastForward.StopAt(SectionNumber(sn)).asRight
+                FastForward.StopAt(sn).asRight
               )
         }
 

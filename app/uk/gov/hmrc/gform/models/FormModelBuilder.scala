@@ -438,35 +438,26 @@ class FormModelBuilder[E, F[_]: Functor](
     data: VariadicFormData[SourceOrigin.OutOfDate]
   )(implicit formModelExpander: FormModelExpander[T], sectionIncluder: SectionSelector[U]): FormModel[T] = {
 
-    val allSections: List[Section] = sectionIncluder.getSections(formTemplate)
+    val allSections: AllSections = sectionIncluder.getSections(formTemplate)
 
     val staticTypeInfo: StaticTypeInfo =
-      allSections.foldLeft(StaticTypeInfo.empty)(_ ++ _.staticTypeInfo)
+      allSections.sections.foldLeft(StaticTypeInfo.empty)(_ ++ _.staticTypeInfo)
 
     val revealingChoiceInfo: RevealingChoiceInfo =
-      allSections.foldLeft(RevealingChoiceInfo.empty)(_ ++ _.revealingChoiceInfo)
+      allSections.sections.foldLeft(RevealingChoiceInfo.empty)(_ ++ _.revealingChoiceInfo)
 
-    val brackets: List[BracketPlain[T]] = allSections
-      .map {
-        case s: Section.NonRepeatingPage =>
-          val page = formModelExpander.lift(s.page, data)
-          Some(BracketPlain.NonRepeatingPage(Singleton[T](page), s))
-        case s: Section.RepeatingPage => formModelExpander.liftRepeating(s, data)
-        case s: Section.AddToList =>
-          basicAddToList(s, 1, data).map(atl => BracketPlain.AddToList(NonEmptyList.one(atl), s))
-      }
-      .collect { case Some(bracket) =>
-        bracket
-      }
+    val brackets: BracketPlainCoordinated[T] = allSections.mapSection {
+      case s: Section.NonRepeatingPage =>
+        val page = formModelExpander.lift(s.page, data)
+        Some(BracketPlain.NonRepeatingPage(Singleton[T](page), s))
+      case s: Section.RepeatingPage => formModelExpander.liftRepeating(s, data)
+      case s: Section.AddToList =>
+        basicAddToList(s, 1, data).map(atl => BracketPlain.AddToList(NonEmptyList.one(atl), s))
+    }
 
-    val sumInfo: SumInfo = allSections.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
+    val sumInfo: SumInfo = allSections.sections.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
 
-    NonEmptyList
-      .fromList(brackets)
-      .fold(throw new IllegalArgumentException("Form must have at least one (visible) page")) {
-        FormModel.fromPages(_, staticTypeInfo, revealingChoiceInfo, sumInfo)
-      }
-
+    FormModel.fromPages(brackets, staticTypeInfo, revealingChoiceInfo, sumInfo)
   }
 
   private def repeaterIsYes(
