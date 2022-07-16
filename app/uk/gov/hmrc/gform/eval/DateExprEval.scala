@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
+import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
@@ -28,9 +29,11 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ ObligationDetail, SourceOrigin, VariadicValue }
 
 import scala.util.Try
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DateIfElse
 
 object DateExprEval {
 
+  private val logger = LoggerFactory.getLogger(getClass)
   def eval[T <: PageMode](
     formModel: FormModel[T],
     recData: RecData[OutOfDate],
@@ -48,12 +51,23 @@ object DateExprEval {
         )
       case HmrcTaxPeriodCtx(FormCtx(formComponentId), hmrcTaxPeriodInfo) =>
         evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext)
+
+      case DateIfElse(cond, field1, field2) =>
+        logger.error(s"[EVAL] DateIfElse($cond, $field1, $field2")
+        val r =
+          if (booleanExprResolver.resolve(cond))
+            eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(field1)
+          else
+            eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(field2)
+        logger.error(s"[EVAL RESULT] DateIfElse($r")
+        r
     }
 
   def evalDateExpr(
     recData: RecData[OutOfDate],
     evaluationContext: EvaluationContext,
-    evaluationResults: EvaluationResults
+    evaluationResults: EvaluationResults,
+    booleanExprResolver: BooleanExprResolver
   )(
     dateExpr: DateExpr
   ): ExpressionResult =
@@ -77,7 +91,7 @@ object DateExprEval {
             }
           }
       case DateExprWithOffset(dExpr, offset) =>
-        val exprResult = evalDateExpr(recData, evaluationContext, evaluationResults)(dExpr)
+        val exprResult = evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(dExpr)
         exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => exprResult)(identity)(identity)(identity)(d =>
           d.copy(value = addOffset(d.value, offset))
         )(identity)(identity)(identity)(identity)
@@ -85,6 +99,12 @@ object DateExprEval {
         evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext).getOrElse(
           ExpressionResult.empty
         )
+      case DateIfElse(cond, field1, field2) =>
+        logger.error(s"[EVALDATEEXPR] DateIfElse($cond, $field1, $field2")
+        if (booleanExprResolver.resolve(cond))
+          evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field1)
+        else
+          evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field2)
     }
 
   private def evalHmrcTaxPeriod(
