@@ -23,6 +23,7 @@ import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import com.softwaremill.quicklens._
+import java.time.LocalDate
 import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results._
@@ -455,7 +456,12 @@ class AuthenticatedRequestActions(
     Retrievals.allEnrolments and
     Retrievals.affinityGroup and
     Retrievals.groupIdentifier and
-    Retrievals.nino
+    Retrievals.nino and
+    Retrievals.email and
+    Retrievals.name and
+    Retrievals.itmpName and
+    Retrievals.itmpDateOfBirth and
+    Retrievals.itmpAddress
 
   private def ggAuthorised(
     request: Request[AnyContent]
@@ -471,7 +477,7 @@ class AuthenticatedRequestActions(
 
     authorised(predicate)
       .retrieve(defaultRetrievals) {
-        case maybeCredentials ~ enrolments ~ maybeAffinityGroup ~ maybeGroupIdentifier ~ maybeNino =>
+        case maybeCredentials ~ enrolments ~ maybeAffinityGroup ~ maybeGroupIdentifier ~ maybeNino ~ maybeEmail ~ maybeName ~ itmpName ~ itmpDateOfBirth ~ itmpAddress =>
           val maybeRetrievals =
             for {
               govermentGatewayId <- maybeCredentials.flatMap(toGovernmentGatewayId)
@@ -482,7 +488,16 @@ class AuthenticatedRequestActions(
               enrolments,
               AffinityGroupUtil.localAffinityGroup(affinityGroup),
               groupIdentifier,
-              maybeNino.map(Nino(_))
+              maybeNino.map(Nino(_)),
+              OtherRetrievals(
+                name = maybeName,
+                email = maybeEmail,
+                itmpName = itmpName,
+                itmpDateOfBirth = itmpDateOfBirth.map(joda =>
+                  LocalDate.of(joda.getYear(), joda.getMonthOfYear(), joda.getDayOfMonth())
+                ),
+                itmpAddress = itmpAddress
+              )
             )
 
           val maybeVerifyRetrievals =
