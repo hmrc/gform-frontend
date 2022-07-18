@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.eval
 
-import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
@@ -33,7 +32,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateIfElse, DateOrElse }
 
 object DateExprEval {
 
-  private val logger = LoggerFactory.getLogger(getClass)
   def eval[T <: PageMode](
     formModel: FormModel[T],
     recData: RecData[OutOfDate],
@@ -101,7 +99,6 @@ object DateExprEval {
           ExpressionResult.empty
         )
       case DateIfElse(cond, field1, field2) =>
-        logger.error(s"[EVALDATEEXPR] DateIfElse($cond, $field1, $field2")
         if (booleanExprResolver.resolve(cond))
           evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field1)
         else
