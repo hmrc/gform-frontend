@@ -31,7 +31,7 @@ import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
-import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals, OtherRetrievals }
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, GformFlashKeys, Origin, SaveAndContinue }
@@ -2457,7 +2457,8 @@ class SectionRenderingService(
     enrolments = Enrolments(Set.empty),
     affinityGroup = Individual,
     groupIdentifier = "",
-    maybeNino = None
+    maybeNino = None,
+    otherRetrievals = OtherRetrievals.empty
   )
 
   private def shouldDisplayHeading(

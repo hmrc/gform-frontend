@@ -280,16 +280,23 @@ object IdentifierName {
   implicit val format: OFormat[IdentifierName] = derived.oformat()
 }
 
-sealed trait AuthInfo
-final case object GG extends AuthInfo
-final case object PayeNino extends AuthInfo
-final case object EmailId extends AuthInfo
-final case object SaUtr extends AuthInfo
-final case object CtUtr extends AuthInfo
-final case object EtmpRegistrationNumber extends AuthInfo
+sealed trait AuthInfo extends Product with Serializable
 
 object AuthInfo {
+
+  final case object GG extends AuthInfo
+  final case object PayeNino extends AuthInfo
+  final case object EmailId extends AuthInfo
+  final case object SaUtr extends AuthInfo
+  final case object CtUtr extends AuthInfo
+  final case object EtmpRegistrationNumber extends AuthInfo
+  final case object Name extends AuthInfo
+  final case object ItmpName extends AuthInfo
+  final case object ItmpDateOfBirth extends AuthInfo
+  final case object ItmpAddress extends AuthInfo
+
   implicit val format: OFormat[AuthInfo] = derived.oformat()
+
 }
 
 sealed trait FormTemplateProp extends Product with Serializable

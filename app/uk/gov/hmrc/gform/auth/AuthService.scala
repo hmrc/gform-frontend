@@ -230,7 +230,8 @@ class AuthService(
       Enrolments(Set.empty),
       affinityGroup,
       identity,
-      None
+      None,
+      OtherRetrievals.empty
     )
 
   private def performEnrolment(
@@ -310,7 +311,7 @@ class AuthService(
   )(implicit l: LangADT): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .map {
-        case ggSuccessfulAuth @ AuthSuccessful(ar @ AuthenticatedRetrievals(_, enrolments, _, _, _), _)
+        case ggSuccessfulAuth @ AuthSuccessful(ar @ AuthenticatedRetrievals(_, enrolments, _, _, _, _), _)
             if ar.affinityGroup == AffinityGroup.Agent =>
           ggAgentAuthorise(agentAccess, formTemplate, enrolments) match {
             case HMRCAgentAuthorisationSuccessful                => ggSuccessfulAuth
@@ -324,14 +325,14 @@ class AuthService(
 
   private def isHmrcVerified(authResult: AuthResult, formTemplate: FormTemplate): AuthResult =
     authResult match {
-      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, None), _) =>
+      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, None, _), _) =>
         val completionUrl = URLEncoder.encode(gform.routes.NewFormController.dashboard(formTemplate._id).url, "UTF-8")
         val failureUrl =
           URLEncoder.encode(gform.routes.IdentityVerificationController.failure(formTemplate._id).url, "UTF-8")
         AuthRedirect(
           s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=200"
         )
-      case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Organisation, _, None), _) =>
+      case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Organisation, _, None, _), _) =>
         val irsa = IRSA()
         val maybeEnrolmentId: Option[EnrolmentIdentifier] =
           enrolments.getEnrolment(irsa.name).flatMap(_.getIdentifier(irsa.id))
@@ -342,7 +343,7 @@ class AuthService(
           )
         )(_ => authResult)
 
-      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Agent, _, _), _) =>
+      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Agent, _, _, _), _) =>
         AuthBlocked("Agents cannot access this form")
       case _ => authResult
 

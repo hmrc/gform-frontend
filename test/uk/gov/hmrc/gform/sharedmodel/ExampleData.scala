@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import play.api.ApplicationLoader.Context
 import play.api.i18n.Lang
 import play.api.{ Environment, Mode }
+import uk.gov.hmrc.gform.auth.models.OtherRetrievals
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.Enrolments
@@ -867,7 +868,14 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
   def userId = UserId("James007")
 
   def materialisedRetrievals =
-    AuthenticatedRetrievals(GovernmentGatewayId(""), Enrolments(Set()), AffinityGroup.Individual, userId.value, None)
+    AuthenticatedRetrievals(
+      GovernmentGatewayId(""),
+      Enrolments(Set()),
+      AffinityGroup.Individual,
+      userId.value,
+      None,
+      OtherRetrievals.empty
+    )
 
   def formIdData = FormIdData(materialisedRetrievals, formTemplateId, None)
 
@@ -912,7 +920,8 @@ trait ExampleAuthContext {
       enrolments = enrolments,
       affinityGroup = affinityGroup,
       groupIdentifier = "TestGroupId",
-      maybeNino = None
+      maybeNino = None,
+      otherRetrievals = OtherRetrievals.empty
     )
 
   def affinityGroup: AffinityGroup = Organisation

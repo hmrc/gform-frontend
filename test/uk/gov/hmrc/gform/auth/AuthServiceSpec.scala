@@ -61,7 +61,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   val getGovernmentGatewayId: Unit => Future[Option[GovernmentGatewayId]] = const(Future.successful(None))
 
   private def materialisedRetrievalsBuilder(affinityGroup: AffinityGroup, enrolments: Enrolments) =
-    AuthenticatedRetrievals(governmentGatewayId, enrolments, affinityGroup, "TestGroupId", None)
+    AuthenticatedRetrievals(governmentGatewayId, enrolments, affinityGroup, "TestGroupId", None, OtherRetrievals.empty)
 
   val materialisedRetrievalsOfsted =
     AuthenticatedRetrievals(
@@ -69,7 +69,8 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
       enrolments = enrolments,
       affinityGroup = uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual,
       groupIdentifier = "20e9b243-7471-4081-be1e-fcb5da33fd5a",
-      maybeNino = None
+      maybeNino = None,
+      otherRetrievals = OtherRetrievals.empty
     )
 
   val materialisedRetrievalsAgent =
