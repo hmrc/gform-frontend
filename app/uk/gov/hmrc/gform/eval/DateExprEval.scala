@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ ObligationDetail, SourceOrigin, VariadicValue }
 
 import scala.util.Try
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DateIfElse
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateIfElse, DateOrElse }
 
 object DateExprEval {
 
@@ -53,14 +53,15 @@ object DateExprEval {
         evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext)
 
       case DateIfElse(cond, field1, field2) =>
-        logger.error(s"[EVAL] DateIfElse($cond, $field1, $field2")
-        val r =
-          if (booleanExprResolver.resolve(cond))
-            eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(field1)
-          else
-            eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(field2)
-        logger.error(s"[EVAL RESULT] DateIfElse($r")
-        r
+        if (booleanExprResolver.resolve(cond))
+          eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(field1)
+        else
+          eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(field2)
+      case DateOrElse(field1, field2) =>
+        eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(field1).orElse(
+          eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(field2)
+        )
+
     }
 
   def evalDateExpr(
@@ -105,6 +106,10 @@ object DateExprEval {
           evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field1)
         else
           evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field2)
+      case DateOrElse(field1, field2) =>
+        evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field1).orElse(
+          evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field2)
+        )
     }
 
   private def evalHmrcTaxPeriod(

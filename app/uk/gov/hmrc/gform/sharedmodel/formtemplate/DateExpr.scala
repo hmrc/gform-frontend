@@ -27,6 +27,7 @@ sealed trait DateExpr {
     case DateExprWithOffset(dExpr, _)  => dExpr.leafExprs
     case HmrcTaxPeriodCtx(formCtx, _)  => formCtx :: Nil
     case DateIfElse(_, field1, field2) => field1.leafExprs ++ field2.leafExprs
+    case DateOrElse(field1, field2)    => field1.leafExprs ++ field2.leafExprs
   }
 
   def maybeFormCtx(booleanExprResolver: BooleanExprResolver): Option[FormCtx] = this match {
@@ -39,6 +40,8 @@ sealed trait DateExpr {
         field1.maybeFormCtx(booleanExprResolver)
       else
         field2.maybeFormCtx(booleanExprResolver)
+
+    case DateOrElse(field1, field2) => ???
   }
 
   def expand(index: Int): DateExpr = this match {
@@ -76,6 +79,7 @@ case class DateFormCtxVar(formCtx: FormCtx) extends DateExpr
 case class DateExprWithOffset(dExpr: DateExpr, offset: OffsetYMD) extends DateExpr
 case class HmrcTaxPeriodCtx(formCtx: FormCtx, hmrcTaxPeriodInfo: HmrcTaxPeriodInfo) extends DateExpr
 case class DateIfElse(ifElse: BooleanExpr, field1: DateExpr, field2: DateExpr) extends DateExpr
+case class DateOrElse(field1: DateExpr, field2: DateExpr) extends DateExpr
 
 object DateExpr {
   implicit val format: OFormat[DateExpr] = derived.oformat()
