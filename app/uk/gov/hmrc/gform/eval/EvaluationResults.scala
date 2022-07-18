@@ -477,49 +477,52 @@ case class EvaluationResults(
       case PeriodValue(value)               => PeriodResult(java.time.Period.parse(value))
       case Period(DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
         periodBetween(recData, evaluationContext, booleanExprResolver)(dateExpr1, dateExpr2)
-      case PeriodExt(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)), prop) => ???
-      // def doSum(mapper: PeriodResult => ExpressionResult): ExpressionResult = ???
-      //   dateExpr1.maybeFormCtx.orElse(dateExpr2.maybeFormCtx).fold(ExpressionResult.empty) { formCtx =>
-      //     val modelComponentIds = recData.variadicFormData
-      //       .forBaseComponentId(formCtx.formComponentId.baseComponentId)
-      //       .map { case (id, _) =>
-      //         id
-      //       }
-      //     val indexedCompExists = modelComponentIds.exists(_.indexedComponentId.fold(_ => false)(_ => true))
-      //     val periodFunctionExprs = if (indexedCompExists) {
-      //       modelComponentIds
-      //         .flatMap(_.maybeIndex)
-      //         .toList
-      //         .distinct
-      //         .map(index => Period(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index))))
-      //     } else {
-      //       List(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)))
-      //     }
-      //     periodFunctionExprs
-      //       .map(p =>
-      //         evalPeriod(
-      //           typeInfo.copy(expr = p),
-      //           recData,
-      //           booleanExprResolver,
-      //           evaluationContext
-      //         )
-      //       )
-      //       .reduce(_ + _)
-      //       .fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(identity)(identity)(
-      //         identity
-      //       )(mapper)(identity)
-      //   }
-      // prop match {
-      //   case PeriodFn.Sum => doSum(identity)
-      //   case PeriodFn.TotalMonths =>
-      //     doSum(p => NumberResult(p.value.toTotalMonths))
-      //   case PeriodFn.Years =>
-      //     doSum(p => NumberResult(p.value.getYears))
-      //   case PeriodFn.Months =>
-      //     doSum(p => NumberResult(p.value.getMonths))
-      //   case PeriodFn.Days =>
-      //     doSum(p => NumberResult(p.value.getDays))
-      // }
+      case PeriodExt(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)), prop) =>
+        def doSum(mapper: PeriodResult => ExpressionResult): ExpressionResult =
+          dateExpr1
+            .maybeFormCtx(booleanExprResolver)
+            .orElse(dateExpr2.maybeFormCtx(booleanExprResolver))
+            .fold(ExpressionResult.empty) { formCtx =>
+              val modelComponentIds = recData.variadicFormData
+                .forBaseComponentId(formCtx.formComponentId.baseComponentId)
+                .map { case (id, _) =>
+                  id
+                }
+              val indexedCompExists = modelComponentIds.exists(_.indexedComponentId.fold(_ => false)(_ => true))
+              val periodFunctionExprs = if (indexedCompExists) {
+                modelComponentIds
+                  .flatMap(_.maybeIndex)
+                  .toList
+                  .distinct
+                  .map(index => Period(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index))))
+              } else {
+                List(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)))
+              }
+              periodFunctionExprs
+                .map(p =>
+                  evalPeriod(
+                    typeInfo.copy(expr = p),
+                    recData,
+                    booleanExprResolver,
+                    evaluationContext
+                  )
+                )
+                .reduce(_ + _)
+                .fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(identity)(identity)(
+                  identity
+                )(mapper)(identity)
+            }
+        prop match {
+          case PeriodFn.Sum => doSum(identity)
+          case PeriodFn.TotalMonths =>
+            doSum(p => NumberResult(p.value.toTotalMonths))
+          case PeriodFn.Years =>
+            doSum(p => NumberResult(p.value.getYears))
+          case PeriodFn.Months =>
+            doSum(p => NumberResult(p.value.getMonths))
+          case PeriodFn.Days =>
+            doSum(p => NumberResult(p.value.getDays))
+        }
       case _ => ExpressionResult.empty
     }
     loop(typeInfo.expr)

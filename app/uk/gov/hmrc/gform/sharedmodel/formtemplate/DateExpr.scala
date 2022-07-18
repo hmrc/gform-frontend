@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
 import play.api.libs.json.OFormat
+import uk.gov.hmrc.gform.eval.BooleanExprResolver
 
 sealed trait DateExpr {
   def leafExprs: List[Expr] = this match {
@@ -28,12 +29,16 @@ sealed trait DateExpr {
     case DateIfElse(_, field1, field2) => field1.leafExprs ++ field2.leafExprs
   }
 
-  def maybeFormCtx: List[FormCtx] = this match {
-    case DateValueExpr(_)              => Nil
-    case DateFormCtxVar(formCtx)       => List(formCtx)
-    case DateExprWithOffset(dExpr, _)  => dExpr.maybeFormCtx
-    case HmrcTaxPeriodCtx(formCtx, _)  => List(formCtx)
-    case DateIfElse(_, field1, field2) => field1.maybeFormCtx ++ field2.maybeFormCtx
+  def maybeFormCtx(booleanExprResolver: BooleanExprResolver): Option[FormCtx] = this match {
+    case DateValueExpr(_)             => None
+    case DateFormCtxVar(formCtx)      => Some(formCtx)
+    case DateExprWithOffset(dExpr, _) => dExpr.maybeFormCtx(booleanExprResolver)
+    case HmrcTaxPeriodCtx(formCtx, _) => Some(formCtx)
+    case DateIfElse(cond, field1, field2) =>
+      if (booleanExprResolver.resolve(cond))
+        field1.maybeFormCtx(booleanExprResolver)
+      else
+        field2.maybeFormCtx(booleanExprResolver)
   }
 
   def expand(index: Int): DateExpr = this match {
