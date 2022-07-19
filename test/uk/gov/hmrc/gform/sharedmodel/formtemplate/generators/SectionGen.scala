@@ -130,6 +130,7 @@ trait SectionGen {
   def addToListSectionGen: Gen[Section.AddToList] =
     for {
       title              <- smartStringGen
+      caption            <- Gen.option(smartStringGen)
       noPIITitle         <- Gen.option(smartStringGen)
       description        <- smartStringGen
       summaryDescription <- smartStringGen
@@ -146,6 +147,7 @@ trait SectionGen {
     } yield Section
       .AddToList(
         title,
+        caption,
         noPIITitle,
         description,
         summaryDescription,

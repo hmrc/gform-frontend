@@ -659,6 +659,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
   ): Section.AddToList =
     Section.AddToList(
       toSmartString(title),
+      None,
       Some(toSmartString(title)),
       toSmartString(description),
       toSmartString(summaryDescription),

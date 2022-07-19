@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 case class CheckYourAnswersPage(
   title: Option[SmartString],
+  caption: Option[SmartString],
   updateTitle: SmartString,
   noPIITitle: Option[SmartString],
   noPIIUpdateTitle: Option[SmartString],

@@ -26,6 +26,7 @@
 
 @(
     title: String,
+    caption: Option[String],
     noPIITitle: String,
     formTemplate: FormTemplate,
     maybeAccessCode: Option[AccessCode],
@@ -52,7 +53,7 @@
     frontendAppConfig = frontendAppConfig,
     backLink = None
 ) {
-    @pageHeading(heading)
+    @pageHeading(heading, caption)
 
     @header.map{ h =>
         <div class="govuk-body govuk-!-margin-bottom-9">

@@ -180,6 +180,7 @@ class SectionRenderingService(
         case None        => messages("summary.checkYourAnswers")
       }
       else checkYourAnswers.expandedUpdateTitle.value,
+      checkYourAnswers.expandedCaption.map(_.value),
       if (isFirstVisit)
         checkYourAnswers.expandedNoPIITitle.fold(messages("summary.checkYourAnswers"))(_.value)
       else
@@ -331,6 +332,7 @@ class SectionRenderingService(
 
     html.form.addToList(
       repeater.title.value,
+      repeater.expandedCaption.map(_.value),
       repeater.noPIITitle.fold(repeater.title.valueWithoutInterpolations)(_.value),
       bracket,
       formTemplate,

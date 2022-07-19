@@ -91,6 +91,7 @@ case class Singleton[A <: PageMode](page: Page[A]) extends PageModel[A]
 case class CheckYourAnswers[A <: PageMode](
   expandedId: PageId,
   expandedTitle: Option[SmartString],
+  expandedCaption: Option[SmartString],
   expandedUpdateTitle: SmartString,
   expandedNoPIITitle: Option[SmartString],
   expandedNoPIIUpdateTitle: Option[SmartString],
@@ -102,6 +103,7 @@ case class CheckYourAnswers[A <: PageMode](
 ) extends PageModel[A]
 case class Repeater[A <: PageMode](
   expandedTitle: SmartString,
+  expandedCaption: Option[SmartString],
   expandedId: PageId,
   expandedNoPIITitle: Option[SmartString],
   expandedDescription: SmartString,
