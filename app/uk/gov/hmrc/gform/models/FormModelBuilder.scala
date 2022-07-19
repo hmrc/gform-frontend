@@ -363,6 +363,7 @@ class FormModelBuilder[E, F[_]: Functor](
     CheckYourAnswers[T](
       s.pageId.withIndex(index).withSuffix("CYA"),
       c.title.map(_.expand(index, s.allIds)),
+      c.caption.map(_.expand(index, s.allIds)),
       c.updateTitle.expand(index, s.allIds),
       c.noPIITitle.map(_.expand(index, s.allIds)),
       c.noPIIUpdateTitle.map(_.expand(index, s.allIds)),
@@ -379,6 +380,7 @@ class FormModelBuilder[E, F[_]: Functor](
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds).updatedWithId
     Repeater[T](
       expand(s.title),
+      s.caption.map(expand),
       s.pageId.withIndex(index),
       s.noPIITitle.map(expand),
       expand(s.description),

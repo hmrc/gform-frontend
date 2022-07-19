@@ -32,6 +32,7 @@
 
 @(
     title: String,
+    caption: Option[String],
     noPIITitle: String,
     bracket: Bracket.AddToList[DataExpanded],
     formTemplate: FormTemplate,
@@ -88,7 +89,7 @@
         )
     }
 
-    @pageHeading(heading)
+    @pageHeading(heading, caption)
 
     <div class="govuk-form-group">
       <dl class="hmrc-add-to-a-list hmrc-add-to-a-list--wide">

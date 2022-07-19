@@ -60,6 +60,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
   private val emptyAddToList: Section.AddToList = Section.AddToList(
     toSmartString(""),
     Some(toSmartString("")),
+    Some(toSmartString("")),
     toSmartString(""),
     toSmartString(""),
     toSmartString(""),

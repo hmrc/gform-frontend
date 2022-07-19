@@ -69,6 +69,7 @@ object FormTemplateBuilder {
 
   def mkAddToListSection(pages: Page[Basic]*): Section.AddToList = Section.AddToList(
     toSmartString("Pet owner title"),
+    None,
     Some(toSmartString("Pet owner no PII title")),
     toSmartString("Pet owner description"),
     toSmartString("Pet owner summary description"),
@@ -90,6 +91,7 @@ object FormTemplateBuilder {
   ): Section.AddToList =
     Section.AddToList(
       toSmartString("Pet owner title"),
+      None,
       Some(toSmartString("Pet owner no PII title")),
       toSmartString("Pet owner description"),
       toSmartString("Pet owner summary description"),
