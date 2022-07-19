@@ -18,20 +18,47 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
 import play.api.libs.json.OFormat
+import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationContext, EvaluationResults }
+import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
+import uk.gov.hmrc.gform.graph.RecData
+import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 
 sealed trait DateExpr {
   def leafExprs: List[Expr] = this match {
-    case DateValueExpr(_)             => DateCtx(this) :: Nil
-    case DateFormCtxVar(formCtx)      => formCtx :: Nil
-    case DateExprWithOffset(dExpr, _) => dExpr.leafExprs
-    case HmrcTaxPeriodCtx(formCtx, _) => formCtx :: Nil
+    case DateValueExpr(_)              => DateCtx(this) :: Nil
+    case DateFormCtxVar(formCtx)       => formCtx :: Nil
+    case DateExprWithOffset(dExpr, _)  => dExpr.leafExprs
+    case HmrcTaxPeriodCtx(formCtx, _)  => formCtx :: Nil
+    case DateIfElse(_, field1, field2) => field1.leafExprs ++ field2.leafExprs
+    case DateOrElse(field1, field2)    => field1.leafExprs ++ field2.leafExprs
   }
 
-  def maybeFormCtx: Option[FormCtx] = this match {
-    case DateValueExpr(_)             => None
-    case DateFormCtxVar(formCtx)      => Some(formCtx)
-    case DateExprWithOffset(dExpr, _) => dExpr.maybeFormCtx
+  def maybeFormCtx(
+    recData: RecData[SourceOrigin.OutOfDate],
+    evaluationContext: EvaluationContext,
+    evaluationResults: EvaluationResults,
+    booleanExprResolver: BooleanExprResolver
+  ): Option[FormCtx] = this match {
+    case DateValueExpr(_)        => None
+    case DateFormCtxVar(formCtx) => Some(formCtx)
+    case DateExprWithOffset(dExpr, _) =>
+      dExpr.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
     case HmrcTaxPeriodCtx(formCtx, _) => Some(formCtx)
+    case DateIfElse(cond, field1, field2) =>
+      if (booleanExprResolver.resolve(cond))
+        field1.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
+      else
+        field2.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
+
+    case DateOrElse(field1, field2) =>
+      val isFirst = evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field1)
+        .fold[Boolean](_ => true)(_ => false)(_ => false)(_ => true)(_ => true)(_ => true)(_ => true)(_ => true)(_ =>
+          true
+        )(_ => true)(_ => true)
+      if (isFirst)
+        field1.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
+      else
+        field2.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
   }
 
   def expand(index: Int): DateExpr = this match {
@@ -68,6 +95,8 @@ case class DateValueExpr(value: DateExprValue) extends DateExpr
 case class DateFormCtxVar(formCtx: FormCtx) extends DateExpr
 case class DateExprWithOffset(dExpr: DateExpr, offset: OffsetYMD) extends DateExpr
 case class HmrcTaxPeriodCtx(formCtx: FormCtx, hmrcTaxPeriodInfo: HmrcTaxPeriodInfo) extends DateExpr
+case class DateIfElse(ifElse: BooleanExpr, field1: DateExpr, field2: DateExpr) extends DateExpr
+case class DateOrElse(field1: DateExpr, field2: DateExpr) extends DateExpr
 
 object DateExpr {
   implicit val format: OFormat[DateExpr] = derived.oformat()
