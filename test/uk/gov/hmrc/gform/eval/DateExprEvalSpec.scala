@@ -30,9 +30,15 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExprWithOffset, Da
 
 class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleEvaluationContext {
 
+  private val booleanExprResolver = BooleanExprResolver(_ => false)
   "evalDateExpr" should "evaluate a date expression with TodayDateExprValue" in {
     val expressionResult =
-      evalDateExpr(RecData[OutOfDate](VariadicFormData.empty), evaluationContext, EvaluationResults.empty)(
+      evalDateExpr(
+        RecData[OutOfDate](VariadicFormData.empty),
+        evaluationContext,
+        EvaluationResults.empty,
+        booleanExprResolver
+      )(
         DateValueExpr(TodayDateExprValue)
       )
     expressionResult shouldBe DateResult(LocalDate.now())
@@ -40,7 +46,12 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleE
 
   it should "evaluate a date expression with ExactDateExprValue" in {
     val expressionResult =
-      evalDateExpr(RecData[OutOfDate](VariadicFormData.empty), evaluationContext, EvaluationResults.empty)(
+      evalDateExpr(
+        RecData[OutOfDate](VariadicFormData.empty),
+        evaluationContext,
+        EvaluationResults.empty,
+        booleanExprResolver
+      )(
         DateValueExpr(
           ExactDateExprValue(LocalDate.now().getYear, LocalDate.now().getMonthValue, LocalDate.now().getDayOfMonth)
         )
@@ -59,7 +70,8 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleE
         )
       ),
       evaluationContext,
-      EvaluationResults.empty
+      EvaluationResults.empty,
+      booleanExprResolver
     )(DateFormCtxVar(FormCtx(dateField)))
     expressionResult shouldBe DateResult(LocalDate.of(1970, 1, 11))
   }
@@ -69,7 +81,8 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleE
     val expressionResult = evalDateExpr(
       RecData[OutOfDate](VariadicFormData.empty),
       evaluationContext,
-      EvaluationResults.one(FormCtx(dateField), DateResult(LocalDate.now()))
+      EvaluationResults.one(FormCtx(dateField), DateResult(LocalDate.now())),
+      booleanExprResolver
     )(DateFormCtxVar(FormCtx(dateField)))
     expressionResult shouldBe DateResult(LocalDate.now())
   }
@@ -86,7 +99,8 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleE
       val actual = evalDateExpr(
         RecData[OutOfDate](VariadicFormData.empty),
         evaluationContext,
-        EvaluationResults.empty
+        EvaluationResults.empty,
+        booleanExprResolver
       )(DateExprWithOffset(DateValueExpr(TodayDateExprValue), offset))
 
       val expected = DateResult(localDate)
@@ -122,7 +136,8 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleE
       val actual = evalDateExpr(
         RecData[OutOfDate](VariadicFormData.empty),
         evaluationContext,
-        EvaluationResults.empty
+        EvaluationResults.empty,
+        booleanExprResolver
       )(DateExprWithOffset(DateValueExpr(exactDate), offset))
 
       val expected = DateResult(localDate)

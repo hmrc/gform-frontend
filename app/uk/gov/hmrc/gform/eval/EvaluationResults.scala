@@ -379,7 +379,7 @@ case class EvaluationResults(
               computePageLink(id, evaluationContext)
           }
         nonEmpty(StringResult(link))
-      case DateCtx(dateExpr) => evalDateExpr(recData, evaluationContext, this)(dateExpr)
+      case DateCtx(dateExpr) => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
       case Period(_, _)      => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case PeriodExt(_, _)   => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case AddressLens(formComponentId, details) =>
@@ -449,11 +449,11 @@ case class EvaluationResults(
   ): ExpressionResult = {
 
     def loop(expr: Expr): ExpressionResult = expr match {
-      case ctx @ FormCtx(_) => evalDateExpr(recData, evaluationContext, this)(DateFormCtxVar(ctx))
+      case ctx @ FormCtx(_) => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(DateFormCtxVar(ctx))
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
-      case DateCtx(dateExpr)                => evalDateExpr(recData, evaluationContext, this)(dateExpr)
+      case DateCtx(dateExpr)                => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
       case _                                => ExpressionResult.empty
     }
 
@@ -476,39 +476,42 @@ case class EvaluationResults(
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case PeriodValue(value)               => PeriodResult(java.time.Period.parse(value))
       case Period(DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
-        periodBetween(recData, evaluationContext)(dateExpr1, dateExpr2)
+        periodBetween(recData, evaluationContext, booleanExprResolver)(dateExpr1, dateExpr2)
       case PeriodExt(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)), prop) =>
         def doSum(mapper: PeriodResult => ExpressionResult): ExpressionResult =
-          dateExpr1.maybeFormCtx.orElse(dateExpr2.maybeFormCtx).fold(ExpressionResult.empty) { formCtx =>
-            val modelComponentIds = recData.variadicFormData
-              .forBaseComponentId(formCtx.formComponentId.baseComponentId)
-              .map { case (id, _) =>
-                id
+          dateExpr1
+            .maybeFormCtx(recData, evaluationContext, this, booleanExprResolver)
+            .orElse(dateExpr2.maybeFormCtx(recData, evaluationContext, this, booleanExprResolver))
+            .fold(ExpressionResult.empty) { formCtx =>
+              val modelComponentIds = recData.variadicFormData
+                .forBaseComponentId(formCtx.formComponentId.baseComponentId)
+                .map { case (id, _) =>
+                  id
+                }
+              val indexedCompExists = modelComponentIds.exists(_.indexedComponentId.fold(_ => false)(_ => true))
+              val periodFunctionExprs = if (indexedCompExists) {
+                modelComponentIds
+                  .flatMap(_.maybeIndex)
+                  .toList
+                  .distinct
+                  .map(index => Period(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index))))
+              } else {
+                List(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)))
               }
-            val indexedCompExists = modelComponentIds.exists(_.indexedComponentId.fold(_ => false)(_ => true))
-            val periodFunctionExprs = if (indexedCompExists) {
-              modelComponentIds
-                .flatMap(_.maybeIndex)
-                .toList
-                .distinct
-                .map(index => Period(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index))))
-            } else {
-              List(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)))
-            }
-            periodFunctionExprs
-              .map(p =>
-                evalPeriod(
-                  typeInfo.copy(expr = p),
-                  recData,
-                  booleanExprResolver,
-                  evaluationContext
+              periodFunctionExprs
+                .map(p =>
+                  evalPeriod(
+                    typeInfo.copy(expr = p),
+                    recData,
+                    booleanExprResolver,
+                    evaluationContext
+                  )
                 )
-              )
-              .reduce(_ + _)
-              .fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(identity)(identity)(
-                identity
-              )(mapper)(identity)
-          }
+                .reduce(_ + _)
+                .fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(identity)(identity)(
+                  identity
+                )(mapper)(identity)
+            }
         prop match {
           case PeriodFn.Sum => doSum(identity)
           case PeriodFn.TotalMonths =>
@@ -547,10 +550,11 @@ case class EvaluationResults(
 
   private def periodBetween(
     recData: RecData[SourceOrigin.OutOfDate],
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    booleanExprResolver: BooleanExprResolver
   )(dateExpr1: DateExpr, dateExpr2: DateExpr): ExpressionResult = {
-    val dateResult1 = evalDateExpr(recData, evaluationContext, this)(dateExpr1)
-    val dateResult2 = evalDateExpr(recData, evaluationContext, this)(dateExpr2)
+    val dateResult1 = evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr1)
+    val dateResult2 = evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr2)
     (dateResult1, dateResult2) match {
       case (DateResult(value1), DateResult(value2)) => PeriodResult(java.time.Period.between(value1, value2))
       case _                                        => ExpressionResult.empty
