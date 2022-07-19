@@ -166,15 +166,18 @@ class EmailAuthController(
 
             EmailAddress.isValid(emailId.value.toString) match {
               case true =>
-                sendEmailWithConfirmationCode(formTemplateWithRedirects, emailId).map { emailAndCode =>
-                  Redirect(
-                    uk.gov.hmrc.gform.gform.routes.EmailAuthController
-                      .confirmCodeForm(formTemplateId, None, continue, None)
-                  ).addingToSession(
-                    EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
-                      emailAuthDetails + (formTemplateId -> ValidEmail(emailAndCode))
+                sendEmailWithConfirmationCode(formTemplateWithRedirects, emailId).map {
+                  case None => // User has lost his session, so we start from the beginning
+                    Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplateId))
+                  case Some(emailAndCode) =>
+                    Redirect(
+                      uk.gov.hmrc.gform.gform.routes.EmailAuthController
+                        .confirmCodeForm(formTemplateId, None, continue, None)
+                    ).addingToSession(
+                      EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
+                        emailAuthDetails + (formTemplateId -> ValidEmail(emailAndCode))
+                      )
                     )
-                  )
                 }
               case false =>
                 Redirect(
@@ -375,7 +378,7 @@ class EmailAuthController(
     hc: HeaderCarrier,
     me: MonadError[Future, Throwable],
     l: LangADT
-  ): Future[EmailAndCode] = {
+  ): Future[Option[EmailAndCode]] = {
     val formTemplate = formTemplateWithRedirects.formTemplate
 
     val isStaticCodeEmail = frontendAppConfig.emailAuthStaticCodeEmails.fold(false) {
@@ -401,31 +404,33 @@ class EmailAuthController(
               l
             )
           )
-          .map(_ => emailAndCode)
+          .map(_ => Some(emailAndCode))
 
       case composite: Composite =>
-        val compositeAuthDetails =
+        val maybeCompositeAuthDetails: Option[String] =
           jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
             .get(formTemplateWithRedirects)
 
-        val config = AuthConfig
-          .getAuthConfig(compositeAuthDetails.get, composite.configs)
+        maybeCompositeAuthDetails.traverse { compositeAuthDetails =>
+          val config = AuthConfig
+            .getAuthConfig(compositeAuthDetails, composite.configs)
 
-        config match {
-          case Some(EmailAuthConfig(service, _, _, _)) =>
-            gformConnector
-              .sendEmail(
-                ConfirmationCodeWithEmailService(
-                  NotifierEmailAddress(emailId.value.toString),
-                  emailAndCode.code,
-                  service,
-                  l
+          config match {
+            case Some(EmailAuthConfig(service, _, _, _)) =>
+              gformConnector
+                .sendEmail(
+                  ConfirmationCodeWithEmailService(
+                    NotifierEmailAddress(emailId.value.toString),
+                    emailAndCode.code,
+                    service,
+                    l
+                  )
                 )
-              )
-              .map(_ => emailAndCode)
+                .map(_ => emailAndCode)
 
-          case _ =>
-            me.raiseError(new IllegalArgumentException(s"Unsupported auth config ${formTemplate.authConfig}"))
+            case _ =>
+              me.raiseError(new IllegalArgumentException(s"Unsupported auth config ${formTemplate.authConfig}"))
+          }
         }
 
       case _ => me.raiseError(new IllegalArgumentException(s"Unsupported auth config ${formTemplate.authConfig}"))
