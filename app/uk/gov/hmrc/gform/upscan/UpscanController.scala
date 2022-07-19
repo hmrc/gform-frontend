@@ -107,7 +107,7 @@ class UpscanController(
                         "",
                         cache.formTemplate.allowedFileTypes.fileExtensions.toList.map(_.toUpperCase).mkString(", ")
                       )
-                    case _ => mkFlash("file.error.upload.one.only")
+                    case _ => mkFlash("file.error.generic")
                   }
 
                   fastForwardService
@@ -183,7 +183,7 @@ class UpscanController(
               cache.formTemplate.fileSizeLimit.getOrElse(appConfig.formMaxAttachmentSizeMB).toString
             )
           case Some("EntityTooSmall") => mkFlash("file.error.empty")
-          case _                      => mkFlash("file.error.upload.one.only")
+          case _                      => mkFlash("file.error.generic")
         }
 
         fastForwardService

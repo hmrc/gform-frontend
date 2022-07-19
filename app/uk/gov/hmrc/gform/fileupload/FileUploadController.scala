@@ -207,7 +207,7 @@ class FileUploadController(
               "file.error.size",
               cache.formTemplate.fileSizeLimit.getOrElse(appConfig.formMaxAttachmentSizeMB).toString
             )
-          case _ => mkFlash("file.error.upload.one.only")
+          case _ => mkFlash("file.error.generic")
         }
 
         fastForwardService
