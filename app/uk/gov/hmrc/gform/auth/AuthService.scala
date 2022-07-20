@@ -149,12 +149,14 @@ class AuthService(
                   .pure[Future]
             }
 
-          case _ =>
+          case unknown =>
+            val continueUrl = gform.routes.NewFormController.dashboard(formTemplate._id).url
+            logger.info(s"Composite auth - no active session. GG: $unknown. Redirecting user to: $continueUrl")
             AuthCustomRedirect(
               gform.routes.CompositeAuthController.authSelectionForm(
                 formTemplate._id,
                 None,
-                compositeAuthUrlParameters
+                continueUrl
               )
             )
               .pure[Future]
