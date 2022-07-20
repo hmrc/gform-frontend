@@ -48,7 +48,7 @@ object RecoverAuthResult {
   def basicRecover(request: Request[AnyContent], appConfig: AppConfig): PartialFunction[Throwable, AuthResult] =
     recoverNoActiveSession(request, appConfig) orElse logAndRethrow
 
-  def recoverNoActiveSession(
+  private def recoverNoActiveSession(
     request: Request[AnyContent],
     appConfig: AppConfig
   ): PartialFunction[Throwable, AuthResult] = { case _: NoActiveSession =>
