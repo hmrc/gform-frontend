@@ -66,7 +66,7 @@
     );
   }
 
-     // Set up file upload
+  // Set up file upload
   self.initFileUpload = function() {
     init();
     };
