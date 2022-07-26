@@ -21,19 +21,28 @@
   }
 
   function handleFileUpload(e) {
-    var file = e.target.files[0];
     var form = $(e.target).closest("form")
     var formGroup = form.find(".govuk-form-group")
     var input = formGroup.find(".govuk-file-upload")
     var submitButton = form.find(".govuk-button--secondary")
     var formComponentId = input.attr("id");
     var uploadedFiles = $("#" + formComponentId + "-files")
+    var frm = $("#gf-form");
     submitButton.css("display", "")
-    submitButton.on("click", function() {
+    submitButton.on("click", function(evt) {
       formGroup.hide()
       uploadedFiles.empty().append(startProgressBar());
       submitButton.css("display", "none")
-      return true
+      evt.preventDefault();
+
+      $.ajax({
+          type: frm.attr('method'),
+          url: frm.attr('action'),
+          data: frm.serialize()
+      }).then(function (){
+          frm.submit();
+      });
+      return false;
     });
   }
 
@@ -57,7 +66,7 @@
     );
   }
 
-  // Set up file upload
+     // Set up file upload
   self.initFileUpload = function() {
     init();
     };
