@@ -37,7 +37,7 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
     options.toList
       .sortBy {
         case (label, DefaultLookupInfo(_, _))                       => (LookupPriority(1), label)
-        case (label, CountryLookupInfo(_, _, _, priority, _))       => (priority, label)
+        case (label, CountryLookupInfo(_, _, _, priority, _, _))    => (priority, label)
         case (label, CurrencyLookupInfo(_, _, _, priority, _))      => (priority, label)
         case (label, PortLookupInfo(_, _, _, priority, _, _, _, _)) => (priority, label)
       }
@@ -49,8 +49,9 @@ object LookupOptions {
   def getLookupValue(lookupInfo: LookupInfo, columnName: String): Option[String] =
     (lookupInfo, columnName) match {
       // format: off
-      case (CountryLookupInfo(_, _, _, _, region), CsvColumnName.region)                  => Some(region.region)
-      case (CountryLookupInfo(id, _, _, _, _), CsvColumnName.countryCode)                 => Some(id.id)
+      case (CountryLookupInfo(_, _, _, _, region, _), CsvColumnName.region)               => Some(region.region)
+      case (CountryLookupInfo(id, _, _, _, _, _), CsvColumnName.countryCode)              => Some(id.id)
+      case (CountryLookupInfo(_, _, _, _, _, inEU), CsvColumnName.inEU)                   => Some(inEU.inEU)
       case (CurrencyLookupInfo(id, _, _, _, _), CsvColumnName.currencyCode)               => Some(id.id)
       case (CurrencyLookupInfo(_, _, _, _, countryCode), CsvColumnName.countryCode)       => Some(countryCode.countryCode)
       case (PortLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.portId)                => Some(id.id)

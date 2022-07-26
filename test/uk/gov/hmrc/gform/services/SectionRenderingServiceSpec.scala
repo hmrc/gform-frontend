@@ -50,6 +50,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.immutable.List
 import scala.concurrent.Future
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 
 class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with IdiomaticMockito {
 
@@ -84,7 +85,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       form,
       FormTemplateWithRedirects.noRedirects(formTemplate),
       Role.Customer,
-      Some(accessCode)
+      Some(accessCode),
+      LocalisedLookupOptions(Map())
     )
 
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
@@ -123,7 +125,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
           messages,
           List.empty,
           Set.empty,
-          FileSizeLimit(1)
+          FileSizeLimit(1),
+          LocalisedLookupOptions(Map())
         )
       )
     )

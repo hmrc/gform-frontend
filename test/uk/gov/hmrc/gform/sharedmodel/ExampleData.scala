@@ -46,6 +46,7 @@ import play.api.test.Helpers
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 
 import scala.collection.immutable.List
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 
 object ExampleData extends ExampleData
 
@@ -78,7 +79,8 @@ trait ExampleEvaluationContext {
       Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty)),
       List.empty,
       Set.empty,
-      FileSizeLimit(1)
+      FileSizeLimit(1),
+      LocalisedLookupOptions(Map())
     )
 }
 

@@ -31,14 +31,16 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
       0,
       LookupKeywords(Some("Britain")),
       LookupPriority(1),
-      LookupRegion("1")
+      LookupRegion("1"),
+      LookupInEU("1")
     ),
     LookupLabel("France") -> CountryLookupInfo(
       LookupId("FR"),
       1,
       LookupKeywords(Some("France")),
       LookupPriority(1),
-      LookupRegion("2")
+      LookupRegion("2"),
+      LookupInEU("1")
     )
   )
 

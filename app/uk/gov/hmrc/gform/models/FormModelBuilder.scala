@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
 import uk.gov.hmrc.gform.eval.{ BooleanExprEval, BooleanExprResolver, DateExprEval, EvaluationContext, ExpressionResult, FileIdsWithMapping, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.gform.{ FormComponentUpdater, PageUpdater }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
@@ -43,7 +44,8 @@ object FormModelBuilder {
     cache: AuthCache,
     cacheData: CacheData,
     recalculation: Recalculation[F, E],
-    componentIdToFileId: FormComponentIdToFileIdMapping
+    componentIdToFileId: FormComponentIdToFileIdMapping,
+    lookupOptions: LocalisedLookupOptions
   )(implicit
     hc: HeaderCarrier,
     me: MonadError[F, E]
@@ -55,7 +57,8 @@ object FormModelBuilder {
       cacheData.envelopeId,
       cache.accessCode,
       recalculation,
-      componentIdToFileId
+      componentIdToFileId,
+      lookupOptions
     )
 
   def evalIncludeIf[T <: PageMode](
@@ -171,7 +174,8 @@ class FormModelBuilder[E, F[_]: Functor](
   envelopeId: EnvelopeId,
   maybeAccessCode: Option[AccessCode],
   recalculation: Recalculation[F, E],
-  componentIdToFileId: FormComponentIdToFileIdMapping
+  componentIdToFileId: FormComponentIdToFileIdMapping,
+  lookupOptions: LocalisedLookupOptions
 )(implicit
   hc: HeaderCarrier,
   me: MonadError[F, E]
@@ -204,7 +208,8 @@ class FormModelBuilder[E, F[_]: Functor](
         messages,
         formModel.allIndexedComponentIds,
         formModel.taxPeriodDate,
-        FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize))
+        FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
+        lookupOptions
       )
 
     recalculation

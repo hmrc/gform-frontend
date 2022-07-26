@@ -52,6 +52,7 @@ import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 
 class SummaryRenderingServiceSpec
     extends AnyWordSpecLike with Matchers with ScalaFutures with ExampleData with ArgumentMatchersSugar
@@ -83,7 +84,8 @@ class SummaryRenderingServiceSpec
       form,
       FormTemplateWithRedirects.noRedirects(formTemplate),
       Role.Customer,
-      maybeAccessCode
+      maybeAccessCode,
+      LocalisedLookupOptions(Map())
     )
     lazy val validationResult = ValidationResult.empty
 
@@ -133,7 +135,8 @@ class SummaryRenderingServiceSpec
           messages,
           List.empty,
           Set.empty,
-          FileSizeLimit(1)
+          FileSizeLimit(1),
+          LocalisedLookupOptions(Map())
         )
       )
     )

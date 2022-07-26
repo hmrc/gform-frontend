@@ -42,6 +42,8 @@ class LookupLoader {
     implicitly[CellDecoder[String]].map(r => LookupPortType(r))
   implicit private val lookupPortCodeCellDecoder: CellDecoder[LookupPortCode] =
     implicitly[CellDecoder[String]].map(r => LookupPortCode(r))
+  implicit private val lookupInEUDecoder: CellDecoder[LookupInEU] =
+    implicitly[CellDecoder[String]].map(r => LookupInEU(r))
 
   type LookupDetails = (LookupLabel, LookupInfo)
 
@@ -102,19 +104,28 @@ class LookupLoader {
     keywords: String,
     priority: String,
     region: String,
+    inEU: String,
     mkLookupType: LocalisedLookupOptions => LookupType
   ): LookupType = {
 
-    type ColumnData = (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority, LookupRegion)
+    type ColumnData = (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority, LookupRegion, LookupInEU)
 
     val headerDecoder: HeaderDecoder[ColumnData] =
-      HeaderDecoder.decoder(englishLabel, welshLabel, id, keywords, priority, region)(
-        (_: LookupLabel, _: LookupLabel, _: LookupId, _: LookupKeywords, _: LookupPriority, _: LookupRegion)
+      HeaderDecoder.decoder(englishLabel, welshLabel, id, keywords, priority, region, inEU)(
+        (
+          _: LookupLabel,
+          _: LookupLabel,
+          _: LookupId,
+          _: LookupKeywords,
+          _: LookupPriority,
+          _: LookupRegion,
+          _: LookupInEU
+        )
       )
 
     def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
-      val (enLabel, cyLabel, id, keywords, priority, region) = columnData
-      val li = CountryLookupInfo(id, index, keywords, priority, region)
+      val (enLabel, cyLabel, id, keywords, priority, region, inEu) = columnData
+      val li = CountryLookupInfo(id, index, keywords, priority, region, inEu)
       ((enLabel, li), (cyLabel, li))
     }
 
@@ -217,7 +228,7 @@ class LookupLoader {
   private val originMainPart           = read("BCD-OriginMainPart.csv",           "id",           "en",   "cy",   mkRadioLookup)
   private val originSavingsEarnings    = read("BCD-OriginSavingsEarnings.csv",    "id",           "en",   "cy",   mkRadioLookup)
   private val origin                   = read("BCD-Origin.csv",                   "ID",           "en",   "cy",   mkAjaxLookup(ShowAll.Enabled))
-  private val country                  = readCountries("BCD-Country.csv",         "CountryCode",  "Name", "Name-cy", "KeyWords", "Priority", "Region", mkAjaxLookup(ShowAll.Disabled))
+  private val country                  = readCountries("BCD-Country.csv",         "CountryCode",  "Name", "Name-cy", "KeyWords", "Priority", "Region", "InEU", mkAjaxLookup(ShowAll.Disabled))
   private val currency                 = readCurrencies("BCD-Currency.csv",       "CurrencyCode", "Name", "Name-cy", "KeyWords", "Priority", "CountryCode", mkAjaxLookup(ShowAll.Disabled))
   private val port                     = readPorts("BCD-Port.csv",                "PortCode",     "Name", "Name-cy",    "KeyWords", "Priority", "Region", "PortType",  "CountryCode", "PortCode", mkAjaxLookup(ShowAll.Disabled))
   // format: on
@@ -255,7 +266,7 @@ object LookupLoader {
       m.options map {
         case (ll, DefaultLookupInfo(_, _)) =>
           engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
-        case (ll, CountryLookupInfo(_, _, k, p, _))       => engine.add(new LookupRecord(ll.label, p, k))
+        case (ll, CountryLookupInfo(_, _, k, p, _, _))    => engine.add(new LookupRecord(ll.label, p, k))
         case (ll, CurrencyLookupInfo(_, _, k, p, _))      => engine.add(new LookupRecord(ll.label, p, k))
         case (ll, PortLookupInfo(_, _, k, p, _, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
       }

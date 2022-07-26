@@ -43,6 +43,7 @@ import uk.gov.hmrc.gform.upscan.{ UpscanController, UpscanModule }
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.language.LanguageUtils
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 
 class GformModule(
   akkaModule: AkkaModule,
@@ -61,7 +62,8 @@ class GformModule(
   playBuiltInsModule: PlayBuiltInsModule,
   graphModule: GraphModule,
   lookupRegistry: LookupRegistry,
-  errorResponder: ErrResponder
+  errorResponder: ErrResponder,
+  countryLookupOptions: LocalisedLookupOptions
 )(implicit
   ec: ExecutionContext
 ) {
@@ -381,6 +383,7 @@ class GformModule(
       graphModule.recalculation,
       formControllerRequestHandler,
       validationModule.validationService,
-      fastForwardService
+      fastForwardService,
+      countryLookupOptions
     )
 }

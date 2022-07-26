@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.fileupload.FileUploadConnector
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
@@ -39,7 +40,8 @@ class ControllersModule(
   sessionCookieBaker: SessionCookieBaker,
   errResponder: ErrResponder,
   graphModule: GraphModule,
-  wSHttpModule: WSHttpModule
+  wSHttpModule: WSHttpModule,
+  lookupOptions: LocalisedLookupOptions
 )(implicit
   ec: ExecutionContext
 ) {
@@ -74,7 +76,8 @@ class ControllersModule(
     errResponder,
     sessionCookieBaker,
     graphModule.recalculation,
-    graphModule.smartStringEvaluatorFactory
+    graphModule.smartStringEvaluatorFactory,
+    lookupOptions
   )
 
   val messagesControllerComponents: MessagesControllerComponents = new DefaultMessagesControllerComponents(

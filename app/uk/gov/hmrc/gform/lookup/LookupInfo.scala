@@ -31,7 +31,8 @@ final case class CountryLookupInfo(
   index: Int,
   keywords: LookupKeywords,
   priority: LookupPriority,
-  region: LookupRegion
+  region: LookupRegion,
+  inEu: LookupInEU
 ) extends LookupInfo
 
 final case class CurrencyLookupInfo(

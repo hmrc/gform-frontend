@@ -43,6 +43,7 @@ import uk.gov.hmrc.gform.fileupload.FileUploadConnector
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.userdetails.Nino
 import uk.gov.hmrc.gform.models._
@@ -91,7 +92,8 @@ class AuthenticatedRequestActions(
   errResponder: ErrResponder,
   sessionCookieBaker: SessionCookieBaker,
   recalculation: Recalculation[Future, Throwable],
-  smartStringEvaluatorFactory: SmartStringEvaluatorFactory
+  smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
+  lookupOptions: LocalisedLookupOptions
 )(implicit
   ec: ExecutionContext,
   messagesApi: MessagesApi
@@ -240,7 +242,7 @@ class AuthenticatedRequestActions(
                   formTemplate,
                   onSuccess = retrievals =>
                     role => {
-                      val cache = AuthCacheWithoutForm(retrievals, formTemplate, role)
+                      val cache = AuthCacheWithoutForm(retrievals, formTemplate, role, lookupOptions)
                       Permissions.apply(operation, cache.role) match {
                         case PermissionResult.Permitted => f(request)(lang)(cache)
                         case PermissionResult.NotPermitted =>
@@ -278,7 +280,9 @@ class AuthenticatedRequestActions(
         authResult <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
         result <- authResult match {
                     case AuthSuccessful(retrievals, role) =>
-                      f(request)(getCurrentLanguage(request))(AuthCacheWithoutForm(retrievals, formTemplate, role))
+                      f(request)(getCurrentLanguage(request))(
+                        AuthCacheWithoutForm(retrievals, formTemplate, role, lookupOptions)
+                      )
                     case _ =>
                       errResponder.forbidden("Access denied - Unsuccessful GGAuth", Some(formTemplate))
                   }
@@ -386,7 +390,8 @@ class AuthenticatedRequestActions(
                   formUpd,
                   FormTemplateWithRedirects.noRedirects(formTemplateForForm),
                   role,
-                  maybeAccessCode
+                  maybeAccessCode,
+                  lookupOptions
                 )
 
         formModelOptics <-
@@ -546,6 +551,7 @@ sealed trait AuthCache {
   def formTemplate: FormTemplate
   def role: Role
   def accessCode: Option[AccessCode]
+  def countryLookupOptions: LocalisedLookupOptions
 }
 
 case class AuthCacheWithForm(
@@ -553,8 +559,10 @@ case class AuthCacheWithForm(
   form: Form,
   formTemplateWithRedirects: FormTemplateWithRedirects,
   role: Role,
-  accessCode: Option[AccessCode]
+  accessCode: Option[AccessCode],
+  lookupOptions: LocalisedLookupOptions
 ) extends AuthCache {
+  val countryLookupOptions: LocalisedLookupOptions = lookupOptions
   val formTemplate: FormTemplate = formTemplateWithRedirects.formTemplate
   val formTemplateId: FormTemplateId = formTemplate._id
   def formModel[U <: SectionSelectorType: SectionSelector](implicit
@@ -571,7 +579,8 @@ case class AuthCacheWithForm(
           DbLookupChecker.alwaysPresent,
           (s: GraphException) => new IllegalArgumentException(s.reportProblem)
         ),
-        form.componentIdToFileId
+        form.componentIdToFileId,
+        lookupOptions
       )
       .dependencyGraphValidation
   }
@@ -591,8 +600,10 @@ case class AuthCacheWithForm(
 case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
   formTemplate: FormTemplate,
-  role: Role
+  role: Role,
+  lookupOptions: LocalisedLookupOptions
 ) extends AuthCache {
+  val countryLookupOptions: LocalisedLookupOptions = lookupOptions
   override val accessCode: Option[AccessCode] = None
   def toCacheData: CacheData = new CacheData(
     EnvelopeId(""),
@@ -600,7 +611,14 @@ case class AuthCacheWithoutForm(
     formTemplate
   )
   def toAuthCacheWithForm(form: Form, accessCode: Option[AccessCode]) =
-    AuthCacheWithForm(retrievals, form, FormTemplateWithRedirects.noRedirects(formTemplate), role, accessCode)
+    AuthCacheWithForm(
+      retrievals,
+      form,
+      FormTemplateWithRedirects.noRedirects(formTemplate),
+      role,
+      accessCode,
+      lookupOptions
+    )
 }
 
 class CacheData(

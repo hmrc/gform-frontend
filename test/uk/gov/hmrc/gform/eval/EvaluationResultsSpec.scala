@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
@@ -84,7 +85,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       indexedComponentIds,
       Set.empty,
-      FileSizeLimit(1)
+      FileSizeLimit(1),
+      LocalisedLookupOptions(Map())
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()
