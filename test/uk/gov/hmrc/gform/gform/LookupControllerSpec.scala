@@ -261,7 +261,9 @@ class LookupControllerSpec
               LookupKeywords(Some("England Great Britain")),
               LookupPriority(1),
               LookupRegion("1"),
-              LookupInEU("1")
+              LookupInEU("1"),
+              LookupInEEA("1"),
+              LookupInEFTA("1")
             ),
             LookupLabel("United States") -> CountryLookupInfo(
               LookupId("US"),
@@ -269,7 +271,9 @@ class LookupControllerSpec
               LookupKeywords(Some("USA")),
               LookupPriority(1),
               LookupRegion("2"),
-              LookupInEU("1")
+              LookupInEU("1"),
+              LookupInEEA("1"),
+              LookupInEFTA("1")
             )
           )
         )
