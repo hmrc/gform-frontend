@@ -40,7 +40,7 @@
           url: frm.attr('action'),
           data: frm.serialize()
       }).then(function (){
-          frm.submit();
+          submitButton.submit();
       });
       return false;
     });
