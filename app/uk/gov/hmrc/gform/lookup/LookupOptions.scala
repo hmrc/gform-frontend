@@ -49,11 +49,11 @@ object LookupOptions {
   def getLookupValue(lookupInfo: LookupInfo, columnName: String): Option[String] =
     (lookupInfo, columnName) match {
       // format: off
-      case (CountryLookupInfo(_, _, _, _, region, _, _, _), CsvColumnName.region)               => Some(region.region)
-      case (CountryLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.countryCode)              => Some(id.id)
-      case (CountryLookupInfo(_, _, _, _, _, inEU, _, _), CsvColumnName.inEU)                   => Some(inEU.inEU)
-      case (CountryLookupInfo(_, _, _, _, _, _, inEEA, _), CsvColumnName.inEEA)                   => Some(inEEA.inEEA)
-      case (CountryLookupInfo(_, _, _, _, _, _, _, inEFTA), CsvColumnName.inEFTA)                   => Some(inEFTA.inEFTA)
+      case (CountryLookupInfo(_, _, _, _, region, _, _, _), CsvColumnName.region)         => Some(region.region)
+      case (CountryLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.countryCode)        => Some(id.id)
+      case (CountryLookupInfo(_, _, _, _, _, inEU, _, _), CsvColumnName.inEU)             => Some(inEU.inEU)
+      case (CountryLookupInfo(_, _, _, _, _, _, inEEA, _), CsvColumnName.inEEA)           => Some(inEEA.inEEA)
+      case (CountryLookupInfo(_, _, _, _, _, _, _, inEFTA), CsvColumnName.inEFTA)         => Some(inEFTA.inEFTA)
       case (CurrencyLookupInfo(id, _, _, _, _), CsvColumnName.currencyCode)               => Some(id.id)
       case (CurrencyLookupInfo(_, _, _, _, countryCode), CsvColumnName.countryCode)       => Some(countryCode.countryCode)
       case (PortLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.portId)                => Some(id.id)

@@ -269,16 +269,12 @@ case class EvaluationResults(
     StringResult(s"$monthAsText $year")
   }
 
-  import org.slf4j.LoggerFactory
-  private val logger = LoggerFactory.getLogger(getClass)
   private def evalString(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
-    logger.error(s"[evalString] typeInfo $typeInfo")
-    logger.error(s"[evalString] recData $recData")
     implicit val m = evaluationContext.messages
 
     def nonEmpty(stringResult: StringResult): ExpressionResult =
