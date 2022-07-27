@@ -77,7 +77,7 @@ object FormModelOptics {
         List.empty,
         Set.empty[BaseComponentId],
         FileSizeLimit(cache.formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
-        cache.lookupOptions
+        cache.countryLookupOptions
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),

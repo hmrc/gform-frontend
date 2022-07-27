@@ -560,9 +560,8 @@ case class AuthCacheWithForm(
   formTemplateWithRedirects: FormTemplateWithRedirects,
   role: Role,
   accessCode: Option[AccessCode],
-  lookupOptions: LocalisedLookupOptions
+  countryLookupOptions: LocalisedLookupOptions
 ) extends AuthCache {
-  val countryLookupOptions: LocalisedLookupOptions = lookupOptions
   val formTemplate: FormTemplate = formTemplateWithRedirects.formTemplate
   val formTemplateId: FormTemplateId = formTemplate._id
   def formModel[U <: SectionSelectorType: SectionSelector](implicit
@@ -580,7 +579,7 @@ case class AuthCacheWithForm(
           (s: GraphException) => new IllegalArgumentException(s.reportProblem)
         ),
         form.componentIdToFileId,
-        lookupOptions
+        countryLookupOptions
       )
       .dependencyGraphValidation
   }
@@ -601,9 +600,8 @@ case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
   formTemplate: FormTemplate,
   role: Role,
-  lookupOptions: LocalisedLookupOptions
+  countryLookupOptions: LocalisedLookupOptions
 ) extends AuthCache {
-  val countryLookupOptions: LocalisedLookupOptions = lookupOptions
   override val accessCode: Option[AccessCode] = None
   def toCacheData: CacheData = new CacheData(
     EnvelopeId(""),
@@ -617,7 +615,7 @@ case class AuthCacheWithoutForm(
       FormTemplateWithRedirects.noRedirects(formTemplate),
       role,
       accessCode,
-      lookupOptions
+      countryLookupOptions
     )
 }
 

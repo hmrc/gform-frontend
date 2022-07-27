@@ -87,12 +87,13 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
     result shouldBe emptyLookupOptions
   }
 
-  it should "return empty options when no selection field exists in lookupOptions" in {
-    val result = LookupOptions.filterBySelectionCriteria(
-      List(SimplifiedSelectionCriteria(CsvColumnName("other"), List("other-value"))),
-      countryLookupOptions
+  it should "throw exception when no selection field exists in lookupOptions" in {
+    an[Exception] shouldBe thrownBy(
+      LookupOptions.filterBySelectionCriteria(
+        List(SimplifiedSelectionCriteria(CsvColumnName("other"), List("other-value"))),
+        countryLookupOptions
+      )
     )
-    result shouldBe Map.empty
   }
 
   it should "return empty options when no selection field does not match any value in lookupOptions" in {

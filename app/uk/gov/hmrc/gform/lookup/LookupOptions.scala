@@ -51,7 +51,8 @@ object LookupOptions {
       // format: off
       case (CountryLookupInfo(_, _, _, _, region, _), CsvColumnName.region)               => Some(region.region)
       case (CountryLookupInfo(id, _, _, _, _, _), CsvColumnName.countryCode)              => Some(id.id)
-      case (CountryLookupInfo(_, _, _, _, _, columns), column)                            => columns.get(column)
+      case (CountryLookupInfo(_, _, _, _, _, columns), column)                            =>
+        Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
       case (CurrencyLookupInfo(id, _, _, _, _), CsvColumnName.currencyCode)               => Some(id.id)
       case (CurrencyLookupInfo(_, _, _, _, countryCode), CsvColumnName.countryCode)       => Some(countryCode.countryCode)
       case (PortLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.portId)                => Some(id.id)
