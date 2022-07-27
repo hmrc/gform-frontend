@@ -434,6 +434,7 @@ object CsvColumnName {
   val portId = "portid"
   val portType = "porttype"
   val region = "region"
+  val columns = "columns"
 }
 
 sealed trait SelectionCriteriaValue

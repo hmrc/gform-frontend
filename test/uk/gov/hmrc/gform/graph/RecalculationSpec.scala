@@ -36,6 +36,7 @@ import play.api.test.Helpers
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 
 import java.time.LocalDate
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 
 class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec with FormModelSupport {
 
@@ -67,7 +68,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       messages,
       List.empty,
       Set.empty,
-      FileSizeLimit(1)
+      FileSizeLimit(1),
+      LocalisedLookupOptions(Map())
     )
 
   "recalculation" should "recalculate single dependency" in {

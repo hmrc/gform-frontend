@@ -37,6 +37,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, For
 import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult }
 
 import scala.collection.immutable.List
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 
 class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSupport {
 
@@ -95,7 +96,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
         form,
         FormTemplateWithRedirects.noRedirects(formTemplate),
         Role.Customer,
-        maybeAccessCode
+        maybeAccessCode,
+        LocalisedLookupOptions(Map())
       )
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
       mkFormModelOptics(formTemplate, cache.variadicFormData[SectionSelectorType.WithDeclaration])

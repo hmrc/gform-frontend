@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.gform.FastForwardService
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.models.{ Basic, Bracket, FormModelBuilder, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ FastForward, SectionSelectorType }
@@ -58,7 +59,8 @@ class AddressLookupController(
   recalculation: Recalculation[Future, Throwable],
   formControllerRequestHandler: FormControllerRequestHandler,
   validationService: ValidationService,
-  fastForwardService: FastForwardService
+  fastForwardService: FastForwardService,
+  lookupOptions: LocalisedLookupOptions
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -610,7 +612,8 @@ class AddressLookupController(
       syntheticCache.form.envelopeId,
       maybeAccessCode,
       recalculation,
-      FormComponentIdToFileIdMapping.empty
+      FormComponentIdToFileIdMapping.empty,
+      lookupOptions
     )
 
     val data = syntheticCache.variadicFormData[SectionSelectorType.Normal]

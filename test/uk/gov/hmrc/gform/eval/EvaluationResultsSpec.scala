@@ -35,6 +35,8 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
+import uk.gov.hmrc.gform.lookup._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.CsvCountryCheck
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
@@ -84,7 +86,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       indexedComponentIds,
       Set.empty,
-      FileSizeLimit(1)
+      FileSizeLimit(1),
+      LocalisedLookupOptions(Map())
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()
@@ -342,6 +345,45 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         StringResult("111"),
         "Third party data retrieval for id 'someDataRetrieveId' and attribute 'attribute1'"
+      ),
+      (
+        TypeInfo(CsvCountryCheck(FormComponentId("selectedCountry"), "InEU"), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("selectedCountry"), VariadicValue.One("United Kingdom"))
+          )
+        ),
+        evaluationContext.copy(lookupOptions =
+          LocalisedLookupOptions(
+            Map(
+              LangADT.En -> LookupOptions(
+                Map(
+                  LookupLabel("United Kingdom") -> CountryLookupInfo(
+                    LookupId("GB"),
+                    0,
+                    LookupKeywords(Some("England Great Britain")),
+                    LookupPriority(1),
+                    LookupRegion("1"),
+                    Map("InEU" -> "1")
+                  )
+                )
+              )
+            )
+          )
+        ),
+        StringResult("1"),
+        "CsvCountryCheck eval to string with matching LookupInfo"
+      ),
+      (
+        TypeInfo(CsvCountryCheck(FormComponentId("selectedCountry"), "InEU"), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("selectedCountry"), VariadicValue.One("United Kingdom"))
+          )
+        ),
+        evaluationContext,
+        Empty,
+        "CsvCountryCheck eval to string without matching LookupInfo"
       )
     )
     forAll(table) {

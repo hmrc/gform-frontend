@@ -37,6 +37,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveResult, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
+import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupOptions }
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
@@ -229,6 +230,7 @@ case class EvaluationResults(
       case PeriodValue(_)                             => unsupportedOperation("Number")(expr)
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
       case DataRetrieveCtx(_, _)                      => unsupportedOperation("Number")(expr)
+      case CsvCountryCheck(_, _)                      => unsupportedOperation("Number")(expr)
       case Size(formComponentId, index)               => evalSize(formComponentId, recData, index)
       case Typed(expr, tpe)                           => evalTyped(loop(expr), tpe)
     }
@@ -273,7 +275,6 @@ case class EvaluationResults(
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
-
     implicit val m = evaluationContext.messages
 
     def nonEmpty(stringResult: StringResult): ExpressionResult =
@@ -415,6 +416,18 @@ case class EvaluationResults(
         )
       case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
       case Typed(expr, _)               => loop(expr)
+      case CsvCountryCheck(fcId, column) =>
+        loop(FormCtx(fcId)) match {
+          case StringResult(value) =>
+            evaluationContext.lookupOptions.fold[ExpressionResult](Empty)(
+              _.get(LookupLabel(value))
+                .flatMap(li => LookupOptions.getLookupValue(li, column))
+                .map(StringResult(_))
+                .getOrElse(Empty)
+            )(evaluationContext.lang)
+
+          case _ => Empty
+        }
     }
 
     loop(typeInfo.expr)

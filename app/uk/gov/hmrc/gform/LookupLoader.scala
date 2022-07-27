@@ -51,6 +51,12 @@ class LookupLoader {
     lookup.unsafeReadCsv[List, A](rfc.withHeader)(headerDecoder, implicitly, implicitly)
   }
 
+  private def readCsvWithColumns(filename: String): List[Map[String, String]] = {
+    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
+    val lines = lookup.asUnsafeCsvReader[List[String]](rfc.withHeader(false)).toList
+    lines.tail.map(lines.head.zip(_).toMap)
+  }
+
   private def getLocalisedLookupOptions[A](
     fileName: String,
     headerDecoder: HeaderDecoder[A],
@@ -96,7 +102,7 @@ class LookupLoader {
 
   private def readCountries(
     filename: String,
-    id: String,
+    idColumnName: String,
     englishLabel: String,
     welshLabel: String,
     keywords: String,
@@ -108,13 +114,16 @@ class LookupLoader {
     type ColumnData = (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority, LookupRegion)
 
     val headerDecoder: HeaderDecoder[ColumnData] =
-      HeaderDecoder.decoder(englishLabel, welshLabel, id, keywords, priority, region)(
+      HeaderDecoder.decoder(englishLabel, welshLabel, idColumnName, keywords, priority, region)(
         (_: LookupLabel, _: LookupLabel, _: LookupId, _: LookupKeywords, _: LookupPriority, _: LookupRegion)
       )
 
+    val csvWithColumns = readCsvWithColumns(filename)
     def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
       val (enLabel, cyLabel, id, keywords, priority, region) = columnData
-      val li = CountryLookupInfo(id, index, keywords, priority, region)
+
+      val columns = csvWithColumns.find(_.get(idColumnName).get == id.id).get
+      val li = CountryLookupInfo(id, index, keywords, priority, region, columns)
       ((enLabel, li), (cyLabel, li))
     }
 
@@ -255,7 +264,7 @@ object LookupLoader {
       m.options map {
         case (ll, DefaultLookupInfo(_, _)) =>
           engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
-        case (ll, CountryLookupInfo(_, _, k, p, _))       => engine.add(new LookupRecord(ll.label, p, k))
+        case (ll, CountryLookupInfo(_, _, k, p, _, _))    => engine.add(new LookupRecord(ll.label, p, k))
         case (ll, CurrencyLookupInfo(_, _, k, p, _))      => engine.add(new LookupRecord(ll.label, p, k))
         case (ll, PortLookupInfo(_, _, k, p, _, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
       }

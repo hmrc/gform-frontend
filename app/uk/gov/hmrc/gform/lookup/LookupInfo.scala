@@ -31,7 +31,8 @@ final case class CountryLookupInfo(
   index: Int,
   keywords: LookupKeywords,
   priority: LookupPriority,
-  region: LookupRegion
+  region: LookupRegion,
+  columns: Map[String, String]
 ) extends LookupInfo
 
 final case class CurrencyLookupInfo(
