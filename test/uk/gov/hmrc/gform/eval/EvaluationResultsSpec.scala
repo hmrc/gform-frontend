@@ -364,9 +364,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                     LookupKeywords(Some("England Great Britain")),
                     LookupPriority(1),
                     LookupRegion("1"),
-                    LookupInEU("1"),
-                    LookupInEEA("1"),
-                    LookupInEFTA("1")
+                    Map("InEU" -> "1")
                   )
                 )
               )

@@ -42,12 +42,6 @@ class LookupLoader {
     implicitly[CellDecoder[String]].map(r => LookupPortType(r))
   implicit private val lookupPortCodeCellDecoder: CellDecoder[LookupPortCode] =
     implicitly[CellDecoder[String]].map(r => LookupPortCode(r))
-  implicit private val lookupInEUDecoder: CellDecoder[LookupInEU] =
-    implicitly[CellDecoder[String]].map(r => LookupInEU(r))
-  implicit private val lookupInEEADecoder: CellDecoder[LookupInEEA] =
-    implicitly[CellDecoder[String]].map(r => LookupInEEA(r))
-  implicit private val lookupInEFTADecoder: CellDecoder[LookupInEFTA] =
-    implicitly[CellDecoder[String]].map(r => LookupInEFTA(r))
 
   type LookupDetails = (LookupLabel, LookupInfo)
 
@@ -55,6 +49,12 @@ class LookupLoader {
     val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
 
     lookup.unsafeReadCsv[List, A](rfc.withHeader)(headerDecoder, implicitly, implicitly)
+  }
+
+  private def readCsvWithColumns(filename: String): List[Map[String, String]] = {
+    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
+    val lines = lookup.asUnsafeCsvReader[List[String]](rfc.withHeader(false)).toList
+    lines.tail.map(lines.head.zip(_).toMap)
   }
 
   private def getLocalisedLookupOptions[A](
@@ -102,15 +102,12 @@ class LookupLoader {
 
   private def readCountries(
     filename: String,
-    id: String,
+    idColumnName: String,
     englishLabel: String,
     welshLabel: String,
     keywords: String,
     priority: String,
     region: String,
-    inEU: String,
-    inEEA: String,
-    inEFTA: String,
     mkLookupType: LocalisedLookupOptions => LookupType
   ): LookupType = {
 
@@ -120,30 +117,27 @@ class LookupLoader {
       LookupId,
       LookupKeywords,
       LookupPriority,
-      LookupRegion,
-      LookupInEU,
-      LookupInEEA,
-      LookupInEFTA
+      LookupRegion
     )
 
     val headerDecoder: HeaderDecoder[ColumnData] =
-      HeaderDecoder.decoder(englishLabel, welshLabel, id, keywords, priority, region, inEU, inEEA, inEFTA)(
+      HeaderDecoder.decoder(englishLabel, welshLabel, idColumnName, keywords, priority, region)(
         (
           _: LookupLabel,
           _: LookupLabel,
           _: LookupId,
           _: LookupKeywords,
           _: LookupPriority,
-          _: LookupRegion,
-          _: LookupInEU,
-          _: LookupInEEA,
-          _: LookupInEFTA
+          _: LookupRegion
         )
       )
 
+    val csvWithColumns = readCsvWithColumns(filename)
     def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
-      val (enLabel, cyLabel, id, keywords, priority, region, inEu, inEEA, inEFTA) = columnData
-      val li = CountryLookupInfo(id, index, keywords, priority, region, inEu, inEEA, inEFTA)
+      val (enLabel, cyLabel, id, keywords, priority, region) = columnData
+
+      val columns = csvWithColumns.find(_.get(idColumnName).get == id.id).get
+      val li = CountryLookupInfo(id, index, keywords, priority, region, columns)
       ((enLabel, li), (cyLabel, li))
     }
 
@@ -246,7 +240,7 @@ class LookupLoader {
   private val originMainPart           = read("BCD-OriginMainPart.csv",           "id",           "en",   "cy",   mkRadioLookup)
   private val originSavingsEarnings    = read("BCD-OriginSavingsEarnings.csv",    "id",           "en",   "cy",   mkRadioLookup)
   private val origin                   = read("BCD-Origin.csv",                   "ID",           "en",   "cy",   mkAjaxLookup(ShowAll.Enabled))
-  private val country                  = readCountries("BCD-Country.csv",         "CountryCode",  "Name", "Name-cy", "KeyWords", "Priority", "Region", "InEU", "InEEA", "InEFTA", mkAjaxLookup(ShowAll.Disabled))
+  private val country                  = readCountries("BCD-Country.csv",         "CountryCode",  "Name", "Name-cy", "KeyWords", "Priority", "Region", mkAjaxLookup(ShowAll.Disabled))
   private val currency                 = readCurrencies("BCD-Currency.csv",       "CurrencyCode", "Name", "Name-cy", "KeyWords", "Priority", "CountryCode", mkAjaxLookup(ShowAll.Disabled))
   private val port                     = readPorts("BCD-Port.csv",                "PortCode",     "Name", "Name-cy",    "KeyWords", "Priority", "Region", "PortType",  "CountryCode", "PortCode", mkAjaxLookup(ShowAll.Disabled))
   // format: on
@@ -284,9 +278,9 @@ object LookupLoader {
       m.options map {
         case (ll, DefaultLookupInfo(_, _)) =>
           engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
-        case (ll, CountryLookupInfo(_, _, k, p, _, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
-        case (ll, CurrencyLookupInfo(_, _, k, p, _))         => engine.add(new LookupRecord(ll.label, p, k))
-        case (ll, PortLookupInfo(_, _, k, p, _, _, _, _))    => engine.add(new LookupRecord(ll.label, p, k))
+        case (ll, CountryLookupInfo(_, _, k, p, _, _))    => engine.add(new LookupRecord(ll.label, p, k))
+        case (ll, CurrencyLookupInfo(_, _, k, p, _))      => engine.add(new LookupRecord(ll.label, p, k))
+        case (ll, PortLookupInfo(_, _, k, p, _, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
       }
 
       l -> engine
