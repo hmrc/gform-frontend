@@ -111,25 +111,11 @@ class LookupLoader {
     mkLookupType: LocalisedLookupOptions => LookupType
   ): LookupType = {
 
-    type ColumnData = (
-      LookupLabel,
-      LookupLabel,
-      LookupId,
-      LookupKeywords,
-      LookupPriority,
-      LookupRegion
-    )
+    type ColumnData = (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority, LookupRegion)
 
     val headerDecoder: HeaderDecoder[ColumnData] =
       HeaderDecoder.decoder(englishLabel, welshLabel, idColumnName, keywords, priority, region)(
-        (
-          _: LookupLabel,
-          _: LookupLabel,
-          _: LookupId,
-          _: LookupKeywords,
-          _: LookupPriority,
-          _: LookupRegion
-        )
+        (_: LookupLabel, _: LookupLabel, _: LookupId, _: LookupKeywords, _: LookupPriority, _: LookupRegion)
       )
 
     val csvWithColumns = readCsvWithColumns(filename)
