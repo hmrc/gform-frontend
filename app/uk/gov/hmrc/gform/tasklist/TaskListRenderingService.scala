@@ -83,30 +83,35 @@ class TaskListRenderingService(
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
     val taskList: BracketsWithSectionNumber.TaskList[Visibility] = formModel.brackets.unsafeToTaskList
     val coordinates: NonEmptyList[Coordinates] = taskList.brackets.map(_._1)
-    coordinates.traverse { coordinate =>
-      val dataForCoordinate: Set[VariadicValue] =
-        formModelOptics.formModelVisibilityOptics.data.forCoordinate(coordinate)
 
-      for {
-        formHandlerResult <-
-          validationService.validateFormModel(
-            cache,
-            envelope,
-            formModelOptics.formModelVisibilityOptics,
-            Some(coordinate)
-          )
-      } yield {
-        val taskStatus =
-          if (dataForCoordinate.isEmpty) {
-            TaskStatus.NotStarted
-          } else if (formHandlerResult.isFormValid) {
-            TaskStatus.Completed
-          } else {
-            TaskStatus.InProgress
-          }
-        coordinate -> taskStatus
+    val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics.formModelRenderPageOptics.formModel)
+    coordinates
+      .traverse { coordinate =>
+        val dataForCoordinate: Set[VariadicValue] =
+          formModelOptics.formModelVisibilityOptics.data.forCoordinate(coordinate)
+
+        for {
+          formHandlerResult <-
+            validationService.validateFormModel(
+              cache,
+              envelope,
+              formModelOptics.formModelVisibilityOptics,
+              Some(coordinate)
+            )
+        } yield {
+          val taskStatus =
+            if (dataForCoordinate.isEmpty) {
+              TaskStatus.NotStarted
+            } else if (formHandlerResult.isFormValid) {
+              TaskStatus.Completed
+            } else {
+              TaskStatus.InProgress
+            }
+          coordinate -> taskStatus
+        }
+
       }
-    }
+      .map(cannotStartYetResolver.resolveCannotStartYet)
   }
 
   private def completedTaskSection(statuses: NonEmptyList[(Coordinates, TaskStatus)]): Int = {
