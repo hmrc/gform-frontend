@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section
+import uk.gov.hmrc.gform.eval.AllPageModelExpressionsGetter
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, Section }
 
 sealed trait BracketPlain[A <: PageMode] extends Product with Serializable {
   def fold[B](
@@ -32,6 +33,8 @@ sealed trait BracketPlain[A <: PageMode] extends Product with Serializable {
       case b: BracketPlain.RepeatingPage[A]    => g(b)
       case b: BracketPlain.AddToList[A]        => h(b)
     }
+
+  def allExprs(formModel: FormModel[DataExpanded]): List[Expr] = AllPageModelExpressionsGetter.allExprs(formModel)(this)
 }
 
 object BracketPlain {

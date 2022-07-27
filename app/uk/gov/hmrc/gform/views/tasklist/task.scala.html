@@ -14,6 +14,7 @@
  * limitations under the License.
  *@
 
+@import cats.implicits._
 @import uk.gov.hmrc.gform.tasklist.routes.TaskListController
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, Task, TaskSectionNumber, TaskNumber}
 @import uk.gov.hmrc.gform.models.Coordinates
@@ -44,12 +45,18 @@
 }
 
 @defining(statusesLookup.get(Coordinates(taskSectionNumber, taskNumber)).getOrElse(TaskStatus.NotStarted)) { status =>
-  <li class="app-task-list__item">
-    <span class="app-task-list__task-name">
-      <a href="@TaskListController.newTask(formTemplateId, maybeAccessCode, taskSectionNumber, taskNumber)" aria-describedby="poklop">
-        @{task.title.value}
-      </a>
-    </span>
-    <strong class="govuk-tag app-task-list__tag @{statusClass(status)}" id="poklop">@{messages(s"taskList.$status")}</strong>
-  </li>
+  @defining(s"task-${taskSectionNumber.value}-${taskNumber.value}") { elementId =>
+    <li class="app-task-list__item">
+      <span class="app-task-list__task-name">
+        @if(status === TaskStatus.CannotStartYet) {
+           @{task.title.value}
+        } else {
+          <a href="@TaskListController.newTask(formTemplateId, maybeAccessCode, taskSectionNumber, taskNumber)" aria-describedby="@elementId">
+            @{task.title.value}
+          </a>
+        }
+      </span>
+      <strong class="govuk-tag app-task-list__tag @{statusClass(status)}" id="@elementId">@{messages(s"taskList.$status")}</strong>
+    </li>
+  }
 }

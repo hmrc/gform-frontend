@@ -14,6 +14,7 @@
  * limitations under the License.
  *@
 
+@import cats.implicits._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.controllers.{ SaveAndExit, Back }
 @import uk.gov.hmrc.gform.gform.HasErrors
@@ -45,32 +46,28 @@
 @govukButton = @{new GovukButton()}
 
 @main_template(
-  title = "TODO TITLE",
+  title = "Tasks",
   formTemplate = formTemplate,
   containsErrors = false,
   frontendAppConfig = frontendAppConfig,
   backLink = None
 ) {
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      <h1 class="govuk-heading-xl">
-        @{formTemplate.formName.value}
-      </h1>
+  <h1 class="govuk-heading-xl">
+    @{formTemplate.formName.value}
+  </h1>
 
-      <h2 class="govuk-heading-s govuk-!-margin-bottom-2">Application incomplete</h2>
-      <p class="govuk-body govuk-!-margin-bottom-7">You have completed @{completedSection} of @{taskList.sections.size} sections.</p>
+  <h2 class="govuk-heading-s govuk-!-margin-bottom-2">Application incomplete</h2>
+  <p class="govuk-body govuk-!-margin-bottom-7">You have completed @{completedSection} of @{taskList.sections.size} sections.</p>
 
-      <ol class="app-task-list">
-        @{taskList.sections.toList.zipWithIndex.map { case (taskSection, index) =>
-            task_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(index), taskSection, statusesLookup)
-          }
-        }
-      </ol>
-      @if(completedSection == taskList.sections.size) {
-        @formWithCSRF(action = uk.gov.hmrc.gform.tasklist.routes.TaskListController.summaryPage(formTemplate._id, maybeAccessCode)) {
-          @govukButton(Button(content = Text(messages("taskList.button.submit")), value = None))
-        }
+  <ol class="app-task-list">
+    @{taskList.sections.toList.zipWithIndex.map { case (taskSection, index) =>
+        task_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(index), taskSection, statusesLookup)
       }
-    </div>
-  </div>
+    }
+  </ol>
+  @if(completedSection === taskList.sections.size) {
+    @formWithCSRF(action = uk.gov.hmrc.gform.tasklist.routes.TaskListController.summaryPage(formTemplate._id, maybeAccessCode)) {
+      @govukButton(Button(content = Text(messages("taskList.button.submit")), value = None))
+    }
+  }
 }

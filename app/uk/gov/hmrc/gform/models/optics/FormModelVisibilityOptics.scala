@@ -94,10 +94,10 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
       formModel(sectionNumber).allModelComponentIds.flatMap(recData.variadicFormData.get)
 
     def forCoordinate[A](coordinates: Coordinates): Set[VariadicValue] = {
-      val abc: List[uk.gov.hmrc.gform.models.ids.ModelComponentId] =
+      val modelComponentIds: List[ModelComponentId] =
         allFormComponentsForCoordinates(coordinates).map(_.multiValueId).flatMap(_.toModelComponentIds)
 
-      abc.toSet.flatMap(recData.variadicFormData.get)
+      modelComponentIds.toSet.flatMap(recData.variadicFormData.get)
 
     }
   }
