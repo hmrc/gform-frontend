@@ -20,39 +20,39 @@
     $(".govuk-file-upload").on("change", handleFileUpload);
   }
 
+  var fileSubmit = function(form, button) {
+    var formGroup = form.find(".govuk-form-group");
+    var input = formGroup.find(".govuk-file-upload");
+    var formComponentId = input.attr("id");
+    var uploadedFiles = $("#" + formComponentId + "-files");
+
+    button.css("display", "none");
+    formGroup.hide();
+    uploadedFiles.empty().append(startProgressBar());
+
+    return true;
+  }
+
+  var dataSubmit = function(form, dataForm, button) {
+    $.ajax({
+       type: dataForm.attr("method"),
+       url: dataForm.attr("action"),
+       data: dataForm.serialize()
+    }).then(function (){
+       button.on("click", function(e) {
+         fileSubmit(form, button);
+       });
+       button.click();
+    });
+  }
+
   function handleFileUpload(e) {
     var form = $(e.target).closest("form")
-    var formGroup = form.find(".govuk-form-group")
-    var input = formGroup.find(".govuk-file-upload")
     var submitButton = form.find(".govuk-button--secondary")
-    var formComponentId = input.attr("id");
-    var uploadedFiles = $("#" + formComponentId + "-files")
+    var dataForm = $("#gf-form");
     submitButton.css("display", "")
-    submitButton.on("click", function(evt) {
-      formGroup.hide()
-      uploadedFiles.empty().append(startProgressBar());
-      submitButton.css("display", "none")
-      evt.preventDefault();
-
-      var gfForm = $("#gf-form");
-      $.ajax({
-          type: gfForm.attr("method"),
-          url: gfForm.attr("action"),
-          data: gfForm.serialize()
-      }).done(function (){
-          var upscanForm = $("#gf-upscan-"+formComponentId);
-          var data = new FormData(upscanForm[0]);
-
-          $.ajax({
-              type: upscanForm.attr("method"),
-              enctype: "multipart/form-data",
-              url: upscanForm.attr("action"),
-              data: data,
-              processData: false,
-              contentType: false,
-              cache: false
-          });
-      });
+    submitButton.on("click", function(e) {
+       dataSubmit(form, dataForm, submitButton)
     });
   }
 
