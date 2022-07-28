@@ -27,7 +27,6 @@
     var submitButton = form.find(".govuk-button--secondary")
     var formComponentId = input.attr("id");
     var uploadedFiles = $("#" + formComponentId + "-files")
-    var frm = $("#gf-form");
     submitButton.css("display", "")
     submitButton.on("click", function(evt) {
       formGroup.hide()
@@ -35,14 +34,25 @@
       submitButton.css("display", "none")
       evt.preventDefault();
 
+      var gfForm = $("#gf-form");
       $.ajax({
-          type: frm.attr('method'),
-          url: frm.attr('action'),
-          data: frm.serialize()
-      }).then(function (){
-          submitButton.submit();
+          type: gfForm.attr("method"),
+          url: gfForm.attr("action"),
+          data: gfForm.serialize()
+      }).done(function (){
+          var upscanForm = $("#gf-upscan-"+formComponentId);
+          var data = new FormData(upscanForm[0]);
+
+          $.ajax({
+              type: upscanForm.attr("method"),
+              enctype: "multipart/form-data",
+              url: upscanForm.attr("action"),
+              data: data,
+              processData: false,
+              contentType: false,
+              cache: false
+          });
       });
-      return false;
     });
   }
 
