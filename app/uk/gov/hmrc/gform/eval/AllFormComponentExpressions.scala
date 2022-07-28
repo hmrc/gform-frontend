@@ -77,9 +77,9 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       case HasExpr(expr) => toPlainExprs(expr :: Nil)
       case IsMiniSummaryList(MiniSummaryList(rows)) =>
         toPlainExprs(
-          (rows.collect { case MiniSummaryList.Row(Some(key), _, _) => key.interpolations }).flatten,
-          rows.collect { case MiniSummaryList.Row(_, MiniSummaryListValue.AnyExpr(e), _) => e },
-          rows.collect { case MiniSummaryList.Row(_, MiniSummaryListValue.Reference(e), _) => e }
+          (rows.collect { case MiniSummaryRow.ValueRow(Some(key), _, _) => key.interpolations }).flatten,
+          rows.collect { case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.AnyExpr(e), _) => e },
+          rows.collect { case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(e), _) => e }
         )
 
       case _ => Nil

@@ -165,7 +165,7 @@ class FormController(
                         fc.`type` match {
                           case MiniSummaryList(rows) =>
                             rows.collect {
-                              case MiniSummaryList.Row(
+                              case MiniSummaryRow.ValueRow(
                                     _,
                                     MiniSummaryListValue.Reference(FormCtx(r)),
                                     _

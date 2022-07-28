@@ -86,13 +86,13 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
   private def expandSummaryList(summaryList: MiniSummaryList): MiniSummaryList = {
     val expRows = summaryList.rows
       .map {
-        case r @ MiniSummaryList.Row(_, MiniSummaryListValue.AnyExpr(exp), _) =>
+        case r @ MiniSummaryRow.ValueRow(_, MiniSummaryListValue.AnyExpr(exp), _) =>
           r.copy(value = MiniSummaryListValue.AnyExpr(expandExpr(exp)))
-        case r @ MiniSummaryList.Row(_, MiniSummaryListValue.Reference(ref), _) =>
+        case r @ MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(ref), _) =>
           r.copy(value = MiniSummaryListValue.Reference(expandFormCtx(ref)))
       }
       .map {
-        case r @ MiniSummaryList.Row(ss, _, includeIf) =>
+        case r @ MiniSummaryRow.ValueRow(ss, _, includeIf) =>
           r.copy(key = ss.map(expandSmartString), includeIf = includeIf.map(expandIncludeIf))
         case otherwise => otherwise
       }

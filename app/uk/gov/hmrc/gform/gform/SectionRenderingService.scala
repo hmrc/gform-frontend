@@ -1104,7 +1104,7 @@ class SectionRenderingService(
   private def htmlForMiniSummaryList(
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
-    rows: List[MiniSummaryList.Row],
+    rows: List[MiniSummaryRow],
     ei: ExtraInfo,
     validationResult: ValidationResult,
     obligations: Obligations
@@ -1115,10 +1115,10 @@ class SectionRenderingService(
     fcrd: FormComponentRenderDetails[SummaryRender]
   ) = {
 
-    val visibleRows: List[MiniSummaryList.Row] = rows
+    val visibleRows: List[MiniSummaryRow] = rows
       .filter(r => isVisibleMiniSummaryListRow(r, ei.formModelOptics))
     val slRows = visibleRows.map {
-      case MiniSummaryList.Row(key, MiniSummaryListValue.AnyExpr(e), _) =>
+      case MiniSummaryRow.ValueRow(key, MiniSummaryListValue.AnyExpr(e), _) =>
         val expStr = ei.formModelOptics.formModelVisibilityOptics
           .evalAndApplyTypeInfoFirst(e)
           .stringRepresentation
@@ -1133,7 +1133,7 @@ class SectionRenderingService(
             List()
           )
         )
-      case MiniSummaryList.Row(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _) =>
+      case MiniSummaryRow.ValueRow(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _) =>
         val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
         formModel.sectionNumberLookup
           .get(formComponentId)
@@ -1272,10 +1272,12 @@ class SectionRenderingService(
     }
 
   private def isVisibleMiniSummaryListRow(
-    row: MiniSummaryList.Row,
+    row: MiniSummaryRow,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  ): Boolean =
-    row.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+  ): Boolean = row match {
+    case v: MiniSummaryRow.ValueRow =>
+      v.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+  }
 
   private def htmlForChoice(
     formComponent: FormComponent,

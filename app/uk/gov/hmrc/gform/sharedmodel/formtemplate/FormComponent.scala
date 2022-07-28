@@ -235,7 +235,7 @@ object AllChoiceIncludeIfs {
 object AllMiniSummaryListIncludeIfs {
   def unapply(fc: FormComponent): Option[List[IncludeIf]] = fc match {
     case IsMiniSummaryList(c) =>
-      Some(c.rows.flatMap { case MiniSummaryList.Row(_, _, includeIf) =>
+      Some(c.rows.flatMap { case MiniSummaryRow.ValueRow(_, _, includeIf) =>
         includeIf
       })
     case _ => None
