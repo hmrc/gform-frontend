@@ -20,29 +20,39 @@
     $(".govuk-file-upload").on("change", handleFileUpload);
   }
 
+  var fileSubmit = function(form, button) {
+    var formGroup = form.find(".govuk-form-group");
+    var input = formGroup.find(".govuk-file-upload");
+    var formComponentId = input.attr("id");
+    var uploadedFiles = $("#" + formComponentId + "-files");
+
+    button.css("display", "none");
+    formGroup.hide();
+    uploadedFiles.empty().append(startProgressBar());
+
+    return true;
+  }
+
+  var dataSubmit = function(form, dataForm, button) {
+    $.ajax({
+       type: dataForm.attr("method"),
+       url: dataForm.attr("action"),
+       data: dataForm.serialize()
+    }).then(function (){
+       button.on("click", function(e) {
+         fileSubmit(form, button);
+       });
+       button.click();
+    });
+  }
+
   function handleFileUpload(e) {
     var form = $(e.target).closest("form")
-    var formGroup = form.find(".govuk-form-group")
-    var input = formGroup.find(".govuk-file-upload")
     var submitButton = form.find(".govuk-button--secondary")
-    var formComponentId = input.attr("id");
-    var uploadedFiles = $("#" + formComponentId + "-files")
-    var frm = $("#gf-form");
+    var dataForm = $("#gf-form");
     submitButton.css("display", "")
-    submitButton.on("click", function(evt) {
-      formGroup.hide()
-      uploadedFiles.empty().append(startProgressBar());
-      submitButton.css("display", "none")
-      evt.preventDefault();
-
-      $.ajax({
-          type: frm.attr('method'),
-          url: frm.attr('action'),
-          data: frm.serialize()
-      }).then(function (){
-          frm.submit();
-      });
-      return false;
+    submitButton.on("click", function(e) {
+       dataSubmit(form, dataForm, submitButton)
     });
   }
 
