@@ -1116,7 +1116,7 @@ class SectionRenderingService(
     fcrd: FormComponentRenderDetails[SummaryRender]
   ) = {
 
-    def aux(rows: List[MiniSummaryRow]) = {
+    def loop(rows: List[MiniSummaryRow]) = {
       val slRows = rows.map {
         case MiniSummaryRow.ValueRow(key, MiniSummaryListValue.AnyExpr(e), _) =>
           val expStr = ei.formModelOptics.formModelVisibilityOptics
@@ -1160,7 +1160,7 @@ class SectionRenderingService(
             }
             .toList
             .flatten
-        case MiniSummaryRow.HeaderRow(header) => ???
+        case MiniSummaryRow.HeaderRow(header) => throw new Exception(s"should not have HeaderRow $header here")
       }.flatten
       new GovukSummaryList()(SummaryList(slRows))
     }
@@ -1177,8 +1177,8 @@ class SectionRenderingService(
       .map(_.reverse)
     val htmls = visibleRowsPartitioned.map {
       case MiniSummaryRow.HeaderRow(h) :: xs =>
-        HtmlFormat.fill(List((new header)(Html(sse(h, false))), aux(xs)))
-      case xs => aux(xs)
+        HtmlFormat.fill(List((new header)(Html(sse(h, false))), loop(xs)))
+      case xs => loop(xs)
     }
     HtmlFormat.fill(htmls)
   }
