@@ -90,6 +90,7 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
           r.copy(value = MiniSummaryListValue.AnyExpr(expandExpr(exp)))
         case r @ MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(ref), _) =>
           r.copy(value = MiniSummaryListValue.Reference(expandFormCtx(ref)))
+        case r @ MiniSummaryRow.HeaderRow(_) => r
       }
       .map {
         case r @ MiniSummaryRow.ValueRow(ss, _, includeIf) =>

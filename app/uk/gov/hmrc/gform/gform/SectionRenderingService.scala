@@ -61,6 +61,7 @@ import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.views.html.specimen
+import uk.gov.hmrc.gform.views.html.summary.header
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
@@ -1115,54 +1116,73 @@ class SectionRenderingService(
     fcrd: FormComponentRenderDetails[SummaryRender]
   ) = {
 
+    def aux(rows: List[MiniSummaryRow]) = {
+      val slRows = rows.map {
+        case MiniSummaryRow.ValueRow(key, MiniSummaryListValue.AnyExpr(e), _) =>
+          val expStr = ei.formModelOptics.formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(e)
+            .stringRepresentation
+          List(
+            SummaryListRowHelper.summaryListRow(
+              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+              Html(expStr),
+              Some(""),
+              "",
+              "",
+              "",
+              List()
+            )
+          )
+        case MiniSummaryRow.ValueRow(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _) =>
+          val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
+          formModel.sectionNumberLookup
+            .get(formComponentId)
+            .map { sn =>
+              val sectionTitle4Ga = sectionTitle4GaFactory(formModel.pageModelLookup(sn), sn)
+              val fc = formModel.fcLookup.get(formComponentId).get
+              val fcUpdated = key.map(k => fc.copy(shortName = Some(k))).getOrElse(fc)
+              FormComponentSummaryRenderer
+                .summaryListRows[DataOrigin.Mongo, SummaryRender](
+                  fcUpdated,
+                  ei.singleton.page.id.map(_.modelPageId),
+                  formTemplateId,
+                  ei.formModelOptics.formModelVisibilityOptics,
+                  ei.maybeAccessCode,
+                  sn,
+                  sectionTitle4Ga,
+                  obligations,
+                  validationResult,
+                  ei.envelope,
+                  ei.addressRecordLookup,
+                  None,
+                  FastForward.StopAt(ei.sectionNumber)
+                )
+            }
+            .toList
+            .flatten
+        case MiniSummaryRow.HeaderRow(header) => ???
+      }.flatten
+      new GovukSummaryList()(SummaryList(slRows))
+    }
     val visibleRows: List[MiniSummaryRow] = rows
       .filter(r => isVisibleMiniSummaryListRow(r, ei.formModelOptics))
-    val slRows = visibleRows.map {
-      case MiniSummaryRow.ValueRow(key, MiniSummaryListValue.AnyExpr(e), _) =>
-        val expStr = ei.formModelOptics.formModelVisibilityOptics
-          .evalAndApplyTypeInfoFirst(e)
-          .stringRepresentation
-        List(
-          SummaryListRowHelper.summaryListRow(
-            key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-            Html(expStr),
-            Some(""),
-            "",
-            "",
-            "",
-            List()
-          )
-        )
-      case MiniSummaryRow.ValueRow(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _) =>
-        val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
-        formModel.sectionNumberLookup
-          .get(formComponentId)
-          .map { sn =>
-            val sectionTitle4Ga = sectionTitle4GaFactory(formModel.pageModelLookup(sn), sn)
-            val fc = formModel.fcLookup.get(formComponentId).get
-            val fcUpdated = key.map(k => fc.copy(shortName = Some(k))).getOrElse(fc)
-            FormComponentSummaryRenderer
-              .summaryListRows[DataOrigin.Mongo, SummaryRender](
-                fcUpdated,
-                ei.singleton.page.id.map(_.modelPageId),
-                formTemplateId,
-                ei.formModelOptics.formModelVisibilityOptics,
-                ei.maybeAccessCode,
-                sn,
-                sectionTitle4Ga,
-                obligations,
-                validationResult,
-                ei.envelope,
-                ei.addressRecordLookup,
-                None,
-                FastForward.StopAt(ei.sectionNumber)
-              )
-          }
-          .toList
-          .flatten
-    }.flatten
-    new GovukSummaryList()(SummaryList(slRows))
+    val visibleRowsPartitioned: List[List[MiniSummaryRow]] = visibleRows
+      .foldLeft(List(List[MiniSummaryRow]()))((b, a) =>
+        a match {
+          case _: MiniSummaryRow.HeaderRow => List(a) :: b
+          case _: MiniSummaryRow.ValueRow  => (a :: b.head) :: b.tail
+        }
+      )
+      .reverse
+      .map(_.reverse)
+    val htmls = visibleRowsPartitioned.map {
+      case MiniSummaryRow.HeaderRow(h) :: xs =>
+        HtmlFormat.fill(List((new header)(Html(sse(h, false))), aux(xs)))
+      case xs => aux(xs)
+    }
+    HtmlFormat.fill(htmls)
   }
+
   private def htmlForFileUpload(
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
@@ -1277,6 +1297,7 @@ class SectionRenderingService(
   ): Boolean = row match {
     case v: MiniSummaryRow.ValueRow =>
       v.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+    case MiniSummaryRow.HeaderRow(header) => true
   }
 
   private def htmlForChoice(

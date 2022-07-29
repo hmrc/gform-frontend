@@ -523,6 +523,11 @@ object MiniSummaryRow {
     value: MiniSummaryListValue,
     includeIf: Option[IncludeIf]
   ) extends MiniSummaryRow
+
+  case class HeaderRow(
+    header: SmartString
+  ) extends MiniSummaryRow
+
   implicit val format: Format[MiniSummaryRow] = derived.oformat()
 }
 
