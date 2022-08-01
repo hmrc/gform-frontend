@@ -37,7 +37,7 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
   def allFormComponents: List[FormComponent] = formModel.allFormComponents
 
   def allFormComponentsForCoordinates(coordinates: Coordinates): List[FormComponent] =
-    formModel.taskList.allFormComponents(coordinates)
+    formModel.taskList.allFormComponents(coordinates).filter(_.editable)
 
   def allFormComponentIds: List[FormComponentId] =
     allFormComponents.map(_.id)
