@@ -516,17 +516,23 @@ object Time {
   implicit val format: OFormat[Time] = derived.oformat()
 }
 
-case class MiniSummaryList(rows: List[MiniSummaryList.Row]) extends ComponentType
-
-object MiniSummaryList {
-  case class Row(
+sealed trait MiniSummaryRow extends Product with Serializable
+object MiniSummaryRow {
+  case class ValueRow(
     key: Option[SmartString],
     value: MiniSummaryListValue,
     includeIf: Option[IncludeIf]
-  )
-  object Row {
-    implicit val format: Format[Row] = derived.oformat()
-  }
+  ) extends MiniSummaryRow
+
+  case class HeaderRow(
+    header: SmartString
+  ) extends MiniSummaryRow
+
+  implicit val format: Format[MiniSummaryRow] = derived.oformat()
+}
+
+case class MiniSummaryList(rows: List[MiniSummaryRow]) extends ComponentType
+object MiniSummaryList {
   implicit val format: Format[MiniSummaryList] = derived.oformat()
 }
 

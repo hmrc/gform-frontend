@@ -61,6 +61,7 @@ import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.views.html.specimen
+import uk.gov.hmrc.gform.views.html.summary.header
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
@@ -1104,7 +1105,7 @@ class SectionRenderingService(
   private def htmlForMiniSummaryList(
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
-    rows: List[MiniSummaryList.Row],
+    rows: List[MiniSummaryRow],
     ei: ExtraInfo,
     validationResult: ValidationResult,
     obligations: Obligations
@@ -1115,54 +1116,73 @@ class SectionRenderingService(
     fcrd: FormComponentRenderDetails[SummaryRender]
   ) = {
 
-    val visibleRows: List[MiniSummaryList.Row] = rows
-      .filter(r => isVisibleMiniSummaryListRow(r, ei.formModelOptics))
-    val slRows = visibleRows.map {
-      case MiniSummaryList.Row(key, MiniSummaryListValue.AnyExpr(e), _) =>
-        val expStr = ei.formModelOptics.formModelVisibilityOptics
-          .evalAndApplyTypeInfoFirst(e)
-          .stringRepresentation
-        List(
-          SummaryListRowHelper.summaryListRow(
-            key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-            Html(expStr),
-            Some(""),
-            "",
-            "",
-            "",
-            List()
+    def loop(rows: List[MiniSummaryRow]) = {
+      val slRows = rows.flatMap {
+        case MiniSummaryRow.ValueRow(key, MiniSummaryListValue.AnyExpr(e), _) =>
+          val expStr = ei.formModelOptics.formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(e)
+            .stringRepresentation
+          List(
+            SummaryListRowHelper.summaryListRow(
+              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+              Html(expStr),
+              Some(""),
+              "",
+              "",
+              "",
+              List()
+            )
           )
-        )
-      case MiniSummaryList.Row(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _) =>
-        val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
-        formModel.sectionNumberLookup
-          .get(formComponentId)
-          .map { sn =>
-            val sectionTitle4Ga = sectionTitle4GaFactory(formModel.pageModelLookup(sn), sn)
-            val fc = formModel.fcLookup.get(formComponentId).get
-            val fcUpdated = key.map(k => fc.copy(shortName = Some(k))).getOrElse(fc)
-            FormComponentSummaryRenderer
-              .summaryListRows[DataOrigin.Mongo, SummaryRender](
-                fcUpdated,
-                ei.singleton.page.id.map(_.modelPageId),
-                formTemplateId,
-                ei.formModelOptics.formModelVisibilityOptics,
-                ei.maybeAccessCode,
-                sn,
-                sectionTitle4Ga,
-                obligations,
-                validationResult,
-                ei.envelope,
-                ei.addressRecordLookup,
-                None,
-                FastForward.StopAt(ei.sectionNumber)
-              )
-          }
-          .toList
-          .flatten
-    }.flatten
-    new GovukSummaryList()(SummaryList(slRows))
+        case MiniSummaryRow.ValueRow(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _) =>
+          val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
+          formModel.sectionNumberLookup
+            .get(formComponentId)
+            .map { sn =>
+              val sectionTitle4Ga = sectionTitle4GaFactory(formModel.pageModelLookup(sn), sn)
+              val fc = formModel.fcLookup.get(formComponentId).get
+              val fcUpdated = key.map(k => fc.copy(shortName = Some(k))).getOrElse(fc)
+              FormComponentSummaryRenderer
+                .summaryListRows[DataOrigin.Mongo, SummaryRender](
+                  fcUpdated,
+                  ei.singleton.page.id.map(_.modelPageId),
+                  formTemplateId,
+                  ei.formModelOptics.formModelVisibilityOptics,
+                  ei.maybeAccessCode,
+                  sn,
+                  sectionTitle4Ga,
+                  obligations,
+                  validationResult,
+                  ei.envelope,
+                  ei.addressRecordLookup,
+                  None,
+                  FastForward.StopAt(ei.sectionNumber)
+                )
+            }
+            .toList
+            .flatten
+        case MiniSummaryRow.HeaderRow(header) => throw new Exception(s"should not have HeaderRow $header here")
+      }
+      new GovukSummaryList()(SummaryList(slRows))
+    }
+    val visibleRows: List[MiniSummaryRow] = rows
+      .filter(r => isVisibleMiniSummaryListRow(r, ei.formModelOptics))
+    val visibleRowsPartitioned: List[List[MiniSummaryRow]] = visibleRows
+      .foldLeft(List(List[MiniSummaryRow]()))((acc, row) =>
+        row match {
+          case _: MiniSummaryRow.HeaderRow => List(row) :: acc
+          case _: MiniSummaryRow.ValueRow  => (row :: acc.head) :: acc.tail
+        }
+      )
+      .reverse
+      .map(_.reverse)
+    val htmls = visibleRowsPartitioned.map {
+      case MiniSummaryRow.HeaderRow(h) :: xs =>
+        HtmlFormat.fill(List(header(Html(sse(h, false))), loop(xs)))
+      case xs => loop(xs)
+    }
+    HtmlFormat.fill(htmls)
   }
+
   private def htmlForFileUpload(
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
@@ -1272,10 +1292,13 @@ class SectionRenderingService(
     }
 
   private def isVisibleMiniSummaryListRow(
-    row: MiniSummaryList.Row,
+    row: MiniSummaryRow,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  ): Boolean =
-    row.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+  ): Boolean = row match {
+    case v: MiniSummaryRow.ValueRow =>
+      v.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+    case MiniSummaryRow.HeaderRow(header) => true
+  }
 
   private def htmlForChoice(
     formComponent: FormComponent,
