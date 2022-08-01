@@ -39,6 +39,7 @@
        url: dataForm.attr("action"),
        data: dataForm.serialize()
     }).then(function (){
+       button.unbind("click")
        button.on("click", function(e) {
          fileSubmit(form, button);
        });
