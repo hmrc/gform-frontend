@@ -1117,7 +1117,7 @@ class SectionRenderingService(
   ) = {
 
     def loop(rows: List[MiniSummaryRow]) = {
-      val slRows = rows.map {
+      val slRows = rows.flatMap {
         case MiniSummaryRow.ValueRow(key, MiniSummaryListValue.AnyExpr(e), _) =>
           val expStr = ei.formModelOptics.formModelVisibilityOptics
             .evalAndApplyTypeInfoFirst(e)
@@ -1161,23 +1161,23 @@ class SectionRenderingService(
             .toList
             .flatten
         case MiniSummaryRow.HeaderRow(header) => throw new Exception(s"should not have HeaderRow $header here")
-      }.flatten
+      }
       new GovukSummaryList()(SummaryList(slRows))
     }
     val visibleRows: List[MiniSummaryRow] = rows
       .filter(r => isVisibleMiniSummaryListRow(r, ei.formModelOptics))
     val visibleRowsPartitioned: List[List[MiniSummaryRow]] = visibleRows
-      .foldLeft(List(List[MiniSummaryRow]()))((b, a) =>
-        a match {
-          case _: MiniSummaryRow.HeaderRow => List(a) :: b
-          case _: MiniSummaryRow.ValueRow  => (a :: b.head) :: b.tail
+      .foldLeft(List(List[MiniSummaryRow]()))((acc, row) =>
+        row match {
+          case _: MiniSummaryRow.HeaderRow => List(row) :: acc
+          case _: MiniSummaryRow.ValueRow  => (row :: acc.head) :: acc.tail
         }
       )
       .reverse
       .map(_.reverse)
     val htmls = visibleRowsPartitioned.map {
       case MiniSummaryRow.HeaderRow(h) :: xs =>
-        HtmlFormat.fill(List((new header)(Html(sse(h, false))), loop(xs)))
+        HtmlFormat.fill(List(header(Html(sse(h, false))), loop(xs)))
       case xs => loop(xs)
     }
     HtmlFormat.fill(htmls)
