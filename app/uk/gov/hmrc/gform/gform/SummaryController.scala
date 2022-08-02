@@ -52,6 +52,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
+import uk.gov.hmrc.gform.tasklist.TaskListUtils
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -82,9 +83,30 @@ class SummaryController(
     auth
       .authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.ViewSummary) {
         implicit request => implicit l => cache => implicit sse => formModelOptics =>
-          summaryRenderingService
-            .getSummaryHTML(maybeAccessCode, cache, SummaryPagePurpose.ForUser, formModelOptics, maybeCoordinates)
-            .map(Ok(_))
+          val maybeTaskSummarySection = maybeCoordinates.flatMap { coordinates =>
+            TaskListUtils.withTask(
+              cache.formTemplate,
+              coordinates.taskSectionNumber,
+              coordinates.taskNumber
+            )(task => task.summarySection)
+          }
+          if (maybeCoordinates.isDefined && !maybeTaskSummarySection.isDefined) {
+            Redirect(
+              uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                .landingPage(formTemplateId, maybeAccessCode)
+            )
+              .pure[Future]
+          } else
+            summaryRenderingService
+              .getSummaryHTML(
+                maybeAccessCode,
+                cache,
+                SummaryPagePurpose.ForUser,
+                formModelOptics,
+                maybeCoordinates,
+                maybeTaskSummarySection
+              )
+              .map(Ok(_))
       }
 
   def submit(

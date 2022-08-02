@@ -77,7 +77,8 @@ object TaskSection {
 
 final case class Task(
   title: SmartString,
-  sections: NonEmptyList[Section]
+  sections: NonEmptyList[Section],
+  summarySection: Option[SummarySection]
 )
 
 object Task {

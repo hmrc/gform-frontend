@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FileSizeLimit, FormPhase, FormTemplate, FormTemplateWithRedirects, InvisibleInSummary, InvisiblePageTitle, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FileSizeLimit, FormPhase, FormTemplate, FormTemplateWithRedirects, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
@@ -234,7 +234,8 @@ class SummaryRenderingServiceSpec
               cache,
               SummaryPagePurpose.ForDms,
               formModelOptics,
-              Option.empty[Coordinates]
+              Option.empty[Coordinates],
+              Option.empty[SummarySection]
             )
             .futureValue
 
@@ -305,7 +306,8 @@ class SummaryRenderingServiceSpec
                 cache,
                 SummaryPagePurpose.ForDms,
                 formModelOptics,
-                Option.empty[Coordinates]
+                Option.empty[Coordinates],
+                Option.empty[SummarySection]
               )
               .futureValue
               .summaryElements shouldBe expectedSummaryElements
@@ -376,7 +378,8 @@ class SummaryRenderingServiceSpec
                 cache,
                 SummaryPagePurpose.ForDms,
                 formModelOptics,
-                Option.empty[Coordinates]
+                Option.empty[Coordinates],
+                Option.empty[SummarySection]
               )
               .futureValue
               .summaryElements shouldBe expectedSummaryElements
@@ -456,7 +459,8 @@ class SummaryRenderingServiceSpec
                 cache,
                 SummaryPagePurpose.ForDms,
                 formModelOptics,
-                Option.empty[Coordinates]
+                Option.empty[Coordinates],
+                Option.empty[SummarySection]
               )
               .futureValue
 
@@ -547,7 +551,8 @@ class SummaryRenderingServiceSpec
                 cache,
                 SummaryPagePurpose.ForDms,
                 formModelOptics,
-                Option.empty[Coordinates]
+                Option.empty[Coordinates],
+                Option.empty[SummarySection]
               )
               .futureValue
 

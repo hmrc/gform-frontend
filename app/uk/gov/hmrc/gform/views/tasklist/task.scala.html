@@ -51,7 +51,7 @@
         @if(status === TaskStatus.CannotStartYet) {
            @{task.title.value}
         } else {
-          <a href="@TaskListController.newTask(formTemplateId, maybeAccessCode, taskSectionNumber, taskNumber)" aria-describedby="@elementId">
+          <a href="@TaskListController.newTask(formTemplateId, maybeAccessCode, taskSectionNumber, taskNumber, status == TaskStatus.Completed)" aria-describedby="@elementId">
             @{task.title.value}
           </a>
         }
