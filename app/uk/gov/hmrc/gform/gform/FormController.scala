@@ -839,8 +839,11 @@ class FormController(
     val call = maybeSn match {
       case Some(sn) =>
         val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
-        routes.FormController
-          .form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+        if (sn.isTaskList) {
+          uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, maybeAccessCode)
+        } else {
+          routes.FormController.form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+        }
       case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None)
     }
     val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)

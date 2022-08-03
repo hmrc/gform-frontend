@@ -134,10 +134,17 @@ class FastForwardService(
       case Some(sn) =>
         val pageModel = processData.formModel(sn)
         val sectionTitle4Ga = sectionTitle4GaFactory(pageModel, sn)
-        Redirect(
-          routes.FormController
-            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
-        )
+
+        if (sn.isTaskList) {
+          Redirect(
+            uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplateId, maybeAccessCode)
+          )
+        } else {
+          Redirect(
+            routes.FormController
+              .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+          )
+        }
       case None =>
         Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None))
     }
