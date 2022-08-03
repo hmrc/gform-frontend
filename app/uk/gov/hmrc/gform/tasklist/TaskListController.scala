@@ -88,13 +88,15 @@ class TaskListController(
             ).pure[Future]
           } else {
 
+            val sn = SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
+
             val href = uk.gov.hmrc.gform.gform.routes.FormController.form(
               cache.formTemplate._id,
               maybeAccessCode,
-              SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0),
+              sn,
               sectionTitle4Ga,
               SuppressErrors.Yes,
-              FastForward.StopAt(SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0).increment)
+              FastForward.StopAt(sn.increment)
             )
             Redirect(href).pure[Future]
           }
