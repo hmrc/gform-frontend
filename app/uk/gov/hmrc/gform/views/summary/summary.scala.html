@@ -42,6 +42,7 @@
     frontendAppConfig: FrontendAppConfig,
     summaryPagePurpose: SummaryPagePurpose,
     reviewerComments : Option[String],
+    title: String,
     header: Html,
     summaryDeclaration: Html,
     footer: Html,
@@ -50,7 +51,7 @@
     maybeCoordinates: Option[Coordinates]
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
-@heading = @{formTemplate.summarySection.title.value}
+@heading = @{title}
 
 @formWithCSRF = @{new FormWithCSRF()}
 @govukButton = @{new GovukButton()}

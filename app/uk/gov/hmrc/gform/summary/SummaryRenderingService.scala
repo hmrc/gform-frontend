@@ -72,7 +72,7 @@ class SummaryRenderingService(
     lise: SmartStringEvaluator
   ): Future[PdfHtml] =
     for {
-      summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics, maybeCoordinates)
+      summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics, maybeCoordinates, None)
     } yield {
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdf.header, pdf.footer)
       PdfHtml(
@@ -148,7 +148,8 @@ class SummaryRenderingService(
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    maybeCoordinates: Option[Coordinates]
+    maybeCoordinates: Option[Coordinates],
+    maybeSummarySection: Option[SummarySection]
   )(implicit
     request: Request[_],
     l: LangADT,
@@ -168,6 +169,8 @@ class SummaryRenderingService(
     } yield {
       val summaryDeclaration: Html =
         renderer.renderSummarySectionDeclaration(cache, formModelOptics, maybeAccessCode)
+      val summarySection = maybeSummarySection.getOrElse(cache.formTemplate.summarySection)
+
       SummaryRenderingService.renderSummary(
         cache.formTemplate,
         validationResult,
@@ -181,7 +184,8 @@ class SummaryRenderingService(
         summaryDeclaration,
         cache.form.formData.fingerprint,
         AddressRecordLookup.from(cache.form.thirdPartyData),
-        maybeCoordinates
+        maybeCoordinates,
+        summarySection
       )
     }
 
@@ -243,10 +247,12 @@ object SummaryRenderingService {
     summaryDeclaration: Html,
     formDataFingerprint: String,
     addressRecordLookup: AddressRecordLookup,
-    maybeCoordinates: Option[Coordinates]
+    maybeCoordinates: Option[Coordinates],
+    summarySection: SummarySection
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
-    val headerHtml = markDownParser(formTemplate.summarySection.header)
-    val footerHtml = markDownParser(formTemplate.summarySection.footer)
+    val headerHtml = markDownParser(summarySection.header)
+    val footerHtml = markDownParser(summarySection.footer)
+    val title = summarySection.title.value
 
     val envelopeUpd = envelope.byPurpose(summaryPagePurpose)
 
@@ -273,16 +279,17 @@ object SummaryRenderingService {
       determineContinueLabelKey(
         retrievals.continueLabelKey,
         formTemplate.draftRetrievalMethod.isNotPermitted,
-        formTemplate.summarySection.continueLabel
+        summarySection.continueLabel
       ),
       frontendAppConfig,
       summaryPagePurpose,
       None,
+      title,
       headerHtml,
       summaryDeclaration,
       footerHtml,
       formDataFingerprint,
-      formTemplate.summarySection.displayWidth,
+      summarySection.displayWidth,
       maybeCoordinates
     )
   }
@@ -308,6 +315,7 @@ object SummaryRenderingService {
   ): Html = {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
+    val title = formTemplate.summarySection.title.value
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
     val sfr =
       summaryForNotificationPdf(
@@ -331,6 +339,7 @@ object SummaryRenderingService {
       frontendAppConfig,
       summaryPagePurpose,
       None,
+      title,
       headerHtml,
       HtmlFormat.empty,
       footerHtml,

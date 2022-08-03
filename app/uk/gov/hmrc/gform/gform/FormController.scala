@@ -527,7 +527,7 @@ class FormController(
                                   sn,
                                   sectionTitle4Ga,
                                   SuppressErrors(isFirstLanding),
-                                  if (isFirstLanding && !isConfirmationPage)
+                                  if ((isFirstLanding && !isConfirmationPage) || sectionNumber.isTaskList)
                                     fastForward.next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel)
                                   else
                                     fastForward
