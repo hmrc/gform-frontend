@@ -179,6 +179,10 @@ object IsMiniSummaryList {
   def unapply(fc: FormComponent): Option[MiniSummaryList] = fc.`type`.cast[MiniSummaryList]
 }
 
+object IsSummarySection {
+  def unapply(fc: FormComponent): Option[SummarySection] = fc.`type`.cast[SummarySection]
+}
+
 object IsHmrcTaxPeriod {
   def unapply(fc: FormComponent): Option[HmrcTaxPeriod] = fc.`type`.cast[HmrcTaxPeriod]
 }
@@ -240,6 +244,13 @@ object AllMiniSummaryListIncludeIfs {
         case MiniSummaryRow.HeaderRow(_)              => None
       })
     case _ => None
+  }
+}
+
+object SummarySectionIncludeIf {
+  def unapply(fc: FormComponent): Option[IncludeIf] = fc match {
+    case IsSummarySection(ss) => ss.includeIf
+    case _                    => None
   }
 }
 

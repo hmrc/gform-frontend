@@ -784,6 +784,8 @@ trait ExampleFormTemplate {
       toSmartString("Summary Header"),
       toSmartString("Summary Footer"),
       Some(toSmartString("Summary ContinueLabel")),
+      None,
+      SummaryDisplayWidth.M,
       None
     )
 

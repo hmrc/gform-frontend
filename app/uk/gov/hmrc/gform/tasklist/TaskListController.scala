@@ -76,20 +76,27 @@ class TaskListController(
       request => l => cache => implicit sse => formModelOptics =>
         TaskListUtils.withTask(cache.formTemplate, taskSectionNumber, taskNumber) { task =>
           val sectionTitle4Ga: SectionTitle4Ga = SectionTitle4Ga(task.title.value)
-          if (isCompleted && task.summarySection.isDefined) {
+
+          val isSummarySectionVisible = task.summarySection
+            .flatMap(_.includeIf)
+            .fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+
+          if (isCompleted && task.summarySection.isDefined && isSummarySectionVisible) {
             Redirect(
               uk.gov.hmrc.gform.gform.routes.SummaryController
                 .summaryById(cache.formTemplate._id, maybeAccessCode, Some(Coordinates(taskSectionNumber, taskNumber)))
             ).pure[Future]
           } else {
 
+            val sn = SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
+
             val href = uk.gov.hmrc.gform.gform.routes.FormController.form(
               cache.formTemplate._id,
               maybeAccessCode,
-              SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0),
+              sn,
               sectionTitle4Ga,
               SuppressErrors.Yes,
-              FastForward.StopAt(SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0).increment)
+              FastForward.StopAt(sn.increment)
             )
             Redirect(href).pure[Future]
           }

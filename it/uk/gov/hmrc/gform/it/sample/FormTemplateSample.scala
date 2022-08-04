@@ -9,7 +9,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anonymous, AuthCtx, AuthInfo, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, FormComponent, FormComponentId, FormKind, FormTemplate, FormTemplateId, OnePerUser, Page, SummarySection, TextConstraint, UserResearchUrl }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anonymous, AuthCtx, AuthInfo, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, FormComponent, FormComponentId, FormKind, FormTemplate, FormTemplateId, OnePerUser, Page, SummaryDisplayWidth, SummarySection, TextConstraint, UserResearchUrl }
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, EmailVerifierService, LangADT, LocalisedString }
 
 trait FormTemplateSample {
@@ -31,6 +31,8 @@ trait FormTemplateSample {
       toSmartString("Make sure the information you have given is correct"),
       toSmartString("Now send your form"),
       Some(toSmartString("Continue")),
+      None,
+      SummaryDisplayWidth.M,
       None
     ),
     authConfig =

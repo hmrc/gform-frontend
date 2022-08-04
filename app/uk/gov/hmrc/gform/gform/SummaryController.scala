@@ -90,7 +90,12 @@ class SummaryController(
               coordinates.taskNumber
             )(task => task.summarySection)
           }
-          if (maybeCoordinates.isDefined && !maybeTaskSummarySection.isDefined) {
+
+          val isSummarySectionVisible = maybeTaskSummarySection
+            .flatMap(_.includeIf)
+            .fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+
+          if (maybeCoordinates.isDefined && (maybeTaskSummarySection.isEmpty || !isSummarySectionVisible)) {
             Redirect(
               uk.gov.hmrc.gform.tasklist.routes.TaskListController
                 .landingPage(formTemplateId, maybeAccessCode)
