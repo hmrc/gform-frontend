@@ -21,8 +21,8 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SectionNumber, SectionTitle4Ga }
 
 @(formTemplate: FormTemplate,
-  sectionNumber: SectionNumber,
-  pages: List[(PageModel[DataExpanded], SectionNumber)]
+  sectionNumber: SectionNumber.Classic,
+  pages: List[(PageModel[DataExpanded], SectionNumber.Classic)]
 )(implicit l: LangADT, sse: SmartStringEvaluator)
 
 @navigationLink(sectionIndex: Int, label: String, templateId: String) = {
@@ -33,11 +33,10 @@
   }
 }
 
-@*
 @defining(
   formTemplate._id.value,
-  pages(sectionNumber.value),
-  sectionNumber.value,
+  pages(sectionNumber.sectionNumber),
+  sectionNumber.sectionNumber,
   pages.size) { case (templateId, section, sectionNumber, total) =>
 
   <div class="govuk-body">
@@ -49,11 +48,11 @@
 
     <select id="specimenNavigation" class="govuk-select">
       @pages.map { case (pageModel, sectionIndex) =>
-        @defining(pageModel.title.value, if(sectionNumber === sectionIndex.value) "selected" else "") { case (title, selected) =>
+        @defining(pageModel.title.value, if(sectionNumber === sectionIndex.sectionNumber) "selected" else "") { case (title, selected) =>
           @defining(
             SectionTitle4Ga.sectionTitle4GaFactory(pageModel, sectionIndex).value,
             title.substring(0, Math.min(title.length, 80))) { case (sectionTitle4Ga, titleTrimmed) =>
-              <option value="@{sectionIndex.value}" data-title="@sectionTitle4Ga"  @selected>@{sectionIndex.value + 1}/@total - @titleTrimmed</option>
+              <option value="@{sectionIndex.sectionNumber}" data-title="@sectionTitle4Ga"  @selected>@{sectionIndex.sectionNumber + 1}/@total - @titleTrimmed</option>
             }
           }
       }
@@ -75,4 +74,3 @@
   </script>
 
   }
-*@
