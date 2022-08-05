@@ -130,7 +130,7 @@ class SummaryController(
         requestRelatedData => variadicFormData => _ =>
           save match {
             case Exit =>
-              handleExit(cache.formTemplateWithRedirects, maybeAccessCode, cache).pure[Future]
+              handleExit(cache.formTemplateWithRedirects, maybeAccessCode, cache, maybeCoordinates).pure[Future]
             case SummaryContinue =>
               handleSummaryContinue(
                 cache.form.formTemplateId,
@@ -148,7 +148,8 @@ class SummaryController(
   private def handleExit(
     formTemplateWithRedirects: FormTemplateWithRedirects,
     maybeAccessCode: Option[AccessCode],
-    cache: AuthCacheWithForm
+    cache: AuthCacheWithForm,
+    maybeCoordinates: Option[Coordinates]
   )(implicit
     request: Request[AnyContent],
     l: LangADT
@@ -174,8 +175,12 @@ class SummaryController(
           case Some(c) if c.isEmailAuthConfig =>
             Redirect(gform.routes.SaveAcknowledgementController.show(formTemplate._id))
           case _ =>
-            val call = routes.SummaryController
-              .summaryById(formTemplate._id, maybeAccessCode, None) // TODO JoVl why are Coordinates needed here?
+            val call = if (maybeCoordinates.isDefined) {
+              uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplateId, maybeAccessCode)
+            } else {
+              routes.SummaryController
+                .summaryById(formTemplate._id, maybeAccessCode, None) // TODO JoVl why are Coordinates needed here?
+            }
             val saveAcknowledgement = new SaveAcknowledgement(formTemplate, cache.form.envelopeExpiryDate)
             Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
         }
