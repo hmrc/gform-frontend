@@ -485,8 +485,8 @@ class SectionRenderingService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Html =
-    sectionNumber.fold { classic =>
-      if (formTemplate.isSpecimen) {
+    if (formTemplate.isSpecimen) {
+      sectionNumber.fold { classic =>
         val pages: NonEmptyList[(PageModel[DataExpanded], SectionNumber)] =
           formModelRenderPageOptics.formModel.pagesWithIndex
 
@@ -499,10 +499,10 @@ class SectionRenderingService(
           classic,
           classicPages
         )
-      } else HtmlFormat.empty
-    } { taskList =>
-      specimen.navigation_tasklist()
-    }
+      } { taskList =>
+        specimen.navigation_tasklist()
+      }
+    } else HtmlFormat.empty
 
   def renderSummarySectionDeclaration(
     cache: AuthCacheWithForm,
