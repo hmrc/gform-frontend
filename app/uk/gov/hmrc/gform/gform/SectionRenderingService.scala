@@ -1127,8 +1127,7 @@ class SectionRenderingService(
     sse: SmartStringEvaluator,
     l: LangADT,
     fcrd: FormComponentRenderDetails[SummaryRender]
-  ) = {
-
+  ): Html = {
     def loop(rows: List[MiniSummaryRow]) = {
       val slRows = rows.flatMap {
         case MiniSummaryRow.ValueRow(key, MiniSummaryListValue.AnyExpr(e), _) =>
@@ -1173,7 +1172,8 @@ class SectionRenderingService(
             }
             .toList
             .flatten
-        case MiniSummaryRow.HeaderRow(header) => throw new Exception(s"should not have HeaderRow $header here")
+        case MiniSummaryRow.HeaderRow(header)         => throw new Exception("should not have HeaderRow  here")
+        case MiniSummaryRow.ATLRow(atlId, _, atlRows) => throw new Exception("should not have ATLRow here")
       }
       new GovukSummaryList()(SummaryList(slRows))
     }
@@ -1184,6 +1184,7 @@ class SectionRenderingService(
         row match {
           case _: MiniSummaryRow.HeaderRow => List(row) :: acc
           case _: MiniSummaryRow.ValueRow  => (row :: acc.head) :: acc.tail
+          case _: MiniSummaryRow.ATLRow    => List(row) :: acc
         }
       )
       .reverse
@@ -1191,7 +1192,57 @@ class SectionRenderingService(
     val htmls = visibleRowsPartitioned.map {
       case MiniSummaryRow.HeaderRow(h) :: xs =>
         HtmlFormat.fill(List(header(Html(sse(h, false))), loop(xs)))
+      case MiniSummaryRow.ATLRow(atlId, _, atlRows) :: xs =>
+        def renderATLRows() = {
+          val addToListIteration = ei.formModelOptics.formModelVisibilityOptics.formModel.brackets
+            .addToListBracket(AddToListId(atlId))
+            .iterations
+
+          addToListIteration.toList.map { iteration =>
+            val index = iteration.repeater.repeater.index
+            val fcs: List[FormComponent] = iteration.singletons.toList.flatMap { singletonWithNumber =>
+              val page = singletonWithNumber.singleton.page
+              page.fields.filterNot(_.hideOnSummary)
+            }
+            val updatedATLRows = atlRows.map {
+              case MiniSummaryRow
+                    .ValueRow(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), includeIf) =>
+                val fId =
+                  fcs.find(_.baseComponentId == formComponentId.baseComponentId).map(_.id).getOrElse(formComponentId)
+                MiniSummaryRow.ValueRow(
+                  key.map(_.expand(index, List())),
+                  MiniSummaryListValue.Reference(FormCtx(fId)),
+                  includeIf.map { case IncludeIf(boolExpr) =>
+                    val indexedFIds = fcs
+                      .filter(_.modelComponentId.indexedComponentId.isIndexed)
+                      .map(c => FormComponentId(c.baseComponentId.value))
+                    IncludeIf(BooleanExprUpdater(boolExpr, index, indexedFIds))
+                  }
+                )
+
+              case MiniSummaryRow.HeaderRow(h) => MiniSummaryRow.HeaderRow(h.expand(index, List()))
+              case MiniSummaryRow
+                    .ValueRow(key, MiniSummaryListValue.AnyExpr(FormCtx(formComponentId)), includeIf) =>
+                val fId =
+                  fcs.find(_.baseComponentId == formComponentId.baseComponentId).map(_.id).getOrElse(formComponentId)
+                MiniSummaryRow.ValueRow(
+                  key,
+                  MiniSummaryListValue.AnyExpr(FormCtx(fId)),
+                  includeIf.map { case IncludeIf(boolExpr) =>
+                    val indexedFIds = fcs
+                      .filter(_.modelComponentId.indexedComponentId.isIndexed)
+                      .map(c => FormComponentId(c.baseComponentId.value))
+                    IncludeIf(BooleanExprUpdater(boolExpr, index, indexedFIds))
+                  }
+                )
+              case e => e
+            }
+            htmlForMiniSummaryList(formComponent, formTemplateId, updatedATLRows, ei, validationResult, obligations)
+          }
+        }
+        HtmlFormat.fill(renderATLRows() ++ List(loop(xs)))
       case xs => loop(xs)
+
     }
     HtmlFormat.fill(htmls)
   }
@@ -1311,6 +1362,8 @@ class SectionRenderingService(
     case v: MiniSummaryRow.ValueRow =>
       v.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
     case MiniSummaryRow.HeaderRow(header) => true
+    case v: MiniSummaryRow.ATLRow =>
+      v.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
   }
 
   private def htmlForChoice(

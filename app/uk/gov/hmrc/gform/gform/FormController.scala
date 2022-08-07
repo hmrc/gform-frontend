@@ -170,12 +170,20 @@ class FormController(
                                     MiniSummaryListValue.Reference(FormCtx(r)),
                                     _
                                   ) =>
-                                r
+                                List(r)
+                              case MiniSummaryRow.ATLRow(atlId, _, rs) =>
+                                atlId ::
+                                  rs collect {
+                                    case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(FormCtx(r)), _) => r
+                                  }
                             }
                         }
                       }
                       .flatten
-                      .flatMap(fcId => formModel.sectionNumberLookup.get(fcId).toList)
+                      .flatten
+                      .flatMap(fcId =>
+                        formModel.sectionNumberLookup.filterKeys(_.baseComponentId == fcId.baseComponentId).values
+                      )
                   }
                   .getOrElse(List())
 

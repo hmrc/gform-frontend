@@ -242,6 +242,7 @@ object AllMiniSummaryListIncludeIfs {
       Some(c.rows.flatMap {
         case MiniSummaryRow.ValueRow(_, _, includeIf) => includeIf
         case MiniSummaryRow.HeaderRow(_)              => None
+        case MiniSummaryRow.ATLRow(_, includeIf, _)   => includeIf
       })
     case _ => None
   }
