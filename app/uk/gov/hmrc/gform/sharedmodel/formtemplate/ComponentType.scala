@@ -528,6 +528,12 @@ object MiniSummaryRow {
     header: SmartString
   ) extends MiniSummaryRow
 
+  case class ATLRow(
+    atlId: FormComponentId,
+    includeIf: Option[IncludeIf],
+    rows: List[MiniSummaryRow]
+  ) extends MiniSummaryRow
+
   implicit val format: Format[MiniSummaryRow] = derived.oformat()
 }
 
