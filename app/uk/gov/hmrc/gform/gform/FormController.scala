@@ -844,7 +844,12 @@ class FormController(
         } else {
           routes.FormController.form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
         }
-      case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None)
+      case None =>
+        formTemplate.formKind.fold { _ =>
+          routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None)
+        } { _ =>
+          uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, maybeAccessCode)
+        }
     }
     val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)
     Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
