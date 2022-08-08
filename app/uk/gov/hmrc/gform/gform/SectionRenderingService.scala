@@ -1225,8 +1225,7 @@ class SectionRenderingService(
       .reverse
       .map(_.reverse)
     val htmls = visibleRowsPartitioned.map {
-      case HeaderRow(h) :: xs =>
-        HtmlFormat.fill(List(header(Html(sse(h, false))), renderRows(xs)))
+      case HeaderRow(h) :: xs => HtmlFormat.fill(List(header(Html(sse(h, false))), renderRows(xs)))
       case ATLRow(atlId, _, atlRows) :: xs =>
         HtmlFormat.fill(renderedATLRows(AddToListId(atlId), atlRows) ++ List(renderRows(xs)))
       case xs => renderRows(xs)
