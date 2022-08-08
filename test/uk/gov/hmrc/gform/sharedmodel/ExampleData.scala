@@ -815,6 +815,7 @@ trait ExampleFormTemplate {
       AvailableLanguages.default,
       None,
       summarySection,
+      None,
       true,
       FileInfoConfig.allAllowedFileTypes,
       None,

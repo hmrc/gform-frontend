@@ -35,6 +35,7 @@ trait FormTemplateSample {
       SummaryDisplayWidth.M,
       None
     ),
+    submitSection = None,
     authConfig =
       EmailAuthConfig(EmailVerifierService.digitalContact(EmailTemplateId("code_template"), None), None, None, None),
     displayHMRCLogo = true,

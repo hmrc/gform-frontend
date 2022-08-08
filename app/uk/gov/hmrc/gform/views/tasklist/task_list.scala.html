@@ -64,8 +64,11 @@
         task_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(index), taskSection, statusesLookup)
       }
     }
+    @formTemplate.submitSection.map{ submitSection =>
+        @{task_submit_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(taskList.sections.size +1 ), submitSection, completedSection === taskList.sections.size)}
+    }
   </ol>
-  @if(completedSection === taskList.sections.size) {
+  @if(formTemplate.submitSection.isEmpty && completedSection === taskList.sections.size) {
     @formWithCSRF(action = uk.gov.hmrc.gform.tasklist.routes.TaskListController.summaryPage(formTemplate._id, maybeAccessCode)) {
       @govukButton(Button(content = Text(messages("taskList.button.submit")), value = None))
     }
