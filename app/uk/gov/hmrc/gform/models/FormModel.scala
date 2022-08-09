@@ -45,6 +45,8 @@ case class FormModel[A <: PageMode](
       )
   }.toMap
 
+  val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
+
   object taskList {
 
     def availablePages(coordinates: Coordinates): List[PageModel[A]] = {
@@ -61,9 +63,16 @@ case class FormModel[A <: PageMode](
       val allFormComponents: List[FormComponent] = pages.flatMap(_.allFormComponents)
       allFormComponents
     }
-  }
 
-  val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
+    def nextVisibleSectionNumber(tlSectionNumber: SectionNumber.TaskList): SectionNumber.TaskList =
+      availableSectionNumbers
+        .collect { case t @ SectionNumber.TaskList(_, _) => t }
+        .find {
+          case SectionNumber.TaskList(c, sn) => tlSectionNumber.coordinates === c && sn >= tlSectionNumber.sectionNumber
+          case _                             => false
+        }
+        .getOrElse(throw new Exception("No more visible section numbers in the task"))
+  }
 
   val allFormComponents: List[FormComponent] = pages.flatMap(_.allFormComponents)
 
