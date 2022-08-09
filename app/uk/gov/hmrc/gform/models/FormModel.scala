@@ -63,7 +63,6 @@ case class FormModel[A <: PageMode](
     def allFormComponents(coordinates: Coordinates): List[FormComponent] =
       availablePages(coordinates).flatMap(_.allFormComponents)
 
-
     def nextVisibleSectionNumber(tlSectionNumber: SectionNumber.TaskList): SectionNumber.TaskList =
       availableSectionNumbers
         .collect { case t: SectionNumber.TaskList => t }
