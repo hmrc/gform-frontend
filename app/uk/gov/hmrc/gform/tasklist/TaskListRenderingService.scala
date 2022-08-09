@@ -85,6 +85,7 @@ class TaskListRenderingService(
     val coordinates: NonEmptyList[Coordinates] = taskList.brackets.map(_._1)
 
     val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics.formModelRenderPageOptics.formModel)
+    val notRequiredResolver = NotRequiredResolver.create(formModelOptics.formModelVisibilityOptics)
     coordinates
       .traverse { coordinate =>
         val dataForCoordinate: Set[VariadicValue] =
@@ -112,12 +113,16 @@ class TaskListRenderingService(
 
       }
       .map(cannotStartYetResolver.resolveCannotStartYet)
+      .map(notRequiredResolver.resolveNotRequired)
+
   }
 
   private def completedTaskSection(statuses: NonEmptyList[(Coordinates, TaskStatus)]): Int = {
     val taskSections: Map[TaskSectionNumber, List[(Coordinates, TaskStatus)]] = statuses.toList.groupBy {
       case (coordinates, _) => coordinates.taskSectionNumber
     }
-    taskSections.values.count(_.forall { case (_, taskStatus) => taskStatus === TaskStatus.Completed })
+    taskSections.values.count(_.forall { case (_, taskStatus) =>
+      taskStatus === TaskStatus.Completed || taskStatus === TaskStatus.NotRequired
+    })
   }
 }

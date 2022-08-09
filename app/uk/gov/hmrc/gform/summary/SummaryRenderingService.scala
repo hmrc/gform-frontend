@@ -483,11 +483,13 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-0")) :: htmls
     }
 
-    def brackets: NonEmptyList[Bracket[Visibility]] = formModel.brackets.fold(_.brackets)(taskListBrackets =>
-      maybeCoordinates.fold(taskListBrackets.allBrackets)(coordinates => taskListBrackets.bracketsFor(coordinates))
+    def brackets: List[Bracket[Visibility]] = formModel.brackets.fold(_.brackets.toList)(taskListBrackets =>
+      maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
+        taskListBrackets.bracketsFor(coordinates).toBracketsList
+      )
     )
 
-    brackets.toList.flatMap {
+    brackets.flatMap {
       case bracket @ Bracket.AddToList(_, _) => List(addToListSummary(bracket)) ++ addToListRenderBracket(bracket)
       case Bracket.RepeatingPage(singletons, source) =>
         singletons.toList.flatMap { singletonWithNumber =>

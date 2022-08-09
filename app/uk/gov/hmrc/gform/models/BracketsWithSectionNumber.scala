@@ -36,8 +36,9 @@ sealed trait BracketsWithSectionNumber[A <: PageMode] extends Product with Seria
     val bracketPlains: NonEmptyList[BracketPlain[A]] = classic.brackets.map(_.toPlainBracket)
     BracketPlainCoordinated.Classic(bracketPlains)
   } { taskList =>
-    val bracketPlains: NonEmptyList[(Coordinates, NonEmptyList[BracketPlain[A]])] = taskList.brackets.map {
-      case (coor, brackets) => (coor, brackets.map(_.toPlainBracket))
+    val bracketPlains: NonEmptyList[(Coordinates, TaskModelCoordinated[A])] = taskList.brackets.map {
+      case (coor, taskModel) =>
+        (coor, taskModel.toTaskModelCoordinated)
     }
     BracketPlainCoordinated.TaskList(bracketPlains)
   }
@@ -54,8 +55,8 @@ sealed trait BracketsWithSectionNumber[A <: PageMode] extends Product with Seria
         brackets.map(_.map(e, f, g))
       )
     case BracketsWithSectionNumber.TaskList(brackets) =>
-      BracketsWithSectionNumber.TaskList(brackets.map { case (coor, brackets) =>
-        coor -> brackets.map(_.map(e, f, g))
+      BracketsWithSectionNumber.TaskList(brackets.map { case (coor, taskModel) =>
+        coor -> taskModel.mapBracket(_.map(e, f, g))
       })
   }
   def addToListById(addToListId: AddToListId, idx: Int): Bracket.AddToListIteration[A] =
@@ -92,10 +93,12 @@ sealed trait BracketsWithSectionNumber[A <: PageMode] extends Product with Seria
       val coordinates: Coordinates = sectionNumber.unsafeToTaskList.coordinates
       taskList.lookup
         .get(coordinates)
+        .flatMap(_.toBracketsNel)
         .map(bracketForSectionNumber)
         .getOrElse(throw new Exception(s"Bracket not found for coordinates $coordinates"))
     }
   }
+
   def toBracketsPlains: NonEmptyList[BracketPlain[A]] =
     fold(_.brackets)(_.allBrackets).map(_.toPlainBracket)
 
@@ -110,13 +113,15 @@ sealed trait BracketsWithSectionNumber[A <: PageMode] extends Product with Seria
 object BracketsWithSectionNumber {
   case class Classic[A <: PageMode](brackets: NonEmptyList[Bracket[A]]) extends BracketsWithSectionNumber[A]
 
-  case class TaskList[A <: PageMode](brackets: NonEmptyList[(Coordinates, NonEmptyList[Bracket[A]])])
+  case class TaskList[A <: PageMode](brackets: NonEmptyList[(Coordinates, TaskModel[A])])
       extends BracketsWithSectionNumber[A] {
-    val lookup: Map[Coordinates, NonEmptyList[Bracket[A]]] = brackets.toList.toMap
+    val lookup: Map[Coordinates, TaskModel[A]] = brackets.toList.toMap
 
-    val allBrackets: NonEmptyList[Bracket[A]] = brackets.flatMap(_._2)
+    val allBrackets: NonEmptyList[Bracket[A]] = NonEmptyList
+      .fromList(brackets.toList.flatMap(_._2.toBracketsList))
+      .getOrElse(throw new Exception("Task list has to have at least one task with one visible page"))
 
-    def bracketsFor(coordinates: Coordinates): NonEmptyList[Bracket[A]] = lookup.getOrElse(
+    def bracketsFor(coordinates: Coordinates): TaskModel[A] = lookup.getOrElse(
       coordinates,
       throw new Exception(
         s"""Cannot find Brackets for coordinates $coordinates. Known coordinates: ${lookup.keys.mkString(",")}"""
@@ -131,13 +136,13 @@ object BracketsWithSectionNumber {
         val res: NonEmptyList[Bracket[A]] = mkBrackets(iterator, bracketPlains)
         Classic(res)
       case BracketPlainCoordinated.TaskList(coordinatedBracketPlains) =>
-        val res: NonEmptyList[(Coordinates, NonEmptyList[Bracket[A]])] =
-          coordinatedBracketPlains.map { case (coordinated, bracketPlains) =>
+        val res: NonEmptyList[(Coordinates, TaskModel[A])] =
+          coordinatedBracketPlains.map { case (coordinated, taskModelCoordinated) =>
             val mkSectionNumber =
               SectionNumber.TaskList(Coordinates(coordinated.taskSectionNumber, coordinated.taskNumber), _)
             val iterator: Iterator[SectionNumber] = Stream.from(0).map(mkSectionNumber).iterator
-            val res: NonEmptyList[Bracket[A]] = mkBrackets(iterator, bracketPlains)
-            (coordinated, res)
+            val taskModel: TaskModel[A] = taskModelCoordinated.toTaskModel(mkBrackets(iterator, _))
+            (coordinated, taskModel)
           }
         TaskList(res)
     }

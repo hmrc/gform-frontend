@@ -48,19 +48,18 @@ case class FormModel[A <: PageMode](
   object taskList {
 
     def availablePages(coordinates: Coordinates): List[PageModel[A]] = {
-      val xs: NonEmptyList[Bracket[A]] = brackets.unsafeToTaskList.bracketsFor(coordinates)
-      val pagesWithIndex: NonEmptyList[(PageModel[A], SectionNumber)] = xs.flatMap(_.toPageModelWithNumber)
-      val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
-      pages
+      val taskModel: TaskModel[A] = brackets.unsafeToTaskList.bracketsFor(coordinates)
+      taskModel match {
+        case TaskModel.AllHidden() => List.empty[PageModel[A]]
+        case TaskModel.Editable(xs) =>
+          val pagesWithIndex: NonEmptyList[(PageModel[A], SectionNumber)] = xs.flatMap(_.toPageModelWithNumber)
+          val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
+          pages
+      }
     }
 
-    def allFormComponents(coordinates: Coordinates): List[FormComponent] = {
-      val xs: NonEmptyList[Bracket[A]] = brackets.unsafeToTaskList.bracketsFor(coordinates)
-      val pagesWithIndex: NonEmptyList[(PageModel[A], SectionNumber)] = xs.flatMap(_.toPageModelWithNumber)
-      val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
-      val allFormComponents: List[FormComponent] = pages.flatMap(_.allFormComponents)
-      allFormComponents
-    }
+    def allFormComponents(coordinates: Coordinates): List[FormComponent] =
+      availablePages(coordinates).flatMap(_.allFormComponents)
   }
 
   val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
@@ -165,8 +164,8 @@ case class FormModel[A <: PageMode](
       brackets.toBracketPlainCoordinated.fold[BracketPlainCoordinated[A]] { classic =>
         BracketPlainCoordinated.Classic[A](applyFToRepeater(classic.bracketPlains))
       } { taskList =>
-        BracketPlainCoordinated.TaskList[A](taskList.bracketPlains.map { case (coor, bracketPlains) =>
-          coor -> applyFToRepeater(bracketPlains)
+        BracketPlainCoordinated.TaskList[A](taskList.bracketPlains.map { case (coor, taskModelCoordinated) =>
+          coor -> taskModelCoordinated.modifyBrackets(applyFToRepeater)
         })
       }
 
@@ -199,14 +198,14 @@ case class FormModel[A <: PageMode](
           BracketsWithSectionNumber.Classic(brackets)
         }
     } { taskList =>
-      BracketsWithSectionNumber.TaskList(
-        taskList.brackets.map { case (coor, brackets) =>
-          val filtered: List[Bracket[A]] = applyPredicate(brackets)
-          coor -> NonEmptyList
-            .fromList(filtered)
-            .getOrElse(throw new IllegalArgumentException("All pages of the task are invisible"))
+      BracketsWithSectionNumber.TaskList {
+        taskList.brackets.map { case (coor, taskModel) =>
+          taskModel match {
+            case TaskModel.Editable(brackets) => coor -> TaskModel(applyPredicate(brackets))
+            case TaskModel.AllHidden()        => coor -> TaskModel.AllHidden[A]
+          }
         }
-      )
+      }
     }
     FormModel[A](
       bracketsWithSectionNumber,

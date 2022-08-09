@@ -514,3 +514,4 @@ taskList.NotStarted=HEB DDECHRAU
 taskList.InProgress=AR WAITH
 taskList.Completed=WEDI’I GWBLHAU
 taskList.CannotStartYet=METHU DECHRAU ETO
+taskList.NotRequired=NID YW’N OFYNNOL

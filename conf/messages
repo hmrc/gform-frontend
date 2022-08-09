@@ -526,5 +526,6 @@ taskList.NotStarted=NOT STARTED
 taskList.InProgress=IN PROGRESS
 taskList.Completed=COMPLETED
 taskList.CannotStartYet=CANNOT START YET
+taskList.NotRequired=NOT REQUIRED
 
 taskList.button.submit=Check and submit

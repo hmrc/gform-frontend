@@ -41,6 +41,7 @@
     case TaskStatus.InProgress => "govuk-tag--blue"
     case TaskStatus.Completed => ""
     case TaskStatus.CannotStartYet => "govuk-tag--grey"
+    case TaskStatus.NotRequired    => "govuk-tag--grey"
   }
 }
 
@@ -48,7 +49,7 @@
   @defining(s"task-${taskSectionNumber.value}-${taskNumber.value}") { elementId =>
     <li class="app-task-list__item">
       <span class="app-task-list__task-name">
-        @if(status === TaskStatus.CannotStartYet) {
+        @if(status === TaskStatus.CannotStartYet || status === TaskStatus.NotRequired) {
            @{task.title.value}
         } else {
           <a href="@TaskListController.newTask(formTemplateId, maybeAccessCode, taskSectionNumber, taskNumber, status == TaskStatus.Completed)" aria-describedby="@elementId">
