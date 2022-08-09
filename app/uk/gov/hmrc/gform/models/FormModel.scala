@@ -67,9 +67,7 @@ case class FormModel[A <: PageMode](
     def nextVisibleSectionNumber(tlSectionNumber: SectionNumber.TaskList): SectionNumber.TaskList =
       availableSectionNumbers
         .collect { case t @ SectionNumber.TaskList(_, _) => t }
-        .find { case SectionNumber.TaskList(c, sn) =>
-          tlSectionNumber.coordinates === c && sn >= tlSectionNumber.sectionNumber
-        }
+        .find(sn => tlSectionNumber.coordinates === sn.coordinates && sn.sectionNumber >= tlSectionNumber.sectionNumber)
         .getOrElse(throw new Exception("No more visible section numbers in the task"))
   }
 
