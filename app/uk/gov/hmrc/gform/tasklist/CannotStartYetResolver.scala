@@ -77,7 +77,7 @@ object CannotStartYetResolver {
     val taskList: BracketsWithSectionNumber.TaskList[DataExpanded] = formModel.brackets.unsafeToTaskList
     val formComponentIdsLookup: Map[Coordinates, Set[BaseComponentId]] = taskList.brackets
       .map { case (coordinates, brackets) =>
-        coordinates -> brackets.toList.flatMap { bracket =>
+        coordinates -> brackets.toBracketsList.flatMap { bracket =>
           bracket.toPageModel.toList.flatMap(pageModel => pageModel.allFormComponents.map(_.id.baseComponentId))
 
         }.toSet
@@ -88,7 +88,7 @@ object CannotStartYetResolver {
     val dependingFcIdLookup: Map[Coordinates, Set[BaseComponentId]] = taskList.brackets.toList.map {
       case (coordinates, brackets) =>
         val allExprs: List[Expr] =
-          brackets.toList.flatMap(_.toPlainBracket.allExprs(formModel))
+          brackets.toBracketsList.flatMap(_.toPlainBracket.allExprs(formModel))
 
         val baseComponentIds: List[BaseComponentId] =
           allExprs.flatMap(_.leafs(formModel)).collect { case FormCtx(fcId) =>

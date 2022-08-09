@@ -61,17 +61,17 @@ sealed trait AllSections extends Product with Serializable {
           BracketPlainCoordinated.Classic(_)
         }
     } { taskList =>
-      val xs: NonEmptyList[(Coordinates, NonEmptyList[BracketPlain[A]])] = taskList.sections0.map {
+      val xs: NonEmptyList[(Coordinates, TaskModelCoordinated[A])] = taskList.sections0.map {
         case (coordinates, sections) =>
-          val xs = sections.map(f).collect { case Some(bracket) =>
+          val xs: List[BracketPlain[A]] = sections.map(f).collect { case Some(bracket) =>
             bracket
           }
 
-          val res = NonEmptyList
+          val taskModelCoordinated: TaskModelCoordinated[A] = NonEmptyList
             .fromList(xs)
-            .getOrElse(throw new IllegalArgumentException("Task must have at least one (visible) page"))
+            .fold(TaskModelCoordinated.allHidden[A])(brackets => TaskModelCoordinated.editable[A](brackets))
 
-          coordinates -> res
+          coordinates -> taskModelCoordinated
 
       }
       BracketPlainCoordinated.TaskList(xs)
@@ -100,6 +100,6 @@ sealed trait BracketPlainCoordinated[A <: PageMode] extends Product with Seriali
 
 object BracketPlainCoordinated {
   case class Classic[A <: PageMode](bracketPlains: NonEmptyList[BracketPlain[A]]) extends BracketPlainCoordinated[A]
-  case class TaskList[A <: PageMode](bracketPlains: NonEmptyList[(Coordinates, NonEmptyList[BracketPlain[A]])])
+  case class TaskList[A <: PageMode](bracketPlains: NonEmptyList[(Coordinates, TaskModelCoordinated[A])])
       extends BracketPlainCoordinated[A]
 }
