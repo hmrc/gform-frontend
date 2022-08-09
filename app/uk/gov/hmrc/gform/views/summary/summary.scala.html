@@ -56,7 +56,11 @@
 @formWithCSRF = @{new FormWithCSRF()}
 @govukButton = @{new GovukButton()}
 @backLink = @{
-    val href = uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, lastSectionNumber).path
+    val href = formTemplate.formKind.fold{ _ =>
+        uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, lastSectionNumber).path
+    } { _ =>
+        uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplate._id, maybeAccessCode).path
+    }
     new BackLink(href = href, content = new Text(messages("linkText.back")))
 }
 
