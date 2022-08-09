@@ -517,9 +517,15 @@ browser.forbidden.p1=This service does not support Internet Explorer.
 browser.forbidden.p2=You need to use another web browser, such as Microsoft Edge, Google Chrome or Mozilla Firefox.
 browser.forbidden.link=Find out how to switch to a new browser (opens in new tab)
 
+#Task List
+taskList.title=Tasks
+taskList.h2=Application incomplete
+taskList.p=You have completed {0} of {1} sections
+
 taskList.NotStarted=NOT STARTED
 taskList.InProgress=IN PROGRESS
 taskList.Completed=COMPLETED
 taskList.CannotStartYet=CANNOT START YET
+taskList.NotRequired=NOT REQUIRED
 
 taskList.button.submit=Check and submit

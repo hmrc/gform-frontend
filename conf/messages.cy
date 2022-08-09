@@ -504,3 +504,14 @@ browser.forbidden.title=Mae’n ddrwg gennym, ni allwch lenwi’r ffurflen hon g
 browser.forbidden.p1=Nid yw'r gwasanaeth hwn yn cynnal Internet Explorer.
 browser.forbidden.p2=Mae angen i chi ddefnyddio porwr gwe arall, fel Microsoft Edge, Google Chrome neu Mozilla Firefox.
 browser.forbidden.link=Rhagor o wybodaeth am sut i newid porwr (yn agor tab newydd)
+
+#Task List
+taskList.title=Tasgau
+taskList.h2=Cais yn anghyflawn
+taskList.p=Rydych wedi llenwi {0} allan o {1} adran
+
+taskList.NotStarted=HEB DDECHRAU
+taskList.InProgress=AR WAITH
+taskList.Completed=WEDI’I GWBLHAU
+taskList.CannotStartYet=METHU DECHRAU ETO
+taskList.NotRequired=NID YW’N OFYNNOL

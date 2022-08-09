@@ -26,4 +26,5 @@ object TaskStatus {
   case object InProgress extends TaskStatus
   case object Completed extends TaskStatus
   case object CannotStartYet extends TaskStatus
+  case object NotRequired extends TaskStatus
 }
