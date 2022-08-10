@@ -1132,13 +1132,15 @@ class SectionRenderingService(
     def renderRows(rows: List[MiniSummaryRow]) = {
       val slRows = rows.flatMap {
         case ValueRow(key, MiniSummaryListValue.AnyExpr(e), _) =>
-          val expStr = ei.formModelOptics.formModelVisibilityOptics
-            .evalAndApplyTypeInfoFirst(e)
-            .stringRepresentation
+          val exprResult = ei.formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(e)
+          val exprStr = exprResult.stringRepresentation
+          val formattedExprStr = exprResult.typeInfo.staticTypeData.textConstraint.fold(exprStr) { textConstraint =>
+            TextFormatter.componentTextReadonly(exprStr, textConstraint)
+          }
           List(
             SummaryListRowHelper.summaryListRow(
               key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-              Html(expStr),
+              Html(formattedExprStr),
               Some(""),
               "",
               "",
