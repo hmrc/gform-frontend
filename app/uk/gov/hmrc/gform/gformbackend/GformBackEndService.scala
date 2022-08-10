@@ -166,7 +166,8 @@ class GformBackEndService(
     val summarySectionDeclaration = renderer.renderSummarySectionDeclaration(
       cache,
       formModelOptics.asInstanceOf[FormModelOptics[DataOrigin.Mongo]],
-      maybeAccessCode
+      maybeAccessCode,
+      None
     )
 
     for {

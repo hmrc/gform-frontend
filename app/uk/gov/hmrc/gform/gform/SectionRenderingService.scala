@@ -508,7 +508,8 @@ class SectionRenderingService(
   def renderSummarySectionDeclaration(
     cache: AuthCacheWithForm,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    maybeAccessCode: Option[AccessCode]
+    maybeAccessCode: Option[AccessCode],
+    maybeSummarySection: Option[SummarySection]
   )(implicit
     request: RequestHeader,
     messages: Messages,
@@ -520,7 +521,7 @@ class SectionRenderingService(
     val envelopeId = cache.form.envelopeId
     val retrievals = cache.retrievals
 
-    val page = formTemplate.summarySection.toPage
+    val page = maybeSummarySection.getOrElse(formTemplate.summarySection).toPage
     val ei = ExtraInfo(
       Singleton(page.asInstanceOf[Page[DataExpanded]]),
       maybeAccessCode,

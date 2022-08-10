@@ -168,7 +168,7 @@ class SummaryRenderingService(
           .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics, maybeCoordinates)
     } yield {
       val summaryDeclaration: Html =
-        renderer.renderSummarySectionDeclaration(cache, formModelOptics, maybeAccessCode)
+        renderer.renderSummarySectionDeclaration(cache, formModelOptics, maybeAccessCode, maybeSummarySection)
       val summarySection = maybeSummarySection.getOrElse(cache.formTemplate.summarySection)
 
       SummaryRenderingService.renderSummary(
