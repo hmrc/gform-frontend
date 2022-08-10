@@ -283,6 +283,7 @@ object FormTemplateBuilder {
       SummaryDisplayWidth.M,
       None
     ),
+    None,
     true,
     FileInfoConfig.allAllowedFileTypes,
     None,
