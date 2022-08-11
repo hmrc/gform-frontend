@@ -151,7 +151,7 @@ class SummaryRenderingService(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     maybeCoordinates: Option[Coordinates],
     maybeSummarySection: Option[SummarySection],
-    taskRedirect: Boolean
+    taskComplete: Boolean
   )(implicit
     request: Request[_],
     l: LangADT,
@@ -188,7 +188,7 @@ class SummaryRenderingService(
         AddressRecordLookup.from(cache.form.thirdPartyData),
         maybeCoordinates,
         summarySection,
-        taskRedirect
+        taskComplete
       )
     }
 
@@ -264,9 +264,7 @@ object SummaryRenderingService {
 
     val lastSectionNumber = maybeCoordinates
       .map { c =>
-        formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
-          .filter(_.toCoordinatesUnsafe === c)
-
+        formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers.filter(_.toCoordinatesUnsafe === c)
       }
       .getOrElse(formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers)
       .reverse
