@@ -72,7 +72,8 @@ class SummaryRenderingService(
     lise: SmartStringEvaluator
   ): Future[PdfHtml] =
     for {
-      summaryHtml <- getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics, maybeCoordinates, None)
+      summaryHtml <-
+        getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics, maybeCoordinates, None, false)
     } yield {
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdf.header, pdf.footer)
       PdfHtml(
@@ -149,7 +150,8 @@ class SummaryRenderingService(
     summaryPagePurpose: SummaryPagePurpose,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     maybeCoordinates: Option[Coordinates],
-    maybeSummarySection: Option[SummarySection]
+    maybeSummarySection: Option[SummarySection],
+    taskRedirect: Boolean
   )(implicit
     request: Request[_],
     l: LangADT,
@@ -185,7 +187,8 @@ class SummaryRenderingService(
         cache.form.formData.fingerprint,
         AddressRecordLookup.from(cache.form.thirdPartyData),
         maybeCoordinates,
-        summarySection
+        summarySection,
+        taskRedirect
       )
     }
 
@@ -248,7 +251,8 @@ object SummaryRenderingService {
     formDataFingerprint: String,
     addressRecordLookup: AddressRecordLookup,
     maybeCoordinates: Option[Coordinates],
-    summarySection: SummarySection
+    summarySection: SummarySection,
+    taskComplete: Boolean
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(summarySection.header)
     val footerHtml = markDownParser(summarySection.footer)
@@ -257,6 +261,16 @@ object SummaryRenderingService {
     val envelopeUpd = envelope.byPurpose(summaryPagePurpose)
 
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
+
+    val lastSectionNumber = maybeCoordinates
+      .map { c =>
+        formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
+          .filter(_.toCoordinatesUnsafe === c)
+
+      }
+      .getOrElse(formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers)
+      .reverse
+      .head
 
     val sfr =
       summaryRowsForRender(
@@ -273,7 +287,7 @@ object SummaryRenderingService {
       formTemplate,
       sfr,
       maybeAccessCode,
-      formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers.reverse.head,
+      lastSectionNumber,
       formTemplate.formCategory,
       renderComeBackLater,
       determineContinueLabelKey(
@@ -290,7 +304,8 @@ object SummaryRenderingService {
       footerHtml,
       formDataFingerprint,
       summarySection.displayWidth,
-      maybeCoordinates
+      maybeCoordinates,
+      taskComplete
     )
   }
 
@@ -345,7 +360,8 @@ object SummaryRenderingService {
       footerHtml,
       formDataFingerprint,
       formTemplate.summarySection.displayWidth,
-      None
+      None,
+      false
     )
   }
 
