@@ -135,7 +135,8 @@ class AcknowledgementController(
       val summarySectionDeclaration = renderer.renderSummarySectionDeclaration(
         cache,
         formModelOptics,
-        maybeAccessCode
+        maybeAccessCode,
+        None
       )
 
       import i18nSupport._
