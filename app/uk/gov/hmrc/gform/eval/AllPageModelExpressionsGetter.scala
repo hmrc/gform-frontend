@@ -18,8 +18,9 @@ package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.models.{ BracketPlain, DataExpanded, FormModel, PageMode, Singleton }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, Expr }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.CheckYourAnswersPage
 
-object AllPageModelExpressionsGetter {
+object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
   /*
    * Returns list of every single expression in a bracket
    */
@@ -63,6 +64,17 @@ object AllPageModelExpressionsGetter {
 
     componentsExprs ++ booleanExprsExprs
   }
+  def fromCheckYourAnswerPage(cyap: CheckYourAnswersPage): List[Expr] =
+    cyap.updateTitle.interpolations ++
+      fromOption(
+        cyap.title,
+        cyap.caption,
+        cyap.noPIITitle,
+        cyap.noPIIUpdateTitle,
+        cyap.header,
+        cyap.footer,
+        cyap.continueLabel
+      )
 
   private def formComponentsExprs[A <: PageMode](
     formModel: FormModel[DataExpanded]
@@ -73,7 +85,8 @@ object AllPageModelExpressionsGetter {
       repeatingPage.singletons.toList.flatMap(fromSingleton(formModel))
     } { addToList =>
       addToList.iterations.toList.flatMap { iteration =>
-        iteration.singletons.toList.flatMap(fromSingleton(formModel))
+        iteration.singletons.toList.flatMap(fromSingleton(formModel)) ++
+          addToList.source.cyaPage.map(fromCheckYourAnswerPage).getOrElse(Nil)
       }
     }
 
