@@ -1147,7 +1147,8 @@ class SectionRenderingService(
               "",
               "",
               "",
-              List()
+              List(),
+              "govuk-summary-list__row--no-actions"
             )
           )
         case ValueRow(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _) =>
