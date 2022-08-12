@@ -90,7 +90,7 @@ trait FormTemplateSample {
           classificationType = "ClassificationType",
           includeIf = "true",
           failOnError = true,
-          roboticsXml = false,
+          dataOutputFormat = "XML",
           formdataXml = false,
           backscan = None,
           includeInstructionPdf = true
