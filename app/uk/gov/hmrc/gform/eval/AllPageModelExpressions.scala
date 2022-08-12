@@ -65,15 +65,16 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
       bracket.source.repeats :: bracket.singletons.toList.flatMap(fromSingleton)
 
     def fromAddToListBracket(bracket: BracketPlain.AddToList[A]): List[Expr] =
-      fromSmartStrings(bracket.source.summaryName) ++
-        fromSmartStrings(bracket.source.addAnotherQuestion.label) ++
-        fromSmartStrings(bracket.source.summaryDescription) ++ fromOption(
-          bracket.source.infoMessage,
-          bracket.source.addAnotherQuestion.helpText
-        ) ++ bracket.iterations.toList
-          .flatMap { iteration =>
-            iteration.singletons.toList.flatMap(fromSingleton) ::: fromRepeater(iteration.repeater)
-          }
+      fromSmartStrings(
+        bracket.source.summaryName,
+        bracket.source.addAnotherQuestion.label,
+        bracket.source.summaryDescription
+      ) ++ fromOption(
+        bracket.source.infoMessage,
+        bracket.source.addAnotherQuestion.helpText
+      ) ++ bracket.iterations.toList.flatMap { iteration =>
+        iteration.singletons.toList.flatMap(fromSingleton) ::: fromRepeater(iteration.repeater)
+      }
 
     val pageExprs: List[Expr] = bracket.fold(fromNonRepeatingBracket)(fromRepeatedBracket)(fromAddToListBracket)
     val pageExprsMeta = toPlainExprs(pageExprs)
