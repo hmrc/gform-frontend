@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Coordinates, DataExpanded, FormModel }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddressLens
 
 final class CannotStartYetResolver(
   // Return FormComponentIds which are defined in given task
@@ -91,8 +92,9 @@ object CannotStartYetResolver {
           brackets.toBracketsList.flatMap(_.toPlainBracket.allExprs(formModel))
 
         val baseComponentIds: List[BaseComponentId] =
-          allExprs.flatMap(_.leafs(formModel)).collect { case FormCtx(fcId) =>
-            fcId.baseComponentId
+          allExprs.flatMap(_.leafs(formModel)).collect {
+            case FormCtx(fcId)        => fcId.baseComponentId
+            case AddressLens(fcId, _) => fcId.baseComponentId
           }
 
         val ownBaseComponentIds = formComponentIdsLookup.getOrElse(coordinates, Set.empty[BaseComponentId])
