@@ -491,7 +491,8 @@ object SummaryRenderingService {
           messages("addToList.addOrRemove"),
           messages("addToList.addOrRemove") + " " + repeater.title
             .value()
-        ) :: Nil
+        ) :: Nil,
+        ""
       )
 
       new GovukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-0")) :: htmls
