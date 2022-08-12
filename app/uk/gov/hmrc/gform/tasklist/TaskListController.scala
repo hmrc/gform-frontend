@@ -84,7 +84,12 @@ class TaskListController(
           if (isCompleted && task.summarySection.isDefined && isSummarySectionVisible) {
             Redirect(
               uk.gov.hmrc.gform.gform.routes.SummaryController
-                .summaryById(cache.formTemplate._id, maybeAccessCode, Some(Coordinates(taskSectionNumber, taskNumber)))
+                .summaryById(
+                  cache.formTemplate._id,
+                  maybeAccessCode,
+                  Some(Coordinates(taskSectionNumber, taskNumber)),
+                  true
+                )
             ).pure[Future]
           } else {
             val sn = formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
@@ -113,7 +118,8 @@ class TaskListController(
           SummaryController.summaryById(
             formTemplateId,
             maybeAccessCode,
-            None // No coordinates means show all tasks in summary page
+            None, // No coordinates means show all tasks in summary page
+            true
           )
         ).pure[Future]
     }

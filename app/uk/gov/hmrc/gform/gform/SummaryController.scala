@@ -78,7 +78,8 @@ class SummaryController(
   def summaryById(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    maybeCoordinates: Option[Coordinates]
+    maybeCoordinates: Option[Coordinates],
+    taskComplete: Boolean // to check summary page is redirected from the task list page and all tasks are completed
   ): Action[AnyContent] =
     auth
       .authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.ViewSummary) {
@@ -109,7 +110,8 @@ class SummaryController(
                 SummaryPagePurpose.ForUser,
                 formModelOptics,
                 maybeCoordinates,
-                maybeTaskSummarySection
+                maybeTaskSummarySection,
+                taskComplete
               )
               .map(Ok(_))
       }
@@ -179,7 +181,12 @@ class SummaryController(
               uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplateId, maybeAccessCode)
             } else {
               routes.SummaryController
-                .summaryById(formTemplate._id, maybeAccessCode, None) // TODO JoVl why are Coordinates needed here?
+                .summaryById(
+                  formTemplate._id,
+                  maybeAccessCode,
+                  None,
+                  true
+                ) // TODO JoVl why are Coordinates needed here?
             }
             val saveAcknowledgement = new SaveAcknowledgement(formTemplate, cache.form.envelopeExpiryDate)
             Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
@@ -253,7 +260,7 @@ class SummaryController(
       }
     val redirectToSummary: Result =
       Redirect(
-        routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, maybeCoordinates)
+        routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, maybeCoordinates, false)
       )
     for {
       valid <- isFormValidF
@@ -301,7 +308,7 @@ class SummaryController(
                     )
                   }
                 } else {
-                  Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None))
+                  Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, false))
                     .pure[Future]
                 }
     } yield result

@@ -235,7 +235,8 @@ class SummaryRenderingServiceSpec
               SummaryPagePurpose.ForDms,
               formModelOptics,
               Option.empty[Coordinates],
-              Option.empty[SummarySection]
+              Option.empty[SummarySection],
+              false
             )
             .futureValue
 
@@ -307,7 +308,8 @@ class SummaryRenderingServiceSpec
                 SummaryPagePurpose.ForDms,
                 formModelOptics,
                 Option.empty[Coordinates],
-                Option.empty[SummarySection]
+                Option.empty[SummarySection],
+                false
               )
               .futureValue
               .summaryElements shouldBe expectedSummaryElements
@@ -379,7 +381,8 @@ class SummaryRenderingServiceSpec
                 SummaryPagePurpose.ForDms,
                 formModelOptics,
                 Option.empty[Coordinates],
-                Option.empty[SummarySection]
+                Option.empty[SummarySection],
+                false
               )
               .futureValue
               .summaryElements shouldBe expectedSummaryElements
@@ -460,7 +463,8 @@ class SummaryRenderingServiceSpec
                 SummaryPagePurpose.ForDms,
                 formModelOptics,
                 Option.empty[Coordinates],
-                Option.empty[SummarySection]
+                Option.empty[SummarySection],
+                false
               )
               .futureValue
 
@@ -552,7 +556,8 @@ class SummaryRenderingServiceSpec
                 SummaryPagePurpose.ForDms,
                 formModelOptics,
                 Option.empty[Coordinates],
-                Option.empty[SummarySection]
+                Option.empty[SummarySection],
+                false
               )
               .futureValue
 

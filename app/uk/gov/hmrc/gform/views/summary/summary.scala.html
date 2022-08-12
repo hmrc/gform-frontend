@@ -48,7 +48,8 @@
     footer: Html,
     formDataFingerprint: String,
     displayWidth: SummaryDisplayWidth.SummaryDisplayWidth,
-    maybeCoordinates: Option[Coordinates]
+    maybeCoordinates: Option[Coordinates],
+    taskComplete: Boolean
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @heading = @{title}
@@ -59,7 +60,11 @@
     val href = formTemplate.formKind.fold{ _ =>
         uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, lastSectionNumber).path
     } { _ =>
-        uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplate._id, maybeAccessCode).path
+        if(taskComplete) {
+            uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplate._id, maybeAccessCode).path
+         } else {
+            uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, lastSectionNumber).path
+        }
     }
     new BackLink(href = href, content = new Text(messages("linkText.back")))
 }
