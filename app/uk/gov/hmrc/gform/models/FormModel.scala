@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.eval.{ AllPageModelExpressions, ExprMetadata, ExprType, RevealingChoiceInfo, StandaloneSumInfo, StaticTypeData, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, ModelPageId, MultiValueId }
+import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 case class FormModel[A <: PageMode](
@@ -63,9 +64,13 @@ case class FormModel[A <: PageMode](
     def allFormComponents(coordinates: Coordinates): List[FormComponent] =
       availablePages(coordinates).flatMap(_.allFormComponents)
 
-    def nextVisibleSectionNumber(tlSectionNumber: SectionNumber.TaskList): SectionNumber.TaskList =
+    def nextVisibleSectionNumber(
+      tlSectionNumber: SectionNumber.TaskList,
+      visitIndex: VisitIndex
+    ): SectionNumber.TaskList =
       availableSectionNumbers
         .collect { case t: SectionNumber.TaskList => t }
+        .filterNot(visitIndex.contains(_))
         .find(sn => tlSectionNumber.coordinates === sn.coordinates && sn.sectionNumber >= tlSectionNumber.sectionNumber)
         .getOrElse(throw new Exception("No more visible section numbers in the task"))
   }

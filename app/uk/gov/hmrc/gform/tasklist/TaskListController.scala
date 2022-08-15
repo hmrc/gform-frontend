@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gform.routes.SummaryController
 import uk.gov.hmrc.gform.models.{ Coordinates, FastForward, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -92,8 +93,11 @@ class TaskListController(
                 )
             ).pure[Future]
           } else {
+            val visitIndex = if (isCompleted) VisitIndex.empty else cache.form.visitsIndex
+
             val sn = formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
-              SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
+              SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0),
+              visitIndex
             )
             val href = uk.gov.hmrc.gform.gform.routes.FormController.form(
               cache.formTemplate._id,
