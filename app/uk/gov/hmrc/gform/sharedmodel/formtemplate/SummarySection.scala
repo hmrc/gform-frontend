@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 case class SummarySection(
   title: SmartString,
+  caption: Option[SmartString],
   header: SmartString,
   footer: SmartString,
   continueLabel: Option[SmartString],

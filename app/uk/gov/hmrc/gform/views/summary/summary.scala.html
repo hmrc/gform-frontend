@@ -42,7 +42,7 @@
     frontendAppConfig: FrontendAppConfig,
     summaryPagePurpose: SummaryPagePurpose,
     reviewerComments : Option[String],
-    title: String,
+    pageHeading: Html,
     header: Html,
     summaryDeclaration: Html,
     footer: Html,
@@ -51,8 +51,6 @@
     maybeCoordinates: Option[Coordinates],
     taskComplete: Boolean
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
-
-@heading = @{title}
 
 @formWithCSRF = @{new FormWithCSRF()}
 @govukButton = @{new GovukButton()}
@@ -83,7 +81,7 @@
 }
 
 @uk.gov.hmrc.gform.views.html.main_template(
-  title = heading,
+  title = "",
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
   backLink = Some(backLink),
@@ -91,9 +89,7 @@
 ) {
 
     @twoThirdsMainContent {
-        <h1 class="govuk-heading-l">
-            @heading
-        </h1>
+        @pageHeading
         <div class="govuk-body govuk-!-margin-bottom-9">
 	      @header
         </div>

@@ -30,7 +30,7 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
   def apply(formTemplate: FormTemplate): Set[ExprMetadata] = {
     val emailExprs: List[Expr] = fromOptionF(formTemplate.emailParameters)(_.toList.map(_.value))
     val summarySectionExprs: List[Expr] = {
-      val SummarySection(title, header, footer, continueLabel, _, _, _) = formTemplate.summarySection
+      val SummarySection(title, _, header, footer, continueLabel, _, _, _) = formTemplate.summarySection
 
       continueLabel.fold(fromSmartStrings(title, header, footer)) { cl =>
         fromSmartStrings(title, header, footer, cl)

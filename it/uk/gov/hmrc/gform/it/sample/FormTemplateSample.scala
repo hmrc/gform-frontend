@@ -28,6 +28,7 @@ trait FormTemplateSample {
     parentFormSubmissionRefs = List.empty,
     summarySection = SummarySection(
       toSmartString("Check your answers"),
+      Some(toSmartString("Caption")),
       toSmartString("Make sure the information you have given is correct"),
       toSmartString("Now send your form"),
       Some(toSmartString("Continue")),
