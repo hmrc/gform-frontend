@@ -44,7 +44,6 @@ trait DestinationGen {
       businessArea          <- businessAreaGen
       includeIf             <- includeIfGen
       failOnError           <- PrimitiveGen.booleanGen
-      roboticsXml           <- PrimitiveGen.booleanGen
       formdataXml           <- PrimitiveGen.booleanGen
       backscan              <- Gen.option(PrimitiveGen.booleanGen)
       includeInstructionPdf <- PrimitiveGen.booleanGen
@@ -57,7 +56,7 @@ trait DestinationGen {
         businessArea,
         includeIf,
         failOnError,
-        roboticsXml,
+        "XML",
         formdataXml,
         backscan,
         includeInstructionPdf

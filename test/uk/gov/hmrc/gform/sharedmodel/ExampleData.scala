@@ -118,7 +118,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
     "TestHmrcDmsBusinessArea",
     "",
     true,
-    true,
+    "XML",
     true,
     Some(true),
     false
