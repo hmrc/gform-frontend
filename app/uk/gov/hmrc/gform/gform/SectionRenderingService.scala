@@ -1380,15 +1380,15 @@ class SectionRenderingService(
         Set.empty[String] // Don't prepop something we already submitted
       else selections.map(_.toString).toSet
 
-    val visibleOptions: NonEmptyList[OptionData] = options
-      .filter(o => isVisibleOption(o, ei.formModelOptics))
+    val visibleOptionsWithIndex: NonEmptyList[(OptionData, Int)] = options.zipWithIndex
+      .filter(o => isVisibleOption(o._1, ei.formModelOptics))
       .toNel
       .getOrElse(throw new IllegalArgumentException("All options of the choice component are invisible"))
 
     val optionsWithHelpText: NonEmptyList[(OptionData, Option[Html])] =
       optionalHelpText
         .map(
-          _.zipWith(visibleOptions)((helpText, option) =>
+          _.zipWith(visibleOptionsWithIndex.map(_._1))((helpText, option) =>
             (
               option,
               if (helpText.isEmpty) None
@@ -1396,10 +1396,13 @@ class SectionRenderingService(
             )
           )
         )
-        .getOrElse(visibleOptions.map(option => (option, None)))
+        .getOrElse(visibleOptionsWithIndex.map(_._1).map(option => (option, None)))
 
     val optionsWithHintAndHelpText: NonEmptyList[(OptionData, Option[Hint], Option[Html])] =
       hints
+        .flatMap(
+          _.toList.zipWithIndex.filter(h => visibleOptionsWithIndex.map(_._2).toList.contains(h._2)).map(_._1).toNel
+        )
         .map(_.zipWith(optionsWithHelpText) { case (hint, (option, helpText)) =>
           (option, if (hint.isEmpty) None else toHint(Some(hint)), helpText)
         })
