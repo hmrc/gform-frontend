@@ -259,7 +259,7 @@ object SummaryRenderingService {
     val footerHtml = markDownParser(summarySection.footer)
     val caption = summarySection.caption.map(_.value)
     val title = summarySection.title.value
-    val ph: Html = pageHeading(title, caption)
+    val heading: Html = pageHeading(title, caption)
 
     val envelopeUpd = envelope.byPurpose(summaryPagePurpose)
 
@@ -299,7 +299,7 @@ object SummaryRenderingService {
       frontendAppConfig,
       summaryPagePurpose,
       None,
-      ph,
+      heading,
       headerHtml,
       summaryDeclaration,
       footerHtml,
@@ -333,7 +333,7 @@ object SummaryRenderingService {
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
     val title = formTemplate.summarySection.title.value
     val caption = formTemplate.summarySection.caption.map(_.value)
-    val ph = pageHeading(title, caption)
+    val heading: Html = pageHeading(title, caption)
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
     val sfr =
       summaryForNotificationPdf(
@@ -357,7 +357,7 @@ object SummaryRenderingService {
       frontendAppConfig,
       summaryPagePurpose,
       None,
-      ph,
+      heading,
       headerHtml,
       HtmlFormat.empty,
       footerHtml,
