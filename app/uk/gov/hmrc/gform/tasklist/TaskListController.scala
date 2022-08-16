@@ -88,7 +88,7 @@ class TaskListController(
                   cache.formTemplate._id,
                   maybeAccessCode,
                   Some(Coordinates(taskSectionNumber, taskNumber)),
-                  true
+                  Some(true)
                 )
             ).pure[Future]
           } else {
@@ -119,7 +119,7 @@ class TaskListController(
             formTemplateId,
             maybeAccessCode,
             None, // No coordinates means show all tasks in summary page
-            true
+            Some(true)
           )
         ).pure[Future]
     }

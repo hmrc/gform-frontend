@@ -79,7 +79,9 @@ class SummaryController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     maybeCoordinates: Option[Coordinates],
-    taskComplete: Boolean // to check summary page is redirected from the task list page and all tasks are completed
+    taskComplete: Option[
+      Boolean
+    ] // to check summary page is redirected from the task list page and all tasks are completed
   ): Action[AnyContent] =
     auth
       .authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.ViewSummary) {
@@ -111,7 +113,7 @@ class SummaryController(
                 formModelOptics,
                 maybeCoordinates,
                 maybeTaskSummarySection,
-                taskComplete
+                taskComplete.getOrElse(false)
               )
               .map(Ok(_))
       }
@@ -185,7 +187,7 @@ class SummaryController(
                   formTemplate._id,
                   maybeAccessCode,
                   None,
-                  true
+                  None
                 ) // TODO JoVl why are Coordinates needed here?
             }
             val saveAcknowledgement = new SaveAcknowledgement(formTemplate, cache.form.envelopeExpiryDate)
@@ -260,7 +262,7 @@ class SummaryController(
       }
     val redirectToSummary: Result =
       Redirect(
-        routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, maybeCoordinates, false)
+        routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, maybeCoordinates, None)
       )
     for {
       valid <- isFormValidF
@@ -308,7 +310,7 @@ class SummaryController(
                     )
                   }
                 } else {
-                  Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, false))
+                  Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, None))
                     .pure[Future]
                 }
     } yield result

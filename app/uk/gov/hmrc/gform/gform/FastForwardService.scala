@@ -148,7 +148,7 @@ class FastForwardService(
             )
         }
       case None =>
-        Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, false))
+        Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, None))
     }
 
   def deleteForm(

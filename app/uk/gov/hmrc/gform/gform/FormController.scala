@@ -523,7 +523,7 @@ class FormController(
                           if (endOfTask.isDefined) {
                             Redirect(
                               routes.SummaryController
-                                .summaryById(cache.formTemplateId, maybeAccessCode, endOfTask, false)
+                                .summaryById(cache.formTemplateId, maybeAccessCode, endOfTask, None)
                             )
                           } else {
                             val isFirstLanding = sectionNumber < sn
@@ -546,7 +546,7 @@ class FormController(
                         case None =>
                           Redirect(
                             routes.SummaryController
-                              .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, false)
+                              .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None)
                           )
                       }
 
@@ -855,7 +855,7 @@ class FormController(
         }
       case None =>
         formTemplate.formKind.fold { _ =>
-          routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, true)
+          routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, Some(true))
         } { _ =>
           uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, maybeAccessCode)
         }
