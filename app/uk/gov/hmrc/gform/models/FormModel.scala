@@ -66,13 +66,30 @@ case class FormModel[A <: PageMode](
 
     def nextVisibleSectionNumber(
       tlSectionNumber: SectionNumber.TaskList,
-      visitIndex: VisitIndex
-    ): SectionNumber.TaskList =
-      availableSectionNumbers
+      visitIndex: Option[VisitIndex]
+    ): SectionNumber.TaskList = {
+      val availableSNsByCoordinates: Seq[SectionNumber.TaskList] = availableSectionNumbers
         .collect { case t: SectionNumber.TaskList => t }
-        .filterNot(visitIndex.contains(_))
-        .find(sn => tlSectionNumber.coordinates === sn.coordinates && sn.sectionNumber >= tlSectionNumber.sectionNumber)
-        .getOrElse(throw new Exception("No more visible section numbers in the task"))
+        .filter(_.coordinates === tlSectionNumber.coordinates)
+
+      if (visitIndex.isEmpty) {
+        availableSNsByCoordinates
+          .find(_.sectionNumber >= tlSectionNumber.sectionNumber)
+          .getOrElse(throw new Exception("No more visible section numbers in the task"))
+      } else {
+        val lastVisitedIndex = visitIndex
+          .map(_.fold[Int](_ => -1) { taskList =>
+            val visitedIndexes = taskList.visitsIndex.get(tlSectionNumber.coordinates).getOrElse(Set(-1))
+            visitedIndexes.last
+          })
+          .getOrElse(-1)
+
+        availableSNsByCoordinates
+          .filter(sn => sn.sectionNumber <= lastVisitedIndex + 1)
+          .lastOption
+          .getOrElse(throw new Exception("No more visible section numbers in the task"))
+      }
+    }
   }
 
   val allFormComponents: List[FormComponent] = pages.flatMap(_.allFormComponents)
