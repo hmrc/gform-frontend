@@ -92,11 +92,8 @@ class TaskListController(
                 )
             ).pure[Future]
           } else {
-            val visitIndex = if (isCompleted) None else Some(cache.form.visitsIndex)
-
             val sn = formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
-              SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0),
-              visitIndex
+              SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
             )
             val href = uk.gov.hmrc.gform.gform.routes.FormController.form(
               cache.formTemplate._id,
