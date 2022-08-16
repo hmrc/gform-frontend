@@ -652,7 +652,11 @@ class FormController(
                   commingFromSn.fold { classic =>
                     fastForwardSn
                   } { taskList =>
-                    if (taskList.sectionNumber == 0) {
+                    val firstVisibleSectionNumber =
+                      formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
+                        SectionNumber.TaskList(sectionNumber.toCoordinatesUnsafe, 0)
+                      )
+                    if (taskList.sectionNumber === firstVisibleSectionNumber.sectionNumber) {
                       uk.gov.hmrc.gform.tasklist.routes.TaskListController
                         .landingPage(cache.formTemplateId, maybeAccessCode)
                     } else {
