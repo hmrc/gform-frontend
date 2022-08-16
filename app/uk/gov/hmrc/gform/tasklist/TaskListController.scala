@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
+import uk.gov.hmrc.gform.gform.FastForwardService
 import uk.gov.hmrc.gform.gform.routes.SummaryController
 import uk.gov.hmrc.gform.models.{ Coordinates, FastForward, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel._
@@ -39,7 +40,8 @@ class TaskListController(
   auth: AuthenticatedRequestActions,
   taskListRenderingService: TaskListRenderingService,
   fileUploadService: FileUploadService,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  fastForwardService: FastForwardService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
@@ -73,37 +75,47 @@ class TaskListController(
     isCompleted: Boolean
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      request => l => cache => implicit sse => formModelOptics =>
+      implicit request => implicit l => cache => implicit sse => formModelOptics =>
         TaskListUtils.withTask(cache.formTemplate, taskSectionNumber, taskNumber) { task =>
           val sectionTitle4Ga: SectionTitle4Ga = SectionTitle4Ga(task.title.value)
 
-          val isSummarySectionVisible = task.summarySection
-            .flatMap(_.includeIf)
-            .fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+          if (isCompleted) {
+            val isSummarySectionVisible = task.summarySection
+              .flatMap(_.includeIf)
+              .fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
 
-          if (isCompleted && task.summarySection.isDefined && isSummarySectionVisible) {
-            Redirect(
-              uk.gov.hmrc.gform.gform.routes.SummaryController
-                .summaryById(
-                  cache.formTemplate._id,
-                  maybeAccessCode,
-                  Some(Coordinates(taskSectionNumber, taskNumber)),
-                  Some(true)
-                )
-            ).pure[Future]
+            if (task.summarySection.isDefined && isSummarySectionVisible) {
+              Redirect(
+                uk.gov.hmrc.gform.gform.routes.SummaryController
+                  .summaryById(
+                    cache.formTemplate._id,
+                    maybeAccessCode,
+                    Some(Coordinates(taskSectionNumber, taskNumber)),
+                    Some(true)
+                  )
+              ).pure[Future]
+            } else {
+              val sn = formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
+                SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
+              )
+              val href = uk.gov.hmrc.gform.gform.routes.FormController.form(
+                cache.formTemplate._id,
+                maybeAccessCode,
+                sn,
+                sectionTitle4Ga,
+                SuppressErrors.Yes,
+                FastForward.StopAt(sn.increment)
+              )
+              Redirect(href).pure[Future]
+            }
           } else {
-            val sn = formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
-              SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
-            )
-            val href = uk.gov.hmrc.gform.gform.routes.FormController.form(
-              cache.formTemplate._id,
-              maybeAccessCode,
-              sn,
-              sectionTitle4Ga,
-              SuppressErrors.Yes,
-              FastForward.StopAt(sn.increment)
-            )
-            Redirect(href).pure[Future]
+            fastForwardService
+              .redirectFastForward[SectionSelectorType.Normal](
+                cache,
+                maybeAccessCode,
+                formModelOptics,
+                Some(Coordinates(taskSectionNumber, taskNumber))
+              )
           }
         }
     }

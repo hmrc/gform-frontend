@@ -132,7 +132,8 @@ class GformModule(
       controllersModule.authenticatedRequestActions,
       taskListModule.taskListRenderingService,
       fileUploadModule.fileUploadService,
-      controllersModule.messagesControllerComponents
+      controllersModule.messagesControllerComponents,
+      fastForwardService
     )
 
   val newFormController: NewFormController = new NewFormController(
