@@ -30,19 +30,21 @@
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.controllers.{Exit, SummaryContinue}
 @import views.html.helper.CSRF
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
 
 @(
     formTemplate: FormTemplate,
     snippets: List[Html],
     maybeAccessCode: Option[AccessCode],
     lastSectionNumber: SectionNumber,
-    formCategory: FormCategory,
     renderComeBackLater: Boolean,
     continueLabelKey: String,
     frontendAppConfig: FrontendAppConfig,
     summaryPagePurpose: SummaryPagePurpose,
     reviewerComments : Option[String],
-    pageHeading: Html,
+    title: String,
+    caption: Option[String],
     header: Html,
     summaryDeclaration: Html,
     footer: Html,
@@ -66,6 +68,7 @@
     }
     new BackLink(href = href, content = new Text(messages("linkText.back")))
 }
+@hmrcPageHeading = @{new HmrcPageHeading()}
 
 @twoThirdsMainContent = @{new TwoThirdsMainContent}
 @fullMainContent = @{new FullMainContent}
@@ -89,7 +92,12 @@
 ) {
 
     @twoThirdsMainContent {
-        @pageHeading
+        @hmrcPageHeading(PageHeading(
+            text = title,
+            headingClasses = Some("govuk-heading-l"),
+            section = caption,
+            captionClasses = Some("govuk-caption-l")
+        ))
         <div class="govuk-body govuk-!-margin-bottom-9">
 	      @header
         </div>

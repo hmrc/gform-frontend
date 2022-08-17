@@ -29,6 +29,8 @@
 @import uk.gov.hmrc.gform.controllers.{EditAddToList, SaveAndExit}
 @import uk.gov.hmrc.gform.controllers.Back
 @import uk.gov.hmrc.gform.commons.MarkDownUtil._
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
 
 @(
     title: String,
@@ -59,6 +61,7 @@
 @govukButton = @{new GovukButton()}
 @govukNotificationBanner = @{new GovukNotificationBanner()}
 @heading = @{title}
+@hmrcPageHeading = @{new HmrcPageHeading()}
 
 @backLink = @{
   new BackLink(attributes = Map("id" -> "backButton",
@@ -88,8 +91,12 @@
             role=Some("alert"))
         )
     }
-
-    @pageHeading(heading, caption)
+    @hmrcPageHeading(PageHeading(
+        text = heading,
+        headingClasses = Some("govuk-heading-l"),
+        section = caption,
+        captionClasses = Some("govuk-caption-l")
+    ))
 
     <div class="govuk-form-group">
       <dl class="hmrc-add-to-a-list hmrc-add-to-a-list--wide">
