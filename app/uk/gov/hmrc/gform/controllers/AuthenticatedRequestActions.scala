@@ -519,7 +519,7 @@ class AuthenticatedRequestActions(
         case maybeCredentials ~ enrolments ~ maybeAffinityGroup ~ maybeGroupIdentifier ~ maybeNino ~ maybeEmail ~ maybeName =>
           val formTemplateWithRedirects = request.attrs(FormTemplateKey)
           val formTemplate = formTemplateWithRedirects.formTemplate
-          (if (needItmpRetrieval(maybeAffinityGroup, maybeNino, Json.toJson(formTemplate))) {
+          (if (!needItmpRetrieval(maybeAffinityGroup, maybeNino, Json.toJson(formTemplate))) {
              (Option.empty[ItmpName], Option.empty[LocalDate], Option.empty[ItmpAddress]).pure[Future]
            } else {
              authorised(predicate)
