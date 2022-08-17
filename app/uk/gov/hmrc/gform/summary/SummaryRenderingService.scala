@@ -38,7 +38,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
-import uk.gov.hmrc.gform.views.html.form.pageHeading
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper._
@@ -259,7 +258,6 @@ object SummaryRenderingService {
     val footerHtml = markDownParser(summarySection.footer)
     val caption = summarySection.caption.map(_.value)
     val title = summarySection.title.value
-    val heading: Html = pageHeading(title, caption)
 
     val envelopeUpd = envelope.byPurpose(summaryPagePurpose)
 
@@ -289,7 +287,6 @@ object SummaryRenderingService {
       sfr,
       maybeAccessCode,
       lastSectionNumber,
-      formTemplate.formCategory,
       renderComeBackLater,
       determineContinueLabelKey(
         retrievals.continueLabelKey,
@@ -299,7 +296,8 @@ object SummaryRenderingService {
       frontendAppConfig,
       summaryPagePurpose,
       None,
-      heading,
+      title,
+      caption,
       headerHtml,
       summaryDeclaration,
       footerHtml,
@@ -333,7 +331,6 @@ object SummaryRenderingService {
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
     val title = formTemplate.summarySection.title.value
     val caption = formTemplate.summarySection.caption.map(_.value)
-    val heading: Html = pageHeading(title, caption)
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
     val sfr =
       summaryForNotificationPdf(
@@ -351,13 +348,13 @@ object SummaryRenderingService {
       sfr,
       maybeAccessCode,
       formTemplate.sectionNumberZero,
-      formTemplate.formCategory,
       renderComeBackLater,
       determineContinueLabelKey(retrievals.continueLabelKey, formTemplate.draftRetrievalMethod.isNotPermitted, None),
       frontendAppConfig,
       summaryPagePurpose,
       None,
-      heading,
+      title,
+      caption,
       headerHtml,
       HtmlFormat.empty,
       footerHtml,
