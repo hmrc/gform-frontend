@@ -118,7 +118,7 @@ class FastForwardService(
               EnvelopeWithMapping(envelope, cache.form),
               maybeCoordinates
             )(
-              redirectResult(cache, maybeAccessCode, processData, _, fastForward)
+              redirectResult(cache, maybeAccessCode, processData, _)
             )
         } yield res
 
@@ -128,27 +128,19 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     processData: ProcessData,
-    maybeSectionNumber: Option[SectionNumber],
-    fastForward: FastForward
+    maybeSectionNumber: Option[SectionNumber]
   ): Result =
     maybeSectionNumber match {
       case Some(sn) =>
         val pageModel = processData.formModel(sn)
         val sectionTitle4Ga = sectionTitle4GaFactory(pageModel, sn)
 
-        (sn.isTaskList, fastForward) match {
-          case (true, FastForward.Yes) =>
-            Redirect(
-              uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplateId, maybeAccessCode)
-            )
-          case (_, _) =>
-            Redirect(
-              routes.FormController
-                .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
-            )
-        }
+        Redirect(
+          routes.FormController
+            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+        )
       case None =>
-        Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, false))
+        Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, None))
     }
 
   def deleteForm(

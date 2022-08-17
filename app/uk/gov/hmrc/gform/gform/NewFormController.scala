@@ -196,8 +196,14 @@ class NewFormController(
             },
             {
               case "continue" =>
-                fastForwardService
-                  .redirectFastForward[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics, None)
+                cache.formTemplate.formKind.fold(_ =>
+                  fastForwardService
+                    .redirectFastForward[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics, None)
+                )(_ =>
+                  Redirect(
+                    uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplateId, noAccessCode)
+                  ).pure[Future]
+                )
               case "delete" => fastForwardService.deleteForm(formTemplateId, cache, queryParams)
               case _        => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
             }

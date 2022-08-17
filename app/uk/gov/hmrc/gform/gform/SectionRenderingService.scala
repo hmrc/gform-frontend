@@ -626,7 +626,7 @@ class SectionRenderingService(
     sectionNumber: SectionNumber
   )(implicit messages: Messages): BackLink = {
     val href =
-      uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id, maybeAccessCode, None, true).url
+      uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id, maybeAccessCode, None, None).url
     new BackLink(href = href, content = new content.Text(messages("linkText.back")))
   }
 

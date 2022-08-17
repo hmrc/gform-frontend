@@ -276,6 +276,7 @@ object FormTemplateBuilder {
     None,
     SummarySection(
       toSmartString("Title"),
+      Some(toSmartString("Caption")),
       toSmartString("Header"),
       toSmartString("Footer"),
       Some(toSmartString("ContinueLabel")),
