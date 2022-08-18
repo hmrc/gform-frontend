@@ -36,12 +36,12 @@
       @defining(fileName + " " + messages("file.delete")) { ariaLabel =>
         <dl class="govuk-summary-list--no-border app-file-upload__list">
           <div class="govuk-summary-list__row">
-            <dd class="govuk-summary-list__value">
+            <dt class="govuk-summary-list__value">
               <span id="fileupload" role="alert">@{Html(messages("file.upload.done", fileName))}</span>
-            </dd>
-            <dd class='govuk-summary-list__value'>
+            </dt>
+            <dt class='govuk-summary-list__value'>
               @fileSize
-            </dd>
+            </dt>
             <dd class="govuk-summary-list__actions app-file-upload__actions">
                 <a href=@deleteUrl.path role="button" draggable="false" class="govuk-link" data-module="govuk-button">@messages("file.remove")</a>
             </dd>
