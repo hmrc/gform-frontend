@@ -19,13 +19,11 @@ $govuk-new-link-styles: true;
 // accessible-autocomplete doesn't support class customization.
 .gform-lookup-error .autocomplete__input {
     // Copied from .govuk-input--error in _input.scss
-    border: $govuk-border-width-form-element-error solid $govuk-error-colour;
+    // https://github.com/alphagov/govuk-frontend/blob/cbb7094e17229a0ee48c7f38243b917221cba56c/src/govuk/components/input/_index.scss#L54
+    border-color: $govuk-error-colour;
 
     &:focus {
       border-color: $govuk-input-border-colour;
-      // Remove `box-shadow` inherited from `:focus` as `input--error`
-      // already has the thicker border.
-      box-shadow: none;
     }
 }
 

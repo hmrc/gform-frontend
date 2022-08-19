@@ -334,7 +334,11 @@ object FormComponentSummaryRenderer {
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
-          )
+          ),
+        if (fieldValue.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
 
@@ -401,7 +405,11 @@ object FormComponentSummaryRenderer {
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
           )
-        }
+        },
+        if (fieldValue.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
   }
@@ -473,7 +481,11 @@ object FormComponentSummaryRenderer {
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
           )
-        }
+        },
+        if (fieldValue.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
   }
@@ -544,7 +556,11 @@ object FormComponentSummaryRenderer {
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
           )
-        }
+        },
+        if (fieldValue.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
   }
@@ -614,7 +630,11 @@ object FormComponentSummaryRenderer {
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
           )
-        }
+        },
+        if (fieldValue.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
 
@@ -697,7 +717,11 @@ object FormComponentSummaryRenderer {
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
-          )
+          ),
+        if (fieldValue.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
 
@@ -758,7 +782,11 @@ object FormComponentSummaryRenderer {
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
           )
-        }
+        },
+        if (fieldValue.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
   }
@@ -823,7 +851,11 @@ object FormComponentSummaryRenderer {
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
           )
-        }
+        },
+        if (formComponent.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
   }
@@ -888,7 +920,11 @@ object FormComponentSummaryRenderer {
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
           )
-        }
+        },
+        if (formComponent.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
   }
@@ -950,7 +986,11 @@ object FormComponentSummaryRenderer {
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
           )
-        }
+        },
+        if (formComponent.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
   }
@@ -1026,7 +1066,11 @@ object FormComponentSummaryRenderer {
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
           )
-        }
+        },
+        if (fieldValue.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
   }
@@ -1094,7 +1138,11 @@ object FormComponentSummaryRenderer {
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
           )
-        }
+        },
+        if (formComponent.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
       )
     )
   }
@@ -1194,7 +1242,11 @@ object FormComponentSummaryRenderer {
                       .fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
                   )
                 )
-              }
+              },
+              if (fieldValue.onlyShowOnSummary)
+                "govuk-summary-list__row--no-actions"
+              else
+                ""
             ) +: revealingFields
           }
       }
@@ -1229,7 +1281,11 @@ object FormComponentSummaryRenderer {
                 iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
               )
             )
-          }
+          },
+          if (fieldValue.onlyShowOnSummary)
+            "govuk-summary-list__row--no-actions"
+          else
+            ""
         )
       )
     } else selectionsContent
@@ -1313,7 +1369,11 @@ object FormComponentSummaryRenderer {
                   iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
                 )
               )
-            }
+            },
+            if (formComponent.onlyShowOnSummary)
+              "govuk-summary-list__row--no-actions"
+            else
+              ""
           )
         )
 
@@ -1340,7 +1400,16 @@ object FormComponentSummaryRenderer {
         if (label.nonEmpty && formComponent.modelComponentId.maybeIndex.fold(false)(_ === 1)) {
           val customKeyClasses = "summary-group-label"
 
-          summaryListRow(label, Html(""), None, customKeyClasses, "", "", Nil) :: rows
+          summaryListRow(
+            label,
+            Html(""),
+            None,
+            customKeyClasses,
+            "",
+            "",
+            Nil,
+            "govuk-summary-list__row--no-actions"
+          ) :: rows
         } else rows
     }
   }

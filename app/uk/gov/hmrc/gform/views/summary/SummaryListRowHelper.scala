@@ -30,7 +30,8 @@ object SummaryListRowHelper {
     keyClasses: String,
     valueClasses: String,
     actionClasses: String,
-    actions: List[(Call, String, String)]
+    actions: List[(Call, String, String)],
+    classes: String
   ): SummaryListRow =
     SummaryListRow(
       key = Key(
@@ -53,6 +54,7 @@ object SummaryListRowHelper {
           },
           classes = actionClasses
         )
-      )
+      ),
+      classes = classes
     )
 }
