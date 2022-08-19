@@ -98,9 +98,9 @@
             section = caption,
             captionClasses = Some("govuk-caption-l")
         ))
-        <div class="govuk-body govuk-!-margin-bottom-9">
-	      @header
-        </div>
+        @if(!header.body.isEmpty) {
+            <div class="govuk-body">@header</div>
+        }
     }
 
     @mainContent {
