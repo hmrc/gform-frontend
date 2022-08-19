@@ -17,7 +17,8 @@
 @import uk.gov.hmrc.gform.addresslookup.EnterAddressPage
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
-@import uk.gov.hmrc.gform.views.html.form.pageHeading
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
 
 @(
   formTemplate: FormTemplate,
@@ -29,6 +30,7 @@
 
 @formWithCSRF = @{new FormWithCSRF()}
 @govukErrorSummary = @{new GovukErrorSummary()}
+@hmrcPageHeading = @{new HmrcPageHeading()}
 
 @backLink = @{
   new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))
@@ -46,7 +48,10 @@
      @enterAddressPage.errorSummary.render
   }
 
-  @pageHeading(messages("postcodeLookup.enter.address"))
+  @hmrcPageHeading(PageHeading(
+     text = messages("postcodeLookup.enter.address"),
+     headingClasses = Some("govuk-heading-l")
+  ))
 
   @formWithCSRF(action = formAction, 'novalidate -> "novalidate") {
     @enterAddressPage.render

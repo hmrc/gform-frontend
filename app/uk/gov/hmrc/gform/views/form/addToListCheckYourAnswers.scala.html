@@ -23,6 +23,8 @@
 @import uk.gov.hmrc.gform.views.html.main_template
 @import uk.gov.hmrc.gform.controllers.{ SaveAndExit, SaveAndContinue }
 @import uk.gov.hmrc.gform.models.FastForward
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
 
 @(
     title: String,
@@ -44,6 +46,7 @@
 @govukSummaryList = @{new GovukSummaryList()}
 @heading = @{ title }
 @formAction = @{ uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber.increment), SaveAndContinue) }
+@hmrcPageHeading = @{new HmrcPageHeading()}
 
 @main_template(
     title = noPIITitle,
@@ -52,7 +55,10 @@
     frontendAppConfig = frontendAppConfig,
     backLink = None
 ) {
-    @pageHeading(heading)
+    @hmrcPageHeading(PageHeading(
+        text = heading,
+        headingClasses = Some("govuk-heading-l")
+    ))
 
     @header.map{ h =>
         <div class="govuk-body govuk-!-margin-bottom-9">
