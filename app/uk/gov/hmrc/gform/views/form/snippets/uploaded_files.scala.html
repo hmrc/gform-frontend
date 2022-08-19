@@ -35,9 +35,9 @@
       @defining(fileName + " " + messages("file.delete")) { ariaLabel =>
         <dl class="govuk-summary-list app-file-upload__list">
           <div class="govuk-summary-list__row">
-            <dd class="govuk-summary-list__value">
+            <dt class="govuk-summary-list__value">
               <span id="fileupload" role="alert">@{Html(messages("file.upload.done", fileName))}</span>
-            </dd>
+            </dt>
             <dd class="govuk-summary-list__actions app-file-upload__actions">
               @govukButton(Button(content = Text(messages("file.delete")),
               inputType=Some("submit"),
