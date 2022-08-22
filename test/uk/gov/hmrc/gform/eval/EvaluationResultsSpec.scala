@@ -36,7 +36,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.CsvCountryCheck
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvCountryCheck, CsvCountryCountCheck }
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
@@ -384,6 +384,51 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         evaluationContext,
         Empty,
         "CsvCountryCheck eval to string without matching LookupInfo"
+      ),
+      (
+        TypeInfo(
+          CsvCountryCountCheck(FormComponentId("selectedCountry"), "InEU", "1"),
+          StaticTypeData(ExprType.number, None)
+        ),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("selectedCountry"), VariadicValue.One("United Kingdom"))
+          )
+        ),
+        evaluationContext.copy(lookupOptions =
+          LocalisedLookupOptions(
+            Map(
+              LangADT.En -> LookupOptions(
+                Map(
+                  LookupLabel("United Kingdom") -> CountryLookupInfo(
+                    LookupId("GB"),
+                    0,
+                    LookupKeywords(Some("England Great Britain")),
+                    LookupPriority(1),
+                    LookupRegion("1"),
+                    Map("InEU" -> "1")
+                  )
+                )
+              )
+            )
+          )
+        ),
+        NumberResult(1),
+        "CsvCountryCountCheck eval to number with matching LookupInfo"
+      ),
+      (
+        TypeInfo(
+          CsvCountryCountCheck(FormComponentId("selectedCountry"), "InEU", "1"),
+          StaticTypeData(ExprType.number, None)
+        ),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("selectedCountry"), VariadicValue.One("United Kingdom"))
+          )
+        ),
+        evaluationContext,
+        NumberResult(0),
+        "CsvCountryCountCheck eval to number without matching LookupInfo"
       )
     )
     forAll(table) {
