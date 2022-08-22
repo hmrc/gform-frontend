@@ -28,7 +28,7 @@ trait Navigation {
   val availableSectionNumbers: List[SectionNumber] =
     formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
 
-  val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).value))
+  val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).numberValue))
 
   val addToListBrackets: List[Bracket.AddToList[Visibility]] =
     formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
