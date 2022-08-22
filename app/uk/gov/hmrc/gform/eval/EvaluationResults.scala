@@ -32,12 +32,14 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveResult, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupOptions }
+import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
@@ -157,6 +159,20 @@ case class EvaluationResults(
     }
   }
 
+  private def addToListValues(
+    formComponentId: FormComponentId,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ): List[String] = {
+    val firstQuestionFcId = formComponentId.withFirstIndex
+    val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
+    val allValues = recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
+    if (isHidden.contains(Hidden)) {
+      List.empty[String]
+    } else {
+      allValues.map(_._2).collect { case VariadicValue.One(str) => str }.toList
+    }
+  }
+
   private def evalSize(
     formComponentId: FormComponentId,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -231,8 +247,18 @@ case class EvaluationResults(
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
       case DataRetrieveCtx(_, _)                      => unsupportedOperation("Number")(expr)
       case CsvCountryCheck(_, _)                      => unsupportedOperation("Number")(expr)
-      case Size(formComponentId, index)               => evalSize(formComponentId, recData, index)
-      case Typed(expr, tpe)                           => evalTyped(loop(expr), tpe)
+      case CsvCountryCountCheck(fcId, column, value) =>
+        val count = addToListValues(fcId, recData)
+          .filter(str =>
+            countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
+              case StringResult(r) => r == value
+              case _               => false
+            }
+          )
+          .size
+        NumberResult(count)
+      case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
+      case Typed(expr, tpe)             => evalTyped(loop(expr), tpe)
     }
 
     loop(typeInfo.expr)
@@ -419,15 +445,19 @@ case class EvaluationResults(
       case CsvCountryCheck(fcId, column) =>
         loop(FormCtx(fcId)) match {
           case StringResult(value) =>
-            evaluationContext.lookupOptions.fold[ExpressionResult](Empty)(
-              _.get(LookupLabel(value))
-                .flatMap(li => LookupOptions.getLookupValue(li, column))
-                .map(StringResult(_))
-                .getOrElse(Empty)
-            )(evaluationContext.lang)
-
+            countryLookup(value, column, evaluationContext.lookupOptions, evaluationContext.lang)
           case _ => Empty
         }
+      case CsvCountryCountCheck(fcId, column, value) =>
+        val count = addToListValues(fcId, recData)
+          .filter(str =>
+            countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
+              case StringResult(r) => r == value
+              case _               => false
+            }
+          )
+          .size
+        StringResult(s"$count")
     }
 
     loop(typeInfo.expr)
@@ -573,6 +603,19 @@ case class EvaluationResults(
       case _                                        => ExpressionResult.empty
     }
   }
+
+  private def countryLookup(
+    value: String,
+    column: String,
+    lookupOptions: LocalisedLookupOptions,
+    lang: LangADT
+  ): ExpressionResult =
+    lookupOptions.fold[ExpressionResult](Empty)(
+      _.get(LookupLabel(value))
+        .flatMap(li => LookupOptions.getLookupValue(li, column))
+        .map(StringResult(_))
+        .getOrElse(Empty)
+    )(lang)
 
   def evalExprCurrent(
     typeInfo: TypeInfo,
