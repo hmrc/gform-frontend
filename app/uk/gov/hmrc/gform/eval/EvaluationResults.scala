@@ -247,6 +247,7 @@ case class EvaluationResults(
       case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
       case DataRetrieveCtx(_, _)                      => unsupportedOperation("Number")(expr)
       case CsvCountryCheck(_, _)                      => unsupportedOperation("Number")(expr)
+      case CsvOverseasCountryCheck(_, _)              => unsupportedOperation("Number")(expr)
       case CsvCountryCountCheck(fcId, column, value) =>
         val count = addToListValues(fcId, recData)
           .filter(str =>
@@ -448,6 +449,20 @@ case class EvaluationResults(
             countryLookup(value, column, evaluationContext.lookupOptions, evaluationContext.lang)
           case _ => Empty
         }
+
+      case CsvOverseasCountryCheck(fcId, column) if evaluationContext.overseasAddressLookup(fcId.baseComponentId) =>
+        whenVisible(fcId) {
+          val indexedComponentId = fcId.modelComponentId.indexedComponentId
+          val addressAtoms: List[ModelComponentId.Atomic] = OverseasAddress.fields(indexedComponentId).toList
+          val variadicValues: List[Option[VariadicValue]] =
+            addressAtoms.filter(_.atom == OverseasAddress.country).map(atom => recData.variadicFormData.get(atom))
+          variadicValues
+            .collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
+            .headOption
+            .map(country => countryLookup(country, column, evaluationContext.lookupOptions, evaluationContext.lang))
+            .getOrElse(Empty)
+        }
+      case CsvOverseasCountryCheck(fcId, column) => Empty
       case CsvCountryCountCheck(fcId, column, value) =>
         val count = addToListValues(fcId, recData)
           .filter(str =>

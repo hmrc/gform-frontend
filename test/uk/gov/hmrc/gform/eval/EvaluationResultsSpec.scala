@@ -36,7 +36,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvCountryCheck, CsvCountryCountCheck }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvCountryCheck, CsvCountryCountCheck, CsvOverseasCountryCheck }
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
@@ -429,6 +429,53 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         evaluationContext,
         NumberResult(0),
         "CsvCountryCountCheck eval to number without matching LookupInfo"
+      ),
+      (
+        TypeInfo(
+          CsvOverseasCountryCheck(FormComponentId("selectedCountry"), "InEU"),
+          StaticTypeData(ExprType.string, None)
+        ),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("selectedCountry-country"), VariadicValue.One("United Kingdom"))
+          )
+        ),
+        evaluationContext
+          .copy(lookupOptions =
+            LocalisedLookupOptions(
+              Map(
+                LangADT.En -> LookupOptions(
+                  Map(
+                    LookupLabel("United Kingdom") -> CountryLookupInfo(
+                      LookupId("GB"),
+                      0,
+                      LookupKeywords(Some("England Great Britain")),
+                      LookupPriority(1),
+                      LookupRegion("1"),
+                      Map("InEU" -> "1")
+                    )
+                  )
+                )
+              )
+            )
+          )
+          .copy(overseasAddressLookup = Set(BaseComponentId("selectedCountry"))),
+        StringResult("1"),
+        "CsvCountryCheck eval to string with matching LookupInfo"
+      ),
+      (
+        TypeInfo(
+          CsvOverseasCountryCheck(FormComponentId("selectedCountry"), "InEU"),
+          StaticTypeData(ExprType.string, None)
+        ),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("selectedCountry-country"), VariadicValue.One("United Kingdom"))
+          )
+        ),
+        evaluationContext.copy(overseasAddressLookup = Set(BaseComponentId("selectedCountry"))),
+        Empty,
+        "CsvOverseasCountryCheck eval to string without matching LookupInfo"
       )
     )
     forAll(table) {
