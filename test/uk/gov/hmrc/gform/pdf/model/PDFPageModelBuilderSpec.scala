@@ -192,7 +192,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
         "Pet owner summaryName",
         AddToListSummary(
           "Pet owner title",
-          List(Html("<p>Pet owner description</p>"), Html("<p>Pet owner description</p>"))
+          List(Html("<p>Pet owner summary description</p>"), Html("<p>Pet owner summary description</p>"))
         ),
         List(
           AddToListPageGroup(

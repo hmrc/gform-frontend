@@ -177,12 +177,12 @@ trait PdfRenderServiceExpectations {
       """
         |<h2 id="0">Section Name</h2>
         |<dl>
-        |   <dt>
+        |   <h3>
         |     name
-        |   </dt>
-        |   <dd>
+        |   </h3>
+        |   <p>
         |      name-value<br/>
-        |   </dd>
+        |   </p>
         |</dl>
         |<p>Some PDF footer</p>
         |""".stripMargin,
