@@ -21,13 +21,14 @@ import cats.implicits.catsSyntaxEq
 import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.applicative._
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, Equals, First, FormComponentId, FormCtx, FormPhase, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsTrue, LessThan, LessThanOrEquals, MatchRegex, Not, Or }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, Equals, First, FormComponentId, FormCtx, FormPhase, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsLogin, IsTrue, LessThan, LessThanOrEquals, LoginInfo, MatchRegex, Not, Or }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 
@@ -116,6 +117,9 @@ class BooleanExprEval[F[_]: Monad] {
 
       case FormPhase(_) =>
         false.pure[F]
+
+      case IsLogin(_) =>
+        false.pure[F]
     }
 
     loop(booleanExpr)
@@ -167,4 +171,15 @@ object BooleanExprEval {
     formComponentId: FormComponentId
   ): Boolean =
     formComponentId.modelComponentId.indexedComponentId.fold(pure => false)(indexed => indexed.index === 1)
+
+  def evalIsLoginExpr[T <: PageMode](
+    loginInfo: LoginInfo,
+    retrievals: MaterialisedRetrievals
+  ): Boolean =
+    loginInfo match {
+      case LoginInfo.GGLogin    => retrievals.maybeGovermentGatewayId.isDefined
+      case LoginInfo.EmailLogin => retrievals.maybeEmailId.isDefined
+      case _                    => false
+    }
+
 }

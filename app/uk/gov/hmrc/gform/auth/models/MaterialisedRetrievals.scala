@@ -48,6 +48,11 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
     case _                                          => None
   }
 
+  def maybeEmailId = this match {
+    case EmailRetrievals(emailId) => Some(emailId)
+    case _                        => None
+  }
+
   def renderSaveAndComeBackLater = this match {
     case AnonymousRetrievals(_) => false
     case _                      => true

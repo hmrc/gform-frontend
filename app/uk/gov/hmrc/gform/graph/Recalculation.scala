@@ -258,6 +258,7 @@ class Recalculation[F[_]: Monad, E](
       case FormPhase(value)                    => rr.compareFormPhase(value)
       case In(expr, dataSource)                => false
       case First(FormCtx(formComponentId))     => BooleanExprEval.evalFirstExpr(formComponentId)
+      case IsLogin(value)                      => BooleanExprEval.evalIsLoginExpr(value, retrievals)
     }
 
     loop(booleanExpr)
@@ -328,6 +329,7 @@ class Recalculation[F[_]: Monad, E](
           }
         }
       case First(FormCtx(formComponentId)) => noStateChange(BooleanExprEval.evalFirstExpr(formComponentId))
+      case IsLogin(value)                  => noStateChange(BooleanExprEval.evalIsLoginExpr(value, retrievals))
     }
     loop(booleanExpr)
   }
