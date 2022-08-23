@@ -29,12 +29,12 @@
 @field match {
     case SimpleField(label, values) => {
         @if(values.nonEmpty) {
-            <dt>
+            <h3>
                 @for(l <- label) {
                     @l
                 }
-            </dt>
-            <dd>@renderValues(values)</dd>
+            </h3>
+            <p>@renderValues(values)</p>
         }
     }
     case GroupField(label, groupFields) => {
@@ -49,12 +49,12 @@
     }
     case RevealingChoiceField(label, choiceElements) => {
          @for(choiceElement <- choiceElements) {
-            <dt>
+            <h3>
                 @for(l <- label) {
                     @l
                 }
-            </dt>
-            <dd>@{choiceElement.label}</dd>
+            </h3>
+            <p>@{choiceElement.label}</p>
             @for(choiceElementField <- choiceElement.fields) {
                 @summaryPdf_field(choiceElementField)
             }
