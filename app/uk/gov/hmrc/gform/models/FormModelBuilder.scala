@@ -132,6 +132,7 @@ object FormModelBuilder {
       case MatchRegex(expr, regex)             => matchRegex(expr, regex)
       case FormPhase(value)                    => phase.fold(false)(_.value == value)
       case First(FormCtx(formComponentId))     => BooleanExprEval.evalFirstExpr(formComponentId)
+      case IsLogin(value)                      => BooleanExprEval.evalIsLoginExpr(value, recalculationResult.evaluationContext.retrievals)
     }
 
     loop(includeIf.booleanExpr)

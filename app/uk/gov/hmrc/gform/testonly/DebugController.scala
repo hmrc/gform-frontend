@@ -137,6 +137,7 @@ class DebugController(
         case MatchRegex(expr, regex) => Nil
         case FormPhase(value)        => Nil
         case First(_)                => Nil
+        case IsLogin(_)              => Nil
       }
     }
 
