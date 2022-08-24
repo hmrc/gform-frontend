@@ -585,7 +585,7 @@ case class EvaluationResults(
           year  <- recData.variadicFormData.one(fcId.toAtomicFormComponentId(Date.year))
           month <- recData.variadicFormData.one(fcId.toAtomicFormComponentId(Date.month))
           y     <- safeToInt(year)
-          m     <- safeToInt(month).map(m => java.time.Month.of(m))
+          m     <- safeToInt(month).flatMap(m => Try(java.time.Month.of(m)).toOption)
         } yield TaxPeriodResult(m, y)
         maybeTaxPeriodResult.getOrElse(ExpressionResult.empty)
       case _ => ExpressionResult.empty
