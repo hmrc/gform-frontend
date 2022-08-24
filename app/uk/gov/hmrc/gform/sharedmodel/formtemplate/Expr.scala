@@ -59,6 +59,7 @@ sealed trait Expr extends Product with Serializable {
       case AddressLens(_, _)                       => expr :: Nil
       case DataRetrieveCtx(_, _)                   => expr :: Nil
       case CsvCountryCheck(_, _)                   => expr :: Nil
+      case CsvOverseasCountryCheck(_, _)           => expr :: Nil
       case CsvCountryCountCheck(_, _, _)           => expr :: Nil
       case Size(_, _)                              => expr :: Nil
       case Typed(e, _)                             => expr :: Nil
@@ -101,6 +102,7 @@ sealed trait Expr extends Product with Serializable {
     case AddressLens(formComponentId, _)            => this :: Nil
     case DataRetrieveCtx(_, _)                      => this :: Nil
     case CsvCountryCheck(_, _)                      => this :: Nil
+    case CsvOverseasCountryCheck(_, _)              => this :: Nil
     case CsvCountryCountCheck(_, _, _)              => this :: Nil
     case Size(_, _)                                 => this :: Nil
     case Typed(expr, _)                             => expr.leafs(formModel)
@@ -132,6 +134,7 @@ sealed trait Expr extends Product with Serializable {
     case AddressLens(_, _)                          => Nil
     case DataRetrieveCtx(id, attribute)             => Nil
     case CsvCountryCheck(_, _)                      => Nil
+    case CsvOverseasCountryCheck(_, _)              => Nil
     case CsvCountryCountCheck(_, _, _)              => Nil
     case Size(_, _)                                 => Nil
     case Typed(expr, _)                             => expr.sums
@@ -162,6 +165,7 @@ final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
 final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieveAttribute) extends Expr
 final case class CsvCountryCheck(formComponentId: FormComponentId, column: String) extends Expr
+final case class CsvOverseasCountryCheck(formComponentId: FormComponentId, column: String) extends Expr
 final case class CsvCountryCountCheck(formComponentId: FormComponentId, column: String, value: String) extends Expr
 final case class Size(formComponentId: FormComponentId, index: SizeRefType) extends Expr
 final case class Typed(expr: Expr, tpe: ExplicitExprType) extends Expr
