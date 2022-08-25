@@ -114,12 +114,12 @@
                 case AddToListData(title, summary, pageGroups, id) => {
                     <h2 id="@{id}">@{title}</h2>
                     <dl>
-                        <dt>@{summary.title}</dt>
-                        <dd>
+                        <h3>@{summary.title}</h3>
+                        <ol>
                             @for(v <- summary.values) {
-                                @v
+                                <li>@v</li>
                             }
-                        </dd>
+                        </ol>
                     </dl>
                     @for(pageGroup <- pageGroups) {
                         <div id="@{pageGroup.id}">
