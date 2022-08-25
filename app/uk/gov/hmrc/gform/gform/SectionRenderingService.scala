@@ -2219,10 +2219,6 @@ class SectionRenderingService(
       )
     }
 
-    val hasErrors = formFieldValidationResult.isNotOk
-
-    val inputClasses = if (hasErrors) "govuk-input--error" else ""
-
     val attributes =
       if (formComponent.editable)
         Map.empty[String, String]
@@ -2236,6 +2232,10 @@ class SectionRenderingService(
           val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
           val atom = modelComponentId.atom
           val inputWidth = if (atom === TaxPeriodDate.year) "4" else "2"
+
+          val errorsByAtom = formFieldValidationResult.fieldErrorsWithSuffix(atom)
+          val inputClasses = if (errorsByAtom.size > 0) "govuk-input--error" else ""
+
           InputItem(
             id = modelComponentId.toMongoIdentifier,
             name = modelComponentId.toMongoIdentifier,
