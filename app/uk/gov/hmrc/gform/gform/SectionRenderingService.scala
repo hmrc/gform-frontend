@@ -2065,10 +2065,6 @@ class SectionRenderingService(
       )
     }
 
-    val hasErrors = formFieldValidationResult.isNotOk
-
-    val inputClasses = if (hasErrors) "govuk-input--error" else ""
-
     val attributes =
       if (formComponent.editable)
         Map.empty[String, String]
@@ -2081,6 +2077,8 @@ class SectionRenderingService(
         .map { modelComponentId =>
           val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
           val atom = modelComponentId.atom
+          val inputClasses = getInputClasses(formFieldValidationResult, atom)
+
           InputItem(
             id = modelComponentId.toMongoIdentifier,
             name = modelComponentId.toMongoIdentifier,
@@ -2194,6 +2192,11 @@ class SectionRenderingService(
     items.map(maker(_)).intercalate(html.form.snippets.manual_address(enterAddressHref))
   }
 
+  private def getInputClasses(formFieldValidationResult: FormFieldValidationResult, atom: Atom): String = {
+    val errorsByAtom = formFieldValidationResult.fieldErrorsWithSuffix(atom)
+    if (errorsByAtom.nonEmpty) "govuk-input--error" else ""
+  }
+
   private def htmlForTaxPeriodDate(
     formComponent: FormComponent,
     validationResult: ValidationResult,
@@ -2232,9 +2235,7 @@ class SectionRenderingService(
           val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
           val atom = modelComponentId.atom
           val inputWidth = if (atom === TaxPeriodDate.year) "4" else "2"
-
-          val errorsByAtom = formFieldValidationResult.fieldErrorsWithSuffix(atom)
-          val inputClasses = if (errorsByAtom.size > 0) "govuk-input--error" else ""
+          val inputClasses = getInputClasses(formFieldValidationResult, atom)
 
           InputItem(
             id = modelComponentId.toMongoIdentifier,
@@ -2300,10 +2301,6 @@ class SectionRenderingService(
       )
     }
 
-    val hasErrors = formFieldValidationResult.isNotOk
-
-    val inputClasses = if (hasErrors) "govuk-input--error" else ""
-
     val attributes =
       if (formComponent.editable)
         Map.empty[String, String]
@@ -2321,6 +2318,8 @@ class SectionRenderingService(
         .map { modelComponentId =>
           val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
           val atom = modelComponentId.atom
+          val inputClasses = getInputClasses(formFieldValidationResult, atom)
+
           InputItem(
             id = modelComponentId.toMongoIdentifier,
             name = modelComponentId.toMongoIdentifier,
