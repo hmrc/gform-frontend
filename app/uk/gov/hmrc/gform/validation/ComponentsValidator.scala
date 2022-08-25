@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.Monad
+import cats.{ Monad, Monoid }
 import cats.implicits._
 import play.api.i18n.Messages
 
@@ -126,17 +126,18 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         val maybeAddressDetail = evaluationResults.exprMap.map(_._1).collectFirst {
           case AddressLens(fcId, addressDetail) if fcId === formComponent.id => addressDetail
         }
-        val modelComponentId = maybeAddressDetail.fold(formComponent.multiValueId.firstAtomModelComponentId) {
+        val modelComponentIds = maybeAddressDetail.fold(formComponent.multiValueId.atomsModelComponentIds) {
           addressDetail =>
             formComponent match {
               case IsOverseasAddress(_) =>
-                formComponent.atomicFormComponentId(addressDetail.toOverseasAddressAtom)
+                List(formComponent.atomicFormComponentId(addressDetail.toOverseasAddressAtom))
               case IsAddress(_) =>
-                formComponent.atomicFormComponentId(addressDetail.toAddressAtom)
+                List(formComponent.atomicFormComponentId(addressDetail.toAddressAtom))
             }
         }
-
-        Map[ModelComponentId, Set[String]](modelComponentId -> Set(message.value)).invalid
+        Monoid[ValidatedType[Unit]].combineAll(
+          modelComponentIds.map(mcId => Map[ModelComponentId, Set[String]](mcId -> Set(message.value)).invalid)
+        )
       case _ =>
         Map[ModelComponentId, Set[String]](formComponent.modelComponentId -> Set(message.value)).invalid
     }
