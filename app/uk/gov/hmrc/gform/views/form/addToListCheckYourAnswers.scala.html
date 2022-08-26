@@ -39,7 +39,8 @@
     renderComeBackLater: Boolean,
     pageLevelError: HasErrors = NoErrors,
     header: Option[Html],
-    footer: Option[Html]
+    footer: Option[Html],
+    specimenNavigation: Html
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
@@ -92,4 +93,5 @@
             )
         }
     }
+    @specimenNavigation
 }

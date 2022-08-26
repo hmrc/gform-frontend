@@ -203,7 +203,8 @@ class SectionRenderingService(
       renderComeBackLater,
       pageLevelErrorHtml,
       checkYourAnswers.expandedHeader.map(markDownParser),
-      checkYourAnswers.expandedFooter.map(markDownParser)
+      checkYourAnswers.expandedFooter.map(markDownParser),
+      specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics)
     )
   }
 
