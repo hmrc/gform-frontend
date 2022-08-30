@@ -742,7 +742,7 @@ trait ExampleFormTemplate {
   def formTemplateId = FormTemplateId(formTemplateOriginalId.value.toLowerCase)
   def formName = toLocalisedString("AAA999 dev test template")
 
-  def emailTemplateId = LocalisedEmailTemplateId("test-email-template-id", None)
+  def emailTemplateId = Some(LocalisedEmailTemplateId("test-email-template-id", None))
 
   def emailParameters =
     Some(

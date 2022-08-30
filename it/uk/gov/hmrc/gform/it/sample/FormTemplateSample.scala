@@ -119,7 +119,7 @@ trait FormTemplateSample {
         )
       )
     ),
-    emailTemplateId = LocalisedEmailTemplateId("some_email_template", None),
+    emailTemplateId = Some(LocalisedEmailTemplateId("some_email_template", None)),
     emailParameters = None,
     save4LaterInfoText = None,
     allowedFileTypes = FileInfoConfig.allAllowedFileTypes,
