@@ -267,7 +267,7 @@ object FormTemplateBuilder {
       declarationSection.orElse(Some(DeclarationSection(toSmartString("Declaration"), None, None, None, None, Nil)))
     ),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
-    LocalisedEmailTemplateId("randd_confirmation_submission", None),
+    Some(LocalisedEmailTemplateId("randd_confirmation_submission", None)),
     None,
     None,
     FormKind.Classic(sections),
