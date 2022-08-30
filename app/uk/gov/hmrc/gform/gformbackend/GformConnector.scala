@@ -346,7 +346,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def maybeFormTemplate(
     formTemplateId: FormTemplateId
   )(implicit hc: HeaderCarrier, ec: ExecutionContext) =
-    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}")
+    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}/internal")
       .map(Some(_))
       .recoverWith {
         case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode === StatusCodes.NotFound.intValue =>
@@ -356,7 +356,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def getFormTemplate(
     formTemplateId: FormTemplateId
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
-    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}")
+    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}/internal")
 
   def getFormTemplateWithRedirects(
     formTemplateId: FormTemplateId
