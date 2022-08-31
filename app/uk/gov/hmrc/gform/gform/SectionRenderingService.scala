@@ -176,20 +176,24 @@ class SectionRenderingService(
         }
     }
 
-    html.form.addToListCheckYourAnswers(
-      if (isFirstVisit) checkYourAnswers.expandedTitle match {
-        case Some(value) => value.valueWithoutInterpolations
-        case None        => messages("summary.checkYourAnswers")
-      }
-      else checkYourAnswers.expandedUpdateTitle.value,
-      checkYourAnswers.expandedCaption.map(_.value),
+    val title =
+      if (isFirstVisit)
+        checkYourAnswers.expandedTitle.fold(messages("summary.checkYourAnswers"))(_.value)
+      else checkYourAnswers.expandedUpdateTitle.value
+
+    val noPIITitle =
       if (isFirstVisit)
         checkYourAnswers.expandedNoPIITitle.fold(messages("summary.checkYourAnswers"))(_.value)
       else
         checkYourAnswers.expandedNoPIIUpdateTitle.fold(checkYourAnswers.expandedNoPIITitle match {
           case Some(value) => value.valueWithoutInterpolations
           case None        => messages("summary.checkYourAnswers")
-        })(_.value),
+        })(_.value)
+
+    html.form.addToListCheckYourAnswers(
+      title,
+      checkYourAnswers.expandedCaption.map(_.value),
+      noPIITitle,
       formTemplate,
       maybeAccessCode,
       sectionNumber,
