@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode, Repeater, Singleton }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, HmrcRosmRegistrationCheckValidator }
 
 /*
@@ -46,6 +46,7 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
         case ValidateBankDetails(_, sortCode, accountNumber) => List(sortCode, accountNumber)
         case BusinessBankAccountExistence(_, sortCode, accountNumber, companyName) =>
           List(sortCode, accountNumber, companyName)
+        case CompanyRegistrationNumber(_, companyNumber) => List(companyNumber)
       }
       pageExprs ++ validatorExprs ++ dataRetrieveExpressions
     }

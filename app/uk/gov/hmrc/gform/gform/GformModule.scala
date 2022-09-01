@@ -18,9 +18,11 @@ package uk.gov.hmrc.gform.gform
 
 import akka.actor.Scheduler
 import cats.instances.future._
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupController, AddressLookupModule }
 import uk.gov.hmrc.gform.akka.AkkaModule
+import uk.gov.hmrc.gform.api.CompanyInformationAsyncConnector
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
@@ -154,6 +156,12 @@ class GformModule(
   val bankAccountReputationConnector =
     new BankAccountReputationAsyncConnector(wSHttpModule.auditableWSHttp, barsBaseUrl)
 
+  private val companyInformationBaseUrl = s"${configModule.serviceConfig.baseUrl("company-information")}"
+  private val apiKey = s"${configModule.serviceConfig.getConfString("company-information.apiKey", "")}"
+
+  val companyInformationConnector =
+    new CompanyInformationAsyncConnector(wSHttpModule.auditableWSHttp, companyInformationBaseUrl, apiKey)
+
   val addToListProcessor = new FormProcessor(
     playBuiltInsModule.i18nSupport,
     processDataService,
@@ -164,6 +172,7 @@ class GformModule(
     fileUploadModule.fileUploadService,
     formControllerRequestHandler,
     bankAccountReputationConnector,
+    companyInformationConnector,
     addressLookupModule.addressLookupService
   )
 

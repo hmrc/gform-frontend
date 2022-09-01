@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[FormComponentId]) {
@@ -34,6 +34,10 @@ class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[
         exprUpdater.expandExpr(accountNumber),
         exprUpdater.expandExpr(companyName)
       )
+
+    case CompanyRegistrationNumber(id, companyNumber) =>
+      val exprUpdater = new ExprUpdater(index, baseIds)
+      CompanyRegistrationNumber(id.withIndex(index), exprUpdater.expandExpr(companyNumber))
   }
 }
 
