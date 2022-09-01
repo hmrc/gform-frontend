@@ -463,10 +463,7 @@ class AuthenticatedRequestActions(
     Retrievals.groupIdentifier and
     Retrievals.nino and
     Retrievals.email and
-    Retrievals.name and
-    Retrievals.itmpName and
-    Retrievals.itmpDateOfBirth and
-    Retrievals.itmpAddress
+    Retrievals.name
 
   private def ggAuthorised(
     request: Request[AnyContent]
@@ -482,7 +479,7 @@ class AuthenticatedRequestActions(
 
     authorised(predicate)
       .retrieve(defaultRetrievals) {
-        case maybeCredentials ~ enrolments ~ maybeAffinityGroup ~ maybeGroupIdentifier ~ maybeNino ~ maybeEmail ~ maybeName ~ itmpName ~ itmpDateOfBirth ~ itmpAddress =>
+        case maybeCredentials ~ enrolments ~ maybeAffinityGroup ~ maybeGroupIdentifier ~ maybeNino ~ maybeEmail ~ maybeName =>
           val maybeRetrievals =
             for {
               govermentGatewayId <- maybeCredentials.flatMap(toGovernmentGatewayId)
@@ -496,12 +493,7 @@ class AuthenticatedRequestActions(
               maybeNino.map(Nino(_)),
               OtherRetrievals(
                 name = maybeName,
-                email = maybeEmail,
-                itmpName = itmpName,
-                itmpDateOfBirth = itmpDateOfBirth.map(joda =>
-                  LocalDate.of(joda.getYear(), joda.getMonthOfYear(), joda.getDayOfMonth())
-                ),
-                itmpAddress = itmpAddress
+                email = maybeEmail
               )
             )
 
@@ -543,6 +535,23 @@ class AuthenticatedRequestActions(
     case AffinityGroup.Individual   => Role.Customer
     case AffinityGroup.Organisation => Role.Customer
     case AffinityGroup.Agent        => Role.Agent
+  }
+
+  def getItmpRetrievals(implicit
+    request: Request[AnyContent]
+  ): Future[ItmpRetrievals] = {
+    import uk.gov.hmrc.auth.core.retrieve.~
+    val itmpRetrievals = Retrievals.itmpName and
+      Retrievals.itmpDateOfBirth and
+      Retrievals.itmpAddress
+    val predicate = AuthProviders(AuthProvider.GovernmentGateway)
+
+    authorised(predicate)
+      .retrieve(itmpRetrievals) { case itmpName ~ itmpDateOfBirth ~ itmpAddress =>
+        val itmpDateOfBirthDate =
+          itmpDateOfBirth.map(joda => LocalDate.of(joda.getYear(), joda.getMonthOfYear(), joda.getDayOfMonth()))
+        ItmpRetrievals(itmpName, itmpDateOfBirthDate, itmpAddress).pure[Future]
+      }
   }
 }
 

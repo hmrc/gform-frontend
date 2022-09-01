@@ -280,7 +280,9 @@ class GformBackEndService(
       EmailParametersRecalculated(emailParametersRecalculated)
     }
 
-  def updateUserData(updatedForm: Form, maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[Unit] =
+  def updateUserData(updatedForm: Form, maybeAccessCode: Option[AccessCode])(implicit
+    hc: HeaderCarrier
+  ): Future[Unit] =
     gformConnector
       .updateUserData(
         FormIdData.fromForm(updatedForm, maybeAccessCode),

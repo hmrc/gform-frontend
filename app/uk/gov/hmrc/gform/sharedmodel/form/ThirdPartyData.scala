@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponentId, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieveId, DataRetrieveResult, NotChecked, Obligations }
+import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
 
 case class ThirdPartyData(
   desRegistrationResponse: Option[DesRegistrationResponse],
@@ -37,7 +38,8 @@ case class ThirdPartyData(
   postcodeLookup: Option[Map[FormComponentId, AddressLookupResult]],
   selectedAddresses: Option[Map[FormComponentId, String]],
   enteredAddresses: Option[Map[FormComponentId, FormData]],
-  confirmedAddresses: Option[Set[FormComponentId]]
+  confirmedAddresses: Option[Set[FormComponentId]],
+  itmpRetrievals: Option[ItmpRetrievals]
 ) {
 
   def confirmAddress(formComponentId: FormComponentId): ThirdPartyData =
@@ -204,6 +206,7 @@ object ThirdPartyData {
       QueryParams.empty,
       None,
       BooleanExprCache.empty,
+      None,
       None,
       None,
       None,

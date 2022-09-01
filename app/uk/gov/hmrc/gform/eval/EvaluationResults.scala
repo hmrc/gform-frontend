@@ -357,7 +357,12 @@ case class EvaluationResults(
           )
         )
       case AuthCtx(value: AuthInfo) =>
-        nonEmpty(StringResult(AuthContextPrepop.values(value, evaluationContext.retrievals)))
+        nonEmpty(
+          StringResult(
+            AuthContextPrepop
+              .values(value, evaluationContext.retrievals, evaluationContext.thirdPartyData.itmpRetrievals)
+          )
+        )
       case UserCtx(value: UserField) =>
         nonEmpty(
           StringResult(

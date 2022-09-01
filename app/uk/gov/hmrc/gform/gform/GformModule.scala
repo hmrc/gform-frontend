@@ -136,19 +136,6 @@ class GformModule(
       fastForwardService
     )
 
-  val newFormController: NewFormController = new NewFormController(
-    configModule.frontendAppConfig,
-    playBuiltInsModule.i18nSupport,
-    controllersModule.authenticatedRequestActions,
-    fileUploadModule.fileUploadService,
-    gformBackendModule.gformConnector,
-    taskListController,
-    fastForwardService,
-    auditingModule.auditService,
-    graphModule.recalculation,
-    controllersModule.messagesControllerComponents
-  )
-
   private val barsBaseUrl = s"${configModule.serviceConfig.baseUrl("bars")}"
 
   val bankAccountReputationConnector =
@@ -305,6 +292,20 @@ class GformModule(
     gformBackEndService,
     submissionService,
     controllersModule.messagesControllerComponents
+  )
+
+  val newFormController: NewFormController = new NewFormController(
+    configModule.frontendAppConfig,
+    playBuiltInsModule.i18nSupport,
+    controllersModule.authenticatedRequestActions,
+    fileUploadModule.fileUploadService,
+    gformBackendModule.gformConnector,
+    taskListController,
+    fastForwardService,
+    auditingModule.auditService,
+    graphModule.recalculation,
+    controllersModule.messagesControllerComponents,
+    gformBackEndService
   )
 
   val reviewService = new ReviewService(gformBackEndService, lookupRegistry, graphModule.recalculation)
