@@ -17,10 +17,9 @@
 package uk.gov.hmrc.gform.auth.models
 
 import java.time.LocalDate
-import play.api.i18n.Messages
+import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.auth.core.retrieve.{ ItmpAddress, ItmpName, Name }
 import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
-import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.mappings._
 import uk.gov.hmrc.gform.models.userdetails.Nino
@@ -72,28 +71,6 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
   def getName: String = this match {
     case AuthenticatedRetrievals(_, _, _, _, _, otherRetrievals) =>
       otherRetrievals.name.map(n => concat(n.name, n.lastName)).getOrElse("")
-    case _ => ""
-  }
-
-  def getItmpName: String = this match {
-    case AuthenticatedRetrievals(_, _, _, _, _, otherRetrievals) =>
-      otherRetrievals.itmpName.map(n => concat(n.givenName, n.middleName, n.familyName)).getOrElse("")
-    case _ => ""
-  }
-
-  def getItmpDateOfBirth(implicit messages: Messages): String = this match {
-    case AuthenticatedRetrievals(_, _, _, _, _, otherRetrievals) =>
-      otherRetrievals.itmpDateOfBirth.fold("") { ld =>
-        ExpressionResult.DateResult(ld).asString
-      }
-    case _ => ""
-  }
-
-  def getItmpAddress: String = this match {
-    case AuthenticatedRetrievals(_, _, _, _, _, otherRetrievals) =>
-      otherRetrievals.itmpAddress
-        .map(a => concat(a.line1, a.line2, a.line3, a.line4, a.line5, a.postCode, a.countryName))
-        .getOrElse("")
     case _ => ""
   }
 
@@ -157,16 +134,27 @@ final case class EmailRetrievals(emailId: EmailId) extends MaterialisedRetrieval
 
 final case class VerifyRetrievals(verifyIde: VerifyId, nino: Nino) extends MaterialisedRetrievals
 
-final case class OtherRetrievals(
-  name: Option[Name],
-  email: Option[String],
+final case class ItmpRetrievals(
   itmpName: Option[ItmpName],
   itmpDateOfBirth: Option[LocalDate],
   itmpAddress: Option[ItmpAddress]
 )
+object ItmpRetrievals {
+  implicit val itmpNameFormat: OFormat[ItmpName] = Json.format[ItmpName]
+  implicit val itmpAddressFormat: OFormat[ItmpAddress] = Json.format[ItmpAddress]
+  implicit val format: OFormat[ItmpRetrievals] = Json.format[ItmpRetrievals]
+}
+
+final case class OtherRetrievals(
+  name: Option[Name],
+  email: Option[String]
+)
 
 object OtherRetrievals {
-  val empty = OtherRetrievals(None, None, None, None, None)
+  val empty = OtherRetrievals(None, None)
+
+  implicit val nameFormat: OFormat[Name] = Json.format[Name]
+  implicit val format: OFormat[OtherRetrievals] = Json.format[OtherRetrievals]
 }
 
 final case class AuthenticatedRetrievals(

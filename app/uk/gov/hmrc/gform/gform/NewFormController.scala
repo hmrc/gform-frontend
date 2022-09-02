@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.syntax.eq._
 import cats.instances.future._
 import cats.syntax.applicative._
+import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
 import play.api.data
 import play.api.i18n.{ I18nSupport, Messages }
@@ -26,6 +27,7 @@ import play.api.mvc._
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
+import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
@@ -46,6 +48,7 @@ import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, Cont
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, ItmpRetrievals }
 
 case class AccessCodeForm(accessCode: Option[String], accessOption: String)
 
@@ -59,7 +62,8 @@ class NewFormController(
   fastForwardService: FastForwardService,
   auditService: AuditService,
   recalculation: Recalculation[Future, Throwable],
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  gformBackEnd: GformBackEndAlgebra[Future]
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
@@ -232,6 +236,7 @@ class NewFormController(
                 formTemplate <- if (formTemplate._id === form.formTemplateId || formTemplate.version.isEmpty)
                                   formTemplate.pure[Future]
                                 else gformConnector.getFormTemplate(form.formTemplateId)
+
                 res <-
                   formTemplate.draftRetrievalMethod match {
                     case NotPermitted =>
@@ -245,7 +250,8 @@ class NewFormController(
                       redirectContinue[SectionSelectorType.Normal](
                         cache.copy(formTemplate = formTemplate),
                         form,
-                        noAccessCode
+                        noAccessCode,
+                        request
                       )
                     case _ =>
                       auditService.sendFormResumeEvent(form, cache.retrievals)
@@ -269,7 +275,7 @@ class NewFormController(
       formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
       res <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
                auditService.sendFormCreateEvent(form, cache.retrievals)
-               redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode)
+               redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode, request)
              }
     } yield res
   }
@@ -303,7 +309,7 @@ class NewFormController(
       maybeAccessCode.fold(noAccessCodeProvided) { accessCode =>
         val formIdData = FormIdData.WithAccessCode(UserId(cache.retrievals), formTemplateId, accessCode)
         handleForm(formIdData, cache.formTemplate)(notFound(cache.formTemplate).pure[Future]) { form =>
-          redirectContinue[SectionSelectorType.Normal](cache, form, maybeAccessCode)
+          redirectContinue[SectionSelectorType.Normal](cache, form, maybeAccessCode, request)
         }
       }
     }
@@ -371,7 +377,7 @@ class NewFormController(
         val accessCode = AccessCode.fromSubmissionRef(submissionRef)
         val formIdData = FormIdData.WithAccessCode(userId, formTemplateId, accessCode)
         handleForm(formIdData, cache.formTemplate)(notFound) { form =>
-          redirectContinue[SectionSelectorType.Normal](cache, form, Some(accessCode))
+          redirectContinue[SectionSelectorType.Normal](cache, form, Some(accessCode), request)
         }
     }
 
@@ -414,7 +420,8 @@ class NewFormController(
   def redirectContinue[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithoutForm,
     form: Form,
-    accessCode: Option[AccessCode]
+    accessCode: Option[AccessCode],
+    request: Request[AnyContent]
   )(implicit
     hc: HeaderCarrier,
     l: LangADT,
@@ -422,20 +429,48 @@ class NewFormController(
   ): Future[Result] = {
     val cacheWithForm = cache.toAuthCacheWithForm(form, accessCode)
 
-    cache.formTemplate.formKind.fold { classic =>
-      for {
-        formModelOptics <- FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Future, U](
-                             cacheWithForm.variadicFormData[SectionSelectorType.Normal],
-                             cacheWithForm,
-                             recalculation
-                           )
-        res <- fastForwardService.redirectFastForward(cacheWithForm, accessCode, formModelOptics, None)
-      } yield res
+    for {
+      formModelOptics <- FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Future, U](
+                           cacheWithForm.variadicFormData[SectionSelectorType.Normal],
+                           cacheWithForm,
+                           recalculation
+                         )
+      cacheUpdated <- maybeUpdateItmpCache(request, cacheWithForm, formModelOptics)
+      r <- cache.formTemplate.formKind.fold { classic =>
+             fastForwardService.redirectFastForward(cacheUpdated, accessCode, formModelOptics, None)
+           } { taskList =>
+             val url =
+               uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplate._id, accessCode)
+             for {
+               _      <- gformBackEnd.updateUserData(cacheUpdated.form, accessCode)
+               result <- Redirect(url).pure[Future]
+             } yield result
+           }
+    } yield r
+  }
 
-    } { taskList =>
-      val url = uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplate._id, accessCode)
-      Redirect(url).pure[Future]
+  private def maybeUpdateItmpCache(
+    request: Request[AnyContent],
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  ): Future[AuthCacheWithForm] = {
+    def formHasAuthItmpReferences(): Boolean = {
+      val formModel = formModelOptics.formModelRenderPageOptics.formModel
+      val allExpr = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
+      allExpr.contains(AuthCtx(AuthInfo.ItmpAddress)) ||
+      allExpr.contains(AuthCtx(AuthInfo.ItmpName)) ||
+      allExpr.contains(AuthCtx(AuthInfo.ItmpDateOfBirth))
+    }
 
+    def modifyCacheItmpRetrievals(c: AuthCacheWithForm, itmpRetrievals: ItmpRetrievals): AuthCacheWithForm =
+      c.modify(_.form.thirdPartyData.itmpRetrievals).using(_ => Some(itmpRetrievals))
+
+    cache.retrievals match {
+      case AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, Some(_), _) if formHasAuthItmpReferences() =>
+        auth.getItmpRetrievals(request).map { itmpRetrievals =>
+          modifyCacheItmpRetrievals(cache, itmpRetrievals)
+        }
+      case _ => modifyCacheItmpRetrievals(cache, ItmpRetrievals(None, None, None)).pure[Future]
     }
   }
 }

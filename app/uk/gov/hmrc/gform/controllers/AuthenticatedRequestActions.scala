@@ -26,7 +26,6 @@ import com.softwaremill.quicklens._
 import java.time.LocalDate
 import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
-import play.api.libs.json.{ JsObject, JsValue, Json, Writes }
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.authorise.Predicate
@@ -55,9 +54,6 @@ import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup
 import java.util.UUID
-import uk.gov.hmrc.auth.core.retrieve.{ ItmpAddress, ItmpName }
-import uk.gov.hmrc.auth.core.{ AffinityGroup => AuthAffinityGroup }
-import scala.annotation.tailrec
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
 
@@ -468,39 +464,6 @@ class AuthenticatedRequestActions(
     Retrievals.nino and
     Retrievals.email and
     Retrievals.name
-  val itmpRetrievals = Retrievals.itmpName and
-    Retrievals.itmpDateOfBirth and
-    Retrievals.itmpAddress
-
-  private val triggerKeys: List[String] = {
-    val authInfoWrites = implicitly[Writes[AuthInfo]]
-    def keyString(json: JsValue) = json match {
-      case JsObject(h) => h.headOption.map(_._1)
-      case _           => None
-    }
-    (for {
-      itmpName        <- keyString(authInfoWrites.writes(AuthInfo.ItmpName))
-      itmpAddress     <- keyString(authInfoWrites.writes(AuthInfo.ItmpAddress))
-      itmpDateOfBirth <- keyString(authInfoWrites.writes(AuthInfo.ItmpDateOfBirth))
-    } yield List(itmpName, itmpAddress, itmpDateOfBirth))
-      .getOrElse(throw new Exception("Unable to generate itmp retrieval trigger keys"))
-  }
-
-  @tailrec
-  private final def hasKey(json: JsValue, ks: List[String]): Boolean =
-    ks match {
-      case x :: xs => (json \\ x).nonEmpty || hasKey(json, xs)
-      case Nil     => false
-    }
-
-  private def needItmpRetrieval(
-    maybeAffinityGroup: Option[AuthAffinityGroup],
-    maybeNino: Option[String],
-    formTemplateJson: JsValue
-  ): Boolean =
-    maybeAffinityGroup.fold(false)(_ == AuthAffinityGroup.Individual) &&
-      maybeNino.nonEmpty &&
-      hasKey(formTemplateJson, triggerKeys)
 
   private def ggAuthorised(
     request: Request[AnyContent]
@@ -517,56 +480,39 @@ class AuthenticatedRequestActions(
     authorised(predicate)
       .retrieve(defaultRetrievals) {
         case maybeCredentials ~ enrolments ~ maybeAffinityGroup ~ maybeGroupIdentifier ~ maybeNino ~ maybeEmail ~ maybeName =>
-          val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-          val formTemplate = formTemplateWithRedirects.formTemplate
-          (if (!needItmpRetrieval(maybeAffinityGroup, maybeNino, Json.toJson(formTemplate))) {
-             (Option.empty[ItmpName], Option.empty[LocalDate], Option.empty[ItmpAddress]).pure[Future]
-           } else {
-             authorised(predicate)
-               .retrieve(itmpRetrievals) { case itmpName ~ itmpDateOfBirth ~ itmpAddress =>
-                 val itmpDateOfBirthDate =
-                   itmpDateOfBirth.map(joda =>
-                     LocalDate.of(joda.getYear(), joda.getMonthOfYear(), joda.getDayOfMonth())
-                   )
-                 (itmpName, itmpDateOfBirthDate, itmpAddress).pure[Future]
-               }
-           })
-            .map { case (itmpName, itmpDateOfBirth, itmpAddress) =>
-              val maybeRetrievals =
-                for {
-                  govermentGatewayId <- maybeCredentials.flatMap(toGovernmentGatewayId)
-                  affinityGroup      <- maybeAffinityGroup
-                  groupIdentifier    <- maybeGroupIdentifier
-                } yield AuthenticatedRetrievals(
-                  govermentGatewayId,
-                  enrolments,
-                  AffinityGroupUtil.localAffinityGroup(affinityGroup),
-                  groupIdentifier,
-                  maybeNino.map(Nino(_)),
-                  OtherRetrievals(
-                    name = maybeName,
-                    email = maybeEmail,
-                    itmpName = itmpName,
-                    itmpDateOfBirth = itmpDateOfBirth,
-                    itmpAddress = itmpAddress
-                  )
-                )
+          val maybeRetrievals =
+            for {
+              govermentGatewayId <- maybeCredentials.flatMap(toGovernmentGatewayId)
+              affinityGroup      <- maybeAffinityGroup
+              groupIdentifier    <- maybeGroupIdentifier
+            } yield AuthenticatedRetrievals(
+              govermentGatewayId,
+              enrolments,
+              AffinityGroupUtil.localAffinityGroup(affinityGroup),
+              groupIdentifier,
+              maybeNino.map(Nino(_)),
+              OtherRetrievals(
+                name = maybeName,
+                email = maybeEmail
+              )
+            )
 
-              val maybeVerifyRetrievals =
-                for {
-                  verifyId <- maybeCredentials.flatMap(toVerifyId)
-                  nino     <- maybeNino
-                } yield VerifyRetrievals(verifyId, Nino(nino))
+          val maybeVerifyRetrievals =
+            for {
+              verifyId <- maybeCredentials.flatMap(toVerifyId)
+              nino     <- maybeNino
+            } yield VerifyRetrievals(verifyId, Nino(nino))
 
-              maybeRetrievals
-                .orElse(maybeVerifyRetrievals)
-                .fold[AuthResult](
-                  AuthForbidden(s"""|Missing affinityGroup or groupIdentifier or govermentGateway credentials:
-                                    |AffinityGroup: $maybeAffinityGroup
-                                    |Credentials: $maybeCredentials
-                                    |GroupIdentifier: $maybeGroupIdentifier""".stripMargin)
-                )(retrievals => AuthSuccessful(retrievals, roleFromMaterialisedRetrievals(retrievals)))
-            }
+          maybeRetrievals
+            .orElse(maybeVerifyRetrievals)
+            .fold[AuthResult](
+              AuthForbidden(s"""|Missing affinityGroup or groupIdentifier or govermentGateway credentials:
+                                |AffinityGroup: $maybeAffinityGroup
+                                |Credentials: $maybeCredentials
+                                |GroupIdentifier: $maybeGroupIdentifier""".stripMargin)
+            )(retrievals => AuthSuccessful(retrievals, roleFromMaterialisedRetrievals(retrievals)))
+            .pure[Future]
+
       }
       .recover(recoverPF orElse RecoverAuthResult.basicRecover(request, appConfig))
   }
@@ -589,6 +535,23 @@ class AuthenticatedRequestActions(
     case AffinityGroup.Individual   => Role.Customer
     case AffinityGroup.Organisation => Role.Customer
     case AffinityGroup.Agent        => Role.Agent
+  }
+
+  def getItmpRetrievals(implicit
+    request: Request[AnyContent]
+  ): Future[ItmpRetrievals] = {
+    import uk.gov.hmrc.auth.core.retrieve.~
+    val itmpRetrievals = Retrievals.itmpName and
+      Retrievals.itmpDateOfBirth and
+      Retrievals.itmpAddress
+    val predicate = AuthProviders(AuthProvider.GovernmentGateway)
+
+    authorised(predicate)
+      .retrieve(itmpRetrievals) { case itmpName ~ itmpDateOfBirth ~ itmpAddress =>
+        val itmpDateOfBirthDate =
+          itmpDateOfBirth.map(joda => LocalDate.of(joda.getYear(), joda.getMonthOfYear(), joda.getDayOfMonth()))
+        ItmpRetrievals(itmpName, itmpDateOfBirthDate, itmpAddress).pure[Future]
+      }
   }
 }
 
