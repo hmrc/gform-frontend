@@ -93,6 +93,22 @@ case object DataRetrieveAttribute {
     override def name: String = "sortCodeSupportsDirectCredit"
   }
 
+  case object CompanyNumber extends DataRetrieveAttribute {
+    override def name: String = "companyNumber"
+  }
+
+  case object Name extends DataRetrieveAttribute {
+    override def name: String = "name"
+  }
+
+  case object Status extends DataRetrieveAttribute {
+    override def name: String = "status"
+  }
+
+  case object RegisteredAddress extends DataRetrieveAttribute {
+    override def name: String = "registeredAddress"
+  }
+
   implicit val format: OFormat[DataRetrieveAttribute] = derived.oformat()
 
   def fromName(name: String): DataRetrieveAttribute = name match {
@@ -110,6 +126,9 @@ case object DataRetrieveAttribute {
     case "directDebitsDisallowed"                   => DirectDebitsDisallowed
     case "directDebitInstructionsDisallowed"        => DirectDebitInstructionsDisallowed
     case "iban"                                     => Iban
+    case "name"                                     => Name
+    case "status"                                   => Status
+    case "registeredAddress"                        => RegisteredAddress
     case other                                      => throw new IllegalArgumentException(s"Unknown DataRetrieveAttribute name: $other")
   }
 }
@@ -154,6 +173,18 @@ object DataRetrieve {
       NameMatches,
       SortCodeSupportsDirectDebit,
       SortCodeSupportsDirectCredit
+    )
+  }
+
+  final case class CompanyRegistrationNumber(
+    override val id: DataRetrieveId,
+    companyNumber: Expr
+  ) extends DataRetrieve {
+    import DataRetrieveAttribute._
+    override def attributes: List[DataRetrieveAttribute] = List(
+      Name,
+      Status,
+      RegisteredAddress
     )
   }
 

@@ -18,10 +18,11 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.Messages
 import play.api.libs.json.{ JsValue, Json }
+import uk.gov.hmrc.gform.api.{ CompanyInformationConnector, CompanyProfile }
 import uk.gov.hmrc.gform.bars
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -156,6 +157,52 @@ object DataRetrieveService {
                 // ${dataRetrieve.businessBankDetails.accountNumberIsWellFormatted='no'} etc.
                 // will always evaluate to false
                 throw new Exception("Cannot retrieve BusinessBankAccountExistence data")
+            }
+        }
+      }
+    }
+
+  implicit def companyProfileInstant(implicit
+    companyInformationConnector: CompanyInformationConnector[Future]
+  ): DataRetrieveService[CompanyRegistrationNumber, Future] =
+    new DataRetrieveService[CompanyRegistrationNumber, Future] {
+
+      override def retrieve(
+        companyRegistrationNumber: CompanyRegistrationNumber,
+        formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+        maybeRequestParams: Option[JsValue]
+      )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
+        val companyNumber =
+          formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(companyRegistrationNumber.companyNumber)
+            .stringRepresentation
+
+        val requestParams = Json.obj(
+          "companyNumber" -> companyNumber
+        )
+
+        if (companyNumber.isEmpty) {
+          Future.successful(None)
+        } else {
+          companyInformationConnector
+            .companyProfile(
+              CompanyProfile.create(companyNumber)
+            )
+            .map {
+              case ServiceResponse(result) =>
+                Some(
+                  DataRetrieveResult(
+                    companyRegistrationNumber.id,
+                    Map(
+                      DataRetrieveAttribute.Name   -> result.name,
+                      DataRetrieveAttribute.Status -> result.status,
+                      DataRetrieveAttribute.RegisteredAddress -> CompanyProfile
+                        .createFullRegisteredAddress(result.registeredAddress)
+                    ),
+                    requestParams
+                  )
+                )
+              case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve CompanyProfile data")
             }
         }
       }
