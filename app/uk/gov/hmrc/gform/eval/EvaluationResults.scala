@@ -241,6 +241,7 @@ case class EvaluationResults(
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
       case LangCtx                                    => unsupportedOperation("Number")(expr)
       case DateCtx(_)                                 => unsupportedOperation("Number")(expr)
+      case DateFunction(_)                            => unsupportedOperation("Number")(expr)
       case Period(_, _)                               => unsupportedOperation("Number")(expr)
       case PeriodExt(_, _)                            => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case PeriodValue(_)                             => unsupportedOperation("Number")(expr)
@@ -413,8 +414,14 @@ case class EvaluationResults(
           }
         nonEmpty(StringResult(link))
       case DateCtx(dateExpr) => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
-      case Period(_, _)      => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-      case PeriodExt(_, _)   => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case DateFunction(dateFunc) =>
+        evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateFunc.dateExpr) match {
+          case ExpressionResult.DateResult(localDate) =>
+            ExpressionResult.StringResult(dateFunc.toValue(localDate))
+          case otherwise => otherwise
+        }
+      case Period(_, _)    => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodExt(_, _) => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
           val atomic: ModelComponentId.Atomic =

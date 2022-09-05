@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.Eq
+import java.time.LocalDate
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
@@ -54,6 +55,7 @@ sealed trait Expr extends Product with Serializable {
       case LinkCtx(_)                              => expr :: Nil
       case LangCtx                                 => expr :: Nil
       case DateCtx(dateExpr)                       => dateExpr.leafExprs
+      case DateFunction(dateFunc)                  => dateFunc.dateExpr.leafExprs
       case Period(_, _)                            => expr :: Nil
       case PeriodExt(_, _)                         => expr :: Nil
       case AddressLens(_, _)                       => expr :: Nil
@@ -97,6 +99,7 @@ sealed trait Expr extends Product with Serializable {
     case ParamCtx(_)                                => this :: Nil
     case LinkCtx(_)                                 => this :: Nil
     case DateCtx(dateExpr)                          => dateExpr.leafExprs
+    case DateFunction(dateFunc)                     => dateFunc.dateExpr.leafExprs
     case Period(dateCtx1, dateCtx2)                 => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
     case PeriodExt(periodFun, _)                    => periodFun.leafs(formModel)
     case AddressLens(formComponentId, _)            => this :: Nil
@@ -129,6 +132,7 @@ sealed trait Expr extends Product with Serializable {
     case LinkCtx(_)                                 => Nil
     case LangCtx                                    => Nil
     case DateCtx(_)                                 => Nil
+    case DateFunction(_)                            => Nil
     case Period(_, _)                               => Nil
     case PeriodExt(_, _)                            => Nil
     case AddressLens(_, _)                          => Nil
@@ -160,6 +164,7 @@ final case class HmrcRosmRegistrationCheck(value: RosmProp) extends Expr
 final case object Value extends Expr
 final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
 final case class DateCtx(value: DateExpr) extends Expr
+final case class DateFunction(value: DateProjection) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
 final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
 final case object LangCtx extends Expr
@@ -169,6 +174,26 @@ final case class CsvOverseasCountryCheck(formComponentId: FormComponentId, colum
 final case class CsvCountryCountCheck(formComponentId: FormComponentId, column: String, value: String) extends Expr
 final case class Size(formComponentId: FormComponentId, index: SizeRefType) extends Expr
 final case class Typed(expr: Expr, tpe: ExplicitExprType) extends Expr
+
+sealed trait DateProjection extends Product with Serializable {
+  def dateExpr: DateExpr
+
+  def toValue(localDate: LocalDate): String =
+    this match {
+      case DateProjection.Day(_)   => localDate.getDayOfMonth().toString
+      case DateProjection.Month(_) => localDate.getMonthValue().toString
+      case DateProjection.Year(_)  => localDate.getYear().toString
+    }
+}
+
+object DateProjection {
+
+  case class Day(dateExpr: DateExpr) extends DateProjection
+  case class Month(dateExpr: DateExpr) extends DateProjection
+  case class Year(dateExpr: DateExpr) extends DateProjection
+
+  implicit val format: OFormat[DateProjection] = derived.oformat()
+}
 
 sealed trait SizeRefType extends Product with Serializable
 object SizeRefType {
