@@ -15,7 +15,7 @@ AS,,American Samoa,Samoa America,,4,0,0,0
 AT,,Austria,Awstria,20,3,1,1,0
 AU,,Australia,Awstralia,10,4,0,0,0
 AW,,Aruba,Arwba,,4,0,0,0
-AX,,Aland Islands,Ynysoedd Ã…land,,4,0,0,0
+AX,,Aland Islands,Ynysoedd Åland,,4,0,0,0
 AZ,,Azerbaijan,Azerbaijan,,4,0,0,0
 BA,,Bosnia and Herzegovina,Bosnia-Herzegovina,,4,0,0,0
 BB,,Barbados,Barbados,,4,0,0,0
@@ -26,7 +26,7 @@ BG,,Bulgaria,Bwlgaria,20,3,1,1,0
 BH,,Bahrain,Bahrain,,4,0,0,0
 BI,,Burundi,Bwrwndi,,4,0,0,0
 BJ,,Benin,Benin,,4,0,0,0
-BL,,Saint Barthelemy,Saint BarthÃ©lemy,,4,0,0,0
+BL,,Saint Barthelemy,Saint Barthélemy,,4,0,0,0
 BM,,Bermuda,Bermuda,,4,0,0,0
 BN,,Brunei,Brunei,,4,0,0,0
 BO,,Bolivia,Bolivia,,4,0,0,0
@@ -44,8 +44,8 @@ CD,,Democratic Republic of the Congo,Gweriniaeth Ddemocrataidd y Congo,,4,0,0,0
 CE,,Channel Islands,Ynysoedd y Sianel,,4,0,0,0
 CF,,Central Africa Republic,Gweriniaeth Canol Affrica,,4,0,0,0
 CG,,Congo,Congo,,4,0,0,0
-CH,,Switzerland,Y Swistir,,4,0,0,1
-CI,,Cote D'Ivoire,CÃ´te D'Ivoire,,4,0,0,0
+CH,,Switzerland,Y Swistir,,5,0,0,1
+CI,,Cote D'Ivoire,Côte D'Ivoire,,4,0,0,0
 CK,,Cook Islands,Ynysoedd Cook,,4,0,0,0
 CL,,Chile,Chile,,4,0,0,0
 CM,,Cameroon,Camerwn,,4,0,0,0
@@ -54,7 +54,7 @@ CO,,Colombia,Colombia,,4,0,0,0
 CR,,Costa Rica,Costa Rica,,4,0,0,0
 CU,,Cuba,Cuba,,4,0,0,0
 CV,,Cape Verde,Cabo Verde,,4,0,0,0
-CW,,Curacao,CuraÃ§ao,,4,0,0,0
+CW,,Curacao,Curaçao,,4,0,0,0
 CX,,Christmas Islands,Ynys y Nadolig,,4,0,0,0
 CY,,Cyprus,Cyprus,20,3,1,1,0
 CZ,,Czech Republic,Y Weriniaeth Tsiec,20,3,1,1,0
@@ -75,7 +75,7 @@ FI,,Finland,Y Ffindir,20,3,1,1,0
 FJ,,Fiji,Ffiji,,4,0,0,0
 FK,,Falklands Islands and dependencies,Ynysoedd Falkland a'r tiriogaethau dibynnol,,4,0,0,0
 FM,,Micronesia,Micronesia,,4,0,0,0
-FO,,Faroe Islands,Ynysoedd FÃ¸royar,,4,0,0,0
+FO,,Faroe Islands,Ynysoedd Føroyar,,4,0,0,0
 FR,,France,Ffrainc,20,3,1,1,0
 GA,,Gabon,Gabon,,4,0,0,0
 GD,,Grenada,Grenada,,4,0,0,0
@@ -86,14 +86,14 @@ GH,,Ghana,Ghana,,4,0,0,0
 GI,,Gibraltar,Gibraltar,,4,0,0,0
 GL,,Greenland,Yr Ynys Las,,4,0,0,0
 GM,,The Gambia,Gambia,,4,0,0,0
-GN,,Guinea,GuinÃ©e,,4,0,0,0
+GN,,Guinea,Guinée,,4,0,0,0
 GP,,Guadeloupe,Guadeloupe,,4,0,0,0
 GQ,,Equatorial Guinea,Guinea Gyhydeddol,,4,0,0,0
 GR,,Greece,Gwlad Groeg,20,3,1,1,0
 GS,,South Georgia and South Sandwich Islands,Ynysoedd De Georgia a De Sandwich,,4,0,0,0
 GT,,Guatemala,Gwatemala,,4,0,0,0
 GU,,Guam,Gwam,,4,0,0,0
-GW,,Guinea Bissau,GuinÃ©-Bissau,,4,0,0,0
+GW,,Guinea Bissau,Guiné-Bissau,,4,0,0,0
 GY,,Guyana,Guyana,,4,0,0,0
 HK,,Hong Kong,Hong Kong,10,4,0,0,0
 HM,,Heard Island and McDonald Islands,Ynys Heard ac Ynysoedd McDonald,,4,0,0,0
@@ -109,7 +109,7 @@ IN,,India,India,10,4,0,0,0
 IO,,British Indian Ocean Territory,Tiriogaeth Brydeinig Cefnfor India,,4,0,0,0
 IQ,,Iraq,Irac,,4,0,0,0
 IR,,Iran,Iran,,4,0,0,0
-IS,,Iceland,Gwlad yr IÃ¢,,4,0,1,1
+IS,,Iceland,Gwlad yr Iâ,,5,0,1,1
 IT,,Italy,Yr Eidal,20,3,1,1,0
 JE,,Jersey,Jersey,,4,0,0,0
 JM,,Jamaica,Jamaica,,4,0,0,0
@@ -129,7 +129,7 @@ KZ,,Kazakhstan,Kazakhstan,,4,0,0,0
 LA,,Laos,Laos,,4,0,0,0
 LB,,Lebanon,Libanus,,4,0,0,0
 LC,,St Lucia,St Lucia,,4,0,0,0
-LI,,Liechtenstein,Liechtenstein,,4,0,1,1
+LI,,Liechtenstein,Liechtenstein,,5,0,1,1
 LK,,Sri Lanka,Sri Lanka,,4,0,0,0
 LR,,Liberia,Liberia,,4,0,0,0
 LS,,Lesotho,Lesotho,,4,0,0,0
@@ -159,7 +159,7 @@ MV,,Maldives,Maldives,,4,0,0,0
 MW,,Malawi,Malawi,,4,0,0,0
 MX,,Mexico,Mecsico,,4,0,0,0
 MY,,Malaysia,Malaysia,,4,0,0,0
-MZ,,Mozambique,MoÃ§ambique,,4,0,0,0
+MZ,,Mozambique,Moçambique,,4,0,0,0
 NA,,Namibia,Namibia,,4,0,0,0
 NC,,New Caledonia,Caledonia Newydd,,4,0,0,0
 NE,,Niger,Niger,,4,0,0,0
@@ -167,13 +167,13 @@ NF,,Norfolk Island,Ynys Norfolk,,4,0,0,0
 NG,,Nigeria,Nigeria,,4,0,0,0
 NI,,Nicaragua,Nicaragua,,4,0,0,0
 NL,,Netherlands,Yr Iseldiroedd,20,3,1,1,0
-NO,,Norway,Norwy,20,4,0,1,1
+NO,,Norway,Norwy,20,5,0,1,1
 NP,,Nepal,Nepal,,4,0,0,0
 NR,,Nauru,Nauru,,4,0,0,0
 NU,,Niue,Niue,,4,0,0,0
 NZ,,New Zealand,Seland Newydd,10,4,0,0,0
 OM,,Oman,Oman,,4,0,0,0
-PA,,Panama,PanamÃ¡,,4,0,0,0
+PA,,Panama,Panamá,,4,0,0,0
 PE,,Peru,Periw,,4,0,0,0
 PF,,French Polynesia,Polynesia Ffrengig,,4,0,0,0
 PG,,Papua New Guinea,Papua Guinea Newydd,,4,0,0,0
@@ -188,8 +188,8 @@ PT,,Portugal,Portiwgal,20,3,1,1,0
 PW,,Palau,Palau,,4,0,0,0
 PY,,Paraguay,Paraguay,,4,0,0,0
 QA,,Qatar,Qatar,,4,0,0,0
-RE,,Reunion,RÃ©union,,4,0,0,0
-RO,,Romania,RomÃ¢nia,20,3,1,1,0
+RE,,Reunion,Réunion,,4,0,0,0
+RO,,Romania,România,20,3,1,1,0
 RS,,Serbia,Serbia,,4,0,0,0
 RU,,Russia,Rwsia,10,4,0,0,0
 RW,,Rwanda,Rwanda,,4,0,0,0
@@ -198,7 +198,7 @@ SB,,Solomon Islands,Ynysoedd Solomon,,4,0,0,0
 SC,,Seychelles,Seychelles,,4,0,0,0
 SD,,Sudan,Swdan,,4,0,0,0
 SE,,Sweden,Sweden,20,3,1,1,0
-SG,,Singapore,SingapÃ´r,,4,0,0,0
+SG,,Singapore,Singapôr,,4,0,0,0
 SH,,"St Helena, Ascension and Tristan da Cunha","Saint Helena, Ynys y Dyrchafael a Tristan da Cunha",,4,0,0,0
 SI,,Slovenia,Slovenia,20,3,1,1,0
 SJ,,Svalbard and Jan Mayen Islands,Ynysoedd Svalbard a Jan Mayen,,4,0,0,0
@@ -209,7 +209,7 @@ SN,,Senegal,Senegal,,4,0,0,0
 SO,,Somalia,Somalia,,4,0,0,0
 SR,,Suriname,Suriname,,4,0,0,0
 SS,,South Sudan,De Swdan,,4,0,0,0
-ST,,Sao Tome and Principe,SÃ£o TomÃ© a PrÃ­ncipe,,4,0,0,0
+ST,,Sao Tome and Principe,São Tomé a Príncipe,,4,0,0,0
 SV,,El Salvador,El Salvador,,4,0,0,0
 SX,,Sint Maarten (Dutch part),Sint Maarten (Iseldiraidd),,4,0,0,0
 SY,,Syria,Syria,,4,0,0,0
@@ -234,12 +234,12 @@ TZ,,Tanzania,Tanzania,,4,0,0,0
 UA,,Ukraine,Ukrain,,4,0,0,0
 UG,,Uganda,Uganda,,4,0,0,0
 UK,England Great Britain UK GB,United Kingdom,Y Deyrnas Unedig,30,1,0,0,0
-UM,,United States Minor outlying islands,MÃ¢n Ynysoedd Pellennig yr Unol Daleithiau,,4,0,0,0
+UM,,United States Minor outlying islands,Mân Ynysoedd Pellennig yr Unol Daleithiau,,4,0,0,0
 US,USA,United States,Yr Unol Daleithiau,10,4,0,0,0
 UY,,Uruguay,Uruguay,,4,0,0,0
 UZ,,Uzbekistan,Uzbekistan,,4,0,0,0
 VA,,Vatican City State,Gwladwriaeth Dinas y Fatican,,4,0,0,0
-VC,,St Vincent and the Grenadines,Saint Vincent aâ€™r Grenadines,,4,0,0,0
+VC,,St Vincent and the Grenadines,Saint Vincent a’r Grenadines,,4,0,0,0
 VE,,Venezuela,Venezuela,,4,0,0,0
 VG,,"Virgin Islands, British","Ynysoedd y Wyryf, Prydeinig",,4,0,0,0
 VI,,"Virgin Islands, United States","Ynysoedd y Wyryf, Yr Unol Daleithiau",,4,0,0,0
