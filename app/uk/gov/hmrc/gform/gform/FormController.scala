@@ -505,7 +505,7 @@ class FormController(
                     formModelOptics,
                     enteredVariadicFormData,
                     true
-                  ) { updatePostcodeLookup => maybeRedirects => maybeSn =>
+                  ) { updatePostcodeLookup => maybeRedirect => maybeSn =>
                     def continueJourney =
                       maybeSn match {
                         case Some(sn) =>
@@ -550,7 +550,7 @@ class FormController(
                           )
                       }
 
-                    val continueJourneyWithoutRedirect = maybeRedirects.fold(continueJourney)(r => Redirect(r))
+                    val continueJourneyWithoutRedirect = maybeRedirect.fold(continueJourney)(r => Redirect(r))
 
                     updatePostcodeLookup.fold(continueJourneyWithoutRedirect) { case (formComponentId, _) =>
                       Redirect(
