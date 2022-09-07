@@ -228,6 +228,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
       case t @ Time(_, _) =>
         validIf(ComponentValidator.validateTime(formComponent, t, formModelVisibilityOptics))
       case s @ MiniSummaryList(_) => validationSuccess.pure[F]
+      case s @ TableComp(_, _)    => validationSuccess.pure[F]
     }
   }
 

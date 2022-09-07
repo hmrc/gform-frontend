@@ -179,6 +179,10 @@ object IsMiniSummaryList {
   def unapply(fc: FormComponent): Option[MiniSummaryList] = fc.`type`.cast[MiniSummaryList]
 }
 
+object IsTableComp {
+  def unapply(fc: FormComponent): Option[TableComp] = fc.`type`.cast[TableComp]
+}
+
 object IsSummarySection {
   def unapply(fc: FormComponent): Option[SummarySection] = fc.`type`.cast[SummarySection]
 }
