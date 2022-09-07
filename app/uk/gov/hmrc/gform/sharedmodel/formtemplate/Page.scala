@@ -40,7 +40,8 @@ case class Page[A <: PageMode](
   instruction: Option[Instruction],
   presentationHint: Option[PresentationHint],
   dataRetrieve: Option[DataRetrieve],
-  confirmation: Option[Confirmation]
+  confirmation: Option[Confirmation],
+  redirects: Option[List[RedirectCtx]]
 ) {
 
   val allFields: List[FormComponent] = confirmation.fold(fields)(fields ::: _.question :: Nil)

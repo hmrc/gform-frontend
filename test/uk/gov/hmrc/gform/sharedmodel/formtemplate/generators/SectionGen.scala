@@ -101,6 +101,7 @@ trait SectionGen {
       presentationHint <- Gen.option(PresentationHintGen.presentationHintGen)
       dataRetrieve     <- Gen.option(DataRetrieveGen.dataRetrieveGen)
       confirmation     <- Gen.option(ConfirmationGen.confirmationGen)
+      redirects        <- Gen.option(RedirectGen.redirectGen)
     } yield Page(
       title,
       id,
@@ -116,7 +117,8 @@ trait SectionGen {
       instruction,
       presentationHint,
       dataRetrieve,
-      confirmation
+      confirmation,
+      redirects.map(List(_))
     )
 
   def nonRepeatingPageSectionGen: Gen[Section.NonRepeatingPage] = pageGen.map(Section.NonRepeatingPage)

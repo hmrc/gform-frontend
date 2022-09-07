@@ -122,7 +122,8 @@ case class DeclarationSection(
       instruction = None,
       presentationHint = None,
       dataRetrieve = None,
-      confirmation = None
+      confirmation = None,
+      redirects = None
     )
 }
 
@@ -160,7 +161,8 @@ case class AcknowledgementSection(
       instruction = None,
       presentationHint = None,
       dataRetrieve = None,
-      confirmation = None
+      confirmation = None,
+      redirects = None
     )
 }
 
@@ -200,7 +202,8 @@ case class EnrolmentSection(
       instruction = None,
       presentationHint = None,
       dataRetrieve = None,
-      confirmation = None
+      confirmation = None,
+      redirects = None
     )
 }
 

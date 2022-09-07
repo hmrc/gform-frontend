@@ -40,9 +40,8 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IsPostcodeLookup }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FormComponentId, IsPostcodeLookup, RedirectCtx, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -151,7 +150,7 @@ class FormProcessor(
         formModelOptics,
         EnteredVariadicFormData.empty,
         true
-      ) { _ => maybeSectionNumber =>
+      ) { _ => _ => maybeSectionNumber =>
         val sectionNumber =
           if (isLastIteration)
             maybeSectionNumber
@@ -219,7 +218,7 @@ class FormProcessor(
     enteredVariadicFormData: EnteredVariadicFormData,
     visitPage: Boolean
   )(
-    toResult: Option[(FormComponentId, AddressLookupResult)] => Option[SectionNumber] => Result
+    toResult: Option[(FormComponentId, AddressLookupResult)] => Option[String] => Option[SectionNumber] => Result
   )(implicit hc: HeaderCarrier, request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Future[Result] = {
 
     val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
@@ -257,6 +256,25 @@ class FormProcessor(
                 DataRetrieveService[CompanyRegistrationNumber, Future]
                   .retrieve(v, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
             }
+          )(_ => Option.empty.pure[Future])(_ => Option.empty.pure[Future])
+        } else Option.empty.pure[Future]
+
+      redirectResult <-
+        if (isValid) {
+          pageModel.fold(singleton =>
+            singleton.page.redirects
+              .flatMap { case redirects: List[RedirectCtx] =>
+                redirects
+                  .collectFirst {
+                    case redirect if redirect.ifExpr.fold(true) { ifExpr =>
+                          val eval =
+                            processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(ifExpr, None)
+                          eval
+                        } =>
+                      redirect.redirectUrl
+                  }
+              }
+              .pure[Future]
           )(_ => Option.empty.pure[Future])(_ => Option.empty.pure[Future])
         } else Option.empty.pure[Future]
 
@@ -333,7 +351,7 @@ class FormProcessor(
               fastForward,
               envelopeWithMapping,
               sectionNumber.toCoordinates
-            )(toResult(updatePostcodeLookup))
+            )(toResult(updatePostcodeLookup)(redirectResult))
         }
       }
     } yield res
