@@ -549,18 +549,17 @@ object TableValue {
   implicit val format: Format[TableValue] = derived.oformat()
 }
 
-sealed trait TableRow extends Product with Serializable
+case class TableValueRow(
+  values: List[TableValue],
+  includeIf: Option[IncludeIf]
+)
 
-object TableRow {
-  case class ValueRow(
-    values: List[TableValue],
-    includeIf: Option[IncludeIf]
-  ) extends TableRow
+object TableValueRow {
 
-  implicit val format: Format[TableRow] = derived.oformat()
+  implicit val format: Format[TableValueRow] = derived.oformat()
 }
 
-case class TableComp(header: List[SmartString], rows: List[TableRow]) extends ComponentType
+case class TableComp(header: List[SmartString], rows: List[TableValueRow]) extends ComponentType
 
 object TableComp {
   implicit val format: Format[TableComp] = derived.oformat()

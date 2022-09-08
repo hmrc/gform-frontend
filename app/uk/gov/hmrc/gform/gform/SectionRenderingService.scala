@@ -1255,14 +1255,14 @@ class SectionRenderingService(
     fcrd: FormComponentRenderDetails[SummaryRender]
   ): Html = {
     def isVisibleValueRow(
-      row: TableRow.ValueRow
+      row: TableValueRow
     ): Boolean = row.includeIf.fold(true)(includeIf =>
       ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
     )
     val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
 
     val filteredRows = table.rows.collect {
-      case valueRow: TableRow.ValueRow if isVisibleValueRow(valueRow) =>
+      case valueRow: TableValueRow if isVisibleValueRow(valueRow) =>
         valueRow.values.map { v =>
           val isValueNumeric = v.value.interpolations match {
             case List(FormCtx(formComponentId)) => formModel.fcLookup.get(formComponentId).get.isNumeric
