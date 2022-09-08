@@ -259,17 +259,6 @@ class FormProcessor(
           )(_ => Option.empty.pure[Future])(_ => Option.empty.pure[Future])
         } else Option.empty.pure[Future]
 
-      redirectResult <-
-        if (isValid && pageModel.redirects.nonEmpty) {
-          pageModel.redirects
-            .collectFirst {
-              case redirect
-                  if processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(redirect.`if`, None) =>
-                redirect.redirectUrl
-            }
-            .pure[Future]
-        } else Option.empty.pure[Future]
-
       updatePostcodeLookup <-
         if (isValid) {
           pageModel.postcodeLookup.flatTraverse { formComponent =>
@@ -311,6 +300,14 @@ class FormProcessor(
               )
           )
 
+        val redirectUrl = if (isValid && pageModel.redirects.nonEmpty) {
+          pageModel.redirects.collectFirst {
+            case redirect
+                if processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(redirect.`if`, None) =>
+              redirect.redirectUrl
+          }
+        } else None
+
         if (needsSecondPhaseRecalculation && isValid) {
           val newDataRaw = cacheUpd.variadicFormData[SectionSelectorType.Normal]
           for {
@@ -343,7 +340,7 @@ class FormProcessor(
               fastForward,
               envelopeWithMapping,
               sectionNumber.toCoordinates
-            )(toResult(updatePostcodeLookup)(redirectResult))
+            )(toResult(updatePostcodeLookup)(redirectUrl))
         }
       }
     } yield res

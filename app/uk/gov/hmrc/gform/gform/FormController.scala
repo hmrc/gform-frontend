@@ -505,7 +505,7 @@ class FormController(
                     formModelOptics,
                     enteredVariadicFormData,
                     true
-                  ) { updatePostcodeLookup => maybeRedirect => maybeSn =>
+                  ) { updatePostcodeLookup => maybeRedirectUrl => maybeSn =>
                     def continueJourney =
                       maybeSn match {
                         case Some(sn) =>
@@ -550,18 +550,20 @@ class FormController(
                           )
                       }
 
-                    val continueJourneyWithoutRedirect = maybeRedirect.fold(continueJourney)(r => Redirect(r))
-
-                    updatePostcodeLookup.fold(continueJourneyWithoutRedirect) { case (formComponentId, _) =>
-                      Redirect(
-                        uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
-                          .chooseAddress(
-                            cache.formTemplate._id,
-                            maybeAccessCode,
-                            formComponentId,
-                            sectionNumber
+                    maybeRedirectUrl match {
+                      case Some(r) => Redirect(r)
+                      case None =>
+                        updatePostcodeLookup.fold(continueJourney) { case (formComponentId, _) =>
+                          Redirect(
+                            uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
+                              .chooseAddress(
+                                cache.formTemplate._id,
+                                maybeAccessCode,
+                                formComponentId,
+                                sectionNumber
+                              )
                           )
-                      )
+                        }
                     }
                   }
               }
