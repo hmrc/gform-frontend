@@ -40,7 +40,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FormComponentId, IsPostcodeLookup, RedirectCtx, SectionNumber, SectionTitle4Ga, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FormComponentId, IsPostcodeLookup, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
@@ -260,22 +260,14 @@ class FormProcessor(
         } else Option.empty.pure[Future]
 
       redirectResult <-
-        if (isValid) {
-          pageModel.fold(singleton =>
-            singleton.page.redirects
-              .flatMap { case redirects: List[RedirectCtx] =>
-                redirects
-                  .collectFirst {
-                    case redirect if redirect.ifExpr.fold(true) { ifExpr =>
-                          val eval =
-                            processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(ifExpr, None)
-                          eval
-                        } =>
-                      redirect.redirectUrl
-                  }
-              }
-              .pure[Future]
-          )(_ => Option.empty.pure[Future])(_ => Option.empty.pure[Future])
+        if (isValid && pageModel.redirects.nonEmpty) {
+          pageModel.redirects
+            .collectFirst {
+              case redirect
+                  if processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(redirect.`if`, None) =>
+                redirect.redirectUrl
+            }
+            .pure[Future]
         } else Option.empty.pure[Future]
 
       updatePostcodeLookup <-

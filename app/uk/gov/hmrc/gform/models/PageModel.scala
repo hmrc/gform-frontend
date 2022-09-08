@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsPostcodeLookup, IsUpscanInitiateFileUpload, Page, PageId, SummarySectionIncludeIf, ValidIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsPostcodeLookup, IsUpscanInitiateFileUpload, Page, PageId, RedirectCtx, SummarySectionIncludeIf, ValidIf }
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)
@@ -88,6 +88,8 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def postcodeLookup: Option[FormComponent] = fold(_.page.allFields.collectFirst { case fc @ IsPostcodeLookup() =>
     fc
   })(_ => None)(_ => None)
+
+  def redirects: List[RedirectCtx] = fold(_.page.redirects.map(_.toList).toList.flatten)(_ => Nil)(_ => Nil)
 
 }
 

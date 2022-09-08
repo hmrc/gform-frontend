@@ -20,6 +20,7 @@ import org.scalacheck.Gen
 import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import SmartStringGen.smartStringGen
+import cats.data.NonEmptyList
 
 trait SectionGen {
 
@@ -118,7 +119,7 @@ trait SectionGen {
       presentationHint,
       dataRetrieve,
       confirmation,
-      redirects.map(List(_))
+      redirects.map(NonEmptyList.one(_))
     )
 
   def nonRepeatingPageSectionGen: Gen[Section.NonRepeatingPage] = pageGen.map(Section.NonRepeatingPage)
