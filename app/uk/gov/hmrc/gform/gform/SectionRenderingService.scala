@@ -54,6 +54,7 @@ import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, TableRow => GovukTableRow, Table }
 import uk.gov.hmrc.gform.summary.{ AddToListCYARender, AddressRecordLookup, FormComponentSummaryRenderer }
 import uk.gov.hmrc.gform.upscan.{ FormMetaData, UpscanData, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.HtmlFieldId
@@ -87,7 +88,7 @@ import uk.gov.hmrc.hmrcfrontend.views.Aliases.CharacterCount
 import uk.gov.hmrc.hmrcfrontend.views.html.components.{ HmrcCharacterCount, HmrcCurrencyInput }
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
-import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
+import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukSummaryList, GovukTable }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 import MiniSummaryRow._
@@ -1001,6 +1002,7 @@ class SectionRenderingService(
             htmlForHmrcTaxPeriod(formComponent, ei, validationResult, obligations, htp)
           case MiniSummaryList(rows) =>
             htmlForMiniSummaryList(formComponent, formTemplateId, rows, ei, validationResult, obligations)
+          case t @ TableComp(_, _) => htmlForTableComp(formComponent, t, ei)
         }
       }
     } { case r @ RenderUnit.Group(_, _) =>
@@ -1242,6 +1244,50 @@ class SectionRenderingService(
 
     }
     HtmlFormat.fill(htmls)
+  }
+
+  private def htmlForTableComp(
+    formComponent: FormComponent,
+    table: TableComp,
+    ei: ExtraInfo
+  )(implicit
+    sse: SmartStringEvaluator,
+    fcrd: FormComponentRenderDetails[SummaryRender]
+  ): Html = {
+    def isVisibleValueRow(
+      row: TableValueRow
+    ): Boolean = row.includeIf.fold(true)(includeIf =>
+      ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+    )
+    val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
+
+    val filteredRows = table.rows.collect {
+      case valueRow: TableValueRow if isVisibleValueRow(valueRow) =>
+        valueRow.values.map { v =>
+          val isValueNumeric = v.value.interpolations match {
+            case List(FormCtx(formComponentId)) => formModel.fcLookup.get(formComponentId).get.isNumeric
+            case _                              => false
+          }
+          val classes = v.cssClass.toList.flatMap(_.split(" +")) :+ {
+            if (isValueNumeric) "govuk-table__cell--numeric" else ""
+          }
+          GovukTableRow(
+            content = HtmlContent(sse(v.value, false)),
+            colspan = v.colspan,
+            classes = classes.mkString(" ")
+          )
+        }
+    }
+    val hs = table.header.map(h => HeadCell(content = HtmlContent(sse(h, false))))
+    val caption = fcrd.label(formComponent)
+    new GovukTable()(
+      Table(
+        rows = filteredRows,
+        head = Some(hs),
+        caption = if (caption.trim.isEmpty()) None else Some(caption),
+        captionClasses = "govuk-table__caption--m"
+      )
+    )
   }
 
   private def htmlForFileUpload(
