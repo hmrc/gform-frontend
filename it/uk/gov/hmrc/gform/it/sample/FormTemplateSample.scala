@@ -76,7 +76,8 @@ trait FormTemplateSample {
               instruction = None,
               presentationHint = None,
               dataRetrieve = None,
-              confirmation = None
+              confirmation = None,
+              redirects = None
             )
           )
         )

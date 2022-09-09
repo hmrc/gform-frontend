@@ -505,7 +505,7 @@ class FormController(
                     formModelOptics,
                     enteredVariadicFormData,
                     true
-                  ) { updatePostcodeLookup => maybeSn =>
+                  ) { updatePostcodeLookup => maybeRedirectUrl => maybeSn =>
                     def continueJourney =
                       maybeSn match {
                         case Some(sn) =>
@@ -550,16 +550,20 @@ class FormController(
                           )
                       }
 
-                    updatePostcodeLookup.fold(continueJourney) { case (formComponentId, _) =>
-                      Redirect(
-                        uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
-                          .chooseAddress(
-                            cache.formTemplate._id,
-                            maybeAccessCode,
-                            formComponentId,
-                            sectionNumber
+                    maybeRedirectUrl match {
+                      case Some(r) => Redirect(r)
+                      case None =>
+                        updatePostcodeLookup.fold(continueJourney) { case (formComponentId, _) =>
+                          Redirect(
+                            uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
+                              .chooseAddress(
+                                cache.formTemplate._id,
+                                maybeAccessCode,
+                                formComponentId,
+                                sectionNumber
+                              )
                           )
-                      )
+                        }
                     }
                   }
               }
@@ -579,7 +583,7 @@ class FormController(
                 formModelOptics,
                 purgeConfirmationData.enteredVariadicFormData,
                 false
-              ) { _ => maybeSn =>
+              ) { _ => _ => maybeSn =>
                 val formTemplate = cache.formTemplate
                 val envelopeExpiryDate = cache.form.envelopeExpiryDate
                 maybeAccessCode match {
@@ -676,7 +680,7 @@ class FormController(
                     formModelOptics,
                     purgeConfirmationData.enteredVariadicFormData,
                     true
-                  )(_ => _ => goBackLink)
+                  )(_ => _ => _ => goBackLink)
                 } else {
                   goBackLink.pure[Future]
                 }
@@ -736,7 +740,7 @@ class FormController(
                 formModelOptics,
                 enteredVariadicFormData,
                 true
-              ) { _ => _ =>
+              ) { _ => _ => _ =>
                 val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
                 Redirect(
                   routes.FormController

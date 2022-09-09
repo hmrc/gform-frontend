@@ -17,8 +17,10 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.Monoid
-import play.api.libs.json.{ Json, OFormat }
+import cats.data.NonEmptyList
+import play.api.libs.json.OFormat
 import cats.syntax.eq._
+import julienrf.json.derived
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceData, RevealingChoiceInfo, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
@@ -40,7 +42,8 @@ case class Page[A <: PageMode](
   instruction: Option[Instruction],
   presentationHint: Option[PresentationHint],
   dataRetrieve: Option[DataRetrieve],
-  confirmation: Option[Confirmation]
+  confirmation: Option[Confirmation],
+  redirects: Option[NonEmptyList[RedirectCtx]]
 ) {
 
   val allFields: List[FormComponent] = confirmation.fold(fields)(fields ::: _.question :: Nil)
@@ -102,5 +105,6 @@ case class Page[A <: PageMode](
 }
 
 object Page {
-  implicit val pageFormat: OFormat[Page[Basic]] = Json.format[Page[Basic]]
+  import JsonUtils._
+  implicit val pageFormat: OFormat[Page[Basic]] = derived.oformat()
 }

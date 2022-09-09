@@ -40,9 +40,8 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IsPostcodeLookup }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FormComponentId, IsPostcodeLookup, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -151,7 +150,7 @@ class FormProcessor(
         formModelOptics,
         EnteredVariadicFormData.empty,
         true
-      ) { _ => maybeSectionNumber =>
+      ) { _ => _ => maybeSectionNumber =>
         val sectionNumber =
           if (isLastIteration)
             maybeSectionNumber
@@ -219,7 +218,7 @@ class FormProcessor(
     enteredVariadicFormData: EnteredVariadicFormData,
     visitPage: Boolean
   )(
-    toResult: Option[(FormComponentId, AddressLookupResult)] => Option[SectionNumber] => Result
+    toResult: Option[(FormComponentId, AddressLookupResult)] => Option[String] => Option[SectionNumber] => Result
   )(implicit hc: HeaderCarrier, request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Future[Result] = {
 
     val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
@@ -301,6 +300,14 @@ class FormProcessor(
               )
           )
 
+        val redirectUrl = if (isValid && pageModel.redirects.nonEmpty) {
+          pageModel.redirects.collectFirst {
+            case redirect
+                if processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(redirect.`if`, None) =>
+              redirect.redirectUrl
+          }
+        } else None
+
         if (needsSecondPhaseRecalculation && isValid) {
           val newDataRaw = cacheUpd.variadicFormData[SectionSelectorType.Normal]
           for {
@@ -333,7 +340,7 @@ class FormProcessor(
               fastForward,
               envelopeWithMapping,
               sectionNumber.toCoordinates
-            )(toResult(updatePostcodeLookup))
+            )(toResult(updatePostcodeLookup)(redirectUrl))
         }
       }
     } yield res
