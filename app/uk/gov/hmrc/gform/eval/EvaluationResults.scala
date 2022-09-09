@@ -241,14 +241,18 @@ case class EvaluationResults(
       case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
       case LangCtx                                    => unsupportedOperation("Number")(expr)
       case DateCtx(_)                                 => unsupportedOperation("Number")(expr)
-      case DateFunction(_)                            => unsupportedOperation("Number")(expr)
-      case Period(_, _)                               => unsupportedOperation("Number")(expr)
-      case PeriodExt(_, _)                            => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-      case PeriodValue(_)                             => unsupportedOperation("Number")(expr)
-      case AddressLens(_, _)                          => unsupportedOperation("Number")(expr)
-      case DataRetrieveCtx(_, _)                      => unsupportedOperation("Number")(expr)
-      case CsvCountryCheck(_, _)                      => unsupportedOperation("Number")(expr)
-      case CsvOverseasCountryCheck(_, _)              => unsupportedOperation("Number")(expr)
+      case DateFunction(dateFunc) =>
+        evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateFunc.dateExpr) match {
+          case ExpressionResult.DateResult(localDate) => ExpressionResult.NumberResult(dateFunc.toValue(localDate))
+          case otherwise                              => otherwise
+        }
+      case Period(_, _)                  => unsupportedOperation("Number")(expr)
+      case PeriodExt(_, _)               => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodValue(_)                => unsupportedOperation("Number")(expr)
+      case AddressLens(_, _)             => unsupportedOperation("Number")(expr)
+      case DataRetrieveCtx(_, _)         => unsupportedOperation("Number")(expr)
+      case CsvCountryCheck(_, _)         => unsupportedOperation("Number")(expr)
+      case CsvOverseasCountryCheck(_, _) => unsupportedOperation("Number")(expr)
       case CsvCountryCountCheck(fcId, column, value) =>
         val count = addToListValues(fcId, recData)
           .filter(str =>
@@ -413,15 +417,10 @@ case class EvaluationResults(
               computePageLink(id, evaluationContext)
           }
         nonEmpty(StringResult(link))
-      case DateCtx(dateExpr) => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
-      case DateFunction(dateFunc) =>
-        evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateFunc.dateExpr) match {
-          case ExpressionResult.DateResult(localDate) =>
-            ExpressionResult.StringResult(dateFunc.toValue(localDate))
-          case otherwise => otherwise
-        }
-      case Period(_, _)    => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-      case PeriodExt(_, _) => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case DateCtx(dateExpr)      => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
+      case DateFunction(dateFunc) => unsupportedOperation("String")(expr)
+      case Period(_, _)           => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodExt(_, _)        => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
           val atomic: ModelComponentId.Atomic =

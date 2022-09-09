@@ -238,6 +238,7 @@ case class FormModel[A <: PageMode](
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
       case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
+      case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case otherwise                     => TypeInfo(expr, StaticTypeData(ExprType.string, None))
     }
   }
