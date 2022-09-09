@@ -55,7 +55,7 @@ sealed trait Expr extends Product with Serializable {
       case LinkCtx(_)                              => expr :: Nil
       case LangCtx                                 => expr :: Nil
       case DateCtx(dateExpr)                       => dateExpr.leafExprs
-      case DateFunction(dateFunc)                  => dateFunc.dateExpr.leafExprs
+      case DateFunction(_)                         => expr :: Nil
       case Period(_, _)                            => expr :: Nil
       case PeriodExt(_, _)                         => expr :: Nil
       case AddressLens(_, _)                       => expr :: Nil
@@ -178,11 +178,11 @@ final case class Typed(expr: Expr, tpe: ExplicitExprType) extends Expr
 sealed trait DateProjection extends Product with Serializable {
   def dateExpr: DateExpr
 
-  def toValue(localDate: LocalDate): String =
+  def toValue(localDate: LocalDate): Int =
     this match {
-      case DateProjection.Day(_)   => localDate.getDayOfMonth().toString
-      case DateProjection.Month(_) => localDate.getMonthValue().toString
-      case DateProjection.Year(_)  => localDate.getYear().toString
+      case DateProjection.Day(_)   => localDate.getDayOfMonth()
+      case DateProjection.Month(_) => localDate.getMonthValue()
+      case DateProjection.Year(_)  => localDate.getYear()
     }
 }
 
