@@ -79,24 +79,12 @@ class TaskListController(
         TaskListUtils.withTask(cache.formTemplate, taskSectionNumber, taskNumber) { task =>
           val sectionTitle4Ga: SectionTitle4Ga = SectionTitle4Ga(task.title.value)
 
-          if (cache.formTemplate.isSpecimen) {
-            val sn = SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
-
-            val href = uk.gov.hmrc.gform.gform.routes.FormController.form(
-              cache.formTemplate._id,
-              maybeAccessCode,
-              sn,
-              sectionTitle4Ga,
-              SuppressErrors.Yes,
-              FastForward.StopAt(sn.increment)
-            )
-            Redirect(href).pure[Future]
-          } else if (isCompleted) {
+          if (isCompleted || cache.formTemplate.isSpecimen) {
             val isSummarySectionVisible = task.summarySection
               .flatMap(_.includeIf)
               .fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
 
-            if (task.summarySection.isDefined && isSummarySectionVisible) {
+            if (task.summarySection.isDefined && isSummarySectionVisible && !cache.formTemplate.isSpecimen) {
               Redirect(
                 uk.gov.hmrc.gform.gform.routes.SummaryController
                   .summaryById(
@@ -107,9 +95,12 @@ class TaskListController(
                   )
               ).pure[Future]
             } else {
-              val sn = formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
-                SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
-              )
+              val sn =
+                if (cache.formTemplate.isSpecimen) SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
+                else
+                  formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
+                    SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
+                  )
               val href = uk.gov.hmrc.gform.gform.routes.FormController.form(
                 cache.formTemplate._id,
                 maybeAccessCode,
