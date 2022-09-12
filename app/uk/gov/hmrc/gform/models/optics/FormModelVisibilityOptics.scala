@@ -36,8 +36,11 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
 
   def allFormComponents: List[FormComponent] = formModel.allFormComponents
 
+  def allEditableFormComponentsForCoordinates(coordinates: Coordinates): List[FormComponent] =
+    allFormComponentsForCoordinates(coordinates).filter(_.editable)
+
   def allFormComponentsForCoordinates(coordinates: Coordinates): List[FormComponent] =
-    formModel.taskList.allFormComponents(coordinates).filter(_.editable)
+    formModel.taskList.allFormComponents(coordinates)
 
   def allFormComponentIds: List[FormComponentId] =
     allFormComponents.map(_.id)
@@ -95,7 +98,7 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
 
     def forCoordinate[A](coordinates: Coordinates): Set[VariadicValue] = {
       val modelComponentIds: List[ModelComponentId] =
-        allFormComponentsForCoordinates(coordinates).map(_.multiValueId).flatMap(_.toModelComponentIds)
+        allEditableFormComponentsForCoordinates(coordinates).map(_.multiValueId).flatMap(_.toModelComponentIds)
 
       modelComponentIds.toSet.flatMap(recData.variadicFormData.get)
 
