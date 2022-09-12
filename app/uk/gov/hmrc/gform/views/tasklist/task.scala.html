@@ -26,8 +26,7 @@
   taskSectionNumber: TaskSectionNumber,
   taskNumber: TaskNumber,
   task: Task,
-  statusesLookup: Map[Coordinates, TaskStatus],
-  isSpecimen: Boolean
+  statusesLookup: Map[Coordinates, TaskStatus]
 )(
   implicit
   request: Request[_],
@@ -58,11 +57,7 @@
           </a>
         }
       </span>
-      @if(isSpecimen) {
-          <strong class="govuk-tag app-task-list__tag govuk-tag--grey id="@elementId>@{messages(s"taskList.NotStarted")}</strong>
-      } else {
-          <strong class="govuk-tag app-task-list__tag @{statusClass(status)}" id="@elementId">@{messages(s"taskList.$status")}</strong>
-      }
+      <strong class="govuk-tag app-task-list__tag @{statusClass(status)}" id="@elementId">@{messages(s"taskList.$status")}</strong>
     </li>
   }
 }

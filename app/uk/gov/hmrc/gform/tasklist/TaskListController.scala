@@ -79,12 +79,12 @@ class TaskListController(
         TaskListUtils.withTask(cache.formTemplate, taskSectionNumber, taskNumber) { task =>
           val sectionTitle4Ga: SectionTitle4Ga = SectionTitle4Ga(task.title.value)
 
-          if (isCompleted || cache.formTemplate.isSpecimen) {
+          if (isCompleted) {
             val isSummarySectionVisible = task.summarySection
               .flatMap(_.includeIf)
               .fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
 
-            if (task.summarySection.isDefined && isSummarySectionVisible && !cache.formTemplate.isSpecimen) {
+            if (task.summarySection.isDefined && isSummarySectionVisible) {
               Redirect(
                 uk.gov.hmrc.gform.gform.routes.SummaryController
                   .summaryById(
@@ -95,12 +95,9 @@ class TaskListController(
                   )
               ).pure[Future]
             } else {
-              val sn =
-                if (cache.formTemplate.isSpecimen) SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
-                else
-                  formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
-                    SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
-                  )
+              val sn = formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
+                SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
+              )
               val href = uk.gov.hmrc.gform.gform.routes.FormController.form(
                 cache.formTemplate._id,
                 maybeAccessCode,

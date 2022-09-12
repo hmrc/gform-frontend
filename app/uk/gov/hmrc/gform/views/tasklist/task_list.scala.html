@@ -62,7 +62,7 @@
 
   <ol class="app-task-list">
     @{taskList.sections.toList.zipWithIndex.map { case (taskSection, index) =>
-        task_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(index), taskSection, statusesLookup, formTemplate.isSpecimen)
+        task_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(index), taskSection, statusesLookup)
       }
     }
     @formTemplate.submitSection.map{ submitSection =>
