@@ -31,7 +31,7 @@ final class NotRequiredResolver[D <: DataOrigin](
         taskStatus match {
           case TaskStatus.CannotStartYet => TaskStatus.CannotStartYet
           case otherwise =>
-            if (formModelVisibilityOptics.allFormComponentsForCoordinates(coordinates).isEmpty) {
+            if (formModelVisibilityOptics.allEditableFormComponentsForCoordinates(coordinates).isEmpty) {
 
               TaskStatus.NotRequired
             } else otherwise
