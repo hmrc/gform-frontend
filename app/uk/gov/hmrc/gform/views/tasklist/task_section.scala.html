@@ -23,7 +23,8 @@
   maybeAccessCode: Option[AccessCode],
   taskSectionNumber: TaskSectionNumber,
   taskSection: TaskSection,
-  statusesLookup: Map[Coordinates, TaskStatus]
+  statusesLookup: Map[Coordinates, TaskStatus],
+  isSpecimen: Boolean
 )(
   implicit
   request: Request[_],
@@ -38,7 +39,7 @@
   </h2>
   <ul class="app-task-list__items">
     @taskSection.tasks.toList.zipWithIndex.map { case (t, index) =>
-      @{task(formTemplateId, maybeAccessCode, taskSectionNumber, TaskNumber(index), t, statusesLookup)}
+      @{task(formTemplateId, maybeAccessCode, taskSectionNumber, TaskNumber(index), t, statusesLookup, isSpecimen)}
     }
   </ul>
 </li>

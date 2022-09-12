@@ -14,4 +14,76 @@
  * limitations under the License.
  *@
 
-<div class="govuk-body">Task list's speciment control UI to be implemented</div>
+@import cats.syntax.eq._
+@import cats.instances.int._
+@import uk.gov.hmrc.gform.models.{ DataExpanded, PageModel }
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SectionNumber, SectionTitle4Ga }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Task
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.TaskNumber
+
+@(formTemplate: FormTemplate,
+  taskList: SectionNumber.TaskList,
+  pages: List[(PageModel[DataExpanded], SectionNumber.TaskList)],
+  tasks: List[Task]
+)(implicit l: LangADT, sse: SmartStringEvaluator)
+
+@navigationLink(sectionNumber: SectionNumber, label: String, templateId: String) = {
+ @defining(pages(taskList.sectionNumber)) { case (page, pageSectionNumber) =>
+   @defining(SectionTitle4Ga.sectionTitle4GaFactory(page, taskList).value) { sectionTitle4Ga =>
+      <a href="/submissions/form/@templateId/@sectionTitle4Ga?n=@sectionNumber.value&se=t&ff=t" class="govuk-link">@label</a>
+   }
+ }
+}
+
+@defining(formTemplate._id.value, pages.size) { case (templateId, total) =>
+  <div class="govuk-body">
+     <div><a href="@uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplate._id, None).path" class="govuk-link">Tasks</a></div>
+     <div>
+       <select id="specimenNavigationTasks" class="govuk-select">
+           @tasks.zipWithIndex.map { case (task, index) =>
+            @defining(if(taskList.coordinates.taskNumber.value === index) "selected" else ""){ case selected =>
+              <option value="@{index}" data-title="@task.title.value" data-coordinates="@{taskList.coordinates.copy(taskNumber = TaskNumber(index)).value}" @selected>
+              @{task.title.value}
+              </option>
+            })
+         }
+       </select>
+     </div>
+     <div>
+       <div>
+         @if(taskList.sectionNumber >= 1) { @navigationLink(taskList.decrement, "Previous", templateId) } else { Previous }
+       </div>
+       <div>
+          <select id="specimenNavigation" class="govuk-select">
+            @pages.map { case (pageModel, sectionIndex) =>
+              @defining(pageModel.title.value, if(taskList.sectionNumber === sectionIndex.sectionNumber) "selected" else "") { case (title, selected) =>
+                @defining(
+                  SectionTitle4Ga.sectionTitle4GaFactory(pageModel, sectionIndex).value, title) { case (sectionTitle4Ga, title) =>
+                    <option value="@{sectionIndex.sectionNumber}" data-title="@sectionTitle4Ga" data-coordinates="@{taskList.coordinates.value}" @selected>@title</option>
+                  }
+                }
+            }
+          </select>
+       </div>
+       <div>
+           @if(taskList.sectionNumber < total - 1) { @navigationLink(taskList.increment, "Next", templateId) } else { Next }
+       </div>
+     </div>
+  </div>
+
+  <script type="text/javascript">
+    document.getElementById("specimenNavigation").addEventListener("change", function(el) {
+     var index = el.target.value;
+     var sectionTitle4Ga = el.target.options[index].getAttribute("data-title");
+     var coordinates = el.target.options[index].getAttribute("data-coordinates");
+     window.location.href = '/submissions/form/@templateId/' + sectionTitle4Ga + '?n=' + coordinates+ ',' + index + '&se=t&ff=t';
+    });
+    document.getElementById("specimenNavigationTasks").addEventListener("change", function(el) {
+     var index = el.target.value;
+     var sectionTitle4Ga = el.target.options[index].getAttribute("data-title");
+     var coordinates = el.target.options[index].getAttribute("data-coordinates");
+     window.location.href = '/submissions/form/@templateId/' + sectionTitle4Ga + '?n=' + coordinates+ ',0' + '&se=t&ff=t';
+    });
+  </script>
+}

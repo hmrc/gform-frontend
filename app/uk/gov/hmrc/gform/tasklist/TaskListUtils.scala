@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.tasklist
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormKind, FormTemplate, Task, TaskNumber, TaskSectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormKind, FormTemplate, Task, TaskNumber, TaskSection, TaskSectionNumber }
 
 object TaskListUtils {
 
@@ -31,6 +31,15 @@ object TaskListUtils {
             .lift(taskNumber.value)
             .fold(invalidTaskNumber(formTemplate, taskSectionNumber, taskNumber))(f)
         }
+    }
+
+  def withTaskSection[A](formTemplate: FormTemplate, taskSectionNumber: TaskSectionNumber)(
+    f: TaskSection => A
+  ): A =
+    withTaskList(formTemplate) { taskList =>
+      taskList.sections.toList
+        .lift(taskSectionNumber.value)
+        .fold(invalidTaskSectionNumber(formTemplate, taskSectionNumber))(f)
     }
 
   def withTaskList[A](formTemplate: FormTemplate)(f: FormKind.TaskList => A): A =

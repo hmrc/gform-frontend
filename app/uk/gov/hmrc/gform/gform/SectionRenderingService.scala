@@ -92,6 +92,7 @@ import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukSummaryList, Govuk
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 import MiniSummaryRow._
+import uk.gov.hmrc.gform.tasklist.TaskListUtils
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
@@ -507,7 +508,25 @@ class SectionRenderingService(
           classicPages
         )
       } { taskList =>
-        specimen.navigation_tasklist()
+        val pages: NonEmptyList[(PageModel[DataExpanded], SectionNumber)] =
+          formModelRenderPageOptics.formModel.pagesWithIndex
+
+        val taskListPages: List[(PageModel[DataExpanded], SectionNumber.TaskList)] =
+          pages.toList.collect {
+            case (pageModel, c @ SectionNumber.TaskList(coordinates, _)) if coordinates === taskList.coordinates =>
+              pageModel -> c
+          }
+
+        val tasks = TaskListUtils.withTaskSection(formTemplate, taskList.coordinates.taskSectionNumber) {
+          case section =>
+            section.tasks.toList
+        }
+        specimen.navigation_tasklist(
+          formTemplate,
+          taskList,
+          taskListPages,
+          tasks
+        )
       }
     } else HtmlFormat.empty
 
