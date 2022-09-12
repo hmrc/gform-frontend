@@ -98,7 +98,7 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
 
     def forCoordinate[A](coordinates: Coordinates): Set[VariadicValue] = {
       val modelComponentIds: List[ModelComponentId] =
-        allFormComponentsForCoordinates(coordinates).map(_.multiValueId).flatMap(_.toModelComponentIds)
+        allEditableFormComponentsForCoordinates(coordinates).map(_.multiValueId).flatMap(_.toModelComponentIds)
 
       modelComponentIds.toSet.flatMap(recData.variadicFormData.get)
 
