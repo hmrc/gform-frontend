@@ -40,7 +40,7 @@
   <div class="govuk-body">
      <div><a href="@uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplate._id, None).path" class="govuk-link">Tasks</a></div>
      <div>
-       <select id="specimenNavigationTasks" class="govuk-select">
+       <select id="specimenNavigationTasks" class="govuk-select govuk-!-width-full">
            @tasks.zipWithIndex.map { case (task, index) =>
             @defining(if(taskList.coordinates.taskNumber.value === index) "selected" else ""){ case selected =>
               <option value="@{index}" data-title="@task.title.value" data-coordinates="@{taskList.coordinates.copy(taskNumber = TaskNumber(index)).value}" @selected>
@@ -55,7 +55,7 @@
          @if(taskList.sectionNumber >= 1) { @navigationLink(taskList.decrement, "Previous", templateId) } else { Previous }
        </div>
        <div>
-          <select id="specimenNavigation" class="govuk-select">
+          <select id="specimenNavigation" class="govuk-select govuk-!-width-full">
             @pages.map { case (pageModel, sectionIndex) =>
               @defining(pageModel.title.value, if(taskList.sectionNumber === sectionIndex.sectionNumber) "selected" else "") { case (title, selected) =>
                 @defining(
