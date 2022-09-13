@@ -66,7 +66,8 @@
       }
     }
     @formTemplate.submitSection.map{ submitSection =>
-        @{task_submit_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(taskList.sections.size +1 ), submitSection, completedSection === taskList.sections.size)}
+        @{task_submit_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(taskList.sections.size +1 ), submitSection,
+            completedSection === taskList.sections.size || formTemplate.isSpecimen)}
     }
   </ol>
 }

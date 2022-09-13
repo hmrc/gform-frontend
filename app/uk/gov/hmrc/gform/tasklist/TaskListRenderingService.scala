@@ -84,36 +84,40 @@ class TaskListRenderingService(
     val taskList: BracketsWithSectionNumber.TaskList[Visibility] = formModel.brackets.unsafeToTaskList
     val coordinates: NonEmptyList[Coordinates] = taskList.brackets.map(_._1)
 
-    val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics.formModelRenderPageOptics.formModel)
-    val notRequiredResolver = NotRequiredResolver.create(formModelOptics.formModelVisibilityOptics)
-    coordinates
-      .traverse { coordinate =>
-        val dataForCoordinate: Set[VariadicValue] =
-          formModelOptics.formModelVisibilityOptics.data.forCoordinate(coordinate)
+    if (cache.formTemplate.isSpecimen) {
+      Future.successful(coordinates.map(coordinates => coordinates -> TaskStatus.NotStarted))
+    } else {
+      val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics.formModelRenderPageOptics.formModel)
+      val notRequiredResolver = NotRequiredResolver.create(formModelOptics.formModelVisibilityOptics)
+      coordinates
+        .traverse { coordinate =>
+          val dataForCoordinate: Set[VariadicValue] =
+            formModelOptics.formModelVisibilityOptics.data.forCoordinate(coordinate)
 
-        for {
-          formHandlerResult <-
-            validationService.validateFormModel(
-              cache,
-              envelope,
-              formModelOptics.formModelVisibilityOptics,
-              Some(coordinate)
-            )
-        } yield {
-          val taskStatus =
-            if (dataForCoordinate.isEmpty) {
-              TaskStatus.NotStarted
-            } else if (formHandlerResult.isFormValid) {
-              TaskStatus.Completed
-            } else {
-              TaskStatus.InProgress
-            }
-          coordinate -> taskStatus
+          for {
+            formHandlerResult <-
+              validationService.validateFormModel(
+                cache,
+                envelope,
+                formModelOptics.formModelVisibilityOptics,
+                Some(coordinate)
+              )
+          } yield {
+            val taskStatus =
+              if (dataForCoordinate.isEmpty) {
+                TaskStatus.NotStarted
+              } else if (formHandlerResult.isFormValid) {
+                TaskStatus.Completed
+              } else {
+                TaskStatus.InProgress
+              }
+            coordinate -> taskStatus
+          }
+
         }
-
-      }
-      .map(cannotStartYetResolver.resolveCannotStartYet)
-      .map(notRequiredResolver.resolveNotRequired)
+        .map(cannotStartYetResolver.resolveCannotStartYet)
+        .map(notRequiredResolver.resolveNotRequired)
+    }
 
   }
 

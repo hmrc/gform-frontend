@@ -79,6 +79,15 @@ class TaskListController(
         TaskListUtils.withTask(cache.formTemplate, taskSectionNumber, taskNumber) { task =>
           val sectionTitle4Ga: SectionTitle4Ga = SectionTitle4Ga(task.title.value)
 
+          def sectionUrl(sectionNumber: SectionNumber) = uk.gov.hmrc.gform.gform.routes.FormController.form(
+            cache.formTemplate._id,
+            maybeAccessCode,
+            sectionNumber,
+            sectionTitle4Ga,
+            SuppressErrors.Yes,
+            FastForward.StopAt(sectionNumber.increment)
+          )
+
           if (isCompleted) {
             val isSummarySectionVisible = task.summarySection
               .flatMap(_.includeIf)
@@ -98,24 +107,22 @@ class TaskListController(
               val sn = formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
                 SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
               )
-              val href = uk.gov.hmrc.gform.gform.routes.FormController.form(
-                cache.formTemplate._id,
-                maybeAccessCode,
-                sn,
-                sectionTitle4Ga,
-                SuppressErrors.Yes,
-                FastForward.StopAt(sn.increment)
-              )
-              Redirect(href).pure[Future]
+              Redirect(sectionUrl(sn)).pure[Future]
             }
           } else {
-            fastForwardService
-              .redirectFastForward[SectionSelectorType.Normal](
-                cache,
-                maybeAccessCode,
-                formModelOptics,
-                Some(Coordinates(taskSectionNumber, taskNumber))
-              )
+            if (cache.formTemplate.isSpecimen) {
+              val sn = SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
+
+              Redirect(sectionUrl(sn)).pure[Future]
+            } else {
+              fastForwardService
+                .redirectFastForward[SectionSelectorType.Normal](
+                  cache,
+                  maybeAccessCode,
+                  formModelOptics,
+                  Some(Coordinates(taskSectionNumber, taskNumber))
+                )
+            }
           }
         }
     }
