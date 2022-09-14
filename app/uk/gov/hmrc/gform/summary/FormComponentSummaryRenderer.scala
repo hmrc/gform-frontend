@@ -180,8 +180,7 @@ object FormComponentSummaryRenderer {
       case IsInformationMessage(_) =>
         List(SummaryListRow())
 
-      case IsTableComp(_) =>
-        List(SummaryListRow())
+      case IsTableComp(_) => List[SummaryListRow]()
 
       case IsFileUpload(_) =>
         getFileUploadSummaryListRows(
