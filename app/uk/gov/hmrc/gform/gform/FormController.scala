@@ -656,11 +656,15 @@ class FormController(
                   commingFromSn.fold { classic =>
                     fastForwardSn
                   } { taskList =>
-                    val firstVisibleSectionNumber =
-                      formModelOptics.formModelVisibilityOptics.formModel.taskList.nextVisibleSectionNumber(
-                        SectionNumber.TaskList(sectionNumber.toCoordinatesUnsafe, 0)
-                      )
-                    if (taskList.sectionNumber === firstVisibleSectionNumber.sectionNumber) {
+                    val formModel = formModelOptics.formModelVisibilityOptics.formModel
+                    val firstVisibleSectionNumber = formModel.taskList.nextVisibleSectionNumber(
+                      SectionNumber.TaskList(sectionNumber.toCoordinatesUnsafe, 0)
+                    )
+                    val isAddToListRepeaterSection = formModel.addToListRepeaterSectionNumbers.contains(taskList)
+
+                    if (
+                      taskList.sectionNumber === firstVisibleSectionNumber.sectionNumber || isAddToListRepeaterSection
+                    ) {
                       uk.gov.hmrc.gform.tasklist.routes.TaskListController
                         .landingPage(cache.formTemplateId, maybeAccessCode)
                     } else {
