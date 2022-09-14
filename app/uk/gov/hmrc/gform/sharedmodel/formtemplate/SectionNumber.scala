@@ -55,6 +55,11 @@ sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Seri
   } { case SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), sectionNumber) =>
     SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), sectionNumber + 1)
   }
+  def decrement: SectionNumber = fold[SectionNumber] { classic =>
+    SectionNumber.Classic(classic.sectionNumber - 1)
+  } { case SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), sectionNumber) =>
+    SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), sectionNumber - 1)
+  }
 
   def +(i: Int): SectionNumber = fold[SectionNumber] { classic =>
     SectionNumber.Classic(classic.sectionNumber + i)
