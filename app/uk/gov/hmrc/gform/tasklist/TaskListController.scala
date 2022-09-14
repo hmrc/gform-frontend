@@ -105,14 +105,14 @@ class TaskListController(
               ).pure[Future]
             } else {
               val formModel = formModelOptics.formModelVisibilityOptics.formModel
-              val nextVisibleSection = formModel.taskList.nextVisibleSectionNumber(
+              val nextVisibleSectionNumber = formModel.taskList.nextVisibleSectionNumber(
                 SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
               )
-              val isAddToListSectionNumber = formModel.addToListSectionNumbers.contains(nextVisibleSection)
+              val isAddToListSectionNumber = formModel.addToListSectionNumbers.contains(nextVisibleSectionNumber)
 
               val sn =
                 if (isAddToListSectionNumber) formModel.addToListRepeaterSectionNumbers.reverse.head
-                else nextVisibleSection
+                else nextVisibleSectionNumber
 
               Redirect(sectionUrl(sn)).pure[Future]
             }
