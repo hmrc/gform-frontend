@@ -298,6 +298,8 @@ case class FormModel[A <: PageMode](
       acc ++ pm.allFormComponentIds.map(fcId => fcId -> sn).toMap
     }
 
+  val addToListSectionNumbers = addToListBrackets.flatMap(_.toPageModelWithNumber.toList).map(_._2)
+  val addToListRepeaterSectionNumbers = addToListBrackets.flatMap(_.iterations.toList).map(_.repeater.sectionNumber)
 }
 
 object FormModel {
