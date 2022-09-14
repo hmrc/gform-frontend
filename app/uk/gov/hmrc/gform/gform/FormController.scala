@@ -660,10 +660,7 @@ class FormController(
                     val firstVisibleSectionNumber = formModel.taskList.nextVisibleSectionNumber(
                       SectionNumber.TaskList(sectionNumber.toCoordinatesUnsafe, 0)
                     )
-                    val isAddToListRepeaterSection = formModel.addToListBrackets
-                      .flatMap(_.iterations.toList)
-                      .map(_.repeater.sectionNumber)
-                      .contains(taskList)
+                    val isAddToListRepeaterSection = formModel.addToListRepeaterSectionNumbers.contains(taskList)
 
                     if (
                       taskList.sectionNumber === firstVisibleSectionNumber.sectionNumber || isAddToListRepeaterSection
