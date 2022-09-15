@@ -92,7 +92,9 @@ case class FormComponent(
   val staticTypeData: StaticTypeData = StaticTypeData(exprType, textConstraint)
 
   def hideOnSummary: Boolean =
-    presentationHint.fold(false)(x => x.contains(InvisibleInSummary)) || IsInformationMessage.unapply(this).isDefined
+    presentationHint.fold(false)(x => x.contains(InvisibleInSummary)) ||
+      IsInformationMessage.unapply(this).isDefined ||
+      IsTableComp.unapply(this).isDefined
 
   def withIndex(index: Int) = copy(id = id.withIndex(index))
 }
