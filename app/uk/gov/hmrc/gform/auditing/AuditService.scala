@@ -22,10 +22,11 @@ import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
-import uk.gov.hmrc.http.{ HeaderCarrier }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
 
@@ -138,7 +139,8 @@ trait AuditService {
       "UserId"         -> form.userId.value,
       "CustomerId"     -> customerId.id,
       "UserValues"     -> userValues,
-      "UserInfo"       -> userInfo
+      "UserInfo"       -> userInfo,
+      "SubmissionRef"  -> SubmissionRef(form.envelopeId)
     )
   }
 
