@@ -1021,7 +1021,7 @@ class SectionRenderingService(
             htmlForHmrcTaxPeriod(formComponent, ei, validationResult, obligations, htp)
           case MiniSummaryList(rows) =>
             htmlForMiniSummaryList(formComponent, formTemplateId, rows, ei, validationResult, obligations)
-          case t @ TableComp(_, _) => htmlForTableComp(formComponent, t, ei)
+          case t: TableComp => htmlForTableComp(formComponent, t, ei)
         }
       }
     } { case r @ RenderUnit.Group(_, _) =>
@@ -1284,8 +1284,10 @@ class SectionRenderingService(
       case valueRow: TableValueRow if isVisibleValueRow(valueRow) =>
         valueRow.values.map { v =>
           val isValueNumeric = v.value.interpolations match {
-            case List(FormCtx(formComponentId)) => formModel.fcLookup.get(formComponentId).get.isNumeric
-            case _                              => false
+            case List(FormCtx(formComponentId))                => formModel.fcLookup.get(formComponentId).get.isNumeric
+            case List(Typed(_, ExplicitExprType.Sterling(_)))  => true
+            case List(Typed(_, ExplicitExprType.Number(_, _))) => true
+            case _                                             => false
           }
           val classes = v.cssClass.toList.flatMap(_.split(" +")) :+ {
             if (isValueNumeric) "govuk-table__cell--numeric" else ""
@@ -1298,13 +1300,23 @@ class SectionRenderingService(
         }
     }
     val hs = table.header.map(h => HeadCell(content = HtmlContent(sse(h, false))))
-    val caption = fcrd.label(formComponent)
+    val caption: Option[String] = table.caption.orElse {
+      val c = fcrd.label(formComponent)
+      if (c.trim.isEmpty()) Option.empty[String] else Option(c)
+    }
+
+    val captionClasses = {
+      val c = table.captionClasses.trim
+      if (c.isEmpty()) "govuk-table__caption--m" else c
+    }
     new GovukTable()(
       Table(
         rows = filteredRows,
         head = Some(hs),
-        caption = if (caption.trim.isEmpty()) None else Some(caption),
-        captionClasses = "govuk-table__caption--m"
+        caption = caption,
+        captionClasses = captionClasses,
+        classes = table.classes,
+        firstCellIsHeader = table.firstCellIsHeader
       )
     )
   }
