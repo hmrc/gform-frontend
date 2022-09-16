@@ -290,7 +290,11 @@ object FormTemplateBuilder {
     true,
     FileInfoConfig.allAllowedFileTypes,
     None,
-    Some(UserResearchUrl("https://test.service.gov.uk"))
+    Some(UserResearchUrl("https://test.service.gov.uk")),
+    None,
+    None,
+    None,
+    None
   )
 
   def addToListQuestion(addAnotherQuestionName: String): FormComponent =

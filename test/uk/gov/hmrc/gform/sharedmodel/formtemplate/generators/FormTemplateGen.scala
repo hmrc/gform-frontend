@@ -113,7 +113,11 @@ trait FormTemplateGen {
       displayHMRCLogo,
       FileInfoConfig.allAllowedFileTypes,
       None,
-      userResearchUrl
+      userResearchUrl,
+      None,
+      None,
+      None,
+      None
     )
 }
 
