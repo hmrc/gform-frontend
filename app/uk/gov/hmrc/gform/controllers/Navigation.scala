@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.controllers
 
+import cats.syntax.eq._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ Bracket, Visibility }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -46,18 +47,21 @@ trait Navigation {
     formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
       .map(_.iterations.toList.map(_.repeater.sectionNumber))
 
-  val filteredSectionNumbers: SectionNumber => List[SectionNumber] = sectionNumber =>
+  val filteredSectionNumbers: SectionNumber => List[SectionNumber] = sectionNumber => {
+    val availableSnByCoordinates = availableSectionNumbers.filter(
+      _.fold(_ => true)(taskList => taskList.coordinates === sectionNumber.toCoordinatesUnsafe)
+    )
     if (addToListRepeaterSectionNumbers.contains(sectionNumber)) {
-      val excludesAddToListNonRepeaterSectionNumbers = availableSectionNumbers
-        .filterNot(addToListNonRepeaterSectionNumbers.toSet)
+      val excludesAddToListNonRepeaterSectionNumbers =
+        availableSnByCoordinates.filterNot(addToListNonRepeaterSectionNumbers.toSet)
 
       samePageRepeatersSectionNumbers
         .find(_.contains(sectionNumber))
         .fold(excludesAddToListNonRepeaterSectionNumbers) { l =>
           excludesAddToListNonRepeaterSectionNumbers.filterNot(l.toSet)
         }
-    } else
-      availableSectionNumbers
+    } else availableSnByCoordinates
+  }
 }
 
 // TODO: Origin should not be in controllers, but Navigator probably should!
@@ -79,9 +83,8 @@ case class Navigator(
   private lazy val maxSectionNumber: SectionNumber =
     availableSectionNumbers.max(Ordering.by((_: SectionNumber).numberValue))
 
-  val previousOrCurrentSectionNumber: SectionNumber =
+  val previousSectionNumber: Option[SectionNumber] =
     filteredSectionNumbers(sectionNumber).reverse
       .find(_ < sectionNumber)
-      .getOrElse(sectionNumber)
 
 }
