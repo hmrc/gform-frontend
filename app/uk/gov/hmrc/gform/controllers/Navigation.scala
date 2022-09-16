@@ -48,19 +48,19 @@ trait Navigation {
       .map(_.iterations.toList.map(_.repeater.sectionNumber))
 
   val filteredSectionNumbers: SectionNumber => List[SectionNumber] = sectionNumber => {
-    val availableSnByCoordinates = availableSectionNumbers.filter(
+    val availableSn = availableSectionNumbers.filter(
       _.fold(_ => true)(taskList => taskList.coordinates === sectionNumber.toCoordinatesUnsafe)
     )
     if (addToListRepeaterSectionNumbers.contains(sectionNumber)) {
       val excludesAddToListNonRepeaterSectionNumbers =
-        availableSnByCoordinates.filterNot(addToListNonRepeaterSectionNumbers.toSet)
+        availableSn.filterNot(addToListNonRepeaterSectionNumbers.toSet)
 
       samePageRepeatersSectionNumbers
         .find(_.contains(sectionNumber))
         .fold(excludesAddToListNonRepeaterSectionNumbers) { l =>
           excludesAddToListNonRepeaterSectionNumbers.filterNot(l.toSet)
         }
-    } else availableSnByCoordinates
+    } else availableSn
   }
 }
 
