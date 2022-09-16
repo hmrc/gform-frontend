@@ -823,7 +823,11 @@ trait ExampleFormTemplate {
       true,
       FileInfoConfig.allAllowedFileTypes,
       None,
-      Some(userResearchUrl)
+      Some(userResearchUrl),
+      None,
+      None,
+      None,
+      None
     )
 }
 

@@ -124,8 +124,12 @@ trait FormTemplateSample {
     emailParameters = None,
     save4LaterInfoText = None,
     allowedFileTypes = FileInfoConfig.allAllowedFileTypes,
+    fileSizeLimit = None,
     userResearchUrl = Some(UserResearchUrl("https://test.service.gov.uk")),
-    fileSizeLimit = None
+    referrerConfig = None,
+    emailExpr = None,
+    accessibilityUrl = None,
+    exitPages = None
   )
 
   val formTemplateEmailAuthWithOptionalDetails = formTemplateEmailAuth.copy(authConfig =
