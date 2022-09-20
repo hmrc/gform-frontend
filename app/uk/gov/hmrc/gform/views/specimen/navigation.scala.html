@@ -18,11 +18,12 @@
 @import cats.instances.int._
 @import uk.gov.hmrc.gform.models.{ DataExpanded, PageModel }
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SectionNumber, SectionTitle4Ga }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ExprPrettyPrint, IncludeIf, FormTemplate, SectionNumber, SectionTitle4Ga }
 
 @(formTemplate: FormTemplate,
   sectionNumber: SectionNumber.Classic,
-  pages: List[(PageModel[DataExpanded], SectionNumber.Classic)]
+  pages: List[(PageModel[DataExpanded], SectionNumber.Classic)],
+  maybeIncludeIf: Option[IncludeIf]
 )(implicit l: LangADT, sse: SmartStringEvaluator)
 
 @navigationLink(sectionIndex: Int, label: String, templateId: String) = {
@@ -63,6 +64,7 @@
     } else {
       Next
     }
+    <div>@maybeIncludeIf.fold("")(includeIf => "Only visible if: " + ExprPrettyPrint.prettyPrintBooleanExpr(includeIf.booleanExpr))</div>
   </div>
 
   <script type="text/javascript">

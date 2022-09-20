@@ -94,7 +94,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       AuthCacheWithForm(
         retrievals,
         form,
-        FormTemplateWithRedirects.noRedirects(formTemplate),
+        FormTemplateWithRedirects.noRedirects(formTemplate, None),
         Role.Customer,
         maybeAccessCode,
         LocalisedLookupOptions(Map())

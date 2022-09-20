@@ -29,6 +29,7 @@ import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.config.FileInfoConfig
+import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals, OtherRetrievals }
@@ -129,6 +130,7 @@ class SectionRenderingService(
   def renderAddToListCheckYourAnswers[T <: PageMode](
     checkYourAnswers: CheckYourAnswers[T],
     formTemplate: FormTemplate,
+    specimenSource: Option[FormTemplate],
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     addToListIteration: Bracket.AddToListIteration[Visibility],
@@ -210,7 +212,7 @@ class SectionRenderingService(
       pageLevelErrorHtml,
       checkYourAnswers.expandedHeader.map(markDownParser),
       checkYourAnswers.expandedFooter.map(markDownParser),
-      specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics)
+      specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics)
     )
   }
 
@@ -223,6 +225,7 @@ class SectionRenderingService(
     sectionNumber: SectionNumber,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     formTemplate: FormTemplate,
+    specimenSource: Option[FormTemplate],
     validationResult: ValidationResult,
     retrievals: MaterialisedRetrievals
   )(implicit
@@ -353,7 +356,7 @@ class SectionRenderingService(
       determineContinueLabelKey(retrievals.continueLabelKey, formTemplate.draftRetrievalMethod.isNotPermitted, None),
       shouldDisplayBack,
       snippets,
-      specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics),
+      specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
       maybeAccessCode,
       sectionNumber
     )
@@ -364,6 +367,7 @@ class SectionRenderingService(
     sectionNumber: SectionNumber,
     formHandlerResult: FormHandlerResult,
     formTemplate: FormTemplate,
+    specimenSource: Option[FormTemplate],
     envelopeId: EnvelopeId,
     singleton: Singleton[DataExpanded],
     formMaxAttachmentSizeMB: Int,
@@ -477,7 +481,8 @@ class SectionRenderingService(
       shouldDisplayHeading = !formLevelHeading,
       shouldDisplayContinue = !page.isTerminationPage,
       frontendAppConfig,
-      specimenNavigation = specimenNavigation(formTemplate, sectionNumber, formModelOptics.formModelRenderPageOptics),
+      specimenNavigation =
+        specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
       maybeAccessCode,
       sectionNumber,
       fastForward
@@ -485,8 +490,22 @@ class SectionRenderingService(
 
   }
 
+  private def pageIncludeIf(page: Page[Basic], formComponentId: FormComponentId): Option[IncludeIf] = {
+    val firstPageFormComponentId: Option[FormComponentId] =
+      page.fields.headOption.map(_.id)
+
+    firstPageFormComponentId.flatMap { firstPageFcId =>
+      if (firstPageFcId === formComponentId) {
+        page.includeIf
+      } else {
+        Option.empty[IncludeIf]
+      }
+    }
+  }
+
   private def specimenNavigation(
     formTemplate: FormTemplate,
+    specimenSource: Option[FormTemplate],
     sectionNumber: SectionNumber,
     formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo]
   )(implicit
@@ -498,6 +517,30 @@ class SectionRenderingService(
         val pages: NonEmptyList[(PageModel[DataExpanded], SectionNumber)] =
           formModelRenderPageOptics.formModel.pagesWithIndex
 
+        val currentPageModel: Option[PageModel[DataExpanded]] =
+          pages.collectFirst { case (pageModel, sectionNumber) if sectionNumber === classic => pageModel }
+
+        val firstFormComponentId: Option[FormComponentId] = currentPageModel.flatMap(_.allFormComponentIds.headOption)
+
+        val maybeIncludeIf: Option[IncludeIf] =
+          (specimenSource, firstFormComponentId) match {
+            case (Some(specimenSrc), Some(formComponentId)) =>
+              specimenSrc.formKind.fold { classicKind =>
+                val qqq: List[Option[IncludeIf]] = classicKind.sections.flatMap { section =>
+                  section.fold { nonRepeatingSection =>
+                    pageIncludeIf(nonRepeatingSection.page, formComponentId) :: Nil
+                  } { repeatedSection =>
+                    pageIncludeIf(repeatedSection.page, formComponentId) :: Nil
+                  } { addToList =>
+                    addToList.pages.toList.map(page => pageIncludeIf(page, formComponentId))
+                  }
+                }
+                qqq.flatMap(_.toList).headOption
+              }(taskListKind => throw new Exception("dsadsa"))
+
+            case _ => throw new Exception("dsadsaddd")
+          }
+
         val classicPages: List[(PageModel[DataExpanded], SectionNumber.Classic)] =
           pages.toList.collect { case (pageModel, c @ SectionNumber.Classic(_)) =>
             pageModel -> c
@@ -505,7 +548,8 @@ class SectionRenderingService(
         specimen.navigation(
           formTemplate,
           classic,
-          classicPages
+          classicPages,
+          maybeIncludeIf
         )
       } { taskList =>
         val pages: NonEmptyList[(PageModel[DataExpanded], SectionNumber)] =

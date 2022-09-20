@@ -376,19 +376,26 @@ class AuthenticatedRequestActions(
       Redirect(url).pure[Future]
     }
 
+    def noSpecimen(formTemplateId: FormTemplateId): FormTemplateId = FormTemplateId(
+      formTemplateId.value.replace("specimen-", "")
+    )
+
     def whenFormExists(form: Form): Future[Result] =
       for {
         _ <- MDCHelpers.addFormIdToMdc(form._id)
         formTemplateForForm <- if (form.formTemplateId === formTemplate._id)
                                  formTemplateWithRedirects.formTemplate.pure[Future]
                                else gformConnector.getFormTemplate(form.formTemplateId)
+        specimenSource <- if (formTemplateForForm.isSpecimen) {
+                            gformConnector.getFormTemplate(noSpecimen(formTemplateForForm._id)).map(Some(_))
+                          } else None.pure[Future]
         formUpd = if (form.status === Submitted) {
                     form.copy(formTemplateId = formTemplate._id)
                   } else form
         cache = AuthCacheWithForm(
                   retrievals,
                   formUpd,
-                  FormTemplateWithRedirects.noRedirects(formTemplateForForm),
+                  FormTemplateWithRedirects.noRedirects(formTemplateForForm, specimenSource),
                   role,
                   maybeAccessCode,
                   lookupOptions
@@ -621,7 +628,7 @@ case class AuthCacheWithoutForm(
     AuthCacheWithForm(
       retrievals,
       form,
-      FormTemplateWithRedirects.noRedirects(formTemplate),
+      FormTemplateWithRedirects.noRedirects(formTemplate, None),
       role,
       accessCode,
       countryLookupOptions

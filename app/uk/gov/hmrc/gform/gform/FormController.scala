@@ -121,6 +121,7 @@ class FormController(
                     sectionNumber,
                     handlerResult,
                     cache.formTemplate,
+                    cache.formTemplateWithRedirects.specimenSource,
                     cache.form.envelopeId,
                     singleton,
                     cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB),
@@ -215,6 +216,7 @@ class FormController(
                         renderer.renderAddToListCheckYourAnswers(
                           checkYourAnswers.checkYourAnswers,
                           cache.formTemplate,
+                          cache.formTemplateWithRedirects.specimenSource,
                           maybeAccessCode,
                           sectionNumber,
                           visibleIteration,
@@ -246,6 +248,7 @@ class FormController(
                               sectionNumber,
                               formModelOptics,
                               cache.formTemplate,
+                              cache.formTemplateWithRedirects.specimenSource,
                               handlerResult.validationResult,
                               cache.retrievals
                             )
