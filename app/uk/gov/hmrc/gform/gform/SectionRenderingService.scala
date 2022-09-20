@@ -331,11 +331,14 @@ class SectionRenderingService(
 
     val snippets = limitReached.fold(addAnotherQuestion)(identity)
 
-    val shouldDisplayBack: Boolean =
-      Origin(DataOrigin.unSwapDataOrigin(formModelOptics))
-        .filteredSectionNumbers(sectionNumber)
-        .sorted
-        .exists(_ < sectionNumber)
+    val shouldDisplayBack: Boolean = {
+      if (sectionNumber.isTaskList) true
+      else
+        Origin(DataOrigin.unSwapDataOrigin(formModelOptics))
+          .filteredSectionNumbers(sectionNumber)
+          .sorted
+          .exists(_ < sectionNumber)
+    }
 
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
 

@@ -333,7 +333,7 @@ class FormController(
         val toSectionNumber = Navigator(
           sectionNumber,
           formModelOptics.asInstanceOf[FormModelOptics[Browser]]
-        ).previousOrCurrentSectionNumber
+        ).previousSectionNumber.getOrElse(sectionNumber)
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val bracket = formModel.bracket(toSectionNumber)
 
@@ -632,13 +632,14 @@ class FormController(
             def processBack(
               processData0: ProcessData,
               commingFromSn: SectionNumber,
-              sn: SectionNumber
+              maybePreviousSn: Option[SectionNumber]
             ): Future[Result] = {
 
               val purgeConfirmationData: PurgeConfirmationData =
                 confirmationService.purgeConfirmationData(sectionNumber, processData0, enteredVariadicFormData)
 
               val processData = purgeConfirmationData.f(processData0)
+              val sn = maybePreviousSn.getOrElse(sectionNumber)
 
               def goBack(saveData: Boolean) = {
 
@@ -656,15 +657,7 @@ class FormController(
                   commingFromSn.fold { classic =>
                     fastForwardSn
                   } { taskList =>
-                    val formModel = formModelOptics.formModelVisibilityOptics.formModel
-                    val firstVisibleSectionNumber = formModel.taskList.nextVisibleSectionNumber(
-                      SectionNumber.TaskList(sectionNumber.toCoordinatesUnsafe, 0)
-                    )
-                    val isAddToListRepeaterSection = formModel.addToListRepeaterSectionNumbers.contains(taskList)
-
-                    if (
-                      taskList.sectionNumber === firstVisibleSectionNumber.sectionNumber || isAddToListRepeaterSection
-                    ) {
+                    if (maybePreviousSn.isEmpty) {
                       uk.gov.hmrc.gform.tasklist.routes.TaskListController
                         .landingPage(cache.formTemplateId, maybeAccessCode)
                     } else {
@@ -839,7 +832,7 @@ class FormController(
                            Navigator(
                              sectionNumber,
                              processData.formModelOptics
-                           ).previousOrCurrentSectionNumber
+                           ).previousSectionNumber
                          )
                        case AddGroup(modelComponentId)    => processAddGroup(processData, modelComponentId)
                        case RemoveGroup(modelComponentId) => processRemoveGroup(processData, modelComponentId)
