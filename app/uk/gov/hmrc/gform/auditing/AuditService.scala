@@ -140,7 +140,7 @@ trait AuditService {
       "CustomerId"     -> customerId.id,
       "UserValues"     -> userValues,
       "UserInfo"       -> userInfo,
-      "SubmissionRef"  -> SubmissionRef(form.envelopeId)
+      "SubmissionRef"  -> SubmissionRef(form.envelopeId).value
     )
   }
 
