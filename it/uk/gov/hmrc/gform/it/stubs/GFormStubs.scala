@@ -17,7 +17,7 @@ trait GFormStubs extends FormTemplateSample {
     stubFor(
       WireMock
         .get(s"/gform/formtemplates-with-redirects/${formTemplate._id.value}")
-        .willReturn(ok(JsonUtils.toJsonStr(FormTemplateWithRedirects.noRedirects(formTemplate))))
+        .willReturn(ok(JsonUtils.toJsonStr(FormTemplateWithRedirects.noRedirects(formTemplate, None))))
     )
 
   def gformLatestFormTemplateStub(formTemplate: FormTemplate) =

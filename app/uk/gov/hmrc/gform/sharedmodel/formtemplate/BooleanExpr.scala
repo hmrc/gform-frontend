@@ -41,6 +41,8 @@ sealed trait BooleanExpr {
     case First(formCtx)                   => formCtx :: Nil
     case IsLogin(_)                       => Nil
   }
+
+  def prettyPrint: String = ExprPrettyPrint.prettyPrintBooleanExpr(this)
 }
 
 final case class Equals(left: Expr, right: Expr) extends BooleanExpr

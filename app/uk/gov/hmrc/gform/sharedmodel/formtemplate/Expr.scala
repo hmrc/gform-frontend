@@ -69,6 +69,8 @@ sealed trait Expr extends Product with Serializable {
     loop(this).headOption
   }
 
+  def prettyPrint: String = ExprPrettyPrint.prettyPrintExpr(this)
+
   def leafs[T <: PageMode](formModel: FormModel[T]): List[Expr] = this match {
     case Add(field1: Expr, field2: Expr)         => field1.leafs(formModel) ++ field2.leafs(formModel)
     case Multiply(field1: Expr, field2: Expr)    => field1.leafs(formModel) ++ field2.leafs(formModel)

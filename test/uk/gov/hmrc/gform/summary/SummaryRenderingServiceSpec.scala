@@ -82,7 +82,7 @@ class SummaryRenderingServiceSpec
     val cache = AuthCacheWithForm(
       retrievals,
       form,
-      FormTemplateWithRedirects.noRedirects(formTemplate),
+      FormTemplateWithRedirects.noRedirects(formTemplate, None),
       Role.Customer,
       maybeAccessCode,
       LocalisedLookupOptions(Map())
