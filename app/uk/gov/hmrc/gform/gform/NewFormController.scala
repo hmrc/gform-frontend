@@ -27,6 +27,7 @@ import play.api.mvc._
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.CookieNames._
@@ -188,7 +189,7 @@ class NewFormController(
 
   def decision(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => sse => formModelOptics =>
+      implicit request => implicit l => cache => implicit sse => formModelOptics =>
         val queryParams = QueryParams.fromRequest(request)
         choice.bindFromRequest
           .fold(
@@ -200,14 +201,18 @@ class NewFormController(
             },
             {
               case "continue" =>
-                cache.formTemplate.formKind.fold(_ =>
-                  fastForwardService
-                    .redirectFastForward[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics, None)
-                )(_ =>
-                  Redirect(
-                    uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplateId, noAccessCode)
-                  ).pure[Future]
-                )
+                def continue =
+                  cache.formTemplate.formKind.fold(_ =>
+                    fastForwardService
+                      .redirectFastForward[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics, None)
+                  )(_ =>
+                    Redirect(
+                      uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                        .landingPage(cache.formTemplateId, noAccessCode)
+                    ).pure[Future]
+                  )
+
+                exitPageHandler(cache, formModelOptics, continue)
               case "delete" => fastForwardService.deleteForm(formTemplateId, cache, queryParams)
               case _        => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
             }
@@ -419,6 +424,27 @@ class NewFormController(
   ): Future[Result] =
     Redirect(routes.NewFormController.exitIfNeeded(cache.formTemplate._id, accessCode)).pure[Future]
 
+  private def exitPageHandler(
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    continue: => Future[Result]
+  )(implicit
+    request: Request[AnyContent],
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Future[Result] = {
+    val maybeExitPage = cache.formTemplate.exitPages.flatMap { exitPages =>
+      exitPages.toList.find { exitPage =>
+        formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(exitPage.`if`, None)
+      }
+    }
+
+    maybeExitPage
+      .fold(continue) { exitPage =>
+        Ok(exit_page(cache.formTemplate, exitPage, frontendAppConfig)).pure[Future]
+      }
+  }
+
   def exitIfNeeded(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
@@ -442,16 +468,7 @@ class NewFormController(
                }
         } yield r
 
-        val maybeExitPage = cache.formTemplate.exitPages.flatMap { exitPages =>
-          exitPages.toList.find { exitPage =>
-            formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(exitPage.`if`, None)
-          }
-        }
-
-        maybeExitPage
-          .fold(continue) { exitPage =>
-            Ok(exit_page(cache.formTemplate, exitPage, frontendAppConfig)).pure[Future]
-          }
+        exitPageHandler(cache, formModelOptics, continue)
     }
 
   private def maybeUpdateItmpCache(
