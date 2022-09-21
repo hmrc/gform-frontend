@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ExitPage, FormTemplate }
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+@import uk.gov.hmrc.gform.commons.MarkDownUtil
 
 @(
         formTemplate: FormTemplate,
@@ -38,6 +39,6 @@
 ) {
 
 <h1 class="govuk-label--l">@{exitPage.label.value}</h1>
-<p class="govuk-body">@{exitPage.exitMessage.value}</p>
+<div class="govuk-body">@{MarkDownUtil.markDownParser(exitPage.exitMessage)}</div>
 
 }
