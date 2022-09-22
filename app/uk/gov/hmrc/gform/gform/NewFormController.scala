@@ -446,7 +446,7 @@ class NewFormController(
   }
 
   def exitIfNeeded(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         def continue = for {
           cacheUpdated <- maybeUpdateItmpCache(request, cache, formModelOptics)
