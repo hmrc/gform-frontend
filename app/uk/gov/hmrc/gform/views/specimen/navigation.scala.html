@@ -64,8 +64,8 @@
     } else {
       Next
     }
-    <div>@maybeIncludeIf.fold("")(includeIf => "Only visible if: " + ExprPrettyPrint.prettyPrintBooleanExpr(includeIf.booleanExpr))</div>
   </div>
+  <div class="govuk-body">@maybeIncludeIf.fold("")(includeIf => "Only visible if: " + ExprPrettyPrint.prettyPrintBooleanExpr(includeIf.booleanExpr))</div>
 
   <script type="text/javascript">
     document.getElementById("specimenNavigation").addEventListener("change", function(el) {
