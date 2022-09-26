@@ -34,7 +34,7 @@
 
 <li>
   <h2 class="app-task-list__section">
-    <span class="app-task-list__section-number">@{taskSectionNumber.value + 1} </span> @{taskSection.title.value}
+    <span class="app-task-list__section-number">@{taskSectionNumber.value + 1}&nbsp;</span> @{taskSection.title.value}
   </h2>
   <ul class="app-task-list__items">
     @taskSection.tasks.toList.zipWithIndex.map { case (t, index) =>
