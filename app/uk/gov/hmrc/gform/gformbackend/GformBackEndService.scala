@@ -197,6 +197,7 @@ class GformBackEndService(
       structuredFormData <- StructuredFormDataBuilder(
                               formModelOptics.formModelVisibilityOptics,
                               cache.formTemplate.destinations,
+                              cache.formTemplate.expressionsOutput,
                               lookupRegistry
                             )
       maybeEmailAddress <- cache.formTemplate.emailExpr.traverse { expr =>

@@ -97,7 +97,8 @@ class ReviewService[F[_]: Monad](
     maybeAccessCode: Option[AccessCode]
   )(implicit
     headerCarrier: HeaderCarrier,
-    l: LangADT
+    l: LangADT,
+    m: Messages
   ): F[Unit] =
     for {
       bundle           <- gformBackEnd.getFormBundle(FormIdData.fromForm(cache.form, maybeAccessCode))
@@ -140,7 +141,8 @@ class ReviewService[F[_]: Monad](
     formIds: NonEmptyList[FormIdData]
   )(implicit
     hc: HeaderCarrier,
-    l: LangADT
+    l: LangADT,
+    m: Messages
   ): F[NonEmptyList[BundledFormSubmissionData]] =
     for {
       forms         <- getForms(formIds)
@@ -152,13 +154,15 @@ class ReviewService[F[_]: Monad](
     forms: NonEmptyList[Form],
     formTemplates: Map[FormTemplateId, FormTemplate]
   )(implicit
-    l: LangADT
+    l: LangADT,
+    m: Messages
   ): F[NonEmptyList[BundledFormSubmissionData]] =
     forms.traverse { form =>
       val formModelVisibilityOptics: FormModelVisibilityOptics[D] = null
       StructuredFormDataBuilder[D, F](
         formModelVisibilityOptics,
         formTemplates(form.formTemplateId).destinations,
+        formTemplates(form.formTemplateId).expressionsOutput,
         lookupRegistry
       )
         .map { sfd =>

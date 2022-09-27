@@ -21,7 +21,7 @@ import akka.util.ByteString
 import cats.data.EitherT
 import cats.instances.future._
 import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -115,6 +115,7 @@ class TestOnlyController(
     retrievals: MaterialisedRetrievals
   )(implicit
     l: LangADT,
+    m: Messages,
     hc: HeaderCarrier
   ): EitherT[Future, UnexpectedState, Result] = {
 
@@ -126,6 +127,7 @@ class TestOnlyController(
                               StructuredFormDataBuilder[DataOrigin.Mongo, Future](
                                 formModelVisibilityOptics,
                                 formTemplate.destinations,
+                                formTemplate.expressionsOutput,
                                 lookupRegistry
                               )
                             )
@@ -205,6 +207,7 @@ class TestOnlyController(
     retrievals: MaterialisedRetrievals
   )(implicit
     l: LangADT,
+    m: Messages,
     hc: HeaderCarrier
   ): EitherT[Future, UnexpectedState, Result] = {
 
@@ -216,6 +219,7 @@ class TestOnlyController(
                               StructuredFormDataBuilder[DataOrigin.Mongo, Future](
                                 formModelVisibilityOptics,
                                 formTemplate.destinations,
+                                formTemplate.expressionsOutput,
                                 lookupRegistry
                               )
                             )

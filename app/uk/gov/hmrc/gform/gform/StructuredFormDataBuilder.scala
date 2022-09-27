@@ -26,6 +26,7 @@ import cats.syntax.eq._
 import cats.syntax.traverse._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import play.api.i18n.Messages
 import scala.language.higherKinds
 import scala.util.Try
 import uk.gov.hmrc.gform.lookup._
@@ -44,17 +45,30 @@ object StructuredFormDataBuilder {
   def apply[D <: DataOrigin, F[_]: Monad](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     destinations: Destinations,
+    expressionsOutput: Option[ExpressionOutput],
     lookupRegistry: LookupRegistry
-  )(implicit l: LangADT, me: MonadError[F, Throwable]): F[ObjectStructure] =
-    new StructuredFormDataBuilder[D, F](formModelVisibilityOptics, destinations, lookupRegistry)
+  )(implicit l: LangADT, m: Messages, me: MonadError[F, Throwable]): F[ObjectStructure] = {
+    val expressionsOutputFields = expressionsOutput.fold(List.empty[Field]) { eo =>
+      eo.lookup.toList.map { case (expressionId, expr) =>
+        val result = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
+        Field(FieldName(expressionId.id), StructuredFormValue.TextNode(result))
+      }
+    }
+    new StructuredFormDataBuilder[D, F](
+      formModelVisibilityOptics,
+      destinations,
+      expressionsOutputFields,
+      lookupRegistry
+    )
       .build()
       .map(StructuredFormValue.ObjectStructure.apply)
-
+  }
 }
 
 class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
   formModelVisibilityOptics: FormModelVisibilityOptics[D],
   destinations: Destinations,
+  expressionsOutputFields: List[Field],
   lookupRegistry: LookupRegistry
 )(implicit me: MonadError[F, Throwable]) {
 
@@ -114,7 +128,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
 
     val restOfTheFields: F[List[Field]] = buildMultiField(multiValuesNotProcessedYet, false)
 
-    (addToListFields, revealingChoiceFields, restOfTheFields).mapN(_ ++ _ ++ _)
+    (addToListFields, revealingChoiceFields, restOfTheFields, expressionsOutputFields.pure[F]).mapN(_ ++ _ ++ _ ++ _)
 
   }
 

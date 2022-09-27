@@ -1029,6 +1029,7 @@ class StructuredFormDataBuilderSpec
       StructuredFormDataBuilder[DataOrigin.Mongo, EitherEffect](
         formModelVisibilityOptics,
         destinationList,
+        None,
         lookupRegistry
       )
     objectStructure shouldBe expected
