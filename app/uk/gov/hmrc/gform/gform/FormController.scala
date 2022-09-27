@@ -100,7 +100,7 @@ class FormController(
         val sectionNumber: SectionNumber =
           formModelOptics.formModelVisibilityOptics.formModel.visibleSectionNumber(browserSectionNumber)
         fileUploadService
-          .getEnvelope(cache.form.envelopeId)
+          .getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
           .flatMap { envelope =>
             def renderSingleton(
               singleton: Singleton[DataExpanded],

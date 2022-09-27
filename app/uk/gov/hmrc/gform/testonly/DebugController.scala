@@ -43,7 +43,7 @@ class DebugController(
         val totalColumns = formModelOptics.formModelRenderPageOptics.formModel.pages.size
 
         for {
-          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
         } yield {
           val page = html.debug.model(formModelOptics, totalColumns, envelope)
           Ok(page)

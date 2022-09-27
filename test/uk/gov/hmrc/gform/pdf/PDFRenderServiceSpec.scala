@@ -122,7 +122,9 @@ class PDFRenderServiceSpec
     implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
       .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
 
-    fileUploadAlgebra.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]) shouldReturn Future.successful(Envelope.empty)
+    fileUploadAlgebra.getEnvelope(*[EnvelopeId])(*[Option[Boolean]])(*[HeaderCarrier]) shouldReturn Future.successful(
+      Envelope.empty
+    )
     validationService.validateFormModel(
       *[CacheData],
       *[EnvelopeWithMapping],

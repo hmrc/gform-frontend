@@ -16,21 +16,31 @@
 
 package uk.gov.hmrc.gform.fileupload
 
+import uk.gov.hmrc.gform.gformbackend.GformConnector
+
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-class FileUploadService(fileUploadConnector: FileUploadConnector)(implicit
+class FileUploadService(fileUploadConnector: FileUploadConnector, gformConnector: GformConnector)(implicit
   ec: ExecutionContext
 ) extends FileUploadAlgebra[Future] {
 
-  override def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] =
-    fileUploadConnector.getEnvelope(envelopeId)
+  override def getEnvelope(envelopeId: EnvelopeId)(objectStore: Option[Boolean])(implicit
+    hc: HeaderCarrier
+  ): Future[Envelope] = objectStore match {
+    case Some(true) => gformConnector.getEnvelope(envelopeId)
+    case _          => fileUploadConnector.getEnvelope(envelopeId)
+  }
 
-  override def getMaybeEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] =
-    fileUploadConnector.getMaybeEnvelope(envelopeId)
+  override def getMaybeEnvelope(envelopeId: EnvelopeId)(objectStore: Option[Boolean])(implicit
+    hc: HeaderCarrier
+  ): Future[Option[Envelope]] = objectStore match {
+    case Some(true) => gformConnector.getMaybeEnvelope(envelopeId)
+    case _          => fileUploadConnector.getMaybeEnvelope(envelopeId)
+  }
 
   override def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): Future[Unit] =
     fileUploadConnector.deleteFile(envelopeId, fileId)

@@ -83,7 +83,7 @@ class FileUploadController(
         val formTemplateWithRedirects = request.attrs(FormTemplateKey)
         val formTemplate = formTemplateWithRedirects.formTemplate
         for {
-          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
           flash    <- checkFile(fileId, envelope, cache.form.envelopeId, formTemplate.allowedFileTypes)
           cacheUpd = cache
                        .modify(_.form.componentIdToFileId)

@@ -18,11 +18,13 @@ package uk.gov.hmrc.gform.fileupload
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
 class FileUploadModule(
   wSHttpModule: WSHttpModule,
-  configModule: ConfigModule
+  configModule: ConfigModule,
+  gformConnector: GformConnector
 )(implicit
   ec: ExecutionContext
 ) {
@@ -35,6 +37,6 @@ class FileUploadModule(
 
   private val fileUploadConnector = new FileUploadConnector(wSHttpModule.auditableWSHttp, fileUploadBaseUrl)
 
-  val fileUploadService = new FileUploadService(fileUploadConnector)
+  val fileUploadService = new FileUploadService(fileUploadConnector, gformConnector)
 
 }
