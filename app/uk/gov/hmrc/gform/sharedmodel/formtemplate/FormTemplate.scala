@@ -52,8 +52,9 @@ case class FormTemplate(
   referrerConfig: Option[ReferrerConfig],
   emailExpr: Option[Expr],
   accessibilityUrl: Option[AccessibilityUrl],
+  expressionsOutput: Option[ExpressionOutput],
   exitPages: Option[NonEmptyList[ExitPage]],
-  expressionsOutput: Option[ExpressionOutput]
+  objectStore: Option[Boolean]
 ) {
 
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")

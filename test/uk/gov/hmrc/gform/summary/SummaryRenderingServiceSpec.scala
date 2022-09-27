@@ -94,7 +94,9 @@ class SummaryRenderingServiceSpec
     val mockValidationService = mock[ValidationService]
     val mockRecalculation = mock[Recalculation[Future, Throwable]]
 
-    mockFileUploadService.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]) returns Future.successful(Envelope(List.empty))
+    mockFileUploadService.getEnvelope(*[EnvelopeId])(*[Option[Boolean]])(*[HeaderCarrier]) returns Future.successful(
+      Envelope(List.empty)
+    )
     mockValidationService
       .validateFormModel(
         *[CacheData],

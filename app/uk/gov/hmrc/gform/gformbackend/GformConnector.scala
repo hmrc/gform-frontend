@@ -29,6 +29,7 @@ import org.apache.commons.text.StringEscapeUtils
 import org.slf4j.LoggerFactory
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.crypto.Crypted
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
@@ -469,5 +470,18 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
         s"${userId.value}/${formTemplateId.value}"
       case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
         s"${userId.value}/${formTemplateId.value}/${accessCode.value}"
+    }
+
+  def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Envelope] = {
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    val url = s"$baseUrl/envelopes/${envelopeId.value}"
+    ws.GET[Envelope](url)
+  }
+
+  def getMaybeEnvelope(
+    envelopeId: EnvelopeId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Envelope]] =
+    getEnvelope(envelopeId).map(Some(_)).recover {
+      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => None
     }
 }

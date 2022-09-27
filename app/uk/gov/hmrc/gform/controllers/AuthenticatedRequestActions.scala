@@ -23,7 +23,6 @@ import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import com.softwaremill.quicklens._
-import java.time.LocalDate
 import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results._
@@ -39,20 +38,21 @@ import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.REFERRER_CHECK_DETAILS
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
-import uk.gov.hmrc.gform.fileupload.FileUploadConnector
+import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.userdetails.Nino
-import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, _ }
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, _ }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-import uk.gov.hmrc.gform.sharedmodel.AffinityGroup
+
+import java.time.LocalDate
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
@@ -81,7 +81,7 @@ trait AuthenticatedRequestActionsAlgebra[F[_]] {
 
 class AuthenticatedRequestActions(
   gformConnector: GformConnector,
-  fileUploadConnector: FileUploadConnector,
+  fileUploadService: FileUploadService,
   authService: AuthService,
   appConfig: AppConfig,
   frontendAppConfig: FrontendAppConfig,
@@ -194,11 +194,13 @@ class AuthenticatedRequestActions(
         case Some(referrerConfig: ReferrerConfig) =>
           val referrerCheckDetails: ReferrerCheckDetails =
             jsonFromSession(request, REFERRER_CHECK_DETAILS, ReferrerCheckDetails.empty)
+
           def isRequestAllowedViaReferrer: Boolean =
             request.headers.get("Referer") match {
               case Some(referrer) => referrerConfig.isAllowed(referrer)
               case None           => false
             }
+
           if (referrerCheckDetails.checkDone(formTemplateId) || isRequestAllowedViaReferrer) {
             authenticateAndProceed(formTemplateId, operation, f).map(
               _.addingToSession(
@@ -419,7 +421,7 @@ class AuthenticatedRequestActions(
               form,
               formTemplateForForm
             )
-        envelope <- fileUploadConnector.getEnvelope(cache.form.envelopeId)
+        envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
         result   <- f(cache)(smartStringEvaluator)(formModelOptics)
       } yield result
 
@@ -528,6 +530,7 @@ class AuthenticatedRequestActions(
     case Credentials(ggId, "GovernmentGateway") => Some(GovernmentGatewayId(ggId))
     case _                                      => None
   }
+
   private def toVerifyId(credentials: Credentials): Option[VerifyId] = credentials match {
     case Credentials(id, "Verify") => Some(VerifyId(id))
     case _                         => None

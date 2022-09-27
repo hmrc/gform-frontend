@@ -137,6 +137,12 @@ class ApplicationModule(context: Context)
     gformBackendModule
   )
 
+  private val fileUploadModule = new FileUploadModule(
+    wSHttpModule,
+    configModule,
+    gformBackendModule.gformConnector
+  )
+
   private val controllersModule = new ControllersModule(
     configModule,
     authModule,
@@ -148,12 +154,8 @@ class ApplicationModule(context: Context)
     errResponder,
     graphModule,
     wSHttpModule,
-    countryLookupOptions
-  )
-
-  private val fileUploadModule = new FileUploadModule(
-    wSHttpModule,
-    configModule
+    countryLookupOptions,
+    fileUploadModule
   )
 
   val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)

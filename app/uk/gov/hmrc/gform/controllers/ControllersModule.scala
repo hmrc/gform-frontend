@@ -18,17 +18,17 @@ package uk.gov.hmrc.gform.controllers
 
 import play.api.BuiltInComponents
 import play.api.mvc.{ DefaultMessagesActionBuilderImpl, DefaultMessagesControllerComponents, MessagesControllerComponents, SessionCookieBaker }
-
-import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.fileupload.FileUploadConnector
+import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
+
+import scala.concurrent.ExecutionContext
 
 class ControllersModule(
   configModule: ConfigModule,
@@ -41,7 +41,8 @@ class ControllersModule(
   errResponder: ErrResponder,
   graphModule: GraphModule,
   wSHttpModule: WSHttpModule,
-  lookupOptions: LocalisedLookupOptions
+  lookupOptions: LocalisedLookupOptions,
+  fileUploadModule: FileUploadModule
 )(implicit
   ec: ExecutionContext
 ) {
@@ -53,19 +54,9 @@ class ControllersModule(
     builtInComponents.defaultActionBuilder
   )
 
-  // Delete after 28 days of deployment of this change
-  private lazy val fileUploadConnector = {
-    lazy val fileUploadBaseUrl = {
-      val baseUrl = configModule.serviceConfig.baseUrl("file-upload")
-      val pathPrefix = configModule.serviceConfig.getConfString("file-upload.path-prefix", "")
-      baseUrl + pathPrefix + "/file-upload"
-    }
-    new FileUploadConnector(wSHttpModule.auditableWSHttp, fileUploadBaseUrl)
-  }
-
   val authenticatedRequestActions: AuthenticatedRequestActions = new AuthenticatedRequestActions(
     gformBackendModule.gformConnector,
-    fileUploadConnector,
+    fileUploadModule.fileUploadService,
     authModule.authService,
     configModule.appConfig,
     configModule.frontendAppConfig,

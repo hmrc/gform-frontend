@@ -108,7 +108,7 @@ class FastForwardService(
           cache.formTemplate
         )
         for {
-          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
           res <-
             updateUserData(
               cache,

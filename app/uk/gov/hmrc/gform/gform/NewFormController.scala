@@ -48,6 +48,7 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode }
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, ItmpRetrievals }
 
@@ -389,7 +390,7 @@ class NewFormController(
       maybeForm <- gformConnector.maybeForm(formIdData, formTemplate)
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
       maybeEnvelope <- maybeFormExceptSubmitted.fold(Option.empty[Envelope].pure[Future]) { f =>
-                         fileUploadService.getMaybeEnvelope(f.envelopeId)
+                         fileUploadService.getMaybeEnvelope(f.envelopeId)(formTemplate.objectStore)
                        }
       mayBeFormExceptWithEnvelope <- (maybeFormExceptSubmitted, maybeEnvelope) match {
                                        case (None, _)          => None.pure[Future]
