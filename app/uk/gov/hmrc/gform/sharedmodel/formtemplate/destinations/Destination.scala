@@ -49,7 +49,7 @@ object Destination {
     businessArea: String,
     includeIf: String,
     failOnError: Boolean,
-    dataOutputFormat: String,
+    dataOutputFormat: Option[DataOutputFormat],
     formdataXml: Boolean,
     backscan: Option[Boolean],
     includeInstructionPdf: Boolean
@@ -136,7 +136,7 @@ case class UploadableHmrcDmsDestination(
   convertSingleQuotes: Option[Boolean],
   includeIf: Option[String] = None,
   failOnError: Option[Boolean] = None,
-  dataOutputFormat: Option[String],
+  dataOutputFormat: Option[DataOutputFormat],
   formdataXml: Option[Boolean] = None,
   closedStatus: Option[Boolean],
   includeInstructionPdf: Option[Boolean] = None
@@ -153,7 +153,7 @@ case class UploadableHmrcDmsDestination(
       businessArea,
       cii.getOrElse(true.toString),
       failOnError.getOrElse(true),
-      dataOutputFormat.getOrElse(""),
+      dataOutputFormat,
       formdataXml.getOrElse(false),
       closedStatus,
       includeInstructionPdf.getOrElse(false)

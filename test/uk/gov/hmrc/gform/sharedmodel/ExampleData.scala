@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
 import uk.gov.hmrc.gform.models.{ Basic, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, DestinationId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RevealingChoiceElement, _ }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
@@ -118,7 +118,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
     "TestHmrcDmsBusinessArea",
     "",
     true,
-    "XML",
+    Some(DataOutputFormat.XML),
     true,
     Some(true),
     false

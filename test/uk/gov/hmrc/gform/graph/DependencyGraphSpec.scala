@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExprMetadata }
 import uk.gov.hmrc.gform.models.{ Basic, DependencyGraphVerification, FormModel, FormModelSupport, Interim, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, PrintSection }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, Destination, DestinationId, PrintSection }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode._
@@ -723,7 +723,19 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val emptyAcknowledgementSection =
       AcknowledgementSection(emptySS, None, None, List.empty[FormComponent], true, None, None, true, None)
     val emptyHmrcDms =
-      Destination.HmrcDms(DestinationId(""), "", Value, "", "", "", false, "XML", false, Some(false), false)
+      Destination.HmrcDms(
+        DestinationId(""),
+        "",
+        Value,
+        "",
+        "",
+        "",
+        false,
+        Some(DataOutputFormat.XML),
+        false,
+        Some(false),
+        false
+      )
     val emptyCompositeDestination = Destination.Composite(DestinationId(""), "", NonEmptyList.one(emptyHmrcDms))
     val emptyDestinationList =
       DestinationList(NonEmptyList.one(emptyHmrcDms), emptyAcknowledgementSection, Some(emptyDeclarationSection))
