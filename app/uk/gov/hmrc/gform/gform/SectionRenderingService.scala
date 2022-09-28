@@ -1331,7 +1331,8 @@ class SectionRenderingService(
       case valueRow: TableValueRow if isVisibleValueRow(valueRow) =>
         valueRow.values.map { v =>
           val isValueNumeric = v.value.interpolations match {
-            case List(FormCtx(formComponentId))                => formModel.fcLookup.get(formComponentId).get.isNumeric
+            case List(FormCtx(formComponentId)) =>
+              formModel.fcLookup.get(formComponentId).map(_.isNumeric).getOrElse(false)
             case List(Typed(_, ExplicitExprType.Sterling(_)))  => true
             case List(Typed(_, ExplicitExprType.Number(_, _))) => true
             case _                                             => false
