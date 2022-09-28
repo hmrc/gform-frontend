@@ -18,9 +18,10 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.Messages
 import play.api.libs.json.{ JsValue, Json }
-import uk.gov.hmrc.gform.api.{ CompanyInformationConnector, CompanyProfile }
 import uk.gov.hmrc.gform.bars
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
+import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.models.CompanyProfile
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel._
@@ -163,7 +164,7 @@ object DataRetrieveService {
     }
 
   implicit def companyProfileInstant(implicit
-    companyInformationConnector: CompanyInformationConnector[Future]
+    gformConnector: GformConnector
   ): DataRetrieveService[CompanyRegistrationNumber, Future] =
     new DataRetrieveService[CompanyRegistrationNumber, Future] {
 
@@ -184,10 +185,8 @@ object DataRetrieveService {
         if (companyNumber.isEmpty) {
           Future.successful(None)
         } else {
-          companyInformationConnector
-            .companyProfile(
-              CompanyProfile.create(companyNumber)
-            )
+          gformConnector
+            .getCompanyProfile(companyNumber)
             .map {
               case ServiceResponse(result) =>
                 Some(

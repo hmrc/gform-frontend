@@ -31,6 +31,7 @@ import play.api.libs.json.JsValue
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.CustomerId
+import uk.gov.hmrc.gform.models.CompanyProfile
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
@@ -484,4 +485,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     getEnvelope(envelopeId).map(Some(_)).recover {
       case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => None
     }
+
+  def getCompanyProfile(
+    companyNumber: String
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[CompanyProfile.Response]] = {
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    val url = s"$baseUrl/company-profile/$companyNumber"
+    ws.GET[ServiceCallResponse[CompanyProfile.Response]](url)
+  }
 }

@@ -23,7 +23,6 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, AddressLookupService }
-import uk.gov.hmrc.gform.api.CompanyInformationConnector
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
@@ -58,7 +57,6 @@ class FormProcessor(
   fileUploadService: FileUploadAlgebra[Future],
   handler: FormControllerRequestHandler,
   bankAccountReputationConnector: BankAccountReputationConnector[Future],
-  companyInformationConnector: CompanyInformationConnector[Future],
   addressLookupService: AddressLookupService[Future]
 )(implicit ec: ExecutionContext) {
 
@@ -252,7 +250,7 @@ class FormProcessor(
                   .retrieve(v, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
               case v: CompanyRegistrationNumber =>
                 val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, v.id)
-                implicit val b: CompanyInformationConnector[Future] = companyInformationConnector
+                implicit val b: GformConnector = gformConnector
                 DataRetrieveService[CompanyRegistrationNumber, Future]
                   .retrieve(v, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
             }
