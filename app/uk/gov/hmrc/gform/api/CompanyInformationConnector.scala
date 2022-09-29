@@ -34,17 +34,16 @@ trait CompanyInformationConnector[F[_]] {
   )(implicit hc: HeaderCarrier): F[ServiceCallResponse[CompanyProfile.Response]]
 }
 
-class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String, apiKey: String)(implicit ex: ExecutionContext)
+class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex: ExecutionContext)
     extends CompanyInformationConnector[Future] {
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   override def companyProfile(
     companyNumber: CompanyProfile.Request
   )(implicit hc: HeaderCarrier): Future[ServiceCallResponse[CompanyProfile.Response]] = {
-    val url = s"$baseUrl/company/${companyNumber.companyNumber}"
-    val h = Seq("Authorization" -> apiKey)
+    val url = s"$baseUrl/companies-house-api-proxy/company/${companyNumber.companyNumber}"
 
-    ws.GET[CompanyProfile.Response](url, headers = h)
+    ws.GET[CompanyProfile.Response](url)
       .map { response =>
         ServiceResponse(response)
       }
@@ -63,7 +62,7 @@ object CompanyProfile {
   def create(companyNumber: String) = Request(companyNumber)
 
   def createFullRegisteredAddress(r: RegisteredAddress) =
-    s"${r.addressLine1} ${r.addressLine2} ${r.postalCode} ${r.locality} ${r.country}"
+    s"${r.addressLine1} ${r.addressLine2.getOrElse("")} ${r.postalCode} ${r.locality} ${r.region.getOrElse("")}"
 
   object Request {
     implicit val format: Format[Request] = Json.format[Request]
@@ -71,33 +70,33 @@ object CompanyProfile {
 
   case class RegisteredAddress(
     addressLine1: String,
-    addressLine2: String,
+    addressLine2: Option[String],
     postalCode: String,
     locality: String,
-    country: String
+    region: Option[String]
   )
 
   object RegisteredAddress {
     private val apiReads: Reads[RegisteredAddress] =
       ((__ \ "address_line_1").read[String] and
-        (__ \ "address_line_2").read[String] and
+        (__ \ "address_line_2").readNullable[String] and
         (__ \ "postal_code").read[String] and
         (__ \ "locality").read[String] and
-        (__ \ "country").read[String])(RegisteredAddress.apply _)
+        (__ \ "region").readNullable[String])(RegisteredAddress.apply _)
 
     private val apiWrites: Writes[RegisteredAddress] =
       ((__ \ "address_line_1").write[String] and
-        (__ \ "address_line_2").write[String] and
+        (__ \ "address_line_2").writeNullable[String] and
         (__ \ "postal_code").write[String] and
         (__ \ "locality").write[String] and
-        (__ \ "country").write[String])(unlift(RegisteredAddress.unapply))
+        (__ \ "region").writeNullable[String])(unlift(RegisteredAddress.unapply))
 
     implicit val format: Format[RegisteredAddress] = Format(apiReads, apiWrites)
   }
 
   case class Response(
     name: String,
-    status: String,
+    status: Option[String],
     registeredAddress: RegisteredAddress
   )
 
@@ -105,12 +104,12 @@ object CompanyProfile {
 
     private val apiReads: Reads[Response] =
       ((__ \ "company_name").read[String] and
-        (__ \ "company_status").read[String] and
+        (__ \ "company_status").readNullable[String] and
         (__ \ "registered_office_address").read[RegisteredAddress])(Response.apply _)
 
     private val apiWrites: Writes[Response] =
       ((__ \ "company_name").write[String] and
-        (__ \ "company_status").write[String] and
+        (__ \ "company_status").writeNullable[String] and
         (__ \ "registered_office_address").write[RegisteredAddress])(unlift(Response.unapply))
 
     implicit val format: Format[Response] = Format(apiReads, apiWrites)
