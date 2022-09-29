@@ -143,11 +143,10 @@ class GformModule(
   val bankAccountReputationConnector =
     new BankAccountReputationAsyncConnector(wSHttpModule.auditableWSHttp, barsBaseUrl)
 
-  private val companyInformationBaseUrl = s"${configModule.serviceConfig.baseUrl("company-information")}"
-  private val apiKey = s"${configModule.serviceConfig.getConfString("company-information.apiKey", "")}"
+  private val companyHouseBaseUrl = s"${configModule.serviceConfig.baseUrl("companies-house-api-proxy")}"
 
   val companyInformationConnector =
-    new CompanyInformationAsyncConnector(wSHttpModule.auditableWSHttp, companyInformationBaseUrl, apiKey)
+    new CompanyInformationAsyncConnector(wSHttpModule.auditableWSHttp, companyHouseBaseUrl)
 
   val addToListProcessor = new FormProcessor(
     playBuiltInsModule.i18nSupport,

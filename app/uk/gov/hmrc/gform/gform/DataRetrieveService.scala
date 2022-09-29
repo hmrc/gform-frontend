@@ -195,7 +195,7 @@ object DataRetrieveService {
                     companyRegistrationNumber.id,
                     Map(
                       DataRetrieveAttribute.Name   -> result.name,
-                      DataRetrieveAttribute.Status -> result.status,
+                      DataRetrieveAttribute.Status -> result.status.getOrElse(""),
                       DataRetrieveAttribute.RegisteredAddress -> CompanyProfile
                         .createFullRegisteredAddress(result.registeredAddress)
                     ),
