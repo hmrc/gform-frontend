@@ -8,8 +8,24 @@
     uploadingFile: {
       en: "Uploading file",
       cy: "Wrthi’n uwchlwytho’r ffeil"
+    },
+    emptyFileSizeError: {
+      en: "This file is empty",
+      cy: "Mae'r ffeil hon yn wag"
+    },
+    maxSizeError: {
+      en: "This file is larger than the maximum file size of {0}MB",
+      cy: "Mae’r ffeil hon yn fwy na maint y ffeil fwyaf a ganiateir sef {0}MB"
     }
   };
+
+  function interpolate(string, vars) {
+    vars.forEach(function(v, index) {
+      const token = "{" + index + "}";
+      string = string.replace(token, v);
+    });
+    return string;
+  }
 
  function GformFileUpload() {
   var self = this;
@@ -18,6 +34,13 @@
   function init() {
     $('button[name$="-uploadButton"]').css("display", "none")
     $(".govuk-file-upload").on("change", handleFileUpload);
+  }
+
+  // Error handling
+  function handleError($input, msg, submitButton) {
+    submitButton.css("display", "none");
+    const errorEl = '<span class="govuk-error-message" role="alert">' + msg + "</span>";
+    $(errorEl).insertBefore($input);
   }
 
   var fileSubmit = function(form, button) {
@@ -48,9 +71,32 @@
   }
 
   function handleFileUpload(e) {
-    var form = $(e.target).closest("form")
-    var submitButton = form.find(".govuk-button--secondary")
-    var dataForm = $("#gf-form");
+    const form = $(e.target).closest("form");
+    const submitButton = $('button[name=' + e.target.getAttribute('id') + "-uploadButton" + ']');
+    const dataForm = $("#gf-form");
+
+    const file = e.target.files[0];
+    if (!file) {
+      return false;
+    }
+    $(".govuk-error-message").remove();
+    const $input = $(e.currentTarget);
+    const maxFileSize = parseInt(
+      $input.data("maxFileSizeMB") || window.gform.formMaxAttachmentSizeMB,
+      10
+    );
+
+    if (file.size == 0) {
+      return handleError($input, strings.emptyFileSizeError[lang], submitButton);
+    }
+
+    if (file.size > maxFileSize * 1024 * 1024) {
+      return handleError(
+        $input,
+        interpolate(strings.maxSizeError[lang], [maxFileSize]),
+        submitButton
+      );
+    }
     submitButton.css("display", "")
     submitButton.on("click", function(e) {
        dataSubmit(form, dataForm, submitButton)
