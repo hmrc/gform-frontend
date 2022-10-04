@@ -332,7 +332,17 @@ class SectionRenderingService(
       }
       .getOrElse(AddToListLimitReached.No)
 
-    val snippets = limitReached.fold(addAnotherQuestion)(identity)
+    val infoFields = repeater.fields
+      .map(fields =>
+        fields.toList.map {
+          case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
+            htmlForInformationMessage(info, infoType, infoText)
+          case unsupported => throw new Exception("AddToList.fields contains a non-Info component: " + unsupported)
+        }
+      )
+      .getOrElse(List(HtmlFormat.empty))
+
+    val snippets = HtmlFormat.fill(infoFields :+ limitReached.fold(addAnotherQuestion)(identity))
 
     val shouldDisplayBack: Boolean = {
       if (sectionNumber.isTaskList) true

@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsPostcodeLookup, IsUpscanInitiateFileUpload, Page, PageId, RedirectCtx, SummarySectionIncludeIf, ValidIf }
@@ -119,5 +120,6 @@ case class Repeater[A <: PageMode](
   includeIf: Option[IncludeIf],
   addAnotherQuestion: FormComponent,
   index: Int,
-  instruction: Option[Instruction]
+  instruction: Option[Instruction],
+  fields: Option[NonEmptyList[FormComponent]]
 ) extends PageModel[A]

@@ -396,7 +396,8 @@ class FormModelBuilder[E, F[_]: Functor](
       s.includeIf,
       fc,
       index,
-      s.instruction
+      s.instruction,
+      s.fields
     )
   }
 
