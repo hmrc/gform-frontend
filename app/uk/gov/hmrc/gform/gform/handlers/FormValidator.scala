@@ -107,30 +107,53 @@ class FormValidator(implicit ec: ExecutionContext) {
     val availableSectionNumbers = maybeCoordinates.fold(availableSectionNumbers0)(coordinates =>
       availableSectionNumbers0.filter(_.contains(coordinates))
     )
+    def isValidSectionNumberF(sn: SectionNumber): Future[Boolean] =
+      validatePageModelBySectionNumber(
+        formModelOptics,
+        sn,
+        cache,
+        envelope,
+        validatePageModel
+      ).map(fhr => toFormValidationOutcome(fhr, EnteredVariadicFormData.empty).isValid)
 
-    availableSectionNumbers.foldLeft(Future.successful(None: Option[SectionNumber])) { case (accF, currentSn) =>
-      accF.flatMap {
-        case Some(sn) => Future.successful(Some(sn))
-        case None =>
-          validatePageModelBySectionNumber(
-            formModelOptics,
-            currentSn,
-            cache,
-            envelope,
-            validatePageModel
-          ).map(fhr => toFormValidationOutcome(fhr, EnteredVariadicFormData.empty)).map {
-            case FormValidationOutcome(isValid, _, _) =>
-              val page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
-              val hasBeenVisited = processData.visitsIndex.contains(currentSn)
-              val postcodeLookupHasAddress = page.postcodeLookup.fold(true) { formComponent =>
-                cache.thirdPartyData.addressIsConfirmed(formComponent.id)
-              }
-
-              val stop = page.isTerminationPage || !hasBeenVisited || !postcodeLookupHasAddress
-
-              if (isValid && !stop && fastForward.goOn(currentSn)) None else Some(currentSn)
-          }
+    val ffYesSnF = availableSectionNumbers
+      .foldLeft(Future.successful(None: Option[SectionNumber])) { case (accF, currentSn) =>
+        for {
+          acc     <- accF
+          isValid <- isValidSectionNumberF(currentSn)
+          page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
+          hasBeenVisited = processData.visitsIndex.contains(currentSn)
+          postcodeLookupHasAddress = page.postcodeLookup.fold(true) { formComponent =>
+                                       cache.thirdPartyData.addressIsConfirmed(formComponent.id)
+                                     }
+        } yield (acc match {
+          case None =>
+            if (
+              fastForward.goOn(currentSn) &&
+              hasBeenVisited &&
+              postcodeLookupHasAddress &&
+              isValid &&
+              !page.isTerminationPage
+            ) None
+            else Some(currentSn)
+          case otherwise => otherwise
+        })
       }
+
+    fastForward match {
+      case FastForward.CYA(from, to) =>
+        lazy val nextFrom = availableSectionNumbers.find(_ > from)
+        ffYesSnF.map(ffYes =>
+          (ffYes, to) match {
+            case (None, None)                                => None
+            case (None, Some(cyaTo))                         => Some(cyaTo)
+            case (Some(_), None)                             => nextFrom
+            case (Some(yesTo), Some(cyaTo)) if cyaTo > yesTo => nextFrom
+            case (Some(yesTo), Some(cyaTo))                  => Some(cyaTo)
+          }
+        )
+      case _ =>
+        ffYesSnF
     }
   }
 }

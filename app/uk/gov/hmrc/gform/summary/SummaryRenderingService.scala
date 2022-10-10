@@ -427,7 +427,8 @@ object SummaryRenderingService {
             validationResult,
             envelope,
             addressRecordLookup,
-            iterationTitle
+            iterationTitle,
+            None
           )
         )
 
@@ -473,7 +474,14 @@ object SummaryRenderingService {
       val sectionTitle4Ga: SectionTitle4Ga = sectionTitle4GaFactory(repeater, sectionNumber)
 
       val url: Call = routes.FormController
-        .form(formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+        .form(
+          formTemplate._id,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          SuppressErrors.Yes,
+          FastForward.CYA(sectionNumber)
+        )
 
       val addToListSummaryItems: List[Html] = addToListItemSummaries.map(ss => markDownParser(ss)).toList
 
@@ -542,7 +550,9 @@ object SummaryRenderingService {
             obligations,
             validationResult,
             envelope,
-            addressRecordLookup
+            addressRecordLookup,
+            None,
+            None
           )
         )
 

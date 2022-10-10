@@ -72,6 +72,16 @@ case class FormModel[A <: PageMode](
         .getOrElse(throw new Exception("No more visible section numbers in the task"))
   }
 
+  val nextVisibleSectionNumber: SectionNumber => Option[SectionNumber] = {
+    case sectionNumber: SectionNumber.TaskList =>
+      availableSectionNumbers
+        .collect { case t: SectionNumber.TaskList => t }
+        .find(sn => sectionNumber.coordinates === sn.coordinates && sn.sectionNumber >= sectionNumber.sectionNumber)
+    case sectionNumber: SectionNumber.Classic =>
+      availableSectionNumbers
+        .find(sn => sn >= sectionNumber)
+  }
+
   val allFormComponents: List[FormComponent] = pages.flatMap(_.allFormComponents)
 
   val allFormComponentIds: List[FormComponentId] = allFormComponents.map(_.id)
