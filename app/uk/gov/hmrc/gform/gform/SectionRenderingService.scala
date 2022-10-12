@@ -1337,18 +1337,21 @@ class SectionRenderingService(
     )
     val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
 
+    def isNumeric(v: TableValue): Boolean = {
+      val interpolationsHaveLonelyNumeric = v.value.interpolations match {
+        case List(FormCtx(formComponentId)) =>
+          formModel.fcLookup.get(formComponentId).map(_.isNumeric).getOrElse(false)
+        case List(Typed(_, ExplicitExprType.Sterling(_)))  => true
+        case List(Typed(_, ExplicitExprType.Number(_, _))) => true
+        case _                                             => false
+      }
+      interpolationsHaveLonelyNumeric && sse(v.value.copy(interpolations = List(Constant(""))), false).trim.isEmpty()
+    }
     val filteredRows = table.rows.collect {
       case valueRow: TableValueRow if isVisibleValueRow(valueRow) =>
         valueRow.values.map { v =>
-          val isValueNumeric = v.value.interpolations match {
-            case List(FormCtx(formComponentId)) =>
-              formModel.fcLookup.get(formComponentId).map(_.isNumeric).getOrElse(false)
-            case List(Typed(_, ExplicitExprType.Sterling(_)))  => true
-            case List(Typed(_, ExplicitExprType.Number(_, _))) => true
-            case _                                             => false
-          }
           val classes = v.cssClass.toList.flatMap(_.split(" +")) :+ {
-            if (isValueNumeric) "govuk-table__cell--numeric" else ""
+            if (isNumeric(v)) "govuk-table__cell--numeric" else ""
           }
           GovukTableRow(
             content = HtmlContent(sse(v.value, false)),
@@ -1357,7 +1360,14 @@ class SectionRenderingService(
           )
         }
     }
-    val hs = table.header.map(h => HeadCell(content = HtmlContent(sse(h, false))))
+    val headerNumericClasses = table.rows
+      .filter(isVisibleValueRow(_))
+      .map(_.values.map(v => if (isNumeric(v)) "govuk-table__header--numeric" else ""))
+      .headOption
+      .getOrElse(List())
+    val hs = table.header.zipAll(headerNumericClasses, SmartString.empty, "").map { case (h, c) =>
+      HeadCell(content = HtmlContent(sse(h, false)), classes = c)
+    }
     val caption: Option[String] = table.caption.orElse {
       val c = fcrd.label(formComponent)
       if (c.trim.isEmpty()) Option.empty[String] else Option(c)
