@@ -1256,7 +1256,6 @@ class SectionRenderingService(
                   ei.addressRecordLookup,
                   None,
                   Some(FastForward.CYA(sn, Some(ei.sectionNumber)))
-                  //None
                 )
             }
             .toList
