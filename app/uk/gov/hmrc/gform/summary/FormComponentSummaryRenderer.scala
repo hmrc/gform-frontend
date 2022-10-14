@@ -53,7 +53,7 @@ object FormComponentSummaryRenderer {
     envelope: EnvelopeWithMapping,
     addressRecordLookup: AddressRecordLookup,
     iterationTitle: Option[String] = None,
-    fastForward: FastForward = FastForward.Yes
+    fastForward0: Option[FastForward]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -62,6 +62,7 @@ object FormComponentSummaryRenderer {
   ): List[SummaryListRow] = {
 
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
+    val fastForward = fastForward0.getOrElse(FastForward.CYA(sectionNumber))
 
     formComponent match {
       case IsText(Text(_, _, _, _, prefix, suffix)) =>
@@ -1212,7 +1213,7 @@ object FormComponentSummaryRenderer {
                 envelope,
                 addressRecordLookup,
                 None,
-                fastForward
+                Some(fastForward)
               )
             }
 
@@ -1395,7 +1396,7 @@ object FormComponentSummaryRenderer {
             envelope,
             addressRecordLookup,
             iterationTitle,
-            fastForward
+            Some(fastForward)
           )
         }
 

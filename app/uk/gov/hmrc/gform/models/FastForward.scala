@@ -22,21 +22,35 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
 sealed trait FastForward extends Product with Serializable {
 
-  private def fold[B](f: FastForward.Yes.type => B)(g: FastForward.StopAt => B): B = this match {
-    case y: FastForward.Yes.type => f(y)
-    case s: FastForward.StopAt   => g(s)
-  }
+  private def fold[B](
+    f: FastForward.Yes.type => B
+  )(g: FastForward.StopAt => B)(h: FastForward.CYA => B): B =
+    this match {
+      case y: FastForward.Yes.type => f(y)
+      case s: FastForward.StopAt   => g(s)
+      case yy: FastForward.CYA     => h(yy)
+    }
 
-  def asString: String = fold(_ => FastForward.ffYes)(_.stopAt.value.toString)
+  def asString: String =
+    fold(_ => FastForward.ffYes)(_.stopAt.value.toString) {
+      case FastForward.CYA(from, None)     => FastForward.ffCYA + from.value.toString
+      case FastForward.CYA(from, Some(to)) => FastForward.ffCYA + from.value.toString + "." + to.value.toString
+    }
 
-  def next(formModel: FormModel[Visibility]): FastForward = fold[FastForward](identity) { st =>
+  def next(formModel: FormModel[Visibility], sn: SectionNumber): FastForward = fold[FastForward](identity) { st =>
     formModel.availableSectionNumbers
       .find(_ >= st.stopAt)
       .map(availableSectionNumber => StopAt(availableSectionNumber.increment))
       .getOrElse(st)
+  } { case cya @ FastForward.CYA(from, to) =>
+    formModel
+      .nextVisibleSectionNumber(sn)
+      .map(s => if (to.map(_ == s).getOrElse(false)) FastForward.Yes else FastForward.CYA(s, to))
+      .getOrElse(cya)
   }
 
-  def goOn(sectionNumber: SectionNumber): Boolean = fold(_ => true)(_.stopAt > sectionNumber)
+  def goOn(sectionNumber: SectionNumber): Boolean =
+    fold(_ => true)(_.stopAt > sectionNumber)(_ => true)
 
 }
 
@@ -44,8 +58,10 @@ object FastForward {
 
   case object Yes extends FastForward
   case class StopAt(stopAt: SectionNumber) extends FastForward
+  case class CYA(from: SectionNumber, to: Option[SectionNumber] = None) extends FastForward // {
 
   val ffYes = "t"
+  val ffCYA = "cya"
 
   implicit val equal: Eq[FastForward] = Eq.fromUniversalEquals
 

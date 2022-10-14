@@ -175,7 +175,7 @@ class SectionRenderingService(
               envelope,
               addressRecordLookup,
               None,
-              FastForward.StopAt(sectionNumber)
+              Some(FastForward.CYA(singletonWithNumber.sectionNumber, Some(sectionNumber)))
             )
         }
     }
@@ -227,7 +227,8 @@ class SectionRenderingService(
     formTemplate: FormTemplate,
     specimenSource: Option[FormTemplate],
     validationResult: ValidationResult,
-    retrievals: MaterialisedRetrievals
+    retrievals: MaterialisedRetrievals,
+    fastForward: FastForward
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -238,7 +239,7 @@ class SectionRenderingService(
     val listResult = validationResult.formFieldValidationResults
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
-      .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, SaveAndContinue)
+      .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
 
     val formComponent = repeater.addAnotherQuestion
 
@@ -371,7 +372,8 @@ class SectionRenderingService(
       snippets,
       specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
       maybeAccessCode,
-      sectionNumber
+      sectionNumber,
+      fastForward
     )
   }
 
@@ -490,7 +492,7 @@ class SectionRenderingService(
       formTemplate,
       pageLevelErrorHtml,
       renderingInfo,
-      backLink = mkBackLink(formTemplate, maybeAccessCode, sectionNumber, originSection),
+      backLink = mkBackLink(formTemplate, maybeAccessCode, sectionNumber, originSection, fastForward),
       shouldDisplayHeading = !formLevelHeading,
       shouldDisplayContinue = !page.isTerminationPage,
       frontendAppConfig,
@@ -716,7 +718,8 @@ class SectionRenderingService(
     formTemplate: FormTemplate,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    originSection: SectionNumber
+    originSection: SectionNumber,
+    fastForward: FastForward
   )(implicit messages: Messages): Option[BackLink] = {
 
     val href =
@@ -727,7 +730,13 @@ class SectionRenderingService(
       "id"                    -> "backButton",
       "data-form-template-id" -> formTemplate._id.value,
       "data-access-code"      -> maybeAccessCode.fold("-")(_.value),
-      "data-section-number"   -> sectionNumber.value.toString
+      "data-section-number"   -> sectionNumber.value.toString,
+      "data-fast-forward" -> {
+        fastForward match {
+          case FastForward.CYA(from, to) => FastForward.CYA(from.decrement, to).asString
+          case _                         => fastForward.asString
+        }
+      }
     )
     val backLink =
       new BackLink(attributes = attributes, href = href.path, content = new content.Text(messages("linkText.back")))
@@ -1256,7 +1265,7 @@ class SectionRenderingService(
                   ei.envelope,
                   ei.addressRecordLookup,
                   None,
-                  FastForward.StopAt(ei.sectionNumber)
+                  Some(FastForward.CYA(sn, Some(ei.sectionNumber)))
                 )
             }
             .toList

@@ -250,7 +250,8 @@ class FormController(
                               cache.formTemplate,
                               cache.formTemplateWithRedirects.specimenSource,
                               handlerResult.validationResult,
-                              cache.retrievals
+                              cache.retrievals,
+                              fastForward
                             )
                           ).pure[Future]
                         )
@@ -539,9 +540,10 @@ class FormController(
                                   sn,
                                   sectionTitle4Ga,
                                   SuppressErrors(isFirstLanding),
-                                  if ((isFirstLanding && !isConfirmationPage) || sectionNumber.isTaskList)
-                                    fastForward.next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel)
-                                  else
+                                  if ((isFirstLanding && !isConfirmationPage) || sectionNumber.isTaskList) {
+                                    fastForward
+                                      .next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel, sn)
+                                  } else
                                     fastForward
                                 )
                             )
