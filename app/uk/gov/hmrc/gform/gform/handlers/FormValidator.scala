@@ -144,12 +144,13 @@ class FormValidator(implicit ec: ExecutionContext) {
       case FastForward.CYA(from, to) =>
         lazy val nextFrom = availableSectionNumbers.find(_ > from)
         ffYesSnF.map(ffYes =>
-          (ffYes, to) match {
-            case (None, None)                                => None
-            case (None, Some(cyaTo))                         => Some(cyaTo)
-            case (Some(_), None)                             => nextFrom
-            case (Some(yesTo), Some(cyaTo)) if cyaTo > yesTo => nextFrom
-            case (Some(yesTo), Some(cyaTo))                  => Some(cyaTo)
+          (ffYes, to, from) match {
+            case (None, None, _)                                => None
+            case (None, Some(cyaTo), _)                         => Some(cyaTo)
+            case (Some(yesTo), _, cyaFrom) if yesTo == cyaFrom  => Some(yesTo)
+            case (Some(yesTo), None, _)                         => nextFrom
+            case (Some(yesTo), Some(cyaTo), _) if cyaTo > yesTo => nextFrom
+            case (Some(yesTo), Some(cyaTo), _)                  => Some(cyaTo)
           }
         )
       case _ =>
