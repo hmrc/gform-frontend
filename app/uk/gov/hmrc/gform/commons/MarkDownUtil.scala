@@ -58,7 +58,8 @@ object MarkDownUtil {
     markDownParser(markDownText)
   }
 
-  def markDownParser(markDownText: String): Html = {
+  def markDownParser(markDownText0: String): Html = {
+    val markDownText = markDownText0.trim.replaceAll(" +", " ")
     val flavour = new GFMFlavourDescriptor
     val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
     val html = new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
