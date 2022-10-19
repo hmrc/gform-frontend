@@ -40,14 +40,15 @@
     pageLevelError: HasErrors = NoErrors,
     header: Option[Html],
     footer: Option[Html],
-    specimenNavigation: Html
+    specimenNavigation: Html,
+    fastForward: FastForward
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
 @govukButton = @{new GovukButton()}
 @govukSummaryList = @{new GovukSummaryList()}
 @heading = @{ title }
-@formAction = @{ uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber.increment), SaveAndContinue) }
+@formAction = @{ uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue) }
 @hmrcPageHeading = @{new HmrcPageHeading()}
 
 @main_template(

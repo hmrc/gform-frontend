@@ -211,23 +211,26 @@ class FormController(
                     validateSections(
                       SuppressErrors.No,
                       visibleIteration.allSingletonSectionNumbers: _*
-                    )(handlerResult =>
+                    ) { handlerResult =>
                       Ok(
-                        renderer.renderAddToListCheckYourAnswers(
-                          checkYourAnswers.checkYourAnswers,
-                          cache.formTemplate,
-                          cache.formTemplateWithRedirects.specimenSource,
-                          maybeAccessCode,
-                          sectionNumber,
-                          visibleIteration,
-                          formModelOptics,
-                          handlerResult.validationResult,
-                          cache,
-                          handlerResult.envelope,
-                          AddressRecordLookup.from(cache.form.thirdPartyData)
-                        )
-                      ).pure[Future]
-                    )
+                        renderer
+                          .renderAddToListCheckYourAnswers(
+                            checkYourAnswers.checkYourAnswers,
+                            cache.formTemplate,
+                            cache.formTemplateWithRedirects.specimenSource,
+                            maybeAccessCode,
+                            sectionNumber,
+                            visibleIteration,
+                            formModelOptics,
+                            handlerResult.validationResult,
+                            cache,
+                            handlerResult.envelope,
+                            AddressRecordLookup.from(cache.form.thirdPartyData),
+                            fastForward
+                          )
+                      )
+                        .pure[Future]
+                    }
                   case _ =>
                     if (repeaterSectionNumber === sectionNumber) {
                       /*
@@ -415,7 +418,10 @@ class FormController(
 
             val sectionNumber: SectionNumber = availableSectionNumbers.find(_ >= firstAddToListPageSN).head
 
-            (sectionNumber, FastForward.StopAt(sectionNumber.increment))
+            ff match {
+              case FastForward.CYA(from, to) => (sectionNumber, FastForward.CYA(from, Some(sectionNumber.increment)))
+              case _                         => (sectionNumber, FastForward.StopAt(sectionNumber.increment))
+            }
           }
           def checkYourAnswersNavigation(cya: CheckYourAnswersWithNumber[DataExpanded]): (SectionNumber, FastForward) =
             (cya.sectionNumber, FastForward.Yes)
@@ -431,7 +437,7 @@ class FormController(
                 gotoSectionNumber,
                 sectionTitle4Ga,
                 SuppressErrors.Yes,
-                fastForward
+                ff
               )
               .url
           ).pure[Future]
