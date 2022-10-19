@@ -211,7 +211,7 @@ class FormController(
                     validateSections(
                       SuppressErrors.No,
                       visibleIteration.allSingletonSectionNumbers: _*
-                    ) { handlerResult =>
+                    )(handlerResult =>
                       Ok(
                         renderer
                           .renderAddToListCheckYourAnswers(
@@ -230,7 +230,7 @@ class FormController(
                           )
                       )
                         .pure[Future]
-                    }
+                    )
                   case _ =>
                     if (repeaterSectionNumber === sectionNumber) {
                       /*
