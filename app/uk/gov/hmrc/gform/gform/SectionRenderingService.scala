@@ -138,7 +138,8 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     cache: AuthCacheWithForm,
     envelope: EnvelopeWithMapping,
-    addressRecordLookup: AddressRecordLookup
+    addressRecordLookup: AddressRecordLookup,
+    fastForward: FastForward
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -194,6 +195,10 @@ class SectionRenderingService(
           case None        => messages("summary.checkYourAnswers")
         })(_.value)
 
+    val ff = fastForward match {
+      case FastForward.CYA(from, to) => FastForward.CYA(sectionNumber.increment, to)
+      case _                         => FastForward.StopAt(sectionNumber.increment)
+    }
     html.form.addToListCheckYourAnswers(
       title,
       checkYourAnswers.expandedCaption.map(_.value),
@@ -212,8 +217,10 @@ class SectionRenderingService(
       pageLevelErrorHtml,
       checkYourAnswers.expandedHeader.map(markDownParser),
       checkYourAnswers.expandedFooter.map(markDownParser),
-      specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics)
+      specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
+      ff
     )
+
   }
 
   def renderAddToList(
@@ -238,8 +245,12 @@ class SectionRenderingService(
 
     val listResult = validationResult.formFieldValidationResults
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
+    val ff = fastForward match {
+      case FastForward.CYA(from, to) => FastForward.CYA(from.increment, to)
+      case _                         => FastForward.Yes
+    }
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
-      .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
+      .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, ff, SaveAndContinue)
 
     val formComponent = repeater.addAnotherQuestion
 
@@ -373,7 +384,7 @@ class SectionRenderingService(
       specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
       maybeAccessCode,
       sectionNumber,
-      fastForward
+      ff
     )
   }
 
