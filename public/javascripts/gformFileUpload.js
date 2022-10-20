@@ -43,31 +43,32 @@
     $(errorEl).insertBefore($input);
   }
 
-  var fileSubmit = function(form, button) {
-    var formGroup = form.find(".govuk-form-group");
-    var input = formGroup.find(".govuk-file-upload");
-    var formComponentId = input.attr("id");
-    var uploadedFiles = $("#" + formComponentId + "-files");
+  function submitFile(file, fileId, formAction) {
+     const fileName = fileId + "_" + file.name.replace(/\\/g, "/").replace(/.*\//, "")
+     const newFile = new File([file], fileName, {type: file.type});
 
-    button.css("display", "none");
-    formGroup.hide();
-    uploadedFiles.empty().append(startProgressBar());
+     const formData = new FormData();
+     formData.append(
+         fileId,
+         newFile,
+         fileName
+     );
 
-    return true;
+     return $.ajax({
+         type: "POST",
+         url: formAction,
+         data: formData,
+         processData: false,
+         contentType: false
+     });
   }
 
-  var dataSubmit = function(form, dataForm, button) {
-    $.ajax({
-       type: dataForm.attr("method"),
-       url: dataForm.attr("action"),
-       data: dataForm.serialize()
-    }).then(function (){
-       button.unbind("click")
-       button.on("click", function(e) {
-         fileSubmit(form, button);
-       });
-       button.click();
-    });
+  function submitForm(dataForm) {
+     return $.ajax({
+         type: dataForm.attr("method"),
+         url: dataForm.attr("action"),
+         data: dataForm.serialize()
+     });
   }
 
   function handleFileUpload(e) {
@@ -97,9 +98,30 @@
         submitButton
       );
     }
-    submitButton.css("display", "")
+    submitButton.css("display", "");
     submitButton.on("click", function(e) {
-       dataSubmit(form, dataForm, submitButton)
+        const formGroup = form.find(".govuk-form-group");
+        const input = formGroup.find(".govuk-file-upload");
+        const fileId = input.attr("id");
+        const uploadedFiles = $("#" + fileId + "-files");
+
+        submitButton.css("display", "none");
+        formGroup.hide();
+        uploadedFiles.empty().append(startProgressBar());
+
+        submitForm(dataForm).done(function (){
+            if (e.target.hasAttribute("upscan")) {
+                submitButton.unbind("click")
+                submitButton.on("click", function() { return true; });
+                submitButton.click();
+            } else {
+                e.preventDefault();
+                const formAction = submitButton.attr("formAction");
+                submitFile(file, fileId, formAction).done(function () {
+                    location.reload();
+                });
+            }
+        });
     });
   }
 
