@@ -62,6 +62,24 @@ trait AuditService {
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
     sendEvent("formSubmitted", form, formToMap(form, formModelVisibilityOptics), retrievals, customerId)
 
+  def formSavedEvent[D <: DataOrigin](
+    form: Form,
+    retrievals: MaterialisedRetrievals
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+    sendEvent("formSaved", form, Map.empty, retrievals, CustomerId.empty)
+
+  def sendFormTimoutEvent[D <: DataOrigin](
+    form: Form,
+    retrievals: MaterialisedRetrievals
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+    sendEvent("formTimeout", form, Map.empty, retrievals, CustomerId.empty)
+
+  def sendFormSignOut[D <: DataOrigin](
+    form: Form,
+    retrievals: MaterialisedRetrievals
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+    sendEvent("formSignOut", form, Map.empty, retrievals, CustomerId.empty)
+
   private def sendEvent(
     auditType: String,
     form: Form,
