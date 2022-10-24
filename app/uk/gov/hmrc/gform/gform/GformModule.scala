@@ -183,7 +183,8 @@ class GformModule(
     graphModule.recalculation,
     addToListProcessor,
     confirmationService,
-    controllersModule.messagesControllerComponents
+    controllersModule.messagesControllerComponents,
+    auditingModule.auditService
   )
 
   val addToListController = new FormAddToListController(
@@ -345,7 +346,9 @@ class GformModule(
     new SignOutController(
       configModule.frontendAppConfig,
       controllersModule.messagesControllerComponents,
-      controllersModule.nonAuthenticatedRequestActions
+      controllersModule.nonAuthenticatedRequestActions,
+      controllersModule.authenticatedRequestActions,
+      auditingModule.auditService
     )
 
   val staticPagesController: StaticPagesController =

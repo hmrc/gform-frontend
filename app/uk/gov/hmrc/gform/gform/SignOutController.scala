@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import play.api.i18n.I18nSupport
 import uk.gov.hmrc.gform.FormTemplateKey
@@ -31,12 +31,20 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, FormTemplateId }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ signed_out, signed_out_email_auth }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
+import uk.gov.hmrc.gform.auditing.AuditService
+import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.http.HeaderCarrier
 
 class SignOutController(
   frontendConfig: FrontendAppConfig,
   messagesControllerComponents: MessagesControllerComponents,
-  nonAuth: NonAuthenticatedRequestActionsAlgebra[Future]
-) extends FrontendController(messagesControllerComponents) with I18nSupport {
+  nonAuth: NonAuthenticatedRequestActionsAlgebra[Future],
+  auth: AuthenticatedRequestActionsAlgebra[Future],
+  auditService: AuditService
+)(implicit ec: ExecutionContext)
+    extends FrontendController(messagesControllerComponents) with I18nSupport {
 
   def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth { request => l =>
     val formTemplateWithRedirects = request.attrs(FormTemplateKey)
@@ -52,7 +60,7 @@ class SignOutController(
           .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
       case config => Some(config)
     }
-
+    sendSignOutEvent(formTemplateId)(request)
     config match {
       case Some(c) if c.isEmailAuthConfig =>
         val emailAuthDetails: EmailAuthDetails =
@@ -64,6 +72,15 @@ class SignOutController(
         }
       case _ =>
         redirect
+    }
+  }
+
+  private def sendSignOutEvent(formTemplateId: FormTemplateId): Action[AnyContent] = {
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.AuditSessionEnd) {
+      _ => _ => cache => _ => formModelOptics =>
+        auditService.sendFormSignOut(cache.form, cache.retrievals)
+        Future.successful(Ok("success"))
     }
   }
 

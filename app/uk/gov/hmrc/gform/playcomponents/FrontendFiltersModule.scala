@@ -34,7 +34,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoFilter
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoProvider
 import uk.gov.hmrc.play.bootstrap.frontend.filters.deviceid.DefaultDeviceIdFilter
-import uk.gov.hmrc.play.bootstrap.frontend.filters.{ DefaultFrontendAuditFilter, HeadersFilter, SessionTimeoutFilter, SessionTimeoutFilterConfig }
+import uk.gov.hmrc.play.bootstrap.frontend.filters.{ DefaultFrontendAuditFilter, HeadersFilter, SessionTimeoutFilterConfig }
 import uk.gov.hmrc.play.bootstrap.filters.{ CacheControlConfig, CacheControlFilter, DefaultLoggingFilter, MDCFilter }
 
 import scala.concurrent.ExecutionContext
@@ -117,8 +117,11 @@ class FrontendFiltersModule(
   private val mdcFilter: MDCFilter =
     new MDCFilter(materializer, configModule.playConfiguration, configModule.appConfig.appName)
 
-  private val sessionTimeoutFilter = new SessionTimeoutFilter(
-    SessionTimeoutFilterConfig.fromConfig(configModule.playConfiguration)
+  private val sessionTimeoutFilter = new SessionTimeoutFilterWithAudit(
+    SessionTimeoutFilterConfig
+      .fromConfig(configModule.playConfiguration),
+    controllersModule.authenticatedRequestActions,
+    auditingModule.auditService
   )
 
   private val deviceIdFilter = new DefaultDeviceIdFilter(

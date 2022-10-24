@@ -22,6 +22,7 @@ import cats.syntax.eq._
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.I18nSupport
 import play.api.mvc._
+import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
@@ -72,7 +73,8 @@ class FormController(
   recalculation: Recalculation[Future, Throwable],
   formProcessor: FormProcessor,
   confirmationService: ConfirmationService,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  auditService: AuditService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -835,7 +837,14 @@ class FormController(
                                )
               res <- save match {
                        case SaveAndContinue => processSaveAndContinue(processData)
-                       case SaveAndExit     => processSaveAndExit(processData)
+                       case SaveAndExit =>
+                         processSaveAndExit(processData).map { result =>
+                           auditService.formSavedEvent(
+                             cache.form,
+                             cache.retrievals
+                           )
+                           result
+                         }
                        case Back =>
                          processBack(
                            processData,
