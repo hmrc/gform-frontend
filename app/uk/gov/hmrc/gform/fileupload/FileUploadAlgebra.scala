@@ -25,6 +25,10 @@ trait FileUploadAlgebra[F[_]] {
   def getMaybeEnvelope(envelopeId: EnvelopeId)(objectStore: Option[Boolean])(implicit
     hc: HeaderCarrier
   ): F[Option[Envelope]]
-  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): F[Unit]
-  def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(implicit hc: HeaderCarrier): F[Unit]
+  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(objectStore: Option[Boolean])(implicit
+    hc: HeaderCarrier
+  ): F[Unit]
+  def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(objectStore: Option[Boolean])(implicit
+    hc: HeaderCarrier
+  ): F[Unit]
 }
