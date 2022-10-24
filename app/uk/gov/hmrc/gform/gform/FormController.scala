@@ -437,7 +437,7 @@ class FormController(
                 gotoSectionNumber,
                 sectionTitle4Ga,
                 SuppressErrors.Yes,
-                ff
+                fastForward
               )
               .url
           ).pure[Future]
