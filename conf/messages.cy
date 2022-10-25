@@ -14,7 +14,6 @@ emailAuth.weWillSendCodeToEmail=Byddwn yn anfon cod atoch i gadarnhau mai’ch c
 emailAuth.enterYourEmailAddress=Nodwch eich cyfeiriad e-bost
 emailAuth.enterYourCode=Nodwch y cod i gadarnhau’ch cyfeiriad e-bost
 emailAuth.weHaveSendCodeTo=Rydym wedi anfon cod i
-emailAuth.provideDifferentEmailAddress=Rhowch gyfeiriad e-bost gwahanol
 emailAuth.browserAccessEmailNewWindow=Os ydych yn defnyddio porwr i gael mynediad at eich e-byst, efallai y bydd angen i chi agor ffenestr neu dab newydd i weld y cod.
 emailAuth.confirmCode=Cod cadarnhau
 emailAuth.confirmCodeExample=Er enghraifft, DNXL.

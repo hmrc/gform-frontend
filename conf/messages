@@ -15,7 +15,6 @@ emailAuth.weWillSendCodeToEmail=We will send you a code to confirm your email ad
 emailAuth.enterYourEmailAddress=Enter your email address
 emailAuth.enterYourCode=Enter code to confirm your email address
 emailAuth.weHaveSendCodeTo=We sent a code to
-emailAuth.provideDifferentEmailAddress=Provide a different email address
 emailAuth.browserAccessEmailNewWindow=If you use a browser to access your email, you may need to open a new window or tab to see the code.
 emailAuth.confirmCode=Confirmation code
 emailAuth.confirmCodeExample=For example, DNXL.
