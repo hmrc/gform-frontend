@@ -53,13 +53,8 @@ class FileUploadService(fileUploadConnector: FileUploadConnector, gformConnector
     objectStore: Option[Boolean]
   )(implicit hc: HeaderCarrier): Future[Unit] = objectStore match {
     case Some(true) =>
-      fileIds.toList match {
-        case Nil => Future.unit
-        case head :: tail =>
-          for {
-            _ <- deleteFile(envelopeId, head)(objectStore)
-            _ <- deleteFiles(envelopeId, tail.toSet)(objectStore)
-          } yield ()
+      fileIds.foldLeft(Future.unit) { case (result, fileId) =>
+        result.flatMap(_ => deleteFile(envelopeId, fileId)(objectStore))
       }
     case _ =>
       Future
