@@ -484,4 +484,13 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     getEnvelope(envelopeId).map(Some(_)).recover {
       case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => None
     }
+
+  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
+    logger.info(s" delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}'")
+    ws.DELETE[HttpResponse](s"$baseUrl/envelopes/${envelopeId.value}/files/${fileId.value}")
+      .map(_ => ())
+  }
 }

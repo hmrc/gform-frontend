@@ -84,7 +84,9 @@ class FileUploadController(
         val formTemplate = formTemplateWithRedirects.formTemplate
         for {
           envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
-          flash    <- checkFile(fileId, envelope, cache.form.envelopeId, formTemplate.allowedFileTypes)
+          flash <- checkFile(fileId, envelope, cache.form.envelopeId, formTemplate.allowedFileTypes)(
+                     cache.formTemplate.objectStore
+                   )
           cacheUpd = cache
                        .modify(_.form.componentIdToFileId)
                        .using(_ + (formComponentId, fileId))
@@ -124,8 +126,12 @@ class FileUploadController(
       }
       .getOrElse(formData)
 
-  private def checkFile(fileId: FileId, envelope: Envelope, envelopeId: EnvelopeId, allowedFileTypes: AllowedFileTypes)(
-    implicit
+  private def checkFile(
+    fileId: FileId,
+    envelope: Envelope,
+    envelopeId: EnvelopeId,
+    allowedFileTypes: AllowedFileTypes
+  )(objectStore: Option[Boolean])(implicit
     messages: Messages,
     hc: HeaderCarrier
   ): Future[Flash] = {
@@ -136,7 +142,7 @@ class FileUploadController(
       case Invalid(flash) =>
         logger.warn(show"Attemp to upload invalid file. Deleting FileId: $fileId, flash: $flash")
         fileUploadService
-          .deleteFile(envelopeId, fileId)
+          .deleteFile(envelopeId, fileId)(objectStore)
           .map(_ => flashWithFileId(flash, fileId))
       case Valid(_) => Flash().pure[Future]
     }
@@ -343,6 +349,9 @@ class FileUploadController(
     formComponentId: FormComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => implicit l => cache => _ => formModelOptics =>
+      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateWithRedirects.formTemplate
+
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) { _ => variadicFormData => _ =>
         val cacheU = cache
           .modify(_.form.formData)
@@ -372,7 +381,9 @@ class FileUploadController(
               .setTo(mappingUpd)
 
             for {
-              _ <- fileUploadService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)
+              _ <- fileUploadService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)(
+                     formTemplate.objectStore
+                   )
               _ <- gformConnector
                      .updateUserData(
                        FormIdData.fromForm(cacheWithFileRemoved.form, maybeAccessCode),
