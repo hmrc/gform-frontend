@@ -106,6 +106,23 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
     summaryList.copy(rows = expRows)
   }
 
+  private def expandTableComp(tableComp: TableComp): TableComp =
+    tableComp.copy(
+      header = tableComp.header.map(expandSmartString),
+      rows = tableComp.rows.map(expandTableValueRow)
+    )
+
+  private def expandTableValueRow(row: TableValueRow): TableValueRow =
+    row.copy(
+      values = row.values.map(expandTableValue),
+      includeIf = row.includeIf.map(expandIncludeIf)
+    )
+
+  private def expandTableValue(tableValue: TableValue): TableValue =
+    tableValue.copy(
+      value = expandSmartString(tableValue.value)
+    )
+
   private val updated = formComponent.copy(
     includeIf = formComponent.includeIf.map(expandIncludeIf),
     validIf = formComponent.validIf.map(expandValidIf),
@@ -118,6 +135,7 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
       case t: Group              => expandGroup(t)
       case t: InformationMessage => t.copy(infoText = expandSmartString(t.infoText))
       case t: MiniSummaryList    => expandSummaryList(t)
+      case t: TableComp          => expandTableComp(t)
       case otherwise             => otherwise
     },
     label = expandSmartString(formComponent.label),
