@@ -40,7 +40,6 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.optics.DataOrigin.Browser
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -341,7 +340,7 @@ class FormController(
 
         val toSectionNumber = Navigator(
           sectionNumber,
-          formModelOptics.asInstanceOf[FormModelOptics[Browser]]
+          formModelOptics.formModelVisibilityOptics.formModel
         ).previousSectionNumber.getOrElse(sectionNumber)
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val bracket = formModel.bracket(toSectionNumber)
@@ -851,7 +850,7 @@ class FormController(
                            sectionNumber,
                            Navigator(
                              sectionNumber,
-                             processData.formModelOptics
+                             processData.formModelOptics.formModelVisibilityOptics.formModel
                            ).previousSectionNumber
                          )
                        case AddGroup(modelComponentId)    => processAddGroup(processData, modelComponentId)

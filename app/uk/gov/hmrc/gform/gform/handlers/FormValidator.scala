@@ -102,7 +102,9 @@ class FormValidator(implicit ec: ExecutionContext) {
 
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
 
-    val availableSectionNumbers0: List[SectionNumber] = Origin(formModelOptics).availableSectionNumbers
+    val availableSectionNumbers0: List[SectionNumber] = Origin(
+      formModelOptics.formModelVisibilityOptics.formModel
+    ).availableSectionNumbers
 
     val availableSectionNumbers = maybeCoordinates.fold(availableSectionNumbers0)(coordinates =>
       availableSectionNumbers0.filter(_.contains(coordinates))

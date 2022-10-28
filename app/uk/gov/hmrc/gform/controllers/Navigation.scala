@@ -17,22 +17,21 @@
 package uk.gov.hmrc.gform.controllers
 
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ Bracket, Visibility }
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.models.FormModel
 
 trait Navigation {
 
-  def formModelOptics: FormModelOptics[DataOrigin.Browser]
+  def formModel: FormModel[Visibility]
 
   val availableSectionNumbers: List[SectionNumber] =
-    formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers
+    formModel.availableSectionNumbers
 
   val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).numberValue))
 
   val addToListBrackets: List[Bracket.AddToList[Visibility]] =
-    formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
+    formModel.brackets.addToListBrackets
 
   val addToListSectionNumbers: List[SectionNumber] =
     addToListBrackets.flatMap(_.toPageModelWithNumber.toList).map(_._2)
@@ -44,7 +43,7 @@ trait Navigation {
     addToListSectionNumbers.filterNot(addToListRepeaterSectionNumbers.toSet)
 
   val samePageRepeatersSectionNumbers: List[List[SectionNumber]] =
-    formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
+    formModel.brackets.addToListBrackets
       .map(_.iterations.toList.map(_.repeater.sectionNumber))
 
   val filteredSectionNumbers: SectionNumber => List[SectionNumber] = sectionNumber => {
@@ -65,11 +64,11 @@ trait Navigation {
 }
 
 // TODO: Origin should not be in controllers, but Navigator probably should!
-case class Origin(formModelOptics: FormModelOptics[DataOrigin.Browser]) extends Navigation
+case class Origin(formModel: FormModel[Visibility]) extends Navigation
 
 case class Navigator(
   sectionNumber: SectionNumber,
-  formModelOptics: FormModelOptics[DataOrigin.Browser]
+  formModel: FormModel[Visibility]
 ) extends Navigation {
   require(
     sectionNumber >= minSectionNumber,
@@ -87,4 +86,12 @@ case class Navigator(
     filteredSectionNumbers(sectionNumber).reverse
       .find(_ < sectionNumber)
 
+}
+
+case class FastForwardNavigator(formModel: FormModel[Visibility]) extends Navigation {
+
+  def nextSectionNumber(sn: SectionNumber): SectionNumber =
+    addToListRepeaterSectionNumbers
+      .find(_ >= sn)
+      .fold(sn)(nrsn => filteredSectionNumbers(nrsn).find(_ == sn).getOrElse(nrsn))
 }
