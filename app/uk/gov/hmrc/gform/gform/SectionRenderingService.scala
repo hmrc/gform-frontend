@@ -359,7 +359,7 @@ class SectionRenderingService(
     val shouldDisplayBack: Boolean = {
       if (sectionNumber.isTaskList) true
       else
-        Origin(DataOrigin.unSwapDataOrigin(formModelOptics))
+        Origin(DataOrigin.unSwapDataOrigin(formModelOptics).formModelVisibilityOptics.formModel)
           .filteredSectionNumbers(sectionNumber)
           .sorted
           .exists(_ < sectionNumber)
@@ -446,7 +446,9 @@ class SectionRenderingService(
       case None => PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     }
 
-    val originSection = Origin(DataOrigin.unSwapDataOrigin(formModelOptics)).minSectionNumber
+    val originSection = Origin(
+      DataOrigin.unSwapDataOrigin(formModelOptics).formModelVisibilityOptics.formModel
+    ).minSectionNumber
     val renderUnits: List[RenderUnit] = page.renderUnits
 
     val formModel = formModelOptics.formModelRenderPageOptics.formModel

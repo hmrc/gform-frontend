@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.Eq
 import uk.gov.hmrc.gform.models.FastForward.StopAt
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
+import uk.gov.hmrc.gform.controllers.FastForwardNavigator
 
 sealed trait FastForward extends Product with Serializable {
 
@@ -37,17 +38,20 @@ sealed trait FastForward extends Product with Serializable {
       case FastForward.CYA(from, Some(to)) => FastForward.ffCYA + from.value.toString + "." + to.value.toString
     }
 
-  def next(formModel: FormModel[Visibility], sn: SectionNumber): FastForward = fold[FastForward](identity) { st =>
-    formModel.availableSectionNumbers
-      .find(_ >= st.stopAt)
-      .map(availableSectionNumber => StopAt(availableSectionNumber.increment))
-      .getOrElse(st)
-  } { case cya @ FastForward.CYA(from, to) =>
-    formModel
-      .nextVisibleSectionNumber(sn)
-      .map(s => if (to.map(_ == s).getOrElse(false)) FastForward.Yes else FastForward.CYA(s, to))
-      .getOrElse(cya)
-  }
+  def next(formModel: FormModel[Visibility], sn: SectionNumber): FastForward =
+    fold[FastForward](identity) { st =>
+      formModel.availableSectionNumbers
+        .find(_ >= st.stopAt)
+        .map(availableSectionNumber =>
+          StopAt(FastForwardNavigator(formModel).nextSectionNumber(availableSectionNumber.increment))
+        )
+        .getOrElse(st)
+    } { case cya @ FastForward.CYA(from, to) =>
+      formModel
+        .nextVisibleSectionNumber(sn)
+        .map(s => if (to.map(_ == s).getOrElse(false)) FastForward.Yes else FastForward.CYA(s, to))
+        .getOrElse(cya)
+    }
 
   def goOn(sectionNumber: SectionNumber): Boolean =
     fold(_ => true)(_.stopAt > sectionNumber)(_ => true)
