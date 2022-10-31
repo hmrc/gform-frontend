@@ -43,32 +43,31 @@
     $(errorEl).insertBefore($input);
   }
 
-  function submitFile(file, fileId, formAction) {
-     const fileName = fileId + "_" + file.name.replace(/\\/g, "/").replace(/.*\//, "")
-     const newFile = new File([file], fileName, {type: file.type});
+  function fileSubmit(form, button) {
+    const formGroup = form.find(".govuk-form-group");
+    const input = formGroup.find(".govuk-file-upload");
+    const formComponentId = input.attr("id");
+    const uploadedFiles = $("#" + formComponentId + "-files");
 
-     const formData = new FormData();
-     formData.append(
-         fileId,
-         newFile,
-         fileName
-     );
+    button.css("display", "none");
+    formGroup.hide();
+    uploadedFiles.empty().append(startProgressBar());
 
-     return $.ajax({
-         type: "POST",
-         url: formAction,
-         data: formData,
-         processData: false,
-         contentType: false
-     });
+    return true;
   }
 
-  function submitForm(dataForm) {
-     return $.ajax({
-         type: dataForm.attr("method"),
-         url: dataForm.attr("action"),
-         data: dataForm.serialize()
-     });
+  function dataSubmit(form, dataForm, button) {
+    $.ajax({
+       type: dataForm.attr("method"),
+       url: dataForm.attr("action"),
+       data: dataForm.serialize()
+    }).then(function (){
+       button.unbind("click")
+       button.on("click", function(e) {
+         fileSubmit(form, button);
+       });
+       button.click();
+    });
   }
 
   function handleFileUpload(e) {
@@ -98,30 +97,9 @@
         submitButton
       );
     }
-    submitButton.css("display", "");
+    submitButton.css("display", "")
     submitButton.on("click", function(e) {
-        const formGroup = form.find(".govuk-form-group");
-        const input = formGroup.find(".govuk-file-upload");
-        const fileId = input.attr("id");
-        const uploadedFiles = $("#" + fileId + "-files");
-
-        submitButton.css("display", "none");
-        formGroup.hide();
-        uploadedFiles.empty().append(startProgressBar());
-
-        submitForm(dataForm).done(function (){
-            if (e.target.hasAttribute("upscan")) {
-                submitButton.unbind("click")
-                submitButton.on("click", function() { return true; });
-                submitButton.click();
-            } else {
-                e.preventDefault();
-                const formAction = submitButton.attr("formAction");
-                submitFile(file, fileId, formAction).done(function () {
-                    location.reload();
-                });
-            }
-        });
+       dataSubmit(form, dataForm, submitButton)
     });
   }
 
