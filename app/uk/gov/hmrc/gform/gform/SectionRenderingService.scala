@@ -345,13 +345,19 @@ class SectionRenderingService(
       .getOrElse(AddToListLimitReached.No)
 
     val infoFields = repeater.fields
-      .map(fields =>
-        fields.toList.map {
-          case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
-            htmlForInformationMessage(info, infoType, infoText)
-          case unsupported => throw new Exception("AddToList.fields contains a non-Info component: " + unsupported)
-        }
-      )
+      .map { fields =>
+        fields.toList
+          .filter { field =>
+            field.includeIf.fold(true) { includeIf =>
+              formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+            }
+          }
+          .map {
+            case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
+              htmlForInformationMessage(info, infoType, infoText)
+            case unsupported => throw new Exception("AddToList.fields contains a non-Info component: " + unsupported)
+          }
+      }
       .getOrElse(List(HtmlFormat.empty))
 
     val snippets = HtmlFormat.fill(infoFields :+ limitReached.fold(addAnotherQuestion)(identity))
