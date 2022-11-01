@@ -34,6 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponentId, FormTemplateId, Horizontal, OptionData, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SectionNumber, Sterling, Text, Value, WholeSterling }
 
 import scala.concurrent.Future
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.UkVrn
 
 class FormDataHelpersSpec extends Spec {
 
@@ -144,6 +145,29 @@ class FormDataHelpersSpec extends Spec {
           variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
             Map(
               purePure("amountField") -> VariadicValue.One("111")
+            )
+          )
+          Future.successful(Results.Ok)
+        }
+
+    val future = FormDataHelpers
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
+        continuationFunction
+      )
+    future.futureValue shouldBe Results.Ok
+  }
+
+  it should "remove GB from VAT number if it conforms to the standard format" in new TestFixture {
+
+    override lazy val fields = List(mkFormComponent("vatField", Text(UkVrn, Value)))
+    override lazy val requestBodyParams = Map("vatField" -> Seq("GB 123  456   789"))
+
+    val continuationFunction = (_: RequestRelatedData) =>
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
+        (_: EnteredVariadicFormData) => {
+          variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+            Map(
+              purePure("vatField") -> VariadicValue.One("123456789")
             )
           )
           Future.successful(Results.Ok)
