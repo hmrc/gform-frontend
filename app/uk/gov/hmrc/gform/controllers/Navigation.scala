@@ -93,5 +93,5 @@ case class FastForwardNavigator(formModel: FormModel[Visibility]) extends Naviga
   def nextSectionNumber(sn: SectionNumber): SectionNumber =
     addToListRepeaterSectionNumbers
       .find(_ >= sn)
-      .fold(sn)(nrsn => filteredSectionNumbers(nrsn).find(_ == sn).getOrElse(nrsn))
+      .fold(sn)(nrsn => filteredSectionNumbers(nrsn).filter(_ < nrsn).find(_ >= sn).getOrElse(nrsn))
 }
