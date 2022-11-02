@@ -196,8 +196,9 @@ class SectionRenderingService(
         })(_.value)
 
     val ff = fastForward match {
-      case FastForward.CYA(from, to) => FastForward.CYA(sectionNumber.increment, to)
-      case _                         => FastForward.StopAt(sectionNumber.increment)
+      case FastForward.CYA(from, to)         => FastForward.CYA(sectionNumber.increment, to)
+      case FastForward.StopAt(sectionNumber) => FastForward.StopAt(sectionNumber.increment)
+      case otherwise                         => otherwise
     }
     html.form.addToListCheckYourAnswers(
       title,
@@ -247,7 +248,8 @@ class SectionRenderingService(
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val ff = fastForward match {
       case FastForward.CYA(from, to) => FastForward.CYA(from.increment, to)
-      case _                         => FastForward.Yes
+      case FastForward.StopAt(sn)    => FastForward.StopAt(sn.increment)
+      case otherwise                 => otherwise
     }
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, ff, SaveAndContinue)
