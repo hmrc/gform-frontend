@@ -90,9 +90,17 @@ case class Navigator(
 
 case class FastForwardNavigator(formModel: FormModel[Visibility]) extends Navigation {
 
-  def nextSectionNumber(sn: SectionNumber): SectionNumber =
-    addToListRepeaterSectionNumbers
-      .filter(_.fold(_ => true)(taskList => taskList.coordinates === sn.toCoordinatesUnsafe))
-      .find(_ >= sn)
-      .fold(sn)(nrsn => filteredSectionNumbers(nrsn).filter(_ < nrsn).find(_ >= sn).getOrElse(nrsn))
+  def nextSectionNumber(prevSn: SectionNumber): SectionNumber = {
+    val sn = prevSn.increment
+    if (addToListSectionNumbers.contains(prevSn)) {
+      sn
+    } else {
+      addToListRepeaterSectionNumbers
+        .filter(_.fold(_ => true)(taskList => taskList.coordinates === sn.toCoordinatesUnsafe))
+        .find(_ >= sn)
+        .fold(sn) { nrsn =>
+          filteredSectionNumbers(nrsn).filter(_ < nrsn).find(_ >= sn).getOrElse(nrsn)
+        }
+    }
+  }
 }

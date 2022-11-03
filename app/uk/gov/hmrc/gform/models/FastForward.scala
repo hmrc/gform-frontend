@@ -43,7 +43,7 @@ sealed trait FastForward extends Product with Serializable {
       formModel.availableSectionNumbers
         .find(_ >= st.stopAt)
         .map(availableSectionNumber =>
-          StopAt(FastForwardNavigator(formModel).nextSectionNumber(availableSectionNumber.increment))
+          StopAt(FastForwardNavigator(formModel).nextSectionNumber(availableSectionNumber))
         )
         .getOrElse(st)
     } { case cya @ FastForward.CYA(from, to) =>

@@ -171,8 +171,8 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
     ffNavigator.addToListRepeaterSectionNumbers shouldBe List(Classic(3))
     ffNavigator.addToListNonRepeaterSectionNumbers shouldBe List(Classic(2))
     ffNavigator.addToListSectionNumbers shouldBe List(Classic(2), Classic(3))
-    ffNavigator.nextSectionNumber(Classic(1)) shouldBe (Classic(1))
-    ffNavigator.nextSectionNumber(Classic(2)) shouldBe (Classic(3))
+    ffNavigator.nextSectionNumber(Classic(0)) shouldBe (Classic(1))
+    ffNavigator.nextSectionNumber(Classic(1)) shouldBe (Classic(3))
   }
 
 }
