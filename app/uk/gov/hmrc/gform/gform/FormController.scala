@@ -271,7 +271,8 @@ class FormController(
                               lastRepeaterSectionNumber,
                               sectionTitle4Ga,
                               suppressErrors,
-                              FastForward.Yes
+                              fastForward
+                                .next(formModelOptics.formModelVisibilityOptics.formModel, lastRepeaterSectionNumber)
                             )
                         ).pure[Future]
                       }
