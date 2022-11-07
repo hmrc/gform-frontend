@@ -41,7 +41,7 @@ sealed trait FastForward extends Product with Serializable {
   def next(formModel: FormModel[Visibility], sn: SectionNumber): FastForward =
     fold[FastForward](identity) { st =>
       formModel.availableSectionNumbers
-        .find(_ >= st.stopAt)
+        .find(s => s >= st.stopAt && s >= sn)
         .map(availableSectionNumber =>
           StopAt(FastForwardNavigator(formModel).nextSectionNumber(availableSectionNumber))
         )
