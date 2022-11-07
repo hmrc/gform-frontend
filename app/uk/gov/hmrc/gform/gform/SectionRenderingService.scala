@@ -246,13 +246,8 @@ class SectionRenderingService(
 
     val listResult = validationResult.formFieldValidationResults
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
-    val ff = fastForward match {
-      case FastForward.CYA(from, to) => FastForward.CYA(from.increment, to)
-      case FastForward.StopAt(sn)    => FastForward.StopAt(sn.increment)
-      case otherwise                 => otherwise
-    }
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
-      .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, ff, SaveAndContinue)
+      .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
 
     val formComponent = repeater.addAnotherQuestion
 
@@ -392,7 +387,7 @@ class SectionRenderingService(
       specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
       maybeAccessCode,
       sectionNumber,
-      ff
+      fastForward
     )
   }
 
