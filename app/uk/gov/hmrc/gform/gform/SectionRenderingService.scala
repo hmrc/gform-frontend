@@ -508,7 +508,14 @@ class SectionRenderingService(
       formTemplate,
       pageLevelErrorHtml,
       renderingInfo,
-      backLink = mkBackLink(formTemplate, maybeAccessCode, sectionNumber, originSection, fastForward),
+      backLink = mkBackLink(
+        formTemplate,
+        maybeAccessCode,
+        sectionNumber,
+        originSection,
+        fastForward,
+        listResult.exists(_.fieldErrors.size > 0)
+      ),
       shouldDisplayHeading = !formLevelHeading,
       shouldDisplayContinue = !page.isTerminationPage,
       frontendAppConfig,
@@ -735,31 +742,49 @@ class SectionRenderingService(
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     originSection: SectionNumber,
-    fastForward: FastForward
+    fastForward: FastForward,
+    pageHasError: Boolean
   )(implicit messages: Messages): Option[BackLink] = {
+
+    val ff = fastForward match {
+      case f @ FastForward.CYA(_, _) if !pageHasError => f
+      case _                                          => FastForward.StopAt(sectionNumber)
+    }
 
     val href =
       uk.gov.hmrc.gform.gform.routes.FormController
-        .backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber))
+        .backAction(formTemplate._id, maybeAccessCode, sectionNumber, ff)
 
     val attributes = Map(
       "id"                    -> "backButton",
       "data-form-template-id" -> formTemplate._id.value,
       "data-access-code"      -> maybeAccessCode.fold("-")(_.value),
-      "data-section-number"   -> sectionNumber.value.toString,
+      "data-section-number"   -> sectionNumber.value,
       "data-fast-forward" -> {
-        fastForward match {
-          case FastForward.CYA(from, to) => FastForward.CYA(from.decrement, to).asString
-          case _                         => fastForward.asString
+        if (pageHasError) FastForward.StopAt(sectionNumber.decrement).asString
+        else {
+          fastForward match {
+            case ff @ FastForward.CYA(from, to) =>
+              from match {
+                case SectionNumber.TaskList(_, sectionNumber) if sectionNumber > 0 =>
+                  FastForward.CYA(from.decrement, to).asString
+                case _ => ff.asString
+              }
+            case _ => fastForward.asString
+          }
         }
       }
     )
     val backLink =
-      new BackLink(attributes = attributes, href = href.path, content = new content.Text(messages("linkText.back")))
+      new BackLink(attributes = attributes, href = href.path, content = content.Text(messages("linkText.back")))
 
     if (sectionNumber > originSection || sectionNumber.isTaskList) {
       Some(backLink)
-    } else None
+    } else
+      fastForward match {
+        case FastForward.CYA(_, _) if !pageHasError => Some(backLink)
+        case _                                      => None
+      }
   }
 
   def renderPrintSection(

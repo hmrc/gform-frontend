@@ -326,17 +326,25 @@ class FormController(
         def goBack(toSectionNumber: SectionNumber) = {
           val formModel = formModelOptics.formModelRenderPageOptics.formModel
           val sectionTitle4Ga = sectionTitle4GaFactory(formModel(toSectionNumber), sectionNumber)
-          Redirect(
-            routes.FormController
-              .form(
-                cache.formTemplateId,
-                maybeAccessCode,
-                toSectionNumber,
-                sectionTitle4Ga,
-                SuppressErrors.Yes,
-                ff
-              )
-          ).pure[Future]
+          ff match {
+            case FastForward.CYA(_, _) =>
+              Redirect(
+                routes.SummaryController
+                  .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None)
+              ).pure[Future]
+            case _ =>
+              Redirect(
+                routes.FormController
+                  .form(
+                    cache.formTemplateId,
+                    maybeAccessCode,
+                    toSectionNumber,
+                    sectionTitle4Ga,
+                    SuppressErrors.Yes,
+                    ff
+                  )
+              ).pure[Future]
+          }
         }
 
         val toSectionNumber = Navigator(
@@ -654,61 +662,57 @@ class FormController(
               val processData = purgeConfirmationData.f(processData0)
               val sn = maybePreviousSn.getOrElse(sectionNumber)
 
-              def goBack(saveData: Boolean) = {
-
+              def goBack() = {
                 val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
-                val fastForwardSn = routes.FormController
-                  .form(
-                    cache.formTemplateId,
-                    maybeAccessCode,
-                    sn,
-                    sectionTitle4Ga,
-                    SuppressErrors.Yes,
-                    fastForward
-                  )
-                val goBackLink = Redirect {
+
+                def backRoute(sectionNumber: SectionNumber, fastForward: FastForward) =
+                  routes.FormController
+                    .form(
+                      cache.formTemplateId,
+                      maybeAccessCode,
+                      sectionNumber,
+                      sectionTitle4Ga,
+                      SuppressErrors.Yes,
+                      fastForward
+                    )
+
+                val fastForwardSn: Call = {
+                  fastForward match {
+                    case FastForward.CYA(_, None) =>
+                      routes.SummaryController
+                        .summaryById(cache.formTemplateId, maybeAccessCode, commingFromSn.toCoordinates, None)
+                    case FastForward.CYA(_, Some(to)) =>
+                      backRoute(to, FastForward.Yes)
+                    case FastForward.CYA(SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), _), _) =>
+                      backRoute(SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0), FastForward.Yes)
+                    case _ =>
+                      backRoute(sn, fastForward)
+                  }
+                }
+                Redirect {
                   commingFromSn.fold { classic =>
                     fastForwardSn
                   } { taskList =>
                     if (maybePreviousSn.isEmpty) {
-                      uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                        .landingPage(cache.formTemplateId, maybeAccessCode)
+                      fastForward match {
+                        case FastForward.CYA(_, _) => fastForwardSn
+                        case _ =>
+                          uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                            .landingPage(cache.formTemplateId, maybeAccessCode)
+                      }
                     } else {
                       fastForwardSn
                     }
                   }
-                }
-
-                if (saveData) {
-                  formProcessor.validateAndUpdateData(
-                    cache,
-                    processData,
-                    sn,
-                    browserSectionNumber,
-                    maybeAccessCode,
-                    fastForward,
-                    formModelOptics,
-                    purgeConfirmationData.enteredVariadicFormData,
-                    true
-                  )(_ => _ => _ => goBackLink)
-                } else {
-                  goBackLink.pure[Future]
-                }
+                }.pure[Future]
               }
 
               val formModel = formModelOptics.formModelRenderPageOptics.formModel
-              val commingFromBracket = formModel.bracket(commingFromSn)
-
               val bracket = formModel.bracket(sn)
 
-              val isAddToListRepeaterBackClick = commingFromBracket.whenAddToListBracket { addToList =>
-                val iteration = addToList.iterationForSectionNumber(commingFromSn)
-                iteration.repeater.sectionNumber === commingFromSn
-              }
-
               bracket match {
-                case Bracket.NonRepeatingPage(_, _, _) => goBack(!isAddToListRepeaterBackClick)
-                case Bracket.RepeatingPage(_, _)       => goBack(!isAddToListRepeaterBackClick)
+                case Bracket.NonRepeatingPage(_, _, _) => goBack()
+                case Bracket.RepeatingPage(_, _)       => goBack()
                 case bracket @ Bracket.AddToList(iterations, _) =>
                   val iteration: Bracket.AddToListIteration[DataExpanded] = bracket.iterationForSectionNumber(sn)
                   val lastIteration: Bracket.AddToListIteration[DataExpanded] = iterations.last
@@ -721,7 +725,7 @@ class FormController(
                           addToListBracket.iterationForSectionNumber(sectionNumber).isCommited(processData.visitsIndex)
                       }
                     if (isCommited) {
-                      goBack(true)
+                      goBack()
                     } else {
                       formProcessor.processRemoveAddToList(
                         cache,
@@ -734,7 +738,7 @@ class FormController(
                       )
                     }
                   } else {
-                    goBack(true)
+                    goBack()
                   }
               }
             }
