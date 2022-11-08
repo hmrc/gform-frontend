@@ -557,7 +557,7 @@ class SectionRenderingService(
           (specimenSource, firstFormComponentId) match {
             case (Some(specimenSrc), Some(formComponentId)) =>
               specimenSrc.formKind.fold { classicKind =>
-                val qqq: List[Option[IncludeIf]] = classicKind.sections.flatMap { section =>
+                val includeIfs: List[Option[IncludeIf]] = classicKind.sections.flatMap { section =>
                   section.fold { nonRepeatingSection =>
                     pageIncludeIf(nonRepeatingSection.page, formComponentId) :: Nil
                   } { repeatedSection =>
@@ -566,10 +566,10 @@ class SectionRenderingService(
                     addToList.pages.toList.map(page => pageIncludeIf(page, formComponentId))
                   }
                 }
-                qqq.flatMap(_.toList).headOption
-              }(taskListKind => throw new Exception("dsadsa"))
+                includeIfs.flatMap(_.toList).headOption
+              }(taskListKind => throw new Exception("Task list not supported"))
 
-            case _ => throw new Exception("dsadsaddd")
+            case _ => throw new Exception("Not a specimen")
           }
 
         val classicPages: List[(PageModel[DataExpanded], SectionNumber.Classic)] =
@@ -1372,7 +1372,10 @@ class SectionRenderingService(
       }
       interpolationsHaveLonelyNumeric && sse(v.value.copy(interpolations = List(Constant(""))), false).trim.isEmpty()
     }
-    val filteredRows = table.rows.collect {
+
+    val normalisedTable = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
+
+    val filteredRows = normalisedTable.rows.collect {
       case valueRow: TableValueRow if isVisibleValueRow(valueRow) =>
         valueRow.values.map { v =>
           val classes = v.cssClass.toList.flatMap(_.split(" +")) :+ {
@@ -1381,6 +1384,7 @@ class SectionRenderingService(
           GovukTableRow(
             content = HtmlContent(sse(v.value, false)),
             colspan = v.colspan,
+            rowspan = v.rowspan,
             classes = classes.mkString(" ")
           )
         }
@@ -2819,6 +2823,82 @@ class SectionRenderingService(
   private val govukLabel: components.GovukLabel = new components.GovukLabel()
   private val govukInput: components.GovukInput = new components.GovukInput(govukErrorMessage, govukHint, govukLabel)
 
+}
+
+object SectionRenderingService {
+  def normalisaTableComp(table: TableComp, isVisibleValueRow: TableValueRow => Boolean): TableComp = {
+
+    def rowSpansIndexes(row: TableValueRow): List[(Int, TableValue)] = row.values.zipWithIndex.flatMap {
+      case (tableValue, index) =>
+        tableValue.rowspan match {
+          case Some(s) if s > 1 => List(index -> tableValue)
+          case _                => List.empty[(Int, TableValue)]
+        }
+    }
+
+    val indexes: List[Int] = List.range(1, table.rows.size)
+
+    /*
+     *  If the table row is hidden and it starts a rowspan, we need to copy that starting
+     *  cell to next row (and decrement the copied rowspan)
+     */
+    val updatedRows: List[TableValueRow] = indexes.foldLeft(table.rows) { case (rows, currentSplit) =>
+      val (begin, end): (List[TableValueRow], List[TableValueRow]) = rows.splitAt(currentSplit)
+
+      val currentRow = begin.last
+
+      val rowIsVisible = isVisibleValueRow(currentRow)
+
+      if (rowIsVisible) {
+        rows // Nothing to do
+      } else {
+        val endUpdated = end match {
+          case nextRow :: restOfRows =>
+            val indexes: List[(Int, TableValue)] = rowSpansIndexes(currentRow)
+            val updatedTableValues: List[TableValue] = indexes.foldLeft(nextRow.values) {
+              case (rowCells, (currentIndex, tableValue)) =>
+                val (beginCells, endCells) = rowCells.splitAt(currentIndex)
+                beginCells ++ List(tableValue.decrementRowSpan) ++ endCells
+            }
+            val nextRowUpdated = nextRow.copy(values = updatedTableValues)
+            nextRowUpdated :: restOfRows
+          case Nil => Nil
+        }
+
+        begin ++ endUpdated
+      }
+    }
+
+    val rowsWithVisibility: List[(TableValueRow, Boolean)] = updatedRows.map(row => row -> isVisibleValueRow(row))
+
+    val rowsWithVisibilityTails: List[List[(TableValueRow, Boolean)]] = rowsWithVisibility.tails.toList
+
+    /*
+     *  Reduce rowspan if some of overlapping rows are hidden
+     */
+    val finalRows: List[TableValueRow] = rowsWithVisibilityTails.flatMap {
+      case (tableValueRow, isVisible) :: tails =>
+        if (!isVisible) {
+          List(tableValueRow) // No need to touch invisible row
+        } else {
+          val newValues = tableValueRow.values.map { tableValue =>
+            tableValue.rowspan match {
+              case None => tableValue
+              case Some(rowspan) =>
+                val rowsToInspect: List[(TableValueRow, Boolean)] = tails.take(rowspan - 1)
+                val hiddenInRowspan: Int = rowsToInspect.map(_._2).count(_ === false)
+                val reducedRowSpan: Int = rowspan - hiddenInRowspan
+                val updatedRowSpan = if (reducedRowSpan > 1) Some(reducedRowSpan) else None
+                tableValue.copy(rowspan = updatedRowSpan)
+            }
+          }
+          List(tableValueRow.copy(values = newValues))
+        }
+      case otherwise => Nil
+    }
+
+    table.copy(rows = finalRows)
+  }
 }
 
 object IsNilOrInfoOnly {
