@@ -543,7 +543,12 @@ object MiniSummaryList {
   implicit val format: Format[MiniSummaryList] = derived.oformat()
 }
 
-case class TableValue(value: SmartString, cssClass: Option[String], colspan: Option[Int])
+case class TableValue(value: SmartString, cssClass: Option[String], colspan: Option[Int], rowspan: Option[Int]) {
+  def decrementRowSpan =
+    if (rowspan.exists(_ > 1))
+      TableValue(value, cssClass, colspan, rowspan.map(_ - 1))
+    else TableValue(value, cssClass, colspan, None)
+}
 
 object TableValue {
   implicit val format: Format[TableValue] = derived.oformat()
