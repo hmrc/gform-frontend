@@ -65,17 +65,8 @@
 @hmrcPageHeading = @{new HmrcPageHeading()}
 
 @backLink = @{
-  new BackLink(attributes = Map("id" -> "backButton",
-            "data-form-template-id" -> formTemplate._id.value,
-            "data-access-code" -> maybeAccessCode.fold("-")(_.value),
-            "data-section-number" -> sectionNumber.value.toString,
-            "data-fast-forward"     -> {fastForward match {
-                case FastForward.CYA(from, to) => FastForward.CYA(sectionNumber, to).asString
-                case _ => sectionNumber.value.toString
-            }}
-        ),
-        href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber)).path,
-        content = new Text(messages("linkText.back")))
+  new BackLink(href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber)).path,
+               content = new Text(messages("linkText.back")))
 }
 
 @main_template(
