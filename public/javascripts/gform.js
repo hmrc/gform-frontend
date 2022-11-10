@@ -3,6 +3,9 @@
   var gformFileUpload = new GOVUK.GformFileUpload();
   gformFileUpload.init();
 
+  var formActionHandlers = new GOVUK.GformFormActionHandlers();
+  formActionHandlers.init();
+
   var toggleAddressLabels = new GOVUK.GformToggleAddressLabels();
   toggleAddressLabels.init();
 
