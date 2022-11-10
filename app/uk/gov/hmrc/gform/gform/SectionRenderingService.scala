@@ -508,7 +508,14 @@ class SectionRenderingService(
       formTemplate,
       pageLevelErrorHtml,
       renderingInfo,
-      backLink = mkBackLink(formTemplate, maybeAccessCode, sectionNumber, originSection, fastForward),
+      backLink = mkBackLink(
+        formTemplate,
+        maybeAccessCode,
+        sectionNumber,
+        originSection,
+        fastForward,
+        listResult.exists(_.fieldErrors.size > 0)
+      ),
       shouldDisplayHeading = !formLevelHeading,
       shouldDisplayContinue = !page.isTerminationPage,
       frontendAppConfig,
@@ -735,31 +742,29 @@ class SectionRenderingService(
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     originSection: SectionNumber,
-    fastForward: FastForward
+    fastForward: FastForward,
+    pageHasError: Boolean
   )(implicit messages: Messages): Option[BackLink] = {
 
-    val href =
-      uk.gov.hmrc.gform.gform.routes.FormController
-        .backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber))
+    val href = fastForward match {
+      case ff @ FastForward.CYA(from, _) if !pageHasError =>
+        uk.gov.hmrc.gform.gform.routes.FormController
+          .backAction(formTemplate._id, maybeAccessCode, from, ff)
+      case _ =>
+        uk.gov.hmrc.gform.gform.routes.FormController
+          .backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber))
+    }
 
-    val attributes = Map(
-      "id"                    -> "backButton",
-      "data-form-template-id" -> formTemplate._id.value,
-      "data-access-code"      -> maybeAccessCode.fold("-")(_.value),
-      "data-section-number"   -> sectionNumber.value.toString,
-      "data-fast-forward" -> {
-        fastForward match {
-          case FastForward.CYA(from, to) => FastForward.CYA(from.decrement, to).asString
-          case _                         => fastForward.asString
-        }
-      }
-    )
     val backLink =
-      new BackLink(attributes = attributes, href = href.path, content = new content.Text(messages("linkText.back")))
+      new BackLink(href = href.path, content = content.Text(messages("linkText.back")))
 
     if (sectionNumber > originSection || sectionNumber.isTaskList) {
       Some(backLink)
-    } else None
+    } else
+      fastForward match {
+        case FastForward.CYA(_, _) if !pageHasError => Some(backLink)
+        case _                                      => None
+      }
   }
 
   def renderPrintSection(
