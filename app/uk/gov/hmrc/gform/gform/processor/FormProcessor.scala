@@ -91,7 +91,7 @@ class FormProcessor(
           pageIdSectionNumberMap.toList
             .sortBy(_._1.maybeIndex)(Ordering[Option[Int]].reverse)
             .find { case (modelPageId, _) =>
-              modelPageId.baseId == forModelPageId.baseId
+              modelPageId.baseId === forModelPageId.baseId
             }
             .fold(Option.empty[SectionNumber]) { case (_, sectionNumber) =>
               Some(sectionNumber)
