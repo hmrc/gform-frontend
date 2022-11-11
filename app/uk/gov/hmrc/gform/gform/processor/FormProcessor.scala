@@ -47,6 +47,8 @@ import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.PageId
+import uk.gov.hmrc.gform.models.ids.ModelPageId
 
 class FormProcessor(
   i18nSupport: I18nSupport,
@@ -78,7 +80,24 @@ class FormProcessor(
     lang: LangADT,
     sse: SmartStringEvaluator
   ): Future[Result] = {
-
+    def computePageLink(
+      formPageId: PageId,
+      pageIdSectionNumberMap: Map[ModelPageId, SectionNumber]
+    ) = {
+      val forModelPageId = formPageId.modelPageId
+      pageIdSectionNumberMap.get(forModelPageId) match {
+        case Some(sectionNumber) => Some(sectionNumber)
+        case None =>
+          pageIdSectionNumberMap.toList
+            .sortBy(_._1.maybeIndex)(Ordering[Option[Int]].reverse)
+            .find { case (modelPageId, _) =>
+              modelPageId.baseId == forModelPageId.baseId
+            }
+            .fold(Option.empty[SectionNumber]) { case (_, sectionNumber) =>
+              Some(sectionNumber)
+            }
+      }
+    }
     def saveAndRedirect(
       updFormModelOptics: FormModelOptics[DataOrigin.Browser],
       componentIdToFileId: FormComponentIdToFileIdMapping,
@@ -151,8 +170,13 @@ class FormProcessor(
         EnteredVariadicFormData.empty,
         true
       ) { _ => _ => maybeSectionNumber =>
+        val pageIdToRemove = updFormModel.brackets.addToListBracket(addToListId).source.pageIdToDisplayAfterRemove
+        val pageIdSectionNumberMap = updFormModel.pageIdSectionNumberMap
         val sectionNumber =
-          if (isLastIteration)
+          if (isLastIteration && pageIdToRemove.isDefined) {
+            computePageLink(pageIdToRemove.get, pageIdSectionNumberMap)
+              .getOrElse(throw new Exception(s"Unable to find section number for pageId: ${pageIdToRemove.get}"))
+          } else if (isLastIteration)
             maybeSectionNumber
               .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
               .getOrElse(sn)
