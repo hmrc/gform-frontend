@@ -255,7 +255,7 @@ class FormController(
                               cache.formTemplateWithRedirects.specimenSource,
                               handlerResult.validationResult,
                               cache.retrievals,
-                              FastForward.Yes
+                              fastForward
                             )
                           ).pure[Future]
                         )
