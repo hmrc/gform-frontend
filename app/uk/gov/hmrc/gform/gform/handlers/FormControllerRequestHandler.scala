@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SectionNumber, SuppressError
 import uk.gov.hmrc.gform.validation.ValidationResult
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
 
 class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: ExecutionContext) {
 
@@ -73,7 +74,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
     fastForward: FastForward,
     maybeCoordinates: Option[Coordinates]
-  ): Future[Option[SectionNumber]] =
+  ): Future[SectionOrSummary] =
     formValidator.fastForwardValidate(
       processData,
       cache,

@@ -228,15 +228,18 @@ object ValueClassBinder {
 
       private val cyaPat1 = raw"cya([\d,]+)".r
       private val cyaPat2 = raw"cya([\d,]+)\.([\d,]+)".r
+      private val cyaPat3 = raw"cya([\d,]+)n".r
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, FastForward]] =
         params.get(key).flatMap(_.headOption).map {
           case FastForward.ffYes => FastForward.Yes.asRight
-          case cyaPat1(strSn)    => toSectionNumber(key, strSn).map(FastForward.CYA(_, None))
+          case cyaPat1(strSn)    => toSectionNumber(key, strSn).map(FastForward.CYA(_, SectionOrSummary.FormSummary))
+          case cyaPat3(strSn) =>
+            toSectionNumber(key, strSn).map(FastForward.CYA(_, SectionOrSummary.TaskSummary))
           case cyaPat2(to, from) =>
             for {
               sn1 <- toSectionNumber(key, to)
               sn2 <- toSectionNumber(key, from)
-            } yield FastForward.CYA(sn1, Some(sn2))
+            } yield FastForward.CYA(sn1, SectionOrSummary.Section(sn2))
           case value => toSectionNumber(key, value).map(FastForward.StopAt(_))
         }
 

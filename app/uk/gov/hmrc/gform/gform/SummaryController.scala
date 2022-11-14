@@ -98,12 +98,29 @@ class SummaryController(
             .flatMap(_.includeIf)
             .fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
 
-          if (maybeCoordinates.isDefined && (maybeTaskSummarySection.isEmpty || !isSummarySectionVisible)) {
-            Redirect(
-              uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                .landingPage(formTemplateId, maybeAccessCode)
-            )
-              .pure[Future]
+          if ((maybeTaskSummarySection.isEmpty || !isSummarySectionVisible)) {
+            for {
+              isValid <- isFormValid(formTemplateId, maybeAccessCode, cache, formModelOptics)
+              result <- if (!isValid) {
+                          Redirect(
+                            uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                              .landingPage(formTemplateId, maybeAccessCode)
+                          ).pure[Future]
+                        } else {
+                          summaryRenderingService
+                            .getSummaryHTML(
+                              maybeAccessCode,
+                              cache,
+                              SummaryPagePurpose.ForUser,
+                              formModelOptics,
+                              maybeCoordinates,
+                              maybeTaskSummarySection,
+                              taskComplete.getOrElse(false)
+                            )
+                            .map(Ok(_))
+
+                        }
+            } yield result
           } else
             summaryRenderingService
               .getSummaryHTML(
@@ -349,4 +366,30 @@ class SummaryController(
           )
         }
     }
+
+  private def isFormValid(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(implicit
+    request: Request[AnyContent],
+    hc: HeaderCarrier,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Future[Boolean] = {
+    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
+
+    for {
+      envelope <- envelopeF
+      validationResult <- validationService
+                            .validateFormModel(
+                              cache.toCacheData,
+                              EnvelopeWithMapping(envelope, cache.form),
+                              formModelOptics.formModelVisibilityOptics,
+                              None
+                            )
+    } yield validationResult.isFormValid
+  }
+
 }

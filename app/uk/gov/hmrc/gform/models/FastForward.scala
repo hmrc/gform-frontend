@@ -20,6 +20,7 @@ import cats.Eq
 import uk.gov.hmrc.gform.models.FastForward.StopAt
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 import uk.gov.hmrc.gform.controllers.FastForwardNavigator
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
 
 sealed trait FastForward extends Product with Serializable {
 
@@ -34,8 +35,10 @@ sealed trait FastForward extends Product with Serializable {
 
   def asString: String =
     fold(_ => FastForward.ffYes)(_.stopAt.value.toString) {
-      case FastForward.CYA(from, None)     => FastForward.ffCYA + from.value.toString
-      case FastForward.CYA(from, Some(to)) => FastForward.ffCYA + from.value.toString + "." + to.value.toString
+      case FastForward.CYA(from, SectionOrSummary.FormSummary) => FastForward.ffCYA + from.value.toString
+      case FastForward.CYA(from, SectionOrSummary.TaskSummary) => FastForward.ffCYA + from.value.toString + "n"
+      case FastForward.CYA(from, SectionOrSummary.Section(to)) =>
+        FastForward.ffCYA + from.value.toString + "." + to.value.toString
     }
 
   def next(formModel: FormModel[Visibility], sn: SectionNumber): FastForward =
@@ -49,7 +52,12 @@ sealed trait FastForward extends Product with Serializable {
     } { case cya @ FastForward.CYA(from, to) =>
       formModel
         .nextVisibleSectionNumber(sn)
-        .map(s => if (to.map(_ == s).getOrElse(false)) FastForward.Yes else FastForward.CYA(s, to))
+        .map(s =>
+          to match {
+            case SectionOrSummary.Section(s) if sn == s => FastForward.Yes
+            case _                                      => FastForward.CYA(s, to)
+          }
+        )
         .getOrElse(cya)
     }
 
@@ -62,7 +70,7 @@ object FastForward {
 
   case object Yes extends FastForward
   case class StopAt(stopAt: SectionNumber) extends FastForward
-  case class CYA(from: SectionNumber, to: Option[SectionNumber] = None) extends FastForward // {
+  case class CYA(from: SectionNumber, to: SectionOrSummary = SectionOrSummary.FormSummary) extends FastForward
 
   val ffYes = "t"
   val ffCYA = "cya"

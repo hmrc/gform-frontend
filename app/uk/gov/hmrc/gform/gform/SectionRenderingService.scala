@@ -176,7 +176,7 @@ class SectionRenderingService(
               envelope,
               addressRecordLookup,
               None,
-              Some(FastForward.CYA(singletonWithNumber.sectionNumber, Some(sectionNumber)))
+              Some(FastForward.CYA(singletonWithNumber.sectionNumber, SectionOrSummary.Section(sectionNumber)))
             )
         }
     }
@@ -1286,7 +1286,7 @@ class SectionRenderingService(
                   ei.envelope,
                   ei.addressRecordLookup,
                   None,
-                  Some(FastForward.CYA(sn, Some(ei.sectionNumber)))
+                  Some(FastForward.CYA(sn, SectionOrSummary.Section(ei.sectionNumber)))
                 )
             }
             .toList
