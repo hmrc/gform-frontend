@@ -174,18 +174,7 @@ class FormProcessor(
         val pageIdSectionNumberMap = updFormModel.pageIdSectionNumberMap
         val sectionNumber =
           if (isLastIteration && pageIdToRemove.isDefined) {
-        val sectionNumber =
-          if (isLastIteration) {
-            pageIdToRemove.fold(
-              maybeSectionNumber
-                .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
-                .getOrElse(sn)
-            ) { pageId =>
-              computePageLink(pageId, pageIdSectionNumberMap)
-                .getOrElse(throw new Exception(s"Unable to find section number for pageId: $pageId"))
-            }
-          } else
-            sn
+            computePageLink(pageIdToRemove.get, pageIdSectionNumberMap)
               .getOrElse(throw new Exception(s"Unable to find section number for pageId: ${pageIdToRemove.get}"))
           } else if (isLastIteration)
             maybeSectionNumber
