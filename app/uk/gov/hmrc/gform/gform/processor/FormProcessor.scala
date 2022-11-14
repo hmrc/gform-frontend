@@ -49,6 +49,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.PageId
 import uk.gov.hmrc.gform.models.ids.ModelPageId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
 
 class FormProcessor(
   i18nSupport: I18nSupport,
@@ -178,9 +179,10 @@ class FormProcessor(
         val sectionNumber =
           if (isLastIteration && pageIdToRemove.isDefined) {
             pageIdToRemove.fold(
-              maybeSectionNumber
-                .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
-                .getOrElse(sn)
+              maybeSectionNumber match {
+                case SectionOrSummary.Section(s) => addToListBracket.iterationForSectionNumber(s).firstSectionNumber
+                case _                           => sn
+              }
             )(pageId =>
               computePageLink(pageId, pageIdSectionNumberMap).getOrElse(
                 throw new Exception(s"Unable to find section number for pageId: ${pageIdToRemove.get}")
@@ -248,7 +250,7 @@ class FormProcessor(
     enteredVariadicFormData: EnteredVariadicFormData,
     visitPage: Boolean
   )(
-    toResult: Option[(FormComponentId, AddressLookupResult)] => Option[String] => Option[SectionNumber] => Result
+    toResult: Option[(FormComponentId, AddressLookupResult)] => Option[String] => SectionOrSummary => Result
   )(implicit hc: HeaderCarrier, request: Request[AnyContent], l: LangADT, sse: SmartStringEvaluator): Future[Result] = {
 
     val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics

@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.models.{ Coordinates, FastForward, ProcessData, Process
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, FormStatus, InProgress, QueryParams, Summary, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, InProgress, QueryParams, Summary, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.eval.smartstring._
@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
 
 class FastForwardService(
   fileUploadService: FileUploadService,
@@ -128,10 +129,10 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     processData: ProcessData,
-    maybeSectionNumber: Option[SectionNumber]
+    maybeSectionNumber: SectionOrSummary
   ): Result =
     maybeSectionNumber match {
-      case Some(sn) =>
+      case SectionOrSummary.Section(sn) =>
         val pageModel = processData.formModel(sn)
         val sectionTitle4Ga = sectionTitle4GaFactory(pageModel, sn)
 
@@ -139,7 +140,7 @@ class FastForwardService(
           routes.FormController
             .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
         )
-      case None =>
+      case _ =>
         Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, None))
     }
 
@@ -181,7 +182,7 @@ class FastForwardService(
     envelope: EnvelopeWithMapping,
     maybeCoordinates: Option[Coordinates]
   )(
-    toResult: Option[SectionNumber] => Result
+    toResult: SectionOrSummary => Result
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
@@ -197,9 +198,14 @@ class FastForwardService(
                    fastForward,
                    maybeCoordinates
                  )
+
+      formStatus = maybeSn match {
+                     case SectionOrSummary.Section(_) => InProgress
+                     case _                           => Summary
+                   }
       userData = UserData(
                    cache.form.formData,
-                   maybeSn.fold[FormStatus](Summary)(_ => InProgress),
+                   formStatus,
                    processData.visitsIndex,
                    cache.form.thirdPartyData
                      .modify(_.obligations)

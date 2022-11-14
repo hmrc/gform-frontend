@@ -416,6 +416,11 @@ object SummaryRenderingService {
           begin_addToList_section(pageTitle)
       }
 
+      val ff = if (maybeCoordinates.isEmpty) {
+        FastForward.CYA(sectionNumber)
+      } else {
+        FastForward.CYA(sectionNumber, SectionOrSummary.TaskSummary)
+      }
       val middleRows: List[SummaryListRow] = page.fields
         .filterNot(_.hideOnSummary)
         .flatMap(formComponent =>
@@ -432,7 +437,7 @@ object SummaryRenderingService {
             envelope,
             addressRecordLookup,
             iterationTitle,
-            None
+            Some(ff)
           )
         )
 
@@ -477,6 +482,11 @@ object SummaryRenderingService {
 
       val sectionTitle4Ga: SectionTitle4Ga = sectionTitle4GaFactory(repeater, sectionNumber)
 
+      val ff = if (maybeCoordinates.isEmpty) {
+        FastForward.CYA(sectionNumber)
+      } else {
+        FastForward.CYA(sectionNumber, SectionOrSummary.TaskSummary)
+      }
       val url: Call = routes.FormController
         .form(
           formTemplate._id,
@@ -484,7 +494,7 @@ object SummaryRenderingService {
           sectionNumber,
           sectionTitle4Ga,
           SuppressErrors.Yes,
-          FastForward.CYA(sectionNumber)
+          ff
         )
 
       val addToListSummaryItems: List[Html] = addToListItemSummaries.map(ss => markDownParser(ss)).toList

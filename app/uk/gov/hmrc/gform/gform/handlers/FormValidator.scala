@@ -98,7 +98,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
     fastForward: FastForward,
     maybeCoordinates: Option[Coordinates]
-  ): Future[Option[SectionNumber]] = {
+  ): Future[SectionOrSummary] = {
 
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
 
@@ -142,21 +142,28 @@ class FormValidator(implicit ec: ExecutionContext) {
         })
       }
 
-    fastForward match {
+    (fastForward match {
       case FastForward.CYA(from, to) =>
         lazy val nextFrom = availableSectionNumbers.find(_ > from)
         ffYesSnF.map(ffYes =>
           (ffYes, to, from) match {
-            case (None, None, _)                                => None
-            case (None, Some(cyaTo), _)                         => Some(cyaTo)
-            case (Some(yesTo), _, cyaFrom) if yesTo == cyaFrom  => Some(yesTo)
-            case (Some(yesTo), None, _)                         => nextFrom
-            case (Some(yesTo), Some(cyaTo), _) if cyaTo > yesTo => nextFrom
-            case (Some(yesTo), Some(cyaTo), _)                  => Some(cyaTo)
+            case (None, SectionOrSummary.FormSummary, _)       => SectionOrSummary.FormSummary
+            case (None, SectionOrSummary.TaskSummary, _)       => SectionOrSummary.TaskSummary
+            case (None, SectionOrSummary.Section(cyaTo), _)    => SectionOrSummary.Section(cyaTo)
+            case (Some(yesTo), _, cyaFrom) if yesTo == cyaFrom => SectionOrSummary.Section(yesTo)
+            case (Some(yesTo), SectionOrSummary.FormSummary, _) =>
+              nextFrom.map(SectionOrSummary.Section(_)).getOrElse(SectionOrSummary.FormSummary)
+            case (Some(yesTo), SectionOrSummary.Section(cyaTo), _) if cyaTo > yesTo =>
+              nextFrom.map(SectionOrSummary.Section(_)).getOrElse(SectionOrSummary.TaskSummary)
+            case (Some(yesTo), SectionOrSummary.Section(cyaTo), _) => SectionOrSummary.Section(cyaTo)
           }
         )
       case _ =>
-        ffYesSnF
-    }
+        ffYesSnF.map {
+          case None =>
+            if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
+          case Some(r) => SectionOrSummary.Section(r)
+        }
+    })
   }
 }

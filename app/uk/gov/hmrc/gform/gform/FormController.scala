@@ -339,10 +339,10 @@ class FormController(
               )
 
           val backUrl = ff match {
-            case FastForward.CYA(from, None) =>
+            case FastForward.CYA(from, SectionOrSummary.FormSummary) =>
               routes.SummaryController
                 .summaryById(cache.formTemplateId, maybeAccessCode, from.toCoordinates, None)
-            case FastForward.CYA(_, Some(to)) =>
+            case FastForward.CYA(_, SectionOrSummary.Section(to)) =>
               createBackUrl(to, FastForward.StopAt(to))
             case _ =>
               sectionNumber.fold { classic =>
@@ -445,9 +445,11 @@ class FormController(
 
             val sectionNumber: SectionNumber = availableSectionNumbers.find(_ >= firstAddToListPageSN).head
 
+            // TODO: Check why FormSummary and TaskSummary ignored
             ff match {
-              case FastForward.CYA(from, to) => (sectionNumber, FastForward.CYA(from, Some(sectionNumber.increment)))
-              case _                         => (sectionNumber, FastForward.StopAt(sectionNumber.increment))
+              case FastForward.CYA(from, to) =>
+                (sectionNumber, FastForward.CYA(from, SectionOrSummary.Section(sectionNumber.increment)))
+              case _ => (sectionNumber, FastForward.StopAt(sectionNumber.increment))
             }
           }
           def checkYourAnswersNavigation(cya: CheckYourAnswersWithNumber[DataExpanded]): (SectionNumber, FastForward) =
@@ -545,7 +547,7 @@ class FormController(
                   ) { updatePostcodeLookup => maybeRedirectUrl => maybeSn =>
                     def continueJourney =
                       maybeSn match {
-                        case Some(sn) =>
+                        case SectionOrSummary.Section(sn) =>
                           val endOfTask: Option[Coordinates] =
                             sn.fold[Option[Coordinates]] { classic =>
                               None
@@ -581,7 +583,11 @@ class FormController(
                                 )
                             )
                           }
-                        case None =>
+                        case SectionOrSummary.FormSummary =>
+                          Redirect(
+                            routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, Some(true))
+                          )
+                        case SectionOrSummary.TaskSummary =>
                           Redirect(
                             routes.SummaryController
                               .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None)
@@ -648,7 +654,7 @@ class FormController(
             def processSaveAndExitAcknowledgementPage(
               config: Option[AuthConfig],
               processData: ProcessData,
-              maybeSn: Option[SectionNumber],
+              maybeSn: SectionOrSummary,
               envelopeExpiryDate: Option[EnvelopeExpiryDate]
             ): Result = {
               val formTemplate = cache.formTemplate
@@ -785,19 +791,19 @@ class FormController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     processData: ProcessData,
-    maybeSn: Option[SectionNumber],
+    maybeSn: SectionOrSummary,
     formTemplate: FormTemplate,
     envelopeExpiryDate: Option[EnvelopeExpiryDate]
   )(implicit request: Request[AnyContent], lang: LangADT) = {
     val call = maybeSn match {
-      case Some(sn) =>
+      case SectionOrSummary.Section(sn) =>
         val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
         if (sn.isTaskList) {
           uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, maybeAccessCode)
         } else {
           routes.FormController.form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
         }
-      case None =>
+      case _ =>
         formTemplate.formKind.fold { _ =>
           routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, Some(true))
         } { _ =>
