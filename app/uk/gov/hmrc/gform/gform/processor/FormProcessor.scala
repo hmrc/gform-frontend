@@ -87,7 +87,10 @@ class FormProcessor(
       val forModelPageId = formPageId.modelPageId
       pageIdSectionNumberMap.get(forModelPageId) match {
         case Some(sectionNumber) => Some(sectionNumber)
-        case None =>
+        case None                =>
+          // In case when pageIdToDisplayAfterRemove refers to ATL
+          // The section number should be ATL summary section
+          // And pageIdToDisplayAfterRemove should be equal to ATL summary section baseId
           pageIdSectionNumberMap.toList
             .sortBy(_._1.maybeIndex)(Ordering[Option[Int]].reverse)
             .find { case (modelPageId, _) =>
@@ -174,13 +177,16 @@ class FormProcessor(
         val pageIdSectionNumberMap = updFormModel.pageIdSectionNumberMap
         val sectionNumber =
           if (isLastIteration && pageIdToRemove.isDefined) {
-            computePageLink(pageIdToRemove.get, pageIdSectionNumberMap)
-              .getOrElse(throw new Exception(s"Unable to find section number for pageId: ${pageIdToRemove.get}"))
-          } else if (isLastIteration)
-            maybeSectionNumber
-              .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
-              .getOrElse(sn)
-          else
+            pageIdToRemove.fold(
+              maybeSectionNumber
+                .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
+                .getOrElse(sn)
+            )(pageId =>
+              computePageLink(pageId, pageIdSectionNumberMap).getOrElse(
+                throw new Exception(s"Unable to find section number for pageId: ${pageIdToRemove.get}")
+              )
+            )
+          } else
             sn
 
         val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sectionNumber)
