@@ -47,6 +47,8 @@ import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.PageId
+import uk.gov.hmrc.gform.models.ids.ModelPageId
 
 class FormProcessor(
   i18nSupport: I18nSupport,
@@ -78,7 +80,27 @@ class FormProcessor(
     lang: LangADT,
     sse: SmartStringEvaluator
   ): Future[Result] = {
-
+    def computePageLink(
+      formPageId: PageId,
+      pageIdSectionNumberMap: Map[ModelPageId, SectionNumber]
+    ) = {
+      val forModelPageId = formPageId.modelPageId
+      pageIdSectionNumberMap.get(forModelPageId) match {
+        case Some(sectionNumber) => Some(sectionNumber)
+        case None                =>
+          // In case when pageIdToDisplayAfterRemove refers to ATL
+          // The section number should be ATL summary section
+          // And pageIdToDisplayAfterRemove should be equal to ATL summary section baseId
+          pageIdSectionNumberMap.toList
+            .sortBy(_._1.maybeIndex)(Ordering[Option[Int]].reverse)
+            .find { case (modelPageId, _) =>
+              modelPageId.baseId === forModelPageId.baseId
+            }
+            .fold(Option.empty[SectionNumber]) { case (_, sectionNumber) =>
+              Some(sectionNumber)
+            }
+      }
+    }
     def saveAndRedirect(
       updFormModelOptics: FormModelOptics[DataOrigin.Browser],
       componentIdToFileId: FormComponentIdToFileIdMapping,
@@ -151,12 +173,20 @@ class FormProcessor(
         EnteredVariadicFormData.empty,
         true
       ) { _ => _ => maybeSectionNumber =>
+        val pageIdToRemove = updFormModel.brackets.addToListBracket(addToListId).source.pageIdToDisplayAfterRemove
+        val pageIdSectionNumberMap = updFormModel.pageIdSectionNumberMap
         val sectionNumber =
-          if (isLastIteration)
-            maybeSectionNumber
-              .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
-              .getOrElse(sn)
-          else
+          if (isLastIteration && pageIdToRemove.isDefined) {
+            pageIdToRemove.fold(
+              maybeSectionNumber
+                .map(addToListBracket.iterationForSectionNumber(_).firstSectionNumber)
+                .getOrElse(sn)
+            )(pageId =>
+              computePageLink(pageId, pageIdSectionNumberMap).getOrElse(
+                throw new Exception(s"Unable to find section number for pageId: ${pageIdToRemove.get}")
+              )
+            )
+          } else
             sn
 
         val sectionTitle4Ga = getSectionTitle4Ga(processDataUpd, sectionNumber)
