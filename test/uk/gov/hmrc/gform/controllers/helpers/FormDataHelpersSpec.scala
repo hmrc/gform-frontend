@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, 
 
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.UkVrn
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.NINO
 
 class FormDataHelpersSpec extends Spec {
 
@@ -168,6 +169,29 @@ class FormDataHelpersSpec extends Spec {
           variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
             Map(
               purePure("vatField") -> VariadicValue.One("123456789")
+            )
+          )
+          Future.successful(Results.Ok)
+        }
+
+    val future = FormDataHelpers
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
+        continuationFunction
+      )
+    future.futureValue shouldBe Results.Ok
+  }
+
+  it should "uppercase Nino" in new TestFixture {
+
+    override lazy val fields = List(mkFormComponent("ninoField", Text(NINO, Value)))
+    override lazy val requestBodyParams = Map("ninoField" -> Seq("Ab123456C"))
+
+    val continuationFunction = (_: RequestRelatedData) =>
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
+        (_: EnteredVariadicFormData) => {
+          variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+            Map(
+              purePure("ninoField") -> VariadicValue.One("AB123456C")
             )
           )
           Future.successful(Results.Ok)

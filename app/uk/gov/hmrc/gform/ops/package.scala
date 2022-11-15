@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, Number, PayeReference, PositiveNumber, ReferenceNumber, Sterling, Text, TextArea, UkSortCodeFormat, UkVrn, WholeSterling }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, NINO, Number, PayeReference, PositiveNumber, ReferenceNumber, Sterling, Text, TextArea, UkSortCodeFormat, UkVrn, WholeSterling }
 
 package object ops {
 
@@ -61,6 +61,10 @@ package object ops {
     def isUkVrn = formComponent.`type` match {
       case Text(UkVrn, _, _, _, _, _) => true
       case _                          => false
+    }
+    def isNino = formComponent.`type` match {
+      case Text(NINO, _, _, _, _, _) => true
+      case _                         => false
     }
   }
 }
