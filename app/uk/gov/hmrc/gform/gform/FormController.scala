@@ -448,7 +448,7 @@ class FormController(
             // TODO: Check why FormSummary and TaskSummary ignored
             ff match {
               case FastForward.CYA(from, to) =>
-                (sectionNumber, FastForward.CYA(from, SectionOrSummary.Section(sectionNumber.increment)))
+                (sectionNumber, FastForward.CYA(sectionNumber, SectionOrSummary.Section(from)))
               case _ => (sectionNumber, FastForward.StopAt(sectionNumber.increment))
             }
           }
