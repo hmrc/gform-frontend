@@ -215,6 +215,7 @@ object FormDataHelpers {
       case Some(formComponent) if formComponent.isPayeReference   => value.replace(" ", "")
       case Some(formComponent) if formComponent.isUkVrn =>
         value.toUpperCase.trim.replace(" ", "").replaceAll("^GB([0-9]{9}$)", "$1")
+      case Some(formComponent) if formComponent.isNino => value.toUpperCase.trim
       case None if formModel.postcodeLookup(formComponentId.baseComponentId) =>
         PostcodeLookupValidation.normalisePostcode(value)
       case _ => value
