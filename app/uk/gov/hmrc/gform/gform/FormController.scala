@@ -585,7 +585,8 @@ class FormController(
                           }
                         case SectionOrSummary.FormSummary =>
                           Redirect(
-                            routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, Some(true))
+                            routes.SummaryController
+                              .summaryById(cache.formTemplateId, maybeAccessCode, None, Some(true))
                           )
                         case SectionOrSummary.TaskSummary =>
                           Redirect(
