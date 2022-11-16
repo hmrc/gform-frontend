@@ -2136,6 +2136,10 @@ class SectionRenderingService(
             case IsEmail()     => "email"
             case _             => "text"
           }
+          val spellcheck = formComponent match {
+            case IsEmail() => Some(false)
+            case _         => None
+          }
           val input = Input(
             id = formComponent.id.value,
             inputType = inputType,
@@ -2145,6 +2149,7 @@ class SectionRenderingService(
             value = maybeCurrentValue,
             errorMessage = errorMessage,
             classes = sizeClasses,
+            spellcheck = spellcheck,
             attributes = ei.specialAttributes ++ attributes,
             prefix = text.prefix.map(s => PrefixOrSuffix(content = content.Text(s.value))),
             suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value)))
