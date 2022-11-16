@@ -343,21 +343,27 @@ class FormController(
               routes.SummaryController
                 .summaryById(cache.formTemplateId, maybeAccessCode, from.toCoordinates, None)
             case FastForward.CYA(_, SectionOrSummary.Section(to)) =>
-              createBackUrl(to, FastForward.StopAt(to))
+              createBackUrl(to, FastForward.StopAt(to.increment))
             case _ =>
               sectionNumber.fold { classic =>
                 createBackUrl(toSectionNumber, ff)
               } { taskList =>
-                val maybePreviousPage = Navigator(
-                  sectionNumber,
-                  formModelOptics.formModelVisibilityOptics.formModel
-                ).previousSectionNumber
+                ff match {
+                  case FastForward.CYA(from, SectionOrSummary.TaskSummary) =>
+                    routes.SummaryController
+                      .summaryById(cache.formTemplateId, maybeAccessCode, from.toCoordinates, None)
+                  case _ =>
+                    val maybePreviousPage = Navigator(
+                      sectionNumber,
+                      formModelOptics.formModelVisibilityOptics.formModel
+                    ).previousSectionNumber
 
-                if (maybePreviousPage.isEmpty) {
-                  uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                    .landingPage(cache.formTemplateId, maybeAccessCode)
-                } else {
-                  createBackUrl(toSectionNumber, ff)
+                    if (maybePreviousPage.isEmpty) {
+                      uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                        .landingPage(cache.formTemplateId, maybeAccessCode)
+                    } else {
+                      createBackUrl(toSectionNumber, ff)
+                    }
                 }
               }
           }
