@@ -174,9 +174,10 @@ user.recruitment.dismiss=Dim diolch
 decision.error.required=Dewiswch ‘Iawn’ os ydych am fynd yn eich blaen gyda’r fersiwn a gadwyd gennych
 
 # UK Address
+ukAddress.optional=(dewisol)
 ukAddress.line1=Adeilad a stryd
 ukAddress.line2=Adeilad a stryd – llinell 2 (dewisol)
-ukAddress.line3=Tref neu ddinas (dewisol)
+ukAddress.line3=Tref neu ddinas {0}
 ukAddress.line4=Sir (dewisol)
 ukAddress.postcode=Cod post
 ukAddress.line1.label=adeilad a stryd

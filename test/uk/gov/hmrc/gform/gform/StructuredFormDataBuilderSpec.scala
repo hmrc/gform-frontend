@@ -1179,7 +1179,8 @@ class StructuredFormDataBuilderSpec
   def createRevealingChoiceElement(fields: FormComponent*): RevealingChoiceElement =
     RevealingChoiceElement(toOptionData("foo"), fields.toList, None, false)
 
-  def createAddress(id: String): FormComponent = createFormComponent(id, Address(false))
+  def createAddress(id: String): FormComponent =
+    createFormComponent(id, Address(false, List.empty[Address.Configurable.Mandatory]))
 
   def createStructuredPurposeMap(
     purpose: StructuredFormDataFieldNamePurpose,
