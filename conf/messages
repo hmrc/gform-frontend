@@ -175,9 +175,10 @@ user.recruitment.dismiss=No thanks
 decision.error.required=Select yes if you want to continue your saved version
 
 # UK Address
+ukAddress.optional=(optional)
 ukAddress.line1=Building and street
 ukAddress.line2=Building and street line 2 (optional)
-ukAddress.line3=Town or city (optional)
+ukAddress.line3=Town or city {0}
 ukAddress.line4=County (optional)
 ukAddress.postcode=Postcode
 ukAddress.line1.label=building and street

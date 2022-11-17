@@ -242,7 +242,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def `fieldValue - address` = FormComponent(
     `fieldId - address`,
-    Address(false),
+    Address(false, List.empty[Address.Configurable.Mandatory]),
     toSmartString("Address"),
     helpText = None,
     None,

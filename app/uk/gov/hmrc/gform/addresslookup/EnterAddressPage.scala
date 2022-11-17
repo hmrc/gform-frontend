@@ -20,7 +20,7 @@ import play.api.i18n.Messages
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.gform.{ HasErrors, PageLevelErrorHtml }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponent }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.views.html
@@ -43,7 +43,7 @@ class EnterAddressPage(
   val render: Html =
     html.form.snippets
       .field_template_address(
-        false,
+        Address(false, List.empty[Address.Configurable.Mandatory]),
         formComponent,
         formFieldValidationResult,
         false,

@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.gform.views.html.errorInline
 @import uk.gov.hmrc.gform.models.Atom
 
-@(international: Boolean,
+@(address: Address,
   fieldValue: FormComponent,
   validationResult: FormFieldValidationResult,
   formLevelHeading: Boolean,
@@ -73,7 +73,7 @@
         }
     }
 
-    @if(international) {
+    @if(address.international) {
       <div class="govuk-form-group">
           <fieldset class="govuk-fieldset">
               <legend class="govuk-fieldset__legend">
@@ -175,7 +175,7 @@
         <div class="govuk-form-group@if(street3Error.nonEmpty){ govuk-form-group--error }">
           <label class="govuk-label" data-address-line="3" for="@groupId(street3Id)">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
-            @messages("ukAddress.line3")
+            @messages("ukAddress.line3", if(address.isOptional(Address.street3)) messages("ukAddress.optional") else "")
             </span>
             <span data-address-label="international"@if(!internationalSelected){ class="js-hidden" aria-hidden="true"}>
             @messages("internationalAddress.line3")
@@ -211,7 +211,7 @@
         </div>
       }
 
-      @if(international) {
+      @if(address.international) {
         @defining(safeId(Address.postcode), safeError(Address.postcode)) { case (postcodeId, postcodeError) =>
           <div id="@{fieldValue.id.value}-local" data-address-div="uk" @if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
             <div class="govuk-form-group@if(postcodeError.nonEmpty){ govuk-form-group--error }">

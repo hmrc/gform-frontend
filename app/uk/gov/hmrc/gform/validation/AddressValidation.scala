@@ -37,6 +37,9 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
   )(
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   ): ValidatedType[Unit] = {
+
+    val configurableMandatoryFields: Set[Atom] = address.configurableMandatoryAtoms
+
     val addressValueOf: Atom => Seq[String] = suffix =>
       formModelVisibilityOptics.data
         .get(fieldValue.atomicFormComponentId(suffix))
@@ -50,6 +53,13 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
 
     def ukStreetValidation(streetName: Atom) = ukLengthValidation(streetName, fieldValue)(addressValueOf(streetName))
 
+    def validateCity(configurableMandatoryFields: Set[Atom]): ValidatedType[Unit] =
+      if (configurableMandatoryFields(Address.street3)) {
+        validateRequiredFieldSub(Address.street3, messages("ukAddress.line3.label"))
+      } else {
+        validationSuccess
+      }
+
     val validatedResult: List[ValidatedType[Unit]] = addressValueOf(Address.uk) match {
       case "true" :: Nil =>
         List(
@@ -58,6 +68,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
           ukStreetValidation(Address.street2),
           ukStreetValidation(Address.street3),
           ukStreetValidation(Address.street4),
+          validateCity(configurableMandatoryFields),
           validateRequiredFieldSub(Address.postcode, messages("ukAddress.postcode.label")),
           validateForbiddenField(Address.country, fieldValue)(addressValueOf(Address.country)),
           validatePostcode(Address.postcode, fieldValue)(addressValueOf(Address.postcode))

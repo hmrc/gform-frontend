@@ -982,8 +982,8 @@ class SectionRenderingService(
             htmlForTaxPeriodDate(formComponent, validationResult, ei)
           case t @ Time(_, _) =>
             renderTime(t, formComponent, validationResult, ei)
-          case Address(international) =>
-            htmlForAddress(formComponent, international, validationResult, ei)
+          case a @ Address(_, _) =>
+            htmlForAddress(formComponent, a, validationResult, ei)
           case o @ OverseasAddress(_, _, _, _) =>
             htmlForOverseasAddress(formComponent, o, validationResult, ei)
           case t @ Text(Lookup(register, _), _, _, _, _, _) =>
@@ -2162,7 +2162,7 @@ class SectionRenderingService(
 
   private def htmlForAddress(
     formComponent: FormComponent,
-    international: Boolean,
+    address: Address,
     validationResult: ValidationResult,
     ei: ExtraInfo
   )(implicit
@@ -2174,7 +2174,7 @@ class SectionRenderingService(
     val isPageHeading = ei.formLevelHeading
     html.form.snippets
       .field_template_address(
-        international,
+        address,
         formComponent,
         formFieldValidationResult,
         isPageHeading,

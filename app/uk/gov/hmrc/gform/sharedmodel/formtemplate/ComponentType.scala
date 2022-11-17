@@ -142,12 +142,23 @@ case object TaxPeriodDate extends ComponentType with MultiField {
     componentFields.map(ModelComponentId.atomicCurry(indexedComponentId))
 }
 
-case class Address(international: Boolean) extends ComponentType with MultiField {
+case class Address(
+  international: Boolean,
+  mandatoryFields: List[Address.Configurable.Mandatory]
+) extends ComponentType with MultiField {
+
+  val configurableMandatoryAtoms: Set[Atom] = mandatoryFields.map(_.toAtom).toSet
+
   override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
     Address.fields(indexedComponentId)
 
   override def alternateNamesFor(atom: Atom): Map[StructuredFormDataFieldNamePurpose, FieldName] =
     Map(RoboticsXml -> FieldName(atom.value.replace("street", "line")))
+
+  private val allOptionalAtoms: Set[Atom] =
+    Set(Address.street3).filterNot(configurableMandatoryAtoms)
+
+  def isOptional(atom: Atom): Boolean = allOptionalAtoms(atom)
 
 }
 
@@ -159,14 +170,11 @@ object Address {
   val uk: Atom = Atom("uk")
   val postcode: Atom = Atom("postcode")
   val country: Atom = Atom("country")
-  val mandatoryFields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
-    NonEmptyList.one(street1).map(ModelComponentId.atomicCurry(indexedComponentId))
-  val optionalFields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
-    NonEmptyList
-      .of(street2, street3, street4, uk, postcode, country)
-      .map(ModelComponentId.atomicCurry(indexedComponentId))
+
   val fields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
-    mandatoryFields(indexedComponentId).concatNel(optionalFields(indexedComponentId))
+    NonEmptyList
+      .of(street1, street2, street3, street4, uk, postcode, country)
+      .map(ModelComponentId.atomicCurry(indexedComponentId))
 
   val summaryPageFields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
     NonEmptyList
@@ -177,6 +185,18 @@ object Address {
     summaryPageFields(formComponent.modelComponentId.indexedComponentId)
       .map(modelComponentId => formFieldValidationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
       .filter(_.trim.nonEmpty)
+
+  object Configurable {
+    sealed trait Mandatory {
+      def toAtom: Atom = this match {
+        case Mandatory.City => street3
+      }
+    }
+    object Mandatory {
+      case object City extends Mandatory
+      implicit val format: OFormat[Mandatory] = derived.oformat()
+    }
+  }
 }
 
 case class OverseasAddress(

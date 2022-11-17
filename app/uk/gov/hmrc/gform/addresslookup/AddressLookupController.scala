@@ -540,7 +540,7 @@ class AddressLookupController(
   private def mkSyntheticFormComponent(formComponentId: FormComponentId): FormComponent =
     FormComponent(
       id = formComponentId,
-      `type` = Address(false),
+      `type` = Address(false, List.empty[Address.Configurable.Mandatory]),
       label = SmartString(LocalisedString(Map.empty), List.empty[Expr]),
       helpText = None,
       shortName = None,
