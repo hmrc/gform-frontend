@@ -81,7 +81,8 @@ class SummaryController(
     maybeCoordinates: Option[Coordinates],
     taskComplete: Option[
       Boolean
-    ] // to check summary page is redirected from the task list page and all tasks are completed
+    ], // to check summary page is redirected from the task list page and all tasks are completed
+    reachedFormSummary: Boolean = false
   ): Action[AnyContent] =
     auth
       .authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.ViewSummary) {
@@ -94,45 +95,50 @@ class SummaryController(
             )(task => task.summarySection)
           }
 
-          val isSummarySectionVisible = maybeTaskSummarySection
-            .flatMap(_.includeIf)
-            .fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+          val hasVisibleSummarySection = maybeTaskSummarySection
+            .fold(false)(
+              _.includeIf.fold(true)(includeIf =>
+                formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+              )
+            )
 
-          if ((maybeTaskSummarySection.isEmpty || !isSummarySectionVisible)) {
+          lazy val formSummaryPage = summaryRenderingService
+            .getSummaryHTML(
+              maybeAccessCode,
+              cache,
+              SummaryPagePurpose.ForUser,
+              formModelOptics,
+              None,
+              None,
+              taskComplete.getOrElse(false)
+            )
+            .map(Ok(_))
+
+          lazy val summaryPage = summaryRenderingService
+            .getSummaryHTML(
+              maybeAccessCode,
+              cache,
+              SummaryPagePurpose.ForUser,
+              formModelOptics,
+              maybeCoordinates,
+              maybeTaskSummarySection,
+              taskComplete.getOrElse(false)
+            )
+            .map(Ok(_))
+
+          lazy val landingPage = Redirect(
+            uk.gov.hmrc.gform.tasklist.routes.TaskListController
+              .landingPage(formTemplateId, maybeAccessCode)
+          ).pure[Future]
+
+          if (reachedFormSummary) {
             for {
               isValid <- isFormValid(formTemplateId, maybeAccessCode, cache, formModelOptics)
-              result <- if (!isValid) {
-                          Redirect(
-                            uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                              .landingPage(formTemplateId, maybeAccessCode)
-                          ).pure[Future]
-                        } else {
-                          summaryRenderingService
-                            .getSummaryHTML(
-                              maybeAccessCode,
-                              cache,
-                              SummaryPagePurpose.ForUser,
-                              formModelOptics,
-                              maybeCoordinates,
-                              maybeTaskSummarySection,
-                              taskComplete.getOrElse(false)
-                            )
-                            .map(Ok(_))
-
-                        }
+              result  <- if (!isValid && maybeCoordinates.isDefined) landingPage else formSummaryPage
             } yield result
-          } else
-            summaryRenderingService
-              .getSummaryHTML(
-                maybeAccessCode,
-                cache,
-                SummaryPagePurpose.ForUser,
-                formModelOptics,
-                maybeCoordinates,
-                maybeTaskSummarySection,
-                taskComplete.getOrElse(false)
-              )
-              .map(Ok(_))
+          } else {
+            if (maybeCoordinates.isDefined && !hasVisibleSummarySection) landingPage else summaryPage
+          }
       }
 
   def submit(

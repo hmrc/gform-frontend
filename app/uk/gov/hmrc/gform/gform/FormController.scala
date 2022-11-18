@@ -606,12 +606,23 @@ class FormController(
                         case SectionOrSummary.FormSummary =>
                           Redirect(
                             routes.SummaryController
-                              .summaryById(cache.formTemplateId, maybeAccessCode, None, Some(true))
+                              .summaryById(
+                                cache.formTemplateId,
+                                maybeAccessCode,
+                                sectionNumber.toCoordinates,
+                                None,
+                                true
+                              )
                           )
                         case SectionOrSummary.TaskSummary =>
                           Redirect(
                             routes.SummaryController
-                              .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None)
+                              .summaryById(
+                                cache.formTemplateId,
+                                maybeAccessCode,
+                                sectionNumber.toCoordinates,
+                                None
+                              )
                           )
                       }
 
