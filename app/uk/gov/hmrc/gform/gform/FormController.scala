@@ -323,7 +323,7 @@ class FormController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
-        def goBack(toSectionNumber: SectionNumber) = {
+        def goBack(toSectionNumber: SectionNumber, isLastBracketIteration: Boolean = false) = {
           val formModel = formModelOptics.formModelRenderPageOptics.formModel
           val sectionTitle4Ga = sectionTitle4GaFactory(formModel(toSectionNumber), sectionNumber)
 
@@ -338,6 +338,8 @@ class FormController(
                 fastForward
               )
 
+          val fastForward = if (isLastBracketIteration) FastForward.Yes else ff
+
           val backUrl = ff match {
             case FastForward.CYA(from, SectionOrSummary.FormSummary) =>
               routes.SummaryController
@@ -346,7 +348,7 @@ class FormController(
               createBackUrl(to, FastForward.StopAt(to.increment))
             case _ =>
               sectionNumber.fold { classic =>
-                createBackUrl(toSectionNumber, ff)
+                createBackUrl(toSectionNumber, fastForward)
               } { taskList =>
                 ff match {
                   case FastForward.CYA(from, SectionOrSummary.TaskSummary) =>
@@ -362,7 +364,7 @@ class FormController(
                       uk.gov.hmrc.gform.tasklist.routes.TaskListController
                         .landingPage(cache.formTemplateId, maybeAccessCode)
                     } else {
-                      createBackUrl(toSectionNumber, ff)
+                      createBackUrl(toSectionNumber, fastForward)
                     }
                 }
               }
@@ -393,7 +395,7 @@ class FormController(
                     addToListBracket.iterationForSectionNumber(sectionNumber).isCommited(cache.form.visitsIndex)
                 }
               if (isCommited) {
-                goBack(toSectionNumber)
+                goBack(toSectionNumber, true)
               } else {
                 for {
                   processData <- processDataService
@@ -417,7 +419,7 @@ class FormController(
                 } yield redirect
               }
             } else {
-              goBack(toSectionNumber)
+              goBack(toSectionNumber, iteration.lastSectionNumber < sectionNumber)
             }
         }
     }
@@ -573,6 +575,17 @@ class FormController(
                           } else {
                             val isFirstLanding = sectionNumber < sn
                             val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processDataUpd, sn)
+
+                            val formModel = formModelOptics.formModelRenderPageOptics.formModel
+                            val bracket = formModel.bracket(sectionNumber)
+
+                            val isLastBracketIteration = bracket match {
+                              case bracket @ Bracket.AddToList(_, _) =>
+                                val iteration = bracket.iterationForSectionNumber(sectionNumber)
+                                sectionNumber === iteration.lastSectionNumber
+                              case _ => false
+                            }
+
                             Redirect(
                               routes.FormController
                                 .form(
@@ -581,7 +594,8 @@ class FormController(
                                   sn,
                                   sectionTitle4Ga,
                                   SuppressErrors(isFirstLanding),
-                                  if ((isFirstLanding && !isConfirmationPage) || sectionNumber.isTaskList) {
+                                  if (isLastBracketIteration) FastForward.Yes
+                                  else if ((isFirstLanding && !isConfirmationPage) || sectionNumber.isTaskList) {
                                     fastForward
                                       .next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel, sn)
                                   } else

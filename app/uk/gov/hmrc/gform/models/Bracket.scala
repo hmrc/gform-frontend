@@ -128,6 +128,8 @@ object Bracket {
 
     def firstSectionNumber: SectionNumber = singletons.head.sectionNumber
 
+    def lastSectionNumber: SectionNumber = singletons.last.sectionNumber
+
     def secondSectionNumber: SectionNumber = singletons.tail.head.sectionNumber
 
     def isCommited(visitsIndex: VisitIndex): Boolean =
