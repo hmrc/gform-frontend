@@ -2136,6 +2136,12 @@ class SectionRenderingService(
             case IsEmail()     => "email"
             case _             => "text"
           }
+
+          val autocomplete = formComponent match {
+            case IsTelephone() => Some("tel")
+            case IsEmail()     => Some("email")
+            case _             => Option.empty[String]
+          }
           val spellcheck = formComponent match {
             case IsEmail() => Some(false)
             case _         => None
@@ -2151,6 +2157,7 @@ class SectionRenderingService(
             classes = sizeClasses,
             spellcheck = spellcheck,
             attributes = ei.specialAttributes ++ attributes,
+            autocomplete = autocomplete,
             prefix = text.prefix.map(s => PrefixOrSuffix(content = content.Text(s.value))),
             suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value)))
           )
@@ -2363,6 +2370,7 @@ class SectionRenderingService(
               if (modelComponentId.atom === PostcodeLookup.postcode) s"$inputClasses govuk-input--width-10"
               else "govuk-input--width-20",
             attributes = attributes,
+            autocomplete = Some("postal-code"),
             errorMessage = if (modelComponentId.atom === PostcodeLookup.postcode) errorMessage else None
           )
         }

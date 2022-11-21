@@ -148,7 +148,8 @@
                  class="govuk-input@if(street1Error.nonEmpty){ govuk-input--error }"
                  name="@groupId(street1Id)"
                  id="@groupId(street1Id)"
-                 value="@validationResult.getCurrentValue(street1Id)" />
+                 value="@validationResult.getCurrentValue(street1Id)"
+                 autocomplete="address-line1" />
         </div>
       }
 
@@ -167,7 +168,8 @@
                  class="govuk-input@if(street2Error.nonEmpty){ govuk-input--error }"
                  name="@groupId(street2Id)"
                  id="@groupId(street2Id)"
-                 value="@validationResult.getCurrentValue(street2Id)" />
+                 value="@validationResult.getCurrentValue(street2Id)"
+                 autocomplete="address-line2" />
         </div>
       }
 
@@ -187,7 +189,8 @@
                  class="govuk-input govuk-!-width-two-thirds@if(street3Error.nonEmpty){ govuk-input--error }"
                  name="@groupId(street3Id)"
                  id="@groupId(street3Id)"
-                 value="@validationResult.getCurrentValue(street3Id)" />
+                 value="@validationResult.getCurrentValue(street3Id)"
+                 autocomplete="address-level2" />
         </div>
       }
 
@@ -226,7 +229,8 @@
                      class="govuk-input govuk-input--width-10@if(postcodeError.nonEmpty){ govuk-input--error }"
                      name="@groupId(postcodeId)"
                      id="@groupId(postcodeId)"
-                     value="@validationResult.getCurrentValue(postcodeId)" />
+                     value="@validationResult.getCurrentValue(postcodeId)"
+                     autocomplete="postal-code" />
             </div>
           </div>
         }
@@ -263,7 +267,8 @@
                    class="govuk-input govuk-input--width-10@if(postcodeError.nonEmpty){ govuk-input--error }"
                    name="@groupId(postcodeId)"
                    id="@groupId(postcodeId)"
-                   value="@validationResult.getCurrentValue(postcodeId)" />
+                   value="@validationResult.getCurrentValue(postcodeId)"
+                   autocomplete="postal-code" />
           </div>
 	  <input type="hidden"
                name="@groupId(safeId(Address.country))"

@@ -76,7 +76,8 @@
             value = maybeEmailFieldValue,
             label = Label(content = content.Text(heading)),
             errorMessage = maybeEmailFieldError,
-            classes = "govuk-input--width-30"
+            classes = "govuk-input--width-30",
+            autocomplete = Some("email")
         ))
 
         @govukButton(Button(
