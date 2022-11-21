@@ -177,7 +177,7 @@ class FormProcessor(
         val pageIdToRemove = updFormModel.brackets.addToListBracket(addToListId).source.pageIdToDisplayAfterRemove
         val pageIdSectionNumberMap = updFormModel.pageIdSectionNumberMap
         val sectionNumber =
-          if (isLastIteration && pageIdToRemove.isDefined) {
+          if (isLastIteration) {
             pageIdToRemove.fold(
               maybeSectionNumber match {
                 case SectionOrSummary.Section(s) => addToListBracket.iterationForSectionNumber(s).firstSectionNumber
