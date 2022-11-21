@@ -128,13 +128,13 @@ class FormProcessor(
             .map(_.sectionNumber)
             .toList ++ iterationForSectionNumber.checkYourAnswers.map(_.sectionNumber)
 
-          val toBeRemoved = visitsIndexForLastIteration.map(_.unsafeToClassic.sectionNumber)
-
-          visitsIndex.fold[VisitIndex](classic =>
+          visitsIndex.fold[VisitIndex] { classic =>
+            val toBeRemoved = visitsIndexForLastIteration.map(_.unsafeToClassic.sectionNumber)
             VisitIndex.Classic(
               classic.visitsIndex -- toBeRemoved
             )
-          ) { taskList =>
+          } { taskList =>
+            val toBeRemoved = visitsIndexForLastIteration.map(_.unsafeToTaskList.sectionNumber)
             val coordinates = sn.toCoordinatesUnsafe
 
             val indexes =
