@@ -22,7 +22,7 @@ addSbtPlugin("org.lyranthe.sbt" % "partial-unification" % "1.1.2")
 
 addDependencyTreePlugin
 
-addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.5.1")
+addSbtPlugin("io.github.irundaia" % "sbt-sassify" % "1.5.2")
 
 addSbtPlugin("net.ground5hark.sbt" % "sbt-concat" % "0.2.0")
 

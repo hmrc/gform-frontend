@@ -31,23 +31,4 @@ object UserId {
 
   implicit val show: Show[UserId] = Show.show(_.value)
 
-  //
-  //  //TODO: move validation logic to auth service.
-  //
-  //  val reads: Reads[UserId] = Reads[UserId] {
-  //    case JsString(str) => JsSuccess(UserId(str))
-  //    case JsObject(obj) =>
-  //      obj.get("groupIdentifier") match {
-  //        case None => JsError(s"groupIdentifier expected inside the obj.")
-  //        case Some(JsString(x)) => JsSuccess(UserId(x))
-  //        case _ => JsError(s"groupIdentifier expected inside the obj.")
-  //      }
-  //    case unknown => JsError(s"JsString or JsObject value expected, got: $unknown")
-  //  }
-  //  val writes: Writes[UserId] = Writes[UserId](a => JsString(a.value))
-  //
-  //  implicit val format: Format[UserId] = Format[UserId](reads, writes)
-  //
-  //  val oformat: OFormat[UserId] = ValueClassFormat.oformat("userId", UserId.apply, _.value)
-
 }
