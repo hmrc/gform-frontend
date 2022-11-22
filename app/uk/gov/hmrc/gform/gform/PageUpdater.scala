@@ -34,7 +34,7 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
 
   private def expandConfirmation(confirmation: Confirmation) = confirmation.copy(
     question = new FormComponentUpdater(confirmation.question, index, baseIds).updatedWithId,
-    pageId = confirmation.pageId.withIndex(index)
+    redirects = confirmation.redirects.map(r => r.copy(pageId = r.pageId.withIndex(index)))
   )
 
   def updated: Page[A] =

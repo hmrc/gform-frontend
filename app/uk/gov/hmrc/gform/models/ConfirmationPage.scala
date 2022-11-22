@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.mvc.Result
-import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, SectionNumber }
 
 sealed trait ConfirmationPage
@@ -25,9 +24,7 @@ sealed trait ConfirmationPage
 object ConfirmationPage {
   final case class Confirmee(confirmedBySectionNumber: SectionNumber, confirmation: Confirmation)
       extends ConfirmationPage
-  final case class Confirmator(confirmation: Confirmation) extends ConfirmationPage {
-    val modelPageId: ModelPageId = confirmation.pageId.modelPageId
-  }
+  final case class Confirmator(confirmation: Confirmation) extends ConfirmationPage
   case object Not extends ConfirmationPage
 
   def fromConfirmation(confirmation: Confirmation): ConfirmationPage = Confirmator(confirmation)

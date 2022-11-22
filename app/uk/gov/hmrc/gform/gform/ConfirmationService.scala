@@ -40,7 +40,7 @@ class ConfirmationService(
 
     val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
     val pageModel: PageModel[Visibility] = formModel(sectionNumber)
-    val confirmationPage = pageModel.confirmationPage(formModel.reverseConfirmationMap)
+    val confirmationPage: ConfirmationPage = pageModel.confirmationPage(formModel.reverseConfirmationMap)
 
     confirmationPage match {
       case ConfirmationPage.Confirmee(confirmedSectionNumber, confirmation) =>
@@ -79,29 +79,35 @@ class ConfirmationService(
                     )
                 )
               )
-          case "0" :: Nil =>
-            ConfirmationAction.noop // Page is confirmed by user
-          case _ => // Page is not confirmed
-            val modelPageId: ModelPageId = confirmation.pageId.modelPageId
+          case _ =>
+            val maybeRedirect = confirmation.redirects.find(r =>
+              processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(r.`if`, None)
+            )
+            maybeRedirect.fold(
+              ConfirmationAction.noop
+            ) { redirect =>
+              // Page is not confirmed
+              val modelPageId: ModelPageId = redirect.pageId.modelPageId
 
-            val sn: SectionNumber = formModel.pageIdSectionNumberMap
-              .getOrElse(modelPageId, throw new Exception(s"No section number found for pageId $modelPageId"))
+              val sn: SectionNumber = formModel.pageIdSectionNumberMap
+                .getOrElse(modelPageId, throw new Exception(s"No section number found for pageId $modelPageId"))
 
-            val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
-            ConfirmationAction
-              .NotConfirmed(
-                Redirect(
-                  routes.FormController
-                    .form(
-                      formTemplateId,
-                      maybeAccessCode,
-                      sn,
-                      sectionTitle4Ga,
-                      SuppressErrors.Yes,
-                      fastForward
-                    )
+              val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
+              ConfirmationAction
+                .NotConfirmed(
+                  Redirect(
+                    routes.FormController
+                      .form(
+                        formTemplateId,
+                        maybeAccessCode,
+                        sn,
+                        sectionTitle4Ga,
+                        SuppressErrors.Yes,
+                        fastForward
+                      )
+                  )
                 )
-              )
+            }
         }
       case ConfirmationPage.Not => ConfirmationAction.noop
     }
