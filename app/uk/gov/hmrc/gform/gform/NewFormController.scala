@@ -342,9 +342,14 @@ class NewFormController(
           accessCodeForm =>
             accessCodeForm.accessOption match {
               case AccessCodePage.optionNew =>
+                def notFound(formIdData: FormIdData) =
+                  Future.failed(new NotFoundException(s"Form with id ${formIdData.toFormId} not found for agent."))
                 for {
                   formIdData <- startFreshForm(formTemplateId, cache.retrievals, QueryParams.empty)
-                  result     <- processNewFormData(formIdData, drm)
+                  _ <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
+                         auditService.sendFormCreateEvent(form, cache.retrievals).pure[Future]
+                       }
+                  result <- processNewFormData(formIdData, drm)
                 } yield result
               case AccessCodePage.optionAccess =>
                 optionAccess(accessCodeForm, cache)
