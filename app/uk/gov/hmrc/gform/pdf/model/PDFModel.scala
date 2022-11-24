@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.gform.pdf.model
 
-import cats.syntax.option._
-import play.twirl.api.Html
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.models.{ Bracket, SingletonWithNumber, Visibility }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import cats.syntax.option._
+import play.twirl.api.Html
 
 trait PDFModel {
   sealed trait SummaryData {
