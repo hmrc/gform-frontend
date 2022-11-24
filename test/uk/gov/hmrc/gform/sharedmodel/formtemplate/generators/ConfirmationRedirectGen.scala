@@ -17,14 +17,14 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
 import org.scalacheck.Gen
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Confirmation
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.ConfirmationRedirect
 
-trait ConfirmationGen {
-  def confirmationGen: Gen[Confirmation] =
+class ConfirmationRedirectGen {
+  def redirectGen: Gen[ConfirmationRedirect] =
     for {
-      question  <- FormComponentGen.formComponentGen(1)
-      redirects <- PrimitiveGen.oneOrMoreGen(ConfirmationRedirectGen.redirectGen)
-    } yield Confirmation(question, redirects)
+      ifExpr <- IncludeIfGen.includeIfGen
+      pageId <- PageIdGen.pageIdGen
+    } yield ConfirmationRedirect(ifExpr, pageId)
 }
 
-object ConfirmationGen extends ConfirmationGen
+object ConfirmationRedirectGen extends ConfirmationRedirectGen

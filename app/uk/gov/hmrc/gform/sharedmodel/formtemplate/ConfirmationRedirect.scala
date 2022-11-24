@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
+package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import org.scalacheck.Gen
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Confirmation
+import julienrf.json.derived
+import play.api.libs.json._
 
-trait ConfirmationGen {
-  def confirmationGen: Gen[Confirmation] =
-    for {
-      question  <- FormComponentGen.formComponentGen(1)
-      redirects <- PrimitiveGen.oneOrMoreGen(ConfirmationRedirectGen.redirectGen)
-    } yield Confirmation(question, redirects)
+final case class ConfirmationRedirect(
+  `if`: IncludeIf,
+  pageId: PageId
+)
+
+object ConfirmationRedirect {
+  implicit val format: OFormat[ConfirmationRedirect] = derived.oformat()
 }
-
-object ConfirmationGen extends ConfirmationGen

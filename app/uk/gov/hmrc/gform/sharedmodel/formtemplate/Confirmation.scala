@@ -17,12 +17,14 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json.{ Json, OFormat }
+import cats.data.NonEmptyList
 
 final case class Confirmation(
   question: FormComponent,
-  pageId: PageId
+  redirects: NonEmptyList[ConfirmationRedirect]
 )
 
 object Confirmation {
+  import JsonUtils._
   implicit val confirmationFormat: OFormat[Confirmation] = Json.format[Confirmation]
 }
