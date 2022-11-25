@@ -15,12 +15,11 @@
  *@
 
 @import uk.gov.hmrc.gform.pdf.model.PDFModel._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 
 @(pageData: PageData)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
-@if(pageData.fields.nonEmpty) {
+@if(pageData.nonEmpty(pageData.fields)) {
   @for(title <- pageData.title) {
       <h2 id="@{pageData.id}">@title</h2>
   }

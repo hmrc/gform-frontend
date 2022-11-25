@@ -24,7 +24,17 @@ import cats.syntax.option._
 import play.twirl.api.Html
 
 trait PDFModel {
-  sealed trait SummaryData
+  sealed trait SummaryData {
+    private def pageFieldsHtml(fields: List[PageField]): List[Html] = fields.flatMap { field =>
+      field match {
+        case SimpleField(_, values)                  => values
+        case GroupField(_, fields)                   => pageFieldsHtml(fields)
+        case RevealingChoiceField(_, choiceElements) => choiceElements.flatMap(ce => pageFieldsHtml(ce.fields))
+      }
+    }
+
+    def nonEmpty(fields: List[PageField]): Boolean = pageFieldsHtml(fields).exists(h => h.body.nonEmpty)
+  }
 
   sealed trait PageField
 
