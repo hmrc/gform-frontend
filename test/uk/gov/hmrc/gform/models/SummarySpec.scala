@@ -192,7 +192,7 @@ class SummarySpec extends Spec {
    *             SectionNumber(0),
    *             SectionTitle4Ga("Your-details"),
    *             SuppressErrors.Yes,
-   *             FastForward.Yes)),
+   *             FastForward.NextNew)),
    *       callUrlEscaped(
    *         routes.FormController
    *           .form(
@@ -201,7 +201,7 @@ class SummarySpec extends Spec {
    *             SectionNumber(1),
    *             SectionTitle4Ga("About-you"),
    *             SuppressErrors.Yes,
-   *             FastForward.Yes))
+   *             FastForward.NextNew))
    *     )
    *
    *     testStringValues(0) should startWith(expectedResult(0))
@@ -750,7 +750,7 @@ class SummarySpec extends Spec {
    *           SectionNumber(0),
    *           SectionTitle4Ga("Your-details"),
    *           SuppressErrors.Yes,
-   *           FastForward.Yes)
+   *           FastForward.NextNew)
    *         .url
    *       urlOfHrefToSection0 shouldBe targetUrl
    *     }
@@ -765,7 +765,7 @@ class SummarySpec extends Spec {
    *           SectionNumber(2),
    *           SectionTitle4Ga("Business-details"),
    *           SuppressErrors.Yes,
-   *           FastForward.Yes)
+   *           FastForward.NextNew)
    *         .url
    *       urlOfHrefToSection2 shouldBe targetUrl
    *     }

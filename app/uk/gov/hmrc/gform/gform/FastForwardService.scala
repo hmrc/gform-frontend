@@ -63,7 +63,7 @@ class FastForwardService(
     hc: HeaderCarrier,
     l: LangADT
   ): Future[Result] =
-    redirectWithRecalculation(cache, maybeAccessCode, FastForward.Yes, formModelOptics, maybeCoordinates)
+    redirectWithRecalculation(cache, maybeAccessCode, FastForward.NextNew, formModelOptics, maybeCoordinates)
 
   def redirectStopAt[U <: SectionSelectorType: SectionSelector](
     sectionNumber: SectionNumber,
@@ -138,7 +138,14 @@ class FastForwardService(
 
         Redirect(
           routes.FormController
-            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+            .form(
+              cache.formTemplate._id,
+              maybeAccessCode,
+              sn,
+              sectionTitle4Ga,
+              SuppressErrors.Yes,
+              FastForward.NextNew
+            )
         )
       case _ =>
         Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, None))

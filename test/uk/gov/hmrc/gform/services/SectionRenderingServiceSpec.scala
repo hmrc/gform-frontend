@@ -165,7 +165,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         Nil,
         authContext,
         NotChecked,
-        FastForward.Yes,
+        FastForward.NextNew,
         formModelOptics,
         UpscanInitiate.empty,
         AddressRecordLookup.from(ThirdPartyData.empty)
@@ -206,7 +206,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         Nil,
         authContext,
         NotChecked,
-        FastForward.Yes,
+        FastForward.NextNew,
         formModelOptics,
         UpscanInitiate.empty,
         AddressRecordLookup.from(ThirdPartyData.empty)
@@ -246,7 +246,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         Nil,
         authContext,
         NotChecked,
-        FastForward.Yes,
+        FastForward.NextNew,
         formModelOptics,
         UpscanInitiate.empty,
         AddressRecordLookup.from(ThirdPartyData.empty)
@@ -291,7 +291,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         Nil,
         authContext,
         NotChecked,
-        FastForward.Yes,
+        FastForward.NextNew,
         formModelOptics,
         UpscanInitiate.empty,
         AddressRecordLookup.from(ThirdPartyData.empty)

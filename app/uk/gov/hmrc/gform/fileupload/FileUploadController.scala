@@ -408,7 +408,7 @@ class FileUploadController(
                     sectionNumber,
                     sectionTitle4Ga,
                     SuppressErrors.Yes,
-                    FastForward.Yes
+                    FastForward.NextNew
                   )
               )
             } // This value will be used only by non-js journey, ajax calls should ignore it.

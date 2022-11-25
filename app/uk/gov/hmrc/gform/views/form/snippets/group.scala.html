@@ -62,7 +62,7 @@
   @canAddAnother.fold(HtmlFormat.empty){ modelComponentId =>
     @govukButton(Button(content = Text(groupField.repeatAddAnotherText.map(ls => ls.value).getOrElse(messages("linkText.addRepeatingGroup"))),
         inputType=Some("submit"),
-        attributes = Map("id" -> "addRepeatingGroup", "formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplateId, maybeAccessCode, sectionNumber, FastForward.Yes, AddGroup(modelComponentId)).path),
+        attributes = Map("id" -> "addRepeatingGroup", "formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplateId, maybeAccessCode, sectionNumber, FastForward.NextNew, AddGroup(modelComponentId)).path),
         classes="link"))
   }
 

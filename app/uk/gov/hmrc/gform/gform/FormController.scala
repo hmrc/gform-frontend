@@ -310,7 +310,7 @@ class FormController(
               sectionNumber,
               sectionTitle4Ga,
               SuppressErrors.Yes,
-              FastForward.Yes
+              FastForward.NextNew
             )
         ).pure[Future]
     }
@@ -338,7 +338,7 @@ class FormController(
                 fastForward
               )
 
-          val fastForward = if (isLastBracketIteration) FastForward.Yes else ff
+          val fastForward = if (isLastBracketIteration) FastForward.NextNew else ff
 
           val backUrl = ff match {
             case FastForward.CYA(from, SectionOrSummary.FormSummary) =>
@@ -410,7 +410,7 @@ class FormController(
                   redirect <- formProcessor.processRemoveAddToList(
                                 cache,
                                 maybeAccessCode,
-                                FastForward.Yes,
+                                FastForward.NextNew,
                                 formModelOptics,
                                 processData,
                                 bracket.iterations.size - 1,
@@ -461,7 +461,7 @@ class FormController(
             }
           }
           def checkYourAnswersNavigation(cya: CheckYourAnswersWithNumber[DataExpanded]): (SectionNumber, FastForward) =
-            (cya.sectionNumber, FastForward.Yes)
+            (cya.sectionNumber, FastForward.NextNew)
           val (gotoSectionNumber, fastForward) =
             addToListIteration.checkYourAnswers.fold(defaultNavigation())(checkYourAnswersNavigation)
           val sectionTitle4Ga =
@@ -594,7 +594,7 @@ class FormController(
                                   sn,
                                   sectionTitle4Ga,
                                   SuppressErrors(isFirstLanding),
-                                  if (isLastBracketIteration) FastForward.Yes
+                                  if (isLastBracketIteration) FastForward.NextNew
                                   else if ((isFirstLanding && !isConfirmationPage) || sectionNumber.isTaskList) {
                                     fastForward
                                       .next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel, sn)
@@ -726,7 +726,7 @@ class FormController(
                       sectionNumber,
                       sectionTitle4Ga,
                       SuppressErrors.Yes,
-                      FastForward.Yes
+                      FastForward.NextNew
                     )
                     .url + anchor
                 )
@@ -833,7 +833,8 @@ class FormController(
         if (sn.isTaskList) {
           uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, maybeAccessCode)
         } else {
-          routes.FormController.form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+          routes.FormController
+            .form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.NextNew)
         }
       case _ =>
         formTemplate.formKind.fold { _ =>

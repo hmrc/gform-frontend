@@ -723,7 +723,7 @@ class SectionRenderingService(
       frontendAppConfig,
       maybeAccessCode = maybeAccessCode,
       sectionNumber = formTemplate.sectionNumberZero,
-      fastForward = FastForward.Yes
+      fastForward = FastForward.NextNew
     )
   }
 
@@ -926,7 +926,7 @@ class SectionRenderingService(
         frontendAppConfig,
         maybeAccessCode = maybeAccessCode,
         sectionNumber = formTemplate.sectionNumberZero,
-        fastForward = FastForward.Yes
+        fastForward = FastForward.NextNew
       )
   }
 

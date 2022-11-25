@@ -25,12 +25,12 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
 sealed trait FastForward extends Product with Serializable {
 
   private def fold[B](
-    f: FastForward.Yes.type => B
+    f: FastForward.NextNew.type => B
   )(g: FastForward.StopAt => B)(h: FastForward.CYA => B): B =
     this match {
-      case y: FastForward.Yes.type => f(y)
-      case s: FastForward.StopAt   => g(s)
-      case yy: FastForward.CYA     => h(yy)
+      case y: FastForward.NextNew.type => f(y)
+      case s: FastForward.StopAt       => g(s)
+      case yy: FastForward.CYA         => h(yy)
     }
 
   def asString: String =
@@ -54,7 +54,7 @@ sealed trait FastForward extends Product with Serializable {
         .nextVisibleSectionNumber(sn)
         .map(s =>
           to match {
-            case SectionOrSummary.Section(s) if sn == s => FastForward.Yes
+            case SectionOrSummary.Section(s) if sn == s => FastForward.NextNew
             case _                                      => FastForward.CYA(s, to)
           }
         )
@@ -68,7 +68,7 @@ sealed trait FastForward extends Product with Serializable {
 
 object FastForward {
 
-  case object Yes extends FastForward
+  case object NextNew extends FastForward
   case class StopAt(stopAt: SectionNumber) extends FastForward
   case class CYA(from: SectionNumber, to: SectionOrSummary = SectionOrSummary.FormSummary) extends FastForward
 

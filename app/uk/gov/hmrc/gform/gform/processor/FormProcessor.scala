@@ -201,7 +201,7 @@ class FormProcessor(
               sectionNumber,
               sectionTitle4Ga,
               SuppressErrors.Yes,
-              FastForward.Yes
+              FastForward.NextNew
             )
         )
       }
