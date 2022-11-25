@@ -93,6 +93,7 @@ class TaskListRenderingService(
         .traverse { coordinate =>
           val dataForCoordinate: Set[VariadicValue] =
             formModelOptics.formModelVisibilityOptics.data.forCoordinate(coordinate)
+          val hasTerminationPage = formModel.taskList.availablePages(coordinate).exists(_.isTerminationPage)
 
           for {
             formHandlerResult <-
@@ -106,7 +107,7 @@ class TaskListRenderingService(
             val taskStatus =
               if (dataForCoordinate.isEmpty) {
                 TaskStatus.NotStarted
-              } else if (formHandlerResult.isFormValid) {
+              } else if (formHandlerResult.isFormValid && !hasTerminationPage) {
                 TaskStatus.Completed
               } else {
                 TaskStatus.InProgress
