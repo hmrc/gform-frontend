@@ -602,7 +602,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 4100,AU,2,EPR,,Esperance Airport - EPR,Esperance Airport - EPR,,4,NULL,1
 4102,AU,2,MEB,,Essendon/Melbourne Airport - MEB,Essendon/Melbourne Airport - MEB,,4,NULL,1
 4103,AU,2,ETD,,Etadunna Airport - ETD,Etadunna Airport - ETD,,4,NULL,1
-4104,AU,2,MEL,Tullamarine,Melbourne Airport - MEL,Melbourne Airport - MEL,,4,NULL,1
+4104,AU,2,MEL,,Tullamarine,Melbourne Airport - MEL,Melbourne Airport - MEL,,4,NULL,1
 4105,AU,2,EUC,,Eucla Airport - EUC,Eucla Airport - EUC,,4,NULL,1
 4107,AU,2,EVD,,Eva Downs Airport - EVD,Eva Downs Airport - EVD,,4,NULL,1
 4109,AU,2,EVH,,Evans Head Airport - EVH,Evans Head Airport - EVH,,4,NULL,1
