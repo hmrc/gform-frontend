@@ -46,6 +46,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, SourceOrigin, Variad
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.upscan.UpscanInitiate
 import uk.gov.hmrc.gform.validation.ValidationResult
+import uk.gov.hmrc.govukfrontend.views.viewmodels.notificationbanner.NotificationBanner
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.immutable.List
@@ -168,7 +169,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         FastForward.Yes,
         formModelOptics,
         UpscanInitiate.empty,
-        AddressRecordLookup.from(ThirdPartyData.empty)
+        AddressRecordLookup.from(ThirdPartyData.empty),
+        Option.empty[NotificationBanner]
       )
 
     val phoneField = Jsoup.parse(generatedHtml.body).getElementById("phoneNumber")
@@ -209,7 +211,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         FastForward.Yes,
         formModelOptics,
         UpscanInitiate.empty,
-        AddressRecordLookup.from(ThirdPartyData.empty)
+        AddressRecordLookup.from(ThirdPartyData.empty),
+        Option.empty[NotificationBanner]
       )
 
     val textFieldHtml = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-label")
@@ -249,7 +252,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         FastForward.Yes,
         formModelOptics,
         UpscanInitiate.empty,
-        AddressRecordLookup.from(ThirdPartyData.empty)
+        AddressRecordLookup.from(ThirdPartyData.empty),
+        Option.empty[NotificationBanner]
       )
 
     val textFieldHtml: Elements = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button")
@@ -294,7 +298,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         FastForward.Yes,
         formModelOptics,
         UpscanInitiate.empty,
-        AddressRecordLookup.from(ThirdPartyData.empty)
+        AddressRecordLookup.from(ThirdPartyData.empty),
+        Option.empty[NotificationBanner]
       )
 
     Jsoup.parse(generatedHtml.body).title() shouldBe "Some title without PII - AAA999 dev test template - GOV.UK"
@@ -318,7 +323,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton[DataExpanded]],
         authContext,
         ValidationResult.empty,
-        formModelOptics
+        formModelOptics,
+        Option.empty[NotificationBanner]
       )
 
     val declarationPageButton = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button").first
@@ -354,7 +360,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton[DataExpanded]],
         authContext,
         ValidationResult.empty,
-        formModelOptics
+        formModelOptics,
+        Option.empty[NotificationBanner]
       )
 
     Jsoup.parse(generatedHtml.body).title() shouldBe "Some noPII dec section title - AAA999 dev test template - GOV.UK"
@@ -368,7 +375,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       authContext,
       formModelOptics,
       List.empty,
-      ValidationResult.empty
+      ValidationResult.empty,
+      Option.empty[NotificationBanner]
     )
     Jsoup
       .parse(generatedHtml.body)

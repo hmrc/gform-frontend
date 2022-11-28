@@ -49,7 +49,8 @@
     specimenNavigation: Html,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    fastForward: FastForward
+    fastForward: FastForward,
+    notificationBanner: Option[NotificationBanner]
 )(
     implicit
     request: Request[_],
@@ -63,6 +64,7 @@
 @govukNotificationBanner = @{new GovukNotificationBanner()}
 @heading = @{title}
 @hmrcPageHeading = @{new HmrcPageHeading()}
+@globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
 @backLink = @{
   new BackLink(href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, fastForward).path,
@@ -76,6 +78,8 @@
   frontendAppConfig = frontendAppConfig,
   backLink = if(shouldDisplayBack) Some(backLink) else None
 ) {
+
+    @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
 
     @pageLevelError.render
 

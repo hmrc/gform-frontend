@@ -21,6 +21,7 @@
 @import uk.gov.hmrc.gform.gform.routes.SummaryController
 @import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 @import uk.gov.hmrc.gform.models.Coordinates
+@import uk.gov.hmrc.gform.summary.ExtraInfoSummary
 @import uk.gov.hmrc.gform.views.html.summary.snippets.alert
 @import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
@@ -34,25 +35,10 @@
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
 
 @(
-    formTemplate: FormTemplate,
-    snippets: List[Html],
-    maybeAccessCode: Option[AccessCode],
-    lastSectionNumber: SectionNumber,
-    renderComeBackLater: Boolean,
-    continueLabelKey: String,
-    frontendAppConfig: FrontendAppConfig,
-    summaryPagePurpose: SummaryPagePurpose,
-    reviewerComments : Option[String],
-    title: String,
-    caption: Option[String],
-    header: Html,
-    summaryDeclaration: Html,
-    footer: Html,
-    formDataFingerprint: String,
-    displayWidth: SummaryDisplayWidth.SummaryDisplayWidth,
-    maybeCoordinates: Option[Coordinates],
-    taskComplete: Boolean
+    extraInfoSummary: ExtraInfoSummary
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+
+@import extraInfoSummary._
 
 @formWithCSRF = @{new FormWithCSRF()}
 @govukButton = @{new GovukButton()}
@@ -73,6 +59,7 @@
 @twoThirdsMainContent = @{new TwoThirdsMainContent}
 @fullMainContent = @{new FullMainContent}
 @threeQuartersMainContent = @{new ThreeQuartersMainContent}
+@globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
 @mainContent = @{
   contentBlock: Html => displayWidth match {
@@ -90,6 +77,8 @@
   backLink = Some(backLink),
   isMainContentFullWidth = true
 ) {
+
+    @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
 
     @twoThirdsMainContent {
         @hmrcPageHeading(PageHeading(

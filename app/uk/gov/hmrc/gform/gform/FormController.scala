@@ -107,36 +107,36 @@ class FormController(
               singleton: Singleton[DataExpanded],
               sectionNumber: SectionNumber,
               handlerResult: FormHandlerResult
-            ) = upscanService
-              .upscanInitiate(
-                singleton.upscanInitiateRequests,
-                cache.formTemplateId,
+            ) = for {
+              upscanInitiate <- upscanService.upscanInitiate(
+                                  singleton.upscanInitiateRequests,
+                                  cache.formTemplateId,
+                                  sectionNumber,
+                                  cache.form,
+                                  FormIdData(cache, maybeAccessCode)
+                                )
+              notificatioBanner <- gformConnector.notificationBanner
+            } yield Ok(
+              renderer.renderSection(
+                maybeAccessCode,
                 sectionNumber,
-                cache.form,
-                FormIdData(cache, maybeAccessCode)
+                handlerResult,
+                cache.formTemplate,
+                cache.formTemplateWithRedirects.specimenSource,
+                cache.form.envelopeId,
+                singleton,
+                cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB),
+                cache.formTemplate.allowedFileTypes,
+                restrictedFileExtensions,
+                cache.retrievals,
+                cache.form.thirdPartyData.obligations,
+                fastForward,
+                formModelOptics,
+                upscanInitiate,
+                AddressRecordLookup.from(cache.form.thirdPartyData),
+                notificatioBanner.map(_.toViewNotificationBanner)
               )
-              .map { upscanInitiate =>
-                Ok {
-                  renderer.renderSection(
-                    maybeAccessCode,
-                    sectionNumber,
-                    handlerResult,
-                    cache.formTemplate,
-                    cache.formTemplateWithRedirects.specimenSource,
-                    cache.form.envelopeId,
-                    singleton,
-                    cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB),
-                    cache.formTemplate.allowedFileTypes,
-                    restrictedFileExtensions,
-                    cache.retrievals,
-                    cache.form.thirdPartyData.obligations,
-                    fastForward,
-                    formModelOptics,
-                    upscanInitiate,
-                    AddressRecordLookup.from(cache.form.thirdPartyData)
-                  )
-                }
-              }
+            )
 
             def validateSections(suppressErrors: SuppressErrors, sectionNumbers: SectionNumber*)(
               f: FormHandlerResult => Future[Result]
@@ -176,7 +176,12 @@ class FormController(
                               case MiniSummaryRow.ATLRow(atlId, _, rs) =>
                                 atlId ::
                                   rs collect {
-                                    case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(FormCtx(r)), _) => r
+                                    case MiniSummaryRow.ValueRow(
+                                          _,
+                                          MiniSummaryListValue.Reference(FormCtx(r)),
+                                          _
+                                        ) =>
+                                      r
                                   }
                             }
                         }
@@ -199,7 +204,8 @@ class FormController(
               case bracket @ Bracket.AddToList(iterations, _) =>
                 val iteration: Bracket.AddToListIteration[DataExpanded] =
                   bracket.iterationForSectionNumber(sectionNumber)
-                val (repeater, repeaterSectionNumber) = (iteration.repeater.repeater, iteration.repeater.sectionNumber)
+                val (repeater, repeaterSectionNumber) =
+                  (iteration.repeater.repeater, iteration.repeater.sectionNumber)
                 val (lastRepeater, lastRepeaterSectionNumber) =
                   (iterations.last.repeater.repeater, iterations.last.repeater.sectionNumber)
 
@@ -213,24 +219,26 @@ class FormController(
                       SuppressErrors.No,
                       visibleIteration.allSingletonSectionNumbers: _*
                     )(handlerResult =>
-                      Ok(
-                        renderer
-                          .renderAddToListCheckYourAnswers(
-                            checkYourAnswers.checkYourAnswers,
-                            cache.formTemplate,
-                            cache.formTemplateWithRedirects.specimenSource,
-                            maybeAccessCode,
-                            sectionNumber,
-                            visibleIteration,
-                            formModelOptics,
-                            handlerResult.validationResult,
-                            cache,
-                            handlerResult.envelope,
-                            AddressRecordLookup.from(cache.form.thirdPartyData),
-                            fastForward
-                          )
-                      )
-                        .pure[Future]
+                      gformConnector.notificationBanner.map { notificationBanner =>
+                        Ok(
+                          renderer
+                            .renderAddToListCheckYourAnswers(
+                              checkYourAnswers.checkYourAnswers,
+                              cache.formTemplate,
+                              cache.formTemplateWithRedirects.specimenSource,
+                              maybeAccessCode,
+                              sectionNumber,
+                              visibleIteration,
+                              formModelOptics,
+                              handlerResult.validationResult,
+                              cache,
+                              handlerResult.envelope,
+                              AddressRecordLookup.from(cache.form.thirdPartyData),
+                              fastForward,
+                              notificationBanner.map(_.toViewNotificationBanner)
+                            )
+                        )
+                      }
                     )
                   case _ =>
                     if (repeaterSectionNumber === sectionNumber) {
@@ -242,22 +250,25 @@ class FormController(
                       if (sectionNumber === lastRepeaterSectionNumber || !hasBeenVisited) {
                         // display current (which happens to be last) repeater
                         validateSections(suppressErrors, sectionNumber)(handlerResult =>
-                          Ok(
-                            renderer.renderAddToList(
-                              repeater,
-                              bracket,
-                              formModel,
-                              maybeAccessCode,
-                              cache.form,
-                              sectionNumber,
-                              formModelOptics,
-                              cache.formTemplate,
-                              cache.formTemplateWithRedirects.specimenSource,
-                              handlerResult.validationResult,
-                              cache.retrievals,
-                              fastForward
+                          gformConnector.notificationBanner.map { notificationBanner =>
+                            Ok(
+                              renderer.renderAddToList(
+                                repeater,
+                                bracket,
+                                formModel,
+                                maybeAccessCode,
+                                cache.form,
+                                sectionNumber,
+                                formModelOptics,
+                                cache.formTemplate,
+                                cache.formTemplateWithRedirects.specimenSource,
+                                handlerResult.validationResult,
+                                cache.retrievals,
+                                fastForward,
+                                notificationBanner.map(_.toViewNotificationBanner)
+                              )
                             )
-                          ).pure[Future]
+                          }
                         )
                       } else {
                         // We want to display last repeater
@@ -272,7 +283,10 @@ class FormController(
                               sectionTitle4Ga,
                               suppressErrors,
                               fastForward
-                                .next(formModelOptics.formModelVisibilityOptics.formModel, lastRepeaterSectionNumber)
+                                .next(
+                                  formModelOptics.formModelVisibilityOptics.formModel,
+                                  lastRepeaterSectionNumber
+                                )
                             )
                         ).pure[Future]
                       }

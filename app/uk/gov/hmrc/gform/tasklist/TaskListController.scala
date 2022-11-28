@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gform.FastForwardService
 import uk.gov.hmrc.gform.gform.routes.SummaryController
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.{ Coordinates, FastForward, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -41,7 +42,8 @@ class TaskListController(
   taskListRenderingService: TaskListRenderingService,
   fileUploadService: FileUploadService,
   messagesControllerComponents: MessagesControllerComponents,
-  fastForwardService: FastForwardService
+  fastForwardService: FastForwardService,
+  gformConnector: GformConnector
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
@@ -53,7 +55,8 @@ class TaskListController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         for {
-          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
+          envelope          <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
+          notificatioBanner <- gformConnector.notificationBanner
           html <-
             taskListRenderingService
               .renderTaskList(
@@ -61,7 +64,8 @@ class TaskListController(
                 maybeAccessCode,
                 cache.toCacheData,
                 EnvelopeWithMapping(envelope, cache.form),
-                formModelOptics
+                formModelOptics,
+                notificatioBanner
               )
         } yield Ok(html)
 

@@ -87,7 +87,8 @@ class GformModule(
     authModule.ggConnector,
     configModule.frontendAppConfig,
     controllersModule.messagesControllerComponents,
-    graphModule.smartStringEvaluatorFactory
+    graphModule.smartStringEvaluatorFactory,
+    gformBackendModule.gformConnector
   )
 
   val taxPeriodStateChecker = new TaxPeriodStateChecker[Future, Throwable] {
@@ -135,7 +136,8 @@ class GformModule(
       taskListModule.taskListRenderingService,
       fileUploadModule.fileUploadService,
       controllersModule.messagesControllerComponents,
-      fastForwardService
+      fastForwardService,
+      gformBackendModule.gformConnector
     )
 
   private val barsBaseUrl = s"${configModule.serviceConfig.baseUrl("bars")}"
@@ -209,7 +211,8 @@ class GformModule(
     playBuiltInsModule.i18nSupport,
     fileUploadModule.fileUploadService,
     validationModule.validationService,
-    configModule.frontendAppConfig
+    configModule.frontendAppConfig,
+    gformBackendModule.gformConnector
   )
 
   val pdfGeneratorService = new PdfGeneratorService(

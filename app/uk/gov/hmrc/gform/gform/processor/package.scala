@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormTemplate }
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -31,6 +32,7 @@ package object processor {
     EnrolmentSection,
     FormModelOptics[DataOrigin.Mongo],
     List[ErrorLink],
-    ValidationResult
+    ValidationResult,
+    Option[NotificationBanner]
   ) => Html
 }
