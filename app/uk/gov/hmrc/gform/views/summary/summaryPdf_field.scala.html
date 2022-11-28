@@ -28,12 +28,14 @@
 
 @field match {
     case SimpleField(label, values) => {
-        @if(values.nonEmpty) {
+        @if(label.nonEmpty) {
             <h3>
-                @for(l <- label) {
-                    @l
-                }
+            @for(l <- label) {
+                @l
+            }
             </h3>
+        }
+        @if(values.nonEmpty) {
             <p>@renderValues(values)</p>
         }
     }

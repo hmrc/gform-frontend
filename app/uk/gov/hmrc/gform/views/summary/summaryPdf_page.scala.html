@@ -19,7 +19,7 @@
 
 @(pageData: PageData)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
-@if(pageData.nonEmpty(pageData.fields)) {
+@if(pageData.fields.nonEmpty) {
   @for(title <- pageData.title) {
       <h2 id="@{pageData.id}">@title</h2>
   }
