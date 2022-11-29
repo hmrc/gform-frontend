@@ -34,8 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponentId, FormTemplateId, Horizontal, OptionData, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SectionNumber, Sterling, Text, Value, WholeSterling }
 
 import scala.concurrent.Future
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.UkVrn
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.NINO
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EORI, NINO, UkEORI, UkVrn }
 
 class FormDataHelpersSpec extends Spec {
 
@@ -192,6 +191,52 @@ class FormDataHelpersSpec extends Spec {
           variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
             Map(
               purePure("ninoField") -> VariadicValue.One("AB123456C")
+            )
+          )
+          Future.successful(Results.Ok)
+        }
+
+    val future = FormDataHelpers
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
+        continuationFunction
+      )
+    future.futureValue shouldBe Results.Ok
+  }
+
+  it should "uppercase EORI" in new TestFixture {
+
+    override lazy val fields = List(mkFormComponent("eoriField", Text(EORI, Value)))
+    override lazy val requestBodyParams = Map("eoriField" -> Seq("fr1234567"))
+
+    val continuationFunction = (_: RequestRelatedData) =>
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
+        (_: EnteredVariadicFormData) => {
+          variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+            Map(
+              purePure("eoriField") -> VariadicValue.One("FR1234567")
+            )
+          )
+          Future.successful(Results.Ok)
+        }
+
+    val future = FormDataHelpers
+      .processResponseDataFromBody(request, FormModelRenderPageOptics(formModel, RecData.empty))(
+        continuationFunction
+      )
+    future.futureValue shouldBe Results.Ok
+  }
+
+  it should "uppercase UkEORI" in new TestFixture {
+
+    override lazy val fields = List(mkFormComponent("ukEoriField", Text(UkEORI, Value)))
+    override lazy val requestBodyParams = Map("ukEoriField" -> Seq("gb123456789123"))
+
+    val continuationFunction = (_: RequestRelatedData) =>
+      (variadicFormData: VariadicFormData[SourceOrigin.OutOfDate]) =>
+        (_: EnteredVariadicFormData) => {
+          variadicFormData shouldBe VariadicFormData[SourceOrigin.OutOfDate](
+            Map(
+              purePure("ukEoriField") -> VariadicValue.One("GB123456789123")
             )
           )
           Future.successful(Results.Ok)
