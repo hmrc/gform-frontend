@@ -41,7 +41,8 @@
     header: Option[Html],
     footer: Option[Html],
     specimenNavigation: Html,
-    fastForward: FastForward
+    fastForward: FastForward,
+    notificationBanner: Option[NotificationBanner]
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
@@ -50,6 +51,7 @@
 @heading = @{ title }
 @formAction = @{ uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue) }
 @hmrcPageHeading = @{new HmrcPageHeading()}
+@globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
 @main_template(
     title = noPIITitle,
@@ -58,6 +60,8 @@
     frontendAppConfig = frontendAppConfig,
     backLink = None
 ) {
+    @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
+
     @hmrcPageHeading(PageHeading(
         text = heading,
         headingClasses = Some("govuk-heading-l"),

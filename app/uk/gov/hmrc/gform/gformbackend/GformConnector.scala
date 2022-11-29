@@ -31,6 +31,7 @@ import play.api.libs.json.JsValue
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.CustomerId
+import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
@@ -493,4 +494,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.DELETE[HttpResponse](s"$baseUrl/envelopes/${envelopeId.value}/files/${fileId.value}")
       .map(_ => ())
   }
+
+  def notificationBanner(implicit ec: ExecutionContext): Future[Option[NotificationBanner]] =
+    ws.doGet(show"$baseUrl/notification-banner").map { response =>
+      if (response.status == 200) Some(response.json.as[NotificationBanner])
+      else Option.empty[NotificationBanner]
+    }
+
 }

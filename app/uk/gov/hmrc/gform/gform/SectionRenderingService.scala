@@ -55,7 +55,6 @@ import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, TableRow => GovukTableRow, Table }
 import uk.gov.hmrc.gform.summary.{ AddToListCYARender, AddressRecordLookup, FormComponentSummaryRenderer }
 import uk.gov.hmrc.gform.upscan.{ FormMetaData, UpscanData, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.HtmlFieldId
@@ -71,7 +70,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes, ExclusiveCheckbox }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ Content, Empty, HtmlContent }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.DateInput
+import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.{ DateInput, InputItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 import uk.gov.hmrc.govukfrontend.views.viewmodels.fieldset.{ Fieldset, Legend }
@@ -79,10 +78,11 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.fileupload
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 import uk.gov.hmrc.govukfrontend.views.viewmodels.input.{ Input, PrefixOrSuffix }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
-import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.InputItem
+import uk.gov.hmrc.govukfrontend.views.viewmodels.notificationbanner.NotificationBanner
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, TableRow => GovukTableRow, Table }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.Aliases.CharacterCount
@@ -90,7 +90,6 @@ import uk.gov.hmrc.hmrcfrontend.views.html.components.{ HmrcCharacterCount, Hmrc
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukSummaryList, GovukTable }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
@@ -139,7 +138,8 @@ class SectionRenderingService(
     cache: AuthCacheWithForm,
     envelope: EnvelopeWithMapping,
     addressRecordLookup: AddressRecordLookup,
-    fastForward: FastForward
+    fastForward: FastForward,
+    notificationBanner: Option[NotificationBanner]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -219,7 +219,8 @@ class SectionRenderingService(
       checkYourAnswers.expandedHeader.map(markDownParser),
       checkYourAnswers.expandedFooter.map(markDownParser),
       specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
-      ff
+      ff,
+      notificationBanner
     )
 
   }
@@ -236,7 +237,8 @@ class SectionRenderingService(
     specimenSource: Option[FormTemplate],
     validationResult: ValidationResult,
     retrievals: MaterialisedRetrievals,
-    fastForward: FastForward
+    fastForward: FastForward,
+    notificationBanner: Option[NotificationBanner]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -387,7 +389,8 @@ class SectionRenderingService(
       specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
       maybeAccessCode,
       sectionNumber,
-      fastForward
+      fastForward,
+      notificationBanner
     )
   }
 
@@ -407,7 +410,8 @@ class SectionRenderingService(
     fastForward: FastForward,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     upscanInitiate: UpscanInitiate,
-    addressRecordLookup: AddressRecordLookup
+    addressRecordLookup: AddressRecordLookup,
+    notificationBanner: Option[NotificationBanner]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -523,7 +527,8 @@ class SectionRenderingService(
         specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
       maybeAccessCode,
       sectionNumber,
-      fastForward
+      fastForward,
+      notificationBanner
     )
 
   }
@@ -657,7 +662,8 @@ class SectionRenderingService(
     singleton: Singleton[DataExpanded],
     retrievals: MaterialisedRetrievals,
     validationResult: ValidationResult,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    notificationBanner: Option[NotificationBanner]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -723,7 +729,8 @@ class SectionRenderingService(
       frontendAppConfig,
       maybeAccessCode = maybeAccessCode,
       sectionNumber = formTemplate.sectionNumberZero,
-      fastForward = FastForward.Yes
+      fastForward = FastForward.Yes,
+      notificationBanner = notificationBanner
     )
   }
 
@@ -867,7 +874,8 @@ class SectionRenderingService(
     retrievals: MaterialisedRetrievals,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     globalErrors: List[ErrorLink],
-    validationResult: ValidationResult
+    validationResult: ValidationResult,
+    notificationBanner: Option[NotificationBanner]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -926,7 +934,8 @@ class SectionRenderingService(
         frontendAppConfig,
         maybeAccessCode = maybeAccessCode,
         sectionNumber = formTemplate.sectionNumberZero,
-        fastForward = FastForward.Yes
+        fastForward = FastForward.Yes,
+        notificationBanner = notificationBanner
       )
   }
 

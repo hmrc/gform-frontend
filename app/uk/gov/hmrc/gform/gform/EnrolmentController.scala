@@ -27,6 +27,7 @@ import cats.syntax.traverse._
 import cats.{ Applicative, Monad, Traverse }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request }
+import play.twirl.api.Html
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
@@ -36,10 +37,12 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.{ FormHandlerResult, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
 import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
@@ -76,7 +79,8 @@ class EnrolmentController(
   ggConnector: GovernmentGatewayConnector,
   frontendAppConfig: FrontendAppConfig,
   messagesControllerComponents: MessagesControllerComponents,
-  smartStringEvaluatorFactory: SmartStringEvaluatorFactory
+  smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
+  gformConnector: GformConnector
 )(implicit
   ec: ExecutionContext
 ) extends FrontendController(messagesControllerComponents) {
@@ -111,16 +115,19 @@ class EnrolmentController(
     auth.asyncGGAuth(formTemplateId) { implicit request: Request[AnyContent] => implicit l => cache =>
       cache.formTemplate.authConfig match {
         case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
-          Ok(
-            renderEnrolmentSection(
-              cache.formTemplate,
-              cache.retrievals,
-              enrolmentSection,
-              FormModelOptics.fromEnrolmentSection(enrolmentSection, cache),
-              Nil,
-              ValidationResult.empty
+          gformConnector.notificationBanner.map { notificationBanner =>
+            Ok(
+              renderEnrolmentSection(
+                cache.formTemplate,
+                cache.retrievals,
+                enrolmentSection,
+                FormModelOptics.fromEnrolmentSection(enrolmentSection, cache),
+                Nil,
+                ValidationResult.empty,
+                notificationBanner
+              )
             )
-          ).pure[Future]
+          }
         case _ =>
           Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments(formTemplateId))
             .flashing("formTitle" -> cache.formTemplate.formName.value)
@@ -134,8 +141,9 @@ class EnrolmentController(
     enrolmentSection: EnrolmentSection,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     globalErrors: List[ErrorLink],
-    validationResult: ValidationResult
-  )(implicit request: Request[_], l: LangADT) = {
+    validationResult: ValidationResult,
+    notificationBanner: Option[NotificationBanner]
+  )(implicit request: Request[_], l: LangADT): Html = {
     implicit val sse = smartStringEvaluatorFactory(
       formModelOptics.formModelVisibilityOptics,
       retrievals,
@@ -148,7 +156,15 @@ class EnrolmentController(
     val singleton = toSingleton(enrolmentSection)
 
     renderer
-      .renderEnrolmentSection(formTemplate, singleton, retrievals, formModelOptics, globalErrors, validationResult)
+      .renderEnrolmentSection(
+        formTemplate,
+        singleton,
+        retrievals,
+        formModelOptics,
+        globalErrors,
+        validationResult,
+        notificationBanner.map(_.toViewNotificationBanner)
+      )
   }
 
   def submitEnrolment(formTemplateId: FormTemplateId, action: Direction) =
@@ -207,14 +223,11 @@ class EnrolmentController(
                   retrievals,
                   enrolmentSection,
                   formModelOptics,
-                  //formTemplate.sectionNumberZero,
-                  //cache.toCacheData,
-                  //EnvelopeWithMapping.empty,
-                  //validationService.validatePageModel,
                   frontendAppConfig
                 )
                 for {
                   formHandlerResult <- formHandlerResultF
+                  notificatioBanner <- gformConnector.notificationBanner
                   res <- processValidation(
                            serviceId,
                            enrolmentSection,
@@ -226,8 +239,8 @@ class EnrolmentController(
                          )
                            .fold(
                              enrolmentResultProcessor
-                               .recoverEnrolmentError(formHandlerResult.validationResult),
-                             enrolmentResultProcessor.processEnrolmentResult
+                               .recoverEnrolmentError(formHandlerResult.validationResult, notificatioBanner),
+                             enrolmentResultProcessor.processEnrolmentResult(notificatioBanner)
                            )
                            .run(Env(formTemplate, retrievals, formModelVisibilityOptics))
                 } yield res

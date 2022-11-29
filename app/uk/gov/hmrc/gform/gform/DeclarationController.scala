@@ -83,6 +83,7 @@ class DeclarationController(
                                     formModelOptics.formModelVisibilityOptics,
                                     EnvelopeWithMapping.empty
                                   )
+            notificatioBanner <- gformConnector.notificationBanner
           } yield {
             val validationResultUpd = suppressErrors(validationResult)
             Ok(
@@ -94,7 +95,8 @@ class DeclarationController(
                   declarationPage,
                   cache.retrievals,
                   validationResultUpd,
-                  formModelOptics
+                  formModelOptics,
+                  notificatioBanner.map(_.toViewNotificationBanner)
                 )
             )
           }

@@ -39,7 +39,8 @@
   specimenNavigation: Html = HtmlFormat.empty,
   maybeAccessCode: Option[AccessCode],
   sectionNumber: SectionNumber,
-  fastForward: FastForward
+  fastForward: FastForward,
+  notificationBanner: Option[NotificationBanner]
 )(
   implicit
   request: Request[_],
@@ -62,6 +63,7 @@
 @formWithoutCSRF = @{new FormWithoutCSRF()}
 @govukButton = @{new GovukButton()}
 @govukNotificationBanner = @{new GovukNotificationBanner()}
+@globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 @hmrcPageHeading = @{new HmrcPageHeading()}
 
 @displaySaveContinueButton(classes: String = "", otherAttributes: Map[String, String] = Map.empty) = @{
@@ -80,6 +82,8 @@
   frontendAppConfig = frontendAppConfig,
   backLink = backLink
 ) {
+
+    @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
 
     @pageLevelError.render
 

@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SectionRenderingService, SummaryPagePurpose, routes }
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -41,6 +42,7 @@ import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper._
+import uk.gov.hmrc.govukfrontend.views.viewmodels.notificationbanner.NotificationBanner
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
@@ -53,7 +55,8 @@ class SummaryRenderingService(
   i18nSupport: I18nSupport,
   fileUploadAlgebra: FileUploadAlgebra[Future],
   validationService: ValidationService,
-  frontendAppConfig: FrontendAppConfig
+  frontendAppConfig: FrontendAppConfig,
+  gformConnector: GformConnector
 ) {
 
   def createHtmlForPrintPdf(
@@ -170,6 +173,7 @@ class SummaryRenderingService(
       validationResult <-
         validationService
           .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics, maybeCoordinates)
+      notificatioBanner <- gformConnector.notificationBanner
     } yield {
       val summaryDeclaration: Html =
         renderer.renderSummarySectionDeclaration(cache, formModelOptics, maybeAccessCode, maybeSummarySection)
@@ -190,7 +194,8 @@ class SummaryRenderingService(
         AddressRecordLookup.from(cache.form.thirdPartyData),
         maybeCoordinates,
         summarySection,
-        taskComplete
+        taskComplete,
+        notificatioBanner.map(_.toViewNotificationBanner)
       )
     }
 
@@ -256,7 +261,8 @@ object SummaryRenderingService {
     addressRecordLookup: AddressRecordLookup,
     maybeCoordinates: Option[Coordinates],
     summarySection: SummarySection,
-    taskComplete: Boolean
+    taskComplete: Boolean,
+    notificationBanner: Option[NotificationBanner]
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(summarySection.header)
     val footerHtml = markDownParser(summarySection.footer)
@@ -287,28 +293,31 @@ object SummaryRenderingService {
         maybeCoordinates
       )
     summary(
-      formTemplate,
-      sfr,
-      maybeAccessCode,
-      lastSectionNumber,
-      renderComeBackLater,
-      determineContinueLabelKey(
-        retrievals.continueLabelKey,
-        formTemplate.draftRetrievalMethod.isNotPermitted,
-        summarySection.continueLabel
-      ),
-      frontendAppConfig,
-      summaryPagePurpose,
-      None,
-      title,
-      caption,
-      headerHtml,
-      summaryDeclaration,
-      footerHtml,
-      formDataFingerprint,
-      summarySection.displayWidth,
-      maybeCoordinates,
-      taskComplete
+      ExtraInfoSummary(
+        formTemplate,
+        sfr,
+        maybeAccessCode,
+        lastSectionNumber,
+        renderComeBackLater,
+        determineContinueLabelKey(
+          retrievals.continueLabelKey,
+          formTemplate.draftRetrievalMethod.isNotPermitted,
+          summarySection.continueLabel
+        ),
+        frontendAppConfig,
+        summaryPagePurpose,
+        None,
+        title,
+        caption,
+        headerHtml,
+        summaryDeclaration,
+        footerHtml,
+        formDataFingerprint,
+        summarySection.displayWidth,
+        maybeCoordinates,
+        taskComplete,
+        notificationBanner
+      )
     )
   }
 
@@ -336,7 +345,7 @@ object SummaryRenderingService {
     val title = formTemplate.summarySection.title.value
     val caption = formTemplate.summarySection.caption.map(_.value)
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
-    val sfr =
+    val sfr: List[Html] =
       summaryForNotificationPdf(
         validationResult,
         formModelVisibilityOptics,
@@ -348,24 +357,27 @@ object SummaryRenderingService {
         addressRecordLookup
       )
     summary(
-      formTemplate,
-      sfr,
-      maybeAccessCode,
-      formTemplate.sectionNumberZero,
-      renderComeBackLater,
-      determineContinueLabelKey(retrievals.continueLabelKey, formTemplate.draftRetrievalMethod.isNotPermitted, None),
-      frontendAppConfig,
-      summaryPagePurpose,
-      None,
-      title,
-      caption,
-      headerHtml,
-      HtmlFormat.empty,
-      footerHtml,
-      formDataFingerprint,
-      formTemplate.summarySection.displayWidth,
-      None,
-      false
+      ExtraInfoSummary(
+        formTemplate,
+        sfr,
+        maybeAccessCode,
+        formTemplate.sectionNumberZero,
+        renderComeBackLater,
+        determineContinueLabelKey(retrievals.continueLabelKey, formTemplate.draftRetrievalMethod.isNotPermitted, None),
+        frontendAppConfig,
+        summaryPagePurpose,
+        None,
+        title,
+        caption,
+        headerHtml,
+        HtmlFormat.empty,
+        footerHtml,
+        formDataFingerprint,
+        formTemplate.summarySection.displayWidth,
+        None,
+        false,
+        Option.empty[NotificationBanner]
+      )
     )
   }
 

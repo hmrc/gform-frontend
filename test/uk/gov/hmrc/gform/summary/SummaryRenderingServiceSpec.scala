@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.summary
 import cats.MonadError
 import org.jsoup.Jsoup
 import org.mockito.ArgumentMatchersSugar
+import org.mockito.Mockito.lenient
 import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -28,6 +29,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.test.{ FakeRequest, Helpers }
 import play.twirl.api.Html
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
@@ -35,10 +37,12 @@ import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, Sma
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.{ SectionRenderingService, SummaryPagePurpose }
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ Coordinates, FormModel, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
@@ -93,6 +97,11 @@ class SummaryRenderingServiceSpec
     val mockFileUploadService = mock[FileUploadAlgebra[Future]]
     val mockValidationService = mock[ValidationService]
     val mockRecalculation = mock[Recalculation[Future, Throwable]]
+    val mockGformConnector = mock[GformConnector]
+
+    lenient()
+      .when(mockGformConnector.notificationBanner(*[ExecutionContext]))
+      .thenReturn(Future.successful(Option.empty[NotificationBanner]))
 
     mockFileUploadService.getEnvelope(*[EnvelopeId])(*[Option[Boolean]])(*[HeaderCarrier]) returns Future.successful(
       Envelope(List.empty)
@@ -159,7 +168,8 @@ class SummaryRenderingServiceSpec
         i18nSupport,
         mockFileUploadService,
         mockValidationService,
-        frontendAppConfig
+        frontendAppConfig,
+        mockGformConnector
       )
   }
 
