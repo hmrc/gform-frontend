@@ -164,7 +164,7 @@ object PDFPageFieldBuilder {
       case IsChoice(choice) =>
         SimpleField(
           getFormComponentLabel(formComponent),
-          choice.renderToString(formComponent, validationResult(formComponent)).map(Html(_))
+          choice.renderToString(formComponent, validationResult(formComponent)).map(HtmlFormat.escape(_))
         )
 
       case IsRevealingChoice(rc) =>
