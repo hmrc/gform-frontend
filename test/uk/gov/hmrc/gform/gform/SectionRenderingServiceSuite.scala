@@ -49,7 +49,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
@@ -82,7 +83,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val expectedTable = TableComp(
@@ -107,7 +109,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
@@ -139,7 +142,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val expectedTable = TableComp(
@@ -168,7 +172,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
@@ -203,7 +208,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val expectedTable = TableComp(
@@ -237,7 +243,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
@@ -314,7 +321,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val expectedTable = TableComp(
@@ -374,7 +382,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
@@ -446,7 +455,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val expectedTable = TableComp(
@@ -501,7 +511,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
@@ -561,7 +572,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val expectedTable = TableComp(
@@ -605,7 +617,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
@@ -665,7 +678,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val expectedTable = TableComp(
@@ -709,7 +723,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           ),
           visible
         )
-      )
+      ),
+      summaryValue = toSmartString("Summary value")
     )
 
     val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
