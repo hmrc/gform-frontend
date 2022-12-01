@@ -181,7 +181,19 @@ object FormComponentSummaryRenderer {
       case IsInformationMessage(_) =>
         List(SummaryListRow())
 
-      case IsTableComp(_) => List[SummaryListRow]()
+      case IsTableComp(table) =>
+        getTableSummaryListRows(
+          table,
+          formComponent,
+          formTemplateId,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          formFieldValidationResult,
+          envelope,
+          iterationTitle,
+          fastForward
+        )
 
       case IsFileUpload(_) =>
         getFileUploadSummaryListRows(
@@ -929,6 +941,55 @@ object FormComponentSummaryRenderer {
           "govuk-summary-list__row--no-actions"
         else
           ""
+      )
+    )
+  }
+
+  private def getTableSummaryListRows[T <: RenderType](
+    table: TableComp,
+    formComponent: FormComponent,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    formFieldValidationResult: FormFieldValidationResult,
+    envelope: EnvelopeWithMapping,
+    iterationTitle: Option[String],
+    fastForward: FastForward
+  )(implicit
+    messages: Messages,
+    lise: SmartStringEvaluator,
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
+    val label = fcrd.label(formComponent)
+
+    val visuallyHiddenText = getVisuallyHiddenText(formComponent)
+    val viewLabel = messages("summary.view")
+
+    List(
+      summaryListRow(
+        label,
+        Html(table.summaryValue.value),
+        visuallyHiddenText,
+        "",
+        "",
+        "",
+        List(
+          (
+            uk.gov.hmrc.gform.gform.routes.FormController
+              .form(
+                formTemplateId,
+                maybeAccessCode,
+                sectionNumber,
+                sectionTitle4Ga,
+                SuppressErrors.Yes,
+                fastForward
+              ),
+            viewLabel,
+            iterationTitle.fold(viewLabel + " " + label)(it => viewLabel + " " + it + " " + label)
+          )
+        ),
+        ""
       )
     )
   }

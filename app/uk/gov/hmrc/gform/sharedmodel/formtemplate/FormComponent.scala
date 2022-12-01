@@ -93,8 +93,7 @@ case class FormComponent(
 
   def hideOnSummary: Boolean =
     presentationHint.fold(false)(x => x.contains(InvisibleInSummary)) ||
-      IsInformationMessage.unapply(this).isDefined ||
-      IsTableComp.unapply(this).isDefined
+      IsInformationMessage.unapply(this).isDefined
 
   def withIndex(index: Int) = copy(id = id.withIndex(index))
 }

@@ -587,6 +587,7 @@ object TableValueRow {
 case class TableComp(
   header: List[SmartString],
   rows: List[TableValueRow],
+  summaryValue: SmartString,
   caption: Option[String] = None,
   captionClasses: String = "",
   classes: String = "",

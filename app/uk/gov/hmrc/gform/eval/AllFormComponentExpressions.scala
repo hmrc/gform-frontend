@@ -82,14 +82,15 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
           rows.collect { case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(e), _) => e }
         )
 
-      case IsTableComp(TableComp(header, rows, _, _, _, _)) =>
+      case IsTableComp(TableComp(header, rows, summaryValue, _, _, _, _)) =>
         toPlainExprs(
           (for {
             row   <- rows
             value <- row.values
             expr  <- value.value.interpolations
           } yield expr),
-          header.flatMap(_.interpolations)
+          header.flatMap(_.interpolations),
+          summaryValue.interpolations
         )
       case _ => Nil
     }

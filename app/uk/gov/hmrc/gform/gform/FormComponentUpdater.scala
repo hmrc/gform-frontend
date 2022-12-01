@@ -109,7 +109,8 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
   private def expandTableComp(tableComp: TableComp): TableComp =
     tableComp.copy(
       header = tableComp.header.map(expandSmartString),
-      rows = tableComp.rows.map(expandTableValueRow)
+      rows = tableComp.rows.map(expandTableValueRow),
+      summaryValue = expandSmartString(tableComp.summaryValue)
     )
 
   private def expandTableValueRow(row: TableValueRow): TableValueRow =
