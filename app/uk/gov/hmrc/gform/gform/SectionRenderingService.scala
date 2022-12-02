@@ -328,11 +328,11 @@ class SectionRenderingService(
     val addAnotherQuestion: Html =
       new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
-    val evalRepeatsUntil = bracket.source.repeatsUntil
+    val evalRepeatsUntil = repeater.repeatsUntil
       .map(repeatsUntil => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(repeatsUntil, None))
       .getOrElse(false)
 
-    val evalRepeatsWhile = bracket.source.repeatsWhile
+    val evalRepeatsWhile = repeater.repeatsWhile
       .map(repeatsWhile => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(repeatsWhile, None))
       .getOrElse(false)
 
@@ -352,20 +352,20 @@ class SectionRenderingService(
       }
       .getOrElse(List(HtmlFormat.empty))
 
-    lazy val radiosWithYes =
+    val radiosWithYes =
       radios.copy(items = items.copy(head = items.head.copy(checked = true)).toList, fieldset = hiddenFieldset)
 
-    lazy val addAnotherQuestionWithYes: Html =
+    val addAnotherQuestionWithYes: Html =
       new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radiosWithYes)
 
-    lazy val radiosWithNo =
+    val radiosWithNo =
       radios.copy(items = items.copy(tail = items.tail.map(_.copy(checked = true))).toList, fieldset = hiddenFieldset)
 
-    lazy val addAnotherQuestionWithNo: Html =
+    val addAnotherQuestionWithNo: Html =
       new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radiosWithNo)
 
     val addAnotherQuestionSnippets =
-      (bracket.source.repeatsWhile, bracket.source.repeatsUntil) match {
+      (repeater.repeatsWhile, repeater.repeatsUntil) match {
         case (Some(_), Some(_)) =>
           if (evalRepeatsWhile || evalRepeatsUntil) addAnotherQuestionWithNo else addAnotherQuestion
         case (Some(_), None) => if (evalRepeatsWhile) addAnotherQuestionWithYes else addAnotherQuestion
