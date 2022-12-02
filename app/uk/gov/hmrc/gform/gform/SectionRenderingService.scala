@@ -282,6 +282,18 @@ class SectionRenderingService(
       )
     )
 
+    val hiddenFieldset = Some(
+      Fieldset(
+        legend = Some(
+          Legend(
+            classes = getLabelClasses(false, formComponent.labelSize),
+            content = content.Text(formComponent.label.value)
+          )
+        ),
+        attributes = Map("style" -> "display:none")
+      )
+    )
+
     def isChecked(index: String): Boolean =
       formFieldValidationResult
         .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
@@ -316,32 +328,13 @@ class SectionRenderingService(
     val addAnotherQuestion: Html =
       new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
-    val limitReached: AddToListLimitReached = bracket.source.limit
-      .flatMap { limit =>
-        val maybeMax: Option[BigDecimal] =
-          formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(limit.repeatsMax).numberRepresentation
+    val evalRepeatsUntil = repeater.repeatsUntil
+      .map(repeatsUntil => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(repeatsUntil, None))
+      .getOrElse(false)
 
-        limit.field match {
-          case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
-            maybeMax.map { maxRepeatsBigDecimal =>
-              if (maxRepeatsBigDecimal.toInt <= bracket.iterations.size) {
-                AddToListLimitReached.Yes(
-                  HtmlFormat.fill(
-                    List(
-                      htmlForInformationMessage(info, infoType, infoText),
-                      html.form.snippets.hidden(formComponent.id.value, "1")
-                    )
-                  )
-                )
-              } else {
-                AddToListLimitReached.No
-              }
-            }
-
-          case unsupported => throw new Exception("AddToList.limit.field is not an Info component: " + unsupported)
-        }
-      }
-      .getOrElse(AddToListLimitReached.No)
+    val evalRepeatsWhile = repeater.repeatsWhile
+      .map(repeatsWhile => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(repeatsWhile, None))
+      .getOrElse(false)
 
     val infoFields = repeater.fields
       .map { fields =>
@@ -359,7 +352,32 @@ class SectionRenderingService(
       }
       .getOrElse(List(HtmlFormat.empty))
 
-    val snippets = HtmlFormat.fill(infoFields :+ limitReached.fold(addAnotherQuestion)(identity))
+    val radiosWithYes =
+      radios.copy(
+        items =
+          items.copy(head = items.head.copy(checked = true), tail = items.tail.map(_.copy(checked = false))).toList,
+        fieldset = hiddenFieldset
+      )
+
+    val addAnotherQuestionWithYes: Html =
+      new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radiosWithYes)
+
+    val radiosWithNo =
+      radios.copy(
+        items =
+          items.copy(head = items.head.copy(checked = false), tail = items.tail.map(_.copy(checked = true))).toList,
+        fieldset = hiddenFieldset
+      )
+
+    val addAnotherQuestionWithNo: Html =
+      new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radiosWithNo)
+
+    val addAnotherQuestionSnippets =
+      if (evalRepeatsWhile) addAnotherQuestionWithYes
+      else if (evalRepeatsUntil) addAnotherQuestionWithNo
+      else addAnotherQuestion
+
+    val snippets = HtmlFormat.fill(infoFields :+ addAnotherQuestionSnippets)
 
     val shouldDisplayBack: Boolean = {
       if (sectionNumber.isTaskList) true

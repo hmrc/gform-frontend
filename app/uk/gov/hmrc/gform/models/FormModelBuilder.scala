@@ -397,7 +397,9 @@ class FormModelBuilder[E, F[_]: Functor](
       fc,
       index,
       s.instruction,
-      s.fields
+      s.fields,
+      s.repeatsUntil,
+      s.repeatsWhile
     )
   }
 

@@ -121,5 +121,7 @@ case class Repeater[A <: PageMode](
   addAnotherQuestion: FormComponent,
   index: Int,
   instruction: Option[Instruction],
-  fields: Option[NonEmptyList[FormComponent]]
+  fields: Option[NonEmptyList[FormComponent]],
+  repeatsUntil: Option[IncludeIf],
+  repeatsWhile: Option[IncludeIf]
 ) extends PageModel[A]
