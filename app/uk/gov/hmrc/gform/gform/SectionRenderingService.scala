@@ -353,25 +353,29 @@ class SectionRenderingService(
       .getOrElse(List(HtmlFormat.empty))
 
     val radiosWithYes =
-      radios.copy(items = items.copy(head = items.head.copy(checked = true)).toList, fieldset = hiddenFieldset)
+      radios.copy(
+        items =
+          items.copy(head = items.head.copy(checked = true), tail = items.tail.map(_.copy(checked = false))).toList,
+        fieldset = hiddenFieldset
+      )
 
     val addAnotherQuestionWithYes: Html =
       new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radiosWithYes)
 
     val radiosWithNo =
-      radios.copy(items = items.copy(tail = items.tail.map(_.copy(checked = true))).toList, fieldset = hiddenFieldset)
+      radios.copy(
+        items =
+          items.copy(head = items.head.copy(checked = false), tail = items.tail.map(_.copy(checked = true))).toList,
+        fieldset = hiddenFieldset
+      )
 
     val addAnotherQuestionWithNo: Html =
       new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radiosWithNo)
 
     val addAnotherQuestionSnippets =
-      (repeater.repeatsWhile, repeater.repeatsUntil) match {
-        case (Some(_), Some(_)) =>
-          if (evalRepeatsWhile || evalRepeatsUntil) addAnotherQuestionWithNo else addAnotherQuestion
-        case (Some(_), None) => if (evalRepeatsWhile) addAnotherQuestionWithYes else addAnotherQuestion
-        case (None, Some(_)) => if (evalRepeatsUntil) addAnotherQuestionWithNo else addAnotherQuestion
-        case _               => addAnotherQuestion
-      }
+      if (evalRepeatsWhile) addAnotherQuestionWithYes
+      else if (evalRepeatsUntil) addAnotherQuestionWithNo
+      else addAnotherQuestion
 
     val snippets = HtmlFormat.fill(infoFields :+ addAnotherQuestionSnippets)
 
