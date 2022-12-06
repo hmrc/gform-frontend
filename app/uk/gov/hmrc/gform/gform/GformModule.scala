@@ -39,7 +39,7 @@ import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
-import uk.gov.hmrc.gform.summarypdf.{ PdfGeneratorConnector, PdfGeneratorService }
+import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.tasklist.{ TaskListController, TaskListModule }
 import uk.gov.hmrc.gform.upscan.{ UpscanController, UpscanModule }
 import uk.gov.hmrc.gform.validation.ValidationModule
@@ -52,7 +52,6 @@ class GformModule(
   configModule: ConfigModule,
   wSHttpModule: WSHttpModule,
   controllersModule: ControllersModule,
-  pdfGeneratorConnector: PdfGeneratorConnector,
   authModule: AuthModule,
   gformBackendModule: GformBackendModule,
   fileUploadModule: FileUploadModule,
@@ -215,10 +214,7 @@ class GformModule(
     gformBackendModule.gformConnector
   )
 
-  val pdfGeneratorService = new PdfGeneratorService(
-    pdfGeneratorConnector,
-    configModule.environment
-  )
+  val pdfGeneratorService = new PdfGeneratorService(configModule.environment)
 
   val pdfRenderService = new PDFRenderService(fileUploadModule.fileUploadService, validationModule.validationService)
 
