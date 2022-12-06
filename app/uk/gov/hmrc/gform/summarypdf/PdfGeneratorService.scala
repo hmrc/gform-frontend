@@ -20,23 +20,13 @@ import akka.stream.scaladsl.{ Source, StreamConverters }
 import akka.util.ByteString
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
 import play.api.Environment
-import play.mvc.Http.{ HeaderNames, MimeTypes }
 import uk.gov.hmrc.gform.sharedmodel.PdfHtml
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class PdfGeneratorService(
-  pdfGeneratorConnector: PdfGeneratorConnector,
-  environment: Environment
-) {
+class PdfGeneratorService(environment: Environment) {
 
-  def generatePDF(html: PdfHtml): Future[Source[ByteString, _]] = {
-    val headers = Seq((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
-    val body = Map("html" -> Seq(html))
-    pdfGeneratorConnector.generatePDF(body, headers)
-  }
-
-  def generatePDFLocal(pdfHtml: PdfHtml)(implicit ec: ExecutionContext): Future[Source[ByteString, Unit]] = Future {
+  def generatePDF(pdfHtml: PdfHtml)(implicit ec: ExecutionContext): Future[Source[ByteString, Unit]] = Future {
     StreamConverters.asOutputStream().mapMaterializedValue { os =>
       Future {
         val builder = new PdfRendererBuilder()

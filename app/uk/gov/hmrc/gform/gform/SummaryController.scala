@@ -364,7 +364,7 @@ class SummaryController(
           None,
           Some(draftText)
         )
-        .flatMap(pdfGeneratorService.generatePDFLocal)
+        .flatMap(pdfGeneratorService.generatePDF)
         .map { pdfSource =>
           Result(
             header = ResponseHeader(200, Map.empty),

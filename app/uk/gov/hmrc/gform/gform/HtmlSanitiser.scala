@@ -70,6 +70,11 @@ object HtmlSanitiser {
 
     doc
       .outerHtml()
+      //check https://github.com/danfickle/openhtmltopdf/blob/open-dev-v1/openhtmltopdf-examples/src/main/resources/documentation/documentation.md
+      .replace(
+        "<!doctype html>",
+        "<!DOCTYPE html PUBLIC \"-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN\" \"\">"
+      )
       .replaceAll(">\\s+<", "><")
       .replaceAll("\\s{2,}", " ")
       .replace("£", "&pound;")

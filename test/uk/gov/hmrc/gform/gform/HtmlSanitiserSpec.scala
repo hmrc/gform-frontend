@@ -176,7 +176,7 @@ class HtmlSanitiserSpec extends Spec {
 """
 
   val expected = """
-<!doctype html>
+<!DOCTYPEhtmlPUBLIC"-//OPENHTMLTOPDF//DOCXHTMLCharacterEntitiesOnly1.0//EN" "">
 <html>
  <head>
   <title>Check your answers - Minimal declaration - GOV.UK</title>
@@ -231,7 +231,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
 
   val expectedSummaryPagePdf =
     """
-<!doctype html>
+<!DOCTYPEhtmlPUBLIC"-//OPENHTMLTOPDF//DOCXHTMLCharacterEntitiesOnly1.0//EN" "">
 <html>
  <head>
   <title>Check your answers - Minimal declaration - GOV.UK</title>
@@ -290,7 +290,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
 
   val expectedAcknowledgementPdf =
     """
-<!doctype html>
+<!DOCTYPEhtmlPUBLIC"-//OPENHTMLTOPDF//DOCXHTMLCharacterEntitiesOnly1.0//EN" "">
 <html>
  <head>
   <title>Check your answers - Minimal declaration - GOV.UK</title>
@@ -342,7 +342,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
 
   val expectedAcknowledgementPdfWithNoHeaderAndFooter =
     """
-<!doctype html>
+<!DOCTYPEhtmlPUBLIC"-//OPENHTMLTOPDF//DOCXHTMLCharacterEntitiesOnly1.0//EN" "">
 <html>
  <head>
   <title>Check your answers - Minimal declaration - GOV.UK</title>
@@ -392,7 +392,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
 
   val expectedAcknowledgementPdfWithNoFooter =
     """
-<!doctype html>
+<!DOCTYPEhtmlPUBLIC"-//OPENHTMLTOPDF//DOCXHTMLCharacterEntitiesOnly1.0//EN" "">
 <html>
  <head>
   <title>Check your answers - Minimal declaration - GOV.UK</title>
@@ -443,7 +443,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
 
   val expectedAcknowledgementPdfWithNoHeader =
     """
-<!doctype html>
+<!DOCTYPEhtmlPUBLIC"-//OPENHTMLTOPDF//DOCXHTMLCharacterEntitiesOnly1.0//EN" "">
 <html>
  <head>
   <title>Check your answers - Minimal declaration - GOV.UK</title>
@@ -580,7 +580,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
 
   val expectedPrintSectionPdf =
     """
-<!doctype html>
+<!DOCTYPEhtmlPUBLIC"-//OPENHTMLTOPDF//DOCXHTMLCharacterEntitiesOnly1.0//EN" "">
 <html>
  <head>
   <title>Check your answers - Minimal declaration - GOV.UK</title>

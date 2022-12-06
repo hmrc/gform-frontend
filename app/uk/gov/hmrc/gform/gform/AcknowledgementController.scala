@@ -167,7 +167,7 @@ class AcknowledgementController(
               SummaryPagePurpose.ForUser,
               Some(summarySectionDeclaration)
             )
-        pdfSource <- pdfService.generatePDFLocal(pdfHtml)
+        pdfSource <- pdfService.generatePDF(pdfHtml)
       } yield Result(
         header = ResponseHeader(200, Map.empty),
         body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))
