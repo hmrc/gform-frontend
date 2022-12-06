@@ -6738,7 +6738,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20791,JP,3,HNK,,Hanasaki Seaport - HNK,Hanasaki Seaport - HNK,,4,NULL,1
 20792,JP,3,HDA,,Handa Seaport - HDA,Handa Seaport - HDA,,4,NULL,1
 20793,JP,3,HNE,,Hane Seaport - HNE,Hane Seaport - HNE,,4,NULL,1
-20794,JP,2,HND,,"Haneda Airport,"Haneda Airport, Tokyo Airport - HND",10,4,NULL
+20794,JP,2,HND,Haneda Airport,,Tokyo Airport - HND,Haneda Airport,Tokyo Airport - HND,10,4,NULL,1
 20795,JP,3,HAN,,Hannan Seaport - HAN,Hannan Seaport - HAN,,4,NULL,1
 20796,JP,3,HUR,,Hannoura Seaport - HUR,Hannoura Seaport - HUR,,4,NULL,1
 20797,JP,3,HNY,,Hanyu Seaport - HNY,Hanyu Seaport - HNY,,4,NULL,1
