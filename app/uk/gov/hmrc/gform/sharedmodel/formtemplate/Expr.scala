@@ -65,6 +65,7 @@ sealed trait Expr extends Product with Serializable {
       case CsvCountryCountCheck(_, _, _)           => expr :: Nil
       case Size(_, _)                              => expr :: Nil
       case Typed(e, _)                             => expr :: Nil
+      case IndexOf(_, _)                           => expr :: Nil
     }
     loop(this).headOption
   }
@@ -111,6 +112,7 @@ sealed trait Expr extends Product with Serializable {
     case CsvCountryCountCheck(_, _, _)              => this :: Nil
     case Size(_, _)                                 => this :: Nil
     case Typed(expr, _)                             => expr.leafs(formModel)
+    case IndexOf(expr, _)                           => this :: Nil
   }
 
   def sums: List[Sum] = this match {
@@ -144,6 +146,7 @@ sealed trait Expr extends Product with Serializable {
     case CsvCountryCountCheck(_, _, _)              => Nil
     case Size(_, _)                                 => Nil
     case Typed(expr, _)                             => expr.sums
+    case IndexOf(_, _)                              => Nil
   }
 }
 
@@ -176,6 +179,7 @@ final case class CsvOverseasCountryCheck(formComponentId: FormComponentId, colum
 final case class CsvCountryCountCheck(formComponentId: FormComponentId, column: String, value: String) extends Expr
 final case class Size(formComponentId: FormComponentId, index: SizeRefType) extends Expr
 final case class Typed(expr: Expr, tpe: ExplicitExprType) extends Expr
+final case class IndexOf(formComponentId: FormComponentId, index: Int) extends Expr
 
 sealed trait DateProjection extends Product with Serializable {
   def dateExpr: DateExpr

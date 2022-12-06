@@ -265,6 +265,11 @@ case class EvaluationResults(
         NumberResult(count)
       case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
       case Typed(expr, tpe)             => evalTyped(loop(expr), tpe)
+      case IndexOf(fcId, index) =>
+        loop(FormCtx(fcId)) match {
+          case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
+          case _              => unsupportedOperation("Number")(expr)
+        }
     }
 
     loop(typeInfo.expr)
@@ -484,6 +489,11 @@ case class EvaluationResults(
           )
           .size
         StringResult(s"$count")
+      case IndexOf(fcId, index) =>
+        loop(FormCtx(fcId)) match {
+          case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
+          case _              => unsupportedOperation("String")(expr)
+        }
     }
 
     loop(typeInfo.expr)

@@ -77,6 +77,7 @@ object ExprPrettyPrint {
     case CsvCountryCountCheck(_, _, _) => "Country count"
     case Size(_, _)                    => "Size"
     case Typed(e, _)                   => "Typed"
+    case IndexOf(_, _)                 => "IndexOf"
   }
 
   def prettyPrintAuthInfo(authInfo: AuthInfo): String = authInfo match {
