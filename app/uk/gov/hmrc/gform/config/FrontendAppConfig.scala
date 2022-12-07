@@ -64,7 +64,8 @@ case class FrontendAppConfig(
           signOutUrl = Some(authTimeout.signOutUrl + "/" + templateId.value),
           signOutButtonText = Some(messages("timeout.dialog.signOutButton")),
           title = Some(messages("timeout.dialog.title")),
-          message = Some(messages("timeout.dialog.message"))
+          message = Some(messages("timeout.dialog.message")),
+          synchroniseTabs = true
         )
       )
     } else {

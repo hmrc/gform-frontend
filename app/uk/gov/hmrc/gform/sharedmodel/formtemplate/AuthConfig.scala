@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import cats.implicits._
 import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json._

@@ -31,7 +31,7 @@ lazy val microservice = (project in file("."))
     publishingSettings,
     defaultSettings(),
     scalafmtOnCompile := true,
-    scalaVersion := "2.12.15",
+    scalaVersion := "2.12.17",
     Test / testOptions := (Test / testOptions).value
       .map {
         // Default Argument added by https://github.com/hmrc/sbt-settings

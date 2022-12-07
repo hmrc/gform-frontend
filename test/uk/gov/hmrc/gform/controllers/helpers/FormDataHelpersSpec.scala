@@ -25,16 +25,14 @@ import uk.gov.hmrc.gform.controllers.RequestRelatedData
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.models.Bracket.NonRepeatingPage
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded, EnteredVariadicFormData, FormModel, Singleton }
+import uk.gov.hmrc.gform.models.{ Bracket, BracketsWithSectionNumber, DataExpanded, EnteredVariadicFormData, FormModel, Singleton }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, FormComponentId, FormTemplateId, Horizontal, OptionData, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SectionNumber, Sterling, Text, Value, WholeSterling }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, EORI, FormComponentId, FormTemplateId, Horizontal, NINO, OptionData, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SectionNumber, Sterling, Text, UkEORI, UkVrn, Value, WholeSterling }
 
 import scala.concurrent.Future
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EORI, NINO, UkEORI, UkVrn }
 
 class FormDataHelpersSpec extends Spec {
 
@@ -355,7 +353,7 @@ class FormDataHelpersSpec extends Spec {
     lazy val formModel = FormModel[DataExpanded](
       BracketsWithSectionNumber.Classic[DataExpanded](
         NonEmptyList.one(
-          NonRepeatingPage[DataExpanded](
+          Bracket.NonRepeatingPage[DataExpanded](
             Singleton(section.page.asInstanceOf[Page[DataExpanded]]),
             SectionNumber.classicZero,
             section

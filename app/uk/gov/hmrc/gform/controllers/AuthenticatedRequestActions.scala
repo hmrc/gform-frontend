@@ -52,7 +52,6 @@ import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, _ }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
-import java.time.LocalDate
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
@@ -558,9 +557,7 @@ class AuthenticatedRequestActions(
 
     authorised(predicate)
       .retrieve(itmpRetrievals) { case itmpName ~ itmpDateOfBirth ~ itmpAddress =>
-        val itmpDateOfBirthDate =
-          itmpDateOfBirth.map(joda => LocalDate.of(joda.getYear(), joda.getMonthOfYear(), joda.getDayOfMonth()))
-        ItmpRetrievals(itmpName, itmpDateOfBirthDate, itmpAddress).pure[Future]
+        ItmpRetrievals(itmpName, itmpDateOfBirth, itmpAddress).pure[Future]
       }
   }
 }
