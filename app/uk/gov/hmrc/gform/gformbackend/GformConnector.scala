@@ -93,7 +93,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Option[Form]] = getForm(formIdData).map(Some(_)).recoverWith {
-    case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode === StatusCodes.NotFound.intValue =>
+    case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode === StatusCodes.NotFound.intValue =>
       Option.empty[Form].pure[Future]
   }
 
@@ -113,7 +113,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
         }
       }
       .recoverWith {
-        case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode === StatusCodes.NotFound.intValue =>
+        case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode === StatusCodes.NotFound.intValue =>
           formTemplate.legacyFormIds.fold(Future.successful(none[Form]))(getFormByLegacyIds(formIdData))
       }
 
@@ -195,7 +195,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
         createFormFromLegacy(legacyFormIdData, formIdData).map(Some(_))
       }
       .recoverWith {
-        case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode === StatusCodes.NotFound.intValue =>
+        case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode === StatusCodes.NotFound.intValue =>
           NonEmptyList
             .fromList(tail)
             .map(getFormByLegacyIds(formIdData))
@@ -351,7 +351,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}/internal")
       .map(Some(_))
       .recoverWith {
-        case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode === StatusCodes.NotFound.intValue =>
+        case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode === StatusCodes.NotFound.intValue =>
           Option.empty[FormTemplate].pure[Future]
       }
 
@@ -483,7 +483,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     envelopeId: EnvelopeId
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Envelope]] =
     getEnvelope(envelopeId).map(Some(_)).recover {
-      case UpstreamErrorResponse.WithStatusCode(statusCode, _) if statusCode == StatusCodes.NotFound.intValue => None
+      case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode == StatusCodes.NotFound.intValue => None
     }
 
   def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit

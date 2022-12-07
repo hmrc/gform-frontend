@@ -72,15 +72,15 @@ class ErrorHandler(
 
     maybeFormTemplateF.flatMap { maybeFormTemplate =>
       exception match {
-        case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == BadRequest.intValue =>
+        case e @ UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode == BadRequest.intValue =>
           errResponder.badRequest(requestHeader, e.message, maybeFormTemplate, smartUpstreamLogger)
         case e: BadRequestException =>
           errResponder.badRequest(requestHeader, e.message, maybeFormTemplate, smartLocalLogger)
-        case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == Forbidden.intValue =>
+        case e @ UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode == Forbidden.intValue =>
           errResponder.forbidden(e.message, maybeFormTemplate, None, smartUpstreamLogger)(requestHeader)
         case e: ForbiddenException =>
           errResponder.forbidden(e.message, maybeFormTemplate)(requestHeader)
-        case UpstreamErrorResponse.WithStatusCode(statusCode, e) if statusCode == NotFound.intValue =>
+        case e @ UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode == NotFound.intValue =>
           errResponder.notFound(requestHeader, e.message, maybeFormTemplate, smartUpstreamLogger)
         case e: NotFoundException => errResponder.notFound(requestHeader, e.message, maybeFormTemplate)
         case e                    => errResponder.internalServerError(requestHeader, maybeFormTemplate, e)
