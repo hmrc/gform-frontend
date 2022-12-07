@@ -245,7 +245,7 @@ date.ofMonth=o {0}
 date.before=Rhaid i {0} fod cyn {1}
 date.after=Rhaid i {0} fod ar ôl {1}
 date.precisely=Rhaid i {0} fod {1}
-date.isMissing=ar goll
+date.isMissing={0} ar goll
 date.invalid=Rhaid i’r {0} fod yn ddyddiad dilys
 date.today=heddiw
 
@@ -328,7 +328,7 @@ summary.checkYourAnswers=Gwiriwch eich atebion
 
 # Acknowledgement
 ack.title={0} wedi’i chyflwyno
-ack.submissionReference=Eich cyfeirnod
+ack.submissionReference=Eich cyfeirnod yw
 ack.beforeYouGo=Cyn i chi fynd
 ack.feedbackText1=Rydym yn defnyddio adborth i wella ein gwasanaethau. Cwblhewch yr
 ack.feedbackLink=arolwg adborth
