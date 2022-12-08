@@ -3,34 +3,46 @@ import sbt._
 
 object Dependencies {
 
+  val jacksonVersion = "2.12.7"
+  val jacksonDatabindVersion = "2.12.7.1"
+
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
   val compile = Seq(
-    "uk.gov.hmrc"                  %% "bootstrap-frontend-play-28" % "4.3.0",
-    "uk.gov.hmrc"                  %% "play-language"              % "5.4.0-play-28",
-    "uk.gov.hmrc"                  %% "play-frontend-hmrc"         % "3.34.0-play-28",
-    "uk.gov.hmrc"                  %% "auth-client"                % "5.14.0-play-28",
-    "uk.gov.hmrc"                  %% "domain"                     % "8.1.0-play-28",
-    "uk.gov.hmrc"                  %% "play-partials"              % "8.3.0-play-28",
-    "com.typesafe.play"            %% "play-json-joda"             % "2.9.3",
-    "org.julienrf"                 %% "play-json-derived-codecs"   % "10.1.0",
-    "org.typelevel"                %% "cats-core"                  % "2.9.0",
-    "org.typelevel"                %% "cats-mtl"                   % "1.3.0",
-    "org.typelevel"                %% "case-insensitive"           % "1.3.0",
-    "com.github.pureconfig"        %% "pureconfig"                 % "0.17.2",
-    "org.jetbrains"                 % "markdown"                   % "0.1.46",
-    "com.chuusai"                  %% "shapeless"                  % "2.3.10",
-    "uk.gov.hmrc"                  %% "emailaddress"               % "3.7.0",
-    "org.scala-graph"              %% "graph-core"                 % "1.13.1",
-    "com.softwaremill.quicklens"   %% "quicklens"                  % "1.9.0",
-    "com.nrinaudo"                 %% "kantan.csv"                 % "0.7.0",
-    "com.miguelfonseca.completely"  % "completely-core"            % "0.9.0",
-    "org.jsoup"                     % "jsoup"                      % "1.15.3",
-    "org.webjars.npm"               % "govuk-frontend"             % "4.4.0",
-    "com.openhtmltopdf"             % "openhtmltopdf-pdfbox"       % "1.0.10",
-    "ai.x"                         %% "play-json-extensions"       % "0.42.0",
-    "org.apache.commons"            % "commons-text"               % "1.10.0",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala"       % "2.13.4" // Needed when moved to play 2.8.18, taken from: https://github.com/orgs/playframework/discussions/11222
+    "uk.gov.hmrc"                 %% "bootstrap-frontend-play-28" % "4.3.0",
+    "uk.gov.hmrc"                 %% "play-language"              % "5.4.0-play-28",
+    "uk.gov.hmrc"                 %% "play-frontend-hmrc"         % "3.34.0-play-28",
+    "uk.gov.hmrc"                 %% "auth-client"                % "5.14.0-play-28",
+    "uk.gov.hmrc"                 %% "domain"                     % "8.1.0-play-28",
+    "uk.gov.hmrc"                 %% "play-partials"              % "8.3.0-play-28",
+    "com.typesafe.play"           %% "play-json-joda"             % "2.9.3",
+    "org.julienrf"                %% "play-json-derived-codecs"   % "10.1.0",
+    "org.typelevel"               %% "cats-core"                  % "2.9.0",
+    "org.typelevel"               %% "cats-mtl"                   % "1.3.0",
+    "org.typelevel"               %% "case-insensitive"           % "1.3.0",
+    "com.github.pureconfig"       %% "pureconfig"                 % "0.17.2",
+    "org.jetbrains"                % "markdown"                   % "0.1.46",
+    "com.chuusai"                 %% "shapeless"                  % "2.3.10",
+    "uk.gov.hmrc"                 %% "emailaddress"               % "3.7.0",
+    "org.scala-graph"             %% "graph-core"                 % "1.13.1",
+    "com.softwaremill.quicklens"  %% "quicklens"                  % "1.9.0",
+    "com.nrinaudo"                %% "kantan.csv"                 % "0.7.0",
+    "com.miguelfonseca.completely" % "completely-core"            % "0.8.0",
+    "org.jsoup"                    % "jsoup"                      % "1.15.3",
+    "org.webjars.npm"              % "govuk-frontend"             % "4.4.0",
+    "com.openhtmltopdf"            % "openhtmltopdf-pdfbox"       % "1.0.10",
+    "ai.x"                        %% "play-json-extensions"       % "0.42.0",
+    "org.apache.commons"           % "commons-text"               % "1.10.0",
+
+    // Taken from: https://github.com/orgs/playframework/discussions/11222
+    "com.fasterxml.jackson.core"       % "jackson-core"                   % jacksonVersion,
+    "com.fasterxml.jackson.core"       % "jackson-annotations"            % jacksonVersion,
+    "com.fasterxml.jackson.datatype"   % "jackson-datatype-jdk8"          % jacksonVersion,
+    "com.fasterxml.jackson.datatype"   % "jackson-datatype-jsr310"        % jacksonVersion,
+    "com.fasterxml.jackson.core"       % "jackson-databind"               % jacksonDatabindVersion,
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor"        % jacksonVersion,
+    "com.fasterxml.jackson.module"     % "jackson-module-parameter-names" % jacksonVersion,
+    "com.fasterxml.jackson.module"    %% "jackson-module-scala"           % jacksonVersion
   )
 
   val munitVersion = "0.7.29"
