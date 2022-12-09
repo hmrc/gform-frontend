@@ -45,9 +45,9 @@ class PdfGeneratorService(environment: Environment) {
 
 object PdfGeneratorService {
   val css: String =
-    """|body{font-family:Arial,sans-serif;font-size: 19px;}
+    """|body{font-family:Arial,sans-serif;font-size: 16px;margin:50px;}
        |dl{border-bottom: 1px solid #bfc1c3;}
        |dt{font-weight: bold;}
-       |dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;}
+       |dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:15px;}
     """.stripMargin
 }
