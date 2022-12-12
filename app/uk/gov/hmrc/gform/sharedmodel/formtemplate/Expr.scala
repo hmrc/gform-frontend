@@ -112,7 +112,7 @@ sealed trait Expr extends Product with Serializable {
     case CsvCountryCountCheck(_, _, _)              => this :: Nil
     case Size(_, _)                                 => this :: Nil
     case Typed(expr, _)                             => expr.leafs(formModel)
-    case IndexOf(expr, _)                           => this :: Nil
+    case IndexOf(formComponentId, _)                => FormCtx(formComponentId) :: Nil
   }
 
   def sums: List[Sum] = this match {

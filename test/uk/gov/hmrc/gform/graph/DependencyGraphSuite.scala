@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.models.{ Basic, FormModelBuilder, Interim, VariadicForm
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Constant, Contains, FormComponent, FormComponentId, FormComponentValidator, FormCtx, GreaterThan, IncludeIf, Number, Page, Radio, Section, Sum, ValidIf, Value, Vertical }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Constant, Contains, FormComponent, FormComponentId, FormComponentValidator, FormCtx, GreaterThan, IncludeIf, IndexOf, Number, Page, Radio, Section, Sum, ValidIf, Value, Vertical }
 import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, RevealingChoice, RevealingChoiceElement }
@@ -280,6 +280,52 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
 
     assertEquals(res, expected)
   }
+
+  test("DependencyGraph must support add-to-list fields to be referred by IndexOf expression only") {
+
+    val sections = List(
+      emptyAddToList.copy(pages =
+        NonEmptyList.of(
+          emptyPage.copy(fields =
+            List(
+              mkFormComponent("amount", Value, Number())
+            )
+          )
+        )
+      ),
+      Section.NonRepeatingPage(
+        emptyPage.copy(
+          fields = List(
+            mkFormComponent("test", Value, Number()).copy(
+              label = toSmartStringExpression("", IndexOf(FormComponentId("amount"), 2))
+            )
+          )
+        )
+      )
+    )
+
+    val variadicData: VariadicFormData[SourceOrigin.OutOfDate] =
+      variadicFormData(
+        "1_amount" -> "1000",
+        "2_amount" -> "2000"
+      ) ++ variadicFormDataMany(
+        "1_choice" -> List("0"),
+        "2_choice" -> List("1")
+      )
+
+    val expected: List[(Int, Set[GraphNode])] = List(
+      (0, Set(GraphNode.Simple("test"))),
+      (1, Set(GraphNode.Expr(FormCtx("amount")))),
+      (2, Set(GraphNode.Simple("amount"))),
+      (3, Set(GraphNode.Expr(FormCtx("1_amount")), GraphNode.Expr(FormCtx("2_amount")))),
+      (4, Set(GraphNode.Simple("1_amount"), GraphNode.Simple("2_amount")))
+    )
+
+    val res: List[(Int, Set[GraphNode])] = layers(sections, variadicData)
+
+    assertEquals(res, expected)
+  }
+
   private def layers(
     sections: List[Section],
     variadicData: VariadicFormData[SourceOrigin.OutOfDate]
