@@ -39,7 +39,7 @@
   specimenNavigation: Html = HtmlFormat.empty,
   maybeAccessCode: Option[AccessCode],
   sectionNumber: SectionNumber,
-  fastForward: FastForward,
+  fastForward: List[FastForward],
   notificationBanner: Option[NotificationBanner]
 )(
   implicit
@@ -131,7 +131,7 @@
           @if(page.renderComeBackLater) {
             @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
                     inputType=Some("submit"),
-                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, SaveAndExit).path),
+                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, List(FastForward.Yes), SaveAndExit).path),
                     classes="govuk-button--secondary"
                 )
             )

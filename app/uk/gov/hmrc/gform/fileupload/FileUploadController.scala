@@ -368,7 +368,7 @@ class FileUploadController(
                 cacheU,
                 maybeAccessCode,
                 formModelOptics,
-                sectionNumber.toCoordinates
+                Some(sectionNumber)
               )
           case Some((fileToDelete, formDataUpd, mappingUpd)) =>
             logger.info(
@@ -408,7 +408,7 @@ class FileUploadController(
                     sectionNumber,
                     sectionTitle4Ga,
                     SuppressErrors.Yes,
-                    FastForward.Yes
+                    List(FastForward.Yes)
                   )
               )
             } // This value will be used only by non-js journey, ajax calls should ignore it.

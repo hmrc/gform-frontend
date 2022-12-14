@@ -53,7 +53,7 @@ object FormComponentSummaryRenderer {
     envelope: EnvelopeWithMapping,
     addressRecordLookup: AddressRecordLookup,
     iterationTitle: Option[String] = None,
-    fastForward0: Option[FastForward]
+    fastForward0: Option[List[FastForward]]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -62,7 +62,7 @@ object FormComponentSummaryRenderer {
   ): List[SummaryListRow] = {
 
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
-    val fastForward = fastForward0.getOrElse(FastForward.CYA(sectionNumber))
+    val fastForward = fastForward0.getOrElse(List(FastForward.CYA(SectionOrSummary.FormSummary)))
 
     formComponent match {
       case IsText(Text(_, _, _, _, prefix, suffix)) =>
@@ -302,7 +302,7 @@ object FormComponentSummaryRenderer {
     prefix: Option[SmartString],
     suffix: Option[SmartString],
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -338,15 +338,19 @@ object FormComponentSummaryRenderer {
         else
           List(
             (
-              uk.gov.hmrc.gform.gform.routes.FormController
-                .form(
-                  formTemplateId,
-                  maybeAccessCode,
-                  sectionNumber,
-                  sectionTitle4Ga,
-                  SuppressErrors.Yes,
-                  fastForward
-                ),
+              {
+                val c = uk.gov.hmrc.gform.gform.routes.FormController
+                  .form(
+                    formTemplateId,
+                    maybeAccessCode,
+                    sectionNumber,
+                    sectionTitle4Ga,
+                    SuppressErrors.Yes,
+                    fastForward
+                  )
+                lxol.pp.log(c)
+                c
+              },
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
@@ -369,7 +373,7 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -438,7 +442,7 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -514,7 +518,7 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -589,7 +593,7 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -664,7 +668,7 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: FastForward,
+    fastForward: List[FastForward],
     addressRecordLookup: AddressRecordLookup
   )(implicit
     messages: Messages,
@@ -751,7 +755,7 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -815,7 +819,7 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -884,7 +888,7 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -955,7 +959,7 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -1003,7 +1007,7 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -1071,7 +1075,7 @@ object FormComponentSummaryRenderer {
     h: HmrcTaxPeriod,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -1149,7 +1153,7 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     choice: Choice,
     iterationTitle: Option[String],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -1226,7 +1230,7 @@ object FormComponentSummaryRenderer {
     obligations: Obligations,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: FastForward,
+    fastForward: List[FastForward],
     addressRecordLookup: AddressRecordLookup
   )(implicit
     messages: Messages,
@@ -1370,7 +1374,7 @@ object FormComponentSummaryRenderer {
     validationResult: ValidationResult,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: FastForward,
+    fastForward: List[FastForward],
     addressRecordLookup: AddressRecordLookup
   )(implicit
     messages: Messages,

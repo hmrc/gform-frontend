@@ -165,7 +165,7 @@ class AddressLookupController(
       sectionNumber,
       sectionTitle4Ga,
       SuppressErrors.Yes,
-      FastForward.Yes
+      List(FastForward.Yes)
     )
   }
 

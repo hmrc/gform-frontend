@@ -94,12 +94,13 @@ class FormController(
     browserSectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     suppressErrors: SuppressErrors,
-    fastForward: FastForward
+    rawFastForward: List[FastForward]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        val sectionNumber: SectionNumber =
-          formModelOptics.formModelVisibilityOptics.formModel.visibleSectionNumber(browserSectionNumber)
+        val formModel = formModelOptics.formModelVisibilityOptics.formModel
+        val fastForward = filterFastForward(browserSectionNumber, rawFastForward, formModel)
+        val sectionNumber: SectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
         fileUploadService
           .getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
           .flatMap { envelope =>
@@ -282,11 +283,15 @@ class FormController(
                               lastRepeaterSectionNumber,
                               sectionTitle4Ga,
                               suppressErrors,
-                              fastForward
-                                .next(
-                                  formModelOptics.formModelVisibilityOptics.formModel,
-                                  lastRepeaterSectionNumber
-                                )
+                              fastForward match {
+                                case Nil => Nil
+                                case x :: xs =>
+                                  x
+                                    .next(
+                                      formModelOptics.formModelVisibilityOptics.formModel,
+                                      lastRepeaterSectionNumber
+                                    ) :: xs
+                              }
                             )
                         ).pure[Future]
                       }
@@ -324,7 +329,7 @@ class FormController(
               sectionNumber,
               sectionTitle4Ga,
               SuppressErrors.Yes,
-              FastForward.Yes
+              List(FastForward.Yes)
             )
         ).pure[Future]
     }
@@ -333,15 +338,23 @@ class FormController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    ff: FastForward
+    ff: List[FastForward]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
-        def goBack(toSectionNumber: SectionNumber, isLastBracketIteration: Boolean = false) = {
+        lazy val navigator = Navigator(sectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
+
+        def callSelector(call1: => Call, call2: => Call, lastSectionNumber: Option[SectionNumber]): Future[Call] =
+          for {
+            invalidSectionNumber <-
+              fastForwardService.maybeInvalidSectionNumber(lastSectionNumber, cache, formModelOptics)
+          } yield if (invalidSectionNumber.isEmpty) call1 else call2
+
+        def goBack(toSectionNumber: SectionNumber) = {
           val formModel = formModelOptics.formModelRenderPageOptics.formModel
           val sectionTitle4Ga = sectionTitle4GaFactory(formModel(toSectionNumber), sectionNumber)
 
-          def createBackUrl(sectionNumber: SectionNumber, fastForward: FastForward) =
+          def createBackUrl(sectionNumber: SectionNumber, fastForward: List[FastForward]) =
             routes.FormController
               .form(
                 cache.formTemplateId,
@@ -352,44 +365,56 @@ class FormController(
                 fastForward
               )
 
-          val fastForward = if (isLastBracketIteration) FastForward.Yes else ff
+          val fastForward = ff
 
-          val backUrl = ff match {
-            case FastForward.CYA(from, SectionOrSummary.FormSummary) =>
-              routes.SummaryController
-                .summaryById(cache.formTemplateId, maybeAccessCode, from.toCoordinates, None)
-            case FastForward.CYA(_, SectionOrSummary.Section(to)) =>
-              createBackUrl(to, FastForward.StopAt(to.increment))
+          val backCallF = ff match {
+            case FastForward.CYA(SectionOrSummary.FormSummary) :: _ =>
+              callSelector(
+                routes.SummaryController
+                  .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None),
+                createBackUrl(toSectionNumber, fastForward),
+                None
+              )
+            case ff @ FastForward.CYA(SectionOrSummary.Section(to)) :: xs =>
+              callSelector(
+                createBackUrl(to, ff),
+                createBackUrl(toSectionNumber, fastForward),
+                Some(to)
+              )
+            case ff @ FastForward.StopAt(sn) :: xs =>
+              createBackUrl(toSectionNumber, FastForward.StopAt(sectionNumber) :: xs).pure[Future]
             case _ =>
               sectionNumber.fold { classic =>
-                createBackUrl(toSectionNumber, fastForward)
+                createBackUrl(toSectionNumber, fastForward).pure[Future]
               } { taskList =>
                 ff match {
-                  case FastForward.CYA(from, SectionOrSummary.TaskSummary) =>
-                    routes.SummaryController
-                      .summaryById(cache.formTemplateId, maybeAccessCode, from.toCoordinates, None)
+                  case FastForward.CYA(SectionOrSummary.TaskSummary) :: xs =>
+                    callSelector(
+                      routes.SummaryController
+                        .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None),
+                      createBackUrl(toSectionNumber, fastForward),
+                      None
+                    )
                   case _ =>
-                    val maybePreviousPage = Navigator(
-                      sectionNumber,
-                      formModelOptics.formModelVisibilityOptics.formModel
-                    ).previousSectionNumber
+                    val maybePreviousPage = navigator.previousSectionNumber
 
                     if (maybePreviousPage.isEmpty) {
-                      uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                        .landingPage(cache.formTemplateId, maybeAccessCode)
+                      callSelector(
+                        uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                          .landingPage(cache.formTemplateId, maybeAccessCode),
+                        createBackUrl(toSectionNumber, fastForward),
+                        None
+                      )
                     } else {
-                      createBackUrl(toSectionNumber, fastForward)
+                      createBackUrl(toSectionNumber, fastForward).pure[Future]
                     }
                 }
               }
           }
-          Redirect(backUrl).pure[Future]
+          backCallF.map(Redirect(_))
         }
 
-        val toSectionNumber = Navigator(
-          sectionNumber,
-          formModelOptics.formModelVisibilityOptics.formModel
-        ).previousSectionNumber.getOrElse(sectionNumber)
+        val toSectionNumber = navigator.previousSectionNumber.getOrElse(sectionNumber)
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val bracket = formModel.bracket(toSectionNumber)
 
@@ -409,7 +434,7 @@ class FormController(
                     addToListBracket.iterationForSectionNumber(sectionNumber).isCommited(cache.form.visitsIndex)
                 }
               if (isCommited) {
-                goBack(toSectionNumber, true)
+                goBack(toSectionNumber)
               } else {
                 for {
                   processData <- processDataService
@@ -424,7 +449,7 @@ class FormController(
                   redirect <- formProcessor.processRemoveAddToList(
                                 cache,
                                 maybeAccessCode,
-                                FastForward.Yes,
+                                List(FastForward.Yes),
                                 formModelOptics,
                                 processData,
                                 bracket.iterations.size - 1,
@@ -433,7 +458,7 @@ class FormController(
                 } yield redirect
               }
             } else {
-              goBack(toSectionNumber, iteration.lastSectionNumber < sectionNumber)
+              goBack(toSectionNumber)
             }
         }
     }
@@ -442,16 +467,17 @@ class FormController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    ff: FastForward,
+    rawFastForward: List[FastForward],
     direction: Direction
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => _ => formModelOptics =>
+        val fastForward = rawFastForward
         def processEditAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
 
           val addToListIteration = processData.formModel.brackets.addToListById(addToListId, idx)
 
-          def defaultNavigation(): (SectionNumber, FastForward) = {
+          def defaultNavigation(): (SectionNumber, List[FastForward]) = {
             val firstAddToListPageSN: SectionNumber = processData.formModel.brackets
               .addToListBracket(addToListId)
               .source
@@ -468,15 +494,18 @@ class FormController(
             val sectionNumber: SectionNumber = availableSectionNumbers.find(_ >= firstAddToListPageSN).head
 
             // TODO: Check why FormSummary and TaskSummary ignored
-            ff match {
-              case FastForward.CYA(from, to) =>
-                (sectionNumber, FastForward.CYA(from, SectionOrSummary.Section(sectionNumber.increment)))
-              case _ => (sectionNumber, FastForward.StopAt(sectionNumber.increment))
-            }
+            // ff match {
+            //   case FastForward.CYA(from, to) =>
+            //     (sectionNumber, FastForward.CYA(from, SectionOrSummary.Section(sectionNumber.increment)))
+            //   case _ => (sectionNumber, FastForward.StopAt(sectionNumber.increment))
+            // }
+            (sectionNumber, fastForward)
           }
-          def checkYourAnswersNavigation(cya: CheckYourAnswersWithNumber[DataExpanded]): (SectionNumber, FastForward) =
-            (cya.sectionNumber, FastForward.Yes)
-          val (gotoSectionNumber, fastForward) =
+          def checkYourAnswersNavigation(
+            cya: CheckYourAnswersWithNumber[DataExpanded]
+          ): (SectionNumber, List[FastForward]) =
+            (cya.sectionNumber, FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward)
+          val (gotoSectionNumber, ff) =
             addToListIteration.checkYourAnswers.fold(defaultNavigation())(checkYourAnswersNavigation)
           val sectionTitle4Ga =
             sectionTitle4GaFactory(processData.formModel(gotoSectionNumber), gotoSectionNumber)
@@ -488,7 +517,7 @@ class FormController(
                 gotoSectionNumber,
                 sectionTitle4Ga,
                 SuppressErrors.Yes,
-                fastForward
+                ff
               )
               .url
           ).pure[Future]
@@ -520,7 +549,7 @@ class FormController(
                            sectionNumber,
                            sectionTitle4Ga,
                            SuppressErrors.Yes,
-                           ff
+                           fastForward
                          )
                      ).pure[Future]
                    case _ => throw new IllegalArgumentException(s"Direction $direction is not supported here")
@@ -532,11 +561,13 @@ class FormController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     browserSectionNumber: SectionNumber,
-    fastForward: FastForward,
+    rawFastForward: List[FastForward],
     save: Direction
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
+        val formModel = formModelOptics.formModelVisibilityOptics.formModel
+        val fastForward = filterFastForward(browserSectionNumber, rawFastForward, formModel)
         processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics, Some(browserSectionNumber)) {
           requestRelatedData => variadicFormData => enteredVariadicFormData =>
             val sectionNumber: SectionNumber =
@@ -608,10 +639,18 @@ class FormController(
                                   sn,
                                   sectionTitle4Ga,
                                   SuppressErrors(isFirstLanding),
-                                  if (isLastBracketIteration) FastForward.Yes
-                                  else if ((isFirstLanding && !isConfirmationPage) || sectionNumber.isTaskList) {
-                                    fastForward
-                                      .next(processDataUpd.formModelOptics.formModelVisibilityOptics.formModel, sn)
+                                  // TODO: Should be changed
+                                  if (isLastBracketIteration) List(FastForward.Yes)
+                                  else if (isFirstLanding || sectionNumber.isTaskList) {
+                                    fastForward match {
+                                      case Nil => Nil
+                                      case x :: xs =>
+                                        x
+                                          .next(
+                                            processDataUpd.formModelOptics.formModelVisibilityOptics.formModel,
+                                            sn
+                                          ) :: xs
+                                    }
                                   } else
                                     fastForward
                                 )
@@ -740,7 +779,7 @@ class FormController(
                       sectionNumber,
                       sectionTitle4Ga,
                       SuppressErrors.Yes,
-                      FastForward.Yes
+                      List(FastForward.Yes)
                     )
                     .url + anchor
                 )
@@ -847,7 +886,8 @@ class FormController(
         if (sn.isTaskList) {
           uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, maybeAccessCode)
         } else {
-          routes.FormController.form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+          routes.FormController
+            .form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, List(FastForward.Yes))
         }
       case _ =>
         formTemplate.formKind.fold { _ =>
@@ -862,4 +902,27 @@ class FormController(
 
   private val formMaxAttachmentSizeMB = appConfig.formMaxAttachmentSizeMB
   private val restrictedFileExtensions = appConfig.restrictedFileExtensions
+
+  private def filterFastForward(
+    browserSectionNumber: SectionNumber,
+    rawFastForward: List[FastForward],
+    formModel: FormModel[Visibility]
+  ): List[FastForward] = {
+    val sectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
+    rawFastForward
+      .filterNot {
+        case FastForward.CYA(SectionOrSummary.Section(sn)) => sectionNumber >= sn
+        case FastForward.StopAt(sn)                        => sectionNumber >= sn
+        case _                                             => false
+      }
+      .foldLeft[List[FastForward]](List())((ls, a) =>
+        ls match {
+          case Nil               => List(a)
+          case x :: xs if x == a => x :: xs
+          case xs                => a :: xs
+        }
+      )
+      .reverse
+  }
+
 }

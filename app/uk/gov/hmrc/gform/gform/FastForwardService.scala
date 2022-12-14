@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ Coordinates, FastForward, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ FastForward, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.sharedmodel._
@@ -41,6 +41,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
+import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 
 class FastForwardService(
   fileUploadService: FileUploadService,
@@ -57,13 +58,13 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    maybeCoordinates: Option[Coordinates]
+    maybeSectionNumber: Option[SectionNumber]
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
     l: LangADT
   ): Future[Result] =
-    redirectWithRecalculation(cache, maybeAccessCode, FastForward.Yes, formModelOptics, maybeCoordinates)
+    redirectWithRecalculation(cache, maybeAccessCode, List(FastForward.Yes), formModelOptics, maybeSectionNumber)
 
   def redirectStopAt[U <: SectionSelectorType: SectionSelector](
     sectionNumber: SectionNumber,
@@ -78,17 +79,17 @@ class FastForwardService(
     redirectWithRecalculation(
       cache,
       maybeAccessCode,
-      FastForward.StopAt(sectionNumber),
+      List(FastForward.StopAt(sectionNumber)),
       formModelOptics,
-      sectionNumber.toCoordinates
+      Some(sectionNumber)
     )
 
   private def redirectWithRecalculation[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    fastForward: FastForward,
+    fastForward: List[FastForward],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    maybeCoordinates: Option[Coordinates]
+    maybeSectionNumber: Option[SectionNumber]
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
@@ -117,7 +118,7 @@ class FastForwardService(
               maybeAccessCode,
               fastForward,
               EnvelopeWithMapping(envelope, cache.form),
-              maybeCoordinates
+              maybeSectionNumber
             )(
               redirectResult(cache, maybeAccessCode, processData, _)
             )
@@ -129,16 +130,23 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     processData: ProcessData,
-    maybeSectionNumber: SectionOrSummary
+    sectionOrSummary: SectionOrSummary
   ): Result =
-    maybeSectionNumber match {
+    sectionOrSummary match {
       case SectionOrSummary.Section(sn) =>
         val pageModel = processData.formModel(sn)
         val sectionTitle4Ga = sectionTitle4GaFactory(pageModel, sn)
 
         Redirect(
           routes.FormController
-            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes)
+            .form(
+              cache.formTemplate._id,
+              maybeAccessCode,
+              sn,
+              sectionTitle4Ga,
+              SuppressErrors.Yes,
+              List(FastForward.Yes)
+            )
         )
       case _ =>
         Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, None))
@@ -178,9 +186,9 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     processData: ProcessData,
     maybeAccessCode: Option[AccessCode],
-    fastForward: FastForward,
+    fastForward: List[FastForward],
     envelope: EnvelopeWithMapping,
-    maybeCoordinates: Option[Coordinates]
+    maybeSectionNumber: Option[SectionNumber]
   )(
     toResult: SectionOrSummary => Result
   )(implicit
@@ -196,7 +204,7 @@ class FastForwardService(
                    envelope,
                    validationService.validatePageModel,
                    fastForward,
-                   maybeCoordinates
+                   maybeSectionNumber
                  )
 
       formStatus = maybeSn match {
@@ -219,4 +227,32 @@ class FastForwardService(
                .map(_ => toResult(maybeSn))
     } yield res
 
+  def maybeInvalidSectionNumber(
+    lastSectionNumber: Option[SectionNumber],
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(implicit
+    messages: Messages,
+    hc: HeaderCarrier,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Future[Option[SectionNumber]] = for {
+    envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
+    processData <- processDataService
+                     .getProcessData[SectionSelectorType.Normal](
+                       formModelOptics.formModelRenderPageOptics.recData.variadicFormData
+                         .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+                       cache,
+                       formModelOptics,
+                       gformConnector.getAllTaxPeriods,
+                       NoSpecificAction
+                     )
+    maybeInvalidSectionNumber <- handler.handleMaybeGetInvalidSectionNumber(
+                                   processData,
+                                   cache.toCacheData,
+                                   EnvelopeWithMapping(envelope, cache.form),
+                                   validationService.validatePageModel,
+                                   None
+                                 )
+  } yield maybeInvalidSectionNumber.filter(sn => lastSectionNumber.map(sn < _).getOrElse(true))
 }
