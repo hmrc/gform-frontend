@@ -472,7 +472,7 @@ class FormController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => _ => formModelOptics =>
-        val fastForward = rawFastForward
+        val fastForward = removeDuplications(rawFastForward)
         def processEditAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
 
           val addToListIteration = processData.formModel.brackets.addToListById(addToListId, idx)
@@ -909,12 +909,19 @@ class FormController(
     formModel: FormModel[Visibility]
   ): List[FastForward] = {
     val sectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
-    rawFastForward
+    val ff = rawFastForward
       .filterNot {
         case FastForward.CYA(SectionOrSummary.Section(sn)) => sectionNumber >= sn
         case FastForward.StopAt(sn)                        => sectionNumber >= sn
         case _                                             => false
       }
+    removeDuplications(ff)
+  }
+
+  private def removeDuplications(
+    fastForward: List[FastForward]
+  ): List[FastForward] = {
+    val ff = fastForward
       .foldLeft[List[FastForward]](List())((ls, a) =>
         ls match {
           case Nil               => List(a)
@@ -923,6 +930,7 @@ class FormController(
         }
       )
       .reverse
+    if (ff.nonEmpty) ff else List(FastForward.Yes)
   }
 
 }
