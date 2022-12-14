@@ -17,8 +17,8 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.models.PageMode
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, Confirmation, FormComponentId, IncludeIf, Page, Validator }
 
 class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormComponentId]) {
 
