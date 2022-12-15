@@ -101,7 +101,6 @@ case class Page[A <: PageMode](
         start :: acc
     }
   val isTerminationPage: Boolean = continueIf.contains(Stop)
-
 }
 
 object Page {
