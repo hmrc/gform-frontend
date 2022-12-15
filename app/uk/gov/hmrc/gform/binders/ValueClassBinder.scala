@@ -226,7 +226,7 @@ object ValueClassBinder {
           .toOption
           .fold[Either[String, SectionNumber]](s"No valid value in path $key: $value".asLeft)(sn => sn.asRight)
 
-      private val cyaPat = raw"cya([\d]+)".r
+      private val cyaPat = raw"cya([\d,]+)".r
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, FastForward]] =
         params.get(key).flatMap(_.headOption).map {
           case FastForward.ffYes            => FastForward.Yes.asRight
