@@ -67,7 +67,7 @@
 @hmrcPageHeading = @{new HmrcPageHeading()}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 @backLink = @{
-  new BackLink(href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, fastForward).path,
+  new BackLink(href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber)::fastForward).path,
                content = new Text(messages("linkText.back")))
 }
 

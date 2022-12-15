@@ -342,6 +342,8 @@ class FormController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
+        //val formModel = formModelOptics.formModelVisibilityOptics.formModel
+        // val ff = filterFastForward(sectionNumber, rawFastForward, formModelOptics.formModelVisibilityOptics.formModel)
         lazy val navigator = Navigator(sectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
 
         def callSelector(call1: => Call, call2: => Call, lastSectionNumber: Option[SectionNumber]): Future[Call] =
@@ -460,7 +462,7 @@ class FormController(
             } else {
               goBack(toSectionNumber)
             }
-        }
+      }
     }
 
   def addToListAction(

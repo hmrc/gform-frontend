@@ -175,6 +175,7 @@ class FormValidator(implicit ec: ExecutionContext) {
       next          <- availableSectionNumbers.find(_ > sectionNumber)
     } yield next
 
+    lxol.pp.log(nextFrom, "88888888")
     (fastForward match {
       case FastForward.CYA(to) :: xs =>
         ffYesSnF.map(ffYes =>
@@ -197,10 +198,16 @@ class FormValidator(implicit ec: ExecutionContext) {
           case Some(r) => if (r < to) SectionOrSummary.Section(r) else SectionOrSummary.Section(to)
         }
       case _ =>
-        ffYesSnF.map {
-          case None =>
-            if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
-          case Some(r) => SectionOrSummary.Section(r)
+        ffYesSnF.map { ffYesSn =>
+          (ffYesSn, nextFrom) match {
+            case (None, None) =>
+              if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
+            case (None, Some(sn)) =>
+              SectionOrSummary.Section(sn)
+              if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
+            case (Some(r), None)     => SectionOrSummary.Section(r)
+            case (Some(r), Some(sn)) => if (r < sn) SectionOrSummary.Section(r) else SectionOrSummary.Section(sn)
+          }
         }
     })
   }
