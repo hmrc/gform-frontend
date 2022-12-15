@@ -16,21 +16,19 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, SectionNumber }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 @(
   formComponentId: FormComponentId,
   fileId: FileId,
   maybeCurrentValue: Option[String],
-  noJsButton: Button,
   deleteUrl: Call,
-  sectionNumber: SectionNumber,
   fileSize: String
 )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
 @govukButton = @{new GovukButton()}
 
-<div id="@formComponentId-files" class="govuk-body uploaded-files">
+@uploaded_files_wrapper(formComponentId){
   @maybeCurrentValue.map { currentValue =>
     @defining(currentValue.replace(fileId.value + "_", "")) { fileName =>
       @defining(fileName + " " + messages("file.delete")) { ariaLabel =>
@@ -50,4 +48,4 @@
       }
     }
   }
-</div>
+}

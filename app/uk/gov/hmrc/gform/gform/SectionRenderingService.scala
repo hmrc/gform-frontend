@@ -23,6 +23,7 @@ import cats.instances.int._
 import cats.instances.string._
 import cats.syntax.all._
 import org.jsoup.Jsoup
+import play.api.mvc.Call
 import shapeless.syntax.typeable._
 import play.api.i18n.Messages
 import play.api.mvc.{ Request, RequestHeader }
@@ -101,30 +102,6 @@ class SectionRenderingService(
   frontendAppConfig: FrontendAppConfig,
   lookupRegistry: LookupRegistry
 ) {
-
-  case class ExtraInfo(
-    singleton: Singleton[DataExpanded],
-    maybeAccessCode: Option[AccessCode],
-    sectionNumber: SectionNumber,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    formTemplate: FormTemplate,
-    envelopeId: EnvelopeId,
-    envelope: EnvelopeWithMapping,
-    formMaxAttachmentSizeMB: Int,
-    retrievals: MaterialisedRetrievals,
-    formLevelHeading: Boolean,
-    specialAttributes: Map[String, String],
-    addressRecordLookup: AddressRecordLookup
-  ) {
-    private val modelComponentIds: List[ModelComponentId] =
-      singleton.allFormComponents.flatMap(_.multiValueId.toModelComponentIds)
-
-    val valueLookup: Map[ModelComponentId, Option[VariadicValue]] =
-      modelComponentIds
-        .map(modelComponentId => (modelComponentId, formModelOptics.pageOpticsData.get(modelComponentId)))
-        .toMap
-
-  }
 
   def renderAddToListCheckYourAnswers[T <: PageMode](
     checkYourAnswers: CheckYourAnswers[T],
@@ -212,7 +189,8 @@ class SectionRenderingService(
       determineContinueLabelKey(
         cache.retrievals.continueLabelKey,
         formTemplate.draftRetrievalMethod.isNotPermitted,
-        checkYourAnswers.expandedContinueLabel
+        checkYourAnswers.expandedContinueLabel,
+        false
       ),
       renderComeBackLater,
       pageLevelErrorHtml,
@@ -401,7 +379,12 @@ class SectionRenderingService(
       frontendAppConfig,
       actionForm,
       renderComeBackLater,
-      determineContinueLabelKey(retrievals.continueLabelKey, formTemplate.draftRetrievalMethod.isNotPermitted, None),
+      determineContinueLabelKey(
+        retrievals.continueLabelKey,
+        formTemplate.draftRetrievalMethod.isNotPermitted,
+        None,
+        false
+      ),
       shouldDisplayBack,
       snippets,
       specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
@@ -455,7 +438,7 @@ class SectionRenderingService(
       specialAttributes = Map.empty,
       addressRecordLookup
     )
-    val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
+    val actionForm: Call = uk.gov.hmrc.gform.gform.routes.FormController
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
 
     val page = singleton.page
@@ -513,23 +496,43 @@ class SectionRenderingService(
       snippetsForFields,
       javascript,
       envelopeId,
-      actionForm,
+      ei.isFileUploadOnlyPage(validationResult).fold(actionForm) { case (formComponent, fileUpload) =>
+        fileUpload.fileUploadProvider match {
+          case FileUploadProvider.Upscan(_) =>
+            upscanData.get(formComponent.id) match {
+              case None             => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
+              case Some(upscanData) => Call("POST", upscanData.url)
+            }
+
+          case FileUploadProvider.FileUploadFrontend =>
+            Call("POST", ei.fileUpload.formAction(frontendAppConfig, formComponent))
+        }
+      },
       renderComeBackLater,
       determineContinueLabelKey(
         retrievals.continueLabelKey,
         formTemplate.draftRetrievalMethod.isNotPermitted,
-        page.continueLabel
+        page.continueLabel,
+        ei.isFileUploadOnlyPage(validationResult).isDefined
       ),
       formMaxAttachmentSizeMB,
       allowedFileTypes,
       restrictedFileExtensions,
       page.caption.map(ls => ls.value),
-      upscanData
+      ei.isFileUploadOnlyPage(validationResult).fold(upscanData)(_ => Map.empty[FormComponentId, UpscanData])
     )
+    val mainForm: Html = html.form.form_standard(
+      renderingInfo,
+      shouldDisplayContinue = !page.isTerminationPage,
+      ei.saveAndComeBackLaterButton,
+      ei.isFileUploadOnlyPage(validationResult).isDefined
+    )
+
     html.form.form(
       formTemplate,
       pageLevelErrorHtml,
       renderingInfo,
+      mainForm,
       backLink = mkBackLink(
         formTemplate,
         maybeAccessCode,
@@ -539,12 +542,9 @@ class SectionRenderingService(
         listResult.exists(_.fieldErrors.size > 0)
       ),
       shouldDisplayHeading = !formLevelHeading,
-      shouldDisplayContinue = !page.isTerminationPage,
       frontendAppConfig,
       specimenNavigation =
         specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
-      maybeAccessCode,
-      sectionNumber,
       fastForward,
       notificationBanner
     )
@@ -737,16 +737,20 @@ class SectionRenderingService(
       FileInfoConfig.allAllowedFileTypes,
       Nil
     )
+    val mainForm = html.form.form_standard(
+      renderingInfo,
+      shouldDisplayContinue = true,
+      ei.saveAndComeBackLaterButton,
+      isFileUploadOnlyPage = false
+    )
     html.form.form(
       formTemplate,
       pageLevelErrorHtml,
       renderingInfo,
+      mainForm,
       backLink = Some(mkBackLinkDeclaration(formTemplate, maybeAccessCode, formTemplate.sectionNumberZero)),
       shouldDisplayHeading = true,
-      shouldDisplayContinue = true,
       frontendAppConfig,
-      maybeAccessCode = maybeAccessCode,
-      sectionNumber = formTemplate.sectionNumberZero,
       fastForward = FastForward.Yes,
       notificationBanner = notificationBanner
     )
@@ -941,17 +945,21 @@ class SectionRenderingService(
       FileInfoConfig.allAllowedFileTypes,
       Nil
     )
+    val mainForm = html.form.form_standard(
+      renderingInfo,
+      shouldDisplayContinue = true,
+      ei.saveAndComeBackLaterButton,
+      isFileUploadOnlyPage = false
+    )
     html.form
       .form(
         formTemplate,
         pageLevelErrorHtml,
         renderingInfo,
+        mainForm,
         None,
         true,
-        true,
         frontendAppConfig,
-        maybeAccessCode = maybeAccessCode,
-        sectionNumber = formTemplate.sectionNumberZero,
         fastForward = FastForward.Yes,
         notificationBanner = notificationBanner
       )
@@ -1057,76 +1065,11 @@ class SectionRenderingService(
               upscanInitiate
             )
           case FileUpload(fileUploadProvider) =>
-            val fileId: FileId =
-              ei.envelope
-                .find(formComponent.modelComponentId)
-                .map(_.fileId)
-                .getOrElse(ei.envelope.mapping.fileIdFor(formComponent.id))
-
-            val fileSize: Long =
-              ei.envelope
-                .find(formComponent.modelComponentId)
-                .map(_.length)
-                .getOrElse(0)
-
-            fileUploadProvider match {
-              case FileUploadProvider.Upscan(_) =>
-                upscanData.get(formComponent.id) match {
-                  case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
-                  case Some(upscanData) =>
-                    val fileUploadName = "file"
-                    val otherAttributes = Map("form" -> upscanData.formMetaData.htmlId)
-                    val attributes = Map("upscan" -> "upscan") ++ otherAttributes
-
-                    htmlForFileUpload(
-                      formComponent,
-                      formTemplateId,
-                      ei,
-                      validationResult,
-                      fileId,
-                      fileSize,
-                      fileUploadName,
-                      upscanData.url,
-                      attributes,
-                      List.empty[Html],
-                      otherAttributes
-                    )
-                }
-              case FileUploadProvider.FileUploadFrontend =>
-                val successUrl =
-                  frontendAppConfig.gformFrontendBaseUrl + FileUploadController.noJsSuccessCallback(
-                    formTemplateId,
-                    ei.sectionNumber,
-                    ei.maybeAccessCode,
-                    formComponent.id,
-                    fileId
-                  )
-
-                val errorUrl =
-                  frontendAppConfig.gformFrontendBaseUrl + FileUploadController.noJsErrorCallback(
-                    formTemplateId,
-                    ei.sectionNumber,
-                    ei.maybeAccessCode,
-                    formComponent.id,
-                    fileId
-                  )
-
-                val formAction =
-                  s"/file-upload/upload/envelopes/${ei.envelopeId.value}/files/${fileId.value}?redirect-success-url=$successUrl&redirect-error-url=$errorUrl"
-
-                val fileUploadName = formComponent.id.value
-                htmlForFileUpload(
-                  formComponent,
-                  formTemplateId,
-                  ei,
-                  validationResult,
-                  fileId,
-                  fileSize,
-                  fileUploadName,
-                  formAction,
-                  Map.empty[String, String],
-                  List.empty[Html]
-                )
+            ei.isFileUploadOnlyPage(validationResult) match {
+              case None =>
+                htmlForFileUploadStandard(formComponent, fileUploadProvider, ei, validationResult, upscanData)
+              case Some(_) =>
+                htmlForFileUploadSingle(formComponent, fileUploadProvider, ei, upscanData)
             }
 
           case InformationMessage(infoType, infoText) =>
@@ -1140,6 +1083,98 @@ class SectionRenderingService(
       }
     } { case r @ RenderUnit.Group(_, _) =>
       htmlForGroup(r, formTemplateId, ei, validationResult, obligations, upscanInitiate)
+    }
+
+  private def htmlForFileUploadStandard(
+    formComponent: FormComponent,
+    fileUploadProvider: FileUploadProvider,
+    ei: ExtraInfo,
+    validationResult: ValidationResult,
+    upscanData: Map[FormComponentId, UpscanData]
+  )(implicit
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Html = {
+    val fileId: FileId = ei.getFileId(formComponent)
+
+    val fileSize: Long =
+      ei.envelope
+        .find(formComponent.modelComponentId)
+        .map(_.length)
+        .getOrElse(0)
+
+    fileUploadProvider match {
+      case FileUploadProvider.Upscan(_) =>
+        upscanData.get(formComponent.id) match {
+          case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
+          case Some(upscanData) =>
+            val fileUploadName = "file"
+            val otherAttributes = Map("form" -> upscanData.formMetaData.htmlId)
+            val attributes = Map("upscan" -> "upscan") ++ otherAttributes
+
+            htmlForFileUpload(
+              formComponent,
+              ei.formTemplateId,
+              ei,
+              validationResult,
+              fileId,
+              fileSize,
+              fileUploadName,
+              upscanData.url,
+              attributes,
+              otherAttributes
+            )
+        }
+      case FileUploadProvider.FileUploadFrontend =>
+        val formAction = ei.fileUpload.formAction(frontendAppConfig, formComponent)
+
+        val fileUploadName = formComponent.id.value
+        htmlForFileUpload(
+          formComponent,
+          ei.formTemplateId,
+          ei,
+          validationResult,
+          fileId,
+          fileSize,
+          fileUploadName,
+          formAction,
+          Map.empty[String, String]
+        )
+    }
+  }
+
+  private def htmlForFileUploadSingle(
+    formComponent: FormComponent,
+    fileUploadProvider: FileUploadProvider,
+    ei: ExtraInfo,
+    upscanData: Map[FormComponentId, UpscanData]
+  )(implicit
+    request: RequestHeader,
+    sse: SmartStringEvaluator
+  ): Html =
+    fileUploadProvider match {
+      case FileUploadProvider.Upscan(_) =>
+        upscanData.get(formComponent.id) match {
+          case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
+          case Some(upscanData) =>
+            val fileUploadName = "file"
+            htmlForFileUploadOnly(
+              formComponent,
+              fileUploadName,
+              ei,
+              upscanData.snippets
+            )
+        }
+
+      case FileUploadProvider.FileUploadFrontend =>
+        val fileUploadName = formComponent.id.value
+        htmlForFileUploadOnly(
+          formComponent,
+          fileUploadName,
+          ei,
+          List.empty[Html]
+        )
     }
 
   private def htmlForHmrcTaxPeriod(
@@ -1460,7 +1495,6 @@ class SectionRenderingService(
     fileUploadName: String,
     formAction: String,
     fileUploadAttributes: Map[String, String],
-    hiddenFields: List[Html],
     otherAttributes: Map[String, String] = Map.empty
   )(implicit
     messages: Messages,
@@ -1515,7 +1549,7 @@ class SectionRenderingService(
 
     val fileInput: Html = new components.GovukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
 
-    val noJsButton: Button = Button(
+    val submitButton: Button = Button(
       name = Some(formComponent.id + "-uploadButton"),
       content = content.Text(messages("file.upload")),
       inputType = Some("submit"),
@@ -1527,7 +1561,7 @@ class SectionRenderingService(
       preventDoubleClick = true
     )
 
-    val noJsButtonHtml: Html = new components.GovukButton()(noJsButton)
+    val submitButtonHtml: Html = new components.GovukButton()(submitButton)
 
     val uploadedFiles: Html =
       html.form.snippets
@@ -1535,9 +1569,7 @@ class SectionRenderingService(
           formComponent.id,
           fileId,
           currentValue,
-          noJsButton,
           deleteUrl,
-          ei.sectionNumber,
           FileUploadUtils.formatSize(fileSize)
         )
 
@@ -1545,8 +1577,8 @@ class SectionRenderingService(
       case Some(v) =>
         val fileName = v.replace(fileId.value + "_", "")
         val hiddenInput = html.form.snippets.hidden(formComponent.id.value, fileName)
-        HtmlFormat.fill(hiddenFields ++ List(hiddenInput, uploadedFiles))
-      case None => HtmlFormat.fill(hiddenFields ++ List(fileInput, uploadedFiles, noJsButtonHtml))
+        HtmlFormat.fill(List(hiddenInput, uploadedFiles))
+      case None => HtmlFormat.fill(List(fileInput, uploadedFiles, submitButtonHtml))
     }
   }
 
@@ -2647,6 +2679,54 @@ class SectionRenderingService(
     new components.GovukSelect(govukErrorMessage, govukHint, govukLabel)(select)
   }
 
+  private def htmlForFileUploadOnly(
+    formComponent: FormComponent,
+    fileUploadName: String,
+    ei: ExtraInfo,
+    snippets: List[Html]
+  )(implicit
+    request: RequestHeader,
+    sse: SmartStringEvaluator
+  ): Html = {
+
+    val hint = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
+      )
+    }
+
+    val errors: Option[String] = request.flash.get(GformFlashKeys.FileUploadError)
+
+    val errorMessage = errors.map(error =>
+      ErrorMessage(
+        content = content.Text(error)
+      )
+    )
+
+    val labelContent = content.Text(formComponent.label.value)
+
+    val isPageHeading = ei.formLevelHeading
+
+    val label = Label(
+      isPageHeading = isPageHeading,
+      classes = getLabelClasses(isPageHeading, formComponent.labelSize),
+      content = labelContent
+    )
+    val fileUpload: fileupload.FileUpload = fileupload.FileUpload(
+      id = formComponent.id.value,
+      name = fileUploadName,
+      label = label,
+      hint = hint,
+      errorMessage = errorMessage
+    )
+
+    val fileInput: Html = new components.GovukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
+
+    val uploadedFiles: Html = html.form.snippets.uploaded_files_wrapper(formComponent.id)(HtmlFormat.empty)
+
+    HtmlFormat.fill(fileInput :: uploadedFiles :: snippets)
+  }
+
   private def htmlForGroup(
     renderUnitGroup: RenderUnit.Group,
     formTemplateId: FormTemplateId,
@@ -2854,12 +2934,14 @@ class SectionRenderingService(
   private def determineContinueLabelKey(
     continueLabelKey: String,
     isNotPermitted: Boolean,
-    continueLabel: Option[SmartString]
+    continueLabel: Option[SmartString],
+    isFileUploadOnlyPage: Boolean
   )(implicit messages: Messages, lise: SmartStringEvaluator): String =
-    (continueLabel, isNotPermitted) match {
-      case (Some(cl), _) => cl.value
-      case (None, true)  => messages("button.continue")
-      case (None, false) => messages(continueLabelKey)
+    (continueLabel, isNotPermitted, isFileUploadOnlyPage) match {
+      case (Some(cl), _, _)     => cl.value
+      case (None, true, _)      => messages("button.continue")
+      case (None, false, false) => messages(continueLabelKey)
+      case (None, false, true)  => messages("file.upload")
     }
 
   private val govukErrorMessage: components.GovukErrorMessage = new components.GovukErrorMessage()

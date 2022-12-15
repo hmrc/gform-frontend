@@ -14,14 +14,10 @@
  * limitations under the License.
  *@
 
-@this()
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
-@(action: play.api.mvc.Call,
-  args: (Symbol,String)*
-)(body: => Html)(implicit request: RequestHeader, messages: Messages)
+@(formComponentId: FormComponentId)(body: => Html)
 
-@defining(args.toMap - Symbol("novalidate")) { filteredArgs =>
-    <form method="@action.method" novalidate action="@action.path"@if(filteredArgs.nonEmpty){ @toHtmlArgs(filteredArgs)}>
-    @body
-    </form>
-}
+<div id="@formComponentId-files" class="govuk-body uploaded-files">
+  @body
+</div>

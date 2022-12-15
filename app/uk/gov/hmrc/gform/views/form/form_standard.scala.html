@@ -1,0 +1,95 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.controllers.SaveAndExit
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate,SectionNumber}
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.models._
+
+@(
+  renderingInfo: SectionRenderingInformation,
+  shouldDisplayContinue: Boolean,
+  saveAndComeBackLaterButton: Button,
+  isFileUploadOnlyPage: Boolean
+)(
+  implicit
+  request: Request[_],
+  messages: Messages,
+  l: LangADT,
+  sse: SmartStringEvaluator
+)
+@formWithoutCSRF = @{new FormWithoutCSRF()}
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
+
+@buttonLabel = @{
+  if(renderingInfo.continueLabel.isEmpty) {
+    messages("button.saveAndContinue")
+  } else {
+    renderingInfo.continueLabel
+  }
+}
+
+
+@displaySaveContinueButton(classes: String = "", otherAttributes: Map[String, String] = Map.empty) = @{
+  if(shouldDisplayContinue) {
+    govukButton(
+      Button(
+        content = Text(buttonLabel),
+        inputType = Some("submit"),
+        attributes = otherAttributes,
+        classes = classes,
+        name = if(isFileUploadOnlyPage) Some("singleFile") else None
+      )
+    )
+  }
+}
+
+@body = {
+  @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
+  @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1", "aria-hidden" -> "true"))
+
+  @{renderingInfo.snippets}
+
+  <div class="govuk-button-group">
+    @displaySaveContinueButton()
+    @if(renderingInfo.renderComeBackLater) {
+      @govukButton(saveAndComeBackLaterButton)
+    }
+  </div>
+}
+
+@if(isFileUploadOnlyPage) {
+  @formWithoutCSRF(
+    action = renderingInfo.formAction,
+    args = 'class -> "js-form",
+           'enctype -> "multipart/form-data",
+           'autocomplete -> "on",
+           'novalidate -> "novalidate"
+  ) {
+    @body
+  }
+} else {
+  @formWithCSRF(
+    action = renderingInfo.formAction,
+    args = 'class -> "js-form",
+           'autocomplete -> "on",
+           'novalidate -> "novalidate",
+           'id -> "gf-form"
+  ) {
+    @body
+  }
+}

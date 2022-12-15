@@ -34,6 +34,7 @@
   function init() {
     $('button[name$="-uploadButton"]').css("display", "none")
     $(".govuk-file-upload").on("change", handleFileUpload);
+    $('button[name$="singleFile"]').on("click", singleFileUploadProgress);
   }
 
   // Error handling
@@ -103,6 +104,16 @@
     });
   }
 
+   function singleFileUploadProgress(e) {
+     const form = $(e.target).closest("form");
+     const formGroup = form.find(".govuk-form-group");
+     const input = formGroup.find(".govuk-file-upload");
+     const formComponentId = input.attr("id");
+     const uploadedFiles = $("#" + formComponentId + "-files");
+
+     formGroup.hide();
+     uploadedFiles.empty().append(startProgressBar());
+   }
   // Display uploading file message
   function startProgressBar() {
     return progressBarWrapper("<span class='app-progress-spinner'></span><span id='fileupload' role='alert'>" + strings.uploadingFile[lang] + "</span>", "");
