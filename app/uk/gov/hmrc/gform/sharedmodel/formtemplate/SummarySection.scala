@@ -48,7 +48,8 @@ case class SummarySection(
       presentationHint = None,
       dataRetrieve = None,
       confirmation = None,
-      redirects = None
+      redirects = None,
+      hideSaveAndComeBackButton = None
     )
 }
 

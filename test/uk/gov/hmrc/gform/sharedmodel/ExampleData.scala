@@ -590,6 +590,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         presentationHint,
         None,
         None,
+        None,
         None
       )
     )
@@ -640,6 +641,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         instruction,
         presentationHint,
+        None,
         None,
         None,
         None
@@ -708,6 +710,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     None,
     instruction,
     presentationHint,
+    None,
     None,
     None,
     None
@@ -825,7 +828,6 @@ trait ExampleFormTemplate {
       FileInfoConfig.allAllowedFileTypes,
       None,
       Some(userResearchUrl),
-      None,
       None,
       None,
       None,

@@ -272,7 +272,7 @@ object SummaryRenderingService {
     val envelopeUpd = envelope.byPurpose(summaryPagePurpose)
 
     val renderComeBackLater =
-      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted && !formTemplate.isHideSaveAndComeBackButton
+      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
 
     val lastSectionNumber = maybeCoordinates
       .map { c =>
@@ -346,7 +346,7 @@ object SummaryRenderingService {
     val title = formTemplate.summarySection.title.value
     val caption = formTemplate.summarySection.caption.map(_.value)
     val renderComeBackLater =
-      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted && !formTemplate.isHideSaveAndComeBackButton
+      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
     val sfr: List[Html] =
       summaryForNotificationPdf(
         validationResult,

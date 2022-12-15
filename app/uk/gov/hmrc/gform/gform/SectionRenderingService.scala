@@ -127,7 +127,7 @@ class SectionRenderingService(
     val listResult = validationResult.formFieldValidationResults
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val renderComeBackLater =
-      cache.retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted && !formTemplate.isHideSaveAndComeBackButton
+      cache.retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
     val isFirstVisit = !cache.form.visitsIndex.contains(sectionNumber)
 
     val summaryListRecords: List[SummaryListRow] = addToListIteration.singletons.toList.flatMap { singletonWithNumber =>
@@ -367,7 +367,7 @@ class SectionRenderingService(
     }
 
     val renderComeBackLater =
-      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted && !formTemplate.isHideSaveAndComeBackButton
+      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
 
     html.form.addToList(
       repeater.title.value,
@@ -485,7 +485,7 @@ class SectionRenderingService(
       )
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
       _ === Continue
-    ) && !formTemplate.draftRetrievalMethod.isNotPermitted && !formTemplate.isHideSaveAndComeBackButton
+    ) && !formTemplate.draftRetrievalMethod.isNotPermitted && !singleton.page.isHideSaveAndComeBackButton
 
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,

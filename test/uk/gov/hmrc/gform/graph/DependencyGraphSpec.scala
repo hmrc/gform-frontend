@@ -53,6 +53,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     None,
     None,
     None,
+    None,
     None
   )
   private val emptyAddToList: Section.AddToList = Section.AddToList(

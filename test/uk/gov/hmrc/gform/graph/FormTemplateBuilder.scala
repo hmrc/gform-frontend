@@ -17,18 +17,17 @@
 package uk.gov.hmrc.gform.graph
 
 import cats.data.NonEmptyList
+import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
-import uk.gov.hmrc.gform.models.{ Basic, Bracket, BracketsWithSectionNumber, FormModel, PageMode, Visibility }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
-import uk.gov.hmrc.gform.sharedmodel.AvailableLanguages
+import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.ExampleData._
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.Log
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedString }
 
 object FormTemplateBuilder {
 
@@ -63,6 +62,7 @@ object FormTemplateBuilder {
     None,
     instruction,
     presentationHint,
+    None,
     None,
     None,
     None
@@ -136,6 +136,7 @@ object FormTemplateBuilder {
         Some(includeIf),
         None,
         formComponents,
+        None,
         None,
         None,
         None,
@@ -298,7 +299,6 @@ object FormTemplateBuilder {
     None,
     None,
     None,
-    None,
     None
   )
 
@@ -335,6 +335,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     None
   )
 
@@ -349,6 +350,7 @@ object FormTemplateBuilder {
       Some(includeIf),
       None,
       formComponents,
+      None,
       None,
       None,
       None,

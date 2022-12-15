@@ -575,7 +575,8 @@ class AddressLookupController(
       presentationHint = None,
       dataRetrieve = None,
       confirmation = None,
-      redirects = None
+      redirects = None,
+      hideSaveAndComeBackButton = None
     )
     val enterAddressSection = Section.NonRepeatingPage(page)
     val syntheticFormTemplate = cache.formTemplate.copy(formKind =

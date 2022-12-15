@@ -43,7 +43,8 @@ case class Page[A <: PageMode](
   presentationHint: Option[PresentationHint],
   dataRetrieve: Option[DataRetrieve],
   confirmation: Option[Confirmation],
-  redirects: Option[NonEmptyList[RedirectCtx]]
+  redirects: Option[NonEmptyList[RedirectCtx]],
+  hideSaveAndComeBackButton: Option[Boolean]
 ) {
 
   val allFields: List[FormComponent] = confirmation.fold(fields)(fields ::: _.question :: Nil)
@@ -101,6 +102,7 @@ case class Page[A <: PageMode](
         start :: acc
     }
   val isTerminationPage: Boolean = continueIf.contains(Stop)
+  val isHideSaveAndComeBackButton: Boolean = hideSaveAndComeBackButton.getOrElse(false)
 }
 
 object Page {
