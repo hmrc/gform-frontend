@@ -175,7 +175,6 @@ class FormValidator(implicit ec: ExecutionContext) {
       next          <- availableSectionNumbers.find(_ > sectionNumber)
     } yield next
 
-    lxol.pp.log(nextFrom, "88888888")
     (fastForward match {
       case FastForward.CYA(to) :: xs =>
         ffYesSnF.map(ffYes =>

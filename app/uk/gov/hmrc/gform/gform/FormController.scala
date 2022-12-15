@@ -481,7 +481,6 @@ class FormController(
 
           val addToListIteration = processData.formModel.brackets.addToListById(addToListId, idx)
 
-          lxol.pp.log(fastForward, "[777777]")
           def defaultNavigation(): (SectionNumber, List[FastForward]) = {
             val firstAddToListPageSN: SectionNumber = processData.formModel.brackets
               .addToListBracket(addToListId)

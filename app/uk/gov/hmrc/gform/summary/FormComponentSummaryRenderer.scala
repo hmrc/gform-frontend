@@ -338,19 +338,15 @@ object FormComponentSummaryRenderer {
         else
           List(
             (
-              {
-                val c = uk.gov.hmrc.gform.gform.routes.FormController
-                  .form(
-                    formTemplateId,
-                    maybeAccessCode,
-                    sectionNumber,
-                    sectionTitle4Ga,
-                    SuppressErrors.Yes,
-                    fastForward
-                  )
-                lxol.pp.log(c)
-                c
-              },
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(
+                  formTemplateId,
+                  maybeAccessCode,
+                  sectionNumber,
+                  sectionTitle4Ga,
+                  SuppressErrors.Yes,
+                  fastForward
+                ),
               changeOrViewLabel,
               iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
             )
