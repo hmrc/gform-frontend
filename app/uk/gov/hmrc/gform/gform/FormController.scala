@@ -472,12 +472,14 @@ class FormController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => _ => formModelOptics =>
-        val formModel = formModelOptics.formModelVisibilityOptics.formModel
-        val fastForward = filterFastForward(sectionNumber, rawFastForward, formModel)
+        // val formModel = formModelOptics.formModelVisibilityOptics.formModel
+        // val fastForward = filterFastForward(sectionNumber, rawFastForward, formModel)
+        val fastForward = removeDuplications(rawFastForward)
         def processEditAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
 
           val addToListIteration = processData.formModel.brackets.addToListById(addToListId, idx)
 
+          lxol.pp.log(fastForward, "[777777]")
           def defaultNavigation(): (SectionNumber, List[FastForward]) = {
             val firstAddToListPageSN: SectionNumber = processData.formModel.brackets
               .addToListBracket(addToListId)
@@ -912,8 +914,8 @@ class FormController(
     val sectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
     val ff = rawFastForward
       .filterNot {
-        case FastForward.CYA(SectionOrSummary.Section(sn)) => sectionNumber > sn
-        case FastForward.StopAt(sn)                        => sectionNumber > sn
+        case FastForward.CYA(SectionOrSummary.Section(sn)) => sectionNumber >= sn
+        case FastForward.StopAt(sn)                        => sectionNumber >= sn
         case _                                             => false
       }
     removeDuplications(ff)
