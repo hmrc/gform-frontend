@@ -54,13 +54,16 @@ case class FormTemplate(
   accessibilityUrl: Option[AccessibilityUrl],
   expressionsOutput: Option[ExpressionOutput],
   exitPages: Option[NonEmptyList[ExitPage]],
-  objectStore: Option[Boolean]
+  objectStore: Option[Boolean],
+  hideSaveAndComeBackButton: Option[Boolean]
 ) {
 
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")
 
   val sectionNumberZero: SectionNumber =
     formKind.fold[SectionNumber](_ => SectionNumber.classicZero)(_ => SectionNumber.taskListZero)
+
+  val isHideSaveAndComeBackButton = hideSaveAndComeBackButton.getOrElse(false)
 
 }
 

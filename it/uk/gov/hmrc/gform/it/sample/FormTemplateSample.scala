@@ -131,7 +131,8 @@ trait FormTemplateSample {
     accessibilityUrl = None,
     exitPages = None,
     expressionsOutput = None,
-    objectStore = None
+    objectStore = None,
+    hideSaveAndComeBackButton = None
   )
 
   val formTemplateEmailAuthWithOptionalDetails = formTemplateEmailAuth.copy(authConfig =
