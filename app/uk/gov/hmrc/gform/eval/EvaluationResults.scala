@@ -418,6 +418,10 @@ case class EvaluationResults(
               uk.gov.hmrc.gform.gform.routes.NewFormController
                 .dashboardWithNewSession(evaluationContext.formTemplateId)
                 .url
+            case InternalLink.SignOut =>
+              uk.gov.hmrc.gform.gform.routes.SignOutController
+                .signOut(evaluationContext.formTemplateId)
+                .url
             case PageLink(id) =>
               computePageLink(id, evaluationContext)
           }

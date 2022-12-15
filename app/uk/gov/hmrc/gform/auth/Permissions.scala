@@ -17,15 +17,12 @@
 package uk.gov.hmrc.gform.auth
 
 import org.slf4j.{ Logger, LoggerFactory }
-import org.slf4j.helpers.NOPLogger
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.{ EditForm => EditFormWith, _ }
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm.{ EditForm => EditFormWithout, _ }
 import uk.gov.hmrc.gform.auth.models.PermissionResult.{ FormSubmitted, NotPermitted, Permitted }
 import uk.gov.hmrc.gform.auth.models.Role.{ Agent, Customer, Reviewer }
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm, PermissionResult, Role }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, Accepting, FormStatus, InProgress, NeedsReview, Returning, Signed, Submitted, Submitting, Summary, Validated }
-
-import scala.io.Source
+import uk.gov.hmrc.gform.sharedmodel.form._
 
 object Permissions {
 
@@ -191,130 +188,5 @@ object Permissions {
       case InProgress | Summary | Validated | Signed => Some(status)
       case _                                         => None
     }
-  }
-}
-
-object PermissionsTable extends App {
-  import cats.syntax.eq._
-  import cats.instances.string._
-
-  sealed trait Row {
-    def operation: String
-    def role: String
-  }
-  case class RowWithoutForm(operation: String, role: String) extends Row
-  case class RowWithForm(operation: String, role: String, status: String) extends Row
-
-  private val roles = Set(Role.Customer, Role.Reviewer, Role.Agent)
-
-  private val logged: Map[Row, Boolean] = readLoggedOperations
-  println(logged)
-
-  private val enumeratedRows: Seq[(Row, PermissionResult)] = sort(enumerateRows)
-  println(enumeratedRows)
-
-  showTable("Tested", row => logged.contains(row))
-  println
-  showTable("Untested", row => !logged.contains(row))
-
-  private def showTable(title: String, pred: Row => Boolean): Unit = {
-    underline(title, "=")
-    underline(showRow("Form Status", "Role", "Operation", "Validity"), "-")
-
-    enumeratedRows.foreach { case (row, valid) =>
-      if (pred(row)) println(show(row, valid))
-    }
-  }
-
-  private def underline(title: String, c: String): Unit = {
-    println(title)
-    println(c * title.length)
-  }
-
-  private def sort(map: Map[Row, PermissionResult]): Seq[(Row, PermissionResult)] =
-    map.toList.sortBy(row => (showStatus(row._1), row._1.role, row._1.operation))
-
-  private def show(row: Row, valid: PermissionResult): String =
-    showRow(
-      showStatus(row),
-      row.role,
-      row.operation,
-      valid match {
-        case PermissionResult.Permitted     => "Permitted"
-        case PermissionResult.NotPermitted  => "Not Permitted"
-        case PermissionResult.FormSubmitted => "Form Submitted"
-      }
-    )
-
-  private def showRow(status: String, role: String, operation: String, validity: String): String = {
-    val paddedValidity = pad(validity, 10)
-    val paddedOperation = pad(operation, 25)
-    val paddedRole = pad(role, 10)
-    val paddedStatus = pad(status, 20)
-
-    s"$paddedStatus$paddedRole$paddedOperation$paddedValidity"
-  }
-
-  private def showStatus(row: Row) = row match {
-    case _: RowWithoutForm => ""
-    case r: RowWithForm    => r.status
-  }
-
-  private def pad(s: String, l: Int) = s + (" " * (l - s.length))
-
-  private def enumerateRows: Map[Row, PermissionResult] =
-    enumerateWithoutFormPermittedRows ++ enumerateWithFormPermittedRows
-
-  private def enumerateWithoutFormPermittedRows: Map[Row, PermissionResult] = {
-    for {
-      operation <- Set(
-                     OperationWithoutForm.EditForm,
-                     OperationWithoutForm.ShowAccessCode,
-                     OperationWithoutForm.ViewDashboard,
-                     OperationWithoutForm.Lookup
-                   )
-      role <- roles
-    } yield RowWithoutForm(operation.toString, role.toString) -> Permissions.evaluateOperationWithoutForm(
-      operation,
-      role
-    )(NOPLogger.NOP_LOGGER)
-  }.toMap
-
-  private def enumerateWithFormPermittedRows: Map[Row, PermissionResult] = {
-    for {
-      operation <- Set(
-                     OperationWithForm.ForceUpdateFormStatus,
-                     OperationWithForm.SubmitDeclaration,
-                     OperationWithForm.EditForm,
-                     OperationWithForm.ReviewSubmitted,
-                     OperationWithForm.ReviewReturned,
-                     OperationWithForm.DownloadSummaryPdf,
-                     OperationWithForm.AcceptSummary,
-                     OperationWithForm.ReviewAccepted,
-                     OperationWithForm.UpdateFormField,
-                     OperationWithForm.ViewDeclaration,
-                     OperationWithForm.ViewSummary,
-                     OperationWithForm.ViewAcknowledgement
-                   )
-      role   <- roles
-      status <- FormStatus.all
-    } yield RowWithForm(operation.toString, role.toString, status.toString) -> Permissions
-      .evaluateOperationWithForm(operation, role, status)(NOPLogger.NOP_LOGGER)
-  }.toMap
-
-  private def readLoggedOperations: Map[Row, Boolean] = {
-    val logPattern =
-      """.*(Valid|Invalid) *([A-Za-z]+) *(Customer|Agent|Reviewer) *([A-Za-z]*).*""".r
-
-    Source
-      .fromFile("logs/gform-frontend-permissions.log")
-      .getLines
-      .map {
-        case logPattern(validity, operationWithoutForm, role, "") =>
-          RowWithoutForm(operationWithoutForm, role) -> (validity === "Valid")
-        case logPattern(validity, operationWithForm, role, status) =>
-          RowWithForm(operationWithForm, role, status) -> (validity === "Valid")
-      }
-      .toMap
   }
 }

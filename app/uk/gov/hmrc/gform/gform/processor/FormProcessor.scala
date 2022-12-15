@@ -33,23 +33,21 @@ import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gform.{ DataRetrieveService, FastForwardService, routes }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
+import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
-import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, ValidateBankDetails }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FormComponentId, IsPostcodeLookup, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.PageId
-import uk.gov.hmrc.gform.models.ids.ModelPageId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
 
 class FormProcessor(
   i18nSupport: I18nSupport,
@@ -372,7 +370,7 @@ class FormProcessor(
               fastForward,
               envelopeWithMapping,
               sectionNumber.toCoordinates
-            )(toResult(updatePostcodeLookup)(redirectUrl))
+            )(toResult(updatePostcodeLookup)(redirectUrl.map(_.value())))
         }
       }
     } yield res
