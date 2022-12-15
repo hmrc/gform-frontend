@@ -95,7 +95,6 @@ lazy val microservice = (project in file("."))
       Resolver.bintrayRepo("jetbrains", "markdown"),
       Resolver.jcenterRepo,
       "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven",
-      "hmrc-releases" at "https://artefacts.tax.service.gov.uk/artifactory/hmrc-releases/",
       "bintray" at "https://dl.bintray.com/webjars/maven"
     )
   )
