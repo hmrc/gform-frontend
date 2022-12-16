@@ -344,14 +344,12 @@ class FormController(
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         //val formModel = formModelOptics.formModelVisibilityOptics.formModel
         // val ff = filterFastForward(sectionNumber, rawFastForward, formModelOptics.formModelVisibilityOptics.formModel)
-        lxol.pp.log((sectionNumber, ff), "[999999]")
         lazy val navigator = Navigator(sectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
 
         def callSelector(call1: => Call, call2: => Call, lastSectionNumber: Option[SectionNumber]): Future[Call] =
           for {
             invalidSectionNumber <-
               fastForwardService.maybeInvalidSectionNumber(lastSectionNumber, cache, formModelOptics)
-            _ = lxol.pp.log(invalidSectionNumber, "[5555 INVALID]")
           } yield if (invalidSectionNumber.isEmpty) call1 else call2
 
         def goBack(toSectionNumber: SectionNumber) = {
