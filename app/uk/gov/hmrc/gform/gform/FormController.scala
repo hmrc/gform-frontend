@@ -344,12 +344,14 @@ class FormController(
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         //val formModel = formModelOptics.formModelVisibilityOptics.formModel
         // val ff = filterFastForward(sectionNumber, rawFastForward, formModelOptics.formModelVisibilityOptics.formModel)
+        lxol.pp.log((sectionNumber, ff), "[999999]")
         lazy val navigator = Navigator(sectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
 
         def callSelector(call1: => Call, call2: => Call, lastSectionNumber: Option[SectionNumber]): Future[Call] =
           for {
             invalidSectionNumber <-
               fastForwardService.maybeInvalidSectionNumber(lastSectionNumber, cache, formModelOptics)
+            _ = lxol.pp.log(invalidSectionNumber, "[5555 INVALID]")
           } yield if (invalidSectionNumber.isEmpty) call1 else call2
 
         def goBack(toSectionNumber: SectionNumber) = {
@@ -368,52 +370,66 @@ class FormController(
               )
 
           val fastForward = ff
+          // val fastForward = ff.filter {
+          //   case _: FastForward.StopAt => false
+          //   case _                     => true
+          // }
 
-          val backCallF = ff match {
-            case FastForward.CYA(SectionOrSummary.FormSummary) :: _ =>
-              callSelector(
-                routes.SummaryController
-                  .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None),
-                createBackUrl(toSectionNumber, fastForward),
-                None
-              )
-            case ff @ FastForward.CYA(SectionOrSummary.Section(to)) :: xs =>
-              callSelector(
-                createBackUrl(to, ff),
-                createBackUrl(toSectionNumber, fastForward),
-                Some(to)
-              )
-            case ff @ FastForward.StopAt(sn) :: xs =>
-              createBackUrl(toSectionNumber, FastForward.StopAt(sectionNumber) :: xs).pure[Future]
-            case _ =>
-              sectionNumber.fold { classic =>
-                createBackUrl(toSectionNumber, fastForward).pure[Future]
-              } { taskList =>
-                ff match {
-                  case FastForward.CYA(SectionOrSummary.TaskSummary) :: xs =>
-                    callSelector(
-                      routes.SummaryController
-                        .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None),
-                      createBackUrl(toSectionNumber, fastForward),
-                      None
-                    )
-                  case _ =>
-                    val maybePreviousPage = navigator.previousSectionNumber
-
-                    if (maybePreviousPage.isEmpty) {
+          def backCallF() = {
+            val firstCYA = ff.find {
+              case _: FastForward.CYA => true
+              case _                  => false
+            }
+            firstCYA match {
+              case Some(FastForward.CYA(SectionOrSummary.FormSummary)) =>
+                callSelector(
+                  routes.SummaryController
+                    .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None),
+                  createBackUrl(toSectionNumber, fastForward),
+                  None
+                )
+              case Some(FastForward.CYA(SectionOrSummary.Section(to))) =>
+                callSelector(
+                  createBackUrl(to, ff),
+                  createBackUrl(toSectionNumber, fastForward),
+                  Some(to)
+                )
+              // case ff @ FastForward.StopAt(sn) :: x :: xs =>
+              //   x match {
+              //     case _: FastForward.CYA => backCallF()
+              //   }
+              case Some(FastForward.StopAt(sn)) =>
+                createBackUrl(toSectionNumber, FastForward.StopAt(sectionNumber) :: ff).pure[Future]
+              case _ =>
+                sectionNumber.fold { classic =>
+                  createBackUrl(toSectionNumber, fastForward).pure[Future]
+                } { taskList =>
+                  ff match {
+                    case FastForward.CYA(SectionOrSummary.TaskSummary) :: xs =>
                       callSelector(
-                        uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                          .landingPage(cache.formTemplateId, maybeAccessCode),
+                        routes.SummaryController
+                          .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None),
                         createBackUrl(toSectionNumber, fastForward),
                         None
                       )
-                    } else {
-                      createBackUrl(toSectionNumber, fastForward).pure[Future]
-                    }
+                    case _ =>
+                      val maybePreviousPage = navigator.previousSectionNumber
+
+                      if (maybePreviousPage.isEmpty) {
+                        callSelector(
+                          uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                            .landingPage(cache.formTemplateId, maybeAccessCode),
+                          createBackUrl(toSectionNumber, fastForward),
+                          None
+                        )
+                      } else {
+                        createBackUrl(toSectionNumber, fastForward).pure[Future]
+                      }
+                  }
                 }
-              }
+            }
           }
-          backCallF.map(Redirect(_))
+          backCallF().map(Redirect(_))
         }
 
         val toSectionNumber = navigator.previousSectionNumber.getOrElse(sectionNumber)
