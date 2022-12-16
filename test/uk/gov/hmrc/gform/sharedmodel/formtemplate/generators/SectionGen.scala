@@ -119,7 +119,8 @@ trait SectionGen {
       presentationHint,
       dataRetrieve,
       confirmation,
-      redirects.map(NonEmptyList.one(_))
+      redirects.map(NonEmptyList.one(_)),
+      None
     )
 
   def nonRepeatingPageSectionGen: Gen[Section.NonRepeatingPage] = pageGen.map(Section.NonRepeatingPage)

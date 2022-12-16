@@ -126,7 +126,8 @@ case class DeclarationSection(
       presentationHint = None,
       dataRetrieve = None,
       confirmation = None,
-      redirects = None
+      redirects = None,
+      hideSaveAndComeBackButton = None
     )
 }
 
@@ -165,7 +166,8 @@ case class AcknowledgementSection(
       presentationHint = None,
       dataRetrieve = None,
       confirmation = None,
-      redirects = None
+      redirects = None,
+      hideSaveAndComeBackButton = None
     )
 }
 
@@ -206,7 +208,8 @@ case class EnrolmentSection(
       presentationHint = None,
       dataRetrieve = None,
       confirmation = None,
-      redirects = None
+      redirects = None,
+      hideSaveAndComeBackButton = None
     )
 }
 

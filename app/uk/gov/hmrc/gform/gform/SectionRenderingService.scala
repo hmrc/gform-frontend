@@ -366,7 +366,8 @@ class SectionRenderingService(
           .exists(_ < sectionNumber)
     }
 
-    val renderComeBackLater = retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
+    val renderComeBackLater =
+      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
 
     html.form.addToList(
       repeater.title.value,
@@ -484,7 +485,7 @@ class SectionRenderingService(
       )
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
       _ === Continue
-    ) && !formTemplate.draftRetrievalMethod.isNotPermitted
+    ) && !formTemplate.draftRetrievalMethod.isNotPermitted && !singleton.page.isHideSaveAndComeBackButton
 
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
