@@ -659,6 +659,7 @@ class FormController(
                                   SuppressErrors(isFirstLanding),
                                   // TODO: Should be changed
                                   if (isLastBracketIteration) List(FastForward.Yes)
+                                  //else if ((isFirstLanding && !isConfirmationPage) || sectionNumber.isTaskList) {
                                   else if (isFirstLanding || sectionNumber.isTaskList) {
                                     fastForward match {
                                       case Nil => Nil

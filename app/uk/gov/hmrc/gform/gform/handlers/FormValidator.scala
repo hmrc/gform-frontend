@@ -193,8 +193,11 @@ class FormValidator(implicit ec: ExecutionContext) {
         )
       case FastForward.StopAt(to) :: xs =>
         ffYesSnF.map {
-          case None => SectionOrSummary.Section(to)
-          //if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
+          case None =>
+            if (availableSectionNumbers.contains(to)) {
+              SectionOrSummary.Section(to)
+            } else if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary
+            else SectionOrSummary.TaskSummary
           case Some(r) => if (r < to) SectionOrSummary.Section(r) else SectionOrSummary.Section(to)
         }
       case _ =>
