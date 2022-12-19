@@ -32,7 +32,7 @@
 	    @defining(SectionNumber.Classic(columnNumber)) { sectionNumber =>
 		@if(formModel.availableSectionNumbers.contains(sectionNumber)) {
 		    @defining(formModel(sectionNumber)) { pageModel =>
-			@pageModelHeader(pageModel)
+			@pageModelHeader(pageModel, sectionNumber)
 		    }
 		} else {
 		    <td> - hidden - </td>

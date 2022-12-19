@@ -89,7 +89,7 @@ class TaskListController(
             sectionNumber,
             sectionTitle4Ga,
             SuppressErrors.Yes,
-            FastForward.StopAt(sectionNumber.increment)
+            List(FastForward.StopAt(sectionNumber.increment))
           )
 
           if (isCompleted) {
@@ -121,8 +121,8 @@ class TaskListController(
               Redirect(sectionUrl(sn)).pure[Future]
             }
           } else {
+            val sn = SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
             if (cache.formTemplate.isSpecimen) {
-              val sn = SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
 
               Redirect(sectionUrl(sn)).pure[Future]
             } else {
@@ -131,7 +131,7 @@ class TaskListController(
                   cache,
                   maybeAccessCode,
                   formModelOptics,
-                  Some(Coordinates(taskSectionNumber, taskNumber))
+                  Some(sn)
                 )
             }
           }

@@ -160,20 +160,20 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
     result4 shouldBe List(Classic(0), Classic(4))
   }
 
-  "FastForwardNavigator.nextSectionNumber" should "skip ATL non repeater section and jump to RepeaterSection" in {
+  "Navigator.nextSectionNumber" should "skip ATL non repeater section and jump to RepeaterSection" in {
     val formModel =
       getFormModel(
         section1 :: section2 :: sectionATL :: Nil,
         mkVariadicFormData("fcId1" -> One("1"), "fcId2" -> One("1"), "fcIdATL" -> One("1"))
       )
 
-    val ffNavigator = FastForwardNavigator(formModel)
+    val ffNavigator = Navigator(Classic(0), formModel)
     ffNavigator.availableSectionNumbers shouldBe List(Classic(0), Classic(1), Classic(2), Classic(3))
     ffNavigator.addToListRepeaterSectionNumbers shouldBe List(Classic(3))
     ffNavigator.addToListNonRepeaterSectionNumbers shouldBe List(Classic(2))
     ffNavigator.addToListSectionNumbers shouldBe List(Classic(2), Classic(3))
-    ffNavigator.nextSectionNumber(Classic(0)) shouldBe (Classic(1))
-    ffNavigator.nextSectionNumber(Classic(1)) shouldBe (Classic(3))
+    Navigator(Classic(0), formModel).nextSectionNumber shouldBe (Classic(1))
+    Navigator(Classic(1), formModel).nextSectionNumber shouldBe (Classic(3))
   }
 
 }

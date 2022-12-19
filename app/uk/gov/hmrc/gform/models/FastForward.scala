@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.Eq
 import uk.gov.hmrc.gform.models.FastForward.StopAt
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
-import uk.gov.hmrc.gform.controllers.FastForwardNavigator
+import uk.gov.hmrc.gform.controllers.Navigator
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
 
 sealed trait FastForward extends Product with Serializable {
@@ -35,27 +35,25 @@ sealed trait FastForward extends Product with Serializable {
 
   def asString: String =
     fold(_ => FastForward.ffYes)(_.stopAt.value.toString) {
-      case FastForward.CYA(from, SectionOrSummary.FormSummary) => FastForward.ffCYA + from.value.toString
-      case FastForward.CYA(from, SectionOrSummary.TaskSummary) => FastForward.ffCYA + from.value.toString + "n"
-      case FastForward.CYA(from, SectionOrSummary.Section(to)) =>
-        FastForward.ffCYA + from.value.toString + "." + to.value.toString
+      case FastForward.CYA(SectionOrSummary.FormSummary) => FastForward.ffCYAFormSummary
+      case FastForward.CYA(SectionOrSummary.TaskSummary) => FastForward.ffCYATaskSummary
+      case FastForward.CYA(SectionOrSummary.Section(to)) =>
+        FastForward.ffCYA + to.value.toString
     }
 
   def next(formModel: FormModel[Visibility], sn: SectionNumber): FastForward =
     fold[FastForward](identity) { st =>
       formModel.availableSectionNumbers
         .find(s => s >= st.stopAt && s >= sn)
-        .map(availableSectionNumber =>
-          StopAt(FastForwardNavigator(formModel).nextSectionNumber(availableSectionNumber))
-        )
+        .map(availableSectionNumber => StopAt(Navigator(availableSectionNumber, formModel).nextSectionNumber))
         .getOrElse(st)
-    } { case cya @ FastForward.CYA(from, to) =>
+    } { case cya @ FastForward.CYA(to) =>
       formModel
         .nextVisibleSectionNumber(sn)
         .map(s =>
           to match {
             case SectionOrSummary.Section(s) if sn == s => FastForward.Yes
-            case _                                      => FastForward.CYA(s, to)
+            case _                                      => FastForward.CYA(to)
           }
         )
         .getOrElse(cya)
@@ -70,9 +68,11 @@ object FastForward {
 
   case object Yes extends FastForward
   case class StopAt(stopAt: SectionNumber) extends FastForward
-  case class CYA(from: SectionNumber, to: SectionOrSummary = SectionOrSummary.FormSummary) extends FastForward
+  case class CYA(to: SectionOrSummary = SectionOrSummary.FormSummary) extends FastForward
 
   val ffYes = "t"
+  val ffCYAFormSummary = "cyaf"
+  val ffCYATaskSummary = "cyat"
   val ffCYA = "cya"
 
   implicit val equal: Eq[FastForward] = Eq.fromUniversalEquals
