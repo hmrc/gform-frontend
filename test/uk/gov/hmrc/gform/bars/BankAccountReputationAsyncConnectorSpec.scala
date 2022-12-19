@@ -92,7 +92,7 @@ class BankAccountReputationAsyncConnectorSpec
 
     stubFor(
       WireMock
-        .post(s"/v2/validateBankDetails")
+        .post(s"/v3/validateBankDetails")
         .withHeader("User-Agent", equalTo("AHC/2.1"))
         .withHeader("Content-Type", equalTo("application/json"))
         .willReturn(
@@ -121,7 +121,7 @@ class BankAccountReputationAsyncConnectorSpec
   it should "return BadRequest error" in new TestFixture {
     stubFor(
       WireMock
-        .post(s"/v2/validateBankDetails")
+        .post(s"/v3/validateBankDetails")
         .willReturn(
           badRequest().withBody("""
                                   |{
