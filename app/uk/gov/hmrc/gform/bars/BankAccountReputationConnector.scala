@@ -43,7 +43,7 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
     hc: HeaderCarrier
   ): Future[ServiceCallResponse[ValidateBankDetails.Response]] =
     ws.POST[ValidateBankDetails.Request, HttpResponse](
-      baseUrl + "/v2/validateBankDetails",
+      baseUrl + "/v3/validateBankDetails",
       request
     ).map { httpResponse =>
       val status = httpResponse.status
