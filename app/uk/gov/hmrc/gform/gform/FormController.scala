@@ -397,12 +397,10 @@ class FormController(
               //     case _: FastForward.CYA => backCallF()
               //   }
               case Some(FastForward.StopAt(sn)) =>
-                lxol.pp.log(sn, "[8888888]")
                 sectionNumber.fold { classic =>
                   createBackUrl(toSectionNumber, FastForward.StopAt(sectionNumber) :: ff).pure[Future]
                 } { taskList =>
                   val maybePreviousPage = navigator.previousSectionNumber
-                  lxol.pp.log(maybePreviousPage, "[8888888]")
                   if (maybePreviousPage.isEmpty) {
                     uk.gov.hmrc.gform.tasklist.routes.TaskListController
                       .landingPage(cache.formTemplateId, maybeAccessCode)
@@ -416,7 +414,6 @@ class FormController(
                 sectionNumber.fold { classic =>
                   createBackUrl(toSectionNumber, fastForward).pure[Future]
                 } { taskList =>
-                  lxol.pp.log(taskList, "[77777]")
                   ff match {
                     case FastForward.CYA(SectionOrSummary.TaskSummary) :: xs =>
                       callSelector(
@@ -427,7 +424,6 @@ class FormController(
                       )
                     case _ =>
                       val maybePreviousPage = navigator.previousSectionNumber
-                      lxol.pp.log(maybePreviousPage, "[77777]")
 
                       if (maybePreviousPage.isEmpty) {
                         callSelector(
