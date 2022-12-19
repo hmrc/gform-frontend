@@ -377,8 +377,6 @@ class FormProcessor(
     } yield res
   }
 
-  def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber): SectionTitle4Ga = {
-    lxol.pp.log(sectionNumber, "[77777]")
+  def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber): SectionTitle4Ga =
     sectionTitle4GaFactory(processData.formModel(sectionNumber), sectionNumber)
-  }
 }

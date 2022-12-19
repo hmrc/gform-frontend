@@ -157,7 +157,6 @@ class FormValidator(implicit ec: ExecutionContext) {
     maybeSectionNumber: Option[SectionNumber]
   ): Future[SectionOrSummary] = {
 
-    lxol.pp.log((fastForward, maybeSectionNumber), "[777777AAA]")
     val maybeCoordinates = maybeSectionNumber.flatMap(_.toCoordinates)
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
 
@@ -176,7 +175,7 @@ class FormValidator(implicit ec: ExecutionContext) {
       next          <- availableSectionNumbers.find(_ > sectionNumber)
     } yield next
 
-    val r = fastForward match {
+    fastForward match {
       case FastForward.CYA(to) :: xs =>
         ffYesSnF.map(ffYes =>
           (ffYes, to, maybeSectionNumber) match {
@@ -212,11 +211,6 @@ class FormValidator(implicit ec: ExecutionContext) {
             case (Some(r), Some(sn)) => if (r < sn) SectionOrSummary.Section(r) else SectionOrSummary.Section(sn)
           }
         }
-    }
-    lxol.pp.log(r, "RESULT")
-    r.map { a =>
-      lxol.pp.log(a, "RESULT")
-      a
     }
   }
 }
