@@ -447,9 +447,27 @@ subgraph scenario2["Scenario 2: After changing Page2, Page4 is invalid."]
     CYA2   -.- Page22
     Page42 --> |9 <br>fast forward| CYA2
 end
+subgraph scenario3["Scenario 3: After changing Page2, Page4 is invalid."]
+    direction LR
+    Page13["Page1"]
+    Page23["Page2"]
+    Page33["Page3<br><i>valid"]
+    Page43["Page4<br><i>invalid"]
+    Page53["Page5"<br><i>valid]
+    CYA3["CYA"]
+    Page13 -.-  Page23
+    Page23 --> |7| Page33
+    Page33 -.8 back.-> Page23
+    Page33 -.-  Page43
+    Page43 -.- Page53
+    Page53 -.- CYA3
+    CYA3   -.- Page23
+
+end
  title -.- top
  top --- scenario1
  scenario1 --- scenario2
+ scenario2 --- scenario3
 
     classDef orange fill:#fedebe,stroke:#222,stroke-width:1px
     classDef orangeCYA fill:#ffaf42,stroke:#222,stroke-width:2px
@@ -461,13 +479,12 @@ end
     class Page32 valid
     class Page52 valid
     class Page42 invalid
+    class Page43 invalid
     class CYA orange
     class CYA1 orange
     class CYA2 orange
     classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
     class title greenTitle
-
-
 ```
 ***
 ***
@@ -629,6 +646,8 @@ graph LR;
     classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
     class title greenTitle
 ```
+***
+***
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
@@ -640,6 +659,8 @@ graph LR;
     class Task1Page1 orange
     class title greenTitle
 ```
+***
+***
 
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
@@ -665,6 +686,7 @@ graph LR;
     classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
     class title greenTitle
 ```
+***
 # Notes for developers
 Before updating the mermaid diagram in the file please test here:
 https://mermaid.live/
