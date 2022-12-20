@@ -35,7 +35,7 @@ class ConfirmationService(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    fastForward: FastForward
+    fastForward: List[FastForward]
   ): ConfirmationAction = {
 
     val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel

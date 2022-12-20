@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.gform.handlers
 import cats.Monoid
 import uk.gov.hmrc.gform.controllers.{ CacheData, Origin }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
-import uk.gov.hmrc.gform.models.Coordinates
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
@@ -91,24 +90,16 @@ class FormValidator(implicit ec: ExecutionContext) {
     validationResult.toFormValidationOutcome(enteredVariadicFormData)
   }
 
-  def fastForwardValidate(
+  def maybeGetInvalidSectionNumber(
     processData: ProcessData,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
-    fastForward: FastForward,
-    maybeCoordinates: Option[Coordinates]
-  ): Future[SectionOrSummary] = {
+    maybeSectionNumber: Option[SectionNumber]
+  ): Future[Option[SectionNumber]] = {
 
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
-
-    val availableSectionNumbers0: List[SectionNumber] = Origin(
-      formModelOptics.formModelVisibilityOptics.formModel
-    ).availableSectionNumbers
-
-    val availableSectionNumbers = maybeCoordinates.fold(availableSectionNumbers0)(coordinates =>
-      availableSectionNumbers0.filter(_.contains(coordinates))
-    )
+    val availableSectionNumbers = getAvailableSectionNumbers(maybeSectionNumber, formModelOptics)
     def isValidSectionNumberF(sn: SectionNumber): Future[Boolean] =
       validatePageModelBySectionNumber(
         formModelOptics,
@@ -118,7 +109,7 @@ class FormValidator(implicit ec: ExecutionContext) {
         validatePageModel
       ).map(fhr => toFormValidationOutcome(fhr, EnteredVariadicFormData.empty).isValid)
 
-    val ffYesSnF = availableSectionNumbers
+    availableSectionNumbers
       .foldLeft(Future.successful(None: Option[SectionNumber])) { case (accF, currentSn) =>
         for {
           acc     <- accF
@@ -131,7 +122,6 @@ class FormValidator(implicit ec: ExecutionContext) {
         } yield (acc match {
           case None =>
             if (
-              fastForward.goOn(currentSn) &&
               hasBeenVisited &&
               postcodeLookupHasAddress &&
               isValid &&
@@ -141,16 +131,58 @@ class FormValidator(implicit ec: ExecutionContext) {
           case otherwise => otherwise
         })
       }
+  }
 
-    (fastForward match {
-      case FastForward.CYA(from, to) =>
-        lazy val nextFrom = availableSectionNumbers.find(_ > from)
+  private def getAvailableSectionNumbers(
+    currentSectionNumber: Option[SectionNumber],
+    formModelOptics: FormModelOptics[DataOrigin.Browser]
+  ): List[SectionNumber] = {
+    val maybeCoordinates = currentSectionNumber.flatMap(_.toCoordinates)
+
+    val availableSectionNumbers: List[SectionNumber] = Origin(
+      formModelOptics.formModelVisibilityOptics.formModel
+    ).availableSectionNumbers
+
+    maybeCoordinates.fold(availableSectionNumbers)(coordinates =>
+      availableSectionNumbers.filter(_.contains(coordinates))
+    )
+  }
+
+  def fastForwardValidate(
+    processData: ProcessData,
+    cache: CacheData,
+    envelope: EnvelopeWithMapping,
+    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
+    fastForward: List[FastForward],
+    maybeSectionNumber: Option[SectionNumber]
+  ): Future[SectionOrSummary] = {
+
+    val maybeCoordinates = maybeSectionNumber.flatMap(_.toCoordinates)
+    val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
+
+    val availableSectionNumbers = getAvailableSectionNumbers(maybeSectionNumber, formModelOptics)
+
+    val ffYesSnF = maybeGetInvalidSectionNumber(
+      processData,
+      cache,
+      envelope,
+      validatePageModel,
+      maybeSectionNumber
+    )
+
+    lazy val nextFrom = for {
+      sectionNumber <- maybeSectionNumber
+      next          <- availableSectionNumbers.find(_ > sectionNumber)
+    } yield next
+
+    fastForward match {
+      case FastForward.CYA(to) :: xs =>
         ffYesSnF.map(ffYes =>
-          (ffYes, to, from) match {
-            case (None, SectionOrSummary.FormSummary, _)       => SectionOrSummary.FormSummary
-            case (None, SectionOrSummary.TaskSummary, _)       => SectionOrSummary.TaskSummary
-            case (None, SectionOrSummary.Section(cyaTo), _)    => SectionOrSummary.Section(cyaTo)
-            case (Some(yesTo), _, cyaFrom) if yesTo == cyaFrom => SectionOrSummary.Section(yesTo)
+          (ffYes, to, maybeSectionNumber) match {
+            case (None, SectionOrSummary.FormSummary, _)    => SectionOrSummary.FormSummary
+            case (None, SectionOrSummary.TaskSummary, _)    => SectionOrSummary.TaskSummary
+            case (None, SectionOrSummary.Section(cyaTo), _) => SectionOrSummary.Section(cyaTo)
+            case (Some(yesTo), _, Some(sn)) if yesTo == sn  => SectionOrSummary.Section(yesTo)
             case (Some(yesTo), SectionOrSummary.FormSummary, _) =>
               nextFrom.map(SectionOrSummary.Section(_)).getOrElse(SectionOrSummary.FormSummary)
             case (Some(yesTo), SectionOrSummary.Section(cyaTo), _) if cyaTo > yesTo =>
@@ -158,12 +190,27 @@ class FormValidator(implicit ec: ExecutionContext) {
             case (Some(yesTo), SectionOrSummary.Section(cyaTo), _) => SectionOrSummary.Section(cyaTo)
           }
         )
-      case _ =>
+      case FastForward.StopAt(to) :: xs =>
         ffYesSnF.map {
           case None =>
-            if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
-          case Some(r) => SectionOrSummary.Section(r)
+            if (availableSectionNumbers.contains(to)) {
+              SectionOrSummary.Section(to)
+            } else if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary
+            else SectionOrSummary.TaskSummary
+          case Some(r) => if (r < to) SectionOrSummary.Section(r) else SectionOrSummary.Section(to)
         }
-    })
+      case _ =>
+        ffYesSnF.map { ffYesSn =>
+          (ffYesSn, nextFrom) match {
+            case (None, None) =>
+              if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
+            case (None, Some(sn)) =>
+              SectionOrSummary.Section(sn)
+              if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
+            case (Some(r), None)     => SectionOrSummary.Section(r)
+            case (Some(r), Some(sn)) => if (r < sn) SectionOrSummary.Section(r) else SectionOrSummary.Section(sn)
+          }
+        }
+    }
   }
 }

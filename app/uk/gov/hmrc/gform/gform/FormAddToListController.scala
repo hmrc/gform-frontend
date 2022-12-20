@@ -158,7 +158,7 @@ class FormAddToListController(
                   redirect <- addToListProcessor.processRemoveAddToList(
                                 cache,
                                 maybeAccessCode,
-                                FastForward.Yes,
+                                List(FastForward.Yes),
                                 formModelOptics,
                                 processData,
                                 index,

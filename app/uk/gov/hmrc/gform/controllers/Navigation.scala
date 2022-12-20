@@ -86,13 +86,9 @@ case class Navigator(
     filteredSectionNumbers(sectionNumber).reverse
       .find(_ < sectionNumber)
 
-}
-
-case class FastForwardNavigator(formModel: FormModel[Visibility]) extends Navigation {
-
-  def nextSectionNumber(prevSn: SectionNumber): SectionNumber = {
-    val sn = prevSn.increment
-    if (addToListSectionNumbers.contains(prevSn)) {
+  lazy val nextSectionNumber: SectionNumber = {
+    val sn = sectionNumber.increment
+    if (addToListSectionNumbers.contains(sectionNumber)) {
       sn
     } else {
       addToListRepeaterSectionNumbers

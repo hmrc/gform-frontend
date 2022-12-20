@@ -71,7 +71,7 @@ final case class ExtraInfo(
     inputType = Some("submit"),
     attributes = Map(
       "formaction" -> uk.gov.hmrc.gform.gform.routes.FormController
-        .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes, SaveAndExit)
+        .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, List(FastForward.Yes), SaveAndExit)
         .path
     ),
     classes = "govuk-button--secondary"
