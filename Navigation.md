@@ -76,7 +76,9 @@ graph LR;
     class ATLRepeater2 orangeRepeater
     class ATLCYA11 orangeCYA
     classDef redTitle fill:#c21807 ,stroke:#c0c0c2,stroke-width:3px
-    class title redTitle
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
+    class title greenTitle
+
 
 ```
 ***
@@ -204,7 +206,8 @@ graph LR;
     class ATLPage2 orange
     class ATLPage1 orange
     classDef redTitle fill:#c21807 ,stroke:#c0c0c2,stroke-width:3px
-    class title redTitle
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
+    class title greenTitle
 
 ```
 ***
@@ -234,8 +237,7 @@ graph LR;
     class ATLRepeater2 orangeRepeater
     classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
     classDef redTitle fill:#c21807 ,stroke:#c0c0c2,stroke-width:3px
-    class title redTitle
-
+    class title greenTitle
 
 
 ```
@@ -269,9 +271,9 @@ graph LR;
     class ATLPage12 orange
     class ATLPage22 orange
     class ATLRepeater2 orangeRepeater
-    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
     classDef redTitle fill:#c21807 ,stroke:#c0c0c2,stroke-width:3px
-    class title redTitle
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
+    class title greenTitle
 ```
 ***
 ***
@@ -332,7 +334,7 @@ graph LR;
     class ATLPage1 orange
     classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
     classDef redTitle fill:#c21807 ,stroke:#c0c0c2,stroke-width:3px
-    class title redTitle
+    class title greenTitle
 
 
 ```
@@ -364,7 +366,8 @@ graph LR;
     classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
     class title greenTitle
     classDef redTitle fill:#c21807 ,stroke:#c0c0c2,stroke-width:3px
-    class title redTitle
+    class title greenTitle
+
 ```
 
 ***
@@ -553,8 +556,7 @@ end
     class CYA2 orange
     classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
     classDef redTitle fill:#c21807 ,stroke:#c0c0c2,stroke-width:3px
-
-    class title redTitle
+    class title greenTitle
 
 
 ```
@@ -571,7 +573,8 @@ graph LR;
     Page2 --> |4 confirming with Yes| Page3
 
     classDef redTitle fill:#c21807 ,stroke:#c0c0c2,stroke-width:3px
-    class title redTitle
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
+    class title greenTitle
 
 ```
 
