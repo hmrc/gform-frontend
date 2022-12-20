@@ -640,7 +640,8 @@ graph LR;
     class Task1Page1 orange
     class title greenTitle
 ```
-```marmaid
+
+```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
     title([<u>NavFLOW-020</u><br>back link is missing on CYA])
