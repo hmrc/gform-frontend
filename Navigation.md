@@ -640,6 +640,30 @@ graph LR;
     class Task1Page1 orange
     class title greenTitle
 ```
+```marmaid
+%%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
+graph LR;
+    title([<u>NavFLOW-020</u><br>back link is missing on CYA])
+    title -.- Page0
+    Page0 --> |1| Page1
+    Page1 --> |2| ATLPage1["ATL<br>Iteration1<br>Page1"]
+    ATLPage1 --> |3| ATLPage2["ATL<br>Iteration1<br>Page2"]
+    ATLPage2 --> |4| ATLCYA1["ATL<br>Iteration1<br>CYA"]
+    ATLCYA1 -.5 back.-> ATLPage2
+    ATLPage2 -.6 back.-> ATLPage1
+    ATLPage1 -.7 back.-> Page1
+
+
+    classDef orange fill:#fedebe,stroke:#222,stroke-width:1px
+    classDef orangeCYA fill:#ffaf42,stroke:#222,stroke-width:2px
+    classDef orangeRepeater fill:#fe6e00,stroke:#222,stroke-width:3px
+    class ATLRepeater orangeRepeater
+    class ATLCYA1 orangeCYA
+    class ATLPage2 orange
+    class ATLPage1 orange
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
+    class title greenTitle
+```
 # Notes for developers
 Before updating the mermaid diagram in the file please test here:
 https://mermaid.live/
