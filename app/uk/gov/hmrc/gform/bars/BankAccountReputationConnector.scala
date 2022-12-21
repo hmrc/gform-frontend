@@ -43,7 +43,7 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
     hc: HeaderCarrier
   ): Future[ServiceCallResponse[ValidateBankDetails.Response]] =
     ws.POST[ValidateBankDetails.Request, HttpResponse](
-      baseUrl + "/v3/validateBankDetails",
+      baseUrl + "/validate/bank-details",
       request
     ).map { httpResponse =>
       val status = httpResponse.status
@@ -133,15 +133,13 @@ object ValidateBankDetails {
   }
 
   case class Response(
-    accountNumberWithSortCodeIsValid: String,
+    accountNumberIsWellFormatted: String,
     nonStandardAccountDetailsRequiredForBacs: String,
     sortCodeIsPresentOnEISCD: String,
-    supportsBACS: Option[String],
-    ddiVoucherFlag: Option[String],
-    directDebitsDisallowed: Option[String],
-    directDebitInstructionsDisallowed: Option[String],
-    iban: Option[String],
-    sortCodeBankName: Option[String]
+    sortCodeBankName: Option[String],
+    sortCodeSupportsDirectDebit: Option[String],
+    sortCodeSupportsDirectCredit: Option[String],
+    iban: Option[String]
   )
 
   object Response {

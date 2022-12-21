@@ -41,22 +41,6 @@ case object DataRetrieveAttribute {
     override def name: String = "isValid"
   }
 
-  case object SupportsBACS extends DataRetrieveAttribute {
-    override def name: String = "supportsBACS"
-  }
-
-  case object DdiVoucherFlag extends DataRetrieveAttribute {
-    override def name: String = "ddiVoucherFlag"
-  }
-
-  case object DirectDebitsDisallowed extends DataRetrieveAttribute {
-    override def name: String = "directDebitsDisallowed"
-  }
-
-  case object DirectDebitInstructionsDisallowed extends DataRetrieveAttribute {
-    override def name: String = "directDebitInstructionsDisallowed"
-  }
-
   case object Iban extends DataRetrieveAttribute {
     override def name: String = "iban"
   }
@@ -121,10 +105,6 @@ case object DataRetrieveAttribute {
     case "nameMatches"                              => NameMatches
     case "sortCodeSupportsDirectDebit"              => SortCodeSupportsDirectDebit
     case "sortCodeSupportsDirectCredit"             => SortCodeSupportsDirectCredit
-    case "supportsBACS"                             => SupportsBACS
-    case "ddiVoucherFlag"                           => DdiVoucherFlag
-    case "directDebitsDisallowed"                   => DirectDebitsDisallowed
-    case "directDebitInstructionsDisallowed"        => DirectDebitInstructionsDisallowed
     case "iban"                                     => Iban
     case "name"                                     => Name
     case "status"                                   => Status

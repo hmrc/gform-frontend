@@ -73,14 +73,13 @@ object DataRetrieveService {
                 DataRetrieveResult(
                   validateBankDetails.id,
                   Map(
-                    DataRetrieveAttribute.IsValid                                  -> validateResult.accountNumberWithSortCodeIsValid,
+                    DataRetrieveAttribute.IsValid                                  -> validateResult.accountNumberIsWellFormatted,
                     DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> validateResult.sortCodeIsPresentOnEISCD,
                     DataRetrieveAttribute.SortCodeBankName                         -> validateResult.sortCodeBankName.getOrElse(""),
                     DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> validateResult.nonStandardAccountDetailsRequiredForBacs,
-                    DataRetrieveAttribute.SupportsBACS                             -> validateResult.supportsBACS.getOrElse(""),
-                    DataRetrieveAttribute.DdiVoucherFlag                           -> validateResult.ddiVoucherFlag.getOrElse(""),
-                    DataRetrieveAttribute.DirectDebitsDisallowed                   -> validateResult.directDebitsDisallowed.getOrElse(""),
-                    DataRetrieveAttribute.DirectDebitInstructionsDisallowed -> validateResult.directDebitInstructionsDisallowed
+                    DataRetrieveAttribute.SortCodeSupportsDirectDebit -> validateResult.sortCodeSupportsDirectDebit
+                      .getOrElse(""),
+                    DataRetrieveAttribute.SortCodeSupportsDirectCredit -> validateResult.sortCodeSupportsDirectCredit
                       .getOrElse(""),
                     DataRetrieveAttribute.Iban -> validateResult.iban.getOrElse("")
                   ),
