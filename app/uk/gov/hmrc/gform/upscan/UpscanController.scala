@@ -174,7 +174,7 @@ class UpscanController(
               "generic.error.upload",
               formModelOptics.formModelVisibilityOptics.fcLookup
                 .get(formComponentId)
-                .map(_.label.value)
+                .map(fc => fc.shortName.map(_.value).getOrElse(fc.label.value))
                 .getOrElse("")
             )
           case Some("EntityTooLarge") =>
