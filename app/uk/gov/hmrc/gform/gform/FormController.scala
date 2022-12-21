@@ -913,6 +913,17 @@ class FormController(
   private val formMaxAttachmentSizeMB = appConfig.formMaxAttachmentSizeMB
   private val restrictedFileExtensions = appConfig.restrictedFileExtensions
 
+  /*
+  We separate the process of adding the required FastForward to the
+  List[FastForward] from the process of removing it. So when we add
+  the new FastForward we are not concerned with what is in the list
+  already.
+  The removal happens at the beginning of processing of 4 endpoints
+  that takes List[FastForward]. It does the following:
+   - removes duplications
+   - removes FastForward with destination section number higher than
+   the current section number
+  */
   private def filterFastForward(
     browserSectionNumber: SectionNumber,
     rawFastForward: List[FastForward],
