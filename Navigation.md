@@ -3,7 +3,7 @@
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title([<u>NavFLOW-001])
+    title([<u>NavFLOW-001</u>])
     title -.- Page1
     Page1 --> |1| Page2
     Page2 --> |2| Page3
@@ -54,7 +54,7 @@ graph LR;
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title([<u>NavFLOW-003</u><br><i>back button on CYA page <br>is missing])
+    title([<u>NavFLOW-003</u>])
     title -.- Page0
     Page0 --> |1| Page1
     Page1 --> |2| ATLPage1["ATL<br>Iteration1<br>Page1"]
@@ -182,7 +182,7 @@ graph LR;
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title(["<u>NavFLOW-007</u><br>current flow is broken<br>step 11 goes to Page4"])
+    title([<u>NavFLOW-007</u>])
     title -.- Page0
     Page0 --> |1| Page1
     Page1 --> |2| ATLPage1["ATL<br>Iteration1<br>Page1"]
@@ -216,7 +216,7 @@ graph LR;
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title([<u>NavFLOW-008</u><br>broken<br>step 6 goes to Page1])
+    title([<u>NavFLOW-008</u>])
     title -.- Page0
     Page0 --> |1| Page1
     Page1 --> |2| ATLPage1["ATL<br>Iteration1<br>Page1"]
@@ -247,7 +247,7 @@ graph LR;
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title([<u>NavFLOW-009</u><br>broken<br>step 9 goes to Page1])
+    title([<u>NavFLOW-009</u>])
     title -.- Page0
     Page0 --> |1| Page1
     Page1 --> |2| ATLPage1["ATL<br>Iteration1<br>Page1"]
@@ -315,7 +315,7 @@ graph LR;
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title([<u>NavFLOW-011</u><br>back link is missing on CYA])
+    title([<u>NavFLOW-011</u>])
     title -.- Page0
     Page0 --> |1| Page1
     Page1 --> |2| ATLPage1["ATL<br>Iteration1<br>Page1"]
@@ -343,7 +343,7 @@ graph LR;
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title([<u>NavFLOW-012</u><br> no back link on CYA])
+    title([<u>NavFLOW-012</u>])
     title -.- Page0
     Page0 --> |1| Page1
     Page1 --> |2| ATLPage1["ATL<br>Iteration1<br>Page1"]
@@ -494,7 +494,7 @@ end
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 flowchart TB
-    title([<u>NavFLOW-015</u><br>Scenario2 is broken<br> step 7 goes to CYA ])
+    title([<u>NavFLOW-015</u>])
 
 subgraph top["change from CYA"]
     direction LR
@@ -564,7 +564,7 @@ end
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title([<u>NavFLOW-016<br>Step 4 goes to Page2])
+    title([<u>NavFLOW-016</u>])
     Page2["Page2<br>with confirmation"]
     title -.- Page1
     Page1 -->  |1| Page2
@@ -582,7 +582,7 @@ graph LR;
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title([<u>NavFLOW-017</u><br>])
+    title([<u>NavFLOW-017</u>])
     title -.- Page0
     Page0 --> |1| Page1
     Page1 --> |2| ATLPage1["ATL<br>Iteration1<br>Page1"]
@@ -617,7 +617,7 @@ graph LR;
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title([<u>NavFLOW-018</u><br>])
+    title([<u>NavFLOW-018</u>])
     title -.- Page0
     Page0 --> |1| Page1
     Page1 --> |2| ATLPage1["ATL<br>Iteration1<br>Page1"]
@@ -654,12 +654,13 @@ graph LR;
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title([<u>NavFLOW-019</u><br>])
+    title([<u>NavFLOW-019</u>])
     title -.- TaskLandingPage["Task Landing Page"]
     TaskLandingPage ----> |1 start task1| Task1Page1["Page1</br>Task1"]
     Task1Page1 -.2 back.-> TaskLandingPage
     classDef orange fill:#fedebe,stroke:#222,stroke-width:1px
     class Task1Page1 orange
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
     class title greenTitle
 ```
 ***
@@ -668,7 +669,7 @@ graph LR;
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
-    title([<u>NavFLOW-020</u><br>back link is missing on CYA])
+    title([<u>NavFLOW-020</u>])
     title -.- Page0
     Page0 --> |1| Page1
     Page1 --> |2| ATLPage1["ATL<br>Iteration1<br>Page1"]
