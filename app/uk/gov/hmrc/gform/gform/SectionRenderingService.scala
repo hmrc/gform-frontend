@@ -326,10 +326,6 @@ class SectionRenderingService(
           .map {
             case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
               htmlForInformationMessage(info, infoType, infoText)
-            // case info @ IsTableComp(TableComp(infoType, infoText)) =>
-            case IsTableComp(table) =>
-              htmlForTableComp(formComponent, table, formModelOptics)
-            //Html("tablecomp")
             case unsupported => throw new Exception("AddToList.fields contains a non-Info component: " + unsupported)
           }
       }
@@ -1089,7 +1085,7 @@ class SectionRenderingService(
             htmlForHmrcTaxPeriod(formComponent, ei, validationResult, obligations, htp)
           case MiniSummaryList(rows) =>
             htmlForMiniSummaryList(formComponent, formTemplateId, rows, ei, validationResult, obligations)
-          case t: TableComp => htmlForTableComp(formComponent, t, ei.formModelOptics)
+          case t: TableComp => htmlForTableComp(formComponent, t, ei)
         }
       }
     } { case r @ RenderUnit.Group(_, _) =>
@@ -1428,7 +1424,7 @@ class SectionRenderingService(
   private def htmlForTableComp(
     formComponent: FormComponent,
     table: TableComp,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    ei: ExtraInfo
   )(implicit
     sse: SmartStringEvaluator,
     fcrd: FormComponentRenderDetails[SummaryRender]
@@ -1436,9 +1432,9 @@ class SectionRenderingService(
     def isVisibleValueRow(
       row: TableValueRow
     ): Boolean = row.includeIf.fold(true)(includeIf =>
-      formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+      ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
     )
-    val formModel = formModelOptics.formModelVisibilityOptics.formModel
+    val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
 
     def isNumeric(v: TableValue): Boolean = {
       val interpolationsHaveLonelyNumeric = v.value.interpolations match {
