@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.gform.handlers
 
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
-import uk.gov.hmrc.gform.models.Coordinates
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
@@ -72,8 +71,8 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
-    fastForward: FastForward,
-    maybeCoordinates: Option[Coordinates]
+    fastForward: List[FastForward],
+    maybeSectionNumber: Option[SectionNumber]
   ): Future[SectionOrSummary] =
     formValidator.fastForwardValidate(
       processData,
@@ -81,7 +80,21 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
       envelope,
       validatePageModel,
       fastForward,
-      maybeCoordinates
+      maybeSectionNumber
+    )
+  def handleMaybeGetInvalidSectionNumber(
+    processData: ProcessData,
+    cache: CacheData,
+    envelope: EnvelopeWithMapping,
+    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
+    maybeSectionNumber: Option[SectionNumber]
+  ): Future[Option[SectionNumber]] =
+    formValidator.mustBeVisitedSectionNumber(
+      processData,
+      cache,
+      envelope,
+      validatePageModel,
+      maybeSectionNumber
     )
 }
 

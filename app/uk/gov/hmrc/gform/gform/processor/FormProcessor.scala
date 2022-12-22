@@ -68,7 +68,7 @@ class FormProcessor(
   def processRemoveAddToList(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    ff: FastForward,
+    fastForward: List[FastForward],
     formModelOptics: FormModelOptics[Mongo],
     processData: ProcessData,
     idx: Int,
@@ -167,7 +167,7 @@ class FormProcessor(
         sn,
         sn,
         maybeAccessCode,
-        ff,
+        fastForward,
         formModelOptics,
         EnteredVariadicFormData.empty,
         true
@@ -199,7 +199,7 @@ class FormProcessor(
               sectionNumber,
               sectionTitle4Ga,
               SuppressErrors.Yes,
-              FastForward.Yes
+              fastForward
             )
         )
       }
@@ -243,7 +243,7 @@ class FormProcessor(
     sectionNumber: SectionNumber,
     validationSectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode],
-    fastForward: FastForward,
+    fastForward: List[FastForward],
     formModelOptics: FormModelOptics[Mongo],
     enteredVariadicFormData: EnteredVariadicFormData,
     visitPage: Boolean
@@ -369,7 +369,7 @@ class FormProcessor(
               maybeAccessCode,
               fastForward,
               envelopeWithMapping,
-              sectionNumber.toCoordinates
+              Some(sectionNumber)
             )(toResult(updatePostcodeLookup)(redirectUrl.map(_.value())))
         }
       }

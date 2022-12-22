@@ -115,7 +115,7 @@ class SectionRenderingService(
     cache: AuthCacheWithForm,
     envelope: EnvelopeWithMapping,
     addressRecordLookup: AddressRecordLookup,
-    fastForward: FastForward,
+    fastForward: List[FastForward],
     notificationBanner: Option[NotificationBanner]
   )(implicit
     request: Request[_],
@@ -153,7 +153,7 @@ class SectionRenderingService(
               envelope,
               addressRecordLookup,
               None,
-              Some(FastForward.CYA(singletonWithNumber.sectionNumber, SectionOrSummary.Section(sectionNumber)))
+              Some(FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward)
             )
         }
     }
@@ -173,9 +173,10 @@ class SectionRenderingService(
         })(_.value)
 
     val ff = fastForward match {
-      case FastForward.CYA(from, to)         => FastForward.CYA(sectionNumber.increment, to)
-      case FastForward.StopAt(sectionNumber) => FastForward.StopAt(sectionNumber.increment)
-      case otherwise                         => otherwise
+      case Nil                                     => Nil
+      case FastForward.CYA(to) :: xs               => FastForward.CYA(to) :: xs
+      case FastForward.StopAt(sectionNumber) :: xs => FastForward.StopAt(sectionNumber.increment) :: xs
+      case otherwise                               => otherwise
     }
     html.form.addToListCheckYourAnswers(
       title,
@@ -215,7 +216,7 @@ class SectionRenderingService(
     specimenSource: Option[FormTemplate],
     validationResult: ValidationResult,
     retrievals: MaterialisedRetrievals,
-    fastForward: FastForward,
+    fastForward: List[FastForward],
     notificationBanner: Option[NotificationBanner]
   )(implicit
     request: Request[_],
@@ -325,6 +326,10 @@ class SectionRenderingService(
           .map {
             case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
               htmlForInformationMessage(info, infoType, infoText)
+            // case info @ IsTableComp(TableComp(infoType, infoText)) =>
+            case IsTableComp(table) =>
+              htmlForTableComp(formComponent, table, formModelOptics)
+            //Html("tablecomp")
             case unsupported => throw new Exception("AddToList.fields contains a non-Info component: " + unsupported)
           }
       }
@@ -409,7 +414,7 @@ class SectionRenderingService(
     restrictedFileExtensions: List[FileExtension],
     retrievals: MaterialisedRetrievals,
     obligations: Obligations,
-    fastForward: FastForward,
+    fastForward: List[FastForward],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     upscanInitiate: UpscanInitiate,
     addressRecordLookup: AddressRecordLookup,
@@ -752,7 +757,7 @@ class SectionRenderingService(
       backLink = Some(mkBackLinkDeclaration(formTemplate, maybeAccessCode, formTemplate.sectionNumberZero)),
       shouldDisplayHeading = true,
       frontendAppConfig,
-      fastForward = FastForward.Yes,
+      fastForward = List(FastForward.Yes),
       notificationBanner = notificationBanner
     )
   }
@@ -772,17 +777,22 @@ class SectionRenderingService(
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     originSection: SectionNumber,
-    fastForward: FastForward,
+    fastForward: List[FastForward],
     pageHasError: Boolean
   )(implicit messages: Messages): Option[BackLink] = {
 
     val href = fastForward match {
-      case ff @ FastForward.CYA(from, _) if !pageHasError =>
+      case FastForward.CYA(_) :: xs if !pageHasError =>
         uk.gov.hmrc.gform.gform.routes.FormController
-          .backAction(formTemplate._id, maybeAccessCode, from, ff)
+          .backAction(formTemplate._id, maybeAccessCode, sectionNumber, fastForward)
       case _ =>
         uk.gov.hmrc.gform.gform.routes.FormController
-          .backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber))
+          .backAction(
+            formTemplate._id,
+            maybeAccessCode,
+            sectionNumber,
+            FastForward.StopAt(sectionNumber) :: fastForward
+          )
     }
 
     val backLink =
@@ -792,8 +802,8 @@ class SectionRenderingService(
       Some(backLink)
     } else
       fastForward match {
-        case FastForward.CYA(_, _) if !pageHasError => Some(backLink)
-        case _                                      => None
+        case FastForward.CYA(_) :: xs if !pageHasError => Some(backLink)
+        case _                                         => None
       }
   }
 
@@ -961,7 +971,7 @@ class SectionRenderingService(
         None,
         true,
         frontendAppConfig,
-        fastForward = FastForward.Yes,
+        fastForward = List(FastForward.Yes),
         notificationBanner = notificationBanner
       )
   }
@@ -1079,7 +1089,7 @@ class SectionRenderingService(
             htmlForHmrcTaxPeriod(formComponent, ei, validationResult, obligations, htp)
           case MiniSummaryList(rows) =>
             htmlForMiniSummaryList(formComponent, formTemplateId, rows, ei, validationResult, obligations)
-          case t: TableComp => htmlForTableComp(formComponent, t, ei)
+          case t: TableComp => htmlForTableComp(formComponent, t, ei.formModelOptics)
         }
       }
     } { case r @ RenderUnit.Group(_, _) =>
@@ -1349,7 +1359,7 @@ class SectionRenderingService(
                   ei.envelope,
                   ei.addressRecordLookup,
                   None,
-                  Some(FastForward.CYA(sn, SectionOrSummary.Section(ei.sectionNumber)))
+                  Some(List(FastForward.CYA(SectionOrSummary.Section(ei.sectionNumber))))
                 )
             }
             .toList
@@ -1418,7 +1428,7 @@ class SectionRenderingService(
   private def htmlForTableComp(
     formComponent: FormComponent,
     table: TableComp,
-    ei: ExtraInfo
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
     sse: SmartStringEvaluator,
     fcrd: FormComponentRenderDetails[SummaryRender]
@@ -1426,9 +1436,9 @@ class SectionRenderingService(
     def isVisibleValueRow(
       row: TableValueRow
     ): Boolean = row.includeIf.fold(true)(includeIf =>
-      ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+      formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
     )
-    val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
+    val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
     def isNumeric(v: TableValue): Boolean = {
       val interpolationsHaveLonelyNumeric = v.value.interpolations match {

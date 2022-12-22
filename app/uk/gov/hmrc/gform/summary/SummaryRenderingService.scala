@@ -431,9 +431,9 @@ object SummaryRenderingService {
       }
 
       val ff = if (maybeCoordinates.isEmpty) {
-        FastForward.CYA(sectionNumber)
+        List(FastForward.CYA(SectionOrSummary.FormSummary))
       } else {
-        FastForward.CYA(sectionNumber, SectionOrSummary.TaskSummary)
+        List(FastForward.CYA(SectionOrSummary.TaskSummary))
       }
       val middleRows: List[SummaryListRow] = page.fields
         .filterNot(_.hideOnSummary)
@@ -497,9 +497,9 @@ object SummaryRenderingService {
       val sectionTitle4Ga: SectionTitle4Ga = sectionTitle4GaFactory(repeater, sectionNumber)
 
       val ff = if (maybeCoordinates.isEmpty) {
-        FastForward.CYA(sectionNumber)
+        List(FastForward.CYA(SectionOrSummary.FormSummary))
       } else {
-        FastForward.CYA(sectionNumber, SectionOrSummary.TaskSummary)
+        List(FastForward.CYA(SectionOrSummary.TaskSummary))
       }
       val url: Call = routes.FormController
         .form(

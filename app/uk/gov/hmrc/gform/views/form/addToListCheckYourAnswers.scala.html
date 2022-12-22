@@ -41,7 +41,7 @@
     header: Option[Html],
     footer: Option[Html],
     specimenNavigation: Html,
-    fastForward: FastForward,
+    fastForward: List[FastForward],
     notificationBanner: Option[NotificationBanner]
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
@@ -53,12 +53,16 @@
 @hmrcPageHeading = @{new HmrcPageHeading()}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
+@backLink = @{
+  new BackLink(href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, fastForward).path,
+               content = new Text(messages("linkText.back")))
+}
 @main_template(
     title = noPIITitle,
     formTemplate = formTemplate,
     containsErrors = pageLevelError.hasErrors,
     frontendAppConfig = frontendAppConfig,
-    backLink = None
+    backLink = Some(backLink)
 ) {
     @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
 
@@ -92,7 +96,7 @@
         @if(renderComeBackLater) {
                 @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
                     inputType=Some("submit"),
-                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber), SaveAndExit).path),
+                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, List(FastForward.StopAt(sectionNumber)), SaveAndExit).path),
                     classes="govuk-button--secondary"
                 )
             )
