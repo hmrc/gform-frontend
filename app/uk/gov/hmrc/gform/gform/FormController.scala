@@ -923,7 +923,7 @@ class FormController(
    - removes duplications
    - removes FastForward with destination section number higher than
    the current section number
-  */
+   */
   private def filterFastForward(
     browserSectionNumber: SectionNumber,
     rawFastForward: List[FastForward],

@@ -89,7 +89,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
     maybeSectionNumber: Option[SectionNumber]
   ): Future[Option[SectionNumber]] =
-    formValidator.maybeGetInvalidSectionNumber(
+    formValidator.mustBeVisitedSectionNumber(
       processData,
       cache,
       envelope,

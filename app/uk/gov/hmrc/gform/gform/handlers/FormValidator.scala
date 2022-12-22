@@ -90,7 +90,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     validationResult.toFormValidationOutcome(enteredVariadicFormData)
   }
 
-  def maybeGetInvalidSectionNumber(
+  def mustBeVisitedSectionNumber(
     processData: ProcessData,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
@@ -162,7 +162,7 @@ class FormValidator(implicit ec: ExecutionContext) {
 
     val availableSectionNumbers = getAvailableSectionNumbers(maybeSectionNumber, formModelOptics)
 
-    val ffYesSnF = maybeGetInvalidSectionNumber(
+    val ffYesSnF = mustBeVisitedSectionNumber(
       processData,
       cache,
       envelope,
