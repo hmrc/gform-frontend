@@ -2733,7 +2733,7 @@ class SectionRenderingService(
 
     val uploadedFiles: Html = html.form.snippets.uploaded_files_wrapper(formComponent.id)(HtmlFormat.empty)
 
-    HtmlFormat.fill(fileInput :: uploadedFiles :: snippets)
+    HtmlFormat.fill(snippets ++ List(fileInput, uploadedFiles))
   }
 
   private def htmlForGroup(
