@@ -18,4 +18,7 @@
   var gformAutoComplete = new GOVUK.GformAutoComplete();
   gformAutoComplete.init();
 
+  var gformSessionTimeout = new GOVUK.GformSessionTimeout();
+  gformSessionTimeout.init();
+
 })(window);
