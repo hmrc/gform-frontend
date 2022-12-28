@@ -11,7 +11,7 @@
 
     function broadcastTimestamp() {
       if (!enableBroadcastTimestamp) return;
-      enableBroadcastTimestamp = false; 
+      enableBroadcastTimestamp = false;
       setTimeout(function () { enableBroadcastTimestamp = true; }, 300000)
       if (window.BroadcastChannel) {
         const channel = new window.BroadcastChannel("session-activity");
