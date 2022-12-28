@@ -15,7 +15,6 @@
     function broadcastTimestamp() {
       if (window.BroadcastChannel) {
         const channel = new window.BroadcastChannel("session-activity");
-        console.log("send session timeout1")
         channel.postMessage({
           timestamp: Date.now()
         });
