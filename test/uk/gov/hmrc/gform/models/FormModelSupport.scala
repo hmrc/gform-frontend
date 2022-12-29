@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, Seis
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.OptionData
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IncludeIf, OptionData }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BooleanExprCache, LangADT, NotChecked, Obligations, SourceOrigin, UserId, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormComponentIdToFileIdMapping, FormData, FormField, FormId, FormModelOptics, InProgress, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, FormTemplateWithRedirects, Section }
@@ -128,5 +128,8 @@ trait FormModelSupport extends GraphSpec {
     xs.map(l => OptionData.IndexBased(toSmartString(l), None))
 
   def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None)
+
+  def toOptionData(s: String, includeIf: IncludeIf): OptionData.IndexBased =
+    OptionData.IndexBased(toSmartString(s), Some(includeIf))
 
 }
