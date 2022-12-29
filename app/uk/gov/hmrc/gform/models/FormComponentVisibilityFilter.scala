@@ -63,9 +63,13 @@ class FormComponentVisibilityFilter[D <: DataOrigin, P <: PageMode](
         .modify(_.page.fields.each.`type`)
         .using {
           case rc: RevealingChoice => stripHiddenFormComponentsFromRevealingChoice(rc)
-          case c: Choice           => stripHiddenFormComponentsFromChoice(c)
-          case group: Group        => stripHiddenFormComponentsFromGroup(group)
-          case i                   => i
+          case c: Choice =>
+            val isPageVisible = singleton.page.includeIf.fold(true) { includeIf =>
+              formModelVisibilityOptics.evalIncludeIfExpr(includeIf, phase)
+            }
+            if (isPageVisible) stripHiddenFormComponentsFromChoice(c) else c
+          case group: Group => stripHiddenFormComponentsFromGroup(group)
+          case i            => i
         }
     }(identity)(identity)
 }

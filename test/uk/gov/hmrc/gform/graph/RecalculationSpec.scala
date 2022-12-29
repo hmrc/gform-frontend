@@ -1208,6 +1208,93 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     recalculationResult.evaluationResults.get(FormCtx(FormComponentId("3_b"))) shouldBe Some(Hidden)
   }
 
+  it should "not crash when all options of a choice are hidden in case choice itself is on a hidden page" in {
+
+    val alwaysFalse = IncludeIf(Equals(Constant("1"), Constant("2")))
+
+    val choice =
+      Choice(
+        YesNo,
+        NonEmptyList.one(toOptionData("foo", alwaysFalse)),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
+        None
+      )
+
+    val formComponentIds = Table(
+      ("input", "output", "expectedExprMap"),
+      (
+        mkDataOutOfDate("a" -> "foo"),
+        mkDataCurrent("a"   -> "foo"),
+        Map(
+          ctx("b")   -> Hidden,
+          const("1") -> NumberResult(1),
+          const("2") -> NumberResult(2)
+        )
+      )
+    )
+
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+      val sections = List(
+        mkSection(List(mkFormComponent("a", Value))),
+        mkSectionIncludeIf(List(mkFormComponent("b", choice)), alwaysFalse)
+      )
+
+      verify(input, expectedOutput, expectedExprMap, sections)
+    }
+  }
+
+  it should "crash when all options of a choice are hidden in case choice itself is on a visible page" in {
+
+    val alwaysFalse = IncludeIf(Equals(Constant("1"), Constant("2")))
+
+    val choice =
+      Choice(
+        YesNo,
+        NonEmptyList.one(toOptionData("foo", alwaysFalse)),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
+        None
+      )
+
+    val formComponentIds = Table(
+      ("input", "output", "expectedExprMap"),
+      (
+        mkDataOutOfDate("a" -> "foo"),
+        mkDataCurrent("a"   -> "foo"),
+        Map(
+          ctx("b")   -> Hidden,
+          const("1") -> NumberResult(1),
+          const("2") -> NumberResult(2)
+        )
+      )
+    )
+
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+      val sections = List(
+        mkSection(List(mkFormComponent("a", Value))),
+        mkSection(List(mkFormComponent("b", choice)))
+      )
+
+      the[IllegalArgumentException] thrownBy verify(
+        input,
+        expectedOutput,
+        expectedExprMap,
+        sections
+      ) should have message "All options of the choice component are invisible"
+    }
+  }
+
   private def verify(
     input: VariadicFormData[SourceOrigin.OutOfDate],
     expectedOutput: VariadicFormData[SourceOrigin.Current],
