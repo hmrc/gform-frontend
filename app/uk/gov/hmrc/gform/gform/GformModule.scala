@@ -148,7 +148,9 @@ class GformModule(
   val companyInformationConnector =
     new CompanyInformationAsyncConnector(wSHttpModule.auditableWSHttp, companyHouseBaseUrl)
 
-  private val ninoInsightsUrl = s"${configModule.serviceConfig.baseUrl("nino-insights")}"
+  private val ninoInsightsBasePath =
+    configModule.serviceConfig.getString("microservice.services.nino-insights.base-path")
+  private val ninoInsightsUrl = s"${configModule.serviceConfig.baseUrl("nino-insights")}$ninoInsightsBasePath"
   private val authorizationToken = configModule.typesafeConfig.getString("internal-auth.token")
 
   val ninoInsightsConnector =
