@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.Messages
 import play.api.libs.json.{ JsValue, Json }
-import uk.gov.hmrc.gform.api.{ CompanyInformationConnector, CompanyProfile }
+import uk.gov.hmrc.gform.api.{ CompanyInformationConnector, CompanyProfile, NinoInsightCheck, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, NinoInsights, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -202,6 +202,47 @@ object DataRetrieveService {
                   )
                 )
               case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve CompanyProfile data")
+            }
+        }
+      }
+    }
+
+  implicit def ninoInsights(implicit
+    ninoInsightsConnector: NinoInsightsConnector[Future]
+  ): DataRetrieveService[NinoInsights, Future] =
+    new DataRetrieveService[NinoInsights, Future] {
+
+      override def retrieve(
+        ninoInsights: NinoInsights,
+        formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+        maybeRequestParams: Option[JsValue]
+      )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
+        val nino = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(ninoInsights.nino).stringRepresentation
+
+        val requestParams = Json.obj(
+          "nino" -> nino
+        )
+
+        if (nino.isEmpty) {
+          Future.successful(None)
+        } else {
+          ninoInsightsConnector
+            .insights(
+              NinoInsightCheck.create(nino)
+            )
+            .map {
+              case ServiceResponse(result) =>
+                Some(
+                  DataRetrieveResult(
+                    ninoInsights.id,
+                    Map(
+                      DataRetrieveAttribute.RiskScore -> result.riskScore.toString,
+                      DataRetrieveAttribute.Reason    -> result.reason
+                    ),
+                    requestParams
+                  )
+                )
+              case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve nino insights data")
             }
         }
       }

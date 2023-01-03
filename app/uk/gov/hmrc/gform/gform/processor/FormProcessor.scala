@@ -23,7 +23,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, AddressLookupService }
-import uk.gov.hmrc.gform.api.CompanyInformationConnector
+import uk.gov.hmrc.gform.api.{ CompanyInformationConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction 
 import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, NinoInsights, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -60,6 +60,7 @@ class FormProcessor(
   handler: FormControllerRequestHandler,
   bankAccountReputationConnector: BankAccountReputationConnector[Future],
   companyInformationConnector: CompanyInformationConnector[Future],
+  ninoInsightsConnector: NinoInsightsConnector[Future],
   addressLookupService: AddressLookupService[Future]
 )(implicit ec: ExecutionContext) {
 
@@ -285,6 +286,11 @@ class FormProcessor(
                 implicit val b: CompanyInformationConnector[Future] = companyInformationConnector
                 DataRetrieveService[CompanyRegistrationNumber, Future]
                   .retrieve(v, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
+              case n: NinoInsights =>
+                val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, n.id)
+                implicit val ni: NinoInsightsConnector[Future] = ninoInsightsConnector
+                DataRetrieveService[NinoInsights, Future]
+                  .retrieve(n, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
             }
           )(_ => Option.empty.pure[Future])(_ => Option.empty.pure[Future])
         } else Option.empty.pure[Future]

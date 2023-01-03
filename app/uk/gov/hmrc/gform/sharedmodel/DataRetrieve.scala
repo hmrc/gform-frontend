@@ -77,10 +77,6 @@ case object DataRetrieveAttribute {
     override def name: String = "sortCodeSupportsDirectCredit"
   }
 
-  case object CompanyNumber extends DataRetrieveAttribute {
-    override def name: String = "companyNumber"
-  }
-
   case object Name extends DataRetrieveAttribute {
     override def name: String = "name"
   }
@@ -91,6 +87,14 @@ case object DataRetrieveAttribute {
 
   case object RegisteredAddress extends DataRetrieveAttribute {
     override def name: String = "registeredAddress"
+  }
+
+  case object RiskScore extends DataRetrieveAttribute {
+    override def name: String = "riskScore"
+  }
+
+  case object Reason extends DataRetrieveAttribute {
+    override def name: String = "reason"
   }
 
   implicit val format: OFormat[DataRetrieveAttribute] = derived.oformat()
@@ -109,6 +113,8 @@ case object DataRetrieveAttribute {
     case "name"                                     => Name
     case "status"                                   => Status
     case "registeredAddress"                        => RegisteredAddress
+    case "riskScore"                                => RiskScore
+    case "reason"                                   => Reason
     case other                                      => throw new IllegalArgumentException(s"Unknown DataRetrieveAttribute name: $other")
   }
 }
@@ -165,6 +171,18 @@ object DataRetrieve {
       Name,
       Status,
       RegisteredAddress
+    )
+  }
+
+  final case class NinoInsights(
+    override val id: DataRetrieveId,
+    nino: Expr
+  ) extends DataRetrieve {
+    import DataRetrieveAttribute._
+
+    override def attributes: List[DataRetrieveAttribute] = List(
+      RiskScore,
+      Reason
     )
   }
 

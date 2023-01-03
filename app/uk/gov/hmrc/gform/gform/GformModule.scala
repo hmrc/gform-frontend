@@ -18,11 +18,9 @@ package uk.gov.hmrc.gform.gform
 
 import akka.actor.Scheduler
 import cats.instances.future._
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupController, AddressLookupModule }
 import uk.gov.hmrc.gform.akka.AkkaModule
-import uk.gov.hmrc.gform.api.CompanyInformationAsyncConnector
+import uk.gov.hmrc.gform.api.{ CompanyInformationAsyncConnector, NinoInsightsAsyncConnector }
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
@@ -33,7 +31,7 @@ import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormVali
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndService, GformBackendModule }
 import uk.gov.hmrc.gform.graph.GraphModule
-import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.lookup.{ LocalisedLookupOptions, LookupRegistry }
 import uk.gov.hmrc.gform.models.{ ProcessDataService, TaxPeriodStateChecker }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.pdf.PDFRenderService
@@ -45,7 +43,8 @@ import uk.gov.hmrc.gform.upscan.{ UpscanController, UpscanModule }
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.language.LanguageUtils
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 class GformModule(
   akkaModule: AkkaModule,
@@ -149,6 +148,12 @@ class GformModule(
   val companyInformationConnector =
     new CompanyInformationAsyncConnector(wSHttpModule.auditableWSHttp, companyHouseBaseUrl)
 
+  private val ninoInsightsUrl = s"${configModule.serviceConfig.baseUrl("nino-insights")}"
+  private val authorizationToken = configModule.typesafeConfig.getString("internal-auth.token")
+
+  val ninoInsightsConnector =
+    new NinoInsightsAsyncConnector(wSHttpModule.auditableWSHttp, ninoInsightsUrl, authorizationToken)
+
   val addToListProcessor = new FormProcessor(
     playBuiltInsModule.i18nSupport,
     processDataService,
@@ -160,6 +165,7 @@ class GformModule(
     formControllerRequestHandler,
     bankAccountReputationConnector,
     companyInformationConnector,
+    ninoInsightsConnector,
     addressLookupModule.addressLookupService
   )
 
