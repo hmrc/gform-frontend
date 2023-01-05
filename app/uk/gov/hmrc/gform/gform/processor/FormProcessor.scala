@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction 
 import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, NinoInsights, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -281,6 +281,16 @@ class FormProcessor(
                 implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
                 DataRetrieveService[BusinessBankAccountExistence, Future]
                   .retrieve(v, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
+              case p: PersonalBankAccountExistence =>
+                val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, p.id)
+                implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
+                DataRetrieveService[PersonalBankAccountExistence, Future]
+                  .retrieve(p, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
+              case p: PersonalBankAccountExistenceWithName =>
+                val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, p.id)
+                implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
+                DataRetrieveService[PersonalBankAccountExistenceWithName, Future]
+                  .retrieve(p, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
               case v: CompanyRegistrationNumber =>
                 val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, v.id)
                 implicit val b: CompanyInformationConnector[Future] = companyInformationConnector
