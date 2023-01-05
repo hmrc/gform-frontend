@@ -97,6 +97,10 @@ case object DataRetrieveAttribute {
     override def name: String = "reason"
   }
 
+  case object AccountName extends DataRetrieveAttribute {
+    override def name: String = "accountName"
+  }
+
   implicit val format: OFormat[DataRetrieveAttribute] = derived.oformat()
 
   def fromName(name: String): DataRetrieveAttribute = name match {
@@ -115,6 +119,7 @@ case object DataRetrieveAttribute {
     case "registeredAddress"                        => RegisteredAddress
     case "riskScore"                                => RiskScore
     case "reason"                                   => Reason
+    case "accountName"                              => AccountName
     case other                                      => throw new IllegalArgumentException(s"Unknown DataRetrieveAttribute name: $other")
   }
 }
@@ -183,6 +188,52 @@ object DataRetrieve {
     override def attributes: List[DataRetrieveAttribute] = List(
       RiskScore,
       Reason
+    )
+  }
+
+  final case class PersonalBankAccountExistenceWithName(
+    override val id: DataRetrieveId,
+    sortCode: Expr,
+    accountNumber: Expr,
+    name: Expr
+  ) extends DataRetrieve {
+    import DataRetrieveAttribute._
+
+    override def attributes: List[DataRetrieveAttribute] = List(
+      AccountNumberIsWellFormatted,
+      AccountExists,
+      NameMatches,
+      AccountName,
+      NonStandardAccountDetailsRequiredForBacs,
+      SortCodeIsPresentOnEISCD,
+      SortCodeSupportsDirectDebit,
+      SortCodeSupportsDirectCredit,
+      SortCodeBankName,
+      Iban
+    )
+  }
+
+  final case class PersonalBankAccountExistence(
+    override val id: DataRetrieveId,
+    sortCode: Expr,
+    accountNumber: Expr,
+    firstName: Expr,
+    lastName: Expr
+  ) extends DataRetrieve {
+
+    import DataRetrieveAttribute._
+
+    override def attributes: List[DataRetrieveAttribute] = List(
+      AccountNumberIsWellFormatted,
+      AccountExists,
+      NameMatches,
+      AccountName,
+      NonStandardAccountDetailsRequiredForBacs,
+      SortCodeIsPresentOnEISCD,
+      SortCodeSupportsDirectDebit,
+      SortCodeSupportsDirectCredit,
+      SortCodeBankName,
+      Iban
     )
   }
 

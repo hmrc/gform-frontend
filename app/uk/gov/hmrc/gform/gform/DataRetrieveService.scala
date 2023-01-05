@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.api.{ CompanyInformationConnector, CompanyProfile, Nino
 import uk.gov.hmrc.gform.bars
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, NinoInsights, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -156,6 +156,144 @@ object DataRetrieveService {
                 // ${dataRetrieve.businessBankDetails.accountNumberIsWellFormatted='no'} etc.
                 // will always evaluate to false
                 throw new Exception("Cannot retrieve BusinessBankAccountExistence data")
+            }
+        }
+      }
+    }
+
+  implicit def personalBankAccountExistence(implicit
+    bankAccountReputationConnector: BankAccountReputationConnector[Future]
+  ): DataRetrieveService[PersonalBankAccountExistence, Future] =
+    new DataRetrieveService[PersonalBankAccountExistence, Future] {
+
+      override def retrieve(
+        personalBankAccountExistence: PersonalBankAccountExistence,
+        formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+        maybeRequestParams: Option[JsValue]
+      )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
+        val accNumber =
+          formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(personalBankAccountExistence.accountNumber)
+            .stringRepresentation
+        val sortCode =
+          formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(personalBankAccountExistence.sortCode)
+            .stringRepresentation
+        val firstName =
+          formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(personalBankAccountExistence.firstName)
+            .stringRepresentation
+        val lastName =
+          formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(personalBankAccountExistence.lastName)
+            .stringRepresentation
+
+        val requestParams = Json.obj(
+          "accountNumber" -> accNumber,
+          "sortCode"      -> sortCode,
+          "firstName"     -> firstName,
+          "lastName"      -> lastName
+        )
+
+        if (
+          accNumber.isEmpty || sortCode.isEmpty || firstName.isEmpty || lastName.isEmpty || maybeRequestParams
+            .contains(requestParams)
+        ) {
+          Future.successful(None)
+        } else {
+          bankAccountReputationConnector
+            .personalBankAccountExistence(
+              bars.PersonalBankAccountExistence.create(sortCode, accNumber, firstName, lastName)
+            )
+            .map {
+              case ServiceResponse(result) =>
+                Some(
+                  DataRetrieveResult(
+                    personalBankAccountExistence.id,
+                    Map(
+                      DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
+                      DataRetrieveAttribute.AccountExists                            -> result.accountExists,
+                      DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
+                      DataRetrieveAttribute.AccountName                              -> result.accountName.getOrElse(""),
+                      DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> result.nonStandardAccountDetailsRequiredForBacs,
+                      DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> result.sortCodeIsPresentOnEISCD,
+                      DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
+                      DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit,
+                      DataRetrieveAttribute.SortCodeBankName                         -> result.sortCodeBankName.getOrElse(""),
+                      DataRetrieveAttribute.Iban                                     -> result.iban.getOrElse("")
+                    ),
+                    requestParams
+                  )
+                )
+              case CannotRetrieveResponse | NotFound =>
+                // We need to fail the journey here, otherwise expressions like
+                // ${dataRetrieve.personalBankAccountExistence.accountNumberIsWellFormatted='no'} etc.
+                // will always evaluate to false
+                throw new Exception("Cannot retrieve PersonalBankAccountExistence data")
+            }
+        }
+      }
+    }
+
+  implicit def personalBankAccountExistenceWithName(implicit
+    bankAccountReputationConnector: BankAccountReputationConnector[Future]
+  ): DataRetrieveService[PersonalBankAccountExistenceWithName, Future] =
+    new DataRetrieveService[PersonalBankAccountExistenceWithName, Future] {
+
+      override def retrieve(
+        personalBankAccountExistence: PersonalBankAccountExistenceWithName,
+        formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+        maybeRequestParams: Option[JsValue]
+      )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
+        val accNumber =
+          formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(personalBankAccountExistence.accountNumber)
+            .stringRepresentation
+        val sortCode =
+          formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(personalBankAccountExistence.sortCode)
+            .stringRepresentation
+        val name =
+          formModelVisibilityOptics
+            .evalAndApplyTypeInfoFirst(personalBankAccountExistence.name)
+            .stringRepresentation
+        val requestParams = Json.obj("accountNumber" -> accNumber, "sortCode" -> sortCode, "name" -> name)
+
+        if (
+          accNumber.isEmpty || sortCode.isEmpty || name.isEmpty || maybeRequestParams
+            .contains(requestParams)
+        ) {
+          Future.successful(None)
+        } else {
+          bankAccountReputationConnector
+            .personalBankAccountExistence(
+              bars.PersonalBankAccountExistence.createWithName(sortCode, accNumber, name)
+            )
+            .map {
+              case ServiceResponse(result) =>
+                Some(
+                  DataRetrieveResult(
+                    personalBankAccountExistence.id,
+                    Map(
+                      DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
+                      DataRetrieveAttribute.AccountExists                            -> result.accountExists,
+                      DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
+                      DataRetrieveAttribute.AccountName                              -> result.accountName.getOrElse(""),
+                      DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> result.nonStandardAccountDetailsRequiredForBacs,
+                      DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> result.sortCodeIsPresentOnEISCD,
+                      DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
+                      DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit,
+                      DataRetrieveAttribute.SortCodeBankName                         -> result.sortCodeBankName.getOrElse(""),
+                      DataRetrieveAttribute.Iban                                     -> result.iban.getOrElse("")
+                    ),
+                    requestParams
+                  )
+                )
+              case CannotRetrieveResponse | NotFound =>
+                // We need to fail the journey here, otherwise expressions like
+                // ${dataRetrieve.personalBankAccountExistence.accountNumberIsWellFormatted='no'} etc.
+                // will always evaluate to false
+                throw new Exception("Cannot retrieve PersonalBankAccountExistenceWithName data")
             }
         }
       }
