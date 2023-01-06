@@ -94,6 +94,7 @@ import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukSummaryList, Govuk
 import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
@@ -1362,6 +1363,19 @@ class SectionRenderingService(
             }
             .toList
             .flatten
+        case SmartStringRow(key, ss, _) =>
+          List(
+            SummaryListRowHelper.summaryListRow(
+              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+              Html(ss.value()),
+              Some(""),
+              "",
+              "",
+              "",
+              List(),
+              "govuk-summary-list__row--no-actions"
+            )
+          )
         case HeaderRow(header)         => throw new Exception("should not have HeaderRow  here")
         case ATLRow(atlId, _, atlRows) => throw new Exception("should not have ATLRow here")
       }
@@ -1406,9 +1420,10 @@ class SectionRenderingService(
     val visibleRowsPartitioned: List[List[MiniSummaryRow]] = visibleRows
       .foldLeft(List(List[MiniSummaryRow]()))((acc, row) =>
         row match {
-          case _: HeaderRow => List(row) :: acc
-          case _: ValueRow  => (row :: acc.head) :: acc.tail
-          case _: ATLRow    => List(row) :: acc
+          case _: HeaderRow      => List(row) :: acc
+          case _: SmartStringRow => List(row) :: acc
+          case _: ValueRow       => (row :: acc.head) :: acc.tail
+          case _: ATLRow         => List(row) :: acc
         }
       )
       .reverse
@@ -1605,6 +1620,8 @@ class SectionRenderingService(
   ): Boolean = row match {
     case v: ValueRow =>
       v.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
+    case s: SmartStringRow =>
+      s.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
     case HeaderRow(header) => true
     case v: ATLRow =>
       v.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))

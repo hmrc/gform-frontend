@@ -78,6 +78,9 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       case IsMiniSummaryList(MiniSummaryList(rows)) =>
         toPlainExprs(
           (rows.collect { case MiniSummaryRow.ValueRow(Some(key), _, _) => key.interpolations }).flatten,
+          (rows.collect { case MiniSummaryRow.SmartStringRow(Some(key), v, _) =>
+            key.interpolations ++ v.interpolations
+          }).flatten,
           rows.collect { case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.AnyExpr(e), _) => e },
           rows.collect { case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(e), _) => e }
         )

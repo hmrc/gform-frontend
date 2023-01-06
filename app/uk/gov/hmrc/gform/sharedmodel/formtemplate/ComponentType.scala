@@ -545,6 +545,12 @@ object MiniSummaryRow {
     includeIf: Option[IncludeIf]
   ) extends MiniSummaryRow
 
+  case class SmartStringRow(
+    key: Option[SmartString],
+    value: SmartString,
+    includeIf: Option[IncludeIf]
+  ) extends MiniSummaryRow
+
   case class HeaderRow(
     header: SmartString
   ) extends MiniSummaryRow
