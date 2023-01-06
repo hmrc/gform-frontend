@@ -7,6 +7,7 @@
     var enableBroadcastTimestamp = true;
     function init() {
       $("input").keypress(broadcastTimestamp);
+      $("textarea").keypress(broadcastTimestamp);
     }
 
     function broadcastTimestamp() {
