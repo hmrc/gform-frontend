@@ -13,7 +13,7 @@
     function broadcastTimestamp() {
       if (!enableBroadcastTimestamp) return;
       enableBroadcastTimestamp = false;
-      setTimeout(function () { enableBroadcastTimestamp = true; }, 300000)
+      setTimeout(function () { enableBroadcastTimestamp = true; }, 60000)
       if (window.BroadcastChannel) {
         const channel = new window.BroadcastChannel("session-activity");
         channel.postMessage({
