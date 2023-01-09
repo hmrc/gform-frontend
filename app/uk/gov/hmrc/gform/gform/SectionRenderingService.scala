@@ -1582,7 +1582,7 @@ class SectionRenderingService(
         "formaction"  -> formAction,
         "formenctype" -> "multipart/form-data"
       ) ++ otherAttributes,
-      preventDoubleClick = true
+      preventDoubleClick = Some(true)
     )
 
     val submitButtonHtml: Html = new components.GovukButton()(submitButton)
