@@ -156,6 +156,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     fastForward: List[FastForward],
     maybeSectionNumber: Option[SectionNumber]
   ): Future[SectionOrSummary] = {
+
     val maybeCoordinates = maybeSectionNumber.flatMap(_.toCoordinates)
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
 
@@ -173,9 +174,8 @@ class FormValidator(implicit ec: ExecutionContext) {
       sectionNumber <- maybeSectionNumber
       next          <- availableSectionNumbers.find(_ > sectionNumber)
     } yield next
-    lxol.pp.log(nextFrom, "[______]")
 
-    val r = fastForward match {
+    fastForward match {
       case FastForward.CYA(to) :: xs =>
         ffYesSnF.map(ffYes =>
           (ffYes, to, maybeSectionNumber) match {
@@ -191,16 +191,15 @@ class FormValidator(implicit ec: ExecutionContext) {
           }
         )
       case FastForward.StopAt(to) :: xs =>
+        val maxTo = List(Some(to), nextFrom).max.get
         ffYesSnF.map {
           case None =>
-            if (availableSectionNumbers.contains(to) && nextFrom.isDefined && to < nextFrom.get) {
-              SectionOrSummary.Section(nextFrom.get)
-              if (availableSectionNumbers.contains(to)) {
-                SectionOrSummary.Section(to)
-              }
+            if (availableSectionNumbers.contains(maxTo)) {
+              SectionOrSummary.Section(maxTo)
             } else if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary
             else SectionOrSummary.TaskSummary
-          case Some(r) => if (r < to) SectionOrSummary.Section(r) else SectionOrSummary.Section(to)
+          case Some(r) =>
+            if (r < maxTo) SectionOrSummary.Section(r) else SectionOrSummary.Section(maxTo)
         }
       case _ =>
         ffYesSnF.map { ffYesSn =>
@@ -214,11 +213,6 @@ class FormValidator(implicit ec: ExecutionContext) {
             case (Some(r), Some(sn)) => if (r < sn) SectionOrSummary.Section(r) else SectionOrSummary.Section(sn)
           }
         }
-    }
-    r.map { x =>
-      lxol.pp.log((maybeSectionNumber, x, fastForward), "[9999999]")
-      x
-
     }
   }
 }
