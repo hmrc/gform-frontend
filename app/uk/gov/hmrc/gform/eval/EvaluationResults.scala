@@ -111,6 +111,14 @@ case class EvaluationResults(
     }
   }
 
+  private def removeSpaces(
+    formComponentId: FormComponentId,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ): ExpressionResult = {
+    val maybeValue: Option[String] = recData.variadicFormData.one(formComponentId.modelComponentId)
+    maybeValue.fold(StringResult(""))(v => StringResult(v.replaceAll(" ", "")))
+  }
+
   private def whenVisible(formComponentId: FormComponentId)(body: => ExpressionResult) = {
     val isHidden = exprMap.get(FormCtx(formComponentId)).fold(false)(_ === Hidden)
     if (isHidden) {
@@ -270,6 +278,7 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("Number")(expr)
         }
+      case RemoveSpaces(_) => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -498,6 +507,7 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("String")(expr)
         }
+      case RemoveSpaces(fcId) => removeSpaces(fcId, recData)
     }
 
     loop(typeInfo.expr)
