@@ -691,6 +691,24 @@ graph LR;
     class title greenTitle
 ```
 ***
+***
+
+```mermaid
+%%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
+graph LR;
+    title([<u>NavFLOW-021</u>])
+    title -.- Page1
+    Page1 --> |1 'page2'| Page2["Page2<br>valid if<br>page1 = 'page2'"]
+    Page2 -.-  Page3["Page3<br>valid if<br>page1 = 'page2'"]
+    Page2 -.2 back.-> Page1
+    Page1 --> |3 'foo'| Page4
+    Page3 -.- Page4
+
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
+    class title greenTitle
+```
+***
+
 # Notes for developers
 Before updating the mermaid diagram in the file please test here:
 https://mermaid.live/
