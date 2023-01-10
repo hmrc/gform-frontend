@@ -533,7 +533,31 @@ object SummaryRenderingService {
         ""
       )
 
-      new GovukSummaryList()(SummaryList(slr :: Nil, "govuk-!-margin-bottom-0")) :: htmls
+      val fcrd = implicitly[FormComponentRenderDetails[SummaryRender]]
+      val slrTables: List[SummaryListRow] = bracket.iterations.last.repeater.repeater.fields
+        .map(
+          _.filterNot(_.hideOnSummary).toList
+            .collect { case fc @ IsTableComp(table) =>
+              val label = fcrd.label(fc)
+              summaryListRow(
+                label,
+                markDownParser(table.summaryValue),
+                Some(label),
+                "",
+                "",
+                "",
+                (
+                  url,
+                  messages("addToList.addOrRemove"),
+                  messages("addToList.addOrRemove") + " " + repeater.title
+                    .value()
+                ) :: Nil,
+                ""
+              )
+            }
+        )
+        .getOrElse(List.empty[SummaryListRow])
+      new GovukSummaryList()(SummaryList(slr :: slrTables, "govuk-!-margin-bottom-0")) :: htmls
     }
 
     def brackets: List[Bracket[Visibility]] = formModel.brackets.fold(_.brackets.toList)(taskListBrackets =>
