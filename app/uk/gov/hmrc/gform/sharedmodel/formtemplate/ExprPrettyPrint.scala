@@ -78,6 +78,7 @@ object ExprPrettyPrint {
     case Size(_, _)                    => "Size"
     case Typed(e, _)                   => "Typed"
     case IndexOf(_, _)                 => "IndexOf"
+    case RemoveSpaces(_)               => "Remove spaces"
   }
 
   def prettyPrintAuthInfo(authInfo: AuthInfo): String = authInfo match {
