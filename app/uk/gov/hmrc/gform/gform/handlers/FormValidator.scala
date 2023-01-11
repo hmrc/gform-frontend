@@ -206,9 +206,7 @@ class FormValidator(implicit ec: ExecutionContext) {
           (ffYesSn, nextFrom) match {
             case (None, None) =>
               if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
-            case (None, Some(sn)) =>
-              SectionOrSummary.Section(sn)
-              if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
+            case (None, Some(sn))    => SectionOrSummary.Section(sn)
             case (Some(r), None)     => SectionOrSummary.Section(r)
             case (Some(r), Some(sn)) => if (r < sn) SectionOrSummary.Section(r) else SectionOrSummary.Section(sn)
           }
