@@ -17,8 +17,9 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
 import org.scalacheck.Gen
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SummaryDisplayWidth, SummarySection }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.SectionGen.pdfContextGen
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.SmartStringGen.smartStringGen
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SummaryDisplayWidth, SummarySection }
 
 trait SummarySectionGen {
   def summarySectionGen: Gen[SummarySection] =
@@ -29,7 +30,8 @@ trait SummarySectionGen {
       footer        <- smartStringGen
       continueLabel <- Gen.option(smartStringGen)
       fields        <- Gen.option(PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen()))
-    } yield SummarySection(title, caption, header, footer, continueLabel, fields, SummaryDisplayWidth.M, None)
+      pdf           <- Gen.option(pdfContextGen)
+    } yield SummarySection(title, caption, header, footer, continueLabel, fields, SummaryDisplayWidth.M, None, pdf)
 }
 
 object SummarySectionGen extends SummarySectionGen

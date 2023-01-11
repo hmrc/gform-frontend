@@ -20,7 +20,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.AcknowledgementSectionPdf
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.PdfCxt
 
 class HtmlSanitiserSpec extends Spec {
 
@@ -532,7 +532,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
     val submissionDetails = "<h2>Extra Data £</h2>"
 
     val ackSectionWithNoFooter = ackSection.copy(
-      pdf = Some(AcknowledgementSectionPdf(Some(toSmartString("It's a Acknowledgement Section Pdf header.")), None))
+      pdf = Some(PdfCxt(Some(toSmartString("It's a Acknowledgement Section Pdf header.")), None, None))
     )
 
     val destinationListWithNoAckSectionFooter =
@@ -557,7 +557,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
     val submissionDetails = "<h2>Extra Data £</h2>"
 
     val ackSectionWithNoHeader = ackSection.copy(
-      pdf = Some(AcknowledgementSectionPdf(None, Some(toSmartString("It's a Acknowledgement Section Pdf footer."))))
+      pdf = Some(PdfCxt(None, Some(toSmartString("It's a Acknowledgement Section Pdf footer.")), None))
     )
 
     val destinationListWithNoAckSectionHeader =

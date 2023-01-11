@@ -156,6 +156,46 @@ class PDFRenderServiceSpec
     }
   }
 
+  "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model as default format" in new Fixture {
+    implicit val now: LocalDateTime = LocalDateTime.now()
+    whenReady(
+      pdfRenderService.createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+        "PDF Title",
+        Some("Page title"),
+        cache,
+        formModelOptics,
+        Some(HeaderFooter(Some(toSmartString("Some PDF header")), Some(toSmartString("Some PDF footer")))),
+        Some(SubmissionDetails(ExampleData.submission, "abcdefgh")),
+        SummaryPagePurpose.ForUser,
+        None,
+        None,
+        Some(false)
+      )
+    ) { pdfHtml =>
+      pdfHtml.html.trimLines shouldBe nonRepeatingPageSummaryPDFHTML
+    }
+  }
+
+  "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model as tabular format" in new Fixture {
+    implicit val now: LocalDateTime = LocalDateTime.now()
+    whenReady(
+      pdfRenderService.createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+        "PDF Title",
+        Some("Page title"),
+        cache,
+        formModelOptics,
+        Some(HeaderFooter(Some(toSmartString("Some PDF header")), Some(toSmartString("Some PDF footer")))),
+        Some(SubmissionDetails(ExampleData.submission, "abcdefgh")),
+        SummaryPagePurpose.ForUser,
+        None,
+        None,
+        Some(true)
+      )
+    ) { pdfHtml =>
+      pdfHtml.html.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML
+    }
+  }
+
   "createPDFHtml - PDFType.Instruction" should "render instruction PDF HTML for given form model" in new Fixture {
 
     override lazy val fcName = buildFormComponent(

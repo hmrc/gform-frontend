@@ -287,6 +287,7 @@ object FormTemplateBuilder {
       Some(toSmartString("ContinueLabel")),
       None,
       SummaryDisplayWidth.M,
+      None,
       None
     ),
     None,

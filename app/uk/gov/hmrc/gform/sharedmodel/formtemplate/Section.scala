@@ -141,8 +141,8 @@ case class AcknowledgementSection(
   shortName: Option[SmartString],
   fields: List[FormComponent],
   showReference: Boolean,
-  pdf: Option[AcknowledgementSectionPdf],
-  instructionPdf: Option[AcknowledgementSectionPdf],
+  pdf: Option[PdfCxt],
+  instructionPdf: Option[PdfCxt],
   displayFeedbackLink: Boolean,
   panelTitle: Option[SmartString]
 ) {
@@ -173,12 +173,6 @@ case class AcknowledgementSection(
 
 object AcknowledgementSection {
   implicit val format: OFormat[AcknowledgementSection] = Json.format[AcknowledgementSection]
-}
-
-case class AcknowledgementSectionPdf(header: Option[SmartString], footer: Option[SmartString])
-
-object AcknowledgementSectionPdf {
-  implicit val format: OFormat[AcknowledgementSectionPdf] = Json.format[AcknowledgementSectionPdf]
 }
 
 case class EnrolmentSection(

@@ -29,7 +29,8 @@ case class SummarySection(
   continueLabel: Option[SmartString],
   fields: Option[NonEmptyList[FormComponent]],
   displayWidth: SummaryDisplayWidth.SummaryDisplayWidth = SummaryDisplayWidth.M,
-  includeIf: Option[IncludeIf]
+  includeIf: Option[IncludeIf],
+  pdf: Option[PdfCxt]
 ) {
   def toPage: Page[Basic] =
     Page(

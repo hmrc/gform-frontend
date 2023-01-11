@@ -132,9 +132,10 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       formComponent,
       true,
       Some(
-        AcknowledgementSectionPdf(
+        PdfCxt(
           Some(toSmartString("It's a Acknowledgement Section Pdf header.")),
-          Some(toSmartString("It's a Acknowledgement Section Pdf footer."))
+          Some(toSmartString("It's a Acknowledgement Section Pdf footer.")),
+          None
         )
       ),
       None,
@@ -794,6 +795,7 @@ trait ExampleFormTemplate {
       Some(toSmartString("Summary ContinueLabel")),
       None,
       SummaryDisplayWidth.M,
+      None,
       None
     )
 
