@@ -132,7 +132,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       formComponent,
       true,
       Some(
-        SectionPdf(
+        PdfCxt(
           Some(toSmartString("It's a Acknowledgement Section Pdf header.")),
           Some(toSmartString("It's a Acknowledgement Section Pdf footer.")),
           None
