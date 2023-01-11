@@ -350,20 +350,28 @@ class SummaryController(
         case _              => Messages("summary.pdf.formCategory.form")
       }
 
+      val summarySection = cache.formTemplate.summarySection
+      def defaultHeaderFooter = Some(PDFModel.HeaderFooter(Some(summarySection.header), None))
+
+      val maybeHeaderFooter = summarySection.pdf.fold(defaultHeaderFooter) { pdf =>
+        val maybeHeader = if (pdf.header.nonEmpty) pdf.header else Some(summarySection.header)
+        Some(PDFModel.HeaderFooter(maybeHeader, pdf.footer))
+      }
+
       pdfRenderService
         .createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
           request.messages.messages(
             "summary.checkYourAnswers"
           ) + " - " + cache.formTemplate.formName.value + " - GOV.UK",
-          Some(cache.formTemplate.summarySection.title.value()),
+          Some(summarySection.title.value()),
           cache,
           formModelOptics,
-          Some(PDFModel.HeaderFooter(Some(cache.formTemplate.summarySection.header), None)),
+          maybeHeaderFooter,
           None,
           SummaryPagePurpose.ForUser,
           None,
           Some(draftText),
-          cache.formTemplate.summarySection.pdf.flatMap(_.tabularFormat)
+          summarySection.pdf.flatMap(_.tabularFormat)
         )
         .flatMap(pdfGeneratorService.generatePDF)
         .map { pdfSource =>
