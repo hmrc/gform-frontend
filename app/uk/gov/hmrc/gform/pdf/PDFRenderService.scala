@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
 import uk.gov.hmrc.gform.pdf.model.{ PDFCustomRender, PDFLayout, PDFPageModelBuilder, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, PdfHtml }
@@ -32,7 +33,6 @@ import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.views.html.summary.{ summaryPdf, summaryTabularPdf }
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -50,7 +50,8 @@ class PDFRenderService(
     maybeSubmissionDetails: Option[SubmissionDetails],
     purpose: SummaryPagePurpose,
     summaryDeclaration: Option[Html],
-    maybeDraftText: Option[String] = None
+    maybeDraftText: Option[String] = None,
+    maybeTabularFormat: Option[Boolean] = None
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -70,7 +71,10 @@ class PDFRenderService(
     } yield {
       val envelopeByPurpose = envelopeWithMapping.byPurpose(purpose)
       val pdfModel = PDFPageModelBuilder.makeModel(formModelOptics, cache, envelopeByPurpose, validationResult)
-      val html = pdfFunctions.layout match {
+
+      val layout = if (maybeTabularFormat.getOrElse(false)) PDFLayout.Tabular else pdfFunctions.layout
+
+      val html = layout match {
         case PDFLayout.Default =>
           summaryPdf(
             title,

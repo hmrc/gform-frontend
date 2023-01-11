@@ -53,8 +53,8 @@ trait SectionGen {
       shortName           <- Gen.option(smartStringGen)
       fields              <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
       showReference       <- PrimitiveGen.booleanGen
-      pdf                 <- Gen.option(acknowledgementSectionPdfGen)
-      instructionPdf      <- Gen.option(acknowledgementSectionPdfGen)
+      pdf                 <- Gen.option(sectionPdfGen)
+      instructionPdf      <- Gen.option(sectionPdfGen)
       displayFeedbackLink <- PrimitiveGen.booleanGen
       panelTitle          <- Gen.option(smartStringGen)
     } yield AcknowledgementSection(
@@ -69,11 +69,11 @@ trait SectionGen {
       panelTitle
     )
 
-  def acknowledgementSectionPdfGen: Gen[AcknowledgementSectionPdf] =
+  def sectionPdfGen: Gen[SectionPdf] =
     for {
       header <- Gen.option(smartStringGen)
       footer <- Gen.option(smartStringGen)
-    } yield AcknowledgementSectionPdf(header, footer)
+    } yield SectionPdf(header, footer, None)
 
   def declarationSectionGen: Gen[DeclarationSection] =
     for {

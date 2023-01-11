@@ -84,7 +84,7 @@ trait PDFCustomRender[A] {
 
 object PDFCustomRender {
 
-  implicit val summmaryPDFCustomRenderInstance: PDFCustomRender[PDFType.Summary] =
+  implicit val summaryPDFCustomRenderInstance: PDFCustomRender[PDFType.Summary] =
     new PDFCustomRender[PDFType.Summary] {
 
       override val layout: PDFLayout = PDFLayout.Default

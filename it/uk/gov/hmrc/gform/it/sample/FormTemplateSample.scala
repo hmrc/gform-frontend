@@ -34,6 +34,7 @@ trait FormTemplateSample {
       Some(toSmartString("Continue")),
       None,
       SummaryDisplayWidth.M,
+      None,
       None
     ),
     submitSection = None,

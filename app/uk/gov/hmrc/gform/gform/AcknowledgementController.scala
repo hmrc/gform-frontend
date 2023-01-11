@@ -153,6 +153,11 @@ class AcknowledgementController(
                                  case _                  => None
                                }
 
+        maybeTabularFormat = cache.formTemplate.destinations match {
+                               case d: DestinationList =>
+                                 d.acknowledgementSection.pdf.flatMap(p => p.tabularFormat)
+                               case _ => None
+                             }
         pdfHtml <-
           pdfRenderService
             .createPDFHtml[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement, PDFType.Summary](
@@ -165,7 +170,9 @@ class AcknowledgementController(
               },
               Some(SubmissionDetails(submission, hashedValue)),
               SummaryPagePurpose.ForUser,
-              Some(summarySectionDeclaration)
+              Some(summarySectionDeclaration),
+              None,
+              maybeTabularFormat
             )
         pdfSource <- pdfService.generatePDF(pdfHtml)
       } yield Result(

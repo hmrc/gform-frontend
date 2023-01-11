@@ -194,6 +194,33 @@ trait PdfRenderServiceExpectations {
         |""".stripMargin
     ).trimLines
 
+  def nonRepeatingPageTabularSummaryPDFHTML =
+    htmlTabularBase(
+      """
+        |<div id="0">
+        |   <div class="row">
+        |      <div class="col-lg-12 heading-1">
+        |         Section Name
+        |      </div>
+        |   </div>
+        |   <div class="row">
+        |      <div class="col-lg-4 label">
+        |         name
+        |      </div>
+        |      <div class="col-lg-8">
+        |         name-value<br/>
+        |      </div>
+        |   </div>
+        |</div>
+        |""".stripMargin,
+      """
+        |<meta name="subject" content="Some form template"></meta>
+        |<bookmarks>
+        |  <bookmark name="Section Name" href="#0"/>
+        |</bookmarks>
+        |""".stripMargin
+    ).trimLines
+
   def nonRepeatingPageInstructionPDFHTML =
     htmlTabularBase(
       """
