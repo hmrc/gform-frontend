@@ -1495,7 +1495,15 @@ class SectionRenderingService(
 
     val captionClasses = {
       val c = table.captionClasses.trim
-      if (c.isEmpty()) "govuk-table__caption--m" else c
+      val labelClass = formComponent.labelSize.fold("") {
+        case ExtraLarge => "govuk-table__caption--xl"
+        case Large      => "govuk-table__caption--l"
+        case Medium     => "govuk-table__caption--m"
+        case Small      => "govuk-table__caption--s"
+        case ExtraSmall => "govuk-table__caption--s"
+      }
+      val captionClasses = if (c.isEmpty() && formComponent.labelSize.isEmpty) "govuk-table__caption--m" else c
+      captionClasses + " " + labelClass
     }
     new GovukTable()(
       Table(
