@@ -327,8 +327,8 @@ class SectionRenderingService(
           .map {
             case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
               htmlForInformationMessage(info, infoType, infoText)
-            case IsTableComp(table) =>
-              htmlForTableComp(formComponent, table, formModelOptics)
+            case fc @ IsTableComp(table) =>
+              htmlForTableComp(fc, table, formModelOptics)
             case unsupported => throw new Exception("AddToList.fields contains a non-Info component: " + unsupported)
           }
       }
