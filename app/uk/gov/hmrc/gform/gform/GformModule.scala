@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.api.{ CompanyInformationAsyncConnector, NinoInsightsAsy
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
+import uk.gov.hmrc.gform.capture.CaptureController
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrResponder }
 import uk.gov.hmrc.gform.fileupload.{ FileUploadController, FileUploadModule }
@@ -406,4 +407,10 @@ class GformModule(
       fastForwardService,
       countryLookupOptions
     )
+
+  val captureController: CaptureController = new CaptureController(
+    playBuiltInsModule.i18nSupport,
+    controllersModule.authenticatedRequestActions,
+    controllersModule.messagesControllerComponents
+  )
 }
