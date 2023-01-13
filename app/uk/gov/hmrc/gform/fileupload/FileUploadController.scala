@@ -97,7 +97,8 @@ class FileUploadController(
                      sectionNumber,
                      cacheUpd,
                      maybeAccessCode,
-                     formModelOptics
+                     formModelOptics,
+                     List(FastForward.StopAt(sectionNumber, true))
                    )
         } yield res.flashing(flash)
 
@@ -217,7 +218,13 @@ class FileUploadController(
         }
 
         fastForwardService
-          .redirectStopAt[SectionSelectorType.Normal](sectionNumber, cache, maybeAccessCode, formModelOptics)
+          .redirectStopAt[SectionSelectorType.Normal](
+            sectionNumber,
+            cache,
+            maybeAccessCode,
+            formModelOptics,
+            List(FastForward.StopAt(sectionNumber))
+          )
           .map(_.flashing(flashWithFileId(flash, fileId)))
     }
 

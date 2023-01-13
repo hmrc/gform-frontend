@@ -236,7 +236,10 @@ object ValueClassBinder {
             for {
               sn2 <- toSectionNumber(key, from)
             } yield FastForward.CYA(SectionOrSummary.Section(sn2))
-          case value => toSectionNumber(key, value).map(FastForward.StopAt(_))
+          case value =>
+            val (f, v) = value.partition(_.toString == FastForward.ffStopAtForce)
+            val force = "$f" == FastForward.ffStopAtForce
+            toSectionNumber(key, v).map(FastForward.StopAt(_, force))
         }
 
       override def unbind(key: String, fastForward: FastForward): String =

@@ -174,10 +174,10 @@ class SectionRenderingService(
         })(_.value)
 
     val ff = fastForward match {
-      case Nil                                     => Nil
-      case FastForward.CYA(to) :: xs               => FastForward.CYA(to) :: xs
-      case FastForward.StopAt(sectionNumber) :: xs => FastForward.StopAt(sectionNumber.increment) :: xs
-      case otherwise                               => otherwise
+      case Nil                                        => Nil
+      case FastForward.CYA(to) :: xs                  => FastForward.CYA(to) :: xs
+      case FastForward.StopAt(sectionNumber, _) :: xs => FastForward.StopAt(sectionNumber.increment) :: xs
+      case otherwise                                  => otherwise
     }
     html.form.addToListCheckYourAnswers(
       title,

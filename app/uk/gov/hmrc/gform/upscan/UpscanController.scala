@@ -34,6 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+import uk.gov.hmrc.gform.models.FastForward
 
 class UpscanController(
   auth: AuthenticatedRequestActions,
@@ -76,7 +77,8 @@ class UpscanController(
                         sectionNumber,
                         cache.copy(form = form),
                         maybeAccessCode,
-                        formModelOptics
+                        formModelOptics,
+                        List(FastForward.StopAt(sectionNumber, false))
                       )
                   }
                 case UpscanFileStatus.Failed =>
@@ -111,7 +113,13 @@ class UpscanController(
                   }
 
                   fastForwardService
-                    .redirectStopAt[SectionSelectorType.Normal](sectionNumber, cache, maybeAccessCode, formModelOptics)
+                    .redirectStopAt[SectionSelectorType.Normal](
+                      sectionNumber,
+                      cache,
+                      maybeAccessCode,
+                      formModelOptics,
+                      List(FastForward.StopAt(sectionNumber, false))
+                    )
                     .map(_.flashing(flashWithFileId(flash, fileId)))
               }
             }
@@ -187,7 +195,13 @@ class UpscanController(
         }
 
         fastForwardService
-          .redirectStopAt[SectionSelectorType.Normal](sectionNumber, cache, maybeAccessCode, formModelOptics)
+          .redirectStopAt[SectionSelectorType.Normal](
+            sectionNumber,
+            cache,
+            maybeAccessCode,
+            formModelOptics,
+            List(FastForward.StopAt(sectionNumber, false))
+          )
           .map(_.flashing(flashWithFileId(flash, fileId)))
     }
 

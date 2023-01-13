@@ -384,7 +384,7 @@ class FormController(
                   createBackUrl(toSectionNumber, fastForward),
                   Some(to)
                 )
-              case Some(FastForward.StopAt(sn)) =>
+              case Some(FastForward.StopAt(sn, _)) =>
                 sectionNumber.fold { classic =>
                   createBackUrl(toSectionNumber, FastForward.StopAt(sectionNumber) :: fastForward).pure[Future]
                 } { taskList =>
@@ -933,7 +933,7 @@ class FormController(
     val ff = rawFastForward
       .filterNot {
         case FastForward.CYA(SectionOrSummary.Section(sn)) => sectionNumber >= sn
-        case FastForward.StopAt(sn)                        => sectionNumber >= sn
+        case FastForward.StopAt(sn, _)                     => sectionNumber >= sn
         case _                                             => false
       }
     removeDuplications(ff)

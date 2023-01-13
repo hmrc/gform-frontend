@@ -70,7 +70,8 @@ class FastForwardService(
     sectionNumber: SectionNumber,
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
@@ -79,7 +80,7 @@ class FastForwardService(
     redirectWithRecalculation(
       cache,
       maybeAccessCode,
-      List(FastForward.StopAt(sectionNumber)),
+      fastForward,
       formModelOptics,
       Some(sectionNumber)
     )

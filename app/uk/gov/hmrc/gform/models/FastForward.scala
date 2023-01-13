@@ -34,7 +34,10 @@ sealed trait FastForward extends Product with Serializable {
     }
 
   def asString: String =
-    fold(_ => FastForward.ffYes)(_.stopAt.value.toString) {
+    fold(_ => FastForward.ffYes) {
+      case FastForward.StopAt(v, false) => v.value.toString
+      case FastForward.StopAt(v, true)  => v.value.toString + FastForward.ffStopAtForce
+    } {
       case FastForward.CYA(SectionOrSummary.FormSummary) => FastForward.ffCYAFormSummary
       case FastForward.CYA(SectionOrSummary.TaskSummary) => FastForward.ffCYATaskSummary
       case FastForward.CYA(SectionOrSummary.Section(to)) =>
@@ -67,13 +70,14 @@ sealed trait FastForward extends Product with Serializable {
 object FastForward {
 
   case object Yes extends FastForward
-  case class StopAt(stopAt: SectionNumber) extends FastForward
+  case class StopAt(stopAt: SectionNumber, force: Boolean = false) extends FastForward
   case class CYA(to: SectionOrSummary = SectionOrSummary.FormSummary) extends FastForward
 
   val ffYes = "t"
   val ffCYAFormSummary = "cyaf"
   val ffCYATaskSummary = "cyat"
   val ffCYA = "cya"
+  val ffStopAtForce = "f"
 
   implicit val equal: Eq[FastForward] = Eq.fromUniversalEquals
 

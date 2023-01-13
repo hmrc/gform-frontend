@@ -402,7 +402,13 @@ class AddressLookupController(
               None
             ) // TODO JoVl Revisit maybeCoordinates param
         ) { sn =>
-          fastForwardService.redirectStopAt[SectionSelectorType.Normal](sn, cache, maybeAccessCode, formModelOptics)
+          fastForwardService.redirectStopAt[SectionSelectorType.Normal](
+            sn,
+            cache,
+            maybeAccessCode,
+            formModelOptics,
+            List(FastForward.StopAt(sn, false))
+          )
         }
 
     }
