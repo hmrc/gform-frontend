@@ -197,7 +197,12 @@ class FormValidator(implicit ec: ExecutionContext) {
               SectionOrSummary.Section(to)
             } else if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary
             else SectionOrSummary.TaskSummary
-          case Some(r) => if (r < to) SectionOrSummary.Section(r) else SectionOrSummary.Section(to)
+          case Some(r) =>
+            if (r < to) SectionOrSummary.Section(r)
+            else if (availableSectionNumbers.contains(to)) {
+              SectionOrSummary.Section(to)
+            } else
+              SectionOrSummary.Section(r)
         }
       case _ =>
         ffYesSnF.map { ffYesSn =>
