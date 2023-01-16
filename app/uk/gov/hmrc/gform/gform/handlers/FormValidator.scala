@@ -191,15 +191,13 @@ class FormValidator(implicit ec: ExecutionContext) {
           }
         )
       case FastForward.StopAt(to) :: xs =>
-        val maxTo = nextFrom.fold(to)(n => List(to, n).max)
         ffYesSnF.map {
           case None =>
-            if (availableSectionNumbers.contains(maxTo)) {
-              SectionOrSummary.Section(maxTo)
+            if (availableSectionNumbers.contains(to)) {
+              SectionOrSummary.Section(to)
             } else if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary
             else SectionOrSummary.TaskSummary
-          case Some(r) =>
-            if (r < maxTo) SectionOrSummary.Section(r) else SectionOrSummary.Section(maxTo)
+          case Some(r) => if (r < to) SectionOrSummary.Section(r) else SectionOrSummary.Section(to)
         }
       case _ =>
         ffYesSnF.map { ffYesSn =>
