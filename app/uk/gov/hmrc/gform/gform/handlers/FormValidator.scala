@@ -160,6 +160,11 @@ class FormValidator(implicit ec: ExecutionContext) {
     val maybeCoordinates = maybeSectionNumber.flatMap(_.toCoordinates)
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
 
+    def atlHasSectionNumber(sectionNumber: SectionNumber): Boolean =
+      formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
+        .filter(_.hasSectionNumber(sectionNumber))
+        .nonEmpty
+
     val availableSectionNumbers = getAvailableSectionNumbers(maybeSectionNumber, formModelOptics)
 
     val ffYesSnF = mustBeVisitedSectionNumber(
@@ -206,7 +211,12 @@ class FormValidator(implicit ec: ExecutionContext) {
           (ffYesSn, nextFrom) match {
             case (None, None) =>
               if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
-            case (None, Some(sn))    => SectionOrSummary.Section(sn)
+            case (None, Some(sn)) =>
+              if (atlHasSectionNumber(sn)) {
+                SectionOrSummary.Section(sn)
+              } else {
+                if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
+              }
             case (Some(r), None)     => SectionOrSummary.Section(r)
             case (Some(r), Some(sn)) => if (r < sn) SectionOrSummary.Section(r) else SectionOrSummary.Section(sn)
           }
