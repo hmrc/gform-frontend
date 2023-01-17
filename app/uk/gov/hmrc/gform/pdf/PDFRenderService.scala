@@ -51,7 +51,8 @@ class PDFRenderService(
     purpose: SummaryPagePurpose,
     summaryDeclaration: Option[Html],
     maybeDraftText: Option[String] = None,
-    maybeTabularFormat: Option[Boolean] = None
+    maybeTabularFormat: Option[Boolean] = None,
+    maybeFormName: Option[String] = None
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -91,7 +92,9 @@ class PDFRenderService(
             title,
             pdfModel,
             maybeHeaderFooter,
-            cache.formTemplate
+            cache.formTemplate,
+            maybeFormName,
+            maybeDraftText
           ).toString
       }
       PdfHtml(html)
