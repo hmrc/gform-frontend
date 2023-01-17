@@ -25,7 +25,9 @@
 title: String,
 summaryDatas: List[SummaryData],
 maybeHeaderFooter: Option[HeaderFooter],
-formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+formTemplate: FormTemplate,
+maybeFormName: Option[String],
+maybeDraftText: Option[String])(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @timeFormat = @{DateTimeFormatter.ofPattern("HH:mm")}
 @dateFormat = @{DateTimeFormatter.ofPattern("dd MMM yyyy")}
@@ -97,6 +99,20 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
         .heading-1 { font-size: 22px; font-weight: bold;}
         .heading-2 { font-size: 20px; font-weight: bold;}
         .heading-3 { font-size: 18px; font-weight: bold;}
+        @if(maybeDraftText.isDefined) {
+            body:before {
+                content: "DRAFT";
+                position: fixed;
+                bottom: 30%;
+                left: -100px;
+                z-index: -1;
+                font-size: 280px;
+                color: #F6F5F5;
+                font-weight: bold;
+                transform: rotate(-60deg);
+                opacity: 0.2;
+            }
+        }
     </style>
     <meta name="subject" content="@{formTemplate.formName.value}"></meta>
     <bookmarks>
@@ -122,6 +138,14 @@ formTemplate: FormTemplate)(implicit request: Request[_], messages: Messages, l:
 </head>
 <body>
 <div class="container-fluid">
+    @maybeFormName.map { formName =>
+        <h1>@formName</h1>
+    }
+    @if(maybeDraftText.isDefined){
+        @maybeDraftText.map{ draftText =>
+            <h2>@draftText</h2>
+        }
+    }
     @for(headerFooter <- maybeHeaderFooter) {
         @for(header <- headerFooter.header) {
             <div class="row">

@@ -172,7 +172,8 @@ class AcknowledgementController(
               SummaryPagePurpose.ForUser,
               Some(summarySectionDeclaration),
               None,
-              maybeTabularFormat
+              maybeTabularFormat,
+              Some(cache.formTemplate.formName.value)
             )
         pdfSource <- pdfService.generatePDF(pdfHtml)
       } yield Result(
