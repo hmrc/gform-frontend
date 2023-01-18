@@ -29,9 +29,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
 
 trait NinoInsightsConnector[F[_]] {
-  def insights(ninoInsightsRequest: NinoInsightCheck.Request)(implicit
-    hc: HeaderCarrier
-  ): F[ServiceCallResponse[NinoInsightCheck.Response]]
+  def insights(ninoInsightsRequest: NinoInsightCheck.Request): F[ServiceCallResponse[NinoInsightCheck.Response]]
 }
 
 class NinoInsightsAsyncConnector(ws: WSHttp, baseUrl: String, authorizationToken: String)(implicit ex: ExecutionContext)
@@ -40,7 +38,8 @@ class NinoInsightsAsyncConnector(ws: WSHttp, baseUrl: String, authorizationToken
 
   override def insights(
     ninoInsightsRequest: NinoInsightCheck.Request
-  )(implicit hc: HeaderCarrier): Future[ServiceCallResponse[NinoInsightCheck.Response]] = {
+  ): Future[ServiceCallResponse[NinoInsightCheck.Response]] = {
+    implicit val hc = HeaderCarrier()
     val url = s"$baseUrl/check/insights"
 
     val header = Seq(
