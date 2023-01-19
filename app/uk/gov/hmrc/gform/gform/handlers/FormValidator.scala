@@ -193,6 +193,8 @@ class FormValidator(implicit ec: ExecutionContext) {
             case (Some(yesTo), SectionOrSummary.Section(cyaTo), _) if cyaTo > yesTo =>
               nextFrom.map(SectionOrSummary.Section(_)).getOrElse(SectionOrSummary.TaskSummary)
             case (Some(yesTo), SectionOrSummary.Section(cyaTo), _) => SectionOrSummary.Section(cyaTo)
+            case (Some(yesTo), _, _)                               => SectionOrSummary.Section(yesTo)
+            case (None, _, _)                                      => nextFrom.map(SectionOrSummary.Section(_)).getOrElse(SectionOrSummary.FormSummary)
           }
         )
       case FastForward.StopAt(to) :: xs =>
