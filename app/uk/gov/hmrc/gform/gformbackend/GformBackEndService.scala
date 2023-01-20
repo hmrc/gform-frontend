@@ -183,7 +183,10 @@ class GformBackEndService(
           },
           submissionDetails,
           SummaryPagePurpose.ForDms,
-          Some(summarySectionDeclaration)
+          Some(summarySectionDeclaration),
+          None,
+          cache.formTemplate.summarySection.pdf.flatMap(_.tabularFormat),
+          Some(cache.formTemplate.formName.value)
         )
       htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate))
                                  createHTMLForInstructionPDF[SectionSelectorType.Normal, D](

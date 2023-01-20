@@ -94,7 +94,8 @@ class PDFRenderService(
             maybeHeaderFooter,
             cache.formTemplate,
             maybeFormName,
-            maybeDraftText
+            maybeDraftText,
+            maybeSubmissionDetails
           ).toString
       }
       PdfHtml(html)

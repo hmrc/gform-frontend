@@ -21,13 +21,17 @@
 @import uk.gov.hmrc.gform.commons.MarkDownUtil._
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 
+@import uk.gov.hmrc.gform.summary.SummaryRenderingService
+@import uk.gov.hmrc.gform.views.html.summary.snippets.ordered_list
 @(
-title: String,
-summaryDatas: List[SummaryData],
-maybeHeaderFooter: Option[HeaderFooter],
-formTemplate: FormTemplate,
-maybeFormName: Option[String],
-maybeDraftText: Option[String])(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+    title: String,
+    summaryDatas: List[SummaryData],
+    maybeHeaderFooter: Option[HeaderFooter],
+    formTemplate: FormTemplate,
+    maybeFormName: Option[String],
+    maybeDraftText: Option[String],
+    maybeSubmissionDetails: Option[SubmissionDetails]
+)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @timeFormat = @{DateTimeFormatter.ofPattern("HH:mm")}
 @dateFormat = @{DateTimeFormatter.ofPattern("dd MMM yyyy")}
@@ -80,6 +84,7 @@ maybeDraftText: Option[String])(implicit request: Request[_], messages: Messages
           padding-left: 16px;
           padding-top: 11px;
           padding-bottom: 11px;
+          word-wrap: break-word;
         }
         .col-lg-4, .col-lg-8, .col-lg-12 {
             float: left;
@@ -143,7 +148,7 @@ maybeDraftText: Option[String])(implicit request: Request[_], messages: Messages
     }
     @if(maybeDraftText.isDefined){
         @maybeDraftText.map{ draftText =>
-            <h2>@draftText</h2>
+            <h1>@draftText</h1>
         }
     }
     @for(headerFooter <- maybeHeaderFooter) {
@@ -162,8 +167,19 @@ maybeDraftText: Option[String])(implicit request: Request[_], messages: Messages
                     @summaryTabularPdf_page(pageData)
                 </div>
             }
-            case AddToListData(_, _, pageGroups, id) => {
+            case AddToListData(title, summary, pageGroups, id) => {
                 <div id="@{id}">
+                    <div class="row">
+                        <div class="col-lg-12 heading-2">
+                        @title
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4 label">
+                        @{summary.title}
+                        </div>
+                        <div class="col-lg-8">@ordered_list(summary.values)</div>
+                    </div>
                     @for(pageGroup <- pageGroups) {
                         <div id="@{pageGroup.id}">
                             <div class="row">
@@ -190,6 +206,8 @@ maybeDraftText: Option[String])(implicit request: Request[_], messages: Messages
         </div>
         }
     }
+
+    @{SummaryRenderingService.submissionDetailsAsTabularHTML(maybeSubmissionDetails)}
 </div>
 </body>
 </html>
