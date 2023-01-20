@@ -246,6 +246,9 @@ class SummaryRenderingService(
 
 object SummaryRenderingService {
 
+  private val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
+  private val dateFormat = DateTimeFormatter.ofPattern("d MMM yyyy")
+
   def renderSummary[D <: DataOrigin](
     formTemplate: FormTemplate,
     validationResult: ValidationResult,
@@ -630,8 +633,6 @@ object SummaryRenderingService {
   ): Html =
     maybeSubmissionDetails
       .map { sd =>
-        val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
-        val dateFormat = DateTimeFormatter.ofPattern("d MMM yyyy")
         val formattedTime =
           s"${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}"
         val rows = List(
@@ -641,6 +642,23 @@ object SummaryRenderingService {
         )
 
         cya_section(messages("submission.details"), HtmlFormat.fill(rows))
+      }
+      .getOrElse(Html(""))
+
+  def submissionDetailsAsTabularHTML(maybeSubmissionDetails: Option[SubmissionDetails])(implicit
+    messages: Messages
+  ): Html =
+    maybeSubmissionDetails
+      .map { sd =>
+        val formattedTime =
+          s"${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}"
+        val rows = Map(
+          (messages("submission.date"), formattedTime),
+          (messages("submission.reference"), sd.submission.submissionRef.toString),
+          (messages("submission.mark"), sd.hashedValue)
+        )
+
+        cya_tabular_section(messages("submission.details"), rows)
       }
       .getOrElse(Html(""))
 

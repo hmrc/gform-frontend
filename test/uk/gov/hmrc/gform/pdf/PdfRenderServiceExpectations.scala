@@ -85,7 +85,7 @@ trait PdfRenderServiceExpectations {
        |</html>
        |""".stripMargin
 
-  def htmlTabularBase(summaryRows: String, bookmarks: String = "") =
+  def htmlTabularBase(summaryRows: String, bookmarks: String = "", summaryDetails: String) =
     s"""
        |<!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
        |<html>
@@ -134,6 +134,7 @@ trait PdfRenderServiceExpectations {
        |          padding-left: 16px;
        |          padding-top: 11px;
        |          padding-bottom: 11px;
+       |          word-wrap: break-word;
        |         }
        |         .col-lg-4, .col-lg-8, .col-lg-12 {
        |          float: left;
@@ -167,6 +168,7 @@ trait PdfRenderServiceExpectations {
        |					<p>Some PDF footer</p>
        |				</div>
        |			</div>
+       |      $summaryDetails
        |		</div>
        |	</body>
        |</html>
@@ -194,31 +196,48 @@ trait PdfRenderServiceExpectations {
         |""".stripMargin
     ).trimLines
 
-  def nonRepeatingPageTabularSummaryPDFHTML =
+  def nonRepeatingPageTabularSummaryPDFHTML(implicit time: LocalDateTime) =
     htmlTabularBase(
-      """
-        |<div id="0">
-        |   <div class="row">
-        |      <div class="col-lg-12 heading-1">
-        |         Section Name
-        |      </div>
-        |   </div>
-        |   <div class="row">
-        |      <div class="col-lg-4 label">
-        |         name
-        |      </div>
-        |      <div class="col-lg-8">
-        |         name-value<br/>
-        |      </div>
-        |   </div>
-        |</div>
-        |""".stripMargin,
+      s"""
+         |<div id="0">
+         |   <div class="row">
+         |      <div class="col-lg-12 heading-1">
+         |         Section Name
+         |      </div>
+         |   </div>
+         |   <div class="row">
+         |      <div class="col-lg-4 label">
+         |         name
+         |      </div>
+         |      <div class="col-lg-8">
+         |         name-value<br/>
+         |      </div>
+         |   </div>
+         |</div>
+         |
+         |""".stripMargin,
       """
         |<meta name="subject" content="Some form template"></meta>
         |<bookmarks>
         |  <bookmark name="Section Name" href="#0"/>
         |</bookmarks>
-        |""".stripMargin
+        |""".stripMargin,
+      s"""
+         |<div class="row">
+         |    <div class="col-lg-12 heading-2">Submission Details</div>
+         |</div>
+         |<div class="row">
+         |    <div class="col-lg-4 label">Submission Date</div>
+         |    <div class="col-lg-8">${time.format(dateFormat)} ${time.format(timeFormat)}</div>
+         |</div>
+         |<div class="row">
+         |    <div class="col-lg-4 label">Submission Reference</div>
+         |    <div class="col-lg-8">submission-ref</div>
+         |</div>
+         |<div class="row">
+         |    <div class="col-lg-4 label">Submission Mark</div>
+         |    <div class="col-lg-8">abcdefgh</div>
+         |</div>""".stripMargin
     ).trimLines
 
   def nonRepeatingPageInstructionPDFHTML =
@@ -245,7 +264,8 @@ trait PdfRenderServiceExpectations {
         |<bookmarks>
         |  <bookmark name="page1-instruction" href="#0"/>
         |</bookmarks>
-        |""".stripMargin
+        |""".stripMargin,
+      ""
     ).trimLines
 
   implicit class StringOps(input: String) {
