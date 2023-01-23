@@ -81,6 +81,12 @@ object ExprPrettyPrint {
     case RemoveSpaces(_)               => "Remove spaces"
   }
 
+  def prettyPrintItmpNameFocus(focus: ItmpNameFocus): String = focus match {
+    case ItmpNameFocus.GivenName  => "given name"
+    case ItmpNameFocus.MiddleName => "middle name"
+    case ItmpNameFocus.FamilyName => "family name"
+  }
+
   def prettyPrintAuthInfo(authInfo: AuthInfo): String = authInfo match {
     case AuthInfo.GG                     => "Goverment Gateway"
     case AuthInfo.PayeNino               => "Paye"
@@ -90,6 +96,7 @@ object ExprPrettyPrint {
     case AuthInfo.EtmpRegistrationNumber => "Etmp registration number"
     case AuthInfo.Name                   => "Name"
     case AuthInfo.ItmpName               => "Itmp name"
+    case AuthInfo.ItmpNameLens(focus)    => s"Itmp name ${prettyPrintItmpNameFocus(focus)}"
     case AuthInfo.ItmpDateOfBirth        => "Itmp date of birth"
     case AuthInfo.ItmpAddress            => "Itmp address"
   }

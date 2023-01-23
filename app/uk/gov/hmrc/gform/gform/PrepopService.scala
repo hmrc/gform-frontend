@@ -35,12 +35,25 @@ object AuthContextPrepop {
     case AuthInfo.EmailId                => retrievals.getEmail.toString
     case AuthInfo.Name                   => retrievals.getName.toString
     case AuthInfo.ItmpName               => getItmpName(itmpRetrievals)
+    case AuthInfo.ItmpNameLens(focus)    => getItmpNameFocus(itmpRetrievals, focus)
     case AuthInfo.ItmpDateOfBirth        => getItmpDateOfBirth(itmpRetrievals)
     case AuthInfo.ItmpAddress            => getItmpAddress(itmpRetrievals)
   }
 
   private def getItmpName(itmpRetrievals: Option[ItmpRetrievals]): String =
     itmpRetrievals.flatMap(_.itmpName).map(n => concat(n.givenName, n.middleName, n.familyName)).getOrElse("")
+
+  private def getItmpNameFocus(itmpRetrievals: Option[ItmpRetrievals], focus: ItmpNameFocus): String =
+    itmpRetrievals
+      .flatMap(_.itmpName)
+      .flatMap { n =>
+        focus match {
+          case ItmpNameFocus.GivenName  => n.givenName
+          case ItmpNameFocus.MiddleName => n.middleName
+          case ItmpNameFocus.FamilyName => n.familyName
+        }
+      }
+      .getOrElse("")
 
   private def getItmpDateOfBirth(itmpRetrievals: Option[ItmpRetrievals])(implicit messages: Messages): String =
     itmpRetrievals.flatMap(_.itmpDateOfBirth).fold("") { ld =>

@@ -487,7 +487,10 @@ class NewFormController(
       val allExpr = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
       allExpr.contains(AuthCtx(AuthInfo.ItmpAddress)) ||
       allExpr.contains(AuthCtx(AuthInfo.ItmpName)) ||
-      allExpr.contains(AuthCtx(AuthInfo.ItmpDateOfBirth))
+      allExpr.contains(AuthCtx(AuthInfo.ItmpDateOfBirth)) ||
+      allExpr.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.GivenName))) ||
+      allExpr.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.MiddleName))) ||
+      allExpr.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.FamilyName)))
     }
 
     def modifyCacheItmpRetrievals(c: AuthCacheWithForm, itmpRetrievals: ItmpRetrievals): AuthCacheWithForm =
