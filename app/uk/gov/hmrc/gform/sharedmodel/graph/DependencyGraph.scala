@@ -185,7 +185,28 @@ object DependencyGraph {
         .flatten
 
     val emptyGraph: Graph[GraphNode, DiEdge] = Graph.empty
-    emptyGraph ++ (allEdges ++ addToListEdges)
+    val graph = emptyGraph ++ (allEdges ++ addToListEdges)
+
+    def govukListEdges(g: GraphNode, fcId: FormComponentId): List[DiEdge[GraphNode]] =
+      g ~> GraphNode.Expr(FormCtx(fcId)) ::
+        GraphNode.Expr(FormCtx(fcId)) ~> GraphNode.Simple(fcId) ::
+        formModel.allFormComponents
+          .filter(_.baseComponentId === fcId.baseComponentId)
+          .flatMap(fc =>
+            List(
+              GraphNode.Simple(fcId) ~> GraphNode.Expr(FormCtx(fc.id)),
+              GraphNode.Expr(FormCtx(fc.id)) ~> GraphNode.Simple(fc.id)
+            )
+          )
+    val govukListNodes = graph.nodes.flatMap { n =>
+      n.value match {
+        case g @ GraphNode.Expr(NumberedList(fcId)) => govukListEdges(g, fcId)
+        case g @ GraphNode.Expr(BulletedList(fcId)) => govukListEdges(g, fcId)
+        case e                                      => List.empty[DiEdge[GraphNode]]
+      }
+    }.toSet
+
+    graph ++ govukListNodes
   }
 
   def constructDependencyGraph(

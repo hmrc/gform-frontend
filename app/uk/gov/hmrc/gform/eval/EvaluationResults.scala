@@ -292,6 +292,8 @@ case class EvaluationResults(
           case _              => unsupportedOperation("Number")(expr)
         }
       case RemoveSpaces(_) => unsupportedOperation("Number")(expr)
+      case NumberedList(_) => unsupportedOperation("Number")(expr)
+      case BulletedList(_) => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -517,6 +519,8 @@ case class EvaluationResults(
           case _              => unsupportedOperation("String")(expr)
         }
       case RemoveSpaces(fcId) => removeSpaces(fcId, recData)
+      case NumberedList(fcId) => get(FormCtx(fcId), fromVariadicValue, evaluationContext)
+      case BulletedList(fcId) => get(FormCtx(fcId), fromVariadicValue, evaluationContext)
     }
 
     loop(typeInfo.expr)
