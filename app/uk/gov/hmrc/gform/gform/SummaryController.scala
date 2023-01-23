@@ -371,7 +371,8 @@ class SummaryController(
           SummaryPagePurpose.ForUser,
           None,
           Some(draftText),
-          summarySection.pdf.flatMap(_.tabularFormat)
+          summarySection.pdf.flatMap(_.tabularFormat),
+          Some(cache.formTemplate.formName.value)
         )
         .flatMap(pdfGeneratorService.generatePDF)
         .map { pdfSource =>
