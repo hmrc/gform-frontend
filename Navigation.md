@@ -787,7 +787,7 @@ graph LR;
     title -.- Page1
     Page1 --> |1| Page2
     Page2 --> |2| Page3
-    Page3 -.-  Page4["Page4<br><i>invalid"]
+    Page3 -.-  Page4["Page4<br><i>invisible"]
     Page4 -.- Page5
     Page3 --> |3| Page5
     Page5 --> |4| Page6
