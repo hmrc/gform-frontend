@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.collection.GenTraversableOnce
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 
 sealed trait VariadicValue extends Product with Serializable {
   def toSeq: Seq[String] = this match {
@@ -117,6 +118,13 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
           modelComponentId -> value
       }
     }
+
+  def distinctIndexedComponentIds(modelComponentId: ModelComponentId): List[IndexedComponentId] =
+    forBaseComponentIdLessThen(modelComponentId)
+      .map(_._1.fold(p => p.indexedComponentId)(i => i.indexedComponentId))
+      .toList
+      .distinct
+      .sortBy(_.maybeIndex)
 
   def keySet(): Set[ModelComponentId] = data.keySet
 

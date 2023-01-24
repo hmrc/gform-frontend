@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveResult, SourceOrigin, Variadi
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupOptions }
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
@@ -353,6 +354,19 @@ case class EvaluationResults(
         ExpressionResult.OptionResult(many.value)
       )
 
+    def getAddressResult(indexedComponentId: IndexedComponentId): AddressResult = {
+      val addressAtoms: List[ModelComponentId.Atomic] =
+        if (evaluationContext.addressLookup(indexedComponentId.baseComponentId))
+          Address.fields(indexedComponentId).filter(_.atom != Address.uk)
+        else
+          OverseasAddress.fields(indexedComponentId).toList
+
+      val variadicValues: List[Option[VariadicValue]] =
+        addressAtoms.map(atom => recData.variadicFormData.get(atom))
+      val addressLines = variadicValues.collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
+      ExpressionResult.AddressResult(addressLines)
+    }
+
     def loop(expr: Expr): ExpressionResult = expr match {
       case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
       case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
@@ -361,29 +375,24 @@ case class EvaluationResults(
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
-      case expr @ FormCtx(formComponentId: FormComponentId)
+      case FormCtx(formComponentId: FormComponentId)
           if evaluationContext.addressLookup(formComponentId.baseComponentId) || evaluationContext
             .overseasAddressLookup(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {
-          val modelComponentId = expr.formComponentId.modelComponentId
+          val modelComponentId = formComponentId.modelComponentId
           val isModelFormComponentIdPure = modelComponentId.indexedComponentId.isPure
           val isReferenceIndexed = evaluationContext.indexedComponentIds.exists(
             _.baseComponentId === modelComponentId.baseComponentId
           )
           if (isModelFormComponentIdPure && isReferenceIndexed) {
-            get(expr, fromVariadicValue, evaluationContext)
+            val addresses = recData.variadicFormData.distinctIndexedComponentIds(formComponentId.modelComponentId).map {
+              indexedComponentId =>
+                getAddressResult(indexedComponentId)
+            }
+            ListResult(addresses)
           } else {
             val indexedComponentId = formComponentId.modelComponentId.indexedComponentId
-            val addressAtoms: List[ModelComponentId.Atomic] =
-              if (evaluationContext.addressLookup(formComponentId.baseComponentId))
-                Address.fields(indexedComponentId).filter(_.atom != Address.uk)
-              else
-                OverseasAddress.fields(indexedComponentId).toList
-
-            val variadicValues: List[Option[VariadicValue]] =
-              addressAtoms.map(atom => recData.variadicFormData.get(atom))
-            val addressLines = variadicValues.collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
-            ExpressionResult.AddressResult(addressLines)
+            getAddressResult(indexedComponentId)
           }
         }
       case FormCtx(formComponentId: FormComponentId)
