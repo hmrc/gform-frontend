@@ -654,6 +654,9 @@ class FormController(
                                   else if (isFirstLanding || sectionNumber.isTaskList) {
                                     fastForward match {
                                       case Nil => Nil
+                                      case x :: FastForward.StopAt(s) :: xs
+                                          if formModel.availableSectionNumbers.contains(s) =>
+                                        FastForward.StopAt(s) :: xs
                                       case x :: xs =>
                                         x
                                           .next(

@@ -780,6 +780,44 @@ graph LR;
     class title greenTitle
 
 ```
+```mermaid
+%%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
+graph LR;
+    title([<u>NavFLOW-024</u>])
+    title -.- Page1
+    Page1 --> |1| Page2
+    Page2 --> |2| Page3
+    Page3 -.-  Page4["Page4<br><i>invisible"]
+    Page4 -.- Page5
+    Page3 --> |3| Page5
+    Page5 --> |4| Page6
+    Page6 -.5 back.-> Page5
+    Page5 -.6 back.-> Page3
+    Page3 -.7 back.-> Page2
+    Page2 --> |8| Page3
+    Page3 --> |9| Page5
+    Page5 --> |10| Page6
+
+    classDef invalid fill:#ee6b6e,stroke:#222,stroke-width:3px
+    class Page4 invalid
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
+    class title greenTitle
+
+    classDef orange fill:#fedebe,stroke:#222,stroke-width:1px
+    classDef orangeCYA fill:#ffaf42,stroke:#222,stroke-width:2px
+    classDef orangeRepeater fill:#fe6e00,stroke:#222,stroke-width:3px
+    class ATLRepeater orangeRepeater
+    class ATLPage2 orange
+    class ATLPage1 orange
+    class ATLPage12 orange
+    class ATLPage22 orange
+    class ATLRepeater2 orangeRepeater
+    classDef redTitle fill:#c21807 ,stroke:#c0c0c2,stroke-width:3px
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
+    class title greenTitle
+
+
+```
 # Notes for developers
 Before updating the mermaid diagram in the file please test here:
 https://mermaid.live/
