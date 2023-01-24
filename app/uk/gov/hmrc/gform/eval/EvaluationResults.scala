@@ -361,22 +361,30 @@ case class EvaluationResults(
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
-      case FormCtx(formComponentId: FormComponentId)
+      case expr @ FormCtx(formComponentId: FormComponentId)
           if evaluationContext.addressLookup(formComponentId.baseComponentId) || evaluationContext
             .overseasAddressLookup(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {
-          val indexedComponentId = formComponentId.modelComponentId.indexedComponentId
-          val addressAtoms: List[ModelComponentId.Atomic] =
-            if (evaluationContext.addressLookup(formComponentId.baseComponentId))
-              Address.fields(indexedComponentId).filter(_.atom != Address.uk)
-            else
-              OverseasAddress.fields(indexedComponentId).toList
+          val modelComponentId = expr.formComponentId.modelComponentId
+          val isModelFormComponentIdPure = modelComponentId.indexedComponentId.isPure
+          val isReferenceIndexed = evaluationContext.indexedComponentIds.exists(
+            _.baseComponentId === modelComponentId.baseComponentId
+          )
+          if (isModelFormComponentIdPure && isReferenceIndexed) {
+            get(expr, fromVariadicValue, evaluationContext)
+          } else {
+            val indexedComponentId = formComponentId.modelComponentId.indexedComponentId
+            val addressAtoms: List[ModelComponentId.Atomic] =
+              if (evaluationContext.addressLookup(formComponentId.baseComponentId))
+                Address.fields(indexedComponentId).filter(_.atom != Address.uk)
+              else
+                OverseasAddress.fields(indexedComponentId).toList
 
-          val variadicValues: List[Option[VariadicValue]] = addressAtoms.map(atom => recData.variadicFormData.get(atom))
-          val addressLines = variadicValues.collect {
-            case Some(VariadicValue.One(value)) if value.nonEmpty => value
+            val variadicValues: List[Option[VariadicValue]] =
+              addressAtoms.map(atom => recData.variadicFormData.get(atom))
+            val addressLines = variadicValues.collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
+            ExpressionResult.AddressResult(addressLines)
           }
-          ExpressionResult.AddressResult(addressLines)
         }
       case FormCtx(formComponentId: FormComponentId)
           if evaluationContext.postcodeLookup(formComponentId.baseComponentId) =>
@@ -519,8 +527,8 @@ case class EvaluationResults(
           case _              => unsupportedOperation("String")(expr)
         }
       case RemoveSpaces(fcId) => removeSpaces(fcId, recData)
-      case NumberedList(fcId) => get(FormCtx(fcId), fromVariadicValue, evaluationContext)
-      case BulletedList(fcId) => get(FormCtx(fcId), fromVariadicValue, evaluationContext)
+      case NumberedList(fcId) => loop(FormCtx(fcId))
+      case BulletedList(fcId) => loop(FormCtx(fcId))
     }
 
     loop(typeInfo.expr)
