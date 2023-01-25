@@ -123,21 +123,32 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
                   .getOrElse("")
               case _ => stringRepresentation(typeInfo)
             }
-          case _ => stringRepresentation(typeInfo)
+          case _ =>
+            expr match {
+              case NumberedList(fcId) =>
+                govukListRepresentation(typeInfo, markDown = markDown, isBulleted = false)
+              case BulletedList(fcId) =>
+                govukListRepresentation(typeInfo, markDown = markDown, isBulleted = true)
+              case _ => stringRepresentation(typeInfo)
+            }
         }
 
         val formatted = typeInfo.staticTypeData.textConstraint.fold(interpolated) { textConstraint =>
           TextFormatter.componentTextReadonly(interpolated, textConstraint)
         }
 
-        if (markDown) {
-          typeInfo.staticTypeData.exprType match {
-            case ExprType.AddressString =>
-              addressRepresentation(typeInfo).map(HtmlFormat.escape).map(_.body).mkString(",<br>")
-            case _ => escapeMarkdown(formatted)
-          }
-        } else {
-          formatted
+        expr match {
+          case _: NumberedList | _: BulletedList => formatted
+          case _ =>
+            if (markDown) {
+              typeInfo.staticTypeData.exprType match {
+                case ExprType.AddressString =>
+                  addressRepresentation(typeInfo).map(HtmlFormat.escape).map(_.body).mkString(",<br>")
+                case _ => escapeMarkdown(formatted)
+              }
+            } else {
+              formatted
+            }
         }
       }
 
@@ -152,5 +163,28 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
           .evalAndApplyTypeInfo(typeInfo)
           .optionRepresentation
           .fold(stringRepresentation(typeInfo))(f(_))
+
+      private def govukListRepresentation(typeInfo: TypeInfo, isBulleted: Boolean, markDown: Boolean): String = {
+        val lines = formModelVisibilityOptics
+          .evalAndApplyTypeInfo(typeInfo)
+          .listRepresentation(messages)
+        if (markDown)
+          govukList(lines.map(HtmlFormat.escape).map(_.body), isBulleted)
+        else
+          govukList(lines, isBulleted)
+
+      }
+      private def govukList(
+        list: List[String],
+        isBulleted: Boolean
+      ): String = {
+        val first =
+          if (isBulleted) """<ul class="govuk-list govuk-list--bullet">"""
+          else """<ol class="govuk-list govuk-list--number">"""
+        val last = if (isBulleted) "</ul>" else "</ol>"
+        val elements = list.foldLeft("")((a, e) => a + "<li>" + e + "</li>")
+        first + elements + last
+      }
     }
+
 }

@@ -30,6 +30,9 @@ case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, type
 
   def optionRepresentation: Option[Seq[String]] = expressionResult.optionRepresentation
 
+  def listRepresentation(implicit messages: Messages): List[String] =
+    expressionResult.listRepresentation(typeInfo, messages)
+
   def isEmpty = expressionResult === ExpressionResult.empty
 
 }
