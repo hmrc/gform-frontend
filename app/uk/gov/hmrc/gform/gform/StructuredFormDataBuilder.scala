@@ -18,17 +18,12 @@ package uk.gov.hmrc.gform.gform
 
 import cats.{ Monad, MonadError }
 import cats.data.NonEmptyList
-import cats.instances.option._
-import cats.instances.list._
-import cats.syntax.applicative._
-import cats.syntax.apply._
-import cats.syntax.eq._
-import cats.syntax.traverse._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
+import cats.implicits._
 import play.api.i18n.Messages
 import scala.language.higherKinds
 import scala.util.Try
+import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
+import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, MultiValueId }
@@ -49,9 +44,42 @@ object StructuredFormDataBuilder {
     lookupRegistry: LookupRegistry
   )(implicit l: LangADT, m: Messages, me: MonadError[F, Throwable]): F[ObjectStructure] = {
     val expressionsOutputFields = expressionsOutput.fold(List.empty[Field]) { eo =>
-      eo.lookup.toList.map { case (expressionId, expr) =>
-        val result = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
-        Field(FieldName(expressionId.id), StructuredFormValue.TextNode(result))
+      eo.lookup.toList.flatMap { case (expressionId, expr) =>
+        expr match {
+          case AuthCtx(AuthInfo.ItmpAddress) =>
+            val maybeItmpRetrievals: Option[ItmpRetrievals] =
+              formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
+
+            val maybeItmpAddress: Option[ItmpAddress] = maybeItmpRetrievals.flatMap(_.itmpAddress)
+
+            maybeItmpAddress.map { itmpAddress =>
+              val joinLines45 = itmpAddress.line4.map(_ + " ") |+| itmpAddress.line5
+              val fields = List(
+                "line1"    -> itmpAddress.line1,
+                "line2"    -> itmpAddress.line2,
+                "line3"    -> itmpAddress.line3,
+                "line4"    -> joinLines45,
+                "postCode" -> itmpAddress.postCode,
+                "country"  -> itmpAddress.countryName
+              ).collect { case (key, Some(value)) =>
+                (key, value)
+              }.map { case (key, value) =>
+                Field(FieldName(key), StructuredFormValue.TextNode(value)),
+              }
+
+              Field(
+                FieldName(expressionId.id),
+                StructuredFormValue.ObjectStructure(
+                  fields
+                )
+              )
+            }.toList
+
+          case otherwise =>
+            val result = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
+            List(Field(FieldName(expressionId.id), StructuredFormValue.TextNode(result)))
+        }
+
       }
     }
     new StructuredFormDataBuilder[D, F](

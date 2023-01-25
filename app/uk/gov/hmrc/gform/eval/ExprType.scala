@@ -54,6 +54,7 @@ object ExprType {
   val string: ExprType = String
   val dateString: ExprType = DateString
   val period: ExprType = Period
+  val address: ExprType = AddressString
   val illegal: ExprType = Illegal
   val choiceSelection: ExprType = ChoiceSelection
 

@@ -16,8 +16,11 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.eval.ExpressionResult
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, StringResult }
 import uk.gov.hmrc.gform.models.mappings.{ HMRCOBTDSORG, IRCT, IRSA, NINO }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
@@ -26,17 +29,17 @@ import uk.gov.hmrc.gform.eval.ExpressionResult
 object AuthContextPrepop {
   def values(value: AuthInfo, retrievals: MaterialisedRetrievals, itmpRetrievals: Option[ItmpRetrievals])(implicit
     messages: Messages
-  ): String = value match {
-    case AuthInfo.GG                     => retrievals.ggCredId
-    case AuthInfo.PayeNino               => retrievals.getTaxIdValue(NINO())
-    case AuthInfo.SaUtr                  => retrievals.getTaxIdValue(IRSA())
-    case AuthInfo.CtUtr                  => retrievals.getTaxIdValue(IRCT())
-    case AuthInfo.EtmpRegistrationNumber => retrievals.getTaxIdValue(HMRCOBTDSORG())
-    case AuthInfo.EmailId                => retrievals.getEmail.toString
-    case AuthInfo.Name                   => retrievals.getName.toString
-    case AuthInfo.ItmpName               => getItmpName(itmpRetrievals)
-    case AuthInfo.ItmpNameLens(focus)    => getItmpNameFocus(itmpRetrievals, focus)
-    case AuthInfo.ItmpDateOfBirth        => getItmpDateOfBirth(itmpRetrievals)
+  ): ExpressionResult = value match {
+    case AuthInfo.GG                     => StringResult(retrievals.ggCredId)
+    case AuthInfo.PayeNino               => StringResult(retrievals.getTaxIdValue(NINO()))
+    case AuthInfo.SaUtr                  => StringResult(retrievals.getTaxIdValue(IRSA()))
+    case AuthInfo.CtUtr                  => StringResult(retrievals.getTaxIdValue(IRCT()))
+    case AuthInfo.EtmpRegistrationNumber => StringResult(retrievals.getTaxIdValue(HMRCOBTDSORG()))
+    case AuthInfo.EmailId                => StringResult(retrievals.getEmail.toString)
+    case AuthInfo.Name                   => StringResult(retrievals.getName.toString)
+    case AuthInfo.ItmpName               => StringResult(getItmpName(itmpRetrievals))
+    case AuthInfo.ItmpNameLens(focus)    => StringResult(getItmpNameFocus(itmpRetrievals, focus))
+    case AuthInfo.ItmpDateOfBirth        => StringResult(getItmpDateOfBirth(itmpRetrievals))
     case AuthInfo.ItmpAddress            => getItmpAddress(itmpRetrievals)
   }
 
@@ -60,11 +63,25 @@ object AuthContextPrepop {
       ExpressionResult.DateResult(ld).asString
     }
 
-  private def getItmpAddress(itmpRetrievals: Option[ItmpRetrievals]): String =
-    itmpRetrievals
-      .flatMap(_.itmpAddress)
-      .map(a => concat(a.line1, a.line2, a.line3, a.line4, a.line5, a.postCode, a.countryName))
-      .getOrElse("")
+  private def getItmpAddress(itmpRetrievals: Option[ItmpRetrievals]): AddressResult =
+    AddressResult(
+      itmpRetrievals
+        .flatMap(_.itmpAddress)
+        .map { itmpAddress =>
+          val joinLines45 = itmpAddress.line4.map(_ + " ") |+| itmpAddress.line5
+          List(
+            itmpAddress.line1,
+            itmpAddress.line2,
+            itmpAddress.line3,
+            joinLines45,
+            itmpAddress.postCode,
+            itmpAddress.countryName
+          ).collect {
+            case Some(entry) if entry.trim.nonEmpty => entry
+          }
+        }
+        .getOrElse(List.empty[String])
+    )
 
   private def concat(xs: Option[String]*): String = {
     val values = xs.collect {
