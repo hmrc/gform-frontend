@@ -316,7 +316,7 @@ sealed trait ExpressionResult extends Product with Serializable {
   def addressRepresentation(typeInfo: TypeInfo): List[String] =
     fold[List[String]](_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(
       _.address
-    )(_ => Nil)(_ => Nil)
+    )(_ => Nil)(listResult => listResult.list.map(_.addressRepresentation(typeInfo).mkString(", ")))
 
   def dateRepresentation(typeInfo: TypeInfo): Option[LocalDate] =
     fold[Option[LocalDate]](_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(d => Some(d.value))(_ =>
