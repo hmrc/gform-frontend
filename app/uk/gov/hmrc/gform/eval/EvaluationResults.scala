@@ -199,6 +199,16 @@ case class EvaluationResults(
     NumberResult(size)
   }
 
+  private def getDataRetrieveAttribute(evaluationContext: EvaluationContext, dataRetrieveCtx: DataRetrieveCtx) =
+    for {
+      dataRetrieve <- evaluationContext.thirdPartyData.dataRetrieve
+      result <- dataRetrieve
+                  .get(dataRetrieveCtx.id)
+                  .flatMap { case DataRetrieveResult(_, data, _) =>
+                    data.get(dataRetrieveCtx.attribute)
+                  }
+    } yield result
+
   private def evalNumber(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -254,11 +264,14 @@ case class EvaluationResults(
           case ExpressionResult.DateResult(localDate) => ExpressionResult.NumberResult(dateFunc.toValue(localDate))
           case otherwise                              => otherwise
         }
-      case Period(_, _)                  => unsupportedOperation("Number")(expr)
-      case PeriodExt(_, _)               => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-      case PeriodValue(_)                => unsupportedOperation("Number")(expr)
-      case AddressLens(_, _)             => unsupportedOperation("Number")(expr)
-      case DataRetrieveCtx(_, _)         => unsupportedOperation("Number")(expr)
+      case Period(_, _)      => unsupportedOperation("Number")(expr)
+      case PeriodExt(_, _)   => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodValue(_)    => unsupportedOperation("Number")(expr)
+      case AddressLens(_, _) => unsupportedOperation("Number")(expr)
+      case d @ DataRetrieveCtx(_, _) =>
+        getDataRetrieveAttribute(evaluationContext, d)
+          .map(toNumberResult(_))
+          .getOrElse(unsupportedOperation("Number")(expr))
       case CsvCountryCheck(_, _)         => unsupportedOperation("Number")(expr)
       case CsvOverseasCountryCheck(_, _) => unsupportedOperation("Number")(expr)
       case CsvCountryCountCheck(fcId, column, value) =>
@@ -457,19 +470,8 @@ case class EvaluationResults(
             .getOrElse(ExpressionResult.empty)
         }
       case LangCtx => StringResult(evaluationContext.lang.langADTToString)
-      case DataRetrieveCtx(id, attribute) =>
-        nonEmpty(
-          StringResult(
-            (for {
-              dataRetrieve <- evaluationContext.thirdPartyData.dataRetrieve
-              result <- dataRetrieve
-                          .get(id)
-                          .flatMap { case DataRetrieveResult(_, data, _) =>
-                            data.get(attribute)
-                          }
-            } yield result).getOrElse("")
-          )
-        )
+      case d @ DataRetrieveCtx(_, _) =>
+        nonEmpty(StringResult(getDataRetrieveAttribute(evaluationContext, d).getOrElse("")))
       case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
       case Typed(expr, _)               => loop(expr)
       case CsvCountryCheck(fcId, column) =>

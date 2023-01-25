@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.eval
 
+import cats.Eq
+
 sealed trait ExprType extends Product with Serializable {
   def fold[B](
     a: ExprType.Number.type => B
@@ -63,4 +65,6 @@ object ExprType {
   case object AddressString extends ExprType
   case object Illegal extends ExprType
   case object ChoiceSelection extends ExprType
+
+  implicit val equal: Eq[ExprType] = Eq.fromUniversalEquals
 }
