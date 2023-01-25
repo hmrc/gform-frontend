@@ -61,18 +61,24 @@ case class EvaluationResults(
   private def unsupportedOperation(str: String)(expr: Expr): ExpressionResult =
     Invalid(s"$str - unsupported computation. Cannot combine $str and $expr")
 
+  private def isPureAndRefereceIndexed(
+    modelComponentId: ModelComponentId,
+    evaluationContext: EvaluationContext
+  ): Boolean = {
+    val isModelFormComponentIdPure = modelComponentId.indexedComponentId.isPure
+    val isReferenceIndexed = evaluationContext.indexedComponentIds.exists(
+      _.baseComponentId === modelComponentId.baseComponentId
+    )
+    isModelFormComponentIdPure && isReferenceIndexed
+  }
+
   private def get(
     expr: FormCtx,
     fromVariadicValue: VariadicValue => ExpressionResult,
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
     val modelComponentId = expr.formComponentId.modelComponentId
-    val isModelFormComponentIdPure = modelComponentId.indexedComponentId.isPure
-    val isReferenceIndexed = evaluationContext.indexedComponentIds.exists(
-      _.baseComponentId === modelComponentId.baseComponentId
-    )
-
-    if (isModelFormComponentIdPure && isReferenceIndexed) {
+    if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
       ListResult(
         exprMap
           .collect {
@@ -380,11 +386,7 @@ case class EvaluationResults(
             .overseasAddressLookup(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {
           val modelComponentId = formComponentId.modelComponentId
-          val isModelFormComponentIdPure = modelComponentId.indexedComponentId.isPure
-          val isReferenceIndexed = evaluationContext.indexedComponentIds.exists(
-            _.baseComponentId === modelComponentId.baseComponentId
-          )
-          if (isModelFormComponentIdPure && isReferenceIndexed) {
+          if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
             val addresses = recData.variadicFormData.distinctIndexedComponentIds(formComponentId.modelComponentId).map {
               indexedComponentId =>
                 getAddressResult(indexedComponentId)

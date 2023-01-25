@@ -333,7 +333,7 @@ sealed trait ExpressionResult extends Product with Serializable {
       None
     )(_ => None)(_ => None)(_ => None)
 
-  def govukListRepresentation(typeInfo: TypeInfo, messages: Messages): List[String] =
+  def listRepresentation(typeInfo: TypeInfo, messages: Messages): List[String] =
     fold[List[String]](_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ =>
       Nil
     )(

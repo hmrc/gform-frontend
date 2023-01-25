@@ -120,8 +120,11 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
     }
 
   def distinctIndexedComponentIds(modelComponentId: ModelComponentId): List[IndexedComponentId] =
-    forBaseComponentIdLessThen(modelComponentId)
-      .map(_._1.fold(p => p.indexedComponentId)(i => i.indexedComponentId))
+    forBaseComponentId(modelComponentId.indexedComponentId.baseComponentId)
+      .map { case (modelComponentId, _) =>
+        modelComponentId
+          .fold(p => p.indexedComponentId)(i => i.indexedComponentId)
+      }
       .toList
       .distinct
       .sortBy(_.maybeIndex)
