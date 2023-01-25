@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import julienrf.json.derived
 import play.api.libs.json.{ Format, JsValue, OFormat }
+import uk.gov.hmrc.gform.eval.ExprType
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, JsonUtils }
 
@@ -33,72 +34,90 @@ object DataRetrieveId {
 
 sealed trait DataRetrieveAttribute {
   def name: String
+
+  def `type`: ExprType
 }
 
 case object DataRetrieveAttribute {
-
+  import uk.gov.hmrc.gform.eval.ExprType.{ number, string }
   case object IsValid extends DataRetrieveAttribute {
     override def name: String = "isValid"
+    override def `type`: ExprType = string
   }
 
   case object Iban extends DataRetrieveAttribute {
     override def name: String = "iban"
+    override def `type`: ExprType = string
   }
 
   case object AccountNumberIsWellFormatted extends DataRetrieveAttribute {
     override def name: String = "accountNumberIsWellFormatted"
+    override def `type`: ExprType = string
   }
 
   case object SortCodeIsPresentOnEISCD extends DataRetrieveAttribute {
     override def name: String = "sortCodeIsPresentOnEISCD"
+    override def `type`: ExprType = string
   }
 
   case object SortCodeBankName extends DataRetrieveAttribute {
     override def name: String = "sortCodeBankName"
+    override def `type`: ExprType = string
   }
 
   case object NonStandardAccountDetailsRequiredForBacs extends DataRetrieveAttribute {
     override def name: String = "nonStandardAccountDetailsRequiredForBacs"
+    override def `type`: ExprType = string
   }
 
   case object AccountExists extends DataRetrieveAttribute {
     override def name: String = "accountExists"
+    override def `type`: ExprType = string
   }
 
   case object NameMatches extends DataRetrieveAttribute {
     override def name: String = "nameMatches"
+    override def `type`: ExprType = ExprType.string
   }
 
   case object SortCodeSupportsDirectDebit extends DataRetrieveAttribute {
     override def name: String = "sortCodeSupportsDirectDebit"
+    override def `type`: ExprType = string
   }
 
   case object SortCodeSupportsDirectCredit extends DataRetrieveAttribute {
     override def name: String = "sortCodeSupportsDirectCredit"
+    override def `type`: ExprType = string
   }
 
   case object Name extends DataRetrieveAttribute {
     override def name: String = "name"
+    override def `type`: ExprType = string
   }
 
   case object Status extends DataRetrieveAttribute {
     override def name: String = "status"
+    override def `type`: ExprType = string
   }
 
   case object RegisteredAddress extends DataRetrieveAttribute {
     override def name: String = "registeredAddress"
+    override def `type`: ExprType = string
   }
 
   case object RiskScore extends DataRetrieveAttribute {
     override def name: String = "riskScore"
+    override def `type`: ExprType = number
   }
 
   case object Reason extends DataRetrieveAttribute {
     override def name: String = "reason"
+    override def `type`: ExprType = string
   }
 
   case object AccountName extends DataRetrieveAttribute {
     override def name: String = "accountName"
+    override def `type`: ExprType = string
   }
 
   implicit val format: OFormat[DataRetrieveAttribute] = derived.oformat()

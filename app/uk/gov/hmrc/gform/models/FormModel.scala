@@ -248,6 +248,8 @@ case class FormModel[A <: PageMode](
       case IsNumberConstant(_) | PeriodExt(_, _) | UserCtx(UserField.Enrolment(_, _, Some(UserFieldFunc.Count))) |
           Size(_, _) | CsvCountryCountCheck(_, _, _) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case DataRetrieveCtx(_, attribute) if attribute.`type` === ExprType.number =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
       case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
       case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
