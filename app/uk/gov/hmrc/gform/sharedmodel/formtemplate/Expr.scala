@@ -117,8 +117,8 @@ sealed trait Expr extends Product with Serializable {
     case Typed(expr, _)                             => expr.leafs(formModel)
     case IndexOf(formComponentId, _)                => FormCtx(formComponentId) :: Nil
     case RemoveSpaces(_)                            => this :: Nil
-    case NumberedList(_)                            => this :: Nil
-    case BulletedList(_)                            => this :: Nil
+    case NumberedList(formComponentId)              => FormCtx(formComponentId) :: Nil
+    case BulletedList(formComponentId)              => FormCtx(formComponentId) :: Nil
   }
 
   def sums: List[Sum] = this match {
