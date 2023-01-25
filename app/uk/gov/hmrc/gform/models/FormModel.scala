@@ -254,6 +254,7 @@ case class FormModel[A <: PageMode](
       case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
       case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case IndexOf(formComponentId, _)   => explicitTypedExpr(expr, formComponentId)
+      case AuthCtx(AuthInfo.ItmpAddress) => TypeInfo(expr, StaticTypeData(ExprType.address, None))
       case otherwise                     => TypeInfo(expr, StaticTypeData(ExprType.string, None))
     }
   }

@@ -484,13 +484,17 @@ class NewFormController(
   ): Future[AuthCacheWithForm] = {
     def formHasAuthItmpReferences(): Boolean = {
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
-      val allExpr = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
-      allExpr.contains(AuthCtx(AuthInfo.ItmpAddress)) ||
-      allExpr.contains(AuthCtx(AuthInfo.ItmpName)) ||
-      allExpr.contains(AuthCtx(AuthInfo.ItmpDateOfBirth)) ||
-      allExpr.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.GivenName))) ||
-      allExpr.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.MiddleName))) ||
-      allExpr.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.FamilyName)))
+
+      val allBracketExprs = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
+      val allCustomExprs = cache.formTemplateWithRedirects.formTemplate.formKind.allCustomExprs
+      val allExprs = allBracketExprs ++ allCustomExprs
+
+      allExprs.contains(AuthCtx(AuthInfo.ItmpAddress)) ||
+      allExprs.contains(AuthCtx(AuthInfo.ItmpName)) ||
+      allExprs.contains(AuthCtx(AuthInfo.ItmpDateOfBirth)) ||
+      allExprs.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.GivenName))) ||
+      allExprs.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.MiddleName))) ||
+      allExprs.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.FamilyName)))
     }
 
     def modifyCacheItmpRetrievals(c: AuthCacheWithForm, itmpRetrievals: ItmpRetrievals): AuthCacheWithForm =

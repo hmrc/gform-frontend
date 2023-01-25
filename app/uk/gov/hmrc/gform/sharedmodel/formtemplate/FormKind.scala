@@ -33,6 +33,15 @@ sealed trait FormKind extends Product with Serializable {
   def foldNested[B](f: NonEmptyList[TaskSection] => B)(g: List[Section] => B): B =
     fold(classic => g(classic.sections))(taskList => f(taskList.sections))
 
+  def allCustomExprs: List[Expr] =
+    fold(_ => List.empty[Expr]) { taskList =>
+      taskList.sections.toList.flatMap { taskSection =>
+        taskSection.title.interpolations ++ taskSection.tasks.toList.flatMap { task =>
+          task.title.interpolations
+        }
+      }
+    }
+
   val allSections: AllSections = fold[AllSections] { classic =>
     AllSections.Classic(classic.sections)
   } { taskList =>

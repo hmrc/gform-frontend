@@ -336,11 +336,18 @@ case class EvaluationResults(
   ): ExpressionResult = {
     implicit val m = evaluationContext.messages
 
-    def nonEmpty(stringResult: StringResult): ExpressionResult =
+    def nonEmptyStringResult(stringResult: StringResult): ExpressionResult =
       if (stringResult.value.trim.isEmpty) Empty else stringResult
 
+    def nonEmptyExpressionResult(exprResult: ExpressionResult): ExpressionResult =
+      exprResult match {
+        case sr @ StringResult(_)        => nonEmptyStringResult(sr)
+        case ar @ AddressResult(address) => if (address.isEmpty) Empty else ar
+        case otherwise                   => otherwise
+      }
+
     def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
-      variadicValue.fold[ExpressionResult](one => nonEmpty(StringResult(one.value)))(many =>
+      variadicValue.fold[ExpressionResult](one => nonEmptyStringResult(StringResult(one.value)))(many =>
         ExpressionResult.OptionResult(many.value)
       )
 
@@ -364,7 +371,9 @@ case class EvaluationResults(
               OverseasAddress.fields(indexedComponentId).toList
 
           val variadicValues: List[Option[VariadicValue]] = addressAtoms.map(atom => recData.variadicFormData.get(atom))
-          val addressLines = variadicValues.collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
+          val addressLines = variadicValues.collect {
+            case Some(VariadicValue.One(value)) if value.nonEmpty => value
+          }
           ExpressionResult.AddressResult(addressLines)
         }
       case FormCtx(formComponentId: FormComponentId)
@@ -383,31 +392,29 @@ case class EvaluationResults(
         get(ctx, fromVariadicValue, evaluationContext)
       case Sum(field1: Expr) => unsupportedOperation("String")(expr)
       case Count(formComponentId) =>
-        nonEmpty(
+        nonEmptyStringResult(
           StringResult(
             addToListCount(formComponentId, recData).stringRepresentation(typeInfo, evaluationContext.messages)
           )
         )
       case AuthCtx(value: AuthInfo) =>
-        nonEmpty(
-          StringResult(
-            AuthContextPrepop
-              .values(value, evaluationContext.retrievals, evaluationContext.thirdPartyData.itmpRetrievals)
-          )
+        nonEmptyExpressionResult(
+          AuthContextPrepop
+            .values(value, evaluationContext.retrievals, evaluationContext.thirdPartyData.itmpRetrievals)
         )
       case UserCtx(value: UserField) =>
-        nonEmpty(
+        nonEmptyStringResult(
           StringResult(
             UserCtxEvaluatorProcessor
               .processEvaluation(evaluationContext.retrievals, value, evaluationContext.authConfig)
           )
         )
-      case Constant(value: String) => nonEmpty(StringResult(value))
+      case Constant(value: String) => nonEmptyStringResult(StringResult(value))
       case HmrcRosmRegistrationCheck(value: RosmProp) =>
-        nonEmpty(StringResult(UserCtxEvaluatorProcessor.evalRosm(evaluationContext.thirdPartyData, value)))
+        nonEmptyStringResult(StringResult(UserCtxEvaluatorProcessor.evalRosm(evaluationContext.thirdPartyData, value)))
       case Value => Empty
       case FormTemplateCtx(value: FormTemplateProp) =>
-        nonEmpty {
+        nonEmptyStringResult {
           value match {
             case FormTemplateProp.Id                  => StringResult(evaluationContext.formTemplateId.value)
             case FormTemplateProp.SubmissionReference => StringResult(evaluationContext.submissionRef.value)
@@ -416,7 +423,7 @@ case class EvaluationResults(
         }
 
       case ParamCtx(queryParam) =>
-        nonEmpty(StringResult(evaluationContext.thirdPartyData.queryParams(queryParam)))
+        nonEmptyStringResult(StringResult(evaluationContext.thirdPartyData.queryParams(queryParam)))
       case LinkCtx(internalLink) =>
         val link =
           internalLink match {
@@ -447,7 +454,7 @@ case class EvaluationResults(
             case PageLink(id) =>
               computePageLink(id, evaluationContext)
           }
-        nonEmpty(StringResult(link))
+        nonEmptyStringResult(StringResult(link))
       case DateCtx(dateExpr)      => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
       case DateFunction(dateFunc) => unsupportedOperation("String")(expr)
       case Period(_, _)           => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
@@ -471,7 +478,7 @@ case class EvaluationResults(
         }
       case LangCtx => StringResult(evaluationContext.lang.langADTToString)
       case d @ DataRetrieveCtx(_, _) =>
-        nonEmpty(StringResult(getDataRetrieveAttribute(evaluationContext, d).getOrElse("")))
+        nonEmptyStringResult(StringResult(getDataRetrieveAttribute(evaluationContext, d).getOrElse("")))
       case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
       case Typed(expr, _)               => loop(expr)
       case CsvCountryCheck(fcId, column) =>
