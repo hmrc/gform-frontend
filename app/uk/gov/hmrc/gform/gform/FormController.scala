@@ -371,10 +371,16 @@ class FormController(
               case _                  => false
             }
             firstCYA match {
-              case Some(FastForward.CYA(SectionOrSummary.FormSummary)) =>
+              case ff @ Some(FastForward.CYA(SectionOrSummary.FormSummary)) =>
                 callSelector(
                   routes.SummaryController
-                    .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None),
+                    .summaryById(
+                      cache.formTemplateId,
+                      maybeAccessCode,
+                      sectionNumber.toCoordinates,
+                      None,
+                      ff = ff
+                    ),
                   createBackUrl(toSectionNumber, fastForward),
                   None
                 )
@@ -406,7 +412,13 @@ class FormController(
                     case FastForward.CYA(SectionOrSummary.TaskSummary) :: xs =>
                       callSelector(
                         routes.SummaryController
-                          .summaryById(cache.formTemplateId, maybeAccessCode, sectionNumber.toCoordinates, None),
+                          .summaryById(
+                            cache.formTemplateId,
+                            maybeAccessCode,
+                            sectionNumber.toCoordinates,
+                            None,
+                            ff = fastForward.headOption
+                          ),
                         createBackUrl(toSectionNumber, fastForward),
                         None
                       )
@@ -626,7 +638,13 @@ class FormController(
                           if (endOfTask.isDefined) {
                             Redirect(
                               routes.SummaryController
-                                .summaryById(cache.formTemplateId, maybeAccessCode, endOfTask, None)
+                                .summaryById(
+                                  cache.formTemplateId,
+                                  maybeAccessCode,
+                                  endOfTask,
+                                  None,
+                                  ff = fastForward.headOption
+                                )
                             )
                           } else {
                             val isFirstLanding = sectionNumber < sn

@@ -55,6 +55,7 @@ import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.models.FastForward
 
 class SummaryController(
   i18nSupport: I18nSupport,
@@ -82,7 +83,8 @@ class SummaryController(
     taskComplete: Option[
       Boolean
     ], // to check summary page is redirected from the task list page and all tasks are completed
-    reachedFormSummary: Boolean = false
+    reachedFormSummary: Boolean = false,
+    fastForward: Option[FastForward] = None
   ): Action[AnyContent] =
     auth
       .authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.ViewSummary) {
@@ -131,13 +133,17 @@ class SummaryController(
               .landingPage(formTemplateId, maybeAccessCode)
           ).pure[Future]
 
+          val formSummaryFF = fastForward.fold(false) {
+            case FastForward.CYA(SectionOrSummary.FormSummary) => true
+            case _                                             => false
+          }
           if (reachedFormSummary) {
             for {
               isValid <- isFormValid(formTemplateId, maybeAccessCode, cache, formModelOptics)
-              result  <- if (!isValid && maybeCoordinates.isDefined) landingPage else formSummaryPage
+              result  <- if (!formSummaryFF && !isValid && maybeCoordinates.isDefined) landingPage else formSummaryPage
             } yield result
           } else {
-            if (maybeCoordinates.isDefined && !hasVisibleSummarySection) landingPage else summaryPage
+            if (!formSummaryFF && maybeCoordinates.isDefined && !hasVisibleSummarySection) landingPage else summaryPage
           }
       }
 
