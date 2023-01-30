@@ -780,6 +780,8 @@ graph LR;
     class title greenTitle
 
 ```
+***
+***
 ```mermaid
 %%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
 graph LR;
@@ -818,6 +820,27 @@ graph LR;
 
 
 ```
+***
+***
+```mermaid
+%%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
+graph LR;
+    title([<u>NavFLOW-025</u>])
+    title -.- TaskLandingPage["Task Landing Page"]
+    TaskLandingPage ----> |1 start task1| Task1Page1["Page1</br>Task1"]
+    Task1Page1 --> |2| TaskLandingPageFinal["Task Landing Page"]
+    TaskLandingPageFinal --> |3| CYA["Main CYA"]
+    CYA ===> |4 Change|Task1Page1
+    Task1Page1 -.5 back.-> CYA
+
+    classDef orange fill:#fedebe,stroke:#222,stroke-width:1px
+    class Task1Page1 orange
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
+    classDef orangeCYA fill:#ffaf42,stroke:#222,stroke-width:2px
+    class CYA orangeCYA
+    class title greenTitle
+```
+***
 # Notes for developers
 Before updating the mermaid diagram in the file please test here:
 https://mermaid.live/
