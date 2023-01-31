@@ -167,12 +167,12 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
           .fold(stringRepresentation(typeInfo))(f(_))
 
       private def govukListRepresentation(typeInfo: TypeInfo, isBulleted: Boolean, markDown: Boolean): String = {
-        val lines0 = formModelVisibilityOptics
+        val defaultLines = formModelVisibilityOptics
           .evalAndApplyTypeInfo(typeInfo)
           .listRepresentation(messages)
         val lines = typeInfo.staticTypeData.textConstraint
-          .map(c => lines0.map(v => TextFormatter.componentTextReadonly(v, c)))
-          .getOrElse(lines0)
+          .map(c => defaultLines.map(v => TextFormatter.componentTextReadonly(v, c)))
+          .getOrElse(defaultLines)
         if (markDown)
           govukList(lines.map(HtmlFormat.escape).map(_.body), isBulleted)
         else
