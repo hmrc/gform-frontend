@@ -126,9 +126,11 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
           case _ =>
             expr match {
               case NumberedList(fcId) =>
-                govukListRepresentation(typeInfo, markDown = markDown, isBulleted = false)
+                val fcIdTypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(FormCtx(fcId))
+                govukListRepresentation(fcIdTypeInfo, markDown = markDown, isBulleted = false)
               case BulletedList(fcId) =>
-                govukListRepresentation(typeInfo, markDown = markDown, isBulleted = true)
+                val fcIdTypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(FormCtx(fcId))
+                govukListRepresentation(fcIdTypeInfo, markDown = markDown, isBulleted = true)
               case _ => stringRepresentation(typeInfo)
             }
         }
@@ -165,9 +167,12 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
           .fold(stringRepresentation(typeInfo))(f(_))
 
       private def govukListRepresentation(typeInfo: TypeInfo, isBulleted: Boolean, markDown: Boolean): String = {
-        val lines = formModelVisibilityOptics
+        val lines0 = formModelVisibilityOptics
           .evalAndApplyTypeInfo(typeInfo)
           .listRepresentation(messages)
+        val lines = typeInfo.staticTypeData.textConstraint
+          .map(c => lines0.map(v => TextFormatter.componentTextReadonly(v, c)))
+          .getOrElse(lines0)
         if (markDown)
           govukList(lines.map(HtmlFormat.escape).map(_.body), isBulleted)
         else
