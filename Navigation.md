@@ -841,6 +841,37 @@ graph LR;
     class title greenTitle
 ```
 ***
+***
+```mermaid
+%%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
+graph LR;
+
+    TaskLandingPage ----> |1 start task1| Task1Page1["Page1</br>Task1"]
+    Task1Page1 --> |2| Task1Page2["Page2</br>Task1"]
+    Task1Page2 --> |3| Task1Page3["Page3</br>Task1"]
+    Task1Page3 -.- Task1Page4["Page4</br> Task1"]
+    Task1Page3 --- |4| Save(("save <br>and <br>come back<br> later"))
+    Task1Page4 -.- TaskLandingPageFinal["TaskLandingPage"]
+    TaskLandingPage ----> |<font color='red'>6 start task1 </font>| Task1Page1
+    TaskLandingPage --- |<font color='red'>5</font>| Resume(("Resume<br>after<br>save"))
+
+    classDef orange fill:#fedebe,stroke:#222,stroke-width:1px
+    classDef orangeCYA fill:#ffaf42,stroke:#222,stroke-width:2px
+    classDef valid fill:#1f6200,stroke:#222,stroke-width:3px
+    classDef invalid fill:#ee6b6e,stroke:#222,stroke-width:3px
+
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
+    classDef redTitle fill:#c21807 ,stroke:#c0c0c2,stroke-width:3px
+    classDef saveForLater fill:#bebebe, stroke:#808080,stroke-width:3px
+    class title greenTitle
+    class Save saveForLater
+    class Resume saveForLater
+
+```
+
+***
+***
+
 # Notes for developers
 Before updating the mermaid diagram in the file please test here:
 https://mermaid.live/
