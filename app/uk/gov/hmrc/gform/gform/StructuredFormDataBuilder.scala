@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue.{ ArrayNode, ObjectStructure, TextNode }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
+import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
 
 object StructuredFormDataBuilder {
   def apply[D <: DataOrigin, F[_]: Monad](
@@ -74,6 +75,27 @@ object StructuredFormDataBuilder {
                 )
               )
             }.toList
+
+          case AuthCtx(AuthInfo.ItmpDateOfBirth) =>
+            val maybeItmpRetrievals: Option[ItmpRetrievals] =
+              formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
+            val zeroPadding = (x: Int) => "%02d".format(x)
+            maybeItmpRetrievals
+              .flatMap(_.itmpDateOfBirth)
+              .map(DateHelperFunctions.convertToDateExpr)
+              .map(dateExpr =>
+                Field(
+                  FieldName(expressionId.id),
+                  StructuredFormValue.ObjectStructure(
+                    List(
+                      Field(FieldName("day"), StructuredFormValue.TextNode(zeroPadding(dateExpr.day))),
+                      Field(FieldName("month"), StructuredFormValue.TextNode(zeroPadding(dateExpr.month))),
+                      Field(FieldName("year"), StructuredFormValue.TextNode(dateExpr.year.toString))
+                    )
+                  )
+                )
+              )
+              .toList
 
           case otherwise =>
             val result = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
