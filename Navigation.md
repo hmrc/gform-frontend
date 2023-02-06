@@ -882,8 +882,8 @@ graph LR;
     Task1Page3 --> |4| Task1Summary["Summary</br>Task1"]
     Task1Summary --> |5| TaskLandingPageFinal["Task Landing Page"]
     TaskLandingPageFinal --> |6 Sumit| CYA["Main CYA"]
-    CYA ===> |4 Change|Task1Page1
-    Task1Page1 -.5 back.-> CYA
+    CYA ===> |7 Change|Task1Page1
+    Task1Page1 -.8 back.-> CYA
 
     classDef orange fill:#fedebe,stroke:#222,stroke-width:1px
     class Task1Page1 orange
@@ -892,7 +892,6 @@ graph LR;
     class CYA orangeCYA
     class Task1Summary orangeCYA
     class title greenTitle
-
 ```
 
 # Notes for developers
