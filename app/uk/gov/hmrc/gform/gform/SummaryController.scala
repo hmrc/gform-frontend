@@ -137,7 +137,7 @@ class SummaryController(
             case FastForward.CYA(SectionOrSummary.FormSummary) => true
             case _                                             => false
           }
-          if (reachedFormSummary) {
+          if (reachedFormSummary || formSummaryFF) {
             for {
               isValid <- isFormValid(formTemplateId, maybeAccessCode, cache, formModelOptics)
               result  <- if (!formSummaryFF && !isValid && maybeCoordinates.isDefined) landingPage else formSummaryPage
