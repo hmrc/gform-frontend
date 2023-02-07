@@ -72,8 +72,10 @@ class AuthService(
           .pure[Future]
       case AWSALBAuth => performAWSALBAuth(assumedIdentity).pure[Future]
       case HmrcAny    => performHmrcAny(ggAuthorised(RecoverAuthResult.noop))
-      case HmrcVerified(_, _) =>
-        performGGAuth(ggAuthorised(RecoverAuthResult.noop)).map(authResult => isHmrcVerified(authResult, formTemplate))
+      case HmrcVerified(_, _, minimumCL) =>
+        performGGAuth(ggAuthorised(RecoverAuthResult.noop)).map(authResult =>
+          isHmrcVerified(authResult, formTemplate, minimumCL)
+        )
       case HmrcSimpleModule => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>
         performEnrolment(formTemplate, enrolmentAuth, getAffinityGroup, ggAuthorised)
@@ -325,14 +327,14 @@ class AuthService(
       }
       .flatMap(continuation)
 
-  private def isHmrcVerified(authResult: AuthResult, formTemplate: FormTemplate): AuthResult =
+  private def isHmrcVerified(authResult: AuthResult, formTemplate: FormTemplate, minimumCL: String): AuthResult =
     authResult match {
       case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, None, _), _) =>
         val completionUrl = URLEncoder.encode(gform.routes.NewFormController.dashboard(formTemplate._id).url, "UTF-8")
         val failureUrl =
           URLEncoder.encode(gform.routes.IdentityVerificationController.failure(formTemplate._id).url, "UTF-8")
         AuthRedirect(
-          s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=200"
+          s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=$minimumCL"
         )
       case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Organisation, _, None, _), _) =>
         val irsa = IRSA()
