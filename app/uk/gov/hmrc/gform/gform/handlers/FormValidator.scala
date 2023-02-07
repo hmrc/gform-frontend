@@ -198,18 +198,16 @@ class FormValidator(implicit ec: ExecutionContext) {
           }
         )
       case FastForward.StopAt(to) :: xs =>
-        ffYesSnF.map {
-          case None =>
-            if (availableSectionNumbers.contains(to)) {
-              SectionOrSummary.Section(to)
-            } else if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary
-            else SectionOrSummary.TaskSummary
-          case Some(r) =>
-            if (r < to) SectionOrSummary.Section(r)
-            else if (availableSectionNumbers.contains(to)) {
-              SectionOrSummary.Section(to)
-            } else
-              SectionOrSummary.Section(r)
+        ffYesSnF.map { ffYes =>
+          val visibleTo = availableSectionNumbers.find(_ >= to)
+          (ffYes, visibleTo) match {
+            case (None, None) if maybeCoordinates.isEmpty => SectionOrSummary.FormSummary
+            case (None, None)                             => SectionOrSummary.TaskSummary
+            case (None, Some(t))                          => SectionOrSummary.Section(t)
+            case (Some(r), None)                          => SectionOrSummary.Section(r)
+            case (Some(r), Some(t)) if r < t              => SectionOrSummary.Section(r)
+            case (Some(r), Some(t))                       => SectionOrSummary.Section(t)
+          }
         }
       case _ =>
         ffYesSnF.map { ffYesSn =>
