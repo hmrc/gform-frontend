@@ -19,6 +19,7 @@
         channel.postMessage({
           timestamp: Date.now()
         });
+        $.ajax({url: "/submissions/keep-alive", type: "GET"});
       }
       return true;
     }
