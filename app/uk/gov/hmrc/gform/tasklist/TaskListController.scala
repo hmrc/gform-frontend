@@ -79,7 +79,7 @@ class TaskListController(
     isCompleted: Boolean
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      _ => _ => cache => implicit sse => formModelOptics =>
+      implicit request => implicit l => cache => implicit sse => formModelOptics =>
         TaskListUtils.withTask(cache.formTemplate, taskSectionNumber, taskNumber) { task =>
           val sectionTitle4Ga: SectionTitle4Ga = SectionTitle4Ga(task.title.value)
 
@@ -122,7 +122,18 @@ class TaskListController(
             }
           } else {
             val sn = SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
-            Redirect(sectionUrl(sn)).pure[Future]
+            if (cache.formTemplate.isSpecimen) {
+
+              Redirect(sectionUrl(sn)).pure[Future]
+            } else {
+              fastForwardService
+                .redirectFastForward[SectionSelectorType.Normal](
+                  cache,
+                  maybeAccessCode,
+                  formModelOptics,
+                  Some(sn)
+                )
+            }
           }
         }
     }

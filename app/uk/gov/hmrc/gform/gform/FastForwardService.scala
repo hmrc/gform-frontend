@@ -64,7 +64,13 @@ class FastForwardService(
     hc: HeaderCarrier,
     l: LangADT
   ): Future[Result] =
-    redirectWithRecalculation(cache, maybeAccessCode, List(FastForward.Yes), formModelOptics, maybeSectionNumber)
+    redirectWithRecalculation(
+      cache,
+      maybeAccessCode,
+      maybeSectionNumber.map(FastForward.StopAt).toList,
+      formModelOptics,
+      maybeSectionNumber
+    )
 
   def redirectStopAt[U <: SectionSelectorType: SectionSelector](
     sectionNumber: SectionNumber,
