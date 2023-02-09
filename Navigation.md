@@ -986,6 +986,31 @@ graph LR;
     class Save saveForLater
     class Resume saveForLater
 ```
+```mermaid
+%%{init: {'theme': 'forest', "flowchart" : { "curve" : "basis" } } }%%
+graph LR;
+
+    title([<u>NavFLOW-031</u>])
+    title -.- TaskLandingPage["Task Landing Page"]
+    TaskLandingPage ----> |1 'start task1'| Task1Page1["Page1</br>Task1"]
+    Task1Page1 --> |2|TaskLandingPageFinal["TaskLandingPage"]
+    TaskLandingPageFinal --> |3 'start task 2'| Task2Page2
+    TaskLandingPageFinal -.- Task2Page1["Page1</br>Task2</br>invalid"]
+    Task2Page1 -.- Task2Page2["Page2</br>Task2"]
+
+    classDef orange fill:#fedebe,stroke:#222,stroke-width:1px
+    classDef orangeCYA fill:#ffaf42,stroke:#222,stroke-width:2px
+    classDef valid fill:#1f6200,stroke:#222,stroke-width:3px
+    classDef invalid fill:#ee6b6e,stroke:#222,stroke-width:3px
+    class Task2Page1 invalid
+    classDef greenTitle fill:#a8ddb1 ,stroke:#c0c0c2,stroke-width:3px
+    classDef redTitle fill:#c21807 ,stroke:#c0c0c2,stroke-width:3px
+    classDef saveForLater fill:#bebebe, stroke:#808080,stroke-width:3px
+    class title greenTitle
+    class Save saveForLater
+    class Resume saveForLater
+
+```
 # Notes for developers
 Before updating the mermaid diagram in the file please test here:
 https://mermaid.live/
