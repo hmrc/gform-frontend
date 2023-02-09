@@ -107,6 +107,11 @@ class UpscanController(
                         "",
                         cache.formTemplate.allowedFileTypes.fileExtensions.toList.map(_.toUpperCase).mkString(", ")
                       )
+                    case ConfirmationFailure.UpscanFailure(FailureDetails("QUARANTINE", _)) =>
+                      mkFlash(
+                        "generic.error.virus",
+                        "File "
+                      )
                     case _ => mkFlash("file.error.generic")
                   }
 
