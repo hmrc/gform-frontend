@@ -1010,7 +1010,12 @@ class SectionRenderingService(
     sse: SmartStringEvaluator
   ): Html =
     renderUnit.fold { case RenderUnit.Pure(formComponent) =>
-      if (!isVisible(formComponent, ei.formModelOptics) || formComponent.onlyShowOnSummary) {
+      if (
+        !ei.formTemplate.isSpecimen && (!isVisible(
+          formComponent,
+          ei.formModelOptics
+        ) || formComponent.onlyShowOnSummary)
+      ) {
         HtmlFormat.empty
       } else {
 
