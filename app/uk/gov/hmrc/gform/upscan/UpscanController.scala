@@ -57,7 +57,7 @@ class UpscanController(
     formComponentId: FormComponentId
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => _ => implicit formModelOptics =>
+      implicit request => implicit l => cache => implicit sse => implicit formModelOptics =>
         val maybeKey = request.getQueryString("key")
 
         maybeKey match {
@@ -106,6 +106,14 @@ class UpscanController(
                         "file.error.type",
                         "",
                         cache.formTemplate.allowedFileTypes.fileExtensions.toList.map(_.toUpperCase).mkString(", ")
+                      )
+                    case ConfirmationFailure.UpscanFailure(FailureDetails("QUARANTINE", _)) =>
+                      mkFlash(
+                        "generic.error.virus",
+                        formModelOptics.formModelVisibilityOptics.fcLookup
+                          .get(formComponentId)
+                          .map(fc => fc.shortName.map(_.value).getOrElse(fc.label.value))
+                          .getOrElse("")
                       )
                     case _ => mkFlash("file.error.generic")
                   }
