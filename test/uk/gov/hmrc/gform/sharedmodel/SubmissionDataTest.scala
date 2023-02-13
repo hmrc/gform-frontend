@@ -40,7 +40,8 @@ class SubmissionDataTest extends Spec {
       ),
       Attachments(FormComponentId("proof") :: Nil),
       LangADT.En,
-      None
+      None,
+      FrontEndSubmissionDesIncludeIfEval.empty
     )
 
     Json.toJson(submissionData) should be(expectedJson)
@@ -91,6 +92,9 @@ class SubmissionDataTest extends Spec {
           |  "l": {
           |     "En": {
           |     }
+          |  },
+          |  "desIncludeIfEval": {
+          |     "exprEval":[]
           |  }
           |}""".stripMargin
     )

@@ -47,6 +47,7 @@ import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 
 import scala.collection.immutable.List
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.StringValue
 
 object ExampleData extends ExampleData
 
@@ -116,7 +117,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
     Constant("TestHmrcDmsCustomerId"),
     "TestHmrcDmsClassificationType",
     "TestHmrcDmsBusinessArea",
-    "",
+    StringValue(""),
     true,
     Some(DataOutputFormat.XML),
     true,

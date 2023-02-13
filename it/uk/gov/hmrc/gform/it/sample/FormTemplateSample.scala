@@ -6,6 +6,7 @@ import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.email.{ EmailTemplateId, LocalisedEmailTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.StringValue
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, DestinationId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
@@ -92,7 +93,7 @@ trait FormTemplateSample {
           customerId = AuthCtx(AuthInfo.GG),
           businessArea = "BusinessArea",
           classificationType = "ClassificationType",
-          includeIf = "true",
+          includeIf = StringValue("true"),
           failOnError = true,
           dataOutputFormat = Some(DataOutputFormat.XML),
           formdataXml = false,

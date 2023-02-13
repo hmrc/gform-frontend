@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.gform.fileupload.Attachments
-import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder }
+import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionDestinationEvalBuilder, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -145,7 +145,8 @@ class TestOnlyController(
                          emailParameters,
                          Attachments.empty,
                          l,
-                         None
+                         None,
+                         FrontEndSubmissionDestinationEvalBuilder(formTemplate, formModelVisibilityOptics)
                        )
 
       httpResponse <- recov(
@@ -237,7 +238,8 @@ class TestOnlyController(
                          emailParameters,
                          Attachments.empty,
                          l,
-                         None
+                         None,
+                         FrontEndSubmissionDestinationEvalBuilder(formTemplate, formModelVisibilityOptics)
                        )
 
       httpResponse <- recov(
