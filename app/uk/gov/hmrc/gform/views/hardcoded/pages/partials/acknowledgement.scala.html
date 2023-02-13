@@ -28,7 +28,8 @@
   formCategory: FormCategory,
   formTemplate: FormTemplate,
   panelTitle: Option[String],
-  frontendAppConfig: FrontendAppConfig
+  frontendAppConfig: FrontendAppConfig,
+  zipUrlOptional: Option[String]
 )(implicit
   request: Request[_],
   messages: Messages,
@@ -50,6 +51,11 @@
     title = Text(panelTitle.getOrElse(heading)),
     content = htmlContent
   ))
+
+  @if(zipUrlOptional.nonEmpty) {
+   <a href=@zipUrlOptional.getOrElse("")
+	class="govuk-link">"Download Zip file from object-store"</a>
+  }
 
   @{supportContents.snippets}
 
