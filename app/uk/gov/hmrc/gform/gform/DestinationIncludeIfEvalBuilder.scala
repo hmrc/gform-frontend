@@ -18,18 +18,18 @@ package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.FrontEndSubmissionDesIncludeIfEval
+import uk.gov.hmrc.gform.sharedmodel.DestinationIncludeIfEval
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.IncludeIfValue
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 
-object FrontEndSubmissionDestinationEvalBuilder extends IdentifierExtractor {
+object DestinationIncludeIfEvalBuilder extends IdentifierExtractor {
 
   def apply[D <: DataOrigin](
     formTemplate: FormTemplate,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  ): FrontEndSubmissionDesIncludeIfEval = {
+  ): DestinationIncludeIfEval = {
 
     val allExpr = formTemplate.destinations match {
       case dl: DestinationList =>
@@ -41,7 +41,7 @@ object FrontEndSubmissionDestinationEvalBuilder extends IdentifierExtractor {
         )
       case _ => List.empty[(DestinationId, Boolean)]
     }
-    FrontEndSubmissionDesIncludeIfEval(allExpr)
+    DestinationIncludeIfEval(allExpr)
   }
 
 }
