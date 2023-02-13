@@ -21,8 +21,9 @@ import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.api.{ CompanyInformationConnector, CompanyProfile, NinoInsightCheck, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -72,16 +73,18 @@ object DataRetrieveService {
               Some(
                 DataRetrieveResult(
                   validateBankDetails.id,
-                  Map(
-                    DataRetrieveAttribute.IsValid                                  -> validateResult.accountNumberIsWellFormatted,
-                    DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> validateResult.sortCodeIsPresentOnEISCD,
-                    DataRetrieveAttribute.SortCodeBankName                         -> validateResult.sortCodeBankName.getOrElse(""),
-                    DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> validateResult.nonStandardAccountDetailsRequiredForBacs,
-                    DataRetrieveAttribute.SortCodeSupportsDirectDebit -> validateResult.sortCodeSupportsDirectDebit
-                      .getOrElse(""),
-                    DataRetrieveAttribute.SortCodeSupportsDirectCredit -> validateResult.sortCodeSupportsDirectCredit
-                      .getOrElse(""),
-                    DataRetrieveAttribute.Iban -> validateResult.iban.getOrElse("")
+                  RetrieveDataType.ObjectType(
+                    Map(
+                      DataRetrieveAttribute.IsValid                                  -> validateResult.accountNumberIsWellFormatted,
+                      DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> validateResult.sortCodeIsPresentOnEISCD,
+                      DataRetrieveAttribute.SortCodeBankName                         -> validateResult.sortCodeBankName.getOrElse(""),
+                      DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> validateResult.nonStandardAccountDetailsRequiredForBacs,
+                      DataRetrieveAttribute.SortCodeSupportsDirectDebit -> validateResult.sortCodeSupportsDirectDebit
+                        .getOrElse(""),
+                      DataRetrieveAttribute.SortCodeSupportsDirectCredit -> validateResult.sortCodeSupportsDirectCredit
+                        .getOrElse(""),
+                      DataRetrieveAttribute.Iban -> validateResult.iban.getOrElse("")
+                    )
                   ),
                   requestParams
                 )
@@ -138,15 +141,17 @@ object DataRetrieveService {
                 Some(
                   DataRetrieveResult(
                     businessBankAccountExistence.id,
-                    Map(
-                      DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
-                      DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> result.sortCodeIsPresentOnEISCD,
-                      DataRetrieveAttribute.SortCodeBankName                         -> result.sortCodeBankName.getOrElse(""),
-                      DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> result.nonStandardAccountDetailsRequiredForBacs,
-                      DataRetrieveAttribute.AccountExists                            -> result.accountExists,
-                      DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
-                      DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
-                      DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit
+                    RetrieveDataType.ObjectType(
+                      Map(
+                        DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
+                        DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> result.sortCodeIsPresentOnEISCD,
+                        DataRetrieveAttribute.SortCodeBankName                         -> result.sortCodeBankName.getOrElse(""),
+                        DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> result.nonStandardAccountDetailsRequiredForBacs,
+                        DataRetrieveAttribute.AccountExists                            -> result.accountExists,
+                        DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
+                        DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
+                        DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit
+                      )
                     ),
                     requestParams
                   )
@@ -210,17 +215,19 @@ object DataRetrieveService {
                 Some(
                   DataRetrieveResult(
                     personalBankAccountExistence.id,
-                    Map(
-                      DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
-                      DataRetrieveAttribute.AccountExists                            -> result.accountExists,
-                      DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
-                      DataRetrieveAttribute.AccountName                              -> result.accountName.getOrElse(""),
-                      DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> result.nonStandardAccountDetailsRequiredForBacs,
-                      DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> result.sortCodeIsPresentOnEISCD,
-                      DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
-                      DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit,
-                      DataRetrieveAttribute.SortCodeBankName                         -> result.sortCodeBankName.getOrElse(""),
-                      DataRetrieveAttribute.Iban                                     -> result.iban.getOrElse("")
+                    RetrieveDataType.ObjectType(
+                      Map(
+                        DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
+                        DataRetrieveAttribute.AccountExists                            -> result.accountExists,
+                        DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
+                        DataRetrieveAttribute.AccountName                              -> result.accountName.getOrElse(""),
+                        DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> result.nonStandardAccountDetailsRequiredForBacs,
+                        DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> result.sortCodeIsPresentOnEISCD,
+                        DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
+                        DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit,
+                        DataRetrieveAttribute.SortCodeBankName                         -> result.sortCodeBankName.getOrElse(""),
+                        DataRetrieveAttribute.Iban                                     -> result.iban.getOrElse("")
+                      )
                     ),
                     requestParams
                   )
@@ -274,17 +281,19 @@ object DataRetrieveService {
                 Some(
                   DataRetrieveResult(
                     personalBankAccountExistence.id,
-                    Map(
-                      DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
-                      DataRetrieveAttribute.AccountExists                            -> result.accountExists,
-                      DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
-                      DataRetrieveAttribute.AccountName                              -> result.accountName.getOrElse(""),
-                      DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> result.nonStandardAccountDetailsRequiredForBacs,
-                      DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> result.sortCodeIsPresentOnEISCD,
-                      DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
-                      DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit,
-                      DataRetrieveAttribute.SortCodeBankName                         -> result.sortCodeBankName.getOrElse(""),
-                      DataRetrieveAttribute.Iban                                     -> result.iban.getOrElse("")
+                    RetrieveDataType.ObjectType(
+                      Map(
+                        DataRetrieveAttribute.AccountNumberIsWellFormatted             -> result.accountNumberIsWellFormatted,
+                        DataRetrieveAttribute.AccountExists                            -> result.accountExists,
+                        DataRetrieveAttribute.NameMatches                              -> result.nameMatches,
+                        DataRetrieveAttribute.AccountName                              -> result.accountName.getOrElse(""),
+                        DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> result.nonStandardAccountDetailsRequiredForBacs,
+                        DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> result.sortCodeIsPresentOnEISCD,
+                        DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> result.sortCodeSupportsDirectDebit,
+                        DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> result.sortCodeSupportsDirectCredit,
+                        DataRetrieveAttribute.SortCodeBankName                         -> result.sortCodeBankName.getOrElse(""),
+                        DataRetrieveAttribute.Iban                                     -> result.iban.getOrElse("")
+                      )
                     ),
                     requestParams
                   )
@@ -330,11 +339,13 @@ object DataRetrieveService {
                 Some(
                   DataRetrieveResult(
                     companyRegistrationNumber.id,
-                    Map(
-                      DataRetrieveAttribute.Name   -> result.name,
-                      DataRetrieveAttribute.Status -> result.status.getOrElse(""),
-                      DataRetrieveAttribute.RegisteredAddress -> CompanyProfile
-                        .createFullRegisteredAddress(result.registeredAddress)
+                    RetrieveDataType.ObjectType(
+                      Map(
+                        DataRetrieveAttribute.Name   -> result.name,
+                        DataRetrieveAttribute.Status -> result.status.getOrElse(""),
+                        DataRetrieveAttribute.RegisteredAddress -> CompanyProfile
+                          .createFullRegisteredAddress(result.registeredAddress)
+                      )
                     ),
                     requestParams
                   )
@@ -373,14 +384,64 @@ object DataRetrieveService {
                 Some(
                   DataRetrieveResult(
                     ninoInsights.id,
-                    Map(
-                      DataRetrieveAttribute.RiskScore -> result.riskScore.toString,
-                      DataRetrieveAttribute.Reason    -> result.reason
+                    RetrieveDataType.ObjectType(
+                      Map(
+                        DataRetrieveAttribute.RiskScore -> result.riskScore.toString,
+                        DataRetrieveAttribute.Reason    -> result.reason
+                      )
                     ),
                     requestParams
                   )
                 )
               case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve nino insights data")
+            }
+        }
+      }
+    }
+
+  implicit def employments(implicit
+    gformConnector: GformConnector
+  ): DataRetrieveService[Employments, Future] =
+    new DataRetrieveService[Employments, Future] {
+
+      override def retrieve(
+        employments: Employments,
+        formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+        maybeRequestParams: Option[JsValue]
+      )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
+        val nino: String = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(employments.nino).stringRepresentation
+        val taxYear = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(employments.taxYear).numberRepresentation
+
+        val requestParams = Json.obj(
+          "nino"    -> nino,
+          "taxYear" -> taxYear
+        )
+
+        if (nino.isEmpty || taxYear.isEmpty) {
+          Future.successful(None)
+        } else {
+          gformConnector
+            .getEmployments(nino, taxYear.get.toInt)
+            .map {
+              case ServiceResponse(result) =>
+                val retrieveDataType = RetrieveDataType.ListType(result.map { r =>
+                  Map(
+                    DataRetrieveAttribute.SequenceNumber    -> r.sequenceNumber.toString,
+                    DataRetrieveAttribute.EmployerName      -> r.employerName.toString,
+                    DataRetrieveAttribute.WorksNumber       -> r.worksNumber.toString,
+                    DataRetrieveAttribute.TaxDistrictNumber -> r.taxDistrictNumber.toString,
+                    DataRetrieveAttribute.PayeNumber        -> r.payeNumber.toString,
+                    DataRetrieveAttribute.Director          -> r.director.toString
+                  )
+                })
+                Some(
+                  DataRetrieveResult(
+                    employments.id,
+                    retrieveDataType,
+                    requestParams
+                  )
+                )
+              case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve employments data")
             }
         }
       }

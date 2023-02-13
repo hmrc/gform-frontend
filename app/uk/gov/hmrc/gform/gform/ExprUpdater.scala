@@ -42,6 +42,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case AddressLens(formComponentId, detail) => AddressLens(expandFcId(formComponentId), detail)
     case LinkCtx(PageLink(id))                => LinkCtx(PageLink(id.withIndex(index)))
     case DataRetrieveCtx(id, attribute)       => DataRetrieveCtx(id.withIndex(index), attribute)
+    case DataRetrieveCount(id)                => DataRetrieveCount(id.withIndex(index))
     case CsvCountryCheck(formComponentId, c)  => CsvCountryCheck(expandFcId(formComponentId), c)
     case CsvOverseasCountryCheck(fcId, c)     => CsvOverseasCountryCheck(expandFcId(fcId), c)
     case CsvCountryCountCheck(fcId, c, v)     => CsvCountryCountCheck(expandFcId(fcId), c, v)

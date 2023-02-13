@@ -72,6 +72,7 @@ object ExprPrettyPrint {
     case AddressLens(fcId, addressDetail) =>
       ExprPrettyPrint.prettyPrintAddressDetail(addressDetail) + " of " + fcId.value
     case DataRetrieveCtx(_, _)         => "Data retrieve"
+    case DataRetrieveCount(_)          => "Data retrieve count"
     case CsvCountryCheck(_, _)         => "Country check"
     case CsvOverseasCountryCheck(_, _) => "Overseas country check"
     case CsvCountryCountCheck(_, _, _) => "Country count"

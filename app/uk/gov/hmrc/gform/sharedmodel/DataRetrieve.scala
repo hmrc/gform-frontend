@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import julienrf.json.derived
-import play.api.libs.json.{ Format, JsValue, OFormat }
+import play.api.libs.json.{ Format, JsArray, JsValue, Json, OFormat, Reads, Writes }
 import uk.gov.hmrc.gform.eval.ExprType
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, JsonUtils }
@@ -32,7 +32,7 @@ object DataRetrieveId {
     JsonUtils.valueClassFormat[DataRetrieveId, String](DataRetrieveId.apply, _.value)
 }
 
-sealed trait DataRetrieveAttribute {
+sealed trait DataRetrieveAttribute extends Product with Serializable {
   def name: String
 
   def `type`: ExprType
@@ -120,6 +120,36 @@ case object DataRetrieveAttribute {
     override def `type`: ExprType = string
   }
 
+  case object EmployerName extends DataRetrieveAttribute {
+    override def name: String = "employerName"
+    override def `type`: ExprType = string
+  }
+
+  case object SequenceNumber extends DataRetrieveAttribute {
+    override def name: String = "sequenceNumber"
+    override def `type`: ExprType = number
+  }
+
+  case object WorksNumber extends DataRetrieveAttribute {
+    override def name: String = "worksNumber"
+    override def `type`: ExprType = string
+  }
+
+  case object TaxDistrictNumber extends DataRetrieveAttribute {
+    override def name: String = "taxDistrictNumber"
+    override def `type`: ExprType = string
+  }
+
+  case object PayeNumber extends DataRetrieveAttribute {
+    override def name: String = "payeNumber"
+    override def `type`: ExprType = string
+  }
+
+  case object Director extends DataRetrieveAttribute {
+    override def name: String = "director"
+    override def `type`: ExprType = string // Boolean
+  }
+
   implicit val format: OFormat[DataRetrieveAttribute] = derived.oformat()
 
   def fromName(name: String): DataRetrieveAttribute = name match {
@@ -139,6 +169,12 @@ case object DataRetrieveAttribute {
     case "riskScore"                                => RiskScore
     case "reason"                                   => Reason
     case "accountName"                              => AccountName
+    case "employerName"                             => EmployerName
+    case "sequenceNumber"                           => SequenceNumber
+    case "worksNumber"                              => WorksNumber
+    case "taxDistrictNumber"                        => TaxDistrictNumber
+    case "payeNumber"                               => PayeNumber
+    case "director"                                 => Director
     case other                                      => throw new IllegalArgumentException(s"Unknown DataRetrieveAttribute name: $other")
   }
 }
@@ -256,19 +292,49 @@ object DataRetrieve {
     )
   }
 
+  final case class Employments(
+    override val id: DataRetrieveId,
+    nino: Expr,
+    taxYear: Expr
+  ) extends DataRetrieve {
+
+    import DataRetrieveAttribute._
+
+    override def attributes: List[DataRetrieveAttribute] = List(
+      EmployerName,
+      SequenceNumber,
+      WorksNumber,
+      TaxDistrictNumber,
+      PayeNumber,
+      Director
+    )
+  }
+
   implicit val format: OFormat[DataRetrieve] = derived.oformat()
+}
+
+sealed trait RetrieveDataType extends Product with Serializable {
+  def size: Int = this match {
+    case RetrieveDataType.ObjectType(_) => 1
+    case RetrieveDataType.ListType(xs)  => xs.size
+  }
+}
+
+object RetrieveDataType {
+  case class ObjectType(data: Map[DataRetrieveAttribute, String]) extends RetrieveDataType
+  case class ListType(data: List[Map[DataRetrieveAttribute, String]]) extends RetrieveDataType
 }
 
 case class DataRetrieveResult(
   id: DataRetrieveId,
-  data: Map[DataRetrieveAttribute, String],
+  data: RetrieveDataType,
   requestParams: JsValue // Request data used to decide if new call to the API is need when input data are changing
 )
 
 object DataRetrieveResult {
 
-  implicit val dataRetrieveSuccessDataFormat: Format[Map[DataRetrieveAttribute, String]] =
-    implicitly[Format[Map[String, String]]]
+  implicit val dataRetrieveSuccessDataFormat: OFormat[Map[DataRetrieveAttribute, String]] =
+    implicitly[OFormat[Map[String, String]]]
       .bimap[Map[DataRetrieveAttribute, String]](
         _.map { case (key, value) =>
           DataRetrieveAttribute.fromName(key) -> value
@@ -277,5 +343,21 @@ object DataRetrieveResult {
           key.name -> value
         }
       )
+  implicit val retrieveDataTypeFormat: Format[RetrieveDataType] = {
+
+    val reads: Reads[RetrieveDataType] = Reads {
+      case a: JsArray =>
+        implicitly[Reads[List[Map[DataRetrieveAttribute, String]]]].reads(a).map(RetrieveDataType.ListType)
+      case other => implicitly[Reads[Map[DataRetrieveAttribute, String]]].reads(other).map(RetrieveDataType.ObjectType)
+    }
+
+    val writes: Writes[RetrieveDataType] = Writes[RetrieveDataType] {
+
+      case RetrieveDataType.ObjectType(data) => Json.toJson(data)
+      case RetrieveDataType.ListType(data)   => Json.toJson(data)
+    }
+
+    Format[RetrieveDataType](reads, writes)
+  }
   implicit val format: Format[DataRetrieveResult] = derived.oformat()
 }

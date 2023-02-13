@@ -32,11 +32,11 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.RetrieveDataType
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveResult, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveResult, LangADT, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupOptions }
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
@@ -206,15 +206,30 @@ case class EvaluationResults(
     NumberResult(size)
   }
 
-  private def getDataRetrieveAttribute(evaluationContext: EvaluationContext, dataRetrieveCtx: DataRetrieveCtx) =
+  private def getDataRetrieveAttribute(
+    evaluationContext: EvaluationContext,
+    dataRetrieveCtx: DataRetrieveCtx
+  ): Option[List[String]] =
     for {
       dataRetrieve <- evaluationContext.thirdPartyData.dataRetrieve
       result <- dataRetrieve
                   .get(dataRetrieveCtx.id)
                   .flatMap { case DataRetrieveResult(_, data, _) =>
-                    data.get(dataRetrieveCtx.attribute)
+                    data match {
+                      case RetrieveDataType.ObjectType(map) => map.get(dataRetrieveCtx.attribute).map(List(_))
+                      case RetrieveDataType.ListType(xs)    => xs.traverse(_.get(dataRetrieveCtx.attribute))
+                    }
                   }
     } yield result
+
+  private def getDataRetrieveCount(
+    evaluationContext: EvaluationContext,
+    dataRetrieveCount: DataRetrieveCount
+  ): Option[Int] =
+    for {
+      dataRetrieve <- evaluationContext.thirdPartyData.dataRetrieve
+      result       <- dataRetrieve.get(dataRetrieveCount.id)
+    } yield result.data.size
 
   private def evalNumber(
     typeInfo: TypeInfo,
@@ -277,8 +292,14 @@ case class EvaluationResults(
       case AddressLens(_, _) => unsupportedOperation("Number")(expr)
       case d @ DataRetrieveCtx(_, _) =>
         getDataRetrieveAttribute(evaluationContext, d)
-          .map(toNumberResult(_))
+          .map {
+            case s :: Nil => toNumberResult(s)
+            case xs       => ListResult(xs.map(toNumberResult))
+          }
           .getOrElse(unsupportedOperation("Number")(expr))
+      case d @ DataRetrieveCount(_) =>
+        val count = getDataRetrieveCount(evaluationContext, d).getOrElse(0)
+        NumberResult(count)
       case CsvCountryCheck(_, _)         => unsupportedOperation("Number")(expr)
       case CsvOverseasCountryCheck(_, _) => unsupportedOperation("Number")(expr)
       case CsvCountryCountCheck(fcId, column, value) =>
@@ -499,7 +520,18 @@ case class EvaluationResults(
         }
       case LangCtx => StringResult(evaluationContext.lang.langADTToString)
       case d @ DataRetrieveCtx(_, _) =>
-        nonEmptyStringResult(StringResult(getDataRetrieveAttribute(evaluationContext, d).getOrElse("")))
+        val exprResult =
+          getDataRetrieveAttribute(evaluationContext, d) match {
+            case Some(h :: Nil) => StringResult(h)
+            case Some(xs)       => ListResult(xs.map(StringResult))
+            case None           => Empty
+          }
+        nonEmptyExpressionResult(exprResult)
+
+      case d @ DataRetrieveCount(_) =>
+        val count = getDataRetrieveCount(evaluationContext, d).getOrElse(0)
+        StringResult(count.toString)
+
       case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
       case Typed(expr, _)               => loop(expr)
       case CsvCountryCheck(fcId, column) =>
