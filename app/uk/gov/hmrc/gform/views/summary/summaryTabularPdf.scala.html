@@ -30,7 +30,8 @@
     formTemplate: FormTemplate,
     maybeFormName: Option[String],
     maybeDraftText: Option[String],
-    maybeSubmissionDetails: Option[SubmissionDetails]
+    maybeSubmissionDetails: Option[SubmissionDetails],
+    summarySectionDeclaration: Option[Html]
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @timeFormat = @{DateTimeFormatter.ofPattern("HH:mm")}
@@ -194,6 +195,16 @@
                     }
                 </div>
             }
+        }
+    }
+
+    @summarySectionDeclaration.map { declaration =>
+        @if(declaration.body.nonEmpty) {
+            <div class="row">
+                <div class="col-lg-12">
+                    @declaration
+                </div>
+            </div>
         }
     }
 
