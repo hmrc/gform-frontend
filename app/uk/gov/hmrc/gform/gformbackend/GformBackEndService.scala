@@ -26,7 +26,7 @@ import cats.syntax.all._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
-import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, SectionRenderingService, StructuredFormDataBuilder, SummaryPagePurpose }
+import uk.gov.hmrc.gform.gform.{ CustomerId, DestinationIncludeIfEvalBuilder, FrontEndSubmissionVariablesBuilder, SectionRenderingService, StructuredFormDataBuilder, SummaryPagePurpose }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -356,7 +356,8 @@ class GformBackEndService(
       emailParameters,
       attachments,
       l,
-      maybeEmailAddress
+      maybeEmailAddress,
+      DestinationIncludeIfEvalBuilder(formTemplate, formModelVisibilityOptics)
     )
 
   private def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Boolean =

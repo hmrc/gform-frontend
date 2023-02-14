@@ -27,6 +27,7 @@ import cats.data.NonEmptyList
 import JsonUtils.nelFormat
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.form.FormStatus
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.{ HandlebarValue, IncludeIfValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.SubmissionConsolidator
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierPersonalisationFieldId
 
@@ -34,9 +35,18 @@ sealed trait DestinationWithCustomerId {
   def customerId(): Expr
 }
 
+sealed trait DestinationIncludeIf extends Product with Serializable
+
+object DestinationIncludeIf {
+  case class HandlebarValue(value: String) extends DestinationIncludeIf
+  case class IncludeIfValue(value: IncludeIf) extends DestinationIncludeIf
+
+  implicit val format: OFormat[DestinationIncludeIf] = derived.oformat()
+}
+
 sealed trait Destination extends Product with Serializable {
   def id: DestinationId
-  def includeIf: String
+  def includeIf: DestinationIncludeIf
   def failOnError: Boolean
 }
 
@@ -47,7 +57,7 @@ object Destination {
     customerId: Expr,
     classificationType: String,
     businessArea: String,
-    includeIf: String,
+    includeIf: DestinationIncludeIf,
     failOnError: Boolean,
     dataOutputFormat: Option[DataOutputFormat],
     formdataXml: Boolean,
@@ -59,7 +69,7 @@ object Destination {
     id: DestinationId,
     projectId: ProjectId,
     customerId: Expr,
-    includeIf: String,
+    includeIf: DestinationIncludeIf,
     failOnError: Boolean
   ) extends Destination with DestinationWithCustomerId
 
@@ -70,27 +80,31 @@ object Destination {
     method: HttpMethod,
     payload: Option[String],
     payloadType: TemplateType,
-    includeIf: String,
+    includeIf: DestinationIncludeIf,
     failOnError: Boolean
   ) extends Destination
 
-  case class Composite(id: DestinationId, includeIf: String, destinations: NonEmptyList[Destination])
+  case class Composite(id: DestinationId, includeIf: DestinationIncludeIf, destinations: NonEmptyList[Destination])
       extends Destination {
     val failOnError: Boolean = false
   }
 
-  case class StateTransition(id: DestinationId, requiredState: FormStatus, includeIf: String, failOnError: Boolean)
-      extends Destination
+  case class StateTransition(
+    id: DestinationId,
+    requiredState: FormStatus,
+    includeIf: DestinationIncludeIf,
+    failOnError: Boolean
+  ) extends Destination
 
   case class Log(id: DestinationId) extends Destination {
     val failOnError: Boolean = false
-    val includeIf: String = true.toString
+    val includeIf: DestinationIncludeIf = DestinationIncludeIf.HandlebarValue(true.toString)
   }
 
   case class Email(
     id: DestinationId,
     emailVerifierService: EmailVerifierService,
-    includeIf: String,
+    includeIf: DestinationIncludeIf,
     failOnError: Boolean,
     to: FormComponentId,
     personalisation: Map[NotifierPersonalisationFieldId, FormComponentId]
@@ -134,7 +148,7 @@ case class UploadableHmrcDmsDestination(
   classificationType: String,
   businessArea: String,
   convertSingleQuotes: Option[Boolean],
-  includeIf: Option[String] = None,
+  includeIf: Option[DestinationIncludeIf] = None,
   failOnError: Option[Boolean] = None,
   dataOutputFormat: Option[DataOutputFormat],
   formdataXml: Option[Boolean] = None,
@@ -144,14 +158,14 @@ case class UploadableHmrcDmsDestination(
 
   def toHmrcDmsDestination: Either[String, Destination.HmrcDms] =
     for {
-      cii <- addErrorInfo(id, "includeIf")(condition(convertSingleQuotes, includeIf))
+      cii <- addErrorInfo(id, convertSingleQuotes, includeIf)
     } yield Destination.HmrcDms(
       id,
       dmsFormId,
       customerId,
       classificationType,
       businessArea,
-      cii.getOrElse(true.toString),
+      cii,
       failOnError.getOrElse(true),
       dataOutputFormat,
       formdataXml.getOrElse(false),
@@ -173,13 +187,13 @@ case class UploadableSubmissionConsolidator(
   projectId: ProjectId,
   customerId: Expr,
   convertSingleQuotes: Option[Boolean],
-  includeIf: Option[String],
+  includeIf: Option[DestinationIncludeIf],
   failOnError: Option[Boolean]
 ) {
   def toSubmissionConsolidatorDestination: Either[String, Destination.SubmissionConsolidator] =
     for {
-      cii <- addErrorInfo(id, "includeIf")(condition(convertSingleQuotes, includeIf))
-    } yield SubmissionConsolidator(id, projectId, customerId, cii.getOrElse(true.toString), failOnError.getOrElse(true))
+      cii <- addErrorInfo(id, convertSingleQuotes, includeIf)
+    } yield SubmissionConsolidator(id, projectId, customerId, cii, failOnError.getOrElse(true))
 }
 
 object UploadableSubmissionConsolidator {
@@ -193,13 +207,13 @@ object UploadableSubmissionConsolidator {
 case class UploadableCompositeDestination(
   id: DestinationId,
   convertSingleQuotes: Option[Boolean],
-  includeIf: Option[String],
+  includeIf: Option[DestinationIncludeIf],
   destinations: NonEmptyList[Destination]
 ) {
   def toCompositeDestination: Either[String, Destination.Composite] =
     for {
-      cvii <- addErrorInfo(id, "includeIf")(condition(convertSingleQuotes, includeIf))
-    } yield Destination.Composite(id, cvii.getOrElse(true.toString), destinations)
+      cvii <- addErrorInfo(id, convertSingleQuotes, includeIf)
+    } yield Destination.Composite(id, cvii, destinations)
 }
 
 object UploadableCompositeDestination {
@@ -214,12 +228,12 @@ case class UploadableStateTransitionDestination(
   id: DestinationId,
   requiredState: String,
   convertSingleQuotes: Option[Boolean],
-  includeIf: Option[String],
+  includeIf: Option[DestinationIncludeIf],
   failOnError: Option[Boolean] = None
 ) {
   def toStateTransitionDestination: Either[String, Destination.StateTransition] =
     for {
-      cvii <- addErrorInfo(id, "includeIf")(condition(convertSingleQuotes, includeIf))
+      cvii <- addErrorInfo(id, convertSingleQuotes, includeIf)
       rs <- addErrorInfo(id, "requiredState")(
               FormStatus
                 .unapply(requiredState)
@@ -227,7 +241,7 @@ case class UploadableStateTransitionDestination(
                   s"Invalid requiredState: '$requiredState'. Allowed states are: ${FormStatus.all}".asLeft
                 )(_.asRight)
             )
-    } yield Destination.StateTransition(id, rs, cvii.getOrElse(true.toString), failOnError.getOrElse(true))
+    } yield Destination.StateTransition(id, rs, cvii, failOnError.getOrElse(true))
 }
 
 object UploadableStateTransitionDestination {
@@ -246,14 +260,14 @@ case class UploadableHandlebarsHttpApiDestination(
   payload: Option[String],
   payloadType: Option[TemplateType],
   convertSingleQuotes: Option[Boolean],
-  includeIf: Option[String],
+  includeIf: Option[DestinationIncludeIf],
   failOnError: Option[Boolean]
 ) {
 
   def toHandlebarsHttpApiDestination: Either[String, Destination.HandlebarsHttpApi] =
     for {
       cvp   <- addErrorInfo(id, "payload")(conditionAndValidate(convertSingleQuotes, payload))
-      cvii  <- addErrorInfo(id, "includeIf")(condition(convertSingleQuotes, includeIf))
+      cvii  <- addErrorInfo(id, convertSingleQuotes, includeIf)
       cvuri <- addErrorInfo(id, "uri")(condition(convertSingleQuotes, uri))
     } yield Destination
       .HandlebarsHttpApi(
@@ -263,7 +277,7 @@ case class UploadableHandlebarsHttpApiDestination(
         method,
         cvp,
         payloadType.getOrElse(TemplateType.JSON),
-        cvii.getOrElse(true.toString),
+        cvii,
         failOnError.getOrElse(true)
       )
 }
@@ -292,19 +306,19 @@ case class UploadableEmailDestination(
   id: DestinationId,
   emailTemplateId: LocalisedEmailTemplateId,
   convertSingleQuotes: Option[Boolean],
-  includeIf: Option[String],
+  includeIf: Option[DestinationIncludeIf],
   failOnError: Option[Boolean],
   to: FormComponentId,
   personalisation: Map[NotifierPersonalisationFieldId, FormComponentId]
 ) {
   def toEmailDestination: Either[String, Destination.Email] =
     for {
-      cvii <- addErrorInfo(id, "includeIf")(condition(convertSingleQuotes, includeIf))
+      cvii <- addErrorInfo(id, convertSingleQuotes, includeIf)
     } yield Destination
       .Email(
         id,
         emailTemplateId.toNotify,
-        cvii.getOrElse(true.toString),
+        cvii,
         failOnError.getOrElse(true),
         to,
         personalisation
@@ -323,6 +337,18 @@ object UploadableEmailDestination {
 }
 
 object UploadableConditioning {
+
+  def addErrorInfo(
+    id: DestinationId,
+    convertSingleQuotes: Option[Boolean],
+    includeIf: Option[DestinationIncludeIf]
+  ): Either[String, DestinationIncludeIf] =
+    includeIf match {
+      case Some(HandlebarValue(s)) =>
+        addErrorInfo(id, "includeIf")(condition(convertSingleQuotes, s)).map(HandlebarValue)
+      case Some(IncludeIfValue(i)) => Right(IncludeIfValue(i))
+      case _                       => Left(s"${id.id}/includeIf error")
+    }
   def addErrorInfo[T](destinationId: DestinationId, field: String)(result: Either[String, T]): Either[String, T] =
     result.leftMap(e => s"${destinationId.id}/$field $e")
 
