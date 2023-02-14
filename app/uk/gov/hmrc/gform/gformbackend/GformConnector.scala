@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
-import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse }
+import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, EmploymentsResponse }
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateWithRedirects, _ }
@@ -400,6 +400,14 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       htps
     )
   }
+
+  def getEmployments(
+    nino: String,
+    taxYear: Int
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[List[EmploymentsResponse]]] =
+    ws.GET[ServiceCallResponse[List[EmploymentsResponse]]](
+      s"$baseUrl/des-employments/$nino/$taxYear"
+    )
 
   /** **** Form Bundles *****
     */

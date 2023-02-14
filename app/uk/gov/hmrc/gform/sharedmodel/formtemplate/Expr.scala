@@ -60,6 +60,7 @@ sealed trait Expr extends Product with Serializable {
       case PeriodExt(_, _)                         => expr :: Nil
       case AddressLens(_, _)                       => expr :: Nil
       case DataRetrieveCtx(_, _)                   => expr :: Nil
+      case DataRetrieveCount(_)                    => expr :: Nil
       case CsvCountryCheck(_, _)                   => expr :: Nil
       case CsvOverseasCountryCheck(_, _)           => expr :: Nil
       case CsvCountryCountCheck(_, _, _)           => expr :: Nil
@@ -110,6 +111,7 @@ sealed trait Expr extends Product with Serializable {
     case PeriodExt(periodFun, _)                    => periodFun.leafs(formModel)
     case AddressLens(formComponentId, _)            => this :: Nil
     case DataRetrieveCtx(_, _)                      => this :: Nil
+    case DataRetrieveCount(_)                       => this :: Nil
     case CsvCountryCheck(_, _)                      => this :: Nil
     case CsvOverseasCountryCheck(_, _)              => this :: Nil
     case CsvCountryCountCheck(_, _, _)              => this :: Nil
@@ -146,7 +148,8 @@ sealed trait Expr extends Product with Serializable {
     case Period(_, _)                               => Nil
     case PeriodExt(_, _)                            => Nil
     case AddressLens(_, _)                          => Nil
-    case DataRetrieveCtx(id, attribute)             => Nil
+    case DataRetrieveCtx(_, _)                      => Nil
+    case DataRetrieveCount(_)                       => Nil
     case CsvCountryCheck(_, _)                      => Nil
     case CsvOverseasCountryCheck(_, _)              => Nil
     case CsvCountryCountCheck(_, _, _)              => Nil
@@ -183,6 +186,7 @@ final case class AddressLens(formComponentId: FormComponentId, detail: AddressDe
 final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
 final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieveAttribute) extends Expr
+final case class DataRetrieveCount(id: DataRetrieveId) extends Expr
 final case class CsvCountryCheck(formComponentId: FormComponentId, column: String) extends Expr
 final case class CsvOverseasCountryCheck(formComponentId: FormComponentId, column: String) extends Expr
 final case class CsvCountryCountCheck(formComponentId: FormComponentId, column: String, value: String) extends Expr

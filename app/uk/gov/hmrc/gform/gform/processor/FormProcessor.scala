@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction 
 import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -269,7 +269,7 @@ class FormProcessor(
                                                                     )
       dataRetrieveResult <-
         if (isValid) {
-          pageModel.fold(singleton =>
+          pageModel.fold { singleton =>
             singleton.page.dataRetrieve.flatTraverse {
               case v: ValidateBankDetails =>
                 val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, v.id)
@@ -301,8 +301,13 @@ class FormProcessor(
                 implicit val ni: NinoInsightsConnector[Future] = ninoInsightsConnector
                 DataRetrieveService[NinoInsights, Future]
                   .retrieve(n, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
+              case e: Employments =>
+                val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, e.id)
+                implicit val c: GformConnector = gformConnector
+                DataRetrieveService[Employments, Future]
+                  .retrieve(e, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
             }
-          )(_ => Option.empty.pure[Future])(_ => Option.empty.pure[Future])
+          }(_ => Option.empty.pure[Future])(_ => Option.empty.pure[Future])
         } else Option.empty.pure[Future]
 
       updatePostcodeLookup <-

@@ -336,7 +336,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
               Map(
                 DataRetrieveId("someDataRetrieveId") -> DataRetrieveResult(
                   DataRetrieveId("someDataRetrieveId"),
-                  Map(DataRetrieveAttribute.fromName("isValid") -> "111"),
+                  RetrieveDataType.ObjectType(Map(DataRetrieveAttribute.fromName("isValid") -> "111")),
                   Json.obj()
                 )
               )
