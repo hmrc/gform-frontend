@@ -828,7 +828,8 @@ class SectionRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     destinationList: DestinationList,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    isProduction: Boolean = true
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -888,6 +889,12 @@ class SectionRenderingService(
       FileInfoConfig.allAllowedFileTypes,
       Nil
     )
+
+    val zipUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+      .proxyToGform(s"/gform/test-only/object-store/envelopes/${envelopeId.value}")
+      .url
+    val zipUrlOptional = Option(zipUrl).filter(_ => !isProduction)
+
     uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
       .acknowledgement(
         formTemplateId,
@@ -896,7 +903,8 @@ class SectionRenderingService(
         formCategory,
         formTemplate,
         panelTitle,
-        frontendAppConfig
+        frontendAppConfig,
+        zipUrlOptional
       )
   }
 

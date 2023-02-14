@@ -44,6 +44,7 @@ import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
+import com.typesafe.config.{ Config => TypeSafeConfig }
 
 class AcknowledgementController(
   i18nSupport: I18nSupport,
@@ -56,11 +57,14 @@ class AcknowledgementController(
   nonRepudiationHelpers: NonRepudiationHelpers,
   messagesControllerComponents: MessagesControllerComponents,
   recalculation: Recalculation[Future, Throwable],
-  auditService: AuditService
+  auditService: AuditService,
+  typeSafeConfig: TypeSafeConfig
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
   private val logger = LoggerFactory.getLogger(getClass)
+
+  private val isProduction = typeSafeConfig.getString("application.router") != "testOnlyDoNotUseInAppConf.Routes"
 
   def showAcknowledgement(
     maybeAccessCode: Option[AccessCode],
@@ -92,7 +96,6 @@ class AcknowledgementController(
               s"user has submitted a form with envelopeId ${cache.form.envelopeId}"
           )
       }
-
       cache.formTemplate.destinations match {
         case destinationList: DestinationList =>
           Future.successful(
@@ -102,7 +105,8 @@ class AcknowledgementController(
                   maybeAccessCode,
                   cache,
                   destinationList,
-                  formModelOptics
+                  formModelOptics,
+                  isProduction
                 )
             )
           )

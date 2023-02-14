@@ -280,7 +280,8 @@ class GformModule(
     nonRepudiationHelpers,
     controllersModule.messagesControllerComponents,
     graphModule.recalculation,
-    auditingModule.auditService
+    auditingModule.auditService,
+    configModule.typesafeConfig
   )
 
   val errorController = new ErrorController(
