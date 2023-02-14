@@ -19,7 +19,7 @@ import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
 import uk.gov.hmrc.gform.sharedmodel.form.FormStatus
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.StringValue
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, Destination, DestinationId, DestinationIncludeIf, ProjectId }
 import uk.gov.hmrc.gform.sharedmodel.notifier.{ NotifierPersonalisationFieldId, NotifierTemplateId }
 
@@ -77,7 +77,10 @@ trait DestinationGen {
     failOnError: Option[Boolean] = None
   ): Gen[Destination.HmrcDms] =
     hmrcDmsGen.map { g =>
-      g.copy(includeIf = includeIf.getOrElse(StringValue("true")), failOnError = failOnError.getOrElse(g.failOnError))
+      g.copy(
+        includeIf = includeIf.getOrElse(HandlebarValue("true")),
+        failOnError = failOnError.getOrElse(g.failOnError)
+      )
     }
 
   def handlebarsHttpApiGen: Gen[Destination.HandlebarsHttpApi] =
@@ -97,7 +100,10 @@ trait DestinationGen {
     failOnError: Option[Boolean] = None
   ): Gen[Destination.HandlebarsHttpApi] =
     handlebarsHttpApiGen.map { g =>
-      g.copy(includeIf = includeIf.getOrElse(StringValue("true")), failOnError = failOnError.getOrElse(g.failOnError))
+      g.copy(
+        includeIf = includeIf.getOrElse(HandlebarValue("true")),
+        failOnError = failOnError.getOrElse(g.failOnError)
+      )
     }
 
   def compositeGen: Gen[Destination.Composite] =
@@ -123,7 +129,7 @@ trait DestinationGen {
     stateTransitionGen.map { st =>
       st.copy(
         requiredState = requiredState.getOrElse(st.requiredState),
-        includeIf = includeIf.getOrElse(StringValue("true")),
+        includeIf = includeIf.getOrElse(HandlebarValue("true")),
         failOnError = failOnError.getOrElse(st.failOnError)
       )
     }
@@ -161,7 +167,7 @@ trait DestinationGen {
   def destinationWithFixedIdGen(id: DestinationId): Gen[Destination] = hmrcDmsGen.map(_.copy(id = id))
 
   def includeIfGen(): Gen[DestinationIncludeIf] =
-    Gen.oneOf(Gen.alphaNumStr, Gen.const("true"), Gen.const("false")).map(StringValue)
+    Gen.oneOf(Gen.alphaNumStr, Gen.const("true"), Gen.const("false")).map(HandlebarValue)
 }
 
 object DestinationGen extends DestinationGen

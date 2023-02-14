@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
 
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.StringValue
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.DestinationGen
 
 class UploadableDestinationSpec extends Spec {
@@ -41,7 +41,7 @@ class UploadableDestinationSpec extends Spec {
       val expected = withQuotes.copy(
         uri = replaceQuotes(withQuotes.uri),
         payload = withQuotes.payload.map(v => replaceQuotes(v)),
-        includeIf = replaceStringIfValue(withQuotes.includeIf)
+        includeIf = replaceHandlebarValue(withQuotes.includeIf)
       )
 
       createUploadable(withQuotes, Some(true)).toHandlebarsHttpApiDestination shouldBe Right(expected)
@@ -66,7 +66,7 @@ class UploadableDestinationSpec extends Spec {
     forAll(DestinationGen.hmrcDmsGen) { destination =>
       val withQuotes = addQuotes(destination, """"'abc'"""")
       val expected = withQuotes.copy(
-        includeIf = replaceStringIfValue(withQuotes.includeIf)
+        includeIf = replaceHandlebarValue(withQuotes.includeIf)
       )
 
       createUploadable(withQuotes, Some(true)).toHmrcDmsDestination shouldBe Right(expected)
@@ -91,10 +91,10 @@ class UploadableDestinationSpec extends Spec {
     )
   }
 
-  private def replaceStringIfValue(includeIf: DestinationIncludeIf) =
+  private def replaceHandlebarValue(includeIf: DestinationIncludeIf) =
     includeIf match {
-      case StringValue(s) => StringValue(replaceQuotes(s))
-      case _              => StringValue("")
+      case HandlebarValue(s) => HandlebarValue(replaceQuotes(s))
+      case _                 => HandlebarValue("")
     }
 
   private def createUploadable(
@@ -124,9 +124,9 @@ class UploadableDestinationSpec extends Spec {
     destination.copy(
       uri = q,
       payload = Some(q),
-      includeIf = StringValue(q)
+      includeIf = HandlebarValue(q)
     )
 
   private def addQuotes(destination: Destination.HmrcDms, q: String) =
-    destination.copy(includeIf = StringValue(q))
+    destination.copy(includeIf = HandlebarValue(q))
 }

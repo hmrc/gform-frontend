@@ -27,7 +27,7 @@ import cats.data.NonEmptyList
 import JsonUtils.nelFormat
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.form.FormStatus
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.{ IncludeIfValue, StringValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.{ HandlebarValue, IncludeIfValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.SubmissionConsolidator
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierPersonalisationFieldId
 
@@ -38,7 +38,7 @@ sealed trait DestinationWithCustomerId {
 sealed trait DestinationIncludeIf extends Product with Serializable
 
 object DestinationIncludeIf {
-  case class StringValue(value: String) extends DestinationIncludeIf
+  case class HandlebarValue(value: String) extends DestinationIncludeIf
   case class IncludeIfValue(value: IncludeIf) extends DestinationIncludeIf
 
   implicit val format: OFormat[DestinationIncludeIf] = derived.oformat()
@@ -98,7 +98,7 @@ object Destination {
 
   case class Log(id: DestinationId) extends Destination {
     val failOnError: Boolean = false
-    val includeIf: DestinationIncludeIf = DestinationIncludeIf.StringValue(true.toString)
+    val includeIf: DestinationIncludeIf = DestinationIncludeIf.HandlebarValue(true.toString)
   }
 
   case class Email(
@@ -344,7 +344,8 @@ object UploadableConditioning {
     includeIf: Option[DestinationIncludeIf]
   ): Either[String, DestinationIncludeIf] =
     includeIf match {
-      case Some(StringValue(s))    => addErrorInfo(id, "includeIf")(condition(convertSingleQuotes, s)).map(StringValue)
+      case Some(HandlebarValue(s)) =>
+        addErrorInfo(id, "includeIf")(condition(convertSingleQuotes, s)).map(HandlebarValue)
       case Some(IncludeIfValue(i)) => Right(IncludeIfValue(i))
       case _                       => Left(s"${id.id}/includeIf error")
     }

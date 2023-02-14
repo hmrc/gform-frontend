@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import FormTemplateBuilder._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.StringValue
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
 
 class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
@@ -733,7 +733,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         Value,
         "",
         "",
-        StringValue(""),
+        HandlebarValue(""),
         false,
         Some(DataOutputFormat.XML),
         false,
@@ -741,7 +741,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         false
       )
     val emptyCompositeDestination =
-      Destination.Composite(DestinationId(""), StringValue(""), NonEmptyList.one(emptyHmrcDms))
+      Destination.Composite(DestinationId(""), HandlebarValue(""), NonEmptyList.one(emptyHmrcDms))
     val emptyDestinationList =
       DestinationList(NonEmptyList.one(emptyHmrcDms), emptyAcknowledgementSection, Some(emptyDeclarationSection))
     val field = mkFormComponent("b", ctx)
