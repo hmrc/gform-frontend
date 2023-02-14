@@ -246,6 +246,18 @@ object DataRetrieve {
     )
   }
 
+  final case class BankAccountInsights(
+    override val id: DataRetrieveId,
+    sortCode: Expr,
+    accountNumber: Expr
+  ) extends DataRetrieve {
+    import DataRetrieveAttribute._
+    override def attributes: List[DataRetrieveAttribute] = List(
+      RiskScore,
+      Reason
+    )
+  }
+
   final case class PersonalBankAccountExistenceWithName(
     override val id: DataRetrieveId,
     sortCode: Expr,

@@ -20,7 +20,7 @@ import akka.actor.Scheduler
 import cats.instances.future._
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupController, AddressLookupModule }
 import uk.gov.hmrc.gform.akka.AkkaModule
-import uk.gov.hmrc.gform.api.{ CompanyInformationAsyncConnector, NinoInsightsAsyncConnector }
+import uk.gov.hmrc.gform.api.{ BankAccountInsightsAsyncConnector, CompanyInformationAsyncConnector, NinoInsightsAsyncConnector }
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
@@ -157,6 +157,14 @@ class GformModule(
   val ninoInsightsConnector =
     new NinoInsightsAsyncConnector(wSHttpModule.auditableWSHttp, ninoInsightsUrl, authorizationToken)
 
+  private val bankAccountInsightsBasePath =
+    configModule.serviceConfig.getString("microservice.services.bank-account-insights.base-path")
+  private val bankAccountInsightsUrl =
+    s"${configModule.serviceConfig.baseUrl("bank-account-insights")}$bankAccountInsightsBasePath"
+
+  val bankAccountInsightsConnector =
+    new BankAccountInsightsAsyncConnector(wSHttpModule.auditableWSHttp, bankAccountInsightsUrl, authorizationToken)
+
   val addToListProcessor = new FormProcessor(
     playBuiltInsModule.i18nSupport,
     processDataService,
@@ -169,7 +177,8 @@ class GformModule(
     bankAccountReputationConnector,
     companyInformationConnector,
     ninoInsightsConnector,
-    addressLookupModule.addressLookupService
+    addressLookupModule.addressLookupService,
+    bankAccountInsightsConnector
   )
 
   val confirmationService = new ConfirmationService(

@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction 
 import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BankAccountInsights, BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -48,6 +48,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.api.BankAccountInsightsConnector
 
 class FormProcessor(
   i18nSupport: I18nSupport,
@@ -61,7 +62,8 @@ class FormProcessor(
   bankAccountReputationConnector: BankAccountReputationConnector[Future],
   companyInformationConnector: CompanyInformationConnector[Future],
   ninoInsightsConnector: NinoInsightsConnector[Future],
-  addressLookupService: AddressLookupService[Future]
+  addressLookupService: AddressLookupService[Future],
+  bankAccountInsightConnector: BankAccountInsightsConnector[Future]
 )(implicit ec: ExecutionContext) {
 
   import i18nSupport._
@@ -301,6 +303,11 @@ class FormProcessor(
                 implicit val ni: NinoInsightsConnector[Future] = ninoInsightsConnector
                 DataRetrieveService[NinoInsights, Future]
                   .retrieve(n, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
+              case a: BankAccountInsights =>
+                val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, a.id)
+                implicit val ai: BankAccountInsightsConnector[Future] = bankAccountInsightConnector
+                DataRetrieveService[BankAccountInsights, Future]
+                  .retrieve(a, processData.formModelOptics.formModelVisibilityOptics, maybeRequestParams)
               case e: Employments =>
                 val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, e.id)
                 implicit val c: GformConnector = gformConnector
