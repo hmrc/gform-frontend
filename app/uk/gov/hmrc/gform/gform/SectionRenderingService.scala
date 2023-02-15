@@ -893,7 +893,8 @@ class SectionRenderingService(
     val zipUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
       .proxyToGform(s"/gform/test-only/object-store/envelopes/${envelopeId.value}")
       .url
-    val zipUrlOptional = Option(zipUrl).filter(_ => !isProduction)
+    val zipUrlOptional =
+      Option(zipUrl).filter(_ => !isProduction).filter(_ => formTemplate.objectStore.getOrElse(false))
 
     uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
       .acknowledgement(
