@@ -18,12 +18,12 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.Messages
 import play.api.libs.json.{ JsValue, Json }
-import uk.gov.hmrc.gform.api.{ CompanyInformationConnector, CompanyProfile, NinoInsightCheck, NinoInsightsConnector }
+import uk.gov.hmrc.gform.api.{ BankAccountInsightCheck, BankAccountInsightsConnector, CompanyInformationConnector, CompanyProfile, NinoInsightCheck, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BankAccountInsights, BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -394,6 +394,55 @@ object DataRetrieveService {
                   )
                 )
               case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve nino insights data")
+            }
+        }
+      }
+    }
+
+  implicit def bankAccountInsights(implicit
+    bankAccountInsightsConnector: BankAccountInsightsConnector[Future]
+  ): DataRetrieveService[BankAccountInsights, Future] =
+    new DataRetrieveService[BankAccountInsights, Future] {
+
+      override def retrieve(
+        bankAccountInsights: BankAccountInsights,
+        formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+        maybeRequestParams: Option[JsValue]
+      )(implicit hc: HeaderCarrier, messages: Messages, ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
+        val sortCode =
+          formModelVisibilityOptics.evalAndApplyTypeInfoFirst(bankAccountInsights.sortCode).stringRepresentation.trim
+        val accountNumber = formModelVisibilityOptics
+          .evalAndApplyTypeInfoFirst(bankAccountInsights.accountNumber)
+          .stringRepresentation
+          .trim
+
+        val requestParams = Json.obj(
+          "sortCode"      -> sortCode,
+          "accountNumber" -> accountNumber
+        )
+
+        if (sortCode.isEmpty || accountNumber.isEmpty) {
+          Future.successful(None)
+        } else {
+          bankAccountInsightsConnector
+            .insights(
+              BankAccountInsightCheck.create(sortCode, accountNumber)
+            )
+            .map {
+              case ServiceResponse(result) =>
+                Some(
+                  DataRetrieveResult(
+                    bankAccountInsights.id,
+                    RetrieveDataType.ObjectType(
+                      Map(
+                        DataRetrieveAttribute.RiskScore -> result.riskScore.toString,
+                        DataRetrieveAttribute.Reason    -> result.reason
+                      )
+                    ),
+                    requestParams
+                  )
+                )
+              case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve bankAccount insights data")
             }
         }
       }

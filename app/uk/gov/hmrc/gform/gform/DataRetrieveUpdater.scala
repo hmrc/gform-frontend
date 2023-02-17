@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BankAccountInsights, BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[FormComponentId]) {
@@ -60,6 +60,10 @@ class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[
     case NinoInsights(id, nino) =>
       val exprUpdater = new ExprUpdater(index, baseIds)
       NinoInsights(id.withIndex(index), exprUpdater.expandExpr(nino))
+
+    case BankAccountInsights(id, sortCode, accountNumber) =>
+      val exprUpdater = new ExprUpdater(index, baseIds)
+      BankAccountInsights(id.withIndex(index), exprUpdater.expandExpr(sortCode), exprUpdater.expandExpr(accountNumber))
 
     case Employments(id, nino, taxYear) =>
       val exprUpdater = new ExprUpdater(index, baseIds)
