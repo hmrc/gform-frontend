@@ -82,7 +82,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 import uk.gov.hmrc.govukfrontend.views.viewmodels.notificationbanner.NotificationBanner
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, TableRow => GovukTableRow, Table }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
@@ -131,32 +131,41 @@ class SectionRenderingService(
       cache.retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
     val isFirstVisit = !cache.form.visitsIndex.contains(sectionNumber)
 
-    val summaryListRecords: List[SummaryListRow] = addToListIteration.singletons.toList.flatMap { singletonWithNumber =>
+    val hidePageTitleByCya = checkYourAnswers.presentationHint.filter(_ === InvisiblePageTitle).fold(false)(_ => true)
+
+    val summaryListRecords: List[SummaryList] = addToListIteration.singletons.toList.map { singletonWithNumber =>
       val sectionTitle4Ga = sectionTitle4GaFactory(
         formModelOptics.formModelVisibilityOptics.formModel(singletonWithNumber.sectionNumber),
         singletonWithNumber.sectionNumber
       )
       val page = singletonWithNumber.singleton.page
-      page.fields
-        .filterNot(_.hideOnSummary)
-        .flatMap { fc =>
-          FormComponentSummaryRenderer
-            .summaryListRows[DataOrigin.Mongo, AddToListCYARender](
-              fc,
-              page.id.map(_.modelPageId),
-              formTemplate._id,
-              formModelOptics.formModelVisibilityOptics,
-              maybeAccessCode,
-              singletonWithNumber.sectionNumber,
-              sectionTitle4Ga,
-              cache.form.thirdPartyData.obligations,
-              validationResult,
-              envelope,
-              addressRecordLookup,
-              None,
-              Some(FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward)
-            )
-        }
+
+      val hidePageTitle = page.presentationHint.filter(_ === InvisiblePageTitle).fold(hidePageTitleByCya)(_ => true)
+
+      SummaryList(
+        rows = page.fields
+          .filterNot(_.hideOnSummary)
+          .flatMap { fc =>
+            FormComponentSummaryRenderer
+              .summaryListRows[DataOrigin.Mongo, AddToListCYARender](
+                fc,
+                page.id.map(_.modelPageId),
+                formTemplate._id,
+                formModelOptics.formModelVisibilityOptics,
+                maybeAccessCode,
+                singletonWithNumber.sectionNumber,
+                sectionTitle4Ga,
+                cache.form.thirdPartyData.obligations,
+                validationResult,
+                envelope,
+                addressRecordLookup,
+                None,
+                Some(FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward)
+              )
+          },
+        classes = "govuk-!-margin-bottom-0",
+        attributes = if (hidePageTitle) Map.empty[String, String] else Map("title" -> page.title.value())
+      )
     }
 
     val title =

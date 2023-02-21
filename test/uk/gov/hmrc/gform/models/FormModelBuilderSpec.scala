@@ -149,7 +149,8 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
           Some(toSmartString("No PII Update Title")),
           Some(toSmartString("Header")),
           Some(toSmartString("Footer")),
-          Some(toSmartString("Continue"))
+          Some(toSmartString("Continue")),
+          None
         )
       ),
       List(fcA)
