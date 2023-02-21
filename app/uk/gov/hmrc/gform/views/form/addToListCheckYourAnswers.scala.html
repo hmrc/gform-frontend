@@ -33,7 +33,7 @@
     formTemplate: FormTemplate,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    summaryListRows: List[SummaryListRow],
+    summaryListRows: List[SummaryList],
     frontendAppConfig: FrontendAppConfig,
     continueButtonLabel: String,
     renderComeBackLater: Boolean,
@@ -79,7 +79,14 @@
         </div>
     }
 
-    @govukSummaryList(SummaryList(summaryListRows, "govuk-!-margin-bottom-5"))
+    <div class="govuk-body">
+        @summaryListRows.map { l =>
+            @l.attributes.find(_._1 == "title").map{attribute =>
+              <h2 class="govuk-heading-m govuk-!-margin-top-5">@attribute._2</h2>
+            }
+            @govukSummaryList(l)
+        }
+    </div>
 
     @footer.map{ f =>
         <div class="govuk-body">

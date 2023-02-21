@@ -377,7 +377,8 @@ class FormModelBuilder[E, F[_]: Functor](
       c.footer.map(_.expand(index, s.allIds)),
       c.continueLabel.map(_.expand(index, s.allIds)),
       fc,
-      index
+      index,
+      c.presentationHint
     )
   }
 

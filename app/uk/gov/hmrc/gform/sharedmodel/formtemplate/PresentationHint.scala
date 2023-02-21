@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.Eq
 import julienrf.json.derived
 import play.api.libs.json._
 
@@ -26,5 +27,6 @@ case object TotalValue extends PresentationHint
 case object InvisiblePageTitle extends PresentationHint
 
 object PresentationHint {
+  implicit val catsEq: Eq[PresentationHint] = Eq.fromUniversalEquals
   implicit val format: OFormat[PresentationHint] = derived.oformat()
 }
