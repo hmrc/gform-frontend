@@ -77,7 +77,7 @@ trait FormTemplateSample {
               continueIf = None,
               instruction = None,
               presentationHint = None,
-              dataRetrieve = None,
+              dataRetrieve = Nil,
               confirmation = None,
               redirects = None,
               hideSaveAndComeBackButton = None

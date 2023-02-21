@@ -41,7 +41,7 @@ case class Page[A <: PageMode](
   continueIf: Option[ContinueIf],
   instruction: Option[Instruction],
   presentationHint: Option[PresentationHint],
-  dataRetrieve: Option[DataRetrieve],
+  dataRetrieve: List[DataRetrieve],
   confirmation: Option[Confirmation],
   redirects: Option[NonEmptyList[RedirectCtx]],
   hideSaveAndComeBackButton: Option[Boolean]

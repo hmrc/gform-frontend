@@ -42,18 +42,18 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
           utr :: postCode :: errorMessage.interpolations
       }
 
-      val dataRetrieveExpressions = page.dataRetrieve.fold(List.empty[Expr]) {
-        case ValidateBankDetails(_, sortCode, accountNumber) => List(sortCode, accountNumber)
-        case BusinessBankAccountExistence(_, sortCode, accountNumber, companyName) =>
-          List(sortCode, accountNumber, companyName)
-        case PersonalBankAccountExistence(_, sortCode, accountNumber, firstName, lastName) =>
-          List(sortCode, accountNumber, firstName, lastName)
-        case PersonalBankAccountExistenceWithName(_, sortCode, accountNumber, name) =>
-          List(sortCode, accountNumber, name)
-        case CompanyRegistrationNumber(_, companyNumber)   => List(companyNumber)
-        case NinoInsights(_, nino)                         => List(nino)
-        case BankAccountInsights(_, sortCode, bankAccount) => List(sortCode, bankAccount)
-        case Employments(_, nino, taxYear)                 => List(nino, taxYear)
+      val dataRetrieveExpressions = page.dataRetrieve.foldRight(List.empty[Expr]) {
+        case (ValidateBankDetails(_, sortCode, accountNumber), acc) => acc ++ List(sortCode, accountNumber)
+        case (BusinessBankAccountExistence(_, sortCode, accountNumber, companyName), acc) =>
+          acc ++ List(sortCode, accountNumber, companyName)
+        case (PersonalBankAccountExistence(_, sortCode, accountNumber, firstName, lastName), acc) =>
+          acc ++ List(sortCode, accountNumber, firstName, lastName)
+        case (PersonalBankAccountExistenceWithName(_, sortCode, accountNumber, name), acc) =>
+          acc ++ List(sortCode, accountNumber, name)
+        case (CompanyRegistrationNumber(_, companyNumber), acc)      => acc ++ List(companyNumber)
+        case (NinoInsights(_, nino), acc)                            => acc ++ List(nino)
+        case (BankAccountInsights(_, sortCode, bankAccount, _), acc) => acc ++ List(sortCode, bankAccount)
+        case (Employments(_, nino, taxYear), acc)                    => acc ++ List(nino, taxYear)
       }
       pageExprs ++ validatorExprs ++ dataRetrieveExpressions
     }

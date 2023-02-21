@@ -61,7 +61,7 @@ class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[
       val exprUpdater = new ExprUpdater(index, baseIds)
       NinoInsights(id.withIndex(index), exprUpdater.expandExpr(nino))
 
-    case BankAccountInsights(id, sortCode, accountNumber) =>
+    case BankAccountInsights(id, sortCode, accountNumber, _) =>
       val exprUpdater = new ExprUpdater(index, baseIds)
       BankAccountInsights(id.withIndex(index), exprUpdater.expandExpr(sortCode), exprUpdater.expandExpr(accountNumber))
 

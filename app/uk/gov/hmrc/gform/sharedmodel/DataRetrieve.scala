@@ -21,6 +21,7 @@ import play.api.libs.json.{ Format, JsArray, JsValue, Json, OFormat, Reads, Writ
 import uk.gov.hmrc.gform.eval.ExprType
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.IncludeIf
 
 case class DataRetrieveId(value: String) extends AnyVal {
   def withIndex(index: Int): DataRetrieveId =
@@ -249,7 +250,8 @@ object DataRetrieve {
   final case class BankAccountInsights(
     override val id: DataRetrieveId,
     sortCode: Expr,
-    accountNumber: Expr
+    accountNumber: Expr,
+    `if`: Option[IncludeIf] = None
   ) extends DataRetrieve {
     import DataRetrieveAttribute._
     override def attributes: List[DataRetrieveAttribute] = List(

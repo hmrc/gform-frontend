@@ -54,7 +54,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     None,
     None,
     None,
-    None,
+    Nil,
     None,
     None,
     None

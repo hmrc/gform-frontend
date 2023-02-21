@@ -117,7 +117,7 @@ trait SectionGen {
       continueIf,
       instruction,
       presentationHint,
-      dataRetrieve,
+      dataRetrieve.toList,
       confirmation,
       redirects.map(NonEmptyList.one(_)),
       None

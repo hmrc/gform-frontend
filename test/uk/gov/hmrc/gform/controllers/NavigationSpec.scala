@@ -70,7 +70,7 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
         caption = None,
         instruction = None,
         presentationHint = None,
-        dataRetrieve = None,
+        dataRetrieve = Nil,
         confirmation = None,
         redirects = None,
         hideSaveAndComeBackButton = None

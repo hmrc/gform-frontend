@@ -52,7 +52,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     None,
     None,
     None,
-    None,
+    Nil,
     None,
     None,
     None
