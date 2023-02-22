@@ -16,10 +16,13 @@
 
 package uk.gov.hmrc.gform.gform
 
+import play.api.libs.json.{ Format, Json }
+
 case class CustomerId(id: String) extends AnyVal {
   def isEmpty(): Boolean = id.isEmpty
 }
 
 object CustomerId {
   def empty: CustomerId = CustomerId("")
+  implicit val format: Format[CustomerId] = Json.format[CustomerId]
 }

@@ -169,7 +169,7 @@ class ReviewService[F[_]: Monad](
           BundledFormSubmissionData(
             FormIdData.fromForm(form, Some(AccessCode.fromSubmissionRef(SubmissionRef(form.envelopeId)))),
             sfd,
-            DestinationIncludeIfEvalBuilder(formTemplates(form.formTemplateId), formModelVisibilityOptics)
+            DestinationEvaluator(formTemplates(form.formTemplateId), formModelVisibilityOptics)
           )
         }
     }
