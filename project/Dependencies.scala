@@ -5,11 +5,12 @@ object Dependencies {
 
   val jacksonVersion = "2.12.7"
   val jacksonDatabindVersion = "2.12.7.1"
+  val bootstrapVersion = "4.3.0"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
   val compile = Seq(
-    "uk.gov.hmrc"                 %% "bootstrap-frontend-play-28" % "4.3.0",
+    "uk.gov.hmrc"                 %% "bootstrap-frontend-play-28" % bootstrapVersion,
     "uk.gov.hmrc"                 %% "play-frontend-hmrc"         % "5.5.0-play-28",
     "uk.gov.hmrc"                 %% "auth-client"                % "5.14.0-play-28",
     "uk.gov.hmrc"                 %% "domain"                     % "8.1.0-play-28",
@@ -48,6 +49,7 @@ object Dependencies {
 
   def test(scope: String = "test") = Seq(
     "uk.gov.hmrc"            %% "service-integration-test" % "1.3.0-play-28"     % scope,
+    "uk.gov.hmrc"            %% "bootstrap-test-play-28"   % bootstrapVersion    % scope,
     "org.scalatestplus"      %% "scalacheck-1-14"          % "3.2.2.0"           % scope,
     "org.pegdown"             % "pegdown"                  % "1.6.0"             % scope,
     "com.ironcorelabs"       %% "cats-scalatest"           % "3.1.1"             % scope,

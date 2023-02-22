@@ -41,7 +41,7 @@ class SubmissionDataTest extends Spec {
       Attachments(FormComponentId("proof") :: Nil),
       LangADT.En,
       None,
-      DestinationIncludeIfEval.empty
+      DestinationEvaluation.empty
     )
 
     Json.toJson(submissionData) should be(expectedJson)
@@ -93,8 +93,8 @@ class SubmissionDataTest extends Spec {
           |     "En": {
           |     }
           |  },
-          |  "destIncludeIfEval": {
-          |     "exprEval":[]
+          |  "destinationEvaluation":{
+          |       "evaluation":[]
           |  }
           |}""".stripMargin
     )
