@@ -195,7 +195,7 @@ class SectionRenderingService(
       formTemplate,
       maybeAccessCode,
       sectionNumber,
-      summaryListRecords,
+      summaryListRecords.filterNot(_.rows.size === 0),
       frontendAppConfig,
       determineContinueLabelKey(
         cache.retrievals.continueLabelKey,
