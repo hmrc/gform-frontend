@@ -23,6 +23,7 @@
 @import uk.gov.hmrc.gform.commons.MarkDownUtil._
 @import uk.gov.hmrc.gform.summary.SubmissionDetails
 @import uk.gov.hmrc.gform.summary.SummaryRenderingService
+@import uk.gov.hmrc.gform.views.html.summary.snippets.signature_section
 @(
     title: String,
     maybePageTitle: Option[String],
@@ -57,6 +58,7 @@
                 opacity: 0.2;
             }
         }
+        .signature-date-field {width:25px;height:35px;border:0.5px solid #000;}
     </style>
     <meta name="subject" content="@{formTemplate.formName.value}"></meta>
     <bookmarks>
@@ -147,6 +149,13 @@
             }
         }
         @{SummaryRenderingService.submissionDetailsAsHTML(maybeSubmissionDetails)}
+
+        @if(maybeDraftText.isEmpty) {
+            <dl>
+                <dd>@signature_section()</dd>
+            </dl>
+
+        }
     </div>
 </body>
 </html>

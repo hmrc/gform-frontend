@@ -35,6 +35,7 @@ trait PdfRenderServiceExpectations {
        |        dl{border-bottom: 1px solid #bfc1c3;}
        |        dt{font-weight: bold;}
        |        dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:15px;}
+       |        .signature-date-field {width:25px;height:35px;border:0.5px solid #000;}
        |    </style>
        |    $bookmarks
        |	</head>
@@ -79,6 +80,11 @@ trait PdfRenderServiceExpectations {
        |          <dd class="govuk-summary-list__actions">
        |          </dd>
        |        </div>
+       |      </dl>
+       |      <dl>
+       |        <dd>
+       |            $signatureSection
+       |        </dd>
        |      </dl>
        |    </div>
        |	</body>
@@ -152,6 +158,7 @@ trait PdfRenderServiceExpectations {
        |         .heading-1 { font-size: 22px; font-weight: bold;}
        |         .heading-2 { font-size: 20px; font-weight: bold;}
        |         .heading-3 { font-size: 18px; font-weight: bold;}
+       |         .signature-date-field {width:25px;height:35px;border:0.5px solid #000;}
        |      </style>
        |      $bookmarks
        |	</head>
@@ -169,10 +176,38 @@ trait PdfRenderServiceExpectations {
        |				</div>
        |			</div>
        |      $summaryDetails
+       |      <div class="row">
+       |            <div class="col-lg-12">
+       |                $signatureSection
+       |            </div>
+       |      </div>
        |		</div>
        |	</body>
        |</html>
        |""".stripMargin
+
+  def signatureSection =
+    """
+      |<p>Signature of authorising officer on behalf of HMRC</p>
+      |<div style="width:380px;height:70px;border:0.5px solid #000;"></div>
+      |<p>Date  DD MM YYYY</p>
+      |<div>
+      |    <table style="border-collapse: separate; border-spacing: 3px;">
+      |        <tr>
+      |            <th class="signature-date-field"/>
+      |            <th class="signature-date-field"/>
+      |            <th><span>&nbsp;&nbsp;</span></th>
+      |            <th class="signature-date-field"/>
+      |            <th class="signature-date-field"/>
+      |            <th><span>&nbsp;&nbsp;</span></th>
+      |            <th class="signature-date-field"/>
+      |            <th class="signature-date-field"/>
+      |            <th class="signature-date-field"/>
+      |            <th class="signature-date-field"/>
+      |        </tr>
+      |    </table>
+      |</div>
+      |""".stripMargin
 
   def nonRepeatingPageSummaryPDFHTML(implicit time: LocalDateTime) =
     htmlBase(
