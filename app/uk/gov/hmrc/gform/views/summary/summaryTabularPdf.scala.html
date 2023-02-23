@@ -23,6 +23,7 @@
 
 @import uk.gov.hmrc.gform.summary.SummaryRenderingService
 @import uk.gov.hmrc.gform.views.html.summary.snippets.ordered_list
+@import uk.gov.hmrc.gform.views.html.summary.snippets.signature_section
 @(
     title: String,
     summaryDatas: List[SummaryData],
@@ -119,6 +120,7 @@
                 opacity: 0.2;
             }
         }
+        .signature-date-field {width:25px;height:35px;border:0.5px solid #000;}
     </style>
     <meta name="subject" content="@{formTemplate.formName.value}"></meta>
     <bookmarks>
@@ -219,6 +221,15 @@
     }
 
     @{SummaryRenderingService.submissionDetailsAsTabularHTML(maybeSubmissionDetails)}
+
+    @if(maybeDraftText.isEmpty) {
+        <div class="row">
+            <div class="col-lg-12">
+            @signature_section()
+            </div>
+        </div>
+    }
+
 </div>
 </body>
 </html>
