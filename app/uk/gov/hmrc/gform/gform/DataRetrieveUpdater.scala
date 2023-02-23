@@ -22,11 +22,11 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[FormComponentId]) {
   def update: DataRetrieve = dataRetrieve match {
-    case ValidateBankDetails(id, sortCode, accountNumber) =>
+    case ValidateBankDetails(id, sortCode, accountNumber, _) =>
       val exprUpdater = new ExprUpdater(index, baseIds)
       ValidateBankDetails(id.withIndex(index), exprUpdater.expandExpr(sortCode), exprUpdater.expandExpr(accountNumber))
 
-    case BusinessBankAccountExistence(id, sortCode, accountNumber, companyName) =>
+    case BusinessBankAccountExistence(id, sortCode, accountNumber, companyName, _) =>
       val exprUpdater = new ExprUpdater(index, baseIds)
       BusinessBankAccountExistence(
         id.withIndex(index),
@@ -35,7 +35,7 @@ class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[
         exprUpdater.expandExpr(companyName)
       )
 
-    case PersonalBankAccountExistence(id, sortCode, accountNumber, firstName, lastName) =>
+    case PersonalBankAccountExistence(id, sortCode, accountNumber, firstName, lastName, _) =>
       val exprUpdater = new ExprUpdater(index, baseIds)
       PersonalBankAccountExistence(
         id.withIndex(index),
@@ -44,7 +44,7 @@ class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[
         exprUpdater.expandExpr(firstName),
         exprUpdater.expandExpr(lastName)
       )
-    case PersonalBankAccountExistenceWithName(id, sortCode, accountNumber, name) =>
+    case PersonalBankAccountExistenceWithName(id, sortCode, accountNumber, name, _) =>
       val exprUpdater = new ExprUpdater(index, baseIds)
       PersonalBankAccountExistenceWithName(
         id.withIndex(index),
@@ -53,11 +53,11 @@ class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[
         exprUpdater.expandExpr(name)
       )
 
-    case CompanyRegistrationNumber(id, companyNumber) =>
+    case CompanyRegistrationNumber(id, companyNumber, _) =>
       val exprUpdater = new ExprUpdater(index, baseIds)
       CompanyRegistrationNumber(id.withIndex(index), exprUpdater.expandExpr(companyNumber))
 
-    case NinoInsights(id, nino) =>
+    case NinoInsights(id, nino, _) =>
       val exprUpdater = new ExprUpdater(index, baseIds)
       NinoInsights(id.withIndex(index), exprUpdater.expandExpr(nino))
 
@@ -65,7 +65,7 @@ class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[
       val exprUpdater = new ExprUpdater(index, baseIds)
       BankAccountInsights(id.withIndex(index), exprUpdater.expandExpr(sortCode), exprUpdater.expandExpr(accountNumber))
 
-    case Employments(id, nino, taxYear) =>
+    case Employments(id, nino, taxYear, _) =>
       val exprUpdater = new ExprUpdater(index, baseIds)
       Employments(id.withIndex(index), exprUpdater.expandExpr(nino), exprUpdater.expandExpr(taxYear))
   }

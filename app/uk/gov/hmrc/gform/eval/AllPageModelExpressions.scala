@@ -42,18 +42,18 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
           utr :: postCode :: errorMessage.interpolations
       }
 
-      val dataRetrieveExpressions = page.dataRetrieve.foldRight(List.empty[Expr]) {
-        case (ValidateBankDetails(_, sortCode, accountNumber), acc) => acc ++ List(sortCode, accountNumber)
-        case (BusinessBankAccountExistence(_, sortCode, accountNumber, companyName), acc) =>
+      val dataRetrieveExpressions = page.dataRetrieves().foldRight(List.empty[Expr]) {
+        case (ValidateBankDetails(_, sortCode, accountNumber, _), acc) => acc ++ List(sortCode, accountNumber)
+        case (BusinessBankAccountExistence(_, sortCode, accountNumber, companyName, _), acc) =>
           acc ++ List(sortCode, accountNumber, companyName)
-        case (PersonalBankAccountExistence(_, sortCode, accountNumber, firstName, lastName), acc) =>
+        case (PersonalBankAccountExistence(_, sortCode, accountNumber, firstName, lastName, _), acc) =>
           acc ++ List(sortCode, accountNumber, firstName, lastName)
-        case (PersonalBankAccountExistenceWithName(_, sortCode, accountNumber, name), acc) =>
+        case (PersonalBankAccountExistenceWithName(_, sortCode, accountNumber, name, _), acc) =>
           acc ++ List(sortCode, accountNumber, name)
-        case (CompanyRegistrationNumber(_, companyNumber), acc)      => acc ++ List(companyNumber)
-        case (NinoInsights(_, nino), acc)                            => acc ++ List(nino)
+        case (CompanyRegistrationNumber(_, companyNumber, _), acc)   => acc ++ List(companyNumber)
+        case (NinoInsights(_, nino, _), acc)                         => acc ++ List(nino)
         case (BankAccountInsights(_, sortCode, bankAccount, _), acc) => acc ++ List(sortCode, bankAccount)
-        case (Employments(_, nino, taxYear), acc)                    => acc ++ List(nino, taxYear)
+        case (Employments(_, nino, taxYear, _), acc)                 => acc ++ List(nino, taxYear)
       }
       pageExprs ++ validatorExprs ++ dataRetrieveExpressions
     }

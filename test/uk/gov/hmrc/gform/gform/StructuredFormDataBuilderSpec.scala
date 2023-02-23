@@ -1073,7 +1073,7 @@ class StructuredFormDataBuilderSpec
         None,
         None,
         None,
-        Nil,
+        None,
         None,
         None,
         None
@@ -1096,7 +1096,7 @@ class StructuredFormDataBuilderSpec
         None,
         None,
         None,
-        Nil,
+        None,
         None,
         None,
         None

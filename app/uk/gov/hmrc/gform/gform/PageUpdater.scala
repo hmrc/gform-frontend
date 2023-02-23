@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.models.PageMode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
+import cats.data.NonEmptyList
 
 class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormComponentId]) {
 
@@ -52,7 +53,7 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
       validators = page.validators.map(expandValidator),
       continueLabel = page.continueLabel.map(expandSmartString),
       instruction = page.instruction.map(i => i.copy(name = i.name.map(expandSmartString))),
-      dataRetrieve = page.dataRetrieve.map(expandDataRetrieve),
+      dataRetrieve = NonEmptyList.fromList(page.dataRetrieves().map(expandDataRetrieve)),
       confirmation = page.confirmation.map(expandConfirmation)
     )
 }

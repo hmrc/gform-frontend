@@ -590,7 +590,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         instruction,
         presentationHint,
-        Nil,
+        None,
         None,
         None,
         None
@@ -643,7 +643,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         instruction,
         presentationHint,
-        Nil,
+        None,
         None,
         None,
         None
@@ -712,7 +712,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     None,
     instruction,
     presentationHint,
-    Nil,
+    None,
     None,
     None,
     None

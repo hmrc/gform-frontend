@@ -62,7 +62,7 @@ object FormTemplateBuilder {
     None,
     instruction,
     presentationHint,
-    Nil,
+    None,
     None,
     None,
     None
@@ -140,7 +140,7 @@ object FormTemplateBuilder {
         None,
         None,
         None,
-        Nil,
+        None,
         None,
         None,
         None
@@ -334,7 +334,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
-    Nil,
+    None,
     None,
     None,
     None
@@ -355,7 +355,7 @@ object FormTemplateBuilder {
       None,
       None,
       None,
-      Nil,
+      None,
       None,
       None,
       None
