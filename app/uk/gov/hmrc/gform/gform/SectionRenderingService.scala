@@ -164,7 +164,8 @@ class SectionRenderingService(
               )
           },
         classes = "govuk-!-margin-bottom-0",
-        attributes = if (hidePageTitle) Map.empty[String, String] else Map("title" -> page.title.value())
+        attributes =
+          if (hidePageTitle) Map.empty[String, String] else Map("title" -> page.shortName.getOrElse(page.title).value())
       )
     }
 
