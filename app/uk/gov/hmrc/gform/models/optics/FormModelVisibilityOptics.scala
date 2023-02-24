@@ -23,6 +23,8 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormPhase, IncludeIf, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveResult
+import com.softwaremill.quicklens._
 
 case class FormModelVisibilityOptics[D <: DataOrigin](
   formModel: FormModel[Visibility],
@@ -104,5 +106,12 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
 
     }
   }
+
+  def addDataRetreiveResults(dataRetrieveResults: List[DataRetrieveResult]): FormModelVisibilityOptics[D] =
+    this
+      .modify(
+        _.recalculationResult.evaluationContext.thirdPartyData
+      )
+      .using(_.updateDataRetrieve(dataRetrieveResults))
 
 }

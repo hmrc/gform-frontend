@@ -154,13 +154,14 @@ case class ThirdPartyData(
     }
   )
 
-  def updateDataRetrieve(dataRetrieveResult: Option[DataRetrieveResult]): ThirdPartyData = dataRetrieveResult match {
-    case Some(drd @ DataRetrieveResult(id, _, _)) =>
-      copy(dataRetrieve = dataRetrieve match {
+  def updateDataRetrieve(dataRetrieveResult: List[DataRetrieveResult]): ThirdPartyData = dataRetrieveResult match {
+    case (drd @ DataRetrieveResult(id, _, _)) :: drs =>
+      val updatedTirdPartyData = this.copy(dataRetrieve = dataRetrieve match {
         case None      => Some(Map(id -> drd))
         case Some(map) => Some(map + (id -> drd))
       })
-    case None => this
+      updatedTirdPartyData.updateDataRetrieve(drs)
+    case Nil => this
   }
 
   def updatePostcodeLookup(postcodeLookupData: Option[(FormComponentId, AddressLookupResult)]): ThirdPartyData =

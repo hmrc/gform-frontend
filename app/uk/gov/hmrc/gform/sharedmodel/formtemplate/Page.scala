@@ -41,7 +41,7 @@ case class Page[A <: PageMode](
   continueIf: Option[ContinueIf],
   instruction: Option[Instruction],
   presentationHint: Option[PresentationHint],
-  dataRetrieve: Option[DataRetrieve],
+  dataRetrieve: Option[NonEmptyList[DataRetrieve]],
   confirmation: Option[Confirmation],
   redirects: Option[NonEmptyList[RedirectCtx]],
   hideSaveAndComeBackButton: Option[Boolean]
@@ -103,6 +103,8 @@ case class Page[A <: PageMode](
     }
   val isTerminationPage: Boolean = continueIf.contains(Stop)
   val isHideSaveAndComeBackButton: Boolean = hideSaveAndComeBackButton.getOrElse(false)
+
+  def dataRetrieves(): List[DataRetrieve] = dataRetrieve.toList.flatMap(_.toList)
 }
 
 object Page {
