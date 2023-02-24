@@ -532,7 +532,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
     val submissionDetails = "<h2>Extra Data £</h2>"
 
     val ackSectionWithNoFooter = ackSection.copy(
-      pdf = Some(PdfCxt(Some(toSmartString("It's a Acknowledgement Section Pdf header.")), None, None))
+      pdf = Some(PdfCxt(Some(toSmartString("It's a Acknowledgement Section Pdf header.")), None, None, None))
     )
 
     val destinationListWithNoAckSectionFooter =
@@ -557,7 +557,7 @@ dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padd
     val submissionDetails = "<h2>Extra Data £</h2>"
 
     val ackSectionWithNoHeader = ackSection.copy(
-      pdf = Some(PdfCxt(None, Some(toSmartString("It's a Acknowledgement Section Pdf footer.")), None))
+      pdf = Some(PdfCxt(None, Some(toSmartString("It's a Acknowledgement Section Pdf footer.")), None, None))
     )
 
     val destinationListWithNoAckSectionHeader =

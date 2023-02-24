@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormTemplate, mkSection }
 import uk.gov.hmrc.gform.models.{ Coordinates, FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
-import uk.gov.hmrc.gform.pdf.model.PDFType
+import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateWithRedirects, Instruction, Value }
@@ -152,7 +152,7 @@ class PDFRenderServiceSpec
         None
       )
     ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageSummaryPDFHTML
+      pdfHtml.html.trimLines shouldBe nonRepeatingPageSummaryPDFHTML()
     }
   }
 
@@ -169,10 +169,10 @@ class PDFRenderServiceSpec
         SummaryPagePurpose.ForUser,
         None,
         None,
-        Some(false)
+        None
       )
     ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageSummaryPDFHTML
+      pdfHtml.html.trimLines shouldBe nonRepeatingPageSummaryPDFHTML()
     }
   }
 
@@ -189,10 +189,50 @@ class PDFRenderServiceSpec
         SummaryPagePurpose.ForUser,
         None,
         None,
-        Some(true)
+        Some(PDFModel.Options(Some(true), None))
       )
     ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML
+      pdfHtml.html.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML()
+    }
+  }
+
+  "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model with a signature box" in new Fixture {
+    implicit val now: LocalDateTime = LocalDateTime.now()
+    whenReady(
+      pdfRenderService.createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+        "PDF Title",
+        Some("Page title"),
+        cache,
+        formModelOptics,
+        Some(HeaderFooter(Some(toSmartString("Some PDF header")), Some(toSmartString("Some PDF footer")))),
+        Some(SubmissionDetails(ExampleData.submission, "abcdefgh")),
+        SummaryPagePurpose.ForUser,
+        None,
+        None,
+        Some(PDFModel.Options(Some(false), Some(true)))
+      )
+    ) { pdfHtml =>
+      pdfHtml.html.trimLines shouldBe nonRepeatingPageSummaryPDFHTML(htmlSignatureBox)
+    }
+  }
+
+  "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model with a signature box as tabular format" in new Fixture {
+    implicit val now: LocalDateTime = LocalDateTime.now()
+    whenReady(
+      pdfRenderService.createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+        "PDF Title",
+        Some("Page title"),
+        cache,
+        formModelOptics,
+        Some(HeaderFooter(Some(toSmartString("Some PDF header")), Some(toSmartString("Some PDF footer")))),
+        Some(SubmissionDetails(ExampleData.submission, "abcdefgh")),
+        SummaryPagePurpose.ForUser,
+        None,
+        None,
+        Some(PDFModel.Options(Some(true), Some(true)))
+      )
+    ) { pdfHtml =>
+      pdfHtml.html.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML(htmlSignatureBoxAsTabular)
     }
   }
 
@@ -223,7 +263,7 @@ class PDFRenderServiceSpec
         None
       )
     ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageInstructionPDFHTML
+      pdfHtml.html.trimLines shouldBe nonRepeatingPageInstructionPDFHTML()
     }
   }
 }

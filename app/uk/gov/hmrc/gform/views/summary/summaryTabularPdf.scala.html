@@ -32,7 +32,8 @@
     maybeFormName: Option[String],
     maybeDraftText: Option[String],
     maybeSubmissionDetails: Option[SubmissionDetails],
-    summarySectionDeclaration: Option[Html]
+    summarySectionDeclaration: Option[Html],
+    includeSignatureBox: Boolean
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @timeFormat = @{DateTimeFormatter.ofPattern("HH:mm")}
@@ -222,10 +223,10 @@
 
     @{SummaryRenderingService.submissionDetailsAsTabularHTML(maybeSubmissionDetails)}
 
-    @if(maybeDraftText.isEmpty) {
+    @if(includeSignatureBox) {
         <div class="row">
             <div class="col-lg-12">
-            @signature_section()
+                @signature_section()
             </div>
         </div>
     }

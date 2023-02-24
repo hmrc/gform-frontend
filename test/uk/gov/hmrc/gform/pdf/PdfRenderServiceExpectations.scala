@@ -24,7 +24,7 @@ trait PdfRenderServiceExpectations {
   val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
   val dateFormat = DateTimeFormatter.ofPattern("d MMM yyyy")
 
-  private def htmlBase(summaryRows: String, bookmarks: String)(implicit time: LocalDateTime) =
+  private def htmlBase(summaryRows: String, bookmarks: String, signatureBox: String)(implicit time: LocalDateTime) =
     s"""
        |<!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
        |<html>
@@ -81,17 +81,13 @@ trait PdfRenderServiceExpectations {
        |          </dd>
        |        </div>
        |      </dl>
-       |      <dl>
-       |        <dd>
-       |            $signatureSection
-       |        </dd>
-       |      </dl>
+       |      $signatureBox
        |    </div>
        |	</body>
        |</html>
        |""".stripMargin
 
-  def htmlTabularBase(summaryRows: String, bookmarks: String = "", summaryDetails: String) =
+  def htmlTabularBase(summaryRows: String, bookmarks: String = "", summaryDetails: String, signatureBox: String) =
     s"""
        |<!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
        |<html>
@@ -176,17 +172,13 @@ trait PdfRenderServiceExpectations {
        |				</div>
        |			</div>
        |      $summaryDetails
-       |      <div class="row">
-       |            <div class="col-lg-12">
-       |                $signatureSection
-       |            </div>
-       |      </div>
+       |      $signatureBox
        |		</div>
        |	</body>
        |</html>
        |""".stripMargin
 
-  def signatureSection =
+  val htmlSignatureBoxBase =
     """
       |<p>Signature of authorising officer on behalf of HMRC</p>
       |<div style="width:380px;height:70px;border:0.5px solid #000;"></div>
@@ -209,7 +201,23 @@ trait PdfRenderServiceExpectations {
       |</div>
       |""".stripMargin
 
-  def nonRepeatingPageSummaryPDFHTML(implicit time: LocalDateTime) =
+  def htmlSignatureBox =
+    s"""
+       |<dl>
+       |   <dd>$htmlSignatureBoxBase</dd>
+       |</dl>
+       |""".stripMargin
+
+  def htmlSignatureBoxAsTabular =
+    s"""
+       |<div class="row">
+       |   <div class="col-lg-12">
+       |      $htmlSignatureBoxBase
+       |   </div>
+       |</div>
+       |""".stripMargin
+
+  def nonRepeatingPageSummaryPDFHTML(signatureBox: String = "")(implicit time: LocalDateTime) =
     htmlBase(
       """
         |<h2 id="0">Section Name</h2>
@@ -228,10 +236,11 @@ trait PdfRenderServiceExpectations {
         |<bookmarks>
         |  <bookmark name="Section Name" href="#0"/>
         |</bookmarks>
-        |""".stripMargin
+        |""".stripMargin,
+      signatureBox
     ).trimLines
 
-  def nonRepeatingPageTabularSummaryPDFHTML(implicit time: LocalDateTime) =
+  def nonRepeatingPageTabularSummaryPDFHTML(signatureBox: String = "")(implicit time: LocalDateTime) =
     htmlTabularBase(
       s"""
          |<div id="0">
@@ -272,10 +281,11 @@ trait PdfRenderServiceExpectations {
          |<div class="row">
          |    <div class="col-lg-4 label">Submission Mark</div>
          |    <div class="col-lg-8">abcdefgh</div>
-         |</div>""".stripMargin
+         |</div>""".stripMargin,
+      signatureBox
     ).trimLines
 
-  def nonRepeatingPageInstructionPDFHTML =
+  def nonRepeatingPageInstructionPDFHTML(signatureBox: String = "") =
     htmlTabularBase(
       """
         |<div id="0">
@@ -300,7 +310,8 @@ trait PdfRenderServiceExpectations {
         |  <bookmark name="page1-instruction" href="#0"/>
         |</bookmarks>
         |""".stripMargin,
-      ""
+      "",
+      signatureBox
     ).trimLines
 
   implicit class StringOps(input: String) {

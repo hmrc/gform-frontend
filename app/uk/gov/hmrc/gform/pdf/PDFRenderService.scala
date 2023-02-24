@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
-import uk.gov.hmrc.gform.pdf.model.{ PDFCustomRender, PDFLayout, PDFPageModelBuilder, PDFType }
+import uk.gov.hmrc.gform.pdf.model.{ PDFCustomRender, PDFLayout, PDFModel, PDFPageModelBuilder, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, PdfHtml }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
@@ -51,7 +51,7 @@ class PDFRenderService(
     purpose: SummaryPagePurpose,
     summaryDeclaration: Option[Html],
     maybeDraftText: Option[String] = None,
-    maybeTabularFormat: Option[Boolean] = None,
+    maybePdfOptions: Option[PDFModel.Options] = None,
     maybeFormName: Option[String] = None
   )(implicit
     request: Request[_],
@@ -73,7 +73,10 @@ class PDFRenderService(
       val envelopeByPurpose = envelopeWithMapping.byPurpose(purpose)
       val pdfModel = PDFPageModelBuilder.makeModel(formModelOptics, cache, envelopeByPurpose, validationResult)
 
-      val layout = if (maybeTabularFormat.getOrElse(false)) PDFLayout.Tabular else pdfFunctions.layout
+      val layout =
+        if (maybePdfOptions.flatMap(_.tabularFormat).getOrElse(false)) PDFLayout.Tabular else pdfFunctions.layout
+
+      val includeSignatureBox = maybePdfOptions.flatMap(_.includeSignatureBox).getOrElse(false)
 
       val html = layout match {
         case PDFLayout.Default =>
@@ -85,7 +88,8 @@ class PDFRenderService(
             maybeSubmissionDetails,
             cache.formTemplate,
             summaryDeclaration,
-            maybeDraftText
+            maybeDraftText,
+            includeSignatureBox
           ).toString
         case PDFLayout.Tabular =>
           summaryTabularPdf(
@@ -96,7 +100,8 @@ class PDFRenderService(
             maybeFormName,
             maybeDraftText,
             maybeSubmissionDetails,
-            summaryDeclaration
+            summaryDeclaration,
+            includeSignatureBox
           ).toString
       }
       PdfHtml(html)

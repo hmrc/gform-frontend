@@ -49,6 +49,8 @@ trait PDFModel {
   }
 
   case class HeaderFooter(header: Option[SmartString], footer: Option[SmartString])
+
+  case class Options(tabularFormat: Option[Boolean], includeSignatureBox: Option[Boolean])
 }
 
 object PDFModel extends PDFModel

@@ -32,7 +32,8 @@
     maybeSubmissionDetails: Option[SubmissionDetails],
     formTemplate: FormTemplate,
     summarySectionDeclaration: Option[Html],
-    maybeDraftText: Option[String]
+    maybeDraftText: Option[String],
+    includeSignatureBox: Boolean
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 @* check https://github.com/danfickle/openhtmltopdf/blob/open-dev-v1/openhtmltopdf-examples/src/main/resources/documentation/documentation.md *@
 <!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
@@ -150,7 +151,7 @@
         }
         @{SummaryRenderingService.submissionDetailsAsHTML(maybeSubmissionDetails)}
 
-        @if(maybeDraftText.isEmpty) {
+        @if(includeSignatureBox) {
             <dl>
                 <dd>@signature_section()</dd>
             </dl>
