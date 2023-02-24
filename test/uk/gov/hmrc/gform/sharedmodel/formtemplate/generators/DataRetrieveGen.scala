@@ -26,7 +26,7 @@ trait DataRetrieveGen {
     id                <- Gen.alphaStr
     sortCodeExpr      <- formCtxGen
     accountNumberExpr <- formCtxGen
-  } yield ValidateBankDetails(DataRetrieveId(id), sortCodeExpr, accountNumberExpr)
+  } yield ValidateBankDetails(DataRetrieveId(id), sortCodeExpr, accountNumberExpr, None)
 
   def dataRetrieveGen: Gen[DataRetrieve] = validateBankGen
 }

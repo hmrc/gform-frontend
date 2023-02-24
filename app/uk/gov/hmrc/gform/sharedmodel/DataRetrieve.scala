@@ -199,7 +199,7 @@ object DataRetrieve {
     override val id: DataRetrieveId,
     sortCode: Expr,
     accountNumber: Expr,
-    override val `if`: Option[IncludeIf] = None
+    override val `if`: Option[IncludeIf]
   ) extends DataRetrieve {
     override def attributes: List[DataRetrieveAttribute] = List(
       DataRetrieveAttribute.IsValid,
@@ -214,7 +214,7 @@ object DataRetrieve {
     sortCode: Expr,
     accountNumber: Expr,
     companyName: Expr,
-    override val `if`: Option[IncludeIf] = None
+    override val `if`: Option[IncludeIf]
   ) extends DataRetrieve {
     import DataRetrieveAttribute._
     override def attributes: List[DataRetrieveAttribute] = List(
@@ -232,7 +232,7 @@ object DataRetrieve {
   final case class CompanyRegistrationNumber(
     override val id: DataRetrieveId,
     companyNumber: Expr,
-    override val `if`: Option[IncludeIf] = None
+    override val `if`: Option[IncludeIf]
   ) extends DataRetrieve {
     import DataRetrieveAttribute._
     override def attributes: List[DataRetrieveAttribute] = List(
@@ -245,7 +245,7 @@ object DataRetrieve {
   final case class NinoInsights(
     override val id: DataRetrieveId,
     nino: Expr,
-    override val `if`: Option[IncludeIf] = None
+    override val `if`: Option[IncludeIf]
   ) extends DataRetrieve {
     import DataRetrieveAttribute._
 
@@ -259,7 +259,7 @@ object DataRetrieve {
     override val id: DataRetrieveId,
     sortCode: Expr,
     accountNumber: Expr,
-    override val `if`: Option[IncludeIf] = None
+    override val `if`: Option[IncludeIf]
   ) extends DataRetrieve {
     import DataRetrieveAttribute._
     override def attributes: List[DataRetrieveAttribute] = List(
@@ -273,7 +273,7 @@ object DataRetrieve {
     sortCode: Expr,
     accountNumber: Expr,
     name: Expr,
-    override val `if`: Option[IncludeIf] = None
+    override val `if`: Option[IncludeIf]
   ) extends DataRetrieve {
     import DataRetrieveAttribute._
 
@@ -297,7 +297,7 @@ object DataRetrieve {
     accountNumber: Expr,
     firstName: Expr,
     lastName: Expr,
-    override val `if`: Option[IncludeIf] = None
+    override val `if`: Option[IncludeIf]
   ) extends DataRetrieve {
 
     import DataRetrieveAttribute._
@@ -320,7 +320,7 @@ object DataRetrieve {
     override val id: DataRetrieveId,
     nino: Expr,
     taxYear: Expr,
-    override val `if`: Option[IncludeIf] = None
+    override val `if`: Option[IncludeIf]
   ) extends DataRetrieve {
 
     import DataRetrieveAttribute._
