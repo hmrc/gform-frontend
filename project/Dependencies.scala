@@ -33,7 +33,6 @@ object Dependencies {
     "com.openhtmltopdf"            % "openhtmltopdf-pdfbox"       % "1.0.10",
     "ai.x"                        %% "play-json-extensions"       % "0.42.0",
     "org.apache.commons"           % "commons-text"               % "1.10.0",
-
     // Taken from: https://github.com/orgs/playframework/discussions/11222
     "com.fasterxml.jackson.core"       % "jackson-core"                   % jacksonVersion,
     "com.fasterxml.jackson.core"       % "jackson-annotations"            % jacksonVersion,

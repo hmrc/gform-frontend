@@ -53,9 +53,9 @@ class RealSmartStringEvaluatorFactorySpec
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
 
   private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
-    xs.map(l => OptionData.IndexBased(toSmartString(l), None))
+    xs.map(l => OptionData.IndexBased(toSmartString(l), None, None, None))
 
-  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None)
+  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None, None, None)
 
   "SmartStringEvaluator" should {
 
@@ -201,7 +201,7 @@ class RealSmartStringEvaluatorFactorySpec
               toSmartStringExpression("Yes {0}", FormCtx(FormComponentId("textField"))),
               toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))
             )
-            .map(l => OptionData.IndexBased(l, None)),
+            .map(l => OptionData.IndexBased(l, None, None, None)),
           Horizontal,
           List.empty,
           None,
