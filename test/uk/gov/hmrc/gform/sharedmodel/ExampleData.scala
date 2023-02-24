@@ -136,6 +136,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
         PdfCxt(
           Some(toSmartString("It's a Acknowledgement Section Pdf header.")),
           Some(toSmartString("It's a Acknowledgement Section Pdf footer.")),
+          None,
           None
         )
       ),

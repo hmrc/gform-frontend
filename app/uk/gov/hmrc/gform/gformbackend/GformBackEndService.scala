@@ -170,9 +170,9 @@ class GformBackEndService(
       None
     )
 
-    val maybeTabularFormat = cache.formTemplate.destinations match {
+    val maybePDFOptions = cache.formTemplate.destinations match {
       case d: DestinationList =>
-        d.acknowledgementSection.pdf.flatMap(p => p.tabularFormat)
+        d.acknowledgementSection.pdf.map(p => PDFModel.Options(p.tabularFormat, None))
       case _ => None
     }
 
@@ -191,7 +191,7 @@ class GformBackEndService(
           SummaryPagePurpose.ForDms,
           Some(summarySectionDeclaration),
           None,
-          maybeTabularFormat,
+          maybePDFOptions,
           Some(cache.formTemplate.formName.value)
         )
       htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate))

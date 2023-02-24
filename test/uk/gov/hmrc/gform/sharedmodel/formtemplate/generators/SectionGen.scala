@@ -73,7 +73,7 @@ trait SectionGen {
     for {
       header <- Gen.option(smartStringGen)
       footer <- Gen.option(smartStringGen)
-    } yield PdfCxt(header, footer, None)
+    } yield PdfCxt(header, footer, None, None)
 
   def declarationSectionGen: Gen[DeclarationSection] =
     for {

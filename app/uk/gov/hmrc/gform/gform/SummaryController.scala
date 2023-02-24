@@ -364,6 +364,8 @@ class SummaryController(
         Some(PDFModel.HeaderFooter(maybeHeader, pdf.footer))
       }
 
+      val pdfOptions = summarySection.pdf.map(pdf => PDFModel.Options(pdf.tabularFormat, None))
+
       pdfRenderService
         .createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
           request.messages.messages(
@@ -377,7 +379,7 @@ class SummaryController(
           SummaryPagePurpose.ForUser,
           None,
           Some(draftText),
-          summarySection.pdf.flatMap(_.tabularFormat),
+          pdfOptions,
           Some(cache.formTemplate.formName.value)
         )
         .flatMap(pdfGeneratorService.generatePDF)
