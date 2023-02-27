@@ -107,7 +107,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
                       val optionsList = choice.options.zipWithIndex
                         .map {
                           case (OptionData.IndexBased(label, _, _, _), i)        => i.toString -> label
-                          case (OptionData.ValueBased(label, _, _, _, value), i) => value      -> label
+                          case (OptionData.ValueBased(label, _, _, _, value), _) => value      -> label
                         }
                         .toList
                         .toMap
