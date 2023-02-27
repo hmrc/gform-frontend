@@ -123,7 +123,16 @@ object TextFormatter {
     stripTrailingZeros(maybeBigDecimal.fold(currentValue)(roundAndFormat(_, maxFractionalDigits, rm))) + un
   }
 
-  private def formatSterling(currentValue: String, format: NumberFormat = currencyFormat): String =
+  def formatNumberWithPrecise(
+    currentValue: String,
+    maxFractionalDigits: Int,
+    rm: RoundingMode
+  ): String = {
+    val maybeBigDecimal = toBigDecimalSafe(currentValue)
+    maybeBigDecimal.fold(currentValue)(formatWithPrecise(_, maxFractionalDigits, rm))
+  }
+
+  def formatSterling(currentValue: String, format: NumberFormat = currencyFormat): String =
     toBigDecimalSafe(currentValue).fold(currentValue)(format.format)
 
   private def formatUkSortCode(currentValue: String): String = currentValue.grouped(2).mkString("-")
