@@ -34,6 +34,12 @@ object NumberFormatUtil {
   def roundAndFormat(bd: BigDecimal, scale: Int, roundingMode: GformRoundingMode): String =
     NumberFormatUtil.defaultFormat(scale).format(NumberSetScale.setScale(bd, scale, roundingMode))
 
+  def formatWithPrecise(bd: BigDecimal, scale: Int, roundingMode: GformRoundingMode): String = {
+    defaultFormat.setMinimumFractionDigits(scale)
+    defaultFormat.setRoundingMode(RoundingMode.FLOOR)
+    defaultFormat.format(NumberSetScale.setScale(bd, scale, roundingMode))
+  }
+
   val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
 }
 

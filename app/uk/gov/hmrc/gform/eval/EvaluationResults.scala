@@ -41,6 +41,7 @@ import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupOptions }
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
+import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
@@ -533,7 +534,16 @@ case class EvaluationResults(
         StringResult(count.toString)
 
       case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
-      case Typed(expr, _)               => loop(expr)
+      case Typed(expr, tpe) =>
+        (expr, tpe) match {
+          case (Constant(value), ExplicitExprType.Sterling(_)) =>
+            nonEmptyStringResult(StringResult(TextFormatter.formatSterling(value)))
+          case (Constant(value), ExplicitExprType.Number(fractionalDigits, roundingMode)) =>
+            nonEmptyStringResult(
+              StringResult(TextFormatter.formatNumberWithPrecise(value, fractionalDigits, roundingMode))
+            )
+          case _ => loop(expr)
+        }
       case CsvCountryCheck(fcId, column) =>
         loop(FormCtx(fcId)) match {
           case StringResult(value) =>
