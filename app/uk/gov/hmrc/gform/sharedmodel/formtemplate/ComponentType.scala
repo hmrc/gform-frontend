@@ -144,7 +144,8 @@ case object TaxPeriodDate extends ComponentType with MultiField {
 
 case class Address(
   international: Boolean,
-  mandatoryFields: List[Address.Configurable.Mandatory]
+  mandatoryFields: List[Address.Configurable.Mandatory],
+  countyDisplayed: Boolean
 ) extends ComponentType with MultiField {
 
   val configurableMandatoryAtoms: Set[Atom] = mandatoryFields.map(_.toAtom).toSet

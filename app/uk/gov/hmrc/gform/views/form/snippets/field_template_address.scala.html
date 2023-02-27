@@ -23,7 +23,8 @@
   fieldValue: FormComponent,
   validationResult: FormFieldValidationResult,
   formLevelHeading: Boolean,
-  classes: String)(
+  classes: String,
+  countyDisplayed: Boolean)(
   implicit
     messages: Messages,
     l: LangADT,
@@ -194,24 +195,28 @@
         </div>
       }
 
-      @defining(safeId(Address.street4), safeError(Address.street4)) { case (street4Id, street4Error) =>
-        <div class="govuk-form-group@if(street4Error.nonEmpty){ govuk-form-group--error }">
-          <label class="govuk-label" data-address-line="4" for="@groupId(street4Id)">
-            <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
-              @messages("ukAddress.line4")
-            </span>
-            <span data-address-label="international"@if(!internationalSelected){ class="js-hidden" aria-hidden="true"}>
-              @messages("internationalAddress.line4")
-            </span>
-          </label>
+      @if(countyDisplayed) {
+          @defining(safeId(Address.street4), safeError(Address.street4)) { case (street4Id, street4Error) =>
+          <div class="govuk-form-group@if(street4Error.nonEmpty) { govuk-form-group--error }">
+              <label class="govuk-label" data-address-line="4" for="@groupId(street4Id)">
+                  <span data-address-label="uk" @if(internationalSelected) {
+                      class="js-hidden" aria-hidden="true"}>
+                  @messages("ukAddress.line4")
+                  </span>
+                  <span data-address-label="international" @if(!internationalSelected) {
+                      class="js-hidden" aria-hidden="true"}>
+                  @messages("internationalAddress.line4")
+                  </span>
+              </label>
 
-          @street4Error
-          <input type="text"
-                 class="govuk-input govuk-!-width-two-thirds@if(street4Error.nonEmpty){ govuk-input--error }"
-                 name="@groupId(street4Id)"
-                 id="@groupId(street4Id)"
-                 value="@validationResult.getCurrentValue(street4Id)" />
-        </div>
+              @street4Error
+              <input type="text"
+              class="govuk-input govuk-!-width-two-thirds@if(street4Error.nonEmpty) { govuk-input--error }"
+              name="@groupId(street4Id)"
+              id="@groupId(street4Id)"
+              value="@validationResult.getCurrentValue(street4Id)" />
+          </div>
+          }
       }
 
       @if(address.international) {
