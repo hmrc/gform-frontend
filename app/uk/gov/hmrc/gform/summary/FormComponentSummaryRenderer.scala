@@ -37,6 +37,7 @@ import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper.summaryListRow
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.summary.TextFormatter.formatText
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 
 object FormComponentSummaryRenderer {
 
@@ -1240,7 +1241,7 @@ object FormComponentSummaryRenderer {
     val label = fcrd.label(fieldValue)
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
-    val selections: List[Option[List[SummaryListRow]]] = rc.options
+    val selectionsWithRevealings: List[(SummaryListRow, List[SummaryListRow])] = rc.options
       .zip(indices)
       .map { case (element, index) =>
         val hasErrors = formFieldValidationResult.isNotOk
@@ -1312,11 +1313,32 @@ object FormComponentSummaryRenderer {
                 "govuk-summary-list__row--no-actions"
               else
                 ""
-            ) +: revealingFields
+            ) -> revealingFields
           }
       }
+      .flatten
 
-    val selectionsContent = selections.collect { case Some(v) => v }.flatten
+    val isSeparate = fieldValue.presentationHint.map(hints => hints.contains(SeparateInSummary)).getOrElse(false)
+
+    val selectionsContent = if (isSeparate) {
+      val (optionsSelectionsRows, revealingSelections) = selectionsWithRevealings.reverse
+        .foldLeft((List.empty[SummaryListRow], List.empty[SummaryListRow])) {
+          case ((accChoiceRows, accRevealingRows), (choiceRow, revealingRows)) =>
+            (choiceRow :: accChoiceRows, revealingRows ++ accRevealingRows)
+        }
+
+      val squashedOptionsContent =
+        HtmlFormat.fill(optionsSelectionsRows.flatMap(row => List(row.value.content.asHtml, Html("<br>"))).dropRight(1))
+
+      optionsSelectionsRows.headOption
+        .map(row => row.copy(value = row.value.copy(content = HtmlContent(squashedOptionsContent))))
+        .toList ++ revealingSelections
+
+    } else {
+      selectionsWithRevealings.flatMap { case (optionsRow, revealingRows) =>
+        optionsRow :: revealingRows
+      }
+    }
 
     if (selectionsContent.isEmpty) {
       List(
