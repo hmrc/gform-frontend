@@ -1635,9 +1635,9 @@ class SectionRenderingService(
 
   private def isVisibleOption(optionData: OptionData, formModelOptics: FormModelOptics[DataOrigin.Mongo]): Boolean =
     optionData match {
-      case OptionData.ValueBased(_, _, includeIf) =>
+      case OptionData.ValueBased(_, _, includeIf, _, _) =>
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
-      case OptionData.IndexBased(_, includeIf) =>
+      case OptionData.IndexBased(_, _, includeIf, _) =>
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
     }
 
@@ -1700,9 +1700,9 @@ class SectionRenderingService(
           _.toList.zipWithIndex.filter(h => visibleOptionsWithIndex.map(_._2).toList.contains(h._2)).map(_._1).toNel
         )
         .map(_.zipWith(optionsWithHelpText) { case (hint, (option, helpText)) =>
-          (option, if (hint.isEmpty) None else toHint(Some(hint)), helpText)
+          (option, if (hint.isEmpty) toHint(option.hint) else toHint(Some(hint)), helpText)
         })
-        .getOrElse(optionsWithHelpText.map { case (option, helpText) => (option, None, helpText) })
+        .getOrElse(optionsWithHelpText.map { case (option, helpText) => (option, toHint(option.hint), helpText) })
 
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 

@@ -25,9 +25,10 @@ import scala.util.Try
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.Atom
+import uk.gov.hmrc.gform.models.{ Atom, Bracket, Visibility }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormDataFieldNamePurpose
@@ -131,6 +132,53 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     }
     .map(_.modelComponentId)
     .toSet
+
+  private val choicesWithDynamic: List[
+    (ModelComponentId, Either[NonEmptyList[(Int, OptionData.ValueBased)], NonEmptyList[(Int, OptionData.IndexBased)]])
+  ] =
+    formModelVisibilityOptics.formModel.allFormComponents.collect {
+      case fc @ IsChoice(Choice(_, options, _, _, _, _, _, _, _, _)) if options.exists(_.dynamic.isDefined) =>
+        val indexBased: List[OptionData.IndexBased] = options.collect { case ib: OptionData.IndexBased =>
+          ib
+        }
+
+        val maybeIndexBasedNel: Option[NonEmptyList[(Int, OptionData.IndexBased)]] =
+          NonEmptyList
+            .fromList(indexBased)
+            .map { indexBasedNel =>
+              indexBasedNel.map { optionData =>
+                val default = (0, optionData)
+                optionData.dynamic.fold(default) { dynamic =>
+                  dynamic.formComponentId.modelComponentId.maybeIndex.fold(default)(_ -> optionData)
+                }
+              }
+            }
+
+        val valueBased: List[OptionData.ValueBased] = options.collect { case vb: OptionData.ValueBased =>
+          vb
+        }
+
+        val maybeValueBasedNel: Option[NonEmptyList[(Int, OptionData.ValueBased)]] =
+          NonEmptyList.fromList(valueBased).map { valueBasedNel =>
+            valueBasedNel.map { optionData =>
+              val default = (0, optionData)
+              optionData.dynamic.fold(default) { dynamic =>
+                dynamic.formComponentId.modelComponentId.maybeIndex.fold(default)(_ -> optionData)
+              }
+            }
+          }
+
+        val res: Either[NonEmptyList[(Int, OptionData.ValueBased)], NonEmptyList[(Int, OptionData.IndexBased)]] =
+          (maybeIndexBasedNel, maybeValueBasedNel) match {
+            case (None, Some(valueBasedNel)) => Left(valueBasedNel)
+            case (Some(indexBasedNel), None) => Right(indexBasedNel)
+            case (None, None)                => throw new Exception(s"No options found for component ${fc.id}. $fc")
+            case (Some(_), Some(_)) =>
+              throw new Exception(s"Component ${fc.id} has mix of index based and value based options. $fc")
+          }
+
+        fc.id.modelComponentId -> res
+    }
 
   private val isGroupOrInfoIds: Set[ModelComponentId] = formModelVisibilityOptics.formModel.allFormComponents
     .collect {
@@ -364,7 +412,54 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
               val arrayNode = ArrayNode(answers.map(_.trim).filterNot(_.isEmpty).map(TextNode).toList)
               Field(FieldName(pure.baseComponentId.value), arrayNode, Map.empty)
             } else {
-              Field(FieldName(pure.baseComponentId.value), TextNode(answers.headOption.getOrElse("")), Map.empty)
+
+              val answer = answers.headOption.getOrElse("")
+
+              val maybeChoiceWithDynamic: Option[
+                (
+                  ModelComponentId,
+                  Either[NonEmptyList[(Int, OptionData.ValueBased)], NonEmptyList[(Int, OptionData.IndexBased)]]
+                )
+              ] =
+                choicesWithDynamic.find(_._1 === modelComponentId)
+
+              val default: StructuredFormValue = TextNode(answer)
+
+              val fieldValue: StructuredFormValue = maybeChoiceWithDynamic.fold(default) {
+                case (_, Left(valueBasedNel)) =>
+                  val maybeDynamicOptionData: Option[(Int, FormComponentId)] = valueBasedNel.collectFirst {
+                    case (selectedIndex, OptionData.ValueBased(_, _, _, Some(OptionData.Dynamic(pointer)), value))
+                        if value === answer =>
+                      selectedIndex -> pointer
+                  }
+
+                  maybeDynamicOptionData match {
+                    case Some((selectedIndex, pointer)) =>
+                      createObjectStructureForSelectedIndex(pointer, selectedIndex - 1)
+                    case _ => default
+                  }
+
+                case (_, Right(indexBasedNel)) =>
+                  val indexAnswer: Int = Try(answer.toInt).toOption.getOrElse(
+                    throw new Exception(s"Cannot convert answer $answer to an Int")
+                  )
+
+                  val maybeDynamicIndexBased: Option[(Int, FormComponentId)] =
+                    indexBasedNel.zipWithIndex.collectFirst {
+                      case (od @ (selectedIndex, OptionData.IndexBased(_, _, _, Some(OptionData.Dynamic(pointer)))), i)
+                          if indexAnswer === i =>
+                        selectedIndex -> pointer
+                    }
+
+                  maybeDynamicIndexBased match {
+                    case Some((selectedIndex, pointer)) =>
+                      createObjectStructureForSelectedIndex(pointer, selectedIndex - 1)
+                    case _ => default
+                  }
+
+              }
+
+              Field(FieldName(pure.baseComponentId.value), fieldValue, Map.empty)
             }
           }
           .pure[F]
@@ -379,6 +474,42 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     }.map(_.collect { case Some(x) =>
       x
     })
+
+  private def createObjectStructureForSelectedIndex(
+    pointer: FormComponentId,
+    selectedIndex: Int
+  ): StructuredFormValue = {
+    val allAddToListBrackets: List[Bracket.AddToList[Visibility]] =
+      formModelVisibilityOptics.formModel.brackets.addToListBrackets
+
+    val maybeAllAddToListBracket: Option[Bracket.AddToList[Visibility]] = allAddToListBrackets.find { bracket =>
+      bracket.source.allIds.map(_.baseComponentId).contains(pointer.baseComponentId)
+    }
+
+    val maybeIteration: Option[(Bracket.AddToListIteration[Visibility], Int)] =
+      maybeAllAddToListBracket.flatMap { bracket =>
+        bracket.iterations.zipWithIndex.find { case (bracket, index) =>
+          index === selectedIndex
+        }
+      }
+
+    val modelComponentIdsFromIteration: List[ModelComponentId] = maybeIteration.toList.flatMap { case (iteration, _) =>
+      iteration.toPageModel.toList.flatMap(_.allModelComponentIds.toList)
+    }
+
+    val answers: List[(BaseComponentId, VariadicValue)] = modelComponentIdsFromIteration.flatMap { modelComponentId =>
+      formModelVisibilityOptics.recData.variadicFormData
+        .get(modelComponentId)
+        .map(modelComponentId.baseComponentId -> _)
+    }
+
+    val fields = answers.map { case (baseComponentId, variadicValue) =>
+      Field(FieldName(baseComponentId.value), TextNode(variadicValue.toSeq.mkString(",")), Map.empty)
+    }
+
+    ObjectStructure(fields)
+
+  }
 
   private def processPureIndexed(
     xs: List[(BaseComponentId, List[(ModelComponentId.Pure, IndexedComponentId.Indexed)])],

@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedStr
 object FormTemplateBuilder {
 
   private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
-    xs.map(l => OptionData.IndexBased(toSmartString(l), None))
+    xs.map(l => OptionData.IndexBased(toSmartString(l), None, None, None))
 
   def mkGroup(max: Int, formComponents: List[FormComponent]): Group =
     Group(

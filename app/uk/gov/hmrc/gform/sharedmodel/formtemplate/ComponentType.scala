@@ -316,6 +316,8 @@ object SummaryDisplayWidth extends Enumeration {
 
 sealed trait OptionData extends Product with Serializable {
   def label: SmartString
+  def hint: Option[SmartString]
+  def dynamic: Option[OptionData.Dynamic]
 
   def value(index: Int): String = this match {
     case o: OptionData.IndexBased => index.toString
@@ -325,15 +327,25 @@ sealed trait OptionData extends Product with Serializable {
 
 object OptionData {
 
+  final case class Dynamic(formComponentId: FormComponentId)
+
+  object Dynamic {
+    implicit val format: OFormat[Dynamic] = derived.oformat()
+  }
+
   case class IndexBased(
     label: SmartString,
-    includeIf: Option[IncludeIf]
+    hint: Option[SmartString],
+    includeIf: Option[IncludeIf],
+    dynamic: Option[OptionData.Dynamic]
   ) extends OptionData
 
   case class ValueBased(
     label: SmartString,
-    value: String,
-    includeIf: Option[IncludeIf]
+    hint: Option[SmartString],
+    includeIf: Option[IncludeIf],
+    dynamic: Option[OptionData.Dynamic],
+    value: String
   ) extends OptionData
 
   implicit val format: OFormat[OptionData] = derived.oformat()

@@ -96,4 +96,7 @@ object ExpandUtils {
   def addPrefix(n: Int, targetFcId: FormComponentId): FormComponentId =
     FormComponentId(addPrefixToString(n, targetFcId.value))
 
+  def expandOptionDataDynamic(n: Int, dynamic: OptionData.Dynamic): OptionData.Dynamic =
+    OptionData.Dynamic(ExpandUtils.addPrefix(n, dynamic.formComponentId))
+
 }

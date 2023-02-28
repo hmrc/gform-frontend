@@ -4,7 +4,6 @@ import sbt.inConfig
 import uk.gov.hmrc.DefaultBuildSettings._
 import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import uk.gov.hmrc.versioning.SbtGitVersioning
 import org.irundaia.sbt.sass._
 
@@ -28,7 +27,6 @@ lazy val microservice = (project in file("."))
     majorVersion := 0,
     PlayKeys.playDefaultPort := 9195,
     scalaSettings,
-    publishingSettings,
     defaultSettings(),
     scalafmtOnCompile := true,
     scalaVersion := "2.12.17",

@@ -148,8 +148,8 @@ class Recalculation[F[_]: Monad, E](
                 .getOrElse(List.empty[OptionData])
 
               val includeIfs: List[IncludeIf] = optionData.collect {
-                case OptionData.ValueBased(_, _, Some(includeIf)) => includeIf
-                case OptionData.IndexBased(_, Some(includeIf))    => includeIf
+                case OptionData.ValueBased(_, _, Some(includeIf), _, _) => includeIf
+                case OptionData.IndexBased(_, _, Some(includeIf), _)    => includeIf
               }
 
               val isHidden = includeIfs
