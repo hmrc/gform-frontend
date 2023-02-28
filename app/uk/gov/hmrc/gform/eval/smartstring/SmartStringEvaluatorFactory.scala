@@ -145,7 +145,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
             if (markDown) {
               typeInfo.staticTypeData.exprType match {
                 case ExprType.AddressString =>
-                  addressRepresentation(typeInfo).map(HtmlFormat.escape).map(_.body).mkString(",<br>")
+                  addressRepresentation(typeInfo).map(HtmlFormat.escape).map(_.body).mkString("<br>")
                 case _ => escapeMarkdown(formatted)
               }
             } else {
