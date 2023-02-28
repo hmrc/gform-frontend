@@ -43,11 +43,12 @@ class EnterAddressPage(
   val render: Html =
     html.form.snippets
       .field_template_address(
-        Address(false, List.empty[Address.Configurable.Mandatory]),
+        Address(false, List.empty[Address.Configurable.Mandatory], false),
         formComponent,
         formFieldValidationResult,
         false,
-        ""
+        "",
+        false
       )
 
 }

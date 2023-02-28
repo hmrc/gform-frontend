@@ -1046,8 +1046,8 @@ class SectionRenderingService(
             htmlForTaxPeriodDate(formComponent, validationResult, ei)
           case t @ Time(_, _) =>
             renderTime(t, formComponent, validationResult, ei)
-          case a @ Address(_, _) =>
-            htmlForAddress(formComponent, a, validationResult, ei)
+          case a @ Address(_, _, countyDisplayed) =>
+            htmlForAddress(formComponent, a, validationResult, ei, countyDisplayed)
           case o @ OverseasAddress(_, _, _, _) =>
             htmlForOverseasAddress(formComponent, o, validationResult, ei)
           case t @ Text(Lookup(register, _), _, _, _, _, _) =>
@@ -2283,7 +2283,8 @@ class SectionRenderingService(
     formComponent: FormComponent,
     address: Address,
     validationResult: ValidationResult,
-    ei: ExtraInfo
+    ei: ExtraInfo,
+    countyDisplayed: Boolean
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -2297,7 +2298,8 @@ class SectionRenderingService(
         formComponent,
         formFieldValidationResult,
         isPageHeading,
-        getLabelClasses(isPageHeading, formComponent.labelSize)
+        getLabelClasses(isPageHeading, formComponent.labelSize),
+        countyDisplayed
       )
   }
 
