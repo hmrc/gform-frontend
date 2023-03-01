@@ -95,6 +95,7 @@ import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+import uk.gov.hmrc.auth.core.ConfidenceLevel
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
@@ -2902,7 +2903,8 @@ class SectionRenderingService(
     affinityGroup = Individual,
     groupIdentifier = "",
     maybeNino = None,
-    otherRetrievals = OtherRetrievals.empty
+    otherRetrievals = OtherRetrievals.empty,
+    ConfidenceLevel.L50
   )
 
   private def shouldDisplayHeading(

@@ -27,24 +27,25 @@ import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, AffinityGroupUtil }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IdentifierName, ServiceName }
 import java.security.MessageDigest
 import uk.gov.hmrc.http.SessionId
+import uk.gov.hmrc.auth.core.ConfidenceLevel
 
 sealed trait MaterialisedRetrievals extends Product with Serializable {
   def groupId = this match {
     case AnonymousRetrievals(sessionId) => sessionId.value
     case EmailRetrievals(EmailId(email)) =>
       "email-" + MessageDigest.getInstance("SHA-1").digest(email.toString.getBytes).mkString
-    case AuthenticatedRetrievals(_, _, _, groupIdentifier, _, _) => groupIdentifier
-    case VerifyRetrievals(verifyId, _)                           => verifyId.id
+    case r: AuthenticatedRetrievals    => r.groupIdentifier
+    case VerifyRetrievals(verifyId, _) => verifyId.id
   }
 
   def ggCredId = this match {
-    case AuthenticatedRetrievals(GovernmentGatewayId(ggId), _, _, _, _, _) => ggId
-    case _                                                                 => ""
+    case r: AuthenticatedRetrievals => r.governmentGatewayId.ggId
+    case _                          => ""
   }
 
   def maybeGovermentGatewayId = this match {
-    case AuthenticatedRetrievals(gg, _, _, _, _, _) => Some(gg)
-    case _                                          => None
+    case r: AuthenticatedRetrievals => Some(r.governmentGatewayId)
+    case _                          => None
   }
 
   def maybeEmailId = this match {
@@ -63,14 +64,14 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
   }
 
   def getEmail = this match {
-    case EmailRetrievals(EmailId(email))                         => email
-    case AuthenticatedRetrievals(_, _, _, _, _, otherRetrievals) => otherRetrievals.email.getOrElse("")
-    case _                                                       => ""
+    case EmailRetrievals(EmailId(email)) => email
+    case r: AuthenticatedRetrievals      => r.otherRetrievals.email.getOrElse("")
+    case _                               => ""
   }
 
   def getName: String = this match {
-    case AuthenticatedRetrievals(_, _, _, _, _, otherRetrievals) =>
-      otherRetrievals.name.map(n => concat(n.name, n.lastName)).getOrElse("")
+    case r: AuthenticatedRetrievals =>
+      r.otherRetrievals.name.map(n => concat(n.name, n.lastName)).getOrElse("")
     case _ => ""
   }
 
@@ -82,13 +83,13 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
         case NINO(_) => nino
         case _       => ""
       }
-    case AuthenticatedRetrievals(_, enrolments, _, _, _, _) =>
+    case r: AuthenticatedRetrievals =>
       val maybeEnrolmentIdentifier = taxIdName match {
-        case IRSA(name, id)         => valueByNameAndId(name, id, enrolments)
-        case IRCT(name, id)         => valueByNameAndId(name, id, enrolments)
-        case HMRCOBTDSORG(name, id) => valueByNameAndId(name, id, enrolments)
-        case NINO(id)               => valueById(enrolments, id)
-        case VATReg(id)             => valueById(enrolments, id)
+        case IRSA(name, id)         => valueByNameAndId(name, id, r.enrolments)
+        case IRCT(name, id)         => valueByNameAndId(name, id, r.enrolments)
+        case HMRCOBTDSORG(name, id) => valueByNameAndId(name, id, r.enrolments)
+        case NINO(id)               => valueById(r.enrolments, id)
+        case VATReg(id)             => valueById(r.enrolments, id)
       }
 
       maybeEnrolmentIdentifier match {
@@ -102,12 +103,18 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
       case AnonymousRetrievals(_) => false
       case EmailRetrievals(_)     => false
       case VerifyRetrievals(_, _) => false
-      case AuthenticatedRetrievals(_, enrolments, _, _, _, _) =>
-        val maybeEnrolment: Option[Enrolment] = enrolments.getEnrolment(serviceName.value)
+      case r: AuthenticatedRetrievals =>
+        val maybeEnrolment: Option[Enrolment] = r.enrolments.getEnrolment(serviceName.value)
         maybeEnrolment.fold(false) { enrolment =>
           val enrolmentIdentifier = EnrolmentIdentifier(identifierName.value, identifierValue)
           enrolment.identifiers.contains(enrolmentIdentifier)
         }
+    }
+
+  def maybeConfidenceLevel: Option[ConfidenceLevel] =
+    this match {
+      case r: AuthenticatedRetrievals => Some(r.confidenceLevel)
+      case _                          => None
     }
 
   private def valueById(enrolments: Enrolments, id: String) =
@@ -163,7 +170,8 @@ final case class AuthenticatedRetrievals(
   affinityGroup: AffinityGroup,
   groupIdentifier: String,
   maybeNino: Option[Nino],
-  otherRetrievals: OtherRetrievals
+  otherRetrievals: OtherRetrievals,
+  confidenceLevel: ConfidenceLevel
 ) extends MaterialisedRetrievals {
   val affinityGroupName: String = AffinityGroupUtil.affinityGroupName(affinityGroup)
 }

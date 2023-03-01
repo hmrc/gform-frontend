@@ -51,6 +51,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, ItmpRetrievals }
+import uk.gov.hmrc.auth.core.ConfidenceLevel
 
 case class AccessCodeForm(accessCode: Option[String], accessOption: String)
 
@@ -501,7 +502,8 @@ class NewFormController(
       c.modify(_.form.thirdPartyData.itmpRetrievals).using(_ => Some(itmpRetrievals))
 
     cache.retrievals match {
-      case AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, Some(_), _) if formHasAuthItmpReferences() =>
+      case AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, Some(_), _, confidenceLevel)
+          if formHasAuthItmpReferences() && confidenceLevel != ConfidenceLevel.L50 =>
         auth.getItmpRetrievals(request).map { itmpRetrievals =>
           modifyCacheItmpRetrievals(cache, itmpRetrievals)
         }

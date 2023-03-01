@@ -30,10 +30,10 @@ object UserCtxEvaluatorProcessor extends IdentifierExtractor {
     authConfig: AuthConfig
   ): String =
     (retrievals, userField) match {
-      case (AuthenticatedRetrievals(_, enrolments, _, _, _, _), UserField.EnrolledIdentifier) =>
-        authorizedEnrolmentValue(enrolments, authConfig)
-      case (AuthenticatedRetrievals(_, enrolments, _, _, _, _), UserField.Enrolment(sn, in, maybeUserFieldFunc)) =>
-        enrolments.enrolments
+      case (r: AuthenticatedRetrievals, UserField.EnrolledIdentifier) =>
+        authorizedEnrolmentValue(r.enrolments, authConfig)
+      case (r: AuthenticatedRetrievals, UserField.Enrolment(sn, in, maybeUserFieldFunc)) =>
+        r.enrolments.enrolments
           .find { e =>
             ServiceName(e.key) == sn && e.identifiers.exists(k => IdentifierName(k.key) == in)
           }
