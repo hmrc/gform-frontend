@@ -119,8 +119,8 @@ class TaskListRenderingService(
           }
 
         }
-        .map(cannotStartYetResolver.resolveCannotStartYet)
         .map(notRequiredResolver.resolveNotRequired)
+        .map(cannotStartYetResolver.resolveCannotStartYet)
     }
 
   }

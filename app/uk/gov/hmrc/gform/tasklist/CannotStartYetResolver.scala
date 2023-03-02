@@ -58,7 +58,7 @@ final class CannotStartYetResolver(
             coordinates,
             throw new Exception(s"Not found taskStatus for Coordinates $coordinates")
           )
-          initialStatus === TaskStatus.Completed
+          initialStatus === TaskStatus.Completed || initialStatus === TaskStatus.NotRequired
         }
       val statusUpd = if (canStart) status else TaskStatus.CannotStartYet
       coordinates -> statusUpd
