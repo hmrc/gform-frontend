@@ -316,9 +316,9 @@ class AuthService(
   )(implicit l: LangADT): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .map {
-        case ggSuccessfulAuth @ AuthSuccessful(ar: AuthenticatedRetrievals, _)
+        case ggSuccessfulAuth @ AuthSuccessful(ar @ AuthenticatedRetrievals(_, enrolments, _, _, _, _, _), _)
             if ar.affinityGroup == AffinityGroup.Agent =>
-          ggAgentAuthorise(agentAccess, formTemplate, ar.enrolments) match {
+          ggAgentAuthorise(agentAccess, formTemplate, enrolments) match {
             case HMRCAgentAuthorisationSuccessful                => ggSuccessfulAuth
             case HMRCAgentAuthorisationDenied                    => AuthBlocked("Agents cannot access this form")
             case HMRCAgentAuthorisationFailed(agentSubscribeUrl) => AuthRedirect(agentSubscribeUrl)
