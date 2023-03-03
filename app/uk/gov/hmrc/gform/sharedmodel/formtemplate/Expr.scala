@@ -70,6 +70,7 @@ sealed trait Expr extends Product with Serializable {
       case RemoveSpaces(_)                         => expr :: Nil
       case NumberedList(_)                         => expr :: Nil
       case BulletedList(_)                         => expr :: Nil
+      case Substring(_, _, _)                      => expr :: Nil
     }
     loop(this).headOption
   }
@@ -121,6 +122,7 @@ sealed trait Expr extends Product with Serializable {
     case RemoveSpaces(_)                            => this :: Nil
     case NumberedList(formComponentId)              => FormCtx(formComponentId) :: Nil
     case BulletedList(formComponentId)              => FormCtx(formComponentId) :: Nil
+    case Substring(expr, _, _)                      => expr.leafs(formModel)
   }
 
   def sums: List[Sum] = this match {
@@ -159,6 +161,7 @@ sealed trait Expr extends Product with Serializable {
     case RemoveSpaces(_)                            => Nil
     case NumberedList(_)                            => Nil
     case BulletedList(_)                            => Nil
+    case Substring(_, _, _)                         => Nil
   }
 }
 
@@ -196,6 +199,7 @@ final case class IndexOf(formComponentId: FormComponentId, index: Int) extends E
 final case class RemoveSpaces(formComponentId: FormComponentId) extends Expr
 final case class NumberedList(formComponentId: FormComponentId) extends Expr
 final case class BulletedList(formComponentId: FormComponentId) extends Expr
+final case class Substring(field1: Expr, beginIndex: Int, endIndex: Int) extends Expr
 
 sealed trait DateProjection extends Product with Serializable {
   def dateExpr: DateExpr

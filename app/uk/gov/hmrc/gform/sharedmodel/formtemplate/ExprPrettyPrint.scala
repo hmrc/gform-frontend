@@ -82,6 +82,7 @@ object ExprPrettyPrint {
     case RemoveSpaces(_)               => "Remove spaces"
     case NumberedList(_)               => "Numbered List"
     case BulletedList(_)               => "Bulleted List"
+    case Substring(_, _, _)            => "Substring"
   }
 
   def prettyPrintItmpNameFocus(focus: ItmpNameFocus): String = focus match {

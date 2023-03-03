@@ -320,9 +320,10 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("Number")(expr)
         }
-      case RemoveSpaces(_) => unsupportedOperation("Number")(expr)
-      case NumberedList(_) => unsupportedOperation("Number")(expr)
-      case BulletedList(_) => unsupportedOperation("Number")(expr)
+      case RemoveSpaces(_)    => unsupportedOperation("Number")(expr)
+      case NumberedList(_)    => unsupportedOperation("Number")(expr)
+      case BulletedList(_)    => unsupportedOperation("Number")(expr)
+      case Substring(_, _, _) => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -582,6 +583,9 @@ case class EvaluationResults(
       case RemoveSpaces(fcId) => removeSpaces(fcId, recData)
       case NumberedList(fcId) => loop(FormCtx(fcId))
       case BulletedList(fcId) => loop(FormCtx(fcId))
+      case Substring(expr, beginIndex, endIndex) =>
+        val substring = loop(expr).withStringResult("")(_.substring(beginIndex, endIndex))
+        StringResult(substring)
     }
 
     loop(typeInfo.expr)
