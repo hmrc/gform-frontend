@@ -65,6 +65,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case RemoveSpaces(formComponentId)        => RemoveSpaces(expandFcId(formComponentId))
     case NumberedList(formComponentId)        => NumberedList(expandFcId(formComponentId))
     case BulletedList(formComponentId)        => BulletedList(expandFcId(formComponentId))
+    case Substring(expr, from, to)            => Substring(expandExpr(expr), from, to)
   }
 
   private def expandDateFunc(dateFunc: DateProjection): DateProjection = dateFunc match {
