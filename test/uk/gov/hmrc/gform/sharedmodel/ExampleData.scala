@@ -48,6 +48,7 @@ import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import scala.collection.immutable.List
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
+import uk.gov.hmrc.auth.core.ConfidenceLevel
 
 object ExampleData extends ExampleData
 
@@ -898,7 +899,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
       AffinityGroup.Individual,
       userId.value,
       None,
-      OtherRetrievals.empty
+      OtherRetrievals.empty,
+      ConfidenceLevel.L50
     )
 
   def formIdData = FormIdData(materialisedRetrievals, formTemplateId, None)
@@ -945,7 +947,8 @@ trait ExampleAuthContext {
       affinityGroup = affinityGroup,
       groupIdentifier = "TestGroupId",
       maybeNino = None,
-      otherRetrievals = OtherRetrievals.empty
+      otherRetrievals = OtherRetrievals.empty,
+      ConfidenceLevel.L50
     )
 
   def affinityGroup: AffinityGroup = Organisation

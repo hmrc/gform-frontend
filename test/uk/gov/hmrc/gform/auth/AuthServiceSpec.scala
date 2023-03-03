@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.models.mappings.{ NINO => MNINO, VATReg => MVATReg }
 
 import scala.concurrent.Future
 import Function.const
+import uk.gov.hmrc.auth.core.ConfidenceLevel
 
 class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChecks {
 
@@ -61,7 +62,15 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   val getGovernmentGatewayId: Unit => Future[Option[GovernmentGatewayId]] = const(Future.successful(None))
 
   private def materialisedRetrievalsBuilder(affinityGroup: AffinityGroup, enrolments: Enrolments) =
-    AuthenticatedRetrievals(governmentGatewayId, enrolments, affinityGroup, "TestGroupId", None, OtherRetrievals.empty)
+    AuthenticatedRetrievals(
+      governmentGatewayId,
+      enrolments,
+      affinityGroup,
+      "TestGroupId",
+      None,
+      OtherRetrievals.empty,
+      ConfidenceLevel.L50
+    )
 
   val materialisedRetrievalsOfsted =
     AuthenticatedRetrievals(
@@ -70,7 +79,8 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
       affinityGroup = uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual,
       groupIdentifier = "20e9b243-7471-4081-be1e-fcb5da33fd5a",
       maybeNino = None,
-      otherRetrievals = OtherRetrievals.empty
+      otherRetrievals = OtherRetrievals.empty,
+      ConfidenceLevel.L50
     )
 
   val materialisedRetrievalsAgent =

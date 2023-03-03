@@ -471,7 +471,8 @@ class AuthenticatedRequestActions(
     Retrievals.groupIdentifier and
     Retrievals.nino and
     Retrievals.email and
-    Retrievals.name
+    Retrievals.name and
+    Retrievals.confidenceLevel
 
   private def ggAuthorised(
     request: Request[AnyContent]
@@ -487,7 +488,7 @@ class AuthenticatedRequestActions(
 
     authorised(predicate)
       .retrieve(defaultRetrievals) {
-        case maybeCredentials ~ enrolments ~ maybeAffinityGroup ~ maybeGroupIdentifier ~ maybeNino ~ maybeEmail ~ maybeName =>
+        case maybeCredentials ~ enrolments ~ maybeAffinityGroup ~ maybeGroupIdentifier ~ maybeNino ~ maybeEmail ~ maybeName ~ confidenceLevel =>
           val maybeRetrievals =
             for {
               govermentGatewayId <- maybeCredentials.flatMap(toGovernmentGatewayId)
@@ -502,7 +503,8 @@ class AuthenticatedRequestActions(
               OtherRetrievals(
                 name = maybeName,
                 email = maybeEmail
-              )
+              ),
+              confidenceLevel
             )
 
           val maybeVerifyRetrievals =
