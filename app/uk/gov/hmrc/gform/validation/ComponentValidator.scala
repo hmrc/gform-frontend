@@ -546,13 +546,28 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
-    val choiceValue = formModelVisibilityOptics.evaluationResults.recData.variadicFormData
+
+    val availableSelections: Set[String] = fieldValue.`type` match {
+      case Choice(_, options, _, _, _, _, _, _, _, _) =>
+        options.zipWithIndex.collect {
+          case (OptionData.IndexBased(_, _, _, _), i)        => i.toString
+          case (OptionData.ValueBased(_, _, _, _, value), _) => value
+        }.toSet
+      case _ => Set.empty[String]
+    }
+
+    val choiceValues: Seq[String] = formModelVisibilityOptics.evaluationResults.recData.variadicFormData
       .get(fieldValue.modelComponentId)
       .toSeq
       .flatMap(_.toSeq)
       .filterNot(_.isEmpty)
 
-    if (fieldValue.mandatory && choiceValue.isEmpty) validationFailure(fieldValue, choiceErrorRequired, None)
+    if (
+      fieldValue.mandatory && (choiceValues.isEmpty || (availableSelections.nonEmpty && !choiceValues.forall(
+        availableSelections
+      )))
+    )
+      validationFailure(fieldValue, choiceErrorRequired, None)
     else validationSuccess
   }
 

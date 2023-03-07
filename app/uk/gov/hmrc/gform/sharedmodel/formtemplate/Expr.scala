@@ -67,6 +67,7 @@ sealed trait Expr extends Product with Serializable {
       case Size(_, _)                              => expr :: Nil
       case Typed(e, _)                             => expr :: Nil
       case IndexOf(_, _)                           => expr :: Nil
+      case IndexOfDataRetrieveCtx(_, _)            => expr :: Nil
       case RemoveSpaces(_)                         => expr :: Nil
       case NumberedList(_)                         => expr :: Nil
       case BulletedList(_)                         => expr :: Nil
@@ -119,6 +120,7 @@ sealed trait Expr extends Product with Serializable {
     case Size(_, _)                                 => this :: Nil
     case Typed(expr, _)                             => expr.leafs(formModel)
     case IndexOf(formComponentId, _)                => FormCtx(formComponentId) :: Nil
+    case IndexOfDataRetrieveCtx(_, _)               => this :: Nil
     case RemoveSpaces(_)                            => this :: Nil
     case NumberedList(formComponentId)              => FormCtx(formComponentId) :: Nil
     case BulletedList(formComponentId)              => FormCtx(formComponentId) :: Nil
@@ -158,6 +160,7 @@ sealed trait Expr extends Product with Serializable {
     case Size(_, _)                                 => Nil
     case Typed(expr, _)                             => expr.sums
     case IndexOf(_, _)                              => Nil
+    case IndexOfDataRetrieveCtx(_, _)               => Nil
     case RemoveSpaces(_)                            => Nil
     case NumberedList(_)                            => Nil
     case BulletedList(_)                            => Nil
@@ -196,6 +199,7 @@ final case class CsvCountryCountCheck(formComponentId: FormComponentId, column: 
 final case class Size(formComponentId: FormComponentId, index: SizeRefType) extends Expr
 final case class Typed(expr: Expr, tpe: ExplicitExprType) extends Expr
 final case class IndexOf(formComponentId: FormComponentId, index: Int) extends Expr
+final case class IndexOfDataRetrieveCtx(ctx: DataRetrieveCtx, index: Int) extends Expr
 final case class RemoveSpaces(formComponentId: FormComponentId) extends Expr
 final case class NumberedList(formComponentId: FormComponentId) extends Expr
 final case class BulletedList(formComponentId: FormComponentId) extends Expr
@@ -299,6 +303,7 @@ object FormCtx {
 
 object Expr {
   val additionIdentity: Expr = Constant("0")
+  implicit val dataRetrieveCtxFormat: OFormat[DataRetrieveCtx] = derived.oformat()
   implicit val format: OFormat[Expr] = derived.oformat()
   implicit val equal: Eq[Expr] = Eq.fromUniversalEquals
 }

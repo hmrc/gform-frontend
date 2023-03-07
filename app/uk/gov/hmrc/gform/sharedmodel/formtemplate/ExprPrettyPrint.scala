@@ -79,6 +79,7 @@ object ExprPrettyPrint {
     case Size(_, _)                    => "Size"
     case Typed(e, _)                   => "Typed"
     case IndexOf(_, _)                 => "IndexOf"
+    case IndexOfDataRetrieveCtx(_, _)  => "IndexOfDataRetrieveCtx"
     case RemoveSpaces(_)               => "Remove spaces"
     case NumberedList(_)               => "Numbered List"
     case BulletedList(_)               => "Bulleted List"

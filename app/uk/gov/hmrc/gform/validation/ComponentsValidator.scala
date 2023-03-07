@@ -210,13 +210,13 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
           new OverseasAddressValidation[D](formComponent, formModelVisibilityOptics, lookupRegistry)
             .validateOverseasAddress(overseasAddress)
         )
-      case c @ Choice(_, _, _, _, _, _, _, _, Some(noneChoice), Some(error)) =>
+      case Choice(_, _, _, _, _, _, _, _, Some(noneChoice), Some(error)) =>
         validIf(
           ComponentValidator
             .validateChoiceNoneError(formComponent, noneChoice, error)(formModelVisibilityOptics)
             .combine(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
         )
-      case c @ Choice(_, _, _, _, _, _, _, _, _, _) =>
+      case Choice(_, _, _, _, _, _, _, _, _, _) =>
         validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
       case _: RevealingChoice =>
         validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
@@ -227,8 +227,8 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
       case t @ Time(_, _) =>
         validIf(ComponentValidator.validateTime(formComponent, t, formModelVisibilityOptics))
-      case s @ MiniSummaryList(_) => validationSuccess.pure[F]
-      case _: TableComp           => validationSuccess.pure[F]
+      case MiniSummaryList(_) => validationSuccess.pure[F]
+      case _: TableComp       => validationSuccess.pure[F]
     }
   }
 

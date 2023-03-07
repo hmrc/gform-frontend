@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -36,7 +37,7 @@ object FormModelExpander {
   private val repeatsLimit =
     99 // Repeated section must be limited since repeatsMax expression has not been validated at this point
 
-  implicit def dataExpanded[D <: DataOrigin](implicit fmvo: FormModelVisibilityOptics[D]) =
+  implicit def dataExpanded[D <: DataOrigin](implicit fmvo: FormModelVisibilityOptics[D], messages: Messages) =
     new FormModelExpander[DataExpanded] {
       def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[DataExpanded] = {
         val expanded = page.fields.flatMap {
