@@ -32,6 +32,8 @@ case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
 
   def expand(index: Int, baseIds: List[FormComponentId]) = ExpandUtils.expandSmartString(this, index, baseIds)
 
+  def expandDataRetrieve(index: Int) = ExpandUtils.expandDataRetrieve(this, index)
+
   def valueWithoutInterpolations(implicit l: LangADT): String = {
     import scala.collection.JavaConverters._
     new MessageFormat(rawValue(l)).format(interpolations.map(_ => "").asJava.toArray)

@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.{ Atom, Bracket, Visibility }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.VariadicValue
+import uk.gov.hmrc.gform.sharedmodel.{ RetrieveDataType, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormDataFieldNamePurpose
@@ -148,8 +148,10 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
             .map { indexBasedNel =>
               indexBasedNel.map { optionData =>
                 val default = (0, optionData)
-                optionData.dynamic.fold(default) { dynamic =>
-                  dynamic.formComponentId.modelComponentId.maybeIndex.fold(default)(_ -> optionData)
+                optionData.dynamic.fold(default) {
+                  case OptionData.Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(_, index)) => index -> optionData
+                  case OptionData.Dynamic.ATLBased(formComponentId) =>
+                    formComponentId.modelComponentId.maybeIndex.fold(default)(_ -> optionData)
                 }
               }
             }
@@ -162,8 +164,10 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
           NonEmptyList.fromList(valueBased).map { valueBasedNel =>
             valueBasedNel.map { optionData =>
               val default = (0, optionData)
-              optionData.dynamic.fold(default) { dynamic =>
-                dynamic.formComponentId.modelComponentId.maybeIndex.fold(default)(_ -> optionData)
+              optionData.dynamic.fold(default) {
+                case OptionData.Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(_, index)) => index -> optionData
+                case OptionData.Dynamic.ATLBased(formComponentId) =>
+                  formComponentId.modelComponentId.maybeIndex.fold(default)(_ -> optionData)
               }
             }
           }
@@ -397,6 +401,24 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
       }
     }
 
+  private def dataRetrieveToObjectStructure(maybeDataRetrieveCtx: (Int, DataRetrieveCtx)): Option[ObjectStructure] = {
+    val (selectedIndex, dataRetrieveCtx) = maybeDataRetrieveCtx
+
+    formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.dataRetrieve
+      .flatMap { dataRet =>
+        dataRet.get(dataRetrieveCtx.id).map(_.data).flatMap {
+          case RetrieveDataType.ListType(data) =>
+            data.get(selectedIndex.toLong).map { attributesMap =>
+              val fields: List[Field] = attributesMap.toList.map { case (attribute, value) =>
+                Field(FieldName(attribute.name), TextNode(value), Map.empty)
+              }
+              ObjectStructure(fields)
+            }
+          case RetrieveDataType.ObjectType(_) => None
+        }
+      }
+  }
+
   private def processPurePure(
     xs: List[(ModelComponentId.Pure, IndexedComponentId.Pure)]
   )(implicit
@@ -428,16 +450,31 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
               val fieldValue: StructuredFormValue = maybeChoiceWithDynamic.fold(default) {
                 case (_, Left(valueBasedNel)) =>
                   val maybeDynamicOptionData: Option[(Int, FormComponentId)] = valueBasedNel.collectFirst {
-                    case (selectedIndex, OptionData.ValueBased(_, _, _, Some(OptionData.Dynamic(pointer)), value))
-                        if value === answer =>
+                    case (
+                          selectedIndex,
+                          OptionData.ValueBased(_, _, _, Some(OptionData.Dynamic.ATLBased(pointer)), value)
+                        ) if value === answer =>
                       selectedIndex -> pointer
                   }
 
-                  maybeDynamicOptionData match {
-                    case Some((selectedIndex, pointer)) =>
-                      createObjectStructureForSelectedIndex(pointer, selectedIndex - 1)
-                    case _ => default
+                  val maybeDataRetrieveCtx: Option[(Int, DataRetrieveCtx)] = valueBasedNel.collectFirst {
+                    case (
+                          selectedIndex,
+                          OptionData.ValueBased(
+                            _,
+                            _,
+                            _,
+                            Some(OptionData.Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
+                            value
+                          )
+                        ) if value === answer =>
+                      selectedIndex -> indexOfDataRetrieveCtx.ctx
                   }
+
+                  maybeDynamicOptionData
+                    .map(createObjectStructureForSelectedIndex)
+                    .orElse(maybeDataRetrieveCtx.flatMap(dataRetrieveToObjectStructure))
+                    .getOrElse(default)
 
                 case (_, Right(indexBasedNel)) =>
                   val indexAnswer: Int = Try(answer.toInt).toOption.getOrElse(
@@ -446,16 +483,36 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
 
                   val maybeDynamicIndexBased: Option[(Int, FormComponentId)] =
                     indexBasedNel.zipWithIndex.collectFirst {
-                      case (od @ (selectedIndex, OptionData.IndexBased(_, _, _, Some(OptionData.Dynamic(pointer)))), i)
-                          if indexAnswer === i =>
+                      case (
+                            (
+                              selectedIndex,
+                              OptionData.IndexBased(_, _, _, Some(OptionData.Dynamic.ATLBased(pointer)))
+                            ),
+                            i
+                          ) if indexAnswer === i =>
                         selectedIndex -> pointer
                     }
 
-                  maybeDynamicIndexBased match {
-                    case Some((selectedIndex, pointer)) =>
-                      createObjectStructureForSelectedIndex(pointer, selectedIndex - 1)
-                    case _ => default
+                  val maybeDataRetrieveCtx: Option[(Int, DataRetrieveCtx)] = indexBasedNel.zipWithIndex.collectFirst {
+                    case (
+                          (
+                            selectedIndex,
+                            OptionData.IndexBased(
+                              _,
+                              _,
+                              _,
+                              Some(OptionData.Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx))
+                            )
+                          ),
+                          i
+                        ) if indexAnswer === i =>
+                      selectedIndex -> indexOfDataRetrieveCtx.ctx
                   }
+
+                  maybeDynamicIndexBased
+                    .map(createObjectStructureForSelectedIndex)
+                    .orElse(maybeDataRetrieveCtx.flatMap(dataRetrieveToObjectStructure))
+                    .getOrElse(default)
 
               }
 
@@ -476,9 +533,10 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     })
 
   private def createObjectStructureForSelectedIndex(
-    pointer: FormComponentId,
-    selectedIndex: Int
+    data: (Int, FormComponentId)
   ): StructuredFormValue = {
+    val (selectedIndex, pointer) = data
+
     val allAddToListBrackets: List[Bracket.AddToList[Visibility]] =
       formModelVisibilityOptics.formModel.brackets.addToListBrackets
 
@@ -489,7 +547,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     val maybeIteration: Option[(Bracket.AddToListIteration[Visibility], Int)] =
       maybeAllAddToListBracket.flatMap { bracket =>
         bracket.iterations.zipWithIndex.find { case (bracket, index) =>
-          index === selectedIndex
+          index === selectedIndex - 1
         }
       }
 

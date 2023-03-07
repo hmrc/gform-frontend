@@ -53,6 +53,14 @@ object ExpandUtils {
     smartString.copy(interpolations = interpolations).replace("$n", index.toString)
   }
 
+  def expandDataRetrieve(smartString: SmartString, index: Int): SmartString = {
+    val interpolations: List[Expr] = smartString.interpolations.map {
+      case ctx @ DataRetrieveCtx(_, _) => IndexOfDataRetrieveCtx(ctx, index)
+      case otherwise                   => otherwise
+    }
+    smartString.copy(interpolations = interpolations).replace("$n", index.toString)
+  }
+
   def expandGroup[S <: SourceOrigin](fc: FormComponent, group: Group, data: VariadicFormData[S]): List[FormComponent] =
     (1 to group.repeatsMax.getOrElse(1)).toList.flatMap { index =>
       val allIds = fc.id :: group.fields.map(_.id)
@@ -96,7 +104,11 @@ object ExpandUtils {
   def addPrefix(n: Int, targetFcId: FormComponentId): FormComponentId =
     FormComponentId(addPrefixToString(n, targetFcId.value))
 
-  def expandOptionDataDynamic(n: Int, dynamic: OptionData.Dynamic): OptionData.Dynamic =
-    OptionData.Dynamic(ExpandUtils.addPrefix(n, dynamic.formComponentId))
+  def expandOptionDataDynamic(n: Int, dynamic: OptionData.Dynamic): OptionData.Dynamic = dynamic match {
+    case OptionData.Dynamic.ATLBased(formComponentId) =>
+      OptionData.Dynamic.ATLBased(ExpandUtils.addPrefix(n, formComponentId))
+    case OptionData.Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, _)) =>
+      OptionData.Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, n))
+  }
 
 }

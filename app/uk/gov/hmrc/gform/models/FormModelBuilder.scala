@@ -223,7 +223,7 @@ class FormModelBuilder[E, F[_]: Functor](
   def renderPageModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     phase: Option[FormPhase]
-  ): FormModelOptics[D] = {
+  )(implicit messages: Messages): FormModelOptics[D] = {
 
     implicit val fmvo = formModelVisibilityOptics
 

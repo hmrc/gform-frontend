@@ -327,10 +327,15 @@ sealed trait OptionData extends Product with Serializable {
 }
 
 object OptionData {
-
-  final case class Dynamic(formComponentId: FormComponentId)
+  sealed trait Dynamic extends Product with Serializable
 
   object Dynamic {
+
+    final case class ATLBased(formComponentId: FormComponentId) extends Dynamic
+    final case class DataRetrieveBased(indexOfDataRetrieveCtx: IndexOfDataRetrieveCtx) extends Dynamic
+
+    implicit val dataRetrieveCtx: OFormat[DataRetrieveCtx] = derived.oformat()
+    implicit val indexOfDataRetrieveCtx: OFormat[IndexOfDataRetrieveCtx] = derived.oformat()
     implicit val format: OFormat[Dynamic] = derived.oformat()
   }
 

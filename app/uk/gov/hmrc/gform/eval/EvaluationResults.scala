@@ -320,6 +320,11 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("Number")(expr)
         }
+      case IndexOfDataRetrieveCtx(ctx, index) =>
+        loop(ctx) match {
+          case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
+          case _              => unsupportedOperation("Number")(expr)
+        }
       case RemoveSpaces(_)    => unsupportedOperation("Number")(expr)
       case NumberedList(_)    => unsupportedOperation("Number")(expr)
       case BulletedList(_)    => unsupportedOperation("Number")(expr)
@@ -577,6 +582,11 @@ case class EvaluationResults(
         StringResult(s"$count")
       case IndexOf(fcId, index) =>
         loop(FormCtx(fcId)) match {
+          case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
+          case _              => unsupportedOperation("String")(expr)
+        }
+      case IndexOfDataRetrieveCtx(ctx, index) =>
+        loop(ctx) match {
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("String")(expr)
         }

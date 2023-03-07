@@ -62,6 +62,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case Period(_, _)                         => expr
     case PeriodExt(_, _)                      => expr
     case IndexOf(_, _)                        => expr // This is not explanded on purpose, so it can be used correctly inside ATL
+    case IndexOfDataRetrieveCtx(_, _)         => expr
     case RemoveSpaces(formComponentId)        => RemoveSpaces(expandFcId(formComponentId))
     case NumberedList(formComponentId)        => NumberedList(expandFcId(formComponentId))
     case BulletedList(formComponentId)        => BulletedList(expandFcId(formComponentId))

@@ -17,19 +17,21 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
+import play.api.i18n.Messages
+import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponent, FormComponentId, FormCtx, OptionData }
 
 object OptionDataUtils {
 
   def expand[D <: DataOrigin](formComponent: FormComponent, choice: Choice)(implicit
-    fmvo: FormModelVisibilityOptics[D]
+    fmvo: FormModelVisibilityOptics[D],
+    messages: Messages
   ): FormComponent = {
     val optionsUpdate = choice.options.flatMap {
-      case o @ OptionData.ValueBased(_, _, _, Some(d @ OptionData.Dynamic(_)), _) =>
+      case o @ OptionData.ValueBased(_, _, _, Some(d), _) =>
         OptionDataUtils.expandValueBased(o, d)
-      case o @ OptionData.IndexBased(_, _, _, Some(d @ OptionData.Dynamic(_))) =>
+      case o @ OptionData.IndexBased(_, _, _, Some(d)) =>
         OptionDataUtils.expandIndexBased(o, d)
       case otherwise => NonEmptyList.one(otherwise)
     }
@@ -39,15 +41,47 @@ object OptionDataUtils {
     formComponent.copy(`type` = updChoice)
   }
 
-  def expandValueBased[D <: DataOrigin](valueBased: OptionData.ValueBased, dynamic: OptionData.Dynamic)(implicit
+  def determineBaseIds[D <: DataOrigin](optionData: OptionData)(implicit
     fmvo: FormModelVisibilityOptics[D]
+  ): List[FormComponentId] =
+    (optionData.label :: optionData.hint.toList).flatMap(_.interpolations.flatMap(_.leafs(fmvo.formModel)).collect {
+      case FormCtx(fcId) =>
+        fcId
+    })
+
+  def expandValueBased[D <: DataOrigin](valueBased: OptionData.ValueBased, dynamic: OptionData.Dynamic)(implicit
+    fmvo: FormModelVisibilityOptics[D],
+    messages: Messages
   ): NonEmptyList[OptionData] =
-    expandOptionData(valueBased, dynamic, valueBased.label, updateValueBased)
+    dynamic match {
+      case OptionData.Dynamic.DataRetrieveBased(dataRetrieveCtx) =>
+        val expressionResult: ExpressionResultWithTypeInfo = fmvo.evalAndApplyTypeInfoFirst(dataRetrieveCtx.ctx)
+        val optionDatas: List[OptionData.ValueBased] = expressionResult.listRepresentation.zipWithIndex.map {
+          case (answer, index) =>
+            updateDataRetrieveValueBased(index, valueBased)
+        }
+        NonEmptyList.fromList(optionDatas).getOrElse(NonEmptyList.one(valueBased))
+      case atl @ OptionData.Dynamic.ATLBased(_) =>
+        val baseIds: List[FormComponentId] = determineBaseIds(valueBased)
+        expandOptionData(valueBased, atl, baseIds, updateValueBased)
+    }
 
   def expandIndexBased[D <: DataOrigin](indexBased: OptionData.IndexBased, dynamic: OptionData.Dynamic)(implicit
-    fmvo: FormModelVisibilityOptics[D]
+    fmvo: FormModelVisibilityOptics[D],
+    messages: Messages
   ): NonEmptyList[OptionData] =
-    expandOptionData(indexBased, dynamic, indexBased.label, updateIndexBased)
+    dynamic match {
+      case OptionData.Dynamic.DataRetrieveBased(dataRetrieveCtx) =>
+        val expressionResult: ExpressionResultWithTypeInfo = fmvo.evalAndApplyTypeInfoFirst(dataRetrieveCtx.ctx)
+        val optionDatas = expressionResult.listRepresentation.zipWithIndex.map { case (answer, index) =>
+          updateDataRetrieveIndexBased(index, indexBased)
+        }
+        NonEmptyList.fromList(optionDatas).getOrElse(NonEmptyList.one(indexBased))
+
+      case atl @ OptionData.Dynamic.ATLBased(_) =>
+        val baseIds: List[FormComponentId] = determineBaseIds(indexBased)
+        expandOptionData(indexBased, atl, baseIds, updateIndexBased)
+    }
 
   private def updateIndexBased(
     index: Int,
@@ -57,6 +91,18 @@ object OptionDataUtils {
     od.copy(
       label = od.label.expand(index, baseIds),
       hint = od.hint.map(_.expand(index, baseIds)),
+      dynamic = od.dynamic.map(
+        ExpandUtils.expandOptionDataDynamic(index, _)
+      ) // We need dynamic with index for StructuredFormData model
+    )
+
+  private def updateDataRetrieveIndexBased(
+    index: Int,
+    od: OptionData.IndexBased
+  ): OptionData.IndexBased =
+    od.copy(
+      label = od.label.expandDataRetrieve(index),
+      hint = od.hint.map(_.expandDataRetrieve(index)),
       dynamic = od.dynamic.map(
         ExpandUtils.expandOptionDataDynamic(index, _)
       ) // We need dynamic with index for StructuredFormData model
@@ -74,10 +120,21 @@ object OptionDataUtils {
       value = od.value + "_" + index
     )
 
+  private def updateDataRetrieveValueBased(
+    index: Int,
+    od: OptionData.ValueBased
+  ): OptionData.ValueBased =
+    od.copy(
+      label = od.label.expandDataRetrieve(index),
+      hint = od.hint.map(_.expandDataRetrieve(index)),
+      dynamic = od.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _)),
+      value = od.value + "_" + index
+    )
+
   private def expandOptionData[A, D <: DataOrigin](
     valueBased: A,
-    dynamic: OptionData.Dynamic,
-    label: SmartString,
+    dynamic: OptionData.Dynamic.ATLBased,
+    baseIds: List[FormComponentId],
     f: (Int, List[FormComponentId], A) => A
   )(implicit
     fmvo: FormModelVisibilityOptics[D]
@@ -90,11 +147,6 @@ object OptionDataUtils {
       case None => NonEmptyList.one(valueBased)
       case Some(modelComponentIdsNel) =>
         modelComponentIdsNel.map { case modelComponentId =>
-          val baseIds =
-            label.interpolations.flatMap(_.leafs(fmvo.formModel)).collect { case FormCtx(fcId) =>
-              fcId
-            }
-
           modelComponentId.maybeIndex match {
             case Some(index) => f(index, baseIds, valueBased)
             case None        => valueBased
