@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.collection.GenTraversableOnce
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
+import uk.gov.hmrc.gform.models.Atom
 
 sealed trait VariadicValue extends Product with Serializable {
   def toSeq: Seq[String] = this match {
@@ -108,6 +109,28 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
       case (modelComponentId, value) if modelComponentId.baseComponentId === baseComponentId =>
         modelComponentId -> value
     }
+
+  def withSyntheticCopy(
+    baseComponentId: BaseComponentId,
+    mapper: IndexedComponentId => IndexedComponentId
+  ): VariadicFormData[S] = {
+    val copy = forBaseComponentId(baseComponentId).map { case (modelComponentId, variadicValue) =>
+      modelComponentId.map(mapper) -> variadicValue
+    }
+    VariadicFormData[S](data ++ copy)
+  }
+
+  def withReplacedAtoms(
+    baseComponentId: BaseComponentId,
+    atomMap: Map[String, String]
+  ): VariadicFormData[S] = {
+    val copy = forBaseComponentId(baseComponentId).map {
+      case (m @ ModelComponentId.Atomic(cId, Atom(atom)), variadicValue) if atomMap.contains(atom) =>
+        m -> VariadicValue.One(atomMap.getOrElse(atom, ""))
+      case otherwise => otherwise
+    }
+    VariadicFormData[S](data ++ copy)
+  }
 
   def forBaseComponentIdLessThen(modelComponentId: ModelComponentId): Iterable[(ModelComponentId, VariadicValue)] =
     modelComponentId.indexedComponentId.fold(pure => forBaseComponentId(pure.baseComponentId)) { indexed =>

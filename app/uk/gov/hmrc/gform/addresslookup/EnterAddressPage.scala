@@ -43,7 +43,7 @@ class EnterAddressPage(
   val render: Html =
     html.form.snippets
       .field_template_address(
-        Address(false, List.empty[Address.Configurable.Mandatory], false),
+        Address(false, List.empty[Address.Configurable.Mandatory], false, None),
         formComponent,
         formFieldValidationResult,
         false,
