@@ -483,12 +483,12 @@ class SummaryRenderingServiceSpec
           html.summaryElements shouldBe List(
             HeaderElement("addToListSummary"),
             SummaryListElement(List(SummaryListRow("addToList", "addToListSumDesc addToListSumDesc"))),
-            HeaderElement("addToList"),
-            SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value1"))),
-            SummaryListElement(List(SummaryListRow("page2Field", "page2Field-value1"))),
-            HeaderElement("addToList"),
-            SummaryListElement(List(SummaryListRow("page1Field", "page1Field-value2"))),
-            SummaryListElement(List(SummaryListRow("page2Field", "page2Field-value2"))),
+            SummaryListElement(
+              List(SummaryListRow("page1Field", "page1Field-value1"), SummaryListRow("page2Field", "page2Field-value1"))
+            ),
+            SummaryListElement(
+              List(SummaryListRow("page1Field", "page1Field-value2"), SummaryListRow("page2Field", "page2Field-value2"))
+            ),
             HeaderElement("declaration section"),
             SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
           )

@@ -43,9 +43,10 @@ import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper._
 import uk.gov.hmrc.govukfrontend.views.viewmodels.notificationbanner.NotificationBanner
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ Card, CardTitle, SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 
 import java.time.format.DateTimeFormatter
 import scala.concurrent.{ ExecutionContext, Future }
@@ -403,42 +404,22 @@ object SummaryRenderingService {
 
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
-    def renderHtmls(
+    def middleSummaryListRows(
       singleton: Singleton[Visibility],
       sectionNumber: SectionNumber,
-      source: Section,
       iterationTitle: Option[String] = None
     )(implicit
       l: LangADT
-    ): List[Html] = {
+    ): List[SummaryListRow] = {
       val page = singleton.page
       val sectionTitle4Ga = sectionTitle4GaFactory(singleton, sectionNumber)
-      val pageTitle = page.shortName.getOrElse(page.title)
-
-      val begin = source.fold { _ =>
-        page.presentationHint
-          .filter(_ == InvisiblePageTitle)
-          .fold(begin_section(pageTitle))(_ => HtmlFormat.empty)
-      } { _ =>
-        page.presentationHint
-          .filter(_ == InvisiblePageTitle)
-          .fold(begin_section(pageTitle))(_ => HtmlFormat.empty)
-      } { addToList =>
-        val hidePageTitle =
-          addToList.presentationHint
-            .fold(page.presentationHint.fold(false)(_ == InvisiblePageTitle))(_ == InvisiblePageTitle)
-        if (hidePageTitle)
-          HtmlFormat.empty
-        else
-          begin_addToList_section(pageTitle)
-      }
 
       val ff = if (maybeCoordinates.isEmpty) {
         List(FastForward.CYA(SectionOrSummary.FormSummary))
       } else {
         List(FastForward.CYA(SectionOrSummary.TaskSummary))
       }
-      val middleRows: List[SummaryListRow] = page.fields
+      page.fields
         .filterNot(_.hideOnSummary)
         .flatMap(formComponent =>
           FormComponentSummaryRenderer.summaryListRows[D, SummaryRender](
@@ -457,19 +438,21 @@ object SummaryRenderingService {
             Some(ff)
           )
         )
+    }
 
-      if (middleRows.isEmpty) {
+    def summaryList(begin: HtmlFormat.Appendable, rows: List[SummaryListRow], card: Option[Card]) =
+      if (rows.isEmpty) {
         Nil
       } else {
-        val middleRowsHtml = new GovukSummaryList()(
+        val govukSummaryList = new GovukSummaryList()(
           SummaryList(
-            middleRows,
-            "govuk-!-margin-bottom-0"
+            rows = rows,
+            card = card,
+            classes = "govuk-!-margin-bottom-0"
           )
         )
-        List(begin, middleRowsHtml)
+        List(begin, govukSummaryList)
       }
-    }
 
     def addToListSummary(bracket: Bracket.AddToList[Visibility]): Html =
       begin_section(bracket.source.summaryName)
@@ -477,16 +460,50 @@ object SummaryRenderingService {
     def addToListRenderBracket(bracket: Bracket.AddToList[Visibility]): List[Html] = {
       val repeaters: NonEmptyList[RepeaterWithNumber[Visibility]] = bracket.iterations.map(_.repeater)
 
+      val hidePageTitleByComponent = bracket.source.fold(_ => false)(_ => false)(addToList =>
+        addToList.presentationHint.fold(false)(_ == InvisiblePageTitle)
+      )
+
       val htmls: List[Html] = bracket.iterations.toList.flatMap { iteration =>
-        begin_section(iteration.repeater.repeater.expandedShortName) :: {
-          iteration.singletons.toList.flatMap { singletonWithNumber =>
-            renderHtmls(
+        val singletons = iteration.singletons.toList
+
+        val hideAllPageTitle =
+          singletons.forall(_.singleton.page.presentationHint.filter(_ === InvisiblePageTitle).fold(false)(_ => true))
+
+        if (hidePageTitleByComponent || hideAllPageTitle) {
+          val middleRows = singletons.flatMap { singletonWithNumber =>
+            middleSummaryListRows(
               singletonWithNumber.singleton,
               singletonWithNumber.sectionNumber,
-              bracket.source,
               Some(iteration.repeater.repeater.expandedShortName.value())
             )
           }
+
+          summaryList(
+            HtmlFormat.empty,
+            middleRows,
+            Some(
+              Card(
+                title = Some(
+                  CardTitle(
+                    content = content.Text(iteration.repeater.repeater.expandedShortName.value()),
+                    classes = "govuk-!-font-size-24"
+                  )
+                )
+              )
+            )
+          )
+        } else {
+          begin_section(iteration.repeater.repeater.expandedShortName) ::
+            singletons.flatMap { singletonWithNumber =>
+              val begin = getPageTitle(bracket.source, singletonWithNumber.singleton.page)
+              val middleRows = middleSummaryListRows(
+                singletonWithNumber.singleton,
+                singletonWithNumber.sectionNumber,
+                Some(iteration.repeater.repeater.expandedShortName.value())
+              )
+              summaryList(begin, middleRows, None)
+            }
         }
       }
 
@@ -560,7 +577,7 @@ object SummaryRenderingService {
             }
         )
         .getOrElse(List.empty[SummaryListRow])
-      new GovukSummaryList()(SummaryList(slr :: slrTables, "govuk-!-margin-bottom-0")) :: htmls
+      new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-0")) :: htmls
     }
 
     def brackets: List[Bracket[Visibility]] = formModel.brackets.fold(_.brackets.toList)(taskListBrackets =>
@@ -569,14 +586,39 @@ object SummaryRenderingService {
       )
     )
 
+    def getPageTitle(source: Section, page: Page[Visibility]) = {
+      val pageTitle = page.shortName.getOrElse(page.title)
+      source.fold { _ =>
+        page.presentationHint
+          .filter(_ == InvisiblePageTitle)
+          .fold(begin_section(pageTitle))(_ => HtmlFormat.empty)
+      } { _ =>
+        page.presentationHint
+          .filter(_ == InvisiblePageTitle)
+          .fold(begin_section(pageTitle))(_ => HtmlFormat.empty)
+      } { addToList =>
+        val hidePageTitle =
+          addToList.presentationHint
+            .fold(page.presentationHint.fold(false)(_ == InvisiblePageTitle))(_ == InvisiblePageTitle)
+        if (hidePageTitle)
+          HtmlFormat.empty
+        else
+          begin_addToList_section(pageTitle)
+      }
+    }
+
     brackets.flatMap {
       case bracket @ Bracket.AddToList(_, _) => List(addToListSummary(bracket)) ++ addToListRenderBracket(bracket)
       case Bracket.RepeatingPage(singletons, source) =>
         singletons.toList.flatMap { singletonWithNumber =>
-          renderHtmls(singletonWithNumber.singleton, singletonWithNumber.sectionNumber, source)
+          val middleRows = middleSummaryListRows(singletonWithNumber.singleton, singletonWithNumber.sectionNumber)
+          val begin = getPageTitle(source, singletonWithNumber.singleton.page)
+          summaryList(begin, middleRows, None)
         }
       case Bracket.NonRepeatingPage(singleton, sectionNumber, source) =>
-        renderHtmls(singleton, sectionNumber, source)
+        val middleRows = middleSummaryListRows(singleton, sectionNumber)
+        val begin = getPageTitle(source, singleton.page)
+        summaryList(begin, middleRows, None)
     }
   }
 
