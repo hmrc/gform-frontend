@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.data.NonEmptyList
+
 import java.time.LocalDate
 import cats.data.NonEmptyList
 import cats.instances.int._
@@ -83,14 +84,14 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.notificationbanner.Notificatio
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, TableRow => GovukTableRow, Table }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, TableRow => GovukTableRow }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.Aliases.CharacterCount
 import uk.gov.hmrc.hmrcfrontend.views.html.components.{ HmrcCharacterCount, HmrcCurrencyInput }
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
-import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukSummaryList, GovukTable }
+import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukCharacterCount, GovukSummaryList, GovukTable }
 import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
@@ -2142,7 +2143,7 @@ class SectionRenderingService(
           attributes = attributes
         )
 
-        new HmrcCharacterCount(govukTextarea, govukHint)(characterCount)
+        new HmrcCharacterCount(new GovukCharacterCount(govukTextarea, govukHint))(characterCount)
 
       case _ =>
         val textArea = Textarea(
