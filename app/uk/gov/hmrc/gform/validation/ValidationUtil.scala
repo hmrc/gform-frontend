@@ -27,6 +27,8 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
+import com.softwaremill.quicklens._
 
 object ValidationUtil {
 
@@ -96,19 +98,54 @@ object ValidationUtil {
     val gFormErrors: Map[ModelComponentId, Set[String]] =
       validationResult.swap.getOrElse(Map.empty[ModelComponentId, Set[String]])
 
+    def multiFieldValidationResult(
+      formComponent: FormComponent,
+      optics: FormModelVisibilityOptics[D]
+    ): FormFieldValidationResult = {
+
+      val getter: ModelComponentId => Seq[String] = fId => optics.data.get(fId).toList.flatMap(_.toSeq)
+      val valSuffixResult: List[(ModelComponentId, FormFieldValidationResult)] =
+        evaluateWithSuffix(formComponent, gFormErrors)(getter)
+
+      val valWithoutSuffixResult: (ModelComponentId, FormFieldValidationResult) =
+        evaluateWithoutSuffix(formComponent, gFormErrors)(getter)
+
+      val dataMap = (valWithoutSuffixResult :: valSuffixResult).map { kv =>
+        HtmlFieldId.pure(kv._1) -> kv._2
+      }.toMap
+
+      ComponentField(formComponent, dataMap)
+    }
+
     def matchComponentType(formComponent: FormComponent): FormFieldValidationResult = formComponent match {
-      case IsMultiField(_) =>
-        val valSuffixResult: List[(ModelComponentId, FormFieldValidationResult)] =
-          evaluateWithSuffix(formComponent, gFormErrors)(dataGetter)
+      case IsAddress(Address(_, _, _, Some(FormCtx(fcId)))) =>
+        def mapper: IndexedComponentId => IndexedComponentId = {
+          case IndexedComponentId.Pure(_)           => IndexedComponentId.Pure(formComponent.baseComponentId)
+          case IndexedComponentId.Indexed(_, index) => IndexedComponentId.Indexed(formComponent.baseComponentId, index)
+        }
+        val syntheticOptics = formModelVisibilityOptics
+          .modify(_.recData.variadicFormData)
+          .using(_.withSyntheticCopy(fcId.baseComponentId, mapper))
+        multiFieldValidationResult(formComponent, syntheticOptics)
 
-        val valWithoutSuffixResult: (ModelComponentId, FormFieldValidationResult) =
-          evaluateWithoutSuffix(formComponent, gFormErrors)(dataGetter)
+      case IsAddress(Address(_, _, _, Some(AuthCtx(AuthInfo.ItmpAddress)))) =>
+        val itmpAddress = formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
+          .flatMap(_.itmpAddress)
+        val atomMap: Map[String, String] = Map(
+          "street1"  -> itmpAddress.flatMap(_.line1).getOrElse(""),
+          "street2"  -> itmpAddress.flatMap(_.line2).getOrElse(""),
+          "street3"  -> itmpAddress.flatMap(_.line3).getOrElse(""),
+          "street4"  -> itmpAddress.flatMap(address => address.line4.map(_ + " ") |+| address.line5).getOrElse(""),
+          "postcode" -> itmpAddress.flatMap(_.postCode).getOrElse(""),
+          "country"  -> "",
+          "uk"       -> "true"
+        )
+        val syntheticOptics = formModelVisibilityOptics
+          .modify(_.recData.variadicFormData)
+          .using(_.withReplacedAtoms(formComponent.baseComponentId, atomMap))
+        multiFieldValidationResult(formComponent, syntheticOptics)
 
-        val dataMap = (valWithoutSuffixResult :: valSuffixResult).map { kv =>
-          HtmlFieldId.pure(kv._1) -> kv._2
-        }.toMap
-
-        ComponentField(formComponent, dataMap)
+      case IsMultiField(_) => multiFieldValidationResult(formComponent, formModelVisibilityOptics)
 
       case IsTextOrTextArea(constraint) =>
         val atomicFcId = formComponent.modelComponentId

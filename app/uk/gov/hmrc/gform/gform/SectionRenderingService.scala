@@ -1048,7 +1048,7 @@ class SectionRenderingService(
             htmlForTaxPeriodDate(formComponent, validationResult, ei)
           case t @ Time(_, _) =>
             renderTime(t, formComponent, validationResult, ei)
-          case a @ Address(_, _, countyDisplayed) =>
+          case a @ Address(_, _, countyDisplayed, _) =>
             htmlForAddress(formComponent, a, validationResult, ei, countyDisplayed)
           case o @ OverseasAddress(_, _, _, _) =>
             htmlForOverseasAddress(formComponent, o, validationResult, ei)

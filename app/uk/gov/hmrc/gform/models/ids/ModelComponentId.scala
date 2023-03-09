@@ -38,7 +38,7 @@ sealed trait ModelComponentId extends Product with Serializable {
   def increment: ModelComponentId = map(_.increment)
   def decrement: ModelComponentId = map(_.decrement)
 
-  private def map(f: IndexedComponentId => IndexedComponentId): ModelComponentId =
+  def map(f: IndexedComponentId => IndexedComponentId): ModelComponentId =
     fold(pure => ModelComponentId.pure(f(pure.indexedComponentId)))(atomic =>
       ModelComponentId.atomic(f(atomic.indexedComponentId), atomic.atom)
     )
