@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IncludeIf, IsFalse, IsTrue, TableComp, TableValue, TableValueRow }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Dynamic, IncludeIf, IsFalse, IsTrue, TableComp, TableValue, TableValueRow }
 import munit.FunSuite
 
 class SectionRenderingServiceSuite extends FunSuite {
@@ -41,19 +41,21 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 1, Column 1", Some(2)),
             mkTableValue("Row 1, Column 2")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 2, Column 2")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
     )
 
-    val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
+    val res = SectionRenderingService.normaliseTableComp(table, isVisibleValueRow)
 
     assertEquals(res, table)
   }
@@ -73,7 +75,8 @@ class SectionRenderingServiceSuite extends FunSuite {
               Some(2)
             )
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
@@ -81,7 +84,8 @@ class SectionRenderingServiceSuite extends FunSuite {
               "Row 2, Column 1"
             )
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
@@ -97,7 +101,8 @@ class SectionRenderingServiceSuite extends FunSuite {
           List(
             mkTableValue("Row 1, Column 1", Some(2))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
@@ -107,13 +112,14 @@ class SectionRenderingServiceSuite extends FunSuite {
             ),
             mkTableValue("Row 2, Column 1")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
     )
 
-    val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
+    val res = SectionRenderingService.normaliseTableComp(table, isVisibleValueRow)
     assertEquals(res, expectedTable)
   }
 
@@ -128,19 +134,22 @@ class SectionRenderingServiceSuite extends FunSuite {
           List(
             mkTableValue("Row 1, Column 1", Some(2))
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 2, Column 1")
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 3, Column 1")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
@@ -158,25 +167,28 @@ class SectionRenderingServiceSuite extends FunSuite {
               None // <- Since next row is invisible this was reduced
             )
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 2, Column 1")
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 3, Column 1")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
     )
 
-    val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
+    val res = SectionRenderingService.normaliseTableComp(table, isVisibleValueRow)
     assertEquals(res, expectedTable)
   }
 
@@ -194,19 +206,22 @@ class SectionRenderingServiceSuite extends FunSuite {
               Some(3)
             )
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 2, Column 1")
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 3, Column 1")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
@@ -224,7 +239,8 @@ class SectionRenderingServiceSuite extends FunSuite {
               Some(3)
             )
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
@@ -234,20 +250,22 @@ class SectionRenderingServiceSuite extends FunSuite {
             ),
             mkTableValue("Row 2, Column 1")
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 1, Column 1"),
             mkTableValue("Row 3, Column 1")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
     )
 
-    val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
+    val res = SectionRenderingService.normaliseTableComp(table, isVisibleValueRow)
     assertEquals(res, expectedTable)
   }
 
@@ -256,7 +274,7 @@ class SectionRenderingServiceSuite extends FunSuite {
     // |-----------+---+---+---|
     // | visible   |   |   |   |
     // |-----------+---+---+---|
-    // | INVISIBLE | 5  |   |   |
+    // | INVISIBLE | 5 |   |   |
     // |-----------+   +---+---|
     // | visible   |   |   |   |
     // |-----------+   +---+---|
@@ -282,7 +300,8 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 1, Column 2"),
             mkTableValue("Row 1, Column 3")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
@@ -290,36 +309,42 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 2, Column 2"),
             mkTableValue("Row 2, Column 3")
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 3, Column 2"),
             mkTableValue("Row 3, Column 3")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 4, Column 2", Some(4))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 5, Column 3", Some(3))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 7, Column 1")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
@@ -338,7 +363,8 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 1, Column 2"),
             mkTableValue("Row 1, Column 3")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
@@ -346,7 +372,8 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 2, Column 2"),
             mkTableValue("Row 2, Column 3")
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
@@ -354,39 +381,44 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 3, Column 2"),
             mkTableValue("Row 3, Column 3")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 4, Column 2", Some(4))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 4, Column 2", Some(3)),
             mkTableValue("Row 5, Column 3", Some(3))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 4, Column 2", Some(2)),
             mkTableValue("Row 5, Column 3", Some(2))
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 7, Column 1")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
     )
 
-    val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
+    val res = SectionRenderingService.normaliseTableComp(table, isVisibleValueRow)
     assertEquals(res, expectedTable)
   }
 
@@ -421,7 +453,8 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 1, Column 4"),
             mkTableValue("Row 1, Column 5")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
@@ -429,21 +462,24 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 2, Column 2", Some(3), Some(3)),
             mkTableValue("Row 2, Column 5")
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 3, Column 1"),
             mkTableValue("Row 3, Column 5")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 4, Column 1"),
             mkTableValue("Row 4, Column 5")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
@@ -453,7 +489,8 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 5, Column 4"),
             mkTableValue("Row 5, Column 5")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
@@ -476,7 +513,8 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 1, Column 4"),
             mkTableValue("Row 1, Column 5")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
@@ -484,7 +522,8 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 2, Column 2", Some(3), Some(3)),
             mkTableValue("Row 2, Column 5")
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
@@ -492,14 +531,16 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 2, Column 2", Some(2), Some(3)),
             mkTableValue("Row 3, Column 5")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 4, Column 1"),
             mkTableValue("Row 4, Column 5")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
@@ -509,13 +550,14 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 5, Column 4"),
             mkTableValue("Row 5, Column 5")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
     )
 
-    val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
+    val res = SectionRenderingService.normaliseTableComp(table, isVisibleValueRow)
     assertEquals(res, expectedTable)
   }
 
@@ -544,33 +586,38 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 1, Column 1"),
             mkTableValue("Row 1, Column 2")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 2, Column 1"),
             mkTableValue("Row 2, Column 2", Some(3))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 3, Column 1")
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 4, Column 1")
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 5, Column 1"),
             mkTableValue("Row 5, Column 2")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
@@ -587,41 +634,46 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 1, Column 1"),
             mkTableValue("Row 1, Column 2")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 2, Column 1"),
             mkTableValue("Row 2, Column 2", Some(3))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 3, Column 1"),
             mkTableValue("Row 2, Column 2", Some(2))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 4, Column 1"),
             mkTableValue("Row 2, Column 2", Some(1))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 5, Column 1"),
             mkTableValue("Row 5, Column 2")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
     )
 
-    val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
+    val res = SectionRenderingService.normaliseTableComp(table, isVisibleValueRow)
     assertEquals(res, expectedTable)
   }
 
@@ -650,33 +702,38 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 1, Column 1"),
             mkTableValue("Row 1, Column 2")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 2, Column 1"),
             mkTableValue("Row 2, Column 2", Some(3))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 3, Column 1")
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 4, Column 1")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 5, Column 1"),
             mkTableValue("Row 5, Column 2")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
@@ -693,41 +750,46 @@ class SectionRenderingServiceSuite extends FunSuite {
             mkTableValue("Row 1, Column 1"),
             mkTableValue("Row 1, Column 2")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 2, Column 1"),
             mkTableValue("Row 2, Column 2", Some(3))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 3, Column 1"),
             mkTableValue("Row 2, Column 2", Some(2))
           ),
-          invisible
+          invisible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 4, Column 1"),
             mkTableValue("Row 2, Column 2")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         ),
         TableValueRow(
           List(
             mkTableValue("Row 5, Column 1"),
             mkTableValue("Row 5, Column 2")
           ),
-          visible
+          visible,
+          Option.empty[Dynamic]
         )
       ),
       summaryValue = toSmartString("Summary value")
     )
 
-    val res = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
+    val res = SectionRenderingService.normaliseTableComp(table, isVisibleValueRow)
     assertEquals(res, expectedTable)
   }
 

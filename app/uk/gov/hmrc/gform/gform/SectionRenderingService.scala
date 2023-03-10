@@ -1485,7 +1485,7 @@ class SectionRenderingService(
       interpolationsHaveLonelyNumeric && sse(v.value.copy(interpolations = List(Constant(""))), false).trim.isEmpty()
     }
 
-    val normalisedTable = SectionRenderingService.normalisaTableComp(table, isVisibleValueRow)
+    val normalisedTable = SectionRenderingService.normaliseTableComp(table, isVisibleValueRow)
 
     val filteredRows = normalisedTable.rows.collect {
       case valueRow: TableValueRow if isVisibleValueRow(valueRow) =>
@@ -3011,7 +3011,7 @@ class SectionRenderingService(
 }
 
 object SectionRenderingService {
-  def normalisaTableComp(table: TableComp, isVisibleValueRow: TableValueRow => Boolean): TableComp = {
+  def normaliseTableComp(table: TableComp, isVisibleValueRow: TableValueRow => Boolean): TableComp = {
 
     def rowSpansIndexes(row: TableValueRow): List[(Int, TableValue)] = row.values.zipWithIndex.flatMap {
       case (tableValue, index) =>

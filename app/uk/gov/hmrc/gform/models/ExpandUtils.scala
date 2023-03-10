@@ -104,11 +104,11 @@ object ExpandUtils {
   def addPrefix(n: Int, targetFcId: FormComponentId): FormComponentId =
     FormComponentId(addPrefixToString(n, targetFcId.value))
 
-  def expandOptionDataDynamic(n: Int, dynamic: OptionData.Dynamic): OptionData.Dynamic = dynamic match {
-    case OptionData.Dynamic.ATLBased(formComponentId) =>
-      OptionData.Dynamic.ATLBased(ExpandUtils.addPrefix(n, formComponentId))
-    case OptionData.Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, _)) =>
-      OptionData.Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, n))
+  def expandOptionDataDynamic(n: Int, dynamic: Dynamic): Dynamic = dynamic match {
+    case Dynamic.ATLBased(formComponentId) =>
+      Dynamic.ATLBased(ExpandUtils.addPrefix(n, formComponentId))
+    case Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, _)) =>
+      Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, n))
   }
 
 }
