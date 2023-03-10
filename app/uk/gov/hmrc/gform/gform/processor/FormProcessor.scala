@@ -23,7 +23,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, AddressLookupService }
-import uk.gov.hmrc.gform.api.{ CompanyInformationConnector, NinoInsightsConnector }
+import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
@@ -36,20 +36,18 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
 import uk.gov.hmrc.gform.models.ids.ModelPageId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BankAccountInsights, BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.api.BankAccountInsightsConnector
-import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 
 class FormProcessor(
   i18nSupport: I18nSupport,
@@ -372,8 +370,16 @@ class FormProcessor(
             .getOrElse(false) ||
             before.dataRetrieve != after.dataRetrieve
 
+        val redirectUrl = if (isValid && pageModel.redirects.nonEmpty) {
+          pageModel.redirects.collectFirst {
+            case redirect
+                if processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(redirect.`if`, None) =>
+              redirect.redirectUrl
+          }
+        } else None
+
         val visitsIndex =
-          if (visitPage)
+          if (visitPage && redirectUrl.isEmpty)
             processData.visitsIndex.visit(sectionNumber)
           else processData.visitsIndex.unvisit(sectionNumber)
 
@@ -386,14 +392,6 @@ class FormProcessor(
                 visitsIndex = visitsIndex
               )
           )
-
-        val redirectUrl = if (isValid && pageModel.redirects.nonEmpty) {
-          pageModel.redirects.collectFirst {
-            case redirect
-                if processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(redirect.`if`, None) =>
-              redirect.redirectUrl
-          }
-        } else None
 
         if (needsSecondPhaseRecalculation && isValid) {
           val newDataRaw = cacheUpd.variadicFormData[SectionSelectorType.Normal]
