@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponent, FormComponentId, FormCtx, OptionData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Dynamic, FormComponent, FormComponentId, FormCtx, OptionData }
 
 object OptionDataUtils {
 
@@ -49,36 +49,36 @@ object OptionDataUtils {
         fcId
     })
 
-  def expandValueBased[D <: DataOrigin](valueBased: OptionData.ValueBased, dynamic: OptionData.Dynamic)(implicit
+  def expandValueBased[D <: DataOrigin](valueBased: OptionData.ValueBased, dynamic: Dynamic)(implicit
     fmvo: FormModelVisibilityOptics[D],
     messages: Messages
   ): NonEmptyList[OptionData] =
     dynamic match {
-      case OptionData.Dynamic.DataRetrieveBased(dataRetrieveCtx) =>
+      case Dynamic.DataRetrieveBased(dataRetrieveCtx) =>
         val expressionResult: ExpressionResultWithTypeInfo = fmvo.evalAndApplyTypeInfoFirst(dataRetrieveCtx.ctx)
         val optionDatas: List[OptionData.ValueBased] = expressionResult.listRepresentation.zipWithIndex.map {
           case (answer, index) =>
             updateDataRetrieveValueBased(index, valueBased)
         }
         NonEmptyList.fromList(optionDatas).getOrElse(NonEmptyList.one(valueBased))
-      case atl @ OptionData.Dynamic.ATLBased(_) =>
+      case atl @ Dynamic.ATLBased(_) =>
         val baseIds: List[FormComponentId] = determineBaseIds(valueBased)
         expandOptionData(valueBased, atl, baseIds, updateValueBased)
     }
 
-  def expandIndexBased[D <: DataOrigin](indexBased: OptionData.IndexBased, dynamic: OptionData.Dynamic)(implicit
+  def expandIndexBased[D <: DataOrigin](indexBased: OptionData.IndexBased, dynamic: Dynamic)(implicit
     fmvo: FormModelVisibilityOptics[D],
     messages: Messages
   ): NonEmptyList[OptionData] =
     dynamic match {
-      case OptionData.Dynamic.DataRetrieveBased(dataRetrieveCtx) =>
+      case Dynamic.DataRetrieveBased(dataRetrieveCtx) =>
         val expressionResult: ExpressionResultWithTypeInfo = fmvo.evalAndApplyTypeInfoFirst(dataRetrieveCtx.ctx)
         val optionDatas = expressionResult.listRepresentation.zipWithIndex.map { case (answer, index) =>
           updateDataRetrieveIndexBased(index, indexBased)
         }
         NonEmptyList.fromList(optionDatas).getOrElse(NonEmptyList.one(indexBased))
 
-      case atl @ OptionData.Dynamic.ATLBased(_) =>
+      case atl @ Dynamic.ATLBased(_) =>
         val baseIds: List[FormComponentId] = determineBaseIds(indexBased)
         expandOptionData(indexBased, atl, baseIds, updateIndexBased)
     }
@@ -133,7 +133,7 @@ object OptionDataUtils {
 
   private def expandOptionData[A, D <: DataOrigin](
     valueBased: A,
-    dynamic: OptionData.Dynamic.ATLBased,
+    dynamic: Dynamic.ATLBased,
     baseIds: List[FormComponentId],
     f: (Int, List[FormComponentId], A) => A
   )(implicit

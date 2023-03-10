@@ -316,10 +316,22 @@ object SummaryDisplayWidth extends Enumeration {
   implicit val displayWidthWrites: Writes[SummaryDisplayWidth] = Writes.enumNameWrites
 }
 
+sealed trait Dynamic extends Product with Serializable
+
+object Dynamic {
+
+  final case class ATLBased(formComponentId: FormComponentId) extends Dynamic
+  final case class DataRetrieveBased(indexOfDataRetrieveCtx: IndexOfDataRetrieveCtx) extends Dynamic
+
+  implicit val dataRetrieveCtx: OFormat[DataRetrieveCtx] = derived.oformat()
+  implicit val indexOfDataRetrieveCtx: OFormat[IndexOfDataRetrieveCtx] = derived.oformat()
+  implicit val format: OFormat[Dynamic] = derived.oformat()
+}
+
 sealed trait OptionData extends Product with Serializable {
   def label: SmartString
   def hint: Option[SmartString]
-  def dynamic: Option[OptionData.Dynamic]
+  def dynamic: Option[Dynamic]
 
   def value(index: Int): String = this match {
     case o: OptionData.IndexBased => index.toString
@@ -328,30 +340,19 @@ sealed trait OptionData extends Product with Serializable {
 }
 
 object OptionData {
-  sealed trait Dynamic extends Product with Serializable
-
-  object Dynamic {
-
-    final case class ATLBased(formComponentId: FormComponentId) extends Dynamic
-    final case class DataRetrieveBased(indexOfDataRetrieveCtx: IndexOfDataRetrieveCtx) extends Dynamic
-
-    implicit val dataRetrieveCtx: OFormat[DataRetrieveCtx] = derived.oformat()
-    implicit val indexOfDataRetrieveCtx: OFormat[IndexOfDataRetrieveCtx] = derived.oformat()
-    implicit val format: OFormat[Dynamic] = derived.oformat()
-  }
 
   case class IndexBased(
     label: SmartString,
     hint: Option[SmartString],
     includeIf: Option[IncludeIf],
-    dynamic: Option[OptionData.Dynamic]
+    dynamic: Option[Dynamic]
   ) extends OptionData
 
   case class ValueBased(
     label: SmartString,
     hint: Option[SmartString],
     includeIf: Option[IncludeIf],
-    dynamic: Option[OptionData.Dynamic],
+    dynamic: Option[Dynamic],
     value: String
   ) extends OptionData
 
@@ -601,7 +602,8 @@ object TableValue {
 
 case class TableValueRow(
   values: List[TableValue],
-  includeIf: Option[IncludeIf]
+  includeIf: Option[IncludeIf],
+  dynamic: Option[Dynamic]
 )
 
 object TableValueRow {

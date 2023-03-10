@@ -42,6 +42,7 @@ object FormModelExpander {
       def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[DataExpanded] = {
         val expanded = page.fields.flatMap {
           case fc @ IsChoice(choice)     => OptionDataUtils.expand(fc, choice) :: Nil
+          case fc @ IsTableComp(table)   => TableUtils.expand(fc, table) :: Nil
           case fc @ IsRevealingChoice(_) => fc :: Nil
           case fc @ IsGroup(group)       => ExpandUtils.expandGroup(fc, group, data)
           case otherwise                 => otherwise :: Nil
