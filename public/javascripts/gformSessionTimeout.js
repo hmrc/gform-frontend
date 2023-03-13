@@ -24,7 +24,7 @@
         $.ajax({
             url: "/submissions/keep-alive",
             type: "GET",
-            success: function(data, textStatus, xhr) {
+            error: function(xhr, textStatus, errorThrown) {
               if (xhr.status == 403) {
                   window.location.href = signOutUrl
               }
