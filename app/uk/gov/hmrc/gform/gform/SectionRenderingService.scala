@@ -1050,7 +1050,7 @@ class SectionRenderingService(
             renderTime(t, formComponent, validationResult, ei)
           case a @ Address(_, _, countyDisplayed, _) =>
             htmlForAddress(formComponent, a, validationResult, ei, countyDisplayed)
-          case o @ OverseasAddress(_, _, _, _) =>
+          case o @ OverseasAddress(_, _, _) =>
             htmlForOverseasAddress(formComponent, o, validationResult, ei)
           case t @ Text(Lookup(register, _), _, _, _, _, _) =>
             renderLookup(t, formComponent, register, validationResult, ei)
@@ -2318,11 +2318,6 @@ class SectionRenderingService(
     val formFieldValidationResult = validationResult(formComponent)
     val isPageHeading = ei.formLevelHeading
 
-    def fetchValue(key: HtmlFieldId, atom: Atom): String =
-      formFieldValidationResult.getOptionalCurrentValue(key).getOrElse {
-        overseasAddress.value.fold("")(_.getPrepopValue(atom))
-      }
-
     val lookupOptions = lookupRegistry.get(Register.Country).fold(LocalisedLookupOptions(Map.empty)) {
       case AjaxLookup(options, autocomplete, showAll) => options
       case RadioLookup(options)                       => options
@@ -2342,13 +2337,12 @@ class SectionRenderingService(
           Register.Country,
           ei,
           lookupOptions,
-          Some(fetchValue(countryHtmlFieldId, OverseasAddress.country)).filter(_.nonEmpty)
+          None
         ),
         formFieldValidationResult,
         formFieldValidationResultCountry,
         isPageHeading,
-        getLabelClasses(isPageHeading, formComponent.labelSize),
-        fetchValue
+        getLabelClasses(isPageHeading, formComponent.labelSize)
       )
   }
 

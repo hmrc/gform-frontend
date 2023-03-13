@@ -31,8 +31,7 @@
     validationResult: FormFieldValidationResult,
     validationResultCountry: FormFieldValidationResult,
     formLevelHeading: Boolean,
-    classes: String,
-    fetchValue: (HtmlFieldId, Atom) => String
+    classes: String
 )(
     implicit
     messages: Messages,
@@ -124,7 +123,7 @@
                            class="govuk-input @widthClass@if(rowError.nonEmpty){ govuk-input--error }"
                            name="@htmlId(rowId)"
                            id="@htmlId(rowId)"
-                           value="@fetchValue(rowId, row)" />
+                           value="" />
                 </div>
             }
         }
@@ -142,7 +141,7 @@
         Register.Country,
         formTemplateId,
         maybeAccessCode,
-        Option(fetchValue(safeId(OverseasAddress.country), OverseasAddress.country)).filter(_.nonEmpty),
+        None,
         validationResultCountry,
         None,
         selectItems,
