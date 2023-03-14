@@ -594,7 +594,9 @@ case class EvaluationResults(
       case NumberedList(fcId) => loop(FormCtx(fcId))
       case BulletedList(fcId) => loop(FormCtx(fcId))
       case Substring(expr, beginIndex, endIndex) =>
-        val substring = loop(expr).withStringResult("")(_.substring(beginIndex, endIndex))
+        val substring = loop(expr).withStringResult("")(s =>
+          s.substring(Math.min(beginIndex, s.length), Math.min(endIndex, s.length))
+        )
         StringResult(substring)
     }
 
