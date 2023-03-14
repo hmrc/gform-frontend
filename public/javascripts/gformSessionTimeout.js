@@ -10,6 +10,7 @@
       $("input").keypress(broadcastTimestamp);
       $("textarea").keypress(broadcastTimestamp);
       signOutUrl = $('meta[name="hmrc-timeout-dialog"]').attr('data-sign-out-url');
+      enableBroadcastTimestamp = $('meta[name="hmrc-timeout-dialog"]').length !== 0
     }
 
     function broadcastTimestamp() {
