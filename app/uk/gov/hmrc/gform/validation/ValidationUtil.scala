@@ -145,6 +145,46 @@ object ValidationUtil {
           .using(_.withReplacedAtoms(formComponent.baseComponentId, atomMap))
         multiFieldValidationResult(formComponent, syntheticOptics)
 
+      case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(fcId)))) =>
+        def mapper: IndexedComponentId => IndexedComponentId = {
+          case IndexedComponentId.Pure(_)           => IndexedComponentId.Pure(formComponent.baseComponentId)
+          case IndexedComponentId.Indexed(_, index) => IndexedComponentId.Indexed(formComponent.baseComponentId, index)
+        }
+        val syntheticOptics = formModelVisibilityOptics
+          .modify(_.recData.variadicFormData)
+          .using(_.withSyntheticCopy(fcId.baseComponentId, mapper))
+        multiFieldValidationResult(formComponent, syntheticOptics)
+
+      case IsOverseasAddress(OverseasAddress(_, _, _, Some(AuthCtx(AuthInfo.ItmpAddress)))) =>
+        val itmpAddress = formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
+          .flatMap(_.itmpAddress)
+        val itmpLines = List(
+          itmpAddress.flatMap(_.line1).getOrElse(""),
+          itmpAddress.flatMap(_.line2).getOrElse(""),
+          itmpAddress.flatMap(_.line3).getOrElse(""),
+          itmpAddress.flatMap(_.line4).getOrElse(""),
+          itmpAddress.flatMap(_.line5).getOrElse("")
+        ).filter(_.trim.nonEmpty)
+        val (ls, city) = itmpLines.splitAt(itmpLines.size - 1)
+        val lines = if (ls.size <= 3) {
+          ls
+        } else {
+          val lastLine = ls.drop(2).mkString(" ")
+          ls.take(2) :+ lastLine
+        }.padTo(3, "")
+        val linesMap = List("line1", "line2", "line3").zip(lines).toMap
+        val otherMap = Map(
+          "city"     -> city.headOption.getOrElse(""),
+          "postcode" -> itmpAddress.flatMap(_.postCode).getOrElse(""),
+          "country"  -> itmpAddress.flatMap(_.countryName).getOrElse("")
+        )
+        val atomMap: Map[String, String] = linesMap ++ otherMap
+
+        val syntheticOptics = formModelVisibilityOptics
+          .modify(_.recData.variadicFormData)
+          .using(_.withReplacedAtoms(formComponent.baseComponentId, atomMap))
+        multiFieldValidationResult(formComponent, syntheticOptics)
+
       case IsMultiField(_) => multiFieldValidationResult(formComponent, formModelVisibilityOptics)
 
       case IsTextOrTextArea(constraint) =>

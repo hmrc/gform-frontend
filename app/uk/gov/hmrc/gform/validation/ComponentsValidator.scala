@@ -205,7 +205,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         )
       case address @ Address(_, _, _, _) =>
         validIf(new AddressValidation[D]().validateAddress(formComponent, address)(formModelVisibilityOptics))
-      case overseasAddress @ OverseasAddress(_, _, _) =>
+      case overseasAddress @ OverseasAddress(_, _, _, _) =>
         validIf(
           new OverseasAddressValidation[D](formComponent, formModelVisibilityOptics, lookupRegistry)
             .validateOverseasAddress(overseasAddress)

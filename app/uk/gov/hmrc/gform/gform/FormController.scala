@@ -159,7 +159,7 @@ class FormController(
             bracket match {
               case Bracket.NonRepeatingPage(singleton, sectionNumber, _) =>
                 val formModel = formModelOptics.formModelVisibilityOptics.formModel
-                // section numbers with form components that miniSummaryList may refer to
+                // section numbers with form components that other components may refer to
                 val sns = formModel.pageModelLookup
                   .get(sectionNumber)
                   .map { pageModel =>
@@ -185,6 +185,8 @@ class FormController(
                                       r
                                   }
                             }
+                          case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(r)))) => List(List(r))
+                          case IsAddress(Address(_, _, _, Some(FormCtx(r))))                 => List(List(r))
                         }
                       }
                       .flatten
