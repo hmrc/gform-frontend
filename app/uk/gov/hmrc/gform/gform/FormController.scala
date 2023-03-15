@@ -86,7 +86,7 @@ class FormController(
   implicit val frontendConfig: FrontendAppConfig = frontendAppConfig
 
   // TODO: this method should really be in the SignOutController which does not yet exist
-  def keepAlive() = auth.keepAlive()
+  def keepAlive(formTemplateId: FormTemplateId) = auth.keepAlive(formTemplateId)
 
   def form(
     formTemplateId: FormTemplateId,
