@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IsFileUpload }
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
@@ -50,6 +50,12 @@ object AddToListUtils {
     val (iterationsToKeep, iterationsToReindex) = bracket.iterations.toList.splitAt(idx + 1)
 
     val toBeRemovedIds: Set[ModelComponentId] = toModelComponentIds(iteration :: Nil)
+
+    val toBeRemovedBaseIds: Set[BaseComponentId] = toBeRemovedIds.map(_.baseComponentId)
+
+    val dynamicChoicesOutsideATLToBeRemoved: List[ModelComponentId] = processData.formModel.allDynamicChoices.collect {
+      case (fcId, baseComponentIds) if baseComponentIds.exists(toBeRemovedBaseIds) => fcId.modelComponentId
+    }
 
     val filesToBeDeletedFromFileUpload: Set[FileId] = fileIdsWithMapping.associatedFileIds(toBeRemovedIds)
 
@@ -87,7 +93,7 @@ object AddToListUtils {
 
     val updatedVariadicFormData = {
       val initialVariadicFormData =
-        variadicFormData -- toBeRemovedIds -- variadicFormDataToModify ++ variadicFormDataToModified
+        variadicFormData -- toBeRemovedIds -- variadicFormDataToModify -- dynamicChoicesOutsideATLToBeRemoved ++ variadicFormDataToModified
       if (bracketPrefixes.isEmpty)
         initialVariadicFormData
       else
