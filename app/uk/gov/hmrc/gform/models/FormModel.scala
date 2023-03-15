@@ -96,6 +96,11 @@ case class FormModel[A <: PageMode](
 
   val allModelComponentIds: Set[ModelComponentId] = allMultiValueIds.flatMap(_.toModelComponentIds).toSet
 
+  def allDynamicChoices: List[(FormComponentId, Set[BaseComponentId])] = allFormComponents
+    .collect { case fc @ HasDynamicChoice((fcId, baseComponentIds)) =>
+      (fcId, baseComponentIds)
+    }
+
   def allUpperCaseIds: Set[ModelComponentId] =
     allFormComponents.collect { case fc @ IsCapitalised() =>
       fc.modelComponentId

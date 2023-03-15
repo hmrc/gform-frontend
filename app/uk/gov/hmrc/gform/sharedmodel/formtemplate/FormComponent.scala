@@ -208,6 +208,27 @@ object IsTelephone {
     }
 }
 
+object HasDynamicChoice {
+  def unapply(fc: FormComponent): Option[(FormComponentId, Set[BaseComponentId])] =
+    fc.`type` match {
+      case c: Choice =>
+        val baseComponentIds = c.options.toList
+          .map(_.dynamic)
+          .collect { case Some(Dynamic.ATLBased(formComponentId)) =>
+            formComponentId.baseComponentId
+          }
+          .toSet
+
+        if (baseComponentIds.isEmpty) {
+          None
+        } else {
+          Some(fc.id -> baseComponentIds)
+        }
+
+      case _ => None
+    }
+}
+
 object IsEmailVerifier {
   def unapply(formComponent: FormComponent): Option[(EmailFieldId, EmailVerifiedBy)] =
     formComponent.`type` match {
