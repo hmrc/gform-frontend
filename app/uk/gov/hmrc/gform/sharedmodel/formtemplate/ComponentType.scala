@@ -204,8 +204,8 @@ object Address {
 case class OverseasAddress(
   mandatoryFields: List[OverseasAddress.Configurable.Mandatory],
   optionalFields: List[OverseasAddress.Configurable.Optional],
-  value: Option[OverseasAddress.Value],
-  countryLookup: Boolean
+  countryLookup: Boolean,
+  value: Option[Expr]
 ) extends ComponentType with MultiField {
   override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
     OverseasAddress.fields(indexedComponentId)
@@ -254,31 +254,6 @@ object OverseasAddress {
       case object City extends Optional
       implicit val format: OFormat[Optional] = derived.oformat()
     }
-  }
-
-  case class Value(
-    line1: SmartString,
-    line2: SmartString,
-    line3: SmartString,
-    city: SmartString,
-    postcode: SmartString,
-    country: SmartString
-  ) {
-    def getPrepopValue(atom: Atom)(implicit
-      sse: SmartStringEvaluator
-    ): String = atom match {
-      case OverseasAddress.line1    => line1.value
-      case OverseasAddress.line2    => line2.value
-      case OverseasAddress.line3    => line3.value
-      case OverseasAddress.city     => city.value
-      case OverseasAddress.postcode => postcode.value
-      case OverseasAddress.country  => country.value
-      case _                        => ""
-    }
-  }
-
-  object Value {
-    implicit val format: OFormat[Value] = derived.oformat()
   }
 
   implicit val format: OFormat[OverseasAddress] = derived.oformat()
