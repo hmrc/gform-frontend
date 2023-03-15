@@ -6,10 +6,12 @@
 
     var enableBroadcastTimestamp = true;
     var signOutUrl = "";
+    var keepAliveUrl = "";
     function init() {
       $("input").keypress(broadcastTimestamp);
       $("textarea").keypress(broadcastTimestamp);
       signOutUrl = $('meta[name="hmrc-timeout-dialog"]').attr('data-sign-out-url');
+      keepAliveUrl = $('meta[name="hmrc-timeout-dialog"]').attr('data-keep-alive-url');
       enableBroadcastTimestamp = $('meta[name="hmrc-timeout-dialog"]').length !== 0
     }
 
@@ -23,7 +25,7 @@
           timestamp: Date.now()
         });
         $.ajax({
-            url: "/submissions/keep-alive",
+            url: keepAliveUrl,
             type: "GET",
             error: function(xhr, textStatus, errorThrown) {
               if (xhr.status == 403) {

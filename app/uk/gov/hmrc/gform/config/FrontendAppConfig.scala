@@ -59,7 +59,7 @@ case class FrontendAppConfig(
           language = Some(lang.langADTToString),
           timeout = Some(authTimeout.timeout),
           countdown = Some(authTimeout.countdown),
-          keepAliveUrl = Some(authTimeout.keepAliveUrl),
+          keepAliveUrl = Some(authTimeout.keepAliveUrl + "/" + templateId.value),
           keepAliveButtonText = Some(messages("timeout.dialog.keepAliveButton")),
           signOutUrl = Some(authTimeout.signOutUrl + "/" + templateId.value),
           signOutButtonText = Some(messages("timeout.dialog.signOutButton")),

@@ -57,7 +57,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
 
 trait AuthenticatedRequestActionsAlgebra[F[_]] {
-  def keepAlive(): Action[AnyContent]
+  def keepAlive(formTemplateId: FormTemplateId): Action[AnyContent]
 
   def authWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => F[Result]
@@ -158,14 +158,24 @@ class AuthenticatedRequestActions(
       CheckEnrolmentsResult.InvalidIdentifiers
   }
 
-  def keepAlive(): Action[AnyContent] = actionBuilder.async { implicit request =>
-    val predicate = AuthProviders(AuthProvider.GovernmentGateway)
+  def keepAlive(formTemplateId: FormTemplateId): Action[AnyContent] = actionBuilder.async { implicit request =>
+    implicit val lang: LangADT = getCurrentLanguage(request)
+    val formTemplateWithRedirect = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateWithRedirect.formTemplate
     for {
-      authResult <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
+      authResult <- authService
+                      .authenticateAndAuthorise(
+                        formTemplateWithRedirect,
+                        getAffinityGroup,
+                        getGovermentGatewayId,
+                        ggAuthorised(request),
+                        getCaseWorkerIdentity(request)
+                      )
       result <- authResult match {
                   case _: AuthSuccessful => Future.successful(Ok("success"))
                   case _ =>
-                    errResponder.forbidden("Access denied - Unsuccessful Auth", Option.empty[FormTemplate])
+                    errResponder.forbidden("Access denied - Unsuccessful Auth", Some(formTemplate))
+
                 }
     } yield result
   }
