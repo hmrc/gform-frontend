@@ -83,6 +83,7 @@ object ExprPrettyPrint {
     case NumberedList(_)               => "Numbered List"
     case BulletedList(_)               => "Bulleted List"
     case StringOps(_, stringFnc)       => stringFnc.toString
+    case Concat(_)                     => "Concat"
   }
 
   def prettyPrintItmpNameFocus(focus: ItmpNameFocus): String = focus match {

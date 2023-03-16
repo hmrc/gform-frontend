@@ -21,9 +21,9 @@ import cats.Eq
 import java.time.LocalDate
 import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
+import uk.gov.hmrc.gform.models.{FormModel, PageMode}
 import uk.gov.hmrc.gform.models.Atom
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveAttribute, DataRetrieveId }
+import uk.gov.hmrc.gform.sharedmodel.{DataRetrieveAttribute, DataRetrieveId}
 
 sealed trait Expr extends Product with Serializable {
 
@@ -72,6 +72,7 @@ sealed trait Expr extends Product with Serializable {
       case NumberedList(_)                         => expr :: Nil
       case BulletedList(_)                         => expr :: Nil
       case StringOps(_, _)                         => expr :: Nil
+      case Concat(exprs)                           => expr :: Nil
     }
     loop(this).headOption
   }
@@ -124,6 +125,7 @@ sealed trait Expr extends Product with Serializable {
     case NumberedList(formComponentId)              => FormCtx(formComponentId) :: Nil
     case BulletedList(formComponentId)              => FormCtx(formComponentId) :: Nil
     case StringOps(expr, _)                         => expr.leafs(formModel)
+    case Concat(exprs)                              => exprs.flatMap(_.leafs(formModel))
   }
 
   def sums: List[Sum] = this match {
@@ -163,6 +165,7 @@ sealed trait Expr extends Product with Serializable {
     case NumberedList(_)                            => Nil
     case BulletedList(_)                            => Nil
     case StringOps(_, _)                            => Nil
+    case Concat(_)                                  => Nil
   }
 }
 
@@ -201,6 +204,7 @@ final case class IndexOfDataRetrieveCtx(ctx: DataRetrieveCtx, index: Int) extend
 final case class NumberedList(formComponentId: FormComponentId) extends Expr
 final case class BulletedList(formComponentId: FormComponentId) extends Expr
 final case class StringOps(field1: Expr, stringFnc: StringFnc) extends Expr
+final case class Concat(exprs: List[Expr]) extends Expr
 
 sealed trait DateProjection extends Product with Serializable {
   def dateExpr: DateExpr
@@ -253,6 +257,7 @@ object PeriodFn {
   case object Days extends PeriodFn
   implicit val format: OFormat[PeriodFn] = derived.oformat()
 }
+
 sealed trait StringFnc
 object StringFnc {
   case object UpperFirst extends StringFnc
@@ -265,6 +270,7 @@ object StringFnc {
   case class SubString(beginIndex: Int, endIndex: Int) extends StringFnc
   implicit val format: OFormat[StringFnc] = derived.oformat()
 }
+
 final case class PeriodExt(period: Expr, func: PeriodFn) extends Expr
 
 sealed trait UserFieldFunc

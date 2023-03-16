@@ -24,12 +24,15 @@ import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
+import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ QueryParamValue, QueryParams, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Concat, Constant, Count, CsvCountryCheck, CsvCountryCountCheck, CsvOverseasCountryCheck, DataRetrieveCtx, DateCtx, DateExprWithOffset, DateFormCtxVar, DateFunction, DateProjection, DateValueExpr, Else, ExactDateExprValue, ExplicitExprType, Expr, FileSizeLimit, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, ParamCtx, Period, PeriodExt, PeriodFn, PeriodValue, QueryParam, RoundingMode, SectionNumber, ServiceName, Sterling, Sum, TodayDateExprValue, Typed, UserCtx, UserField, UserFieldFunc }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, CsvCountryCheck, CsvCountryCountCheck, CsvOverseasCountryCheck, DataRetrieveCtx, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, Expr, FileSizeLimit, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, ParamCtx, Period, PeriodExt, PeriodFn, PeriodValue, QueryParam, RoundingMode, SectionNumber, ServiceName, Sterling, StringFnc, StringOps, Sum, UserCtx, UserField, UserFieldFunc }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -503,6 +506,25 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         evaluationContext,
         StringResult("The tax rate"),
         "FormCtx expression converted to Lowercase and UpperFirst"
+      ),
+      (
+        TypeInfo(
+          Concat(
+            List(
+              Constant("Business owes "),
+              Typed(Constant("200"), ExplicitExprType.Sterling(RoundingMode.HalfUp)),
+              Constant(" at rate of £"),
+              Constant("100"),
+              Constant(" in tax year "),
+              Add(DateFunction(DateProjection.Year(DateValueExpr(TodayDateExprValue))), Constant("1"))
+            )
+          ),
+          StaticTypeData(ExprType.string, None)
+        ),
+        recDataEmpty,
+        evaluationContext,
+        StringResult("Business owes £200.00 at rate of £100 in tax year 2024"),
+        "Eval Concat(List(Exprs)) as string (concat the values)"
       )
     )
     forAll(table) {
