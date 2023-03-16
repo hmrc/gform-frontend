@@ -68,6 +68,7 @@ object Section {
     instruction: Option[Instruction],
     presentationHint: Option[PresentationHint],
     infoMessage: Option[SmartString],
+    errorMessage: Option[SmartString],
     defaultPage: Option[Page[Basic]] = None,
     cyaPage: Option[CheckYourAnswersPage] = None,
     fields: Option[NonEmptyList[FormComponent]] = None,

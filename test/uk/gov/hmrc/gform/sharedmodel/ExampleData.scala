@@ -664,6 +664,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     pages: List[Page[Basic]],
     presentationHint: Option[PresentationHint] = None,
     infoMessage: Option[String] = None,
+    errorMessage: Option[String] = None,
     defaultPage: Option[Page[Basic]] = None,
     cyaPage: Option[CheckYourAnswersPage] = None
   ): Section.AddToList =
@@ -683,6 +684,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       instruction,
       presentationHint,
       infoMessage.map(toSmartString),
+      errorMessage.map(toSmartString),
       defaultPage,
       cyaPage
     )

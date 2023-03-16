@@ -38,6 +38,7 @@ import uk.gov.hmrc.govukfrontend.views.html.components.{ ErrorMessage, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -72,8 +73,13 @@ class FormAddToListController(
             .confirmRemoval(formTemplateId, maybeAccessCode, sectionNumber, index, addToListId)
         val maybeBracket = formModel.bracket(sectionNumber)
         maybeBracket match {
-          case Bracket.AddToList(iterations, _) =>
-            val (pageError, fieldErrors) =
+          case Bracket.AddToList(iterations, source) =>
+            val (pageError, fieldErrors) = {
+              val errorMessage =
+                source.errorMessage.fold(request.messages.messages("generic.error.selectOption"))(error =>
+                  error.value()
+                )
+
               request.flash.get("removeParamMissing").fold((NoErrors: HasErrors, Map.empty[String, ErrorMessage])) {
                 _ =>
                   (
@@ -83,7 +89,7 @@ class FormAddToListController(
                           errorList = List(
                             ErrorLink(
                               href = Some("#remove"),
-                              content = content.Text(request.messages.messages("generic.error.selectOption"))
+                              content = content.Text(errorMessage)
                             )
                           ),
                           title = content.Text(request.messages.messages("error.summary.heading"))
@@ -92,11 +98,12 @@ class FormAddToListController(
                     ),
                     Map(
                       "remove" -> ErrorMessage(
-                        content = Text(request.messages.messages("generic.error.selectOption"))
+                        content = Text(errorMessage)
                       )
                     )
                   )
               }
+            }
             Ok(
               html.form
                 .addToList_requestRemoval(

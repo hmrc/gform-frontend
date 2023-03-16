@@ -74,6 +74,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     mkFormComponent("choice", Value),
     None,
     None,
+    None,
     None
   )
 
