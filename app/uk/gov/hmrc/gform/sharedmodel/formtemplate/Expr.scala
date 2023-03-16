@@ -17,13 +17,12 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.Eq
-
 import java.time.LocalDate
 import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.models.{FormModel, PageMode}
+import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.models.Atom
-import uk.gov.hmrc.gform.sharedmodel.{DataRetrieveAttribute, DataRetrieveId}
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveAttribute, DataRetrieveId }
 
 sealed trait Expr extends Product with Serializable {
 
