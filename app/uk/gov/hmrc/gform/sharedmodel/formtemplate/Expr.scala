@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.Eq
+
 import java.time.LocalDate
 import julienrf.json.derived
 import play.api.libs.json._
@@ -68,10 +69,9 @@ sealed trait Expr extends Product with Serializable {
       case Typed(e, _)                             => expr :: Nil
       case IndexOf(_, _)                           => expr :: Nil
       case IndexOfDataRetrieveCtx(_, _)            => expr :: Nil
-      case RemoveSpaces(_)                         => expr :: Nil
       case NumberedList(_)                         => expr :: Nil
       case BulletedList(_)                         => expr :: Nil
-      case Substring(_, _, _)                      => expr :: Nil
+      case StringOps(_, _)                         => expr :: Nil
     }
     loop(this).headOption
   }
@@ -121,10 +121,9 @@ sealed trait Expr extends Product with Serializable {
     case Typed(expr, _)                             => expr.leafs(formModel)
     case IndexOf(formComponentId, _)                => FormCtx(formComponentId) :: Nil
     case IndexOfDataRetrieveCtx(_, _)               => this :: Nil
-    case RemoveSpaces(_)                            => this :: Nil
     case NumberedList(formComponentId)              => FormCtx(formComponentId) :: Nil
     case BulletedList(formComponentId)              => FormCtx(formComponentId) :: Nil
-    case Substring(expr, _, _)                      => expr.leafs(formModel)
+    case StringOps(expr, _)                         => expr.leafs(formModel)
   }
 
   def sums: List[Sum] = this match {
@@ -161,10 +160,9 @@ sealed trait Expr extends Product with Serializable {
     case Typed(expr, _)                             => expr.sums
     case IndexOf(_, _)                              => Nil
     case IndexOfDataRetrieveCtx(_, _)               => Nil
-    case RemoveSpaces(_)                            => Nil
     case NumberedList(_)                            => Nil
     case BulletedList(_)                            => Nil
-    case Substring(_, _, _)                         => Nil
+    case StringOps(_, _)                            => Nil
   }
 }
 
@@ -200,10 +198,9 @@ final case class Size(formComponentId: FormComponentId, index: SizeRefType) exte
 final case class Typed(expr: Expr, tpe: ExplicitExprType) extends Expr
 final case class IndexOf(formComponentId: FormComponentId, index: Int) extends Expr
 final case class IndexOfDataRetrieveCtx(ctx: DataRetrieveCtx, index: Int) extends Expr
-final case class RemoveSpaces(formComponentId: FormComponentId) extends Expr
 final case class NumberedList(formComponentId: FormComponentId) extends Expr
 final case class BulletedList(formComponentId: FormComponentId) extends Expr
-final case class Substring(field1: Expr, beginIndex: Int, endIndex: Int) extends Expr
+final case class StringOps(field1: Expr, stringFnc: StringFnc) extends Expr
 
 sealed trait DateProjection extends Product with Serializable {
   def dateExpr: DateExpr
@@ -255,6 +252,18 @@ object PeriodFn {
   case object Months extends PeriodFn
   case object Days extends PeriodFn
   implicit val format: OFormat[PeriodFn] = derived.oformat()
+}
+sealed trait StringFnc
+object StringFnc {
+  case object UpperFirst extends StringFnc
+  case object UpperAll extends StringFnc
+  case object LowerFirst extends StringFnc
+  case object LowerAll extends StringFnc
+  case object UpperCase extends StringFnc
+  case object LowerCase extends StringFnc
+  case object RemoveSpaces extends StringFnc
+  case class SubString(beginIndex: Int, endIndex: Int) extends StringFnc
+  implicit val format: OFormat[StringFnc] = derived.oformat()
 }
 final case class PeriodExt(period: Expr, func: PeriodFn) extends Expr
 

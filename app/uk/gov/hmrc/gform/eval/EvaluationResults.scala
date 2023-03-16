@@ -119,14 +119,6 @@ case class EvaluationResults(
     }
   }
 
-  private def removeSpaces(
-    formComponentId: FormComponentId,
-    recData: RecData[SourceOrigin.OutOfDate]
-  ): ExpressionResult = {
-    val maybeValue: Option[String] = recData.variadicFormData.one(formComponentId.modelComponentId)
-    maybeValue.fold(StringResult(""))(v => StringResult(v.replaceAll(" ", "")))
-  }
-
   private def whenVisible(formComponentId: FormComponentId)(body: => ExpressionResult) = {
     val isHidden = exprMap.get(FormCtx(formComponentId)).fold(false)(_ === Hidden)
     if (isHidden) {
@@ -325,10 +317,9 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("Number")(expr)
         }
-      case RemoveSpaces(_)    => unsupportedOperation("Number")(expr)
-      case NumberedList(_)    => unsupportedOperation("Number")(expr)
-      case BulletedList(_)    => unsupportedOperation("Number")(expr)
-      case Substring(_, _, _) => unsupportedOperation("Number")(expr)
+      case NumberedList(_) => unsupportedOperation("Number")(expr)
+      case BulletedList(_) => unsupportedOperation("Number")(expr)
+      case StringOps(_, _) => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -590,14 +581,26 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("String")(expr)
         }
-      case RemoveSpaces(fcId) => removeSpaces(fcId, recData)
       case NumberedList(fcId) => loop(FormCtx(fcId))
       case BulletedList(fcId) => loop(FormCtx(fcId))
-      case Substring(expr, beginIndex, endIndex) =>
-        val substring = loop(expr).withStringResult("")(s =>
-          s.substring(Math.min(beginIndex, s.length), Math.min(endIndex, s.length))
+      case StringOps(expr, stringFnc) =>
+        def lowerFirst(s: String) = s.substring(Math.min(0, s.length), Math.min(1, s.length)).toLowerCase +
+          s.substring(Math.min(1, s.length))
+
+        val str = loop(expr).withStringResult("")(s =>
+          stringFnc match {
+            case StringFnc.UpperFirst   => s.capitalize
+            case StringFnc.LowerFirst   => lowerFirst(s)
+            case StringFnc.LowerAll     => s.split(' ').map(lowerFirst).mkString(" ")
+            case StringFnc.UpperAll     => s.split(' ').map(_.capitalize).mkString(" ")
+            case StringFnc.LowerCase    => s.toLowerCase
+            case StringFnc.UpperCase    => s.toUpperCase
+            case StringFnc.RemoveSpaces => s.replaceAll(" ", "")
+            case StringFnc.SubString(beginIndex, endIndex) =>
+              s.substring(Math.min(beginIndex, s.length), Math.min(endIndex, s.length))
+          }
         )
-        StringResult(substring)
+        StringResult(str)
     }
 
     loop(typeInfo.expr)
