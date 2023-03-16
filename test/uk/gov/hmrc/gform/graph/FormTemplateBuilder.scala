@@ -83,6 +83,7 @@ object FormTemplateBuilder {
     addToListQuestion("addToListQuestion"),
     None,
     None,
+    None,
     None
   )
 
@@ -104,6 +105,7 @@ object FormTemplateBuilder {
       None,
       None,
       addToListQuestion(addAnotherQuestionName),
+      None,
       None,
       None,
       None,
