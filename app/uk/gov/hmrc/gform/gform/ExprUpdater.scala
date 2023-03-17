@@ -66,6 +66,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case NumberedList(formComponentId)        => NumberedList(expandFcId(formComponentId))
     case BulletedList(formComponentId)        => BulletedList(expandFcId(formComponentId))
     case StringOps(expr, stringFnc)           => StringOps(expandExpr(expr), stringFnc)
+    case Concat(exprs)                        => Concat(exprs.map(expandExpr))
   }
 
   private def expandDateFunc(dateFunc: DateProjection): DateProjection = dateFunc match {

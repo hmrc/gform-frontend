@@ -320,6 +320,7 @@ case class EvaluationResults(
       case NumberedList(_) => unsupportedOperation("Number")(expr)
       case BulletedList(_) => unsupportedOperation("Number")(expr)
       case StringOps(_, _) => unsupportedOperation("Number")(expr)
+      case Concat(_)       => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -601,6 +602,7 @@ case class EvaluationResults(
           }
         )
         StringResult(str)
+      case Concat(exprs) => evalConcat(exprs, recData, booleanExprResolver, evaluationContext)
     }
 
     loop(typeInfo.expr)
@@ -767,6 +769,52 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext
   ): ExpressionResult =
     evalExpr(typeInfo, recData.asInstanceOf[RecData[SourceOrigin.OutOfDate]], booleanExprResolver, evaluationContext)
+
+  private def evalConcat(
+    exprs: List[Expr],
+    recData: RecData[SourceOrigin.OutOfDate],
+    booleanExprResolver: BooleanExprResolver,
+    evaluationContext: EvaluationContext
+  ) = {
+    val concatValue = exprs
+      .map { expr =>
+        val evalTypeInfo: TypeInfo = expr match {
+          case Add(_, _) | Multiply(_, _) | Subtraction(_, _) | Divide(_, _) =>
+            TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+          case DateCtx(_) => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))
+          case IsNumberConstant(_) | PeriodExt(_, _) | UserCtx(UserField.Enrolment(_, _, Some(UserFieldFunc.Count))) |
+              Size(_, _) | CsvCountryCountCheck(_, _, _) =>
+            TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+          case DataRetrieveCtx(_, attribute) if attribute.`type` === ExprType.number =>
+            TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+          case DataRetrieveCount(_) =>
+            TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+          case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
+          case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
+          case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
+          case AuthCtx(AuthInfo.ItmpAddress) => TypeInfo(expr, StaticTypeData(ExprType.address, None))
+          case _                             => TypeInfo(expr, StaticTypeData(ExprType.string, None))
+        }
+
+        val stringResult = evalExpr(
+          evalTypeInfo,
+          recData,
+          booleanExprResolver,
+          evaluationContext
+        ).stringRepresentation(evalTypeInfo, evaluationContext.messages)
+
+        expr match {
+          case Typed(_, ExplicitExprType.Sterling(_)) =>
+            TextFormatter.formatSterling(stringResult)
+          case Typed(_, ExplicitExprType.Number(fractionalDigits, roundingMode)) =>
+            TextFormatter.formatNumberWithPrecise(stringResult, fractionalDigits, roundingMode)
+          case _ => stringResult
+        }
+      }
+      .mkString("")
+
+    StringResult(concatValue)
+  }
 
   def evalExpr(
     typeInfo: TypeInfo,
