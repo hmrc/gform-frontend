@@ -63,10 +63,9 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case PeriodExt(_, _)                      => expr
     case IndexOf(_, _)                        => expr // This is not explanded on purpose, so it can be used correctly inside ATL
     case IndexOfDataRetrieveCtx(_, _)         => expr
-    case RemoveSpaces(formComponentId)        => RemoveSpaces(expandFcId(formComponentId))
     case NumberedList(formComponentId)        => NumberedList(expandFcId(formComponentId))
     case BulletedList(formComponentId)        => BulletedList(expandFcId(formComponentId))
-    case Substring(expr, from, to)            => Substring(expandExpr(expr), from, to)
+    case StringOps(expr, stringFnc)           => StringOps(expandExpr(expr), stringFnc)
   }
 
   private def expandDateFunc(dateFunc: DateProjection): DateProjection = dateFunc match {
