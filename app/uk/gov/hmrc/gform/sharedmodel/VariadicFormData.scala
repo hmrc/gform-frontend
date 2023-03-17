@@ -120,15 +120,19 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
     VariadicFormData[S](data ++ copy)
   }
 
-  def withReplacedAtoms(
-    baseComponentId: BaseComponentId,
+  def withCopyFromAtom(
+    modelComponentId: ModelComponentId,
     atomMap: Map[String, String]
   ): VariadicFormData[S] = {
-    val copy = forBaseComponentId(baseComponentId).map {
-      case (m @ ModelComponentId.Atomic(cId, Atom(atom)), variadicValue) if atomMap.contains(atom) =>
-        m -> VariadicValue.One(atomMap.getOrElse(atom, ""))
-      case otherwise => otherwise
-    }
+    val copy =
+      (modelComponentId, VariadicValue.One("")) ::
+        (modelComponentId match {
+          case ModelComponentId.Pure(indexedCompId) =>
+            atomMap.map { case (atom, value) =>
+              (ModelComponentId.Atomic(indexedCompId, Atom(atom)), VariadicValue.One(value))
+            }
+          case _ => List()
+        }).toList
     VariadicFormData[S](data ++ copy)
   }
 
