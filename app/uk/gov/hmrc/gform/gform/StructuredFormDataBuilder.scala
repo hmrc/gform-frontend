@@ -24,6 +24,8 @@ import scala.language.higherKinds
 import scala.util.Try
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
+import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
+import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.{ Atom, Bracket, Visibility }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, MultiValueId }
@@ -45,6 +47,22 @@ object StructuredFormDataBuilder {
     expressionsOutput: Option[ExpressionOutput],
     lookupRegistry: LookupRegistry
   )(implicit l: LangADT, m: Messages, me: MonadError[F, Throwable]): F[ObjectStructure] = {
+
+    def zeroPadding(x: Int) =
+      "%02d".format(x)
+
+    def mkDate(expressionId: ExpressionId, day: Int, month: Int, year: Int) =
+      Field(
+        FieldName(expressionId.id),
+        StructuredFormValue.ObjectStructure(
+          List(
+            Field(FieldName("day"), StructuredFormValue.TextNode(zeroPadding(day))),
+            Field(FieldName("month"), StructuredFormValue.TextNode(zeroPadding(month))),
+            Field(FieldName("year"), StructuredFormValue.TextNode(year.toString))
+          )
+        )
+      )
+
     val expressionsOutputFields = expressionsOutput.fold(List.empty[Field]) { eo =>
       eo.lookup.toList.flatMap { case (expressionId, expr) =>
         expr match {
@@ -80,29 +98,32 @@ object StructuredFormDataBuilder {
           case AuthCtx(AuthInfo.ItmpDateOfBirth) =>
             val maybeItmpRetrievals: Option[ItmpRetrievals] =
               formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
-            val zeroPadding = (x: Int) => "%02d".format(x)
             maybeItmpRetrievals
               .flatMap(_.itmpDateOfBirth)
               .map(DateHelperFunctions.convertToDateExpr)
-              .map(dateExpr =>
-                Field(
-                  FieldName(expressionId.id),
-                  StructuredFormValue.ObjectStructure(
-                    List(
-                      Field(FieldName("day"), StructuredFormValue.TextNode(zeroPadding(dateExpr.day))),
-                      Field(FieldName("month"), StructuredFormValue.TextNode(zeroPadding(dateExpr.month))),
-                      Field(FieldName("year"), StructuredFormValue.TextNode(dateExpr.year.toString))
-                    )
-                  )
-                )
-              )
+              .map { dateExpr =>
+                mkDate(expressionId, dateExpr.day, dateExpr.month, dateExpr.year)
+              }
               .toList
 
           case otherwise =>
-            val result = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
-            List(Field(FieldName(expressionId.id), StructuredFormValue.TextNode(result)))
-        }
+            val expressionResultWithInfo: ExpressionResultWithTypeInfo =
+              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)
 
+            expressionResultWithInfo.expressionResult match {
+              case DateResult(dateExpr) =>
+                List(
+                  mkDate(expressionId, dateExpr.getDayOfMonth, dateExpr.getMonthValue, dateExpr.getYear)
+                )
+              case _ =>
+                val result = expressionResultWithInfo.stringRepresentation
+                if (result.trim.isEmpty) {
+                  Nil
+                } else {
+                  List(Field(FieldName(expressionId.id), StructuredFormValue.TextNode(result)))
+                }
+            }
+        }
       }
     }
     new StructuredFormDataBuilder[D, F](
