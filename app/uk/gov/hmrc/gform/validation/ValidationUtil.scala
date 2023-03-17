@@ -118,16 +118,6 @@ object ValidationUtil {
     }
 
     def matchComponentType(formComponent: FormComponent): FormFieldValidationResult = formComponent match {
-      case IsAddress(Address(_, _, _, Some(FormCtx(fcId)))) =>
-        def mapper: IndexedComponentId => IndexedComponentId = {
-          case IndexedComponentId.Pure(_)           => IndexedComponentId.Pure(formComponent.baseComponentId)
-          case IndexedComponentId.Indexed(_, index) => IndexedComponentId.Indexed(formComponent.baseComponentId, index)
-        }
-        val syntheticOptics = formModelVisibilityOptics
-          .modify(_.recData.variadicFormData)
-          .using(_.withSyntheticCopy(fcId.baseComponentId, mapper))
-        multiFieldValidationResult(formComponent, syntheticOptics)
-
       case IsAddress(Address(_, _, _, Some(AuthCtx(AuthInfo.ItmpAddress)))) =>
         val itmpAddress = formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
           .flatMap(_.itmpAddress)
@@ -142,10 +132,10 @@ object ValidationUtil {
         )
         val syntheticOptics = formModelVisibilityOptics
           .modify(_.recData.variadicFormData)
-          .using(_.withReplacedAtoms(formComponent.baseComponentId, atomMap))
+          .using(_.withCopyFromAtom(formComponent.modelComponentId, atomMap))
         multiFieldValidationResult(formComponent, syntheticOptics)
 
-      case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(fcId)))) =>
+      case IsAddress(Address(_, _, _, Some(FormCtx(fcId)))) =>
         def mapper: IndexedComponentId => IndexedComponentId = {
           case IndexedComponentId.Pure(_)           => IndexedComponentId.Pure(formComponent.baseComponentId)
           case IndexedComponentId.Indexed(_, index) => IndexedComponentId.Indexed(formComponent.baseComponentId, index)
@@ -182,7 +172,17 @@ object ValidationUtil {
 
         val syntheticOptics = formModelVisibilityOptics
           .modify(_.recData.variadicFormData)
-          .using(_.withReplacedAtoms(formComponent.baseComponentId, atomMap))
+          .using(_.withCopyFromAtom(formComponent.modelComponentId, atomMap))
+        multiFieldValidationResult(formComponent, syntheticOptics)
+
+      case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(fcId)))) =>
+        def mapper: IndexedComponentId => IndexedComponentId = {
+          case IndexedComponentId.Pure(_)           => IndexedComponentId.Pure(formComponent.baseComponentId)
+          case IndexedComponentId.Indexed(_, index) => IndexedComponentId.Indexed(formComponent.baseComponentId, index)
+        }
+        val syntheticOptics = formModelVisibilityOptics
+          .modify(_.recData.variadicFormData)
+          .using(_.withSyntheticCopy(fcId.baseComponentId, mapper))
         multiFieldValidationResult(formComponent, syntheticOptics)
 
       case IsMultiField(_) => multiFieldValidationResult(formComponent, formModelVisibilityOptics)
