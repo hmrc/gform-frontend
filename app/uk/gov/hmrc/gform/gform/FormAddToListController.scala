@@ -76,7 +76,7 @@ class FormAddToListController(
           case Bracket.AddToList(iterations, source) =>
             val (pageError, fieldErrors) = {
               val errorMessage =
-                source.errorMessage.fold(request.messages.messages("generic.error.selectOption"))(error =>
+                source.errorMessage.fold(request.messages.messages("addToList.error.selectOption"))(error =>
                   error.value()
                 )
 

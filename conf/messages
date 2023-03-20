@@ -51,6 +51,7 @@ addToList.remove=Remove
 addToList.remove.visually.hidden=Remove {0} from the list
 addToList.addOrRemove=Add or remove
 addToList.confirmRemoval=Are you sure you want to remove this item?
+addToList.error.selectOption=Select yes if you want to remove this item
 
 button.continue=Continue
 button.saveAndContinue=Save and continue
