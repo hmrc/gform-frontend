@@ -70,18 +70,22 @@ object AuthContextPrepop {
         .map { itmpAddress =>
           val joinLines45 = itmpAddress.line4.map(_ + " ") |+| itmpAddress.line5
           List(
-            itmpAddress.line1,
-            itmpAddress.line2,
-            itmpAddress.line3,
-            joinLines45,
+            itmpAddress.line1.map(formatAddressLine),
+            itmpAddress.line2.map(formatAddressLine),
+            itmpAddress.line3.map(formatAddressLine),
+            joinLines45.map(formatAddressLine),
             itmpAddress.postCode,
-            itmpAddress.countryName
+            itmpAddress.countryName.map(formatCountryName)
           ).collect {
             case Some(entry) if entry.trim.nonEmpty => entry
           }
         }
         .getOrElse(List.empty[String])
     )
+
+  private def formatAddressLine(s: String) = if (s.exists(_.isLower)) capitalizeAll(s) else capitalizeAll(s.toLowerCase)
+  private def formatCountryName(s: String) = if (s.length > 3) capitalizeAll(s.toLowerCase) else s
+  private def capitalizeAll(s: String) = s.split(' ').map(_.capitalize).mkString(" ")
 
   private def concat(xs: Option[String]*): String = {
     val values = xs.collect {
