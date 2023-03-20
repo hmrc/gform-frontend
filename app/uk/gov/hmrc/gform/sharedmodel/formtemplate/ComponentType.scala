@@ -348,6 +348,13 @@ object NoneChoice {
   implicit val format: OFormat[NoneChoice] = derived.oformat()
 }
 
+sealed trait DividerPosition
+final case class IntDivider(pos: Int) extends DividerPosition
+final case class StringDivider(pos: String) extends DividerPosition
+
+object DividerPosition {
+  implicit val format: OFormat[DividerPosition] = derived.oformat()
+}
 case class Choice(
   `type`: ChoiceType,
   options: NonEmptyList[OptionData],
@@ -355,7 +362,7 @@ case class Choice(
   selections: List[Int],
   hints: Option[NonEmptyList[SmartString]],
   optionHelpText: Option[NonEmptyList[SmartString]],
-  dividerPosition: Option[Int],
+  dividerPosition: Option[DividerPosition],
   dividerText: LocalisedString,
   noneChoice: Option[NoneChoice],
   noneChoiceError: Option[LocalisedString]
