@@ -50,6 +50,7 @@ addToList.remove=Tynnu
 addToList.remove.visually.hidden=Tynnu {0} o’r rhestr
 addToList.addOrRemove=Ychwanegu neu dynnu
 addToList.confirmRemoval=A ydych yn siŵr eich bod am ddileu’r eitem hon?
+addToList.error.selectOption=Dewiswch ie os ydych am gael gwared ar yr eitem
 
 button.continue=Yn eich blaen
 button.saveAndContinue=Cadw ac yn eich blaen
