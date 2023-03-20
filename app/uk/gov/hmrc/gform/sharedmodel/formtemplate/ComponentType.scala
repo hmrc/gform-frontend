@@ -349,10 +349,10 @@ object NoneChoice {
 }
 
 sealed trait DividerPosition
-final case class IntDivider(pos: Int) extends DividerPosition
-final case class StringDivider(pos: String) extends DividerPosition
 
 object DividerPosition {
+  final case class DividerPositionNumber(pos: Int) extends DividerPosition
+  final case class DividerPositionValue(value: String) extends DividerPosition
   implicit val format: OFormat[DividerPosition] = derived.oformat()
 }
 case class Choice(
