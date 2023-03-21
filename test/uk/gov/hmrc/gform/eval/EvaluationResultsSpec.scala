@@ -481,31 +481,31 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          StringOps(FormCtx(FormComponentId("textField")), StringFnc.LowerFirst),
+          StringOps(FormCtx(FormComponentId("textField")), StringFnc.Capitalize),
           StaticTypeData(ExprType.string, None)
         ),
         RecData[OutOfDate](
           VariadicFormData.create(
-            (toModelComponentId("textField"), VariadicValue.One("The tax rate"))
+            (toModelComponentId("textField"), VariadicValue.One("the TaX Rate"))
           )
         ),
         evaluationContext,
-        StringResult("the tax rate"),
-        "FormCtx expression converted to LowerFirst"
+        StringResult("The TaX Rate"),
+        "FormCtx expression converted to Capitalize"
       ),
       (
         TypeInfo(
-          StringOps(StringOps(FormCtx(FormComponentId("textField")), StringFnc.LowerCase), StringFnc.UpperFirst),
+          StringOps(StringOps(FormCtx(FormComponentId("textField")), StringFnc.LowerCase), StringFnc.CapitalizeAll),
           StaticTypeData(ExprType.string, None)
         ),
         RecData[OutOfDate](
           VariadicFormData.create(
-            (toModelComponentId("textField"), VariadicValue.One("The Tax raTE"))
+            (toModelComponentId("textField"), VariadicValue.One("The tAx raTE"))
           )
         ),
         evaluationContext,
-        StringResult("The tax rate"),
-        "FormCtx expression converted to Lowercase and UpperFirst"
+        StringResult("The Tax Rate"),
+        "FormCtx expression converted to Lowercase and CapitalizeAll"
       ),
       (
         TypeInfo(

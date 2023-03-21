@@ -585,18 +585,13 @@ case class EvaluationResults(
       case NumberedList(fcId) => loop(FormCtx(fcId))
       case BulletedList(fcId) => loop(FormCtx(fcId))
       case StringOps(expr, stringFnc) =>
-        def lowerFirst(s: String) = s.substring(Math.min(0, s.length), Math.min(1, s.length)).toLowerCase +
-          s.substring(Math.min(1, s.length))
-
         val str = loop(expr).withStringResult("")(s =>
           stringFnc match {
-            case StringFnc.UpperFirst   => s.capitalize
-            case StringFnc.LowerFirst   => lowerFirst(s)
-            case StringFnc.LowerAll     => s.split(' ').map(lowerFirst).mkString(" ")
-            case StringFnc.UpperAll     => s.split(' ').map(_.capitalize).mkString(" ")
-            case StringFnc.LowerCase    => s.toLowerCase
-            case StringFnc.UpperCase    => s.toUpperCase
-            case StringFnc.RemoveSpaces => s.replaceAll(" ", "")
+            case StringFnc.Capitalize    => s.capitalize
+            case StringFnc.CapitalizeAll => s.split(' ').map(_.capitalize).mkString(" ")
+            case StringFnc.LowerCase     => s.toLowerCase
+            case StringFnc.UpperCase     => s.toUpperCase
+            case StringFnc.RemoveSpaces  => s.replaceAll(" ", "")
             case StringFnc.SubString(beginIndex, endIndex) =>
               s.substring(Math.min(beginIndex, s.length), Math.min(endIndex, s.length))
           }
