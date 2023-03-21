@@ -348,11 +348,11 @@ object NoneChoice {
   implicit val format: OFormat[NoneChoice] = derived.oformat()
 }
 
-sealed trait DividerPosition
+sealed trait DividerPosition extends Product with Serializable
 
 object DividerPosition {
-  final case class DividerPositionNumber(pos: Int) extends DividerPosition
-  final case class DividerPositionValue(value: String) extends DividerPosition
+  final case class Number(pos: Int) extends DividerPosition
+  final case class Value(value: String) extends DividerPosition
   implicit val format: OFormat[DividerPosition] = derived.oformat()
 }
 case class Choice(

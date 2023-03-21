@@ -97,7 +97,6 @@ import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.auth.core.ConfidenceLevel
-import DividerPosition._
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
@@ -1761,8 +1760,8 @@ class SectionRenderingService(
         }
         val items = dividerPosition.foldLeft(itemsWithNoDivider.toList) { case (ls, pos) =>
           val (before, after) = pos match {
-            case _: DividerPositionValue       => ls.span(_.value.getOrElse("") != pos)
-            case DividerPositionNumber(intPos) => ls.splitAt(intPos)
+            case DividerPosition.Value(value)   => ls.span(_.value =!= Some(value))
+            case DividerPosition.Number(intPos) => ls.splitAt(intPos)
           }
           before ++ List(RadioItem(divider = Some(dividerText.value))) ++ after
         }
@@ -1799,8 +1798,8 @@ class SectionRenderingService(
         }
         val items = dividerPosition.foldLeft(itemsWithNoDivider.toList) { (ls, pos) =>
           val (before, after): (List[CheckboxItem], List[CheckboxItem]) = pos match {
-            case _: DividerPositionValue       => ls.span(_.value != pos)
-            case DividerPositionNumber(intPos) => ls.splitAt(intPos)
+            case DividerPosition.Value(value)   => ls.span(_.value =!= value)
+            case DividerPosition.Number(intPos) => ls.splitAt(intPos)
           }
           before ++ List(CheckboxItem(divider = Some(dividerText.value))) ++ after
         }
