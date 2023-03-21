@@ -68,12 +68,13 @@ object AuthContextPrepop {
       itmpRetrievals
         .flatMap(_.itmpAddress)
         .map { itmpAddress =>
-          val joinLines45 = itmpAddress.line4.map(_ + " ") |+| itmpAddress.line5
+          val joinLines45 =
+            itmpAddress.line4.map(formatAddressLine(_) + " ") |+| itmpAddress.line5.map(formatAddressLine)
           List(
             itmpAddress.line1.map(formatAddressLine),
             itmpAddress.line2.map(formatAddressLine),
             itmpAddress.line3.map(formatAddressLine),
-            joinLines45.map(formatAddressLine),
+            joinLines45,
             itmpAddress.postCode,
             itmpAddress.countryName.map(formatCountryName)
           ).collect {
