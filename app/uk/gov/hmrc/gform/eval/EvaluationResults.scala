@@ -27,6 +27,7 @@ import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
+import uk.gov.hmrc.gform.eval.ExpressionResult.StringResult
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
@@ -317,10 +318,11 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("Number")(expr)
         }
-      case NumberedList(_) => unsupportedOperation("Number")(expr)
-      case BulletedList(_) => unsupportedOperation("Number")(expr)
-      case StringOps(_, _) => unsupportedOperation("Number")(expr)
-      case Concat(_)       => unsupportedOperation("Number")(expr)
+      case NumberedList(_)      => unsupportedOperation("Number")(expr)
+      case BulletedList(_)      => unsupportedOperation("Number")(expr)
+      case StringOps(_, _)      => unsupportedOperation("Number")(expr)
+      case Concat(_)            => unsupportedOperation("Number")(expr)
+      case CountryOfItmpAddress => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -598,6 +600,11 @@ case class EvaluationResults(
         )
         StringResult(str)
       case Concat(exprs) => evalConcat(exprs, recData, booleanExprResolver, evaluationContext)
+      case CountryOfItmpAddress =>
+        val itmpRetrievals = evaluationContext.thirdPartyData.itmpRetrievals
+        nonEmptyExpressionResult(
+          StringResult(itmpRetrievals.flatMap(_.itmpAddress).flatMap(_.countryName).getOrElse(""))
+        )
     }
 
     loop(typeInfo.expr)

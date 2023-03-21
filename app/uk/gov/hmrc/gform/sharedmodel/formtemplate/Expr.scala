@@ -72,6 +72,7 @@ sealed trait Expr extends Product with Serializable {
       case BulletedList(_)                         => expr :: Nil
       case StringOps(_, _)                         => expr :: Nil
       case Concat(exprs)                           => expr :: Nil
+      case CountryOfItmpAddress                    => expr :: Nil
     }
     loop(this).headOption
   }
@@ -125,6 +126,7 @@ sealed trait Expr extends Product with Serializable {
     case BulletedList(formComponentId)              => FormCtx(formComponentId) :: Nil
     case StringOps(expr, _)                         => expr.leafs(formModel)
     case Concat(exprs)                              => exprs.flatMap(_.leafs(formModel))
+    case CountryOfItmpAddress                       => this :: Nil
   }
 
   def sums: List[Sum] = this match {
@@ -165,6 +167,7 @@ sealed trait Expr extends Product with Serializable {
     case BulletedList(_)                            => Nil
     case StringOps(_, _)                            => Nil
     case Concat(_)                                  => Nil
+    case CountryOfItmpAddress                       => Nil
   }
 }
 
@@ -204,6 +207,7 @@ final case class NumberedList(formComponentId: FormComponentId) extends Expr
 final case class BulletedList(formComponentId: FormComponentId) extends Expr
 final case class StringOps(field1: Expr, stringFnc: StringFnc) extends Expr
 final case class Concat(exprs: List[Expr]) extends Expr
+final case object CountryOfItmpAddress extends Expr
 
 sealed trait DateProjection extends Product with Serializable {
   def dateExpr: DateExpr
