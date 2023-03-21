@@ -4,7 +4,7 @@
   function GformSessionTimeout() {
     var self = this;
 
-    var enableBroadcastTimestamp = true;
+    var enableBroadcastTimestamp = false;
     var signOutUrl = "";
     var keepAliveUrl = "";
     function init() {
@@ -12,7 +12,13 @@
       $("textarea").keypress(broadcastTimestamp);
       signOutUrl = $('meta[name="hmrc-timeout-dialog"]').attr('data-sign-out-url');
       keepAliveUrl = $('meta[name="hmrc-timeout-dialog"]').attr('data-keep-alive-url');
-      enableBroadcastTimestamp = $('meta[name="hmrc-timeout-dialog"]').length !== 0
+      $.ajax({
+        url: keepAliveUrl,
+        type: "GET",
+        success: function(data, textStatus, xhr) {
+            enableBroadcastTimestamp = $('meta[name="hmrc-timeout-dialog"]').length !== 0
+        }
+      });
     }
 
     function broadcastTimestamp() {
