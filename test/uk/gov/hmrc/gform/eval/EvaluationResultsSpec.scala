@@ -511,6 +511,27 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         TypeInfo(
           Concat(
             List(
+              FormCtx(FormComponentId("textField1")),
+              Constant(" "),
+              FormCtx(FormComponentId("textField2"))
+            )
+          ),
+          StaticTypeData(ExprType.string, None)
+        ),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("textField1"), VariadicValue.One("James")),
+            (toModelComponentId("textField2"), VariadicValue.One("Smith"))
+          )
+        ),
+        evaluationContext,
+        StringResult("James Smith"),
+        "Eval Concat(List(Exprs)) as string (concat the values with space)"
+      ),
+      (
+        TypeInfo(
+          Concat(
+            List(
               Constant("Business owes "),
               Typed(Constant("200"), ExplicitExprType.Sterling(RoundingMode.HalfUp)),
               Constant(" at rate of £"),
