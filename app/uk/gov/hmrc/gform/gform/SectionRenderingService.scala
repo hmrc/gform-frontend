@@ -1666,7 +1666,7 @@ class SectionRenderingService(
     optionalHelpText: Option[NonEmptyList[SmartString]],
     validationResult: ValidationResult,
     ei: ExtraInfo,
-    dividerPosition: Option[Int],
+    dividerPosition: Option[DividerPosition],
     dividerText: LocalisedString,
     maybeNoneChoice: Option[NoneChoice]
   )(implicit
@@ -1758,8 +1758,11 @@ class SectionRenderingService(
               hint = maybeHint
             )
         }
-        val items = dividerPosition.foldLeft(itemsWithNoDivider.toList) { (ls, pos) =>
-          val (before, after) = ls.splitAt(pos)
+        val items = dividerPosition.foldLeft(itemsWithNoDivider.toList) { case (ls, pos) =>
+          val (before, after) = pos match {
+            case DividerPosition.Value(value)   => ls.span(_.value =!= Some(value))
+            case DividerPosition.Number(intPos) => ls.splitAt(intPos)
+          }
           before ++ List(RadioItem(divider = Some(dividerText.value))) ++ after
         }
 
@@ -1794,7 +1797,10 @@ class SectionRenderingService(
             }
         }
         val items = dividerPosition.foldLeft(itemsWithNoDivider.toList) { (ls, pos) =>
-          val (before, after) = ls.splitAt(pos)
+          val (before, after): (List[CheckboxItem], List[CheckboxItem]) = pos match {
+            case DividerPosition.Value(value)   => ls.span(_.value =!= value)
+            case DividerPosition.Number(intPos) => ls.splitAt(intPos)
+          }
           before ++ List(CheckboxItem(divider = Some(dividerText.value))) ++ after
         }
 
