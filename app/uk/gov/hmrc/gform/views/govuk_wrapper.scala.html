@@ -121,7 +121,17 @@
           window.gform.lang = window.getCookie("PLAY_LANG") || "en";
     </script>
 
-   @{timeoutDialog.fold(HtmlFormat.empty)(timeoutDialog => hmrcTimeoutDialog(timeoutDialog))}
+    @{timeoutDialog.fold(HtmlFormat.empty)(timeoutDialog => hmrcTimeoutDialog(timeoutDialog))}
+
+    @{
+      if(displayTimeoutDialog) {
+        maybeFormTemplate.map(formTemplate =>
+          <meta name="gform-refresh-session" data-refresh-session-url={appConfig.refreshSession(formTemplate._id.value)} />
+        ).getOrElse(HtmlFormat.empty)
+      } else {
+        HtmlFormat.empty
+      }
+    }
 
     <meta name="format-detection" content="telephone=no" />
 }

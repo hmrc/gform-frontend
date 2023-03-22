@@ -58,7 +58,8 @@ POST          /forceTransition/:formTemplateId/:maybeAccessCode/:status         
 
 GET           /assets/*file                                                                                      controllers.Assets.versioned(path="/public", file: Asset)
 
-GET           /keep-alive/:formTemplateId                                                                        uk.gov.hmrc.gform.gform.FormController.keepAlive(formTemplateId: FormTemplateId)
+GET           /keep-alive                                                                                        uk.gov.hmrc.gform.gform.FormController.keepAlive()
+GET           /refresh-session/:formTemplateId                                                                   uk.gov.hmrc.gform.gform.FormController.refreshSession(formTemplateId: FormTemplateId)
 
 GET           /no-js/success-callback/:formTemplateId/:sectionCursor/:maybeAccessCode/:formComponentId/:fileId   uk.gov.hmrc.gform.fileupload.FileUploadController.noJsSuccessCallback(formTemplateId: FormTemplateId, sectionCursor: SectionNumber, maybeAccessCode: Option[AccessCode], formComponentId: FormComponentId, fileId: FileId)
 GET           /no-js/error-callback/:formTemplateId/:sectionCursor/:maybeAccessCode/:formComponentId/:fileId     uk.gov.hmrc.gform.fileupload.FileUploadController.noJsErrorCallback(formTemplateId: FormTemplateId, sectionCursor: SectionNumber, maybeAccessCode: Option[AccessCode], formComponentId: FormComponentId, fileId: FileId)

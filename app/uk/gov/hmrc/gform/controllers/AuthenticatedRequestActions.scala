@@ -57,7 +57,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
 
 trait AuthenticatedRequestActionsAlgebra[F[_]] {
-  def keepAlive(formTemplateId: FormTemplateId): Action[AnyContent]
+  def refreshSession(formTemplateId: FormTemplateId): Action[AnyContent]
 
   def authWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => F[Result]
@@ -158,7 +158,7 @@ class AuthenticatedRequestActions(
       CheckEnrolmentsResult.InvalidIdentifiers
   }
 
-  def keepAlive(formTemplateId: FormTemplateId): Action[AnyContent] = actionBuilder.async { implicit request =>
+  def refreshSession(formTemplateId: FormTemplateId): Action[AnyContent] = actionBuilder.async { implicit request =>
     implicit val lang: LangADT = getCurrentLanguage(request)
     val formTemplateWithRedirect = request.attrs(FormTemplateKey)
     val formTemplate = formTemplateWithRedirect.formTemplate
