@@ -115,7 +115,10 @@ class TaskListController(
               val isAddToListSectionNumber = formModel.addToListSectionNumbers.contains(nextVisibleSectionNumber)
 
               val sn =
-                if (isAddToListSectionNumber) formModel.addToListRepeaterSectionNumbers.reverse.head
+                if (isAddToListSectionNumber)
+                  formModel.addToListRepeaterSectionNumbers
+                    .find(_ >= nextVisibleSectionNumber)
+                    .getOrElse(nextVisibleSectionNumber)
                 else nextVisibleSectionNumber
 
               Redirect(sectionUrl(sn)).pure[Future]
