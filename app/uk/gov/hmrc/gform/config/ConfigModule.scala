@@ -95,7 +95,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       trackingConsentSnippet = new HmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration)),
       emailAuthStaticCodeEmails =
         getOptionalNonEmptyCIStringList(playConfiguration.getOptional[String]("emailAuth.staticCodeEmails")),
-      accessibilityStatementConfig = accessibilityStatementConfig
+      accessibilityStatementConfig = accessibilityStatementConfig,
+      refreshSessionUrl = typesafeConfig.getString("refresh-session-url")
     )
   }
 }

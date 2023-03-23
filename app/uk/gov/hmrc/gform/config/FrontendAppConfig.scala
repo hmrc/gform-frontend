@@ -38,7 +38,8 @@ case class FrontendAppConfig(
   optimizelyUrl: Option[String],
   trackingConsentSnippet: HmrcTrackingConsentSnippet,
   emailAuthStaticCodeEmails: Option[NonEmptyList[CIString]],
-  accessibilityStatementConfig: AccessibilityStatementConfig
+  accessibilityStatementConfig: AccessibilityStatementConfig,
+  refreshSessionUrl: String
 ) {
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {
@@ -59,7 +60,7 @@ case class FrontendAppConfig(
           language = Some(lang.langADTToString),
           timeout = Some(authTimeout.timeout),
           countdown = Some(authTimeout.countdown),
-          keepAliveUrl = Some(authTimeout.keepAliveUrl + "/" + templateId.value),
+          keepAliveUrl = Some(authTimeout.keepAliveUrl),
           keepAliveButtonText = Some(messages("timeout.dialog.keepAliveButton")),
           signOutUrl = Some(authTimeout.signOutUrl + "/" + templateId.value),
           signOutButtonText = Some(messages("timeout.dialog.signOutButton")),
@@ -72,5 +73,7 @@ case class FrontendAppConfig(
       None
     }
   }
+
+  def refreshSession(templateId: String): String = refreshSessionUrl + "/" + templateId
 
 }

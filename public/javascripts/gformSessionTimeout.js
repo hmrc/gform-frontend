@@ -4,15 +4,21 @@
   function GformSessionTimeout() {
     var self = this;
 
-    var enableBroadcastTimestamp = true;
+    var enableBroadcastTimestamp = false;
+    var refreshSessionUrl = "";
     var signOutUrl = "";
-    var keepAliveUrl = "";
     function init() {
       $("input").keypress(broadcastTimestamp);
       $("textarea").keypress(broadcastTimestamp);
+      refreshSessionUrl = $('meta[name="gform-refresh-session"]').attr('data-refresh-session-url');
       signOutUrl = $('meta[name="hmrc-timeout-dialog"]').attr('data-sign-out-url');
-      keepAliveUrl = $('meta[name="hmrc-timeout-dialog"]').attr('data-keep-alive-url');
-      enableBroadcastTimestamp = $('meta[name="hmrc-timeout-dialog"]').length !== 0
+      $.ajax({
+        url: refreshSessionUrl,
+        type: "GET",
+        success: function(data, textStatus, xhr) {
+            enableBroadcastTimestamp = $('meta[name="gform-refresh-session"]').length !== 0
+        }
+      });
     }
 
     function broadcastTimestamp() {
@@ -25,7 +31,7 @@
           timestamp: Date.now()
         });
         $.ajax({
-            url: keepAliveUrl,
+            url: refreshSessionUrl,
             type: "GET",
             error: function(xhr, textStatus, errorThrown) {
               if (xhr.status == 403) {
