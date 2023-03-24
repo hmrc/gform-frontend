@@ -127,9 +127,10 @@ object ValidationUtil {
           "street3"  -> itmpAddress.flatMap(_.line3).getOrElse(""),
           "street4"  -> itmpAddress.flatMap(address => address.line4.map(_ + " ") |+| address.line5).getOrElse(""),
           "postcode" -> itmpAddress.flatMap(_.postCode).getOrElse(""),
-          "country"  -> "",
-          "uk"       -> "true"
+          "uk"       -> itmpAddress.flatMap(_.countryName).filter(_.trim.nonEmpty).fold(true)(_ => false).toString,
+          "country"  -> itmpAddress.flatMap(_.countryName).filter(_.trim.nonEmpty).getOrElse("")
         )
+
         val syntheticOptics = formModelVisibilityOptics
           .modify(_.recData.variadicFormData)
           .using(_.withCopyFromAtom(formComponent.modelComponentId, atomMap))
@@ -166,7 +167,7 @@ object ValidationUtil {
         val otherMap = Map(
           "city"     -> city.headOption.getOrElse(""),
           "postcode" -> itmpAddress.flatMap(_.postCode).getOrElse(""),
-          "country"  -> itmpAddress.flatMap(_.countryName).getOrElse("")
+          "country"  -> itmpAddress.flatMap(_.countryName).filter(_.trim.nonEmpty).getOrElse("")
         )
         val atomMap: Map[String, String] = linesMap ++ otherMap
 

@@ -569,8 +569,20 @@ class AuthenticatedRequestActions(
 
     authorised(predicate)
       .retrieve(itmpRetrievals) { case itmpName ~ itmpDateOfBirth ~ itmpAddress =>
-        ItmpRetrievals(itmpName, itmpDateOfBirth, itmpAddress).pure[Future]
+        val updatedCountry = itmpAddress.flatMap(_.countryName).filterNot(isInUK)
+        val updatedItmpAddress = itmpAddress.map(_.copy(countryName = updatedCountry))
+        ItmpRetrievals(itmpName, itmpDateOfBirth, updatedItmpAddress).pure[Future]
       }
+  }
+
+  def isInUK(country: String): Boolean = country match {
+    case str if str.equalsIgnoreCase("ENGLAND")          => true
+    case str if str.equalsIgnoreCase("SCOTLAND")         => true
+    case str if str.equalsIgnoreCase("WALES")            => true
+    case str if str.equalsIgnoreCase("NORTHERN IRELAND") => true
+    case str if str.equalsIgnoreCase("GREAT BRITAIN")    => true
+    case str if str.equalsIgnoreCase("UNITED KINGDOM")   => true
+    case _                                               => false
   }
 }
 
