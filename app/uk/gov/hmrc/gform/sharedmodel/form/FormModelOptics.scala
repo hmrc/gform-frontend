@@ -25,6 +25,7 @@ import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.models.DataRetrieveAll
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
@@ -77,7 +78,8 @@ object FormModelOptics {
         List.empty,
         Set.empty[BaseComponentId],
         FileSizeLimit(cache.formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
-        cache.countryLookupOptions
+        cache.countryLookupOptions,
+        DataRetrieveAll.empty
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),

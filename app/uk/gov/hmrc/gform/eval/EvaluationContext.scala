@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.eval
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.models.DataRetrieveAll
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -47,5 +48,6 @@ final case class EvaluationContext(
   indexedComponentIds: List[ModelComponentId],
   taxPeriodYear: Set[BaseComponentId],
   fileSizeLimit: FileSizeLimit,
-  lookupOptions: LocalisedLookupOptions
+  lookupOptions: LocalisedLookupOptions,
+  dataRetrieveAll: DataRetrieveAll
 )

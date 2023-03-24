@@ -127,7 +127,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
           List.empty,
           Set.empty,
           FileSizeLimit(1),
-          LocalisedLookupOptions(Map())
+          LocalisedLookupOptions(Map()),
+          DataRetrieveAll.empty
         )
       )
     )

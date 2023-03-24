@@ -210,7 +210,8 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.allIndexedComponentIds,
         formModel.taxPeriodDate,
         FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
-        lookupOptions
+        lookupOptions,
+        formModel.dataRetrieveAll
       )
 
     recalculation

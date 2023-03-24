@@ -22,7 +22,7 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.models.Atom
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveAttribute, DataRetrieveId }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
 
 sealed trait Expr extends Product with Serializable {
 
@@ -194,7 +194,7 @@ final case class DateFunction(value: DateProjection) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
 final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
 final case object LangCtx extends Expr
-final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieveAttribute) extends Expr
+final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieve.Attribute) extends Expr
 final case class DataRetrieveCount(id: DataRetrieveId) extends Expr
 final case class CsvCountryCheck(formComponentId: FormComponentId, column: String) extends Expr
 final case class CsvOverseasCountryCheck(formComponentId: FormComponentId, column: String) extends Expr

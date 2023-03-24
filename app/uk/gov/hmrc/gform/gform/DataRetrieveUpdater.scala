@@ -17,70 +17,20 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BankAccountInsights, BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IncludeIf }
 
 class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[FormComponentId]) {
-  def update: DataRetrieve = dataRetrieve match {
-    case ValidateBankDetails(id, sortCode, accountNumber, iff) =>
-      val exprUpdater = new ExprUpdater(index, baseIds)
-      ValidateBankDetails(
-        id.withIndex(index),
-        exprUpdater.expandExpr(sortCode),
-        exprUpdater.expandExpr(accountNumber),
-        iff
-      )
-
-    case BusinessBankAccountExistence(id, sortCode, accountNumber, companyName, iff) =>
-      val exprUpdater = new ExprUpdater(index, baseIds)
-      BusinessBankAccountExistence(
-        id.withIndex(index),
-        exprUpdater.expandExpr(sortCode),
-        exprUpdater.expandExpr(accountNumber),
-        exprUpdater.expandExpr(companyName),
-        iff
-      )
-
-    case PersonalBankAccountExistence(id, sortCode, accountNumber, firstName, lastName, iff) =>
-      val exprUpdater = new ExprUpdater(index, baseIds)
-      PersonalBankAccountExistence(
-        id.withIndex(index),
-        exprUpdater.expandExpr(sortCode),
-        exprUpdater.expandExpr(accountNumber),
-        exprUpdater.expandExpr(firstName),
-        exprUpdater.expandExpr(lastName),
-        iff
-      )
-    case PersonalBankAccountExistenceWithName(id, sortCode, accountNumber, name, iff) =>
-      val exprUpdater = new ExprUpdater(index, baseIds)
-      PersonalBankAccountExistenceWithName(
-        id.withIndex(index),
-        exprUpdater.expandExpr(sortCode),
-        exprUpdater.expandExpr(accountNumber),
-        exprUpdater.expandExpr(name),
-        iff
-      )
-
-    case CompanyRegistrationNumber(id, companyNumber, iff) =>
-      val exprUpdater = new ExprUpdater(index, baseIds)
-      CompanyRegistrationNumber(id.withIndex(index), exprUpdater.expandExpr(companyNumber), iff)
-
-    case NinoInsights(id, nino, iff) =>
-      val exprUpdater = new ExprUpdater(index, baseIds)
-      NinoInsights(id.withIndex(index), exprUpdater.expandExpr(nino), iff)
-
-    case BankAccountInsights(id, sortCode, accountNumber, iff) =>
-      val exprUpdater = new ExprUpdater(index, baseIds)
-      BankAccountInsights(
-        id.withIndex(index),
-        exprUpdater.expandExpr(sortCode),
-        exprUpdater.expandExpr(accountNumber),
-        iff
-      )
-
-    case Employments(id, nino, taxYear, iff) =>
-      val exprUpdater = new ExprUpdater(index, baseIds)
-      Employments(id.withIndex(index), exprUpdater.expandExpr(nino), exprUpdater.expandExpr(taxYear), iff)
+  def update: DataRetrieve = {
+    val exprUpdater = new ExprUpdater(index, baseIds)
+    val booleanExprUpdater = new BooleanExprUpdater(index, baseIds)
+    val paramsUpdated = dataRetrieve.params.map { paramExpr =>
+      paramExpr.copy(expr = exprUpdater.expandExpr(paramExpr.expr))
+    }
+    val ifUpdated = dataRetrieve.`if`.map(includeIf => IncludeIf(booleanExprUpdater(includeIf.booleanExpr)))
+    dataRetrieve.copy(
+      params = paramsUpdated,
+      `if` = ifUpdated
+    )
   }
 }
 

@@ -40,7 +40,7 @@ import uk.gov.hmrc.gform.gform.{ SectionRenderingService, SummaryPagePurpose }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ Coordinates, FormModel, Interim, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ Coordinates, DataRetrieveAll, FormModel, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -147,7 +147,8 @@ class SummaryRenderingServiceSpec
           List.empty,
           Set.empty,
           FileSizeLimit(1),
-          LocalisedLookupOptions(Map())
+          LocalisedLookupOptions(Map()),
+          DataRetrieveAll.empty
         )
       )
     )
