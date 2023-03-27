@@ -575,15 +575,9 @@ class AuthenticatedRequestActions(
       }
   }
 
-  def isInUK(country: String): Boolean = country match {
-    case str if str.equalsIgnoreCase("ENGLAND")          => true
-    case str if str.equalsIgnoreCase("SCOTLAND")         => true
-    case str if str.equalsIgnoreCase("WALES")            => true
-    case str if str.equalsIgnoreCase("NORTHERN IRELAND") => true
-    case str if str.equalsIgnoreCase("GREAT BRITAIN")    => true
-    case str if str.equalsIgnoreCase("UNITED KINGDOM")   => true
-    case _                                               => false
-  }
+  def isInUK(country: String): Boolean = ukParts(country.toUpperCase)
+
+  private val ukParts = Set("ENGLAND", "SCOTLAND", "WALES", "NORTHERN IRELAND", "GREAT BRITAIN", "UNITED KINGDOM")
 }
 
 sealed trait AuthCache {
