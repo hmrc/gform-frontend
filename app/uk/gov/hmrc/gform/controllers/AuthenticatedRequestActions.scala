@@ -569,9 +569,15 @@ class AuthenticatedRequestActions(
 
     authorised(predicate)
       .retrieve(itmpRetrievals) { case itmpName ~ itmpDateOfBirth ~ itmpAddress =>
-        ItmpRetrievals(itmpName, itmpDateOfBirth, itmpAddress).pure[Future]
+        val updatedCountry = itmpAddress.flatMap(_.countryName).filterNot(isInUK)
+        val updatedItmpAddress = itmpAddress.map(_.copy(countryName = updatedCountry))
+        ItmpRetrievals(itmpName, itmpDateOfBirth, updatedItmpAddress).pure[Future]
       }
   }
+
+  def isInUK(country: String): Boolean = ukParts(country.toUpperCase)
+
+  private val ukParts = Set("ENGLAND", "SCOTLAND", "WALES", "NORTHERN IRELAND", "GREAT BRITAIN", "UNITED KINGDOM")
 }
 
 sealed trait AuthCache {
