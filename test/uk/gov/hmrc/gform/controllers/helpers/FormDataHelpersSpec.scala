@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ Bracket, BracketsWithSectionNumber, DataExpanded, EnteredVariadicFormData, FormModel, Singleton }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, EORI, FormComponentId, FormTemplateId, Horizontal, NINO, OptionData, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SectionNumber, Sterling, Text, UTR, UkEORI, UkVrn, Value, WholeSterling }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, EORI, FormComponentId, FormTemplateId, Horizontal, NINO, OptionData, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SaUTR, SectionNumber, Sterling, Text, UkEORI, UkVrn, Value, WholeSterling }
 
 import scala.concurrent.Future
 
@@ -347,9 +347,9 @@ class FormDataHelpersSpec extends Spec {
     future.futureValue shouldBe Results.Ok
   }
 
-  it should "remove spaces in UTR" in new TestFixture {
+  it should "remove spaces in SaUTR" in new TestFixture {
 
-    override lazy val fields = List(mkFormComponent("utrField", Text(UTR, Value)))
+    override lazy val fields = List(mkFormComponent("utrField", Text(SaUTR, Value)))
     override lazy val requestBodyParams = Map("utrField" -> Seq("11 11 11 11 11"))
 
     val continuationFunction = (_: RequestRelatedData) =>
