@@ -30,13 +30,13 @@ import org.slf4j.LoggerFactory
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gform.CustomerId
+import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
 import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
-import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, EmploymentsResponse }
+import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse }
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateWithRedirects, _ }
@@ -401,13 +401,14 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     )
   }
 
+  private val urlWithPlaceholders = s"$baseUrl/des-employments/{{nino}}/{{taxYear}}"
+  private val employmentsProfileB = new DataRetrieveConnectorBlueprint(ws, urlWithPlaceholders, "employments")
+
   def getEmployments(
-    nino: String,
-    taxYear: Int
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[List[EmploymentsResponse]]] =
-    ws.GET[ServiceCallResponse[List[EmploymentsResponse]]](
-      s"$baseUrl/des-employments/$nino/$taxYear"
-    )
+    dataRetrieve: DataRetrieve,
+    request: DataRetrieve.Request
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
+    employmentsProfileB.get(dataRetrieve, request)
 
   /** **** Form Bundles *****
     */

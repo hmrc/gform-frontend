@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import munit.FunSuite
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.models.email.EmailFieldId
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieveAttribute, DataRetrieveId, DataRetrieveResult, NotChecked, RetrieveDataType }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieve, DataRetrieveId, DataRetrieveResult, NotChecked, RetrieveDataType }
 
 class ThirdPartyDataSuite extends FunSuite {
 
@@ -31,13 +31,13 @@ class ThirdPartyDataSuite extends FunSuite {
       id = dataRetrieveId,
       data = RetrieveDataType.ObjectType(
         Map(
-          DataRetrieveAttribute.NonStandardAccountDetailsRequiredForBacs -> "no",
-          DataRetrieveAttribute.SortCodeSupportsDirectDebit              -> "no",
-          DataRetrieveAttribute.IsValid                                  -> "yes",
-          DataRetrieveAttribute.SortCodeBankName                         -> "BARCLAYS BANK UK PLC",
-          DataRetrieveAttribute.SortCodeSupportsDirectCredit             -> "no",
-          DataRetrieveAttribute.SortCodeIsPresentOnEISCD                 -> "yes",
-          DataRetrieveAttribute.Iban                                     -> "GB21BARC20670586473611"
+          DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs") -> "no",
+          DataRetrieve.Attribute("sortCodeSupportsDirectDebit")              -> "no",
+          DataRetrieve.Attribute("isValid")                                  -> "yes",
+          DataRetrieve.Attribute("sortCodeBankName")                         -> "BARCLAYS BANK UK PLC",
+          DataRetrieve.Attribute("sortCodeSupportsDirectCredit")             -> "no",
+          DataRetrieve.Attribute("sortCodeIsPresentOnEISCD")                 -> "yes",
+          DataRetrieve.Attribute("iban")                                     -> "GB21BARC20670586473611"
         )
       ),
       requestParams = Json.obj("accountNumber" -> "86473611", "sortCode" -> "206705")
@@ -105,10 +105,10 @@ class ThirdPartyDataSuite extends FunSuite {
       data = RetrieveDataType.ListType(
         List(
           Map(
-            DataRetrieveAttribute.EmployerName -> "John"
+            DataRetrieve.Attribute("employerName") -> "John"
           ),
           Map(
-            DataRetrieveAttribute.EmployerName -> "Doe"
+            DataRetrieve.Attribute("employerName") -> "Doe"
           )
         )
       ),

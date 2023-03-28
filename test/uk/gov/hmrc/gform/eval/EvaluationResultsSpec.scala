@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.lookup._
+import uk.gov.hmrc.gform.models.DataRetrieveAll
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
@@ -89,7 +90,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       indexedComponentIds,
       Set.empty,
       FileSizeLimit(1),
-      LocalisedLookupOptions(Map())
+      LocalisedLookupOptions(Map()),
+      DataRetrieveAll.empty
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()
@@ -327,7 +329,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         TypeInfo(
           DataRetrieveCtx(
             DataRetrieveId("someDataRetrieveId"),
-            DataRetrieveAttribute.fromName("isValid")
+            DataRetrieve.Attribute("isValid")
           ),
           StaticTypeData(ExprType.string, None)
         ),
@@ -338,7 +340,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
               Map(
                 DataRetrieveId("someDataRetrieveId") -> DataRetrieveResult(
                   DataRetrieveId("someDataRetrieveId"),
-                  RetrieveDataType.ObjectType(Map(DataRetrieveAttribute.fromName("isValid") -> "111")),
+                  RetrieveDataType.ObjectType(Map(DataRetrieve.Attribute("isValid") -> "111")),
                   Json.obj()
                 )
               )

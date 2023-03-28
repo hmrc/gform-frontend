@@ -23,6 +23,7 @@ import play.api.i18n.Lang
 import play.api.{ Environment, Mode }
 import uk.gov.hmrc.gform.auth.models.OtherRetrievals
 import uk.gov.hmrc.gform.config.FileInfoConfig
+import uk.gov.hmrc.gform.models.{ Basic, DataRetrieveAll, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
@@ -31,7 +32,6 @@ import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
-import uk.gov.hmrc.gform.models.{ Basic, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, DestinationId }
@@ -82,7 +82,8 @@ trait ExampleEvaluationContext {
       List.empty,
       Set.empty,
       FileSizeLimit(1),
-      LocalisedLookupOptions(Map())
+      LocalisedLookupOptions(Map()),
+      DataRetrieveAll.empty
     )
 }
 

@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId, MultiValueId }
-import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsPostcodeLookup, IsUpscanInitiateFileUpload, Page, PageId, PresentationHint, RedirectCtx, SummarySectionIncludeIf, ValidIf }
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
@@ -91,6 +91,9 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   })(_ => None)(_ => None)
 
   def redirects: List[RedirectCtx] = fold(_.page.redirects.map(_.toList).toList.flatten)(_ => Nil)(_ => Nil)
+
+  def dataRetrieves: List[DataRetrieve] =
+    fold(_.page.dataRetrieve.toList.flatMap(_.toList))(_ => List.empty[DataRetrieve])(_ => List.empty[DataRetrieve])
 
 }
 

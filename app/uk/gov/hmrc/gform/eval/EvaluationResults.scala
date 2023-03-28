@@ -791,7 +791,7 @@ case class EvaluationResults(
                   UserCtx(UserField.Enrolment(_, _, Some(UserFieldFunc.Count))) | Size(_, _) |
                   CsvCountryCountCheck(_, _, _) =>
                 TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-              case DataRetrieveCtx(_, attribute) if attribute.`type` === ExprType.number =>
+              case DataRetrieveCtx(id, attribute) if evaluationContext.dataRetrieveAll.isInteger(id, attribute) =>
                 TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
               case DataRetrieveCount(_) =>
                 TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))

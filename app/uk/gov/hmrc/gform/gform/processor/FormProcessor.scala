@@ -38,7 +38,6 @@ import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction 
 import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BankAccountInsights, BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
@@ -273,49 +272,36 @@ class FormProcessor(
           dataRetrieve: DataRetrieve,
           visibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
         ): Future[(Option[DataRetrieveResult], FormModelVisibilityOptics[DataOrigin.Browser])] = {
-          dataRetrieve match {
-            case v: ValidateBankDetails =>
-              val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, v.id)
-              implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
-              DataRetrieveService[ValidateBankDetails, Future]
-                .retrieve(v, visibilityOptics, maybeRequestParams)
-            case v: BusinessBankAccountExistence =>
-              val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, v.id)
-              implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
-              DataRetrieveService[BusinessBankAccountExistence, Future]
-                .retrieve(v, visibilityOptics, maybeRequestParams)
-            case p: PersonalBankAccountExistence =>
-              val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, p.id)
-              implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
-              DataRetrieveService[PersonalBankAccountExistence, Future]
-                .retrieve(p, visibilityOptics, maybeRequestParams)
-            case p: PersonalBankAccountExistenceWithName =>
-              val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, p.id)
-              implicit val b: BankAccountReputationConnector[Future] = bankAccountReputationConnector
-              DataRetrieveService[PersonalBankAccountExistenceWithName, Future]
-                .retrieve(p, visibilityOptics, maybeRequestParams)
-            case v: CompanyRegistrationNumber =>
-              val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, v.id)
-              implicit val b: CompanyInformationConnector[Future] = companyInformationConnector
-              DataRetrieveService[CompanyRegistrationNumber, Future]
-                .retrieve(v, visibilityOptics, maybeRequestParams)
-            case n: NinoInsights =>
-              val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, n.id)
-              implicit val ni: NinoInsightsConnector[Future] = ninoInsightsConnector
-              DataRetrieveService[NinoInsights, Future]
-                .retrieve(n, visibilityOptics, maybeRequestParams)
-            case a: BankAccountInsights =>
-              val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, a.id)
-              implicit val ai: BankAccountInsightsConnector[Future] = bankAccountInsightConnector
-              DataRetrieveService[BankAccountInsights, Future]
-                .retrieve(a, visibilityOptics, maybeRequestParams)
-            case e: Employments =>
-              val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, e.id)
-              implicit val c: GformConnector = gformConnector
-              DataRetrieveService[Employments, Future]
-                .retrieve(e, visibilityOptics, maybeRequestParams)
+          val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, dataRetrieve.id)
+          val maybeExecutor
+            : Option[(DataRetrieve, DataRetrieve.Request) => Future[ServiceCallResponse[DataRetrieve.Response]]] =
+            dataRetrieve.tpe match {
+              case DataRetrieve.Type("validateBankDetails") => Some(bankAccountReputationConnector.validateBankDetails)
+              case DataRetrieve.Type("businessBankAccountExistence") =>
+                Some(bankAccountReputationConnector.businessBankAccountExistence)
+              case DataRetrieve.Type("personalBankAccountExistence") =>
+                Some(bankAccountReputationConnector.personalBankAccountExistence)
+              case DataRetrieve.Type("personalBankAccountExistenceWithName") =>
+                Some(bankAccountReputationConnector.personalBankAccountExistence)
+              case DataRetrieve.Type("companyRegistrationNumber") => Some(companyInformationConnector.companyProfile)
+              case DataRetrieve.Type("ninoInsights")              => Some(ninoInsightsConnector.insights)
+              case DataRetrieve.Type("bankAccountInsights")       => Some(bankAccountInsightConnector.insights)
+              case DataRetrieve.Type("employments")               => Some(gformConnector.getEmployments)
+
+              case _ => Option.empty
+            }
+          val maybeRetrieveResultF = maybeExecutor.flatTraverse { executor =>
+            DataRetrieveService
+              .retrieveData(
+                dataRetrieve,
+                visibilityOptics,
+                maybeRequestParams,
+                executor
+              )
+
           }
-        }.map(r => r -> visibilityOptics.addDataRetreiveResults(r.toList))
+          maybeRetrieveResultF.map(r => r -> visibilityOptics.addDataRetreiveResults(r.toList))
+        }
 
         if (isValid) {
           val initialVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics

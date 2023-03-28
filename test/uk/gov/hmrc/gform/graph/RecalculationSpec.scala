@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.Helpers._
 import uk.gov.hmrc.gform.eval.ExpressionResult._
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.models.{ FormModelSupport, Interim, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ DataRetrieveAll, FormModelSupport, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -69,7 +69,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       List.empty,
       Set.empty,
       FileSizeLimit(1),
-      LocalisedLookupOptions(Map())
+      LocalisedLookupOptions(Map()),
+      DataRetrieveAll.empty
     )
 
   "recalculation" should "recalculate single dependency" in {

@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
 import uk.gov.hmrc.gform.eval.ExpressionResult._
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.models.DataRetrieveAll
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
@@ -442,7 +443,8 @@ class RealSmartStringEvaluatorFactorySpec
           indexedComponentIds,
           Set.empty,
           FileSizeLimit(1),
-          LocalisedLookupOptions(Map())
+          LocalisedLookupOptions(Map()),
+          DataRetrieveAll.empty
         )
       )
     )

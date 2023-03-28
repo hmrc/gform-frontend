@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode, Repeater, Singleton }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ BankAccountInsights, BusinessBankAccountExistence, CompanyRegistrationNumber, Employments, NinoInsights, PersonalBankAccountExistence, PersonalBankAccountExistenceWithName, ValidateBankDetails }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, HmrcRosmRegistrationCheckValidator }
 
 /*
@@ -42,19 +41,10 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
           utr :: postCode :: errorMessage.interpolations
       }
 
-      val dataRetrieveExpressions = page.dataRetrieves().foldRight(List.empty[Expr]) {
-        case (ValidateBankDetails(_, sortCode, accountNumber, _), acc) => acc ++ List(sortCode, accountNumber)
-        case (BusinessBankAccountExistence(_, sortCode, accountNumber, companyName, _), acc) =>
-          acc ++ List(sortCode, accountNumber, companyName)
-        case (PersonalBankAccountExistence(_, sortCode, accountNumber, firstName, lastName, _), acc) =>
-          acc ++ List(sortCode, accountNumber, firstName, lastName)
-        case (PersonalBankAccountExistenceWithName(_, sortCode, accountNumber, name, _), acc) =>
-          acc ++ List(sortCode, accountNumber, name)
-        case (CompanyRegistrationNumber(_, companyNumber, _), acc)   => acc ++ List(companyNumber)
-        case (NinoInsights(_, nino, _), acc)                         => acc ++ List(nino)
-        case (BankAccountInsights(_, sortCode, bankAccount, _), acc) => acc ++ List(sortCode, bankAccount)
-        case (Employments(_, nino, taxYear, _), acc)                 => acc ++ List(nino, taxYear)
+      val dataRetrieveExpressions = page.dataRetrieves().foldRight(List.empty[Expr]) { case (dataRetrieve, acc) =>
+        dataRetrieve.params.map(_.expr) ++ acc
       }
+
       pageExprs ++ validatorExprs ++ dataRetrieveExpressions
     }
 

@@ -150,6 +150,8 @@ case class FormModel[A <: PageMode](
     case _                                      => Nil
   }
 
+  val dataRetrieveAll: DataRetrieveAll = DataRetrieveAll.from(this)
+
   val pageModelLookup: Map[SectionNumber, PageModel[A]] = pagesWithIndex.toList.map(_.swap).toMap
 
   val fcIdRepeatsExprLookup: Map[FormComponentId, Expr] = brackets.repeatingPageBrackets.flatMap { repeatingBracket =>
@@ -253,7 +255,9 @@ case class FormModel[A <: PageMode](
       case IsNumberConstant(_) | PeriodExt(_, _) | UserCtx(UserField.Enrolment(_, _, Some(UserFieldFunc.Count))) |
           Size(_, _) | CsvCountryCountCheck(_, _, _) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-      case DataRetrieveCtx(_, attribute) if attribute.`type` === ExprType.number =>
+      case DataRetrieveCtx(id, attribute) if dataRetrieveAll.isInteger(id, attribute) =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case IndexOfDataRetrieveCtx(DataRetrieveCtx(id, attribute), _) if dataRetrieveAll.isInteger(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case DataRetrieveCount(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
