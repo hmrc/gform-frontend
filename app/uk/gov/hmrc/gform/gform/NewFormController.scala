@@ -488,7 +488,9 @@ class NewFormController(
 
       val allBracketExprs = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
       val allCustomExprs = cache.formTemplateWithRedirects.formTemplate.formKind.allCustomExprs
-      val allExprs = allBracketExprs ++ allCustomExprs
+      val expressionsOutExprs =
+        cache.formTemplateWithRedirects.formTemplate.expressionsOutput.fold(List.empty[Expr])(_.lookup.map(_._2).toList)
+      val allExprs = allBracketExprs ++ allCustomExprs ++ expressionsOutExprs
 
       allExprs.contains(AuthCtx(AuthInfo.ItmpAddress)) ||
       allExprs.contains(AuthCtx(AuthInfo.ItmpName)) ||
