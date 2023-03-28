@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LocalisedString, formtemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
 import ai.x.play.json.Encoders.encoder
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.TaskListDisplayWidth.TaskListDisplayWidth
 
 case class FormTemplate(
   _id: FormTemplateId,
@@ -54,7 +55,8 @@ case class FormTemplate(
   accessibilityUrl: Option[AccessibilityUrl],
   expressionsOutput: Option[ExpressionOutput],
   exitPages: Option[NonEmptyList[ExitPage]],
-  objectStore: Option[Boolean]
+  objectStore: Option[Boolean],
+  displayWidth: Option[TaskListDisplayWidth]
 ) {
 
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")
