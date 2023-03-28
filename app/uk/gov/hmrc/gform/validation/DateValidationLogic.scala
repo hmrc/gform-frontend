@@ -136,7 +136,7 @@ object DateValidationLogic {
     }
 
   def isNotEmpty(str: String, label: String)(implicit messages: Messages): Validated[String, String] =
-    if (str.trim == "") Invalid(messages("field.error.required", label))
+    if (str.trim === "") Invalid(messages("field.error.required", label))
     else Valid(str)
 
   def parallelWithApplicative[E: Semigroup, A](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(
