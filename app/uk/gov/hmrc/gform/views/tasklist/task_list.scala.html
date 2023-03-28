@@ -26,6 +26,8 @@
 @import uk.gov.hmrc.gform.views.html.form.FormWithoutCSRF
 @import uk.gov.hmrc.gform.views.html.{main_template, specimen}
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
+@import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.TaskListDisplayWidth
 
 @(
   formTemplate: FormTemplate,
@@ -48,31 +50,47 @@
 @heading = @{messages("taskList.title")}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
+@twoThirdsMainContent = @{new TwoThirdsMainContent}
+@fullMainContent = @{new FullMainContent}
+@threeQuartersMainContent = @{new ThreeQuartersMainContent}
+
+@mainContent = @{
+    contentBlock: Html => formTemplate.displayWidth match {
+        case Some(TaskListDisplayWidth.L)  => threeQuartersMainContent(contentBlock)
+        case Some(TaskListDisplayWidth.XL) => fullMainContent(contentBlock)
+        case Some(TaskListDisplayWidth.M)  => twoThirdsMainContent(contentBlock)
+        case _                             => twoThirdsMainContent(contentBlock)
+    }
+}
+
+
 @main_template(
   title = heading,
   formTemplate = formTemplate,
   containsErrors = false,
   frontendAppConfig = frontendAppConfig,
-  backLink = None
+  backLink = None,
+  isMainContentFullWidth = true
 ) {
+    @mainContent {
+        @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
 
-   @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
+        <h1 class="govuk-heading-xl">
+        @{formTemplate.formName.value}
+        </h1>
 
-  <h1 class="govuk-heading-xl">
-    @{formTemplate.formName.value}
-  </h1>
+        <h2 class="govuk-heading-s govuk-!-margin-bottom-2">@{messages("taskList.h2")}</h2>
+        <p class="govuk-body govuk-!-margin-bottom-7">@{messages("taskList.p", completedSection, taskList.sections.size + 1)}</p>
 
-  <h2 class="govuk-heading-s govuk-!-margin-bottom-2">@{messages("taskList.h2")}</h2>
-  <p class="govuk-body govuk-!-margin-bottom-7">@{messages("taskList.p", completedSection, taskList.sections.size + 1)}</p>
-
-  <ol class="app-task-list">
-    @{taskList.sections.toList.zipWithIndex.map { case (taskSection, index) =>
-        task_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(index), taskSection, statusesLookup)
-      }
+        <ol class="app-task-list">
+            @{taskList.sections.toList.zipWithIndex.map { case (taskSection, index) =>
+                task_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(index), taskSection, statusesLookup)
+            }
+            }
+            @formTemplate.submitSection.map{ submitSection =>
+                @{task_submit_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(taskList.sections.size +1 ), submitSection,
+                    completedSection === taskList.sections.size || formTemplate.isSpecimen)}
+            }
+        </ol>
     }
-    @formTemplate.submitSection.map{ submitSection =>
-        @{task_submit_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(taskList.sections.size +1 ), submitSection,
-            completedSection === taskList.sections.size || formTemplate.isSpecimen)}
-    }
-  </ol>
 }

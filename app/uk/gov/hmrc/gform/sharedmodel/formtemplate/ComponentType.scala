@@ -291,6 +291,14 @@ object SummaryDisplayWidth extends Enumeration {
   implicit val displayWidthWrites: Writes[SummaryDisplayWidth] = Writes.enumNameWrites
 }
 
+object TaskListDisplayWidth extends Enumeration {
+  type TaskListDisplayWidth = Value
+  val M, L, XL = Value
+
+  implicit val displayWidthReads: Reads[TaskListDisplayWidth] = Reads.enumNameReads(TaskListDisplayWidth)
+  implicit val displayWidthWrites: Writes[TaskListDisplayWidth] = Writes.enumNameWrites
+}
+
 sealed trait Dynamic extends Product with Serializable
 
 object Dynamic {
