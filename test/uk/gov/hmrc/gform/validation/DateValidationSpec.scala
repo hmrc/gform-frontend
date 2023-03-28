@@ -315,19 +315,36 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
         Map(
           ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
             "Label must be entered",
-            " Label must be entered"
+            " Label day must be entered"
           ),
           ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
             "Label must be entered",
-            " Label must be entered"
+            " Label month must be entered"
           ),
           ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
             "Label must be entered",
-            " Label must be entered"
+            " Label year must be entered"
           )
         )
       ),
-      "Date validations should return suitable error if empty"
+      "Date validations should return suitable error if all empty"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("15", "", ""),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+            "Label must be entered",
+            " Label month must be entered"
+          ),
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+            "Label must be entered",
+            " Label year must be entered"
+          )
+        )
+      ),
+      "Date validations should return suitable error if some fields are empty"
     )
   )
 
@@ -338,6 +355,55 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
       val date = Date(constraints, Offset(0), None)
 
       val fieldValue = mkFormComponent("accPeriodStartDate", date)
+
+      val data = variadicFormData[SourceOrigin.OutOfDate](
+        "accPeriodStartDate-day"   -> day,
+        "accPeriodStartDate-month" -> month,
+        "accPeriodStartDate-year"  -> year
+      )
+
+      val obtainedF: Future[ValidatedType[Unit]] =
+        componentsValidator(mkFormTemplate(mkSection(fieldValue)), fieldValue, data)
+          .validate(GetEmailCodeFieldMatcher.noop)
+
+      obtainedF.map { obtained =>
+        test(index + ". " + description) {
+          assertEquals(obtained, expected)
+        }
+      }
+  }
+
+  val table2nonMandatory: List[(DateConstraint, (String, String, String), ValidatedType[Unit], String)] = List(
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("", "", ""),
+      Valid(()),
+      "Date validations should be valid if all empty"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("15", "", ""),
+      Invalid(
+        Map(
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+            " Label month must be entered"
+          ),
+          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+            " Label year must be entered"
+          )
+        )
+      ),
+      "Date validations should return suitable error if some fields are empty"
+    )
+  )
+
+  table2nonMandatory.zipWithIndex.traverse[Future, Unit] {
+    case ((dateConstraint, (day, month, year), expected, description), index) =>
+      val dateConstraints = List(dateConstraint)
+      val constraints = DateConstraints(dateConstraints)
+      val date = Date(constraints, Offset(0), None)
+
+      val fieldValue = mkFormComponent("accPeriodStartDate", date).copy(mandatory = false)
 
       val data = variadicFormData[SourceOrigin.OutOfDate](
         "accPeriodStartDate-day"   -> day,

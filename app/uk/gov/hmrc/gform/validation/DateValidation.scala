@@ -46,12 +46,16 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
     fieldValue: FormComponent,
     date: Date
   ): ValidatedType[Unit] =
-    Monoid[ValidatedType[Unit]].combineAll(
-      List(
-        validateDateRequiredField(fieldValue),
-        validateDateImpl(fieldValue, date)
+    if (fieldValue.mandatory) {
+      Monoid[ValidatedType[Unit]].combineAll(
+        List(
+          checkAnyFieldsEmpty(fieldValue),
+          validateDateImpl(fieldValue, date)
+        )
       )
-    )
+    } else {
+      checkAllFieldsEmpty(fieldValue) orElse validateDateImpl(fieldValue, date)
+    }
 
   private def validationFailed[T](
     formComponent: FormComponent,
@@ -67,19 +71,27 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
       modelComponentId -> errors(formComponent, "field.error.required", None, "")
     ).invalid
 
-  private def validateDateRequiredField(
+  private def checkAnyFieldsEmpty(
     fieldValue: FormComponent
   ): ValidatedType[Unit] = {
-
     val validatedResult =
-      if (fieldValue.mandatory) {
-        fieldValue.multiValueId.atomsModelComponentIds.map { modelComponentId =>
-          val answer = formModelVisibilityOptics.data.one(modelComponentId)
-          answer.filterNot(_.isEmpty()).fold(requiredError(fieldValue, modelComponentId))(_ => validationSuccess)
-        }
-      } else List(validationSuccess)
-
+      fieldValue.multiValueId.atomsModelComponentIds.map { modelComponentId =>
+        val answer = formModelVisibilityOptics.data.one(modelComponentId)
+        answer.filterNot(_.isEmpty()).fold(requiredError(fieldValue, modelComponentId))(_ => validationSuccess)
+      }
     Monoid[ValidatedType[Unit]].combineAll(validatedResult)
+  }
+
+  private def checkAllFieldsEmpty(
+    fieldValue: FormComponent
+  ): ValidatedType[Unit] = {
+    val answers = fieldValue.multiValueId.atomsModelComponentIds
+      .map { modelComponentId =>
+        formModelVisibilityOptics.data.one(modelComponentId).filter(_.trim.nonEmpty)
+      }
+    if (answers.exists(_.nonEmpty)) {
+      requiredError(fieldValue, fieldValue.firstAtomModelComponentId)
+    } else validationSuccess
   }
 
   private def validateDateImpl(
@@ -263,15 +275,18 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
     val dayLabel = label + " " + messages("date.day")
     val monthLabel = label + " " + messages("date.month")
     val yearLabel = label + " " + messages("date.year")
-    val d = hasMaximumLength(day, 2, dayLabel)
+    val d = isNotEmpty(day, dayLabel)
+      .andThen(_ => hasMaximumLength(day, 2, dayLabel))
       .andThen(_ => isNumeric(day, dayLabel, label))
       .andThen(y => isWithinBounds(y, 31, dayLabel))
       .leftMap(er => Map(errorGranularity(Date.day) -> Set(errorMessage.getOrElse(er))))
-    val m = hasMaximumLength(month, 2, monthLabel)
+    val m = isNotEmpty(month, monthLabel)
+      .andThen(_ => hasMaximumLength(month, 2, monthLabel))
       .andThen(_ => isNumeric(month, monthLabel, label))
       .andThen(y => isWithinBounds(y, 12, monthLabel))
       .leftMap(er => Map(errorGranularity(Date.month) -> Set(errorMessage.getOrElse(er))))
-    val y = hasMaximumLength(year, 4, yearLabel)
+    val y = isNotEmpty(year, yearLabel)
+      .andThen(_ => hasMaximumLength(year, 4, yearLabel))
       .andThen(_ => isNumeric(year, yearLabel, label))
       .andThen(y => hasValidNumberOfDigits(y, 4, yearLabel))
       .leftMap(er => Map(errorGranularity(Date.year) -> Set(errorMessage.getOrElse(er))))
