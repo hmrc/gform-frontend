@@ -135,6 +135,10 @@ object DateValidationLogic {
       case y if y =!= digits => Invalid(messages("field.error.exactDigits", label, digits))
     }
 
+  def isNotEmpty(str: String, label: String)(implicit messages: Messages): Validated[String, String] =
+    if (str.trim === "") Invalid(messages("field.error.required", label))
+    else Valid(str)
+
   def parallelWithApplicative[E: Semigroup, A](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(
     f: (Int, Int, Int) => A
   ): Validated[E, A] = (v3, v2, v1).mapN(f)
