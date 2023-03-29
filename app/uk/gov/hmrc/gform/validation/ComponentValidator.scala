@@ -76,6 +76,8 @@ object ComponentValidator {
   val timeErrorRequired                                      = "time.error.required"
   val genericNinoErrorPattern                                = "generic.nino.error.pattern"
   val genericNinoErrorRequired                               = "generic.nino.error.required"
+  val genericEmailErrorPattern                               = "generic.email.error.pattern"
+  val genericEmailErrorRequired                              = "generic.email.error.required"
   // format: on
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
@@ -166,6 +168,12 @@ object ComponentValidator {
               fieldValue,
               genericNinoErrorRequired,
               fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+            )
+          case IsText(Text(Email, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericEmailErrorRequired,
+              fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("an"))
             )
           case _ => validationFailure(fieldValue, genericErrorSortCode, None)
         }
@@ -375,7 +383,12 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ) =
     if (EmailAddress.isValid(value)) validationSuccess
-    else validationFailure(fieldValue, genericErrorInvalid, None)
+    else
+      validationFailure(
+        fieldValue,
+        genericEmailErrorPattern,
+        fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("an"))
+      )
 
   private def checkVrn(
     fieldValue: FormComponent,
