@@ -67,7 +67,6 @@ object ComponentValidator {
   val genericErrorInvalid                                    = "generic.error.invalid"
   val genericErrorMaxLength                                  = "generic.error.maxLength"
   val genericErrorMinLength                                  = "generic.error.minLength"
-  val genericVrnErrorPattern                                 = "generic.vrn.error.pattern"
   val genericVrnErrorDigitCheck                              = "generic.vrn.error.digitcheck"
   val genericGovernmentIdNotExist                            = "generic.governmentId.not.exist"
   val genericGovernmentIdErrorPattern                        = "generic.governmentId.error.pattern"
@@ -80,6 +79,8 @@ object ComponentValidator {
   val genericEmailErrorRequired                              = "generic.email.error.required"
   val genericUtrErrorPattern                                 = "generic.utr.error.pattern"
   val genericUtrErrorRequired                                = "generic.utr.error.required"
+  val genericVrnErrorPattern                                 = "generic.vrn.error.pattern"
+  val genericVrnErrorRequired                                = "generic.vrn.error.required"
   // format: on
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
@@ -181,6 +182,12 @@ object ComponentValidator {
             validationFailure(
               fieldValue,
               genericUtrErrorRequired,
+              fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+            )
+          case IsText(Text(UkVrn, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericVrnErrorRequired,
               fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
             )
           case _ => validationFailure(fieldValue, genericErrorSortCode, None)
@@ -418,11 +425,15 @@ object ComponentValidator {
         val vars: List[String] = 7.toString :: Nil
         validationFailure(fieldValue, genericErrorMinLength, Some(vars))
       case Standard(_, s) if VatReferenceChecker.isValid(s) => validationSuccess
-      case Standard(_, s)                                   => validationFailure(fieldValue, genericVrnErrorDigitCheck, None)
       case Branch()                                         => validationSuccess
       case Government()                                     => validationSuccess
       case Health()                                         => validationSuccess
-      case _                                                => validationFailure(fieldValue, genericVrnErrorPattern, None)
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericVrnErrorPattern,
+          fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+        )
     }
   }
 

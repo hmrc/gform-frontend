@@ -200,9 +200,9 @@ class ComponentValidatorSpec
       ("107 5563 201", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.pattern")))),
       ("XI10755637", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.pattern")))),
       ("GL107556375", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.pattern")))),
-      ("107 5563 21", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.digitcheck")))),
-      ("XI 107556376", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.digitcheck")))),
-      ("GB107556376", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.digitcheck"))))
+      ("107 5563 21", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.pattern")))),
+      ("XI 107556376", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.pattern")))),
+      ("GB107556376", Invalid(Map(textComponent.id.modelComponentId -> Set("generic.vrn.error.pattern"))))
     )
 
     TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
