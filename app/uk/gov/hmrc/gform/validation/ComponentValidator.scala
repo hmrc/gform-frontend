@@ -74,6 +74,8 @@ object ComponentValidator {
   val genericErrorEmail                                      = "generic.error.email"
   val choiceErrorRequired                                    = "choice.error.required"
   val timeErrorRequired                                      = "time.error.required"
+  val genericNinoErrorPattern                                = "generic.nino.error.pattern"
+  val genericNinoErrorRequired                               = "generic.nino.error.required"
   // format: on
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
@@ -156,12 +158,17 @@ object ComponentValidator {
   ): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(formModelVisibilityOptics, fieldValue), constraint) match {
       case (true, None, _) =>
-        val key = fieldValue match {
-          case lookupRegistry.extractors.IsRadioLookup(_) => choiceErrorRequired
-          case lookupRegistry.extractors.IsUkSortCode(_)  => genericErrorSortCode
-          case _                                          => genericErrorRequired
+        fieldValue match {
+          case lookupRegistry.extractors.IsRadioLookup(_) => validationFailure(fieldValue, choiceErrorRequired, None)
+          case lookupRegistry.extractors.IsUkSortCode(_)  => validationFailure(fieldValue, genericErrorSortCode, None)
+          case IsText(Text(NINO, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericNinoErrorRequired,
+              fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+            )
+          case _ => validationFailure(fieldValue, genericErrorSortCode, None)
         }
-        validationFailure(fieldValue, key, None)
       case (_, Some(value), lookup @ Lookup(_, _)) =>
         lookupValidation(fieldValue, lookupRegistry, lookup, LookupLabel(value), formModelVisibilityOptics)
       case (_, Some(value), ShortText(min, max)) => shortTextValidation(fieldValue, value, min, max)
@@ -494,7 +501,12 @@ object ComponentValidator {
   ) =
     value match {
       case x if Nino.isValid(x) => validationSuccess
-      case _                    => validationFailure(fieldValue, genericGovernmentIdErrorPattern, None)
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericNinoErrorPattern,
+          fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+        )
     }
 
   private def checkPayeReference(
