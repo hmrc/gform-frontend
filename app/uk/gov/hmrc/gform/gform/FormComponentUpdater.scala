@@ -145,7 +145,8 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
     shortName = formComponent.shortName.map(expandSmartString),
     errorMessage = formComponent.errorMessage.map(expandSmartString),
     validators = formComponent.validators.map(expandFormComponentValidator),
-    instruction = formComponent.instruction.map(i => i.copy(name = i.name.map(expandSmartString)))
+    instruction = formComponent.instruction.map(i => i.copy(name = i.name.map(expandSmartString))),
+    errorShortName = formComponent.errorShortName.map(expandSmartString)
   )
 
   val updatedWithId: FormComponent = updated.copy(id = ExpandUtils.addPrefix(index, formComponent.id))
