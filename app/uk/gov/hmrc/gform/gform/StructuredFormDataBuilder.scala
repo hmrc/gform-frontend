@@ -84,7 +84,7 @@ object StructuredFormDataBuilder {
               ).collect { case (key, Some(value)) =>
                 (key, value)
               }.map { case (key, value) =>
-                Field(FieldName(key), StructuredFormValue.TextNode(value)),
+                Field(FieldName(key), StructuredFormValue.TextNode(value))
               }
 
               Field(
