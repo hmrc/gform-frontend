@@ -78,6 +78,8 @@ object ComponentValidator {
   val genericNinoErrorRequired                               = "generic.nino.error.required"
   val genericEmailErrorPattern                               = "generic.email.error.pattern"
   val genericEmailErrorRequired                              = "generic.email.error.required"
+  val genericUtrErrorPattern                                 = "generic.utr.error.pattern"
+  val genericUtrErrorRequired                                = "generic.utr.error.required"
   // format: on
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
@@ -174,6 +176,12 @@ object ComponentValidator {
               fieldValue,
               genericEmailErrorRequired,
               fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("an"))
+            )
+          case IsText(Text(CtUTR, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericUtrErrorRequired,
+              fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
             )
           case _ => validationFailure(fieldValue, genericErrorSortCode, None)
         }
@@ -504,7 +512,11 @@ object ComponentValidator {
       case UTRFormat() if !CorporationTaxReferenceChecker.isValid(value) =>
         validationFailure(fieldValue, genericGovernmentIdNotExist, None)
       case _ =>
-        validationFailure(fieldValue, genericGovernmentIdErrorPattern, None)
+        validationFailure(
+          fieldValue,
+          genericUtrErrorPattern,
+          fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+        )
     }
   }
 
