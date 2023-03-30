@@ -41,7 +41,8 @@ case class FormComponent(
   presentationHint: Option[List[PresentationHint]] = None,
   validators: List[FormComponentValidator] = Nil,
   instruction: Option[Instruction] = None,
-  labelSize: Option[LabelSize] = None
+  labelSize: Option[LabelSize] = None,
+  errorShortName: Option[SmartString] = None
 ) {
 
   val modelComponentId: ModelComponentId = id.modelComponentId
@@ -96,6 +97,8 @@ case class FormComponent(
       IsInformationMessage.unapply(this).isDefined
 
   def withIndex(index: Int) = copy(id = id.withIndex(index))
+
+  val errorPlaceholder = errorShortName orElse shortName
 }
 
 object FormComponent {

@@ -656,13 +656,19 @@ object ComponentValidator {
       case (true | false, Some(vTime)) if !(Range.timeSlots(time) contains vTime) =>
         validationFailure(
           formComponent,
-          messages(genericErrorInvalid, formComponent.shortName.getOrElse(formComponent.label).value),
+          messages(
+            genericErrorInvalid,
+            formComponent.errorPlaceholder.getOrElse(formComponent.label).value
+          ),
           None
         )
       case (true, None) =>
         validationFailure(
           formComponent,
-          messages(timeErrorRequired, formComponent.shortName.getOrElse(formComponent.label).value),
+          messages(
+            timeErrorRequired,
+            formComponent.errorPlaceholder.getOrElse(formComponent.label).value
+          ),
           None
         )
       case _ => validationSuccess
