@@ -112,7 +112,7 @@ class UpscanController(
                         "generic.error.virus",
                         formModelOptics.formModelVisibilityOptics.fcLookup
                           .get(formComponentId)
-                          .map(fc => (fc.errorShortName orElse fc.shortName).map(_.value).getOrElse(fc.label.value))
+                          .map(fc => fc.errorPlaceholder.map(_.value).getOrElse(fc.label.value))
                           .getOrElse("")
                       )
                     case _ => mkFlash("file.error.generic")
@@ -182,7 +182,7 @@ class UpscanController(
               "generic.error.upload",
               formModelOptics.formModelVisibilityOptics.fcLookup
                 .get(formComponentId)
-                .map(fc => (fc.errorShortName orElse fc.shortName).map(_.value).getOrElse(fc.label.value))
+                .map(fc => fc.errorPlaceholder.map(_.value).getOrElse(fc.label.value))
                 .getOrElse("")
             )
           case Some("EntityTooLarge") =>

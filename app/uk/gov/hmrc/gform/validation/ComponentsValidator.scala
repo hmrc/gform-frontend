@@ -296,7 +296,7 @@ object ComponentsValidatorHelper {
     sse: SmartStringEvaluator,
     messages: Messages
   ): String =
-    (formComponent.errorShortName orElse formComponent.shortName)
+    formComponent.errorPlaceholder
       .map(ls => messages("helper.order", ls.value, partLabel))
       .getOrElse(messages("helper.order", formComponent.label.value, partLabel))
 

@@ -658,7 +658,7 @@ object ComponentValidator {
           formComponent,
           messages(
             genericErrorInvalid,
-            (formComponent.errorShortName orElse formComponent.shortName).getOrElse(formComponent.label).value
+            formComponent.errorPlaceholder.getOrElse(formComponent.label).value
           ),
           None
         )
@@ -667,7 +667,7 @@ object ComponentValidator {
           formComponent,
           messages(
             timeErrorRequired,
-            (formComponent.errorShortName orElse formComponent.shortName).getOrElse(formComponent.label).value
+            formComponent.errorPlaceholder.getOrElse(formComponent.label).value
           ),
           None
         )

@@ -97,6 +97,8 @@ case class FormComponent(
       IsInformationMessage.unapply(this).isDefined
 
   def withIndex(index: Int) = copy(id = id.withIndex(index))
+
+  val errorPlaceholder = errorShortName orElse shortName
 }
 
 object FormComponent {
