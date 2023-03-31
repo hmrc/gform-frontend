@@ -426,13 +426,8 @@ object ComponentValidator {
     val Health = "GBHA[5-9][0-9]{2}".r
     val str = value.replace(" ", "")
     str match {
-      case tooLong if tooLong.length > 14 =>
-        val vars: List[String] = 14.toString :: Nil
-        validationFailure(fieldValue, genericErrorMaxLength, Some(vars))
-      case tooShort if tooShort.length < 7 =>
-        val vars: List[String] = 7.toString :: Nil
-        validationFailure(fieldValue, genericErrorMinLength, Some(vars))
       case Standard(_, s) if VatReferenceChecker.isValid(s) => validationSuccess
+      case Standard(_, s)                                   => validationFailure(fieldValue, genericVrnErrorDigitCheck, None)
       case Branch()                                         => validationSuccess
       case Government()                                     => validationSuccess
       case Health()                                         => validationSuccess
