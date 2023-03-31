@@ -81,6 +81,8 @@ object ComponentValidator {
   val genericUtrErrorRequired                                = "generic.utr.error.required"
   val genericVrnErrorPattern                                 = "generic.vrn.error.pattern"
   val genericVrnErrorRequired                                = "generic.vrn.error.required"
+  val genericPayeErrorPattern                                = "generic.paye.error.pattern"
+  val genericPayeErrorRequired                               = "generic.paye.error.required"
   // format: on
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
@@ -188,6 +190,12 @@ object ComponentValidator {
             validationFailure(
               fieldValue,
               genericVrnErrorRequired,
+              fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+            )
+          case IsText(Text(PayeReference, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericPayeErrorRequired,
               fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
             )
           case _ => validationFailure(fieldValue, genericErrorSortCode, None)
@@ -554,7 +562,16 @@ object ComponentValidator {
   ) = {
     val ValidPaye = "^[0-9]{3}/[0-9A-Z]{1,10}$".r
     val str = value.replace(" ", "")
-    sharedTextComponentValidator(fieldValue, str, 5, 14, ValidPaye, genericGovernmentIdErrorPattern)
+    str match {
+      case ValidPaye() => validationSuccess
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericPayeErrorPattern,
+          fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+        )
+
+    }
   }
 
   def validatePhoneNumber(
