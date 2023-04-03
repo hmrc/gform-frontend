@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString, SourceOrigi
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.annotation.tailrec
 import scala.collection.immutable.List
@@ -316,10 +317,10 @@ sealed trait OptionData extends Product with Serializable {
   def hint: Option[SmartString]
   def dynamic: Option[Dynamic]
 
-  def value(index: Int): String = this match {
-    case o: OptionData.IndexBased => index.toString
-    case o: OptionData.ValueBased => o.value
-  }
+//  def value(index: Int): String = this match {
+//    case o: OptionData.IndexBased => index.toString
+//    case o: OptionData.ValueBased => o.value
+//  }
 }
 
 object OptionData {
@@ -336,7 +337,7 @@ object OptionData {
     hint: Option[SmartString],
     includeIf: Option[IncludeIf],
     dynamic: Option[Dynamic],
-    value: String
+    value: SmartString
   ) extends OptionData
 
   implicit val format: OFormat[OptionData] = derived.oformat()
@@ -377,14 +378,20 @@ case class Choice(
 ) extends ComponentType {
   def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult)(implicit
     evaluator: SmartStringEvaluator
-  ): List[String] =
+  ): List[String] = {
+    def getValue(optionData: OptionData, index: Int): String = optionData match {
+      case o: OptionData.IndexBased => index.toString
+      case o: OptionData.ValueBased => o.value.value()
+    }
+
     options.toList.zipWithIndex
       .map { case (option, index) =>
         formFieldValidationResult
-          .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, option.value(index)))
+          .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, getValue(option, index)))
           .map(_ => option.label.value)
       }
       .collect { case Some(selection) => selection }
+  }
 }
 
 sealed trait ChoiceType
@@ -413,7 +420,9 @@ case class RevealingChoice(options: List[RevealingChoiceElement], multiValue: Bo
 object RevealingChoice {
   implicit val format: OFormat[RevealingChoice] = derived.oformat()
 
-  def slice[S <: SourceOrigin](fcId: FormComponentId): VariadicFormData[S] => RevealingChoice => RevealingChoice =
+  def slice[S <: SourceOrigin](
+    fcId: FormComponentId
+  )(implicit ss: SmartStringEvaluator): VariadicFormData[S] => RevealingChoice => RevealingChoice =
     data =>
       revealingChoice => {
         val indices: List[String] =
@@ -421,9 +430,14 @@ object RevealingChoice {
 
         val rcElements: List[RevealingChoiceElement] =
           revealingChoice.options.zipWithIndex.collect {
-            case (rcElement, index) if indices.contains(rcElement.choice.value(index)) =>
+            case (rcElement, index) if indices.contains(getValue(rcElement.choice, index)) =>
               rcElement
           }
+
+        def getValue(optionData: OptionData, index: Int): String = optionData match {
+          case o: OptionData.IndexBased => index.toString
+          case o: OptionData.ValueBased => o.value.value()
+        }
 
         revealingChoice.copy(options = rcElements)
       }

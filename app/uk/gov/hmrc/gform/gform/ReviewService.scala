@@ -45,7 +45,8 @@ class ReviewService[F[_]: Monad](
   lookupRegistry: LookupRegistry,
   recalculation: Recalculation[F, Throwable]
 )(implicit
-  me: MonadError[F, Throwable]
+  me: MonadError[F, Throwable],
+  ss: SmartStringEvaluator
 ) {
   def forceUpdateFormStatus(
     cache: AuthCacheWithForm,
@@ -67,8 +68,7 @@ class ReviewService[F[_]: Monad](
     request: Request[AnyContent],
     messages: Messages,
     headerCarrier: HeaderCarrier,
-    l: LangADT,
-    sse: SmartStringEvaluator
+    l: LangADT
   ): F[HttpResponse] =
     submitReviewResults(updateWithReviewData(cache, reviewData), maybeAccessCode, Accepting, formModelOptics)
 
@@ -81,8 +81,7 @@ class ReviewService[F[_]: Monad](
     request: Request[AnyContent],
     messages: Messages,
     headerCarrier: HeaderCarrier,
-    l: LangADT,
-    sse: SmartStringEvaluator
+    l: LangADT
   ): F[HttpResponse] =
     submitReviewResults(
       updateWithReviewData(cache, reviewData),
@@ -119,8 +118,7 @@ class ReviewService[F[_]: Monad](
     request: Request[AnyContent],
     messages: Messages,
     headerCarrier: HeaderCarrier,
-    l: LangADT,
-    sse: SmartStringEvaluator
+    l: LangADT
   ): F[HttpResponse] =
     for {
       submission <-
@@ -155,7 +153,8 @@ class ReviewService[F[_]: Monad](
     formTemplates: Map[FormTemplateId, FormTemplate]
   )(implicit
     l: LangADT,
-    m: Messages
+    m: Messages,
+    ss: SmartStringEvaluator
   ): F[NonEmptyList[BundledFormSubmissionData]] =
     forms.traverse { form =>
       val formModelVisibilityOptics: FormModelVisibilityOptics[D] = null

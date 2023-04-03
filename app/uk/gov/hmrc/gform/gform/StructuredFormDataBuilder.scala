@@ -20,12 +20,14 @@ import cats.{ Monad, MonadError }
 import cats.data.NonEmptyList
 import cats.implicits._
 import play.api.i18n.Messages
+
 import scala.language.higherKinds
 import scala.util.Try
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.{ Atom, Bracket, Visibility }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, MultiValueId }
@@ -39,6 +41,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue.{ ArrayNode, ObjectStructure, TextNode }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 object StructuredFormDataBuilder {
   def apply[D <: DataOrigin, F[_]: Monad](
@@ -46,7 +49,7 @@ object StructuredFormDataBuilder {
     destinations: Destinations,
     expressionsOutput: Option[ExpressionOutput],
     lookupRegistry: LookupRegistry
-  )(implicit l: LangADT, m: Messages, me: MonadError[F, Throwable]): F[ObjectStructure] = {
+  )(implicit l: LangADT, m: Messages, me: MonadError[F, Throwable], ss: SmartStringEvaluator): F[ObjectStructure] = {
 
     def zeroPadding(x: Int) =
       "%02d".format(x)
@@ -142,7 +145,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
   destinations: Destinations,
   expressionsOutputFields: List[Field],
   lookupRegistry: LookupRegistry
-)(implicit me: MonadError[F, Throwable]) {
+)(implicit me: MonadError[F, Throwable], ss: SmartStringEvaluator) {
 
   private val isMultiSelectionIds: Set[ModelComponentId] = formModelVisibilityOptics.formModel.allMultiSelectionIds
 
@@ -443,7 +446,8 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
   private def processPurePure(
     xs: List[(ModelComponentId.Pure, IndexedComponentId.Pure)]
   )(implicit
-    l: LangADT
+    l: LangADT,
+    ss: SmartStringEvaluator
   ): F[List[Field]] =
     xs.traverse { case (modelComponentId, pure) =>
       if (isMultiSelectionIds(modelComponentId)) {
@@ -474,7 +478,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                     case (
                           selectedIndex,
                           OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(pointer)), value)
-                        ) if value === answer =>
+                        ) if value.value() === answer =>
                       selectedIndex -> pointer
                   }
 
@@ -488,7 +492,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                             Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
                             value
                           )
-                        ) if value === answer =>
+                        ) if value.value() === answer =>
                       selectedIndex -> indexOfDataRetrieveCtx.ctx
                   }
 

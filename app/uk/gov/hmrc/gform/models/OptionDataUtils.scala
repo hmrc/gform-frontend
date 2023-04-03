@@ -117,7 +117,7 @@ object OptionDataUtils {
       label = od.label.expand(index, baseIds),
       hint = od.hint.map(_.expand(index, baseIds)),
       dynamic = od.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _)),
-      value = od.value + "_" + index
+      value = od.value.replace("_" + index)
     )
 
   private def updateDataRetrieveValueBased(
@@ -128,7 +128,7 @@ object OptionDataUtils {
       label = od.label.expandDataRetrieve(index),
       hint = od.hint.map(_.expandDataRetrieve(index)),
       dynamic = od.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _)),
-      value = od.value + "_" + index
+      value = od.value.replace("_" + index)
     )
 
   private def expandOptionData[A, D <: DataOrigin](

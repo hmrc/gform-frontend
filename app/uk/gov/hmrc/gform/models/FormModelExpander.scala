@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -67,10 +68,12 @@ object FormModelExpander {
     }
 
   implicit val interim = new FormModelExpander[Interim] {
-    def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[Interim] = {
+    def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate])(implicit
+      ss: SmartStringEvaluator
+    ): Page[Interim] = {
       val expanded = page.fields.flatMap {
         case fc @ IsRevealingChoice(rc) =>
-          fc.copy(`type` = RevealingChoice.slice(fc.id)(data)(rc)) :: Nil
+          fc.copy(`type` = RevealingChoice.slice(fc.id)(ss)(data)(rc)) :: Nil
         case fc @ IsGroup(group) => ExpandUtils.expandGroup(fc, group, data)
         case otherwise           => otherwise :: Nil
       }

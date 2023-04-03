@@ -601,7 +601,8 @@ class AddressLookupController(
   )(f: FormComponent => AuthCacheWithForm => FormModelOptics[DataOrigin.Mongo] => Future[Result])(implicit
     messages: Messages,
     l: LangADT,
-    hc: HeaderCarrier
+    hc: HeaderCarrier,
+    ss: SmartStringEvaluator
   ): Future[Result] = {
 
     val syntheticFormComponent = mkSyntheticFormComponent(formComponentId)

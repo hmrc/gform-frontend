@@ -36,6 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPa
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -224,7 +225,7 @@ class FormModelBuilder[E, F[_]: Functor](
   def renderPageModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     phase: Option[FormPhase]
-  )(implicit messages: Messages): FormModelOptics[D] = {
+  )(implicit messages: Messages, ss: SmartStringEvaluator): FormModelOptics[D] = {
 
     implicit val fmvo = formModelVisibilityOptics
 
@@ -251,7 +252,7 @@ class FormModelBuilder[E, F[_]: Functor](
     formModel: FormModel[DataExpanded],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     phase: Option[FormPhase]
-  ): FormModel[Visibility] = {
+  )(implicit ss: SmartStringEvaluator): FormModel[Visibility] = {
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
 
     FormComponentVisibilityFilter(formModelVisibilityOptics, phase)
@@ -269,7 +270,7 @@ class FormModelBuilder[E, F[_]: Functor](
       }
       .map[Visibility] { singleton: Singleton[DataExpanded] =>
         val updatedFields = singleton.page.fields.flatMap {
-          case fc @ IsRevealingChoice(rc) => fc.copy(`type` = RevealingChoice.slice(fc.id)(data)(rc)) :: Nil
+          case fc @ IsRevealingChoice(rc) => fc.copy(`type` = RevealingChoice.slice(fc.id)(ss)(data)(rc)) :: Nil
           case otherwise                  => otherwise :: Nil
         }
         singleton.copy(page = singleton.page.copy(fields = updatedFields))

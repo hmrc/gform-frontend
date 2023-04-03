@@ -23,6 +23,7 @@ import play.api.i18n.Messages
 
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.DataRetrieveAll
@@ -102,7 +103,8 @@ object FormModelOptics {
     messages: Messages,
     lang: LangADT,
     hc: HeaderCarrier,
-    me: MonadError[F, Throwable]
+    me: MonadError[F, Throwable],
+    ss: SmartStringEvaluator
   ): F[FormModelOptics[D]] = {
     val formModelBuilder =
       FormModelBuilder.fromCache(cache, cacheData, recalculation, componentIdToFileId, cache.countryLookupOptions)
@@ -122,7 +124,8 @@ object FormModelOptics {
     messages: Messages,
     lang: LangADT,
     hc: HeaderCarrier,
-    me: MonadError[F, Throwable]
+    me: MonadError[F, Throwable],
+    ss: SmartStringEvaluator
   ): F[FormModelOptics[D]] =
     mkFormModelOptics(data, cache, cache.toCacheData, recalculation, phase, cache.form.componentIdToFileId)
 }

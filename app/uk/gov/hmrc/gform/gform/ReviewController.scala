@@ -51,7 +51,7 @@ class ReviewController(
       formTemplateId,
       maybeAccessCode,
       OperationWithForm.ReviewAccepted
-    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+    ) { implicit request => implicit l => cache => sse => formModelOptics =>
       asyncToResult(
         reviewService
           .acceptForm[SectionSelectorType.Normal](cache, maybeAccessCode, extractReviewData(request), formModelOptics)
@@ -63,7 +63,7 @@ class ReviewController(
       formTemplateId,
       maybeAccessCode,
       OperationWithForm.ReviewReturned
-    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+    ) { implicit request => implicit l => cache => sse => formModelOptics =>
       asyncToResult(
         reviewService
           .returnForm[SectionSelectorType.Normal](cache, maybeAccessCode, extractReviewData(request), formModelOptics)
