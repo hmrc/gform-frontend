@@ -108,12 +108,7 @@ class FastForwardService(
         val formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser] =
           processData.formModelOptics.formModelVisibilityOptics
         implicit val sse: SmartStringEvaluator = smartStringEvaluatorFactory(
-          DataOrigin.swapDataOrigin(formModelVisibilityOptics),
-          cache.retrievals,
-          cache.form.thirdPartyData,
-          maybeAccessCode,
-          cache.form.envelopeId,
-          cache.formTemplate
+          DataOrigin.swapDataOrigin(formModelVisibilityOptics)
         )
         for {
           envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)

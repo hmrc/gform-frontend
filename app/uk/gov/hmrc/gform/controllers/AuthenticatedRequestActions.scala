@@ -424,11 +424,7 @@ class AuthenticatedRequestActions(
         smartStringEvaluator =
           smartStringEvaluatorFactory
             .apply(
-              formModelOpticsUpd.formModelVisibilityOptics,
-              retrievals,
-              maybeAccessCode,
-              form,
-              formTemplateForForm
+              formModelOpticsUpd.formModelVisibilityOptics
             )
         envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
         result   <- f(cache)(smartStringEvaluator)(formModelOptics)
