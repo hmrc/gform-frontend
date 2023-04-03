@@ -509,6 +509,8 @@ browser.forbidden.link=Rhagor o wybodaeth am sut i newid porwr (yn agor tab newy
 #Task List
 taskList.title=Tasgau
 taskList.h2=Cais yn anghyflawn
+taskList.h2.formCategory.return=Datganiad yn anghyflawn
+taskList.h2.formCategory.claim=Hawlio yn anghyflawn
 taskList.p=Rydych wedi llenwi {0} allan o {1} adran
 
 taskList.NotStarted=HEB DDECHRAU

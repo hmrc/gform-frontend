@@ -36,7 +36,8 @@
   statusesLookup: Map[Coordinates, TaskStatus],
   completedSection: Int,
   frontendAppConfig: FrontendAppConfig,
-  notificationBanner: Option[NotificationBanner]
+  notificationBanner: Option[NotificationBanner],
+  taskListH2key: String
 )(
   implicit
   request: Request[_],
@@ -79,7 +80,7 @@
         @{formTemplate.formName.value}
         </h1>
 
-        <h2 class="govuk-heading-s govuk-!-margin-bottom-2">@{messages("taskList.h2")}</h2>
+        <h2 class="govuk-heading-s govuk-!-margin-bottom-2">@{messages(taskListH2key)}</h2>
         <p class="govuk-body govuk-!-margin-bottom-7">@{messages("taskList.p", completedSection, taskList.sections.size + 1)}</p>
 
         <ol class="app-task-list">
