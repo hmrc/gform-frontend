@@ -45,7 +45,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
@@ -145,12 +145,7 @@ class EnrolmentController(
     notificationBanner: Option[NotificationBanner]
   )(implicit request: Request[_], l: LangADT): Html = {
     implicit val sse = smartStringEvaluatorFactory(
-      formModelOptics.formModelVisibilityOptics,
-      retrievals,
-      ThirdPartyData.empty,
-      None,
-      EnvelopeId("empty"),
-      formTemplate
+      formModelOptics.formModelVisibilityOptics
     )
 
     val singleton = toSingleton(enrolmentSection)
@@ -196,12 +191,7 @@ class EnrolmentController(
 
                 implicit val sse =
                   smartStringEvaluatorFactory(
-                    formModelVisibilityOptics,
-                    cache.retrievals,
-                    ThirdPartyData.empty,
-                    None,
-                    EnvelopeId(""),
-                    formTemplate
+                    formModelVisibilityOptics
                   )
 
                 implicit val EC = enrolmentConnect

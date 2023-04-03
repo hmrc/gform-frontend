@@ -134,7 +134,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     )
 
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
-      .apply(formModelOptics.formModelVisibilityOptics, authContext, Some(accessCode), form, formTemplate)
+      .apply(formModelOptics.formModelVisibilityOptics)
   }
 
   "renderSection" should "render text field with TelephoneNumber constraint as input field with type='tel'" in new TestFixture {

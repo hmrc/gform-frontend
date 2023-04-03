@@ -161,7 +161,7 @@ class SummaryRenderingServiceSpec
       )
       .futureValue
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
-      .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
+      .apply(formModelOptics.formModelVisibilityOptics)
 
     val summaryRenderingService =
       new SummaryRenderingService(

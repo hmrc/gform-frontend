@@ -18,63 +18,28 @@ package uk.gov.hmrc.gform.eval.smartstring
 
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.MarkDownUtil.escapeMarkdown
 import uk.gov.hmrc.gform.eval.{ ExprType, TypeInfo }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
-import uk.gov.hmrc.http.HeaderCarrier
 
 import java.text.MessageFormat
 
 trait SmartStringEvaluatorFactory {
   def apply(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
-    retrievals: MaterialisedRetrievals,
-    maybeAccessCode: Option[AccessCode],
-    form: Form,
-    formTemplate: FormTemplate
-  )(implicit messages: Messages, l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
-
-  def apply(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
-    retrievals: MaterialisedRetrievals,
-    thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId,
-    formTemplate: FormTemplate
-  )(implicit messages: Messages, l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
+  )(implicit messages: Messages, l: LangADT): SmartStringEvaluator
 }
 
 class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
 
   def apply(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
-    retrievals: MaterialisedRetrievals,
-    maybeAccessCode: Option[AccessCode],
-    form: Form,
-    formTemplate: FormTemplate
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
   )(implicit
     messages: Messages,
-    l: LangADT,
-    hc: HeaderCarrier
-  ): SmartStringEvaluator =
-    apply(formModelVisibilityOptics, retrievals, form.thirdPartyData, maybeAccessCode, form.envelopeId, formTemplate)
-
-  def apply(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
-    retrievals: MaterialisedRetrievals,
-    thirdPartyData: ThirdPartyData,
-    maybeAccessCode: Option[AccessCode],
-    envelopeId: EnvelopeId,
-    formTemplate: FormTemplate
-  )(implicit
-    messages: Messages,
-    l: LangADT,
-    hc: HeaderCarrier
+    l: LangADT
   ): SmartStringEvaluator =
     new SmartStringEvaluator {
 
