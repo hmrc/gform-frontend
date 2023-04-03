@@ -5,7 +5,7 @@ object Dependencies {
 
   val jacksonVersion = "2.12.7"
   val jacksonDatabindVersion = "2.12.7.1"
-  val bootstrapVersion = "4.3.0"
+  val bootstrapVersion = "7.13.0"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
@@ -24,7 +24,7 @@ object Dependencies {
     "org.jetbrains"                % "markdown"                   % "0.1.46",
     "com.chuusai"                 %% "shapeless"                  % "2.3.10",
     "uk.gov.hmrc"                 %% "emailaddress"               % "3.7.0",
-    "org.scala-graph"             %% "graph-core"                 % "1.12.5", // Updating this to 1.13.1 is causing big performance issues
+    "org.scala-graph"             %% "graph-core"                 % "1.13.6", // Updating this to 1.13.1 is causing big performance issues
     "com.softwaremill.quicklens"  %% "quicklens"                  % "1.9.0",
     "com.nrinaudo"                %% "kantan.csv"                 % "0.7.0",
     "com.miguelfonseca.completely" % "completely-core"            % "0.8.0",
