@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.referencechecker.{ CorporationTaxReferenceChecker, VatReferenceChecker }
 
 import scala.util.matching.Regex
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 object ComponentValidator {
   // format: off
@@ -172,7 +173,9 @@ object ComponentValidator {
             validationFailure(
               fieldValue,
               genericNinoErrorRequired,
-              fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
             )
           case IsText(Text(Email, _, _, _, _, _)) =>
             validationFailure(
@@ -544,7 +547,9 @@ object ComponentValidator {
         validationFailure(
           fieldValue,
           genericNinoErrorPattern,
-          fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
         )
     }
 
