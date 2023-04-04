@@ -22,7 +22,6 @@ import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.language.higherKinds
 
 trait CompanyInformationConnector[F[_]] {
   def companyProfile(

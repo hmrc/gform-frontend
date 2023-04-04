@@ -173,17 +173,17 @@ class SectionRenderingService(
 
     val title =
       if (isFirstVisit)
-        checkYourAnswers.expandedTitle.fold(messages("summary.checkYourAnswers"))(_.value)
-      else checkYourAnswers.expandedUpdateTitle.value
+        checkYourAnswers.expandedTitle.fold(messages("summary.checkYourAnswers"))(_.value())
+      else checkYourAnswers.expandedUpdateTitle.value()
 
     val noPIITitle =
       if (isFirstVisit)
-        checkYourAnswers.expandedNoPIITitle.fold(messages("summary.checkYourAnswers"))(_.value)
+        checkYourAnswers.expandedNoPIITitle.fold(messages("summary.checkYourAnswers"))(_.value())
       else
         checkYourAnswers.expandedNoPIIUpdateTitle.fold(checkYourAnswers.expandedNoPIITitle match {
           case Some(value) => value.valueWithoutInterpolations
           case None        => messages("summary.checkYourAnswers")
-        })(_.value)
+        })(_.value())
 
     val ff = fastForward match {
       case Nil                                     => Nil
@@ -193,7 +193,7 @@ class SectionRenderingService(
     }
     html.form.addToListCheckYourAnswers(
       title,
-      checkYourAnswers.expandedCaption.map(_.value),
+      checkYourAnswers.expandedCaption.map(_.value()),
       noPIITitle,
       formTemplate,
       maybeAccessCode,
@@ -268,7 +268,7 @@ class SectionRenderingService(
         legend = Some(
           Legend(
             classes = getLabelClasses(false, formComponent.labelSize),
-            content = content.Text(formComponent.label.value)
+            content = content.Text(formComponent.label.value())
           )
         )
       )
@@ -279,7 +279,7 @@ class SectionRenderingService(
         legend = Some(
           Legend(
             classes = getLabelClasses(false, formComponent.labelSize),
-            content = content.Text(formComponent.label.value)
+            content = content.Text(formComponent.label.value())
           )
         ),
         attributes = Map("style" -> "display:none")
@@ -295,7 +295,7 @@ class SectionRenderingService(
       RadioItem(
         id = Some(formComponent.id.value + index),
         value = Some(option.value(index)),
-        content = content.Text(option.label.value),
+        content = content.Text(option.label.value()),
         checked = isChecked(option.value(index)),
         attributes = dataLabelAttribute(option.label)
       )
@@ -303,7 +303,7 @@ class SectionRenderingService(
 
     val hint: Option[Hint] = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -386,9 +386,9 @@ class SectionRenderingService(
       retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
 
     html.form.addToList(
-      repeater.title.value,
-      repeater.expandedCaption.map(_.value),
-      repeater.noPIITitle.fold(repeater.title.valueWithoutInterpolations)(_.value),
+      repeater.title.value(),
+      repeater.expandedCaption.map(_.value()),
+      repeater.noPIITitle.fold(repeater.title.valueWithoutInterpolations)(_.value()),
       bracket,
       formTemplate,
       recordTable,
@@ -507,9 +507,9 @@ class SectionRenderingService(
       formTemplate._id,
       maybeAccessCode,
       sectionNumber,
-      page.title.value,
-      page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value),
-      page.description.map(ls => ls.value),
+      page.title.value(),
+      page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value()),
+      page.description.map(ls => ls.value()),
       snippetsForFields,
       javascript,
       envelopeId,
@@ -535,7 +535,7 @@ class SectionRenderingService(
       formMaxAttachmentSizeMB,
       allowedFileTypes,
       restrictedFileExtensions,
-      page.caption.map(ls => ls.value),
+      page.caption.map(ls => ls.value()),
       ei.isFileUploadOnlyPage(validationResult).fold(upscanData)(_ => Map.empty[FormComponentId, UpscanData])
     )
     val mainForm: Html = html.form.form_standard(
@@ -723,7 +723,7 @@ class SectionRenderingService(
 
     val declarationPage = singleton.page
 
-    val continueLabel = declarationPage.continueLabel.map(_.value).getOrElse {
+    val continueLabel = declarationPage.continueLabel.map(_.value()).getOrElse {
       formTemplate.formCategory match {
         case HMRCReturnForm => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
         case HMRCClaimForm  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
@@ -740,9 +740,9 @@ class SectionRenderingService(
       formTemplate._id,
       maybeAccessCode,
       formTemplate.sectionNumberZero,
-      declarationPage.title.value,
-      declarationPage.noPIITitle.fold(declarationPage.title.valueWithoutInterpolations)(_.value),
-      declarationPage.description.map(ls => ls.value),
+      declarationPage.title.value(),
+      declarationPage.noPIITitle.fold(declarationPage.title.valueWithoutInterpolations)(_.value()),
+      declarationPage.description.map(ls => ls.value()),
       snippets,
       "",
       EnvelopeId(""),
@@ -879,7 +879,7 @@ class SectionRenderingService(
       }
 
     val formCategory = formTemplate.formCategory
-    val panelTitle = destinationList.acknowledgementSection.panelTitle.map(_.value)
+    val panelTitle = destinationList.acknowledgementSection.panelTitle.map(_.value())
     val snippets = destinationList.acknowledgementSection.toPage.renderUnits.map(renderUnit =>
       htmlFor(renderUnit, formTemplateId, ei, ValidationResult.empty, obligations = NotChecked, UpscanInitiate.empty)
     )
@@ -887,9 +887,9 @@ class SectionRenderingService(
       formTemplateId,
       maybeAccessCode,
       formTemplate.sectionNumberZero,
-      destinationList.acknowledgementSection.title.value,
+      destinationList.acknowledgementSection.title.value(),
       "",
-      destinationList.acknowledgementSection.description.map(ls => ls.value),
+      destinationList.acknowledgementSection.description.map(ls => ls.value()),
       snippets,
       "",
       envelopeId,
@@ -962,8 +962,8 @@ class SectionRenderingService(
       formTemplate._id,
       maybeAccessCode,
       formTemplate.sectionNumberZero,
-      page.title.value,
-      page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value),
+      page.title.value(),
+      page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value()),
       None,
       snippets,
       "",
@@ -1246,7 +1246,7 @@ class SectionRenderingService(
       )
     )
 
-    val label = formComponent.label.value
+    val label = formComponent.label.value()
 
     val isPageHeading = ei.formLevelHeading
 
@@ -1264,7 +1264,7 @@ class SectionRenderingService(
 
     val hint: Option[Hint] = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -1559,7 +1559,7 @@ class SectionRenderingService(
 
     val hint = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -1573,7 +1573,7 @@ class SectionRenderingService(
 
     val currentValue = formFieldValidationResult.getCurrentValue.filterNot(_ === "").map(HtmlFormat.escape(_).body)
 
-    val labelContent = content.Text(formComponent.label.value)
+    val labelContent = content.Text(formComponent.label.value())
 
     val isPageHeading = ei.formLevelHeading
 
@@ -1710,7 +1710,7 @@ class SectionRenderingService(
 
     val hint = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -1727,7 +1727,7 @@ class SectionRenderingService(
       Fieldset(
         legend = Some(
           Legend(
-            content = content.Text(formComponent.label.value),
+            content = content.Text(formComponent.label.value()),
             isPageHeading = isPageHeading,
             classes = getLabelClasses(isPageHeading, formComponent.labelSize)
           )
@@ -1751,7 +1751,7 @@ class SectionRenderingService(
             RadioItem(
               id = Some(formComponent.id.value + index),
               value = Some(option.value(index)),
-              content = content.Text(option.label.value),
+              content = content.Text(option.label.value()),
               checked = isChecked(option.value(index)),
               conditionalHtml = helpTextHtml(maybeHelpText),
               attributes = dataLabelAttribute(option.label),
@@ -1784,7 +1784,7 @@ class SectionRenderingService(
             val item = CheckboxItem(
               id = Some(formComponent.id.value + index),
               value = option.value(index),
-              content = content.Text(option.label.value),
+              content = content.Text(option.label.value()),
               checked = isChecked(option.value(index)),
               conditionalHtml = helpTextHtml(maybeHelpText),
               attributes = dataLabelAttribute(option.label),
@@ -1889,7 +1889,7 @@ class SectionRenderingService(
 
     val hint = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -1906,7 +1906,7 @@ class SectionRenderingService(
       Fieldset(
         legend = Some(
           Legend(
-            content = content.Text(formComponent.label.value),
+            content = content.Text(formComponent.label.value()),
             isPageHeading = isPageHeading,
             classes = getLabelClasses(isPageHeading, formComponent.labelSize)
           )
@@ -1923,7 +1923,7 @@ class SectionRenderingService(
           CheckboxItem(
             id = Some(formComponent.id.value + index),
             value = option.value(index),
-            content = content.Text(option.label.value),
+            content = content.Text(option.label.value()),
             checked = isChecked(option.value(index)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(option.label),
@@ -1948,7 +1948,7 @@ class SectionRenderingService(
           RadioItem(
             id = Some(formComponent.id.value + index),
             value = Some(option.value(index)),
-            content = content.Text(option.label.value),
+            content = content.Text(option.label.value()),
             checked = isChecked(option.value(index)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(option.label),
@@ -1984,7 +1984,7 @@ class SectionRenderingService(
     val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
     val formFieldValidationResult = validationResult(formComponent)
 
-    val labelString = formComponent.label.value
+    val labelString = formComponent.label.value()
     val isPageHeading = ei.formLevelHeading
 
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
@@ -2004,7 +2004,7 @@ class SectionRenderingService(
 
     val hint: Option[Hint] = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -2032,7 +2032,7 @@ class SectionRenderingService(
           Fieldset(
             legend = Some(
               Legend(
-                content = content.Text(formComponent.label.value),
+                content = content.Text(formComponent.label.value()),
                 isPageHeading = isPageHeading,
                 classes = getLabelClasses(isPageHeading, formComponent.labelSize)
               )
@@ -2084,7 +2084,7 @@ class SectionRenderingService(
     val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 
-    val labelContent = content.Text(formComponent.label.value)
+    val labelContent = content.Text(formComponent.label.value())
 
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
@@ -2096,7 +2096,7 @@ class SectionRenderingService(
 
     val hint: Option[Hint] = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -2182,7 +2182,7 @@ class SectionRenderingService(
     val formFieldValidationResult = validationResult(formComponent)
 
     val maybeUnit = TextFormatter.appendUnit(text.constraint)
-    val labelContent = content.Text(formComponent.label.value)
+    val labelContent = content.Text(formComponent.label.value())
 
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
@@ -2194,7 +2194,7 @@ class SectionRenderingService(
 
     val hint: Option[Hint] = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -2278,8 +2278,8 @@ class SectionRenderingService(
             spellcheck = spellcheck,
             attributes = ei.specialAttributes ++ attributes,
             autocomplete = autocomplete,
-            prefix = text.prefix.map(s => PrefixOrSuffix(content = content.Text(s.value))),
-            suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value)))
+            prefix = text.prefix.map(s => PrefixOrSuffix(content = content.Text(s.value()))),
+            suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value())))
           )
 
           new components.GovukInput(govukErrorMessage, govukHint, govukLabel)(input)
@@ -2377,7 +2377,7 @@ class SectionRenderingService(
 
     val hint: Option[Hint] = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -2412,7 +2412,7 @@ class SectionRenderingService(
     val fieldset = Fieldset(
       legend = Some(
         Legend(
-          content = content.Text(formComponent.label.value),
+          content = content.Text(formComponent.label.value()),
           classes = getLabelClasses(isPageHeading, formComponent.labelSize),
           isPageHeading = isPageHeading
         )
@@ -2535,7 +2535,7 @@ class SectionRenderingService(
 
     val hint: Option[Hint] = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -2571,7 +2571,7 @@ class SectionRenderingService(
     val fieldset = Fieldset(
       legend = Some(
         Legend(
-          content = content.Text(formComponent.label.value),
+          content = content.Text(formComponent.label.value()),
           classes = getLabelClasses(isPageHeading, formComponent.labelSize),
           isPageHeading = isPageHeading
         )
@@ -2614,7 +2614,7 @@ class SectionRenderingService(
 
     val hint: Option[Hint] = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -2655,7 +2655,7 @@ class SectionRenderingService(
     val fieldset = Fieldset(
       legend = Some(
         Legend(
-          content = content.Text(formComponent.label.value),
+          content = content.Text(formComponent.label.value()),
           classes = getLabelClasses(isPageHeading, formComponent.labelSize),
           isPageHeading = isPageHeading
         )
@@ -2682,7 +2682,7 @@ class SectionRenderingService(
     val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
     val formFieldValidationResult = validationResult(formComponent)
 
-    val labelContent = content.Text(formComponent.label.value)
+    val labelContent = content.Text(formComponent.label.value())
 
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
@@ -2694,7 +2694,7 @@ class SectionRenderingService(
 
     val hint: Option[Hint] = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -2752,7 +2752,7 @@ class SectionRenderingService(
 
     val hint = formComponent.helpText.map { ls =>
       Hint(
-        content = content.Text(ls.value)
+        content = content.Text(ls.value())
       )
     }
 
@@ -2764,7 +2764,7 @@ class SectionRenderingService(
       )
     )
 
-    val labelContent = content.Text(formComponent.label.value)
+    val labelContent = content.Text(formComponent.label.value())
 
     val isPageHeading = ei.formLevelHeading
 
@@ -2868,7 +2868,7 @@ class SectionRenderingService(
         ) None
         else Some(formComponent.modelComponentId)
 
-      val label = group.repeatLabel.map(_.value).getOrElse("")
+      val label = group.repeatLabel.map(_.value()).getOrElse("")
 
       val removeButtonHtml =
         html.form.snippets.delete_group_link(formTemplateId, label, removeButton, ei.maybeAccessCode, ei.sectionNumber)
@@ -2924,9 +2924,9 @@ class SectionRenderingService(
       case fc @ IsFileUpload(_) :: _ =>
         if (validationResult(fc.head).getCurrentValue.isDefined)
           false
-        else fc.head.editable && fc.head.label.value === page.title.value
+        else fc.head.editable && fc.head.label.value() === page.title.value()
       case formComponent :: IsNilOrInfoOnly() =>
-        formComponent.editable && formComponent.label.value === page.title.value
+        formComponent.editable && formComponent.label.value() === page.title.value()
       case _ => false
     }
   }
@@ -3000,7 +3000,7 @@ class SectionRenderingService(
     isFileUploadOnlyPage: Boolean
   )(implicit messages: Messages, lise: SmartStringEvaluator): String =
     (continueLabel, isNotPermitted, isFileUploadOnlyPage) match {
-      case (Some(cl), _, _)     => cl.value
+      case (Some(cl), _, _)     => cl.value()
       case (None, true, _)      => messages("button.continue")
       case (None, false, false) => messages(continueLabelKey)
       case (None, false, true)  => messages("file.upload")

@@ -45,7 +45,7 @@ object DataRetrieveService {
           Some(
             DataRetrieveResult(
               dataRetrieve.id,
-              result.toRetrieveDataType,
+              result.toRetrieveDataType(),
               requestParams
             )
           )

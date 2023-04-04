@@ -31,7 +31,11 @@ import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerCon
 import org.typelevel.ci._
 import play.api.http.HttpConfiguration
 
-class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: PlayBuiltInsModule) {
+class ConfigModule(
+  val context: ApplicationLoader.Context,
+  playBuiltInsModule: PlayBuiltInsModule,
+  val configuration: Configuration
+) {
 
   val playConfiguration: Configuration = context.initialConfiguration
   val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(playConfiguration, context.environment)

@@ -266,7 +266,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
     year: String
   ): ValidatedType[SomeDate] = {
 
-    val errorMessage = formComponent.errorMessage.map(_.value)
+    val errorMessage = formComponent.errorMessage.map(_.value())
 
     def errorGranularity(suffix: Atom): ModelComponentId =
       formComponent.atomicFormComponentId(suffix)

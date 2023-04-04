@@ -54,7 +54,12 @@ class ReviewController(
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       asyncToResult(
         reviewService
-          .acceptForm[SectionSelectorType.Normal](cache, maybeAccessCode, extractReviewData(request), formModelOptics)
+          .acceptForm[SectionSelectorType.Normal](
+            cache,
+            maybeAccessCode,
+            extractReviewData(request).toMap,
+            formModelOptics
+          )
       )
     }
 
@@ -66,7 +71,12 @@ class ReviewController(
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       asyncToResult(
         reviewService
-          .returnForm[SectionSelectorType.Normal](cache, maybeAccessCode, extractReviewData(request), formModelOptics)
+          .returnForm[SectionSelectorType.Normal](
+            cache,
+            maybeAccessCode,
+            extractReviewData(request).toMap,
+            formModelOptics
+          )
       )
     }
 
@@ -76,7 +86,7 @@ class ReviewController(
       maybeAccessCode,
       OperationWithForm.ReviewSubmitted
     ) { implicit request => implicit l => cache => sse => formModelOptics =>
-      asyncToResult(reviewService.submitFormBundle(cache, extractReviewData(request), maybeAccessCode))
+      asyncToResult(reviewService.submitFormBundle(cache, extractReviewData(request).toMap, maybeAccessCode))
     }
 
   def updateFormField(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
@@ -98,7 +108,9 @@ class ReviewController(
   def forceUpdateFormStatus(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], status: FormStatus) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, ForceUpdateFormStatus) {
       implicit request => l => cache => sse => formModelOptics =>
-        asyncToResult(reviewService.forceUpdateFormStatus(cache, status, extractReviewData(request), maybeAccessCode))
+        asyncToResult(
+          reviewService.forceUpdateFormStatus(cache, status, extractReviewData(request).toMap, maybeAccessCode)
+        )
     }
 
   private def extractReviewData(request: Request[AnyContent]) =

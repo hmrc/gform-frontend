@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.playcomponents
 
 import akka.stream.Materializer
-import play.api.mvc.{ EssentialFilter, SessionCookieBaker }
+import play.api.Configuration
+import play.api.mvc.{ EssentialFilter, RequestHeader, SessionCookieBaker }
 import play.filters.cors.{ CORSConfig, CORSFilter }
 import play.filters.csrf.CSRFComponents
 import play.filters.headers.SecurityHeadersFilter
@@ -40,6 +41,7 @@ import uk.gov.hmrc.play.bootstrap.filters.{ CacheControlConfig, CacheControlFilt
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.crypto._
 import uk.gov.hmrc.gform.auth.AuthModule
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AnonoymousSessionCookieCryptoFilter(
   sessionCookieCrypto: SessionCookieCrypto,
@@ -114,8 +116,20 @@ class FrontendFiltersModule(
     new CacheControlFilter(cacheControlConfig, materializer)
   }
 
-  private val mdcFilter: MDCFilter =
-    new MDCFilter(materializer, configModule.playConfiguration, configModule.appConfig.appName)
+  class MdcFilter(
+    mater: Materializer = akkaModule.materializer,
+    config: Configuration = configModule.configuration
+  )(implicit eCon: ExecutionContext, hCar: HeaderCarrier = new HeaderCarrier())
+      extends MDCFilter {
+    override val mat: Materializer = mater
+    override val configuration: Configuration = config
+    override implicit val ec: ExecutionContext = eCon
+
+    override protected def hc(implicit rh: RequestHeader): HeaderCarrier = hCar
+  }
+
+  val mdcFilter: MdcFilter = new MdcFilter()
+//  private val mdcFilter: MDCFilter = new MDCFilter(materializer, configModule.playConfiguration, configModule.appConfig.appName)
 
   private val sessionTimeoutFilter = new SessionTimeoutFilterWithAudit(
     SessionTimeoutFilterConfig

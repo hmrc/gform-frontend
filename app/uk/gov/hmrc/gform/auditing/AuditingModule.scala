@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.auditing
 
 import akka.actor.CoordinatedShutdown
-import play.api.inject.ApplicationLifecycle
+//import play.api.inject.ApplicationLifecycle
+//import uk.gov.hmrc.play.audit.http.connector.Counter
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.akka.AkkaModule
@@ -53,6 +54,7 @@ class AuditingModule(
         new DefaultAuditCounterMetrics(metricsModule.metrics),
         ec
       ),
+      //applicationLifecycle
       applicationLifecycle
     )
 

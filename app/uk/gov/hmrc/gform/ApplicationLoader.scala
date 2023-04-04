@@ -76,7 +76,7 @@ class ApplicationModule(context: Context)
   protected val akkaModule = new AkkaModule(materializer, actorSystem)
   private val playBuiltInsModule = new PlayBuiltInsModule(self)
 
-  protected val configModule = new ConfigModule(context, playBuiltInsModule)
+  protected val configModule = new ConfigModule(context, playBuiltInsModule, configuration)
 
   private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
 

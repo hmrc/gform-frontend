@@ -253,8 +253,8 @@ class ValidationService(
 
         val errors =
           Map(
-            utr.formComponentId.modelComponentId      -> Set(errorMessage.value),
-            postcode.formComponentId.modelComponentId -> Set(errorMessage.value)
+            utr.formComponentId.modelComponentId      -> Set(errorMessage.value()),
+            postcode.formComponentId.modelComponentId -> Set(errorMessage.value())
           )
 
         val desRegistrationRequest = DesRegistrationRequest(regime, false, false)

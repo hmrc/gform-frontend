@@ -37,7 +37,7 @@ class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponent
       implicit inboundRequest: Request[Source[ByteString, _]] =>
         for {
           outboundRequest  <- proxyRequest(s"$remoteServiceBaseUrl/$path", inboundRequest)
-          streamedResponse <- outboundRequest.stream
+          streamedResponse <- outboundRequest.stream()
         } yield {
           val headersMap = streamedResponse.headers
           val contentLength = headersMap.get(contentLengthHeaderKey).flatMap(_.headOption.map(_.toLong))
@@ -45,7 +45,7 @@ class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponent
           Result(
             ResponseHeader(
               streamedResponse.status,
-              streamedResponse.headers.mapValues(_.head).filter(filterOutContentHeaders)
+              streamedResponse.headers.mapValues(_.head).filter(filterOutContentHeaders).toMap
             ),
             Streamed(streamedResponse.bodyAsSource, contentLength, contentType)
           )

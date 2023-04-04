@@ -41,7 +41,8 @@ object Dependencies {
     "com.fasterxml.jackson.core"       % "jackson-databind"               % jacksonDatabindVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor"        % jacksonVersion,
     "com.fasterxml.jackson.module"     % "jackson-module-parameter-names" % jacksonVersion,
-    "com.fasterxml.jackson.module"    %% "jackson-module-scala"           % jacksonVersion
+    "com.fasterxml.jackson.module"    %% "jackson-module-scala"           % jacksonVersion,
+    "uk.gov.hmrc"                     %% "play-auditing-play-28"           % "8.6.0"
   )
 
   val munitVersion = "0.7.29"

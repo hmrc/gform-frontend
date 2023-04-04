@@ -90,7 +90,7 @@ object HtmlSanitiser {
     val form = doc.getElementsByTag("form")
     form.prepend(
       h1(formTemplate.formName.value) +
-        h1(formTemplate.summarySection.title.value) +
+        h1(formTemplate.summarySection.title.value()) +
         headerHtml
     )
 

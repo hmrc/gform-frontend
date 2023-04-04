@@ -34,13 +34,13 @@ object CustomerIdRecalculation {
       .map { expr =>
         CustomerId(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation.take(32))
       }
-      .filter(!_.isEmpty)
+      .filter(!_.isEmpty())
       .headOption
       .getOrElse(CustomerId.empty)
 
   private def customerIdExpressions(destinations: Destinations): List[Expr] = destinations match {
     case ds: Destinations.DestinationList =>
-      ds.destinations.collect { case d: DestinationWithCustomerId => d.customerId }
+      ds.destinations.collect { case d: DestinationWithCustomerId => d.customerId() }
     case _ =>
       Nil
   }

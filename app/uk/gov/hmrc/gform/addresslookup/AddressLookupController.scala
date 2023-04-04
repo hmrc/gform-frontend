@@ -214,7 +214,8 @@ class AddressLookupController(
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        addressIdForm.bindFromRequest
+        addressIdForm
+          .bindFromRequest()
           .fold(
             errorForm =>
               cache.form.thirdPartyData

@@ -81,7 +81,7 @@ class TaskListController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         TaskListUtils.withTask(cache.formTemplate, taskSectionNumber, taskNumber) { task =>
-          val sectionTitle4Ga: SectionTitle4Ga = SectionTitle4Ga(task.title.value)
+          val sectionTitle4Ga: SectionTitle4Ga = SectionTitle4Ga(task.title.value())
 
           def sectionUrl(sectionNumber: SectionNumber) = uk.gov.hmrc.gform.gform.routes.FormController.form(
             cache.formTemplate._id,

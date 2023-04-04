@@ -970,7 +970,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        Html(table.summaryValue.value),
+        Html(table.summaryValue.value()),
         visuallyHiddenText,
         "",
         "",
@@ -1256,7 +1256,7 @@ object FormComponentSummaryRenderer {
           if (hasErrors)
             errors.head
           else
-            HtmlFormat.escape(element.choice.label.value)
+            HtmlFormat.escape(element.choice.label.value())
 
         formFieldValidationResult
           .getOptionalCurrentValue(HtmlFieldId.indexed(fieldValue.id, index))

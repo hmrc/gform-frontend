@@ -270,8 +270,8 @@ object SummaryRenderingService {
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(summarySection.header)
     val footerHtml = markDownParser(summarySection.footer)
-    val caption = summarySection.caption.map(_.value)
-    val title = summarySection.title.value
+    val caption = summarySection.caption.map(_.value())
+    val title = summarySection.title.value()
 
     val envelopeUpd = envelope.byPurpose(summaryPagePurpose)
 
@@ -347,8 +347,8 @@ object SummaryRenderingService {
   ): Html = {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
-    val title = formTemplate.summarySection.title.value
-    val caption = formTemplate.summarySection.caption.map(_.value)
+    val title = formTemplate.summarySection.title.value()
+    val caption = formTemplate.summarySection.caption.map(_.value())
     val renderComeBackLater =
       retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
     val sfr: List[Html] =
@@ -535,7 +535,7 @@ object SummaryRenderingService {
 
       val addToListSummary = ordered_list(addToListSummaryItems)
 
-      val label = repeater.title.value
+      val label = repeater.title.value()
 
       val slr: SummaryListRow = summaryListRow(
         label, // This is weird to use, as it can have $n, but this list in shown only once. Should we have other property here?
@@ -710,7 +710,7 @@ object SummaryRenderingService {
     continueLabel: Option[SmartString]
   )(implicit messages: Messages, lise: SmartStringEvaluator): String =
     (continueLabel, isNotPermitted) match {
-      case (Some(cl), _) => cl.value
+      case (Some(cl), _) => cl.value()
       case (None, true)  => messages("button.continue")
       case (None, false) => messages(continueLabelKey)
     }

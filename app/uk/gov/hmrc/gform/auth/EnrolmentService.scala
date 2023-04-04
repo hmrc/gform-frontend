@@ -20,7 +20,6 @@ import cats.Functor
 import cats.data.NonEmptyList
 import cats.syntax.functor._
 import play.api.libs.json.Json
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.sharedmodel.{ ServiceCallResponse, ServiceResponse }

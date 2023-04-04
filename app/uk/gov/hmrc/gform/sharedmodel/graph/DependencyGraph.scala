@@ -190,7 +190,7 @@ object DependencyGraph {
 
   def constructDependencyGraph(
     graph: Graph[GraphNode, DiEdge]
-  ): Either[graph.NodeT, Traversable[(Int, List[GraphNode])]] = {
+  ): Either[graph.NodeT, Iterable[(Int, List[GraphNode])]] = {
     def sortedOuterNodes(items: Iterable[graph.NodeT]) =
       items.toList
         .map(_.toOuter)

@@ -20,7 +20,6 @@ import cats.{ Monad, Monoid }
 import cats.implicits._
 import play.api.i18n.Messages
 
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, Error, File, Infected }
@@ -136,10 +135,10 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
             }
         }
         Monoid[ValidatedType[Unit]].combineAll(
-          modelComponentIds.map(mcId => Map[ModelComponentId, Set[String]](mcId -> Set(message.value)).invalid)
+          modelComponentIds.map(mcId => Map[ModelComponentId, Set[String]](mcId -> Set(message.value())).invalid)
         )
       case _ =>
-        Map[ModelComponentId, Set[String]](formComponent.modelComponentId -> Set(message.value)).invalid
+        Map[ModelComponentId, Set[String]](formComponent.modelComponentId -> Set(message.value())).invalid
     }
 
   private def defaultFormComponentValidIf(
@@ -297,8 +296,8 @@ object ComponentsValidatorHelper {
     messages: Messages
   ): String =
     formComponent.errorPlaceholder
-      .map(ls => messages("helper.order", ls.value, partLabel))
-      .getOrElse(messages("helper.order", formComponent.label.value, partLabel))
+      .map(ls => messages("helper.order", ls.value(), partLabel))
+      .getOrElse(messages("helper.order", formComponent.label.value(), partLabel))
 
   def errors(
     formComponent: FormComponent,
@@ -313,7 +312,7 @@ object ComponentsValidatorHelper {
     val withDescriptor: List[String] = fieldDescriptor(formComponent, partLabel).trim :: varsList
     Set(
       formComponent.errorMessage
-        .map(ls => ls.value)
+        .map(ls => ls.value())
         .getOrElse(messages(messageKey, withDescriptor: _*))
     )
   }

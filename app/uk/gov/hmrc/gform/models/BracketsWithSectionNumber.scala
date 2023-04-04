@@ -157,16 +157,16 @@ object BracketsWithSectionNumber {
           iterations.map { it =>
             Bracket
               .AddToListIteration(
-                it.singletons.map(singleton => SingletonWithNumber(singleton, iterator.next)),
-                it.checkYourAnswers.map(CheckYourAnswersWithNumber(_, iterator.next)),
-                RepeaterWithNumber(it.repeater, iterator.next)
+                it.singletons.map(singleton => SingletonWithNumber(singleton, iterator.next())),
+                it.checkYourAnswers.map(CheckYourAnswersWithNumber(_, iterator.next())),
+                RepeaterWithNumber(it.repeater, iterator.next())
               )
           },
           source
         )
       case BracketPlain.RepeatingPage(singletons, source) =>
-        Bracket.RepeatingPage(singletons.map(singleton => SingletonWithNumber(singleton, iterator.next)), source)
+        Bracket.RepeatingPage(singletons.map(singleton => SingletonWithNumber(singleton, iterator.next())), source)
       case BracketPlain.NonRepeatingPage(singleton, source) =>
-        Bracket.NonRepeatingPage(singleton, iterator.next, source)
+        Bracket.NonRepeatingPage(singleton, iterator.next(), source)
     }
 }

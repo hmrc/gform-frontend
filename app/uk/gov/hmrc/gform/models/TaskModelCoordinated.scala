@@ -37,7 +37,7 @@ object TaskModelCoordinated {
 
   def editable[A <: PageMode](bs: NonEmptyList[BracketPlain[A]]): TaskModelCoordinated[A] =
     TaskModelCoordinated.Editable[A](bs)
-  def allHidden[A <: PageMode]: TaskModelCoordinated[A] = AllHidden[A]
+  def allHidden[A <: PageMode]: TaskModelCoordinated[A] = AllHidden()
 
   case class Editable[A <: PageMode](brackets: NonEmptyList[BracketPlain[A]]) extends TaskModelCoordinated[A]
   case class AllHidden[A <: PageMode]() extends TaskModelCoordinated[A]
