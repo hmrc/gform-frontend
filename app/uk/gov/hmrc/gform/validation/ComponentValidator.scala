@@ -181,7 +181,9 @@ object ComponentValidator {
             validationFailure(
               fieldValue,
               genericEmailErrorRequired,
-              fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("an"))
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
             )
           case IsText(Text(CtUTR, _, _, _, _, _)) =>
             validationFailure(
@@ -413,7 +415,9 @@ object ComponentValidator {
       validationFailure(
         fieldValue,
         genericEmailErrorPattern,
-        fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("an"))
+        fieldValue.errorShortName
+          .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+          (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
       )
 
   private def checkVrn(
