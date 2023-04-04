@@ -198,7 +198,9 @@ object ComponentValidator {
             validationFailure(
               fieldValue,
               genericVrnErrorRequired,
-              fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
             )
           case IsText(Text(PayeReference, _, _, _, _, _)) =>
             validationFailure(
@@ -445,7 +447,9 @@ object ComponentValidator {
         validationFailure(
           fieldValue,
           genericVrnErrorPattern,
-          fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
         )
     }
   }
