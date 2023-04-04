@@ -119,6 +119,7 @@ generic.email.error.pattern=Enter {1} email address in the correct format, like 
 generic.email.error.required=Enter {1} email address
 generic.utr.error.pattern=Enter {1} Unique Taxpayer Reference in the correct format
 generic.utr.error.required=Enter {1} Unique Taxpayer Reference
+generic.utr.not.exist=The Unique Taxpayer Reference entered does not exist
 generic.vrn.error.pattern=Enter {1} VAT registration number in the correct format
 generic.vrn.error.required=Enter {1} VAT registration number
 generic.vrn.error.digitcheck=The VAT number you entered does not exist. Enter a real VAT number

@@ -80,6 +80,7 @@ object ComponentValidator {
   val genericEmailErrorRequired                              = "generic.email.error.required"
   val genericUtrErrorPattern                                 = "generic.utr.error.pattern"
   val genericUtrErrorRequired                                = "generic.utr.error.required"
+  val genericUtrIdNotExist                                   = "generic.utr.not.exist"
   val genericVrnErrorPattern                                 = "generic.vrn.error.pattern"
   val genericVrnErrorRequired                                = "generic.vrn.error.required"
   val genericPayeErrorPattern                                = "generic.paye.error.pattern"
@@ -185,11 +186,13 @@ object ComponentValidator {
                 .map(_.trasform(identity, " " + _).value.pure[List]) orElse
                 (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
             )
-          case IsText(Text(CtUTR, _, _, _, _, _)) =>
+          case IsText(Text((CtUTR | UTR), _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericUtrErrorRequired,
-              fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
             )
           case IsText(Text(UkVrn, _, _, _, _, _)) =>
             validationFailure(
@@ -531,12 +534,14 @@ object ComponentValidator {
       case UTRFormat() if CorporationTaxReferenceChecker.isValid(value) =>
         validationSuccess
       case UTRFormat() if !CorporationTaxReferenceChecker.isValid(value) =>
-        validationFailure(fieldValue, genericGovernmentIdNotExist, None)
+        validationFailure(fieldValue, genericUtrIdNotExist, None)
       case _ =>
         validationFailure(
           fieldValue,
           genericUtrErrorPattern,
-          fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
         )
     }
   }
