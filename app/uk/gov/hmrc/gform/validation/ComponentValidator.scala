@@ -206,7 +206,9 @@ object ComponentValidator {
             validationFailure(
               fieldValue,
               genericPayeErrorRequired,
-              fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
             )
           case _ => validationFailure(fieldValue, genericErrorSortCode, None)
         }
@@ -581,7 +583,9 @@ object ComponentValidator {
         validationFailure(
           fieldValue,
           genericPayeErrorPattern,
-          fieldValue.errorShortName.map(_.value.pure[List]) orElse Some(List("a"))
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
         )
 
     }
