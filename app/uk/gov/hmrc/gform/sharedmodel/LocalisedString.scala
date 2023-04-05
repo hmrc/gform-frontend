@@ -23,6 +23,11 @@ case class LocalisedString(m: Map[LangADT, String]) {
   def value(implicit l: LangADT): String = m.getOrElse(l, m.getOrElse(LangADT.En, ""))
   def replace(toReplace: String, replaceWith: String): LocalisedString =
     copy(m = (m.map { case (lang, message) => (lang, message.replace(toReplace, replaceWith)) }))
+  def trasform(fEn: String => String, fCy: String => String): LocalisedString =
+    copy(m = m.map {
+      case (LangADT.En, message) => (LangADT.En, fEn(message))
+      case (LangADT.Cy, message) => (LangADT.Cy, fCy(message))
+    })
 }
 
 object LocalisedString {
