@@ -24,7 +24,6 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.sharedmodel.{ ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
-import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.http.HttpResponse
 
 trait EnrolmentConnect[F[_]] {

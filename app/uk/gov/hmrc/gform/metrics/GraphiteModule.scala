@@ -40,8 +40,8 @@ class GraphiteModule(
 
   if (enableGraphite) {
     val config: GraphiteReporterProviderConfig =
-      GraphiteReporterProviderConfig.fromConfig(configuration, graphiteConfiguration)
-    val graphiteProviderConfig: GraphiteProviderConfig = GraphiteProviderConfig.fromConfig(graphiteConfiguration)
+      GraphiteReporterProviderConfig.fromConfig(configuration)
+    val graphiteProviderConfig: GraphiteProviderConfig = GraphiteProviderConfig.fromRootConfig(graphiteConfiguration)
     val graphite = new GraphiteProvider(graphiteProviderConfig).get()
     val filter: MetricFilter = MetricFilter.ALL
     val graphiteReporter: GraphiteReporter =

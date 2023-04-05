@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.playcomponents
 
 import akka.stream.Materializer
 import play.api.Configuration
-import play.api.mvc.{ EssentialFilter, RequestHeader, SessionCookieBaker }
+import play.api.mvc.{ CookieHeaderEncoding, EssentialFilter, RequestHeader, SessionCookieBaker }
 import play.filters.cors.{ CORSConfig, CORSFilter }
 import play.filters.csrf.CSRFComponents
 import play.filters.headers.SecurityHeadersFilter
@@ -35,7 +35,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoFilter
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoProvider
 import uk.gov.hmrc.play.bootstrap.frontend.filters.deviceid.DefaultDeviceIdFilter
-import uk.gov.hmrc.play.bootstrap.frontend.filters.{ DefaultFrontendAuditFilter, HeadersFilter, SessionTimeoutFilterConfig }
+import uk.gov.hmrc.play.bootstrap.frontend.filters.{ DefaultFrontendAuditFilter, HeadersFilter, RequestHeaderAuditing, SessionTimeoutFilterConfig }
 import uk.gov.hmrc.play.bootstrap.filters.{ CacheControlConfig, CacheControlFilter, DefaultLoggingFilter, MDCFilter }
 
 import scala.concurrent.ExecutionContext
@@ -76,7 +76,9 @@ class FrontendFiltersModule(
   anonoymousSessionCookieBaker: SessionCookieBaker,
   hmrcSessionCookieBaker: SessionCookieBaker,
   requestHeaderService: RequestHeaderService,
-  errorHandler: ErrorHandler
+  errorHandler: ErrorHandler,
+  cookieHeaderEncoding: CookieHeaderEncoding,
+  requestHeaderAuditing: RequestHeaderAuditing
 )(implicit ec: ExecutionContext) { self =>
   private implicit val materializer: Materializer = akkaModule.materializer
 
@@ -85,16 +87,20 @@ class FrontendFiltersModule(
     configModule.controllerConfigs,
     auditingModule.auditConnector,
     new DefaultHttpAuditEvent(configModule.appConfig.appName),
+    requestHeaderAuditing,
     materializer
-  ) {
-    override val maskedFormFields = Seq("password")
+  )(ec) {
+    override val maskedFormFields: Seq[String] = Seq("password")
   }
 
   private val hmrcSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
     val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
 
-    new DefaultSessionCookieCryptoFilter(sessionCookieCrypto, hmrcSessionCookieBaker)
+    new DefaultSessionCookieCryptoFilter(sessionCookieCrypto, hmrcSessionCookieBaker, cookieHeaderEncoding)(
+      materializer,
+      ec
+    )
   }
 
   private val anonoymousSessionCookieCryptoFilter: SessionCookieCryptoFilter = {

@@ -195,6 +195,10 @@ object DependencyGraph {
       items.toList
         .map(_.toOuter)
 
+//    graph.topologicalSort
+//      .map(_.toLayered.map { case (index, items) =>
+//        (index, sortedOuterNodes(items))
+//      })
     graph.topologicalSort
       .map(_.toLayered.map { case (index, items) =>
         (index, sortedOuterNodes(items))

@@ -17,9 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.data.NonEmptyList
-
 import java.time.LocalDate
-import cats.data.NonEmptyList
 import cats.instances.int._
 import cats.instances.string._
 import cats.syntax.all._
@@ -95,7 +93,6 @@ import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukCharacterCount, Go
 import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.auth.core.ConfidenceLevel
 
 case class FormRender(id: String, name: String, value: String)

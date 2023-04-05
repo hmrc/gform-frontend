@@ -25,7 +25,6 @@ import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SubmissionRef }
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 
 // Various information needed for Expr evaluation
 final case class EvaluationContext(

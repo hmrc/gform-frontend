@@ -27,7 +27,7 @@ import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
-import uk.gov.hmrc.gform.eval.ExpressionResult.StringResult
+//import uk.gov.hmrc.gform.eval.ExpressionResult.StringResult
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor

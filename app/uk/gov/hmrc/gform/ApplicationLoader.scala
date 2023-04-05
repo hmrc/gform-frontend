@@ -23,7 +23,7 @@ import play.api.http._
 import play.api.i18n.I18nComponents
 import play.api.inject.{ Injector, SimpleInjector }
 import play.api.libs.ws.ahc.AhcWSComponents
-import play.api.mvc.{ EssentialFilter, LegacySessionCookieBaker, SessionCookieBaker }
+import play.api.mvc.{ CookieHeaderEncoding, EssentialFilter, LegacySessionCookieBaker, SessionCookieBaker }
 import play.api.routing.Router
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.gform.addresslookup.AddressLookupModule
@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ CSRFErrorHandler, ControllersModule, ErrResponder, ErrorHandler }
 import _root_.controllers.AssetsComponents
+//import uk.gov.hmrc.play.audit.http.connector.Counter
 import play.filters.csrf.{ CSRF, CSRFComponents }
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.GformModule
@@ -48,6 +49,8 @@ import uk.gov.hmrc.gform.upscan.UpscanModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
+import uk.gov.hmrc.play.bootstrap.frontend.filters.RequestHeaderAuditing
+import uk.gov.hmrc.play.audit.http.connector.DatastreamMetrics
 import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
 
 class ApplicationLoader extends play.api.ApplicationLoader with Base64ConfigDecoder {
@@ -80,7 +83,11 @@ class ApplicationModule(context: Context)
 
   private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
 
-  protected val auditingModule = new AuditingModule(configModule, akkaModule, metricsModule, applicationLifecycle)
+  private val datastreamMetrics =
+    new DatastreamMetrics(successCounter = ???, rejectCounter = ???, failureCounter = ???, metricsKey = None)
+
+  protected val auditingModule =
+    new AuditingModule(configModule, akkaModule, metricsModule, applicationLifecycle, datastreamMetrics)
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
@@ -111,6 +118,12 @@ class ApplicationModule(context: Context)
     val config: SessionConfiguration = httpConfiguration.session
     new LegacySessionCookieBaker(config, cookieSigner)
   }
+
+  class cookieHeaderEncoding() extends CookieHeaderEncoding {
+    override protected def config: CookiesConfiguration = ???
+  }
+
+  val cookieHeaderEncoding = new cookieHeaderEncoding()
 
   private val anonymousSessionCookieBaker: SessionCookieBaker = {
     val httpConfiguration: HttpConfiguration =
@@ -226,6 +239,11 @@ class ApplicationModule(context: Context)
     requestHeaderService
   )
 
+  //def cookieHeaderEncoding: CookieHeaderEncoding
+
+  val requestHeaderAuditing: RequestHeaderAuditing =
+    new RequestHeaderAuditing(config = requestHeaderAuditing.config, cookieHeaderEncoding = cookieHeaderEncoding)
+
   private val frontendFiltersModule = new FrontendFiltersModule(
     gformBackendModule,
     authModule,
@@ -241,7 +259,9 @@ class ApplicationModule(context: Context)
     anonymousSessionCookieBaker,
     hmrcSessionCookieBaker,
     requestHeaderService,
-    errorHandler
+    errorHandler,
+    cookieHeaderEncoding,
+    requestHeaderAuditing
   )
 
   private val routingModule = new RoutingModule(
@@ -291,7 +311,7 @@ class ApplicationModule(context: Context)
 
   override lazy val application = app
 
-  def initialize() = {
+  def initialize(): Unit = {
 
     val appName = configModule.appConfig.appName
     logger.info(s"Starting frontend $appName in mode ${environment.mode}")

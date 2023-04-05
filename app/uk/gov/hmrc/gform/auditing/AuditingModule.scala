@@ -17,49 +17,65 @@
 package uk.gov.hmrc.gform.auditing
 
 import akka.actor.CoordinatedShutdown
-//import play.api.inject.ApplicationLifecycle
-//import uk.gov.hmrc.play.audit.http.connector.Counter
-
+import uk.gov.hmrc.play.audit.http.config.AuditingConfig
+import uk.gov.hmrc.play.audit.http.connector.AuditChannel
+import play.api.inject.ApplicationLifecycle
+import uk.gov.hmrc.play.audit.http.connector.DatastreamMetrics
+import uk.gov.hmrc.play.audit.DefaultAuditChannel
+//import uk.gov.hmrc.play.audit.http.connector.
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.audit.{ DefaultAuditChannel, DefaultAuditConnector, DefaultAuditCounter, DefaultAuditCounterMetrics }
 
 class AuditingModule(
   configModule: ConfigModule,
   akkaModule: AkkaModule,
   metricsModule: MetricsModule,
-  applicationLifecycle: ApplicationLifecycle
+  applicationLifecycle: ApplicationLifecycle,
+  datastreamMetrics: DatastreamMetrics
 )(implicit
   ec: ExecutionContext
 ) {
   self =>
 
   val defaultAuditChannel =
-    new DefaultAuditChannel(configModule.auditingConfig, akkaModule.materializer, applicationLifecycle)
-
-  val coordinatedShutdown: CoordinatedShutdown = CoordinatedShutdown(akkaModule.actorSystem)
-
-  val auditConnector: AuditConnector =
-    new DefaultAuditConnector(
+    new DefaultAuditChannel(
       configModule.auditingConfig,
-      defaultAuditChannel,
-      new DefaultAuditCounter(
-        akkaModule.actorSystem,
-        coordinatedShutdown,
-        configModule.auditingConfig,
-        defaultAuditChannel,
-        new DefaultAuditCounterMetrics(metricsModule.metrics),
-        ec
-      ),
-      //applicationLifecycle
-      applicationLifecycle
+      akkaModule.materializer,
+      applicationLifecycle,
+      datastreamMetrics
     )
 
-  val auditService = new AuditService {
-    override def auditConnector = self.auditConnector
+  val coordinatedShutdown: CoordinatedShutdown = CoordinatedShutdown(akkaModule.actorSystem)
+//  val auditConnector: AuditConnector = {
+//    new DefaultAuditConnector(
+//      configModule.auditingConfig,
+//      defaultAuditChannel,
+//      new DefaultAuditCounter(
+//        akkaModule.actorSystem,
+//        coordinatedShutdown,
+//        configModule.auditingConfig,
+//        defaultAuditChannel,
+//        new DefaultAuditCounterMetrics(metricsModule.metrics),
+//        ec
+//      ),
+//      //applicationLifecycle
+//      applicationLifecycle
+//    )
+  class auditConnector() extends AuditConnector {
+    override def auditingConfig: AuditingConfig = configModule.auditingConfig
+
+    override def auditChannel: AuditChannel = defaultAuditChannel
+
+    override def datastreamMetrics: DatastreamMetrics = datastreamMetrics
+  }
+
+  val auditConnector: auditConnector = new auditConnector()
+
+  val auditService: AuditService = new AuditService {
+    override def auditConnector: AuditConnector = self.auditConnector
   }
 
   val httpAuditingService: HttpAuditingService = new HttpAuditingService(configModule.appConfig.appName, auditConnector)
