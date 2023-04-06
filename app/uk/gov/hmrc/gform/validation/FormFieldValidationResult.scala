@@ -41,7 +41,7 @@ trait FormFieldValidationResult {
     case t: FieldGlobalOk    => t
     case t: FieldError       => FieldOk(t.formComponent, t.currentValue)
     case t: FieldGlobalError => FieldGlobalOk(t.formComponent, t.currentValue)
-    case t: ComponentField   => ComponentField(t.formComponent, t.data.mapValues(_.forgetErrors).toMap)
+    case t: ComponentField   => ComponentField(t.formComponent, t.data.view.mapValues(_.forgetErrors).toMap)
   }
 
   lazy val fieldErrors: Set[String] = this match {

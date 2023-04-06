@@ -26,7 +26,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
   val beUpdater = new BooleanExprUpdater(index, baseIds)
 
   private def expandFcId(fcId: FormComponentId): FormComponentId =
-    if (baseIds.contains(fcId) && index =!= 0) FormComponentId(index + "_" + fcId.value) else fcId
+    if (baseIds.contains(fcId) && index =!= 0) FormComponentId(s"${index}_${fcId.value}") else fcId
 
   def expandExpr(expr: Expr): Expr = expr match {
     case Add(field1, field2)                  => Add(expandExpr(field1), expandExpr(field2))

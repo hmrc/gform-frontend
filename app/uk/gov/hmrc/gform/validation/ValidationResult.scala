@@ -34,7 +34,8 @@ case class ValidationResult(
       case (fcId, ffvr) if ffvr.fieldErrors.nonEmpty => fcId
     }.toList
 
-  def forgetErrors: ValidationResult = new ValidationResult(lookup.mapValues(_.forgetErrors).toMap, validatorsResult)
+  def forgetErrors: ValidationResult =
+    new ValidationResult(lookup.view.mapValues(_.forgetErrors).toMap, validatorsResult)
 
   def apply(formComponent: FormComponent): FormFieldValidationResult =
     lookup.getOrElse(formComponent.id, FieldOk(formComponent, ""))

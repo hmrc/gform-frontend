@@ -1600,7 +1600,7 @@ class SectionRenderingService(
     val fileInput: Html = new components.GovukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
 
     val submitButton: Button = Button(
-      name = Some(formComponent.id + "-uploadButton"),
+      name = Some(s"${formComponent.id}-uploadButton"),
       content = content.Text(messages("file.upload")),
       inputType = Some("submit"),
       classes = "govuk-button--secondary",

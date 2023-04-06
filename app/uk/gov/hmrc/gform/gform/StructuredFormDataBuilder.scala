@@ -268,10 +268,10 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     val addToListMultiValueIds: List[MultiValueId] = addToLists.flatMap(_._2)
 
     val addToListsMap: Map[AddToListId, List[MultiValueId]] =
-      addToLists.groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.flatten).toMap
+      addToLists.groupBy(_._1).view.mapValues(_.map(_._2)).mapValues(_.flatten).toMap
 
     val multiValueIdByIndex: Map[AddToListId, Map[Int, List[MultiValueId]]] =
-      addToListsMap.mapValues(_.groupBy(_.modelComponentId.indexedComponentId.maybeIndex.getOrElse(0))).toMap
+      addToListsMap.view.mapValues(_.groupBy(_.modelComponentId.indexedComponentId.maybeIndex.getOrElse(0))).toMap
 
     val addToListFields: F[List[Field]] = {
       val allRevealingChoicesIds: List[(FormComponent, RevealingChoice)] =

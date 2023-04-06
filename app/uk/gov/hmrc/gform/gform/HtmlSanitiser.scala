@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.gform
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{ Document, Element, Node }
 import play.twirl.api.Html
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
 import uk.gov.hmrc.gform.sharedmodel.LangADT

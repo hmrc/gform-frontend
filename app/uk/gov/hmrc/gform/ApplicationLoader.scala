@@ -95,8 +95,6 @@ class ApplicationModule(context: Context)
       metricsKey = None
     )
 
-
-
   protected val auditingModule =
     new AuditingModule(configModule, akkaModule, metricsModule, applicationLifecycle, dataStreamMetrics)
 

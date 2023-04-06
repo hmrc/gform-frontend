@@ -63,6 +63,7 @@ lazy val microservice = (project in file("."))
     scalacOptions ++= Seq(
       "-Xfatal-warnings",
       "-Xlint:-missing-interpolator,_",
+      "-Xlint:-byname-implicit",
       "-Ywarn-numeric-widen",
       "-Ywarn-value-discard",
       "-Ywarn-dead-code",

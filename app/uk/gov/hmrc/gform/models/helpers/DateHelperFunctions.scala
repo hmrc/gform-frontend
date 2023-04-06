@@ -47,7 +47,7 @@ object DateHelperFunctions {
     case nonZero =>
       val zeroPadding = (x: Int) => "%02d".format(x)
       val dateExprToString = (dateExpr: DateExpr) =>
-        dateExpr.year + "-" + zeroPadding(dateExpr.month) + "-" + zeroPadding(dateExpr.day)
+        s"${dateExpr.year}-${zeroPadding(dateExpr.month)}-${zeroPadding(dateExpr.day)}"
 
       val dateWithOffset = LocalDate
         .parse(dateExprToString(dateExpr), dateFormatter)
@@ -60,7 +60,7 @@ object DateHelperFunctions {
     val m = month
     val restValue = month.drop(1)
 
-    m.charAt(0) + "" + restValue.toLowerCase
+    m.charAt(0).toString + "" + restValue.toLowerCase.toString
   }
 
   val renderMonth: String => String = (str: String) =>

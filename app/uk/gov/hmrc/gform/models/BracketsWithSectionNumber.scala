@@ -132,7 +132,7 @@ object BracketsWithSectionNumber {
   def fromBracketsPlains[A <: PageMode](bracketPlains: BracketPlainCoordinated[A]): BracketsWithSectionNumber[A] =
     bracketPlains match {
       case BracketPlainCoordinated.Classic(bracketPlains) =>
-        val iterator: Iterator[SectionNumber] = Stream.from(0).map(SectionNumber.Classic(_)).iterator
+        val iterator: Iterator[SectionNumber] = LazyList.from(0).map(SectionNumber.Classic(_)).iterator
         val res: NonEmptyList[Bracket[A]] = mkBrackets(iterator, bracketPlains)
         Classic(res)
       case BracketPlainCoordinated.TaskList(coordinatedBracketPlains) =>
@@ -140,7 +140,7 @@ object BracketsWithSectionNumber {
           coordinatedBracketPlains.map { case (coordinated, taskModelCoordinated) =>
             val mkSectionNumber =
               SectionNumber.TaskList(Coordinates(coordinated.taskSectionNumber, coordinated.taskNumber), _)
-            val iterator: Iterator[SectionNumber] = Stream.from(0).map(mkSectionNumber).iterator
+            val iterator: Iterator[SectionNumber] = LazyList.from(0).map(mkSectionNumber).iterator
             val taskModel: TaskModel[A] = taskModelCoordinated.toTaskModel(mkBrackets(iterator, _))
             (coordinated, taskModel)
           }

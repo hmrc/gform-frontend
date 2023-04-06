@@ -27,7 +27,8 @@ import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, TrackingConsentConfig }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
-import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, ServicesConfig }
+import uk.gov.hmrc.play.bootstrap.config.{ ControllerConfig, ControllerConfigs, ServicesConfig }
+import uk.gov.hmrc.play.audit.http.config.AuditingConfig.fromConfig
 import org.typelevel.ci._
 import play.api.http.HttpConfiguration
 
@@ -50,7 +51,7 @@ class ConfigModule(
 
   val serviceConfig = new ServicesConfig(playConfiguration)
 
-  val controllerConfigs = ControllerConfigs.fromConfig(playConfiguration)
+  val controllerConfigs: ControllerConfigs = ControllerConfigs.fromConfig(playConfiguration)
 
   val controllerConfig: ControllerConfig = new ControllerConfig {
     //val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
@@ -58,7 +59,7 @@ class ConfigModule(
 
   val accessibilityStatementConfig = new AccessibilityStatementConfig(playConfiguration)
 
-  val auditingConfig: AuditingConfig = new AuditingConfigProvider(playConfiguration, appConfig.appName).get()
+  val auditingConfig: AuditingConfig = fromConfig(playConfiguration)
 
   val availableLanguages: Map[String, Lang] = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
   def routeToSwitchLanguage: String => Call =

@@ -45,7 +45,7 @@ class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponent
           Result(
             ResponseHeader(
               streamedResponse.status,
-              streamedResponse.headers.mapValues(_.head).filter(filterOutContentHeaders).toMap
+              streamedResponse.headers.view.mapValues(_.head).filter(filterOutContentHeaders).toMap
             ),
             Streamed(streamedResponse.bodyAsSource, contentLength, contentType)
           )
@@ -66,7 +66,7 @@ class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponent
       .withFollowRedirects(false)
       .withMethod(inboundRequest.method)
       .withHttpHeaders(processHeaders(inboundRequest.headers, extraHeaders = Nil): _*)
-      .withQueryStringParameters(inboundRequest.queryString.mapValues(_.head).toSeq: _*)
+      .withQueryStringParameters(inboundRequest.queryString.view.mapValues(_.head).toSeq: _*)
       .withBody(inboundRequest.body)
       .withRequestTimeout(30.seconds)
   )

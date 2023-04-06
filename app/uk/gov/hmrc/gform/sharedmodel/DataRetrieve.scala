@@ -61,7 +61,7 @@ object Attr {
 
 case class DataRetrieveId(value: String) extends AnyVal {
   def withIndex(index: Int): DataRetrieveId =
-    DataRetrieveId(index + "_" + value)
+    DataRetrieveId(s"${index}_${value}")
 }
 
 object DataRetrieveId {

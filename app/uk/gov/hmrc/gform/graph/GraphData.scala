@@ -20,8 +20,8 @@ import scalax.collection.Graph
 import scalax.collection.GraphEdge.DiEdge
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 
-case class GraphData(graphTopologicalOrder: Traversable[(Int, List[GraphNode])], graph: Graph[GraphNode, DiEdge])
+case class GraphData(graphTopologicalOrder: Iterable[(Int, List[GraphNode])], graph: Graph[GraphNode, DiEdge])
 
 object GraphData {
-  val empty = GraphData(List.empty[(Int, List[GraphNode])], Graph.empty)
+  val empty: GraphData = GraphData(List.empty[(Int, List[GraphNode])], Graph.empty)
 }

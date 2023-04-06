@@ -116,6 +116,7 @@ class ReviewController(
   private def extractReviewData(request: Request[AnyContent]) =
     request.body.asFormUrlEncoded
       .getOrElse(Map.empty[String, Seq[String]])
+      .view
       .mapValues(_.headOption)
       .collect { case (k, Some(v)) => (k, v) }
 
