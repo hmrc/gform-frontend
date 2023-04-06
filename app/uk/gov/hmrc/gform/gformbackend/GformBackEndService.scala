@@ -172,7 +172,7 @@ class GformBackEndService(
 
     val maybePDFOptions = cache.formTemplate.destinations match {
       case d: DestinationList =>
-        d.acknowledgementSection.pdf.map(p => PDFModel.Options(p.tabularFormat, None))
+        d.acknowledgementSection.pdf.map(p => PDFModel.Options(p.tabularFormat, p.includeSignatureBox))
       case _ => None
     }
 
