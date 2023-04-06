@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ CSRFErrorHandler, ControllersModule, ErrResponder, ErrorHandler }
 import _root_.controllers.AssetsComponents
-//import uk.gov.hmrc.play.audit.http.connector.Counter
+import uk.gov.hmrc.play.audit.http.connector.Counter
 import play.filters.csrf.{ CSRF, CSRFComponents }
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.GformModule
@@ -83,11 +83,22 @@ class ApplicationModule(context: Context)
 
   private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
 
-  private val datastreamMetrics =
-    new DatastreamMetrics(successCounter = ???, rejectCounter = ???, failureCounter = ???, metricsKey = None)
+  class counter() extends Counter {
+    override def inc(): Unit = ()
+  }
+
+  private val dataStreamMetrics =
+    new DatastreamMetrics(
+      successCounter = new counter,
+      rejectCounter = new counter,
+      failureCounter = new counter,
+      metricsKey = None
+    )
+
+
 
   protected val auditingModule =
-    new AuditingModule(configModule, akkaModule, metricsModule, applicationLifecycle, datastreamMetrics)
+    new AuditingModule(configModule, akkaModule, metricsModule, applicationLifecycle, dataStreamMetrics)
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
