@@ -71,7 +71,8 @@ class ValidationService(
     val eT = for {
       _                     <- lift(validatePageModelComponents(pageModel, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
       valRes                <- lift(validateUsingValidators(pageModel, formModelVisibilityOptics))
-      emailsForVerification <- lift(sendVerificationEmails(pageModel, formModelVisibilityOptics, cache.thirdPartyData))
+      formTemplateId = cache.formTemplate._id
+      emailsForVerification <- lift(sendVerificationEmails(pageModel, formModelVisibilityOptics, cache.thirdPartyData, formTemplateId))
     } yield {
       valRes.copy(emailVerification = emailsForVerification)
     }
@@ -179,7 +180,8 @@ class ValidationService(
   private def sendVerificationEmails[D <: DataOrigin](
     pageModel: PageModel[Visibility],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    thirdPartyData: ThirdPartyData
+    thirdPartyData: ThirdPartyData,
+    formTemplateId: FormTemplateId
   )(implicit
     hc: HeaderCarrier,
     l: LangADT
@@ -205,7 +207,13 @@ class ValidationService(
       .traverse { case (emailFieldId, eac @ EmailAndCode(email, code), emailVerifierService) =>
         gformConnector
           .sendEmail(
-            ConfirmationCodeWithEmailService(NotifierEmailAddress(email.toString), code, emailVerifierService, l)
+            ConfirmationCodeWithEmailService(
+              NotifierEmailAddress(email.toString),
+              code,
+              emailVerifierService,
+              l,
+              formTemplateId
+            )
           )
           .map(_ => (emailFieldId, eac))
       }

@@ -25,4 +25,10 @@ class EmailParameterSpec extends Spec {
       EmailParameter.format.reads(EmailParameter.format.writes(obj)) should beJsSuccess(obj)
     }
   }
+
+  "EmailCodeParameter" should "round trip derived JSON" in {
+    forAll(FormTemplateGen.emailCodeParameterGen) { obj =>
+      EmailCodeParameter.format.reads(EmailCodeParameter.format.writes(obj)) should beJsSuccess(obj)
+    }
+  }
 }
