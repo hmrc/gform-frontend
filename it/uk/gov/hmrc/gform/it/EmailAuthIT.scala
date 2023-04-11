@@ -100,7 +100,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     gformFormNotFoundStub(formTemplateEmailAuth)
 
     And("Gform email notification service returns 204 NoContent")
-    gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None))
+    gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None), formTemplateId)
 
     When("I request for a new form and POST the 'enter email' form with an email id")
     val emailForm = get("/submissions/new-form/form-template-with-email-auth").send()
@@ -143,7 +143,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     gformFormNotFoundStub(formTemplateEmailAuth)
 
     And("Gform email notification service returns 204 NoContent")
-    gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None))
+    gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None), formTemplateId)
 
     When("I request for a new form and POST the 'enter email' form with an email id")
     val emailForm = get("/submissions/new-form/form-template-with-email-auth").send()
@@ -189,7 +189,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     gformFormNotFoundStub(formTemplateEmailAuth)
 
     And("Gform email notification service returns 204 NoContent")
-    gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None))
+    gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None), formTemplateId)
 
     And("Gform get form returns 200 OK")
     gformFormStub(formTemplateEmailAuth)
@@ -229,7 +229,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     gformFormStub(formTemplateEmailAuth)
 
     And("Gform email notification service returns 204 NoContent")
-    gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None))
+    gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None), formTemplateId)
 
     And("FileUpload get envelopes returns 200 OK")
     getFileUploadEnvelopeStub()

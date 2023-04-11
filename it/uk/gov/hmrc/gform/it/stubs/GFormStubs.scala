@@ -10,6 +10,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import org.typelevel.ci._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 trait GFormStubs extends FormTemplateSample {
 
@@ -64,7 +65,7 @@ trait GFormStubs extends FormTemplateSample {
       .willReturn(ok(JsonUtils.toJsonStr(FormIdData.Plain(UserId(""), formTemplate._id): FormIdData)))
   )
 
-  def gformEmailStub(emailVerifierService: EmailVerifierService) =
+  def gformEmailStub(emailVerifierService: EmailVerifierService, formTemplateId: FormTemplateId) =
     stubFor(
       WireMock
         .post("/gform/email")
@@ -76,7 +77,8 @@ trait GFormStubs extends FormTemplateSample {
                   NotifierEmailAddress("test@test.com"),
                   EmailConfirmationCode(ci"[A-Z]+"),
                   emailVerifierService,
-                  LangADT.En
+                  LangADT.En,
+                  formTemplateId
                 )
               )
               .replaceAllLiterally("{", "\\{")
