@@ -632,8 +632,8 @@ object ComponentValidator {
     val availableSelections: Set[String] = fieldValue.`type` match {
       case Choice(_, options, _, _, _, _, _, _, _, _) =>
         options.zipWithIndex.collect {
-          case (OptionData.IndexBased(_, _, _, _), i)        => i.toString
-          case (OptionData.ValueBased(_, _, _, _, value), _) => value
+          case (OptionData.IndexBased(_, _, _, _), i)                                     => i.toString
+          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)), _) => value
         }.toSet
       case _ => Set.empty[String]
     }

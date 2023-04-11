@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Dynamic, FormComponent, FormComponentId, FormCtx, OptionData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Dynamic, FormComponent, FormComponentId, FormCtx, OptionData, OptionDataValue }
 
 object OptionDataUtils {
 
@@ -117,7 +117,10 @@ object OptionDataUtils {
       label = od.label.expand(index, baseIds),
       hint = od.hint.map(_.expand(index, baseIds)),
       dynamic = od.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _)),
-      value = od.value + "_" + index
+      value = od.value match {
+        case OptionDataValue.StringBased(value)      => OptionDataValue.StringBased(value + "_" + index)
+        case OptionDataValue.ExprBased(prefix, expr) => OptionDataValue.ExprBased(prefix + "_" + index, expr)
+      }
     )
 
   private def updateDataRetrieveValueBased(
@@ -128,7 +131,10 @@ object OptionDataUtils {
       label = od.label.expandDataRetrieve(index),
       hint = od.hint.map(_.expandDataRetrieve(index)),
       dynamic = od.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _)),
-      value = od.value + "_" + index
+      value = od.value match {
+        case OptionDataValue.StringBased(value)      => OptionDataValue.StringBased(value + "_" + index)
+        case OptionDataValue.ExprBased(prefix, expr) => OptionDataValue.ExprBased(prefix + "_" + index, expr)
+      }
     )
 
   private def expandOptionData[A, D <: DataOrigin](

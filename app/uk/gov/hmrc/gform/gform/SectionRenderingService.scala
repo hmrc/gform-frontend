@@ -294,9 +294,9 @@ class SectionRenderingService(
     val items = choice.options.zipWithIndex.map { case (option, index) =>
       RadioItem(
         id = Some(formComponent.id.value + index),
-        value = Some(option.value(index)),
+        value = Some(option.getValue(index, formModelOptics)),
         content = content.Text(option.label.value),
-        checked = isChecked(option.value(index)),
+        checked = isChecked(option.getValue(index, formModelOptics)),
         attributes = dataLabelAttribute(option.label)
       )
     }
@@ -1671,6 +1671,7 @@ class SectionRenderingService(
     maybeNoneChoice: Option[NoneChoice]
   )(implicit
     l: LangADT,
+    m: Messages,
     sse: SmartStringEvaluator
   ) = {
     val prepopValues =
@@ -1750,9 +1751,9 @@ class SectionRenderingService(
           case ((option, maybeHint, maybeHelpText), index) =>
             RadioItem(
               id = Some(formComponent.id.value + index),
-              value = Some(option.value(index)),
+              value = Some(option.getValue(index, ei.formModelOptics)),
               content = content.Text(option.label.value),
-              checked = isChecked(option.value(index)),
+              checked = isChecked(option.getValue(index, ei.formModelOptics)),
               conditionalHtml = helpTextHtml(maybeHelpText),
               attributes = dataLabelAttribute(option.label),
               hint = maybeHint
@@ -1783,14 +1784,16 @@ class SectionRenderingService(
           case ((option, maybeHint, maybeHelpText), index) =>
             val item = CheckboxItem(
               id = Some(formComponent.id.value + index),
-              value = option.value(index),
+              value = option.getValue(index, ei.formModelOptics),
               content = content.Text(option.label.value),
-              checked = isChecked(option.value(index)),
+              checked = isChecked(option.getValue(index, ei.formModelOptics)),
               conditionalHtml = helpTextHtml(maybeHelpText),
               attributes = dataLabelAttribute(option.label),
               hint = maybeHint
             )
-            if (maybeNoneChoice.exists(noneChoice => noneChoice.selection === option.value(index))) {
+            if (
+              maybeNoneChoice.exists(noneChoice => noneChoice.selection === option.getValue(index, ei.formModelOptics))
+            ) {
               item.copy(behaviour = Some(ExclusiveCheckbox))
             } else {
               item
@@ -1922,9 +1925,9 @@ class SectionRenderingService(
         case ((option, maybeHint, isChecked, maybeRevealingFieldsHtml), index) =>
           CheckboxItem(
             id = Some(formComponent.id.value + index),
-            value = option.value(index),
+            value = option.getValue(index, extraInfo.formModelOptics),
             content = content.Text(option.label.value),
-            checked = isChecked(option.value(index)),
+            checked = isChecked(option.getValue(index, extraInfo.formModelOptics)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(option.label),
             hint = maybeHint
@@ -1947,9 +1950,9 @@ class SectionRenderingService(
         case ((option, maybeHint, isChecked, maybeRevealingFieldsHtml), index) =>
           RadioItem(
             id = Some(formComponent.id.value + index),
-            value = Some(option.value(index)),
+            value = Some(option.getValue(index, extraInfo.formModelOptics)),
             content = content.Text(option.label.value),
-            checked = isChecked(option.value(index)),
+            checked = isChecked(option.getValue(index, extraInfo.formModelOptics)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(option.label),
             hint = maybeHint

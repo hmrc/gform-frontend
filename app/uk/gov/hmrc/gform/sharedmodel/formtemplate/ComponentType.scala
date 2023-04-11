@@ -23,12 +23,14 @@ import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.foldable._
 import julienrf.json.derived
+import play.api.i18n.Messages
 import play.api.libs.json._
-
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin }
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString, SourceOrigin, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
@@ -317,9 +319,16 @@ sealed trait OptionData extends Product with Serializable {
   def dynamic: Option[Dynamic]
 
   def value(index: Int): String = this match {
-    case o: OptionData.IndexBased => index.toString
-    case o: OptionData.ValueBased => o.value
+    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)) => value
+    case _                                                                         => index.toString
   }
+  def getValue(index: Int, formModelOptics: FormModelOptics[DataOrigin.Mongo])(implicit m: Messages): String =
+    this match {
+      case o: OptionData.IndexBased                                                  => index.toString
+      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)) => value
+      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, expr)) =>
+        prefix + formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
+    }
 }
 
 object OptionData {
@@ -336,7 +345,7 @@ object OptionData {
     hint: Option[SmartString],
     includeIf: Option[IncludeIf],
     dynamic: Option[Dynamic],
-    value: String
+    value: OptionDataValue
   ) extends OptionData
 
   implicit val format: OFormat[OptionData] = derived.oformat()
