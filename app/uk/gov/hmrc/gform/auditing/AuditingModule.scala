@@ -49,27 +49,13 @@ class AuditingModule(
     )
 
   val coordinatedShutdown: CoordinatedShutdown = CoordinatedShutdown(akkaModule.actorSystem)
-//  val auditConnector: AuditConnector = {
-//    new DefaultAuditConnector(
-//      configModule.auditingConfig,
-//      defaultAuditChannel,
-//      new DefaultAuditCounter(
-//        akkaModule.actorSystem,
-//        coordinatedShutdown,
-//        configModule.auditingConfig,
-//        defaultAuditChannel,
-//        new DefaultAuditCounterMetrics(metricsModule.metrics),
-//        ec
-//      ),
-//      //applicationLifecycle
-//      applicationLifecycle
-//    )
+
   class auditConnector() extends AuditConnector {
     override def auditingConfig: AuditingConfig = configModule.auditingConfig
 
     override def auditChannel: AuditChannel = defaultAuditChannel
 
-    override def datastreamMetrics: DatastreamMetrics = datastreamMetrics
+    override def datastreamMetrics: DatastreamMetrics = defaultAuditChannel.datastreamMetrics
   }
 
   val auditConnector: auditConnector = new auditConnector()

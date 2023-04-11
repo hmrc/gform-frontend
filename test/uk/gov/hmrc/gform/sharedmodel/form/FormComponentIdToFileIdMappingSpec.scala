@@ -122,7 +122,7 @@ class FormComponentIdToFileIdMappingSpec extends FunSuite {
     expected.zipWithIndex.foreach { case ((fcId, fileId), mappingIndex) =>
       val obtained = mapping.fileIdFor(fcId)
       test(
-        rowIndex + "." + mappingIndex + s". fileIdFor determines $fileId for input FormComponentId($fcId)"
+        rowIndex.toString + "." + mappingIndex.toString + s". fileIdFor determines $fileId for input FormComponentId($fcId)"
       ) {
         assertEquals(fileId, obtained)
       }

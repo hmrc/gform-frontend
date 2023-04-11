@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.validation
 import cats.{ Monad, Monoid }
 import cats.implicits._
 import play.api.i18n.Messages
-
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, Error, File, Infected }
@@ -36,6 +35,8 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ComponentValidator._
+
+import scala.annotation.nowarn
 
 class EmailCodeFieldMatcher(
   val fcId: VerificationCodeFieldId,
@@ -125,6 +126,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         val maybeAddressDetail = evaluationResults.exprMap.map(_._1).collectFirst {
           case AddressLens(fcId, addressDetail) if fcId === formComponent.id => addressDetail
         }
+        @nowarn
         val modelComponentIds = maybeAddressDetail.fold(formComponent.multiValueId.atomsModelComponentIds) {
           addressDetail =>
             formComponent match {
@@ -250,7 +252,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
 }
 
 class ComponentsValidatorHelper(implicit messages: Messages, sse: SmartStringEvaluator) {
-
+  @nowarn
   def validateRequired2(
     formComponent: FormComponent,
     atomicFcId: ModelComponentId.Atomic,
@@ -268,6 +270,7 @@ class ComponentsValidatorHelper(implicit messages: Messages, sse: SmartStringEva
       case value :: rest => validationSuccess // we don't support multiple values yet
     }
 
+  @nowarn
   def validateForbidden(
     formComponent: FormComponent,
     atomicFcId: ModelComponentId.Atomic

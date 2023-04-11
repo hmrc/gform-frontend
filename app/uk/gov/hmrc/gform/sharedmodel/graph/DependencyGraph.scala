@@ -26,6 +26,8 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, Model
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
+import scala.annotation.nowarn
+
 object DependencyGraph {
 
   def toGraph(formModel: FormModel[Interim], formTemplateExprs: Set[ExprMetadata]): Graph[GraphNode, DiEdge] =
@@ -40,7 +42,7 @@ object DependencyGraph {
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
 
     def edges(fc: FormComponent): Set[DiEdge[GraphNode]] = {
-
+      @nowarn
       def fcIds(fc: FormComponent): Set[DiEdge[GraphNode]] = fc match {
         case AllFormComponentExpressions(exprsMetadata) =>
           exprsMetadata.toSet[ExprMetadata].flatMap {

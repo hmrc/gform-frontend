@@ -59,7 +59,7 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
   it should "throw an exception if the value can be found but is a Many" in {
     Try(VariadicFormData(Map(aFormComponentId -> Many(Seq("x")))).one(aFormComponentId)) match {
       case Failure(_) =>
-      case Success(_) => fail
+      case Success(_) => fail()
     }
   }
 
@@ -74,7 +74,7 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
   it should "throw an exception if the value can be found but is a Many" in {
     Try(VariadicFormData(Map(aFormComponentId -> Many(Seq("x")))).oneOrElse(aFormComponentId, "y")) match {
       case Failure(_) =>
-      case Success(_) => fail
+      case Success(_) => fail()
     }
   }
 
@@ -89,7 +89,7 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
   it should "throw an exception if the value can be found but is a One" in {
     Try(VariadicFormData(Map(aFormComponentId -> One("x"))).many(aFormComponentId)) match {
       case Failure(_) =>
-      case Success(_) => fail
+      case Success(_) => fail()
     }
   }
 
@@ -116,7 +116,7 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
 
   "keySet" should "return all the keys" in {
     (ones(aFormComponentId   -> "x") ++
-      manys(bFormComponentId -> Seq("y"))).keySet shouldBe Set(aFormComponentId, bFormComponentId)
+      manys(bFormComponentId -> Seq("y"))).keySet() shouldBe Set(aFormComponentId, bFormComponentId)
   }
 
   "addValue" should "add the value" in {

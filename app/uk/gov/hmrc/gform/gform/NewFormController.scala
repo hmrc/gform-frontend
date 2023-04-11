@@ -53,6 +53,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, ItmpRetrievals }
 import uk.gov.hmrc.auth.core.ConfidenceLevel
 
+import scala.annotation.nowarn
+
 case class AccessCodeForm(accessCode: Option[String], accessOption: String)
 
 class NewFormController(
@@ -332,6 +334,7 @@ class NewFormController(
           )
       }
 
+    @nowarn
     def processSubmittedData(cache: AuthCacheWithoutForm, drm: DraftRetrievalMethod)(implicit
       request: Request[AnyContent],
       l: LangADT

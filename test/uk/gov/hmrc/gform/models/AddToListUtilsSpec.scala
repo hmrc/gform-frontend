@@ -243,7 +243,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
       (1, fruitAddToListId, (expectedData5, originalMapping.mapping, Set.empty[FileId]))
     )
 
-    forAll(variations) { case (index, addToListId, (expectedVariadicData, expectedMapping, expectedFilesToDelete)) ⇒
+    forAll(variations) { case (index, addToListId, (expectedVariadicData, expectedMapping, expectedFilesToDelete)) =>
       val bracket: Bracket.AddToList[DataExpanded] =
         formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
       val (updatedVariadicData, updatedMapping, filesToDelete) =

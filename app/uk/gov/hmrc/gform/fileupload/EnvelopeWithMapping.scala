@@ -22,6 +22,8 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, Form, FormComponentIdToFileIdMapping }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
+import scala.annotation.nowarn
+
 class EnvelopeWithMapping(
   private val envelope: Envelope,
   val mapping: FormComponentIdToFileIdMapping
@@ -39,7 +41,7 @@ class EnvelopeWithMapping(
       .flatMap { fileId =>
         envelope.files.find(_.fileId === fileId)
       }
-
+  @nowarn
   def byPurpose(summaryPagePurpose: SummaryPagePurpose) = {
     val envelopeUpd = summaryPagePurpose match {
       case SummaryPagePurpose.ForUser => envelope.withUserFileNames

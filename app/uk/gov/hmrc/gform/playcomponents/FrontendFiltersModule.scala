@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.playcomponents
 
 import akka.stream.Materializer
 import play.api.Configuration
+import play.api.http.CookiesConfiguration
 import play.api.mvc.{ CookieHeaderEncoding, EssentialFilter, RequestHeader, SessionCookieBaker }
 import play.filters.cors.{ CORSConfig, CORSFilter }
 import play.filters.csrf.CSRFComponents
@@ -50,6 +51,10 @@ class AnonoymousSessionCookieCryptoFilter(
     extends SessionCookieCryptoFilter {
   override protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
   override protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
+
+  override protected def cookieHeaderEncoding: CookieHeaderEncoding = new CookieHeaderEncoding {
+    override protected def config: CookiesConfiguration = CookiesConfiguration()
+  }
 }
 
 class EmailSessionCookieCryptoFilter(
@@ -59,6 +64,10 @@ class EmailSessionCookieCryptoFilter(
     extends SessionCookieCryptoFilter {
   override protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
   override protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
+
+  override protected def cookieHeaderEncoding: CookieHeaderEncoding = new CookieHeaderEncoding {
+    override protected def config: CookiesConfiguration = CookiesConfiguration()
+  }
 }
 
 class FrontendFiltersModule(

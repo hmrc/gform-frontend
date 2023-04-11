@@ -31,7 +31,10 @@ import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationResult }
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
 import uk.gov.hmrc.gform.pdf.model.TextFormatter._
 
+import scala.annotation.nowarn
+
 object PDFPageFieldBuilder {
+  @nowarn
   def build[T <: PDFType](
     formComponent: FormComponent,
     cache: AuthCacheWithForm,

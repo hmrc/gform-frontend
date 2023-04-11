@@ -235,7 +235,7 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
         .validate(GetEmailCodeFieldMatcher.noop)
 
     obtainedF.map { obtained =>
-      test(index + ". " + description) {
+      test(index.toString + ". " + description) {
         assertEquals(obtained, expected)
       }
     }
@@ -367,7 +367,7 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
           .validate(GetEmailCodeFieldMatcher.noop)
 
       obtainedF.map { obtained =>
-        test(index + ". " + description) {
+        test(index.toString + ". " + description) {
           assertEquals(obtained, expected)
         }
       }
@@ -416,7 +416,7 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
           .validate(GetEmailCodeFieldMatcher.noop)
 
       obtainedF.map { obtained =>
-        test(index + ". " + description) {
+        test(index.toString + ". " + description) {
           assertEquals(obtained, expected)
         }
       }

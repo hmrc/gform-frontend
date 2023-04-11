@@ -22,6 +22,8 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
+import scala.annotation.nowarn
+
 case class FieldOk(formComponent: FormComponent, currentValue: String) extends FormFieldValidationResult
 case class FieldGlobalOk(formComponent: FormComponent, currentValue: String) extends FormFieldValidationResult
 case class FieldError(formComponent: FormComponent, currentValue: String, errors: Set[String])
@@ -36,6 +38,7 @@ case class ComponentField(
 
 trait FormFieldValidationResult {
 
+  @nowarn
   def forgetErrors: FormFieldValidationResult = this match {
     case t: FieldOk          => t
     case t: FieldGlobalOk    => t
@@ -118,6 +121,7 @@ trait FormFieldValidationResult {
       case _ => Nil
     }
 
+  @nowarn
   // Construct List[FormField] to be stored in MongoDB
   def convertToFormField: List[FormField] = this match {
     case FieldOk(formComponent, cv)             => List(FormField(formComponent.modelComponentId, cv))

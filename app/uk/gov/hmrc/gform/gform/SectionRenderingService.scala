@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.data.NonEmptyList
+
 import java.time.LocalDate
 import cats.instances.int._
 import cats.instances.string._
@@ -94,6 +95,8 @@ import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.auth.core.ConfidenceLevel
+
+import scala.annotation.nowarn
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
@@ -2104,7 +2107,7 @@ class SectionRenderingService(
     }
 
     val maybeCurrentValue: Option[String] = prepopValue.orElse(formFieldValidationResult.getCurrentValue)
-
+    @nowarn
     val sizeClasses = text.displayWidth match {
       case DisplayWidth.XS      => "govuk-input--width-3"
       case DisplayWidth.S       => "govuk-input--width-10"

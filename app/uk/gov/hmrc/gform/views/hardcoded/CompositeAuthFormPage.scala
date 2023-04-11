@@ -23,6 +23,8 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, FormTemplate, SuppressErrors }
 import uk.gov.hmrc.govukfrontend.views.html.components._
 
+import scala.annotation.nowarn
+
 class CompositeAuthFormPage(
   val formTemplate: FormTemplate,
   form: Form[String],
@@ -70,6 +72,7 @@ class CompositeAuthFormPage(
       case _                  => Nil
     }
 
+    @nowarn
     val items = configNames flatMap {
       case configName @ AuthConfig.hmrcSimpleModule =>
         ggId match {

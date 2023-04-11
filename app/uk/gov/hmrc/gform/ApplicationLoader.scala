@@ -129,7 +129,7 @@ class ApplicationModule(context: Context)
   }
 
   class cookieHeaderEncoding() extends CookieHeaderEncoding {
-    override protected def config: CookiesConfiguration = ???
+    override protected def config: CookiesConfiguration = CookiesConfiguration()
   }
 
   val cookieHeaderEncoding = new cookieHeaderEncoding()

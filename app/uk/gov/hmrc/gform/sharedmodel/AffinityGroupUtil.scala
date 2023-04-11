@@ -18,6 +18,8 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, MaterialisedRetrievals }
 
+import scala.annotation.nowarn
+
 object AffinityGroupUtil {
 
   def fromRetrievals(materialisedRetrievals: MaterialisedRetrievals): Option[AffinityGroup] =
@@ -25,7 +27,7 @@ object AffinityGroupUtil {
       case a: AuthenticatedRetrievals => Some(a.affinityGroup)
       case _                          => None
     }
-
+  @nowarn
   def localAffinityGroup(affinityGroup: uk.gov.hmrc.auth.core.AffinityGroup): AffinityGroup = affinityGroup match {
     case uk.gov.hmrc.auth.core.AffinityGroup.Agent        => AffinityGroup.Agent
     case uk.gov.hmrc.auth.core.AffinityGroup.Individual   => AffinityGroup.Individual

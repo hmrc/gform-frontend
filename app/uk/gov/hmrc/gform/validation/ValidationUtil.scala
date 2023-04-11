@@ -30,6 +30,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import com.softwaremill.quicklens._
 
+import scala.annotation.nowarn
+
 object ValidationUtil {
 
   private val logger = LoggerFactory.getLogger(getClass)
@@ -117,6 +119,7 @@ object ValidationUtil {
       ComponentField(formComponent, dataMap)
     }
 
+    @nowarn
     def matchComponentType(formComponent: FormComponent): FormFieldValidationResult = formComponent match {
       case IsAddress(Address(_, _, _, Some(AuthCtx(AuthInfo.ItmpAddress)))) =>
         val itmpAddress = formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals

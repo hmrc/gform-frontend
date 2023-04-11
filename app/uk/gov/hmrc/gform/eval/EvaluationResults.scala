@@ -27,6 +27,8 @@ import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
+
+import scala.annotation.nowarn
 //import uk.gov.hmrc.gform.eval.ExpressionResult.StringResult
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
@@ -394,7 +396,7 @@ case class EvaluationResults(
       val addressLines = variadicValues.collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
       ExpressionResult.AddressResult(addressLines)
     }
-
+    @nowarn
     def loop(expr: Expr): ExpressionResult = expr match {
       case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
       case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
@@ -858,6 +860,7 @@ object EvaluationResults {
 
   implicit val monoidEvaluationResults: Monoid[EvaluationResults] = new Monoid[EvaluationResults] {
     def empty = EvaluationResults.empty
+    @nowarn
     def combine(l: EvaluationResults, r: EvaluationResults): EvaluationResults = (l, r) match {
       case (EvaluationResults(em1, rd1), EvaluationResults(em2, rd2)) =>
         EvaluationResults(em1 ++ em2, RecData.fromData(rd1.variadicFormData ++ rd2.variadicFormData))

@@ -39,8 +39,10 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter.formatText
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 
-object FormComponentSummaryRenderer {
+import scala.annotation.nowarn
 
+object FormComponentSummaryRenderer {
+  @nowarn
   def summaryListRows[D <: DataOrigin, T <: RenderType](
     formComponent: FormComponent,
     modelPageId: Option[ModelPageId],
