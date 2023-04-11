@@ -45,6 +45,8 @@ object ComponentValidator {
   val genericEoriErrorPattern                                = "generic.eori.error.pattern"
   val genericUkEoriErrorRequired                             = "generic.ukEori.error.required"
   val genericUkEoriErrorPattern                              = "generic.ukEori.error.pattern"
+  val genericUkBankAccountErrorRequired                      = "generic.ukBankAccount.error.required"
+  val genericUkBankAccountErrorPattern                       = "generic.ukBankAccount.error.pattern"
   val genericChildBenefitNumberErrorPattern                  = "generic.childBenefitNumber.error.pattern"
   val genericNonUKCountryCodeErrorPattern                    = "generic.nonUKCountryCode.error.pattern"
   val genericCountryCodeErrorPattern                         = "generic.countryCode.error.pattern"
@@ -219,6 +221,14 @@ object ComponentValidator {
                 .map(_.trasform(identity, " " + _).value.pure[List]) orElse
                 (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
             )
+          case IsText(Text(UkBankAccountNumber, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericUkBankAccountErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            )
           case _ => validationFailure(fieldValue, genericErrorRequired, None)
         }
       case (_, Some(value), lookup @ Lookup(_, _)) =>
@@ -302,8 +312,14 @@ object ComponentValidator {
     str match {
       case ukBankAccountFormat() => validationSuccess
       case _ =>
-        val vars: List[String] = ValidationValues.bankAccountLength.toString :: Nil
-        validationFailure(fieldValue, genericErrorExactNumbers, Some(vars))
+        validationFailure(
+          fieldValue,
+          genericUkBankAccountErrorPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+        )
+
     }
   }
 
