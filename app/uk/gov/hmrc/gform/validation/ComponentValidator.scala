@@ -47,6 +47,7 @@ object ComponentValidator {
   val genericUkEoriErrorPattern                              = "generic.ukEori.error.pattern"
   val genericUkBankAccountErrorRequired                      = "generic.ukBankAccount.error.required"
   val genericUkBankAccountErrorPattern                       = "generic.ukBankAccount.error.pattern"
+  val genericChildBenefitNumberErrorRequired                 = "generic.childBenefitNumber.error.required"
   val genericChildBenefitNumberErrorPattern                  = "generic.childBenefitNumber.error.pattern"
   val genericNonUKCountryCodeErrorPattern                    = "generic.nonUKCountryCode.error.pattern"
   val genericCountryCodeErrorPattern                         = "generic.countryCode.error.pattern"
@@ -225,6 +226,14 @@ object ComponentValidator {
             validationFailure(
               fieldValue,
               genericUkBankAccountErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            )
+          case IsText(Text(ChildBenefitNumber, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericChildBenefitNumberErrorRequired,
               fieldValue.errorShortName
                 .map(_.trasform(identity, " " + _).value.pure[List]) orElse
                 (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
@@ -535,15 +544,22 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ) = {
     val ValidChildBenefitNumber = "^CHB[0-9]{8}[A-Z]{2}$".r
+    val ValidChildBenefitNumberLength = "^.{13}$".r
     val str = value.replace(" ", "")
-    sharedTextComponentValidator(
-      fieldValue,
-      str,
-      13,
-      13,
-      ValidChildBenefitNumber,
-      genericChildBenefitNumberErrorPattern
-    )
+
+    str match {
+      case ValidChildBenefitNumber()       => validationSuccess
+      case ValidChildBenefitNumberLength() => validationSuccess
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericChildBenefitNumberErrorPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+        )
+
+    }
   }
 
   private def checkNonUkCountryCode(
