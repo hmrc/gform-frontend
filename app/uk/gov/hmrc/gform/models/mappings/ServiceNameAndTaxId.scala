@@ -22,6 +22,7 @@ sealed trait ServiceNameAndId extends ServiceNameAndTaxId
 case class IRSA(name: String = "IR-SA", id: String = "UTR") extends ServiceNameAndId
 case class IRCT(name: String = "IR-CT", id: String = "UTR") extends ServiceNameAndId
 case class HMRCOBTDSORG(name: String = "HMRC-OBTDS-ORG", id: String = "EtmpRegistrationNumber") extends ServiceNameAndId
+case class VRN(name: String = "HMRC-MTD-VAT", id: String = "VRN") extends ServiceNameAndId
 
 sealed trait TaxIdentifier extends ServiceNameAndTaxId
 case class NINO(id: String = "NINO") extends TaxIdentifier

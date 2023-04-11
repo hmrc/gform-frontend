@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.auth.models
 
+import cats.implicits._
 import java.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.auth.core.retrieve.{ ItmpAddress, ItmpName, Name }
@@ -90,12 +91,21 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
         case HMRCOBTDSORG(name, id) => valueByNameAndId(name, id, enrolments)
         case NINO(id)               => valueById(enrolments, id)
         case VATReg(id)             => valueById(enrolments, id)
+        case VRN(name, id)          => valueByNameAndId(name, id, enrolments)
       }
 
       maybeEnrolmentIdentifier match {
         case Some(enrolmentId) => enrolmentId.value
         case None              => ""
       }
+  }
+
+  def getPayeRef = this match {
+    case AuthenticatedRetrievals(_, enrolments, _, _, _, _, _) =>
+      val taxOfficeNumber = getValueByNameAndId("IR-PAYE", "TaxOfficeNumber", enrolments)
+      val taxOfficeReference: String = getValueByNameAndId("IR-PAYE", "TaxOfficeReference", enrolments)
+      s"$taxOfficeNumber/$taxOfficeReference"
+    case _ => ""
   }
 
   def enrolmentExists(serviceName: ServiceName, identifierName: IdentifierName, identifierValue: String): Boolean =
@@ -119,6 +129,9 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
 
   private def valueById(enrolments: Enrolments, id: String) =
     enrolments.enrolments.flatMap(_.identifiers).find(_.key.equalsIgnoreCase(id))
+
+  private def getValueByNameAndId(name: String, id: String, enrolments: Enrolments) =
+    enrolments.enrolments.filter(_.key === name).flatMap(_.getIdentifier(id)).map(_.value).headOption.getOrElse("")
 
   private def valueByNameAndId(name: String, id: String, enrolments: Enrolments) =
     enrolments.getEnrolment(name).flatMap(_.getIdentifier(id))
