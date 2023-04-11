@@ -43,6 +43,7 @@ object ComponentValidator {
   val genericReferenceNumberErrorPattern                     = "generic.referenceNumber.error.pattern"
   val genericCrnErrorInvalid                                 = "generic.crn.error.invalid"
   val genericEoriErrorPattern                                = "generic.eori.error.pattern"
+  val genericUkEoriErrorRequired                             = "generic.ukEori.error.required"
   val genericUkEoriErrorPattern                              = "generic.ukEori.error.pattern"
   val genericChildBenefitNumberErrorPattern                  = "generic.childBenefitNumber.error.pattern"
   val genericNonUKCountryCodeErrorPattern                    = "generic.nonUKCountryCode.error.pattern"
@@ -210,7 +211,15 @@ object ComponentValidator {
                 .map(_.trasform(identity, " " + _).value.pure[List]) orElse
                 (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
             )
-          case _ => validationFailure(fieldValue, genericErrorSortCode, None)
+          case IsText(Text(UkEORI, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericUkEoriErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
+            )
+          case _ => validationFailure(fieldValue, genericErrorRequired, None)
         }
       case (_, Some(value), lookup @ Lookup(_, _)) =>
         lookupValidation(fieldValue, lookupRegistry, lookup, LookupLabel(value), formModelVisibilityOptics)
@@ -488,8 +497,22 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ) = {
     val ValidUkEORI = "^GB[0-9]{12}$".r
+    val ValidUkEORINumbers = "^[0-9]{14}$".r
     val str = value.replace(" ", "")
-    sharedTextComponentValidator(fieldValue, str, 14, 14, ValidUkEORI, genericUkEoriErrorPattern)
+
+    str match {
+      case ValidUkEORI()        => validationSuccess
+      case ValidUkEORINumbers() => validationSuccess
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericUkEoriErrorPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
+        )
+
+    }
   }
   private def checkChildBenefitNumber(fieldValue: FormComponent, value: String)(implicit
     messages: Messages,
