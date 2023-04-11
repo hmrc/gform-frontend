@@ -295,9 +295,8 @@ class SectionRenderingService(
       RadioItem(
         id = Some(formComponent.id.value + index),
         value = Some(option.getValue(index, formModelOptics)),
-        content = content.Text(option.label.value),
+        content = content.Text(option.label.value()),
         checked = isChecked(option.getValue(index, formModelOptics)),
-
         attributes = dataLabelAttribute(option.label)
       )
     }
@@ -1753,7 +1752,7 @@ class SectionRenderingService(
             RadioItem(
               id = Some(formComponent.id.value + index),
               value = Some(option.getValue(index, ei.formModelOptics)),
-              content = content.Text(option.label.value),
+              content = content.Text(option.label.value()),
               checked = isChecked(option.getValue(index, ei.formModelOptics)),
               conditionalHtml = helpTextHtml(maybeHelpText),
               attributes = dataLabelAttribute(option.label),
@@ -1786,7 +1785,7 @@ class SectionRenderingService(
             val item = CheckboxItem(
               id = Some(formComponent.id.value + index),
               value = option.getValue(index, ei.formModelOptics),
-              content = content.Text(option.label.value),
+              content = content.Text(option.label.value()),
               checked = isChecked(option.getValue(index, ei.formModelOptics)),
               conditionalHtml = helpTextHtml(maybeHelpText),
               attributes = dataLabelAttribute(option.label),
@@ -1927,7 +1926,7 @@ class SectionRenderingService(
           CheckboxItem(
             id = Some(formComponent.id.value + index),
             value = option.getValue(index, extraInfo.formModelOptics),
-            content = content.Text(option.label.value),
+            content = content.Text(option.label.value()),
             checked = isChecked(option.getValue(index, extraInfo.formModelOptics)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(option.label),
@@ -1952,7 +1951,7 @@ class SectionRenderingService(
           RadioItem(
             id = Some(formComponent.id.value + index),
             value = Some(option.getValue(index, extraInfo.formModelOptics)),
-            content = content.Text(option.label.value),
+            content = content.Text(option.label.value()),
             checked = isChecked(option.getValue(index, extraInfo.formModelOptics)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(option.label),

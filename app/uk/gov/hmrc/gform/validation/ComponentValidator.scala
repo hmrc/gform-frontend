@@ -175,40 +175,40 @@ object ComponentValidator {
               fieldValue,
               genericNinoErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
             )
           case IsText(Text(Email, _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericEmailErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
+                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "an", identity).value().pure[List]))
             )
           case IsText(Text((CtUTR | UTR), _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericUtrErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
             )
           case IsText(Text(UkVrn, _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericVrnErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
             )
           case IsText(Text(PayeReference, _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericPayeErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
             )
           case _ => validationFailure(fieldValue, genericErrorSortCode, None)
         }
@@ -423,8 +423,8 @@ object ComponentValidator {
         fieldValue,
         genericEmailErrorPattern,
         fieldValue.errorShortName
-          .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
-          (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
+          .map(_.trasform(identity, _ + " ").value().pure[List]) orElse
+          (Some(SmartString.blank.trasform(_ => "an", identity).value().pure[List]))
       )
 
   private def checkVrn(
@@ -450,8 +450,8 @@ object ComponentValidator {
           fieldValue,
           genericVrnErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            .map(_.trasform(identity, _ + " ").value().pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
         )
     }
   }
@@ -546,8 +546,8 @@ object ComponentValidator {
           fieldValue,
           genericUtrErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            .map(_.trasform(identity, _ + " ").value().pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
         )
     }
   }
@@ -563,8 +563,8 @@ object ComponentValidator {
           fieldValue,
           genericNinoErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            .map(_.trasform(identity, _ + " ").value().pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
         )
     }
 
@@ -584,8 +584,8 @@ object ComponentValidator {
           fieldValue,
           genericPayeErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            .map(_.trasform(identity, _ + " ").value().pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
         )
 
     }
