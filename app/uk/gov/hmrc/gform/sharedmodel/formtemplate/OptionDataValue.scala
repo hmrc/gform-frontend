@@ -16,19 +16,13 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormTemplateGen
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 
-class EmailParameterSpec extends Spec {
-  "EmailParameter" should "round trip derived JSON" in {
-    forAll(FormTemplateGen.emailParameterGen) { obj =>
-      EmailParameter.format.reads(EmailParameter.format.writes(obj)) should beJsSuccess(obj)
-    }
-  }
+sealed trait OptionDataValue
+object OptionDataValue {
+  case class StringBased(value: String) extends OptionDataValue
+  case class ExprBased(prefix: String, expr: Expr) extends OptionDataValue
 
-  "EmailCodeParameter" should "round trip derived JSON" in {
-    forAll(FormTemplateGen.emailCodeParameterGen) { obj =>
-      EmailCodeParameter.format.reads(EmailCodeParameter.format.writes(obj)) should beJsSuccess(obj)
-    }
-  }
+  implicit val format: OFormat[OptionDataValue] = derived.oformat()
 }

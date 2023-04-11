@@ -38,10 +38,15 @@ case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
     import scala.jdk.CollectionConverters._
     new MessageFormat(rawValue(l)).format(interpolations.map(_ => "").asJava.toArray)
   }
+
+  def trasform(fEn: String => String, fCy: String => String): SmartString =
+    copy(localised = localised.trasform(fEn, fCy))
 }
 
 object SmartString {
   val empty: SmartString = SmartString(LocalisedString.empty, Nil)
+
+  val blank: SmartString = SmartString(LocalisedString(Map(LangADT.En -> "", LangADT.Cy -> "")), Nil)
 
   implicit val format: Format[SmartString] = Json.format[SmartString]
 }

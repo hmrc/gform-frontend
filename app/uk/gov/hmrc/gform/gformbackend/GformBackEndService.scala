@@ -171,7 +171,7 @@ class GformBackEndService(
 
     val maybePDFOptions = cache.formTemplate.destinations match {
       case d: DestinationList =>
-        d.acknowledgementSection.pdf.map(p => PDFModel.Options(p.tabularFormat, None))
+        d.acknowledgementSection.pdf.map(p => PDFModel.Options(p.tabularFormat, p.includeSignatureBox))
       case _ => None
     }
 
@@ -248,11 +248,7 @@ class GformBackEndService(
       implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorFactory
         .apply(
           formModelOpticsUpdated.formModelVisibilityOptics
-            .asInstanceOf[FormModelVisibilityOptics[Mongo]],
-          cache.retrievals,
-          maybeAccessCode,
-          cache.form,
-          cache.formTemplate
+            .asInstanceOf[FormModelVisibilityOptics[Mongo]]
         )
 
       pdfRenderService

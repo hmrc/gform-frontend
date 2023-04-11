@@ -105,6 +105,8 @@ object ExprPrettyPrint {
     case AuthInfo.ItmpNameLens(focus)    => s"Itmp name ${prettyPrintItmpNameFocus(focus)}"
     case AuthInfo.ItmpDateOfBirth        => "Itmp date of birth"
     case AuthInfo.ItmpAddress            => "Itmp address"
+    case AuthInfo.PayeRef                => "Paye Ref"
+    case AuthInfo.Vrn                    => "Vrn"
   }
 
   def prettyPrintUserInfo(userField: UserField): String = userField match {

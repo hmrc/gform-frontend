@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.referencechecker.{ CorporationTaxReferenceChecker, VatReferenceChecker }
 
 import scala.util.matching.Regex
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 object ComponentValidator {
   // format: off
@@ -67,13 +68,23 @@ object ComponentValidator {
   val genericErrorInvalid                                    = "generic.error.invalid"
   val genericErrorMaxLength                                  = "generic.error.maxLength"
   val genericErrorMinLength                                  = "generic.error.minLength"
-  val genericVrnErrorPattern                                 = "generic.vrn.error.pattern"
   val genericVrnErrorDigitCheck                              = "generic.vrn.error.digitcheck"
   val genericGovernmentIdNotExist                            = "generic.governmentId.not.exist"
   val genericGovernmentIdErrorPattern                        = "generic.governmentId.error.pattern"
   val genericErrorEmail                                      = "generic.error.email"
   val choiceErrorRequired                                    = "choice.error.required"
   val timeErrorRequired                                      = "time.error.required"
+  val genericNinoErrorPattern                                = "generic.nino.error.pattern"
+  val genericNinoErrorRequired                               = "generic.nino.error.required"
+  val genericEmailErrorPattern                               = "generic.email.error.pattern"
+  val genericEmailErrorRequired                              = "generic.email.error.required"
+  val genericUtrErrorPattern                                 = "generic.utr.error.pattern"
+  val genericUtrErrorRequired                                = "generic.utr.error.required"
+  val genericUtrIdNotExist                                   = "generic.utr.not.exist"
+  val genericVrnErrorPattern                                 = "generic.vrn.error.pattern"
+  val genericVrnErrorRequired                                = "generic.vrn.error.required"
+  val genericPayeErrorPattern                                = "generic.paye.error.pattern"
+  val genericPayeErrorRequired                               = "generic.paye.error.required"
   // format: on
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
@@ -156,12 +167,51 @@ object ComponentValidator {
   ): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(formModelVisibilityOptics, fieldValue), constraint) match {
       case (true, None, _) =>
-        val key = fieldValue match {
-          case lookupRegistry.extractors.IsRadioLookup(_) => choiceErrorRequired
-          case lookupRegistry.extractors.IsUkSortCode(_)  => genericErrorSortCode
-          case _                                          => genericErrorRequired
+        fieldValue match {
+          case lookupRegistry.extractors.IsRadioLookup(_) => validationFailure(fieldValue, choiceErrorRequired, None)
+          case lookupRegistry.extractors.IsUkSortCode(_)  => validationFailure(fieldValue, genericErrorSortCode, None)
+          case IsText(Text(NINO, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericNinoErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            )
+          case IsText(Text(Email, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericEmailErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
+            )
+          case IsText(Text((CtUTR | UTR), _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericUtrErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            )
+          case IsText(Text(UkVrn, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericVrnErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            )
+          case IsText(Text(PayeReference, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericPayeErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            )
+          case _ => validationFailure(fieldValue, genericErrorSortCode, None)
         }
-        validationFailure(fieldValue, key, None)
       case (_, Some(value), lookup @ Lookup(_, _)) =>
         lookupValidation(fieldValue, lookupRegistry, lookup, LookupLabel(value), formModelVisibilityOptics)
       case (_, Some(value), ShortText(min, max)) => shortTextValidation(fieldValue, value, min, max)
@@ -368,7 +418,14 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ) =
     if (EmailAddress.isValid(value)) validationSuccess
-    else validationFailure(fieldValue, genericErrorInvalid, None)
+    else
+      validationFailure(
+        fieldValue,
+        genericEmailErrorPattern,
+        fieldValue.errorShortName
+          .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+          (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
+      )
 
   private def checkVrn(
     fieldValue: FormComponent,
@@ -383,18 +440,19 @@ object ComponentValidator {
     val Health = "GBHA[5-9][0-9]{2}".r
     val str = value.replace(" ", "")
     str match {
-      case tooLong if tooLong.length > 14 =>
-        val vars: List[String] = 14.toString :: Nil
-        validationFailure(fieldValue, genericErrorMaxLength, Some(vars))
-      case tooShort if tooShort.length < 7 =>
-        val vars: List[String] = 7.toString :: Nil
-        validationFailure(fieldValue, genericErrorMinLength, Some(vars))
       case Standard(_, s) if VatReferenceChecker.isValid(s) => validationSuccess
       case Standard(_, s)                                   => validationFailure(fieldValue, genericVrnErrorDigitCheck, None)
       case Branch()                                         => validationSuccess
       case Government()                                     => validationSuccess
       case Health()                                         => validationSuccess
-      case _                                                => validationFailure(fieldValue, genericVrnErrorPattern, None)
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericVrnErrorPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+        )
     }
   }
 
@@ -482,9 +540,15 @@ object ComponentValidator {
       case UTRFormat() if CorporationTaxReferenceChecker.isValid(value) =>
         validationSuccess
       case UTRFormat() if !CorporationTaxReferenceChecker.isValid(value) =>
-        validationFailure(fieldValue, genericGovernmentIdNotExist, None)
+        validationFailure(fieldValue, genericUtrIdNotExist, None)
       case _ =>
-        validationFailure(fieldValue, genericGovernmentIdErrorPattern, None)
+        validationFailure(
+          fieldValue,
+          genericUtrErrorPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+        )
     }
   }
 
@@ -494,7 +558,14 @@ object ComponentValidator {
   ) =
     value match {
       case x if Nino.isValid(x) => validationSuccess
-      case _                    => validationFailure(fieldValue, genericGovernmentIdErrorPattern, None)
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericNinoErrorPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+        )
     }
 
   private def checkPayeReference(
@@ -506,7 +577,18 @@ object ComponentValidator {
   ) = {
     val ValidPaye = "^[0-9]{3}/[0-9A-Z]{1,10}$".r
     val str = value.replace(" ", "")
-    sharedTextComponentValidator(fieldValue, str, 5, 14, ValidPaye, genericGovernmentIdErrorPattern)
+    str match {
+      case ValidPaye() => validationSuccess
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericPayeErrorPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+        )
+
+    }
   }
 
   def validatePhoneNumber(
@@ -550,8 +632,8 @@ object ComponentValidator {
     val availableSelections: Set[String] = fieldValue.`type` match {
       case Choice(_, options, _, _, _, _, _, _, _, _) =>
         options.zipWithIndex.collect {
-          case (OptionData.IndexBased(_, _, _, _), i)        => i.toString
-          case (OptionData.ValueBased(_, _, _, _, value), _) => value
+          case (OptionData.IndexBased(_, _, _, _), i)                                     => i.toString
+          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)), _) => value
         }.toSet
       case _ => Set.empty[String]
     }

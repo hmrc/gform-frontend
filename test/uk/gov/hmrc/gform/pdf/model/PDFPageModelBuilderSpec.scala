@@ -104,7 +104,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
         .asInstanceOf[FormModelOptics[DataOrigin.Mongo]]
 
     implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
-      .apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
+      .apply(formModelOptics.formModelVisibilityOptics)
   }
 
   "PDFPageModelBuilder.makeModel - PDFType.Summary" should "build model for non-repeating section" in new Fixture {

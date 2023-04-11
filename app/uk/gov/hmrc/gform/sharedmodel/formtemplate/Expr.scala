@@ -71,7 +71,7 @@ sealed trait Expr extends Product with Serializable {
       case NumberedList(_)                         => expr :: Nil
       case BulletedList(_)                         => expr :: Nil
       case StringOps(_, _)                         => expr :: Nil
-      case Concat(exprs)                           => expr :: Nil
+      case Concat(_)                               => expr :: Nil
       case CountryOfItmpAddress                    => expr :: Nil
     }
     loop(this).headOption
@@ -389,6 +389,8 @@ object AuthInfo {
   final case class ItmpNameLens(focus: ItmpNameFocus) extends AuthInfo
   final case object ItmpDateOfBirth extends AuthInfo
   final case object ItmpAddress extends AuthInfo
+  final case object PayeRef extends AuthInfo
+  final case object Vrn extends AuthInfo
 
   implicit val format: OFormat[AuthInfo] = derived.oformat()
 

@@ -401,7 +401,8 @@ class EmailAuthController(
               NotifierEmailAddress(emailId.value.toString),
               emailAndCode.code,
               emailAuthConfig.service,
-              l
+              l,
+              formTemplate._id
             )
           )
           .map(_ => Some(emailAndCode))
@@ -423,7 +424,8 @@ class EmailAuthController(
                     NotifierEmailAddress(emailId.value.toString),
                     emailAndCode.code,
                     service,
-                    l
+                    l,
+                    formTemplate._id
                   )
                 )
                 .map(_ => emailAndCode)

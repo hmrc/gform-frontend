@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, TaskSectionNum
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ HMRCClaimForm, HMRCReturnForm }
 
 class TaskListRenderingService(
   frontendAppConfig: FrontendAppConfig,
@@ -58,6 +59,12 @@ class TaskListRenderingService(
       statusesLookup <- statuses(cache, envelope, formModelOptics)
     } yield TaskListUtils.withTaskList(formTemplate) { taskList =>
       val completedSection = completedTaskSection(statusesLookup)
+      val taskListH2key = formTemplate.formCategory match {
+        case HMRCReturnForm => "taskList.h2.formCategory.return"
+        case HMRCClaimForm  => "taskList.h2.formCategory.claim"
+        case _              => "taskList.h2"
+
+      }
       uk.gov.hmrc.gform.views.html.tasklist
         .task_list(
           formTemplate,
@@ -66,7 +73,8 @@ class TaskListRenderingService(
           statusesLookup.toList.toMap,
           completedSection,
           frontendAppConfig,
-          notificationBanner.map(_.toViewNotificationBanner)
+          notificationBanner.map(_.toViewNotificationBanner),
+          taskListH2key
         )
     }
 

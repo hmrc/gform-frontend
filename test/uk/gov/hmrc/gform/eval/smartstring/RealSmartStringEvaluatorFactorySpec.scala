@@ -460,6 +460,6 @@ class RealSmartStringEvaluatorFactorySpec
     lazy val factory = new RealSmartStringEvaluatorFactory()
 
     lazy val smartStringEvaluator: SmartStringEvaluator =
-      factory.apply(formModelOptics.formModelVisibilityOptics, retrievals, maybeAccessCode, form, formTemplate)
+      factory.apply(formModelOptics.formModelVisibilityOptics)
   }
 }
