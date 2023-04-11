@@ -44,7 +44,6 @@ import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
-import com.typesafe.config.{ Config => TypeSafeConfig }
 
 class AcknowledgementController(
   i18nSupport: I18nSupport,
@@ -58,13 +57,11 @@ class AcknowledgementController(
   messagesControllerComponents: MessagesControllerComponents,
   recalculation: Recalculation[Future, Throwable],
   auditService: AuditService,
-  typeSafeConfig: TypeSafeConfig
+  isProduction: Boolean
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
   private val logger = LoggerFactory.getLogger(getClass)
-
-  private val isProduction = typeSafeConfig.getString("application.router") != "testOnlyDoNotUseInAppConf.Routes"
 
   def showAcknowledgement(
     maybeAccessCode: Option[AccessCode],
