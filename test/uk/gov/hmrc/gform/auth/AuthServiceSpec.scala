@@ -302,6 +302,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     (Enrolment("IR-CT"), IRCT(), List(EnrolmentIdentifier("UTR", "888")), "888"),
     (Enrolment("HMRC-OBTDS-ORG"), HMRCOBTDSORG(), List(EnrolmentIdentifier("EtmpRegistrationNumber", "123")), "123"),
     (Enrolment("NINO"), MNINO(), List(EnrolmentIdentifier("NINO", "321")), "321"),
-    (Enrolment("VATRegNo"), MVATReg(), List(EnrolmentIdentifier("VATRegNo", "888")), "888")
+    (Enrolment("VATRegNo"), MVATReg(), List(EnrolmentIdentifier("VATRegNo", "888")), "888"),
+    (Enrolment("HMRC-MTD-VAT"), VRN(), List(EnrolmentIdentifier("VRN", "444")), "444")
   )
 }
