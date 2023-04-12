@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.sharedmodel.SmartString
 object ComponentValidator {
   // format: off
   val genericLongTextErrorPattern                            = "generic.longText.error.pattern"
+  val genericReferenceNumberErrorRequired                    = "generic.referenceNumber.error.required"
   val genericReferenceNumberErrorPattern                     = "generic.referenceNumber.error.pattern"
   val genericCrnErrorInvalid                                 = "generic.crn.error.invalid"
   val genericEoriErrorPattern                                = "generic.eori.error.pattern"
@@ -246,6 +247,14 @@ object ComponentValidator {
                 .map(_.trasform(identity, " " + _).value.pure[List]) orElse
                 (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
             )
+          case IsText(Text(_: ReferenceNumber, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericReferenceNumberErrorRequired,
+              fieldValue.errorShortName
+                .map(_.value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a number", _ => "rif").value.pure[List]))
+            )
           case _ => validationFailure(fieldValue, genericErrorRequired, None)
         }
       case (_, Some(value), lookup @ Lookup(_, _)) =>
@@ -449,7 +458,18 @@ object ComponentValidator {
   ) = {
     val ValidReferenceNumber = s"[0-9]{$min,$max}".r
     val str = value.replace(" ", "")
-    sharedTextComponentValidator(fieldValue, str, min, max, ValidReferenceNumber, genericReferenceNumberErrorPattern)
+    str match {
+      case ValidReferenceNumber() => validationSuccess
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericReferenceNumberErrorPattern,
+          fieldValue.errorShortName
+            .map(_.value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a number", _ => "rif").value.pure[List]))
+        )
+
+    }
   }
 
   private def email(
@@ -667,7 +687,7 @@ object ComponentValidator {
       case _ =>
         validationFailure(
           fieldValue,
-          genericErrorTelephoneNumberPattern,
+          genericTelephoneNumberErrorPattern,
           fieldValue.errorShortName
             .map(_.trasform(identity, " " + _).value.pure[List]) orElse
             (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))

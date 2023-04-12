@@ -134,6 +134,8 @@ generic.childBenefitNumber.error.required=Enter {1} Child Benefit number
 generic.childBenefitNumber.error.pattern=Enter {1} Child Benefit number in the correct format
 generic.telephoneNumber.error.required=Enter {1} phone number
 generic.telephoneNumber.error.pattern=Enter {1} phone number, like 01632 960 001, 07700 900 982 or +44 0770 090 0175
+generic.referenceNumber.error.required=Enter {1}
+generic.referenceNumber.error.pattern=Enter {1} in the correct format
 generic.crn.error.invalid={0} must be either 8 numbers or 6 numbers with 2 letters at the start, for example 01234567 or SC123456
 generic.nonUKCountryCode.error.pattern={0} must be entered in the correct format, for example FR
 generic.countryCode.error.pattern={0} must be entered in the correct format, for example FR
@@ -150,7 +152,6 @@ generic.error.accessForbidden=Access forbidden
 generic.error.selectOption=Please select an option
 generic.shortText.error.pattern={0} can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
 generic.longText.error.pattern={0} cannot include the characters {1}
-generic.referenceNumber.error.pattern={0} can only include numbers
 generic.successfullyRemoved=Item removed
 
 generic.error.submissionRef={0} not found. Enter a valid {0} in the correct format. This must be 14 characters and only include numbers, hyphens and upper case letters, for example ABCD-1234-1234
