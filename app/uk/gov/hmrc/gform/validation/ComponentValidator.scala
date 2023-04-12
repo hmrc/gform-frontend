@@ -40,15 +40,20 @@ import uk.gov.hmrc.gform.sharedmodel.SmartString
 object ComponentValidator {
   // format: off
   val genericLongTextErrorPattern                            = "generic.longText.error.pattern"
+  val genericReferenceNumberErrorRequired                    = "generic.referenceNumber.error.required"
   val genericReferenceNumberErrorPattern                     = "generic.referenceNumber.error.pattern"
   val genericCrnErrorInvalid                                 = "generic.crn.error.invalid"
   val genericEoriErrorPattern                                = "generic.eori.error.pattern"
+  val genericUkEoriErrorRequired                             = "generic.ukEori.error.required"
   val genericUkEoriErrorPattern                              = "generic.ukEori.error.pattern"
+  val genericUkBankAccountErrorRequired                      = "generic.ukBankAccount.error.required"
+  val genericUkBankAccountErrorPattern                       = "generic.ukBankAccount.error.pattern"
+  val genericChildBenefitNumberErrorRequired                 = "generic.childBenefitNumber.error.required"
   val genericChildBenefitNumberErrorPattern                  = "generic.childBenefitNumber.error.pattern"
   val genericNonUKCountryCodeErrorPattern                    = "generic.nonUKCountryCode.error.pattern"
   val genericCountryCodeErrorPattern                         = "generic.countryCode.error.pattern"
-  val genericErrorTelephoneNumber                            = "generic.error.telephoneNumber"
-  val genericErrorTelephoneNumberMinLength                   = "generic.error.telephoneNumber.minLength"
+  val genericTelephoneNumberErrorRequired                    = "generic.telephoneNumber.error.required"
+  val genericTelephoneNumberErrorPattern                     = "generic.telephoneNumber.error.pattern"
   val genericShortTextErrorPattern                           = "generic.shortText.error.pattern"
   val genericErrorLookup                                     = "generic.error.lookup"
   val genericErrorRegistry                                   = "generic.error.registry"
@@ -210,7 +215,47 @@ object ComponentValidator {
                 .map(_.trasform(identity, " " + _).value.pure[List]) orElse
                 (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
             )
-          case _ => validationFailure(fieldValue, genericErrorSortCode, None)
+          case IsText(Text(UkEORI, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericUkEoriErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
+            )
+          case IsText(Text(UkBankAccountNumber, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericUkBankAccountErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            )
+          case IsText(Text(ChildBenefitNumber, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericChildBenefitNumberErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            )
+          case IsText(Text(TelephoneNumber, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericTelephoneNumberErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            )
+          case IsText(Text(_: ReferenceNumber, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericReferenceNumberErrorRequired,
+              fieldValue.errorShortName
+                .map(_.value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a number", _ => "rif").value.pure[List]))
+            )
+          case _ => validationFailure(fieldValue, genericErrorRequired, None)
         }
       case (_, Some(value), lookup @ Lookup(_, _)) =>
         lookupValidation(fieldValue, lookupRegistry, lookup, LookupLabel(value), formModelVisibilityOptics)
@@ -293,8 +338,14 @@ object ComponentValidator {
     str match {
       case ukBankAccountFormat() => validationSuccess
       case _ =>
-        val vars: List[String] = ValidationValues.bankAccountLength.toString :: Nil
-        validationFailure(fieldValue, genericErrorExactNumbers, Some(vars))
+        validationFailure(
+          fieldValue,
+          genericUkBankAccountErrorPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+        )
+
     }
   }
 
@@ -407,7 +458,18 @@ object ComponentValidator {
   ) = {
     val ValidReferenceNumber = s"[0-9]{$min,$max}".r
     val str = value.replace(" ", "")
-    sharedTextComponentValidator(fieldValue, str, min, max, ValidReferenceNumber, genericReferenceNumberErrorPattern)
+    str match {
+      case ValidReferenceNumber() => validationSuccess
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericReferenceNumberErrorPattern,
+          fieldValue.errorShortName
+            .map(_.value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a number", _ => "rif").value.pure[List]))
+        )
+
+    }
   }
 
   private def email(
@@ -488,23 +550,44 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ) = {
     val ValidUkEORI = "^GB[0-9]{12}$".r
+    val ValidUkEORINumbers = "^[0-9]{14}$".r
     val str = value.replace(" ", "")
-    sharedTextComponentValidator(fieldValue, str, 14, 14, ValidUkEORI, genericUkEoriErrorPattern)
+
+    str match {
+      case ValidUkEORI()        => validationSuccess
+      case ValidUkEORINumbers() => validationSuccess
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericUkEoriErrorPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "an", identity).value.pure[List]))
+        )
+
+    }
   }
   private def checkChildBenefitNumber(fieldValue: FormComponent, value: String)(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
     val ValidChildBenefitNumber = "^CHB[0-9]{8}[A-Z]{2}$".r
+    val ValidChildBenefitNumberLength = "^.{13}$".r
     val str = value.replace(" ", "")
-    sharedTextComponentValidator(
-      fieldValue,
-      str,
-      13,
-      13,
-      ValidChildBenefitNumber,
-      genericChildBenefitNumberErrorPattern
-    )
+
+    str match {
+      case ValidChildBenefitNumber()       => validationSuccess
+      case ValidChildBenefitNumberLength() => validationSuccess
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericChildBenefitNumberErrorPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+        )
+
+    }
   }
 
   private def checkNonUkCountryCode(
@@ -597,15 +680,21 @@ object ComponentValidator {
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ): ValidatedType[Unit] =
-    sharedTextComponentValidator(
-      fieldValue,
-      value,
-      TelephoneNumber.minimumLength,
-      TelephoneNumber.maximumLength,
-      TelephoneNumber.phoneNumberValidation,
-      genericErrorTelephoneNumber
-    )
+  ): ValidatedType[Unit] = {
+    val str = value.replace(" ", "")
+    str match {
+      case TelephoneNumber.phoneNumberValidation() => validationSuccess
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericTelephoneNumberErrorPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+        )
+
+    }
+  }
 
   private[validation] def shortTextValidation(
     fieldValue: FormComponent,
@@ -697,8 +786,7 @@ object ComponentValidator {
       case tooShort if tooShort.length < minChars =>
         val vars: List[String] = minChars.toString :: Nil
         val errorMinLength = fieldValue match {
-          case IsTelephone() => genericErrorTelephoneNumberMinLength
-          case _             => genericErrorMinLength
+          case _ => genericErrorMinLength
         }
         validationFailure(fieldValue, errorMinLength, Some(vars))
       case regex() => validationSuccess
