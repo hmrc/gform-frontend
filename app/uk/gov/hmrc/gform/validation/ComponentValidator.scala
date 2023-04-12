@@ -342,7 +342,7 @@ object ComponentValidator {
           fieldValue,
           genericUkBankAccountErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, _ + " ").value.pure[List]) orElse
+            .map(_.trasform(identity, " " + _).value.pure[List]) orElse
             (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
         )
 
