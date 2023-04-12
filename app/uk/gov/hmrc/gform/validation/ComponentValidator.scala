@@ -51,8 +51,8 @@ object ComponentValidator {
   val genericChildBenefitNumberErrorPattern                  = "generic.childBenefitNumber.error.pattern"
   val genericNonUKCountryCodeErrorPattern                    = "generic.nonUKCountryCode.error.pattern"
   val genericCountryCodeErrorPattern                         = "generic.countryCode.error.pattern"
-  val genericErrorTelephoneNumber                            = "generic.error.telephoneNumber"
-  val genericErrorTelephoneNumberMinLength                   = "generic.error.telephoneNumber.minLength"
+  val genericTelephoneNumberErrorRequired                    = "generic.telephoneNumber.error.required"
+  val genericTelephoneNumberErrorPattern                     = "generic.telephoneNumber.error.pattern"
   val genericShortTextErrorPattern                           = "generic.shortText.error.pattern"
   val genericErrorLookup                                     = "generic.error.lookup"
   val genericErrorRegistry                                   = "generic.error.registry"
@@ -234,6 +234,14 @@ object ComponentValidator {
             validationFailure(
               fieldValue,
               genericChildBenefitNumberErrorRequired,
+              fieldValue.errorShortName
+                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            )
+          case IsText(Text(TelephoneNumber, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericTelephoneNumberErrorRequired,
               fieldValue.errorShortName
                 .map(_.trasform(identity, " " + _).value.pure[List]) orElse
                 (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
@@ -652,15 +660,21 @@ object ComponentValidator {
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ): ValidatedType[Unit] =
-    sharedTextComponentValidator(
-      fieldValue,
-      value,
-      TelephoneNumber.minimumLength,
-      TelephoneNumber.maximumLength,
-      TelephoneNumber.phoneNumberValidation,
-      genericErrorTelephoneNumber
-    )
+  ): ValidatedType[Unit] = {
+    val str = value.replace(" ", "")
+    str match {
+      case TelephoneNumber.phoneNumberValidation() => validationSuccess
+      case _ =>
+        validationFailure(
+          fieldValue,
+          genericErrorTelephoneNumberPattern,
+          fieldValue.errorShortName
+            .map(_.trasform(identity, " " + _).value.pure[List]) orElse
+            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+        )
+
+    }
+  }
 
   private[validation] def shortTextValidation(
     fieldValue: FormComponent,
@@ -752,8 +766,7 @@ object ComponentValidator {
       case tooShort if tooShort.length < minChars =>
         val vars: List[String] = minChars.toString :: Nil
         val errorMinLength = fieldValue match {
-          case IsTelephone() => genericErrorTelephoneNumberMinLength
-          case _             => genericErrorMinLength
+          case _ => genericErrorMinLength
         }
         validationFailure(fieldValue, errorMinLength, Some(vars))
       case regex() => validationSuccess

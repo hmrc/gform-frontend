@@ -132,6 +132,8 @@ generic.ukBankAccount.error.required=QQQQQQQQQQQQEnter {1} valid account number
 generic.ukBankAccount.error.pattern=QQQQQQQQQQQQQQQQEnter {1} valid account number like 12345678
 generic.childBenefitNumber.error.required=QQQQQQQQQEnter {1} Child Benefit number
 generic.childBenefitNumber.error.pattern=QQQQQQQEnter {1} Child Benefit number in the correct format
+generic.telephoneNumber.error.required=Nodwch rif ffôn{1}
+generic.telephoneNumber.error.pattern=Nodwch rif ffôn{1}, megis 01632 960 001, 07700 900 982 neu +44 0770 090 0175
 generic.crn.error.invalid=Rhaid i {0} fod naill ai’n rhif 8 digid neu’n rhif 6 digid gyda 2 lythyren ar y dechrau, er enghraifft 01234567 neu SC123456
 generic.nonUKCountryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
 generic.countryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
@@ -149,9 +151,6 @@ generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylcha
 generic.longText.error.pattern=Ni all {0} gynnwys y cymeriadau {1}
 generic.referenceNumber.error.pattern=Gall {0} ond cynnwys rhifau
 generic.successfullyRemoved=Eitem wedi’i dileu
-generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
-generic.error.telephoneNumber.minLength=Rhaid i {0} gynnwys o leiaf {1} rhif
-
 generic.error.submissionRef=Ni ellir dod o hyd i {0}. Nodwch {0} dilys yn y fformat cywir. Mae’n rhaid i hyn fod yn 14 o gymeriadau a chynnwys rhifau, cysylltnodau a phriflythrennau yn unig, er enghraifft ABCD-1234-1234
 generic.error.parentSubmissionRefSameAsFormSubmissionRef=Mae’n rhaid i {0} fod yn gyfeirnod cyflwyno ffurflen rhiant. Yr hyn a nodwyd yw cyfeirnod cyflwyno’r ffurflen hon.
 
