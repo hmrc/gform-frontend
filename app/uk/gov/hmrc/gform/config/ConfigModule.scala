@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.config
 
 import cats.data.NonEmptyList
+import cats.implicits._
 import com.typesafe.config.{ ConfigFactory, Config => TypeSafeConfig }
 import org.typelevel.ci.CIString
 import play.api.{ ApplicationLoader, Configuration, Environment }
@@ -37,6 +38,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
   val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(playConfiguration, context.environment)
   val typesafeConfig: TypeSafeConfig = ConfigFactory.load()
   val environment: Environment = context.environment
+  val isProd: Boolean = typesafeConfig.getString("application.router") =!= "testOnlyDoNotUseInAppConf.Routes"
 
   val mode: Mode = environment.mode
 

@@ -153,7 +153,14 @@ class FrontendFiltersModule(
   private val emailAuthClearSessionFilter =
     new EmailAuthSessionPurgeFilter(gformBackendModule.gformConnector, authModule.authConnector)
 
-  private val corsConfig = CORSConfig.fromConfiguration(configModule.playConfiguration)
+  private val corsConfig0 = CORSConfig.fromConfiguration(configModule.playConfiguration)
+
+  private val corsConfig =
+    if (configModule.isProd) corsConfig0
+    else
+      corsConfig0.withOriginsAllowed { origin =>
+        corsConfig0.allowedOrigins(origin) || origin.startsWith("chrome-extension://")
+      }
 
   private val corsFilter = new CORSFilter(corsConfig, errorHandler)
 
