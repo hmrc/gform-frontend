@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.AllowedFileTypes
 object FileInfoConfig {
   private val allowedFileInfo: NonEmptyList[(String, ContentType)] = NonEmptyList
     .of(
+      ("txt", "text/plain"),
       ("pdf", "application/pdf"),
       ("jpg", "image/jpeg"),
       ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
