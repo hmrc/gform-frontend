@@ -228,8 +228,8 @@ object ComponentValidator {
               fieldValue,
               genericUkBankAccountErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value.pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+                .map(_.trasform(" " + _, " " + _).value.pure[List]) orElse
+                (Some(SmartString.blank.value.pure[List]))
             )
           case IsText(Text(ChildBenefitNumber, _, _, _, _, _)) =>
             validationFailure(
@@ -342,8 +342,8 @@ object ComponentValidator {
           fieldValue,
           genericUkBankAccountErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, " " + _).value.pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a", identity).value.pure[List]))
+            .map(_.trasform(" " + _, " " + _).value.pure[List]) orElse
+            (Some(SmartString.blank.value.pure[List]))
         )
 
     }
