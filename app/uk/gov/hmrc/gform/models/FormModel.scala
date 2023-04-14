@@ -229,7 +229,7 @@ case class FormModel[A <: PageMode](
         taskList.brackets.map { case (coor, taskModel) =>
           taskModel match {
             case TaskModel.Editable(brackets) => coor -> TaskModel(applyPredicate(brackets))
-            case TaskModel.AllHidden()        => coor -> TaskModel.AllHidden()
+            case TaskModel.AllHidden()        => coor -> TaskModel.AllHidden[A]()
           }
         }
       }
