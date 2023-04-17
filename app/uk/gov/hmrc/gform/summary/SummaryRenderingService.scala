@@ -174,7 +174,7 @@ class SummaryRenderingService(
       validationResult <-
         validationService
           .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics, maybeCoordinates)
-      notificatioBanner <- gformConnector.notificationBanner
+      notificatioBanner <- gformConnector.notificationBanner(cache.formTemplateId)
     } yield {
       val summaryDeclaration: Html =
         renderer.renderSummarySectionDeclaration(cache, formModelOptics, maybeAccessCode, maybeSummarySection)

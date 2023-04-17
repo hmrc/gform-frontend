@@ -504,8 +504,8 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       .map(_ => ())
   }
 
-  def notificationBanner(implicit ec: ExecutionContext): Future[Option[NotificationBanner]] =
-    ws.doGet(show"$baseUrl/notification-banner").map { response =>
+  def notificationBanner(id: FormTemplateId)(implicit ec: ExecutionContext): Future[Option[NotificationBanner]] =
+    ws.doGet(show"$baseUrl/notification-banner/$id").map { response =>
       if (response.status == 200) Some(response.json.as[NotificationBanner])
       else Option.empty[NotificationBanner]
     }

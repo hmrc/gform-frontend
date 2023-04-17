@@ -115,7 +115,7 @@ class EnrolmentController(
     auth.asyncGGAuth(formTemplateId) { implicit request: Request[AnyContent] => implicit l => cache =>
       cache.formTemplate.authConfig match {
         case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
-          gformConnector.notificationBanner.map { notificationBanner =>
+          gformConnector.notificationBanner(formTemplateId).map { notificationBanner =>
             Ok(
               renderEnrolmentSection(
                 cache.formTemplate,
@@ -217,7 +217,7 @@ class EnrolmentController(
                 )
                 for {
                   formHandlerResult <- formHandlerResultF
-                  notificatioBanner <- gformConnector.notificationBanner
+                  notificatioBanner <- gformConnector.notificationBanner(formTemplateId)
                   res <- processValidation(
                            serviceId,
                            enrolmentSection,

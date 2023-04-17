@@ -117,7 +117,7 @@ class FormController(
                                   cache.form,
                                   FormIdData(cache, maybeAccessCode)
                                 )
-              notificatioBanner <- gformConnector.notificationBanner
+              notificatioBanner <- gformConnector.notificationBanner(formTemplateId)
             } yield Ok(
               renderer.renderSection(
                 maybeAccessCode,
@@ -223,7 +223,7 @@ class FormController(
                       SuppressErrors.No,
                       visibleIteration.allSingletonSectionNumbers: _*
                     )(handlerResult =>
-                      gformConnector.notificationBanner.map { notificationBanner =>
+                      gformConnector.notificationBanner(formTemplateId).map { notificationBanner =>
                         Ok(
                           renderer
                             .renderAddToListCheckYourAnswers(
@@ -254,7 +254,7 @@ class FormController(
                       if (sectionNumber === lastRepeaterSectionNumber || !hasBeenVisited) {
                         // display current (which happens to be last) repeater
                         validateSections(suppressErrors, sectionNumber)(handlerResult =>
-                          gformConnector.notificationBanner.map { notificationBanner =>
+                          gformConnector.notificationBanner(formTemplateId).map { notificationBanner =>
                             Ok(
                               renderer.renderAddToList(
                                 repeater,
