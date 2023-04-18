@@ -82,7 +82,7 @@ class AddressSelectionPage(
       items = items.toList
     )
 
-    new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios),
+    new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
   }
 
   private def renderAddress(address: PostcodeLookup.AddressRecord): String = {

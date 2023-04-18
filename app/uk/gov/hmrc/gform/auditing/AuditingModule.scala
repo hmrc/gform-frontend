@@ -22,14 +22,14 @@ import play.api.inject.ApplicationLifecycle
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.metrics.MetricsModule
+import uk.gov.hmrc.gform.metrics.GraphiteModule
+import uk.gov.hmrc.play.audit.{ DefaultAuditChannel, DefaultAuditConnector }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.audit.{ DefaultAuditChannel, DefaultAuditConnector, DefaultAuditCounter, DefaultAuditCounterMetrics }
 
 class AuditingModule(
   configModule: ConfigModule,
   akkaModule: AkkaModule,
-  metricsModule: MetricsModule,
+  graphiteModule: GraphiteModule,
   applicationLifecycle: ApplicationLifecycle
 )(implicit
   ec: ExecutionContext
@@ -37,7 +37,12 @@ class AuditingModule(
   self =>
 
   val defaultAuditChannel =
-    new DefaultAuditChannel(configModule.auditingConfig, akkaModule.materializer, applicationLifecycle)
+    new DefaultAuditChannel(
+      configModule.auditingConfig,
+      akkaModule.materializer,
+      applicationLifecycle,
+      graphiteModule.datastreamMetrics
+    )
 
   val coordinatedShutdown: CoordinatedShutdown = CoordinatedShutdown(akkaModule.actorSystem)
 
@@ -45,15 +50,8 @@ class AuditingModule(
     new DefaultAuditConnector(
       configModule.auditingConfig,
       defaultAuditChannel,
-      new DefaultAuditCounter(
-        akkaModule.actorSystem,
-        coordinatedShutdown,
-        configModule.auditingConfig,
-        defaultAuditChannel,
-        new DefaultAuditCounterMetrics(metricsModule.metrics),
-        ec
-      ),
-      applicationLifecycle
+      applicationLifecycle,
+      graphiteModule.datastreamMetrics
     )
 
   val auditService = new AuditService {

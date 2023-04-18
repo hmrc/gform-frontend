@@ -66,7 +66,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       (FormComponentId("file"), FileId("x_file"), mapping2, expectedMapping2)
     )
 
-    forAll(variations) { case (formComponentId, fileId, componentIdToFileId, expectedComponentIdToFileId) ⇒
+    forAll(variations) { case (formComponentId, fileId, componentIdToFileId, expectedComponentIdToFileId) =>
       val form: Form = mkForm(componentIdToFileId)
       val userData = FileUploadUtils.updateMapping(formComponentId, fileId, form)
 
@@ -135,7 +135,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
             expectedFileId,
             expectedComponentIdToFileId,
             expectedFormData
-          ) ⇒
+          ) =>
         val form: Form = mkForm(componentIdToFileId, inputFormData)
 
         val tuple = FileUploadUtils.prepareDeleteFile(formComponentId, form)
@@ -145,7 +145,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
             fileId shouldBe expectedFileId
             mapping shouldBe expectedComponentIdToFileId
             formData shouldBe expectedFormData
-          case _ => fail
+          case _ => fail()
         }
 
     }

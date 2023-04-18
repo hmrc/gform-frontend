@@ -21,7 +21,6 @@ import cats.instances.future._
 import play.api.i18n.Messages
 import play.api.mvc.Request
 
-import scala.language.higherKinds
 import cats.syntax.all._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm

@@ -40,7 +40,6 @@ object DependencyGraph {
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
 
     def edges(fc: FormComponent): Set[DiEdge[GraphNode]] = {
-
       def fcIds(fc: FormComponent): Set[DiEdge[GraphNode]] = fc match {
         case AllFormComponentExpressions(exprsMetadata) =>
           exprsMetadata.toSet[ExprMetadata].flatMap {
@@ -52,6 +51,7 @@ object DependencyGraph {
               toDiEdge(fc, expr, _ => false)
             case SelfReferenceProjection(IsSelfReferring.Yes(expr, selfReference)) =>
               toDiEdge(fc, expr, _ === selfReference)
+            case _ => Set.empty
           }
         case isSum.IsSum(values) =>
           values.flatMap { value =>
@@ -190,7 +190,7 @@ object DependencyGraph {
 
   def constructDependencyGraph(
     graph: Graph[GraphNode, DiEdge]
-  ): Either[graph.NodeT, Traversable[(Int, List[GraphNode])]] = {
+  ): Either[graph.NodeT, Iterable[(Int, List[GraphNode])]] = {
     def sortedOuterNodes(items: Iterable[graph.NodeT]) =
       items.toList
         .map(_.toOuter)

@@ -22,7 +22,6 @@ import cats.syntax.functor._
 import cats.{ Monad, MonadError }
 import com.softwaremill.quicklens._
 import play.api.i18n.Messages
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.optics.DataOrigin

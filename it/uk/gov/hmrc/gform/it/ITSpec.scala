@@ -15,10 +15,10 @@ import play.api.ApplicationLoader.Context
 import play.api.libs.json.{ Json, Reads }
 import play.api.libs.ws.ahc.{ AhcWSClientConfigFactory, StandaloneAhcWSClient }
 import play.api.{ Application, Environment }
-import uk.gov.hmrc.crypto.{ Crypted, CryptoWithKeysFromConfig }
+import uk.gov.hmrc.crypto.{ Crypted, SymmetricCryptoFactory }
 import uk.gov.hmrc.gform.ApplicationLoader
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.Random
 
 trait ITSpec
@@ -82,5 +82,8 @@ trait ITSpec
     StandaloneAhcWSClient(config = AhcWSClientConfigFactory.forConfig().copy(useCookieStore = true))
 
   val jsonCrypto =
-    new CryptoWithKeysFromConfig(baseConfigKey = "json.encryption", ConfigFactory.parseMap(settingsOverride.asJava))
+    SymmetricCryptoFactory.aesCryptoFromConfig(
+      baseConfigKey = "json.encryption",
+      ConfigFactory.parseMap(settingsOverride.asJava)
+    )
 }

@@ -147,7 +147,7 @@ object ValueClassBinder {
   implicit def optionAccessCodeBinder(implicit stringBinder: PathBindable[String]): PathBindable[Option[AccessCode]] =
     new PathBindable[Option[AccessCode]] {
       override def bind(key: String, value: String): Either[String, Option[AccessCode]] =
-        stringBinder.bind(key, value).right.flatMap(parseString[String]).right.map {
+        stringBinder.bind(key, value).flatMap(parseString[String]).map {
           case "-" => None
           case a   => Some(AccessCode(a))
         }
@@ -160,7 +160,7 @@ object ValueClassBinder {
     stringBinder: PathBindable[String]
   ): PathBindable[Option[SectionNumber]] = new PathBindable[Option[SectionNumber]] {
     override def bind(key: String, value: String): Either[String, Option[SectionNumber]] =
-      stringBinder.bind(key, value).right.flatMap(parseString[String]).right.flatMap {
+      stringBinder.bind(key, value).flatMap(parseString[String]).flatMap {
         case "-" => Right(None)
         case a =>
           Try(value.toInt) match {

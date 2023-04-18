@@ -54,7 +54,12 @@ class ReviewController(
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       asyncToResult(
         reviewService
-          .acceptForm[SectionSelectorType.Normal](cache, maybeAccessCode, extractReviewData(request), formModelOptics)
+          .acceptForm[SectionSelectorType.Normal](
+            cache,
+            maybeAccessCode,
+            extractReviewData(request),
+            formModelOptics
+          )
       )
     }
 
@@ -104,8 +109,10 @@ class ReviewController(
   private def extractReviewData(request: Request[AnyContent]) =
     request.body.asFormUrlEncoded
       .getOrElse(Map.empty[String, Seq[String]])
+      .view
       .mapValues(_.headOption)
       .collect { case (k, Some(v)) => (k, v) }
+      .toMap
 
   private def asyncToResult[A](async: Future[A])(implicit ec: ExecutionContext): Future[Result] =
     async

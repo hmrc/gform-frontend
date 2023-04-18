@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.addresslookup
 
 import cats.implicits._
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }

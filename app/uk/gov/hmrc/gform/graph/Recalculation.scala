@@ -20,7 +20,6 @@ import cats.{ Monad, MonadError, Monoid }
 import cats.syntax.all._
 import cats.data.StateT
 
-import scala.language.higherKinds
 import scalax.collection.Graph
 import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
@@ -68,7 +67,7 @@ class Recalculation[F[_]: Monad, E](
 
     val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formModel, formTemplateExprs)
 
-    val orderedGraph: Either[GraphException, Traversable[(Int, List[GraphNode])]] = DependencyGraph
+    val orderedGraph: Either[GraphException, Iterable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
@@ -79,7 +78,7 @@ class Recalculation[F[_]: Monad, E](
     val res: Either[GraphException, StateT[
       F,
       RecalculationState,
-      (EvaluationResults, Traversable[(Int, List[GraphNode])])
+      (EvaluationResults, Iterable[(Int, List[GraphNode])])
     ]] =
       for {
         graphTopologicalOrder <- orderedGraph
@@ -419,7 +418,7 @@ class Recalculation[F[_]: Monad, E](
         evResult.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
       noStateChange(
         fcId.modelComponentId.maybeIndex.fold(false)(fcIndex =>
-          exprResult.numberRepresentation.fold(true)(fcIndex > _.intValue())
+          exprResult.numberRepresentation.fold(true)(fcIndex > _.intValue)
         )
       )
     }

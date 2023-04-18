@@ -81,8 +81,8 @@ trait GFormStubs extends FormTemplateSample {
                   formTemplateId
                 )
               )
-              .replaceAllLiterally("{", "\\{")
-              .replaceAllLiterally("}", "\\}")
+              .replace("{", "\\{")
+              .replace("}", "\\}")
           )
         )
         .willReturn(noContent())

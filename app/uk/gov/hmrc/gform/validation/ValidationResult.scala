@@ -22,6 +22,8 @@ import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidatorsResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 
+import scala.annotation.nowarn
+
 case class ValidationResult(
   lookup: Map[FormComponentId, FormFieldValidationResult],
   validatorsResult: Option[ValidatorsResult]
@@ -34,11 +36,13 @@ case class ValidationResult(
       case (fcId, ffvr) if ffvr.fieldErrors.nonEmpty => fcId
     }.toList
 
-  def forgetErrors: ValidationResult = new ValidationResult(lookup.mapValues(_.forgetErrors), validatorsResult)
+  def forgetErrors: ValidationResult =
+    new ValidationResult(lookup.view.mapValues(_.forgetErrors).toMap, validatorsResult)
 
   def apply(formComponent: FormComponent): FormFieldValidationResult =
     lookup.getOrElse(formComponent.id, FieldOk(formComponent, ""))
 
+  @nowarn
   def toError(formComponentId: FormComponentId, error: String): ValidationResult =
     lookup
       .get(formComponentId)

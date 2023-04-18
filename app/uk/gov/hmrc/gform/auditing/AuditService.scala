@@ -177,7 +177,7 @@ trait AuditService {
     DataEvent(
       auditSource = "GForm",
       auditType = "printedReturnNonrepudiation",
-      tags = HeaderCarrierUtil.allHeadersFromHC.toMap,
+      tags = HeaderCarrierUtil.allHeadersFromHC().toMap,
       eventId = eventId,
       detail = Map(
         "hashType"    -> "sha256",

@@ -20,7 +20,6 @@ import cats.Applicative
 import cats.syntax.all._
 import cats.data.StateT
 
-import scala.language.higherKinds
 import scala.util.matching.Regex
 import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, DateExprEval, EvaluationContext, EvaluationResults, ExpressionResult, TypeInfo }
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult

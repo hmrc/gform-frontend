@@ -24,7 +24,6 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, StringResult }
 import uk.gov.hmrc.gform.models.mappings.{ HMRCOBTDSORG, IRCT, IRSA, NINO, VRN }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
-import uk.gov.hmrc.gform.eval.ExpressionResult
 
 object AuthContextPrepop {
   def values(value: AuthInfo, retrievals: MaterialisedRetrievals, itmpRetrievals: Option[ItmpRetrievals])(implicit

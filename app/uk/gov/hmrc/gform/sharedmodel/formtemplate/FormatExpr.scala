@@ -30,6 +30,8 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SelectionCriteriaValue.{ SelectionCriteriaExpr, SelectionCriteriaReference, SelectionCriteriaSimpleValue }
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, LocalisedString }
 
+import scala.annotation.nowarn
+
 sealed trait FormatExpr
 final case class OrientationFormat(value: String) extends FormatExpr
 final case class DateFormat(expressions: DateConstraintType) extends FormatExpr
@@ -213,6 +215,7 @@ sealed trait TextConstraint {
     case ChildBenefitNumber           => CssClassSize._10
   }
 
+  @nowarn
   private def deriveCssClassNameForText(n: Int): String = n match {
     case n if n <= 2            => CssClassSize._2
     case 3                      => CssClassSize._3
@@ -224,6 +227,7 @@ sealed trait TextConstraint {
     case n if n > 30            => CssClassSize._40
   }
 
+  @nowarn
   private def deriveCssClassNameForNumber(maxWholeDigits: Int, maxFractionalDigits: Int): String = {
     val size =
       if (maxFractionalDigits > 0)
@@ -306,6 +310,7 @@ object TextConstraint {
 
   def filterNumberValue(s: String): String = s.filterNot(c => (c == '£'))
 
+  @nowarn
   private def getSizeClassForDisplayWidthForText(displayWidth: DisplayWidth.DisplayWidth): String = displayWidth match {
     case DisplayWidth.XS  => CssClassSize._4
     case DisplayWidth.S   => CssClassSize._5

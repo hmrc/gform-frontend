@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.{ PageModel, Visibility }

@@ -101,14 +101,14 @@ object TextFormatter {
   )(implicit
     sse: SmartStringEvaluator
   ): String =
-    prefix.fold("")(_.value + " ")
+    prefix.fold("")(_.value() + " ")
 
   private def appendSuffix(
     suffix: Option[SmartString]
   )(implicit
     sse: SmartStringEvaluator
   ): String =
-    suffix.fold("")(" " + _.value)
+    suffix.fold("")(" " + _.value())
 
   private def formatNumber(
     currentValue: String,

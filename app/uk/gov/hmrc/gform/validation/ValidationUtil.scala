@@ -270,6 +270,8 @@ object ValidationUtil {
           .fold[FormFieldValidationResult](
             FieldOk(formComponent, data)
           )(errors => FieldError(formComponent, dataGetter(atomicFcId).headOption.getOrElse(""), errors))
+
+      case _ => FieldOk(formComponent, "")
     }
 
     val resultErrors: List[FormFieldValidationResult] = atomicFields.map { formComponent =>
@@ -297,7 +299,7 @@ object ValidationUtil {
 
     //TODO: below code was borrowed from components validator. make it reusable in ValidationUtil
     def errors(formComponent: FormComponent, defaultErr: String): Set[String] =
-      Set(formComponent.errorMessage.map(localisedString => localisedString.value).getOrElse(defaultErr))
+      Set(formComponent.errorMessage.map(localisedString => localisedString.value()).getOrElse(defaultErr))
 
     def getError(
       formComponent: FormComponent,

@@ -30,9 +30,8 @@ import uk.gov.hmrc.gform.eval.ExpressionResult._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SourceOrigin }
 
 class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 

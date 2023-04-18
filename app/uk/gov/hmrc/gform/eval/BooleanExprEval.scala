@@ -24,7 +24,6 @@ import cats.syntax.applicative._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin

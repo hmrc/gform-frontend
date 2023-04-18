@@ -195,7 +195,7 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
   )
 
   table.zipWithIndex.foreach { case ((data, atom, message, description), index) =>
-    test(index + ". " + description) {
+    test(s"$index. $description") {
       val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
       assertEquals(
         new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),

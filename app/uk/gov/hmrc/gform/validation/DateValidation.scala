@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.validation
 import java.time.LocalDate
-
 import cats.Monoid
 import cats.data.Validated._
 import cats.implicits._
@@ -33,6 +32,7 @@ import uk.gov.hmrc.gform.validation.DateValidationLogic._
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.{ errors, fieldDescriptor }
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
+import scala.annotation.nowarn
 import scala.util.{ Failure, Success, Try }
 
 case class SomeDate(year: Int, month: Int, day: Int)
@@ -182,7 +182,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
       }
     }
   }
-
+  @nowarn
   private def validateConcreteDate(
     concreteDate: ConcreteDate,
     beforeAfterPrecisely: BeforeAfterPrecisely,
@@ -266,7 +266,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
     year: String
   ): ValidatedType[SomeDate] = {
 
-    val errorMessage = formComponent.errorMessage.map(_.value)
+    val errorMessage = formComponent.errorMessage.map(_.value())
 
     def errorGranularity(suffix: Atom): ModelComponentId =
       formComponent.atomicFormComponentId(suffix)

@@ -44,7 +44,7 @@ object Helpers {
 
   private def stringToSeq(t: (String, String)): (String, Seq[String]) = {
     val (a, b) = t
-    (a, b.split(","))
+    (a, b.split(",").toIndexedSeq)
   }
 
   def toLocalisedString(string: String): LocalisedString =

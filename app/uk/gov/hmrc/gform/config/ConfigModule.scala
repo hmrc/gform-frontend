@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, TrackingConsentConfig }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
-import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, ServicesConfig }
+import uk.gov.hmrc.play.bootstrap.config.{ ControllerConfig, ControllerConfigs, ServicesConfig }
 import org.typelevel.ci._
 import play.api.http.HttpConfiguration
 
@@ -38,7 +38,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
   val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(playConfiguration, context.environment)
   val typesafeConfig: TypeSafeConfig = ConfigFactory.load()
   val environment: Environment = context.environment
-  val isProd: Boolean = typesafeConfig.getString("application.router") =!= "testOnlyDoNotUseInAppConf.Routes"
+  val isProd: Boolean = typesafeConfig.getString("play.http.router") =!= "testOnlyDoNotUseInAppConf.Routes"
 
   val mode: Mode = environment.mode
 
@@ -56,7 +56,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
 
   val accessibilityStatementConfig = new AccessibilityStatementConfig(playConfiguration)
 
-  val auditingConfig: AuditingConfig = new AuditingConfigProvider(playConfiguration, appConfig.appName).get()
+  val auditingConfig: AuditingConfig = AuditingConfig.fromConfig(playConfiguration)
 
   val availableLanguages: Map[String, Lang] = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
   def routeToSwitchLanguage: String => Call =

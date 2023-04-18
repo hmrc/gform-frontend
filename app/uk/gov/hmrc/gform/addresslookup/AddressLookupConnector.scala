@@ -25,7 +25,6 @@ import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallRespon
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
-import scala.language.higherKinds
 
 trait AddressLookupConnector[F[_]] {
   def postcodeLookup(

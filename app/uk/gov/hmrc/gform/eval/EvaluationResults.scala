@@ -27,7 +27,6 @@ import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
-import uk.gov.hmrc.gform.eval.ExpressionResult.StringResult
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
@@ -605,6 +604,7 @@ case class EvaluationResults(
         nonEmptyExpressionResult(
           StringResult(itmpRetrievals.flatMap(_.itmpAddress).flatMap(_.countryName).getOrElse(""))
         )
+      case _ => unsupportedOperation("String")(expr)
     }
 
     loop(typeInfo.expr)
@@ -861,6 +861,7 @@ object EvaluationResults {
     def combine(l: EvaluationResults, r: EvaluationResults): EvaluationResults = (l, r) match {
       case (EvaluationResults(em1, rd1), EvaluationResults(em2, rd2)) =>
         EvaluationResults(em1 ++ em2, RecData.fromData(rd1.variadicFormData ++ rd2.variadicFormData))
+      case _ => throw new Exception("Invalid expression results for combine")
     }
   }
 }

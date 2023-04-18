@@ -74,7 +74,7 @@ object ExpandUtils {
     formModelOptics: FormModelOptics[D],
     formComponents: List[FormComponent]
   ): List[FormComponent] = {
-    val atomicFcIds: Set[ModelComponentId] = formModelOptics.pageOpticsData.keySet
+    val atomicFcIds: Set[ModelComponentId] = formModelOptics.pageOpticsData.keySet()
 
     formComponents.filter { fc =>
       fc.multiValueId.atomsModelComponentIds.forall(atomicFcIds)
@@ -98,7 +98,7 @@ object ExpandUtils {
   private def addPrefixToString(n: Int, str: String): String =
     str match {
       case NumericPrefix(_) => str
-      case _                => n + "_" + str
+      case _                => s"${n}_$str"
     }
 
   def addPrefix(n: Int, targetFcId: FormComponentId): FormComponentId =

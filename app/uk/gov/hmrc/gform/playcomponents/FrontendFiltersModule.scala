@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.playcomponents
 
 import akka.stream.Materializer
-import play.api.mvc.{ EssentialFilter, SessionCookieBaker }
+import play.api.mvc.{ CookieHeaderEncoding, DefaultCookieHeaderEncoding, EssentialFilter, SessionCookieBaker }
 import play.filters.cors.{ CORSConfig, CORSFilter }
 import play.filters.csrf.CSRFComponents
 import play.filters.headers.SecurityHeadersFilter
@@ -28,18 +28,18 @@ import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrorHandler }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.crypto.ApplicationCrypto
-import uk.gov.hmrc.play.bootstrap.config.DefaultHttpAuditEvent
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.DefaultSessionCookieCryptoFilter
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoFilter
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoProvider
 import uk.gov.hmrc.play.bootstrap.frontend.filters.deviceid.DefaultDeviceIdFilter
-import uk.gov.hmrc.play.bootstrap.frontend.filters.{ DefaultFrontendAuditFilter, HeadersFilter, SessionTimeoutFilterConfig }
+import uk.gov.hmrc.play.bootstrap.frontend.filters.{ DefaultFrontendAuditFilter, FrontendMdcFilter, HeadersFilter, RequestHeaderAuditing, SessionTimeoutFilterConfig }
 import uk.gov.hmrc.play.bootstrap.filters.{ CacheControlConfig, CacheControlFilter, DefaultLoggingFilter, MDCFilter }
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.crypto._
 import uk.gov.hmrc.gform.auth.AuthModule
+import uk.gov.hmrc.play.bootstrap.config.DefaultHttpAuditEvent
 
 class AnonoymousSessionCookieCryptoFilter(
   sessionCookieCrypto: SessionCookieCrypto,
@@ -48,6 +48,8 @@ class AnonoymousSessionCookieCryptoFilter(
     extends SessionCookieCryptoFilter {
   override protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
   override protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
+
+  override protected def cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding()
 }
 
 class EmailSessionCookieCryptoFilter(
@@ -57,6 +59,8 @@ class EmailSessionCookieCryptoFilter(
     extends SessionCookieCryptoFilter {
   override protected lazy val encrypter: Encrypter = sessionCookieCrypto.crypto
   override protected lazy val decrypter: Decrypter = sessionCookieCrypto.crypto
+
+  override protected def cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding()
 }
 
 class FrontendFiltersModule(
@@ -78,11 +82,17 @@ class FrontendFiltersModule(
 )(implicit ec: ExecutionContext) { self =>
   private implicit val materializer: Materializer = akkaModule.materializer
 
+  private val requestHeaderAuditing = new RequestHeaderAuditing(
+    new RequestHeaderAuditing.Config(configModule.playConfiguration),
+    new DefaultCookieHeaderEncoding()
+  )
+
   private val frontendAuditFilter = new DefaultFrontendAuditFilter(
     configModule.playConfiguration,
     configModule.controllerConfigs,
     auditingModule.auditConnector,
     new DefaultHttpAuditEvent(configModule.appConfig.appName),
+    requestHeaderAuditing,
     materializer
   ) {
     override val maskedFormFields = Seq("password")
@@ -92,7 +102,7 @@ class FrontendFiltersModule(
     val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
 
-    new DefaultSessionCookieCryptoFilter(sessionCookieCrypto, hmrcSessionCookieBaker)
+    new DefaultSessionCookieCryptoFilter(sessionCookieCrypto, hmrcSessionCookieBaker, new DefaultCookieHeaderEncoding())
   }
 
   private val anonoymousSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
@@ -115,7 +125,7 @@ class FrontendFiltersModule(
   }
 
   private val mdcFilter: MDCFilter =
-    new MDCFilter(materializer, configModule.playConfiguration, configModule.appConfig.appName)
+    new FrontendMdcFilter(materializer, configModule.playConfiguration, ec)
 
   private val sessionTimeoutFilter = new SessionTimeoutFilterWithAudit(
     SessionTimeoutFilterConfig

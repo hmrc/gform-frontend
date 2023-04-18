@@ -104,6 +104,7 @@ class CompositeAuthFormPage(
             content = Text(messages("compositeAuth.emailContent"))
           )
         )
+      case other => throw new Exception(s"Invalid AuthConfig, got : $other")
     }
 
     val radios = Radios(

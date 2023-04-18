@@ -15,12 +15,12 @@
  */
 
 import com.typesafe.config.ConfigFactory
-import uk.gov.hmrc.crypto.{ Crypted, CryptoWithKeysFromConfig }
+import uk.gov.hmrc.crypto.{ Crypted, SymmetricCryptoFactory }
 
 object FormDataDecryptor extends App {
 
   val jsonCrypto =
-    new CryptoWithKeysFromConfig(
+    SymmetricCryptoFactory.aesCryptoFromConfig(
       baseConfigKey = "json.encryption",
       ConfigFactory.parseString("""
                                   | json.encryption.key = "fqpLDZ4sumDsekHkeEBlCA=="

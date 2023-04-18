@@ -30,10 +30,10 @@ object Now {
   }
 
   implicit object LocalDateNow extends Now[LocalDate] {
-    def apply: LocalDate = LocalDate.now()
+    def apply(): LocalDate = LocalDate.now()
   }
 
   implicit object LocalDateTimeNow extends Now[LocalDateTime] {
-    def apply: LocalDateTime = LocalDateTime.now()
+    def apply(): LocalDateTime = LocalDateTime.now()
   }
 }

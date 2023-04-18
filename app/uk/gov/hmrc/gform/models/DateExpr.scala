@@ -72,7 +72,7 @@ object DateExpr {
     case nonZero =>
       val zeroPadding = (x: Int) => "%02d".format(x)
       val dateExprToString = (dateExpr: DateExpr) =>
-        dateExpr.year + "-" + zeroPadding(dateExpr.month) + "-" + zeroPadding(dateExpr.day)
+        s"${dateExpr.year}-${zeroPadding(dateExpr.month)}-${zeroPadding(dateExpr.day)}"
 
       val dateWithOffset = LocalDate
         .parse(dateExprToString(dateExpr), dateFormatter)

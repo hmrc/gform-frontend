@@ -41,7 +41,7 @@ class ConditionIs[T](mapping: Mapping[T], value: T) extends Condition {
     mapping
       .bind(data)
       .fold(
-        _ ⇒ false,
+        _ => false,
         _ == value
       )
 
@@ -63,8 +63,8 @@ case class OnlyWhen[T](wrapped: Mapping[T], condition: Condition, val constraint
       Right(None)
     else
       wrapped bind data fold (
-        errors ⇒ Left(errors),
-        valid ⇒ Right(Some(valid))
+        errors => Left(errors),
+        valid => Right(Some(valid))
       )
   }
 
