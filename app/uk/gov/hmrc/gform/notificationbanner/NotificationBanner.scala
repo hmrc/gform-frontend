@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.notificationbanner
 
 import julienrf.json.derived
 import play.api.libs.json.OFormat
+import uk.gov.hmrc.gform.commons.MarkDownUtil
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.notification_banner
 import uk.gov.hmrc.govukfrontend.views.viewmodels.{ content, notificationbanner }
 
@@ -25,7 +26,7 @@ case class NotificationBanner(
   message: String
 ) {
   def toViewNotificationBanner: notificationbanner.NotificationBanner = notificationbanner.NotificationBanner(
-    content = content.HtmlContent(notification_banner(message))
+    content = content.HtmlContent(notification_banner(MarkDownUtil.markDownParser(message)))
   )
 }
 

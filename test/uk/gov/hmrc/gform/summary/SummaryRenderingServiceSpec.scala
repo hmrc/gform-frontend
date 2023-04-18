@@ -29,6 +29,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.test.{ FakeRequest, Helpers }
 import play.twirl.api.Html
+
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
@@ -46,7 +47,7 @@ import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FileSizeLimit, FormPhase, FormTemplate, FormTemplateWithRedirects, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FileSizeLimit, FormPhase, FormTemplate, FormTemplateId, FormTemplateWithRedirects, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
@@ -100,7 +101,7 @@ class SummaryRenderingServiceSpec
     val mockGformConnector = mock[GformConnector]
 
     lenient()
-      .when(mockGformConnector.notificationBanner(*[ExecutionContext]))
+      .when(mockGformConnector.notificationBanner(*[FormTemplateId])(*[ExecutionContext]))
       .thenReturn(Future.successful(Option.empty[NotificationBanner]))
 
     mockFileUploadService.getEnvelope(*[EnvelopeId])(*[Option[Boolean]])(*[HeaderCarrier]) returns Future.successful(

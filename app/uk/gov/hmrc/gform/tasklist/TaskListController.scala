@@ -56,7 +56,7 @@ class TaskListController(
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         for {
           envelope          <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
-          notificatioBanner <- gformConnector.notificationBanner
+          notificatioBanner <- gformConnector.notificationBanner(formTemplateId)
           html <-
             taskListRenderingService
               .renderTaskList(
