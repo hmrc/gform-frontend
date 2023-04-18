@@ -17,10 +17,12 @@
 package uk.gov.hmrc.gform.metrics
 
 import com.codahale.metrics.MetricFilter
-import com.codahale.metrics.graphite.GraphiteReporter
+import com.codahale.metrics.graphite.{ Graphite, GraphiteReporter }
 import play.api.inject.ApplicationLifecycle
 import play.api.{ Configuration, Environment }
-import uk.gov.hmrc.play.bootstrap.graphite.{ EnabledGraphiteReporting, GraphiteProvider, GraphiteProviderConfig, GraphiteReporterProvider, GraphiteReporterProviderConfig }
+import uk.gov.hmrc.play.audit.http.connector.DatastreamMetrics
+import uk.gov.hmrc.play.bootstrap.audit.{ DisabledDatastreamMetricsProvider, EnabledDatastreamMetricsProvider }
+import uk.gov.hmrc.play.bootstrap.graphite.{ DisabledGraphiteReporting, EnabledGraphiteReporting, GraphiteProvider, GraphiteProviderConfig, GraphiteReporterProvider, GraphiteReporterProviderConfig }
 
 class GraphiteModule(
   environment: Environment,
@@ -29,6 +31,12 @@ class GraphiteModule(
   metricsModule: MetricsModule
 ) {
   // Taken from uk.gov.hmrc.play.bootstrap.graphite.GraphiteMetricsModule of bootstrap-play-26 library
+  private def kenshooMetricsEnabled(rootConfiguration: Configuration) =
+    rootConfiguration.getOptional[Boolean]("metrics.enabled").getOrElse(false)
+
+  private def graphitePublisherEnabled(graphiteConfiguration: Configuration) =
+    graphiteConfiguration.getOptional[Boolean]("enabled").getOrElse(false)
+
   private def extractGraphiteConfiguration(environment: Environment, configuration: Configuration): Configuration =
     configuration
       .getOptional[Configuration]("microservice.metrics.graphite")
@@ -40,12 +48,41 @@ class GraphiteModule(
 
   if (enableGraphite) {
     val config: GraphiteReporterProviderConfig =
-      GraphiteReporterProviderConfig.fromConfig(configuration, graphiteConfiguration)
-    val graphiteProviderConfig: GraphiteProviderConfig = GraphiteProviderConfig.fromConfig(graphiteConfiguration)
+      GraphiteReporterProviderConfig.fromConfig(configuration)
+    val graphiteProviderConfig: GraphiteProviderConfig = GraphiteProviderConfig.fromRootConfig(configuration)
     val graphite = new GraphiteProvider(graphiteProviderConfig).get()
     val filter: MetricFilter = MetricFilter.ALL
     val graphiteReporter: GraphiteReporter =
       new GraphiteReporterProvider(config, metricsModule.metrics, graphite, filter).get()
     new EnabledGraphiteReporting(configuration, graphiteReporter, applicationLifecycle)
   }
+
+  val datastreamMetrics: DatastreamMetrics =
+    if (kenshooMetricsEnabled(configuration) && graphitePublisherEnabled(graphiteConfiguration)) {
+
+      val graphiteProviderConfig: GraphiteProviderConfig = GraphiteProviderConfig.fromRootConfig(configuration)
+
+      val reporterConfig: GraphiteReporterProviderConfig =
+        GraphiteReporterProviderConfig.fromConfig(configuration)
+
+      val graphite: Graphite = new GraphiteProvider(graphiteProviderConfig).get
+
+      val graphiteReporter: GraphiteReporter = new GraphiteReporterProvider(
+        config = reporterConfig,
+        metrics = metricsModule.metrics,
+        graphite = graphite,
+        filter = MetricFilter.ALL
+      ).get
+
+      // Runs side effects
+      new EnabledGraphiteReporting(configuration, graphiteReporter, applicationLifecycle)
+
+      new EnabledDatastreamMetricsProvider(reporterConfig, metricsModule.metrics).get()
+
+    } else {
+      // Runs side effects
+      new DisabledGraphiteReporting()
+
+      new DisabledDatastreamMetricsProvider().get()
+    }
 }

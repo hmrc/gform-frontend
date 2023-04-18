@@ -132,7 +132,7 @@ object FormDataHelpers {
         case (true, true) =>
           val value = Some(
             modelComponentId -> VariadicValue.Many(
-              s.toList.mkString(",").split(",").map(_.trim).filterNot(_.isEmpty)
+              s.toList.mkString(",").split(",").map(_.trim).filterNot(_.isEmpty).toIndexedSeq
             )
           );
           (

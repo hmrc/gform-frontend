@@ -49,7 +49,7 @@ object TaskModel {
       .fold[TaskModel[A]](TaskModel.allHidden)(nel => TaskModel.Editable(nel))
 
   def editable[A <: PageMode](bs: NonEmptyList[Bracket[A]]): TaskModel[A] = TaskModel.Editable(bs)
-  def allHidden[A <: PageMode]: TaskModel[A] = AllHidden[A]
+  def allHidden[A <: PageMode]: TaskModel[A] = AllHidden[A]()
 
   // This task has at least one page visible
   case class Editable[A <: PageMode](brackets: NonEmptyList[Bracket[A]]) extends TaskModel[A]

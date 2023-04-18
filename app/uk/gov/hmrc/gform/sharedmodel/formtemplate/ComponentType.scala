@@ -391,7 +391,7 @@ case class Choice(
       .map { case (option, index) =>
         formFieldValidationResult
           .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, option.value(index)))
-          .map(_ => option.label.value)
+          .map(_ => option.label.value())
       }
       .collect { case Some(selection) => selection }
 }

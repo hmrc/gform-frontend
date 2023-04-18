@@ -41,7 +41,7 @@ object AccessCodePage {
 
     Form(
       mapping(
-        key → (verification onlyWhen (optionMapping is optionAccess)),
+        key -> (verification onlyWhen (optionMapping is optionAccess)),
         optionMapping
       )(AccessCodeForm.apply)(AccessCodeForm.unapply)
     )

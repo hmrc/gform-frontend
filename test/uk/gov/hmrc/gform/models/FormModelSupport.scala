@@ -21,7 +21,6 @@ import cats.{ Id, Monad }
 import cats.syntax.applicative._
 import play.api.i18n.Messages
 
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }

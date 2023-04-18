@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.lookup
 import com.miguelfonseca.completely.data.Indexable
 import java.util.{ List => jList }
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class LookupRecord(val value: String, val priority: LookupPriority, val keywords: LookupKeywords) extends Indexable {
   override val getFields: jList[String] =

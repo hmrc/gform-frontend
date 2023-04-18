@@ -41,7 +41,6 @@ class UpscanModule(
   val upscanService: UpscanService = new UpscanService(
     upscanConnector,
     gformBackendModule.gformConnector,
-    applicationCrypto.QueryParameterCrypto,
     configModule,
     appConfig
   )

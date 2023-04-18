@@ -21,13 +21,11 @@ import cats.syntax.eq._
 import cats.syntax.foldable._
 import cats.{ Monoid, Show }
 import cats.syntax.show._
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, PageMode, PageModel }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-import scala.collection.GenTraversableOnce
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.models.Atom
 
@@ -167,9 +165,9 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
 
   def -(remove: ModelComponentId): VariadicFormData[S] = --(Set(remove))
 
-  def --(remove: VariadicFormData[S]): VariadicFormData[S] = --(remove.keySet)
+  def --(remove: VariadicFormData[S]): VariadicFormData[S] = --(remove.keySet())
 
-  def --(formComponents: GenTraversableOnce[ModelComponentId]): VariadicFormData[S] =
+  def --(formComponents: IterableOnce[ModelComponentId]): VariadicFormData[S] =
     VariadicFormData[S](data -- formComponents)
 
   def subset(ids: Set[ModelComponentId]): VariadicFormData[S] =

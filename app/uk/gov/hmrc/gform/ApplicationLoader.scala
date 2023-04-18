@@ -80,7 +80,9 @@ class ApplicationModule(context: Context)
 
   private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
 
-  protected val auditingModule = new AuditingModule(configModule, akkaModule, metricsModule, applicationLifecycle)
+  private val graphiteModule = new GraphiteModule(environment, configuration, applicationLifecycle, metricsModule)
+
+  protected val auditingModule = new AuditingModule(configModule, akkaModule, graphiteModule, applicationLifecycle)
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
@@ -88,8 +90,6 @@ class ApplicationModule(context: Context)
     playBuiltInsModule.i18nSupport,
     playBuiltInsModule.langs
   )(messagesApi)
-
-  new GraphiteModule(environment, configuration, applicationLifecycle, metricsModule)
 
   protected lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule, akkaModule, this)
 

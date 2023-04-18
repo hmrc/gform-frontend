@@ -374,7 +374,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
 
       val thrown = the[CycleDetectedException] thrownBy layers(sections)
 
-      thrown.graphNode shouldBe GraphNode.Expr(FormCtx("a"))
+      thrown.graphNode shouldBe Simple("a")
     }
   }
 
@@ -444,7 +444,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
 
       val thrown = the[CycleDetectedException] thrownBy layers(sections)
 
-      thrown.graphNode shouldBe GraphNode.Expr(FormCtx("a"))
+      thrown.graphNode shouldBe Simple("a")
     }
   }
 

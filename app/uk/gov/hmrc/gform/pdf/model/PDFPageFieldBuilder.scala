@@ -181,7 +181,7 @@ object PDFPageFieldBuilder {
                 val revealingFields = formComponentOrdering
                   .fold(filteredFields)(filteredFields.sorted(_))
                   .map(f => build(f, cache, sectionNumber, validationResult, envelopeWithMapping))
-                ChoiceElement(element.choice.label.value, revealingFields)
+                ChoiceElement(element.choice.label.value(), revealingFields)
               }
           }
         RevealingChoiceField(
@@ -196,6 +196,8 @@ object PDFPageFieldBuilder {
         }
 
         GroupField(getFormComponentLabel(formComponent), fields)
+
+      case _ => throw new Exception("Invalid formComponent in PDFPageFieldBuilder")
     }
   }
 }

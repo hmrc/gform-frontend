@@ -30,6 +30,7 @@ object AffinityGroupUtil {
     case uk.gov.hmrc.auth.core.AffinityGroup.Agent        => AffinityGroup.Agent
     case uk.gov.hmrc.auth.core.AffinityGroup.Individual   => AffinityGroup.Individual
     case uk.gov.hmrc.auth.core.AffinityGroup.Organisation => AffinityGroup.Organisation
+    case _                                                => throw new Exception("Invalid AffinityGroup")
   }
 
   def affinityGroupNameO(affinityGroup: Option[AffinityGroup]): String = affinityGroup.fold("")(affinityGroupName)

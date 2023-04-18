@@ -132,7 +132,7 @@ object BracketsWithSectionNumber {
   def fromBracketsPlains[A <: PageMode](bracketPlains: BracketPlainCoordinated[A]): BracketsWithSectionNumber[A] =
     bracketPlains match {
       case BracketPlainCoordinated.Classic(bracketPlains) =>
-        val iterator: Iterator[SectionNumber] = Stream.from(0).map(SectionNumber.Classic(_)).iterator
+        val iterator: Iterator[SectionNumber] = LazyList.from(0).map(SectionNumber.Classic(_)).iterator
         val res: NonEmptyList[Bracket[A]] = mkBrackets(iterator, bracketPlains)
         Classic(res)
       case BracketPlainCoordinated.TaskList(coordinatedBracketPlains) =>
@@ -140,7 +140,7 @@ object BracketsWithSectionNumber {
           coordinatedBracketPlains.map { case (coordinated, taskModelCoordinated) =>
             val mkSectionNumber =
               SectionNumber.TaskList(Coordinates(coordinated.taskSectionNumber, coordinated.taskNumber), _)
-            val iterator: Iterator[SectionNumber] = Stream.from(0).map(mkSectionNumber).iterator
+            val iterator: Iterator[SectionNumber] = LazyList.from(0).map(mkSectionNumber).iterator
             val taskModel: TaskModel[A] = taskModelCoordinated.toTaskModel(mkBrackets(iterator, _))
             (coordinated, taskModel)
           }
@@ -157,16 +157,16 @@ object BracketsWithSectionNumber {
           iterations.map { it =>
             Bracket
               .AddToListIteration(
-                it.singletons.map(singleton => SingletonWithNumber(singleton, iterator.next)),
-                it.checkYourAnswers.map(CheckYourAnswersWithNumber(_, iterator.next)),
-                RepeaterWithNumber(it.repeater, iterator.next)
+                it.singletons.map(singleton => SingletonWithNumber(singleton, iterator.next())),
+                it.checkYourAnswers.map(CheckYourAnswersWithNumber(_, iterator.next())),
+                RepeaterWithNumber(it.repeater, iterator.next())
               )
           },
           source
         )
       case BracketPlain.RepeatingPage(singletons, source) =>
-        Bracket.RepeatingPage(singletons.map(singleton => SingletonWithNumber(singleton, iterator.next)), source)
+        Bracket.RepeatingPage(singletons.map(singleton => SingletonWithNumber(singleton, iterator.next())), source)
       case BracketPlain.NonRepeatingPage(singleton, source) =>
-        Bracket.NonRepeatingPage(singleton, iterator.next, source)
+        Bracket.NonRepeatingPage(singleton, iterator.next(), source)
     }
 }

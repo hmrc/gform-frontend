@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.lookup.LookupOptions._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 
 class LookupController(

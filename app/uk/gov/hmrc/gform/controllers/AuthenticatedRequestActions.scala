@@ -54,7 +54,6 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.language.higherKinds
 
 trait AuthenticatedRequestActionsAlgebra[F[_]] {
   def refreshSession(formTemplateId: FormTemplateId): Action[AnyContent]

@@ -28,7 +28,6 @@ import cats.{ Applicative, Monad, Traverse }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request }
 import play.twirl.api.Html
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }

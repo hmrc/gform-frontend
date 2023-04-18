@@ -22,7 +22,6 @@ import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.flatMap._
 import cats.syntax.traverse._
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.models.gform.ObligationsAction
 import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.sharedmodel._

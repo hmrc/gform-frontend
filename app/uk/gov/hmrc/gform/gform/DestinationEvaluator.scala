@@ -42,7 +42,7 @@ object DestinationEvaluator {
           case d: DestinationWithCustomerId =>
             val includeIfEval = evalIncludeIf(d.includeIf)
             val customerId =
-              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.customerId).stringRepresentation.take(32)
+              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.customerId()).stringRepresentation.take(32)
 
             DestinationResult(d.id, includeIfEval, Some(customerId))
           case others =>

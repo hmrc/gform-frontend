@@ -20,7 +20,6 @@ import cats.{ Monad, MonadError }
 import cats.data.NonEmptyList
 import cats.implicits._
 import play.api.i18n.Messages
-import scala.language.higherKinds
 import scala.util.Try
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
@@ -269,10 +268,10 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     val addToListMultiValueIds: List[MultiValueId] = addToLists.flatMap(_._2)
 
     val addToListsMap: Map[AddToListId, List[MultiValueId]] =
-      addToLists.groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.flatten)
+      addToLists.groupBy(_._1).view.mapValues(_.map(_._2)).mapValues(_.flatten).toMap
 
     val multiValueIdByIndex: Map[AddToListId, Map[Int, List[MultiValueId]]] =
-      addToListsMap.mapValues(_.groupBy(_.modelComponentId.indexedComponentId.maybeIndex.getOrElse(0)))
+      addToListsMap.view.mapValues(_.groupBy(_.modelComponentId.indexedComponentId.maybeIndex.getOrElse(0))).toMap
 
     val addToListFields: F[List[Field]] = {
       val allRevealingChoicesIds: List[(FormComponent, RevealingChoice)] =
