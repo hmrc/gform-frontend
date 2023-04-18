@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IncludeIf }
 
 class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[FormComponentId]) {
   def update: DataRetrieve = {
+    val idUpdated = dataRetrieve.id.withIndex(index)
     val exprUpdater = new ExprUpdater(index, baseIds)
     val booleanExprUpdater = new BooleanExprUpdater(index, baseIds)
     val paramsUpdated = dataRetrieve.params.map { paramExpr =>
@@ -28,6 +29,7 @@ class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[
     }
     val ifUpdated = dataRetrieve.`if`.map(includeIf => IncludeIf(booleanExprUpdater(includeIf.booleanExpr)))
     dataRetrieve.copy(
+      id = idUpdated,
       params = paramsUpdated,
       `if` = ifUpdated
     )
