@@ -87,7 +87,8 @@ class UploadableDestinationSpec extends Spec {
       Some(payloadType),
       convertSingleQuotes,
       Some(includeIf),
-      Some(failOnError)
+      Some(failOnError),
+      Some(false)
     )
   }
 

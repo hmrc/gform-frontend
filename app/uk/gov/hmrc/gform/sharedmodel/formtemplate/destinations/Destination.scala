@@ -81,7 +81,8 @@ object Destination {
     payload: Option[String],
     payloadType: TemplateType,
     includeIf: DestinationIncludeIf,
-    failOnError: Boolean
+    failOnError: Boolean,
+    multiRequestPayload: Boolean
   ) extends Destination
 
   case class Composite(id: DestinationId, includeIf: DestinationIncludeIf, destinations: NonEmptyList[Destination])
@@ -261,7 +262,8 @@ case class UploadableHandlebarsHttpApiDestination(
   payloadType: Option[TemplateType],
   convertSingleQuotes: Option[Boolean],
   includeIf: Option[DestinationIncludeIf],
-  failOnError: Option[Boolean]
+  failOnError: Option[Boolean],
+  multiRequestPayload: Option[Boolean]
 ) {
 
   def toHandlebarsHttpApiDestination: Either[String, Destination.HandlebarsHttpApi] =
@@ -278,7 +280,8 @@ case class UploadableHandlebarsHttpApiDestination(
         cvp,
         payloadType.getOrElse(TemplateType.JSON),
         cvii,
-        failOnError.getOrElse(true)
+        failOnError.getOrElse(true),
+        multiRequestPayload.getOrElse(false)
       )
 }
 
