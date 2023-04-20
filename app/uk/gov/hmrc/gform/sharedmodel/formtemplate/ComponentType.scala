@@ -526,10 +526,7 @@ object Range {
   @tailrec
   def getTimeSlots(sTime: LocalTime, eTime: LocalTime, iMins: Int, acc: List[LocalTime]): List[LocalTime] = {
     val t = sTime.plusMinutes(iMins.toLong)
-    if (
-      t.isAfter(eTime) || (0 until iMins contains MINUTES
-        .between(LocalTime.parse("00:00"), t))
-    )
+    if (t.isAfter(eTime) || (0 until iMins contains MINUTES.between(LocalTime.parse("00:00"), t).toInt))
       acc
     else
       getTimeSlots(t, eTime, iMins, acc :+ t)

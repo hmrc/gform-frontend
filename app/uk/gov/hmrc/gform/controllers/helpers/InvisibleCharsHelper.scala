@@ -96,7 +96,7 @@ object InvisibleCharsHelper {
     INVISIBLE_UNICODE_DESC_MAPPING.groupBy(_.code).view.mapValues(_.head).toMap
 
   def replaceInvisibleChars(input: String): String =
-    input.toCharArray.map(c => INVISIBLE_CHAR_MAP.get(c).map(_.mapping).getOrElse(c)).mkString("")
+    input.toCharArray.map(c => INVISIBLE_CHAR_MAP.get(c).map(_.mapping).getOrElse(c.toString)).mkString("")
 
   def invisibleCharMatches(input: String): Map[Char, Int] =
     input.toCharArray.filter(INVISIBLE_CHAR_MAP.contains).groupBy(identity).view.mapValues(_.length).toMap

@@ -139,7 +139,12 @@ class Recalculation[F[_]: Monad, E](
                 .collect {
                   case IsChoice(c) =>
                     c.options.toList.collect {
-                      case o: OptionData.ValueBased if userResponse.contains(o.value)    => o
+                      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value))
+                          if userResponse.contains(value) =>
+                        o
+                      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, _))
+                          if userResponse.contains(prefix) =>
+                        o
                       case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
                     }
                   case IsRevealingChoice(rc) => rc.options.map(_.choice)
