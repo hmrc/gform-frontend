@@ -40,7 +40,6 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 
 object FormComponentSummaryRenderer {
-
   def summaryListRows[D <: DataOrigin, T <: RenderType](
     formComponent: FormComponent,
     modelPageId: Option[ModelPageId],
@@ -275,6 +274,7 @@ object FormComponentSummaryRenderer {
           addressRecordLookup
         )
       case IsMiniSummaryList(_) => List[SummaryListRow]()
+      case otherFormComponent   => throw new Exception(s"$otherFormComponent is not supported in summary list row")
     }
   }
 
@@ -970,7 +970,7 @@ object FormComponentSummaryRenderer {
     List(
       summaryListRow(
         label,
-        Html(table.summaryValue.value),
+        Html(table.summaryValue.value()),
         visuallyHiddenText,
         "",
         "",
@@ -1256,7 +1256,7 @@ object FormComponentSummaryRenderer {
           if (hasErrors)
             errors.head
           else
-            HtmlFormat.escape(element.choice.label.value)
+            HtmlFormat.escape(element.choice.label.value())
 
         formFieldValidationResult
           .getOptionalCurrentValue(HtmlFieldId.indexed(fieldValue.id, index))

@@ -391,7 +391,7 @@ case class Choice(
       .map { case (option, index) =>
         formFieldValidationResult
           .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, option.value(index)))
-          .map(_ => option.label.value)
+          .map(_ => option.label.value())
       }
       .collect { case Some(selection) => selection }
 }
@@ -526,10 +526,7 @@ object Range {
   @tailrec
   def getTimeSlots(sTime: LocalTime, eTime: LocalTime, iMins: Int, acc: List[LocalTime]): List[LocalTime] = {
     val t = sTime.plusMinutes(iMins.toLong)
-    if (
-      t.isAfter(eTime) || (0 until iMins contains MINUTES
-        .between(LocalTime.parse("00:00"), t))
-    )
+    if (t.isAfter(eTime) || (0 until iMins contains MINUTES.between(LocalTime.parse("00:00"), t).toInt))
       acc
     else
       getTimeSlots(t, eTime, iMins, acc :+ t)

@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.fileupload
 
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.http.HeaderCarrier
 

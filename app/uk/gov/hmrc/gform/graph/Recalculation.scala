@@ -19,8 +19,7 @@ package uk.gov.hmrc.gform.graph
 import cats.{ Monad, MonadError, Monoid }
 import cats.syntax.all._
 import cats.data.StateT
-
-import scala.language.higherKinds
+import play.api.i18n.Messages
 import scalax.collection.Graph
 import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
@@ -59,7 +58,8 @@ class Recalculation[F[_]: Monad, E](
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    messages: Messages
   )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
 
     implicit val fm: FormModel[Interim] = formModel
@@ -68,7 +68,7 @@ class Recalculation[F[_]: Monad, E](
 
     val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formModel, formTemplateExprs)
 
-    val orderedGraph: Either[GraphException, Traversable[(Int, List[GraphNode])]] = DependencyGraph
+    val orderedGraph: Either[GraphException, Iterable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
@@ -79,7 +79,7 @@ class Recalculation[F[_]: Monad, E](
     val res: Either[GraphException, StateT[
       F,
       RecalculationState,
-      (EvaluationResults, Traversable[(Int, List[GraphNode])])
+      (EvaluationResults, Iterable[(Int, List[GraphNode])])
     ]] =
       for {
         graphTopologicalOrder <- orderedGraph
@@ -89,7 +89,8 @@ class Recalculation[F[_]: Monad, E](
             graphLayer,
             state,
             retrievals,
-            evaluationContext
+            evaluationContext,
+            messages
           )
         }
 
@@ -120,13 +121,22 @@ class Recalculation[F[_]: Monad, E](
     graphLayer: List[GraphNode],
     state: StateT[F, RecalculationState, EvaluationResults],
     retrievals: MaterialisedRetrievals,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    messages: Messages
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
     state.flatMap { evResult =>
       val recData = SourceOrigin.changeSourceToOutOfDate(evResult.recData)
 
       val booleanExprResolver = BooleanExprResolver { booleanExpr =>
         evalBooleanExprPure(booleanExpr, evResult, recData, retrievals, evaluationContext)
+      }
+
+      def evalExpr(expr: Expr) = {
+        val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
+        evResult
+          .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
+          .applyTypeInfo(typeInfo)
+          .stringRepresentation(typeInfo, messages)
       }
 
       val graphLayerResult: StateT[F, RecalculationState, EvaluationResults] = graphLayer.foldMapM {
@@ -140,7 +150,12 @@ class Recalculation[F[_]: Monad, E](
                 .collect {
                   case IsChoice(c) =>
                     c.options.toList.collect {
-                      case o: OptionData.ValueBased if userResponse.contains(o.value)    => o
+                      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value))
+                          if userResponse.contains(value) =>
+                        o
+                      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, expr))
+                          if userResponse.contains(prefix + evalExpr(expr)) =>
+                        o
                       case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
                     }
                   case IsRevealingChoice(rc) => rc.options.map(_.choice)
@@ -419,7 +434,7 @@ class Recalculation[F[_]: Monad, E](
         evResult.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
       noStateChange(
         fcId.modelComponentId.maybeIndex.fold(false)(fcIndex =>
-          exprResult.numberRepresentation.fold(true)(fcIndex > _.intValue())
+          exprResult.numberRepresentation.fold(true)(fcIndex > _.intValue)
         )
       )
     }

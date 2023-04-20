@@ -22,7 +22,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.PdfHtml
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 trait HtmlSupport {
 
@@ -32,7 +32,7 @@ trait HtmlSupport {
     val title = document.title()
 
     def summaryElements: List[SummaryElement] =
-      buildSummaryLists(document.select("h2,dl").asScala)
+      buildSummaryLists(document.select("h2,dl").asScala.toList)
 
     def buildSummaryLists(summaryElms: Seq[Element]): List[SummaryElement] =
       summaryElms.map { e =>
@@ -66,6 +66,7 @@ trait HtmlSupport {
             "h2[class='govuk-heading-m govuk-!-margin-top-5'],h3[class='govuk-heading-m govuk-!-margin-top-5'],dl[class='govuk-summary-list govuk-!-margin-bottom-0']"
           )
           .asScala
+          .toList
       )
 
     def buildSummaryLists(summaryElms: Seq[Element]): List[SummaryElement] =

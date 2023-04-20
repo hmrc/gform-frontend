@@ -44,6 +44,7 @@ class EnvelopeWithMapping(
     val envelopeUpd = summaryPagePurpose match {
       case SummaryPagePurpose.ForUser => envelope.withUserFileNames
       case SummaryPagePurpose.ForDms  => envelope
+      case other                      => throw new Exception(s"Invalid summaryPagePurpose, got $other")
     }
     new EnvelopeWithMapping(envelopeUpd, mapping)
   }

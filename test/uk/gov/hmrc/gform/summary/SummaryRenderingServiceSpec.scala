@@ -125,7 +125,8 @@ class SummaryRenderingServiceSpec
       *[FormTemplate],
       *[MaterialisedRetrievals],
       *[ThirdPartyData],
-      *[EvaluationContext]
+      *[EvaluationContext],
+      *[Messages]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
       RecalculationResult.empty(
         EvaluationContext(

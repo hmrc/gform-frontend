@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.upscan
 
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.http.HeaderCarrier

@@ -35,10 +35,10 @@ object EmailAndCode extends JsonUtils {
 
     def mkStream(chars: IndexedSeq[Char]) = {
       def next: Char = chars(rnd.random(chars.length))
-      Stream continually next
+      LazyList continually next
     }
 
-    def mkState(stream: Stream[Char], n: Int) = State[Rnd[Int], String](r => (r, stream.take(n).toList.mkString))
+    def mkState(stream: LazyList[Char], n: Int) = State[Rnd[Int], String](r => (r, stream.take(n).toList.mkString))
 
     def consonantStream = mkStream(consonants)
 

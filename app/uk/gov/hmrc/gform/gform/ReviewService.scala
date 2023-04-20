@@ -24,7 +24,6 @@ import cats.syntax.functor._
 import cats.syntax.traverse._
 import play.api.i18n.Messages
 import play.api.mvc.{ AnyContent, Request }
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra

@@ -44,7 +44,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
     new SmartStringEvaluator {
 
       override def apply(s: SmartString, markDown: Boolean): String = {
-        import scala.collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
         new MessageFormat(s.rawValue(l))
           .format(
             s.interpolations

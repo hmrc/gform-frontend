@@ -167,7 +167,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       )
     )
 
-    forAll(formComponentIds) { (input, expectedOutputData, expectedExprMap) ⇒
+    forAll(formComponentIds) { (input, expectedOutputData, expectedExprMap) =>
       verify(input, expectedOutputData, expectedExprMap: Map[Expr, ExpressionResult], sections)
     }
   }
@@ -219,7 +219,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
 
     val expectedExprMap = Map(ctx("a") -> NumberResult(1), Constant("2") -> NumberResult(2))
 
-    forAll(formComponentIds) { (input, expectedOutput) ⇒
+    forAll(formComponentIds) { (input, expectedOutput) =>
       verify(input, expectedOutput, expectedExprMap, sections)
     }
   }
@@ -252,7 +252,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
 
     val expectedExprMap = Map(ctx("a") -> StringResult("1"), Constant("2") -> NumberResult(2))
 
-    forAll(formComponentIds) { (input, expectedOutput) ⇒
+    forAll(formComponentIds) { (input, expectedOutput) =>
       verify(input, expectedOutput, expectedExprMap, sections)
     }
   }
@@ -428,7 +428,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     val includeIf2 = IncludeIf(Contains(FormCtx(FormComponentId("b")), Constant("0")))
     val includeIf3 = IncludeIf(Contains(FormCtx(FormComponentId("b")), Constant("1")))
 
-    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) =>
       val sections = List(
         mkSection(List(mkFormComponent("a", choice))),
         mkSectionIncludeIf(List(mkFormComponent("b", choice)), includeIf1),
@@ -491,7 +491,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     val includeIf1 = IncludeIf(Contains(ctx("a"), Constant("0")))
 
     for (i <- 0 to 100)
-      forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+      forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) =>
         val sections = List(
           mkSection(List(mkFormComponent("a", choice))),
           mkSectionIncludeIf(List(mkFormComponent("b", const("your client"))), includeIf1),
@@ -590,7 +590,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
           )
         ) :: Nil
 
-    forAll(data) { (input, expectedOutput) ⇒
+    forAll(data) { (input, expectedOutput) =>
       verify(input, expectedOutput, expectedExprMap, sections)
     }
 
@@ -646,7 +646,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkSection(List(mkFormComponent("res", Add(ctx("a"), ctx("b")), sterling))) ::
         Nil
 
-    forAll(data) { (input, expectedOutput, expectedExprMap) ⇒
+    forAll(data) { (input, expectedOutput, expectedExprMap) =>
       verify(input, expectedOutput, expectedExprMap, sections)
     }
   }
@@ -696,7 +696,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkSection(List(mkFormComponentEditable("b", Value, sterling))) ::
         mkSection(List(mkFormComponentEditable("c", Add(ctx("a"), ctx("b")), sterling))) :: Nil
 
-    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) =>
       verify(input, expectedOutput, expectedExprMap, sections)
     }
   }
@@ -795,7 +795,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkSectionIncludeIf(List(mkFormComponent("d", Value, sterling)), includeIf2) ::
         mkSection(List(mkFormComponent("e", Add(ctx("c"), ctx("d")), sterling))) :: Nil
 
-    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) =>
       verify(input, expectedOutput, expectedExprMap, sections)
     }
 
@@ -931,7 +931,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkSectionIncludeIf(List(mkFormComponent("d", Value, sterling)), includeIf3) ::
         mkSection(List(mkFormComponent("e", Add(ctx("cc"), ctx("d")), sterling))) :: Nil
 
-    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) =>
       verify(input, expectedOutput, expectedExprMap, sections)
     }
   }
@@ -1001,7 +1001,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       mkSection(List(mkFormComponent("a", Value), mkFormComponent("b", Value), mkFormComponent("c", Value))) ::
         mkSection(List(mkFormComponent("z", Else(ctx("a"), Else(ctx("b"), ctx("c")))))) :: Nil
 
-    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) =>
       verify(input, expectedOutput, expectedExprMap, sections)
     }
   }
@@ -1036,7 +1036,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         mkSection(List(mkFormComponent("c", Value))) ::
         mkSection(List(mkFormComponent("z", Else(FormCtx(FormComponentId("b")), FormCtx(FormComponentId("c")))))) :: Nil
 
-    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) =>
       verify(input, expectedOutput, expectedExprMap, sections)
     }
   }
@@ -1063,7 +1063,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
           )
         ) :: Nil
 
-    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) =>
       verify(input, expectedOutput, expectedExprMap, sections)
     }
   }
@@ -1196,13 +1196,15 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         )
       )
     val formModel = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](data)
+    val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
     val recalculationResult = recalculation.recalculateFormDataNew(
       data,
       formModel,
       formTemplate,
       retrievals,
       thirdPartyData,
-      evaluationContext(formTemplate)
+      evaluationContext(formTemplate),
+      messages
     )
 
     recalculationResult.evaluationResults.get(FormCtx(FormComponentId("2_b"))) shouldBe Some(Hidden)
@@ -1240,7 +1242,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       )
     )
 
-    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) =>
       val sections = List(
         mkSection(List(mkFormComponent("a", Value))),
         mkSectionIncludeIf(List(mkFormComponent("b", choice)), alwaysFalse)
@@ -1281,7 +1283,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       )
     )
 
-    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) ⇒
+    forAll(formComponentIds) { (input, expectedOutput, expectedExprMap) =>
       val sections = List(
         mkSection(List(mkFormComponent("a", Value))),
         mkSection(List(mkFormComponent("b", choice)))

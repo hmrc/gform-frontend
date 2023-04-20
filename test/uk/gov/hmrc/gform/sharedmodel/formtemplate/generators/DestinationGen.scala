@@ -43,7 +43,7 @@ trait DestinationGen {
       customerId            <- customerIdGen
       classificationType    <- classificationTypeGen
       businessArea          <- businessAreaGen
-      includeIf             <- includeIfGen
+      includeIf             <- includeIfGen()
       failOnError           <- PrimitiveGen.booleanGen
       formdataXml           <- PrimitiveGen.booleanGen
       backscan              <- Gen.option(PrimitiveGen.booleanGen)
@@ -91,7 +91,7 @@ trait DestinationGen {
       method      <- HttpMethodGen.httpMethodGen
       payload     <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen).map(_.map(s => s""""$s""""))
       payloadType <- TemplateTypeGen.templateTypeGen
-      includeIf   <- includeIfGen
+      includeIf   <- includeIfGen()
       failOnError <- PrimitiveGen.booleanGen
     } yield Destination.HandlebarsHttpApi(id, profile, uri, method, payload, payloadType, includeIf, failOnError, false)
 
@@ -109,14 +109,14 @@ trait DestinationGen {
   def compositeGen: Gen[Destination.Composite] =
     for {
       id           <- destinationIdGen
-      includeIf    <- includeIfGen
+      includeIf    <- includeIfGen()
       destinations <- PrimitiveGen.oneOrMoreGen(singularDestinationGen)
     } yield Destination.Composite(id, includeIf, destinations)
 
   def stateTransitionGen: Gen[Destination.StateTransition] =
     for {
       id            <- destinationIdGen
-      includeIf     <- includeIfGen
+      includeIf     <- includeIfGen()
       failOnError   <- PrimitiveGen.booleanGen
       requiredState <- FormGen.formStatusGen
     } yield Destination.StateTransition(id, requiredState, includeIf, failOnError)
@@ -143,7 +143,7 @@ trait DestinationGen {
     for {
       id              <- destinationIdGen
       emailTemplateId <- PrimitiveGen.nonEmptyAlphaNumStrGen.map(NotifierTemplateId(_))
-      includeIf       <- includeIfGen
+      includeIf       <- includeIfGen()
       to              <- FormComponentGen.formComponentIdGen
       personalisation <- PrimitiveGen.possiblyEmptyMapGen(
                            PrimitiveGen.nonEmptyAlphaNumStrGen.map(NotifierPersonalisationFieldId(_)),

@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 case class PageId(id: String) {
   val modelPageId: ModelPageId = ModelPageId.fromPageId(this)
 
-  def withIndex(index: Int) = PageId(index + "_" + id)
+  def withIndex(index: Int) = PageId(s"${index}_$id")
 
   def withSuffix(suffix: String) = PageId(id + suffix)
 }

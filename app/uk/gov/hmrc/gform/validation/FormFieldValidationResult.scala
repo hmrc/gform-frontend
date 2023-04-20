@@ -41,7 +41,8 @@ trait FormFieldValidationResult {
     case t: FieldGlobalOk    => t
     case t: FieldError       => FieldOk(t.formComponent, t.currentValue)
     case t: FieldGlobalError => FieldGlobalOk(t.formComponent, t.currentValue)
-    case t: ComponentField   => ComponentField(t.formComponent, t.data.mapValues(_.forgetErrors))
+    case t: ComponentField   => ComponentField(t.formComponent, t.data.view.mapValues(_.forgetErrors).toMap)
+    case t                   => t
   }
 
   lazy val fieldErrors: Set[String] = this match {
@@ -142,6 +143,7 @@ trait FormFieldValidationResult {
         }.toList
 
       xs1 ++ xs2
+    case other => throw new Exception(s"Unsupported FormField - $other")
   }
 
   private def withId(f: FormField, id: ModelComponentId) = f.copy(id = id)

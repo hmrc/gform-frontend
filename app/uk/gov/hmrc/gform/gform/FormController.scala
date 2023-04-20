@@ -193,7 +193,7 @@ class FormController(
                       .flatten
                       .flatten
                       .flatMap(fcId =>
-                        formModel.sectionNumberLookup.filterKeys(_.baseComponentId == fcId.baseComponentId).values
+                        formModel.sectionNumberLookup.view.filterKeys(_.baseComponentId === fcId.baseComponentId).values
                       )
                   }
                   .getOrElse(List())

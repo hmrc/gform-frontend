@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.lookup
 import java.text.BreakIterator
 import java.util._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import com.miguelfonseca.completely.common.Precondition.checkPointer
 import com.miguelfonseca.completely.text.analyze.Analyzer

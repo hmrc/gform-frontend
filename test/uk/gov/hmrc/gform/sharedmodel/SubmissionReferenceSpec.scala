@@ -47,19 +47,19 @@ class SubmissionReferenceSpec extends Spec with TableDrivenPropertyChecks {
   "A given value, radix, digits and comb" should "calculate the correct submission reference" in {
     val calculateValues = Table(
       ("bigInteger", "radix", "digits", "stream", "output"),
-      (BigInteger.valueOf(95), 36, 11, Stream.continually(List(1, 3)).flatten, "t0000000002n"),
-      (BigInteger.valueOf(0), 3, 2, Stream.continually(List(1, 2)).flatten, "000"),
-      (BigInteger.valueOf(1), 3, 2, Stream.continually(List(1, 2)).flatten, "201"),
-      (BigInteger.valueOf(2), 3, 2, Stream.continually(List(1, 2)).flatten, "102"),
-      (BigInteger.valueOf(3), 3, 2, Stream.continually(List(1, 2)).flatten, "110"),
-      (BigInteger.valueOf(4), 3, 2, Stream.continually(List(1, 2)).flatten, "011"),
-      (BigInteger.valueOf(5), 3, 2, Stream.continually(List(1, 2)).flatten, "212"),
-      (BigInteger.valueOf(6), 3, 2, Stream.continually(List(1, 2)).flatten, "220"),
-      (BigInteger.valueOf(7), 3, 2, Stream.continually(List(1, 2)).flatten, "121"),
-      (BigInteger.valueOf(8), 3, 2, Stream.continually(List(1, 2)).flatten, "022")
+      (BigInteger.valueOf(95), 36, 11, LazyList.continually(List(1, 3)).flatten, "t0000000002n"),
+      (BigInteger.valueOf(0), 3, 2, LazyList.continually(List(1, 2)).flatten, "000"),
+      (BigInteger.valueOf(1), 3, 2, LazyList.continually(List(1, 2)).flatten, "201"),
+      (BigInteger.valueOf(2), 3, 2, LazyList.continually(List(1, 2)).flatten, "102"),
+      (BigInteger.valueOf(3), 3, 2, LazyList.continually(List(1, 2)).flatten, "110"),
+      (BigInteger.valueOf(4), 3, 2, LazyList.continually(List(1, 2)).flatten, "011"),
+      (BigInteger.valueOf(5), 3, 2, LazyList.continually(List(1, 2)).flatten, "212"),
+      (BigInteger.valueOf(6), 3, 2, LazyList.continually(List(1, 2)).flatten, "220"),
+      (BigInteger.valueOf(7), 3, 2, LazyList.continually(List(1, 2)).flatten, "121"),
+      (BigInteger.valueOf(8), 3, 2, LazyList.continually(List(1, 2)).flatten, "022")
     )
 
-    TableDrivenPropertyChecks.forAll(calculateValues) { (bigInteger, radix, digits, stream, expectedOutput) ⇒
+    TableDrivenPropertyChecks.forAll(calculateValues) { (bigInteger, radix, digits, stream, expectedOutput) =>
       val reference = SubmissionRef.calculate(bigInteger, radix, digits, stream)
       reference shouldBe expectedOutput
     }

@@ -21,7 +21,6 @@ import cats.{ Functor, MonadError }
 import cats.syntax.all._
 import play.api.i18n.Messages
 
-import scala.language.higherKinds
 import scala.util.matching.Regex
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
 import uk.gov.hmrc.gform.eval.{ BooleanExprEval, BooleanExprResolver, DateExprEval, EvaluationContext, ExpressionResult, FileIdsWithMapping, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
@@ -215,7 +214,7 @@ class FormModelBuilder[E, F[_]: Functor](
       )
 
     recalculation
-      .recalculateFormDataNew(data, formModel, formTemplate, retrievals, thirdPartyData, evaluationContext)
+      .recalculateFormDataNew(data, formModel, formTemplate, retrievals, thirdPartyData, evaluationContext, messages)
   }
 
   def dependencyGraphValidation[U <: SectionSelectorType: SectionSelector]: FormModel[DependencyGraphVerification] =

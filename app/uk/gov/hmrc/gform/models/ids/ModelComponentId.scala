@@ -48,11 +48,11 @@ sealed trait ModelComponentId extends Product with Serializable {
   def toMongoIdentifier: String =
     fold {
       case ModelComponentId.Pure(IndexedComponentId.Pure(BaseComponentId(value)))           => value
-      case ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId(value), index)) => index + "_" + value
+      case ModelComponentId.Pure(IndexedComponentId.Indexed(BaseComponentId(value), index)) => s"${index}_$value"
     } {
-      case ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId(value)), Atom(atom)) => value + "-" + atom
+      case ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId(value)), Atom(atom)) => s"$value-$atom"
       case ModelComponentId.Atomic(IndexedComponentId.Indexed(BaseComponentId(value), index), Atom(atom)) =>
-        index + "_" + value + "-" + atom
+        s"${index}_$value-$atom"
     }
 
   def fold[B](

@@ -20,7 +20,6 @@ package controllers
 import play.api.i18n.{ Langs, MessagesApi }
 import play.api.mvc.{ Action, ActionBuilder, AnyContent, Request, Result }
 import scala.concurrent.Future
-import scala.language.higherKinds
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 trait NonAuthenticatedRequestActionsAlgebra[F[_]] {

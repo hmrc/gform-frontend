@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationInclud
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.SubmissionConsolidator
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierPersonalisationFieldId
 
-sealed trait DestinationWithCustomerId {
+sealed trait DestinationWithCustomerId extends Destination {
   def customerId(): Expr
 }
 

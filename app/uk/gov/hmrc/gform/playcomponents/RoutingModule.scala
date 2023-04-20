@@ -118,7 +118,7 @@ class RoutingModule(
     )
 
   val router: Router = {
-    val key = "application.router"
+    val key = "play.http.router"
     val property = configModule.typesafeConfig.getString(key)
     property match {
       case null | "prod.Routes" =>

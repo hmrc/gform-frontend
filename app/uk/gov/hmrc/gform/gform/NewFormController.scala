@@ -193,7 +193,8 @@ class NewFormController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         val queryParams = QueryParams.fromRequest(request)
-        choice.bindFromRequest
+        choice
+          .bindFromRequest()
           .fold(
             errorForm => {
 
@@ -337,7 +338,7 @@ class NewFormController(
     ): Future[Result] =
       AccessCodePage
         .form(drm)
-        .bindFromRequest
+        .bindFromRequest()
         .fold(
           (hasErrors: data.Form[AccessCodeForm]) => Future.successful(badRequest(cache.formTemplate, hasErrors)),
           accessCodeForm =>
@@ -354,6 +355,7 @@ class NewFormController(
                 } yield result
               case AccessCodePage.optionAccess =>
                 optionAccess(accessCodeForm, cache)
+              case other => throw new Exception(s"Invalid AccessCodePage, got $other")
             }
         )
 

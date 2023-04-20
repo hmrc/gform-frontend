@@ -89,7 +89,7 @@ object AddToListUtils {
     }
 
     val bracketPrefixes: Set[Int] =
-      (variadicFormDataToKeep.keySet ++ variadicFormDataToModified.keySet).flatMap(_.maybeIndex)
+      (variadicFormDataToKeep.keySet() ++ variadicFormDataToModified.keySet()).flatMap(_.maybeIndex)
 
     val updatedVariadicFormData = {
       val initialVariadicFormData =

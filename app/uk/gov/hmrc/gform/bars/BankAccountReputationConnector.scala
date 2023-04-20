@@ -22,7 +22,6 @@ import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.language.higherKinds
 
 trait BankAccountReputationConnector[F[_]] {
   def validateBankDetails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit

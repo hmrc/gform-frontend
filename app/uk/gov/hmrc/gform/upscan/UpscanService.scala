@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.upscan
 
 import cats.implicits._
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.crypto.{ Crypted, CryptoWithKeysFromConfig }
+import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.config.{ AppConfig, ConfigModule }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormIdData }
@@ -29,7 +29,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 class UpscanService(
   upscanConnector: UpscanConnector,
   gformConnector: GformConnector,
-  queryParameterCrypto: CryptoWithKeysFromConfig,
   configModule: ConfigModule,
   appConfig: AppConfig
 )(implicit ec: ExecutionContext)

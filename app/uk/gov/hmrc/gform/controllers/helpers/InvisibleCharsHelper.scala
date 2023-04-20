@@ -93,13 +93,13 @@ object InvisibleCharsHelper {
   )
 
   private val INVISIBLE_CHAR_MAP: Map[Char, UnicodeDescMapping] =
-    INVISIBLE_UNICODE_DESC_MAPPING.groupBy(_.code).mapValues(_.head)
+    INVISIBLE_UNICODE_DESC_MAPPING.groupBy(_.code).view.mapValues(_.head).toMap
 
   def replaceInvisibleChars(input: String): String =
-    input.toCharArray.map(c => INVISIBLE_CHAR_MAP.get(c).map(_.mapping).getOrElse(c)).mkString("")
+    input.toCharArray.map(c => INVISIBLE_CHAR_MAP.get(c).map(_.mapping).getOrElse(c.toString)).mkString("")
 
   def invisibleCharMatches(input: String): Map[Char, Int] =
-    input.toCharArray.filter(INVISIBLE_CHAR_MAP.contains).groupBy(identity).mapValues(_.length)
+    input.toCharArray.filter(INVISIBLE_CHAR_MAP.contains).groupBy(identity).view.mapValues(_.length).toMap
 
   def getUnicode(char: Char) = s"U+${char.toInt.toHexString.toUpperCase}"
 

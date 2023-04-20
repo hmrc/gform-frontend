@@ -3,9 +3,9 @@ import sbt._
 
 object Dependencies {
 
-  val jacksonVersion = "2.12.7"
-  val jacksonDatabindVersion = "2.12.7.1"
-  val bootstrapVersion = "4.3.0"
+  val jacksonVersion = "2.14.2"
+  val jacksonDatabindVersion = "2.14.2"
+  val bootstrapVersion = "7.13.0"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
@@ -15,7 +15,7 @@ object Dependencies {
     "uk.gov.hmrc"                 %% "auth-client"                % "5.14.0-play-28",
     "uk.gov.hmrc"                 %% "domain"                     % "8.1.0-play-28",
     "uk.gov.hmrc"                 %% "play-partials"              % "8.3.0-play-28",
-    "com.typesafe.play"           %% "play-json-joda"             % "2.9.3",
+    "com.typesafe.play"           %% "play-json-joda"             % "2.9.4",
     "org.julienrf"                %% "play-json-derived-codecs"   % "10.1.0",
     "org.typelevel"               %% "cats-core"                  % "2.9.0",
     "org.typelevel"               %% "cats-mtl"                   % "1.3.0",
@@ -24,12 +24,12 @@ object Dependencies {
     "org.jetbrains"                % "markdown"                   % "0.1.46",
     "com.chuusai"                 %% "shapeless"                  % "2.3.10",
     "uk.gov.hmrc"                 %% "emailaddress"               % "3.7.0",
-    "org.scala-graph"             %% "graph-core"                 % "1.12.5", // Updating this to 1.13.1 is causing big performance issues
+    "org.scala-graph"             %% "graph-core"                 % "1.13.5",
     "com.softwaremill.quicklens"  %% "quicklens"                  % "1.9.0",
     "com.nrinaudo"                %% "kantan.csv"                 % "0.7.0",
-    "com.miguelfonseca.completely" % "completely-core"            % "0.8.0",
-    "org.jsoup"                    % "jsoup"                      % "1.15.3",
-    "org.webjars.npm"              % "govuk-frontend"             % "4.4.0",
+    "com.miguelfonseca.completely" % "completely-core"            % "0.9.0",
+    "org.jsoup"                    % "jsoup"                      % "1.15.4",
+    "org.webjars.npm"              % "govuk-frontend"             % "4.5.0",
     "com.openhtmltopdf"            % "openhtmltopdf-pdfbox"       % "1.0.10",
     "ai.x"                        %% "play-json-extensions"       % "0.42.0",
     "org.apache.commons"           % "commons-text"               % "1.10.0",

@@ -33,13 +33,10 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ QueryParamValue, QueryParams, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Concat, Constant, Count, CsvCountryCheck, CsvCountryCountCheck, CsvOverseasCountryCheck, DataRetrieveCtx, DateCtx, DateExprWithOffset, DateFormCtxVar, DateFunction, DateProjection, DateValueExpr, Else, ExactDateExprValue, ExplicitExprType, Expr, FileSizeLimit, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, ParamCtx, Period, PeriodExt, PeriodFn, PeriodValue, QueryParam, RoundingMode, SectionNumber, ServiceName, Sterling, Sum, TodayDateExprValue, Typed, UserCtx, UserField, UserFieldFunc }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Count, CsvCountryCheck, CsvCountryCountCheck, CsvOverseasCountryCheck, DataRetrieveCtx, DateCtx, DateExprWithOffset, DateFormCtxVar, DateValueExpr, Else, ExactDateExprValue, Expr, FileSizeLimit, FormComponentId, FormCtx, FormPhase, FormTemplateId, IdentifierName, LangCtx, LinkCtx, OffsetYMD, PageId, ParamCtx, Period, PeriodExt, PeriodFn, PeriodValue, QueryParam, RoundingMode, SectionNumber, ServiceName, Sterling, StringFnc, StringOps, Sum, UserCtx, UserField, UserFieldFunc }
-import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
-import uk.gov.hmrc.gform.lookup._
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
 
