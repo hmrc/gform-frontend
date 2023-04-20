@@ -214,7 +214,7 @@ class FormModelBuilder[E, F[_]: Functor](
       )
 
     recalculation
-      .recalculateFormDataNew(data, formModel, formTemplate, retrievals, thirdPartyData, evaluationContext)
+      .recalculateFormDataNew(data, formModel, formTemplate, retrievals, thirdPartyData, evaluationContext, messages)
   }
 
   def dependencyGraphValidation[U <: SectionSelectorType: SectionSelector]: FormModel[DependencyGraphVerification] =

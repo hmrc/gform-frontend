@@ -417,7 +417,8 @@ class RealSmartStringEvaluatorFactorySpec
       *[FormTemplate],
       *[MaterialisedRetrievals],
       *[ThirdPartyData],
-      *[EvaluationContext]
+      *[EvaluationContext],
+      *[Messages]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
       RecalculationResult(
         EvaluationResults(exprMap, SourceOrigin.changeSource(RecData.fromData(cache.variadicFormData))),

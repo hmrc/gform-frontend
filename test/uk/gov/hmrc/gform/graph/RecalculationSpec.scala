@@ -1196,13 +1196,15 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         )
       )
     val formModel = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](data)
+    val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
     val recalculationResult = recalculation.recalculateFormDataNew(
       data,
       formModel,
       formTemplate,
       retrievals,
       thirdPartyData,
-      evaluationContext(formTemplate)
+      evaluationContext(formTemplate),
+      messages
     )
 
     recalculationResult.evaluationResults.get(FormCtx(FormComponentId("2_b"))) shouldBe Some(Hidden)

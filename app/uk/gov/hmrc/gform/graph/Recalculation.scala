@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.graph
 import cats.{ Monad, MonadError, Monoid }
 import cats.syntax.all._
 import cats.data.StateT
-
+import play.api.i18n.Messages
 import scalax.collection.Graph
 import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
@@ -58,7 +58,8 @@ class Recalculation[F[_]: Monad, E](
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    messages: Messages
   )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
 
     implicit val fm: FormModel[Interim] = formModel
@@ -88,7 +89,8 @@ class Recalculation[F[_]: Monad, E](
             graphLayer,
             state,
             retrievals,
-            evaluationContext
+            evaluationContext,
+            messages
           )
         }
 
@@ -119,13 +121,22 @@ class Recalculation[F[_]: Monad, E](
     graphLayer: List[GraphNode],
     state: StateT[F, RecalculationState, EvaluationResults],
     retrievals: MaterialisedRetrievals,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    messages: Messages
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
     state.flatMap { evResult =>
       val recData = SourceOrigin.changeSourceToOutOfDate(evResult.recData)
 
       val booleanExprResolver = BooleanExprResolver { booleanExpr =>
         evalBooleanExprPure(booleanExpr, evResult, recData, retrievals, evaluationContext)
+      }
+
+      def evalExpr(expr: Expr) = {
+        val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
+        evResult
+          .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
+          .applyTypeInfo(typeInfo)
+          .stringRepresentation(typeInfo, messages)
       }
 
       val graphLayerResult: StateT[F, RecalculationState, EvaluationResults] = graphLayer.foldMapM {
@@ -142,8 +153,8 @@ class Recalculation[F[_]: Monad, E](
                       case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value))
                           if userResponse.contains(value) =>
                         o
-                      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, _))
-                          if userResponse.contains(prefix) =>
+                      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, expr))
+                          if userResponse.contains(prefix + evalExpr(expr)) =>
                         o
                       case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
                     }
