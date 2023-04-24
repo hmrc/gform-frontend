@@ -207,10 +207,13 @@ case class OverseasAddress(
   mandatoryFields: List[OverseasAddress.Configurable.Mandatory],
   optionalFields: List[OverseasAddress.Configurable.Optional],
   countryLookup: Boolean,
-  value: Option[Expr]
+  value: Option[Expr],
+  countryDisplayed: Boolean
 ) extends ComponentType with MultiField {
   override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
-    OverseasAddress.fields(indexedComponentId)
+    if (countryDisplayed)
+      OverseasAddress.fields(indexedComponentId)
+    else OverseasAddress.fieldsWithoutCountry(indexedComponentId)
 
   val configurableMandatoryAtoms: Set[Atom] = mandatoryFields.map(_.toAtom).toSet
   val configurableOptionalAtoms: Set[Atom] = optionalFields.map(_.toAtom).toSet
@@ -264,6 +267,13 @@ object OverseasAddress {
     indexedComponentId => {
       NonEmptyList
         .of(line1, line2, line3, city, postcode, country)
+        .map(ModelComponentId.atomicCurry(indexedComponentId))
+    }
+
+  val fieldsWithoutCountry: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] =
+    indexedComponentId => {
+      NonEmptyList
+        .of(line1, line2, line3, city, postcode)
         .map(ModelComponentId.atomicCurry(indexedComponentId))
     }
 

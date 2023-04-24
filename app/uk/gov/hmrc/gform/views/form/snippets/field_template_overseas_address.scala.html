@@ -105,10 +105,13 @@
                 (OverseasAddress.city,     "overseasAddress.city",     "govuk-input govuk-!-width-two-thirds"),
                 (OverseasAddress.postcode, "overseasAddress.postcode", "govuk-input--width-10")
             )
-        if(overseasAddress.countryLookup)
-            rows
-        else
-            rows ++ List((OverseasAddress.country,  "overseasAddress.country",  "govuk-input govuk-!-width-two-thirds"))
+
+            if(overseasAddress.countryLookup)
+                rows
+            else
+                if(overseasAddress.countryDisplayed) {
+                    rows ++ List((OverseasAddress.country, "overseasAddress.country", "govuk-input govuk-!-width-two-thirds"))
+                } else rows
     }) { rows =>
         @rows.map { case (row, messageKey, widthClass) =>
 
@@ -130,7 +133,7 @@
         }
     }
 
-    @{if(overseasAddress.countryLookup) lookup_autosuggest(
+    @{if(overseasAddress.countryLookup && overseasAddress.countryDisplayed) lookup_autosuggest(
         Label(
             forAttr = Some(htmlId(safeId(OverseasAddress.country))),
             isPageHeading = false,

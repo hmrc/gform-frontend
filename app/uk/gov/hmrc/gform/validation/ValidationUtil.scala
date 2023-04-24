@@ -146,7 +146,7 @@ object ValidationUtil {
           .using(_.withSyntheticCopy(fcId.baseComponentId, mapper))
         multiFieldValidationResult(formComponent, syntheticOptics)
 
-      case IsOverseasAddress(OverseasAddress(_, _, _, Some(AuthCtx(AuthInfo.ItmpAddress)))) =>
+      case IsOverseasAddress(OverseasAddress(_, _, _, Some(AuthCtx(AuthInfo.ItmpAddress)), _)) =>
         val itmpAddress = formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
           .flatMap(_.itmpAddress)
         val itmpLines = List(
@@ -176,7 +176,7 @@ object ValidationUtil {
           .using(_.withCopyFromAtom(formComponent.modelComponentId, atomMap))
         multiFieldValidationResult(formComponent, syntheticOptics)
 
-      case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(fcId)))) =>
+      case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(fcId)), _)) =>
         def mapper: IndexedComponentId => IndexedComponentId = {
           case IndexedComponentId.Pure(_)           => IndexedComponentId.Pure(formComponent.baseComponentId)
           case IndexedComponentId.Indexed(_, index) => IndexedComponentId.Indexed(formComponent.baseComponentId, index)
