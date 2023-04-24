@@ -186,8 +186,8 @@ class FormController(
                                       r
                                   }
                             }
-                          case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(r)))) => List(List(r))
-                          case IsAddress(Address(_, _, _, Some(FormCtx(r))))                 => List(List(r))
+                          case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(r)), _)) => List(List(r))
+                          case IsAddress(Address(_, _, _, Some(FormCtx(r))))                    => List(List(r))
                         }
                       }
                       .flatten

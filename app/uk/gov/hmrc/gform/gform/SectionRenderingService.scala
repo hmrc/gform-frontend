@@ -1048,7 +1048,7 @@ class SectionRenderingService(
             renderTime(t, formComponent, validationResult, ei)
           case a @ Address(_, _, countyDisplayed, _) =>
             htmlForAddress(formComponent, a, validationResult, ei, countyDisplayed)
-          case o @ OverseasAddress(_, _, _, _) =>
+          case o @ OverseasAddress(_, _, _, _, _) =>
             htmlForOverseasAddress(formComponent, o, validationResult, ei)
           case t @ Text(Lookup(register, _), _, _, _, _, _) =>
             renderLookup(t, formComponent, register, validationResult, ei)
