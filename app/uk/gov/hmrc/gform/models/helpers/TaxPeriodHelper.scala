@@ -20,20 +20,23 @@ import java.time.format.DateTimeFormatter
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
-
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 object TaxPeriodHelper {
 
-  def formatTaxPeriodOutput(
+  def formatTaxPeriodOutput[D <: DataOrigin](
     valResult: FormFieldValidationResult,
-    envelope: EnvelopeWithMapping
+    envelope: EnvelopeWithMapping,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit l: LangADT, messages: Messages, evaluator: SmartStringEvaluator) =
     valResult match {
       case ComponentField(a, b) =>
-        b.values.headOption.fold("")(ffvr => TextFormatter.formatText(ffvr, envelope).mkString(""))
+        b.values.headOption.fold("")(ffvr =>
+          TextFormatter.formatText(ffvr, envelope, formModelVisibilityOptics = formModelVisibilityOptics).mkString("")
+        )
       case _ => ""
     }
 

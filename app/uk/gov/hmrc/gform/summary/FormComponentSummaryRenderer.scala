@@ -77,7 +77,8 @@ object FormComponentSummaryRenderer {
           prefix,
           suffix,
           iterationTitle,
-          fastForward
+          fastForward,
+          formModelVisibilityOptics
         )
 
       case IsTextArea(_) =>
@@ -90,7 +91,8 @@ object FormComponentSummaryRenderer {
           formFieldValidationResult,
           envelope,
           iterationTitle,
-          fastForward
+          fastForward,
+          formModelVisibilityOptics
         )
 
       case IsDate(_) =>
@@ -220,7 +222,8 @@ object FormComponentSummaryRenderer {
           h,
           envelope,
           iterationTitle,
-          fastForward
+          fastForward,
+          formModelVisibilityOptics
         )
 
       case IsChoice(choice) =>
@@ -233,7 +236,8 @@ object FormComponentSummaryRenderer {
           formFieldValidationResult,
           choice,
           iterationTitle,
-          fastForward
+          fastForward,
+          formModelVisibilityOptics
         )
 
       case IsRevealingChoice(rc) =>
@@ -292,7 +296,7 @@ object FormComponentSummaryRenderer {
     else
       ""
 
-  private def getTextSummaryListRows[T <: RenderType](
+  private def getTextSummaryListRows[T <: RenderType, D <: DataOrigin](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -303,7 +307,8 @@ object FormComponentSummaryRenderer {
     prefix: Option[SmartString],
     suffix: Option[SmartString],
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -322,7 +327,11 @@ object FormComponentSummaryRenderer {
     val keyClasses = getKeyClasses(hasErrors)
 
     val value =
-      if (hasErrors) errors else formatText(formFieldValidationResult, envelope, prefix, suffix).map(HtmlFormat.escape)
+      if (hasErrors) errors
+      else
+        formatText(formFieldValidationResult, envelope, prefix, suffix, formModelVisibilityOptics).map(
+          HtmlFormat.escape
+        )
 
     val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
 
@@ -361,7 +370,7 @@ object FormComponentSummaryRenderer {
 
   }
 
-  private def getTextAreaSummaryListRows[T <: RenderType](
+  private def getTextAreaSummaryListRows[T <: RenderType, D <: DataOrigin](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -370,7 +379,8 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -388,7 +398,10 @@ object FormComponentSummaryRenderer {
 
     val keyClasses = getKeyClasses(hasErrors)
 
-    val currentValueLines = formatText(formFieldValidationResult, envelope).flatMap(_.split("\\R").toList)
+    val currentValueLines =
+      formatText(formFieldValidationResult, envelope, formModelVisibilityOptics = formModelVisibilityOptics).flatMap(
+        _.split("\\R").toList
+      )
 
     val currentValue =
       currentValueLines.map(HtmlFormat.escape)
@@ -1061,7 +1074,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getHmrcTaxPeriodSummaryListRows[T <: RenderType](
+  private def getHmrcTaxPeriodSummaryListRows[T <: RenderType, D <: DataOrigin](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -1072,7 +1085,8 @@ object FormComponentSummaryRenderer {
     h: HmrcTaxPeriod,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -1091,7 +1105,7 @@ object FormComponentSummaryRenderer {
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
     val keyClasses = getKeyClasses(hasErrors)
-    val periodId = TaxPeriodHelper.formatTaxPeriodOutput(formFieldValidationResult, envelope)
+    val periodId = TaxPeriodHelper.formatTaxPeriodOutput(formFieldValidationResult, envelope, formModelVisibilityOptics)
 
     val maybeObligation = obligations.findByPeriodKey(h, periodId)
 
@@ -1141,7 +1155,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getChoiceSummaryListRows[T <: RenderType](
+  private def getChoiceSummaryListRows[D <: DataOrigin, T <: RenderType](
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -1150,7 +1164,8 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     choice: Choice,
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -1174,7 +1189,7 @@ object FormComponentSummaryRenderer {
         errors
       else
         choice
-          .renderToString(formComponent, formFieldValidationResult)
+          .renderToString(formComponent, formFieldValidationResult, formModelVisibilityOptics)
           .map(s => uk.gov.hmrc.gform.views.html.hardcoded.pages.pWrapper(HtmlFormat.escape(s)))
 
     List(
@@ -1420,7 +1435,9 @@ object FormComponentSummaryRenderer {
           errorResults.headOption match {
             case None =>
               formFieldValidationResults
-                .flatMap(ffvr => TextFormatter.formatText(ffvr, envelope))
+                .flatMap(ffvr =>
+                  TextFormatter.formatText(ffvr, envelope, formModelVisibilityOptics = formModelVisibilityOptics)
+                )
                 .map(HtmlFormat.escape)
                 .intercalate(br())
             case Some(formFieldValidationResult) =>

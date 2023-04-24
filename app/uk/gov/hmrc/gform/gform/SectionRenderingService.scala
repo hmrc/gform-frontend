@@ -45,7 +45,7 @@ import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, CheckYo
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.FileExtension
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -292,9 +292,9 @@ class SectionRenderingService(
     val items = choice.options.zipWithIndex.map { case (option, index) =>
       RadioItem(
         id = Some(formComponent.id.value + index),
-        value = Some(option.getValue(index, formModelOptics)),
+        value = Some(option.getValue(index, formModelOptics.formModelVisibilityOptics)),
         content = content.Text(option.label.value()),
-        checked = isChecked(option.getValue(index, formModelOptics)),
+        checked = isChecked(option.getValue(index, formModelOptics.formModelVisibilityOptics)),
         attributes = dataLabelAttribute(option.label)
       )
     }
@@ -1104,7 +1104,14 @@ class SectionRenderingService(
           case InformationMessage(infoType, infoText) =>
             htmlForInformationMessage(formComponent, infoType, infoText)
           case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>
-            htmlForHmrcTaxPeriod(formComponent, ei, validationResult, obligations, htp)
+            htmlForHmrcTaxPeriod(
+              formComponent,
+              ei,
+              validationResult,
+              obligations,
+              htp,
+              ei.formModelOptics.formModelVisibilityOptics
+            )
           case MiniSummaryList(rows) =>
             htmlForMiniSummaryList(formComponent, formTemplateId, rows, ei, validationResult, obligations)
           case t: TableComp => htmlForTableComp(formComponent, t, ei.formModelOptics)
@@ -1206,12 +1213,13 @@ class SectionRenderingService(
         )
     }
 
-  private def htmlForHmrcTaxPeriod(
+  private def htmlForHmrcTaxPeriod[D <: DataOrigin](
     formComponent: FormComponent,
     ei: ExtraInfo,
     validationResult: ValidationResult,
     obligations: Obligations,
-    hmrcTP: HmrcTaxPeriod
+    hmrcTP: HmrcTaxPeriod,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
 
     val maybeTaxPeriodOptions: Option[NonEmptyList[OptionParams]] = obligations match {
@@ -1235,7 +1243,8 @@ class SectionRenderingService(
 
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 
-    val setValue = TaxPeriodHelper.formatTaxPeriodOutput(formFieldValidationResult, ei.envelope)
+    val setValue =
+      TaxPeriodHelper.formatTaxPeriodOutput(formFieldValidationResult, ei.envelope, formModelVisibilityOptics)
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage = errors.map(error =>
@@ -1749,9 +1758,9 @@ class SectionRenderingService(
           case ((option, maybeHint, maybeHelpText), index) =>
             RadioItem(
               id = Some(formComponent.id.value + index),
-              value = Some(option.getValue(index, ei.formModelOptics)),
+              value = Some(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
               content = content.Text(option.label.value()),
-              checked = isChecked(option.getValue(index, ei.formModelOptics)),
+              checked = isChecked(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
               conditionalHtml = helpTextHtml(maybeHelpText),
               attributes = dataLabelAttribute(option.label),
               hint = maybeHint
@@ -1782,15 +1791,17 @@ class SectionRenderingService(
           case ((option, maybeHint, maybeHelpText), index) =>
             val item = CheckboxItem(
               id = Some(formComponent.id.value + index),
-              value = option.getValue(index, ei.formModelOptics),
+              value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics),
               content = content.Text(option.label.value()),
-              checked = isChecked(option.getValue(index, ei.formModelOptics)),
+              checked = isChecked(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
               conditionalHtml = helpTextHtml(maybeHelpText),
               attributes = dataLabelAttribute(option.label),
               hint = maybeHint
             )
             if (
-              maybeNoneChoice.exists(noneChoice => noneChoice.selection === option.getValue(index, ei.formModelOptics))
+              maybeNoneChoice.exists(noneChoice =>
+                noneChoice.selection === option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)
+              )
             ) {
               item.copy(behaviour = Some(ExclusiveCheckbox))
             } else {
@@ -1923,9 +1934,9 @@ class SectionRenderingService(
         case ((option, maybeHint, isChecked, maybeRevealingFieldsHtml), index) =>
           CheckboxItem(
             id = Some(formComponent.id.value + index),
-            value = option.getValue(index, extraInfo.formModelOptics),
+            value = option.getValue(index, extraInfo.formModelOptics.formModelVisibilityOptics),
             content = content.Text(option.label.value()),
-            checked = isChecked(option.getValue(index, extraInfo.formModelOptics)),
+            checked = isChecked(option.getValue(index, extraInfo.formModelOptics.formModelVisibilityOptics)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(option.label),
             hint = maybeHint
@@ -1948,9 +1959,9 @@ class SectionRenderingService(
         case ((option, maybeHint, isChecked, maybeRevealingFieldsHtml), index) =>
           RadioItem(
             id = Some(formComponent.id.value + index),
-            value = Some(option.getValue(index, extraInfo.formModelOptics)),
+            value = Some(option.getValue(index, extraInfo.formModelOptics.formModelVisibilityOptics)),
             content = content.Text(option.label.value()),
-            checked = isChecked(option.getValue(index, extraInfo.formModelOptics)),
+            checked = isChecked(option.getValue(index, extraInfo.formModelOptics.formModelVisibilityOptics)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(option.label),
             hint = maybeHint

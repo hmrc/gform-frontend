@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.views.summary
 
 import java.text.NumberFormat
-
 import cats.syntax.option._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.commons.BigDecimalUtil._
@@ -30,6 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.commons.NumberFormatUtil._
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 
 object TextFormatter {
 
@@ -137,11 +137,12 @@ object TextFormatter {
 
   private def formatUkSortCode(currentValue: String): String = currentValue.grouped(2).mkString("-")
 
-  def formatText(
+  def formatText[D <: DataOrigin](
     validationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping,
     prefix: Option[SmartString] = None,
-    suffix: Option[SmartString] = None
+    suffix: Option[SmartString] = None,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
     l: LangADT,
     messages: Messages,
@@ -152,7 +153,7 @@ object TextFormatter {
     def getValue(formComponent: FormComponent): List[String] = formComponent match {
       case IsText(text)     => componentTextForSummary(currentValue, text.constraint, prefix, suffix) :: Nil
       case IsFileUpload(_)  => envelope.userFileName(formComponent) :: Nil
-      case IsChoice(choice) => choice.renderToString(formComponent, validationResult)
+      case IsChoice(choice) => choice.renderToString(formComponent, validationResult, formModelVisibilityOptics)
       case IsAddress(address) =>
         Address.renderToString(formComponent, validationResult)
       case IsOverseasAddress(address) =>

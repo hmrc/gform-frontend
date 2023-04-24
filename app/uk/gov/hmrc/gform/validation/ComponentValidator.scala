@@ -723,6 +723,8 @@ object ComponentValidator {
         options.zipWithIndex.collect {
           case (OptionData.IndexBased(_, _, _, _), i)                                     => i.toString
           case (OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)), _) => value
+          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, expr)), _) =>
+            prefix + formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
         }.toSet
       case _ => Set.empty[String]
     }

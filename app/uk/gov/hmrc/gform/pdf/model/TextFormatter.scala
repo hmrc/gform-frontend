@@ -22,17 +22,19 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.views.summary.TextFormatter.componentTextForSummary
 
 object TextFormatter {
-  def formatText(
+  def formatText[D <: DataOrigin](
     validationResult: FormFieldValidationResult,
     envelopeWithMapping: EnvelopeWithMapping,
     prefix: Option[SmartString] = None,
-    suffix: Option[SmartString] = None
+    suffix: Option[SmartString] = None,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
     l: LangADT,
     messages: Messages,
@@ -44,7 +46,7 @@ object TextFormatter {
       case IsText(text) =>
         List(componentTextForSummary(currentValue, text.constraint, prefix, suffix)).filter(_.nonEmpty)
       case IsFileUpload(_)  => List(envelopeWithMapping.userFileName(formComponent))
-      case IsChoice(choice) => choice.renderToString(formComponent, validationResult)
+      case IsChoice(choice) => choice.renderToString(formComponent, validationResult, formModelVisibilityOptics)
       case IsAddress(_) =>
         Address
           .renderToString(formComponent, validationResult)

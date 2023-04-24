@@ -19,15 +19,20 @@ package uk.gov.hmrc.gform.views.summary
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.i18n.Messages
 import play.api.test.Helpers
-import uk.gov.hmrc.gform.Helpers.toSmartString
+import uk.gov.hmrc.gform.Helpers.{ mkDataOutOfDate, toSmartString }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
+import uk.gov.hmrc.gform.models.FormModelSupport
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FieldOk
 
-class TextFormatterSpec extends Spec with TableDrivenPropertyChecks {
+class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormModelSupport {
+
+  override val envelopeId = EnvelopeId("dummy")
 
   implicit val messages: Messages = Helpers.stubMessages()
 
@@ -115,8 +120,16 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks {
 
   forAll(equalsCombinations) { (input, expectedSterling, expectedNumber) =>
     implicit val l: LangADT = LangADT.En
+    val sections = List(mkSection(List(mkFormComponent("dummy", Value))))
+    val inputData = mkDataOutOfDate("dummy" -> "dummy")
+
+    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData)
     def formatForConstraint(constraint: TextConstraint) =
-      TextFormatter.formatText(FieldOk(getComponent(constraint), input), EnvelopeWithMapping.empty)
+      TextFormatter.formatText(
+        FieldOk(getComponent(constraint), input),
+        EnvelopeWithMapping.empty,
+        formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
+      )
 
     formatForConstraint(Sterling(RoundingMode.defaultRoundingMode, false)) shouldBe List(expectedSterling)
     formatForConstraint(Number()) shouldBe List(expectedNumber)
