@@ -572,12 +572,10 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ) = {
     val ValidChildBenefitNumber = "^CHB[0-9]{8}[A-Z]{2}$".r
-    val ValidChildBenefitNumberLength = "^.{13}$".r
     val str = value.replace(" ", "")
 
     str match {
-      case ValidChildBenefitNumber()       => validationSuccess
-      case ValidChildBenefitNumberLength() => validationSuccess
+      case ValidChildBenefitNumber() => validationSuccess
       case _ =>
         validationFailure(
           fieldValue,
