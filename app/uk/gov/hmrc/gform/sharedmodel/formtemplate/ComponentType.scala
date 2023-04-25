@@ -91,7 +91,8 @@ case class TextArea(
   value: Expr,
   displayWidth: DisplayWidth = DisplayWidth.DEFAULT,
   rows: Int = TextArea.defaultRows,
-  displayCharCount: Boolean = TextArea.defaultDisplayCharCount
+  displayCharCount: Boolean = TextArea.defaultDisplayCharCount,
+  dataThreshold: Option[Int]
 ) extends ComponentType
 
 object TextArea {

@@ -1054,7 +1054,7 @@ class SectionRenderingService(
             renderLookup(t, formComponent, register, validationResult, ei)
           case t @ Text(_, _, _, _, _, _) =>
             renderText(t, formComponent, validationResult, ei)
-          case t @ TextArea(_, _, _, _, _) =>
+          case t @ TextArea(_, _, _, _, _, _) =>
             renderTextArea(t, formComponent, validationResult, ei)
           case Choice(
                 choice,
@@ -2159,7 +2159,8 @@ class SectionRenderingService(
           maxLength = Some(maxLength),
           errorMessage = errorMessage,
           classes = sizeClasses,
-          attributes = attributes
+          attributes = attributes,
+          threshold = text.dataThreshold
         )
 
         new HmrcCharacterCount(new GovukCharacterCount(govukTextarea, govukHint))(characterCount)
