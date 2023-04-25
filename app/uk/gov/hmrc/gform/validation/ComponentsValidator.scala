@@ -197,7 +197,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         )
       case Text(constraint, _, _, _, _, _) =>
         validIf(ComponentValidator.validateText(formComponent, constraint)(formModelVisibilityOptics, lookupRegistry))
-      case TextArea(constraint, _, _, _, _) =>
+      case TextArea(constraint, _, _, _, _, _) =>
         validIf(
           ComponentValidator
             .validateText(formComponent, constraint)(formModelVisibilityOptics, lookupRegistry)

@@ -136,7 +136,7 @@ class ComponentValidatorSpec
 
   private val textComponent = FormComponent(
     FormComponentId("testFormComponent"),
-    TextArea(ShortText.default, Value),
+    TextArea(ShortText.default, Value, dataThreshold = None),
     toSmartString("formComponentLabel"),
     None,
     None,

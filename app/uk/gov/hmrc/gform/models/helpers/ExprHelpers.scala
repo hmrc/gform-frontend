@@ -23,22 +23,23 @@ case class MaxDigitsAndRoundingMode(maxDigits: Int, roundingMode: RoundingMode)
 object HasDigits {
   def unapply(expr: ComponentType): Option[MaxDigitsAndRoundingMode] =
     expr match {
-      case Text(Number(_, digits, rm, _), _, _, _, _, _)          => Some(MaxDigitsAndRoundingMode(digits, rm))
-      case Text(PositiveNumber(_, digits, rm, _), _, _, _, _, _)  => Some(MaxDigitsAndRoundingMode(digits, rm))
-      case TextArea(Number(_, digits, rm, _), _, _, _, _)         => Some(MaxDigitsAndRoundingMode(digits, rm))
-      case TextArea(PositiveNumber(_, digits, rm, _), _, _, _, _) => Some(MaxDigitsAndRoundingMode(digits, rm))
-      case _                                                      => None
+      case Text(Number(_, digits, rm, _), _, _, _, _, _)             => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case Text(PositiveNumber(_, digits, rm, _), _, _, _, _, _)     => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case TextArea(Number(_, digits, rm, _), _, _, _, _, _)         => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case TextArea(PositiveNumber(_, digits, rm, _), _, _, _, _, _) => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case _                                                         => None
     }
 }
 
 object HasSterling {
   def unapply(expr: ComponentType): Option[MaxDigitsAndRoundingMode] =
     expr match {
-      case Text(s: Sterling, _, _, _, _, _)       => Some(MaxDigitsAndRoundingMode(2, s.roundingMode))
-      case TextArea(s: Sterling, _, _, _, _)      => Some(MaxDigitsAndRoundingMode(2, s.roundingMode))
-      case Text(_: WholeSterling, _, _, _, _, _)  => Some(MaxDigitsAndRoundingMode(0, RoundingMode.defaultRoundingMode))
-      case TextArea(_: WholeSterling, _, _, _, _) => Some(MaxDigitsAndRoundingMode(0, RoundingMode.defaultRoundingMode))
-      case _                                      => None
+      case Text(s: Sterling, _, _, _, _, _)      => Some(MaxDigitsAndRoundingMode(2, s.roundingMode))
+      case TextArea(s: Sterling, _, _, _, _, _)  => Some(MaxDigitsAndRoundingMode(2, s.roundingMode))
+      case Text(_: WholeSterling, _, _, _, _, _) => Some(MaxDigitsAndRoundingMode(0, RoundingMode.defaultRoundingMode))
+      case TextArea(_: WholeSterling, _, _, _, _, _) =>
+        Some(MaxDigitsAndRoundingMode(0, RoundingMode.defaultRoundingMode))
+      case _ => None
     }
 }
 
