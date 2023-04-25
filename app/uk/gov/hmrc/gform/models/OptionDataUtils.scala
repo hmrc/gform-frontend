@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
+import uk.gov.hmrc.gform.gform.ExprUpdater
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Dynamic, FormComponent, FormComponentId, FormCtx, OptionData, OptionDataValue }
 
@@ -118,8 +119,9 @@ object OptionDataUtils {
       hint = od.hint.map(_.expand(index, baseIds)),
       dynamic = od.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _)),
       value = od.value match {
-        case OptionDataValue.StringBased(value)      => OptionDataValue.StringBased(value + "_" + index)
-        case OptionDataValue.ExprBased(prefix, expr) => OptionDataValue.ExprBased(prefix + "_" + index, expr)
+        case OptionDataValue.StringBased(value) => OptionDataValue.StringBased(value + "_" + index)
+        case OptionDataValue.ExprBased(prefix, expr) =>
+          OptionDataValue.ExprBased(prefix + "_" + index, new ExprUpdater(index, baseIds).expandExpr(expr))
       }
     )
 

@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationResult }
@@ -32,12 +33,13 @@ import uk.gov.hmrc.gform.pdf.model.PDFModel._
 import uk.gov.hmrc.gform.pdf.model.TextFormatter._
 
 object PDFPageFieldBuilder {
-  def build[T <: PDFType](
+  def build[T <: PDFType, D <: DataOrigin](
     formComponent: FormComponent,
     cache: AuthCacheWithForm,
     sectionNumber: SectionNumber,
     validationResult: ValidationResult,
-    envelopeWithMapping: EnvelopeWithMapping
+    envelopeWithMapping: EnvelopeWithMapping,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -49,13 +51,17 @@ object PDFPageFieldBuilder {
       case IsText(Text(_, _, _, _, prefix, suffix)) =>
         SimpleField(
           getFormComponentLabel(formComponent),
-          formatText(validationResult(formComponent), envelopeWithMapping, prefix, suffix)
+          formatText(validationResult(formComponent), envelopeWithMapping, prefix, suffix, formModelVisibilityOptics)
         )
 
       case IsTextArea(_) =>
         SimpleField(
           getFormComponentLabel(formComponent),
-          formatText(validationResult(formComponent), envelopeWithMapping)
+          formatText(
+            validationResult(formComponent),
+            envelopeWithMapping,
+            formModelVisibilityOptics = formModelVisibilityOptics
+          )
         )
 
       case IsDate(_) =>
@@ -153,7 +159,11 @@ object PDFPageFieldBuilder {
         )
 
       case IsHmrcTaxPeriod(h) =>
-        val periodId = TaxPeriodHelper.formatTaxPeriodOutput(validationResult(formComponent), envelopeWithMapping)
+        val periodId = TaxPeriodHelper.formatTaxPeriodOutput(
+          validationResult(formComponent),
+          envelopeWithMapping,
+          formModelVisibilityOptics
+        )
         val maybeObligation = cache.form.thirdPartyData.obligations.findByPeriodKey(h, periodId)
 
         SimpleField(
@@ -167,7 +177,9 @@ object PDFPageFieldBuilder {
       case IsChoice(choice) =>
         SimpleField(
           getFormComponentLabel(formComponent),
-          choice.renderToString(formComponent, validationResult(formComponent)).map(HtmlFormat.escape(_))
+          choice
+            .renderToString(formComponent, validationResult(formComponent), formModelVisibilityOptics)
+            .map(HtmlFormat.escape(_))
         )
 
       case IsRevealingChoice(rc) =>
@@ -180,7 +192,9 @@ object PDFPageFieldBuilder {
                 val filteredFields = doFilter(element.revealingFields)
                 val revealingFields = formComponentOrdering
                   .fold(filteredFields)(filteredFields.sorted(_))
-                  .map(f => build(f, cache, sectionNumber, validationResult, envelopeWithMapping))
+                  .map(f =>
+                    build(f, cache, sectionNumber, validationResult, envelopeWithMapping, formModelVisibilityOptics)
+                  )
                 ChoiceElement(element.choice.label.value(), revealingFields)
               }
           }
@@ -192,7 +206,7 @@ object PDFPageFieldBuilder {
       case IsGroup(group) =>
         val groupFields = group.fields
         val fields = formComponentOrdering.fold(groupFields)(groupFields.sorted(_)).map { f =>
-          build(f, cache, sectionNumber, validationResult, envelopeWithMapping)
+          build(f, cache, sectionNumber, validationResult, envelopeWithMapping, formModelVisibilityOptics)
         }
 
         GroupField(getFormComponentLabel(formComponent), fields)

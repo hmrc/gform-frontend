@@ -212,13 +212,13 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     .map(_.modelComponentId)
     .toSet
 
-  def build()(implicit l: LangADT): F[List[Field]] =
+  def build()(implicit l: LangADT, m: Messages): F[List[Field]] =
     destinations match {
       case DestinationList(_, _, _)  => buildSections
       case DestinationPrint(_, _, _) => List.empty[Field].pure[F]
     }
 
-  private def buildSections(implicit l: LangADT): F[List[Field]] = {
+  private def buildSections(implicit l: LangADT, m: Messages): F[List[Field]] = {
 
     /*
      * What follows is a mess. Implementation was written before Bracket model
@@ -254,7 +254,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
 
   }
 
-  private def buildAddToList(implicit l: LangADT): (F[List[Field]], List[MultiValueId]) = {
+  private def buildAddToList(implicit l: LangADT, m: Messages): (F[List[Field]], List[MultiValueId]) = {
     val addToLists: List[(AddToListId, List[MultiValueId])] =
       formModelVisibilityOptics.formModel.addToListBrackets
         .flatMap(bracket =>
@@ -343,7 +343,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
 
   }
 
-  private def buildRevealingChoice(implicit l: LangADT): (F[List[Field]], List[MultiValueId]) = {
+  private def buildRevealingChoice(implicit l: LangADT, m: Messages): (F[List[Field]], List[MultiValueId]) = {
 
     val revealingChoices: List[(FormComponent, RevealingChoice)] =
       (formModelVisibilityOptics.formModel.nonRepeatingPageBrackets ++ formModelVisibilityOptics.formModel.repeatingPageBrackets)
@@ -395,7 +395,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
   private def processRevealingChoices[A](
     revealingChoices: List[(FormComponent, RevealingChoice)],
     indexedIsPure: Boolean
-  )(f: (FormComponent, ObjectStructure) => A)(implicit l: LangADT): F[List[A]] =
+  )(f: (FormComponent, ObjectStructure) => A)(implicit l: LangADT, m: Messages): F[List[A]] =
     revealingChoices.traverse { case (revealedChoiceFc, revealedChoice) =>
       val selection: Seq[String] =
         formModelVisibilityOptics.data
@@ -442,7 +442,8 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
   private def processPurePure(
     xs: List[(ModelComponentId.Pure, IndexedComponentId.Pure)]
   )(implicit
-    l: LangADT
+    l: LangADT,
+    m: Messages
   ): F[List[Field]] =
     xs.traverse { case (modelComponentId, pure) =>
       if (isMultiSelectionIds(modelComponentId)) {
@@ -481,6 +482,21 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                           )
                         ) if value === answer =>
                       selectedIndex -> pointer
+
+                    case (
+                          selectedIndex,
+                          OptionData.ValueBased(
+                            _,
+                            _,
+                            _,
+                            Some(Dynamic.ATLBased(pointer)),
+                            OptionDataValue.ExprBased(prefix, expr)
+                          )
+                        )
+                        if prefix + formModelVisibilityOptics
+                          .evalAndApplyTypeInfoFirst(expr)
+                          .stringRepresentation === answer =>
+                      selectedIndex -> pointer
                   }
 
                   val maybeDataRetrieveCtx: Option[(Int, DataRetrieveCtx)] = valueBasedNel.collectFirst {
@@ -494,6 +510,20 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                             OptionDataValue.StringBased(value)
                           )
                         ) if value === answer =>
+                      selectedIndex -> indexOfDataRetrieveCtx.ctx
+                    case (
+                          selectedIndex,
+                          OptionData.ValueBased(
+                            _,
+                            _,
+                            _,
+                            Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
+                            OptionDataValue.ExprBased(prefix, expr)
+                          )
+                        )
+                        if prefix + formModelVisibilityOptics
+                          .evalAndApplyTypeInfoFirst(expr)
+                          .stringRepresentation === answer =>
                       selectedIndex -> indexOfDataRetrieveCtx.ctx
                   }
 
@@ -704,7 +734,8 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
       }
 
   private def buildMultiField(multiValueIds: List[MultiValueId], indexedIsPure: Boolean)(implicit
-    l: LangADT
+    l: LangADT,
+    m: Messages
   ): F[List[Field]] = {
 
     val multiValuePures: List[MultiValueId.Pure] = multiValueIds.collect { case x: MultiValueId.Pure =>

@@ -29,8 +29,7 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin }
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString, SourceOrigin, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
@@ -332,12 +331,14 @@ sealed trait OptionData extends Product with Serializable {
     case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)) => value
     case _                                                                         => index.toString
   }
-  def getValue(index: Int, formModelOptics: FormModelOptics[DataOrigin.Mongo])(implicit m: Messages): String =
+  def getValue[D <: DataOrigin](index: Int, formModelVisibilityOptics: FormModelVisibilityOptics[D])(implicit
+    m: Messages
+  ): String =
     this match {
       case o: OptionData.IndexBased                                                  => index.toString
       case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)) => value
       case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, expr)) =>
-        prefix + formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
+        prefix + formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
     }
 }
 
@@ -394,13 +395,20 @@ case class Choice(
   noneChoice: Option[NoneChoice],
   noneChoiceError: Option[LocalisedString]
 ) extends ComponentType {
-  def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult)(implicit
-    evaluator: SmartStringEvaluator
+  def renderToString[D <: DataOrigin](
+    formComponent: FormComponent,
+    formFieldValidationResult: FormFieldValidationResult,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  )(implicit
+    evaluator: SmartStringEvaluator,
+    m: Messages
   ): List[String] =
     options.toList.zipWithIndex
       .map { case (option, index) =>
         formFieldValidationResult
-          .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, option.value(index)))
+          .getOptionalCurrentValue(
+            HtmlFieldId.indexed(formComponent.id, option.getValue(index, formModelVisibilityOptics))
+          )
           .map(_ => option.label.value())
       }
       .collect { case Some(selection) => selection }

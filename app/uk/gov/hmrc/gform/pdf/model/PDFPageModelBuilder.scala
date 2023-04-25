@@ -21,7 +21,7 @@ import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
-import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -57,7 +57,8 @@ object PDFPageModelBuilder {
           nonRepeatingPage.singleton,
           nonRepeatingPage.sectionNumber,
           nonRepeatingPage.source,
-          validationResult
+          validationResult,
+          formModelOptics.formModelVisibilityOptics
         ).toList: List[SummaryData]
       } { repeatingPage =>
         repeatingPage.singletons.toList.flatMap { case SingletonWithNumber(singleton, sectionNumber) =>
@@ -67,7 +68,8 @@ object PDFPageModelBuilder {
             singleton,
             sectionNumber,
             repeatingPage.source,
-            validationResult
+            validationResult,
+            formModelOptics.formModelVisibilityOptics
           )
         }
       } { addToList =>
@@ -89,7 +91,8 @@ object PDFPageModelBuilder {
                   singleton,
                   sectionNumber,
                   addToList.source,
-                  validationResult
+                  validationResult,
+                  formModelOptics.formModelVisibilityOptics
                 )
               }
             val addToListIterationTitle = iteration.repeater.repeater.expandedShortName.value()
@@ -121,13 +124,14 @@ object PDFPageModelBuilder {
     }
   }
 
-  private def buildFromSingleton[A <: PageMode, T <: PDFType](
+  private def buildFromSingleton[A <: PageMode, T <: PDFType, D <: DataOrigin](
     cache: AuthCacheWithForm,
     envelopeWithMapping: EnvelopeWithMapping,
     singleton: Singleton[A],
     sectionNumber: SectionNumber,
     source: Section,
-    validationResult: ValidationResult
+    validationResult: ValidationResult,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -140,7 +144,10 @@ object PDFPageModelBuilder {
     val filteredFields = doFilter(singleton.page.fields)
     val pageFields: List[PageField] = formComponentOrdering
       .fold(filteredFields)(filteredFields.sorted(_))
-      .map(fc => PDFPageFieldBuilder.build(fc, cache, sectionNumber, validationResult, envelopeWithMapping))
+      .map(fc =>
+        PDFPageFieldBuilder
+          .build(fc, cache, sectionNumber, validationResult, envelopeWithMapping, formModelVisibilityOptics)
+      )
     if (pageFields.isEmpty) {
       None
     } else {
