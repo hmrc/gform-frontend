@@ -205,8 +205,8 @@ object FormDataHelpers {
     formModel: FormModel[DataExpanded]
   ): String =
     formModel.fcLookup.get(formComponentId) match {
-      case Some(formComponent) if formComponent.isNumeric                            => value.replace("£", "")
-      case Some(formComponent) if formComponent.isSortCode && isValidSortCode(value) => value.replaceAll("[^0-9]", "")
+      case Some(formComponent) if formComponent.isNumeric                              => value.replace("£", "")
+      case Some(formComponent) if formComponent.isUkSortCode && isValidSortCode(value) => value.replaceAll("[^0-9]", "")
       case Some(formComponent)
           if formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber =>
         val poundOrComma = "[£,]".r
