@@ -49,6 +49,7 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResp
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
 import scala.concurrent.{ ExecutionContext, Future }
+import play.api.http.Status
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
@@ -511,11 +512,13 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       else Option.empty[NotificationBanner]
     }
 
-  def shutterMessage(id: FormTemplateId)(implicit ec: ExecutionContext): Future[Shutter] =
-    ws.doGet(show"$baseUrl/shutter/$id").flatMap { response =>
-      if (response.status == 200) Future.successful(response.json.as[Shutter])
-      else
-        Future.failed[Shutter](new RuntimeException(s"Failed to retrieve shutter message for form template $id"))
+  def shutterMessage(id: FormTemplateId)(implicit ec: ExecutionContext): Future[Option[Shutter]] =
+    ws.doGet(show"$baseUrl/shutter/$id").flatMap {
+      case response if response.status === Status.OK         => Future.successful(Some(response.json.as[Shutter]))
+      case response if response.status === Status.NO_CONTENT => Future.successful(Option.empty[Shutter])
+      case _ =>
+        Future
+          .failed[Option[Shutter]](new RuntimeException(s"Failed to retrieve shutter message for form template $id"))
     }
 
 }

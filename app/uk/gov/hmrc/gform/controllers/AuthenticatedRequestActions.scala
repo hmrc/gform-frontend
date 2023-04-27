@@ -19,9 +19,9 @@ package controllers
 
 import cats.Id
 import cats.data.NonEmptyList
+import cats.data.OptionT
 import cats.instances.future._
 import cats.syntax.applicative._
-import cats.syntax.applicativeError._
 import cats.syntax.eq._
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
@@ -185,28 +185,28 @@ class AuthenticatedRequestActions(
 
   private def getCaseWorkerIdentity(request: Request[AnyContent]): Option[Cookie] =
     request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`)
-
   private def withFormShutter(formTemplateId: FormTemplateId, action: => Action[AnyContent]): Action[AnyContent] =
     actionBuilder.async { implicit request =>
       import i18nSupport._
       implicit val lang: LangADT = getCurrentLanguage(request)
       val formTemplateWithRedirect = request.attrs(FormTemplateKey)
       (for {
-        shutter <- gformConnector.shutterMessage(formTemplateId)
-        result <- if (request.method == "GET") {
-                    Future.successful(
-                      Ok(
-                        html.form.shutterForm(
-                          formTemplateWithRedirect.formTemplate,
-                          frontendAppConfig,
-                          shutter.toHtmlMessage
-                        )
-                      )
-                    )
-                  } else {
-                    errResponder.forbidden("Access denied - Shutter", Some(formTemplateWithRedirect.formTemplate))
-                  }
-      } yield result) orElse action(request)
+        shutter <- OptionT(gformConnector.shutterMessage(formTemplateId))
+      } yield
+        if (request.method === "GET") {
+          Ok(
+            html.form.shutterForm(
+              formTemplateWithRedirect.formTemplate,
+              frontendAppConfig,
+              shutter.toHtmlMessage
+            )
+          )
+        } else {
+          Forbidden("Access denied - Shutter")
+        }).value.flatMap {
+        case Some(result) => Future.successful(result)
+        case None         => action(request)
+      }
     }
 
   private def authWithoutRetrievingFormNoShutter(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
