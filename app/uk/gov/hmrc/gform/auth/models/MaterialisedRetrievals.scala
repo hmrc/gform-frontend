@@ -103,8 +103,12 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
   def getPayeRef = this match {
     case AuthenticatedRetrievals(_, enrolments, _, _, _, _, _) =>
       val taxOfficeNumber = getValueByNameAndId("IR-PAYE", "TaxOfficeNumber", enrolments)
-      val taxOfficeReference: String = getValueByNameAndId("IR-PAYE", "TaxOfficeReference", enrolments)
-      s"$taxOfficeNumber/$taxOfficeReference"
+      val taxOfficeReference = getValueByNameAndId("IR-PAYE", "TaxOfficeReference", enrolments)
+      if (taxOfficeNumber.isEmpty && taxOfficeReference.isEmpty) {
+        ""
+      } else {
+        s"${taxOfficeNumber.getOrElse("")}/${taxOfficeReference.getOrElse("")}"
+      }
     case _ => ""
   }
 
@@ -131,7 +135,7 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
     enrolments.enrolments.flatMap(_.identifiers).find(_.key.equalsIgnoreCase(id))
 
   private def getValueByNameAndId(name: String, id: String, enrolments: Enrolments) =
-    enrolments.enrolments.filter(_.key === name).flatMap(_.getIdentifier(id)).map(_.value).headOption.getOrElse("")
+    enrolments.enrolments.filter(_.key === name).flatMap(_.getIdentifier(id)).map(_.value).headOption
 
   private def valueByNameAndId(name: String, id: String, enrolments: Enrolments) =
     enrolments.getEnrolment(name).flatMap(_.getIdentifier(id))
