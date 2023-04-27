@@ -32,6 +32,7 @@ import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
 import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
+import uk.gov.hmrc.gform.shutter.Shutter
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
@@ -508,6 +509,13 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.doGet(show"$baseUrl/notification-banner/$id").map { response =>
       if (response.status == 200) Some(response.json.as[NotificationBanner])
       else Option.empty[NotificationBanner]
+    }
+
+  def shutterMessage(id: FormTemplateId)(implicit ec: ExecutionContext): Future[Shutter] =
+    ws.doGet(show"$baseUrl/shutter/$id").flatMap { response =>
+      if (response.status == 200) Future.successful(response.json.as[Shutter])
+      else
+        Future.failed[Shutter](new RuntimeException(s"Failed to retrieve shutter message for form template $id"))
     }
 
 }
