@@ -37,6 +37,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     And("Gform get form returns 404 not found")
     gformFormNotFoundStub(formTemplateEmailAuth)
 
+    And("Gform shutter returns 204 NoContent")
+    gformShutterStub(formTemplateId)
+
     When("I request for a new form")
     val newFormResponse = get("/submissions/new-form/form-template-with-email-auth").send()
 
@@ -67,6 +70,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
 
     And("Gform get form returns 404 not found")
     gformFormNotFoundStub(formTemplateEmailAuth)
+
+    And("Gform shutter returns 204 NoContent")
+    gformShutterStub(formTemplateId)
 
     When("I request for a new form")
     val newFormResponse = get("/submissions/new-form/form-template-with-email-auth").send()
@@ -101,6 +107,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
 
     And("Gform email notification service returns 204 NoContent")
     gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None), formTemplateId)
+
+    And("Gform shutter returns 204 NoContent")
+    gformShutterStub(formTemplateId)
 
     When("I request for a new form and POST the 'enter email' form with an email id")
     val emailForm = get("/submissions/new-form/form-template-with-email-auth").send()
@@ -144,6 +153,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
 
     And("Gform email notification service returns 204 NoContent")
     gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None), formTemplateId)
+
+    And("Gform shutter returns 204 NoContent")
+    gformShutterStub(formTemplateId)
 
     When("I request for a new form and POST the 'enter email' form with an email id")
     val emailForm = get("/submissions/new-form/form-template-with-email-auth").send()
@@ -197,6 +209,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     And("FileUpload get envelopes returns 200 OK")
     getFileUploadEnvelopeStub()
 
+    And("Gform shutter returns 204 NoContent")
+    gformShutterStub(formTemplateId)
+
     When("I request for a new form, enter email and submit the confirmation code")
     val emailForm = get("/submissions/new-form/form-template-with-email-auth").send()
     val emailFormBody = Jsoup.parse(emailForm.body)
@@ -233,6 +248,9 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
 
     And("FileUpload get envelopes returns 200 OK")
     getFileUploadEnvelopeStub()
+
+    And("Gform shutter returns 204 NoContent")
+    gformShutterStub(formTemplateId)
 
     When("I request for a new form, enter email and submit the confirmation code")
     val emailForm = get("/submissions/new-form/form-template-with-email-auth").send()
