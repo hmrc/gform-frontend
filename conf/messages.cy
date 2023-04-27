@@ -532,3 +532,16 @@ taskList.InProgress=AR WAITH
 taskList.Completed=WEDI’I GWBLHAU
 taskList.CannotStartYet=METHU DECHRAU ETO
 taskList.NotRequired=NID YW’N OFYNNOL
+
+#Default help text
+telephoneNumber.default.helpText=Ar gyfer rhifau rhyngwladol, cofiwch gynnwys cod y wlad.
+ukSortCode.default.helpText=Mae’n rhaid iddo fod yn 6 digid o hyd.
+ctUtr.default.helpText=Rhif 10 digid yw hwn, er enghraifft 1234567890. Bydd hwn ar Ffurflenni Treth a llythyrau eraill am Dreth Gorfforaeth. Efallai y cyfeirir ato gan ddefnyddio’r geiriau ’cyfeirnod’, ’UTR’ neu ’defnydd swyddogol’.
+saUtr.default.helpText=Mae’n 10 rhif, er enghraifft, 1234567890. Bydd i’w weld ar Ffurflenni Treth a llythyrau eraill am Hunanasesiad. Efallai y bydd yn cael ei alw’n ’cyfeirnod’, ’UTR’ neu ’defnydd swyddogol’. Gadewch yn wag os nad yw’n hysbys
+nino.default.helpText=Mae hwn ar eich cerdyn Yswiriant Gwladol, llythyr ynghylch budd-daliadau, slip cyflog neu P60. Er enghraifft, ’QQ 12 34 56 C’.
+payeReference.default.helpText=Rhif swyddfa dreth 3 digid yw hwn, slaes ymlaen, a chyfeirnod cyflogwr swyddfa dreth, fel 123/AB456. Efallai y bydd yn cael ei alw’n ’gyfeirnod PAYE Cyflogwr’ neu ’cyfeirnod TWE’.
+childBenefitNumber.default.helpText=Mae’r rhif yn dechrau gyda ’CHB’, wedi’i ddilyn gan 8 digid a 2 lythyren, megis CHB 12345678 AB.
+EORI.default.helpText=’GB’ neu ’XI’ yw hwn wedi’i ddilyn gan 12 rhif. Er enghraifft, GB123456789012.
+UkEORI.default.helpText=GB yw hwn wedi’i ddilyn gan 12 rhif. Er enghraifft, GB123456789012.
+ukVrn.default.helpText=9 rhif yw hwn, weithiau &#226; ’GB’ ar y dechrau. Er enghraifft 123456789 neu GB123456789. Mae ar y dystysgrif cofrestru TAW.
+companyRegistrationNumber.default.helpText=Mae hwn yn 8 o gymeriadau. Er enghraifft, 01234567 neu AC012345.

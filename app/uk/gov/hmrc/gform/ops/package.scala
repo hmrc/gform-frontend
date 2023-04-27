@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CtUTR, EORI, FormComponent, NINO, Number, PayeReference, PositiveNumber, ReferenceNumber, SaUTR, Sterling, Text, TextArea, UTR, UkBankAccountNumber, UkEORI, UkSortCodeFormat, UkVrn, WholeSterling }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ChildBenefitNumber, CompanyRegistrationNumber, CtUTR, EORI, FormComponent, NINO, Number, PayeReference, PositiveNumber, ReferenceNumber, SaUTR, Sterling, Text, TextArea, UTR, UkBankAccountNumber, UkEORI, UkSortCodeFormat, UkVrn, WholeSterling }
 
 package object ops {
 
@@ -51,7 +51,7 @@ package object ops {
       case _                                      => false
     }
 
-    def isSortCode = formComponent.`type` match {
+    def isUkSortCode = formComponent.`type` match {
       case Text(UkSortCodeFormat, _, _, _, _, _) => true
       case _                                     => false
     }
@@ -81,6 +81,26 @@ package object ops {
     def isNino = formComponent.`type` match {
       case Text(NINO, _, _, _, _, _) => true
       case _                         => false
+    }
+
+    def isCtUtr = formComponent.`type` match {
+      case Text(CtUTR, _, _, _, _, _) => true
+      case _                          => false
+    }
+
+    def isSaUtr = formComponent.`type` match {
+      case Text(SaUTR, _, _, _, _, _) => true
+      case _                          => false
+    }
+
+    def isChildBenefitNumber = formComponent.`type` match {
+      case Text(ChildBenefitNumber, _, _, _, _, _) => true
+      case _                                       => false
+    }
+
+    def isCompanyRegistrationNumber = formComponent.`type` match {
+      case Text(CompanyRegistrationNumber, _, _, _, _, _) => true
+      case _                                              => false
     }
 
     def isUTR = formComponent.`type` match {

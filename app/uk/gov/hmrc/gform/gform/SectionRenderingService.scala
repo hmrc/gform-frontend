@@ -299,19 +299,13 @@ class SectionRenderingService(
       )
     }
 
-    val hint: Option[Hint] = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
-
     val radios = Radios(
       idPrefix = Some(formComponent.id.value),
       fieldset = fieldset,
       errorMessage = errorMessage,
       name = formComponent.id.value,
       items = items.toList,
-      hint = hint,
+      hint = hintText(formComponent),
       classes = "govuk-radios--inline"
     )
 
@@ -1187,7 +1181,8 @@ class SectionRenderingService(
     upscanData: Map[FormComponentId, UpscanData]
   )(implicit
     request: RequestHeader,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    m: Messages
   ): Html =
     fileUploadProvider match {
       case FileUploadProvider.Upscan(_) =>
@@ -1269,12 +1264,6 @@ class SectionRenderingService(
       )
     )
 
-    val hint: Option[Hint] = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
-
     def dateRangeLabel(optionParams: OptionParams): String =
       messages("generic.From") + " " + TaxPeriodHelper.formatDate(optionParams.fromDate) + " " + messages(
         "generic.to"
@@ -1297,7 +1286,7 @@ class SectionRenderingService(
       val radios = Radios(
         idPrefix = Some(formComponent.id.value),
         fieldset = fieldset,
-        hint = hint,
+        hint = hintText(formComponent),
         errorMessage = errorMessage,
         name = formComponent.id.value,
         items = items.toList
@@ -1564,12 +1553,6 @@ class SectionRenderingService(
 
     val formFieldValidationResult = validationResult(formComponent)
 
-    val hint = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
-
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage = errors.map(error =>
@@ -1594,7 +1577,7 @@ class SectionRenderingService(
       id = formComponent.id.value,
       name = fileUploadName,
       label = label,
-      hint = hint,
+      hint = hintText(formComponent),
       errorMessage = errorMessage,
       attributes = fileUploadAttributes
     )
@@ -1716,12 +1699,6 @@ class SectionRenderingService(
 
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 
-    val hint = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
-
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage = errors.map(error =>
@@ -1777,10 +1754,10 @@ class SectionRenderingService(
         val radios = Radios(
           idPrefix = Some(formComponent.id.value),
           fieldset = fieldset,
-          hint = hint,
+          hint = hintText(formComponent),
           errorMessage = errorMessage,
           name = formComponent.id.value,
-          items = items.toList,
+          items = items,
           classes = if (orientation === Horizontal) "govuk-radios--inline" else ""
         )
 
@@ -1819,7 +1796,7 @@ class SectionRenderingService(
         val checkboxes: Checkboxes = Checkboxes(
           idPrefix = Some(formComponent.id.value),
           fieldset = fieldset,
-          hint = hint,
+          hint = hintText(formComponent),
           errorMessage = errorMessage,
           name = formComponent.id.value,
           items = items,
@@ -1839,6 +1816,11 @@ class SectionRenderingService(
       )
     )
 
+  private def hintText(fc: FormComponent)(implicit messages: Messages, sse: SmartStringEvaluator) = {
+    val maybeHelpText: Option[String] =
+      fc.helpText.fold(fc.message.map(m => Messages(s"$m.default.helpText")))(h => Some(h.value()))
+    maybeHelpText.map(h => Hint(content = content.HtmlContent(markDownParser(h))))
+  }
   private def htmlForRevealingChoice(
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
@@ -1899,12 +1881,6 @@ class SectionRenderingService(
         (o.choice, toHint(o.hint), isSelected, maybeRevealingFieldsHtml)
       }
 
-    val hint = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
-
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage = errors.map(error =>
@@ -1946,7 +1922,7 @@ class SectionRenderingService(
       val checkboxes = Checkboxes(
         idPrefix = Some(formComponent.id.value),
         fieldset = fieldset,
-        hint = hint,
+        hint = hintText(formComponent),
         errorMessage = errorMessage,
         name = formComponent.id.value,
         items = items
@@ -1971,7 +1947,7 @@ class SectionRenderingService(
       val radios = Radios(
         idPrefix = Some(formComponent.id.value),
         fieldset = fieldset,
-        hint = hint,
+        hint = hintText(formComponent),
         errorMessage = errorMessage,
         name = formComponent.id.value,
         items = items.toList
@@ -2014,12 +1990,6 @@ class SectionRenderingService(
       content = content.Text(labelString)
     )
 
-    val hint: Option[Hint] = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
-
     lookupRegistry.get(register) match {
       case None => Html("") // Ups
       case Some(AjaxLookup(options, _, showAll)) =>
@@ -2033,7 +2003,7 @@ class SectionRenderingService(
           ei.maybeAccessCode,
           prepopValue,
           formFieldValidationResult,
-          hint,
+          hintText(formComponent),
           getSelectItemsForLookup(formComponent, register, ei, options, prepopValue),
           errorMessage,
           text.displayWidth
@@ -2073,7 +2043,7 @@ class SectionRenderingService(
         val radios = Radios(
           idPrefix = Some(formComponent.id.value),
           fieldset = fieldset,
-          hint = hint,
+          hint = hintText(formComponent),
           errorMessage = errorMessage,
           name = formComponent.id.value,
           items = items
@@ -2105,12 +2075,6 @@ class SectionRenderingService(
         content = content.Text(error)
       )
     )
-
-    val hint: Option[Hint] = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
 
     val characterMaxLength = text.constraint match {
       case ShortText(_, max)            => Some(max)
@@ -2154,7 +2118,7 @@ class SectionRenderingService(
           name = formComponent.id.value,
           rows = text.rows,
           label = label,
-          hint = hint,
+          hint = hintText(formComponent),
           value = maybeCurrentValue,
           maxLength = Some(maxLength),
           errorMessage = errorMessage,
@@ -2171,7 +2135,7 @@ class SectionRenderingService(
           name = formComponent.id.value,
           rows = text.rows,
           label = label,
-          hint = hint,
+          hint = hintText(formComponent),
           value = maybeCurrentValue,
           errorMessage = errorMessage,
           classes = sizeClasses,
@@ -2206,12 +2170,6 @@ class SectionRenderingService(
       )
     )
 
-    val hint: Option[Hint] = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
-
     val maybeCurrentValue: Option[String] =
       formFieldValidationResult.getCurrentValue
         .orElse(Some(prepopValue))
@@ -2226,7 +2184,15 @@ class SectionRenderingService(
 
     formComponent.presentationHint match {
       case Some(xs) if xs.contains(TotalValue) =>
-        val totalText = new TotalText(formComponent, labelContent, maybeUnit, hint, errorMessage, maybeCurrentValue)
+        val totalText =
+          new TotalText(
+            formComponent,
+            labelContent,
+            maybeUnit,
+            hintText(formComponent),
+            errorMessage,
+            maybeCurrentValue
+          )
 
         html.form.snippets.field_template_text_total(totalText, getLabelClasses(false, formComponent.labelSize))
 
@@ -2255,7 +2221,7 @@ class SectionRenderingService(
             id = formComponent.id.value,
             name = formComponent.id.value,
             label = label,
-            hint = hint,
+            hint = hintText(formComponent),
             value = maybeCurrentValue,
             errorMessage = errorMessage,
             classes = sizeClasses,
@@ -2285,7 +2251,7 @@ class SectionRenderingService(
             inputType = inputType,
             name = formComponent.id.value,
             label = label,
-            hint = hint,
+            hint = hintText(formComponent),
             value = maybeCurrentValue,
             errorMessage = errorMessage,
             classes = sizeClasses,
@@ -2389,12 +2355,6 @@ class SectionRenderingService(
       )
     )
 
-    val hint: Option[Hint] = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
-
     val attributes =
       if (formComponent.editable)
         Map.empty[String, String]
@@ -2436,7 +2396,7 @@ class SectionRenderingService(
     val dateInput = DateInput(
       id = formComponent.id.value,
       items = items.toList,
-      hint = hint,
+      hint = hintText(formComponent),
       errorMessage = errorMessage,
       fieldset = Some(fieldset)
     )
@@ -2463,7 +2423,7 @@ class SectionRenderingService(
     )
 
     val filterHint: Hint = Hint(
-      content = content.Text(messages("postcodeLookup.Filter.hint"))
+      content = content.Text(messages("postcodeLookup.Filter.hintText"))
     )
 
     val attributes =
@@ -2547,12 +2507,6 @@ class SectionRenderingService(
       )
     )
 
-    val hint: Option[Hint] = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
-
     val attributes =
       if (formComponent.editable)
         Map.empty[String, String]
@@ -2595,7 +2549,7 @@ class SectionRenderingService(
     val dateInput = DateInput(
       id = formComponent.id.value,
       items = items.toList,
-      hint = hint,
+      hint = hintText(formComponent),
       errorMessage = errorMessage,
       fieldset = Some(fieldset)
     )
@@ -2625,12 +2579,6 @@ class SectionRenderingService(
         content = content.Text(error)
       )
     )
-
-    val hint: Option[Hint] = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
 
     val attributes =
       if (formComponent.editable)
@@ -2679,7 +2627,7 @@ class SectionRenderingService(
     val dateInput = DateInput(
       id = formComponent.id.value,
       items = items.toList,
-      hint = hint,
+      hint = hintText(formComponent),
       errorMessage = errorMessage,
       fieldset = Some(fieldset)
     )
@@ -2692,7 +2640,7 @@ class SectionRenderingService(
     formComponent: FormComponent,
     validationResult: ValidationResult,
     ei: ExtraInfo
-  )(implicit sse: SmartStringEvaluator) = {
+  )(implicit sse: SmartStringEvaluator, m: Messages) = {
     val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
     val formFieldValidationResult = validationResult(formComponent)
 
@@ -2705,12 +2653,6 @@ class SectionRenderingService(
         content = content.Text(error)
       )
     )
-
-    val hint: Option[Hint] = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
 
     val isPageHeading = ei.formLevelHeading
     val label = Label(
@@ -2746,7 +2688,7 @@ class SectionRenderingService(
       name = formComponent.id.value,
       items = emptySelectItem +: selectItems,
       label = label,
-      hint = hint,
+      hint = hintText(formComponent),
       errorMessage = errorMessage,
       attributes = attributes
     )
@@ -2761,15 +2703,9 @@ class SectionRenderingService(
     snippets: List[Html]
   )(implicit
     request: RequestHeader,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    m: Messages
   ): Html = {
-
-    val hint = formComponent.helpText.map { ls =>
-      Hint(
-        content = content.Text(ls.value())
-      )
-    }
-
     val errors: Option[String] = request.flash.get(GformFlashKeys.FileUploadError)
 
     val errorMessage = errors.map(error =>
@@ -2791,7 +2727,7 @@ class SectionRenderingService(
       id = formComponent.id.value,
       name = fileUploadName,
       label = label,
-      hint = hint,
+      hint = hintText(formComponent),
       errorMessage = errorMessage
     )
 

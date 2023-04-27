@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.ops.FormComponentOps
 
 case class FormComponent(
   id: FormComponentId,
@@ -50,6 +51,21 @@ case class FormComponent(
   val baseComponentId: BaseComponentId = id.baseComponentId
 
   def atomicFormComponentId(atom: Atom): ModelComponentId.Atomic = id.toAtomicFormComponentId(atom)
+
+  val message = this match {
+    case IsTelephone()                        => Some("telephoneNumber")
+    case fc if fc.isUkSortCode                => Some("ukSortCode")
+    case fc if fc.isCtUtr                     => Some("ctUtr")
+    case fc if fc.isSaUtr                     => Some("saUtr")
+    case fc if fc.isNino                      => Some("nino")
+    case fc if fc.isPayeReference             => Some("payeReference")
+    case fc if fc.isChildBenefitNumber        => Some("childBenefitNumber")
+    case fc if fc.isEORI                      => Some("EORI")
+    case fc if fc.isUkEORI                    => Some("UkEORI")
+    case fc if fc.isUkVrn                     => Some("ukVrn")
+    case fc if fc.isCompanyRegistrationNumber => Some("companyRegistrationNumber")
+    case _                                    => None
+  }
 
   def childrenFormComponents: List[FormComponent] = `type` match {
     case t: RevealingChoice => t.options.toList.flatMap(_.revealingFields)
