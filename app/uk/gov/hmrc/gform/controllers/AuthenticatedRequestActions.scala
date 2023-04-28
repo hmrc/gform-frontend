@@ -202,7 +202,13 @@ class AuthenticatedRequestActions(
             )
           )
         } else {
-          Forbidden("Access denied - Shutter")
+          Forbidden(
+            html.form.shutterForm(
+              formTemplateWithRedirect.formTemplate,
+              frontendAppConfig,
+              shutter.toHtmlMessage
+            )
+          )
         }).value.flatMap {
         case Some(result) => Future.successful(result)
         case None         => action(request)
