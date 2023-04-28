@@ -192,24 +192,13 @@ class AuthenticatedRequestActions(
       val formTemplateWithRedirect = request.attrs(FormTemplateKey)
       (for {
         shutter <- OptionT(gformConnector.shutterMessage(formTemplateId))
-      } yield
-        if (request.method === "GET") {
-          Ok(
-            html.form.shutterForm(
-              formTemplateWithRedirect.formTemplate,
-              frontendAppConfig,
-              shutter.toHtmlMessage
-            )
-          )
-        } else {
-          Forbidden(
-            html.form.shutterForm(
-              formTemplateWithRedirect.formTemplate,
-              frontendAppConfig,
-              shutter.toHtmlMessage
-            )
-          )
-        }).value.flatMap {
+      } yield Forbidden(
+        html.form.shutterForm(
+          formTemplateWithRedirect.formTemplate,
+          frontendAppConfig,
+          shutter.toHtmlMessage
+        )
+      )).value.flatMap {
         case Some(result) => Future.successful(result)
         case None         => action(request)
       }
