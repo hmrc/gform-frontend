@@ -21,14 +21,12 @@ import play.api.libs.ws.ahc.StandaloneAhcWSClient
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.it.stubs.{ FileUploadStubs, GFormStubs }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ReferrerConfig, ReferrerUrlPattern }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
 
   "new form with referer config" should "Deny access if 'Referer' header is missing" in {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
-    val formTemplateId = FormTemplateId("form-template-anonymous")
     Given("I have a form template with referer config")
     gformFormTemplateStub(
       formTemplateAuthAnonymous.copy(referrerConfig =
@@ -40,9 +38,6 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
         )
       )
     )
-
-    And("Gform shutter returns 204 NoContent")
-    gformShutterStub(formTemplateId)
 
     When("I request for a new form without 'Referer' header")
     val newFormResponse = get("/submissions/new-form/form-template-anonymous").send()
@@ -55,7 +50,6 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
   it should "Deny access if 'Referer' header is wrong" in {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
-    val formTemplateId = FormTemplateId("form-template-anonymous")
     Given("I have a form template with referer config")
     gformFormTemplateStub(
       formTemplateAuthAnonymous.copy(referrerConfig =
@@ -68,9 +62,6 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
       )
     )
 
-    And("Gform shutter returns 204 NoContent")
-    gformShutterStub(formTemplateId)
-
     When("I request for a new form with wrong 'Referer' header")
     val newFormResponse =
       get("/submissions/new-form/form-template-anonymous", Seq("Referer" -> "http://unknown-host.com")).send()
@@ -82,7 +73,6 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
 
   it should "Allow access if 'Referer' header matches exactly" in {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
-    val formTemplateId = FormTemplateId("form-template-anonymous")
 
     Given("I have a form template with referer config, form and envelope")
     gformFormTemplateStub(
@@ -95,10 +85,6 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
         )
       )
     )
-
-    And("Gform shutter returns 204 NoContent")
-    gformShutterStub(formTemplateId)
-
     gformLatestFormTemplateStub(formTemplateAuthAnonymous)
     gformFormStub(formTemplateAuthAnonymous)
     getFileUploadEnvelopeStub()
@@ -115,7 +101,6 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
 
   it should "allow access if 'Referer' header matches via pattern match" in {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
-    val formTemplateId = FormTemplateId("form-template-anonymous")
 
     Given("I have a form template with referer config, form and envelope")
     gformFormTemplateStub(
@@ -131,9 +116,6 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
     gformLatestFormTemplateStub(formTemplateAuthAnonymous)
     gformFormStub(formTemplateAuthAnonymous)
     getFileUploadEnvelopeStub()
-
-    And("Gform shutter returns 204 NoContent")
-    gformShutterStub(formTemplateId)
 
     When("I request for a new form with correct 'Referer' header")
     val newFormResponse =

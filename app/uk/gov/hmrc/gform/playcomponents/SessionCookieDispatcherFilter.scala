@@ -25,8 +25,10 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplateWithRedirects }
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.{ SessionCookieCrypto, SessionCookieCryptoFilter }
+import uk.gov.hmrc.gform.views.html
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 class SessionCookieDispatcherFilter(
   sessionCookieCrypto: SessionCookieCrypto,
@@ -34,7 +36,8 @@ class SessionCookieDispatcherFilter(
   anonymousCookieCryptoFilter: SessionCookieCryptoFilter,
   emailCookieCryptoFilter: SessionCookieCryptoFilter,
   requestHeaderService: RequestHeaderService,
-  configModule: ConfigModule
+  configModule: ConfigModule,
+  playBuiltInsModule: PlayBuiltInsModule
 )(implicit ec: ExecutionContext, override val mat: Materializer)
     extends Filter {
 
@@ -59,6 +62,21 @@ class SessionCookieDispatcherFilter(
         .find(_.name == authConfigCookieName)
 
     maybeFormTemplateWithRedirects.flatMap {
+      case Some(FormTemplateWithRedirects(formTemplate, _, _, Some(shutter))) =>
+        val langs = playBuiltInsModule.langs
+        implicit val messagesApi = playBuiltInsModule.messagesApi
+        implicit val request = Request(rh, AnyContentAsEmpty)
+        implicit val currentLanguge = LangADT.fromRequest(request, langs)(messagesApi)
+        implicit val messages = messagesApi.preferred(rh.acceptLanguages)
+        Future.successful(
+          Results.Forbidden(
+            html.form.shutterForm(
+              formTemplate,
+              configModule.frontendAppConfig,
+              shutter.toHtmlMessage
+            )
+          )
+        )
       case Some(formTemplateWithRedirects) =>
         val formTemplate =
           formTemplateWithRedirects.formTemplate

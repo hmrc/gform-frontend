@@ -18,13 +18,15 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
 import play.api.libs.json.OFormat
+import uk.gov.hmrc.gform.shutter.Shutter
 
 final case class FormTemplateWithRedirects(
   formTemplate: FormTemplate,
   specimenSource: Option[
     FormTemplate
   ], // If formTemplate is speciment, this holds template from which specimen has been generated
-  redirect: Option[FormTemplateId] // FormTemplateId which has formTemplate._id in its legacyIds
+  redirect: Option[FormTemplateId], // FormTemplateId which has formTemplate._id in its legacyIds
+  shutter: Option[Shutter] = None
 )
 
 object FormTemplateWithRedirects {

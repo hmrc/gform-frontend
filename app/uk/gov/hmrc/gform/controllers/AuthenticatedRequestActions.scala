@@ -19,7 +19,6 @@ package controllers
 
 import cats.Id
 import cats.data.NonEmptyList
-import cats.data.OptionT
 import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
@@ -52,7 +51,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, _ }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-import uk.gov.hmrc.gform.views.html
 
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
@@ -185,41 +183,15 @@ class AuthenticatedRequestActions(
 
   private def getCaseWorkerIdentity(request: Request[AnyContent]): Option[Cookie] =
     request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`)
-  private def withFormShutter(formTemplateId: FormTemplateId, action: => Action[AnyContent]): Action[AnyContent] =
-    actionBuilder.async { implicit request =>
-      import i18nSupport._
-      implicit val lang: LangADT = getCurrentLanguage(request)
-      val formTemplateWithRedirect = request.attrs(FormTemplateKey)
-      (for {
-        shutter <- OptionT(gformConnector.shutterMessage(formTemplateId))
-      } yield Forbidden(
-        html.form.shutterForm(
-          formTemplateWithRedirect.formTemplate,
-          frontendAppConfig,
-          shutter.toHtmlMessage
-        )
-      )).value.flatMap {
-        case Some(result) => Future.successful(result)
-        case None         => action(request)
-      }
-    }
 
-  private def authWithoutRetrievingFormNoShutter(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
+  override def authWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
   ): Action[AnyContent] =
     actionBuilder.async { implicit request =>
       authenticateAndProceed(formTemplateId, operation, f)
     }
 
-  override def authWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
-    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
-  ): Action[AnyContent] =
-    withFormShutter(formTemplateId, authWithoutRetrievingFormNoShutter(formTemplateId, operation)(f))
-
-  private def authWithOptReferrerCheckWithoutRetrievingFormNoShutter(
-    formTemplateId: FormTemplateId,
-    operation: OperationWithoutForm
-  )(
+  def authWithOptReferrerCheckWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
   ): Action[AnyContent] =
     actionBuilder.async { implicit request =>
@@ -256,16 +228,6 @@ class AuthenticatedRequestActions(
           authenticateAndProceed(formTemplateId, operation, f)
       }
     }
-
-  override def authWithOptReferrerCheckWithoutRetrievingForm(
-    formTemplateId: FormTemplateId,
-    operation: OperationWithoutForm
-  )(
-    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
-  ): Action[AnyContent] = withFormShutter(
-    formTemplateId,
-    authWithOptReferrerCheckWithoutRetrievingFormNoShutter(formTemplateId, operation)(f)
-  )
 
   private def authenticateAndProceed(
     formTemplateId: FormTemplateId,
@@ -337,7 +299,7 @@ class AuthenticatedRequestActions(
       } yield result
     }
 
-  private def authAndRetrieveFormNoShutter[U <: SectionSelectorType: SectionSelector](
+  def authAndRetrieveForm[U <: SectionSelectorType: SectionSelector](
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     operation: OperationWithForm
@@ -364,19 +326,6 @@ class AuthenticatedRequestActions(
             ).pure[Future]
         }
     }
-
-  override def authAndRetrieveForm[U <: SectionSelectorType: SectionSelector](
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    operation: OperationWithForm
-  )(
-    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
-      DataOrigin.Mongo
-    ] => Future[Result]
-  ): Action[AnyContent] = withFormShutter(
-    formTemplateId,
-    authAndRetrieveFormNoShutter(formTemplateId, maybeAccessCode, operation)(f)
-  )
 
   def async[U <: SectionSelectorType: SectionSelector](
     formTemplateId: FormTemplateId,

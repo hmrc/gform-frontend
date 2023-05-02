@@ -87,11 +87,4 @@ trait GFormStubs extends FormTemplateSample {
         )
         .willReturn(noContent())
     )
-
-  def gformShutterStub(formTemplateId: FormTemplateId) =
-    stubFor(
-      WireMock
-        .get(s"/gform/shutter/${formTemplateId.value}")
-        .willReturn(noContent())
-    )
 }

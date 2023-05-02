@@ -13,9 +13,6 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with FileUploadStubs {
     Given("I have a form template with 'userResearchUrl'")
     gformFormTemplateStub(formTemplateEmailAuth)
 
-    And("Gform shutter returns 204 NoContent")
-    gformShutterStub(formTemplateId)
-
     When("I request for a new form")
     val newFormResponse = get("/submissions/new-form/form-template-with-email-auth").send()
 
@@ -37,9 +34,6 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with FileUploadStubs {
 
     Given("I have a form template without 'userResearchUrl'")
     gformFormTemplateStub(formTemplateEmailAuthWithoutUserResearchUrl)
-
-    And("Gform shutter returns 204 NoContent")
-    gformShutterStub(formTemplateId)
 
     When("I request for a new form")
     val newFormResponse = get("/submissions/new-form/form-template-with-email-auth").send()

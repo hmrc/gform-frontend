@@ -156,7 +156,8 @@ class FrontendFiltersModule(
       anonoymousSessionCookieCryptoFilter,
       emailSessionCookieCryptoFilter,
       requestHeaderService,
-      configModule
+      configModule,
+      playBuiltInsModule
     )
   }
 
