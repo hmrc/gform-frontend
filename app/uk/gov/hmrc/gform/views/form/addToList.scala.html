@@ -32,6 +32,7 @@
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
+@import uk.gov.hmrc.gform.FormTemplateKey
 
 @(
     title: String,
@@ -79,7 +80,8 @@
   backLink = if(shouldDisplayBack) Some(backLink) else None
 ) {
 
-    @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
+    @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
+
 
     @pageLevelError.render
 

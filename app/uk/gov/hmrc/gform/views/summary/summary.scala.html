@@ -33,6 +33,7 @@
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
+@import uk.gov.hmrc.gform.FormTemplateKey
 
 @(
     extraInfoSummary: ExtraInfoSummary
@@ -78,7 +79,7 @@
   isMainContentFullWidth = true
 ) {
 
-    @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
+    @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 
     @twoThirdsMainContent {
         @hmrcPageHeading(PageHeading(
