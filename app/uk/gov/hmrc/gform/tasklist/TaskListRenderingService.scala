@@ -28,7 +28,6 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Coordinates, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, TaskSectionNumber }
@@ -46,8 +45,7 @@ class TaskListRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    notificationBanner: Option[NotificationBanner]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
     request: Request[_],
     hc: HeaderCarrier,
@@ -73,7 +71,6 @@ class TaskListRenderingService(
           statusesLookup.toList.toMap,
           completedSection,
           frontendAppConfig,
-          notificationBanner.map(_.toViewNotificationBanner),
           taskListH2key
         )
     }

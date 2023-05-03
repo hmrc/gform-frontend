@@ -31,7 +31,6 @@ import play.api.libs.json.JsValue
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
-import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
@@ -504,10 +503,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       .map(_ => ())
   }
 
-  def notificationBanner(id: FormTemplateId)(implicit ec: ExecutionContext): Future[Option[NotificationBanner]] =
-    ws.doGet(show"$baseUrl/notification-banner/$id").map { response =>
-      if (response.status == 200) Some(response.json.as[NotificationBanner])
-      else Option.empty[NotificationBanner]
-    }
+  // def notificationBanner(id: FormTemplateId)(implicit ec: ExecutionContext): Future[Option[NotificationBanner]] =
+  //   ws.doGet(show"$baseUrl/notification-banner/$id").map { response =>
+  //     if (response.status == 200) Some(response.json.as[NotificationBanner])
+  //     else Option.empty[NotificationBanner]
+  //   }
 
 }

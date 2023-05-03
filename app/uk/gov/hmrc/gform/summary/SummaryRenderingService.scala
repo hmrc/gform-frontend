@@ -42,7 +42,6 @@ import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper._
-import uk.gov.hmrc.govukfrontend.views.viewmodels.notificationbanner.NotificationBanner
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ Card, CardTitle, SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
@@ -174,7 +173,6 @@ class SummaryRenderingService(
       validationResult <-
         validationService
           .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics, maybeCoordinates)
-      notificatioBanner <- gformConnector.notificationBanner(cache.formTemplateId)
     } yield {
       val summaryDeclaration: Html =
         renderer.renderSummarySectionDeclaration(cache, formModelOptics, maybeAccessCode, maybeSummarySection)
@@ -195,8 +193,7 @@ class SummaryRenderingService(
         AddressRecordLookup.from(cache.form.thirdPartyData),
         maybeCoordinates,
         summarySection,
-        taskComplete,
-        notificatioBanner.map(_.toViewNotificationBanner)
+        taskComplete
       )
     }
 
@@ -265,8 +262,7 @@ object SummaryRenderingService {
     addressRecordLookup: AddressRecordLookup,
     maybeCoordinates: Option[Coordinates],
     summarySection: SummarySection,
-    taskComplete: Boolean,
-    notificationBanner: Option[NotificationBanner]
+    taskComplete: Boolean
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(summarySection.header)
     val footerHtml = markDownParser(summarySection.footer)
@@ -320,8 +316,7 @@ object SummaryRenderingService {
         formDataFingerprint,
         summarySection.displayWidth,
         maybeCoordinates,
-        taskComplete,
-        notificationBanner
+        taskComplete
       )
     )
   }
@@ -381,8 +376,7 @@ object SummaryRenderingService {
         formDataFingerprint,
         formTemplate.summarySection.displayWidth,
         None,
-        false,
-        Option.empty[NotificationBanner]
+        false
       )
     )
   }

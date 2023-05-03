@@ -117,7 +117,6 @@ class FormController(
                                   cache.form,
                                   FormIdData(cache, maybeAccessCode)
                                 )
-              notificatioBanner <- gformConnector.notificationBanner(formTemplateId)
             } yield Ok(
               renderer.renderSection(
                 maybeAccessCode,
@@ -135,8 +134,7 @@ class FormController(
                 fastForward,
                 formModelOptics,
                 upscanInitiate,
-                AddressRecordLookup.from(cache.form.thirdPartyData),
-                notificatioBanner.map(_.toViewNotificationBanner)
+                AddressRecordLookup.from(cache.form.thirdPartyData)
               )
             )
 
@@ -223,7 +221,7 @@ class FormController(
                       SuppressErrors.No,
                       visibleIteration.allSingletonSectionNumbers: _*
                     )(handlerResult =>
-                      gformConnector.notificationBanner(formTemplateId).map { notificationBanner =>
+                      Future.successful(
                         Ok(
                           renderer
                             .renderAddToListCheckYourAnswers(
@@ -238,11 +236,10 @@ class FormController(
                               cache,
                               handlerResult.envelope,
                               AddressRecordLookup.from(cache.form.thirdPartyData),
-                              fastForward,
-                              notificationBanner.map(_.toViewNotificationBanner)
+                              fastForward
                             )
                         )
-                      }
+                      )
                     )
                   case _ =>
                     if (repeaterSectionNumber === sectionNumber) {
@@ -254,7 +251,7 @@ class FormController(
                       if (sectionNumber === lastRepeaterSectionNumber || !hasBeenVisited) {
                         // display current (which happens to be last) repeater
                         validateSections(suppressErrors, sectionNumber)(handlerResult =>
-                          gformConnector.notificationBanner(formTemplateId).map { notificationBanner =>
+                          Future.successful(
                             Ok(
                               renderer.renderAddToList(
                                 repeater,
@@ -268,11 +265,10 @@ class FormController(
                                 cache.formTemplateWithRedirects.specimenSource,
                                 handlerResult.validationResult,
                                 cache.retrievals,
-                                fastForward,
-                                notificationBanner.map(_.toViewNotificationBanner)
+                                fastForward
                               )
                             )
-                          }
+                          )
                         )
                       } else {
                         // We want to display last repeater

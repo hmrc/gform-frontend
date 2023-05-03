@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.summary
 import cats.MonadError
 import org.jsoup.Jsoup
 import org.mockito.ArgumentMatchersSugar
-import org.mockito.Mockito.lenient
 import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -29,8 +28,8 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.test.{ FakeRequest, Helpers }
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.FormTemplateKey
 
-import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
@@ -43,12 +42,11 @@ import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ Coordinates, DataRetrieveAll, FormModel, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
-import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FileSizeLimit, FormPhase, FormTemplate, FormTemplateId, FormTemplateWithRedirects, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FileSizeLimit, FormPhase, FormTemplate, FormTemplateWithRedirects, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
 import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField }
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, ValidationResult, ValidationService }
@@ -58,6 +56,8 @@ import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 
 class SummaryRenderingServiceSpec
     extends AnyWordSpecLike with Matchers with ScalaFutures with ExampleData with ArgumentMatchersSugar
@@ -67,16 +67,18 @@ class SummaryRenderingServiceSpec
     PatienceConfig(timeout = scaled(Span(15000, Millis)), interval = scaled(Span(15, Millis)))
 
   trait TestFixture {
-    implicit val request = FakeRequest()
+
     implicit val headerCarrier = HeaderCarrier()
     implicit val langADT = LangADT.En
     lazy val i18nSupport: I18nSupport = new I18nSupport {
       override def messagesApi: MessagesApi =
         Helpers.stubMessagesApi(Map("en" -> Map("summary.acknowledgement.pdf" -> "Acknowledgement PDF")))
     }
-    implicit val messages: Messages = i18nSupport.request2Messages
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
+    implicit val request =
+      FakeRequest().addAttr(FormTemplateKey, FormTemplateWithRedirects(formTemplate, None, None, None, None))
+    implicit val messages: Messages = i18nSupport.request2Messages
     lazy val addToListQuestionComponent = addToListQuestion("addToListQuestion")
     lazy val page1Field = buildFormComponent("page1Field", Value)
     lazy val page2Field = buildFormComponent("page2Field", Value)
@@ -99,10 +101,6 @@ class SummaryRenderingServiceSpec
     val mockValidationService = mock[ValidationService]
     val mockRecalculation = mock[Recalculation[Future, Throwable]]
     val mockGformConnector = mock[GformConnector]
-
-    lenient()
-      .when(mockGformConnector.notificationBanner(*[FormTemplateId])(*[ExecutionContext]))
-      .thenReturn(Future.successful(Option.empty[NotificationBanner]))
 
     mockFileUploadService.getEnvelope(*[EnvelopeId])(*[Option[Boolean]])(*[HeaderCarrier]) returns Future.successful(
       Envelope(List.empty)

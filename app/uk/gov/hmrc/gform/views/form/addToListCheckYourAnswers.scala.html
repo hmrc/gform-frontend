@@ -42,8 +42,7 @@
     header: Option[Html],
     footer: Option[Html],
     specimenNavigation: Html,
-    fastForward: List[FastForward],
-    notificationBanner: Option[NotificationBanner]
+    fastForward: List[FastForward]
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
