@@ -423,4 +423,7 @@ class GformModule(
     controllersModule.authenticatedRequestActions,
     controllersModule.messagesControllerComponents
   )
+
+  val downloadController: DownloadController =
+    new DownloadController(controllersModule.messagesControllerComponents, configModule.environment)
 }

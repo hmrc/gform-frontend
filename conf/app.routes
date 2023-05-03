@@ -104,3 +104,5 @@ GET           /tasklist/new/:formTemplateId/:maybeAccessCode/:taskSectionNumber/
 GET           /tasklist/summary-page/:formTemplateId/:maybeAccessCode                                            uk.gov.hmrc.gform.tasklist.TaskListController.summaryPage(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 
 GET           /capture/sectionNumbers/:formTemplateId/:maybeAccessCode                                           uk.gov.hmrc.gform.capture.CaptureController.sectionNumbers(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
+
+GET           /nipTemplate/download                                                                              uk.gov.hmrc.gform.gform.DownloadController.downloadNipTemplate(fileExt: String)
