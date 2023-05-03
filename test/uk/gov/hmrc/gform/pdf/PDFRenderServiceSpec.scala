@@ -111,7 +111,7 @@ class PDFRenderServiceSpec
     lazy val cache = AuthCacheWithForm(
       retrievals,
       form,
-      FormTemplateContext.noRedirects(formTemplate, None),
+      FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       maybeAccessCode,
       LocalisedLookupOptions(Map())

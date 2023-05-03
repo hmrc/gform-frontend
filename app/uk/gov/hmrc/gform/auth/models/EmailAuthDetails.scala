@@ -42,7 +42,7 @@ case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.e
     formTemplate: FormTemplate,
     emailAndCode: EmailAndCode
   ): Option[EmailAuthDetails] =
-    get(FormTemplateContext.noRedirects(formTemplate, None)).flatMap(_.fold[Option[EmailAuthDetails]](_ => None) { v =>
+    get(FormTemplateContext.basicContext(formTemplate, None)).flatMap(_.fold[Option[EmailAuthDetails]](_ => None) { v =>
       if (v.emailAndCode === emailAndCode)
         Some(
           EmailAuthDetails(

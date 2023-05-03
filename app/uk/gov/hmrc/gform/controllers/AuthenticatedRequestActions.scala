@@ -405,7 +405,7 @@ class AuthenticatedRequestActions(
         cache = AuthCacheWithForm(
                   retrievals,
                   formUpd,
-                  FormTemplateContext.noRedirects(formTemplateForForm, specimenSource),
+                  FormTemplateContext.basicContext(formTemplateForForm, specimenSource),
                   role,
                   maybeAccessCode,
                   lookupOptions
@@ -641,7 +641,7 @@ case class AuthCacheWithoutForm(
     AuthCacheWithForm(
       retrievals,
       form,
-      FormTemplateContext.noRedirects(formTemplate, None),
+      FormTemplateContext.basicContext(formTemplate, None),
       role,
       accessCode,
       countryLookupOptions

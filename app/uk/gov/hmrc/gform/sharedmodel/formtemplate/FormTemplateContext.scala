@@ -32,7 +32,7 @@ final case class FormTemplateContext(
 )
 
 object FormTemplateContext {
-  def noRedirects(formTemplate: FormTemplate, specimenSource: Option[FormTemplate]): FormTemplateContext =
+  def basicContext(formTemplate: FormTemplate, specimenSource: Option[FormTemplate]): FormTemplateContext =
     FormTemplateContext(formTemplate, specimenSource, Option.empty[FormTemplateId])
   implicit val format: OFormat[FormTemplateContext] = derived.oformat()
 }

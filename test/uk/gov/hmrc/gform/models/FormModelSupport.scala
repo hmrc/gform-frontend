@@ -85,7 +85,7 @@ trait FormModelSupport extends GraphSpec {
   def mkAuthCacheWithForm(formTemplate: FormTemplate): AuthCacheWithForm = AuthCacheWithForm(
     retrievals = retrievals,
     form = mkForm(formTemplate._id),
-    formTemplateWithRedirects = FormTemplateContext.noRedirects(formTemplate, None),
+    formTemplateWithRedirects = FormTemplateContext.basicContext(formTemplate, None),
     role = Role.Customer,
     accessCode = maybeAccessCode,
     LocalisedLookupOptions(Map())

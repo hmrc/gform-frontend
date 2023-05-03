@@ -84,7 +84,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     lazy val cache = AuthCacheWithForm(
       authContext,
       form,
-      FormTemplateContext.noRedirects(formTemplate, None),
+      FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       Some(accessCode),
       LocalisedLookupOptions(Map())
