@@ -191,7 +191,7 @@ object ComponentValidator {
                 .map(_.trasform(identity, " " + _).value().pure[List]) orElse
                 (Some(SmartString.blank.trasform(_ => "an", identity).value().pure[List]))
             )
-          case IsText(Text((CtUTR | UTR), _, _, _, _, _)) =>
+          case IsText(Text(CtUTR, _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericUtrErrorRequired,
@@ -282,7 +282,7 @@ object ComponentValidator {
       case (_, Some(value), UkBankAccountNumber)       => validateBankAccountFormat(fieldValue, value)
       case (_, Some(value), UkSortCodeFormat)          => validateSortCodeFormat(fieldValue, value)
       case (_, Some(value), SubmissionRefFormat)       => validateSubmissionRefFormat(fieldValue, value)
-      case (_, Some(value), SaUTR | CtUTR | UTR)       => checkUtr(fieldValue, value)
+      case (_, Some(value), SaUTR | CtUTR)             => checkUtr(fieldValue, value)
       case (_, Some(value), NINO)                      => checkNino(fieldValue, value)
       case (_, Some(value), UkVrn)                     => checkVrn(fieldValue, value)
       case (_, Some(value), PayeReference)             => checkPayeReference(fieldValue, value)
