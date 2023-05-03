@@ -80,12 +80,12 @@ class EmailAuthController(
 
   def emailIdForm(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
-      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
+      val formTemplateContext = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateContext.formTemplate
       val emailAuthDetails: EmailAuthDetails =
         jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
       val (pageErrors, maybeEmailFieldError, maybeEmailFieldValue) =
-        emailAuthDetails.get(formTemplateWithRedirects) match {
+        emailAuthDetails.get(formTemplateContext) match {
           case Some(InvalidEmail(EmailId(value), message)) =>
             (
               Errors(
@@ -134,7 +134,7 @@ class EmailAuthController(
           val compositeAuthDetails: CompositeAuthDetails =
             jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
 
-          compositeAuthDetails.get(formTemplateWithRedirects).flatMap { selection =>
+          compositeAuthDetails.get(formTemplateContext).flatMap { selection =>
             AuthConfig.getAuthConfig(selection, configs)
           } match {
             case Some(EmailAuthConfig(_, emailUseInfo, _, _)) => showEnterEmailPage(emailUseInfo)
@@ -162,11 +162,11 @@ class EmailAuthController(
             ).pure[Future],
           { email =>
             val emailId = EmailId(CIString(email))
-            val formTemplateWithRedirects = request.attrs(FormTemplateKey)
+            val formTemplateContext = request.attrs(FormTemplateKey)
 
             EmailAddress.isValid(emailId.value.toString) match {
               case true =>
-                sendEmailWithConfirmationCode(formTemplateWithRedirects, emailId).map {
+                sendEmailWithConfirmationCode(formTemplateContext, emailId).map {
                   case None => // User has lost his session, so we start from the beginning
                     Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplateId))
                   case Some(emailAndCode) =>
@@ -201,8 +201,8 @@ class EmailAuthController(
     maybeCodeLength: Option[Int]
   ): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
-      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
+      val formTemplateContext = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateContext.formTemplate
       val emailAuthDetails: EmailAuthDetails =
         jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
 
@@ -235,7 +235,7 @@ class EmailAuthController(
         case _ => (NoErrors, None)
       }
 
-      (emailAuthDetails.get(formTemplateWithRedirects), formTemplate.authConfig) match {
+      (emailAuthDetails.get(formTemplateContext), formTemplate.authConfig) match {
         case (Some(emailAuthData), EmailAuthConfig(_, _, emailCodeHelp, _)) =>
           Ok(
             html.auth.confirm_code(
@@ -254,7 +254,7 @@ class EmailAuthController(
         case (Some(emailAuthData), Composite(configs)) =>
           val compositeAuthDetails =
             jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-              .get(formTemplateWithRedirects)
+              .get(formTemplateContext)
 
           val config = AuthConfig
             .getAuthConfig(compositeAuthDetails.get, configs)
@@ -292,8 +292,8 @@ class EmailAuthController(
     continue: String
   ): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => _ =>
-      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
+      val formTemplateContext = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateContext.formTemplate
 
       confirmCodeForm
         .bindFromRequest()
@@ -342,8 +342,8 @@ class EmailAuthController(
 
   def emailConfirmedForm(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
-      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
+      val formTemplateContext = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateContext.formTemplate
 
       formTemplate.authConfig match {
         case HasEmailConfirmation(emailConfirmation) =>
@@ -371,7 +371,7 @@ class EmailAuthController(
     }
 
   private def sendEmailWithConfirmationCode[D <: DataOrigin](
-    formTemplateWithRedirects: FormTemplateContext,
+    formTemplateContext: FormTemplateContext,
     emailId: EmailId
   )(implicit
     request: Request[AnyContent],
@@ -379,7 +379,7 @@ class EmailAuthController(
     me: MonadError[Future, Throwable],
     l: LangADT
   ): Future[Option[EmailAndCode]] = {
-    val formTemplate = formTemplateWithRedirects.formTemplate
+    val formTemplate = formTemplateContext.formTemplate
 
     val isStaticCodeEmail = frontendAppConfig.emailAuthStaticCodeEmails.fold(false) {
       _.exists(_ === ci"${emailId.value.toString}")
@@ -410,7 +410,7 @@ class EmailAuthController(
       case composite: Composite =>
         val maybeCompositeAuthDetails: Option[String] =
           jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-            .get(formTemplateWithRedirects)
+            .get(formTemplateContext)
 
         maybeCompositeAuthDetails.traverse { compositeAuthDetails =>
           val config = AuthConfig

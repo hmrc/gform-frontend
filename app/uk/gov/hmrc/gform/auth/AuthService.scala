@@ -52,7 +52,7 @@ class AuthService(
   private val logger = LoggerFactory.getLogger(getClass)
 
   def authenticateAndAuthorise(
-    formTemplateWithRedirects: FormTemplateContext,
+    formTemplateContext: FormTemplateContext,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
     getGovermentGatewayId: Unit => Future[Option[GovernmentGatewayId]],
     ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult],
@@ -62,7 +62,7 @@ class AuthService(
     hc: HeaderCarrier,
     l: LangADT
   ): Future[AuthResult] = {
-    val formTemplate = formTemplateWithRedirects.formTemplate
+    val formTemplate = formTemplateContext.formTemplate
     formTemplate.authConfig match {
       case Anonymous =>
         hc.sessionId
@@ -88,7 +88,7 @@ class AuthService(
         }
         performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
       case EmailAuthConfig(_, _, _, _) =>
-        isEmailConfirmed(formTemplateWithRedirects) match {
+        isEmailConfirmed(formTemplateContext) match {
           case Some(email) =>
             AuthSuccessful(EmailRetrievals(EmailId(email)), Role.Customer)
               .pure[Future]
@@ -109,7 +109,7 @@ class AuthService(
       case Composite(configs) =>
         val compositeAuthDetails =
           jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-            .get(formTemplateWithRedirects)
+            .get(formTemplateContext)
 
         getGovermentGatewayId(()) flatMap {
           case Some(id) if List(AuthConfig.hmrcSimpleModule, id.ggId) contains compositeAuthDetails.getOrElse("") =>
@@ -131,9 +131,7 @@ class AuthService(
               .getAuthConfig(compositeAuthDetails.getOrElse(""), configs) match {
               case Some(config) =>
                 authenticateAndAuthorise(
-                  formTemplateWithRedirects.copy(formTemplate =
-                    formTemplateWithRedirects.formTemplate.copy(authConfig = config)
-                  ),
+                  formTemplateContext.copy(formTemplate = formTemplateContext.formTemplate.copy(authConfig = config)),
                   getAffinityGroup,
                   getGovermentGatewayId,
                   ggAuthorised,

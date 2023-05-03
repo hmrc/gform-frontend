@@ -163,7 +163,7 @@ class SummaryController(
         requestRelatedData => variadicFormData => _ =>
           save match {
             case Exit =>
-              handleExit(cache.formTemplateWithRedirects, maybeAccessCode, cache, maybeCoordinates).pure[Future]
+              handleExit(cache.formTemplateContext, maybeAccessCode, cache, maybeCoordinates).pure[Future]
             case SummaryContinue =>
               handleSummaryContinue(
                 cache.form.formTemplateId,
@@ -179,7 +179,7 @@ class SummaryController(
     }
 
   private def handleExit(
-    formTemplateWithRedirects: FormTemplateContext,
+    formTemplateContext: FormTemplateContext,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     maybeCoordinates: Option[Coordinates]
@@ -187,7 +187,7 @@ class SummaryController(
     request: Request[AnyContent],
     l: LangADT
   ): Result = {
-    val formTemplate = formTemplateWithRedirects.formTemplate
+    val formTemplate = formTemplateContext.formTemplate
     maybeAccessCode match {
       case Some(accessCode) =>
         val saveWithAccessCode = new SaveWithAccessCode(formTemplate, accessCode)
@@ -198,7 +198,7 @@ class SummaryController(
             case Composite(configs) =>
               val compositeAuthDetails =
                 jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-                  .get(formTemplateWithRedirects)
+                  .get(formTemplateContext)
               AuthConfig
                 .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
             case config => Some(config)

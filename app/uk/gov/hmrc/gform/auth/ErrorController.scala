@@ -36,15 +36,15 @@ class ErrorController(
   import i18nSupport._
 
   def insufficientEnrolments(formTemplateId: FormTemplateId) = nonAuth { implicit request => implicit l =>
-    val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-    val formTemplate = formTemplateWithRedirects.formTemplate
+    val formTemplateContext = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateContext.formTemplate
     val pageTitle = request.flash.get("formTitle").getOrElse("")
     Ok(views.html.hardcoded.pages.insufficient_enrolments(formTemplate, pageTitle, frontendAppConfig))
   }
 
   def browserForbidden(formTemplateId: FormTemplateId) = nonAuth { implicit request => implicit l =>
-    val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-    val formTemplate = formTemplateWithRedirects.formTemplate
+    val formTemplateContext = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateContext.formTemplate
     val pageTitle = request.flash.get("formTitle").getOrElse("")
     Ok(views.html.hardcoded.pages.browser_forbidden(formTemplate, pageTitle, frontendAppConfig))
   }

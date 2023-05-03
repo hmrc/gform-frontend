@@ -80,8 +80,8 @@ class FileUploadController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => _ => implicit formModelOptics =>
-        val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-        val formTemplate = formTemplateWithRedirects.formTemplate
+        val formTemplateContext = request.attrs(FormTemplateKey)
+        val formTemplate = formTemplateContext.formTemplate
         for {
           envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
           flash <- checkFile(fileId, envelope, cache.form.envelopeId, formTemplate.allowedFileTypes)(
@@ -252,8 +252,8 @@ class FileUploadController(
     formComponentId: FormComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => implicit lang => _ => implicit sse => _ =>
-      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
+      val formTemplateContext = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateContext.formTemplate
 
       val deleteUrl =
         routes.FileUploadController.confirmRemoval(
@@ -349,8 +349,8 @@ class FileUploadController(
     formComponentId: FormComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => implicit l => cache => _ => formModelOptics =>
-      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
+      val formTemplateContext = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateContext.formTemplate
 
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) { _ => variadicFormData => _ =>
         val cacheU = cache

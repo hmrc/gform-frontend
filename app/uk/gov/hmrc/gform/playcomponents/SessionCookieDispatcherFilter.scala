@@ -52,8 +52,8 @@ class SessionCookieDispatcherFilter(
 
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
-    val maybeFormTemplateWithRedirects: Future[Option[FormTemplateContext]] =
-      requestHeaderService.formTemplateWithRedirects(rh)
+    val maybeFormTemplateContext: Future[Option[FormTemplateContext]] =
+      requestHeaderService.formTemplateContext(rh)
 
     def findAuthConfigCookie(rh: RequestHeader): Option[Cookie] =
       rh.headers
@@ -61,7 +61,7 @@ class SessionCookieDispatcherFilter(
         .flatMap(cookieHeaderEncoding.decodeCookieHeader)
         .find(_.name == authConfigCookieName)
 
-    maybeFormTemplateWithRedirects.flatMap {
+    maybeFormTemplateContext.flatMap {
       case Some(FormTemplateContext(formTemplate, _, _, Some(shutter), _)) =>
         val langs = playBuiltInsModule.langs
         implicit val messagesApi = playBuiltInsModule.messagesApi
@@ -78,24 +78,24 @@ class SessionCookieDispatcherFilter(
           )
         )
 
-      case Some(formTemplateWithRedirects) =>
+      case Some(formTemplateContext) =>
         val formTemplate =
-          formTemplateWithRedirects.formTemplate
+          formTemplateContext.formTemplate
         val (result, cookieValue) =
           formTemplate.authConfig match {
             case Anonymous =>
               (
-                anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateWithRedirects)),
+                anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
                 encrypter.encrypt(PlainText(AnonymousAuth))
               )
             case EmailAuthConfig(_, _, _, _) =>
               (
-                emailCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateWithRedirects)),
+                emailCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
                 encrypter.encrypt(PlainText(EmailAuth))
               )
             case _ =>
               (
-                hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateWithRedirects)),
+                hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
                 encrypter.encrypt(PlainText(HmrcAuth))
               )
           }

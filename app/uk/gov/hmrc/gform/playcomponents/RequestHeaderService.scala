@@ -29,7 +29,7 @@ final class RequestHeaderService(
   gformConnector: GformConnector
 )(implicit ec: ExecutionContext) {
 
-  def formTemplateWithRedirects(rh: RequestHeader): Future[Option[FormTemplateContext]] = {
+  def formTemplateContext(rh: RequestHeader): Future[Option[FormTemplateContext]] = {
     val formTemplateIdParamIndex: Option[Int] = {
       val mayContainsFormTemplateId: Option[Array[Boolean]] =
         rh.handlerDef.map(_.path.split("/")).map(_.map(_.containsSlice("$formTemplateId")))
@@ -40,7 +40,7 @@ final class RequestHeaderService(
       case Some(i) if i =!= -1 =>
         val templateId = rh.uri.split("\\?")(0).split("/")(i)
         implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(rh, rh.session)
-        gformConnector.getFormTemplateWithRedirects(FormTemplateId(templateId.toLowerCase)).map(Some(_))
+        gformConnector.getFormTemplateContext(FormTemplateId(templateId.toLowerCase)).map(Some(_))
       case _ =>
         Future.successful(None)
     }

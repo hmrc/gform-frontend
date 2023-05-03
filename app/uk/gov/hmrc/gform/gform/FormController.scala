@@ -123,7 +123,7 @@ class FormController(
                 sectionNumber,
                 handlerResult,
                 cache.formTemplate,
-                cache.formTemplateWithRedirects.specimenSource,
+                cache.formTemplateContext.specimenSource,
                 cache.form.envelopeId,
                 singleton,
                 cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB),
@@ -227,7 +227,7 @@ class FormController(
                             .renderAddToListCheckYourAnswers(
                               checkYourAnswers.checkYourAnswers,
                               cache.formTemplate,
-                              cache.formTemplateWithRedirects.specimenSource,
+                              cache.formTemplateContext.specimenSource,
                               maybeAccessCode,
                               sectionNumber,
                               visibleIteration,
@@ -262,7 +262,7 @@ class FormController(
                                 sectionNumber,
                                 formModelOptics,
                                 cache.formTemplate,
-                                cache.formTemplateWithRedirects.specimenSource,
+                                cache.formTemplateContext.specimenSource,
                                 handlerResult.validationResult,
                                 cache.retrievals,
                                 fastForward
@@ -754,7 +754,7 @@ class FormController(
                       case Composite(configs) =>
                         val compositeAuthDetails =
                           jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-                            .get(cache.formTemplateWithRedirects)
+                            .get(cache.formTemplateContext)
                         val config = AuthConfig
                           .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
                         processSaveAndExitAcknowledgementPage(config, processData, maybeSn, envelopeExpiryDate)

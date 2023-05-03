@@ -590,7 +590,7 @@ class AddressLookupController(
         .getOrElse(FormData(List.empty))
 
     cache
-      .copy(formTemplateWithRedirects = FormTemplateContext.basicContext(syntheticFormTemplate, None))
+      .copy(formTemplateContext = FormTemplateContext.basicContext(syntheticFormTemplate, None))
       .copy(form = cache.form.copy(formData = formData))
   }
 

@@ -64,8 +64,8 @@ class FormAddToListController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => _ => implicit sse => formModelOptics =>
-        val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-        val formTemplate = formTemplateWithRedirects.formTemplate
+        val formTemplateContext = request.attrs(FormTemplateKey)
+        val formTemplate = formTemplateContext.formTemplate
 
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val formAction =

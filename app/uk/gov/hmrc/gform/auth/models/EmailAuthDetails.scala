@@ -32,10 +32,10 @@ case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.e
   def -(key: FormTemplateId): EmailAuthDetails =
     EmailAuthDetails(mappings - key)
 
-  def get(formTemplateWithRedirects: FormTemplateContext): Option[EmailAuthData] =
+  def get(formTemplateContext: FormTemplateContext): Option[EmailAuthData] =
     mappings
-      .get(formTemplateWithRedirects.formTemplate._id)
-      .orElse(formTemplateWithRedirects.redirect.flatMap(mappings.get))
+      .get(formTemplateContext.formTemplate._id)
+      .orElse(formTemplateContext.redirect.flatMap(mappings.get))
 
   def checkCodeAndConfirm(
     formTemplateId: FormTemplateId,

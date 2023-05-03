@@ -807,7 +807,7 @@ trait ExampleFormTemplate {
 
   def userResearchUrl = UserResearchUrl("https://test.service.gov.uk")
 
-  def buildFormTemplateWithRedirects: FormTemplateContext =
+  def buildFormTemplateContext: FormTemplateContext =
     FormTemplateContext.basicContext(buildFormTemplate, None)
   def buildFormTemplate: FormTemplate = buildFormTemplate(destinationList, allSections)
 

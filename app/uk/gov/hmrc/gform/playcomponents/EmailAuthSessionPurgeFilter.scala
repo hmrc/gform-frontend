@@ -62,11 +62,11 @@ class EmailAuthSessionPurgeFilter(
   def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
     implicit val requestHeader: RequestHeader = rh
     if (isNewFormRoute) {
-      val formTemplateWithRedirects = rh.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
+      val formTemplateContext = rh.attrs(FormTemplateKey)
+      val formTemplate = formTemplateContext.formTemplate
       formTemplate.authConfig match {
-        case _: EmailAuthConfig => handleEmail(next, formTemplateWithRedirects)
-        case Composite(configs) => handleCompositeAuth(next, formTemplateWithRedirects, configs)
+        case _: EmailAuthConfig => handleEmail(next, formTemplateContext)
+        case Composite(configs) => handleCompositeAuth(next, formTemplateContext, configs)
         case _                  => next(rh)
       }
     } else {
@@ -88,16 +88,16 @@ class EmailAuthSessionPurgeFilter(
 
   def handleCompositeAuth(
     next: RequestHeader => Future[Result],
-    formTemplateWithRedirects: FormTemplateContext,
+    formTemplateContext: FormTemplateContext,
     configs: NonEmptyList[AuthConfig]
   )(implicit rh: RequestHeader): Future[Result] = {
 
-    val formTemplate = formTemplateWithRedirects.formTemplate
+    val formTemplate = formTemplateContext.formTemplate
     val currentAuthProvider = jsonFromSession(rh, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-      .get(formTemplateWithRedirects)
+      .get(formTemplateContext)
 
     currentAuthProvider match {
-      case Some("email") => handleEmail(next, formTemplateWithRedirects)
+      case Some("email") => handleEmail(next, formTemplateContext)
       case Some(_) =>
         getGovernmentGatewayGroupIdentifier(rh).flatMap {
           case Some(groupIdentifier) =>
@@ -136,11 +136,11 @@ class EmailAuthSessionPurgeFilter(
 
   def handleEmail(
     next: RequestHeader => Future[Result],
-    formTemplateWithRedirects: FormTemplateContext
+    formTemplateContext: FormTemplateContext
   )(implicit rh: RequestHeader): Future[Result] =
-    isEmailConfirmed(formTemplateWithRedirects) match {
+    isEmailConfirmed(formTemplateContext) match {
       case Some(email) =>
-        val formTemplate = formTemplateWithRedirects.formTemplate
+        val formTemplate = formTemplateContext.formTemplate
         logger.info(
           s"Accessing new form and email confirmed in session. Checking for form status for template ${formTemplate._id}"
         )

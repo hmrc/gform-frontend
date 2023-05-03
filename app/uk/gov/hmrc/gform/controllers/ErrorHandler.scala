@@ -55,7 +55,7 @@ class ErrorHandler(
     message: String
   ): Future[Result] = {
     val maybeFormTemplate: Future[Option[FormTemplate]] =
-      requestHeaderService.formTemplateWithRedirects(requestHeader).map(_.map(_.formTemplate))
+      requestHeaderService.formTemplateContext(requestHeader).map(_.map(_.formTemplate))
 
     maybeFormTemplate.flatMap(maybeFormTemplate =>
       errResponder.onOtherClientError(requestHeader, statusCode, message, maybeFormTemplate)
@@ -66,7 +66,7 @@ class ErrorHandler(
 
     val maybeFormTemplateF: Future[Option[FormTemplate]] =
       requestHeaderService
-        .formTemplateWithRedirects(requestHeader)
+        .formTemplateContext(requestHeader)
         .map(_.map(_.formTemplate))
         .recoverWith { case _ => Future.successful(None) }
 

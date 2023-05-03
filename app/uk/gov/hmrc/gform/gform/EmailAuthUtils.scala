@@ -26,12 +26,12 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, FormTem
 object EmailAuthUtils {
 
   def isEmailConfirmed(
-    formTemplateWithRedirects: FormTemplateContext
+    formTemplateContext: FormTemplateContext
   )(implicit rh: RequestHeader): Option[CIString] = {
     val emailAuthDetails: EmailAuthDetails =
       jsonFromSession(rh, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
     emailAuthDetails
-      .get(formTemplateWithRedirects)
+      .get(formTemplateContext)
       .fold[Option[CIString]](None)(_.confirmedEmail)
   }
 

@@ -61,8 +61,8 @@ class CompositeAuthController(
     se: SuppressErrors
   ) =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
-      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
+      val formTemplateContext = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateContext.formTemplate
       val compositeAuthFormPage =
         choice
           .bindFromRequest()
@@ -86,8 +86,8 @@ class CompositeAuthController(
       val compositeAuthDetails: CompositeAuthDetails =
         jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
 
-      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
+      val formTemplateContext = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateContext.formTemplate
 
       choice
         .bindFromRequest()

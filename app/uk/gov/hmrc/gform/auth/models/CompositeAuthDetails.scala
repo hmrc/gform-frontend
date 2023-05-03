@@ -30,10 +30,10 @@ case class CompositeAuthDetails(mappings: Map[FormTemplateId, String] = Map.empt
   def remove(key: FormTemplateId): CompositeAuthDetails =
     CompositeAuthDetails(mappings - key)
 
-  def get(formTemplateWithRedirects: FormTemplateContext): Option[String] =
+  def get(formTemplateContext: FormTemplateContext): Option[String] =
     mappings
-      .get(formTemplateWithRedirects.formTemplate._id)
-      .orElse(formTemplateWithRedirects.redirect.flatMap(mappings.get))
+      .get(formTemplateContext.formTemplate._id)
+      .orElse(formTemplateContext.redirect.flatMap(mappings.get))
 }
 
 object CompositeAuthDetails {
