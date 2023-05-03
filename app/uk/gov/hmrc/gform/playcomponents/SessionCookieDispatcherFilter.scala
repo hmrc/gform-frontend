@@ -62,7 +62,7 @@ class SessionCookieDispatcherFilter(
         .find(_.name == authConfigCookieName)
 
     maybeFormTemplateWithRedirects.flatMap {
-      case Some(FormTemplateWithRedirects(formTemplate, _, _, Some(shutter))) =>
+      case Some(FormTemplateWithRedirects(formTemplate, _, _, Some(shutter),_ )) =>
         val langs = playBuiltInsModule.langs
         implicit val messagesApi = playBuiltInsModule.messagesApi
         implicit val request = Request(rh, AnyContentAsEmpty)
@@ -77,6 +77,7 @@ class SessionCookieDispatcherFilter(
             )
           )
         )
+
       case Some(formTemplateWithRedirects) =>
         val formTemplate =
           formTemplateWithRedirects.formTemplate
