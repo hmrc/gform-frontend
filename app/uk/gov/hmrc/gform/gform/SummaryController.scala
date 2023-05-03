@@ -179,7 +179,7 @@ class SummaryController(
     }
 
   private def handleExit(
-    formTemplateWithRedirects: FormTemplateWithRedirects,
+    formTemplateWithRedirects: FormTemplateContext,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     maybeCoordinates: Option[Coordinates]

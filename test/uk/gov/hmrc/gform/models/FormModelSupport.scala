@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IncludeIf, OptionData }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BooleanExprCache, LangADT, NotChecked, Obligations, SourceOrigin, UserId, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormComponentIdToFileIdMapping, FormData, FormField, FormId, FormModelOptics, InProgress, ThirdPartyData, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, FormTemplateWithRedirects, Section }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, Section }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
@@ -85,7 +85,7 @@ trait FormModelSupport extends GraphSpec {
   def mkAuthCacheWithForm(formTemplate: FormTemplate): AuthCacheWithForm = AuthCacheWithForm(
     retrievals = retrievals,
     form = mkForm(formTemplate._id),
-    formTemplateWithRedirects = FormTemplateWithRedirects.noRedirects(formTemplate, None),
+    formTemplateWithRedirects = FormTemplateContext.noRedirects(formTemplate, None),
     role = Role.Customer,
     accessCode = maybeAccessCode,
     LocalisedLookupOptions(Map())

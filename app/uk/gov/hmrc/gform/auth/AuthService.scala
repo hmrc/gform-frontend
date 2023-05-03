@@ -52,7 +52,7 @@ class AuthService(
   private val logger = LoggerFactory.getLogger(getClass)
 
   def authenticateAndAuthorise(
-    formTemplateWithRedirects: FormTemplateWithRedirects,
+    formTemplateWithRedirects: FormTemplateContext,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
     getGovermentGatewayId: Unit => Future[Option[GovernmentGatewayId]],
     ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult],

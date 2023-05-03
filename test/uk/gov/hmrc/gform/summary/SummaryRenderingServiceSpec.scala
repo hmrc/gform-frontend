@@ -44,7 +44,7 @@ import uk.gov.hmrc.gform.models.{ Coordinates, DataRetrieveAll, FormModel, Inter
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FileSizeLimit, FormPhase, FormTemplate, FormTemplateWithRedirects, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FileSizeLimit, FormPhase, FormTemplate, FormTemplateContext, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField }
 import uk.gov.hmrc.gform.summary.HtmlSupport._
@@ -77,7 +77,7 @@ class SummaryRenderingServiceSpec
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
     implicit val request =
-      FakeRequest().addAttr(FormTemplateKey, FormTemplateWithRedirects(formTemplate, None, None, None, None))
+      FakeRequest().addAttr(FormTemplateKey, FormTemplateContext(formTemplate, None, None, None, None))
     implicit val messages: Messages = i18nSupport.request2Messages
     lazy val addToListQuestionComponent = addToListQuestion("addToListQuestion")
     lazy val page1Field = buildFormComponent("page1Field", Value)
@@ -89,7 +89,7 @@ class SummaryRenderingServiceSpec
     val cache = AuthCacheWithForm(
       retrievals,
       form,
-      FormTemplateWithRedirects.noRedirects(formTemplate, None),
+      FormTemplateContext.noRedirects(formTemplate, None),
       Role.Customer,
       maybeAccessCode,
       LocalisedLookupOptions(Map())

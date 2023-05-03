@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, EmailAuthConfig, FormTemplateId, FormTemplateWithRedirects, HasEmailConfirmation }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, EmailAuthConfig, FormTemplateContext, FormTemplateId, HasEmailConfirmation }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode }
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
@@ -371,7 +371,7 @@ class EmailAuthController(
     }
 
   private def sendEmailWithConfirmationCode[D <: DataOrigin](
-    formTemplateWithRedirects: FormTemplateWithRedirects,
+    formTemplateWithRedirects: FormTemplateContext,
     emailId: EmailId
   )(implicit
     request: Request[AnyContent],

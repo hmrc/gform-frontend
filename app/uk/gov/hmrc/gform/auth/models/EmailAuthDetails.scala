@@ -20,7 +20,7 @@ import cats.Eq
 import cats.syntax.eq._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, FormTemplateWithRedirects, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, JsonUtils }
 
 case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.empty) {
 
@@ -32,7 +32,7 @@ case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.e
   def -(key: FormTemplateId): EmailAuthDetails =
     EmailAuthDetails(mappings - key)
 
-  def get(formTemplateWithRedirects: FormTemplateWithRedirects): Option[EmailAuthData] =
+  def get(formTemplateWithRedirects: FormTemplateContext): Option[EmailAuthData] =
     mappings
       .get(formTemplateWithRedirects.formTemplate._id)
       .orElse(formTemplateWithRedirects.redirect.flatMap(mappings.get))
@@ -42,19 +42,18 @@ case class EmailAuthDetails(mappings: Map[FormTemplateId, EmailAuthData] = Map.e
     formTemplate: FormTemplate,
     emailAndCode: EmailAndCode
   ): Option[EmailAuthDetails] =
-    get(FormTemplateWithRedirects.noRedirects(formTemplate, None)).flatMap(_.fold[Option[EmailAuthDetails]](_ => None) {
-      v =>
-        if (v.emailAndCode === emailAndCode)
-          Some(
-            EmailAuthDetails(
-              mappings + (formTemplateId -> v.copy(confirmed = true))
-                ++ formTemplate.legacyFormIds.fold(List.empty[(FormTemplateId, ValidEmail)])(
-                  _.map(_ -> v.copy(confirmed = true)).toList
-                )
-            )
+    get(FormTemplateContext.noRedirects(formTemplate, None)).flatMap(_.fold[Option[EmailAuthDetails]](_ => None) { v =>
+      if (v.emailAndCode === emailAndCode)
+        Some(
+          EmailAuthDetails(
+            mappings + (formTemplateId -> v.copy(confirmed = true))
+              ++ formTemplate.legacyFormIds.fold(List.empty[(FormTemplateId, ValidEmail)])(
+                _.map(_ -> v.copy(confirmed = true)).toList
+              )
           )
-        else
-          None
+        )
+      else
+        None
     })
 }
 

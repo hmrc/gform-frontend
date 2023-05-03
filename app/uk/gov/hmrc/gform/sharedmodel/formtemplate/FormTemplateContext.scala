@@ -21,7 +21,7 @@ import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.shutter.Shutter
 import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 
-final case class FormTemplateWithRedirects(
+final case class FormTemplateContext(
   formTemplate: FormTemplate,
   specimenSource: Option[
     FormTemplate
@@ -31,8 +31,8 @@ final case class FormTemplateWithRedirects(
   notificationBanner: Option[NotificationBanner] = None
 )
 
-object FormTemplateWithRedirects {
-  def noRedirects(formTemplate: FormTemplate, specimenSource: Option[FormTemplate]): FormTemplateWithRedirects =
-    FormTemplateWithRedirects(formTemplate, specimenSource, Option.empty[FormTemplateId])
-  implicit val format: OFormat[FormTemplateWithRedirects] = derived.oformat()
+object FormTemplateContext {
+  def noRedirects(formTemplate: FormTemplate, specimenSource: Option[FormTemplate]): FormTemplateContext =
+    FormTemplateContext(formTemplate, specimenSource, Option.empty[FormTemplateId])
+  implicit val format: OFormat[FormTemplateContext] = derived.oformat()
 }

@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, Submitted }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateWithRedirects
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateContext
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 import cats.syntax.eq._
 import org.slf4j.{ Logger, LoggerFactory }
@@ -88,7 +88,7 @@ class EmailAuthSessionPurgeFilter(
 
   def handleCompositeAuth(
     next: RequestHeader => Future[Result],
-    formTemplateWithRedirects: FormTemplateWithRedirects,
+    formTemplateWithRedirects: FormTemplateContext,
     configs: NonEmptyList[AuthConfig]
   )(implicit rh: RequestHeader): Future[Result] = {
 
@@ -136,7 +136,7 @@ class EmailAuthSessionPurgeFilter(
 
   def handleEmail(
     next: RequestHeader => Future[Result],
-    formTemplateWithRedirects: FormTemplateWithRedirects
+    formTemplateWithRedirects: FormTemplateContext
   )(implicit rh: RequestHeader): Future[Result] =
     isEmailConfirmed(formTemplateWithRedirects) match {
       case Some(email) =>

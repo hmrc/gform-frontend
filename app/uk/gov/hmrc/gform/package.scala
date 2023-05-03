@@ -19,10 +19,10 @@ package uk.gov.hmrc
 import _root_.play.api.libs.typedmap.TypedKey
 import _root_.play.twirl.api.{ Html, HtmlFormat }
 import cats.Monoid
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateWithRedirects
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateContext
 
 package object gform {
-  val FormTemplateKey: TypedKey[FormTemplateWithRedirects] = TypedKey[FormTemplateWithRedirects]("form-template")
+  val FormTemplateKey: TypedKey[FormTemplateContext] = TypedKey[FormTemplateContext]("form-template")
 
   implicit val monoidHtml: Monoid[Html] = Monoid.instance[Html](HtmlFormat.empty, (x, y) => HtmlFormat.fill(List(x, y)))
 }

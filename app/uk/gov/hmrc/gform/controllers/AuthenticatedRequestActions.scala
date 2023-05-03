@@ -364,7 +364,7 @@ class AuthenticatedRequestActions(
     f: AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[Result]
   )(
     maybeAccessCode: Option[AccessCode],
-    formTemplateWithRedirects: FormTemplateWithRedirects
+    formTemplateWithRedirects: FormTemplateContext
   )(
     retrievals: MaterialisedRetrievals
   )(
@@ -405,7 +405,7 @@ class AuthenticatedRequestActions(
         cache = AuthCacheWithForm(
                   retrievals,
                   formUpd,
-                  FormTemplateWithRedirects.noRedirects(formTemplateForForm, specimenSource),
+                  FormTemplateContext.noRedirects(formTemplateForForm, specimenSource),
                   role,
                   maybeAccessCode,
                   lookupOptions
@@ -586,7 +586,7 @@ sealed trait AuthCache {
 case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
-  formTemplateWithRedirects: FormTemplateWithRedirects,
+  formTemplateWithRedirects: FormTemplateContext,
   role: Role,
   accessCode: Option[AccessCode],
   countryLookupOptions: LocalisedLookupOptions
@@ -641,7 +641,7 @@ case class AuthCacheWithoutForm(
     AuthCacheWithForm(
       retrievals,
       form,
-      FormTemplateWithRedirects.noRedirects(formTemplate, None),
+      FormTemplateContext.noRedirects(formTemplate, None),
       role,
       accessCode,
       countryLookupOptions

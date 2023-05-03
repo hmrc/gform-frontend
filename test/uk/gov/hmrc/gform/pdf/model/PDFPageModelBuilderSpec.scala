@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.pdf.model.PDFPageModelBuilder.makeModel
 import uk.gov.hmrc.gform.sharedmodel.ExampleData._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormTemplate, FormTemplateWithRedirects, Instruction, InvisiblePageTitle, Section, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormTemplate, FormTemplateContext, Instruction, InvisiblePageTitle, Section, Value }
 import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult }
 
 import scala.collection.immutable.List
@@ -94,7 +94,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       AuthCacheWithForm(
         retrievals,
         form,
-        FormTemplateWithRedirects.noRedirects(formTemplate, None),
+        FormTemplateContext.noRedirects(formTemplate, None),
         Role.Customer,
         maybeAccessCode,
         LocalisedLookupOptions(Map())

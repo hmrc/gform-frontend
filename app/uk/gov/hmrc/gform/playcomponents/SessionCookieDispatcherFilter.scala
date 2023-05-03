@@ -23,7 +23,7 @@ import uk.gov.hmrc.crypto.{ Crypted, Decrypter, Encrypter, PlainText }
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplateWithRedirects }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplateContext }
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.{ SessionCookieCrypto, SessionCookieCryptoFilter }
 import uk.gov.hmrc.gform.views.html
 
@@ -52,7 +52,7 @@ class SessionCookieDispatcherFilter(
 
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
-    val maybeFormTemplateWithRedirects: Future[Option[FormTemplateWithRedirects]] =
+    val maybeFormTemplateWithRedirects: Future[Option[FormTemplateContext]] =
       requestHeaderService.formTemplateWithRedirects(rh)
 
     def findAuthConfigCookie(rh: RequestHeader): Option[Cookie] =
@@ -62,7 +62,7 @@ class SessionCookieDispatcherFilter(
         .find(_.name == authConfigCookieName)
 
     maybeFormTemplateWithRedirects.flatMap {
-      case Some(FormTemplateWithRedirects(formTemplate, _, _, Some(shutter), _)) =>
+      case Some(FormTemplateContext(formTemplate, _, _, Some(shutter), _)) =>
         val langs = playBuiltInsModule.langs
         implicit val messagesApi = playBuiltInsModule.messagesApi
         implicit val request = Request(rh, AnyContentAsEmpty)

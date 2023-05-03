@@ -79,12 +79,12 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     lazy val formTemplate: FormTemplate = buildFormTemplate
 
     implicit val request: Request[AnyContentAsEmpty.type] =
-      FakeRequest().addAttr(FormTemplateKey, FormTemplateWithRedirects(formTemplate, None, None, None, None))
+      FakeRequest().addAttr(FormTemplateKey, FormTemplateContext(formTemplate, None, None, None, None))
     lazy val validationResult = ValidationResult.empty
     lazy val cache = AuthCacheWithForm(
       authContext,
       form,
-      FormTemplateWithRedirects.noRedirects(formTemplate, None),
+      FormTemplateContext.noRedirects(formTemplate, None),
       Role.Customer,
       Some(accessCode),
       LocalisedLookupOptions(Map())

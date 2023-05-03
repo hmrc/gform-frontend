@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse }
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateWithRedirects, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
@@ -361,8 +361,8 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def getFormTemplateWithRedirects(
     formTemplateId: FormTemplateId
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplateWithRedirects] =
-    ws.GET[FormTemplateWithRedirects](s"$baseUrl/formtemplates-with-redirects/${formTemplateId.value}")
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplateContext] =
+    ws.GET[FormTemplateContext](s"$baseUrl/formtemplates-with-redirects/${formTemplateId.value}")
 
   def getLatestFormTemplate(
     formTemplateId: FormTemplateId

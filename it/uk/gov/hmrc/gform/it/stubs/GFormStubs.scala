@@ -3,7 +3,7 @@ package uk.gov.hmrc.gform.it.stubs
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.gform.it.sample.FormTemplateSample
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateWithRedirects
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateContext
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, UserId }
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode }
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -18,7 +18,7 @@ trait GFormStubs extends FormTemplateSample {
     stubFor(
       WireMock
         .get(s"/gform/formtemplates-with-redirects/${formTemplate._id.value}")
-        .willReturn(ok(JsonUtils.toJsonStr(FormTemplateWithRedirects.noRedirects(formTemplate, None))))
+        .willReturn(ok(JsonUtils.toJsonStr(FormTemplateContext.noRedirects(formTemplate, None))))
     )
 
   def gformLatestFormTemplateStub(formTemplate: FormTemplate) =
