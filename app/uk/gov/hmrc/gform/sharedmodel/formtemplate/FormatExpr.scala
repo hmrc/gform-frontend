@@ -201,7 +201,6 @@ sealed trait TextConstraint {
     case TelephoneNumber              => CssClassSize._10
     case Email                        => CssClassSize._30
     case EmailVerifiedBy(_, _)        => CssClassSize._10
-    case UTR                          => CssClassSize._10
     case SaUTR                        => CssClassSize._10
     case CtUTR                        => CssClassSize._10
     case NINO                         => CssClassSize._10
@@ -279,7 +278,6 @@ case object TelephoneNumber extends TextConstraint {
 case object Email extends TextConstraint
 case class EmailVerifiedBy(formComponentId: FormComponentId, emailVerifierService: EmailVerifierService)
     extends TextConstraint
-case object UTR extends TextConstraint
 case object SaUTR extends TextConstraint
 case object CtUTR extends TextConstraint
 case object NINO extends TextConstraint
