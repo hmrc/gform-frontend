@@ -302,20 +302,4 @@ object ValueClassBinder {
 
   private def caseInsensitive[A: Reads](f: String => A, g: A => String) =
     implicitly[PathBindable[String]].transform[A](s => f(s.toLowerCase), a => g(a).toLowerCase)
-
-  implicit def fileExtensionQueryStringBindable: QueryStringBindable[FileExtension] =
-    new QueryStringBindable[FileExtension] {
-      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, FileExtension]] = {
-        val value = params.get(key).flatMap(_.headOption)
-        value match {
-          case Some(FileExtension.Xlsx.value) => Some(Right(FileExtension.Xlsx))
-          case Some(FileExtension.Ods.value)  => Some(Right(FileExtension.Ods))
-          case _                              => Some(Left("Invalid file extension"))
-        }
-      }
-
-      override def unbind(key: String, value: FileExtension): String =
-        s"""$key=${value.value}"""
-    }
-
 }

@@ -495,13 +495,12 @@ case class EvaluationResults(
                 .url
             case PageLink(id) =>
               computePageLink(id, evaluationContext)
-            case InternalLink.DownloadFile(fileName, fileExt) =>
+            case InternalLink.Download(fileName) =>
               uk.gov.hmrc.gform.gform.routes.DownloadController
                 .downloadFile(
                   evaluationContext.formTemplateId,
                   evaluationContext.maybeAccessCode,
-                  fileName,
-                  fileExt
+                  fileName
                 )
                 .url
           }

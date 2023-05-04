@@ -422,17 +422,3 @@ object LoginInfo {
 
   implicit val format: OFormat[LoginInfo] = derived.oformat()
 }
-
-sealed trait FileExtension {
-  val value: String
-}
-
-object FileExtension {
-  case object Xlsx extends FileExtension {
-    override val value: String = "xlsx"
-  }
-  case object Ods extends FileExtension {
-    override val value: String = "ods"
-  }
-  implicit val format: OFormat[FileExtension] = derived.oformat()
-}

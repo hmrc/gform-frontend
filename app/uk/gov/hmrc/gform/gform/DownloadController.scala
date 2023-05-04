@@ -19,11 +19,10 @@ package uk.gov.hmrc.gform.gform
 import play.api.Environment
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileExtension, FormTemplateId, InternalLink, LinkCtx }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, InternalLink, LinkCtx }
 import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -37,45 +36,47 @@ class DownloadController(
   ec: ExecutionContext
 ) extends FrontendController(messagesControllerComponents) {
 
+  private val allowedFileInfo: Map[String, String] = Map(
+    ("nipClaimScheduleTemplate.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+    ("nipClaimScheduleTemplate.ods", "application/vnd.oasis.opendocument.spreadsheet")
+  )
+
   def downloadFile(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    fileName: String,
-    fileExt: FileExtension
+    fileName: String
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.DownloadFile
+      OperationWithForm.DownloadFileByInternalLink
     ) { _ => _ => _ => _ => formModelOptics =>
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
       val allExprs = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
 
-      if (!allExprs.contains(LinkCtx(InternalLink.DownloadFile(fileName, fileExt)))) {
+      if (!allExprs.contains(LinkCtx(InternalLink.Download(fileName)))) {
         Future.failed(
           new NotFoundException(
-            s"link.download.$fileName.${fileExt.value} expr does not exist in $formTemplateId form"
+            s"link.download.$fileName expr does not exist in $formTemplateId form"
           )
         )
       } else {
-        val fileFullName = s"$fileName.${fileExt.value}"
-        val file = environment.getFile(s"conf/resources/$fileFullName")
+        val file = environment.getFile(s"conf/resources/$fileName")
         if (file.exists()) {
           Future.successful(
             Ok.sendFile(
               content = file,
-              fileName = _ => Some(fileFullName)
+              fileName = _ => Some(fileName)
             ).withHeaders(
-              CONTENT_DISPOSITION -> s"inline; filename=$fileFullName",
-              CONTENT_TYPE -> FileInfoConfig.lookup
-                .get(fileExt.value)
-                .getOrElse("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                .toString,
+              CONTENT_DISPOSITION -> s"inline; filename=$fileName",
+              CONTENT_TYPE -> allowedFileInfo
+                .get(fileName)
+                .getOrElse(throw new IllegalArgumentException(s"File $fileName is not supported by this operation")),
               CONTENT_LENGTH -> file.length.toString
             )
           )
         } else {
-          Future.failed(new NotFoundException(s"File: $fileName.$fileExt does not exist"))
+          Future.failed(new NotFoundException(s"File $fileName does not exist"))
         }
       }
     }
