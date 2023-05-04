@@ -340,6 +340,7 @@ summary.change=Newid
 summary.view=Bwrw golwg
 summary.acknowledgement.pdf=Cydnabyddiaeth PDF
 summary.checkYourAnswers=Gwiriwch eich atebion
+summary.label.optional=(dewisol)
 
 # Acknowledgement
 ack.title={0} wedi’i chyflwyno
