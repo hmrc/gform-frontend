@@ -495,9 +495,14 @@ case class EvaluationResults(
                 .url
             case PageLink(id) =>
               computePageLink(id, evaluationContext)
-            case InternalLink.NipTemplate(fileExtension) =>
+            case InternalLink.DownloadFile(fileName, fileExt) =>
               uk.gov.hmrc.gform.gform.routes.DownloadController
-                .downloadNipTemplate(fileExtension.value)
+                .downloadFile(
+                  evaluationContext.formTemplateId,
+                  evaluationContext.maybeAccessCode,
+                  fileName,
+                  fileExt
+                )
                 .url
           }
         nonEmptyStringResult(StringResult(link))
