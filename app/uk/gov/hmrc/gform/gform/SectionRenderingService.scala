@@ -79,7 +79,6 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.fileupload
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 import uk.gov.hmrc.govukfrontend.views.viewmodels.input.{ Input, PrefixOrSuffix }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
-import uk.gov.hmrc.govukfrontend.views.viewmodels.notificationbanner.NotificationBanner
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
@@ -116,8 +115,7 @@ class SectionRenderingService(
     cache: AuthCacheWithForm,
     envelope: EnvelopeWithMapping,
     addressRecordLookup: AddressRecordLookup,
-    fastForward: List[FastForward],
-    notificationBanner: Option[NotificationBanner]
+    fastForward: List[FastForward]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -209,8 +207,7 @@ class SectionRenderingService(
       checkYourAnswers.expandedHeader.map(markDownParser),
       checkYourAnswers.expandedFooter.map(markDownParser),
       specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
-      ff,
-      notificationBanner
+      ff
     )
 
   }
@@ -227,8 +224,7 @@ class SectionRenderingService(
     specimenSource: Option[FormTemplate],
     validationResult: ValidationResult,
     retrievals: MaterialisedRetrievals,
-    fastForward: List[FastForward],
-    notificationBanner: Option[NotificationBanner]
+    fastForward: List[FastForward]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -399,8 +395,7 @@ class SectionRenderingService(
       specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
       maybeAccessCode,
       sectionNumber,
-      fastForward,
-      notificationBanner
+      fastForward
     )
   }
 
@@ -420,8 +415,7 @@ class SectionRenderingService(
     fastForward: List[FastForward],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     upscanInitiate: UpscanInitiate,
-    addressRecordLookup: AddressRecordLookup,
-    notificationBanner: Option[NotificationBanner]
+    addressRecordLookup: AddressRecordLookup
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -554,8 +548,7 @@ class SectionRenderingService(
       frontendAppConfig,
       specimenNavigation =
         specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
-      fastForward,
-      notificationBanner
+      fastForward
     )
 
   }
@@ -689,8 +682,7 @@ class SectionRenderingService(
     singleton: Singleton[DataExpanded],
     retrievals: MaterialisedRetrievals,
     validationResult: ValidationResult,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    notificationBanner: Option[NotificationBanner]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -760,8 +752,7 @@ class SectionRenderingService(
       backLink = Some(mkBackLinkDeclaration(formTemplate, maybeAccessCode, formTemplate.sectionNumberZero)),
       shouldDisplayHeading = true,
       frontendAppConfig,
-      fastForward = List(FastForward.Yes),
-      notificationBanner = notificationBanner
+      fastForward = List(FastForward.Yes)
     )
   }
 
@@ -919,8 +910,7 @@ class SectionRenderingService(
     retrievals: MaterialisedRetrievals,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     globalErrors: List[ErrorLink],
-    validationResult: ValidationResult,
-    notificationBanner: Option[NotificationBanner]
+    validationResult: ValidationResult
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -983,8 +973,7 @@ class SectionRenderingService(
         None,
         true,
         frontendAppConfig,
-        fastForward = List(FastForward.Yes),
-        notificationBanner = notificationBanner
+        fastForward = List(FastForward.Yes)
       )
   }
 

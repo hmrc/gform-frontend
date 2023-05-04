@@ -24,7 +24,6 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.gform.{ EnrolmentFormNotValid, NoIdentifierProvided, SubmitEnrolmentError }
 import uk.gov.hmrc.gform.gform.RegimeIdNotMatch
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormTemplate }
@@ -44,8 +43,7 @@ class EnrolmentResultProcessor(
 
   private def getResult(
     validationResult: ValidationResult,
-    globalErrors: List[ErrorLink],
-    notificatioBanner: Option[NotificationBanner]
+    globalErrors: List[ErrorLink]
   ): Result =
     Ok(
       renderEnrolmentSection(
@@ -54,14 +52,12 @@ class EnrolmentResultProcessor(
         enrolmentSection,
         formModelOptics,
         globalErrors,
-        validationResult,
-        notificatioBanner
+        validationResult
       )
     )
 
   def recoverEnrolmentError(
-    validationResult: ValidationResult,
-    notificatioBanner: Option[NotificationBanner]
+    validationResult: ValidationResult
   )(implicit messages: Messages): SubmitEnrolmentError => Result =
     enrolmentError => {
 
@@ -80,10 +76,10 @@ class EnrolmentResultProcessor(
             (validationResult, List.empty)
         }
       val (validationResultFinal, globalErrors) = convertEnrolmentError(enrolmentError)
-      getResult(validationResultFinal, globalErrors, notificatioBanner)
+      getResult(validationResultFinal, globalErrors)
     }
 
-  def processEnrolmentResult(notificatioBanner: Option[NotificationBanner])(
+  def processEnrolmentResult()(
     authRes: CheckEnrolmentsResult
   )(implicit request: Request[AnyContent], messages: Messages, l: LangADT): Result =
     authRes match {
@@ -99,7 +95,7 @@ class EnrolmentResultProcessor(
 
         val globalErrors = globalError :: Nil
         val validationResult = ValidationResult.empty
-        getResult(validationResult, globalErrors, notificatioBanner)
+        getResult(validationResult, globalErrors)
       case CheckEnrolmentsResult.Failed =>
         // Nothing we can do here, so technical difficulties it is.
         throw new Exception("Enrolment has failed. Most probable reason is enrolment service being unavailable")

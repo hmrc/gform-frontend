@@ -25,6 +25,7 @@
 @import uk.gov.hmrc.gform.controllers.{ SaveAndExit, Back }
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
+@import uk.gov.hmrc.gform.FormTemplateKey
 
 @import uk.gov.hmrc.gform.commons.MarkDownUtil
 @(
@@ -36,8 +37,7 @@
   shouldDisplayHeading: Boolean,
   frontendAppConfig: FrontendAppConfig,
   specimenNavigation: Html = HtmlFormat.empty,
-  fastForward: List[FastForward],
-  notificationBanner: Option[NotificationBanner]
+  fastForward: List[FastForward]
 )(
   implicit
   request: Request[_],
@@ -61,7 +61,7 @@
   backLink = backLink
 ) {
 
-    @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
+    @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 
     @pageLevelError.render
 

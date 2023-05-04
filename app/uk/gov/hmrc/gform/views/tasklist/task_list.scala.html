@@ -28,6 +28,8 @@
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.TaskListDisplayWidth
+@import uk.gov.hmrc.gform.FormTemplateKey
+
 
 @(
   formTemplate: FormTemplate,
@@ -36,7 +38,6 @@
   statusesLookup: Map[Coordinates, TaskStatus],
   completedSection: Int,
   frontendAppConfig: FrontendAppConfig,
-  notificationBanner: Option[NotificationBanner],
   taskListH2key: String
 )(
   implicit
@@ -74,7 +75,7 @@
   isMainContentFullWidth = true
 ) {
     @mainContent {
-        @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
+    @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 
         <h1 class="govuk-heading-xl">
         @{formTemplate.formName.value}

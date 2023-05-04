@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateWithRedirects, Horizontal, OptionData, Radio, RevealingChoice, RevealingChoiceElement, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, Horizontal, OptionData, Radio, RevealingChoice, RevealingChoiceElement, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
@@ -402,7 +402,7 @@ class RealSmartStringEvaluatorFactorySpec
       AuthCacheWithForm(
         retrievals,
         form,
-        FormTemplateWithRedirects.noRedirects(formTemplate, None),
+        FormTemplateContext.basicContext(formTemplate, None),
         Role.Customer,
         maybeAccessCode,
         LocalisedLookupOptions(Map())

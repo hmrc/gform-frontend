@@ -41,7 +41,6 @@ import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
 import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -114,7 +113,7 @@ class EnrolmentController(
     auth.asyncGGAuth(formTemplateId) { implicit request: Request[AnyContent] => implicit l => cache =>
       cache.formTemplate.authConfig match {
         case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
-          gformConnector.notificationBanner(formTemplateId).map { notificationBanner =>
+          Future.successful(
             Ok(
               renderEnrolmentSection(
                 cache.formTemplate,
@@ -122,11 +121,10 @@ class EnrolmentController(
                 enrolmentSection,
                 FormModelOptics.fromEnrolmentSection(enrolmentSection, cache),
                 Nil,
-                ValidationResult.empty,
-                notificationBanner
+                ValidationResult.empty
               )
             )
-          }
+          )
         case _ =>
           Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments(formTemplateId))
             .flashing("formTitle" -> cache.formTemplate.formName.value)
@@ -140,8 +138,7 @@ class EnrolmentController(
     enrolmentSection: EnrolmentSection,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     globalErrors: List[ErrorLink],
-    validationResult: ValidationResult,
-    notificationBanner: Option[NotificationBanner]
+    validationResult: ValidationResult
   )(implicit request: Request[_], l: LangADT): Html = {
     implicit val sse = smartStringEvaluatorFactory(
       formModelOptics.formModelVisibilityOptics
@@ -156,8 +153,7 @@ class EnrolmentController(
         retrievals,
         formModelOptics,
         globalErrors,
-        validationResult,
-        notificationBanner.map(_.toViewNotificationBanner)
+        validationResult
       )
   }
 
@@ -216,7 +212,6 @@ class EnrolmentController(
                 )
                 for {
                   formHandlerResult <- formHandlerResultF
-                  notificatioBanner <- gformConnector.notificationBanner(formTemplateId)
                   res <- processValidation(
                            serviceId,
                            enrolmentSection,
@@ -228,8 +223,8 @@ class EnrolmentController(
                          )
                            .fold(
                              enrolmentResultProcessor
-                               .recoverEnrolmentError(formHandlerResult.validationResult, notificatioBanner),
-                             enrolmentResultProcessor.processEnrolmentResult(notificatioBanner)
+                               .recoverEnrolmentError(formHandlerResult.validationResult),
+                             enrolmentResultProcessor.processEnrolmentResult()
                            )
                            .run(Env(formTemplate, retrievals, formModelVisibilityOptics))
                 } yield res

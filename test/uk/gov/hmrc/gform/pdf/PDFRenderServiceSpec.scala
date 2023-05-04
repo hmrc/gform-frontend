@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateWithRedirects, Instruction, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, Instruction, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult, ValidationService }
@@ -111,7 +111,7 @@ class PDFRenderServiceSpec
     lazy val cache = AuthCacheWithForm(
       retrievals,
       form,
-      FormTemplateWithRedirects.noRedirects(formTemplate, None),
+      FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       maybeAccessCode,
       LocalisedLookupOptions(Map())

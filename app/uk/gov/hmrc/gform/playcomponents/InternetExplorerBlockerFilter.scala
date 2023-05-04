@@ -35,8 +35,8 @@ class InternetExplorerBlockerFilter(implicit override val mat: Materializer) ext
 
     if (isNewFormRoute(rh) && isInternetExplorer(userAgent)) {
 
-      val formTemplateWithRedirects = rh.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
+      val formTemplateContext = rh.attrs(FormTemplateKey)
+      val formTemplate = formTemplateContext.formTemplate
       logger.info(
         s"Internet explorer detected while trying to access ${formTemplate._id.value}. User agent used: $userAgent"
       )

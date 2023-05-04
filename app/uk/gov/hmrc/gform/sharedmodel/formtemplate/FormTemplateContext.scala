@@ -18,17 +18,21 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
 import play.api.libs.json.OFormat
+import uk.gov.hmrc.gform.shutter.Shutter
+import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 
-final case class FormTemplateWithRedirects(
+final case class FormTemplateContext(
   formTemplate: FormTemplate,
   specimenSource: Option[
     FormTemplate
   ], // If formTemplate is speciment, this holds template from which specimen has been generated
-  redirect: Option[FormTemplateId] // FormTemplateId which has formTemplate._id in its legacyIds
+  redirect: Option[FormTemplateId], // FormTemplateId which has formTemplate._id in its legacyIds
+  shutter: Option[Shutter] = None,
+  notificationBanner: Option[NotificationBanner] = None
 )
 
-object FormTemplateWithRedirects {
-  def noRedirects(formTemplate: FormTemplate, specimenSource: Option[FormTemplate]): FormTemplateWithRedirects =
-    FormTemplateWithRedirects(formTemplate, specimenSource, Option.empty[FormTemplateId])
-  implicit val format: OFormat[FormTemplateWithRedirects] = derived.oformat()
+object FormTemplateContext {
+  def basicContext(formTemplate: FormTemplate, specimenSource: Option[FormTemplate]): FormTemplateContext =
+    FormTemplateContext(formTemplate, specimenSource, Option.empty[FormTemplateId])
+  implicit val format: OFormat[FormTemplateContext] = derived.oformat()
 }

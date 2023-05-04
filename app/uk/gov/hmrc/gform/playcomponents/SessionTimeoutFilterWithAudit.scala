@@ -55,8 +55,8 @@ class SessionTimeoutFilterWithAudit(
     val lastRequestTimestamp = "ts"
     val timestamp = rh.session.get(lastRequestTimestamp)
 
-    val formTemplateWithRedirects = rh.attrs.get(FormTemplateKey)
-    val maybeFormTemplate = formTemplateWithRedirects.map(_.formTemplate)
+    val formTemplateContext = rh.attrs.get(FormTemplateKey)
+    val maybeFormTemplate = formTemplateContext.map(_.formTemplate)
     (timestamp.flatMap(timestampToInstant), maybeFormTemplate) match {
       case (Some(ts), Some(formTemplate)) if hasExpired(ts) =>
         sendTimeOutEvent(formTemplate._id)(rh.withBody(null))

@@ -25,6 +25,7 @@
 @import uk.gov.hmrc.gform.models.FastForward
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
+@import uk.gov.hmrc.gform.FormTemplateKey
 
 @(
     title: String,
@@ -41,8 +42,7 @@
     header: Option[Html],
     footer: Option[Html],
     specimenNavigation: Html,
-    fastForward: List[FastForward],
-    notificationBanner: Option[NotificationBanner]
+    fastForward: List[FastForward]
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
@@ -64,7 +64,7 @@
     frontendAppConfig = frontendAppConfig,
     backLink = Some(backLink)
 ) {
-    @notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner))
+    @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 
     @hmrcPageHeading(PageHeading(
         text = heading,

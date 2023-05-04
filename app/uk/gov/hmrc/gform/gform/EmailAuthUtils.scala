@@ -21,17 +21,17 @@ import play.api.mvc.RequestHeader
 import uk.gov.hmrc.gform.auth.models.EmailAuthDetails
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.EMAIL_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateWithRedirects, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, FormTemplateId, JsonUtils }
 
 object EmailAuthUtils {
 
   def isEmailConfirmed(
-    formTemplateWithRedirects: FormTemplateWithRedirects
+    formTemplateContext: FormTemplateContext
   )(implicit rh: RequestHeader): Option[CIString] = {
     val emailAuthDetails: EmailAuthDetails =
       jsonFromSession(rh, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
     emailAuthDetails
-      .get(formTemplateWithRedirects)
+      .get(formTemplateContext)
       .fold[Option[CIString]](None)(_.confirmedEmail)
   }
 

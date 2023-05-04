@@ -23,10 +23,12 @@ import uk.gov.hmrc.crypto.{ Crypted, Decrypter, Encrypter, PlainText }
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplateWithRedirects }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, EmailAuthConfig, FormTemplateContext }
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.{ SessionCookieCrypto, SessionCookieCryptoFilter }
+import uk.gov.hmrc.gform.views.html
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 class SessionCookieDispatcherFilter(
   sessionCookieCrypto: SessionCookieCrypto,
@@ -34,7 +36,8 @@ class SessionCookieDispatcherFilter(
   anonymousCookieCryptoFilter: SessionCookieCryptoFilter,
   emailCookieCryptoFilter: SessionCookieCryptoFilter,
   requestHeaderService: RequestHeaderService,
-  configModule: ConfigModule
+  configModule: ConfigModule,
+  playBuiltInsModule: PlayBuiltInsModule
 )(implicit ec: ExecutionContext, override val mat: Materializer)
     extends Filter {
 
@@ -49,8 +52,8 @@ class SessionCookieDispatcherFilter(
 
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
-    val maybeFormTemplateWithRedirects: Future[Option[FormTemplateWithRedirects]] =
-      requestHeaderService.formTemplateWithRedirects(rh)
+    val maybeFormTemplateContext: Future[Option[FormTemplateContext]] =
+      requestHeaderService.formTemplateContext(rh)
 
     def findAuthConfigCookie(rh: RequestHeader): Option[Cookie] =
       rh.headers
@@ -58,25 +61,41 @@ class SessionCookieDispatcherFilter(
         .flatMap(cookieHeaderEncoding.decodeCookieHeader)
         .find(_.name == authConfigCookieName)
 
-    maybeFormTemplateWithRedirects.flatMap {
-      case Some(formTemplateWithRedirects) =>
+    maybeFormTemplateContext.flatMap {
+      case Some(FormTemplateContext(formTemplate, _, _, Some(shutter), _)) =>
+        val langs = playBuiltInsModule.langs
+        implicit val messagesApi = playBuiltInsModule.messagesApi
+        implicit val request = Request(rh, AnyContentAsEmpty)
+        implicit val currentLanguge = LangADT.fromRequest(request, langs)(messagesApi)
+        implicit val messages = messagesApi.preferred(rh.acceptLanguages)
+        Future.successful(
+          Results.Forbidden(
+            html.form.shutterForm(
+              formTemplate,
+              configModule.frontendAppConfig,
+              shutter.toHtmlMessage
+            )
+          )
+        )
+
+      case Some(formTemplateContext) =>
         val formTemplate =
-          formTemplateWithRedirects.formTemplate
+          formTemplateContext.formTemplate
         val (result, cookieValue) =
           formTemplate.authConfig match {
             case Anonymous =>
               (
-                anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateWithRedirects)),
+                anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
                 encrypter.encrypt(PlainText(AnonymousAuth))
               )
             case EmailAuthConfig(_, _, _, _) =>
               (
-                emailCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateWithRedirects)),
+                emailCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
                 encrypter.encrypt(PlainText(EmailAuth))
               )
             case _ =>
               (
-                hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateWithRedirects)),
+                hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
                 encrypter.encrypt(PlainText(HmrcAuth))
               )
           }

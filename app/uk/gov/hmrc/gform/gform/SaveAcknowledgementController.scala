@@ -47,13 +47,13 @@ class SaveAcknowledgementController(
   def show(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, ViewSaveAcknowledgement) {
       implicit request => implicit lang => cache => _ => _ =>
-        val formTemplateWithRedirects = cache.formTemplateWithRedirects
-        val formTemplate = formTemplateWithRedirects.formTemplate
+        val formTemplateContext = cache.formTemplateContext
+        val formTemplate = formTemplateContext.formTemplate
         formTemplate.authConfig match {
           case Composite(configs) =>
             val compositeAuthDetails =
               jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-                .get(formTemplateWithRedirects)
+                .get(formTemplateContext)
             val config = AuthConfig
               .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
             saveAcknowledgementForEmail(cache, formTemplateId, config)
@@ -70,14 +70,14 @@ class SaveAcknowledgementController(
     request: Request[AnyContent],
     l: LangADT
   ): Future[Result] = {
-    val formTemplateWithRedirects = cache.formTemplateWithRedirects
-    val formTemplate = formTemplateWithRedirects.formTemplate
+    val formTemplateContext = cache.formTemplateContext
+    val formTemplate = formTemplateContext.formTemplate
     config match {
       case Some(EmailAuthConfig(_, _, _, _)) =>
         val emailAuthDetails: EmailAuthDetails =
           jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
         emailAuthDetails
-          .get(formTemplateWithRedirects)
+          .get(formTemplateContext)
           .fold {
             throw new IllegalArgumentException(
               s"Email auth details missing for form template $formTemplateId"

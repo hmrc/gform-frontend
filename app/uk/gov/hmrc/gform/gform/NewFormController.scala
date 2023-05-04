@@ -114,8 +114,8 @@ class NewFormController(
   def dashboardWithCompositeAuth(formTemplateId: FormTemplateId) = Action.async { implicit request =>
     val compositeAuthDetails: CompositeAuthDetails =
       jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-    val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-    val formTemplate = formTemplateWithRedirects.formTemplate
+    val formTemplateContext = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateContext.formTemplate
     Redirect(routes.NewFormController.dashboard(formTemplateId).url, request.queryString)
       .addingToSession(
         COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
@@ -233,7 +233,7 @@ class NewFormController(
         val queryParams: QueryParams = QueryParams.fromRequest(request)
 
         for {
-          formTemplate <- gformConnector.getFormTemplateWithRedirects(formTemplateId).map(_.formTemplate)
+          formTemplate <- gformConnector.getFormTemplateContext(formTemplateId).map(_.formTemplate)
           formIdData   <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
           res <-
             handleForm(formIdData, formTemplate)(
@@ -489,9 +489,9 @@ class NewFormController(
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
 
       val allBracketExprs = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
-      val allCustomExprs = cache.formTemplateWithRedirects.formTemplate.formKind.allCustomExprs
+      val allCustomExprs = cache.formTemplateContext.formTemplate.formKind.allCustomExprs
       val expressionsOutExprs =
-        cache.formTemplateWithRedirects.formTemplate.expressionsOutput.fold(List.empty[Expr])(_.lookup.map(_._2).toList)
+        cache.formTemplateContext.formTemplate.expressionsOutput.fold(List.empty[Expr])(_.lookup.map(_._2).toList)
       val allExprs = allBracketExprs ++ allCustomExprs ++ expressionsOutExprs
 
       allExprs.contains(AuthCtx(AuthInfo.ItmpAddress)) ||

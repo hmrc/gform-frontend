@@ -31,7 +31,6 @@ import play.api.libs.json.JsValue
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
-import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
@@ -39,7 +38,7 @@ import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse }
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateWithRedirects, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
@@ -360,10 +359,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}/internal")
 
-  def getFormTemplateWithRedirects(
+  def getFormTemplateContext(
     formTemplateId: FormTemplateId
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplateWithRedirects] =
-    ws.GET[FormTemplateWithRedirects](s"$baseUrl/formtemplates-with-redirects/${formTemplateId.value}")
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplateContext] =
+    ws.GET[FormTemplateContext](s"$baseUrl/formtemplates-with-redirects/${formTemplateId.value}")
 
   def getLatestFormTemplate(
     formTemplateId: FormTemplateId
@@ -504,10 +503,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       .map(_ => ())
   }
 
-  def notificationBanner(id: FormTemplateId)(implicit ec: ExecutionContext): Future[Option[NotificationBanner]] =
-    ws.doGet(show"$baseUrl/notification-banner/$id").map { response =>
-      if (response.status == 200) Some(response.json.as[NotificationBanner])
-      else Option.empty[NotificationBanner]
-    }
+  // def notificationBanner(id: FormTemplateId)(implicit ec: ExecutionContext): Future[Option[NotificationBanner]] =
+  //   ws.doGet(show"$baseUrl/notification-banner/$id").map { response =>
+  //     if (response.status == 200) Some(response.json.as[NotificationBanner])
+  //     else Option.empty[NotificationBanner]
+  //   }
 
 }

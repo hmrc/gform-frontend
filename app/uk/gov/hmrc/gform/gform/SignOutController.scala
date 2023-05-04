@@ -47,15 +47,15 @@ class SignOutController(
     extends FrontendController(messagesControllerComponents) with I18nSupport {
 
   def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth { request => l =>
-    val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-    val formTemplate = formTemplateWithRedirects.formTemplate
+    val formTemplateContext = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateContext.formTemplate
     val redirect = Redirect(routes.SignOutController.showSignedOutPage(formTemplate._id)).withNewSession
 
     val config: Option[AuthConfig] = formTemplate.authConfig match {
       case Composite(configs) =>
         val compositeAuthDetails =
           jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-            .get(formTemplateWithRedirects)
+            .get(formTemplateContext)
         AuthConfig
           .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
       case config => Some(config)
@@ -66,7 +66,7 @@ class SignOutController(
         val emailAuthDetails: EmailAuthDetails =
           jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
 
-        emailAuthDetails.get(formTemplateWithRedirects).fold(redirect) { emailAuthData =>
+        emailAuthDetails.get(formTemplateContext).fold(redirect) { emailAuthData =>
           redirect
             .flashing("maskedEmailId" -> maskEmail(emailAuthData.email.toString))
         }
@@ -86,8 +86,8 @@ class SignOutController(
 
   def showSignedOutPage(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth {
     implicit request => implicit l =>
-      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
+      val formTemplateContext = request.attrs(FormTemplateKey)
+      val formTemplate = formTemplateContext.formTemplate
       val signBackInUrl = routes.NewFormController.dashboard(formTemplateId).url
       val maskedEmailId = request.flash.get("maskedEmailId")
       maskedEmailId match {

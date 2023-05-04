@@ -14,15 +14,26 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc
+package uk.gov.hmrc.gform.shutter
 
-import _root_.play.api.libs.typedmap.TypedKey
-import _root_.play.twirl.api.{ Html, HtmlFormat }
-import cats.Monoid
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateContext
+import julienrf.json.derived
+import play.api.libs.json.OFormat
+import uk.gov.hmrc.gform.commons.MarkDownUtil
+import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 
-package object gform {
-  val FormTemplateKey: TypedKey[FormTemplateContext] = TypedKey[FormTemplateContext]("form-template")
+case class ShutterMessageId(value: String)
 
-  implicit val monoidHtml: Monoid[Html] = Monoid.instance[Html](HtmlFormat.empty, (x, y) => HtmlFormat.fill(List(x, y)))
+object ShutterMessageId {
+  implicit val oformat: OFormat[ShutterMessageId] =
+    ValueClassFormat.oformat("shutterMessageId", ShutterMessageId.apply, _.value)
+}
+case class Shutter(
+  _id: ShutterMessageId,
+  message: String
+) {
+  def toHtmlMessage = MarkDownUtil.markDownParser(message)
+}
+
+object Shutter {
+  implicit val format: OFormat[Shutter] = derived.oformat()
 }

@@ -21,7 +21,7 @@ import play.api.mvc.RequestHeader
 import play.api.routing.Router.RequestImplicits._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateWithRedirects }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, FormTemplateId }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
@@ -29,7 +29,7 @@ final class RequestHeaderService(
   gformConnector: GformConnector
 )(implicit ec: ExecutionContext) {
 
-  def formTemplateWithRedirects(rh: RequestHeader): Future[Option[FormTemplateWithRedirects]] = {
+  def formTemplateContext(rh: RequestHeader): Future[Option[FormTemplateContext]] = {
     val formTemplateIdParamIndex: Option[Int] = {
       val mayContainsFormTemplateId: Option[Array[Boolean]] =
         rh.handlerDef.map(_.path.split("/")).map(_.map(_.containsSlice("$formTemplateId")))
@@ -40,7 +40,7 @@ final class RequestHeaderService(
       case Some(i) if i =!= -1 =>
         val templateId = rh.uri.split("\\?")(0).split("/")(i)
         implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(rh, rh.session)
-        gformConnector.getFormTemplateWithRedirects(FormTemplateId(templateId.toLowerCase)).map(Some(_))
+        gformConnector.getFormTemplateContext(FormTemplateId(templateId.toLowerCase)).map(Some(_))
       case _ =>
         Future.successful(None)
     }
