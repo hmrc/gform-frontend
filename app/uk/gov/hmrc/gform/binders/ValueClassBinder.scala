@@ -302,5 +302,4 @@ object ValueClassBinder {
 
   private def caseInsensitive[A: Reads](f: String => A, g: A => String) =
     implicitly[PathBindable[String]].transform[A](s => f(s.toLowerCase), a => g(a).toLowerCase)
-
 }

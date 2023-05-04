@@ -495,6 +495,14 @@ case class EvaluationResults(
                 .url
             case PageLink(id) =>
               computePageLink(id, evaluationContext)
+            case InternalLink.Download(fileName) =>
+              uk.gov.hmrc.gform.gform.routes.DownloadController
+                .downloadFile(
+                  evaluationContext.formTemplateId,
+                  evaluationContext.maybeAccessCode,
+                  fileName
+                )
+                .url
           }
         nonEmptyStringResult(StringResult(link))
       case DateCtx(dateExpr)      => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
