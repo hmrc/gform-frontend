@@ -342,6 +342,7 @@ summary.change=Change
 summary.view=View
 summary.acknowledgement.pdf=Acknowledgement PDF
 summary.checkYourAnswers=Check your answers
+summary.label.optional=(optional)
 
 # Acknowledgement
 ack.title={0} submitted

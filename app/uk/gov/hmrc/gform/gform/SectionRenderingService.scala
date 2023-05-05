@@ -1450,7 +1450,8 @@ class SectionRenderingService(
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
     sse: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[SummaryRender]
+    fcrd: FormComponentRenderDetails[SummaryRender],
+    messages: Messages
   ): Html = {
     def isVisibleValueRow(
       row: TableValueRow

@@ -1524,7 +1524,7 @@ trait SummaryRender extends RenderType
 trait AddToListCYARender extends RenderType
 
 sealed trait FormComponentRenderDetails[T <: RenderType] {
-  def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String
+  def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator, messages: Messages): String
   def prepareRenderables(fields: List[FormComponent]): List[FormComponent]
 }
 
@@ -1533,8 +1533,9 @@ object FormComponentRenderDetails {
   implicit val summaryFormComponentRenderInfo: FormComponentRenderDetails[SummaryRender] =
     new FormComponentRenderDetails[SummaryRender] {
 
-      override def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String =
-        formComponent.shortName.map(ls => ls.value()).getOrElse(formComponent.label.value())
+      override def label(
+        formComponent: FormComponent
+      )(implicit lise: SmartStringEvaluator, messages: Messages): String = getLabel(formComponent)
 
       override def prepareRenderables(fields: List[FormComponent]): List[FormComponent] =
         fields.filter(f => !f.hideOnSummary)
@@ -1542,9 +1543,21 @@ object FormComponentRenderDetails {
 
   implicit val addToListCYARender: FormComponentRenderDetails[AddToListCYARender] =
     new FormComponentRenderDetails[AddToListCYARender] {
-      override def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): String =
-        formComponent.shortName.map(ls => ls.value()).getOrElse(formComponent.label.value())
+      override def label(
+        formComponent: FormComponent
+      )(implicit lise: SmartStringEvaluator, messages: Messages): String = getLabel(formComponent)
 
       override def prepareRenderables(fields: List[FormComponent]): List[FormComponent] = fields
     }
+
+  private def getLabel(
+    formComponent: FormComponent
+  )(implicit lise: SmartStringEvaluator, messages: Messages): String = {
+    val optionalPattern = """\(|\)""".r
+    val label = formComponent.shortName.map(ls => ls.value()).getOrElse(formComponent.label.value())
+    if (formComponent.mandatory) {
+      label
+    } else if (optionalPattern.findFirstIn(label).isDefined) { label }
+    else { s"$label ${messages("summary.label.optional")}" }
+  }
 }
