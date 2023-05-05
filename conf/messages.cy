@@ -159,7 +159,7 @@ generic.number.error.required=Nodwch {1}
 generic.number.error.pattern=Mae {1} yn gorfod bod yn rhif{2}
 generic.number.error.maxDecimal.pattern=Mae {1} yn gorfod cynnwys {3} le degol neu lai{2}
 generic.number.error.maxDigit.pattern=Mae {1} yn gorfod bod yn {3} digid neu lai{2}
-generic.number.error.Whole.pattern=Mae {1} yn gorfod bod yn rhif cyfan{2}
+generic.number.error.whole.pattern=Mae {1} yn gorfod bod yn rhif cyfan{2}
 generic.number.error.positive.pattern=Mae {1} yn gorfod bod yn 0 neu fwy{2}
 
 enrolment.error.failed=Ni ellir dod o hyd i’r manylion cofrestru a nodwyd gennych neu mae cysylltiad rhyngddynt â chyfrif Porth y Llywodraeth gwahanol. Gallwch wneud y canlynol:

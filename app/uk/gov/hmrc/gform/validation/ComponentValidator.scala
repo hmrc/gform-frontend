@@ -95,7 +95,7 @@ object ComponentValidator {
   val genericNumberErrorPattern                              = "generic.number.error.pattern"
   val genericNumberErrorMaxdecimalPattern                    = "generic.number.error.maxDecimal.pattern"
   val genericNumberErrorMaxdigitPattern                      = "generic.number.error.maxDigit.pattern"
-  val genericNumberErrorWholePattern                         = "generic.number.error.Whole.pattern"
+  val genericNumberErrorWholePattern                         = "generic.number.error.whole.pattern"
   val genericNumberErrorPositivePattern                      = "generic.number.error.positive.pattern"
   // format: on
 
