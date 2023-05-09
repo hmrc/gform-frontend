@@ -2413,7 +2413,7 @@ class SectionRenderingService(
     )
 
     val filterHint: Hint = Hint(
-      content = content.Text(messages("postcodeLookup.Filter.hintText"))
+      content = content.Text(messages("postcodeLookup.Filter.hint"))
     )
 
     val attributes =
