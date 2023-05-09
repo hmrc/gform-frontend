@@ -90,6 +90,13 @@ object ComponentValidator {
   val genericVrnErrorRequired                                = "generic.vrn.error.required"
   val genericPayeErrorPattern                                = "generic.paye.error.pattern"
   val genericPayeErrorRequired                               = "generic.paye.error.required"
+
+  val genericNumberErrorRequired                             = "generic.number.error.required"
+  val genericNumberErrorPattern                              = "generic.number.error.pattern"
+  val genericNumberErrorMaxdecimalPattern                    = "generic.number.error.maxDecimal.pattern"
+  val genericNumberErrorMaxdigitPattern                      = "generic.number.error.maxDigit.pattern"
+  val genericNumberErrorWholePattern                         = "generic.number.error.whole.pattern"
+  val genericNumberErrorPositivePattern                      = "generic.number.error.positive.pattern"
   // format: on
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
@@ -255,7 +262,24 @@ object ComponentValidator {
                 .map(_.value().pure[List]) orElse
                 (Some(SmartString.blank.trasform(_ => "a number", _ => "rif").value().pure[List]))
             )
+          case IsText(Text(_: Number, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericNumberErrorRequired,
+              fieldValue.errorShortName
+                .map(_.value().pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a number", _ => "rif").value().pure[List]))
+            )
+          case IsText(Text(_: PositiveNumber, _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericNumberErrorRequired,
+              fieldValue.errorShortName
+                .map(_.value().pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "a number", _ => "rif").value().pure[List]))
+            )
           case _ => validationFailure(fieldValue, genericErrorRequired, None)
+
         }
       case (_, Some(value), lookup @ Lookup(_, _)) =>
         lookupValidation(fieldValue, lookupRegistry, lookup, LookupLabel(value), formModelVisibilityOptics)
@@ -299,9 +323,9 @@ object ComponentValidator {
           textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit)
         )
       case (_, Some(value), Number(maxWhole, maxFractional, _, _)) =>
-        validateNumber(fieldValue, value, maxWhole, maxFractional, false)
+        validateNumeric(fieldValue, value, maxWhole, maxFractional, false)
       case (_, Some(value), PositiveNumber(maxWhole, maxFractional, _, _)) =>
-        validateNumber(fieldValue, value, maxWhole, maxFractional, true)
+        validateNumeric(fieldValue, value, maxWhole, maxFractional, true)
       case (false, None, _) => validationSuccess
     }
 
@@ -422,6 +446,213 @@ object ComponentValidator {
       case _                                   => validationFailure(fieldValue, genericErrorNumber, None)
     }
   }
+
+  private def validateNumeric(
+    fieldValue: FormComponent,
+    value: String,
+    maxWhole: Int,
+    maxFractional: Int,
+    mustBePositive: Boolean
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] = {
+    val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
+    val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
+    TextConstraint.filterNumberValue(value) match {
+      case WholeShape("-", _, _) if mustBePositive         => positiveNumberFailure(fieldValue, value)
+      case FractionalShape("-", _, _, _) if mustBePositive => positiveNumberFailure(fieldValue, value)
+      case FractionalShape(_, _, _, fractional) if maxFractional == 0 && mustBePositive =>
+        wholeNumberFailure(fieldValue, value)
+      case FractionalShape(_, _, _, fractional) if surpassMaxLength(fractional, maxFractional) =>
+        maxFractionFailure(fieldValue, value, maxFractional)
+      case FractionalShape(_, whole, _, _) if surpassMaxLength(whole, maxWhole) =>
+        maxDigitFailure(fieldValue, value, maxWhole)
+      case WholeShape(_, whole, _) if surpassMaxLength(whole, maxWhole) =>
+        maxDigitFailure(fieldValue, value, maxWhole)
+      case WholeShape(_, _, _)         => validationSuccess
+      case FractionalShape(_, _, _, _) => validationSuccess
+      case _                           => nonNumericFailure(fieldValue, value)
+    }
+  }
+
+  private def nonNumericFailure(
+    fieldValue: FormComponent,
+    value: String
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] =
+    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
+      case (None, _) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorRequired,
+          Some(List(SmartString.blank.trasform(_ => "a number", _ => "rif").value(), ""))
+        )
+      case (Some(errorShortNameStart), None) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorPattern,
+          Some(List(errorShortNameStart.value(), ""))
+        )
+      case (Some(errorShortNameStart), Some(errorExample)) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorPattern,
+          Some(List(errorShortNameStart.value(), errorExample.value()))
+        )
+    }
+
+  private def maxFractionFailure(
+    fieldValue: FormComponent,
+    value: String,
+    maxFractional: Int
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] =
+    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
+      case (None, _) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorMaxdecimalPattern,
+          Some(
+            List(
+              SmartString.blank.trasform(_ => "Number", _ => "rhif").value(),
+              "",
+              maxFractional.toString
+            )
+          )
+        )
+      case (Some(errorShortNameStart), None) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorMaxdecimalPattern,
+          Some(
+            List(
+              errorShortNameStart.value(),
+              "",
+              maxFractional.toString
+            )
+          )
+        )
+      case (Some(errorShortNameStart), Some(errorExample)) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorMaxdecimalPattern,
+          Some(
+            List(
+              errorShortNameStart.value(),
+              errorExample.value(),
+              maxFractional.toString
+            )
+          )
+        )
+    }
+
+  private def maxDigitFailure(
+    fieldValue: FormComponent,
+    value: String,
+    maxWhole: Int
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] =
+    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
+      case (None, _) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorMaxdigitPattern,
+          Some(
+            List(
+              SmartString.blank.trasform(_ => "Number", _ => "rhif").value(),
+              "",
+              maxWhole.toString
+            )
+          )
+        )
+      case (Some(errorShortNameStart), None) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorMaxdigitPattern,
+          Some(
+            List(
+              errorShortNameStart.value(),
+              "",
+              maxWhole.toString
+            )
+          )
+        )
+      case (Some(errorShortNameStart), Some(errorExample)) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorMaxdigitPattern,
+          Some(
+            List(
+              errorShortNameStart.value(),
+              errorExample.value(),
+              maxWhole.toString
+            )
+          )
+        )
+    }
+
+  private def wholeNumberFailure(
+    fieldValue: FormComponent,
+    value: String
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] =
+    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
+      case (None, _) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorWholePattern,
+          Some(List(SmartString.blank.trasform(_ => "Number", _ => "rhif").value(), ""))
+        )
+      case (Some(errorShortNameStart), None) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorWholePattern,
+          Some(List(errorShortNameStart.value(), ""))
+        )
+      case (Some(errorShortNameStart), Some(errorExample)) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorWholePattern,
+          Some(List(errorShortNameStart.value(), errorExample.value()))
+        )
+    }
+
+  private def positiveNumberFailure(
+    fieldValue: FormComponent,
+    value: String
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] =
+    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
+      case (None, _) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorPositivePattern,
+          Some(List(SmartString.blank.trasform(_ => "Number", _ => "rhif").value(), ""))
+        )
+      case (Some(errorShortNameStart), None) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorPositivePattern,
+          Some(List(errorShortNameStart.value(), ""))
+        )
+      case (Some(errorShortNameStart), Some(errorExample)) =>
+        validationFailure(
+          fieldValue,
+          genericNumberErrorPositivePattern,
+          Some(List(errorShortNameStart.value(), errorExample.value()))
+        )
+    }
 
   private[validation] def textValidationWithConstraints(
     fieldValue: FormComponent,

@@ -155,6 +155,13 @@ generic.successfullyRemoved=Eitem wedi’i dileu
 generic.error.submissionRef=Ni ellir dod o hyd i {0}. Nodwch {0} dilys yn y fformat cywir. Mae’n rhaid i hyn fod yn 14 o gymeriadau a chynnwys rhifau, cysylltnodau a phriflythrennau yn unig, er enghraifft ABCD-1234-1234
 generic.error.parentSubmissionRefSameAsFormSubmissionRef=Mae’n rhaid i {0} fod yn gyfeirnod cyflwyno ffurflen rhiant. Yr hyn a nodwyd yw cyfeirnod cyflwyno’r ffurflen hon.
 
+generic.number.error.required=Nodwch {1}
+generic.number.error.pattern=Mae {1} yn gorfod bod yn rhif{2}
+generic.number.error.maxDecimal.pattern=Mae {1} yn gorfod cynnwys {3} le degol neu lai{2}
+generic.number.error.maxDigit.pattern=Mae {1} yn gorfod bod yn {3} digid neu lai{2}
+generic.number.error.whole.pattern=Mae {1} yn gorfod bod yn rhif cyfan{2}
+generic.number.error.positive.pattern=Mae {1} yn gorfod bod yn 0 neu fwy{2}
+
 enrolment.error.failed=Ni ellir dod o hyd i’r manylion cofrestru a nodwyd gennych neu mae cysylltiad rhyngddynt â chyfrif Porth y Llywodraeth gwahanol. Gallwch wneud y canlynol:
 enrolment.error.failed.step1=gwirio’ch manylion a rhoi cynnig arall arni
 enrolment.error.failed.step2=cael help gyda mewngofnodi i’r gwasanaeth hwn (yn agor ffenestr neu dab newydd)
