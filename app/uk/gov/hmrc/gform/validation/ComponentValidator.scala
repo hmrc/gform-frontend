@@ -98,12 +98,12 @@ object ComponentValidator {
   val genericNumberErrorWholePattern                         = "generic.number.error.whole.pattern"
   val genericNumberErrorPositivePattern                      = "generic.number.error.positive.pattern"
 
-  val genericPositiveWholeSterlingErrorRequired              = "generic.positive.whole.sterling.error.required"
-  val genericPositiveWholeSterlingErrorPattern               = "generic.positive.whole.sterling.error.pattern"
-  val genericPositiveWholeSterlingErrorPatternStart          = "generic.positive.whole.sterling.error.pattern.start"
-  val genericPositiveWholesterlingErrorMaxdigitPattern       = "generic.positive.whole.sterling.error.maxdigit.pattern"
-  val genericPositiveWholesterlingErrorPencePattern          = "generic.positive.whole.sterling.error.pence.pattern"
-  val genericPositiveWholesterlingErrorPositivePattern       = "generic.positive.whole.sterling.error.positive.pattern"
+  val genericSterlingErrorRequired                           = "generic.sterling.error.required"
+  val genericSterlingErrorPattern                            = "generic.sterling.error.pattern"
+  val genericSterlingErrorPatternStart                       = "generic.sterling.error.pattern.start"
+  val genericSterlingErrorMaxdigitPattern                    = "generic.sterling.error.maxdigit.pattern"
+  val genericWholesterlingErrorPencePattern                  = "generic.whole.sterling.error.pence.pattern"
+  val genericPositiveSterlingErrorPositivePattern            = "generic.positive.sterling.error.positive.pattern"
   // format: on
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
@@ -288,7 +288,15 @@ object ComponentValidator {
           case IsText(Text(WholeSterling(true), _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
-              genericPositiveWholeSterlingErrorRequired,
+              genericSterlingErrorRequired,
+              fieldValue.errorShortName
+                .map(_.value().pure[List]) orElse
+                (Some(SmartString.blank.trasform(_ => "an amount", _ => "swm").value().pure[List]))
+            )
+          case IsText(Text(Sterling(_, _), _, _, _, _, _)) =>
+            validationFailure(
+              fieldValue,
+              genericSterlingErrorRequired,
               fieldValue.errorShortName
                 .map(_.value().pure[List]) orElse
                 (Some(SmartString.blank.trasform(_ => "an amount", _ => "swm").value().pure[List]))
@@ -301,16 +309,10 @@ object ComponentValidator {
       case (_, Some(value), ShortText(min, max)) => shortTextValidation(fieldValue, value, min, max)
       case (_, Some(value), TextWithRestrictions(min, max)) =>
         textValidationWithConstraints(fieldValue, value, min, max)
-      case (_, Some(value), s: Sterling) =>
-        validateNumber(
-          fieldValue,
-          value,
-          ValidationValues.sterlingLength,
-          TextConstraint.defaultFractionalDigits,
-          s.positiveOnly
-        )
+      case (_, Some(value), Sterling(_, isPositive)) =>
+        validateSterling(fieldValue, value, isPositive, false)
       case (_, Some(value), WholeSterling(true)) =>
-        validateWholeSterling(fieldValue, value)
+        validateSterling(fieldValue, value, true, true)
       case (_, Some(value), s: WholeSterling) =>
         validateNumber(
           fieldValue,
@@ -671,23 +673,30 @@ object ComponentValidator {
         )
     }
 
-  private def validateWholeSterling(
+  private def validateSterling(
     fieldValue: FormComponent,
-    value: String
+    value: String,
+    isPositive: Boolean,
+    isWhole: Boolean
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
+    val maxWhole = ValidationValues.sterlingLength
     val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     TextConstraint.filterNumberValue(value) match {
-      case FractionalShape(_, _, _, fractional) =>
+      case FractionalShape(_, _, _, fractional) if !isWhole && fractional.length > 2 =>
+        nonNumericSterlingFailure(fieldValue, value)
+      case FractionalShape(_, _, _, fractional) if isWhole =>
         wholeSterlingFailure(fieldValue, value)
-      case WholeShape(_, whole, _) if surpassMaxLength(whole, 11) =>
-        maxDigitSterlingFailure(fieldValue, value)
-      case WholeShape("-", _, _) => positiveSterlingFailure(fieldValue, value)
-      case WholeShape(_, _, _)   => validationSuccess
-      case _                     => nonNumericSterlingFailure(fieldValue, value)
+      case WholeShape(_, whole, _) if surpassMaxLength(whole, maxWhole) =>
+        maxDigitSterlingFailure(fieldValue, value, maxWhole)
+      case WholeShape("-", _, _) if isPositive         => positiveSterlingFailure(fieldValue, value)
+      case FractionalShape("-", _, _, _) if isPositive => positiveSterlingFailure(fieldValue, value)
+      case WholeShape(_, _, _)                         => validationSuccess
+      case FractionalShape(_, _, _, _) if !isWhole     => validationSuccess
+      case _                                           => nonNumericSterlingFailure(fieldValue, value)
     }
   }
 
@@ -703,7 +712,7 @@ object ComponentValidator {
         val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
         validationFailure(
           fieldValue,
-          genericPositiveWholeSterlingErrorPattern,
+          genericSterlingErrorPattern,
           Some(List(SmartString.blank.trasform(_ => "an amount", _ => "swm").value(), errorExample.value()))
         )
 
@@ -711,21 +720,22 @@ object ComponentValidator {
         val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
         validationFailure(
           fieldValue,
-          genericPositiveWholeSterlingErrorPattern,
+          genericSterlingErrorPattern,
           Some(List(errorShortName.value(), errorExample.value()))
         )
       case (_, Some(errorShortNameStart), maybeErrorExample) =>
         val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
         validationFailure(
           fieldValue,
-          genericPositiveWholeSterlingErrorPatternStart,
+          genericSterlingErrorPatternStart,
           Some(List(errorShortNameStart.value(), errorExample.value()))
         )
     }
 
   private def maxDigitSterlingFailure(
     fieldValue: FormComponent,
-    value: String
+    value: String,
+    maxWhole: Int
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
@@ -735,11 +745,12 @@ object ComponentValidator {
         val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
         validationFailure(
           fieldValue,
-          genericPositiveWholesterlingErrorMaxdigitPattern,
+          genericSterlingErrorMaxdigitPattern,
           Some(
             List(
               SmartString.blank.trasform(_ => "Amount", _ => "swm").value(),
-              errorExample.value()
+              errorExample.value(),
+              maxWhole.toString
             )
           )
         )
@@ -747,11 +758,12 @@ object ComponentValidator {
         val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
         validationFailure(
           fieldValue,
-          genericPositiveWholesterlingErrorMaxdigitPattern,
+          genericSterlingErrorMaxdigitPattern,
           Some(
             List(
               errorShortNameStart.value(),
-              errorExample.value()
+              errorExample.value(),
+              maxWhole.toString
             )
           )
         )
@@ -769,7 +781,7 @@ object ComponentValidator {
         val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
         validationFailure(
           fieldValue,
-          genericPositiveWholesterlingErrorPencePattern,
+          genericWholesterlingErrorPencePattern,
           Some(
             List(
               SmartString.blank.trasform(_ => "Amount", _ => "swm").value(),
@@ -781,7 +793,7 @@ object ComponentValidator {
         val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
         validationFailure(
           fieldValue,
-          genericPositiveWholesterlingErrorPencePattern,
+          genericWholesterlingErrorPencePattern,
           Some(
             List(
               errorShortNameStart.value(),
@@ -803,7 +815,7 @@ object ComponentValidator {
         val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
         validationFailure(
           fieldValue,
-          genericPositiveWholesterlingErrorPositivePattern,
+          genericPositiveSterlingErrorPositivePattern,
           Some(
             List(
               SmartString.blank.trasform(_ => "Amount", _ => "swm").value(),
@@ -815,7 +827,7 @@ object ComponentValidator {
         val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
         validationFailure(
           fieldValue,
-          genericPositiveWholesterlingErrorPositivePattern,
+          genericPositiveSterlingErrorPositivePattern,
           Some(
             List(
               errorShortNameStart.value(),

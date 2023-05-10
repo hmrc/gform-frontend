@@ -173,15 +173,15 @@ class ComponentValidatorSpec
       ("1", Valid(())),
       (
         "-1",
-        Invalid(Map(textComponent.id.modelComponentId -> Set("generic.positive.whole.sterling.error.positive.pattern")))
+        Invalid(Map(textComponent.id.modelComponentId -> Set("generic.positive.sterling.error.positive.pattern")))
       ),
       (
         "1.1",
-        Invalid(Map(textComponent.id.modelComponentId -> Set("generic.positive.whole.sterling.error.pence.pattern")))
+        Invalid(Map(textComponent.id.modelComponentId -> Set("generic.whole.sterling.error.pence.pattern")))
       ),
       (
         "-1.1",
-        Invalid(Map(textComponent.id.modelComponentId -> Set("generic.positive.whole.sterling.error.pence.pattern")))
+        Invalid(Map(textComponent.id.modelComponentId -> Set("generic.whole.sterling.error.pence.pattern")))
       )
     )
 
