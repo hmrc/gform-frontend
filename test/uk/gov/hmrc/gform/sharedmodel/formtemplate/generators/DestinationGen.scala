@@ -93,7 +93,19 @@ trait DestinationGen {
       payloadType <- TemplateTypeGen.templateTypeGen
       includeIf   <- includeIfGen()
       failOnError <- PrimitiveGen.booleanGen
-    } yield Destination.HandlebarsHttpApi(id, profile, uri, method, payload, payloadType, includeIf, failOnError, false)
+    } yield Destination.HandlebarsHttpApi(
+      id,
+      profile,
+      uri,
+      method,
+      payload,
+      None,
+      payloadType,
+      includeIf,
+      failOnError,
+      false,
+      None
+    )
 
   def handlebarsHttpApiGen(
     includeIf: Option[DestinationIncludeIf] = None,
