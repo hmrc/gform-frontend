@@ -21,9 +21,10 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with FileUploadStubs {
     val responseBody = Jsoup.parse(newFormResponse.body)
     val form = responseBody.getElementsByClass("hmrc-user-research-banner__container")
 
-    form.text should include("Help improve HMRC services")
-    form.text should include("Sign up to take part in user research (opens in new tab)")
-    form.text should include("No thanks")
+    form.text should include("Help make GOV.UK better")
+    form.text should include("Sign up to take part in research (opens in new tab)")
+    form.text should include("Hide message Hide message.")
+    form.text should include("I do not want to take part in research")
 
     val link = responseBody.getElementsByClass("hmrc-user-research-banner__link")
 

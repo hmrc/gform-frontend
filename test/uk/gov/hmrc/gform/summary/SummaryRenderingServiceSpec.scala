@@ -253,7 +253,7 @@ class SummaryRenderingServiceSpec
             )
             .futureValue
 
-          val pageButton = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button").first
+          val pageButton = Jsoup.parse(generatedHtml.body).select("button[type=submit][value=SummaryContinue]").first()
 
           pageButton.text shouldBe "Summary ContinueLabel"
         }

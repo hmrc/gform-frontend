@@ -255,7 +255,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         AddressRecordLookup.from(ThirdPartyData.empty)
       )
 
-    val textFieldHtml: Elements = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button")
+    val textFieldHtml: Elements = Jsoup.parse(generatedHtml.body).select("button[type=submit][class=govuk-button]")
     textFieldHtml.attr("class") shouldNot include("govuk-button--secondary")
   }
 
@@ -324,7 +324,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         formModelOptics
       )
 
-    val declarationPageButton = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-button").first
+    val declarationPageButton = Jsoup.parse(generatedHtml.body).select("button[type=submit][class=govuk-button]").first
 
     declarationPageButton.text shouldBe "ContinueLabel"
   }

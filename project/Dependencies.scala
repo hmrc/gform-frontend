@@ -5,13 +5,13 @@ object Dependencies {
 
   val jacksonVersion = "2.14.2"
   val jacksonDatabindVersion = "2.14.2"
-  val bootstrapVersion = "7.13.0"
+  val bootstrapVersion = "7.15.0"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
   val compile = Seq(
     "uk.gov.hmrc"                 %% "bootstrap-frontend-play-28" % bootstrapVersion,
-    "uk.gov.hmrc"                 %% "play-frontend-hmrc"         % "6.7.0-play-28",
+    "uk.gov.hmrc"                 %% "play-frontend-hmrc"         % "7.7.0-play-28",
     "uk.gov.hmrc"                 %% "auth-client"                % "5.14.0-play-28",
     "uk.gov.hmrc"                 %% "domain"                     % "8.1.0-play-28",
     "uk.gov.hmrc"                 %% "play-partials"              % "8.3.0-play-28",
@@ -29,7 +29,7 @@ object Dependencies {
     "com.nrinaudo"                %% "kantan.csv"                 % "0.7.0",
     "com.miguelfonseca.completely" % "completely-core"            % "0.9.0",
     "org.jsoup"                    % "jsoup"                      % "1.15.4",
-    "org.webjars.npm"              % "govuk-frontend"             % "4.5.0",
+    "org.webjars.npm"              % "govuk-frontend"             % "4.6.0",
     "com.openhtmltopdf"            % "openhtmltopdf-pdfbox"       % "1.0.10",
     "ai.x"                        %% "play-json-extensions"       % "0.42.0",
     "org.apache.commons"           % "commons-text"               % "1.10.0",
