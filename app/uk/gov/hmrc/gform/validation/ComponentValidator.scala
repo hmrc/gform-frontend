@@ -683,48 +683,47 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val maxWhole = ValidationValues.sterlingLength
+    val errorExample = fieldValue.errorExample.getOrElse(SmartString.blank)
     val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     TextConstraint.filterNumberValue(value) match {
       case FractionalShape(_, _, _, fractional) if !isWhole && fractional.length > 2 =>
-        nonNumericSterlingFailure(fieldValue, value)
+        nonNumericSterlingFailure(fieldValue, value, errorExample)
       case FractionalShape(_, _, _, fractional) if isWhole =>
-        wholeSterlingFailure(fieldValue, value)
+        wholeSterlingFailure(fieldValue, value, errorExample)
       case WholeShape(_, whole, _) if surpassMaxLength(whole, maxWhole) =>
-        maxDigitSterlingFailure(fieldValue, value, maxWhole)
-      case WholeShape("-", _, _) if isPositive         => positiveSterlingFailure(fieldValue, value)
-      case FractionalShape("-", _, _, _) if isPositive => positiveSterlingFailure(fieldValue, value)
+        maxDigitSterlingFailure(fieldValue, value, maxWhole, errorExample)
+      case WholeShape("-", _, _) if isPositive         => positiveSterlingFailure(fieldValue, value, errorExample)
+      case FractionalShape("-", _, _, _) if isPositive => positiveSterlingFailure(fieldValue, value, errorExample)
       case WholeShape(_, _, _)                         => validationSuccess
       case FractionalShape(_, _, _, _) if !isWhole     => validationSuccess
-      case _                                           => nonNumericSterlingFailure(fieldValue, value)
+      case _                                           => nonNumericSterlingFailure(fieldValue, value, errorExample)
     }
   }
 
   private def nonNumericSterlingFailure(
     fieldValue: FormComponent,
-    value: String
+    value: String,
+    errorExample: SmartString
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    (fieldValue.errorShortName, fieldValue.errorShortNameStart, fieldValue.errorExample) match {
-      case (None, None, maybeErrorExample) =>
-        val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
+    (fieldValue.errorShortName, fieldValue.errorShortNameStart) match {
+      case (None, None) =>
         validationFailure(
           fieldValue,
           genericSterlingErrorPattern,
           Some(List(SmartString.blank.trasform(_ => "an amount", _ => "swm").value(), errorExample.value()))
         )
 
-      case (Some(errorShortName), None, maybeErrorExample) =>
-        val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
+      case (Some(errorShortName), None) =>
         validationFailure(
           fieldValue,
           genericSterlingErrorPattern,
           Some(List(errorShortName.value(), errorExample.value()))
         )
-      case (_, Some(errorShortNameStart), maybeErrorExample) =>
-        val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
+      case (_, Some(errorShortNameStart)) =>
         validationFailure(
           fieldValue,
           genericSterlingErrorPatternStart,
@@ -735,14 +734,14 @@ object ComponentValidator {
   private def maxDigitSterlingFailure(
     fieldValue: FormComponent,
     value: String,
-    maxWhole: Int
+    maxWhole: Int,
+    errorExample: SmartString
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
-      case (None, maybeErrorExample) =>
-        val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
+    fieldValue.errorShortNameStart match {
+      case None =>
         validationFailure(
           fieldValue,
           genericSterlingErrorMaxdigitPattern,
@@ -754,8 +753,7 @@ object ComponentValidator {
             )
           )
         )
-      case (Some(errorShortNameStart), maybeErrorExample) =>
-        val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
+      case Some(errorShortNameStart) =>
         validationFailure(
           fieldValue,
           genericSterlingErrorMaxdigitPattern,
@@ -771,14 +769,14 @@ object ComponentValidator {
 
   private def wholeSterlingFailure(
     fieldValue: FormComponent,
-    value: String
+    value: String,
+    errorExample: SmartString
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
-      case (None, maybeErrorExample) =>
-        val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
+    fieldValue.errorShortNameStart match {
+      case None =>
         validationFailure(
           fieldValue,
           genericWholesterlingErrorPencePattern,
@@ -789,8 +787,7 @@ object ComponentValidator {
             )
           )
         )
-      case (Some(errorShortNameStart), maybeErrorExample) =>
-        val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
+      case Some(errorShortNameStart) =>
         validationFailure(
           fieldValue,
           genericWholesterlingErrorPencePattern,
@@ -805,14 +802,14 @@ object ComponentValidator {
 
   private def positiveSterlingFailure(
     fieldValue: FormComponent,
-    value: String
+    value: String,
+    errorExample: SmartString
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
-      case (None, maybeErrorExample) =>
-        val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
+    fieldValue.errorShortNameStart match {
+      case None =>
         validationFailure(
           fieldValue,
           genericPositiveSterlingErrorPositivePattern,
@@ -823,8 +820,7 @@ object ComponentValidator {
             )
           )
         )
-      case (Some(errorShortNameStart), maybeErrorExample) =>
-        val errorExample = maybeErrorExample.getOrElse(SmartString.blank)
+      case Some(errorShortNameStart) =>
         validationFailure(
           fieldValue,
           genericPositiveSterlingErrorPositivePattern,
