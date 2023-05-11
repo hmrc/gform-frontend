@@ -96,7 +96,7 @@ class EmailAuthController(
                         href = Some("#email"),
                         content = content.Text(
                           request.messages
-                            .messages(message, request.messages.messages("emailAuth.emailAddress"))
+                            .messages(message)
                         )
                       )
                     ),
@@ -108,7 +108,7 @@ class EmailAuthController(
                 ErrorMessage(
                   content = content.Text(
                     request.messages
-                      .messages(message, request.messages.messages("emailAuth.emailAddress"))
+                      .messages(message)
                   )
                 )
               ),
@@ -157,7 +157,10 @@ class EmailAuthController(
               uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailIdForm(formTemplateId, continue)
             ).addingToSession(
               EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
-                emailAuthDetails + (formTemplateId -> InvalidEmail(EmailId(CIString.empty), "generic.error.required"))
+                emailAuthDetails + (formTemplateId -> InvalidEmail(
+                  EmailId(CIString.empty),
+                  "generic.auth.email.error.required"
+                ))
               )
             ).pure[Future],
           { email =>
@@ -184,7 +187,7 @@ class EmailAuthController(
                   uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailIdForm(formTemplateId, continue)
                 ).addingToSession(
                   EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
-                    emailAuthDetails + (formTemplateId -> InvalidEmail(emailId, "generic.error.invalid"))
+                    emailAuthDetails + (formTemplateId -> InvalidEmail(emailId, "generic.auth.email.error.pattern"))
                   )
                 ).pure[Future]
             }
