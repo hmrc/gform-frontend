@@ -162,6 +162,13 @@ generic.number.error.maxDigit.pattern=Mae {1} yn gorfod bod yn {3} digid neu lai
 generic.number.error.whole.pattern=Mae {1} yn gorfod bod yn rhif cyfan{2}
 generic.number.error.positive.pattern=Mae {1} yn gorfod bod yn 0 neu fwy{2}
 
+generic.sterling.error.required=Nodwch {1}
+generic.sterling.error.pattern=Nodwch {1} yn y fformat cywir{2}
+generic.sterling.error.pattern.start=Mae {1} yn gorfod bod yn swm o arian{2}
+generic.sterling.error.maxdigit.pattern=Mae {1} yn gorfod bod yn {3} digid neu lai{2}
+generic.whole.sterling.error.pence.pattern=Mae {1} yn gorfod beidio â chynnwys ceiniogau{2}
+generic.positive.sterling.error.positive.pattern=Mae {1} yn gorfod bod yn 0 neu fwy{2}
+
 enrolment.error.failed=Ni ellir dod o hyd i’r manylion cofrestru a nodwyd gennych neu mae cysylltiad rhyngddynt â chyfrif Porth y Llywodraeth gwahanol. Gallwch wneud y canlynol:
 enrolment.error.failed.step1=gwirio’ch manylion a rhoi cynnig arall arni
 enrolment.error.failed.step2=cael help gyda mewngofnodi i’r gwasanaeth hwn (yn agor ffenestr neu dab newydd)
