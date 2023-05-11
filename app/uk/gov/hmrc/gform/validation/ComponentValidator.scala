@@ -740,32 +740,20 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    fieldValue.errorShortNameStart match {
-      case None =>
-        validationFailure(
-          fieldValue,
-          genericSterlingErrorMaxdigitPattern,
-          Some(
-            List(
-              SmartString.blank.trasform(_ => "Amount", _ => "swm").value(),
-              errorExample.value(),
-              maxWhole.toString
-            )
-          )
+    validationFailure(
+      fieldValue,
+      genericSterlingErrorMaxdigitPattern,
+      Some(
+        List(
+          fieldValue.errorShortNameStart match {
+            case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
+            case Some(errorShortNameStart) => errorShortNameStart.value()
+          },
+          errorExample.value(),
+          maxWhole.toString
         )
-      case Some(errorShortNameStart) =>
-        validationFailure(
-          fieldValue,
-          genericSterlingErrorMaxdigitPattern,
-          Some(
-            List(
-              errorShortNameStart.value(),
-              errorExample.value(),
-              maxWhole.toString
-            )
-          )
-        )
-    }
+      )
+    )
 
   private def wholeSterlingFailure(
     fieldValue: FormComponent,
@@ -775,30 +763,19 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    fieldValue.errorShortNameStart match {
-      case None =>
-        validationFailure(
-          fieldValue,
-          genericWholesterlingErrorPencePattern,
-          Some(
-            List(
-              SmartString.blank.trasform(_ => "Amount", _ => "swm").value(),
-              errorExample.value()
-            )
-          )
+    validationFailure(
+      fieldValue,
+      genericWholesterlingErrorPencePattern,
+      Some(
+        List(
+          fieldValue.errorShortNameStart match {
+            case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
+            case Some(errorShortNameStart) => errorShortNameStart.value()
+          },
+          errorExample.value()
         )
-      case Some(errorShortNameStart) =>
-        validationFailure(
-          fieldValue,
-          genericWholesterlingErrorPencePattern,
-          Some(
-            List(
-              errorShortNameStart.value(),
-              errorExample.value()
-            )
-          )
-        )
-    }
+      )
+    )
 
   private def positiveSterlingFailure(
     fieldValue: FormComponent,
@@ -808,30 +785,19 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    fieldValue.errorShortNameStart match {
-      case None =>
-        validationFailure(
-          fieldValue,
-          genericPositiveSterlingErrorPositivePattern,
-          Some(
-            List(
-              SmartString.blank.trasform(_ => "Amount", _ => "swm").value(),
-              errorExample.value()
-            )
-          )
+    validationFailure(
+      fieldValue,
+      genericPositiveSterlingErrorPositivePattern,
+      Some(
+        List(
+          fieldValue.errorShortNameStart match {
+            case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
+            case Some(errorShortNameStart) => errorShortNameStart.value()
+          },
+          errorExample.value()
         )
-      case Some(errorShortNameStart) =>
-        validationFailure(
-          fieldValue,
-          genericPositiveSterlingErrorPositivePattern,
-          Some(
-            List(
-              errorShortNameStart.value(),
-              errorExample.value()
-            )
-          )
-        )
-    }
+      )
+    )
   private[validation] def textValidationWithConstraints(
     fieldValue: FormComponent,
     value: String,
