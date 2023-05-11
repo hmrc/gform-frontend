@@ -54,6 +54,8 @@ case class FormComponent(
 
   def atomicFormComponentId(atom: Atom): ModelComponentId.Atomic = id.toAtomicFormComponentId(atom)
 
+  val errorExampleOrBlank = errorExample.getOrElse(SmartString.blank)
+
   val message = this match {
     case IsTelephone()                        => Some("telephoneNumber")
     case fc if fc.isUkSortCode                => Some("ukSortCode")

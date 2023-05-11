@@ -683,28 +683,26 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val maxWhole = ValidationValues.sterlingLength
-    val errorExample = fieldValue.errorExample.getOrElse(SmartString.blank)
     val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     TextConstraint.filterNumberValue(value) match {
       case FractionalShape(_, _, _, fractional) if !isWhole && fractional.length > 2 =>
-        nonNumericSterlingFailure(fieldValue, value, errorExample)
+        nonNumericSterlingFailure(fieldValue, value)
       case FractionalShape(_, _, _, fractional) if isWhole =>
-        wholeSterlingFailure(fieldValue, value, errorExample)
+        wholeSterlingFailure(fieldValue, value)
       case WholeShape(_, whole, _) if surpassMaxLength(whole, maxWhole) =>
-        maxDigitSterlingFailure(fieldValue, value, maxWhole, errorExample)
-      case WholeShape("-", _, _) if isPositive         => positiveSterlingFailure(fieldValue, value, errorExample)
-      case FractionalShape("-", _, _, _) if isPositive => positiveSterlingFailure(fieldValue, value, errorExample)
+        maxDigitSterlingFailure(fieldValue, value, maxWhole)
+      case WholeShape("-", _, _) if isPositive         => positiveSterlingFailure(fieldValue, value)
+      case FractionalShape("-", _, _, _) if isPositive => positiveSterlingFailure(fieldValue, value)
       case WholeShape(_, _, _)                         => validationSuccess
       case FractionalShape(_, _, _, _) if !isWhole     => validationSuccess
-      case _                                           => nonNumericSterlingFailure(fieldValue, value, errorExample)
+      case _                                           => nonNumericSterlingFailure(fieldValue, value)
     }
   }
 
   private def nonNumericSterlingFailure(
     fieldValue: FormComponent,
-    value: String,
-    errorExample: SmartString
+    value: String
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
@@ -714,28 +712,32 @@ object ComponentValidator {
         validationFailure(
           fieldValue,
           genericSterlingErrorPattern,
-          Some(List(SmartString.blank.trasform(_ => "an amount", _ => "swm").value(), errorExample.value()))
+          Some(
+            List(
+              SmartString.blank.trasform(_ => "an amount", _ => "swm").value(),
+              fieldValue.errorExampleOrBlank.value()
+            )
+          )
         )
 
       case (Some(errorShortName), None) =>
         validationFailure(
           fieldValue,
           genericSterlingErrorPattern,
-          Some(List(errorShortName.value(), errorExample.value()))
+          Some(List(errorShortName.value(), fieldValue.errorExampleOrBlank.value()))
         )
       case (_, Some(errorShortNameStart)) =>
         validationFailure(
           fieldValue,
           genericSterlingErrorPatternStart,
-          Some(List(errorShortNameStart.value(), errorExample.value()))
+          Some(List(errorShortNameStart.value(), fieldValue.errorExampleOrBlank.value()))
         )
     }
 
   private def maxDigitSterlingFailure(
     fieldValue: FormComponent,
     value: String,
-    maxWhole: Int,
-    errorExample: SmartString
+    maxWhole: Int
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
@@ -749,7 +751,7 @@ object ComponentValidator {
             case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
-          errorExample.value(),
+          fieldValue.errorExampleOrBlank.value(),
           maxWhole.toString
         )
       )
@@ -757,8 +759,7 @@ object ComponentValidator {
 
   private def wholeSterlingFailure(
     fieldValue: FormComponent,
-    value: String,
-    errorExample: SmartString
+    value: String
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
@@ -772,15 +773,14 @@ object ComponentValidator {
             case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
-          errorExample.value()
+          fieldValue.errorExampleOrBlank.value()
         )
       )
     )
 
   private def positiveSterlingFailure(
     fieldValue: FormComponent,
-    value: String,
-    errorExample: SmartString
+    value: String
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
@@ -794,7 +794,7 @@ object ComponentValidator {
             case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
-          errorExample.value()
+          fieldValue.errorExampleOrBlank.value()
         )
       )
     )
