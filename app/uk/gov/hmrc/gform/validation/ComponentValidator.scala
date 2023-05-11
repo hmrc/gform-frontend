@@ -502,24 +502,18 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
-      case (None, _) =>
+    fieldValue.errorShortNameStart match {
+      case None =>
         validationFailure(
           fieldValue,
           genericNumberErrorRequired,
           Some(List(SmartString.blank.trasform(_ => "a number", _ => "rif").value(), ""))
         )
-      case (Some(errorShortNameStart), None) =>
+      case Some(errorShortNameStart) =>
         validationFailure(
           fieldValue,
           genericNumberErrorPattern,
-          Some(List(errorShortNameStart.value(), ""))
-        )
-      case (Some(errorShortNameStart), Some(errorExample)) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorPattern,
-          Some(List(errorShortNameStart.value(), errorExample.value()))
+          Some(List(errorShortNameStart.value(), fieldValue.errorExampleWithCommaOrBlank.value()))
         )
     }
 
@@ -531,44 +525,20 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
-      case (None, _) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorMaxdecimalPattern,
-          Some(
-            List(
-              SmartString.blank.trasform(_ => "Number", _ => "rhif").value(),
-              "",
-              maxFractional.toString
-            )
-          )
+    validationFailure(
+      fieldValue,
+      genericNumberErrorMaxdecimalPattern,
+      Some(
+        List(
+          fieldValue.errorShortNameStart match {
+            case None                      => SmartString.blank.trasform(_ => "Number", _ => "rhif").value()
+            case Some(errorShortNameStart) => errorShortNameStart.value()
+          },
+          fieldValue.errorExampleWithCommaOrBlank.value(),
+          maxFractional.toString
         )
-      case (Some(errorShortNameStart), None) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorMaxdecimalPattern,
-          Some(
-            List(
-              errorShortNameStart.value(),
-              "",
-              maxFractional.toString
-            )
-          )
-        )
-      case (Some(errorShortNameStart), Some(errorExample)) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorMaxdecimalPattern,
-          Some(
-            List(
-              errorShortNameStart.value(),
-              errorExample.value(),
-              maxFractional.toString
-            )
-          )
-        )
-    }
+      )
+    )
 
   private def maxDigitFailure(
     fieldValue: FormComponent,
@@ -578,44 +548,20 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
-      case (None, _) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorMaxdigitPattern,
-          Some(
-            List(
-              SmartString.blank.trasform(_ => "Number", _ => "rhif").value(),
-              "",
-              maxWhole.toString
-            )
-          )
+    validationFailure(
+      fieldValue,
+      genericNumberErrorMaxdigitPattern,
+      Some(
+        List(
+          fieldValue.errorShortNameStart match {
+            case None                      => SmartString.blank.trasform(_ => "Number", _ => "rhif").value()
+            case Some(errorShortNameStart) => errorShortNameStart.value()
+          },
+          fieldValue.errorExampleWithCommaOrBlank.value(),
+          maxWhole.toString
         )
-      case (Some(errorShortNameStart), None) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorMaxdigitPattern,
-          Some(
-            List(
-              errorShortNameStart.value(),
-              "",
-              maxWhole.toString
-            )
-          )
-        )
-      case (Some(errorShortNameStart), Some(errorExample)) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorMaxdigitPattern,
-          Some(
-            List(
-              errorShortNameStart.value(),
-              errorExample.value(),
-              maxWhole.toString
-            )
-          )
-        )
-    }
+      )
+    )
 
   private def wholeNumberFailure(
     fieldValue: FormComponent,
@@ -624,26 +570,19 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
-      case (None, _) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorWholePattern,
-          Some(List(SmartString.blank.trasform(_ => "Number", _ => "rhif").value(), ""))
+    validationFailure(
+      fieldValue,
+      genericNumberErrorWholePattern,
+      Some(
+        List(
+          fieldValue.errorShortNameStart match {
+            case None                      => SmartString.blank.trasform(_ => "Number", _ => "rhif").value()
+            case Some(errorShortNameStart) => errorShortNameStart.value()
+          },
+          fieldValue.errorExampleWithCommaOrBlank.value()
         )
-      case (Some(errorShortNameStart), None) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorWholePattern,
-          Some(List(errorShortNameStart.value(), ""))
-        )
-      case (Some(errorShortNameStart), Some(errorExample)) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorWholePattern,
-          Some(List(errorShortNameStart.value(), errorExample.value()))
-        )
-    }
+      )
+    )
 
   private def positiveNumberFailure(
     fieldValue: FormComponent,
@@ -652,26 +591,19 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    (fieldValue.errorShortNameStart, fieldValue.errorExample) match {
-      case (None, _) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorPositivePattern,
-          Some(List(SmartString.blank.trasform(_ => "Number", _ => "rhif").value(), ""))
+    validationFailure(
+      fieldValue,
+      genericNumberErrorPositivePattern,
+      Some(
+        List(
+          fieldValue.errorShortNameStart match {
+            case None                      => SmartString.blank.trasform(_ => "Number", _ => "rhif").value()
+            case Some(errorShortNameStart) => errorShortNameStart.value()
+          },
+          fieldValue.errorExampleWithCommaOrBlank.value()
         )
-      case (Some(errorShortNameStart), None) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorPositivePattern,
-          Some(List(errorShortNameStart.value(), ""))
-        )
-      case (Some(errorShortNameStart), Some(errorExample)) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorPositivePattern,
-          Some(List(errorShortNameStart.value(), errorExample.value()))
-        )
-    }
+      )
+    )
 
   private def validateSterling(
     fieldValue: FormComponent,
@@ -715,7 +647,7 @@ object ComponentValidator {
           Some(
             List(
               SmartString.blank.trasform(_ => "an amount", _ => "swm").value(),
-              fieldValue.errorExampleOrBlank.value()
+              fieldValue.errorExampleWithCommaOrBlank.value()
             )
           )
         )
@@ -724,13 +656,13 @@ object ComponentValidator {
         validationFailure(
           fieldValue,
           genericSterlingErrorPattern,
-          Some(List(errorShortName.value(), fieldValue.errorExampleOrBlank.value()))
+          Some(List(errorShortName.value(), fieldValue.errorExampleWithCommaOrBlank.value()))
         )
       case (_, Some(errorShortNameStart)) =>
         validationFailure(
           fieldValue,
           genericSterlingErrorPatternStart,
-          Some(List(errorShortNameStart.value(), fieldValue.errorExampleOrBlank.value()))
+          Some(List(errorShortNameStart.value(), fieldValue.errorExampleWithCommaOrBlank.value()))
         )
     }
 
@@ -751,7 +683,7 @@ object ComponentValidator {
             case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
-          fieldValue.errorExampleOrBlank.value(),
+          fieldValue.errorExampleWithCommaOrBlank.value(),
           maxWhole.toString
         )
       )
@@ -773,7 +705,7 @@ object ComponentValidator {
             case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
-          fieldValue.errorExampleOrBlank.value()
+          fieldValue.errorExampleWithCommaOrBlank.value()
         )
       )
     )
@@ -794,7 +726,7 @@ object ComponentValidator {
             case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
-          fieldValue.errorExampleOrBlank.value()
+          fieldValue.errorExampleWithCommaOrBlank.value()
         )
       )
     )

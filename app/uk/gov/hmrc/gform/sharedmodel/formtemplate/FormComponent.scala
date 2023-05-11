@@ -56,6 +56,9 @@ case class FormComponent(
 
   val errorExampleOrBlank = errorExample.getOrElse(SmartString.blank)
 
+  val errorExampleWithCommaOrBlank =
+    errorExample.map(_.trasform(v => s", $v", v => s", $v")).getOrElse(SmartString.blank)
+
   val message = this match {
     case IsTelephone()                        => Some("telephoneNumber")
     case fc if fc.isUkSortCode                => Some("ukSortCode")
