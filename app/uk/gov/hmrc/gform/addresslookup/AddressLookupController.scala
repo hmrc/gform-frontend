@@ -581,7 +581,13 @@ class AddressLookupController(
     val enterAddressSection = Section.NonRepeatingPage(page)
     val syntheticFormTemplate = cache.formTemplate.copy(formKind =
       cache.formTemplate.formKind
-        .fold[FormKind](classic => classic.copy(sections = List(enterAddressSection)))(identity)
+        .fold[FormKind](classic => classic.copy(sections = List(enterAddressSection)))(taskList =>
+          taskList.copy(sections =
+            taskList.sections.map(taskSection =>
+              taskSection.copy(tasks = taskSection.tasks.map(_.copy(sections = NonEmptyList.of(enterAddressSection))))
+            )
+          )
+        )
     )
 
     val formData =
