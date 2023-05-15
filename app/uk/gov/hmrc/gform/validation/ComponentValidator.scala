@@ -104,6 +104,13 @@ object ComponentValidator {
   val genericSterlingErrorMaxdigitPattern                    = "generic.sterling.error.maxdigit.pattern"
   val genericWholesterlingErrorPencePattern                  = "generic.whole.sterling.error.pence.pattern"
   val genericPositiveSterlingErrorPositivePattern            = "generic.positive.sterling.error.positive.pattern"
+
+  val genericErrorTextRequired                               = "generic.error.text.required"
+  val genericErrorTextMaxLength                              = "generic.error.text.maxLength"
+  val genericErrorTextMinLength                              = "generic.error.text.minLength"
+  val genericErrorTextExactDigits                            = "generic.error.text.exactDigits"
+  val genericErrorTextValidChar                              = "generic.error.text.valid.char"
+  val genericErrorShortTextValidChar                         = "generic.error.shortText.valid.char"
   // format: on
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
@@ -185,6 +192,18 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(formModelVisibilityOptics, fieldValue), constraint) match {
+      case (true, None, TextWithRestrictions(_, _)) =>
+        validationFailure(
+          fieldValue,
+          genericErrorTextRequired,
+          (Some(errorShortNameWithFallback(fieldValue).pure[List]))
+        )
+      case (true, None, ShortText(_, _)) =>
+        validationFailure(
+          fieldValue,
+          genericErrorTextRequired,
+          (Some(errorShortNameWithFallback(fieldValue).pure[List]))
+        )
       case (true, None, _) =>
         fieldValue match {
           case lookupRegistry.extractors.IsRadioLookup(_) => validationFailure(fieldValue, choiceErrorRequired, None)
@@ -306,9 +325,9 @@ object ComponentValidator {
         }
       case (_, Some(value), lookup @ Lookup(_, _)) =>
         lookupValidation(fieldValue, lookupRegistry, lookup, LookupLabel(value), formModelVisibilityOptics)
-      case (_, Some(value), ShortText(min, max)) => shortTextValidation(fieldValue, value, min, max)
+      case (_, Some(value), ShortText(min, max)) => validateShortTextConstraint(fieldValue, value, min, max)
       case (_, Some(value), TextWithRestrictions(min, max)) =>
-        textValidationWithConstraints(fieldValue, value, min, max)
+        validateTextConstraint(fieldValue, value, min, max)
       case (_, Some(value), Sterling(_, isPositive)) =>
         validateSterling(fieldValue, value, isPositive, false)
       case (_, Some(value), WholeSterling(true)) =>
@@ -1001,7 +1020,7 @@ object ComponentValidator {
     }
   }
 
-  private[validation] def shortTextValidation(
+  private[validation] def textLengthValidation(
     fieldValue: FormComponent,
     value: String,
     min: Int,
@@ -1009,10 +1028,76 @@ object ComponentValidator {
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ) = {
-    val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
-    sharedTextComponentValidator(fieldValue, value, min, max, ValidShortText, genericShortTextErrorPattern)
-  }
+  ) =
+    value match {
+      case exact if max == min && exact.length != max =>
+        val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
+        validationFailure(fieldValue, genericErrorTextExactDigits, Some(vars))
+      case tooLong if tooLong.length > max =>
+        val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
+        validationFailure(fieldValue, genericErrorTextMaxLength, Some(vars))
+      case tooShort if tooShort.length < min =>
+        val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: min.toString :: Nil
+        validationFailure(fieldValue, genericErrorTextMinLength, Some(vars))
+      case _ => validationSuccess
+    }
+
+  private[validation] def validateShortTextConstraint(
+    fieldValue: FormComponent,
+    value: String,
+    min: Int,
+    max: Int
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ) =
+    textLengthValidation(fieldValue, value, min, max)
+      .andThen { _ =>
+        val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
+        value match {
+          case ValidShortText() => validationSuccess
+          case _ =>
+            validationFailure(
+              fieldValue,
+              genericErrorShortTextValidChar,
+              Some(List(errorShortNameStartWithFallback(fieldValue)))
+            )
+        }
+      }
+
+  private[validation] def validateTextConstraint(
+    fieldValue: FormComponent,
+    value: String,
+    min: Int,
+    max: Int
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ) =
+    textLengthValidation(fieldValue, value, min, max)
+      .andThen { _ =>
+        invalidCharactersValidator(
+          fieldValue,
+          value,
+          validTextPattern,
+          genericErrorTextValidChar,
+          List(errorShortNameStartWithFallback(fieldValue))
+        )
+      }
+
+  private def errorShortNameStartWithFallback(fieldValue: FormComponent)(implicit
+    sse: SmartStringEvaluator
+  ): String =
+    fieldValue.errorShortNameStart.flatMap(_.nonBlankValue()) orElse
+      fieldValue.shortName.flatMap(_.nonBlankValue()) getOrElse
+      fieldValue.label.value()
+
+  private def errorShortNameWithFallback(fieldValue: FormComponent)(implicit
+    sse: SmartStringEvaluator
+  ): String =
+    fieldValue.errorShortName.flatMap(_.nonBlankValue()) orElse
+      fieldValue.shortName.flatMap(_.nonBlankValue()) getOrElse
+      fieldValue.label.value()
 
   def validateChoice[D <: DataOrigin](
     fieldValue: FormComponent
@@ -1156,7 +1241,8 @@ object ComponentValidator {
     fieldValue: FormComponent,
     value: String,
     regex: Regex,
-    messageKey: String
+    messageKey: String,
+    messageArgs: List[String] = List()
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
@@ -1174,6 +1260,6 @@ object ComponentValidator {
     if (vars.isEmpty)
       validationSuccess
     else
-      validationFailure(fieldValue, messageKey, Some(List(vars)))
+      validationFailure(fieldValue, messageKey, Some(List(vars) ++ messageArgs))
   }
 }

@@ -22,6 +22,11 @@ package object smartstring {
   implicit class SmartStringEvaluationSyntax(s: SmartString)(implicit evaluator: SmartStringEvaluator) {
     def value(): String = evaluator(s, false)
 
+    def nonBlankValue(): Option[String] = value().trim() match {
+      case "" => None
+      case v  => Some(v)
+    }
+
     def valueForMarkdown(): String = evaluator(s, true)
   }
 }

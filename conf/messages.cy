@@ -153,6 +153,14 @@ generic.error.selectOption=Dewiswch opsiwn
 generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau, cysylltnodau, ampersandau a chollnodau
 generic.longText.error.pattern=Ni all {0} gynnwys y cymeriadau {1}
 generic.successfullyRemoved=Eitem wedi’i dileu
+
+generic.error.text.required=Nodwch {1}
+generic.error.text.maxLength=Mae {1} yn gorfod bod yn {2} o gymeriadau neu lai
+generic.error.text.minLength=Mae {1} yn gorfod bod yn {2} o gymeriadau neu fwy
+generic.error.text.exactDigits=Mae {1} yn gorfod bod yn {2} o gymeriadau
+generic.error.text.valid.char=Mae {2} yn gorfod peidio â chynnwys {1}
+generic.error.shortText.valid.char=Mae {1} yn gorfod cynnwys llythrennau, rhifau, bylchau, cysylltnodau, ampersandau a chollnodau yn unig
+
 generic.error.submissionRef=Ni ellir dod o hyd i {0}. Nodwch {0} dilys yn y fformat cywir. Mae’n rhaid i hyn fod yn 14 o gymeriadau a chynnwys rhifau, cysylltnodau a phriflythrennau yn unig, er enghraifft ABCD-1234-1234
 generic.error.parentSubmissionRefSameAsFormSubmissionRef=Mae’n rhaid i {0} fod yn gyfeirnod cyflwyno ffurflen rhiant. Yr hyn a nodwyd yw cyfeirnod cyflwyno’r ffurflen hon.
 

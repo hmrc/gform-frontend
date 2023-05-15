@@ -155,6 +155,13 @@ generic.shortText.error.pattern={0} can only include letters, numbers, spaces, h
 generic.longText.error.pattern={0} cannot include the characters {1}
 generic.successfullyRemoved=Item removed
 
+generic.error.text.required=Enter {1}
+generic.error.text.maxLength={1} must be {2} characters or less
+generic.error.text.minLength={1} must be {2} characters or more
+generic.error.text.exactDigits={1} must be {2} characters
+generic.error.text.valid.char={2} must not include {1}
+generic.error.shortText.valid.char={1} must only include letters, numbers, spaces, hyphens, ampersands and apostrophes
+
 generic.error.submissionRef={0} not found. Enter a valid {0} in the correct format. This must be 14 characters and only include numbers, hyphens and upper case letters, for example ABCD-1234-1234
 generic.error.parentSubmissionRefSameAsFormSubmissionRef={0} must be the submission reference of a parent form. The value entered is the submission reference of this form.
 
