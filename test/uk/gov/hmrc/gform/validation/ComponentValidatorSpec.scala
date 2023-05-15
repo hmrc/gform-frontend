@@ -111,26 +111,26 @@ class ComponentValidatorSpec
 
   "validateShortText" should "return invalid if character count is too big" in {
     val shortTextTooLong = "abcdefghij"
-    val result = ComponentValidator.shortTextValidation(shortTextComponent, shortTextTooLong, 3, 5)
+    val result = ComponentValidator.validateShortTextConstraint(shortTextComponent, shortTextTooLong, 3, 5)
     result.isInvalid shouldBe true
   }
 
   it should "return invalid if character count is too small" in {
     val shortTextTooShort = "a"
-    val result = ComponentValidator.shortTextValidation(shortTextComponent, shortTextTooShort, 3, 5)
+    val result = ComponentValidator.validateShortTextConstraint(shortTextComponent, shortTextTooShort, 3, 5)
     result.isInvalid shouldBe true
   }
 
   it should "return valid if the character count is within range" in {
     val shortTextWithinRange = "abcd"
-    val result = ComponentValidator.shortTextValidation(shortTextComponent, shortTextWithinRange, 3, 5)
+    val result = ComponentValidator.validateShortTextConstraint(shortTextComponent, shortTextWithinRange, 3, 5)
     result.isValid shouldBe true
   }
 
   it should "return invalid if incorrect character are entered" in {
     val shortTextIncorrectChars = "a[]*"
     val result =
-      ComponentValidator.shortTextValidation(shortTextComponent, shortTextIncorrectChars, 3, 5)
+      ComponentValidator.validateShortTextConstraint(shortTextComponent, shortTextIncorrectChars, 3, 5)
     result.isInvalid shouldBe true
   }
 
