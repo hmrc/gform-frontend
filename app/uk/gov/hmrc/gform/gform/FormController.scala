@@ -719,7 +719,8 @@ class FormController(
                                 cache.formTemplate._id,
                                 maybeAccessCode,
                                 formComponentId,
-                                sectionNumber
+                                sectionNumber,
+                                fastForward
                               )
                           )
                         }

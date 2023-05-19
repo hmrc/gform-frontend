@@ -94,7 +94,7 @@ object PDFPageFieldBuilder {
           }
         )
 
-      case IsPostcodeLookup() =>
+      case IsPostcodeLookup(_) =>
         val addressLines: List[String] =
           cache.form.thirdPartyData
             .addressLines(formComponent.id)

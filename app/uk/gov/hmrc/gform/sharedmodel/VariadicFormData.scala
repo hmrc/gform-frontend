@@ -285,7 +285,7 @@ object VariadicFormData {
         listVariadicFormComponentIds(r.options.flatMap(_.revealingFields)) + component.modelComponentId
       case _: Text | _: TextArea | _: Date | _: CalendarDate.type | _: TaxPeriodDate.type | _: Address |
           _: OverseasAddress | _: HmrcTaxPeriod | _: InformationMessage | _: FileUpload | _: Time | _: MiniSummaryList |
-          _: PostcodeLookup.type | _: TableComp =>
+          _: PostcodeLookup | _: TableComp =>
         Set.empty
     }
 

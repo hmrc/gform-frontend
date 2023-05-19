@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import cats.data.NonEmptyList
 import cats.implicits._
 import play.api.libs.json.{ Format, Json, OFormat }
-import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, PostcodeLookup }
+import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, PostcodeLookupRetrieve }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
@@ -81,7 +81,7 @@ case class ThirdPartyData(
 
   def addressesFor(
     formComponentId: FormComponentId
-  ): Option[(NonEmptyList[PostcodeLookup.AddressRecord], AddressLookupResult)] = for {
+  ): Option[(NonEmptyList[PostcodeLookupRetrieve.AddressRecord], AddressLookupResult)] = for {
     lookup              <- postcodeLookup
     addressLookupResult <- lookup.get(formComponentId)
     addresses           <- addressLookupResult.response.addresses
@@ -111,13 +111,15 @@ case class ThirdPartyData(
       lookup.get(key)
     }
 
-  def addressRecordFor(formComponentId: FormComponentId): Option[PostcodeLookup.AddressRecord] = for {
+  def addressRecordFor(formComponentId: FormComponentId): Option[PostcodeLookupRetrieve.AddressRecord] = for {
     (addresses, _) <- addressesFor(formComponentId)
     addressId      <- addressSelectionFor(formComponentId)
     address        <- addresses.find(_.id === addressId)
   } yield address
 
-  private def addressFor(formComponentId: FormComponentId): Option[Either[FormData, PostcodeLookup.AddressRecord]] =
+  private def addressFor(
+    formComponentId: FormComponentId
+  ): Option[Either[FormData, PostcodeLookupRetrieve.AddressRecord]] =
     enteredAddressFor(formComponentId).map(Left(_)).orElse(addressRecordFor(formComponentId).map(Right(_)))
 
   def addressLines(formComponentId: FormComponentId): Option[List[String]] = addressFor(formComponentId).map {

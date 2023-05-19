@@ -16,8 +16,12 @@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
+@import uk.gov.hmrc.gform.FormTemplateKey
 
 @(
+  title: String,
   formTemplate: FormTemplate,
   frontendAppConfig: FrontendAppConfig,
   address: Html,
@@ -27,25 +31,35 @@
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
+@hmrcPageHeading = @{new HmrcPageHeading()}
+@heading = @{title}
+@globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
 @backLink = @{
   new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))
 }
 
 @uk.gov.hmrc.gform.views.html.main_template(
-  title = messages("postcodeLookup.review.and.confirm"),
+  title = title,
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
   backLink = Some(backLink)
 ) {
 
-  <h1 class="govuk-heading-l">@messages("postcodeLookup.review.and.confirm")</h1>
+  @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
+
+  @hmrcPageHeading(PageHeading(
+        text = heading,
+        headingClasses = Some("govuk-heading-l")
+  ))
 
   @formWithCSRF(action = confirmAddressAndContinue, 'novalidate -> "novalidate") {
 
     <div>@address</div>
 
-    <p class="govuk-!-margin-bottom-7"><a class="govuk-link" href="@enterAddressHref.url">@messages("postcodeLookup.chage.address")</a></p>
+    <div class="govuk-body">
+        <p class="govuk-!-margin-bottom-7"><a class="govuk-link" href="@enterAddressHref.url">@messages("postcodeLookup.edit.address")</a></p>
+    </div>
 
     <button type="submit" name="continue" class="govuk-button" data-module="govuk-button">@messages("postcodeLookup.confirm.address")</button>
   }

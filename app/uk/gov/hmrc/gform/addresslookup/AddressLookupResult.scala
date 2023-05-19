@@ -19,8 +19,8 @@ package uk.gov.hmrc.gform.addresslookup
 import play.api.libs.json.{ Format, Json }
 
 final case class AddressLookupResult(
-  request: PostcodeLookup.Request,
-  response: PostcodeLookup.Response
+  request: PostcodeLookupRetrieve.Request,
+  response: PostcodeLookupRetrieve.Response
 )
 
 object AddressLookupResult {
