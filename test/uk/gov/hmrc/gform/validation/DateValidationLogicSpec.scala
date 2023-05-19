@@ -47,7 +47,7 @@ class DateValidationLogicSpec extends FunSuite {
     assertEquals(
       DateValidationLogic
         .incorrectDateMessage(Precisely, ConcreteDate(Year.Any, Month.Exact(4), Day.Any), OffsetDate(0)),
-      MessageKeyWithVars("date.precisely", Some(List(" in April ")))
+      MessageKeyWithVars("generic.error.date.precisely", Some(List(" in April ")))
     )
   }
 
@@ -56,7 +56,7 @@ class DateValidationLogicSpec extends FunSuite {
     assertEquals(
       DateValidationLogic
         .incorrectDateMessage(Precisely, ConcreteDate(Year.Next, Month.Any, Day.Any), OffsetDate(0)),
-      MessageKeyWithVars("date.precisely", Some(List(s"  in year $nextYear")))
+      MessageKeyWithVars("generic.error.date.precisely", Some(List(s"  in year $nextYear")))
     )
   }
 
@@ -65,7 +65,7 @@ class DateValidationLogicSpec extends FunSuite {
     assertEquals(
       DateValidationLogic
         .incorrectDateMessage(Precisely, ConcreteDate(Year.Previous, Month.Any, Day.Any), OffsetDate(0)),
-      MessageKeyWithVars("date.precisely", Some(List(s"  in year $previousYear")))
+      MessageKeyWithVars("generic.error.date.precisely", Some(List(s"  in year $previousYear")))
     )
   }
 
@@ -75,7 +75,7 @@ class DateValidationLogicSpec extends FunSuite {
     assertEquals(
       DateValidationLogic
         .incorrectDateMessage(Precisely, ConcreteDate(Year.Any, Month.Any, Day.First), OffsetDate(0)),
-      MessageKeyWithVars("date.precisely", Some(List(s"the first day of the month ")))
+      MessageKeyWithVars("generic.error.date.precisely", Some(List(s"the first day of the month ")))
     )
   }
 
@@ -85,7 +85,7 @@ class DateValidationLogicSpec extends FunSuite {
     assertEquals(
       DateValidationLogic
         .incorrectDateMessage(Precisely, ConcreteDate(Year.Any, Month.Any, Day.Last), OffsetDate(0)),
-      MessageKeyWithVars("date.precisely", Some(List(s"the last day of the month ")))
+      MessageKeyWithVars("generic.error.date.precisely", Some(List(s"the last day of the month ")))
     )
   }
 
@@ -93,7 +93,7 @@ class DateValidationLogicSpec extends FunSuite {
     assertEquals(
       DateValidationLogic
         .incorrectDateMessage(Precisely, ConcreteDate(Year.Exact(2018), Month.Any, Day.Any), OffsetDate(0)),
-      MessageKeyWithVars("date.precisely", Some(List(s"  in 2018")))
+      MessageKeyWithVars("generic.error.date.precisely", Some(List(s"  in 2018")))
     )
   }
 
@@ -103,7 +103,7 @@ class DateValidationLogicSpec extends FunSuite {
     assertEquals(
       DateValidationLogic
         .incorrectDateMessage(Precisely, ConcreteDate(Year.Any, Month.Any, Day.Exact(3)), OffsetDate(0)),
-      MessageKeyWithVars("date.precisely", Some(List(s"the 3rd of any month ")))
+      MessageKeyWithVars("generic.error.date.precisely", Some(List(s"the 3rd of any month ")))
     )
   }
 }

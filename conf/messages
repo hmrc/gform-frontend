@@ -162,6 +162,22 @@ generic.error.text.exactDigits={1} must be {2} characters
 generic.error.text.valid.char={2} must not include {1}
 generic.error.shortText.valid.char={1} must only include letters, numbers, spaces, hyphens, ampersands and apostrophes
 
+generic.error.date.required=Enter {1}{2}
+generic.error.day.required=Enter a day in the correct format
+generic.error.month.required=Enter a month in the correct format
+generic.error.year.required=Enter a year in the correct format
+generic.error.date.real={1} must be a real date{2}
+generic.error.date.today.before={1} must be in the past
+generic.error.date.today.offset.before={1} must be today or in the past
+generic.error.date.today.after={1} must be in the future
+generic.error.date.today.offset.after={1} must be today or in the future
+generic.error.date.today.precisely={1} must be {2}
+generic.error.date.before={1} must be before {2}
+generic.error.date.after={1} must be after {2}
+generic.error.date.precisely={1} must be {2}
+generic.error.date.first={1} must be the first day of the month
+generic.error.date.last={1} must be the last day of the month
+
 generic.error.submissionRef={0} not found. Enter a valid {0} in the correct format. This must be 14 characters and only include numbers, hyphens and upper case letters, for example ABCD-1234-1234
 generic.error.parentSubmissionRefSameAsFormSubmissionRef={0} must be the submission reference of a parent form. The value entered is the submission reference of this form.
 
@@ -280,9 +296,6 @@ date.exactDay=the {0}
 date.inYear=in {0}
 date.inMonth=in {0}
 date.ofMonth=of {0}
-date.before={0} must be before {1}
-date.after={0} must be after {1}
-date.precisely={0} must be {1}
 date.isMissing={0} is missing
 date.invalid={0} must be a valid date
 date.today=today
