@@ -536,15 +536,18 @@ postcodeLookup.not.match=Nid oeddem yn gallu dod o hyd i rywbeth sy’n cydweddu
 postcodeLookup.enter.address.try.different=Rhowch gynnig ar enw neu rif gwahanol
 postcodeLookup.choose.address=Dewiswch gyfeiriad
 postcodeLookup.choose.address.all=Yn dangos pob canlyniad ar gyfer {0}
-postcodeLookup.chage.address=Newid y cyfeiriad
+postcodeLookup.edit.address=Newid y cyfeiriad
 postcodeLookup.continue=Yn eich blaen
 postcodeLookup.confirm.address=Cadarnhau’r cyfeiriad
-postcodeLookup.review.and.confirm=Adolygu a chadarnhau
+postcodeLookup.review.and.confirm=Adolygu a chadarnhau y cyfeiriad
 postcodeLookup.cannot.find.address.title=Ni allwn ddod o hyd i unrhyw gyfeiriadau
 postcodeLookup.cannot.find.address=Ni allwn ddod o hyd i unrhyw gyfeiriadau ar gyfer {0}
-postcodeLookup.try.different.postcode=Rhowch gynnig ar god post gwahanol
-addressId.error.required=Dewiswch yr eiddo ar gyfer y cyfeiriad
-postcode.error.real=Nodwch god post go iawn, e.e. AA1 1AA
+postcodeLookup.cannot.find.address.choose.title=What do you want to do now?
+postcodeLookup.cannot.find.address.choose.try=Rhowch gynnig ar god post gwahanol
+postcodeLookup.cannot.find.address.choose.enter=ENodwch y cyfeiriad â llaw
+addressId.error.required=Dewiswch gyfeiriad
+postcode.error.real=Nodwch god post go iawn
+postcode.error.required=Nodwch y cod post
 postcodeLookup.enter.address=Nodwch gyfeiriad
 
 #Summary pdf

@@ -221,7 +221,7 @@ class FormProcessor(
       .toPageModel
       .toList
       .flatMap(_.allFormComponents)
-      .collect { case fc @ IsPostcodeLookup() =>
+      .collect { case fc @ IsPostcodeLookup(_) =>
         fc.id
       }
       .toSet

@@ -16,17 +16,31 @@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
+@import uk.gov.hmrc.gform.controllers.SaveAndExit
+@import uk.gov.hmrc.gform.models.FastForward
+@import uk.gov.hmrc.gform.FormTemplateKey
+@import uk.gov.hmrc.gform.gform.{HasErrors, NoErrors}
 
 @(
   formTemplate: FormTemplate,
   frontendAppConfig: FrontendAppConfig,
   postcode: String,
-  tryDifferentAddress: Call,
-  enterAddressHref: Call,
-  backHref: Call
+  formAction: Call,
+  backHref: Call,
+  renderComeBackLater: Boolean,
+  maybeAccessCode: Option[AccessCode],
+  sectionNumber: SectionNumber,
+  pageLevelError: HasErrors = NoErrors,
+  fieldErrors: Map[String, ErrorMessage] = Map.empty
 )(implicit request: Request[_], messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
+@hmrcPageHeading = @{new HmrcPageHeading()}
+@govukButton = @{new GovukButton()}
+@globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
 @backLink = @{
   new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))
@@ -38,14 +52,55 @@
   frontendAppConfig = frontendAppConfig,
   backLink = Some(backLink)
 ) {
+  @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 
-  <h1 class="govuk-heading-l">@messages("postcodeLookup.cannot.find.address", postcode)</h1>
+  @pageLevelError.render
 
-  @formWithCSRF(action = tryDifferentAddress, 'novalidate -> "novalidate", 'method -> "GET") {
+  @hmrcPageHeading(PageHeading(
+      text = messages("postcodeLookup.cannot.find.address.title", postcode),
+      headingClasses = Some("govuk-heading-l")
+  ))
 
-    <p><a class="govuk-link" href="@enterAddressHref.url">@messages("postcodeLookup.enter.address.manually")</a></p>
+  <p class="govuk-body">@messages("postcodeLookup.cannot.find.address", postcode)</p>
 
-    <button type="submit" name="continue" class="govuk-button" data-module="govuk-button">@messages("postcodeLookup.try.different.postcode")</button>
+  @formWithCSRF(action = formAction, 'novalidate -> "novalidate") {
+
+    @{new GovukRadios(new GovukErrorMessage(), new GovukFieldset(), new GovukHint(), new GovukLabel())(Radios(
+                fieldset = Some(Fieldset(
+                legend = Some(Legend(
+                content = Text(messages("postcodeLookup.cannot.find.address.choose.title")),
+                isPageHeading = true,
+                classes = "govuk-label--l"
+            ))
+        )),
+        name = "choose",
+        errorMessage = fieldErrors.get("choose"),
+        items = List(RadioItem(
+                        value = Some("Try"),
+                        content = Text(messages("postcodeLookup.cannot.find.address.choose.try"))
+                    ),
+                    RadioItem(
+                        value = Some("Enter"),
+                        content = Text(messages("postcodeLookup.enter.address.manually"))
+                    )
+        )
+    ))}
+
+    <div class="govuk-button-group">
+        @govukButton(Button(content = Text(messages("button.saveAndContinue")),
+            inputType=Some("submit"),
+            classes="govuk-button--primary"
+        ))
+
+        @if(renderComeBackLater) {
+                @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+                        inputType=Some("submit"),
+                        name=Some("save"),
+                        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, List(FastForward.Yes), SaveAndExit).path),
+                        classes="govuk-button--secondary"
+                ))
+        }
+    </div>
 
   }
 }

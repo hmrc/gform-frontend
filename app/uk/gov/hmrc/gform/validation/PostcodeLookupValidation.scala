@@ -63,7 +63,7 @@ class PostcodeLookupValidation[D <: DataOrigin](formModelVisibilityOptics: FormM
 
   private def requiredError(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] =
     Map[ModelComponentId, Set[String]](
-      modelComponentId -> errors(formComponent, "field.error.required", None)
+      modelComponentId -> errors(formComponent, "postcode.error.required", None)
     ).invalid
 
   private def enterRealPostcode(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] =
