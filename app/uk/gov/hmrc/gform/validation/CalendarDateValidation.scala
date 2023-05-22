@@ -18,16 +18,18 @@ package uk.gov.hmrc.gform.validation
 
 import cats.Monoid
 import cats.implicits.{ catsSyntaxValidatedId, _ }
+import cats.data.Validated.Valid
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CalendarDate, FormComponent }
-import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.{ errors, fieldDescriptor }
-import uk.gov.hmrc.gform.validation.DateValidationLogic.{ hasMaximumLength, isNumeric }
+import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.eval.smartstring._
 
 import java.time.Month
 
@@ -39,49 +41,43 @@ class CalendarDateValidation[D <: DataOrigin](formModelVisibilityOptics: FormMod
   def validate(formComponent: FormComponent): ValidatedType[Unit] =
     validateRequired(formComponent)
       .andThen(_ => validateDayMonth(formComponent))
-      .andThen(validateDayMonthCombo(formComponent, _))
 
-  private def validateDayMonth(formComponent: FormComponent): ValidatedType[(Int, Int)] =
+  def validateDayMonth(formComponent: FormComponent): ValidatedType[Unit] =
     formComponent.multiValueId.atomsModelComponentIds.map(formModelVisibilityOptics.data.one) match {
       case Some(day) :: Some(month) :: Nil =>
-        val label = fieldDescriptor(formComponent, "")
-        val dayValidated = hasMaximumLength(day, 2, label + " " + messages("date.day"))
-          .andThen(_ => isNumeric(day, label + " " + messages("date.day"), label))
-          .leftMap(error => Map(errorGranularity(formComponent)(CalendarDate.day) -> Set(error)))
-        val monthValidated = hasMaximumLength(month, 2, label + " " + messages("date.month"))
-          .andThen(_ => isNumeric(month, label + " " + messages("date.month"), label))
-          .leftMap(error => Map(errorGranularity(formComponent)(CalendarDate.month) -> Set(error)))
-        (dayValidated, monthValidated).mapN((day, month) => (day, month))
-      case _ =>
-        validationFailure(formComponent.firstAtomModelComponentId, formComponent, "date.isMissing", None, "")
-    }
-
-  private def validateDayMonthCombo(formComponent: FormComponent, dayMonth: (Int, Int)): ValidatedType[Unit] = {
-    val label = fieldDescriptor(formComponent, "")
-    val dayLabel = label + " " + messages("date.day")
-    val monthLabel = label + " " + messages("date.month")
-    val (day, month) = dayMonth
-    validationSuccess
-      .ensure(
-        Map(
-          errorGranularity(formComponent)(CalendarDate.month) -> Set(
-            messages("generic.error.mustBeBetween", monthLabel, 1, 12)
-          )
-        )
-      )(_ => month >= 1 && month <= 12)
-      .ensure(
-        Map(
-          errorGranularity(formComponent)(CalendarDate.day) -> Set(
-            messages(
-              "generic.error.mustBeBetween",
-              dayLabel,
-              1,
-              Month.values().find(_.getValue == month).fold(31)(_.maxLength())
+        val monthValidation = month.toIntOption
+          .filter(m => m >= 1 && m <= 12)
+          .fold(
+            validationFailure[Int](
+              errorGranularity(formComponent)(CalendarDate.month),
+              formComponent,
+              "generic.error.calendarDate.month.real",
+              None,
+              ""
             )
-          )
+          )(m => Valid(m))
+        val maxLenght = monthValidation.fold(_ => 31, m => Month.of(m).maxLength())
+        val dayValidation = day.toIntOption
+          .filter(d => d >= 1 && d <= maxLenght)
+          .fold(
+            validationFailure[Int](
+              errorGranularity(formComponent)(CalendarDate.day),
+              formComponent,
+              "generic.error.calendarDate.day.real",
+              None,
+              ""
+            )
+          )(d => Valid(d))
+        (monthValidation, dayValidation).mapN((_, _) => ())
+      case _ =>
+        validationFailure(
+          formComponent.firstAtomModelComponentId,
+          formComponent,
+          "generic.error.calendarDate.required",
+          None,
+          ""
         )
-      )(_ => Month.values().find(_.getValue == month).exists(m => day >= 1 && day <= m.maxLength()))
-  }
+    }
 
   private def validateRequired(
     formComponent: FormComponent
@@ -106,9 +102,17 @@ class CalendarDateValidation[D <: DataOrigin](formModelVisibilityOptics: FormMod
   }
 
   private def requiredError(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] =
-    Map[ModelComponentId, Set[String]](
-      modelComponentId -> errors(formComponent, "field.error.required", None)
-    ).invalid
+    Map[ModelComponentId, Set[String]] {
+      val placeholder1 = formComponent.errorShortName
+        .flatMap(_.nonBlankValue())
+        .getOrElse(SmartString.blank.trasform(_ => "a date", _ => "ddyddiad").value())
+      val placeholder2 = formComponent.errorExample.flatMap(_.nonBlankValue()).map(s => s", $s").getOrElse("")
+      modelComponentId -> errors(
+        formComponent,
+        "generic.error.taxPeriodDate.required",
+        Some(placeholder1 :: placeholder2 :: Nil)
+      )
+    }.invalid
 
   def errorGranularity(formComponent: FormComponent)(suffix: Atom): ModelComponentId =
     formComponent.atomicFormComponentId(suffix)

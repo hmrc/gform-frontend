@@ -18,8 +18,9 @@ package uk.gov.hmrc.gform.validation
 
 import cats.data.Validated.Invalid
 import munit.FunSuite
-import play.api.i18n.Messages
-import play.api.test.Helpers
+import play.api.i18n._
+import play.api.http.HttpConfiguration
+import play.api.{ Configuration, Environment }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -43,21 +44,14 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
 
   implicit val smartStringEvaluator: SmartStringEvaluator = (s: SmartString, _: Boolean) => s.rawValue(LangADT.En)
 
-  implicit val messages: Messages = Helpers.stubMessages(
-    Helpers.stubMessagesApi(
-      Map(
-        "en" -> Map(
-          "date.day"                    -> "day",
-          "date.month"                  -> "month",
-          "helper.order"                -> "{0} {1}",
-          "generic.error.maxLength"     -> "{0} must be no more than {1} characters",
-          "field.error.number"          -> "{0} must be a number",
-          "field.error.required"        -> "{0} must be entered",
-          "generic.error.mustBeBetween" -> "{0} must be between {1} and {2}"
-        )
-      )
-    )
-  )
+  val environment = Environment.simple()
+  val configuration = Configuration.load(environment)
+  val langs = new DefaultLangs()
+  val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
+
+  val messagesApi: MessagesApi =
+    new DefaultMessagesApiProvider(environment, configuration, langs, httpConfiguration).get
+  implicit val messages: Messages = messagesApi.preferred(Seq(langs.availables.head))
 
   test("validate should return valid when calendarDate atoms are correct") {
 
@@ -79,7 +73,7 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
 
     assertEquals(
       new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
-      Invalid(Map(dateMonthAtom -> Set("Label must be entered"), dateDayAtom -> Set("Label must be entered")))
+      Invalid(Map(dateMonthAtom -> Set("Enter a date"), dateDayAtom -> Set("Enter a date")))
     )
   }
 
@@ -93,7 +87,7 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
 
     assertEquals(
       new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
-      Invalid(Map(dateMonthAtom -> Set("Label must be entered")))
+      Invalid(Map(dateMonthAtom -> Set("Enter a date")))
     )
   }
 
@@ -112,10 +106,10 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
       Invalid(
         Map(
           dateDayAtom -> Set(
-            "Label  day must be no more than 2 characters"
+            "Enter a day in the correct format"
           ),
           dateMonthAtom -> Set(
-            "Label  month must be no more than 2 characters"
+            "Enter a month in the correct format"
           )
         )
       )
@@ -137,10 +131,10 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
       Invalid(
         Map(
           dateDayAtom -> Set(
-            "Label  day must be a number"
+            "Enter a day in the correct format"
           ),
           dateMonthAtom -> Set(
-            "Label  month must be a number"
+            "Enter a month in the correct format"
           )
         )
       )
@@ -156,7 +150,7 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
         )
       ),
       dateDayAtom,
-      "Label  day must be between 1 and 31",
+      "Enter a day in the correct format",
       "Day outside range"
     ),
     (
@@ -167,7 +161,7 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
         )
       ),
       dateMonthAtom,
-      "Label  month must be between 1 and 12",
+      "Enter a month in the correct format",
       "Month outside range"
     ),
     (
@@ -178,19 +172,8 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
         )
       ),
       dateDayAtom,
-      "Label  day must be between 1 and 29",
+      "Enter a day in the correct format",
       "February day outside range"
-    ),
-    (
-      VariadicFormData[OutOfDate](
-        Map(
-          dateDayAtom   -> VariadicValue.One("0"),
-          dateMonthAtom -> VariadicValue.One("0")
-        )
-      ),
-      dateMonthAtom,
-      "Label  month must be between 1 and 12",
-      "Both day and month outside range"
     )
   )
 
@@ -203,6 +186,41 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
           Map(
             atom -> Set(
               message
+            )
+          )
+        )
+      )
+    }
+  }
+
+  val table1: List[(VariadicFormData[OutOfDate], ModelComponentId, ModelComponentId, String, String, String)] = List(
+    (
+      VariadicFormData[OutOfDate](
+        Map(
+          dateDayAtom   -> VariadicValue.One("0"),
+          dateMonthAtom -> VariadicValue.One("0")
+        )
+      ),
+      dateDayAtom,
+      dateMonthAtom,
+      "Enter a day in the correct format",
+      "Enter a month in the correct format",
+      "Both day and month outside range"
+    )
+  )
+
+  table1.zipWithIndex.foreach { case ((data, atom1, atom2, message1, message2, description), index) =>
+    test(s"$index. $description") {
+      val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+      assertEquals(
+        new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+        Invalid(
+          Map(
+            atom1 -> Set(
+              message1
+            ),
+            atom2 -> Set(
+              message2
             )
           )
         )
