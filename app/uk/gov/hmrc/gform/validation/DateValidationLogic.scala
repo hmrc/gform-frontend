@@ -99,7 +99,7 @@ object DateValidationLogic {
       case _               => s"$dayString $monthString $yearString" :: Nil
     }
 
-    val result = s"date.${beforeAfterPrecisely.mkString}"
+    val result = s"generic.error.date.${beforeAfterPrecisely.mkString}"
 
     MessageKeyWithVars(result.trim, Some(vars))
   }
