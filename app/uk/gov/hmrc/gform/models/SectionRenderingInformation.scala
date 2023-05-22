@@ -24,13 +24,12 @@ import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.upscan.UpscanData
 
-case class SectionRenderingInformation(
+final case class SectionRenderingInformation(
   formTemplateId: FormTemplateId,
   maybeAccessCode: Option[AccessCode],
   sectionNumber: SectionNumber,
-  sectionTitle: String,
+  sectionHeader: SectionHeader,
   noPIITitle: String,
-  sectionDescription: Option[String],
   snippets: List[Html],
   javascripts: String,
   envelopeId: EnvelopeId,
@@ -40,6 +39,11 @@ case class SectionRenderingInformation(
   formMaxAttachmentSizeMB: Int,
   allowedFileTypes: AllowedFileTypes,
   restrictedFileExtensions: List[FileExtension],
-  caption: Option[String] = None,
   upscanData: Map[FormComponentId, UpscanData] = Map.empty
+)
+
+final case class SectionHeader(
+  sectionTitle: String,
+  sectionDescription: Option[String],
+  caption: Option[String] = None
 )

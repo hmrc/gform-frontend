@@ -23,8 +23,6 @@
 @import uk.gov.hmrc.gform.views.html.{main_template, specimen}
 @import uk.gov.hmrc.gform.views.html.form.FormWithoutCSRF
 @import uk.gov.hmrc.gform.controllers.{ SaveAndExit, Back }
-@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
 @import uk.gov.hmrc.gform.FormTemplateKey
 
 @import uk.gov.hmrc.gform.commons.MarkDownUtil
@@ -46,12 +44,9 @@
   sse: SmartStringEvaluator
 )
 
-@heading = @{page.sectionTitle}
-
 @formWithoutCSRF = @{new FormWithoutCSRF()}
 @govukNotificationBanner = @{new GovukNotificationBanner()}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
-@hmrcPageHeading = @{new HmrcPageHeading()}
 
 @main_template(
   title = page.noPIITitle,
@@ -74,23 +69,7 @@
         )
     }
 
-    @if(shouldDisplayHeading) {
-        @hmrcPageHeading(PageHeading(
-            text = heading,
-            headingClasses = Some("govuk-heading-l"),
-            section = page.caption,
-            captionClasses = Some("govuk-caption-l")
-        ))
-
-      @if(page.sectionDescription.exists(_.trim.nonEmpty)){
-        <p class="govuk-body">@{page.sectionDescription.get}</p>
-      }
-    } else {
-      @* This is here to support caption in case of isPageHading case *@
-      @page.caption.fold(HtmlFormat.empty){ caption =>
-        <p class="govuk-!-margin-bottom-0 govuk-caption-l hmrc-caption-xl"><span class="govuk-visually-hidden">@messages("this.section.is")</span>@caption</p>
-      }
-    }
+    @section_header(page.sectionHeader, shouldDisplayHeading)
 
     @page.upscanData.map { case (_, upscanData) =>
         @formWithoutCSRF(action = Call("POST", upscanData.url), args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> upscanData.formMetaData.htmlId){

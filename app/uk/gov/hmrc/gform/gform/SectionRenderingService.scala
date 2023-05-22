@@ -493,9 +493,8 @@ class SectionRenderingService(
       formTemplate._id,
       maybeAccessCode,
       sectionNumber,
-      page.title.value(),
+      page.sectionHeader(),
       page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value()),
-      page.description.map(ls => ls.value()),
       snippetsForFields,
       javascript,
       envelopeId,
@@ -521,9 +520,9 @@ class SectionRenderingService(
       formMaxAttachmentSizeMB,
       allowedFileTypes,
       restrictedFileExtensions,
-      page.caption.map(ls => ls.value()),
       ei.isFileUploadOnlyPage(validationResult).fold(upscanData)(_ => Map.empty[FormComponentId, UpscanData])
     )
+
     val mainForm: Html = html.form.form_standard(
       renderingInfo,
       shouldDisplayContinue = !page.isTerminationPage,
@@ -724,9 +723,8 @@ class SectionRenderingService(
       formTemplate._id,
       maybeAccessCode,
       formTemplate.sectionNumberZero,
-      declarationPage.title.value(),
+      declarationPage.sectionHeader(),
       declarationPage.noPIITitle.fold(declarationPage.title.valueWithoutInterpolations)(_.value()),
-      declarationPage.description.map(ls => ls.value()),
       snippets,
       "",
       EnvelopeId(""),
@@ -866,13 +864,13 @@ class SectionRenderingService(
     val snippets = destinationList.acknowledgementSection.toPage.renderUnits.map(renderUnit =>
       htmlFor(renderUnit, formTemplateId, ei, ValidationResult.empty, obligations = NotChecked, UpscanInitiate.empty)
     )
+
     val renderingInfo = SectionRenderingInformation(
       formTemplateId,
       maybeAccessCode,
       formTemplate.sectionNumberZero,
-      destinationList.acknowledgementSection.title.value(),
+      destinationList.acknowledgementSection.toPage.sectionHeader(),
       "",
-      destinationList.acknowledgementSection.description.map(ls => ls.value()),
       snippets,
       "",
       envelopeId,
@@ -944,9 +942,8 @@ class SectionRenderingService(
       formTemplate._id,
       maybeAccessCode,
       formTemplate.sectionNumberZero,
-      page.title.value(),
+      page.sectionHeader(),
       page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value()),
-      None,
       snippets,
       "",
       EnvelopeId(""),
@@ -997,7 +994,7 @@ class SectionRenderingService(
       HtmlFormat.fill(hiddenFields)
     }
 
-  private def htmlFor(
+  def htmlFor(
     renderUnit: RenderUnit,
     formTemplateId: FormTemplateId,
     ei: ExtraInfo,
@@ -2854,7 +2851,7 @@ class SectionRenderingService(
     ConfidenceLevel.L50
   )
 
-  private def shouldDisplayHeading(
+  def shouldDisplayHeading(
     singleton: Singleton[DataExpanded],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     validationResult: ValidationResult

@@ -11,6 +11,7 @@
 
 # Add all the application routes to the prod.routes file
 ->            /                                                        prod.Routes
+->            /submissions/builder/                                    builder.Routes
 
 GET           /submissions/test-only/proxy-to-gform/*path              uk.gov.hmrc.gform.testonly.TestOnlyController.proxyToGform(path: String)
 POST          /submissions/test-only/proxy-to-gform/*path              uk.gov.hmrc.gform.testonly.TestOnlyController.proxyToGform(path: String)
