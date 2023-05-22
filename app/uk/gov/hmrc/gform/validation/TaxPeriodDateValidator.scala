@@ -23,10 +23,11 @@ import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, TaxPeriodDate }
-import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.{ errors, fieldDescriptor }
-import uk.gov.hmrc.gform.validation.DateValidationLogic.{ hasMaximumLength, isNumeric }
+import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.eval.smartstring._
 
 class TaxPeriodDateValidator[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D])(implicit
   messages: Messages,
@@ -34,51 +35,35 @@ class TaxPeriodDateValidator[D <: DataOrigin](formModelVisibilityOptics: FormMod
 ) {
 
   def validate(formComponent: FormComponent): ValidatedType[Unit] =
-    validateRequired(formComponent)
-      .andThen(_ =>
-        validateMonthYear(formComponent)
-          .andThen(validateMonthYearCombo(formComponent, _))
-      )
+    validateRequired(formComponent).andThen(_ => validateMonthYear(formComponent))
 
-  def validateMonthYear(formComponent: FormComponent): ValidatedType[(Int, Int)] =
+  def validateMonthYear(formComponent: FormComponent): ValidatedType[Unit] =
     formComponent.multiValueId.atomsModelComponentIds.map(formModelVisibilityOptics.data.one) match {
       case Some(month) :: Some(year) :: Nil =>
-        val label = fieldDescriptor(formComponent, "")
-
-        val yearValidated = hasMaximumLength(year, 4, label + " " + messages("date.year"))
-          .andThen(_ => isNumeric(year, label + " " + messages("date.year"), label))
-          .leftMap(error => Map(errorGranularity(formComponent)(TaxPeriodDate.year) -> Set(error)))
-
-        val monthValidated = hasMaximumLength(month, 2, label + " " + messages("date.month"))
-          .andThen(_ => isNumeric(month, label + " " + messages("date.month"), label))
-          .leftMap(error => Map(errorGranularity(formComponent)(TaxPeriodDate.month) -> Set(error)))
-
-        (monthValidated, yearValidated).mapN((month, year) => (month, year))
+        validationSuccess
+          .ensure(
+            Map(
+              errorGranularity(formComponent)(TaxPeriodDate.month) -> Set(
+                messages("generic.error.taxPeriodDate.month.real")
+              )
+            )
+          )(_ => month.toIntOption.map(m => m >= 1 && m <= 12).getOrElse(false))
+          .ensure(
+            Map(
+              errorGranularity(formComponent)(TaxPeriodDate.year) -> Set(
+                messages("generic.error.taxPeriodDate.year.real")
+              )
+            )
+          )(_ => year.toIntOption.map(y => y >= 1900 && y <= 2099).getOrElse(false))
       case _ =>
-        validationFailure(formComponent.firstAtomModelComponentId, formComponent, "date.isMissing", None, "")
+        validationFailure(
+          formComponent.firstAtomModelComponentId,
+          formComponent,
+          "generic.error.taxPeriodDate.required",
+          None,
+          ""
+        )
     }
-
-  private def validateMonthYearCombo(formComponent: FormComponent, monthYear: (Int, Int)): ValidatedType[Unit] = {
-    val label = fieldDescriptor(formComponent, "")
-    val monthLabel = label + " " + messages("date.month")
-    val yearLabel = label + " " + messages("date.year")
-    val (month, year) = monthYear
-    validationSuccess
-      .ensure(
-        Map(
-          errorGranularity(formComponent)(TaxPeriodDate.month) -> Set(
-            messages("generic.error.mustBeBetween", monthLabel, 1, 12)
-          )
-        )
-      )(_ => month >= 1 && month <= 12)
-      .ensure(
-        Map(
-          errorGranularity(formComponent)(TaxPeriodDate.year) -> Set(
-            messages("generic.error.mustBeBetween", yearLabel, 1900, 2099)
-          )
-        )
-      )(_ => year >= 1900 && year <= 2099)
-  }
 
   private def validateRequired(
     formComponent: FormComponent
@@ -102,9 +87,17 @@ class TaxPeriodDateValidator[D <: DataOrigin](formModelVisibilityOptics: FormMod
   }
 
   private def requiredError(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] =
-    Map[ModelComponentId, Set[String]](
-      modelComponentId -> errors(formComponent, "field.error.required", None)
-    ).invalid
+    Map[ModelComponentId, Set[String]] {
+      val placeholder1 = formComponent.errorShortName
+        .flatMap(_.nonBlankValue())
+        .getOrElse(SmartString.blank.trasform(_ => "a date", _ => "ddyddiad").value())
+      val placeholder2 = formComponent.errorExample.flatMap(_.nonBlankValue()).map(s => s", $s").getOrElse("")
+      modelComponentId -> errors(
+        formComponent,
+        "generic.error.taxPeriodDate.required",
+        Some(placeholder1 :: placeholder2 :: Nil)
+      )
+    }.invalid
 
   def errorGranularity(formComponent: FormComponent)(suffix: Atom): ModelComponentId =
     formComponent.atomicFormComponentId(suffix)

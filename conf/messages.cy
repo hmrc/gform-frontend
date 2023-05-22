@@ -194,6 +194,10 @@ generic.sterling.error.maxdigit.pattern=Mae {1} yn gorfod bod yn {3} digid neu l
 generic.whole.sterling.error.pence.pattern=Mae {1} yn gorfod beidio â chynnwys ceiniogau{2}
 generic.positive.sterling.error.positive.pattern=Mae {1} yn gorfod bod yn 0 neu fwy{2}
 
+generic.error.taxPeriodDate.required= Nodwch {1}{2}
+generic.error.taxPeriodDate.month.real=Nodwch fis yn y fformat cywir
+generic.error.taxPeriodDate.year.real=Nodwch flwyddyn yn y fformat cywir
+
 enrolment.error.failed=Ni ellir dod o hyd i’r manylion cofrestru a nodwyd gennych neu mae cysylltiad rhyngddynt â chyfrif Porth y Llywodraeth gwahanol. Gallwch wneud y canlynol:
 enrolment.error.failed.step1=gwirio’ch manylion a rhoi cynnig arall arni
 enrolment.error.failed.step2=cael help gyda mewngofnodi i’r gwasanaeth hwn (yn agor ffenestr neu dab newydd)
