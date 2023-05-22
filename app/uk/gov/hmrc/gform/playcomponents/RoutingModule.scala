@@ -109,11 +109,17 @@ class RoutingModule(
     metricsModule.metricsController
   )
 
+  private val builderRoutes: builder.Routes = new builder.Routes(
+    errorHandler,
+    testOnlyModule.builderController
+  )
+
   //we don't need it always, lets leave it lazy
   private lazy val testOnlyDoNotUseInAppConfRoutes: testOnlyDoNotUseInAppConf.Routes =
     new testOnlyDoNotUseInAppConf.Routes(
       errorHandler,
       prodRoutes,
+      builderRoutes,
       testOnlyModule.testOnlyController,
       testOnlyModule.debugController
     )

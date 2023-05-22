@@ -21,11 +21,13 @@ import cats.data.NonEmptyList
 import play.api.libs.json.OFormat
 import cats.syntax.eq._
 import julienrf.json.derived
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceData, RevealingChoiceInfo, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.gform.RenderUnit
-import uk.gov.hmrc.gform.models.{ Basic, PageMode }
+import uk.gov.hmrc.gform.models.{ Basic, PageMode, SectionHeader }
 
 case class Page[A <: PageMode](
   title: SmartString,
@@ -46,6 +48,12 @@ case class Page[A <: PageMode](
   redirects: Option[NonEmptyList[RedirectCtx]],
   hideSaveAndComeBackButton: Option[Boolean]
 ) {
+
+  def sectionHeader()(implicit sse: SmartStringEvaluator) = SectionHeader(
+    title.value(),
+    description.map(ls => ls.value()),
+    caption.map(ls => ls.value())
+  )
 
   val allFields: List[FormComponent] = confirmation.fold(fields)(fields ::: _.question :: Nil)
 

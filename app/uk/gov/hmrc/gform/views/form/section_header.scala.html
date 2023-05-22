@@ -1,0 +1,50 @@
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.models.SectionHeader
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
+
+@(
+  sectionHeader: SectionHeader,
+  shouldDisplayHeading: Boolean,
+)(
+  implicit
+  request: Request[_],
+  messages: Messages,
+  l: LangADT,
+  sse: SmartStringEvaluator
+)
+
+@hmrcPageHeading = @{new HmrcPageHeading()}
+
+@if(shouldDisplayHeading) {
+    @hmrcPageHeading(PageHeading(
+        text = sectionHeader.sectionTitle,
+        headingClasses = Some("govuk-heading-l"),
+        section = sectionHeader.caption,
+        captionClasses = Some("govuk-caption-l")
+    ))
+
+  @sectionHeader.sectionDescription.find(_.trim.nonEmpty).map { sectionDescription =>
+    <p class="govuk-body">@sectionDescription</p>
+  }
+} else {
+  @* This is here to support caption in case of isPageHading case *@
+  @sectionHeader.caption.fold(HtmlFormat.empty){ caption =>
+    <p class="govuk-!-margin-bottom-0 govuk-caption-l hmrc-caption-xl"><span class="govuk-visually-hidden">@messages("this.section.is")</span>@caption</p>
+  }
+}

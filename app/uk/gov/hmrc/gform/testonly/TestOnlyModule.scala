@@ -22,7 +22,9 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
+import uk.gov.hmrc.gform.builder.BuilderController
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
+import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -41,6 +43,11 @@ class TestOnlyModule(
   ec: ExecutionContext
 ) {
 
+  private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(
+    configModule.frontendAppConfig,
+    lookupRegistry
+  )
+
   private val proxyActions = new ProxyActions(ahcWSComponents.wsClient)(controllersModule.messagesControllerComponents)
 
   val testOnlyController = new TestOnlyController(
@@ -58,4 +65,13 @@ class TestOnlyModule(
     fileUploadModule.fileUploadService,
     controllersModule.messagesControllerComponents
   )
+
+  val builderController: BuilderController =
+    new BuilderController(
+      controllersModule.authenticatedRequestActions,
+      sectionRenderingService,
+      playBuiltInsModule.i18nSupport,
+      gformBackendModule.gformConnector,
+      controllersModule.messagesControllerComponents
+    )
 }
