@@ -21,6 +21,7 @@ import cats.implicits._
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, Call, MessagesControllerComponents, Request, Result }
 import play.twirl.api.Html
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -32,9 +33,8 @@ import uk.gov.hmrc.gform.gform.{ Errors, FastForwardService }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
-import uk.gov.hmrc.gform.models.{ Basic, Bracket, FormModelBuilder, Visibility }
+import uk.gov.hmrc.gform.models.{ Basic, Bracket, DataExpanded, FastForward, FormModel, FormModelBuilder, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.{ FastForward, SectionSelectorType }
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormData, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Expr, FormComponent, FormComponentId, FormKind, FormTemplateContext, FormTemplateId, IsPostcodeLookup, Page, PostcodeLookup, Section, SectionNumber, SectionTitle4Ga, SuppressErrors }
@@ -125,13 +125,7 @@ class AddressLookupController(
                     )
                 } else {
                   val formModel = formModelOptics.formModelRenderPageOptics.formModel
-                  val maybeChooseAddressLabel = formModel.allFormComponents.find(_.id === formComponentId).flatMap {
-                    case IsPostcodeLookup(PostcodeLookup(chooseAddressLabel, _)) => chooseAddressLabel.map(_.value())
-                    case _                                                       => None
-                  }
-                  val title = if (addressLookupResult.response.filterDisabled) {
-                    Messages("postcodeLookup.choose.address.all", addressLookupResult.request.postcode)
-                  } else maybeChooseAddressLabel.getOrElse(Messages("postcodeLookup.choose.address"))
+                  val title = titleForChooseAddressPage(formModel, addressLookupResult, formComponentId)
                   Ok(
                     renderChooseAddressPage(
                       formComponentId,
@@ -223,6 +217,20 @@ class AddressLookupController(
     )
   }
 
+  private def titleForChooseAddressPage(
+    formModel: FormModel[DataExpanded],
+    addressLookupResult: AddressLookupResult,
+    formComponentId: FormComponentId
+  )(implicit sse: SmartStringEvaluator, messages: Messages) = {
+    val maybeChooseAddressLabel = formModel.allFormComponents.find(_.id === formComponentId).flatMap {
+      case IsPostcodeLookup(PostcodeLookup(chooseAddressLabel, _)) => chooseAddressLabel.map(_.value())
+      case _                                                       => None
+    }
+    if (addressLookupResult.response.filterDisabled) {
+      Messages("postcodeLookup.choose.address.all", addressLookupResult.request.postcode)
+    } else maybeChooseAddressLabel.getOrElse(Messages("postcodeLookup.choose.address"))
+  }
+
   def submitAddress(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -240,10 +248,9 @@ class AddressLookupController(
                 .addressesFor(formComponentId)
                 .fold(
                   throw new NotFoundException(s"No addresses found for FormComponentId: ${formComponentId.value}.")
-                ) { case (addressRecords, addressLookupResult) =>
-                  val title = if (addressLookupResult.response.filterDisabled) {
-                    Messages("postcodeLookup.choose.address.all", addressLookupResult.request.postcode)
-                  } else Messages("postcodeLookup.choose.address")
+                ) { case (addressRecords, addressLookupResult: AddressLookupResult) =>
+                  val formModel = formModelOptics.formModelRenderPageOptics.formModel
+                  val title = titleForChooseAddressPage(formModel, addressLookupResult, formComponentId)
                   BadRequest(
                     renderChooseAddressPage(
                       formComponentId,
