@@ -42,7 +42,7 @@ class CalendarDateValidation[D <: DataOrigin](formModelVisibilityOptics: FormMod
     validateRequired(formComponent)
       .andThen(_ => validateDayMonth(formComponent))
 
-  def validateDayMonth(formComponent: FormComponent): ValidatedType[Unit] =
+  private def validateDayMonth(formComponent: FormComponent): ValidatedType[Unit] =
     formComponent.multiValueId.atomsModelComponentIds.map(formModelVisibilityOptics.data.one) match {
       case Some(day) :: Some(month) :: Nil =>
         val monthValidation = month.toIntOption
@@ -114,6 +114,6 @@ class CalendarDateValidation[D <: DataOrigin](formModelVisibilityOptics: FormMod
       )
     }.invalid
 
-  def errorGranularity(formComponent: FormComponent)(suffix: Atom): ModelComponentId =
+  private def errorGranularity(formComponent: FormComponent)(suffix: Atom): ModelComponentId =
     formComponent.atomicFormComponentId(suffix)
 }
