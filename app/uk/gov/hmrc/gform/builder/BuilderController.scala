@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.upscan.UpscanInitiate
+import uk.gov.hmrc.gform.validation.FieldOk
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -82,7 +83,11 @@ class BuilderController(
           case Some(formComponent) =>
             val singleton = formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
 
-            val validationResult = ValidationResult.empty
+            val currentValue = formModelOptics.formModelVisibilityOptics.data.one(formComponent.modelComponentId)
+
+            val formFieldValidationResult = FieldOk(formComponent, currentValue.getOrElse(""))
+
+            val validationResult = ValidationResult(Map(formComponent.id -> formFieldValidationResult), None)
 
             val formLevelHeading = renderer.shouldDisplayHeading(singleton, formModelOptics, validationResult)
 
