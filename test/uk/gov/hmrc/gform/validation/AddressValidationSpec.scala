@@ -16,538 +16,843 @@
 
 package uk.gov.hmrc.gform.validation
 
-/* import cats.instances.future._
- * import cats.scalatest.ValidatedValues._
- * import org.scalatest.mockito.MockitoSugar.mock
- * import play.api.i18n.Messages
- * import uk.gov.hmrc.gform.Helpers.toSmartString
- * import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
- * import uk.gov.hmrc.gform.fileupload.Envelope
- * import uk.gov.hmrc.gform.lookup.LookupRegistry
- * import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, SmartString, VariadicFormData }
- * import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
- * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponent, FormComponentId }
- * import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
- * import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
- * import uk.gov.hmrc.http.HeaderCarrier
- * import scala.concurrent.ExecutionContext.Implicits.global
- */
-import uk.gov.hmrc.gform.GraphSpec
-import org.scalatest.concurrent.ScalaFutures
+import cats.data.Validated.Invalid
+import cats.instances.future._
 import cats.scalatest.EitherMatchers
+import cats.scalatest.ValidatedValues._
+import org.mockito.scalatest.IdiomaticMockito
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
-class AddressValidationSpec extends AnyFlatSpecLike with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
-  /*   val retrievals = mock[MaterialisedRetrievals]
-   *
-   *   val baseAddress = Address(international = false)
-   *   val baseListItem =
-   *     FormComponent(
-   *       FormComponentId("x"),
-   *       baseAddress,
-   *       toSmartString("l"),
-   *       None,
-   *       None,
-   *       None,
-   *       true,
-   *       true,
-   *       false,
-   *       true,
-   *       false,
-   *       None)
-   *   val tempList: List[FormComponent] = List(baseListItem, baseListItem)
-   *
-   *   private val lookupRegistry = new LookupRegistry(Map.empty)
-   *
-   *   implicit lazy val hc = HeaderCarrier()
-   *
-   *   implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
-   *     override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
-   *   }
-   *
-   *   private def mkComponentsValidator(data: FormDataRecalculated): ComponentsValidator =
-   *     new ComponentsValidator(
-   *       data,
-   *       EnvelopeId("whatever"),
-   *       Envelope.empty,
-   *       retrievals,
-   *       booleanExprEval,
-   *       ThirdPartyData.empty,
-   *       ExampleData.formTemplate,
-   *       lookupRegistry)
-   *
-   *   "non-international" should "accept uk, street1, street3, streep 3, street4 and postcode" in {
-   *     val address = Address(international = false)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val tempList: List[FormComponent] = List(speccedAddress, speccedAddress)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x-uk")       -> "true",
-   *         FormComponentId("x-street1")  -> "S1",
-   *         FormComponentId("x-street2")  -> "S2",
-   *         FormComponentId("x-street3")  -> "S3",
-   *         FormComponentId("x-street4")  -> "S4",
-   *         FormComponentId("x-postcode") -> "P1 1P"
-   *       )
-   *     )
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value should be(())
-   *   }
-   *
-   *   "non-international" should "accept uk, street1 and postcode only" in {
-   *     val address = Address(international = false)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x-uk")       -> "true",
-   *         FormComponentId("x-street1")  -> "S",
-   *         FormComponentId("x-postcode") -> "P1 1P"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value should be(())
-   *   }
-   *
-   *   "non-international" should "should return invalid for uk, street1, street2, street3, street4 but an invalid postcode" in {
-   *     val address = Address(international = false)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x-uk")       -> "true",
-   *         FormComponentId("x-street1")  -> "S1",
-   *         FormComponentId("x-street2")  -> "S2",
-   *         FormComponentId("x-street3")  -> "S3",
-   *         FormComponentId("x-street4")  -> "S4",
-   *         FormComponentId("x-postcode") -> "BN11 7YHP"
-   *       ))
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(
-   *       Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode is longer than 8 characters")))
-   *   }
-   *
-   *   "non-international" should "return invalid for postcode, but no street1" in {
-   *     val address = Address(international = false)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(FormComponentId("x-uk") -> "true", FormComponentId("x-postcode") -> "P1 1P")
-   *     )
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(
-   *       Map(speccedAddress.id.withSuffix("street1") -> Set("l Building and street must be entered")))
-   *   }
-   *
-   *   "non-international" should "return invalid for street1 but no postcode" in {
-   *     val address = Address(international = false)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x-uk")      -> "true",
-   *         FormComponentId("x-street1") -> "S"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] = new ComponentsValidator(
-   *       data,
-   *       EnvelopeId("whatever"),
-   *       Envelope.empty,
-   *       retrievals,
-   *       booleanExprEval,
-   *       ThirdPartyData.empty,
-   *       ExampleData.formTemplate,
-   *       lookupRegistry).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode must be entered")))
-   *   }
-   *
-   *   "international" should "accept not uk, street1, country" in {
-   *     val address = Address(international = true)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x-uk")      -> "false",
-   *         FormComponentId("x-street1") -> "S",
-   *         FormComponentId("x-country") -> "C"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.value should be(())
-   *   }
-   *
-   *   "international" should "return invalid for not uk, street1, but no country" in {
-   *     val address = Address(international = true)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x-uk")      -> "false",
-   *         FormComponentId("x-street1") -> "S"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("country") -> Set("l Country must be entered")))
-   *   }
-   *
-   *   "international" should "return invalid for not uk, street1, postcode and country" in {
-   *     val address = Address(international = true)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x-uk")       -> "false",
-   *         FormComponentId("x-street1")  -> "S",
-   *         FormComponentId("x-postcode") -> "P1 1P",
-   *         FormComponentId("x-country")  -> "C"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l must not be entered")))
-   *   }
-   *
-   *   "international" should "return invalid for uk, street1, country, but no postcode" in {
-   *     val address = Address(international = true)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x-uk")      -> "true",
-   *         FormComponentId("x-street1") -> "S",
-   *         FormComponentId("x-country") -> "C"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(
-   *       Map(
-   *         speccedAddress.id.withSuffix("postcode") -> Set("l postcode must be entered"),
-   *         speccedAddress.id.withSuffix("country")  -> Set("l must not be entered")
-   *       ))
-   *   }
-   *
-   *   "Address validation" should "fail when field separator is wrong" in {
-   *     val address = Address(international = true)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x@uk")      -> "true",
-   *         FormComponentId("x@street1") -> "S",
-   *         FormComponentId("x@country") -> "C"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(
-   *       Map(
-   *         FormComponentId("x-country") -> Set("l Country must be entered"),
-   *         FormComponentId("x-street1") -> Set("l line 1 must be entered")
-   *       )
-   *     )
-   *   }
-   *
-   *   "Address validation" should "throw back custom validation" in {
-   *     val address = Address(international = true)
-   *
-   *     val speccedAddress = FormComponent(
-   *       FormComponentId("x"),
-   *       address,
-   *       toSmartString("l"),
-   *       None,
-   *       None,
-   *       None,
-   *       true,
-   *       true,
-   *       false,
-   *       true,
-   *       false,
-   *       Some(toSmartString("New Error Message"))
-   *     )
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x@uk")      -> "true",
-   *         FormComponentId("x@street1") -> "S",
-   *         FormComponentId("x@country") -> "C"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(
-   *       Map(
-   *         FormComponentId("x-country") -> Set("New Error Message"),
-   *         FormComponentId("x-street1") -> Set("New Error Message")
-   *       )
-   *     )
-   *   }
-   *
-   *   "Address validation" should "pass with valid data" in {
-   *     val address = Address(international = true)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x-uk")       -> "true",
-   *         FormComponentId("x-street1")  -> List.fill(ValidationValues.addressLine)("a").mkString,
-   *         FormComponentId("x-street2")  -> List.fill(ValidationValues.addressLine)("a").mkString,
-   *         FormComponentId("x-street3")  -> List.fill(ValidationValues.addressLine)("a").mkString,
-   *         FormComponentId("x-street4")  -> List.fill(ValidationValues.addressLine4)("a").mkString,
-   *         FormComponentId("x-postcode") -> "C"
-   *       )
-   *     )
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beRight(())
-   *   }
-   *
-   *   "Address validation" should "pass with valid required data omitting the optional" in {
-   *     val address = Address(international = true)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x-uk")       -> "true",
-   *         FormComponentId("x-street1")  -> List.fill(ValidationValues.addressLine)("a").mkString,
-   *         FormComponentId("x-postcode") -> "C"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beRight(())
-   *   }
-   *
-   *   "Address validation" should "fail when the field is fails validation" in {
-   *     val address = Address(international = true)
-   *
-   *     val speccedAddress =
-   *       FormComponent(
-   *         FormComponentId("x"),
-   *         address,
-   *         toSmartString("l"),
-   *         None,
-   *         None,
-   *         None,
-   *         true,
-   *         true,
-   *         false,
-   *         true,
-   *         false,
-   *         None)
-   *
-   *     val data = mkFormDataRecalculated(
-   *       VariadicFormData.ones(
-   *         FormComponentId("x-uk")       -> "true",
-   *         FormComponentId("x-street1")  -> List.fill(36)("a").mkString,
-   *         FormComponentId("x-street2")  -> List.fill(36)("a").mkString,
-   *         FormComponentId("x-street3")  -> List.fill(36)("a").mkString,
-   *         FormComponentId("x-street4")  -> List.fill(28)("a").mkString,
-   *         FormComponentId("x-postcode") -> "C"
-   *       ))
-   *
-   *     val result: ValidatedType[Unit] =
-   *       mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
-   *
-   *     result.toEither should beLeft(
-   *       Map(
-   *         FormComponentId("x-street1") -> Set("l Building and street is longer than 35 characters"),
-   *         FormComponentId("x-street2") -> Set("l Building and street line 2 is longer than 35 characters"),
-   *         FormComponentId("x-street3") -> Set("l Town or city is longer than 35 characters"),
-   *         FormComponentId("x-street4") -> Set("l County is longer than 27 characters")
-   *       )
-   *     )
-   *   }
-   */
+import play.api.http.HttpConfiguration
+import play.api.i18n._
+import play.api.{ Configuration, Environment }
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import uk.gov.hmrc.gform.GraphSpec
+import uk.gov.hmrc.gform.Helpers.toSmartString
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.controllers.CacheData
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.Atom
+import uk.gov.hmrc.gform.models.FormModelSupport
+import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.VariadicFormDataSupport
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
+import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponent, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, VariadicFormData }
+import uk.gov.hmrc.gform.validation.ComponentsValidator
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+
+class AddressValidationSpec
+    extends AnyFlatSpecLike with Matchers with EitherMatchers with ScalaFutures with GraphSpec
+    with VariadicFormDataSupport with FormModelSupport with IdiomaticMockito {
+
+  val environment = Environment.simple()
+  val configuration = Configuration.load(environment)
+  val langs = new DefaultLangs()
+  val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
+
+  val messagesApi: MessagesApi =
+    new DefaultMessagesApiProvider(environment, configuration, langs, httpConfiguration).get
+
+  implicit val messages: Messages = messagesApi.preferred(Seq(langs.availables.head))
+
+  implicit val l: LangADT = LangADT.En
+  override val retrievals = mock[MaterialisedRetrievals]
+
+  implicit class FormComponentOps(formComponent: FormComponent) {
+    def withErrorFields(
+      errorShortName: Option[String],
+      errorShortNameStart: Option[String],
+      errorExample: Option[String]
+    ): FormComponent =
+      formComponent.copy(
+        errorShortName = errorShortName.map(toSmartString),
+        errorShortNameStart = errorShortNameStart.map(toSmartString),
+        errorExample = errorExample.map(toSmartString)
+      )
+  }
+
+  val baseAddress = Address(international = false, mandatoryFields = List(), countyDisplayed = false, value = None)
+  val baseFormComponent =
+    FormComponent(
+      FormComponentId("x"),
+      baseAddress,
+      toSmartString("l"),
+      None,
+      None,
+      None,
+      None,
+      true,
+      false,
+      true,
+      false,
+      false,
+      None,
+      None
+    )
+  // val tempList: List[FormComponent] = List(baseListItem, baseListItem)
+
+  private val lookupRegistry = new LookupRegistry(Map.empty)
+
+  // implicit lazy val hc = HeaderCarrier()
+
+  implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
+    override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
+  }
+
+  private def componentsValidator(
+    formTemplate: FormTemplate,
+    formComponent: FormComponent,
+    data: VariadicFormData[SourceOrigin.OutOfDate]
+  ) = {
+
+    val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections)
+
+    val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+
+    val cacheData = new CacheData(
+      EnvelopeId(""),
+      ThirdPartyData.empty,
+      formTemplate
+    )
+
+    mkComponentsValidator(fmvo, formComponent, cacheData)
+  }
+
+  private def mkComponentsValidator(
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    formComponent: FormComponent,
+    cacheData: CacheData
+  ): ComponentsValidator[DataOrigin.Mongo, Future] =
+    new ComponentsValidator(
+      formModelVisibilityOptics,
+      formComponent,
+      cacheData,
+      EnvelopeWithMapping.empty,
+      lookupRegistry,
+      booleanExprEval
+    )
+
+  "non-international" should "accept uk, street1, street3, streep 3, street4 and postcode" in {
+    val speccedAddress = baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent.copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S1",
+      "x-street2"  -> "S2",
+      "x-street3"  -> "S3",
+      "x-street4"  -> "S4",
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result.value should be(())
+  }
+
+  "non-international" should "accept uk, street1 and postcode only" in {
+    val speccedAddress = baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent.copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S",
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+    result.value should be(())
+  }
+
+  "non-international" should "should return invalid for uk, street1, street2, street3, street4 but an invalid postcode AC15" in {
+    val speccedAddress = baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent.copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S1",
+      "x-street2"  -> "S2",
+      "x-street3"  -> "S3",
+      "x-street4"  -> "S4",
+      "x-postcode" -> "BN11 7YHP"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
+            "Enter a real postcode"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "should return invalid for uk, street1, street2, street3, street4 but an invalid postcode AC16" in {
+    val speccedAddress = baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(None, None, errorExample = Some("like AA1 1AA"))
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S1",
+      "x-street2"  -> "S2",
+      "x-street3"  -> "S3",
+      "x-street4"  -> "S4",
+      "x-postcode" -> "BN11 7YHP"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
+            "Enter a real postcode, like AA1 1AA"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid for postcode, but no street1, AC1" in {
+    val speccedAddress = baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street1")) -> Set(
+            "Enter building and street"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid for postcode, but no street1, AC2" in {
+    val speccedAddress = baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(errorShortName = Some("business address"), None, None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street1")) -> Set(
+            "Enter business address building and street"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid if don't enter a town or city if mandatory, AC3" in {
+    val speccedAddress =
+      baseAddress.copy(international = false, mandatoryFields = List(Address.Configurable.Mandatory.City))
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S1",
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street3")) -> Set(
+            "Enter town or city"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid if don't enter a town or city if mandatory, AC4" in {
+    val speccedAddress =
+      baseAddress.copy(international = false, mandatoryFields = List(Address.Configurable.Mandatory.City))
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(errorShortName = Some("business address"), None, None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S1",
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street3")) -> Set(
+            "Enter business address town or city"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid for street1 but no postcode AC5" in {
+    val speccedAddress = baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+    // .withErrorFields(errorShortName = Some("business address"), None, None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"      -> "true",
+      "x-street1" -> "S"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
+            "Enter postcode"
+          )
+        )
+      )
+    )
+  }
+  "non-international" should "return invalid for street1 but no postcode AC6" in {
+    val speccedAddress = baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(errorShortName = Some("business address"), None, None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"      -> "true",
+      "x-street1" -> "S"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
+            "Enter business address postcode"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid when enter 36 characters in building and street, AC7" in {
+    val speccedAddress =
+      baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(None, None, None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street1")) -> Set(
+            "Building and street must be 35 characters or less"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid when enter 36 characters in building and street, AC8" in {
+    val speccedAddress =
+      baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(None, errorShortNameStart = Some("Business address"), None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street1")) -> Set(
+            "Business address building and street must be 35 characters or less"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid when enter 36 characters in building and street line2, AC9" in {
+    val speccedAddress =
+      baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(None, None, None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S1",
+      "x-street2"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street2")) -> Set(
+            "Building and street line 2 must be 35 characters or less"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid when enter 36 characters in building and street line2, AC10" in {
+    val speccedAddress =
+      baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(None, errorShortNameStart = Some("Business address"), None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S1",
+      "x-street2"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street2")) -> Set(
+            "Business address building and street line 2 must be 35 characters or less"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid when enter 36 characters in town or city, AC11" in {
+    val speccedAddress =
+      baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(None, None, None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S1",
+      "x-street3"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street3")) -> Set(
+            "Town or city must be 35 characters or less"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid when enter 36 characters in town or city, AC12" in {
+    val speccedAddress =
+      baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(None, errorShortNameStart = Some("Business address"), None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S1",
+      "x-street3"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street3")) -> Set(
+            "Business address town or city must be 35 characters or less"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid when enter 36 characters in town or city, AC13" in {
+    val speccedAddress =
+      baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(None, None, None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S1",
+      "x-street4"  -> List.fill(ValidationValues.addressLine4 + 1)("a").mkString,
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street4")) -> Set(
+            "County must be 27 characters or less"
+          )
+        )
+      )
+    )
+  }
+
+  "non-international" should "return invalid when enter 36 characters in town or city, AC14" in {
+    val speccedAddress =
+      baseAddress.copy(international = false)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+      .withErrorFields(None, errorShortNameStart = Some("Business address"), None)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> "S1",
+      "x-street4"  -> List.fill(ValidationValues.addressLine4 + 1)("a").mkString,
+      "x-postcode" -> "RG1 1AA"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street4")) -> Set(
+            "Business address county must be 27 characters or less"
+          )
+        )
+      )
+    )
+  }
+
+  "international" should "accept not uk, street1, country" in {
+    val speccedAddress = baseAddress.copy(international = true)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"      -> "false",
+      "x-street1" -> "S",
+      "x-country" -> "C"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+    result.value should be(())
+  }
+
+  "international" should "return invalid for not uk, street1, but no country" in {
+    val speccedAddress = baseAddress.copy(international = true)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"      -> "false",
+      "x-street1" -> "S"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
+            "l country must be entered"
+          )
+        )
+      )
+    )
+  }
+
+  "international" should "return invalid for not uk, street1, postcode and country" in {
+    val speccedAddress = baseAddress.copy(international = true)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "false",
+      "x-street1"  -> "S",
+      "x-postcode" -> "P1 1P",
+      "x-country"  -> "C"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
+            "l must not be entered"
+          )
+        )
+      )
+    )
+  }
+
+  "international" should "return invalid for uk, street1, country, but no postcode" in {
+    val speccedAddress = baseAddress.copy(international = true)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"      -> "true",
+      "x-street1" -> "S",
+      "x-country" -> "C"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
+            "Enter postcode"
+          ),
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
+            "l must not be entered"
+          )
+        )
+      )
+    )
+  }
+
+  "Address validation" should "fail when field separator is wrong" in {
+    val speccedAddress = baseAddress.copy(international = true)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x@uk"      -> "true",
+      "x@street1" -> "S",
+      "x@country" -> "C"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street1")) -> Set(
+            "l line 1 must be entered"
+          ),
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
+            "l country must be entered"
+          )
+        )
+      )
+    )
+  }
+
+  "Address validation" should "pass with valid data" in {
+    val speccedAddress = baseAddress.copy(international = true)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> List.fill(ValidationValues.addressLine)("a").mkString,
+      "x-street2"  -> List.fill(ValidationValues.addressLine)("a").mkString,
+      "x-street3"  -> List.fill(ValidationValues.addressLine)("a").mkString,
+      "x-street4"  -> List.fill(ValidationValues.addressLine4)("a").mkString,
+      "x-postcode" -> "RG1 1PQ"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result.value should be(())
+  }
+
+  "Address validation" should "pass with valid required data omitting the optional" in {
+    val speccedAddress = baseAddress.copy(international = true)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> List.fill(ValidationValues.addressLine)("a").mkString,
+      "x-postcode" -> "RG1 1PQ"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result.value should be(())
+  }
+
+  "Address validation" should "fail when the field is fails validation" in {
+    val speccedAddress = baseAddress.copy(international = true)
+    val speccedFormComponent = baseFormComponent
+      .copy(`type` = speccedAddress)
+
+    val data = variadicFormData[SourceOrigin.OutOfDate](
+      "x-uk"       -> "true",
+      "x-street1"  -> List.fill(36)("a").mkString,
+      "x-street2"  -> List.fill(36)("a").mkString,
+      "x-street3"  -> List.fill(36)("a").mkString,
+      "x-street4"  -> List.fill(28)("a").mkString,
+      "x-postcode" -> "RG1 1PQ"
+    )
+    val result: ValidatedType[Unit] =
+      componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
+        .validate(GetEmailCodeFieldMatcher.noop)
+        .futureValue
+
+    result should be(
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street1")) -> Set(
+            "Building and street must be 35 characters or less"
+          ),
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street2")) -> Set(
+            "Building and street line 2 must be 35 characters or less"
+          ),
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street3")) -> Set(
+            "Town or city must be 35 characters or less"
+          ),
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street4")) -> Set(
+            "County must be 27 characters or less"
+          )
+        )
+      )
+    )
+  }
+
 }
