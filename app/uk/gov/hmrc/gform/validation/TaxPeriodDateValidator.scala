@@ -90,7 +90,7 @@ class TaxPeriodDateValidator[D <: DataOrigin](formModelVisibilityOptics: FormMod
     Map[ModelComponentId, Set[String]] {
       val placeholder1 = formComponent.errorShortName
         .flatMap(_.nonBlankValue())
-        .getOrElse(SmartString.blank.trasform(_ => "a date", _ => "ddyddiad").value())
+        .getOrElse(SmartString.blank.transform(_ => "a date", _ => "ddyddiad").value())
       val placeholder2 = formComponent.errorExample.flatMap(_.nonBlankValue()).map(s => s", $s").getOrElse("")
       modelComponentId -> errors(
         formComponent,

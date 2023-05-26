@@ -289,6 +289,15 @@ address.isUK=Is this a UK address?
 address.line4.error.maxLength={0} line 4 must be no more than {1} characters
 address.line.error.maxLength={0} line {1} must be no more than {2} characters
 
+generic.error.address.building.street.required=Enter {1}building and street
+generic.error.address.town.city.required=Enter {1}town or city
+generic.error.address.postcode.required=Enter {1}postcode
+generic.error.address.building.street.maxLength={1} must be {2} characters or less
+generic.error.address.building.street.line2.maxLength={1} line 2 must be {2} characters or less
+generic.error.address.town.city.maxLength={1} must be {2} characters or less
+generic.error.address.county.maxLength={1} must be {2} characters or less
+generic.error.address.postcode.real=Enter a real postcode{1}
+
 # Date
 date.day=day
 date.month=month
