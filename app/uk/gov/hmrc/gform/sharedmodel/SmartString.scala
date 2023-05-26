@@ -39,8 +39,8 @@ case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
     new MessageFormat(rawValue(l)).format(interpolations.map(_ => "").asJava.toArray)
   }
 
-  def trasform(fEn: String => String, fCy: String => String): SmartString =
-    copy(localised = localised.trasform(fEn, fCy))
+  def transform(fEn: String => String, fCy: String => String): SmartString =
+    copy(localised = localised.transform(fEn, fCy))
 }
 
 object SmartString {

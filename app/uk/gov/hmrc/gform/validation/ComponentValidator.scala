@@ -213,55 +213,55 @@ object ComponentValidator {
               fieldValue,
               genericNinoErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+                .map(_.transform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
             )
           case IsText(Text(Email, _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericEmailErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "an", identity).value().pure[List]))
+                .map(_.transform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
             )
           case IsText(Text(CtUTR, _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericUtrErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+                .map(_.transform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
             )
           case IsText(Text(UkVrn, _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericVrnErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+                .map(_.transform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
             )
           case IsText(Text(PayeReference, _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericPayeErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+                .map(_.transform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
             )
           case IsText(Text(UkEORI, _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericUkEoriErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "an", identity).value().pure[List]))
+                .map(_.transform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
             )
           case IsText(Text(UkBankAccountNumber, _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericUkBankAccountErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(" " + _, " " + _).value().pure[List]) orElse
+                .map(_.transform(" " + _, " " + _).value().pure[List]) orElse
                 (Some(SmartString.blank.value().pure[List]))
             )
           case IsText(Text(ChildBenefitNumber, _, _, _, _, _)) =>
@@ -269,16 +269,16 @@ object ComponentValidator {
               fieldValue,
               genericChildBenefitNumberErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+                .map(_.transform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
             )
           case IsText(Text(TelephoneNumber, _, _, _, _, _)) =>
             validationFailure(
               fieldValue,
               genericTelephoneNumberErrorRequired,
               fieldValue.errorShortName
-                .map(_.trasform(identity, " " + _).value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+                .map(_.transform(identity, " " + _).value().pure[List]) orElse
+                (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
             )
           case IsText(Text(_: ReferenceNumber, _, _, _, _, _)) =>
             validationFailure(
@@ -286,7 +286,7 @@ object ComponentValidator {
               genericReferenceNumberErrorRequired,
               fieldValue.errorShortName
                 .map(_.value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a number", _ => "rif").value().pure[List]))
+                (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]))
             )
           case IsText(Text(_: Number, _, _, _, _, _)) =>
             validationFailure(
@@ -294,7 +294,7 @@ object ComponentValidator {
               genericNumberErrorRequired,
               fieldValue.errorShortName
                 .map(_.value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a number", _ => "rif").value().pure[List]))
+                (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]))
             )
           case IsText(Text(_: PositiveNumber, _, _, _, _, _)) =>
             validationFailure(
@@ -302,7 +302,7 @@ object ComponentValidator {
               genericNumberErrorRequired,
               fieldValue.errorShortName
                 .map(_.value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "a number", _ => "rif").value().pure[List]))
+                (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]))
             )
           case IsText(Text(WholeSterling(true), _, _, _, _, _)) =>
             validationFailure(
@@ -310,7 +310,7 @@ object ComponentValidator {
               genericSterlingErrorRequired,
               fieldValue.errorShortName
                 .map(_.value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "an amount", _ => "swm").value().pure[List]))
+                (Some(SmartString.blank.transform(_ => "an amount", _ => "swm").value().pure[List]))
             )
           case IsText(Text(Sterling(_, _), _, _, _, _, _)) =>
             validationFailure(
@@ -318,7 +318,7 @@ object ComponentValidator {
               genericSterlingErrorRequired,
               fieldValue.errorShortName
                 .map(_.value().pure[List]) orElse
-                (Some(SmartString.blank.trasform(_ => "an amount", _ => "swm").value().pure[List]))
+                (Some(SmartString.blank.transform(_ => "an amount", _ => "swm").value().pure[List]))
             )
           case _ => validationFailure(fieldValue, genericErrorRequired, None)
 
@@ -404,7 +404,7 @@ object ComponentValidator {
           fieldValue,
           genericUkBankAccountErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(" " + _, " " + _).value().pure[List]) orElse
+            .map(_.transform(" " + _, " " + _).value().pure[List]) orElse
             (Some(SmartString.blank.value().pure[List]))
         )
 
@@ -526,7 +526,7 @@ object ComponentValidator {
         validationFailure(
           fieldValue,
           genericNumberErrorRequired,
-          Some(List(SmartString.blank.trasform(_ => "a number", _ => "rif").value(), ""))
+          Some(List(SmartString.blank.transform(_ => "a number", _ => "rif").value(), ""))
         )
       case Some(errorShortNameStart) =>
         validationFailure(
@@ -550,7 +550,7 @@ object ComponentValidator {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.trasform(_ => "Number", _ => "rhif").value()
+            case None                      => SmartString.blank.transform(_ => "Number", _ => "rhif").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value(),
@@ -573,7 +573,7 @@ object ComponentValidator {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.trasform(_ => "Number", _ => "rhif").value()
+            case None                      => SmartString.blank.transform(_ => "Number", _ => "rhif").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value(),
@@ -595,7 +595,7 @@ object ComponentValidator {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.trasform(_ => "Number", _ => "rhif").value()
+            case None                      => SmartString.blank.transform(_ => "Number", _ => "rhif").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value()
@@ -616,7 +616,7 @@ object ComponentValidator {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.trasform(_ => "Number", _ => "rhif").value()
+            case None                      => SmartString.blank.transform(_ => "Number", _ => "rhif").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value()
@@ -665,7 +665,7 @@ object ComponentValidator {
           genericSterlingErrorPattern,
           Some(
             List(
-              SmartString.blank.trasform(_ => "an amount", _ => "swm").value(),
+              SmartString.blank.transform(_ => "an amount", _ => "swm").value(),
               fieldValue.errorExampleWithCommaOrBlank.value()
             )
           )
@@ -699,7 +699,7 @@ object ComponentValidator {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
+            case None                      => SmartString.blank.transform(_ => "Amount", _ => "swm").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value(),
@@ -721,7 +721,7 @@ object ComponentValidator {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
+            case None                      => SmartString.blank.transform(_ => "Amount", _ => "swm").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value()
@@ -742,7 +742,7 @@ object ComponentValidator {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.trasform(_ => "Amount", _ => "swm").value()
+            case None                      => SmartString.blank.transform(_ => "Amount", _ => "swm").value()
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value()
@@ -792,7 +792,7 @@ object ComponentValidator {
           genericReferenceNumberErrorPattern,
           fieldValue.errorShortName
             .map(_.value().pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a number", _ => "rif").value().pure[List]))
+            (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]))
         )
 
     }
@@ -811,8 +811,8 @@ object ComponentValidator {
         fieldValue,
         genericEmailErrorPattern,
         fieldValue.errorShortName
-          .map(_.trasform(identity, _ + " ").value().pure[List]) orElse
-          (Some(SmartString.blank.trasform(_ => "an", identity).value().pure[List]))
+          .map(_.transform(identity, _ + " ").value().pure[List]) orElse
+          (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
       )
 
   private def checkVrn(
@@ -838,8 +838,8 @@ object ComponentValidator {
           fieldValue,
           genericVrnErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, _ + " ").value().pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+            .map(_.transform(identity, _ + " ").value().pure[List]) orElse
+            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
         )
     }
   }
@@ -887,8 +887,8 @@ object ComponentValidator {
           fieldValue,
           genericUkEoriErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, _ + " ").value().pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "an", identity).value().pure[List]))
+            .map(_.transform(identity, _ + " ").value().pure[List]) orElse
+            (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
         )
 
     }
@@ -907,8 +907,8 @@ object ComponentValidator {
           fieldValue,
           genericChildBenefitNumberErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+            .map(_.transform(identity, " " + _).value().pure[List]) orElse
+            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
         )
 
     }
@@ -953,8 +953,8 @@ object ComponentValidator {
           fieldValue,
           genericUtrErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, _ + " ").value().pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+            .map(_.transform(identity, _ + " ").value().pure[List]) orElse
+            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
         )
     }
   }
@@ -970,8 +970,8 @@ object ComponentValidator {
           fieldValue,
           genericNinoErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, _ + " ").value().pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+            .map(_.transform(identity, _ + " ").value().pure[List]) orElse
+            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
         )
     }
 
@@ -991,8 +991,8 @@ object ComponentValidator {
           fieldValue,
           genericPayeErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, _ + " ").value().pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+            .map(_.transform(identity, _ + " ").value().pure[List]) orElse
+            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
         )
 
     }
@@ -1013,8 +1013,8 @@ object ComponentValidator {
           fieldValue,
           genericTelephoneNumberErrorPattern,
           fieldValue.errorShortName
-            .map(_.trasform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.trasform(_ => "a", identity).value().pure[List]))
+            .map(_.transform(identity, " " + _).value().pure[List]) orElse
+            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
         )
 
     }

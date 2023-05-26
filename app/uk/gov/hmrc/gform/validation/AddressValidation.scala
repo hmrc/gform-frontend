@@ -60,7 +60,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
     def validateRequiredAtom(atom: Atom, messageKey: String) =
       blankAtomicModelComponentId(atom).fold(validationSuccess) { id =>
         val placeholder = fieldValue.errorShortName
-          .map(_.trasform(_ + " ", identity))
+          .map(_.transform(_ + " ", identity))
           .flatMap(_.nonBlankValue())
           .getOrElse(SmartString.blank.value())
         validationFailure(id, fieldValue, messageKey, Some(placeholder :: Nil), "")
@@ -74,7 +74,7 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
       if (configurableMandatoryFields(Address.street3)) {
         blankAtomicModelComponentId(Address.street3).fold(validationSuccess) { id =>
           val placeholder = fieldValue.errorShortName
-            .map(_.trasform(_ + " ", identity))
+            .map(_.transform(_ + " ", identity))
             .flatMap(_.nonBlankValue())
             .getOrElse(SmartString.blank.value())
           validationFailure(id, fieldValue, "generic.error.address.town.city.required", Some(placeholder :: Nil), "")
@@ -162,30 +162,30 @@ class AddressValidation[D <: DataOrigin](implicit messages: Messages, sse: Smart
       case (Nil, _) => validationSuccess
       case (value :: Nil, First()) if value.length > ValidationValues.addressLine =>
         val placeholder = fieldValue.errorShortNameStart
-          .map(_.trasform(_ + " building and street", identity))
+          .map(_.transform(_ + " building and street", identity))
           .flatMap(_.nonBlankValue())
-          .getOrElse(SmartString.blank.trasform(_ => "Building and street", _ => "").value())
+          .getOrElse(SmartString.blank.transform(_ => "Building and street", _ => "").value())
         val vars: List[String] = placeholder :: ValidationValues.addressLine.toString :: Nil
         combineErrors("generic.error.address.building.street.maxLength", vars)
       case (value :: Nil, Second()) if value.length > ValidationValues.addressLine =>
         val placeholder = fieldValue.errorShortNameStart
-          .map(_.trasform(_ + " building and street", identity))
+          .map(_.transform(_ + " building and street", identity))
           .flatMap(_.nonBlankValue())
-          .getOrElse(SmartString.blank.trasform(_ => "Building and street", _ => "").value())
+          .getOrElse(SmartString.blank.transform(_ => "Building and street", _ => "").value())
         val vars: List[String] = placeholder :: ValidationValues.addressLine.toString :: Nil
         combineErrors("generic.error.address.building.street.line2.maxLength", vars)
       case (value :: Nil, Third()) if value.length > ValidationValues.addressLine =>
         val placeholder = fieldValue.errorShortNameStart
-          .map(_.trasform(_ + " town or city", identity))
+          .map(_.transform(_ + " town or city", identity))
           .flatMap(_.nonBlankValue())
-          .getOrElse(SmartString.blank.trasform(_ => "Town or city", _ => "").value())
+          .getOrElse(SmartString.blank.transform(_ => "Town or city", _ => "").value())
         val vars: List[String] = placeholder :: ValidationValues.addressLine.toString :: Nil
         combineErrors("generic.error.address.town.city.maxLength", vars)
       case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
         val placeholder = fieldValue.errorShortNameStart
-          .map(_.trasform(_ + " county", identity))
+          .map(_.transform(_ + " county", identity))
           .flatMap(_.nonBlankValue())
-          .getOrElse(SmartString.blank.trasform(_ => "County", _ => "").value())
+          .getOrElse(SmartString.blank.transform(_ => "County", _ => "").value())
         val vars: List[String] = placeholder :: ValidationValues.addressLine4.toString :: Nil
         combineErrors("generic.error.address.county.maxLength", vars)
       case _ => validationSuccess

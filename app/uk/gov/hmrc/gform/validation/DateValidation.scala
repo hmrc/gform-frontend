@@ -70,7 +70,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
   private def requiredError(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] = {
     val placeholder1 = formComponent.errorShortName
       .flatMap(_.nonBlankValue())
-      .getOrElse(SmartString.blank.trasform(_ => "a date", _ => "ddyddiad").value())
+      .getOrElse(SmartString.blank.transform(_ => "a date", _ => "ddyddiad").value())
     val placeholder2 = formComponent.errorExample.flatMap(_.nonBlankValue()).map(s => s", $s").getOrElse("")
     Map[ModelComponentId, Set[String]](
       modelComponentId -> errors(
@@ -158,7 +158,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
             )(_ => "generic.error.date.last")
           val placeholder = formComponent.errorShortNameStart
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.trasform(_ => "Date", _ => "ddyddiad").value())
+            .getOrElse(SmartString.blank.transform(_ => "Date", _ => "ddyddiad").value())
           val vars = messageKeyWithVars.vars.map(placeholder :: _)
           validationFailed(formComponent, messageKey, vars)
         }
@@ -203,7 +203,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
             )
           val placeholder = fieldValue.errorShortNameStart
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.trasform(_ => "Date", _ => "ddyddiad").value())
+            .getOrElse(SmartString.blank.transform(_ => "Date", _ => "ddyddiad").value())
           val vars = messageKeyWithVars.vars.map(placeholder :: _)
           validationFailed(fieldValue, messageKeyWithVars.messageKey, vars)
         }
@@ -267,7 +267,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
     else {
       val placeholder = formComponent.errorShortNameStart
         .flatMap(_.nonBlankValue())
-        .getOrElse(SmartString.blank.trasform(_ => "Date", _ => "ddyddiad").value())
+        .getOrElse(SmartString.blank.transform(_ => "Date", _ => "ddyddiad").value())
       (beforeAfterPrecisely, offset) match {
         case (Before, OffsetDate(0)) =>
           validationFailed(formComponent, "generic.error.date.today.before", Some(placeholder :: Nil))
@@ -305,7 +305,7 @@ class DateValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibi
             case Failure(ex) =>
               val placeholder1 = formComponent.errorShortNameStart
                 .flatMap(_.nonBlankValue())
-                .getOrElse(SmartString.blank.trasform(_ => "Date", _ => "ddyddiad").value())
+                .getOrElse(SmartString.blank.transform(_ => "Date", _ => "ddyddiad").value())
               val placeholder2 = formComponent.errorExample.flatMap(_.nonBlankValue()).map(s => s", $s").getOrElse("")
               validationFailed(formComponent, "generic.error.date.real", Some(placeholder1 :: placeholder2 :: Nil))
           }
