@@ -298,6 +298,32 @@ generic.error.address.town.city.maxLength={1} must be {2} characters or less
 generic.error.address.county.maxLength={1} must be {2} characters or less
 generic.error.address.postcode.real=Enter a real postcode{1}
 
+generic.error.overseas.line1.required=Enter {1}line 1
+generic.error.overseas.line2.required=Enter {1}line 2
+generic.error.overseas.line3.required=Enter {1}line 3
+generic.error.overseas.town.city.required=Enter {1}town or city
+generic.error.overseas.postcode.required=Enter {1}postcode
+generic.error.overseas.country.required=Enter {1}country
+generic.error.overseas.line1.maxLength={1} must be {2} characters or less
+generic.error.overseas.line1={0} line 1
+generic.error.overseas.Line1=Line 1
+generic.error.overseas.line2.maxLength={1} must be {2} characters or less
+generic.error.overseas.line2={0} line 2
+generic.error.overseas.Line2=Line 2
+generic.error.overseas.line3.maxLength={1} must be {2} characters or less
+generic.error.overseas.line3={0} line 3
+generic.error.overseas.Line3=Line 3
+generic.error.overseas.town.city.maxLength={1} must be {2} characters or less
+generic.error.overseas.town.city={0} town or city
+generic.error.overseas.Town.City=Town or city
+generic.error.overseas.postcode.maxLength={1} must be {2} characters or less
+generic.error.overseas.postcode={0} postcode
+generic.error.overseas.Postcode=Postcode
+generic.error.overseas.country.maxLength={1} must be {2} characters or less
+generic.error.overseas.country={0} country
+generic.error.overseas.Country=Country
+generic.error.overseas.nomatch=No match for "{1}". Select a value from the list.
+
 # Date
 date.day=day
 date.month=month

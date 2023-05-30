@@ -28,7 +28,9 @@ import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupRegistry }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
-import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
+import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
+import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 class OverseasAddressValidation[D <: DataOrigin](
   formComponent: FormComponent,
@@ -47,6 +49,11 @@ class OverseasAddressValidation[D <: DataOrigin](
       .get(formComponent.atomicFormComponentId(suffix))
       .toSeq
       .flatMap(_.toSeq)
+
+  def blankAtomicModelComponentId(atom: Atom)(xs: Seq[String]): Option[ModelComponentId.Atomic] = {
+    val atomicFcId = formComponent.atomicFormComponentId(atom)
+    xs.filterNot(_.trim.isEmpty()).headOption.fold(Option(atomicFcId))(_ => Option.empty)
+  }
 
   def validateOverseasAddress(
     overseasAddress: OverseasAddress
@@ -74,51 +81,117 @@ class OverseasAddressValidation[D <: DataOrigin](
   }
 
   private def validateLine1(): ValidatedType[Unit] =
-    validateMandatoryAndLength(
+    runValidation(
       OverseasAddress.line1,
-      "overseasAddress.line1.label",
-      true,
-      ValidationValues.addressLine
+      validateMandatory(
+        OverseasAddress.line1,
+        "generic.error.overseas.line1.required",
+        true,
+        ValidationValues.addressLine
+      ),
+      lengthLimitValidation(
+        OverseasAddress.line1,
+        ValidationValues.addressLine,
+        "generic.error.overseas.line1.maxLength",
+        formComponent.errorShortNameStart
+          .map(s => messages("generic.error.overseas.line1", s.value()))
+          .getOrElse(messages("generic.error.overseas.Line1"))
+      )
     )
 
   private def validateLine2(configurableMandatoryFields: Set[Atom]): ValidatedType[Unit] =
-    validateMandatoryAndLength(
+    runValidation(
       OverseasAddress.line2,
-      "overseasAddress.line2.label",
-      configurableMandatoryFields(OverseasAddress.line2),
-      ValidationValues.addressLine
+      validateMandatory(
+        OverseasAddress.line2,
+        "generic.error.overseas.line2.required",
+        configurableMandatoryFields(OverseasAddress.line2),
+        ValidationValues.addressLine
+      ),
+      lengthLimitValidation(
+        OverseasAddress.line2,
+        ValidationValues.addressLine,
+        "generic.error.overseas.line2.maxLength",
+        formComponent.errorShortNameStart
+          .map(s => messages("generic.error.overseas.line2", s.value()))
+          .getOrElse(messages("generic.error.overseas.Line2"))
+      )
     )
 
   private def validateLine3(): ValidatedType[Unit] =
-    validateMandatoryAndLength(
+    runValidation(
       OverseasAddress.line3,
-      "overseasAddress.line3.label",
-      false,
-      ValidationValues.addressLine
+      validateMandatory(
+        OverseasAddress.line3,
+        "generic.error.overseas.line3.required",
+        false,
+        ValidationValues.addressLine
+      ),
+      lengthLimitValidation(
+        OverseasAddress.line3,
+        ValidationValues.addressLine,
+        "generic.error.overseas.line3.maxLength",
+        formComponent.errorShortNameStart
+          .map(s => messages("generic.error.overseas.line3", s.value()))
+          .getOrElse(messages("generic.error.overseas.Line3"))
+      )
     )
 
   private def validateCity(configurableOptionalFields: Set[Atom]): ValidatedType[Unit] =
-    validateMandatoryAndLength(
+    runValidation(
       OverseasAddress.city,
-      "overseasAddress.city.label",
-      !configurableOptionalFields(OverseasAddress.city),
-      ValidationValues.overseasCity
+      validateMandatory(
+        OverseasAddress.city,
+        "generic.error.overseas.town.city.required",
+        !configurableOptionalFields(OverseasAddress.city),
+        ValidationValues.overseasCity
+      ),
+      lengthLimitValidation(
+        OverseasAddress.city,
+        ValidationValues.overseasCity,
+        "generic.error.overseas.town.city.maxLength",
+        formComponent.errorShortNameStart
+          .map(s => messages("generic.error.overseas.town.city", s.value()))
+          .getOrElse(messages("generic.error.overseas.Town.City"))
+      )
     )
 
   private def validatePostcode(configurableMandatoryFields: Set[Atom]): ValidatedType[Unit] =
-    validateMandatoryAndLength(
+    runValidation(
       OverseasAddress.postcode,
-      "overseasAddress.postcode.label",
-      configurableMandatoryFields(OverseasAddress.postcode),
-      ValidationValues.postcodeLimit
+      validateMandatory(
+        OverseasAddress.postcode,
+        "generic.error.overseas.postcode.required",
+        configurableMandatoryFields(OverseasAddress.postcode),
+        ValidationValues.postcodeLimit
+      ),
+      lengthLimitValidation(
+        OverseasAddress.postcode,
+        ValidationValues.postcodeLimit,
+        "generic.error.overseas.postcode.maxLength",
+        formComponent.errorShortNameStart
+          .map(s => messages("generic.error.overseas.postcode", s.value()))
+          .getOrElse(messages("generic.error.overseas.Postcode"))
+      )
     )
 
   private def validateCountryMandatory(): ValidatedType[Unit] =
-    validateMandatoryAndLength(
+    runValidation(
       OverseasAddress.country,
-      "overseasAddress.country.label",
-      true,
-      ValidationValues.countryLimit
+      validateMandatory(
+        OverseasAddress.country,
+        "generic.error.overseas.country.required",
+        true,
+        ValidationValues.countryLimit
+      ),
+      lengthLimitValidation(
+        OverseasAddress.country,
+        ValidationValues.countryLimit,
+        "generic.error.overseas.country.maxLength",
+        formComponent.errorShortNameStart
+          .map(s => messages("generic.error.overseas.country", s.value()))
+          .getOrElse(messages("generic.error.overseas.Country"))
+      )
     )
 
   private def validateCountry(): ValidatedType[Unit] =
@@ -130,27 +203,24 @@ class OverseasAddressValidation[D <: DataOrigin](
   private def validateCountryLookupValue() =
     runValidation(OverseasAddress.country, lookupCountryValidator)
 
-  private def validateMandatoryAndLength(
+  private def validateMandatory(
     atom: Atom,
     labelMessageKey: String,
     isMandatory: Boolean,
     maxLength: Int
-  ): ValidatedType[Unit] = {
+  ): Seq[String] => ValidatedType[Unit] =
+    if (isMandatory)
+      validateRequiredField(atom, labelMessageKey) _
+    else _ => validationSuccess
 
-    val requiredValidator: Seq[String] => ValidatedType[Unit] =
-      if (isMandatory)
-        validateRequiredField(atom, messages(labelMessageKey))
-      else _ => validationSuccess
-
-    val lengthValidator = lengthValidation(atom, maxLength, labelMessageKey)
-    runValidation(atom, requiredValidator, lengthValidator)
-  }
-
-  private def validateRequiredField(value: Atom, errorPrefix: String) =
-    cvh.validateRequired2(formComponent, formComponent.atomicFormComponentId(value), Some(errorPrefix)) _
-
-  private def lengthValidation(atom: Atom, limit: Int, labelMessageKey: String) =
-    lengthLimitValidation(atom, limit, labelMessageKey) _
+  private def validateRequiredField(atom: Atom, messageKey: String)(xs: Seq[String]) =
+    blankAtomicModelComponentId(atom)(xs).fold(validationSuccess) { id =>
+      val placeholder = formComponent.errorShortName
+        .map(_.transform(_ + " ", identity))
+        .flatMap(_.nonBlankValue())
+        .getOrElse(SmartString.blank.value())
+      validationFailure(id, formComponent, messageKey, Some(placeholder :: Nil), "")
+    }
 
   private def mkErrors(
     atomicFcId: ModelComponentId.Atomic
@@ -164,15 +234,16 @@ class OverseasAddressValidation[D <: DataOrigin](
   private def lengthLimitValidation(
     atom: Atom,
     limit: Int,
-    labelMessageKey: String
+    labelMessageKey: String,
+    placeholder: String
   )(
     xs: Seq[String]
   ): ValidatedType[Unit] =
     xs.filterNot(_.isEmpty) match {
       case value :: Nil if value.length > limit =>
-        val vars: List[String] = messages(labelMessageKey) :: limit.toString :: Nil
+        val vars: List[String] = placeholder :: limit.toString :: Nil
         val atomicFcId: ModelComponentId.Atomic = formComponent.atomicFormComponentId(atom)
-        mkErrors(atomicFcId)("overseasAddress.error.maxLength", "", vars)
+        mkErrors(atomicFcId)(labelMessageKey, "", vars)
       case _ => validationSuccess
     }
 
@@ -190,9 +261,13 @@ class OverseasAddressValidation[D <: DataOrigin](
           formModelVisibilityOptics
         )
         .fold(
-          _ => mkErrors(atomicFcId)("generic.error.lookup", messages("overseasAddress.country.label"), List(value)),
+          _ =>
+            mkErrors(atomicFcId)(
+              "generic.error.overseas.nomatch",
+              messages("overseasAddress.country.label"),
+              List(value)
+            ),
           _ => validationSuccess
         )
     }
-
 }
