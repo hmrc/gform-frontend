@@ -263,6 +263,20 @@ generic.error.address.town.city.maxLength=Mae’n rhaid i’r dref neu’r ddina
 generic.error.address.county.maxLength=Mae’n rhaid i’r sir fod yn {2} o gymeriadau neu lai
 generic.error.address.postcode.real=Nodwch god post go iawn
 
+generic.error.overseas.line1.required=Nodwch linell 1
+generic.error.overseas.line2.required=Nodwch linell 2
+generic.error.overseas.line3.required=Nodwch linell 3
+generic.error.overseas.town.city.required=Nodwch dref neu ddinas
+generic.error.overseas.postcode.required=Nodwch y cod post
+generic.error.overseas.country.required=Nodwch wlad
+generic.error.overseas.line1.maxLength=Mae’n rhaid i linell 1 fod yn {2} o gymeriadau neu lai
+generic.error.overseas.line2.maxLength=Mae’n rhaid i linell 2 fod yn {2} o gymeriadau neu lai
+generic.error.overseas.line3.maxLength=Mae’n rhaid i linell 3 fod yn {2} o gymeriadau neu lai
+generic.error.overseas.town.city.maxLength=Mae’n rhaid i’r dref neu’r ddinas fod yn {2} o gymeriadau neu lai
+generic.error.overseas.postcode.maxLength=Mae’n rhaid i’r cod post fod yn {2} o gymeriadau neu lai
+generic.error.overseas.country.maxLength=Mae’n rhaid i’r wlad fod yn {2} o gyymeriadau neu lai
+generic.error.overseas.nomatch=Dim byd yn cyd-fynd â "{1}". Dewiswch werth o’r rhestr.
+
 # International Address
 internationalAddress.line1=Cyfeiriad 1
 internationalAddress.line2=Cyfeiriad 2
