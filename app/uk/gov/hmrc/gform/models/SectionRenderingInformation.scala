@@ -39,7 +39,8 @@ final case class SectionRenderingInformation(
   formMaxAttachmentSizeMB: Int,
   allowedFileTypes: AllowedFileTypes,
   restrictedFileExtensions: List[FileExtension],
-  upscanData: Map[FormComponentId, UpscanData] = Map.empty
+  upscanData: Map[FormComponentId, UpscanData] = Map.empty,
+  fileUploadMaxSize: Map[FormComponentId, Int] = Map.empty
 )
 
 final case class SectionHeader(

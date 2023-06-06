@@ -20,6 +20,7 @@ import akka.actor.Scheduler
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, Flash, MessagesControllerComponents }
+
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
@@ -31,7 +32,7 @@ import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.core.Retrying
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormIdData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FormComponentId, FormTemplateId, IsFileUpload, SectionNumber }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
@@ -67,6 +68,14 @@ class UpscanController(
 
             val formIdData: FormIdData = FormIdData(cache, maybeAccessCode)
 
+            def allowedFileExtensions(maybeFileUpload: Option[FileUpload]): String = maybeFileUpload
+              .flatMap(_.allowedFileTypes)
+              .getOrElse(cache.formTemplate.allowedFileTypes)
+              .fileExtensions
+              .toList
+              .map(_.toUpperCase)
+              .mkString(", ")
+
             retry(upscanService.retrieveConfirmationOrFail(reference), 2.seconds, 30).flatMap { confirmation =>
               confirmation.status match {
                 case UpscanFileStatus.Ready =>
@@ -81,15 +90,22 @@ class UpscanController(
                   }
                 case UpscanFileStatus.Failed =>
                   val fileId = FileId(formComponentId.value)
-
+                  val formModel = formModelOptics.formModelVisibilityOptics.formModel
+                  val formComponent = formModel.fcLookup.get(formComponentId)
+                  val maybeFileUpload: Option[FileUpload] = formComponent.collect { case IsFileUpload(f) =>
+                    f
+                  }
                   logger.info(
                     s"Upscan failed - status: ${confirmation.status}, failureReason: ${confirmation.confirmationFailure}"
                   )
                   val flash = confirmation.confirmationFailure match {
                     case ConfirmationFailure.GformValidationFailure(UpscanValidationFailure.EntityTooLarge) =>
+                      val fileSizeLimit = maybeFileUpload
+                        .flatMap(_.fileSizeLimit)
+                        .getOrElse(cache.formTemplate.fileSizeLimit.getOrElse(appConfig.formMaxAttachmentSizeMB))
                       mkFlash(
                         "file.error.size",
-                        cache.formTemplate.fileSizeLimit.getOrElse(appConfig.formMaxAttachmentSizeMB).toString
+                        fileSizeLimit.toString
                       )
                     case ConfirmationFailure.GformValidationFailure(UpscanValidationFailure.EntityTooSmall) =>
                       mkFlash("file.error.empty")
@@ -99,13 +115,13 @@ class UpscanController(
                       mkFlash(
                         "file.error.type",
                         FileInfoConfig.reverseLookup.getOrElse(fileMimeType, "").toUpperCase,
-                        cache.formTemplate.allowedFileTypes.fileExtensions.toList.map(_.toUpperCase).mkString(", ")
+                        allowedFileExtensions(maybeFileUpload)
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("REJECTED", _)) =>
                       mkFlash(
                         "file.error.type",
                         "",
-                        cache.formTemplate.allowedFileTypes.fileExtensions.toList.map(_.toUpperCase).mkString(", ")
+                        allowedFileExtensions(maybeFileUpload)
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("QUARANTINE", _)) =>
                       mkFlash(

@@ -73,7 +73,8 @@
 
   function handleFileUpload(e) {
     const form = $(e.target).closest("form");
-    const submitButton = $('button[name=' + e.target.getAttribute('id') + "-uploadButton" + ']');
+    const id = e.target.getAttribute('id');
+    const submitButton = $('button[name=' + id + "-uploadButton" + ']');
     const dataForm = $("#gf-form");
 
     const file = e.target.files[0];
@@ -83,7 +84,7 @@
     $(".govuk-error-message").remove();
     const $input = $(e.currentTarget);
     const maxFileSize = parseInt(
-      $input.data("maxFileSizeMB") || window.gform.formMaxAttachmentSizeMB,
+      window.gform.fileUploadMaxSize.get(id),
       10
     );
 

@@ -190,7 +190,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
     val sections: List[Section] =
       mkSection(
         mkFormComponent("regular", Text(ShortText.default, Value)) ::
-          mkFormComponent("regularFile", FileUpload(FileUploadProvider.FileUploadFrontend)) :: Nil
+          mkFormComponent("regularFile", FileUpload(FileUploadProvider.FileUploadFrontend, None, None)) :: Nil
       ) ::
         mkAddToListSection(
           "owner",
@@ -203,7 +203,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
           List(
             mkFormComponent("d", Text(ShortText.default, Value)),
             mkFormComponent("e", Text(ShortText.default, Value)),
-            mkFormComponent("f", FileUpload(FileUploadProvider.FileUploadFrontend))
+            mkFormComponent("f", FileUpload(FileUploadProvider.FileUploadFrontend, None, None))
           )
         ) :: mkAddToListSection(
           "fruit",
