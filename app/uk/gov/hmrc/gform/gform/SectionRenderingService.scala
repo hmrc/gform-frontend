@@ -470,6 +470,10 @@ class SectionRenderingService(
         fc -> fu.fileUploadProvider
     }
 
+    val fileUploadMaxSize: Map[FormComponentId, Int] = formComponents.collect { case fc @ IsFileUpload(fu) =>
+      fc.id -> fu.fileSizeLimit.getOrElse(ei.formMaxAttachmentSizeMB)
+    }.toMap
+
     val upscanData: Map[FormComponentId, UpscanData] =
       fileUploadProviders.flatMap {
         case (fc, FileUploadProvider.Upscan(_)) =>
@@ -520,7 +524,8 @@ class SectionRenderingService(
       formMaxAttachmentSizeMB,
       allowedFileTypes,
       restrictedFileExtensions,
-      ei.isFileUploadOnlyPage(validationResult).fold(upscanData)(_ => Map.empty[FormComponentId, UpscanData])
+      ei.isFileUploadOnlyPage(validationResult).fold(upscanData)(_ => Map.empty[FormComponentId, UpscanData]),
+      fileUploadMaxSize
     )
 
     val mainForm: Html = html.form.form_standard(
@@ -1073,7 +1078,7 @@ class SectionRenderingService(
               obligations,
               upscanInitiate
             )
-          case FileUpload(fileUploadProvider) =>
+          case FileUpload(fileUploadProvider, _, _) =>
             ei.isFileUploadOnlyPage(validationResult) match {
               case None =>
                 htmlForFileUploadStandard(formComponent, fileUploadProvider, ei, validationResult, upscanData)

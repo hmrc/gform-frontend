@@ -84,6 +84,13 @@
     <script type="text/javascript">
       window.gform = window.gform || {};
       window.gform.envelopeId = "@page.envelopeId.value";
+      const fileSizePairs = "@page.fileUploadMaxSize".slice(1, -1).split(")(");
+      const fileSizeMap = new Map();
+      fileSizePairs.forEach(pair => {
+          const [key, value] = pair.split(",");
+          fileSizeMap.set(key, value);
+      });
+      window.gform.fileUploadMaxSize = fileSizeMap;
       window.gform.formMaxAttachmentSizeMB = "@page.formMaxAttachmentSizeMB";
       window.gform.contentTypes = "@page.allowedFileTypes.contentTypes.map(_.value).toList.mkString(", ")";
       window.gform.restrictedFileExtensions = "@page.restrictedFileExtensions.map(_.value).mkString(", ")";
