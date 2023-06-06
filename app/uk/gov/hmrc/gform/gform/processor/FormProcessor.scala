@@ -257,7 +257,7 @@ class FormProcessor(
       formModelVisibilityOptics.formModel(sectionNumber)
 
     for {
-      envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
+      envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
       envelopeWithMapping = EnvelopeWithMapping(envelope, cache.form)
       FormValidationOutcome(isValid, formData, validatorsResult) <- handler.handleFormValidation(
                                                                       processData.formModelOptics,

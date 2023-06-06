@@ -28,18 +28,14 @@ class FileUploadService(fileUploadConnector: FileUploadConnector, gformConnector
   ec: ExecutionContext
 ) extends FileUploadAlgebra[Future] {
 
-  override def getEnvelope(envelopeId: EnvelopeId)(objectStore: Option[Boolean])(implicit
+  override def getEnvelope(envelopeId: EnvelopeId)(implicit
     hc: HeaderCarrier
-  ): Future[Envelope] = objectStore match {
-    case Some(true) => gformConnector.getEnvelope(envelopeId)
-    case _          => fileUploadConnector.getEnvelope(envelopeId)
-  }
-
-  override def getMaybeEnvelope(envelopeId: EnvelopeId)(objectStore: Option[Boolean])(implicit
-    hc: HeaderCarrier
-  ): Future[Option[Envelope]] = objectStore match {
-    case Some(true) => gformConnector.getMaybeEnvelope(envelopeId)
-    case _          => fileUploadConnector.getMaybeEnvelope(envelopeId)
+  ): Future[Envelope] = {
+    val envelopeF = gformConnector.getMaybeEnvelope(envelopeId)
+    envelopeF.flatMap {
+      case Some(envelope) => Future.successful(envelope)
+      case None           => fileUploadConnector.getEnvelope(envelopeId)
+    }
   }
 
   override def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(

@@ -55,7 +55,7 @@ class TaskListController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         for {
-          envelope          <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
+          envelope          <- fileUploadService.getEnvelope(cache.form.envelopeId)
           notificatioBanner <- gformConnector.notificationBanner
           html <-
             taskListRenderingService
