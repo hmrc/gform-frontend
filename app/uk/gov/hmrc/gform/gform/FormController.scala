@@ -103,7 +103,7 @@ class FormController(
         val fastForward = filterFastForward(browserSectionNumber, rawFastForward, formModel)
         val sectionNumber: SectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
         fileUploadService
-          .getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
+          .getEnvelope(cache.form.envelopeId)
           .flatMap { envelope =>
             def renderSingleton(
               singleton: Singleton[DataExpanded],
