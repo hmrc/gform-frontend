@@ -238,7 +238,7 @@ class SummaryController(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[Result] = {
-    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
+    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
 
     val isFormValidF = for {
       envelope <- envelopeF
@@ -313,7 +313,7 @@ class SummaryController(
     lise: SmartStringEvaluator
   ) =
     for {
-      envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+      envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
       validationResult <- validationService
                             .validateAllSections(
                               cache.toCacheData,
@@ -402,7 +402,7 @@ class SummaryController(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[Boolean] = {
-    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
+    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
 
     for {
       envelope <- envelopeF

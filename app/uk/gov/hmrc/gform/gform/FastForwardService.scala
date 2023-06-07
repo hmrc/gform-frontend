@@ -116,7 +116,7 @@ class FastForwardService(
           cache.formTemplate
         )
         for {
-          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
           res <-
             updateUserData(
               cache,
@@ -247,7 +247,7 @@ class FastForwardService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[Option[SectionNumber]] = for {
-    envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+    envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
     processData <- processDataService
                      .getProcessData[SectionSelectorType.Normal](
                        formModelOptics.formModelRenderPageOptics.recData.variadicFormData

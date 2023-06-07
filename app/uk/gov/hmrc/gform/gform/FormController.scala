@@ -103,7 +103,7 @@ class FormController(
         val fastForward = filterFastForward(browserSectionNumber, rawFastForward, formModel)
         val sectionNumber: SectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
         fileUploadService
-          .getEnvelope(cache.form.envelopeId)
+          .getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
           .flatMap { envelope =>
             def renderSingleton(
               singleton: Singleton[DataExpanded],
@@ -875,7 +875,8 @@ class FormController(
                                           recalculation
                                         )
                 res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
-                _   <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
+                _ <-
+                  fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)(cache.formTemplate.isObjectStore)
               } yield res
             }
 

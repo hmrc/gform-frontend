@@ -103,7 +103,7 @@ class SummaryRenderingServiceSpec
       .when(mockGformConnector.notificationBanner(*[ExecutionContext]))
       .thenReturn(Future.successful(Option.empty[NotificationBanner]))
 
-    mockFileUploadService.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]) returns Future.successful(
+    mockFileUploadService.getEnvelope(*[EnvelopeId])(*[Boolean])(*[HeaderCarrier]) returns Future.successful(
       Envelope(List.empty)
     )
     mockValidationService

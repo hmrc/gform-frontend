@@ -490,10 +490,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def getMaybeEnvelope(
     envelopeId: EnvelopeId
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Envelope]] =
-    getEnvelope(envelopeId).map(Some(_)).recover {
-      case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode == StatusCodes.NotFound.intValue => None
-    }
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Envelope]] = {
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    val url = s"$baseUrl/envelopes/${envelopeId.value}"
+    ws.GET[Option[Envelope]](url)
+  }
 
   def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit
     hc: HeaderCarrier,

@@ -234,7 +234,7 @@ class FormProcessor(
                                 recalculation
                               )
       redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping, postcodeLookupIds)
-      _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
+      _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)(cache.formTemplate.isObjectStore)
     } yield redirect
   }
 
@@ -257,7 +257,7 @@ class FormProcessor(
       formModelVisibilityOptics.formModel(sectionNumber)
 
     for {
-      envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+      envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
       envelopeWithMapping = EnvelopeWithMapping(envelope, cache.form)
       FormValidationOutcome(isValid, formData, validatorsResult) <- handler.handleFormValidation(
                                                                       processData.formModelOptics,

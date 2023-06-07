@@ -83,9 +83,9 @@ class FileUploadController(
         val formTemplateWithRedirects = request.attrs(FormTemplateKey)
         val formTemplate = formTemplateWithRedirects.formTemplate
         for {
-          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(formTemplate.isObjectStore)
           flash <- checkFile(fileId, envelope, cache.form.envelopeId, formTemplate.allowedFileTypes)(
-                     cache.formTemplate.objectStore
+                     cache.formTemplate.isObjectStore
                    )
           cacheUpd = cache
                        .modify(_.form.componentIdToFileId)
@@ -131,7 +131,7 @@ class FileUploadController(
     envelope: Envelope,
     envelopeId: EnvelopeId,
     allowedFileTypes: AllowedFileTypes
-  )(objectStore: Option[Boolean])(implicit
+  )(objectStore: Boolean)(implicit
     messages: Messages,
     hc: HeaderCarrier
   ): Future[Flash] = {
@@ -142,7 +142,7 @@ class FileUploadController(
       case Invalid(flash) =>
         logger.warn(show"Attemp to upload invalid file. Deleting FileId: $fileId, flash: $flash")
         fileUploadService
-          .deleteFile(envelopeId, fileId)
+          .deleteFile(envelopeId, fileId)(objectStore)
           .map(_ => flashWithFileId(flash, fileId))
       case Valid(_) => Flash().pure[Future]
     }
@@ -378,7 +378,9 @@ class FileUploadController(
               .setTo(mappingUpd)
 
             for {
-              _ <- fileUploadService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)
+              _ <- fileUploadService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)(
+                     cache.formTemplate.isObjectStore
+                   )
               _ <- gformConnector
                      .updateUserData(
                        FormIdData.fromForm(cacheWithFileRemoved.form, maybeAccessCode),
