@@ -65,6 +65,7 @@ case class FormTemplate(
   val sectionNumberZero: SectionNumber =
     formKind.fold[SectionNumber](_ => SectionNumber.classicZero)(_ => SectionNumber.taskListZero)
 
+  val isObjectStore: Boolean = objectStore.getOrElse(false)
 }
 
 object FormTemplate {
