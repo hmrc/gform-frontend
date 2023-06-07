@@ -71,7 +71,7 @@ class ApplicationModule(context: Context)
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  logger.info(s"Starting GFORM-FRONTEND (ApplicationModule)...")
+  logger.info(s"Starting GFORM-FRONTEND (ApplicationModule)... ")
 
   protected val akkaModule = new AkkaModule(materializer, actorSystem)
   private val playBuiltInsModule = new PlayBuiltInsModule(self)
