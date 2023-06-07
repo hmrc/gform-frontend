@@ -425,8 +425,7 @@ class AuthenticatedRequestActions(
             .apply(
               formModelOpticsUpd.formModelVisibilityOptics
             )
-        envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.objectStore)
-        result   <- f(cache)(smartStringEvaluator)(formModelOptics)
+        result <- f(cache)(smartStringEvaluator)(formModelOptics)
       } yield result
 
     val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)

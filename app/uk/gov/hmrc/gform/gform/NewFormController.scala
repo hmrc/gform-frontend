@@ -398,7 +398,7 @@ class NewFormController(
       maybeForm <- gformConnector.maybeForm(formIdData, formTemplate)
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
       maybeEnvelope <- maybeFormExceptSubmitted.fold(Option.empty[Envelope].pure[Future]) { f =>
-                         fileUploadService.getMaybeEnvelope(f.envelopeId)(formTemplate.objectStore)
+                         fileUploadService.getEnvelope(f.envelopeId).map(Some(_))
                        }
       mayBeFormExceptWithEnvelope <- (maybeFormExceptSubmitted, maybeEnvelope) match {
                                        case (None, _)          => None.pure[Future]
