@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.upscan.UpscanInitiate
-import uk.gov.hmrc.gform.validation.FieldOk
+import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -83,9 +83,26 @@ class BuilderController(
           case Some(formComponent) =>
             val singleton = formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
 
-            val currentValue = formModelOptics.formModelVisibilityOptics.data.one(formComponent.modelComponentId)
+            val formFieldValidationResult: FormFieldValidationResult = formComponent match {
+              case IsOverseasAddress(_) =>
+                val data = Map(HtmlFieldId.pure(formComponent.modelComponentId) -> FieldOk(formComponent, ""))
 
-            val formFieldValidationResult = FieldOk(formComponent, currentValue.getOrElse(""))
+                ComponentField(formComponent, data)
+              case IsChoice(_) | IsRevealingChoice(_) =>
+                val maybeCheckedOptions: Option[Seq[String]] =
+                  formModelOptics.formModelVisibilityOptics.data.many(formComponent.modelComponentId)
+
+                val data = maybeCheckedOptions.fold(Map.empty[HtmlFieldId, FormFieldValidationResult]) {
+                  checkedOptions =>
+                    checkedOptions.map { index =>
+                      HtmlFieldId.indexed(formComponent.id, index) -> FieldOk(formComponent, index)
+                    }.toMap
+                }
+                ComponentField(formComponent, data)
+              case _ =>
+                val currentValue = formModelOptics.formModelVisibilityOptics.data.one(formComponent.modelComponentId)
+                FieldOk(formComponent, currentValue.getOrElse(""))
+            }
 
             val validationResult = ValidationResult(Map(formComponent.id -> formFieldValidationResult), None)
 
