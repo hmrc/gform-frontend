@@ -142,7 +142,7 @@ class FileUploadController(
       case Invalid(flash) =>
         logger.warn(show"Attemp to upload invalid file. Deleting FileId: $fileId, flash: $flash")
         fileUploadService
-          .deleteFile(envelopeId, fileId)(objectStore)
+          .deleteFile(envelopeId, fileId)
           .map(_ => flashWithFileId(flash, fileId))
       case Valid(_) => Flash().pure[Future]
     }
@@ -349,9 +349,6 @@ class FileUploadController(
     formComponentId: FormComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => implicit l => cache => _ => formModelOptics =>
-      val formTemplateWithRedirects = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateWithRedirects.formTemplate
-
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) { _ => variadicFormData => _ =>
         val cacheU = cache
           .modify(_.form.formData)
@@ -381,9 +378,7 @@ class FileUploadController(
               .setTo(mappingUpd)
 
             for {
-              _ <- fileUploadService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)(
-                     formTemplate.objectStore
-                   )
+              _ <- fileUploadService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)
               _ <- gformConnector
                      .updateUserData(
                        FormIdData.fromForm(cacheWithFileRemoved.form, maybeAccessCode),

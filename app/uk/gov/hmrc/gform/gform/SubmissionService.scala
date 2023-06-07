@@ -79,7 +79,7 @@ class SubmissionService(
     val submissionMark = nonRepudiationHelpers.computeHash(nonRepudiationHelpers.formDataToJson(cache.form))
 
     for {
-      _ <- cleanseEnvelope(cache.form.envelopeId, envelope, attachments)(cache.formTemplate.objectStore)
+      _ <- cleanseEnvelope(cache.form.envelopeId, envelope, attachments)
       customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
       submission <- gformBackEnd.createSubmission(
                       cache.form._id,
@@ -117,7 +117,7 @@ class SubmissionService(
     envelopeId: EnvelopeId,
     envelope: EnvelopeWithMapping,
     attachments: Attachments
-  )(objectStore: Option[Boolean])(implicit
+  )(implicit
     hc: HeaderCarrier
   ): Future[Unit] = {
     val lookup: Set[FileId] =
@@ -128,7 +128,7 @@ class SubmissionService(
       }
       .map(_.fileId)
     logger.warn(s"Removing ${toRemove.size} files from envelopeId $envelopeId.")
-    fileUploadService.deleteFiles(envelopeId, toRemove.toSet)(objectStore)
+    fileUploadService.deleteFiles(envelopeId, toRemove.toSet)
   }
 
 }

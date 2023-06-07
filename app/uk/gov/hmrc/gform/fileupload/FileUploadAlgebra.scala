@@ -22,10 +22,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 trait FileUploadAlgebra[F[_]] {
   def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Envelope]
-  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(objectStore: Option[Boolean])(implicit
+  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit
     hc: HeaderCarrier
   ): F[Unit]
-  def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(objectStore: Option[Boolean])(implicit
+  def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(implicit
     hc: HeaderCarrier
   ): F[Unit]
 }

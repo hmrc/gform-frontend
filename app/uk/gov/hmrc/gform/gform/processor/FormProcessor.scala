@@ -234,7 +234,7 @@ class FormProcessor(
                                 recalculation
                               )
       redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping, postcodeLookupIds)
-      _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)(cache.formTemplate.objectStore)
+      _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
     } yield redirect
   }
 

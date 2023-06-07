@@ -875,7 +875,7 @@ class FormController(
                                           recalculation
                                         )
                 res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
-                _   <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)(cache.formTemplate.objectStore)
+                _   <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)
               } yield res
             }
 
