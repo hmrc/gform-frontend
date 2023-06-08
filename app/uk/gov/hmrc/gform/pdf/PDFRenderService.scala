@@ -64,7 +64,7 @@ class PDFRenderService(
   ): Future[PdfHtml] =
     for {
       envelopeWithMapping <- fileUploadAlgebra
-                               .getEnvelope(cache.form.envelopeId)
+                               .getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
                                .map(EnvelopeWithMapping(_, cache.form))
       validationResult <-
         validationService

@@ -28,36 +28,40 @@ class FileUploadService(fileUploadConnector: FileUploadConnector, gformConnector
   ec: ExecutionContext
 ) extends FileUploadAlgebra[Future] {
 
-  override def getEnvelope(envelopeId: EnvelopeId)(implicit
+  override def getEnvelope(envelopeId: EnvelopeId)(objectStore: Boolean)(implicit
     hc: HeaderCarrier
-  ): Future[Envelope] = {
-    val envelopeF = gformConnector.getMaybeEnvelope(envelopeId)
-    envelopeF.flatMap {
-      case Some(envelope) => Future.successful(envelope)
-      case None           => fileUploadConnector.getEnvelope(envelopeId)
-    }
-  }
+  ): Future[Envelope] =
+    if (objectStore) {
+      val envelopeF = gformConnector.getMaybeEnvelope(envelopeId)
+      envelopeF.flatMap {
+        case Some(envelope) => Future.successful(envelope)
+        case None           => fileUploadConnector.getEnvelope(envelopeId)
+      }
+    } else fileUploadConnector.getEnvelope(envelopeId)
 
   override def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(
-    objectStore: Option[Boolean]
-  )(implicit hc: HeaderCarrier): Future[Unit] = objectStore match {
-    case Some(true) => gformConnector.deleteFile(envelopeId, fileId)
-    case _          => fileUploadConnector.deleteFile(envelopeId, fileId)
-  }
+    objectStore: Boolean
+  )(implicit hc: HeaderCarrier): Future[Unit] =
+    if (objectStore) {
+      val envelopeF = gformConnector.getMaybeEnvelope(envelopeId)
+      envelopeF.flatMap {
+        case Some(_) => gformConnector.deleteFile(envelopeId, fileId)
+        case _       => fileUploadConnector.deleteFile(envelopeId, fileId)
+      }
+    } else fileUploadConnector.deleteFile(envelopeId, fileId)
 
   override def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(
-    objectStore: Option[Boolean]
-  )(implicit hc: HeaderCarrier): Future[Unit] = objectStore match {
-    case Some(true) =>
-      fileIds.foldLeft(Future.unit) { case (result, fileId) =>
-        result.flatMap(_ => deleteFile(envelopeId, fileId)(objectStore))
-      }
-    case _ =>
+    objectStore: Boolean
+  )(implicit hc: HeaderCarrier): Future[Unit] =
+    if (objectStore: Boolean) {
+      val envelopeF = gformConnector.getMaybeEnvelope(envelopeId)
       Future
         .traverse(fileIds) { fileId =>
-          deleteFile(envelopeId, fileId)(objectStore)
+          envelopeF.flatMap {
+            case Some(_) => gformConnector.deleteFile(envelopeId, fileId)
+            case _       => fileUploadConnector.deleteFile(envelopeId, fileId)
+          }
         }
         .map(_ => ())
-  }
-
+    } else Future.traverse(fileIds)(fileId => fileUploadConnector.deleteFile(envelopeId, fileId)).map(_ => ())
 }

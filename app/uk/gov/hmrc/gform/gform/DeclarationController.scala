@@ -157,7 +157,7 @@ class DeclarationController(
               NoSpecificAction
             )
 
-          val envelopeF: Future[Envelope] = fileUploadService.getEnvelope(envelopeId)
+          val envelopeF: Future[Envelope] = fileUploadService.getEnvelope(envelopeId)(cache.formTemplate.isObjectStore)
 
           for {
             processData <- processDataF

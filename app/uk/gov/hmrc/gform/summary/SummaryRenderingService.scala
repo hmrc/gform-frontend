@@ -163,7 +163,7 @@ class SummaryRenderingService(
     lise: SmartStringEvaluator
   ): Future[Html] = {
     val envelopeF = fileUploadAlgebra
-      .getEnvelope(cache.form.envelopeId)
+      .getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
       .map(EnvelopeWithMapping(_, cache.form))
 
     import i18nSupport._
@@ -215,7 +215,7 @@ class SummaryRenderingService(
   ): Future[Html] = {
 
     val envelopeF = fileUploadAlgebra
-      .getEnvelope(cache.form.envelopeId)
+      .getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
       .map(EnvelopeWithMapping(_, cache.form))
 
     import i18nSupport._

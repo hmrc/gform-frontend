@@ -20,11 +20,9 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.http.HeaderCarrier
 
 trait FileUploadAlgebra[F[_]] {
-  def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Envelope]
-  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(objectStore: Option[Boolean])(implicit
-    hc: HeaderCarrier
-  ): F[Unit]
-  def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(objectStore: Option[Boolean])(implicit
+  def getEnvelope(envelopeId: EnvelopeId)(objectStore: Boolean)(implicit hc: HeaderCarrier): F[Envelope]
+  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(objectStore: Boolean)(implicit hc: HeaderCarrier): F[Unit]
+  def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(objectStore: Boolean)(implicit
     hc: HeaderCarrier
   ): F[Unit]
 }

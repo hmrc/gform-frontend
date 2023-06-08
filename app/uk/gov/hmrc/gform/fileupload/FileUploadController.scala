@@ -83,9 +83,9 @@ class FileUploadController(
         val formTemplateContext = request.attrs(FormTemplateKey)
         val formTemplate = formTemplateContext.formTemplate
         for {
-          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(formTemplate.isObjectStore)
           flash <- checkFile(fileId, envelope, cache.form.envelopeId, formTemplate.allowedFileTypes)(
-                     cache.formTemplate.objectStore
+                     cache.formTemplate.isObjectStore
                    )
           cacheUpd = cache
                        .modify(_.form.componentIdToFileId)
@@ -131,7 +131,7 @@ class FileUploadController(
     envelope: Envelope,
     envelopeId: EnvelopeId,
     allowedFileTypes: AllowedFileTypes
-  )(objectStore: Option[Boolean])(implicit
+  )(objectStore: Boolean)(implicit
     messages: Messages,
     hc: HeaderCarrier
   ): Future[Flash] = {
@@ -349,9 +349,6 @@ class FileUploadController(
     formComponentId: FormComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => implicit l => cache => _ => formModelOptics =>
-      val formTemplateContext = request.attrs(FormTemplateKey)
-      val formTemplate = formTemplateContext.formTemplate
-
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) { _ => variadicFormData => _ =>
         val cacheU = cache
           .modify(_.form.formData)
@@ -382,7 +379,7 @@ class FileUploadController(
 
             for {
               _ <- fileUploadService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)(
-                     formTemplate.objectStore
+                     cache.formTemplate.isObjectStore
                    )
               _ <- gformConnector
                      .updateUserData(

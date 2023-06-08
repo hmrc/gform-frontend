@@ -102,7 +102,7 @@ class SummaryRenderingServiceSpec
     val mockRecalculation = mock[Recalculation[Future, Throwable]]
     val mockGformConnector = mock[GformConnector]
 
-    mockFileUploadService.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]) returns Future.successful(
+    mockFileUploadService.getEnvelope(*[EnvelopeId])(*[Boolean])(*[HeaderCarrier]) returns Future.successful(
       Envelope(List.empty)
     )
     mockValidationService

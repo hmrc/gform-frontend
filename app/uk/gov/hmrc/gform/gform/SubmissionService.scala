@@ -79,7 +79,7 @@ class SubmissionService(
     val submissionMark = nonRepudiationHelpers.computeHash(nonRepudiationHelpers.formDataToJson(cache.form))
 
     for {
-      _ <- cleanseEnvelope(cache.form.envelopeId, envelope, attachments)(cache.formTemplate.objectStore)
+      _ <- cleanseEnvelope(cache.form.envelopeId, envelope, attachments)(cache.formTemplate.isObjectStore)
       customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
       submission <- gformBackEnd.createSubmission(
                       cache.form._id,
@@ -117,7 +117,7 @@ class SubmissionService(
     envelopeId: EnvelopeId,
     envelope: EnvelopeWithMapping,
     attachments: Attachments
-  )(objectStore: Option[Boolean])(implicit
+  )(objectStore: Boolean)(implicit
     hc: HeaderCarrier
   ): Future[Unit] = {
     val lookup: Set[FileId] =
