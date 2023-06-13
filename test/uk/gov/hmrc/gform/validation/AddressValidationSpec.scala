@@ -141,7 +141,8 @@ class AddressValidationSpec
       cacheData,
       EnvelopeWithMapping.empty,
       lookupRegistry,
-      booleanExprEval
+      booleanExprEval,
+      ComponentChecker.NonShortCircuitInterpreter
     )
 
   "non-international" should "accept uk, street1, street3, streep 3, street4 and postcode" in {

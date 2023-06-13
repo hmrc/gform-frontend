@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ComponentValidator._
+import ComponentChecker.CheckInterpreter
 
 class EmailCodeFieldMatcher(
   val fcId: VerificationCodeFieldId,
@@ -67,13 +68,15 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   cache: CacheData,
   envelope: EnvelopeWithMapping,
   lookupRegistry: LookupRegistry,
-  booleanExprEval: BooleanExprEval[F]
+  booleanExprEval: BooleanExprEval[F],
+  interpreter: CheckInterpreter
 )(implicit
   messages: Messages,
   l: LangADT,
   sse: SmartStringEvaluator
-) {
+) { self =>
 
+  implicit val checkInterpreter: CheckInterpreter = interpreter
   private val envelopeId: EnvelopeId = cache.envelopeId
   private val thirdPartyData: ThirdPartyData = cache.thirdPartyData
   private val formTemplate: FormTemplate = cache.formTemplate
@@ -208,8 +211,13 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         validIf(new AddressValidation[D]().validateAddress(formComponent, address)(formModelVisibilityOptics))
       case overseasAddress @ OverseasAddress(_, _, _, _, _) =>
         validIf(
-          new OverseasAddressValidation[D](formComponent, formModelVisibilityOptics, lookupRegistry)
-            .validateOverseasAddress(overseasAddress)
+          new OverseasAddressChecker[D]().runCheck(new CheckerDependency[D] {
+            def formModelVisibilityOptics: FormModelVisibilityOptics[D] = self.formModelVisibilityOptics
+            def formComponent: FormComponent = self.formComponent
+            def cache: CacheData = self.cache
+            def envelope: EnvelopeWithMapping = self.envelope
+            def lookupRegistry: LookupRegistry = self.lookupRegistry
+          })
         )
       case Choice(_, _, _, _, _, _, _, _, Some(noneChoice), Some(error)) =>
         validIf(

@@ -39,6 +39,7 @@ class ValidationModule(
     gformBackendModule.gformConnector,
     lookupRegistry,
     graphModule.recalculation,
-    playBuiltInsModule.i18nSupport
+    playBuiltInsModule.i18nSupport,
+    ComponentChecker.NonShortCircuitInterpreter
   )
 }

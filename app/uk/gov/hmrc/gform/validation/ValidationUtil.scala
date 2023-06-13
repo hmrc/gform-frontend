@@ -38,6 +38,7 @@ object ValidationUtil {
   type ValidatedNumeric = Validated[String, Int]
 
   type ValidatedType[A] = Validated[GformError, A]
+  type EitherType[A] = Either[GformError, A]
 
   val printErrors: Set[String] => Set[String] = (map: Set[String]) => {
     map
