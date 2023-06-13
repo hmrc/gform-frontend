@@ -26,7 +26,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, Navigator }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
 import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.gform.{ Errors, FastForwardService }
@@ -37,9 +37,10 @@ import uk.gov.hmrc.gform.models.{ Basic, Bracket, DataExpanded, FastForward, For
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormData, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Expr, FormComponent, FormComponentId, FormKind, FormTemplateContext, FormTemplateId, IsPostcodeLookup, Page, PostcodeLookup, Section, SectionNumber, SectionTitle4Ga, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Expr, FormComponent, FormComponentId, FormKind, FormTemplateContext, FormTemplateId, IsPostcodeLookup, Page, PostcodeLookup, Section, SectionNumber, SectionOrSummary, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
+import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.addresslookup
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.br
@@ -332,7 +333,8 @@ class AddressLookupController(
                 formTemplateId,
                 maybeAccessCode,
                 formComponentId,
-                sectionNumber
+                sectionNumber,
+                fastForward
               )
             val enterAddressHref = routes.AddressLookupController
               .enterAddress(
@@ -457,17 +459,78 @@ class AddressLookupController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
-    sectionNumber: SectionNumber
+    sectionNumber: SectionNumber,
+    fastForward: List[FastForward]
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => l => cache => sse => formModelOptics =>
+        val maybeCya = fastForward.collectFirst { case cya: FastForward.CYA =>
+          cya
+        }
+
         def resolveRedirect: Call = {
-          val ff =
-            routes.AddressLookupController.fastForwardAfterConfirmation(
-              formTemplateId,
-              maybeAccessCode,
-              None // TODO JoVl fastforward in tasklist will start with a first task, which is not what we want
-            )
+          val ff = maybeCya match {
+            case Some(FastForward.CYA(SectionOrSummary.FormSummary)) =>
+              uk.gov.hmrc.gform.gform.routes.SummaryController
+                .summaryById(
+                  cache.formTemplateId,
+                  maybeAccessCode,
+                  sectionNumber.toCoordinates,
+                  None,
+                  ff = fastForward.headOption
+                )
+            case Some(FastForward.CYA(SectionOrSummary.TaskSummary)) =>
+              uk.gov.hmrc.gform.gform.routes.SummaryController
+                .summaryById(
+                  cache.formTemplateId,
+                  maybeAccessCode,
+                  sectionNumber.toCoordinates,
+                  None
+                )
+            case _ =>
+              sectionNumber.fold(classic =>
+                routes.AddressLookupController.fastForwardAfterConfirmation(
+                  formTemplateId,
+                  maybeAccessCode,
+                  None
+                )
+              )(taskList =>
+                TaskListUtils.withTask(
+                  cache.formTemplate,
+                  taskList.coordinates.taskSectionNumber,
+                  taskList.coordinates.taskNumber
+                ) { task =>
+                  val isSummarySectionVisible: Boolean = task.summarySection
+                    .flatMap(_.includeIf)
+                    .fold(true)(includeIf =>
+                      formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+                    )
+
+                  val nextSectionNumber: SectionNumber =
+                    Navigator(sectionNumber, formModelOptics.formModelVisibilityOptics.formModel).nextSectionNumber
+                  if (nextSectionNumber.toCoordinates === taskList.toCoordinates) {
+                    if (task.summarySection.isDefined && isSummarySectionVisible) {
+                      uk.gov.hmrc.gform.gform.routes.SummaryController
+                        .summaryById(
+                          cache.formTemplate._id,
+                          maybeAccessCode,
+                          sectionNumber.toCoordinates,
+                          Some(true)
+                        )
+                    } else {
+                      uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                        .landingPage(formTemplateId, maybeAccessCode)
+                    }
+                  } else {
+                    routes.AddressLookupController.fastForwardAfterConfirmation(
+                      formTemplateId,
+                      maybeAccessCode,
+                      None
+                    )
+                  }
+                }
+              )
+          }
           val bracket: Bracket[Visibility] =
             formModelOptics.formModelVisibilityOptics.formModel.brackets.withSectionNumber(sectionNumber)
 
@@ -636,7 +699,8 @@ class AddressLookupController(
                               formTemplateId,
                               maybeAccessCode,
                               formComponentId,
-                              sectionNumber
+                              sectionNumber,
+                              fastForward
                             )
                           )
                         } else {
