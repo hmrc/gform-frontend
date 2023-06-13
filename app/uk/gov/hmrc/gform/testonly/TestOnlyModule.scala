@@ -29,6 +29,8 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
+import uk.gov.hmrc.gform.validation.ValidationService
+import uk.gov.hmrc.gform.validation.ComponentChecker
 
 class TestOnlyModule(
   playBuiltInsModule: PlayBuiltInsModule,
@@ -50,6 +52,16 @@ class TestOnlyModule(
 
   private val proxyActions = new ProxyActions(ahcWSComponents.wsClient)(controllersModule.messagesControllerComponents)
 
+  val validationService = new ValidationService(
+    fileUploadModule.fileUploadService,
+    graphModule.booleanExprEval,
+    gformBackendModule.gformConnector,
+    lookupRegistry,
+    graphModule.recalculation,
+    playBuiltInsModule.i18nSupport,
+    ComponentChecker.ErrorReportInterpreter
+  )
+
   val testOnlyController = new TestOnlyController(
     playBuiltInsModule.i18nSupport,
     proxyActions,
@@ -57,7 +69,8 @@ class TestOnlyModule(
     lookupRegistry,
     controllersModule.authenticatedRequestActions,
     configModule.serviceConfig,
-    controllersModule.messagesControllerComponents
+    controllersModule.messagesControllerComponents,
+    validationService
   )
 
   val debugController = new DebugController(

@@ -18,6 +18,7 @@ object Dependencies {
     "com.typesafe.play"           %% "play-json-joda"             % "2.9.4",
     "org.julienrf"                %% "play-json-derived-codecs"   % "10.1.0",
     "org.typelevel"               %% "cats-core"                  % "2.9.0",
+    "org.typelevel"               %% "cats-free"                  % "2.9.0",
     "org.typelevel"               %% "cats-mtl"                   % "1.3.0",
     "org.typelevel"               %% "case-insensitive"           % "1.3.0",
     "com.github.pureconfig"       %% "pureconfig"                 % "0.17.2",

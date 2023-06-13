@@ -88,7 +88,8 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
       cacheData,
       EnvelopeWithMapping.empty,
       lookupRegistry,
-      booleanExprEval
+      booleanExprEval,
+      ComponentChecker.NonShortCircuitInterpreter
     )
 
   private def componentsValidator(
