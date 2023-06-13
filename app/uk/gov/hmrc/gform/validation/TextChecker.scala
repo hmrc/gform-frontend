@@ -37,7 +37,7 @@ import uk.gov.hmrc.referencechecker.{ CorporationTaxReferenceChecker, VatReferen
 import scala.util.matching.Regex
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 
-object ComponentValidator {
+object TextChecker {
   // format: off
   val genericLongTextErrorPattern                            = "generic.longText.error.pattern"
   val genericReferenceNumberErrorRequired                    = "generic.referenceNumber.error.required"
@@ -1278,3 +1278,5 @@ object ComponentValidator {
       validationFailure(fieldValue, messageKey, Some(List(vars) ++ messageArgs))
   }
 }
+
+
