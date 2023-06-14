@@ -1461,9 +1461,7 @@ class SectionRenderingService(
     table: TableComp,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
-    sse: SmartStringEvaluator,
-    fcrd: FormComponentRenderDetails[SummaryRender],
-    messages: Messages
+    sse: SmartStringEvaluator
   ): Html = {
     def isVisibleValueRow(
       row: TableValueRow
@@ -1507,10 +1505,7 @@ class SectionRenderingService(
     val hs = table.header.zipAll(headerNumericClasses, SmartString.empty, "").map { case (h, c) =>
       HeadCell(content = HtmlContent(sse(h, false)), classes = c)
     }
-    val caption: Option[String] = table.caption.orElse {
-      val c = fcrd.label(formComponent)
-      if (c.trim.isEmpty()) Option.empty[String] else Option(c)
-    }
+    val caption: Option[String] = table.caption.orElse(Some(formComponent.label.value()))
 
     val captionClasses = {
       val c = table.captionClasses.trim
