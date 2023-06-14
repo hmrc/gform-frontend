@@ -196,177 +196,77 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(formModelVisibilityOptics, fieldValue), constraint) match {
-      case (true, None, TextWithRestrictions(_, _)) =>
-        validationFailure(
-          fieldValue,
-          genericErrorTextRequired,
-          (Some(errorShortNameWithFallback(fieldValue).pure[List]))
-        )
-      case (true, None, ShortText(_, _)) =>
-        validationFailure(
-          fieldValue,
-          genericErrorTextRequired,
-          (Some(errorShortNameWithFallback(fieldValue).pure[List]))
-        )
+      case (true, None, TextWithRestrictions(_, _)) => validationFailure(fieldValue, genericErrorTextRequired, (Some(errorShortNameWithFallback(fieldValue).pure[List])))
+      case (_, Some(value), TextWithRestrictions(min, max)) => validateTextConstraint(fieldValue, value, min, max)
 
-      case (true, None, lookupRegistry.extractors.IsRadioLookup(_)) =>
-        validationFailure(fieldValue, choiceErrorRequired, None)
-      case (true, None, lookupRegistry.extractors.IsUkSortCode(_)) =>
-        validationFailure(fieldValue, genericErrorSortCode, None)
-      case (true, None, IsText(Text(NINO, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericNinoErrorRequired,
-          fieldValue.errorShortName
-            .map(_.transform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
-      case (true, None, IsText(Text(Email, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericEmailErrorRequired,
-          fieldValue.errorShortName
-            .map(_.transform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
-        )
-      case (true, None, IsText(Text(CtUTR, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericUtrErrorRequired,
-          fieldValue.errorShortName
-            .map(_.transform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
-      case (true, None, IsText(Text(UkVrn, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericVrnErrorRequired,
-          fieldValue.errorShortName
-            .map(_.transform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
-      case (true, None, IsText(Text(PayeReference, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericPayeErrorRequired,
-          fieldValue.errorShortName
-            .map(_.transform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
-      case (true, None, IsText(Text(UkEORI, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericUkEoriErrorRequired,
-          fieldValue.errorShortName
-            .map(_.transform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
-        )
-      case (true, None, IsText(Text(UkBankAccountNumber, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericUkBankAccountErrorRequired,
-          fieldValue.errorShortName
-            .map(_.transform(" " + _, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.value().pure[List]))
-        )
-      case (true, None, IsText(Text(ChildBenefitNumber, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericChildBenefitNumberErrorRequired,
-          fieldValue.errorShortName
-            .map(_.transform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
-      case (true, None, IsText(Text(TelephoneNumber, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericTelephoneNumberErrorRequired,
-          fieldValue.errorShortName
-            .map(_.transform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
-      case (true, None, IsText(Text(_: ReferenceNumber, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericReferenceNumberErrorRequired,
-          fieldValue.errorShortName
-            .map(_.value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]))
-        )
-      case (true, None, IsText(Text(_: Number, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorRequired,
-          fieldValue.errorShortName
-            .map(_.value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]))
-        )
-      case (true, None, IsText(Text(_: PositiveNumber, _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericNumberErrorRequired,
-          fieldValue.errorShortName
-            .map(_.value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]))
-        )
-      case (true, None, IsText(Text(WholeSterling(true), _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericSterlingErrorRequired,
-          fieldValue.errorShortName
-            .map(_.value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "an amount", _ => "swm").value().pure[List]))
-        )
-      case (true, None, IsText(Text(Sterling(_, _), _, _, _, _, _))) =>
-        validationFailure(
-          fieldValue,
-          genericSterlingErrorRequired,
-          fieldValue.errorShortName
-            .map(_.value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "an amount", _ => "swm").value().pure[List]))
-        )
-      case (true, None, _) => validationFailure(fieldValue, genericErrorRequired, None)
-      case (_, Some(value), lookup @ Lookup(_, _)) =>
-        lookupValidation(fieldValue, lookupRegistry, lookup, LookupLabel(value), formModelVisibilityOptics)
+      case (true, None, ShortText(_, _)) => validationFailure(fieldValue, genericErrorTextRequired, (Some(errorShortNameWithFallback(fieldValue).pure[List])))
       case (_, Some(value), ShortText(min, max)) => validateShortTextConstraint(fieldValue, value, min, max)
-      case (_, Some(value), TextWithRestrictions(min, max)) =>
-        validateTextConstraint(fieldValue, value, min, max)
-      case (_, Some(value), Sterling(_, isPositive)) =>
-        validateSterling(fieldValue, value, isPositive, false)
-      case (_, Some(value), WholeSterling(true)) =>
-        validateSterling(fieldValue, value, true, true)
-      case (_, Some(value), s: WholeSterling) =>
-        validateNumber(
-          fieldValue,
-          value,
-          ValidationValues.sterlingLength,
-          0,
-          s.positiveOnly
-        )
-      case (_, Some(value), ReferenceNumber(min, max)) => referenceNumberConstraints(fieldValue, value, min, max)
-      case (_, Some(value), UkBankAccountNumber)       => validateBankAccountFormat(fieldValue, value)
+
+      case (true, None, lookupRegistry.extractors.IsRadioLookup(_)) => validationFailure(fieldValue, choiceErrorRequired, None)
+      case (true, None, lookupRegistry.extractors.IsUkSortCode(_)) => validationFailure(fieldValue, genericErrorSortCode, None)
+      case (_, Some(value), lookup @ Lookup(_, _)) => lookupValidation(fieldValue, lookupRegistry, lookup, LookupLabel(value), formModelVisibilityOptics)
+
       case (_, Some(value), UkSortCodeFormat)          => validateSortCodeFormat(fieldValue, value)
-      case (_, Some(value), SubmissionRefFormat)       => validateSubmissionRefFormat(fieldValue, value)
-      case (_, Some(value), SaUTR | CtUTR)             => checkUtr(fieldValue, value)
+
+      case (true, None, IsText(Text(NINO, _, _, _, _, _))) => validationFailure(fieldValue, genericNinoErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
       case (_, Some(value), NINO)                      => checkNino(fieldValue, value)
+
+      case (true, None, IsText(Text(Email, _, _, _, _, _))) => validationFailure(fieldValue, genericEmailErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List])))
+      case (_, Some(value), Email) => Monoid.combine(email(fieldValue, value), textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit))
+
+      case (true, None, IsText(Text(CtUTR, _, _, _, _, _))) => validationFailure(fieldValue, genericUtrErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
+      case (_, Some(value), CtUTR)             => checkUtr(fieldValue, value)
+
+      case (true, None, IsText(Text(UkVrn, _, _, _, _, _))) => validationFailure(fieldValue, genericVrnErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
       case (_, Some(value), UkVrn)                     => checkVrn(fieldValue, value)
+
+      case (true, None, IsText(Text(PayeReference, _, _, _, _, _))) => validationFailure(fieldValue, genericPayeErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
       case (_, Some(value), PayeReference)             => checkPayeReference(fieldValue, value)
-      case (_, Some(value), CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
-      case (_, Some(value), EORI)                      => checkEORI(fieldValue, value)
+
+      case (true, None, IsText(Text(UkEORI, _, _, _, _, _))) => validationFailure(fieldValue, genericUkEoriErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List])))
       case (_, Some(value), UkEORI)                    => checkUkEORI(fieldValue, value)
+
+      case (true, None, IsText(Text(UkBankAccountNumber, _, _, _, _, _))) => validationFailure(fieldValue, genericUkBankAccountErrorRequired, fieldValue.errorShortName .map(_.transform(" " + _, " " + _).value().pure[List]) orElse (Some(SmartString.blank.value().pure[List])))
+      case (_, Some(value), UkBankAccountNumber)       => validateBankAccountFormat(fieldValue, value)
+
+      case (true, None, IsText(Text(ChildBenefitNumber, _, _, _, _, _))) => validationFailure(fieldValue, genericChildBenefitNumberErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
       case (_, Some(value), ChildBenefitNumber)        => checkChildBenefitNumber(fieldValue, value)
-      case (_, Some(value), NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
-      case (_, Some(value), CountryCode)               => checkCountryCode(fieldValue, value)
+
+      case (true, None, IsText(Text(TelephoneNumber, _, _, _, _, _))) => validationFailure(fieldValue, genericTelephoneNumberErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
       case (_, Some(value), TelephoneNumber)           => validatePhoneNumber(fieldValue, value)
-      case (_, Some(value), Email | EmailVerifiedBy(_, _)) =>
-        Monoid.combine(
-          email(fieldValue, value),
-          textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit)
-        )
-      case (_, Some(value), Number(maxWhole, maxFractional, _, _)) =>
-        validateNumeric(fieldValue, value, maxWhole, maxFractional, false)
-      case (_, Some(value), PositiveNumber(maxWhole, maxFractional, _, _)) =>
-        validateNumeric(fieldValue, value, maxWhole, maxFractional, true)
+
+      case (true, None, IsText(Text(_: ReferenceNumber, _, _, _, _, _))) => validationFailure(fieldValue, genericReferenceNumberErrorRequired, fieldValue.errorShortName .map(_.value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List])))
+      case (_, Some(value), ReferenceNumber(min, max)) => referenceNumberConstraints(fieldValue, value, min, max)
+
+      case (true, None, IsText(Text(_: Number, _, _, _, _, _))) => validationFailure(fieldValue, genericNumberErrorRequired, fieldValue.errorShortName .map(_.value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List])))
+      case (_, Some(value), Number(maxWhole, maxFractional, _, _)) => validateNumeric(fieldValue, value, maxWhole, maxFractional, false)
+
+      case (true, None, IsText(Text(_: PositiveNumber, _, _, _, _, _))) => validationFailure(fieldValue, genericNumberErrorRequired, fieldValue.errorShortName .map(_.value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List])))
+      case (_, Some(value), PositiveNumber(maxWhole, maxFractional, _, _)) => validateNumeric(fieldValue, value, maxWhole, maxFractional, true)
+
+      case (true, None, IsText(Text(WholeSterling(true), _, _, _, _, _))) => validationFailure(fieldValue, genericSterlingErrorRequired, fieldValue.errorShortName .map(_.value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "an amount", _ => "swm").value().pure[List])))
+      case (_, Some(value), WholeSterling(true)) => validateSterling(fieldValue, value, true, true)
+      case (_, Some(value), s: WholeSterling) => validateNumber(fieldValue, value, ValidationValues.sterlingLength, 0, s.positiveOnly)
+
+      case (true, None, IsText(Text(Sterling(_, _), _, _, _, _, _))) => validationFailure(fieldValue, genericSterlingErrorRequired, fieldValue.errorShortName .map(_.value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "an amount", _ => "swm").value().pure[List])))
+      case (_, Some(value), Sterling(_, isPositive)) => validateSterling(fieldValue, value, isPositive, false)
+
+
+      case (_, Some(value), SubmissionRefFormat)       => validateSubmissionRefFormat(fieldValue, value)
+
+      case (_, Some(value), SaUTR)             => checkUtr(fieldValue, value)
+
+      case (_, Some(value), CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
+
+      case (_, Some(value), EORI)                      => checkEORI(fieldValue, value)
+
+      case (_, Some(value), NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
+
+      case (_, Some(value), CountryCode)               => checkCountryCode(fieldValue, value)
+
+      case (_, Some(value), EmailVerifiedBy(_, _)) => Monoid.combine(email(fieldValue, value), textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit))
+
+      case (true, None, _) => validationFailure(fieldValue, genericErrorRequired, None)
       case (false, None, _) => validationSuccess
     }
 
