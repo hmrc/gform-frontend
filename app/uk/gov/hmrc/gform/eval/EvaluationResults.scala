@@ -317,11 +317,12 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("Number")(expr)
         }
-      case NumberedList(_)      => unsupportedOperation("Number")(expr)
-      case BulletedList(_)      => unsupportedOperation("Number")(expr)
-      case StringOps(_, _)      => unsupportedOperation("Number")(expr)
-      case Concat(_)            => unsupportedOperation("Number")(expr)
-      case CountryOfItmpAddress => unsupportedOperation("Number")(expr)
+      case NumberedList(_)         => unsupportedOperation("Number")(expr)
+      case BulletedList(_)         => unsupportedOperation("Number")(expr)
+      case StringOps(_, _)         => unsupportedOperation("Number")(expr)
+      case Concat(_)               => unsupportedOperation("Number")(expr)
+      case CountryOfItmpAddress    => unsupportedOperation("Number")(expr)
+      case ChoicesRevealedField(_) => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -612,7 +613,8 @@ case class EvaluationResults(
         nonEmptyExpressionResult(
           StringResult(itmpRetrievals.flatMap(_.itmpAddress).flatMap(_.countryName).getOrElse(""))
         )
-      case _ => unsupportedOperation("String")(expr)
+      case ChoicesRevealedField(fcId) => loop(FormCtx(fcId))
+      case _                          => unsupportedOperation("String")(expr)
     }
 
     loop(typeInfo.expr)

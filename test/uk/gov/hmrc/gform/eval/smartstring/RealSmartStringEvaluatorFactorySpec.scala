@@ -268,7 +268,7 @@ class RealSmartStringEvaluatorFactorySpec
       val result: String = smartStringEvaluator
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("multiChoiceField"))), false)
 
-      result shouldBe "Smart string Choice1,Choice2"
+      result shouldBe "Smart string Choice1, Choice2"
     }
 
     "evaluate SmartString with FormCtx (type choice, with multi) interpolation - single selection" in new TestFixture {
@@ -341,7 +341,7 @@ class RealSmartStringEvaluatorFactorySpec
       val result: String = smartStringEvaluator
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("revealingChoiceField"))), false)
 
-      result shouldBe "Smart string Option1,Option2"
+      result shouldBe "Smart string Option1, Option2"
     }
 
     "evaluate SmartString with FormCtx (type revealingChoice, with multi) interpolation - single selection" in new TestFixture {
