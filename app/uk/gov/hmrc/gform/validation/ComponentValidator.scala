@@ -675,63 +675,45 @@ object ComponentValidator {
 
     val (signFS, wholeFS, _, fractionFS) = filteredValue match {
       case FractionalShape(sign, whole, _, fraction) => (Some(sign), Some(whole), Some(""), Some(fraction))
-      case _                                           => (None, None, None, None)
+      case _                                         => (None, None, None, None)
     }
 
     val isNegativeWhole = signWS.contains("-")
     val isNegativeFraction = signFS.contains("-")
-    val isFractionalDefined = fractionFS.isDefined
+    val hasFraction = fractionFS.isDefined
     val exceedsMaxFractional = fractionFS.exists(fractional => surpassMaxLength(fractional, maxFractional))
     val exceedsWholeFractional = wholeFS.exists(whole => surpassMaxLength(whole, maxWhole))
     val exceedsWholeWhole = wholeWS.exists(whole => surpassMaxLength(whole, maxWhole))
+    val requiresWholeNumber = maxFractional == 0
 
-    if (isNegativeWhole && mustBePositive)
-      positiveNumberFailure(fieldValue, value)
-    else if (isNegativeFraction && mustBePositive)
-      positiveNumberFailure(fieldValue, value)
-    else if (mustBePositive && maxFractional == 0 && isFractionalDefined)
-      wholeNumberFailure(fieldValue, value)
-    else if (exceedsMaxFractional)
-      maxFractionFailure(fieldValue, value, maxFractional)
-    else if (exceedsWholeFractional)
-      maxDigitFailure(fieldValue, value, maxWhole)
-    else if (exceedsWholeWhole)
-      maxDigitFailure(fieldValue, value, maxWhole)
-    else if (signWS.isDefined)
-      validationSuccess
-    else if (signFS.isDefined)
-      validationSuccess
-    else
-      nonNumericFailure(fieldValue, value)
+    val positiveAgnosticValidation =
+      if (exceedsMaxFractional)
+        maxFractionFailure(fieldValue, value, maxFractional)
+      else if (exceedsWholeFractional)
+        maxDigitFailure(fieldValue, value, maxWhole)
+      else if (exceedsWholeWhole)
+        maxDigitFailure(fieldValue, value, maxWhole)
+      else if (signWS.isDefined)
+        validationSuccess
+      else if (signFS.isDefined)
+        validationSuccess
+      else
+        nonNumericFailure(fieldValue, value)
+
+    if (mustBePositive) {
+      if (isNegativeWhole)
+        positiveNumberFailure(fieldValue, value)
+      else if (isNegativeFraction)
+        positiveNumberFailure(fieldValue, value)
+      else if (requiresWholeNumber)
+        if (hasFraction)
+          wholeNumberFailure(fieldValue, value)
+        else positiveAgnosticValidation
+      else positiveAgnosticValidation
+    } else {
+      positiveAgnosticValidation
+    }
   }
-
-  //   TextConstraint.filterNumberValue(value) match {
-
-  // //   if (signWholeShape === Some("-") && mustBePositive )
-  //     case WholeShape("-", _, _) if mustBePositive         =>
-  //       positiveNumberFailure(fieldValue, value)
-  // //   else if (signFractinalShape === Some("-") && mustBePositive)
-  //     case FractionalShape("-", _, _, _) if mustBePositive =>
-  //       positiveNumberFailure(fieldValue, value)
-
-  //   // else if (fractionalFractionalShape.isDefined && maxFractional == 0 && mustBePositive)
-  //     case FractionalShape(_, _, _, fractional) if maxFractional == 0 && mustBePositive =>
-  //       wholeNumberFailure(fieldValue, value)
-  //   // else if (fractionalFractionalShape.isDefined && surpassMaxLength(fractionalFractionalShape, maxFractional))
-  //     case FractionalShape(_, _, _, fractional) if surpassMaxLength(fractional, maxFractional) =>
-  //       maxFractionFailure(fieldValue, value, maxFractional)
-  //     case FractionalShape(_, whole, _, _) if surpassMaxLength(whole, maxWhole) =>
-  //       maxDigitFailure(fieldValue, value, maxWhole)
-  //     case WholeShape(_, whole, _) if surpassMaxLength(whole, maxWhole) =>
-  //       maxDigitFailure(fieldValue, value, maxWhole)
-  //     case WholeShape(_, _, _)         =>
-  //       validationSuccess
-  //     case FractionalShape(_, _, _, _) =>
-  //       validationSuccess
-  //     case _                           =>
-  //       nonNumericFailure(fieldValue, value)
-  //   }
-  // }
 
   private def nonNumericFailure(
     fieldValue: FormComponent,
@@ -1269,20 +1251,49 @@ object ComponentValidator {
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ) =
-    textLengthValidation(fieldValue, value, min, max)
-      .andThen { _ =>
-        val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
-        value match {
-          case ValidShortText() => validationSuccess
-          case _ =>
-            validationFailure(
-              fieldValue,
-              genericErrorShortTextValidChar,
-              Some(List(errorShortNameStartWithFallback(fieldValue)))
-            )
-        }
-      }
+  ) = {
+    val lengthValidationResult = textLengthValidation(fieldValue, value, min, max)
+    val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
+    val isValidShortText = value match {
+      case ValidShortText() => true
+      case _                => false
+    }
+
+    if (lengthValidationResult.isValid) {
+      if (isValidShortText)
+        validationSuccess
+      else
+        validationFailure(
+          fieldValue,
+          genericErrorShortTextValidChar,
+          Some(List(errorShortNameStartWithFallback(fieldValue)))
+        )
+    } else {
+      lengthValidationResult
+    }
+  }
+  // private[validation] def validateShortTextConstraint(
+  //   fieldValue: FormComponent,
+  //   value: String,
+  //   min: Int,
+  //   max: Int
+  // )(implicit
+  //   messages: Messages,
+  //   sse: SmartStringEvaluator
+  // ) =
+  //   textLengthValidation(fieldValue, value, min, max)
+  //     .andThen { _ =>
+  //       val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
+  //       value match {
+  //         case ValidShortText() => validationSuccess
+  //         case _ =>
+  //           validationFailure(
+  //             fieldValue,
+  //             genericErrorShortTextValidChar,
+  //             Some(List(errorShortNameStartWithFallback(fieldValue)))
+  //           )
+  //       }
+  //     }
 
   private[validation] def validateTextConstraint(
     fieldValue: FormComponent,
