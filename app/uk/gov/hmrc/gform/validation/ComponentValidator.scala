@@ -1272,28 +1272,6 @@ object ComponentValidator {
       lengthValidationResult
     }
   }
-  // private[validation] def validateShortTextConstraint(
-  //   fieldValue: FormComponent,
-  //   value: String,
-  //   min: Int,
-  //   max: Int
-  // )(implicit
-  //   messages: Messages,
-  //   sse: SmartStringEvaluator
-  // ) =
-  //   textLengthValidation(fieldValue, value, min, max)
-  //     .andThen { _ =>
-  //       val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
-  //       value match {
-  //         case ValidShortText() => validationSuccess
-  //         case _ =>
-  //           validationFailure(
-  //             fieldValue,
-  //             genericErrorShortTextValidChar,
-  //             Some(List(errorShortNameStartWithFallback(fieldValue)))
-  //           )
-  //       }
-  //     }
 
   private[validation] def validateTextConstraint(
     fieldValue: FormComponent,
@@ -1303,17 +1281,21 @@ object ComponentValidator {
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ) =
-    textLengthValidation(fieldValue, value, min, max)
-      .andThen { _ =>
-        invalidCharactersValidator(
-          fieldValue,
-          value,
-          validTextPattern,
-          genericErrorTextValidChar,
-          List(errorShortNameStartWithFallback(fieldValue))
-        )
-      }
+  ) = {
+    val lengthValidationResult = textLengthValidation(fieldValue, value, min, max)
+
+    if (lengthValidationResult.isValid) {
+      invalidCharactersValidator(
+        fieldValue,
+        value,
+        validTextPattern,
+        genericErrorTextValidChar,
+        List(errorShortNameStartWithFallback(fieldValue))
+      )
+    } else {
+      lengthValidationResult
+    }
+  }
 
   private def errorShortNameStartWithFallback(fieldValue: FormComponent)(implicit
     sse: SmartStringEvaluator
