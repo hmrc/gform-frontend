@@ -359,6 +359,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}/internal")
 
+  def getFormTemplateRaw(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[JsValue] =
+    ws.GET[JsValue](s"$baseUrl/formtemplates/${formTemplateId.value}")
+
   def getFormTemplateContext(
     formTemplateId: FormTemplateId
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplateContext] =

@@ -17,8 +17,12 @@
 package uk.gov.hmrc.gform.builder
 
 import cats.implicits._
+import io.circe.CursorOp._
+import io.circe._
+import io.circe.syntax._
 import play.api.i18n.I18nSupport
-import play.api.libs.json.Json
+import play.api.libs.circe.Circe
+import play.api.libs.json.{ Json => PlayJson }
 import play.api.mvc.{ MessagesControllerComponents, Result }
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
@@ -44,7 +48,114 @@ class BuilderController(
   messagesControllerComponents: MessagesControllerComponents
 )(implicit
   ex: ExecutionContext
-) extends FrontendController(messagesControllerComponents) {
+) extends FrontendController(messagesControllerComponents) with Circe {
+
+  // Returns section from raw json which correspond to runtime sectionNumber parameter.
+  def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      implicit request => lang => cache => sse => formModelOptics =>
+        gformConnector.getFormTemplateRaw(formTemplateId).map { formTemplateRaw =>
+          val jsonString: String = PlayJson.stringify(formTemplateRaw)
+          val maybeCirceJson: Either[ParsingFailure, Json] =
+            io.circe.parser.parse(jsonString)
+
+          val json: Option[Json] = maybeCirceJson.toOption.flatMap { json =>
+            val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
+
+            val bracket = formModel.bracket(sectionNumber)
+
+            val rawSectionNumber: Int = formModel.brackets
+              .fold(classic =>
+                classic.brackets.zipWithIndex
+                  .find { case (b, index) => b.hasSectionNumber(sectionNumber) }
+                  .map { case (_, index) =>
+                    index
+                  }
+                  .getOrElse(0)
+              )(taskList => 0)
+
+            bracket.fold { nonRepeatingPage =>
+              val pageModel = nonRepeatingPage.singleton
+
+              pageModel.allFormComponentIds match {
+                case Nil => None
+                case head :: _ =>
+                  val compName = head.baseComponentId.value
+                  val res: Option[(Json, Int)] =
+                    json.hcursor.downField("sections").values.flatMap { sections =>
+                      sections.zipWithIndex
+                        .find { case (section, sectionIndex) =>
+                          section.hcursor.downField("fields").values.exists { fields =>
+                            fields.exists { field =>
+                              field.hcursor.downField("id").focus.contains(Json.fromString(compName))
+                            }
+                          }
+                        }
+                    }
+                  res.map { case (section, sectionIndex) =>
+                    val history: List[CursorOp] =
+                      List
+                        .fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections"))
+                    Json.obj(
+                      "section" := section,
+                      "rawSectionNumber" := rawSectionNumber,
+                      "sectionPath" := CursorOp.opsToPath(history)
+                    )
+                  }
+
+              }
+            }(repeatingPage => Option.empty[Json]) { addToList =>
+              val addAnotherQuestionId = addToList.source.addAnotherQuestion.id.value
+
+              json.hcursor.downField("sections").values.flatMap { sections =>
+                sections.zipWithIndex
+                  .find { case (section, sectionIndex) =>
+                    section.hcursor
+                      .downField("addAnotherQuestion")
+                      .downField("id")
+                      .focus
+                      .contains(Json.fromString(addAnotherQuestionId))
+                  }
+                  .flatMap { case (addToListJson, sectionIndex) =>
+                    formModel.pageModelLookup.get(sectionNumber).flatMap { pageModel =>
+                      pageModel.allFormComponentIds match {
+                        case Nil => None
+                        case head :: _ =>
+                          val compName = head.baseComponentId.value
+                          val res: Option[(Json, Int)] =
+                            addToListJson.hcursor.downField("pages").values.flatMap { pages =>
+                              pages.zipWithIndex.find { case (page, pageIdex) =>
+                                page.hcursor.downField("fields").values.exists { fields =>
+                                  fields.exists { field =>
+                                    field.hcursor.downField("id").focus.contains(Json.fromString(compName))
+                                  }
+                                }
+                              }
+                            }
+                          res.map { case (json, pageNumber) =>
+                            val history: List[CursorOp] =
+                              List.fill(pageNumber)(MoveRight) ::: List(DownArray, DownField("pages")) ::: List
+                                .fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections"))
+
+                            Json.obj(
+                              "atlIterationIndex" := head.modelComponentId.maybeIndex.getOrElse(0),
+                              "section" := json,
+                              "rawSectionNumber" := rawSectionNumber,
+                              "sectionPath" := CursorOp.opsToPath(history)
+                            )
+                          }
+                      }
+                    }
+                  }
+              }
+            }
+          }
+
+          json.fold(BadRequest(s"No section for $sectionNumber found in form template $formTemplateId"))(json =>
+            Ok(json)
+          )
+        }
+    }
 
   def fetchSectionHeaderHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
@@ -64,7 +175,7 @@ class BuilderController(
         Ok(sectionHtml).pure[Future]
     }
 
-  private def badRequest(error: String): Result = BadRequest(Json.obj("error" -> error))
+  private def badRequest(error: String): Result = BadRequest(PlayJson.obj("error" -> error))
 
   def fetchFormComponentHtml(
     formTemplateId: FormTemplateId,
