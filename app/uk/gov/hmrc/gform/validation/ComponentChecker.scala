@@ -145,6 +145,19 @@ object ComponentChecker {
   ): CheckProgram[GformError] =
     Free.liftF(IfThenOp(cond, thenProgram))
 
+  def switchOp(
+    conditions: (Boolean, () => CheckProgram[GformError])*
+  )(elseBlock: => CheckProgram[GformError]): CheckProgram[GformError] =
+    ifThenElseOp(
+      cond = (conditions.isEmpty),
+      thenProgram = elseBlock,
+      elseProgram = ifThenElseOp(
+        cond = conditions.head._1,
+        thenProgram = conditions.head._2(),
+        elseProgram = switchOp(conditions.tail: _*)(elseBlock)
+      )
+    )
+
   /*
    This interpreter stops at the first error.
    It short-circuits on the first error by returning Left(error).
