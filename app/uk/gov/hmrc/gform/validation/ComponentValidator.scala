@@ -501,6 +501,7 @@ object ComponentValidator {
     //   // format: on
     // }
 
+    // format: on
     constraint match {
       case c: Number                                  => numberCheck(c)
       case c: PositiveNumber                          => positiveNumberCheck(c)
@@ -529,8 +530,7 @@ object ComponentValidator {
       case ChildBenefitNumber                         => childBenefitNumberCheck()
       case lookupRegistry.extractors.IsRadioLookup(_) => radioLookupCheck()
       case c: Lookup                                  => lookupCheck(c)
-
-      case _ => catchAllCheck()
+      case _                                          => catchAllCheck()
     }
   }
 
@@ -664,24 +664,74 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
-    val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
+    val filteredValue = TextConstraint.filterNumberValue(value)
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
-    TextConstraint.filterNumberValue(value) match {
-      case WholeShape("-", _, _) if mustBePositive         => positiveNumberFailure(fieldValue, value)
-      case FractionalShape("-", _, _, _) if mustBePositive => positiveNumberFailure(fieldValue, value)
-      case FractionalShape(_, _, _, fractional) if maxFractional == 0 && mustBePositive =>
-        wholeNumberFailure(fieldValue, value)
-      case FractionalShape(_, _, _, fractional) if surpassMaxLength(fractional, maxFractional) =>
-        maxFractionFailure(fieldValue, value, maxFractional)
-      case FractionalShape(_, whole, _, _) if surpassMaxLength(whole, maxWhole) =>
-        maxDigitFailure(fieldValue, value, maxWhole)
-      case WholeShape(_, whole, _) if surpassMaxLength(whole, maxWhole) =>
-        maxDigitFailure(fieldValue, value, maxWhole)
-      case WholeShape(_, _, _)         => validationSuccess
-      case FractionalShape(_, _, _, _) => validationSuccess
-      case _                           => nonNumericFailure(fieldValue, value)
+    val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
+
+    val (signWS, wholeWS, _) = filteredValue match {
+      case WholeShape(sign, whole, _) => (Some(sign), Some(whole), Some(""))
+      case _                          => (None, None, None)
     }
+
+    val (signFS, wholeFS, _, fractionFS) = filteredValue match {
+      case FractionalShape(sign, whole, _, fraction) => (Some(sign), Some(whole), Some(""), Some(fraction))
+      case _                                           => (None, None, None, None)
+    }
+
+    val isNegativeWhole = signWS.contains("-")
+    val isNegativeFraction = signFS.contains("-")
+    val isFractionalDefined = fractionFS.isDefined
+    val exceedsMaxFractional = fractionFS.exists(fractional => surpassMaxLength(fractional, maxFractional))
+    val exceedsWholeFractional = wholeFS.exists(whole => surpassMaxLength(whole, maxWhole))
+    val exceedsWholeWhole = wholeWS.exists(whole => surpassMaxLength(whole, maxWhole))
+
+    if (isNegativeWhole && mustBePositive)
+      positiveNumberFailure(fieldValue, value)
+    else if (isNegativeFraction && mustBePositive)
+      positiveNumberFailure(fieldValue, value)
+    else if (mustBePositive && maxFractional == 0 && isFractionalDefined)
+      wholeNumberFailure(fieldValue, value)
+    else if (exceedsMaxFractional)
+      maxFractionFailure(fieldValue, value, maxFractional)
+    else if (exceedsWholeFractional)
+      maxDigitFailure(fieldValue, value, maxWhole)
+    else if (exceedsWholeWhole)
+      maxDigitFailure(fieldValue, value, maxWhole)
+    else if (signWS.isDefined)
+      validationSuccess
+    else if (signFS.isDefined)
+      validationSuccess
+    else
+      nonNumericFailure(fieldValue, value)
   }
+
+  //   TextConstraint.filterNumberValue(value) match {
+
+  // //   if (signWholeShape === Some("-") && mustBePositive )
+  //     case WholeShape("-", _, _) if mustBePositive         =>
+  //       positiveNumberFailure(fieldValue, value)
+  // //   else if (signFractinalShape === Some("-") && mustBePositive)
+  //     case FractionalShape("-", _, _, _) if mustBePositive =>
+  //       positiveNumberFailure(fieldValue, value)
+
+  //   // else if (fractionalFractionalShape.isDefined && maxFractional == 0 && mustBePositive)
+  //     case FractionalShape(_, _, _, fractional) if maxFractional == 0 && mustBePositive =>
+  //       wholeNumberFailure(fieldValue, value)
+  //   // else if (fractionalFractionalShape.isDefined && surpassMaxLength(fractionalFractionalShape, maxFractional))
+  //     case FractionalShape(_, _, _, fractional) if surpassMaxLength(fractional, maxFractional) =>
+  //       maxFractionFailure(fieldValue, value, maxFractional)
+  //     case FractionalShape(_, whole, _, _) if surpassMaxLength(whole, maxWhole) =>
+  //       maxDigitFailure(fieldValue, value, maxWhole)
+  //     case WholeShape(_, whole, _) if surpassMaxLength(whole, maxWhole) =>
+  //       maxDigitFailure(fieldValue, value, maxWhole)
+  //     case WholeShape(_, _, _)         =>
+  //       validationSuccess
+  //     case FractionalShape(_, _, _, _) =>
+  //       validationSuccess
+  //     case _                           =>
+  //       nonNumericFailure(fieldValue, value)
+  //   }
+  // }
 
   private def nonNumericFailure(
     fieldValue: FormComponent,
