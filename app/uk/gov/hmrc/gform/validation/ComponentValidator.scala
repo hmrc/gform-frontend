@@ -1327,6 +1327,27 @@ object ComponentValidator {
     }
   }
 
+  // private[validation] def textLengthValidation(
+  //   fieldValue: FormComponent,
+  //   value: String,
+  //   min: Int,
+  //   max: Int
+  // )(implicit
+  //   messages: Messages,
+  //   sse: SmartStringEvaluator
+  // ) =
+  //   value match {
+  //     case exact if max == min && exact.length != max =>
+  //       val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
+  //       validationFailure(fieldValue, genericErrorTextExactDigits, Some(vars))
+  //     case tooLong if tooLong.length > max =>
+  //       val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
+  //       validationFailure(fieldValue, genericErrorTextMaxLength, Some(vars))
+  //     case tooShort if tooShort.length < min =>
+  //       val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: min.toString :: Nil
+  //       validationFailure(fieldValue, genericErrorTextMinLength, Some(vars))
+  //     case _ => validationSuccess
+  //   }
   private[validation] def textLengthValidation(
     fieldValue: FormComponent,
     value: String,
@@ -1335,19 +1356,27 @@ object ComponentValidator {
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ) =
-    value match {
-      case exact if max == min && exact.length != max =>
-        val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
-        validationFailure(fieldValue, genericErrorTextExactDigits, Some(vars))
-      case tooLong if tooLong.length > max =>
-        val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
-        validationFailure(fieldValue, genericErrorTextMaxLength, Some(vars))
-      case tooShort if tooShort.length < min =>
-        val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: min.toString :: Nil
-        validationFailure(fieldValue, genericErrorTextMinLength, Some(vars))
-      case _ => validationSuccess
+  ) = {
+    val textLength = value.length
+
+    val isExact = max == min && textLength != max
+    val isTooLong = textLength > max
+    val isTooShort = textLength < min
+
+    val varsExact: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
+    val varsTooLong: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
+    val varsTooShort: List[String] = errorShortNameStartWithFallback(fieldValue) :: min.toString :: Nil
+
+    if (isExact) {
+      validationFailure(fieldValue, genericErrorTextExactDigits, Some(varsExact))
+    } else if (isTooLong) {
+      validationFailure(fieldValue, genericErrorTextMaxLength, Some(varsTooLong))
+    } else if (isTooShort) {
+      validationFailure(fieldValue, genericErrorTextMinLength, Some(varsTooShort))
+    } else {
+      validationSuccess
     }
+  }
 
   private[validation] def validateShortTextConstraint(
     fieldValue: FormComponent,
