@@ -557,6 +557,29 @@ object ComponentValidator {
       case _ => validationSuccess
     }
 
+  // private def validateBankAccountFormat(
+  //   fieldValue: FormComponent,
+  //   value: String
+  // )(implicit
+  //   messages: Messages,
+  //   sse: SmartStringEvaluator
+  // ): ValidatedType[Unit] = {
+  //   val ukBankAccountFormat = s"[0-9]{${ValidationValues.bankAccountLength}}".r
+  //   val str = value.replace(" ", "")
+  //   str match {
+  //     case ukBankAccountFormat() => validationSuccess
+  //     case _ =>
+  //       validationFailure(
+  //         fieldValue,
+  //         genericUkBankAccountErrorPattern,
+  //         fieldValue.errorShortName
+  //           .map(_.transform(" " + _, " " + _).value().pure[List]) orElse
+  //           (Some(SmartString.blank.value().pure[List]))
+  //       )
+
+  //   }
+  // }
+
   private def validateBankAccountFormat(
     fieldValue: FormComponent,
     value: String
@@ -564,19 +587,23 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
-    val ukBankAccountFormat = s"[0-9]{${ValidationValues.bankAccountLength}}".r
-    val str = value.replace(" ", "")
-    str match {
-      case ukBankAccountFormat() => validationSuccess
-      case _ =>
-        validationFailure(
-          fieldValue,
-          genericUkBankAccountErrorPattern,
-          fieldValue.errorShortName
-            .map(_.transform(" " + _, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.value().pure[List]))
-        )
+    val UkBankAccountFormat = s"[0-9]{${ValidationValues.bankAccountLength}}".r
+    val transformedValue = value.replace(" ", "")
+    val isUKBankAccount = transformedValue match {
+      case UkBankAccountFormat() => true
+      case _                     => false
+    }
 
+    if (isUKBankAccount) {
+      validationSuccess
+    } else {
+      validationFailure(
+        fieldValue,
+        genericUkBankAccountErrorPattern,
+        fieldValue.errorShortName
+          .map(_.transform(" " + _, " " + _).value().pure[List]) orElse
+          (Some(SmartString.blank.value().pure[List]))
+      )
     }
   }
 
@@ -1085,23 +1112,50 @@ object ComponentValidator {
     validChars.mkString("[A-Za-z0-9\\\\n\\̇\\'\\", "\\", "]+").r
   }
 
-  private def referenceNumberConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int)(implicit
+  // private def referenceNumberConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int)(implicit
+  //   messages: Messages,
+  //   sse: SmartStringEvaluator
+  // ) = {
+  //   val ValidReferenceNumber = s"[0-9]{$min,$max}".r
+  //   val str = value.replace(" ", "")
+  //   str match {
+  //     case ValidReferenceNumber() => validationSuccess
+  //     case _ =>
+  //       validationFailure(
+  //         fieldValue,
+  //         genericReferenceNumberErrorPattern,
+  //         fieldValue.errorShortName
+  //           .map(_.value().pure[List]) orElse
+  //           (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]))
+  //       )
+
+  //   }
+  // }
+  private def referenceNumberConstraints(
+    fieldValue: FormComponent,
+    value: String,
+    min: Int,
+    max: Int
+  )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
+    val filteredValue = value.replace(" ", "")
     val ValidReferenceNumber = s"[0-9]{$min,$max}".r
-    val str = value.replace(" ", "")
-    str match {
-      case ValidReferenceNumber() => validationSuccess
-      case _ =>
-        validationFailure(
-          fieldValue,
-          genericReferenceNumberErrorPattern,
-          fieldValue.errorShortName
-            .map(_.value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]))
-        )
 
+    val isReferenceNumber = filteredValue match {
+      case ValidReferenceNumber() => true
+      case _                      => false
+    }
+
+    val defaultError = fieldValue.errorShortName
+      .map(_.value().pure[List])
+      .orElse(Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]))
+
+    if (isReferenceNumber) {
+      validationSuccess
+    } else {
+      validationFailure(fieldValue, genericReferenceNumberErrorPattern, defaultError)
     }
   }
 
