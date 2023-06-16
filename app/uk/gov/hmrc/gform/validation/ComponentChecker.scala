@@ -172,29 +172,11 @@ object ComponentChecker {
     else
       ifThenElseOp(
         cond = switchCases.head.cond,
+        andCond = switchCases.head.andCond,
+        orCond = switchCases.head.orCond,
         thenProgram = switchCases.head.thenProgram(),
         elseProgram = switchOp(switchCases.tail: _*)(elseBlock)
       )
-
-  // def switchOp(
-  //   switchCases: SwitchCase*
-  // )(elseBlock: => CheckProgram[GformError]): CheckProgram[GformError] = {
-
-  //   // the loop function is not tail recursive
-  //   // however the usage of switchOp is not expected to be deep
-  //   def loop(cases: List[SwitchCase]): CheckProgram[GformError] =
-  //     ifThenElseOp(
-  //       cond = cases.isEmpty,
-  //       thenProgram = elseBlock,
-  //       elseProgram = ifThenElseOp(
-  //         cond = cases.head.cond,
-  //         thenProgram = cases.head.thenProgram(),
-  //         elseProgram = loop(cases.tail)
-  //       )
-  //     )
-
-  //   loop(switchCases.toList)
-  // }
 
   /*
    This interpreter stops at the first error.

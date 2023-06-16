@@ -605,6 +605,54 @@ object ComponentValidator {
     else validationFailure(fieldValue, genericErrorSubmissionRef, None)
   }
 
+  // private def validateNumber(
+  //   fieldValue: FormComponent,
+  //   value: String,
+  //   maxWhole: Int,
+  //   maxFractional: Int,
+  //   mustBePositive: Boolean
+  // )(implicit
+  //   messages: Messages,
+  //   sse: SmartStringEvaluator
+  // ): ValidatedType[Unit] = {
+  //   val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
+  //   val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
+  //   (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
+  //     case (WholeShape(_, whole, _), _, _) if surpassMaxLength(whole, maxWhole) =>
+  //       val vars: List[String] = maxWhole.toString :: Nil
+  //       validationFailure(fieldValue, genericErrorMaxWhole, Some(vars))
+  //     case (WholeShape("-", _, _), 0, true) =>
+  //       validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
+  //     case (WholeShape("-", _, _), _, true) =>
+  //       validationFailure(fieldValue, genericErrorPositiveNumber, None)
+  //     case (WholeShape(_, _, _), _, _) => validationSuccess
+  //     case (FractionalShape(_, _, _, _), 0, true) =>
+  //       validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
+  //     case (FractionalShape(_, whole, _, fractional), 0, _)
+  //         if surpassMaxLength(whole, maxWhole) && lessThanMinLength(fractional, 0) =>
+  //       val vars: List[String] = maxWhole.toString :: Nil
+  //       validationFailure(fieldValue, genericErrorMaxLengthNoDecimals, Some(vars))
+  //     case (FractionalShape(_, whole, _, fractional), _, _)
+  //         if surpassMaxLength(whole, maxWhole) && surpassMaxLength(fractional, maxFractional) =>
+  //       val vars: List[String] = maxWhole.toString :: maxFractional.toString :: Nil
+  //       validationFailure(fieldValue, genericErrorMaxLengthMaxDecimals, Some(vars))
+  //     case (FractionalShape(_, whole, _, _), _, _) if surpassMaxLength(whole, maxWhole) =>
+  //       val vars: List[String] = maxWhole.toString :: Nil
+  //       validationFailure(fieldValue, genericErrorMaxWhole, Some(vars))
+  //     case (FractionalShape(_, _, _, fractional), 0, _) if lessThanMinLength(fractional, 0) =>
+  //       validationFailure(fieldValue, genericErrorWholeNumber, None)
+  //     case (FractionalShape(_, _, _, fractional), _, _) if surpassMaxLength(fractional, maxFractional) =>
+  //       val vars: List[String] = maxFractional.toString :: Nil
+  //       validationFailure(fieldValue, genericErrorMaxDecimals, Some(vars))
+  //     case (FractionalShape("-", _, _, _), _, true) =>
+  //       validationFailure(fieldValue, genericErrorPositiveNumber, None)
+  //     case (FractionalShape(_, _, _, _), _, _) => validationSuccess
+  //     case (_, 0, true)                        => validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
+  //     case (_, _, true)                        => validationFailure(fieldValue, genericErrorPositiveNumber, None)
+  //     case (_, 0, false)                       => validationFailure(fieldValue, genericErrorWholeNumber, None)
+  //     case _                                   => validationFailure(fieldValue, genericErrorNumber, None)
+  //   }
+  // }
   private def validateNumber(
     fieldValue: FormComponent,
     value: String,
@@ -615,43 +663,61 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
+    val filteredValue = TextConstraint.filterNumberValue(value)
     val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
-    (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
-      case (WholeShape(_, whole, _), _, _) if surpassMaxLength(whole, maxWhole) =>
-        val vars: List[String] = maxWhole.toString :: Nil
-        validationFailure(fieldValue, genericErrorMaxWhole, Some(vars))
-      case (WholeShape("-", _, _), 0, true) =>
-        validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
-      case (WholeShape("-", _, _), _, true) =>
-        validationFailure(fieldValue, genericErrorPositiveNumber, None)
-      case (WholeShape(_, _, _), _, _) => validationSuccess
-      case (FractionalShape(_, _, _, _), 0, true) =>
-        validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
-      case (FractionalShape(_, whole, _, fractional), 0, _)
-          if surpassMaxLength(whole, maxWhole) && lessThanMinLength(fractional, 0) =>
-        val vars: List[String] = maxWhole.toString :: Nil
-        validationFailure(fieldValue, genericErrorMaxLengthNoDecimals, Some(vars))
-      case (FractionalShape(_, whole, _, fractional), _, _)
-          if surpassMaxLength(whole, maxWhole) && surpassMaxLength(fractional, maxFractional) =>
-        val vars: List[String] = maxWhole.toString :: maxFractional.toString :: Nil
-        validationFailure(fieldValue, genericErrorMaxLengthMaxDecimals, Some(vars))
-      case (FractionalShape(_, whole, _, _), _, _) if surpassMaxLength(whole, maxWhole) =>
-        val vars: List[String] = maxWhole.toString :: Nil
-        validationFailure(fieldValue, genericErrorMaxWhole, Some(vars))
-      case (FractionalShape(_, _, _, fractional), 0, _) if lessThanMinLength(fractional, 0) =>
-        validationFailure(fieldValue, genericErrorWholeNumber, None)
-      case (FractionalShape(_, _, _, fractional), _, _) if surpassMaxLength(fractional, maxFractional) =>
-        val vars: List[String] = maxFractional.toString :: Nil
-        validationFailure(fieldValue, genericErrorMaxDecimals, Some(vars))
-      case (FractionalShape("-", _, _, _), _, true) =>
-        validationFailure(fieldValue, genericErrorPositiveNumber, None)
-      case (FractionalShape(_, _, _, _), _, _) => validationSuccess
-      case (_, 0, true)                        => validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
-      case (_, _, true)                        => validationFailure(fieldValue, genericErrorPositiveNumber, None)
-      case (_, 0, false)                       => validationFailure(fieldValue, genericErrorWholeNumber, None)
-      case _                                   => validationFailure(fieldValue, genericErrorNumber, None)
+
+    val (signWS, wholeWS, _) = filteredValue match {
+      case WholeShape(sign, whole, _) => (Some(sign), Some(whole), Some(""))
+      case _                          => (None, None, None)
     }
+
+    val (signFS, wholeFS, _, fractionFS) = filteredValue match {
+      case FractionalShape(sign, whole, _, fraction) => (Some(sign), Some(whole), Some(""), Some(fraction))
+      case _                                         => (None, None, None, None)
+    }
+
+    val isNegativeWhole = signWS.contains("-")
+    val isNegativeFraction = signFS.contains("-")
+    val hasFraction = fractionFS.isDefined
+    val exceedsMaxFractional = fractionFS.exists(fractional => surpassMaxLength(fractional, maxFractional))
+    val exceedsWholeFractional = wholeFS.exists(whole => surpassMaxLength(whole, maxWhole))
+    val exceedsWholeWhole = wholeWS.exists(whole => surpassMaxLength(whole, maxWhole))
+    val requiresWholeNumber = maxFractional == 0
+    val isFractionBelowMin = fractionFS.exists(fractional => lessThanMinLength(fractional, 0))
+
+    if (exceedsWholeWhole) {
+      validationFailure(fieldValue, genericErrorMaxWhole, Some(List(maxWhole.toString)))
+    } else if (isNegativeWhole && requiresWholeNumber) {
+      validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
+    } else if (isNegativeWhole && mustBePositive) {
+      validationFailure(fieldValue, genericErrorPositiveNumber, None)
+    } else if (isNegativeFraction && requiresWholeNumber) {
+      validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
+    } else if (exceedsWholeFractional && requiresWholeNumber && isFractionBelowMin) {
+      validationFailure(fieldValue, genericErrorMaxLengthNoDecimals, Some(List(maxWhole.toString)))
+    } else if (exceedsWholeFractional && exceedsMaxFractional) {
+      validationFailure(
+        fieldValue,
+        genericErrorMaxLengthMaxDecimals,
+        Some(List(maxWhole.toString, maxFractional.toString))
+      )
+    } else if (exceedsWholeFractional) {
+      validationFailure(fieldValue, genericErrorMaxWhole, Some(List(maxWhole.toString)))
+    } else if (hasFraction && requiresWholeNumber && isFractionBelowMin) {
+      validationFailure(fieldValue, genericErrorWholeNumber, None)
+    } else if (exceedsMaxFractional) {
+      validationFailure(fieldValue, genericErrorMaxDecimals, Some(List(maxFractional.toString)))
+    } else if (isNegativeFraction && mustBePositive) {
+      validationFailure(fieldValue, genericErrorPositiveNumber, None)
+    } else if (wholeWS.isDefined) {
+      validationSuccess
+    } else if (fractionFS.isDefined) {
+      validationSuccess
+    } else {
+      validationFailure(fieldValue, genericErrorNumber, None)
+    }
+
   }
 
   private def validateNumeric(
@@ -686,32 +752,24 @@ object ComponentValidator {
     val exceedsWholeWhole = wholeWS.exists(whole => surpassMaxLength(whole, maxWhole))
     val requiresWholeNumber = maxFractional == 0
 
-    val positiveAgnosticValidation =
-      if (exceedsMaxFractional)
-        maxFractionFailure(fieldValue, value, maxFractional)
-      else if (exceedsWholeFractional)
-        maxDigitFailure(fieldValue, value, maxWhole)
-      else if (exceedsWholeWhole)
-        maxDigitFailure(fieldValue, value, maxWhole)
-      else if (signWS.isDefined)
-        validationSuccess
-      else if (signFS.isDefined)
-        validationSuccess
-      else
-        nonNumericFailure(fieldValue, value)
-
-    if (mustBePositive) {
-      if (isNegativeWhole)
-        positiveNumberFailure(fieldValue, value)
-      else if (isNegativeFraction)
-        positiveNumberFailure(fieldValue, value)
-      else if (requiresWholeNumber)
-        if (hasFraction)
-          wholeNumberFailure(fieldValue, value)
-        else positiveAgnosticValidation
-      else positiveAgnosticValidation
+    if (isNegativeWhole && mustBePositive) {
+      positiveNumberFailure(fieldValue, value)
+    } else if (isNegativeFraction && mustBePositive) {
+      positiveNumberFailure(fieldValue, value)
+    } else if (hasFraction && requiresWholeNumber) {
+      wholeNumberFailure(fieldValue, value)
+    } else if (exceedsMaxFractional) {
+      maxFractionFailure(fieldValue, value, maxFractional)
+    } else if (exceedsWholeFractional) {
+      maxDigitFailure(fieldValue, value, maxWhole)
+    } else if (exceedsWholeWhole) {
+      maxDigitFailure(fieldValue, value, maxWhole)
+    } else if (wholeWS.isDefined) {
+      validationSuccess
+    } else if (fractionFS.isDefined) {
+      validationSuccess
     } else {
-      positiveAgnosticValidation
+      nonNumericFailure(fieldValue, value)
     }
   }
 
@@ -825,6 +883,32 @@ object ComponentValidator {
       )
     )
 
+  // private def validateSterling(
+  //   fieldValue: FormComponent,
+  //   value: String,
+  //   isPositive: Boolean,
+  //   isWhole: Boolean
+  // )(implicit
+  //   messages: Messages,
+  //   sse: SmartStringEvaluator
+  // ): ValidatedType[Unit] = {
+  //   val maxWhole = ValidationValues.sterlingLength
+  //   val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
+  //   val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
+  //   TextConstraint.filterNumberValue(value) match {
+  //     case FractionalShape(_, _, _, fractional) if !isWhole && fractional.length > 2 =>
+  //       nonNumericSterlingFailure(fieldValue, value)
+  //     case FractionalShape(_, _, _, fractional) if isWhole =>
+  //       wholeSterlingFailure(fieldValue, value)
+  //     case WholeShape(_, whole, _) if surpassMaxLength(whole, maxWhole) =>
+  //       maxDigitSterlingFailure(fieldValue, value, maxWhole)
+  //     case WholeShape("-", _, _) if isPositive         => positiveSterlingFailure(fieldValue, value)
+  //     case FractionalShape("-", _, _, _) if isPositive => positiveSterlingFailure(fieldValue, value)
+  //     case WholeShape(_, _, _)                         => validationSuccess
+  //     case FractionalShape(_, _, _, _) if !isWhole     => validationSuccess
+  //     case _                                           => nonNumericSterlingFailure(fieldValue, value)
+  //   }
+  // }
   private def validateSterling(
     fieldValue: FormComponent,
     value: String,
@@ -834,21 +918,43 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
+    val filteredValue = TextConstraint.filterNumberValue(value)
     val maxWhole = ValidationValues.sterlingLength
     val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
-    TextConstraint.filterNumberValue(value) match {
-      case FractionalShape(_, _, _, fractional) if !isWhole && fractional.length > 2 =>
-        nonNumericSterlingFailure(fieldValue, value)
-      case FractionalShape(_, _, _, fractional) if isWhole =>
-        wholeSterlingFailure(fieldValue, value)
-      case WholeShape(_, whole, _) if surpassMaxLength(whole, maxWhole) =>
-        maxDigitSterlingFailure(fieldValue, value, maxWhole)
-      case WholeShape("-", _, _) if isPositive         => positiveSterlingFailure(fieldValue, value)
-      case FractionalShape("-", _, _, _) if isPositive => positiveSterlingFailure(fieldValue, value)
-      case WholeShape(_, _, _)                         => validationSuccess
-      case FractionalShape(_, _, _, _) if !isWhole     => validationSuccess
-      case _                                           => nonNumericSterlingFailure(fieldValue, value)
+
+    val (signWS, wholeWS, _) = filteredValue match {
+      case WholeShape(sign, whole, _) => (Some(sign), Some(whole), Some(""))
+      case _                          => (None, None, None)
+    }
+
+    val (signFS, _, _, fractionFS) = filteredValue match {
+      case FractionalShape(sign, _, _, fraction) => (Some(sign), Some(""), Some(""), Some(fraction))
+      case _                                     => (None, None, None, None)
+    }
+
+    val isNegativeWhole = signWS.contains("-")
+    val isNegativeFraction = signFS.contains("-")
+    val hasFractionMoreThanTwoDigits = fractionFS.exists(_.length > 2)
+    val isFractionPresent = fractionFS.isDefined
+    val exceedsWholeLimit = wholeWS.exists(whole => surpassMaxLength(whole, maxWhole))
+
+    if (hasFractionMoreThanTwoDigits && !isWhole) {
+      nonNumericSterlingFailure(fieldValue, value)
+    } else if (isFractionPresent && isWhole) {
+      wholeSterlingFailure(fieldValue, value)
+    } else if (exceedsWholeLimit) {
+      maxDigitSterlingFailure(fieldValue, value, maxWhole)
+    } else if (isNegativeWhole && isPositive) {
+      positiveSterlingFailure(fieldValue, value)
+    } else if (isNegativeFraction && isPositive) {
+      positiveSterlingFailure(fieldValue, value)
+    } else if (wholeWS.isDefined) {
+      validationSuccess
+    } else if (fractionFS.isDefined && !isWhole) {
+      validationSuccess
+    } else {
+      nonNumericSterlingFailure(fieldValue, value)
     }
   }
 
