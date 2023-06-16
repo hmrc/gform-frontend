@@ -153,15 +153,28 @@ object ComponentChecker {
   ): CheckProgram[GformError] =
     Free.liftF(IfThenOp(cond, andCond, orCond, thenProgram))
 
-  def switchOp(
-    conditions: (Boolean, () => CheckProgram[GformError])*
-  )(elseBlock: => CheckProgram[GformError]): CheckProgram[GformError] =
+
+  case class SwitchCase(
+    cond: Boolean,
+    andCond: Boolean,
+    orCond: Boolean,
+    thenProgram: () => CheckProgram[GformError]
+  )
+
+  def switchCase(
+    cond: Boolean,
+    andCond: Boolean = true,
+    orCond: Boolean = false,
+    thenProgram: => CheckProgram[GformError]
+  ) = SwitchCase(cond, andCond, orCond, () => thenProgram)
+
+  def switchOp(conditions: SwitchCase*)(elseBlock: => CheckProgram[GformError]): CheckProgram[GformError] =
     ifThenElseOp(
-      cond = (conditions.isEmpty),
+      cond = conditions.isEmpty,
       thenProgram = elseBlock,
       elseProgram = ifThenElseOp(
-        cond = conditions.head._1,
-        thenProgram = conditions.head._2(),
+        cond = conditions.head.cond,
+        thenProgram = conditions.head.thenProgram(),
         elseProgram = switchOp(conditions.tail: _*)(elseBlock)
       )
     )
