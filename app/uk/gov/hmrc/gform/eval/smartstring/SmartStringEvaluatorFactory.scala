@@ -83,10 +83,10 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
                         .toMap
                       mapChoiceSelectedIndexes(
                         typeInfo,
-                        _.map(i => apply(optionsList(i), markDown)).mkString(",")
+                        _.map(i => apply(optionsList(i), markDown)).mkString(", ")
                       )
                     case IsRevealingChoice(revealingChoice) =>
-                      revealingChoice.options.map(c => apply(c.choice.label, markDown)).mkString(",")
+                      revealingChoice.options.map(c => apply(c.choice.label, markDown)).mkString(", ")
                     case _ =>
                       stringRepresentation(typeInfo)
                   }
@@ -101,6 +101,25 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
               case BulletedList(fcId) =>
                 val fcIdTypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(FormCtx(fcId))
                 govukListRepresentation(fcIdTypeInfo, markDown = markDown, isBulleted = true)
+              case ChoicesRevealedField(fcId) =>
+                formModelVisibilityOptics.formModel.fcLookup
+                  .get(fcId)
+                  .collect { case IsRevealingChoice(revealingChoice) =>
+                    revealingChoice.options
+                      .map { c =>
+                        val label = apply(c.choice.label, markDown)
+                        val revealingFieldsValue = c.revealingFields
+                          .map(rf =>
+                            formModelVisibilityOptics.recData.variadicFormData
+                              .one(rf.id.modelComponentId)
+                              .getOrElse("")
+                          )
+                          .mkString("")
+                        if (revealingFieldsValue.nonEmpty) s"$label - $revealingFieldsValue" else label
+                      }
+                      .mkString(", ")
+                  }
+                  .getOrElse("")
               case _ => stringRepresentation(typeInfo)
             }
         }

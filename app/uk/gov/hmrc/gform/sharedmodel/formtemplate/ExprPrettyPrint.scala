@@ -85,6 +85,7 @@ object ExprPrettyPrint {
     case StringOps(_, stringFnc)       => stringFnc.toString
     case Concat(_)                     => "Concat"
     case CountryOfItmpAddress          => "CountryOfItmpAddress"
+    case ChoicesRevealedField(_)       => "ChoicesRevealedField"
   }
 
   def prettyPrintItmpNameFocus(focus: ItmpNameFocus): String = focus match {
