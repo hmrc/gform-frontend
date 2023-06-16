@@ -153,7 +153,6 @@ object ComponentChecker {
   ): CheckProgram[GformError] =
     Free.liftF(IfThenOp(cond, andCond, orCond, thenProgram))
 
-
   case class SwitchCase(
     cond: Boolean,
     andCond: Boolean,
@@ -168,16 +167,34 @@ object ComponentChecker {
     thenProgram: => CheckProgram[GformError]
   ) = SwitchCase(cond, andCond, orCond, () => thenProgram)
 
-  def switchOp(conditions: SwitchCase*)(elseBlock: => CheckProgram[GformError]): CheckProgram[GformError] =
-    ifThenElseOp(
-      cond = conditions.isEmpty,
-      thenProgram = elseBlock,
-      elseProgram = ifThenElseOp(
-        cond = conditions.head.cond,
-        thenProgram = conditions.head.thenProgram(),
-        elseProgram = switchOp(conditions.tail: _*)(elseBlock)
+  def switchOp(switchCases: SwitchCase*)(elseBlock: => CheckProgram[GformError]): CheckProgram[GformError] =
+    if (switchCases.isEmpty) elseBlock
+    else
+      ifThenElseOp(
+        cond = switchCases.head.cond,
+        thenProgram = switchCases.head.thenProgram(),
+        elseProgram = switchOp(switchCases.tail: _*)(elseBlock)
       )
-    )
+
+  // def switchOp(
+  //   switchCases: SwitchCase*
+  // )(elseBlock: => CheckProgram[GformError]): CheckProgram[GformError] = {
+
+  //   // the loop function is not tail recursive
+  //   // however the usage of switchOp is not expected to be deep
+  //   def loop(cases: List[SwitchCase]): CheckProgram[GformError] =
+  //     ifThenElseOp(
+  //       cond = cases.isEmpty,
+  //       thenProgram = elseBlock,
+  //       elseProgram = ifThenElseOp(
+  //         cond = cases.head.cond,
+  //         thenProgram = cases.head.thenProgram(),
+  //         elseProgram = loop(cases.tail)
+  //       )
+  //     )
+
+  //   loop(switchCases.toList)
+  // }
 
   /*
    This interpreter stops at the first error.
