@@ -119,12 +119,16 @@ object ComponentChecker {
 
   case class IfThenElseOp(
     cond: Boolean,
+    andCond: Boolean,
+    orCond: Boolean,
     thenProgram: CheckProgram[GformError],
     elseProgram: CheckProgram[GformError]
   ) extends CheckingOp[GformError]
 
   case class IfThenOp(
     cond: Boolean,
+    andCond: Boolean,
+    orCond: Boolean,
     thenProgram: CheckProgram[GformError]
   ) extends CheckingOp[GformError]
 
@@ -134,16 +138,20 @@ object ComponentChecker {
 
   def ifThenElseOp(
     cond: Boolean,
+    andCond: Boolean = true,
+    orCond: Boolean = false,
     thenProgram: CheckProgram[GformError],
     elseProgram: CheckProgram[GformError]
   ): CheckProgram[GformError] =
-    Free.liftF(IfThenElseOp(cond, thenProgram, elseProgram))
+    Free.liftF(IfThenElseOp(cond, andCond, orCond, thenProgram, elseProgram))
 
   def ifThenOp(
     cond: Boolean,
+    andCond: Boolean = true,
+    orCond: Boolean = false,
     thenProgram: CheckProgram[GformError]
   ): CheckProgram[GformError] =
-    Free.liftF(IfThenOp(cond, thenProgram))
+    Free.liftF(IfThenOp(cond, andCond, orCond, thenProgram))
 
   def switchOp(
     conditions: (Boolean, () => CheckProgram[GformError])*
@@ -166,10 +174,10 @@ object ComponentChecker {
     def apply[A](op: CheckingOp[A]) = op match {
       case ShortCircuitProgram(program)    => program.foldMap(this)
       case NonShortCircuitProgram(program) => program.foldMap(NonShortCircuitInterpreter)
-      case IfThenElseOp(cond, thenProgram, elseProgram) =>
-        if (cond) thenProgram.foldMap(this) else elseProgram.foldMap(this)
-      case IfThenOp(cond, thenProgram) =>
-        if (cond) thenProgram.foldMap(this) else Right(emptyGformError)
+      case IfThenElseOp(cond, andCond, orCond, thenProgram, elseProgram) =>
+        if (cond && andCond || orCond) thenProgram.foldMap(this) else elseProgram.foldMap(this)
+      case IfThenOp(cond, andCond, orCond, thenProgram) =>
+        if (cond && andCond || orCond) thenProgram.foldMap(this) else Right(emptyGformError)
       case GformErrorOp(gformError) => Left(gformError)
     }
   }
@@ -186,10 +194,10 @@ object ComponentChecker {
       // there's no short circuit in the for comprehension.
       case ShortCircuitProgram(program)    => program.foldMap(ShortCircuitInterpreter).fold(Right(_), Right(_))
       case NonShortCircuitProgram(program) => program.foldMap(this)
-      case IfThenElseOp(cond, thenProgram, elseProgram) =>
-        if (cond) thenProgram.foldMap(this) else elseProgram.foldMap(this)
-      case IfThenOp(cond, thenProgram) =>
-        if (cond) thenProgram.foldMap(this) else Right(emptyGformError)
+      case IfThenElseOp(cond, andCond, orCond, thenProgram, elseProgram) =>
+        if (cond && andCond || orCond) thenProgram.foldMap(this) else elseProgram.foldMap(this)
+      case IfThenOp(cond, andCond, orCond, thenProgram) =>
+        if (cond && andCond || orCond) thenProgram.foldMap(this) else Right(emptyGformError)
       case GformErrorOp(gformError) => Right(gformError)
     }
   }
@@ -198,10 +206,28 @@ object ComponentChecker {
     def apply[A](op: CheckingOp[A]) = op match {
       case ShortCircuitProgram(program)    => program.foldMap(this)
       case NonShortCircuitProgram(program) => program.foldMap(this)
-      case IfThenElseOp(_, thenProgram, elseProgram) =>
-        Monoid[EitherType[GformError]].combine(thenProgram.foldMap(this), elseProgram.foldMap(this))
-      case IfThenOp(_, thenProgram) => thenProgram.foldMap(this)
+      case IfThenElseOp(_, andCond, orCond, thenProgram, elseProgram) =>
+        if (andCond || orCond)
+          Monoid[EitherType[GformError]].combine(thenProgram.foldMap(this), elseProgram.foldMap(this))
+        else
+          Right(emptyGformError)
+      case IfThenOp(_, andCond, orCond, thenProgram) =>
+        if (andCond || orCond)
+          thenProgram.foldMap(this)
+        else
+          Right(emptyGformError)
       case GformErrorOp(gformError) => Right(gformError)
+    }
+  }
+
+  object FullErrorReportInterpreter extends CheckInterpreter {
+    def apply[A](op: CheckingOp[A]) = op match {
+      case ShortCircuitProgram(program)    => program.foldMap(this)
+      case NonShortCircuitProgram(program) => program.foldMap(this)
+      case IfThenElseOp(_, _, _, thenProgram, elseProgram) =>
+        Monoid[EitherType[GformError]].combine(thenProgram.foldMap(this), elseProgram.foldMap(this))
+      case IfThenOp(_, andCond, orCond, thenProgram) => thenProgram.foldMap(this)
+      case GformErrorOp(gformError)                  => Right(gformError)
     }
   }
 
