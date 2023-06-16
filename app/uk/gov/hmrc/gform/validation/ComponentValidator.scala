@@ -413,95 +413,6 @@ object ComponentValidator {
         }
       }
 
-    // format: off
-    //   (fieldValue.mandatory, textData(formModelVisibilityOptics, fieldValue), constraint) match {
-    //     // DONE ==================================================================
-    //   case (true, None, TextWithRestrictions(_, _)) => validationFailure(fieldValue, genericErrorTextRequired, (Some(errorShortNameWithFallback(fieldValue).pure[List])))
-    //   case (_, Some(value), TextWithRestrictions(min, max)) => validateTextConstraint(fieldValue, value, min, max)
-
-
-    //   case (true, None, ShortText(_, _)) => validationFailure(fieldValue, genericErrorTextRequired, (Some(errorShortNameWithFallback(fieldValue).pure[List])))
-    //   case (_, Some(value), ShortText(min, max)) => validateShortTextConstraint(fieldValue, value, min, max)
-
-    //   case (true, None, IsText(Text(NINO, _, _, _, _, _))) => validationFailure(fieldValue, genericNinoErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
-    //   case (_, Some(value), NINO)                      => checkNino(fieldValue, value)
-
-
-    //   case (true, None, IsText(Text(Email, _, _, _, _, _))) => validationFailure(fieldValue, genericEmailErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List])))
-    //   case (_, Some(value), Email) => Monoid.combine(email(fieldValue, value), textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit))
-
-    //   case (true, None, IsText(Text(CtUTR, _, _, _, _, _))) => validationFailure(fieldValue, genericUtrErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
-    //   case (_, Some(value), CtUTR)             => checkUtr(fieldValue, value)
-
-    //   case (true, None, IsText(Text(UkVrn, _, _, _, _, _))) => validationFailure(fieldValue, genericVrnErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
-    //   case (_, Some(value), UkVrn)                     => checkVrn(fieldValue, value)
-
-    //   case (true, None, IsText(Text(PayeReference, _, _, _, _, _))) => validationFailure(fieldValue, genericPayeErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
-    //   case (_, Some(value), PayeReference)             => checkPayeReference(fieldValue, value)
-
-
-    //   case (true, None, IsText(Text(UkEORI, _, _, _, _, _))) => validationFailure(fieldValue, genericUkEoriErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List])))
-    //   case (_, Some(value), UkEORI)                    => checkUkEORI(fieldValue, value)
-
-
-    //   case (true, None, IsText(Text(UkBankAccountNumber, _, _, _, _, _))) => validationFailure(fieldValue, genericUkBankAccountErrorRequired, fieldValue.errorShortName .map(_.transform(" " + _, " " + _).value().pure[List]) orElse (Some(SmartString.blank.value().pure[List])))
-    //   case (_, Some(value), UkBankAccountNumber)       => validateBankAccountFormat(fieldValue, value)
-
-    //   case (true, None, IsText(Text(ChildBenefitNumber, _, _, _, _, _))) => validationFailure(fieldValue, genericChildBenefitNumberErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
-    //   case (_, Some(value), ChildBenefitNumber)        => checkChildBenefitNumber(fieldValue, value)
-
-
-    //   case (true, None, IsText(Text(TelephoneNumber, _, _, _, _, _))) => validationFailure(fieldValue, genericTelephoneNumberErrorRequired, fieldValue.errorShortName .map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])))
-    //   case (_, Some(value), TelephoneNumber)           => validatePhoneNumber(fieldValue, value)
-    //     // END  DONE ==================================================================
-
-
-
-    //   case (true, None, IsText(Text(_: ReferenceNumber, _, _, _, _, _))) => validationFailure(fieldValue, genericReferenceNumberErrorRequired, fieldValue.errorShortName .map(_.value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List])))
-    //   case (_, Some(value), ReferenceNumber(min, max)) => referenceNumberConstraints(fieldValue, value, min, max)
-
-    //   case (true, None, IsText(Text(_: Number, _, _, _, _, _))) => validationFailure(fieldValue, genericNumberErrorRequired, fieldValue.errorShortName .map(_.value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List])))
-    //   case (_, Some(value), Number(maxWhole, maxFractional, _, _)) => validateNumeric(fieldValue, value, maxWhole, maxFractional, false)
-
-    //   case (true, None, IsText(Text(_: PositiveNumber, _, _, _, _, _))) => validationFailure(fieldValue, genericNumberErrorRequired, fieldValue.errorShortName .map(_.value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List])))
-    //   case (_, Some(value), PositiveNumber(maxWhole, maxFractional, _, _)) => validateNumeric(fieldValue, value, maxWhole, maxFractional, true)
-
-
-    //   case (true, None, lookupRegistry.extractors.IsUkSortCode(_)) => validationFailure(fieldValue, genericErrorSortCode, None)
-
-    //   case (_, Some(value), SubmissionRefFormat)       => validateSubmissionRefFormat(fieldValue, value)
-    //   case (_, Some(value), SaUTR)             => checkUtr(fieldValue, value)
-    //   case (_, Some(value), CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
-    //   case (_, Some(value), EORI)                      => checkEORI(fieldValue, value)
-
-    //   case (_, Some(value), NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
-    //   case (_, Some(value), CountryCode)               => checkCountryCode(fieldValue, value)
-    //   case (_, Some(value), EmailVerifiedBy(_, _)) => Monoid.combine(email(fieldValue, value), textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit))
-
-    //   case (true, None, IsText(Text(WholeSterling(true), _, _, _, _, _))) => validationFailure(fieldValue, genericSterlingErrorRequired, fieldValue.errorShortName .map(_.value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "an amount", _ => "swm").value().pure[List])))
-    //   case (_, Some(value), WholeSterling(true)) => validateSterling(fieldValue, value, true, true)
-
-    //   case (_, Some(value), s: WholeSterling) => validateNumber(fieldValue, value, ValidationValues.sterlingLength, 0, s.positiveOnly)
-
-
-    //   case (true, None, IsText(Text(Sterling(_, _), _, _, _, _, _))) => validationFailure(fieldValue, genericSterlingErrorRequired, fieldValue.errorShortName .map(_.value().pure[List]) orElse (Some(SmartString.blank.transform(_ => "an amount", _ => "swm").value().pure[List])))
-    //   case (_, Some(value), Sterling(_, isPositive)) => validateSterling(fieldValue, value, isPositive, false)
-
-
-    //   case (true, None, lookupRegistry.extractors.IsRadioLookup(_)) => validationFailure(fieldValue, choiceErrorRequired, None)
-
-
-    //   case (_, Some(value), lookup @ Lookup(_, _)) => lookupValidation(fieldValue, lookupRegistry, lookup, LookupLabel(value), formModelVisibilityOptics)
-
-    //  case (_, Some(value), UkSortCodeFormat)          => validateSortCodeFormat(fieldValue, value)
-    //       // DONE
-
-    //   case (true, None, _) => validationFailure(fieldValue, genericErrorRequired, None)
-    //   case (false, None, _) => validationSuccess
-    //   // format: on
-    // }
-
-    // format: on
     constraint match {
       case c: Number                                  => numberCheck(c)
       case c: PositiveNumber                          => positiveNumberCheck(c)
@@ -525,7 +436,7 @@ object ComponentValidator {
       case CountryCode                                => countryCodeCheck()
       case NonUkCountryCode                           => nonUkCountryCodeCheck()
       case CompanyRegistrationNumber                  => companyRegistrationNumberCheck()
-      case EORI                                       => eoriCheck()
+      case EORI                                       => eoriCheck() //done until this line
       case UkEORI                                     => ukEoriCheck()
       case ChildBenefitNumber                         => childBenefitNumberCheck()
       case lookupRegistry.extractors.IsRadioLookup(_) => radioLookupCheck()
@@ -556,29 +467,6 @@ object ComponentValidator {
         }
       case _ => validationSuccess
     }
-
-  // private def validateBankAccountFormat(
-  //   fieldValue: FormComponent,
-  //   value: String
-  // )(implicit
-  //   messages: Messages,
-  //   sse: SmartStringEvaluator
-  // ): ValidatedType[Unit] = {
-  //   val ukBankAccountFormat = s"[0-9]{${ValidationValues.bankAccountLength}}".r
-  //   val str = value.replace(" ", "")
-  //   str match {
-  //     case ukBankAccountFormat() => validationSuccess
-  //     case _ =>
-  //       validationFailure(
-  //         fieldValue,
-  //         genericUkBankAccountErrorPattern,
-  //         fieldValue.errorShortName
-  //           .map(_.transform(" " + _, " " + _).value().pure[List]) orElse
-  //           (Some(SmartString.blank.value().pure[List]))
-  //       )
-
-  //   }
-  // }
 
   private def validateBankAccountFormat(
     fieldValue: FormComponent,
@@ -613,12 +501,19 @@ object ComponentValidator {
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ): ValidatedType[Unit] =
-    value match {
-      case ukSortCodeFormat() => validationSuccess
-      case _ =>
-        validationFailure(fieldValue, genericErrorSortCode, None)
+  ): ValidatedType[Unit] = {
+
+    val isSortCodeValid = value match {
+      case ukSortCodeFormat() => true
+      case _                  => false
     }
+
+    if (isSortCodeValid) {
+      validationSuccess
+    } else {
+      validationFailure(fieldValue, genericErrorSortCode, None)
+    }
+  }
 
   private def validateSubmissionRefFormat(
     fieldValue: FormComponent,
@@ -632,54 +527,6 @@ object ComponentValidator {
     else validationFailure(fieldValue, genericErrorSubmissionRef, None)
   }
 
-  // private def validateNumber(
-  //   fieldValue: FormComponent,
-  //   value: String,
-  //   maxWhole: Int,
-  //   maxFractional: Int,
-  //   mustBePositive: Boolean
-  // )(implicit
-  //   messages: Messages,
-  //   sse: SmartStringEvaluator
-  // ): ValidatedType[Unit] = {
-  //   val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
-  //   val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
-  //   (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
-  //     case (WholeShape(_, whole, _), _, _) if surpassMaxLength(whole, maxWhole) =>
-  //       val vars: List[String] = maxWhole.toString :: Nil
-  //       validationFailure(fieldValue, genericErrorMaxWhole, Some(vars))
-  //     case (WholeShape("-", _, _), 0, true) =>
-  //       validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
-  //     case (WholeShape("-", _, _), _, true) =>
-  //       validationFailure(fieldValue, genericErrorPositiveNumber, None)
-  //     case (WholeShape(_, _, _), _, _) => validationSuccess
-  //     case (FractionalShape(_, _, _, _), 0, true) =>
-  //       validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
-  //     case (FractionalShape(_, whole, _, fractional), 0, _)
-  //         if surpassMaxLength(whole, maxWhole) && lessThanMinLength(fractional, 0) =>
-  //       val vars: List[String] = maxWhole.toString :: Nil
-  //       validationFailure(fieldValue, genericErrorMaxLengthNoDecimals, Some(vars))
-  //     case (FractionalShape(_, whole, _, fractional), _, _)
-  //         if surpassMaxLength(whole, maxWhole) && surpassMaxLength(fractional, maxFractional) =>
-  //       val vars: List[String] = maxWhole.toString :: maxFractional.toString :: Nil
-  //       validationFailure(fieldValue, genericErrorMaxLengthMaxDecimals, Some(vars))
-  //     case (FractionalShape(_, whole, _, _), _, _) if surpassMaxLength(whole, maxWhole) =>
-  //       val vars: List[String] = maxWhole.toString :: Nil
-  //       validationFailure(fieldValue, genericErrorMaxWhole, Some(vars))
-  //     case (FractionalShape(_, _, _, fractional), 0, _) if lessThanMinLength(fractional, 0) =>
-  //       validationFailure(fieldValue, genericErrorWholeNumber, None)
-  //     case (FractionalShape(_, _, _, fractional), _, _) if surpassMaxLength(fractional, maxFractional) =>
-  //       val vars: List[String] = maxFractional.toString :: Nil
-  //       validationFailure(fieldValue, genericErrorMaxDecimals, Some(vars))
-  //     case (FractionalShape("-", _, _, _), _, true) =>
-  //       validationFailure(fieldValue, genericErrorPositiveNumber, None)
-  //     case (FractionalShape(_, _, _, _), _, _) => validationSuccess
-  //     case (_, 0, true)                        => validationFailure(fieldValue, genericErrorPositiveWholeNumber, None)
-  //     case (_, _, true)                        => validationFailure(fieldValue, genericErrorPositiveNumber, None)
-  //     case (_, 0, false)                       => validationFailure(fieldValue, genericErrorWholeNumber, None)
-  //     case _                                   => validationFailure(fieldValue, genericErrorNumber, None)
-  //   }
-  // }
   private def validateNumber(
     fieldValue: FormComponent,
     value: String,
@@ -910,32 +757,6 @@ object ComponentValidator {
       )
     )
 
-  // private def validateSterling(
-  //   fieldValue: FormComponent,
-  //   value: String,
-  //   isPositive: Boolean,
-  //   isWhole: Boolean
-  // )(implicit
-  //   messages: Messages,
-  //   sse: SmartStringEvaluator
-  // ): ValidatedType[Unit] = {
-  //   val maxWhole = ValidationValues.sterlingLength
-  //   val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
-  //   val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
-  //   TextConstraint.filterNumberValue(value) match {
-  //     case FractionalShape(_, _, _, fractional) if !isWhole && fractional.length > 2 =>
-  //       nonNumericSterlingFailure(fieldValue, value)
-  //     case FractionalShape(_, _, _, fractional) if isWhole =>
-  //       wholeSterlingFailure(fieldValue, value)
-  //     case WholeShape(_, whole, _) if surpassMaxLength(whole, maxWhole) =>
-  //       maxDigitSterlingFailure(fieldValue, value, maxWhole)
-  //     case WholeShape("-", _, _) if isPositive         => positiveSterlingFailure(fieldValue, value)
-  //     case FractionalShape("-", _, _, _) if isPositive => positiveSterlingFailure(fieldValue, value)
-  //     case WholeShape(_, _, _)                         => validationSuccess
-  //     case FractionalShape(_, _, _, _) if !isWhole     => validationSuccess
-  //     case _                                           => nonNumericSterlingFailure(fieldValue, value)
-  //   }
-  // }
   private def validateSterling(
     fieldValue: FormComponent,
     value: String,
@@ -1083,6 +904,7 @@ object ComponentValidator {
         )
       )
     )
+
   private[validation] def textValidationWithConstraints(
     fieldValue: FormComponent,
     value: String,
@@ -1091,11 +913,19 @@ object ComponentValidator {
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ) =
-    invalidCharactersValidator(fieldValue, value, validTextPattern, genericLongTextErrorPattern)
-      .andThen { _ =>
+  ): ValidatedType[Unit] = {
+
+    val invalidCharactersCheck =
+      invalidCharactersValidator(fieldValue, value, validTextPattern, genericLongTextErrorPattern)
+
+    if (invalidCharactersCheck.isInvalid) {
+      invalidCharactersCheck
+    } else {
+      val sharedTextCheck =
         sharedTextComponentValidator(fieldValue, value, min, max, validTextPattern, genericLongTextErrorPattern)
-      }
+      sharedTextCheck
+    }
+  }
 
   private lazy val validTextPattern: Regex = {
     val validChars = Set('(', ')', ',', '’', '“', '”', '%', '•', '-', '.', 'r', 's', '£', '+', ';', ':', '*', '?', '=',
@@ -1188,23 +1018,47 @@ object ComponentValidator {
     val Government = "GBGD[0-4][0-9]{2}".r
     val Health = "GBHA[5-9][0-9]{2}".r
     val str = value.replace(" ", "")
-    str match {
-      case Standard(_, s) if VatReferenceChecker.isValid(s) => validationSuccess
-      case Standard(_, s)                                   => validationFailure(fieldValue, genericVrnErrorDigitCheck, None)
-      case Branch()                                         => validationSuccess
-      case Government()                                     => validationSuccess
-      case Health()                                         => validationSuccess
-      case _ =>
-        validationFailure(
-          fieldValue,
-          genericVrnErrorPattern,
-          fieldValue.errorShortName
-            .map(_.transform(identity, _ + " ").value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
+
+    val (prefixStd, numberStd) = str match {
+      case Standard(prefix, number) => (Some(prefix), Some(number))
+      case _                        => (None, None)
+    }
+
+    val isBranch = str match {
+      case Branch() => true
+      case _        => false
+    }
+
+    val isGovernment = str match {
+      case Government() => true
+      case _            => false
+    }
+
+    val isHealth = str match {
+      case Health() => true
+      case _        => false
+    }
+
+    val isVatReferenceValid = numberStd.exists(s => VatReferenceChecker.isValid(s))
+
+    if (isBranch || isGovernment || isHealth) {
+      validationSuccess
+    } else if (prefixStd.isDefined) {
+      if (isVatReferenceValid) {
+        validationSuccess
+      } else {
+        validationFailure(fieldValue, genericVrnErrorDigitCheck, None)
+      }
+    } else {
+      validationFailure(
+        fieldValue,
+        genericVrnErrorPattern,
+        fieldValue.errorShortName
+          .map(_.transform(identity, _ + " ").value().pure[List]) orElse
+          (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
+      )
     }
   }
-
   private def checkCompanyRegistrationNumber(
     fieldValue: FormComponent,
     value: String
@@ -1236,42 +1090,51 @@ object ComponentValidator {
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
+    val str = value.replace(" ", "")
     val ValidUkEORI = "^GB[0-9]{12}$".r
     val ValidUkEORINumbers = "^[0-9]{14}$".r
-    val str = value.replace(" ", "")
 
-    str match {
-      case ValidUkEORI()        => validationSuccess
-      case ValidUkEORINumbers() => validationSuccess
-      case _ =>
-        validationFailure(
-          fieldValue,
-          genericUkEoriErrorPattern,
-          fieldValue.errorShortName
-            .map(_.transform(identity, _ + " ").value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
-        )
+    val isUkEORI = str match {
+      case ValidUkEORI() => true
+      case _             => false
+    }
 
+    val isUkEORINumbers = str match {
+      case ValidUkEORINumbers() => true
+      case _                    => false
+    }
+
+    if (isUkEORI || isUkEORINumbers) {
+      validationSuccess
+    } else {
+      validationFailure(
+        fieldValue,
+        genericUkEoriErrorPattern,
+        fieldValue.errorShortName
+          .map(_.transform(identity, _ + " ").value().pure[List]) orElse
+          (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
+      )
     }
   }
+
   private def checkChildBenefitNumber(fieldValue: FormComponent, value: String)(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
     val ValidChildBenefitNumber = "^CHB[0-9]{8}[A-Z]{2}$".r
     val str = value.replace(" ", "")
+    val isValidChildBenefitNumber = str match {
+      case ValidChildBenefitNumber() => true
+      case _                         => false
+    }
 
-    str match {
-      case ValidChildBenefitNumber() => validationSuccess
-      case _ =>
-        validationFailure(
-          fieldValue,
-          genericChildBenefitNumberErrorPattern,
-          fieldValue.errorShortName
-            .map(_.transform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
-
+    if (isValidChildBenefitNumber) {
+      validationSuccess
+    } else {
+      val errorShortName = fieldValue.errorShortName
+        .map(_.transform(identity, " " + _).value().pure[List])
+        .orElse(Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
+      validationFailure(fieldValue, genericChildBenefitNumberErrorPattern, errorShortName)
     }
   }
 
@@ -1303,38 +1166,39 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ) = {
     val UTRFormat = "[0-9]{10}".r
+    val isUtrFormat = UTRFormat.matches(value)
+    val isValidUtr = CorporationTaxReferenceChecker.isValid(value)
+    val errorMessage = fieldValue.errorShortName
+      .map(_.transform(identity, _ + " ").value().pure[List])
+      .getOrElse(SmartString.blank.transform(_ => "a", identity).value().pure[List])
 
-    value match {
-      case UTRFormat() if CorporationTaxReferenceChecker.isValid(value) =>
-        validationSuccess
-      case UTRFormat() if !CorporationTaxReferenceChecker.isValid(value) =>
-        validationFailure(fieldValue, genericUtrIdNotExist, None)
-      case _ =>
-        validationFailure(
-          fieldValue,
-          genericUtrErrorPattern,
-          fieldValue.errorShortName
-            .map(_.transform(identity, _ + " ").value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
+    if (isUtrFormat && isValidUtr) {
+      validationSuccess
+    } else if (isUtrFormat && !isValidUtr) {
+      validationFailure(fieldValue, genericUtrIdNotExist, None)
+    } else {
+      validationFailure(fieldValue, genericUtrErrorPattern, Some(errorMessage))
     }
   }
 
   private def checkNino(fieldValue: FormComponent, value: String)(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ) =
-    value match {
-      case x if Nino.isValid(x) => validationSuccess
-      case _ =>
-        validationFailure(
-          fieldValue,
-          genericNinoErrorPattern,
-          fieldValue.errorShortName
-            .map(_.transform(identity, _ + " ").value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
+  ) = {
+    val isNinoValid = Nino.isValid(value)
+
+    if (isNinoValid) {
+      validationSuccess
+    } else {
+      validationFailure(
+        fieldValue,
+        genericNinoErrorPattern,
+        fieldValue.errorShortName
+          .map(_.transform(identity, _ + " ").value().pure[List]) orElse
+          (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
+      )
     }
+  }
 
   private def checkPayeReference(
     fieldValue: FormComponent,
@@ -1345,17 +1209,19 @@ object ComponentValidator {
   ) = {
     val ValidPaye = "^[0-9]{3}/[0-9A-Z]{1,10}$".r
     val str = value.replace(" ", "")
-    str match {
-      case ValidPaye() => validationSuccess
-      case _ =>
-        validationFailure(
-          fieldValue,
-          genericPayeErrorPattern,
-          fieldValue.errorShortName
-            .map(_.transform(identity, _ + " ").value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
 
+    val isValidPaye = str match {
+      case ValidPaye() => true
+      case _           => false
+    }
+
+    if (isValidPaye) {
+      validationSuccess
+    } else {
+      val defaultErrorName = Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])
+      val errorName =
+        fieldValue.errorShortName.map(_.transform(identity, _ + " ").value().pure[List]) orElse defaultErrorName
+      validationFailure(fieldValue, genericPayeErrorPattern, errorName)
     }
   }
 
@@ -1367,41 +1233,22 @@ object ComponentValidator {
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] = {
     val str = value.replace(" ", "")
-    str match {
-      case TelephoneNumber.phoneNumberValidation() => validationSuccess
-      case _ =>
-        validationFailure(
-          fieldValue,
-          genericTelephoneNumberErrorPattern,
-          fieldValue.errorShortName
-            .map(_.transform(identity, " " + _).value().pure[List]) orElse
-            (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
-        )
-
+    val isValidPhoneNumber = str match {
+      case TelephoneNumber.phoneNumberValidation() => true
+      case _                                       => false
     }
+    if (isValidPhoneNumber) {
+      validationSuccess
+    } else {
+      val errorShortName = fieldValue.errorShortName
+        .map(_.transform(identity, " " + _).value().pure[List]) orElse
+        (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
+
+      validationFailure(fieldValue, genericTelephoneNumberErrorPattern, errorShortName)
+    }
+
   }
 
-  // private[validation] def textLengthValidation(
-  //   fieldValue: FormComponent,
-  //   value: String,
-  //   min: Int,
-  //   max: Int
-  // )(implicit
-  //   messages: Messages,
-  //   sse: SmartStringEvaluator
-  // ) =
-  //   value match {
-  //     case exact if max == min && exact.length != max =>
-  //       val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
-  //       validationFailure(fieldValue, genericErrorTextExactDigits, Some(vars))
-  //     case tooLong if tooLong.length > max =>
-  //       val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
-  //       validationFailure(fieldValue, genericErrorTextMaxLength, Some(vars))
-  //     case tooShort if tooShort.length < min =>
-  //       val vars: List[String] = errorShortNameStartWithFallback(fieldValue) :: min.toString :: Nil
-  //       validationFailure(fieldValue, genericErrorTextMinLength, Some(vars))
-  //     case _ => validationSuccess
-  //   }
   private[validation] def textLengthValidation(
     fieldValue: FormComponent,
     value: String,
@@ -1576,20 +1423,25 @@ object ComponentValidator {
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
-  ) =
-    value match {
-      case tooLong if tooLong.length > maxChars =>
-        val vars: List[String] = maxChars.toString :: Nil
-        validationFailure(fieldValue, genericErrorMaxLength, Some(vars))
-      case tooShort if tooShort.length < minChars =>
-        val vars: List[String] = minChars.toString :: Nil
-        val errorMinLength = fieldValue match {
-          case _ => genericErrorMinLength
-        }
-        validationFailure(fieldValue, errorMinLength, Some(vars))
-      case regex() => validationSuccess
-      case _       => validationFailure(fieldValue, messageKey, None)
+  ) = {
+    val valueLength = value.length
+    val exceedsMaxChars = valueLength > maxChars
+    val tooShort = valueLength < minChars
+    val matchesRegex = regex.matches(value)
+
+    if (exceedsMaxChars) {
+      val vars: List[String] = maxChars.toString :: Nil
+      validationFailure(fieldValue, genericErrorMaxLength, Some(vars))
+    } else if (tooShort) {
+      val vars: List[String] = minChars.toString :: Nil
+      val errorMinLength = genericErrorMinLength
+      validationFailure(fieldValue, errorMinLength, Some(vars))
+    } else if (matchesRegex) {
+      validationSuccess
+    } else {
+      validationFailure(fieldValue, messageKey, None)
     }
+  }
 
   // GFORMS-2146:
   // should probably be moved to a different file
