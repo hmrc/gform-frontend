@@ -1115,6 +1115,8 @@ object ComponentValidator {
           case (OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)), _) => value
           case (OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, expr)), _) =>
             prefix + formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
+          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.FormCtxBased(formCtx)), _) =>
+            formModelVisibilityOptics.evalAndApplyTypeInfoFirst(formCtx).stringRepresentation
         }.toSet
       case _ => Set.empty[String]
     }

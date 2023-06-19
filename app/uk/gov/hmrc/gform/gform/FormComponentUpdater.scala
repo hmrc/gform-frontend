@@ -39,6 +39,12 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
         includeIf = o.includeIf.map(expandIncludeIf),
         value = OptionDataValue.ExprBased(prefix, expandExpr(expr))
       )
+    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.FormCtxBased(formCtx)) =>
+      o.copy(
+        label = expandSmartString(o.label),
+        includeIf = o.includeIf.map(expandIncludeIf),
+        value = OptionDataValue.FormCtxBased(expandFormCtx(formCtx))
+      )
   }
 
   private def expandRevealingChoice(revealingChoice: RevealingChoice): RevealingChoice =

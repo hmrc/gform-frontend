@@ -346,6 +346,8 @@ sealed trait OptionData extends Product with Serializable {
       case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)) => value
       case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, expr)) =>
         prefix + formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
+      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.FormCtxBased(formCtx)) =>
+        formModelVisibilityOptics.evalAndApplyTypeInfoFirst(formCtx).stringRepresentation
     }
 }
 
