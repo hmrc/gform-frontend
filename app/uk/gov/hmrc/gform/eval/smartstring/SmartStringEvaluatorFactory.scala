@@ -78,6 +78,10 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
                             prefix + formModelVisibilityOptics
                               .evalAndApplyTypeInfoFirst(expr)
                               .stringRepresentation -> label
+                          case (OptionData.ValueBased(label, _, _, _, OptionDataValue.FormCtxBased(formCtx)), _) =>
+                            formModelVisibilityOptics
+                              .evalAndApplyTypeInfoFirst(formCtx)
+                              .stringRepresentation -> label
                         }
                         .toList
                         .toMap

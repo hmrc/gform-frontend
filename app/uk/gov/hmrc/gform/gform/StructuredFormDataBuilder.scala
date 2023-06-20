@@ -471,59 +471,34 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
               val fieldValue: StructuredFormValue = maybeChoiceWithDynamic.fold(default) {
                 case (_, Left(valueBasedNel)) =>
                   val maybeDynamicOptionData: Option[(Int, FormComponentId)] = valueBasedNel.collectFirst {
-                    case (
-                          selectedIndex,
-                          OptionData.ValueBased(
-                            _,
-                            _,
-                            _,
-                            Some(Dynamic.ATLBased(pointer)),
-                            OptionDataValue.StringBased(value)
-                          )
-                        ) if value === answer =>
-                      selectedIndex -> pointer
-
-                    case (
-                          selectedIndex,
-                          OptionData.ValueBased(
-                            _,
-                            _,
-                            _,
-                            Some(Dynamic.ATLBased(pointer)),
-                            OptionDataValue.ExprBased(prefix, expr)
-                          )
-                        )
-                        if prefix + formModelVisibilityOptics
-                          .evalAndApplyTypeInfoFirst(expr)
-                          .stringRepresentation === answer =>
+                    case (selectedIndex, OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(pointer)), value))
+                        if (value match {
+                          case OptionDataValue.StringBased(v) => v === answer
+                          case OptionDataValue.ExprBased(prefix, expr) =>
+                            prefix + formModelVisibilityOptics
+                              .evalAndApplyTypeInfoFirst(expr)
+                              .stringRepresentation === answer
+                          case OptionDataValue.FormCtxBased(formCtx) =>
+                            formModelVisibilityOptics.evalAndApplyTypeInfoFirst(formCtx).stringRepresentation === answer
+                          case _ => false
+                        }) =>
                       selectedIndex -> pointer
                   }
 
                   val maybeDataRetrieveCtx: Option[(Int, DataRetrieveCtx)] = valueBasedNel.collectFirst {
                     case (
                           selectedIndex,
-                          OptionData.ValueBased(
-                            _,
-                            _,
-                            _,
-                            Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
-                            OptionDataValue.StringBased(value)
-                          )
-                        ) if value === answer =>
-                      selectedIndex -> indexOfDataRetrieveCtx.ctx
-                    case (
-                          selectedIndex,
-                          OptionData.ValueBased(
-                            _,
-                            _,
-                            _,
-                            Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
-                            OptionDataValue.ExprBased(prefix, expr)
-                          )
-                        )
-                        if prefix + formModelVisibilityOptics
-                          .evalAndApplyTypeInfoFirst(expr)
-                          .stringRepresentation === answer =>
+                          OptionData.ValueBased(_, _, _, Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)), value)
+                        ) if (value match {
+                          case OptionDataValue.StringBased(v) => v === answer
+                          case OptionDataValue.ExprBased(prefix, expr) =>
+                            prefix + formModelVisibilityOptics
+                              .evalAndApplyTypeInfoFirst(expr)
+                              .stringRepresentation === answer
+                          case OptionDataValue.FormCtxBased(formCtx) =>
+                            formModelVisibilityOptics.evalAndApplyTypeInfoFirst(formCtx).stringRepresentation === answer
+                          case _ => false
+                        }) =>
                       selectedIndex -> indexOfDataRetrieveCtx.ctx
                   }
 

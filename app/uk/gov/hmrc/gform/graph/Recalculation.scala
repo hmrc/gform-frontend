@@ -156,6 +156,9 @@ class Recalculation[F[_]: Monad, E](
                       case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, expr))
                           if userResponse.contains(prefix + evalExpr(expr)) =>
                         o
+                      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.FormCtxBased(formCtx))
+                          if userResponse.contains(evalExpr(formCtx)) =>
+                        o
                       case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
                     }
                   case IsRevealingChoice(rc) => rc.options.map(_.choice)

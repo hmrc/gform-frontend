@@ -23,6 +23,7 @@ sealed trait OptionDataValue
 object OptionDataValue {
   case class StringBased(value: String) extends OptionDataValue
   case class ExprBased(prefix: String, expr: Expr) extends OptionDataValue
+  case class FormCtxBased(formCtx: FormCtx) extends OptionDataValue
 
   implicit val format: OFormat[OptionDataValue] = derived.oformat()
 }
