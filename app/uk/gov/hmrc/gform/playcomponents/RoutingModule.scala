@@ -94,7 +94,8 @@ class RoutingModule(
     gformModule.upscanController,
     gformModule.addressLookupController,
     gformModule.taskListController,
-    gformModule.captureController
+    gformModule.captureController,
+    gformModule.downloadController
   )
 
   private val prodRoutes: prod.Routes = new prod.Routes(
