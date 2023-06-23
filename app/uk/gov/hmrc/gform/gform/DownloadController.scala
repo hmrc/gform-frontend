@@ -37,8 +37,8 @@ class DownloadController(
 ) extends FrontendController(messagesControllerComponents) {
 
   private val allowedFileInfo: Map[String, String] = Map(
-    ("nipClaimScheduleTemplate.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
-    ("nipClaimScheduleTemplate.ods", "application/vnd.oasis.opendocument.spreadsheet")
+    ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+    ("ods", "application/vnd.oasis.opendocument.spreadsheet")
   )
 
   def downloadFile(
@@ -53,6 +53,7 @@ class DownloadController(
     ) { _ => _ => _ => _ => formModelOptics =>
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
       val allExprs = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
+      val extension = fileName.substring(fileName.lastIndexOf('.') + 1)
 
       if (!allExprs.contains(LinkCtx(InternalLink.Download(fileName)))) {
         Future.failed(
@@ -69,9 +70,10 @@ class DownloadController(
               fileName = _ => Some(fileName)
             ).withHeaders(
               CONTENT_DISPOSITION -> s"inline; filename=$fileName",
-              CONTENT_TYPE -> allowedFileInfo
-                .get(fileName)
-                .getOrElse(throw new IllegalArgumentException(s"File $fileName is not supported by this operation")),
+              CONTENT_TYPE -> allowedFileInfo.getOrElse(
+                extension,
+                throw new IllegalArgumentException(s"File $fileName is not supported by this operation")
+              ),
               CONTENT_LENGTH -> file.length.toString
             )
           )
