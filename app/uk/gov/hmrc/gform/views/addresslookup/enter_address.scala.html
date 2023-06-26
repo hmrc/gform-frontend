@@ -19,6 +19,8 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
+@import uk.gov.hmrc.gform.FormTemplateKey
+@import uk.gov.hmrc.gform.models.FastForward
 
 @(
   formTemplate: FormTemplate,
@@ -26,11 +28,13 @@
   enterAddressPage: EnterAddressPage,
   formAction: Call,
   backHref: Call,
+  fastForward: List[FastForward],
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
 @govukErrorSummary = @{new GovukErrorSummary()}
 @hmrcPageHeading = @{new HmrcPageHeading()}
+@globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
 @backLink = @{
   new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))

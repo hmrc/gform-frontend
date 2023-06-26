@@ -491,21 +491,23 @@ signOut.toContinueSignBackInWithEmail=To continue sign back in with your email
 
 postcodeLookup.Postcode=Postcode
 postcodeLookup.Filter=Property name or number (optional)
-postcodeLookup.Filter.hint=For example, The Mill, 116 or Flat 37a
+postcodeLookup.Filter.hint=For example, The Mill, 116 or Flat 37a.
 postcodeLookup.enter.address.manually=Enter the address manually
 postcodeLookup.not.match=We could not find a match with ''{0}''.
 postcodeLookup.enter.address.try.different=Try a different name or number
 postcodeLookup.choose.address=Choose address
 postcodeLookup.choose.address.all=Showing all results for {0}
-postcodeLookup.chage.address=Change address
+postcodeLookup.edit.address=Edit address
 postcodeLookup.continue=Continue
 postcodeLookup.confirm.address=Confirm address
-postcodeLookup.review.and.confirm=Review and confirm
-postcodeLookup.cannot.find.address.title=We cannot find any addresses
-postcodeLookup.cannot.find.address=We cannot find any addresses for {0}
-postcodeLookup.try.different.postcode=Try a different postcode
-addressId.error.required=Select the property for the address
-postcode.error.real=Enter a real Postcode e.g. AA1 1AA
+postcodeLookup.review.and.confirm=Review and confirm the address
+postcodeLookup.cannot.find.address.title=We cannot find any addresses for this postcode
+postcodeLookup.cannot.find.address=You entered the postcode: {0}
+postcodeLookup.cannot.find.address.choose.title=What do you want to do now?
+postcodeLookup.cannot.find.address.choose.try=Try a different postcode
+addressId.error.required=Select an address
+postcode.error.real=Enter a real postcode
+postcode.error.required=Enter postcode
 postcodeLookup.enter.address=Enter address
 
 #Summary pdf

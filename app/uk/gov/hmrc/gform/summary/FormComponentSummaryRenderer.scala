@@ -130,7 +130,7 @@ object FormComponentSummaryRenderer {
           fastForward
         )
 
-      case IsPostcodeLookup() =>
+      case IsPostcodeLookup(_) =>
         getPostcodeLookupRows(
           formComponent,
           formTemplateId,
@@ -704,7 +704,8 @@ object FormComponentSummaryRenderer {
             maybeAccessCode,
             fieldValue.id,
             sectionNumber,
-            SuppressErrors.Yes
+            SuppressErrors.Yes,
+            fastForward
           )
       } else
         uk.gov.hmrc.gform.gform.routes.FormController

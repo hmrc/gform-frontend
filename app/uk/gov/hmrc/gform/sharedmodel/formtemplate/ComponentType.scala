@@ -47,23 +47,23 @@ sealed trait MultiField {
 
 sealed trait ComponentType {
   def showType: String = this match {
-    case _: Text                => "text"
-    case _: TextArea            => "textArea"
-    case _: Date                => "date"
-    case _: CalendarDate.type   => "calendarDate"
-    case _: TaxPeriodDate.type  => "taxPeriodDate"
-    case _: PostcodeLookup.type => "postcodeLookup"
-    case _: Time                => "time"
-    case _: Address             => "address"
-    case _: OverseasAddress     => "overseasAddress"
-    case _: Choice              => "choice"
-    case _: RevealingChoice     => "revealingChoice"
-    case _: HmrcTaxPeriod       => "hmrcTaxPeriod"
-    case _: Group               => "group"
-    case _: InformationMessage  => "informationMessage"
-    case _: FileUpload          => "fileUpload"
-    case _: MiniSummaryList     => "miniSummaryList"
-    case _: TableComp           => "table"
+    case _: Text               => "text"
+    case _: TextArea           => "textArea"
+    case _: Date               => "date"
+    case _: CalendarDate.type  => "calendarDate"
+    case _: TaxPeriodDate.type => "taxPeriodDate"
+    case _: PostcodeLookup     => "postcodeLookup"
+    case _: Time               => "time"
+    case _: Address            => "address"
+    case _: OverseasAddress    => "overseasAddress"
+    case _: Choice             => "choice"
+    case _: RevealingChoice    => "revealingChoice"
+    case _: HmrcTaxPeriod      => "hmrcTaxPeriod"
+    case _: Group              => "group"
+    case _: InformationMessage => "informationMessage"
+    case _: FileUpload         => "fileUpload"
+    case _: MiniSummaryList    => "miniSummaryList"
+    case _: TableComp          => "table"
   }
 }
 
@@ -124,12 +124,18 @@ case object CalendarDate extends ComponentType with MultiField {
     componentFields.map(ModelComponentId.atomicCurry(indexedComponentId))
 }
 
-case object PostcodeLookup extends ComponentType with MultiField {
+case class PostcodeLookup(chooseAddressLabel: Option[SmartString], confirmAddressLabel: Option[SmartString])
+    extends ComponentType with MultiField {
+  override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
+    PostcodeLookup.fields(indexedComponentId)
+}
+
+case object PostcodeLookup {
   val postcode: Atom = Atom("postcode")
   val filter: Atom = Atom("filter")
   val componentFields: NonEmptyList[Atom] = NonEmptyList.of(postcode, filter)
 
-  override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
+  val fields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = (indexedComponentId: IndexedComponentId) =>
     componentFields.map(ModelComponentId.atomicCurry(indexedComponentId))
 }
 

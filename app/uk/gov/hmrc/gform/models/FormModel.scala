@@ -141,7 +141,7 @@ case class FormModel[A <: PageMode](
     fc.id.baseComponentId
   }.toSet
 
-  val postcodeLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsPostcodeLookup() =>
+  val postcodeLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsPostcodeLookup(_) =>
     fc.modelComponentId.toAtomicFormComponentId(PostcodeLookup.postcode).baseComponentId
   }.toSet
 

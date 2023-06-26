@@ -27,7 +27,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, Erro
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 
 class AddressSelectionPage(
-  addressRecords: NonEmptyList[PostcodeLookup.AddressRecord],
+  addressRecords: NonEmptyList[PostcodeLookupRetrieve.AddressRecord],
   form: Form[String],
   selectedAddressId: Option[String]
 )(implicit
@@ -82,12 +82,13 @@ class AddressSelectionPage(
       items = items.toList
     )
 
-    new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios),
+    new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
   }
 
-  private def renderAddress(address: PostcodeLookup.AddressRecord): String = {
+  private def renderAddress(address: PostcodeLookupRetrieve.AddressRecord): String = {
     import address.address._
-    s"$line1, $line2, $town, $postcode"
+    val addressParts: List[String] = List(line1, line2, town, postcode)
+    addressParts.filter(_.nonEmpty).mkString(", ")
   }
 
 }

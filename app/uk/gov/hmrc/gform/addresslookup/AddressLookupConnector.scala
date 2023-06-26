@@ -29,10 +29,10 @@ import scala.language.higherKinds
 
 trait AddressLookupConnector[F[_]] {
   def postcodeLookup(
-    postcodeLookupRequest: PostcodeLookup.Request
+    postcodeLookupRequest: PostcodeLookupRetrieve.Request
   )(implicit
     hc: HeaderCarrier
-  ): F[ServiceCallResponse[Option[NonEmptyList[PostcodeLookup.AddressRecord]]]]
+  ): F[ServiceCallResponse[Option[NonEmptyList[PostcodeLookupRetrieve.AddressRecord]]]]
 }
 
 object AddressLookupConnector {
@@ -40,11 +40,11 @@ object AddressLookupConnector {
   def apply(ws: WSHttp, baseUrl: String)(implicit ex: ExecutionContext): AddressLookupConnector[Future] =
     new AddressLookupConnector[Future] {
       override def postcodeLookup(
-        postcodeLookupRequest: PostcodeLookup.Request
+        postcodeLookupRequest: PostcodeLookupRetrieve.Request
       )(implicit
         hc: HeaderCarrier
-      ): Future[ServiceCallResponse[Option[NonEmptyList[PostcodeLookup.AddressRecord]]]] =
-        ws.POST[PostcodeLookup.Request, HttpResponse](
+      ): Future[ServiceCallResponse[Option[NonEmptyList[PostcodeLookupRetrieve.AddressRecord]]]] =
+        ws.POST[PostcodeLookupRetrieve.Request, HttpResponse](
           baseUrl + "/lookup",
           postcodeLookupRequest
         ).map { httpResponse =>
@@ -52,7 +52,7 @@ object AddressLookupConnector {
           status match {
             case 200 =>
               httpResponse.json
-                .validate[List[PostcodeLookup.AddressRecord]]
+                .validate[List[PostcodeLookupRetrieve.AddressRecord]]
                 .fold(
                   invalid => {
                     logger.error(
@@ -76,7 +76,7 @@ object AddressLookupConnector {
     }
 }
 
-object PostcodeLookup {
+object PostcodeLookupRetrieve {
   final case class Request(
     postcode: String,
     filter: Option[String]
@@ -88,7 +88,7 @@ object PostcodeLookup {
 
   final case class Response(
     filterDisabled: Boolean,
-    addresses: Option[NonEmptyList[PostcodeLookup.AddressRecord]]
+    addresses: Option[NonEmptyList[PostcodeLookupRetrieve.AddressRecord]]
   )
 
   object Response {

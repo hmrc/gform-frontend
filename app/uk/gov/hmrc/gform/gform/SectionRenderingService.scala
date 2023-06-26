@@ -1023,7 +1023,8 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     obligations: Obligations,
     upscanInitiate: UpscanInitiate,
-    upscanData: Map[FormComponentId, UpscanData] = Map.empty[FormComponentId, UpscanData]
+    upscanData: Map[FormComponentId, UpscanData] = Map.empty[FormComponentId, UpscanData],
+    fastForward: List[FastForward] = Nil
   )(implicit
     request: RequestHeader,
     messages: Messages,
@@ -1042,8 +1043,8 @@ class SectionRenderingService(
             htmlForDate(formComponent, offset, dateValue, validationResult, ei)
           case CalendarDate =>
             htmlForCalendarDate(formComponent, validationResult, ei)
-          case PostcodeLookup =>
-            htmlForPostcodeLookup(formComponent, validationResult, ei)
+          case p @ PostcodeLookup(_, _) =>
+            htmlForPostcodeLookup(formComponent, validationResult, ei, fastForward)
           case TaxPeriodDate =>
             htmlForTaxPeriodDate(formComponent, validationResult, ei)
           case t @ Time(_, _) =>
@@ -2433,7 +2434,8 @@ class SectionRenderingService(
   private def htmlForPostcodeLookup(
     formComponent: FormComponent,
     validationResult: ValidationResult,
-    ei: ExtraInfo
+    ei: ExtraInfo,
+    fastForward: List[FastForward]
   )(implicit
     messages: Messages
   ) = {
@@ -2474,7 +2476,7 @@ class SectionRenderingService(
 
           val label = Label(
             isPageHeading = isPageHeading,
-            classes = getLabelClasses(isPageHeading, formComponent.labelSize),
+            classes = s"${getLabelClasses(isPageHeading, formComponent.labelSize)} govuk-!-font-weight-bold",
             content = labelContent
           )
           Input(
@@ -2490,7 +2492,8 @@ class SectionRenderingService(
               if (modelComponentId.atom === PostcodeLookup.postcode) s"$inputClasses govuk-input--width-10"
               else "govuk-input--width-20",
             attributes = attributes,
-            autocomplete = Some("postal-code"),
+            autocomplete =
+              if (modelComponentId.atom === PostcodeLookup.filter) Some("address-line1") else Some("postal-code"),
             errorMessage = if (modelComponentId.atom === PostcodeLookup.postcode) errorMessage else None
           )
         }
@@ -2503,10 +2506,11 @@ class SectionRenderingService(
         ei.maybeAccessCode,
         formComponent.id,
         ei.sectionNumber,
-        SuppressErrors.Yes
+        SuppressErrors.Yes,
+        fastForward
       )
 
-    items.map(maker(_)).intercalate(html.form.snippets.manual_address(enterAddressHref))
+    (items.map(maker(_)) :+ html.form.snippets.manual_address(enterAddressHref)).combineAll
   }
 
   private def getInputClasses(formFieldValidationResult: FormFieldValidationResult, atom: Atom): String = {

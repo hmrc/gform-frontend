@@ -17,8 +17,12 @@
 @import uk.gov.hmrc.gform.addresslookup.{AddressSelectionPage, AddressLookupResult}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
+@import uk.gov.hmrc.gform.FormTemplateKey
 
 @(
+  title: String,
   formTemplate: FormTemplate,
   frontendAppConfig: FrontendAppConfig,
   addressSelectionPage: AddressSelectionPage,
@@ -30,13 +34,16 @@
 
 @formWithCSRF = @{new FormWithCSRF()}
 @govukErrorSummary = @{new GovukErrorSummary()}
+@hmrcPageHeading = @{new HmrcPageHeading()}
+@heading = @{title}
+@globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
 @backLink = @{
   new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))
 }
 
 @uk.gov.hmrc.gform.views.html.main_template(
-  title = messages("postcodeLookup.choose.address"),
+  title = title,
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
   backLink = Some(backLink),
@@ -47,17 +54,14 @@
      @govukErrorSummary(addressSelectionPage.errorSummary)
   }
 
-  <h1 class="govuk-heading-l" id="pageHeading">
-    @if(addressLookupResult.response.filterDisabled) {
-      @messages("postcodeLookup.choose.address.all", addressLookupResult.request.postcode)
-    } else {
-      @messages("postcodeLookup.choose.address")
-    }
-  </h1>
+  @hmrcPageHeading(PageHeading(
+        text = heading,
+        headingClasses = Some("govuk-heading-l")
+  ))
+
   @formWithCSRF(action = formAction, 'novalidate -> "novalidate") {
     @if(addressLookupResult.response.filterDisabled) {
       <p class="govuk-body">@messages("postcodeLookup.not.match", addressLookupResult.request.filter.getOrElse(""))</p>
-      <p class="govuk-body"><a class="govuk-link" href="@backHref.url">@messages("postcodeLookup.enter.address.try.different")</a></p>
     }
 
     <p class="govuk-body"><a class="govuk-link" href="@enterAddressHref.url">@messages("postcodeLookup.enter.address.manually")</a></p>

@@ -122,19 +122,19 @@ object AddressLookupService {
     private def fetchRequest(postcode: String, maybeFilter: Option[String], filterDisabled: Boolean)(implicit
       hc: HeaderCarrier
     ): Future[Option[AddressLookupResult]] = {
-      val actualRequest: PostcodeLookup.Request = PostcodeLookup.Request(
+      val actualRequest: PostcodeLookupRetrieve.Request = PostcodeLookupRetrieve.Request(
         postcode,
         if (filterDisabled) None else maybeFilter
       )
 
-      val requestData: PostcodeLookup.Request = PostcodeLookup.Request(
+      val requestData: PostcodeLookupRetrieve.Request = PostcodeLookupRetrieve.Request(
         postcode,
         maybeFilter
       )
 
       addressLookupConnector.postcodeLookup(actualRequest).map {
         case ServiceResponse(postcodeLookup) =>
-          Some(AddressLookupResult(requestData, PostcodeLookup.Response(filterDisabled, postcodeLookup)))
+          Some(AddressLookupResult(requestData, PostcodeLookupRetrieve.Response(filterDisabled, postcodeLookup)))
         case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve PostcodeLookup data")
       }
     }
