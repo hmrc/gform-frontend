@@ -495,7 +495,9 @@ object FileUploadProvider {
 }
 
 case class FileUpload(
-  fileUploadProvider: FileUploadProvider
+  fileUploadProvider: FileUploadProvider,
+  fileSizeLimit: Option[Int],
+  allowedFileTypes: Option[AllowedFileTypes]
 ) extends ComponentType
 
 case class StartTime(time: LocalTime) extends AnyVal

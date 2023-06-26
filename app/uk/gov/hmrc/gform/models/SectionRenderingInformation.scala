@@ -41,5 +41,6 @@ case class SectionRenderingInformation(
   allowedFileTypes: AllowedFileTypes,
   restrictedFileExtensions: List[FileExtension],
   caption: Option[String] = None,
-  upscanData: Map[FormComponentId, UpscanData] = Map.empty
+  upscanData: Map[FormComponentId, UpscanData] = Map.empty,
+  fileUploadMaxSize: Map[FormComponentId, Int] = Map.empty
 )
