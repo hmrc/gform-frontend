@@ -20,17 +20,22 @@ import cats.implicits._
 import io.circe.CursorOp._
 import io.circe._
 import io.circe.syntax._
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.libs.circe.Circe
 import play.api.libs.json.{ Json => PlayJson }
-import play.api.mvc.{ MessagesControllerComponents, Result }
+import play.api.mvc.{ MessagesControllerComponents, Request, Result }
+import play.twirl.api.Html
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.{ ExtraInfo, RenderUnit, SectionRenderingService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
@@ -49,6 +54,10 @@ class BuilderController(
 )(implicit
   ex: ExecutionContext
 ) extends FrontendController(messagesControllerComponents) with Circe {
+
+  implicit val htmlEncoder: io.circe.Encoder[Html] = new Encoder[Html] {
+    final def apply(a: Html): Json = Json.fromString(a.toString)
+  }
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
@@ -157,20 +166,34 @@ class BuilderController(
         }
     }
 
+  def fetchSectionAndFormComponentHtml(
+    formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
+    formComponentId: FormComponentId
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      implicit request => implicit lang => cache => implicit sse => formModelOptics =>
+        import i18nSupport._
+        val sectionHtml = toSectionHtml(formModelOptics, sectionNumber)
+        val componentHtml = toComponentHtml(formModelOptics, formTemplateId, sectionNumber, formComponentId, cache)
+
+        componentHtml match {
+          case Left(error) => badRequest(error).pure[Future]
+          case Right(html) =>
+            Ok(
+              Json.obj(
+                "sectionHtml" := sectionHtml,
+                "html" := html
+              )
+            ).pure[Future]
+        }
+    }
+
   def fetchSectionHeaderHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         import i18nSupport._
-        val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
-        val singleton = formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
-
-        val sectionHeader = singleton.page.sectionHeader()
-
-        val validationResult = ValidationResult.empty
-
-        val formLevelHeading = renderer.shouldDisplayHeading(singleton, formModelOptics, validationResult)
-
-        val sectionHtml = html.form.section_header(sectionHeader, !formLevelHeading)
+        val sectionHtml = toSectionHtml(formModelOptics, sectionNumber)
 
         Ok(sectionHtml).pure[Future]
     }
@@ -185,69 +208,109 @@ class BuilderController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         import i18nSupport._
-        val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
 
-        val maybeFormComponent = formModel.fcLookup.get(formComponentId)
-
-        maybeFormComponent match {
-          case None => badRequest(s"No component with id = $formComponentId found").pure[Future]
-          case Some(formComponent) =>
-            val singleton = formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
-
-            val formFieldValidationResult: FormFieldValidationResult = formComponent match {
-              case IsOverseasAddress(_) =>
-                val data = Map(HtmlFieldId.pure(formComponent.modelComponentId) -> FieldOk(formComponent, ""))
-
-                ComponentField(formComponent, data)
-              case IsChoice(_) | IsRevealingChoice(_) =>
-                val maybeCheckedOptions: Option[Seq[String]] =
-                  formModelOptics.formModelVisibilityOptics.data.many(formComponent.modelComponentId)
-
-                val data = maybeCheckedOptions.fold(Map.empty[HtmlFieldId, FormFieldValidationResult]) {
-                  checkedOptions =>
-                    checkedOptions.map { index =>
-                      HtmlFieldId.indexed(formComponent.id, index) -> FieldOk(formComponent, index)
-                    }.toMap
-                }
-                ComponentField(formComponent, data)
-              case _ =>
-                val currentValue = formModelOptics.formModelVisibilityOptics.data.one(formComponent.modelComponentId)
-                FieldOk(formComponent, currentValue.getOrElse(""))
-            }
-
-            val validationResult = ValidationResult(Map(formComponent.id -> formFieldValidationResult), None)
-
-            val formLevelHeading = renderer.shouldDisplayHeading(singleton, formModelOptics, validationResult)
-
-            val renderUnit = RenderUnit.Pure(formComponent)
-
-            val ei: ExtraInfo = ExtraInfo(
-              singleton = singleton,
-              maybeAccessCode = None,
-              sectionNumber = sectionNumber,
-              formModelOptics = formModelOptics,
-              formTemplate = cache.formTemplate,
-              envelopeId = cache.form.envelopeId,
-              envelope = EnvelopeWithMapping.empty,
-              formMaxAttachmentSizeMB = 10,
-              retrievals = cache.retrievals,
-              formLevelHeading = formLevelHeading,
-              specialAttributes = Map.empty[String, String],
-              addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
-            )
-            val obligations: Obligations = NotChecked
-            val upscanInitiate: UpscanInitiate = UpscanInitiate.empty
-
-            val formComponentHtml = renderer.htmlFor(
-              renderUnit,
-              formTemplateId,
-              ei,
-              validationResult,
-              obligations,
-              upscanInitiate
-            )
-
-            Ok(formComponentHtml).pure[Future]
+        toComponentHtml(formModelOptics, formTemplateId, sectionNumber, formComponentId, cache) match {
+          case Left(error) => badRequest(error).pure[Future]
+          case Right(html) => Ok(html).pure[Future]
         }
     }
+
+  private def toSectionHtml(formModelOptics: FormModelOptics[DataOrigin.Mongo], sectionNumber: SectionNumber)(implicit
+    sse: SmartStringEvaluator,
+    request: Request[_],
+    messages: Messages,
+    l: LangADT
+  ): Html = {
+    val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
+    val singleton = formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
+
+    val sectionHeader = singleton.page.sectionHeader()
+
+    val validationResult = ValidationResult.empty
+
+    val formLevelHeading = renderer.shouldDisplayHeading(singleton, formModelOptics, validationResult)
+
+    val sectionHtml = html.form.section_header(sectionHeader, !formLevelHeading)
+
+    sectionHtml
+
+  }
+
+  private def toComponentHtml(
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
+    formComponentId: FormComponentId,
+    cache: AuthCacheWithForm
+  )(implicit
+    sse: SmartStringEvaluator,
+    request: Request[_],
+    messages: Messages,
+    l: LangADT
+  ): Either[String, Html] = {
+    val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
+
+    val maybeFormComponent = formModel.fcLookup.get(formComponentId)
+
+    maybeFormComponent match {
+      case None => Left(s"No component with id = $formComponentId found")
+      case Some(formComponent) =>
+        val singleton = formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
+
+        val formFieldValidationResult: FormFieldValidationResult = formComponent match {
+          case IsOverseasAddress(_) =>
+            val data = Map(HtmlFieldId.pure(formComponent.modelComponentId) -> FieldOk(formComponent, ""))
+
+            ComponentField(formComponent, data)
+          case IsChoice(_) | IsRevealingChoice(_) =>
+            val maybeCheckedOptions: Option[Seq[String]] =
+              formModelOptics.formModelVisibilityOptics.data.many(formComponent.modelComponentId)
+
+            val data = maybeCheckedOptions.fold(Map.empty[HtmlFieldId, FormFieldValidationResult]) { checkedOptions =>
+              checkedOptions.map { index =>
+                HtmlFieldId.indexed(formComponent.id, index) -> FieldOk(formComponent, index)
+              }.toMap
+            }
+            ComponentField(formComponent, data)
+          case _ =>
+            val currentValue = formModelOptics.formModelVisibilityOptics.data.one(formComponent.modelComponentId)
+            FieldOk(formComponent, currentValue.getOrElse(""))
+        }
+
+        val validationResult = ValidationResult(Map(formComponent.id -> formFieldValidationResult), None)
+
+        val formLevelHeading = renderer.shouldDisplayHeading(singleton, formModelOptics, validationResult)
+
+        val renderUnit = RenderUnit.Pure(formComponent)
+
+        val ei: ExtraInfo = ExtraInfo(
+          singleton = singleton,
+          maybeAccessCode = None,
+          sectionNumber = sectionNumber,
+          formModelOptics = formModelOptics,
+          formTemplate = cache.formTemplate,
+          envelopeId = cache.form.envelopeId,
+          envelope = EnvelopeWithMapping.empty,
+          formMaxAttachmentSizeMB = 10,
+          retrievals = cache.retrievals,
+          formLevelHeading = formLevelHeading,
+          specialAttributes = Map.empty[String, String],
+          addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
+        )
+        val obligations: Obligations = NotChecked
+        val upscanInitiate: UpscanInitiate = UpscanInitiate.empty
+
+        val formComponentHtml = renderer.htmlFor(
+          renderUnit,
+          formTemplateId,
+          ei,
+          validationResult,
+          obligations,
+          upscanInitiate
+        )
+
+        Right(formComponentHtml)
+    }
+  }
+
 }

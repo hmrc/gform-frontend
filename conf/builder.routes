@@ -1,3 +1,4 @@
 GET  /original-section/:formTemplateId/:sectionNumber                          uk.gov.hmrc.gform.builder.BuilderController.originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber)
 GET  /generate-section-html/:formTemplateId/:sectionNumber                     uk.gov.hmrc.gform.builder.BuilderController.fetchSectionHeaderHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber)
 GET  /generate-component-html/:formTemplateId/:sectionNumber/:formComponentId  uk.gov.hmrc.gform.builder.BuilderController.fetchFormComponentHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber, formComponentId: FormComponentId)
+GET  /generate-section-and-component-html/:formTemplateId/:sectionNumber/:formComponentId  uk.gov.hmrc.gform.builder.BuilderController.fetchSectionAndFormComponentHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber, formComponentId: FormComponentId)
