@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
@@ -71,9 +71,8 @@ object DateExprEval {
     dateExpr match {
       case DateValueExpr(value) => DateResult(fromValue(value))
       case DateFormCtxVar(formCtx @ FormCtx(formComponentId)) =>
-        evaluationResults
-          .get(formCtx)
-          .getOrElse {
+        evaluationResults.get(formCtx) match {
+          case Some(Empty) | None =>
             val year = get(formComponentId.toAtomicFormComponentId(Date.year), recData)
             val month = get(formComponentId.toAtomicFormComponentId(Date.month), recData)
             val day = get(formComponentId.toAtomicFormComponentId(Date.day), recData)
@@ -86,7 +85,8 @@ object DateExprEval {
                   )
               case _ => fromValue(evaluationContext, formComponentId)
             }
-          }
+          case Some(value) => value
+        }
       case DateExprWithOffset(dExpr, offset) =>
         val exprResult = evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(dExpr)
         exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => exprResult)(identity)(identity)(identity)(d =>
