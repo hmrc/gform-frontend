@@ -139,7 +139,9 @@ class GformModule(
       gformBackendModule.gformConnector
     )
 
-  private val barsBaseUrl = s"${configModule.serviceConfig.baseUrl("bars")}"
+  private val barsBasePath =
+    configModule.serviceConfig.getString("microservice.services.bars.base-path")
+  private val barsBaseUrl = s"${configModule.serviceConfig.baseUrl("bars")}$barsBasePath"
 
   val bankAccountReputationConnector =
     new BankAccountReputationAsyncConnector(wSHttpModule.auditableWSHttp, barsBaseUrl)
