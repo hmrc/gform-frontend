@@ -386,8 +386,10 @@ case class EvaluationResults(
       val addressAtoms: List[ModelComponentId.Atomic] =
         if (evaluationContext.addressLookup(indexedComponentId.baseComponentId))
           Address.fields(indexedComponentId).filter(_.atom != Address.uk)
-        else
+        else if (evaluationContext.overseasAddressLookup(indexedComponentId.baseComponentId))
           OverseasAddress.fields(indexedComponentId).toList
+        else
+          PostcodeLookup.fields(indexedComponentId).toList
 
       val variadicValues: List[Option[VariadicValue]] =
         addressAtoms.map(atom => recData.variadicFormData.get(atom))
@@ -405,7 +407,8 @@ case class EvaluationResults(
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case FormCtx(formComponentId: FormComponentId)
           if evaluationContext.addressLookup(formComponentId.baseComponentId) || evaluationContext
-            .overseasAddressLookup(formComponentId.baseComponentId) =>
+            .overseasAddressLookup(formComponentId.baseComponentId) || evaluationContext
+            .addressLookup(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {
           val modelComponentId = formComponentId.modelComponentId
           if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
@@ -516,8 +519,10 @@ case class EvaluationResults(
             formComponentId.modelComponentId.toAtomicFormComponentId(
               if (evaluationContext.addressLookup(formComponentId.baseComponentId))
                 details.toAddressAtom
-              else
+              else if (evaluationContext.overseasAddressLookup(formComponentId.baseComponentId))
                 details.toOverseasAddressAtom
+              else
+                PostcodeLookup.postcode
             )
           recData.variadicFormData
             .get(atomic)

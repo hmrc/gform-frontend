@@ -131,6 +131,8 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
                 List(formComponent.atomicFormComponentId(addressDetail.toOverseasAddressAtom))
               case IsAddress(_) =>
                 List(formComponent.atomicFormComponentId(addressDetail.toAddressAtom))
+              case IsPostcodeLookup(_) =>
+                List(formComponent.atomicFormComponentId(PostcodeLookup.postcode))
               case other => throw new Exception(s"Invalid formComponent - $other for addressDetail")
             }
         }
