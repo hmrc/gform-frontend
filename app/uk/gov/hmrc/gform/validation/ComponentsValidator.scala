@@ -177,7 +177,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
             formComponent
           )
         )
-      case PostcodeLookup(_, _) =>
+      case PostcodeLookup(_, _, _) =>
         validIf(
           postcodeLookupValidation.validate(
             formComponent

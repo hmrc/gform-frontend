@@ -224,8 +224,8 @@ class AddressLookupController(
     formComponentId: FormComponentId
   )(implicit sse: SmartStringEvaluator, messages: Messages) = {
     val maybeChooseAddressLabel = formModel.allFormComponents.find(_.id === formComponentId).flatMap {
-      case IsPostcodeLookup(PostcodeLookup(chooseAddressLabel, _)) => chooseAddressLabel.map(_.value())
-      case _                                                       => None
+      case IsPostcodeLookup(PostcodeLookup(chooseAddressLabel, _, _)) => chooseAddressLabel.map(_.value())
+      case _                                                          => None
     }
     if (addressLookupResult.response.filterDisabled) {
       Messages("postcodeLookup.choose.address.all", addressLookupResult.request.postcode)
@@ -348,8 +348,8 @@ class AddressLookupController(
 
             val formModel = formModelOptics.formModelRenderPageOptics.formModel
             val maybeConfirmAddressLabel = formModel.allFormComponents.find(_.id === formComponentId).flatMap {
-              case IsPostcodeLookup(PostcodeLookup(_, confirmAddressLabel)) => confirmAddressLabel.map(_.value())
-              case _                                                        => None
+              case IsPostcodeLookup(PostcodeLookup(_, confirmAddressLabel, _)) => confirmAddressLabel.map(_.value())
+              case _                                                           => None
             }
             val title = maybeConfirmAddressLabel.getOrElse(Messages("postcodeLookup.review.and.confirm"))
             Ok(
@@ -624,6 +624,14 @@ class AddressLookupController(
                       sectionNumber,
                       fastForward
                     )
+
+                val formModel = realFormModelOptics.formModelRenderPageOptics.formModel
+                val maybeEnterAddressLabel = formModel.allFormComponents.find(_.id === formComponentId).flatMap {
+                  case IsPostcodeLookup(PostcodeLookup(_, _, enterAddressLabel)) => enterAddressLabel.map(_.value())
+                  case _                                                         => None
+                }
+                val title = maybeEnterAddressLabel.getOrElse(Messages("postcodeLookup.enter.address"))
+
                 val backHref =
                   if (cache.form.thirdPartyData.addressRecordFor(formComponentId).isDefined) {
                     routes.AddressLookupController
@@ -640,6 +648,7 @@ class AddressLookupController(
                 Ok(
                   addresslookup
                     .enter_address(
+                      title,
                       cache.formTemplate,
                       frontendAppConfig,
                       enterAddressPage,

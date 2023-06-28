@@ -23,6 +23,7 @@
 @import uk.gov.hmrc.gform.models.FastForward
 
 @(
+  title: String,
   formTemplate: FormTemplate,
   frontendAppConfig: FrontendAppConfig,
   enterAddressPage: EnterAddressPage,
@@ -35,6 +36,7 @@
 @govukErrorSummary = @{new GovukErrorSummary()}
 @hmrcPageHeading = @{new HmrcPageHeading()}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
+@heading = @{title}
 
 @backLink = @{
   new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))
@@ -55,7 +57,7 @@
   }
 
   @hmrcPageHeading(PageHeading(
-      text = messages("postcodeLookup.enter.address"),
+      text = heading,
       headingClasses = Some("govuk-heading-l")
   ))
 
