@@ -126,8 +126,11 @@ case object CalendarDate extends ComponentType with MultiField {
     componentFields.map(ModelComponentId.atomicCurry(indexedComponentId))
 }
 
-case class PostcodeLookup(chooseAddressLabel: Option[SmartString], confirmAddressLabel: Option[SmartString])
-    extends ComponentType with MultiField {
+case class PostcodeLookup(
+  chooseAddressLabel: Option[SmartString],
+  confirmAddressLabel: Option[SmartString],
+  enterAddressLabel: Option[SmartString]
+) extends ComponentType with MultiField {
   override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
     PostcodeLookup.fields(indexedComponentId)
 }

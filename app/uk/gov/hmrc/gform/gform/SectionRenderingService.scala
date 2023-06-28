@@ -1035,7 +1035,7 @@ class SectionRenderingService(
             htmlForDate(formComponent, offset, dateValue, validationResult, ei)
           case CalendarDate =>
             htmlForCalendarDate(formComponent, validationResult, ei)
-          case p @ PostcodeLookup(_, _) =>
+          case p @ PostcodeLookup(_, _, _) =>
             htmlForPostcodeLookup(formComponent, validationResult, ei, fastForward)
           case TaxPeriodDate =>
             htmlForTaxPeriodDate(formComponent, validationResult, ei)
