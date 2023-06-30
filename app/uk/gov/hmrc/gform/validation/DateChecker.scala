@@ -254,7 +254,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
               )(_ => "generic.error.date.last")
             val placeholder = formComponent.errorShortNameStart
               .flatMap(_.nonBlankValue())
-              .getOrElse(SmartString.blank.transform(_ => "Date", _ => "ddyddiad").value())
+              .getOrElse(SmartString.blank.transform(_ => "Date", _ => "dyddiad").value())
             val vars = messageKeyWithVars.vars.map(placeholder :: _)
             validationFailed(formComponent, messageKey, vars)
           }
@@ -315,7 +315,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
                   )
                 val placeholder = fieldValue.errorShortNameStart
                   .flatMap(_.nonBlankValue())
-                  .getOrElse(SmartString.blank.transform(_ => "Date", _ => "ddyddiad").value())
+                  .getOrElse(SmartString.blank.transform(_ => "Date", _ => "dyddiad").value())
                 val vars = messageKeyWithVars.vars.map(placeholder :: _)
                 validationFailed(fieldValue, messageKeyWithVars.messageKey, vars)
               }
@@ -385,7 +385,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
       elseProgram = {
         val placeholder = formComponent.errorShortNameStart
           .flatMap(_.nonBlankValue())
-          .getOrElse(SmartString.blank.transform(_ => "Date", _ => "ddyddiad").value())
+          .getOrElse(SmartString.blank.transform(_ => "Date", _ => "dyddiad").value())
         val OffsetDate(offsetDate) = offset
         switchProgram(
           switchCase(
@@ -454,7 +454,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
         maybeDate.toProgram(errorProgram = {
           val placeholder1 = formComponent.errorShortNameStart
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.transform(_ => "Date", _ => "ddyddiad").value())
+            .getOrElse(SmartString.blank.transform(_ => "Date", _ => "dyddiad").value())
           val placeholder2 =
             formComponent.errorExample.flatMap(_.nonBlankValue()).map(s => s", $s").getOrElse("")
           validationFailed[LocalDate](
