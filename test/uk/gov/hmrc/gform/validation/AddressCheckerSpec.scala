@@ -53,7 +53,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ComponentsValidator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
-class AddressValidationSpec
+class AddressCheckerSpec
     extends AnyFlatSpecLike with Matchers with EitherMatchers with ScalaFutures with GraphSpec
     with VariadicFormDataSupport with FormModelSupport with IdiomaticMockito {
 

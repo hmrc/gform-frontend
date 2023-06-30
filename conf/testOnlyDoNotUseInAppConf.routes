@@ -43,4 +43,8 @@ GET           /submissions/gform-plugin/exprs/:formTemplateId             uk.gov
 GET           /submissions/gform-plugin/model/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)
 GET           /submissions/gform-plugin/verify/:formTemplateId            uk.gov.hmrc.gform.testonly.DebugController.verify(formTemplateId: FormTemplateId)
 
-GET           /submissions/error-messages/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyController.errorMessages(formTemplateId: FormTemplateId, a: Option[AccessCode] )
+GET           /submissions/errors/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorMessages(formTemplateId: FormTemplateId, a: Option[AccessCode], fullReport: Boolean, jsonReport: Boolean  )
+GET           /submissions/errors-json-full/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsJsonFull(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /submissions/errors-json/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsJson(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /submissions/errors-html-full/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsHtmlFull(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /submissions/errors-html/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])

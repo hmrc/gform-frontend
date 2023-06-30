@@ -23,53 +23,67 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, PostcodeLookup }
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
-import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-class PostcodeLookupValidation[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D])(implicit
+import ComponentChecker._
+
+class PostcodeLookupChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
+
+  override protected def checkProgram(context: CheckerDependency[D])(implicit
+    langADT: LangADT,
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): CheckProgram[Unit] = {
+    // val formComponent = context.formComponent
+    val checker = new PostcodeLookupCheckerHelper(context.formModelVisibilityOptics)
+    checker.validate(context.formComponent)
+  }
+}
+
+class PostcodeLookupCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D])(implicit
   messages: Messages,
   sse: SmartStringEvaluator
 ) {
 
-  def validate(formComponent: FormComponent): ValidatedType[Unit] =
-    validateRequired(formComponent)
-
-  private def validateRequired(
-    formComponent: FormComponent
-  ): ValidatedType[Unit] = {
-
+  implicit val stringValueForReport = new ValueForReport[String] {
+    def valueForReport(): String = ""
+  }
+  def validate(formComponent: FormComponent): CheckProgram[Unit] = {
     case class ModelComponentIdValue(modelComponentId: ModelComponentId, value: Option[String])
-
     val atomsWithValues: List[ModelComponentIdValue] = formComponent.multiValueId
       .atomsModelComponentIdsFilterByAtom(_.atom =!= PostcodeLookup.filter)
       .map(m => ModelComponentIdValue(m, formModelVisibilityOptics.data.one(m)))
-
-    if (formComponent.mandatory) {
-      atomsWithValues.foldMap { mcv =>
-        mcv.value
-          .filter(_.nonEmpty)
-          .fold(requiredError(formComponent, mcv.modelComponentId)) { postcode =>
-            if (PostcodeLookupValidation.checkPostcode(postcode)) {
-              validationSuccess
-            } else {
-              enterRealPostcode(formComponent, mcv.modelComponentId)
+    ifProgram(
+      andCond = formComponent.mandatory,
+      thenProgram = {
+        val programs = atomsWithValues.map { mcv =>
+          mcv.value
+            .filter(_.nonEmpty)
+            .toProgram(
+              errorProgram = errorProgram[String](
+                Map[ModelComponentId, Set[String]](
+                  mcv.modelComponentId -> errors(formComponent, "postcode.error.required", None)
+                )
+              )
+            )
+            .andThen { postcode =>
+              ifProgram(
+                cond = PostcodeLookupValidation.checkPostcode(postcode),
+                thenProgram = successProgram(()),
+                elseProgram = errorProgram(
+                  Map[ModelComponentId, Set[String]](
+                    mcv.modelComponentId -> errors(formComponent, "postcode.error.real", None)
+                  )
+                )
+              )
             }
-          }
-      }
-    } else {
-      validationSuccess
-    }
+
+        }
+        programs.nonShortCircuitProgram
+      },
+      elseProgram = successProgram(())
+    )
   }
-
-  private def requiredError(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] =
-    Map[ModelComponentId, Set[String]](
-      modelComponentId -> errors(formComponent, "postcode.error.required", None)
-    ).invalid
-
-  private def enterRealPostcode(formComponent: FormComponent, modelComponentId: ModelComponentId): ValidatedType[Unit] =
-    Map[ModelComponentId, Set[String]](
-      modelComponentId -> errors(formComponent, "postcode.error.real", None)
-    ).invalid
 }
 
 object PostcodeLookupValidation {

@@ -23,8 +23,7 @@ import cats.instances.future._
 import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.libs.json.JsValue
-import play.api.libs.json.{ Json, OFormat }
-
+import play.api.libs.json.Json
 import play.api.mvc._
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -48,14 +47,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.gform.validation.ValidationService
-import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
-
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-import uk.gov.hmrc.gform.validation._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-
 class TestOnlyController(
   i18nSupport: I18nSupport,
   proxy: ProxyActions,
@@ -63,8 +54,7 @@ class TestOnlyController(
   lookupRegistry: LookupRegistry,
   auth: AuthenticatedRequestActions,
   servicesConfig: ServicesConfig,
-  controllerComponents: MessagesControllerComponents,
-  validationService: ValidationService
+  controllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
@@ -267,84 +257,4 @@ class TestOnlyController(
     } yield Ok(httpResponse.body)
 
   }
-
-  def errorMessages(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode]
-  ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        import play.api.i18n._
-
-        val messagesApi: MessagesApi = controllerComponents.messagesApi
-        val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
-        val welshMessages: Messages = messagesApi.preferred(Seq(Lang("cy")))
-        for {
-          envelopeWithMapping <- Future.successful(EnvelopeWithMapping.empty)
-          englishValidationResult <-
-            validationService
-              .validateFormModel(
-                cache.toCacheData,
-                envelopeWithMapping,
-                formModelOptics.formModelVisibilityOptics,
-                None
-              )(implicitly[HeaderCarrier], englishMessages, l, sse)
-          welshValidationResult <-
-            validationService
-              .validateFormModel(
-                cache.toCacheData,
-                envelopeWithMapping,
-                formModelOptics.formModelVisibilityOptics,
-                None
-              )(implicitly[HeaderCarrier], welshMessages, l, sse)
-          englishReport = reports(englishValidationResult.formFieldValidationResults)(LangADT.En)
-          welshReport = reports(welshValidationResult.formFieldValidationResults)(LangADT.Cy)
-        } yield Ok(Json.toJson(englishReport ++ welshReport))
-    }
-
-  private def reports(
-    listValidation: List[FormFieldValidationResult]
-  )(implicit l: LangADT): List[FieldErrorReport] =
-    listValidation
-      .filter(_.isNotOk)
-      .flatMap { formFieldValidationResults =>
-        val formComponent = formFieldValidationResults.formComponent
-        formFieldValidationResults match {
-          case ComponentField(_, data) =>
-            data.map { case (key, value) =>
-              FieldErrorReport.make(key.toHtmlId, formComponent, value.fieldErrors.toList)
-            }
-          case otherwise =>
-            List(FieldErrorReport.make(formComponent.id.value, formComponent, otherwise.fieldErrors.toList))
-        }
-      }
-
-  case class FieldErrorReport(
-    fieldId: String,
-    errorMessageType: String,
-    label: String,
-    shortName: String,
-    errorShortName: String,
-    errorShortNameStart: String,
-    errorExample: String,
-    errorMessage: String,
-    messages: List[String]
-  )
-
-  object FieldErrorReport {
-    implicit val format: OFormat[FieldErrorReport] = Json.format[FieldErrorReport]
-    def make(fieldId: String, formComponent: FormComponent, messages: List[String])(implicit l: LangADT) =
-      FieldErrorReport(
-        fieldId = fieldId,
-        errorMessageType = "Dynamic",
-        label = formComponent.label.rawValue,
-        shortName = formComponent.shortName.map(_.rawValue).getOrElse("undefined"),
-        errorShortName = formComponent.errorShortName.map(_.rawValue).getOrElse("undefined"),
-        errorShortNameStart = formComponent.errorShortNameStart.map(_.rawValue).getOrElse("undefined"),
-        errorExample = formComponent.errorExample.map(_.rawValue).getOrElse("undefined"),
-        errorMessage = formComponent.errorMessage.map(_.rawValue).getOrElse("undefined"),
-        messages = messages
-      )
-  }
-
 }

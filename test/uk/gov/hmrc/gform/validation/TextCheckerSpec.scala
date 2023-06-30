@@ -1,0 +1,331 @@
+/*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package uk.gov.hmrc.gform.validation
+
+import cats.implicits._
+import org.mockito.scalatest.IdiomaticMockito
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.prop.TableDrivenPropertyChecks
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import play.api.Configuration
+import play.api.Environment
+import play.api.http.HttpConfiguration
+import play.api.i18n._
+import uk.gov.hmrc.gform.Helpers.mkDataOutOfDate
+import uk.gov.hmrc.gform.Helpers.toSmartString
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormTemplate
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkSection
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.FormModelSupport
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormatExprGen
+
+import ComponentChecker._
+
+class TextCheckerSpec
+    extends AnyFlatSpecLike with ScalaCheckDrivenPropertyChecks with Matchers with IdiomaticMockito
+    with FormModelSupport {
+
+  val formTemplate: FormTemplate = mock[FormTemplate]
+  val envlopeId: EnvelopeId = mock[EnvelopeId]
+  val environment = Environment.simple()
+  val configuration =
+    Configuration.from(Map("play.i18n.langs" -> Seq("en", "cy"))).withFallback(Configuration.load(environment))
+  val langs = new DefaultLangsProvider(configuration).get
+  val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
+  val messagesApi: MessagesApi =
+    new DefaultMessagesApiProvider(environment, configuration, langs, httpConfiguration).get
+  implicit val messages: Messages = messagesApi.preferred(Seq(Lang("en")))
+  implicit val l: LangADT = LangADT.En
+
+  implicit val smartStringEvaluator: SmartStringEvaluator = (s: SmartString, markDown: Boolean) =>
+    s.rawValue(LangADT.En)
+  private val numberWithPlus = FormatExprGen.telephoneNumberGen(FormatExprGen.International)
+  private val numberWithoutPlus = FormatExprGen.telephoneNumberGen(FormatExprGen.UK)
+  private val telephoneConstraint = Text(TelephoneNumber, Value)
+  private val testFormComponent = FormComponent(
+    FormComponentId("testFormComponent"),
+    telephoneConstraint,
+    toSmartString("formComponentLabel"),
+    None,
+    None,
+    None,
+    None,
+    true,
+    true,
+    false,
+    true,
+    false,
+    None
+  )
+
+  "validatePhoneNumber" should "return invalid when character count is less than 7 and contains a special character" in {
+    val lessThan7WithPlus = numberWithPlus.map(string => string.substring(0, 6))
+    forAll(lessThan7WithPlus) { phoneNumber =>
+      val result = TextChecker.validatePhoneNumber(testFormComponent, phoneNumber)
+      result.foldMap(ShortCircuitInterpreter) shouldBe
+        Map(
+          purePure("testFormComponent") -> Set(
+            "Enter a phone number, like 01632 960 001, 07700 900 982 or +44 0770 090 0175"
+          )
+        ).asLeft
+    }
+  }
+
+  it should "return invalid when a string contains a '$' symbol" in {
+    forAll(numberWithPlus) { phoneNumber =>
+      val result = TextChecker.validatePhoneNumber(
+        testFormComponent,
+        phoneNumber + "$"
+      )
+      result.foldMap(ShortCircuitInterpreter) shouldBe Left(
+        Map(
+          purePure("testFormComponent") -> Set(
+            "Enter a phone number, like 01632 960 001, 07700 900 982 or +44 0770 090 0175"
+          )
+        )
+      )
+    }
+  }
+
+  it should "return valid when character count is between 7-25" in {
+    val program7 = TextChecker.validatePhoneNumber(testFormComponent, "1234567")
+    program7.foldMap(ShortCircuitInterpreter) shouldBe ().asRight.asRight
+    val program25 = TextChecker.validatePhoneNumber(testFormComponent, List.fill(25)('1').mkString)
+    program25.foldMap(ShortCircuitInterpreter) shouldBe ().asRight.asRight
+  }
+
+  it should "return invalid when character count is less than 7" in {
+    val invalidNumber = numberWithoutPlus.map(string => string.substring(0, 6))
+    forAll(invalidNumber) { phoneNumber =>
+      val result = TextChecker.validatePhoneNumber(testFormComponent, phoneNumber)
+      result.foldMap(ShortCircuitInterpreter) shouldBe Left(
+        Map(
+          purePure("testFormComponent") -> Set(
+            "Enter a phone number, like 01632 960 001, 07700 900 982 or +44 0770 090 0175"
+          )
+        )
+      )
+    }
+  }
+
+  private val shortTextComponent = FormComponent(
+    FormComponentId("testFormComponent"),
+    Text(ShortText(3, 5), Value),
+    toSmartString("formComponentLabel"),
+    None,
+    None,
+    None,
+    None,
+    true,
+    true,
+    false,
+    true,
+    false,
+    None
+  )
+
+  "validateShortText" should "return invalid if character count is too big" in {
+    val shortTextTooLong = "abcdefghij"
+    val result = TextChecker.validateShortTextConstraint(shortTextComponent, shortTextTooLong, 3, 5)
+    result.foldMap(ShortCircuitInterpreter) shouldBe Left(
+      Map(
+        purePure("testFormComponent") -> Set(
+          "formComponentLabel must be 5 characters or less"
+        )
+      )
+    )
+  }
+
+  it should "return invalid if character count is too small" in {
+    val shortTextTooShort = "a"
+    val result = TextChecker.validateShortTextConstraint(shortTextComponent, shortTextTooShort, 3, 5)
+    result.foldMap(ShortCircuitInterpreter) shouldBe Left(
+      Map(
+        purePure("testFormComponent") -> Set(
+          "formComponentLabel must be 3 characters or more"
+        )
+      )
+    )
+  }
+
+  it should "return valid if the character count is within range" in {
+    val shortTextWithinRange = "abcd"
+    val result = TextChecker.validateShortTextConstraint(shortTextComponent, shortTextWithinRange, 3, 5)
+    result.foldMap(ShortCircuitInterpreter) shouldBe ().asRight.asRight
+  }
+
+  it should "return invalid if incorrect character are entered" in {
+    val shortTextIncorrectChars = "a[]*"
+    val result =
+      TextChecker.validateShortTextConstraint(shortTextComponent, shortTextIncorrectChars, 3, 5)
+    result.foldMap(ShortCircuitInterpreter) shouldBe Left(
+      Map(
+        purePure("testFormComponent") -> Set(
+          "formComponentLabel must only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
+        )
+      )
+    )
+  }
+
+  private val textComponent = FormComponent(
+    FormComponentId("testFormComponent"),
+    TextArea(ShortText.default, Value, dataThreshold = None),
+    toSmartString("formComponentLabel"),
+    None,
+    None,
+    None,
+    None,
+    true,
+    true,
+    false,
+    true,
+    false,
+    None
+  )
+
+  "textValidationWithConstraints" should "return valid if there are all valid characters" in {
+    val textWithAllValidCharacters =
+      "This would make my 80 percent of your average trading profits for 3 months £730.60."
+    val result = TextChecker.textValidationWithConstraints(textComponent, textWithAllValidCharacters, 3, 100)
+    result.foldMap(ShortCircuitInterpreter) shouldBe ().asRight.asRight
+  }
+
+  it should "return invalid if there are some invalid characters" in {
+    val textWithInvalidCharacters =
+      "This would ^ make my 80 percent of your ^ average | trading profits for  | 3 months £730.60."
+
+    val result = TextChecker.textValidationWithConstraints(textComponent, textWithInvalidCharacters, 3, 100)
+    result.foldMap(ShortCircuitInterpreter) shouldBe Left(
+      Map(
+        purePure("testFormComponent") -> Set(
+          "formComponentLabel cannot include the characters ^ |"
+        )
+      )
+    )
+
+  }
+
+  "validateText" should "validate when FormComponent constraint is WholeSterling(true)" in {
+    val constraint = WholeSterling(true)
+    val fc = textComponent.copy(`type` = Text(constraint, Value))
+    val table = TableDrivenPropertyChecks.Table(
+      ("input", "expected"),
+      ("1", ().asRight.asRight),
+      (
+        "-1",
+        Left(Map(textComponent.id.modelComponentId -> Set("Amount must be 0 or more")))
+      ),
+      (
+        "1.1",
+        Left(Map(textComponent.id.modelComponentId -> Set("Amount must not include pence")))
+      ),
+      (
+        "-1.1",
+        Left(Map(textComponent.id.modelComponentId -> Set("Amount must not include pence")))
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
+      val formModelOptics = mkFormModelOptics(
+        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
+        mkDataOutOfDate(textComponent.id.value -> inputData)
+      )
+      val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
+        formModelOptics.formModelVisibilityOptics,
+        new LookupRegistry(Map.empty)
+      )
+      result.foldMap(ShortCircuitInterpreter) shouldBe expected
+    }
+  }
+
+  "validateText (2)" should "validate when FormComponent constraint is UkVrn" in {
+    val constraint = UkVrn
+    val fc = textComponent.copy(`type` = Text(constraint, Value))
+    val table = TableDrivenPropertyChecks.Table(
+      ("input", "expected"),
+      ("107 5563 20", ().asRight.asRight),
+      ("XI 107556375", ().asRight.asRight),
+      ("GB107556375", ().asRight.asRight),
+      (
+        "107 5563 201",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter a VAT registration number in the correct format")))
+      ),
+      (
+        "XI10755637",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter a VAT registration number in the correct format")))
+      ),
+      (
+        "GL107556375",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter a VAT registration number in the correct format")))
+      ),
+      (
+        "107 5563 21",
+        Left(
+          Map(
+            textComponent.id.modelComponentId -> Set(
+              "The VAT registration number you entered does not exist. Enter a real VAT number"
+            )
+          )
+        )
+      ),
+      (
+        "XI 107556376",
+        Left(
+          Map(
+            textComponent.id.modelComponentId -> Set(
+              "The VAT registration number you entered does not exist. Enter a real VAT number"
+            )
+          )
+        )
+      ),
+      (
+        "GB107556376",
+        Left(
+          Map(
+            textComponent.id.modelComponentId -> Set(
+              "The VAT registration number you entered does not exist. Enter a real VAT number"
+            )
+          )
+        )
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
+      val formModelOptics = mkFormModelOptics(
+        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
+        mkDataOutOfDate(textComponent.id.value -> inputData)
+      )
+      val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
+        formModelOptics.formModelVisibilityOptics,
+        new LookupRegistry(Map.empty)
+      )
+      result.foldMap(ShortCircuitInterpreter) shouldBe expected
+    }
+  }
+
+  private def purePure(fieldId: String) =
+    ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId(fieldId)))
+}

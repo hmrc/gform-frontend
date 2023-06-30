@@ -44,7 +44,7 @@ import uk.gov.hmrc.gform.Helpers.toSmartString
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
 
-class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport with ScalaFutures {
+class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport with ScalaFutures {
 
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(15000, Millis)), interval = scaled(Span(15, Millis)))

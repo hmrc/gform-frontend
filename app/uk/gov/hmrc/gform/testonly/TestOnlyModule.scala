@@ -52,7 +52,7 @@ class TestOnlyModule(
 
   private val proxyActions = new ProxyActions(ahcWSComponents.wsClient)(controllersModule.messagesControllerComponents)
 
-  val validationService = new ValidationService(
+  val validationReportService = new ValidationService(
     fileUploadModule.fileUploadService,
     graphModule.booleanExprEval,
     gformBackendModule.gformConnector,
@@ -60,6 +60,15 @@ class TestOnlyModule(
     graphModule.recalculation,
     playBuiltInsModule.i18nSupport,
     ComponentChecker.ErrorReportInterpreter
+  )
+  val validationFullReportService = new ValidationService(
+    fileUploadModule.fileUploadService,
+    graphModule.booleanExprEval,
+    gformBackendModule.gformConnector,
+    lookupRegistry,
+    graphModule.recalculation,
+    playBuiltInsModule.i18nSupport,
+    ComponentChecker.FullErrorReportInterpreter
   )
 
   val testOnlyController = new TestOnlyController(
@@ -69,8 +78,14 @@ class TestOnlyModule(
     lookupRegistry,
     controllersModule.authenticatedRequestActions,
     configModule.serviceConfig,
+    controllersModule.messagesControllerComponents
+  )
+  val testOnlyErrorMessageController = new TestOnlyErrorMessageController(
+    playBuiltInsModule.i18nSupport,
+    controllersModule.authenticatedRequestActions,
     controllersModule.messagesControllerComponents,
-    validationService
+    validationReportService,
+    validationFullReportService
   )
 
   val debugController = new DebugController(

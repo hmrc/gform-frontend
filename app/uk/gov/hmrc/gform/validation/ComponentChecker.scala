@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.Monoid
 import cats.free.Free
+import cats.Monoid
 import cats.implicits._
 import cats.~>
 import play.api.i18n.Messages
@@ -36,53 +36,55 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 /*
- *  Creating a New Checker in ComponentChecker Framework
+ * ComponentChecker Framework
  *
- *  This guide will help you understand how to create a new checker in the ComponentChecker framework.
- *  As an example, we will use the OverseasAddressChecker.
+ * A framework for creating custom checkers on different components of an application.
  *
- *  Prerequisites
+ * In order to create a new checker, one needs to extend the `ComponentChecker` trait, overriding the `checkProgram` method.
  *
- *  You should have a good understanding of CheckProgram, CheckInterpreter, and CheckingOp, as they form the base
- *  of the Domain Specific Language (DSL) for checkers.
+ * Core Concepts:
  *
- *  Steps to Create a New Checker
+ * - CheckProgram[A]: Represents a check program that can either be successful (Right) or fail with one or many errors (Left).
  *
- *  1. Extend ComponentChecker:
- *     Create a new class that extends ComponentChecker. This class will encapsulate
- *     all the logic for checking a specific component. For example, if we want to create a checker for an OverseasAddress component,
- *     we could create a new class named OverseasAddressChecker.
+ * - CheckInterpreter: Transforms CheckOp to an Either type.
  *
- *     class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {...}
+ * - CheckOp[A]: Contains all operations a check program can do.
  *
- *  2. Override checkProgram:
- *     Inside this new class, you should override the checkProgram method. This method
- *     will hold the core logic of the checker.
+ * - ShortCircuitOp, NonShortCircuitOp: Represents a group of check programs being combined using
+ *                                       short-circuiting or non-short-circuiting logic, respectively.
  *
- *     override protected def checkProgram(context: CheckerDependency[D])(implicit
- *         langADT: LangADT,
- *         messages: Messages,
- *         sse: SmartStringEvaluator
- *     ): CheckProgram[GformError] = {...}
+ * - IfOp: Represents an if-then-else construct in the DSL. It's created using the ifProgram function.
+ *         - cond is checked by all interpreters. Should provide a check on user input.
+ *         - andCond is ignored by the "full" report. Should provide a condition on something
+ *           that is not related to user input, like form's mandatory property, etc.
  *
- *  3. Create Check Programs:
- *     Inside checkProgram, create a set of CheckProgram operations based on the business
- *     rules and the specific checks you want to perform. For a simple boolean check, use the ifThenOp function to create a
- *     check program. For a branching boolean check, use the ifThenElseOp function to create a check program. To create an
- *     error, use the gformErrorOp function.
+ * - AndThenOp, OrElseOp: Combinators allowing the composition of multiple check programs.
  *
- *  4. Combine Check Programs:
- *     After creating the check programs, combine them to create the overall check for the
- *     component. You can choose to combine them using shortCircuitProgram or nonShortCircuitProgram based on whether you
- *     want to short-circuit (stop at the first error) or not.
+ * - LeftMapOp: Transforms the error of a check program.
  *
- *  5. Run the Checker:
- *     To run the checker, simply create an instance of the checker and call the runCheck method, providing the necessary context.
- *     This will run all the checks and return a result that can be validated. If there are any issues, it will return
- *     the appropriate errors that were defined in your check programs.
+ * - ErrorOp, SuccessOp: Represents a failing or successful check program, respectively.
+ *
+ * - ValueForReport[A]: A type class that should be implemented for certain operations when user input is
+ *                      unavailable and a default value needs to be provided for the report.
+ *
+ * Process for creating a Checker:
+ *
+ * 1. Extend ComponentChecker: Create a class that extends ComponentChecker.
+ *    Example: `class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {...}`
+ *
+ * 2. Override checkProgram: This method will hold the core logic of the checker.
+ *    Example: `override protected def checkProgram(context: CheckerDependency[D])...`
+ *
+ * 3. Create Check Programs: Create a set of `CheckProgram` operations based on the business rules and the specific checks you want to perform.
+ *
+ * 4. Combine Check Programs: Combine them to create the overall check for the component.
+ *    You can choose to use combinators: "andThen", "orElse", "leftMap", "voidProgram", "toProgram", or "foldProgram" based on your requirements.
+ *
+ * 5. Run the Checker: Instantiate the checker and call the `runCheck` method, providing the necessary context.
+ *    It runs all checks and return a result that can be validated to reflect either a success or appropriate errors.
  */
 
-trait ComponentChecker[D <: DataOrigin] {
+trait ComponentChecker[A, D <: DataOrigin] {
   import ComponentChecker._
 
   def runCheck(context: CheckerDependency[D])(implicit
@@ -90,124 +92,331 @@ trait ComponentChecker[D <: DataOrigin] {
     messages: Messages,
     sse: SmartStringEvaluator,
     interpreter: CheckInterpreter
-  ): ValidatedType[Unit] = {
+  ): ValidatedType[Unit] =
     (checkProgram(context).foldMap(interpreter)) match {
-      case Right(e) if e.isEmpty => e.valid
-      case Right(e)              => e.invalid
-      case Left(e)               => e.invalid
+      case Right(Right(u)) => ().valid
+      case Right(Left(e))  => e.invalid
+      case Left(e)         => e.invalid
     }
-  }.void
 
   protected def checkProgram(componentCheckerContext: CheckerDependency[D])(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
-  ): ComponentChecker.CheckProgram[GformError]
+  ): CheckProgram[A]
+
 }
 
 object ComponentChecker {
   import GformError._
-  type CheckProgram[A] = Free[CheckingOp, A]
-  type CheckInterpreter = CheckingOp ~> EitherType
+  type CheckProgram[A] = Free[CheckOp, EitherType[A]]
+  type CheckInterpreter = CheckOp ~> EitherType
 
   // Define the DSL
-  sealed trait CheckingOp[A]
+  sealed trait CheckOp[A]
 
-  case class ShortCircuitProgram(program: CheckProgram[GformError]) extends CheckingOp[GformError]
+  case class ShortCircuitOp[A](program: CheckProgram[A]) extends CheckOp[EitherType[A]]
 
-  case class NonShortCircuitProgram(program: CheckProgram[GformError]) extends CheckingOp[GformError]
+  case class NonShortCircuitOp[A](program: CheckProgram[A]) extends CheckOp[EitherType[A]]
 
-  case class IfThenElseOp(
+  case class IfOp[A](
     cond: Boolean,
-    thenProgram: CheckProgram[GformError],
-    elseProgram: CheckProgram[GformError]
-  ) extends CheckingOp[GformError]
+    andCond: Option[Boolean],
+    thenProgram: CheckProgram[A],
+    elseProgram: CheckProgram[A]
+  ) extends CheckOp[EitherType[A]]
 
-  case class IfThenOp(
+  case class AndThenOp[A, B](
+    program: CheckProgram[A],
+    andThenFun: A => CheckProgram[B],
+    reportA: A
+  ) extends CheckOp[EitherType[B]]
+
+  case class OrElseOp[A, B](
+    program: CheckProgram[A],
+    orElseProgram: CheckProgram[B]
+  ) extends CheckOp[EitherType[B]]
+
+  case class LeftMapOp[A](
+    program: CheckProgram[A],
+    f: GformError => GformError
+  ) extends CheckOp[EitherType[A]]
+
+  case class ErrorOp[A](gformError: GformError) extends CheckOp[EitherType[A]]
+  case class SuccessOp[A](a: A) extends CheckOp[EitherType[A]]
+
+  def successProgram[A](a: A): CheckProgram[A] = Free.liftF[CheckOp, EitherType[A]](SuccessOp[A](a))
+  def errorProgram[A](gformError: GformError): CheckProgram[A] =
+    Free.liftF[CheckOp, EitherType[A]](ErrorOp[A](gformError))
+
+  def ifProgram[A](
     cond: Boolean,
-    thenProgram: CheckProgram[GformError]
-  ) extends CheckingOp[GformError]
+    thenProgram: CheckProgram[A],
+    elseProgram: CheckProgram[A]
+  ): CheckProgram[A] =
+    Free.liftF[CheckOp, EitherType[A]](IfOp[A](cond, None, thenProgram, elseProgram))
 
-  case class GformErrorOp(gformError: GformError) extends CheckingOp[GformError]
+  def ifProgram[A](
+    cond: Boolean = true,
+    andCond: Boolean,
+    thenProgram: CheckProgram[A],
+    elseProgram: CheckProgram[A]
+  ): CheckProgram[A] =
+    Free.liftF[CheckOp, EitherType[A]](IfOp[A](cond, Some(andCond), thenProgram, elseProgram))
 
-  def gformErrorOp(gfromError: GformError) = Free.liftF(GformErrorOp(gfromError))
-
-  def ifThenElseOp(
+  case class SwitchCase[A](
     cond: Boolean,
-    thenProgram: CheckProgram[GformError],
-    elseProgram: CheckProgram[GformError]
-  ): CheckProgram[GformError] =
-    Free.liftF(IfThenElseOp(cond, thenProgram, elseProgram))
+    andCond: Option[Boolean],
+    thenProgram: () => CheckProgram[A]
+  )
 
-  def ifThenOp(
+  def switchCase[A](
     cond: Boolean,
-    thenProgram: CheckProgram[GformError]
-  ): CheckProgram[GformError] =
-    Free.liftF(IfThenOp(cond, thenProgram))
+    thenProgram: => CheckProgram[A]
+  ) = SwitchCase[A](cond, None, () => thenProgram)
+
+  def switchCase[A](
+    cond: Boolean = true,
+    andCond: Boolean,
+    thenProgram: => CheckProgram[A]
+  ) = SwitchCase[A](cond, Some(andCond), () => thenProgram)
+
+  def switchProgram[A](switchCases: SwitchCase[A]*)(elseProgram: => CheckProgram[A]): CheckProgram[A] =
+    if (switchCases.isEmpty) elseProgram
+    else
+      Free.liftF[CheckOp, EitherType[A]](
+        IfOp(
+          cond = switchCases.head.cond,
+          andCond = switchCases.head.andCond,
+          thenProgram = switchCases.head.thenProgram(),
+          elseProgram = switchProgram(switchCases.tail: _*)(elseProgram)
+        )
+      )
 
   /*
    This interpreter stops at the first error.
    It short-circuits on the first error by returning Left(error).
    */
   object ShortCircuitInterpreter extends CheckInterpreter {
-    def apply[A](op: CheckingOp[A]) = op match {
-      case ShortCircuitProgram(program)    => program.foldMap(this)
-      case NonShortCircuitProgram(program) => program.foldMap(NonShortCircuitInterpreter)
-      case IfThenElseOp(cond, thenProgram, elseProgram) =>
-        if (cond) thenProgram.foldMap(this) else elseProgram.foldMap(this)
-      case IfThenOp(cond, thenProgram) =>
-        if (cond) thenProgram.foldMap(this) else Right(emptyGformError)
-      case GformErrorOp(gformError) => Left(gformError)
+    def apply[A](op: CheckOp[A]) = op match {
+      case ShortCircuitOp(program)    => program.foldMap(this).leftErrors
+      case NonShortCircuitOp(program) => program.foldMap(NonShortCircuitInterpreter).leftErrors
+      case IfOp(cond, andCond, thenProgram, elseProgram) =>
+        if (cond && andCond.getOrElse(true)) thenProgram.foldMap(this).leftErrors
+        else elseProgram.foldMap(this).leftErrors
+      case ErrorOp(gformError) => gformError.asLeft[A]
+      case SuccessOp(a: Any)   => a.asRight.asRight
+      case AndThenOp(program, andThenFun, _) =>
+        program.foldMap(this) match {
+          case Left(error)        => error.asLeft
+          case Right(Right(a))    => andThenFun(a).foldMap(this).leftErrors
+          case Right(Left(error)) => error.asLeft
+        }
+      case OrElseOp(program, orElseProgram) =>
+        program.foldMap(this) match {
+          case Left(_)                              => orElseProgram.foldMap(this).leftErrors
+          case Right(Right(a))                      => a.asRight.asRight
+          case Right(Left(error)) if error.nonEmpty => orElseProgram.foldMap(this).leftErrors
+          case Right(Left(error))                   => error.asLeft.asRight
+        }
+      case LeftMapOp(program, f) =>
+        program
+          .foldMap(this)
+          .fold(
+            error => Left(f(error)),
+            eitherError => Right(eitherError.leftMap(f))
+          )
+          .leftErrors
     }
   }
 
   /*
    This interpreter always transforms the operation to
    Right(gformError), ensuring that it won't short-circuit in the for comprehension.
-
-   Right(gformError) will be considered invalid by runCheck if gformError is not an empty error.
    */
   object NonShortCircuitInterpreter extends CheckInterpreter {
-    def apply[A](op: CheckingOp[A]) = op match {
+    def apply[A](op: CheckOp[A]) = op match {
       // Converts Left(gformError) to Right(gformError) to make sure
       // there's no short circuit in the for comprehension.
-      case ShortCircuitProgram(program)    => program.foldMap(ShortCircuitInterpreter).fold(Right(_), Right(_))
-      case NonShortCircuitProgram(program) => program.foldMap(this)
-      case IfThenElseOp(cond, thenProgram, elseProgram) =>
-        if (cond) thenProgram.foldMap(this) else elseProgram.foldMap(this)
-      case IfThenOp(cond, thenProgram) =>
-        if (cond) thenProgram.foldMap(this) else Right(emptyGformError)
-      case GformErrorOp(gformError) => Right(gformError)
+      case ShortCircuitOp(program) =>
+        program.foldMap(ShortCircuitInterpreter).rightErrors
+      case NonShortCircuitOp(program) => program.foldMap(this).rightErrors
+      case IfOp(cond, andCond, thenProgram, elseProgram) =>
+        if (cond && andCond.getOrElse(true)) thenProgram.foldMap(this).rightErrors
+        else elseProgram.foldMap(this).rightErrors
+      case ErrorOp(gformError) => Right(gformError.asLeft[A])
+      case SuccessOp(a: Any)   => a.asRight.asRight
+      case AndThenOp(program, andThenFun, _) =>
+        program.foldMap(this) match {
+          case Left(error)        => error.asLeft.asRight
+          case Right(Right(a))    => andThenFun(a).foldMap(this).rightErrors
+          case Right(Left(error)) => error.asLeft.asRight
+        }
+      case OrElseOp(program, orElseProgram) =>
+        program.foldMap(this) match {
+          case Left(error)        => orElseProgram.foldMap(this).rightErrors
+          case Right(Right(a))    => a.asRight.asRight
+          case Right(Left(error)) => orElseProgram.foldMap(this).rightErrors
+        }
+      case LeftMapOp(program, f) =>
+        program
+          .foldMap(this)
+          .fold(
+            error => Left(f(error)),
+            eitherError => Right(eitherError.leftMap(f))
+          )
+          .rightErrors
     }
   }
 
   object ErrorReportInterpreter extends CheckInterpreter {
-    def apply[A](op: CheckingOp[A]) = op match {
-      case ShortCircuitProgram(program)    => program.foldMap(this)
-      case NonShortCircuitProgram(program) => program.foldMap(this)
-      case IfThenElseOp(_, thenProgram, elseProgram) =>
-        Monoid[EitherType[GformError]].combine(thenProgram.foldMap(this), elseProgram.foldMap(this))
-      case IfThenOp(_, thenProgram) => thenProgram.foldMap(this)
-      case GformErrorOp(gformError) => Right(gformError)
+    def apply[A](op: CheckOp[A]) = op match {
+      case ShortCircuitOp(program)    => program.foldMap(this).rightErrors
+      case NonShortCircuitOp(program) => program.foldMap(this).rightErrors
+      case IfOp(_, andCond, thenProgram, elseProgram) =>
+        (
+          andCond match {
+            case None        => (getError(thenProgram.foldMap(this)) |+| getError(elseProgram.foldMap(this))).asLeft[A]
+            case Some(true)  => thenProgram.foldMap(this)
+            case Some(false) => elseProgram.foldMap(this)
+          }
+        ).rightErrors
+      case ErrorOp(gformError) => gformError.asLeft.asRight
+      case SuccessOp(a)        => a.asRight.asRight
+      case AndThenOp(program, andThenFun, reportA) =>
+        program.foldMap(this) match {
+          case Left(error)        => (error |+| getError(andThenFun(reportA).foldMap(this))).asLeft.asRight
+          case Right(Right(a))    => andThenFun(a).foldMap(this).rightErrors
+          case Right(Left(error)) => (error |+| getError(andThenFun(reportA).foldMap(this))).asLeft.asRight
+        }
+      case OrElseOp(program, orElseProgram) =>
+        program.foldMap(this) match {
+          case Left(_)         => orElseProgram.foldMap(this).rightErrors
+          case Right(Right(a)) => a.asRight.asRight
+          case Right(Left(_))  => orElseProgram.foldMap(this).rightErrors
+        }
+      case LeftMapOp(program, f) =>
+        program
+          .foldMap(this)
+          .fold(
+            error => Left(f(error)),
+            eitherError => Right(eitherError.leftMap(f))
+          )
+          .rightErrors
     }
   }
 
-  private def createProgram(operations: List[CheckProgram[GformError]]): CheckProgram[GformError] =
-    operations.foldLeft(Free.pure[CheckingOp, GformError](emptyGformError)) { (acc, op) =>
+  object FullErrorReportInterpreter extends CheckInterpreter {
+    def apply[A](op: CheckOp[A]) = op match {
+      case ShortCircuitOp(program)    => program.foldMap(this).rightErrors
+      case NonShortCircuitOp(program) => program.foldMap(this).rightErrors
+      case IfOp(_, _, thenProgram, elseProgram) =>
+        (getError(thenProgram.foldMap(this)) |+| getError(elseProgram.foldMap(this))).asLeft.asRight
+      case ErrorOp(gformError) => gformError.asLeft.asRight
+      case SuccessOp(a: Any)   => a.asRight.asRight
+      case AndThenOp(program, andThenFun, reportA) =>
+        program.foldMap(this) match {
+          case Left(error)        => (error |+| getError(andThenFun(reportA).foldMap(this))).asLeft.asRight
+          case Right(Right(a))    => andThenFun(a).foldMap(this).rightErrors
+          case Right(Left(error)) => (error |+| getError(andThenFun(reportA).foldMap(this))).asLeft.asRight
+        }
+      case OrElseOp(program, orElseProgram) =>
+        program.foldMap(this) match {
+          case Left(_)         => orElseProgram.foldMap(this).rightErrors
+          case Right(Right(a)) => a.asRight.asRight
+          case Right(Left(_))  => orElseProgram.foldMap(this).rightErrors
+        }
+      case LeftMapOp(program, f) =>
+        program
+          .foldMap(this)
+          .fold(
+            error => Left(f(error)),
+            eitherError => Right(eitherError.leftMap(f))
+          )
+          .rightErrors
+    }
+  }
+
+  trait ValueForReport[A] {
+    def valueForReport(): A
+  }
+
+  implicit val unitValueForReport = new ValueForReport[Unit] {
+    def valueForReport(): Unit = ()
+  }
+
+  private def getError[A](ee: EitherType[EitherType[A]]): GformError =
+    ee.fold(
+      identity,
+      {
+        case Right(_) => emptyGformError
+        case Left(e)  => e
+      }
+    )
+
+  private def combinePrograms[A](programs: List[CheckProgram[A]])(implicit ev: Monoid[A]): CheckProgram[A] =
+    programs.foldLeft(Free.pure[CheckOp, EitherType[A]](ev.empty.asRight)) { (acc, program) =>
       for {
-        a <- acc
-        b <- op
-      } yield Monoid[GformError].combine(a, b)
+        accValue  <- acc
+        progValue <- program
+      } yield (accValue, progValue) match {
+        case (Right(a), Right(b)) => Right(b) // take the last one
+        case (Left(a), Left(b))   => Left(a |+| b)
+        case (Right(_), Left(b))  => Left(b)
+        case (Left(a), Right(_))  => Left(a)
+      }
     }
 
-  implicit class CheckProgramListOps(val list: List[CheckProgram[GformError]]) extends AnyVal {
-    def shortCircuitProgram: CheckProgram[GformError] =
-      Free.liftF(ShortCircuitProgram(createProgram(list)))
+  implicit class CheckProgramListOps[A](val list: List[CheckProgram[A]]) extends AnyVal {
+    def shortCircuitProgram(implicit ev: Monoid[A]): CheckProgram[A] =
+      Free.liftF[CheckOp, EitherType[A]](ShortCircuitOp[A](combinePrograms(list)))
 
-    def nonShortCircuitProgram: CheckProgram[GformError] =
-      Free.liftF(NonShortCircuitProgram(createProgram(list)))
+    def nonShortCircuitProgram(implicit ev: Monoid[A]): CheckProgram[A] =
+      Free.liftF[CheckOp, EitherType[A]](NonShortCircuitOp(combinePrograms(list)))
+
   }
 
+  implicit class CheckProgramOps[A](val checkProgram: CheckProgram[A]) extends AnyVal {
+    def leftMap(f: GformError => GformError): CheckProgram[A] =
+      Free.liftF[CheckOp, EitherType[A]](LeftMapOp(checkProgram, f))
+
+    def andThen[B](andThenFun: A => CheckProgram[B])(implicit ev: ValueForReport[A]): CheckProgram[B] =
+      Free.liftF[CheckOp, EitherType[B]](AndThenOp[A, B](checkProgram, andThenFun, ev.valueForReport()))
+
+    def orElse[B](orElseProgram: CheckProgram[B]): CheckProgram[B] =
+      Free.liftF[CheckOp, EitherType[B]](OrElseOp[A, B](checkProgram, orElseProgram))
+
+    def voidProgram: CheckProgram[Unit] = checkProgram.map(x => x.map(_ => ()))
+  }
+
+  implicit class OptionOps[A](val op: Option[A]) extends AnyVal {
+    def toProgram(errorProgram: CheckProgram[A])(implicit ev: ValueForReport[A]): CheckProgram[A] =
+      ifProgram[A](
+        cond = op.isDefined,
+        thenProgram = successProgram[A](op.getOrElse(ev.valueForReport())),
+        elseProgram = errorProgram
+      )
+    def foldProgram[B](onNone: CheckProgram[B], onSomeFun: A => CheckProgram[B])(implicit
+      ev: ValueForReport[A]
+    ): CheckProgram[B] =
+      ifProgram[B](
+        cond = op.isDefined,
+        thenProgram = onSomeFun(op.getOrElse(ev.valueForReport())),
+        elseProgram = onNone
+      )
+  }
+
+  implicit class EitherTypeOps[A](val e: EitherType[EitherType[A]]) extends AnyVal {
+    def leftErrors: EitherType[EitherType[A]] = e match {
+      case Left(e)                                => Left(e)
+      case Right(Left(errors)) if errors.nonEmpty => Left(errors)
+      case otherwise                              => otherwise
+    }
+    def rightErrors: EitherType[EitherType[A]] = e match {
+      case Left(a)   => a.asLeft.asRight
+      case otherwise => otherwise
+    }
+  }
 }
 
 trait CheckerDependency[D <: DataOrigin] {
@@ -216,6 +425,7 @@ trait CheckerDependency[D <: DataOrigin] {
   def cache: CacheData
   def envelope: EnvelopeWithMapping
   def lookupRegistry: LookupRegistry
+  def getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
 
   def atomicFcId(atom: Atom) = formComponent.atomicFormComponentId(atom)
   def valueOf(atomicFcId: ModelComponentId.Atomic): Seq[String] =
@@ -256,4 +466,7 @@ object GformError {
     })
 
   val emptyGformError: GformError = Map.empty[ModelComponentId, Set[String]]
+
+  def foldEitherType[A](e: EitherType[A]): GformError =
+    e.fold(error => error, either => emptyGformError)
 }

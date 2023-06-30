@@ -17,24 +17,24 @@
 package uk.gov.hmrc.gform.validation
 
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.lookup.LookupLabel
+import uk.gov.hmrc.gform.models.Atom
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+
 import ComponentChecker._
 import GformError._
-import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
-import uk.gov.hmrc.gform.models.Atom
-import uk.gov.hmrc.gform.lookup.LookupLabel
-import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {
+class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
   override protected def checkProgram(context: CheckerDependency[D])(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
-  ): CheckProgram[GformError] = {
+  ): CheckProgram[Unit] = {
     val formComponent = context.formComponent
     formComponent match {
       case IsOverseasAddress(fc) => checkOverseasAddress(fc, context)
@@ -46,7 +46,7 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
-  ): CheckProgram[GformError] = {
+  ): CheckProgram[Unit] = {
 
     val mandatoryFields: Set[Atom] = overseasAddress.configurableMandatoryAtoms
     val optionalFields: Set[Atom] = overseasAddress.configurableOptionalAtoms
@@ -58,82 +58,87 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {
 
     def line1RequiredOp() = {
       val atomicModelComponentId = context.atomicFcId(OverseasAddress.line1)
-      ifThenOp(
+      ifProgram(
         cond = context.isAtomicValueBlank(atomicModelComponentId),
-        thenProgram = gformErrorOp(
+        thenProgram = errorProgram[Unit](
           gformError(
             atomicModelComponentId,
             context.formComponent,
             "generic.error.overseas.line1.required",
             Some(errorShortNamePlaceholder :: Nil)
           )
-        )
+        ),
+        elseProgram = successProgram(())
       )
     }
 
     def line2RequiredOp() = {
       val atomicModelComponentId = context.atomicFcId(OverseasAddress.line2)
-      ifThenOp(
+      ifProgram(
         cond = context.isAtomicValueBlank(atomicModelComponentId), //&& !mandatoryFields(OverseasAddress.line2),
-        thenProgram = gformErrorOp(
+        thenProgram = errorProgram[Unit](
           gformError(
             atomicModelComponentId,
             context.formComponent,
             "generic.error.overseas.line2.required",
             Some(errorShortNamePlaceholder :: Nil)
           )
-        )
+        ),
+        elseProgram = successProgram(())
       )
     }
 
     val cityAtomicModelComponentId = context.atomicFcId(OverseasAddress.city)
     def cityRequiredOp() =
-      ifThenOp(
+      ifProgram(
         cond = context.isAtomicValueBlank(cityAtomicModelComponentId) || optionalFields(OverseasAddress.city),
-        thenProgram = gformErrorOp(
+        thenProgram = errorProgram[Unit](
           gformError(
             cityAtomicModelComponentId,
             context.formComponent,
             "generic.error.overseas.town.city.required",
             Some(errorShortNamePlaceholder :: Nil)
           )
-        )
+        ),
+        elseProgram = successProgram(())
       )
 
     def postcodeRequiredOp() = {
       val atomicModelComponentId = context.atomicFcId(OverseasAddress.postcode)
-      ifThenOp(
+      ifProgram(
         cond = context.isAtomicValueBlank(atomicModelComponentId) || !mandatoryFields(OverseasAddress.postcode),
-        thenProgram = gformErrorOp(
+        thenProgram = errorProgram[Unit](
           gformError(
             atomicModelComponentId,
             context.formComponent,
             "generic.error.overseas.postcode.required",
             Some(errorShortNamePlaceholder :: Nil)
           )
-        )
+        ),
+        elseProgram = successProgram(())
       )
     }
 
     val countryAtomicModelComponentId = context.atomicFcId(OverseasAddress.country)
     val countryRequiredOp =
-      ifThenOp(
+      ifProgram(
         cond = context.isAtomicValueBlank(countryAtomicModelComponentId),
-        thenProgram = gformErrorOp(
+        thenProgram = errorProgram[Unit](
           gformError(
             countryAtomicModelComponentId,
             context.formComponent,
             "generic.error.overseas.country.required",
             Some(errorShortNamePlaceholder :: Nil)
           )
-        )
+        ),
+        elseProgram = successProgram(())
       )
 
     def line1MaxLengthOp() = {
       val atomicModelComponentId = context.atomicFcId(OverseasAddress.line1)
-      ifThenOp(
+      ifProgram(
         cond = context.isAtomicValueExceedMaxLength(atomicModelComponentId, ValidationValues.addressLine),
-        thenProgram = gformErrorOp(
+        thenProgram = errorProgram[Unit](
           gformError(
             atomicModelComponentId,
             context.formComponent,
@@ -146,15 +151,16 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {
                 :: Nil
             )
           )
-        )
+        ),
+        elseProgram = successProgram(())
       )
     }
 
     def line2MaxLengthOp() = {
       val atomicModelComponentId = context.atomicFcId(OverseasAddress.line2)
-      ifThenOp(
+      ifProgram(
         cond = context.isAtomicValueExceedMaxLength(atomicModelComponentId, ValidationValues.addressLine),
-        thenProgram = gformErrorOp(
+        thenProgram = errorProgram[Unit](
           gformError(
             atomicModelComponentId,
             context.formComponent,
@@ -167,15 +173,16 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {
                 :: Nil
             )
           )
-        )
+        ),
+        elseProgram = successProgram(())
       )
     }
 
     val line3AtomicModelComponentId = context.atomicFcId(OverseasAddress.line3)
     def line3MaxLengthOp() =
-      ifThenOp(
+      ifProgram(
         cond = context.isAtomicValueExceedMaxLength(line3AtomicModelComponentId, ValidationValues.addressLine),
-        thenProgram = gformErrorOp(
+        thenProgram = errorProgram[Unit](
           gformError(
             line3AtomicModelComponentId,
             context.formComponent,
@@ -188,14 +195,15 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {
                 :: Nil
             )
           )
-        )
+        ),
+        elseProgram = successProgram(())
       )
 
     def cityMaxLengthOp() = {
       val atomicModelComponentId = context.atomicFcId(OverseasAddress.city)
-      ifThenOp(
+      ifProgram(
         cond = context.isAtomicValueExceedMaxLength(atomicModelComponentId, ValidationValues.overseasCity),
-        thenProgram = gformErrorOp(
+        thenProgram = errorProgram[Unit](
           gformError(
             atomicModelComponentId,
             context.formComponent,
@@ -208,15 +216,16 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {
                 :: Nil
             )
           )
-        )
+        ),
+        elseProgram = successProgram(())
       )
     }
 
     val postcodeAtomicModelComponentId = context.atomicFcId(OverseasAddress.postcode)
     def postcodeMaxLengthOp() =
-      ifThenOp(
+      ifProgram(
         cond = context.isAtomicValueExceedMaxLength(postcodeAtomicModelComponentId, ValidationValues.postcodeLimit),
-        thenProgram = gformErrorOp(
+        thenProgram = errorProgram[Unit](
           gformError(
             postcodeAtomicModelComponentId,
             context.formComponent,
@@ -229,14 +238,15 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {
                 :: Nil
             )
           )
-        )
+        ),
+        elseProgram = successProgram(())
       )
 
     def countryMaxLengthOp() = {
       val atomicModelComponentId = context.atomicFcId(OverseasAddress.country)
-      ifThenOp(
+      ifProgram(
         cond = context.isAtomicValueExceedMaxLength(atomicModelComponentId, ValidationValues.countryLimit),
-        thenProgram = gformErrorOp(
+        thenProgram = errorProgram[Unit](
           gformError(
             atomicModelComponentId,
             context.formComponent,
@@ -249,69 +259,77 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {
                 :: Nil
             )
           )
-        )
+        ),
+        elseProgram = successProgram(())
       )
     }
 
     def lookupCountryOp() = {
       val atomicModelComponentId = context.atomicFcId(OverseasAddress.country)
       val maybeValue = context.valueOf(atomicModelComponentId).filterNot(_.isEmpty).headOption
-      ifThenOp(
-        cond = maybeValue
-          .fold(false) { value =>
-            ComponentValidator
-              .lookupValidation(
-                context.formComponent,
-                context.lookupRegistry,
-                Lookup(Register.Country, None),
-                LookupLabel(value),
-                context.formModelVisibilityOptics
-              )
-              .isInvalid
-          },
-        thenProgram = gformErrorOp(
-          gformError(
-            atomicModelComponentId,
+      val hasValue = maybeValue.isDefined
+      ifProgram(
+        cond = hasValue,
+        thenProgram = TextChecker
+          .lookupValidation(
             context.formComponent,
-            "generic.error.overseas.nomatch",
-            Some(maybeValue.getOrElse("country") :: Nil)
+            context.lookupRegistry,
+            Lookup(Register.Country, None),
+            LookupLabel(maybeValue.getOrElse("country")),
+            context.formModelVisibilityOptics
           )
-        )
+          .leftMap(error =>
+            // discard the error of lookupValidation and replace it with a specific one
+            if (error.isEmpty)
+              error
+            else
+              gformError(
+                atomicModelComponentId,
+                context.formComponent,
+                "generic.error.overseas.nomatch",
+                Some(maybeValue.getOrElse("country") :: Nil)
+              )
+          ),
+        elseProgram = successProgram(())
       )
     }
 
     List(
       List(line1RequiredOp(), line1MaxLengthOp()).shortCircuitProgram,
-      ifThenElseOp(
-        cond = mandatoryFields(OverseasAddress.line2),
+      ifProgram(
+        andCond = mandatoryFields(OverseasAddress.line2),
         thenProgram = List(line2RequiredOp(), line2MaxLengthOp()).shortCircuitProgram,
-        elseProgram = ifThenOp(
+        elseProgram = ifProgram(
           cond = context.nonBlankValueOf(line3AtomicModelComponentId).isDefined,
-          thenProgram = line2MaxLengthOp()
+          thenProgram = line2MaxLengthOp(),
+          elseProgram = successProgram(())
         )
       ),
-      ifThenOp(
+      ifProgram(
         cond = context.nonBlankValueOf(line3AtomicModelComponentId).isDefined,
-        thenProgram = line3MaxLengthOp()
+        thenProgram = line3MaxLengthOp(),
+        elseProgram = successProgram(())
       ),
-      ifThenElseOp(
-        cond = optionalFields(OverseasAddress.city),
-        thenProgram = ifThenOp(
+      ifProgram(
+        andCond = optionalFields(OverseasAddress.city),
+        thenProgram = ifProgram(
           cond = context.nonBlankValueOf(cityAtomicModelComponentId).isEmpty,
-          thenProgram = cityMaxLengthOp()
+          thenProgram = cityMaxLengthOp(),
+          elseProgram = successProgram(())
         ),
         elseProgram = List(cityRequiredOp(), cityMaxLengthOp()).shortCircuitProgram
       ),
-      ifThenElseOp(
-        cond = mandatoryFields(OverseasAddress.postcode),
+      ifProgram(
+        andCond = mandatoryFields(OverseasAddress.postcode),
         thenProgram = List(postcodeRequiredOp(), postcodeMaxLengthOp()).shortCircuitProgram,
-        elseProgram = ifThenOp(
+        elseProgram = ifProgram(
           cond = context.nonBlankValueOf(postcodeAtomicModelComponentId).isDefined,
-          thenProgram = postcodeMaxLengthOp()
+          thenProgram = postcodeMaxLengthOp(),
+          elseProgram = successProgram(())
         )
       ),
-      ifThenElseOp(
-        cond = overseasAddress.countryLookup,
+      ifProgram(
+        andCond = overseasAddress.countryLookup,
         thenProgram = List(countryRequiredOp, countryMaxLengthOp(), lookupCountryOp()).shortCircuitProgram,
         elseProgram = List(countryRequiredOp, countryMaxLengthOp()).shortCircuitProgram
       )

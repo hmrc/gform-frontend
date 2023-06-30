@@ -24,15 +24,21 @@ import play.api.{ Configuration, Environment }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModelSupport, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CalendarDate, FormComponent, FormComponentId, FormTemplate }
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
+import uk.gov.hmrc.gform.controllers.CacheData
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 
-class CalendarDateValidationSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport {
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+
+class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport {
+
+  implicit val checkInterpreter: ComponentChecker.CheckInterpreter = ComponentChecker.NonShortCircuitInterpreter
   implicit val lang: LangADT = LangADT.En
 
   private val dateComponent: FormComponent = mkFormComponent("date", CalendarDate)
@@ -49,6 +55,16 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
   val langs = new DefaultLangs()
   val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
 
+  def checkerDependency[D <: DataOrigin](optics: FormModelVisibilityOptics[D]) =
+    new CheckerDependency[D] {
+      def formModelVisibilityOptics: FormModelVisibilityOptics[D] = optics
+      def formComponent: FormComponent = dateComponent
+      def cache: CacheData = ???
+      def envelope: EnvelopeWithMapping = ???
+      def lookupRegistry: LookupRegistry = ???
+      def getEmailCodeFieldMatcher = ???
+    }
+
   val messagesApi: MessagesApi =
     new DefaultMessagesApiProvider(environment, configuration, langs, httpConfiguration).get
   implicit val messages: Messages = messagesApi.preferred(Seq(langs.availables.head))
@@ -62,9 +78,12 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
       )
     )
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
-    val calendarDateValidation = new CalendarDateValidation(formModelOptics.formModelVisibilityOptics)
+    val calendarDateValidation = new CalendarDateChecker[DataOrigin.Browser]()
 
-    assertEquals(calendarDateValidation.validate(dateComponent), validationSuccess)
+    assertEquals(
+      calendarDateValidation.runCheck(checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)),
+      validationSuccess
+    )
   }
 
   test("validate should return invalid when all calendarDate atoms are missing") {
@@ -72,7 +91,9 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+      new CalendarDateChecker[DataOrigin.Browser]()
+        .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
+      // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
       Invalid(Map(dateMonthAtom -> Set("Enter a date"), dateDayAtom -> Set("Enter a date")))
     )
   }
@@ -86,7 +107,9 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+      // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+      new CalendarDateChecker[DataOrigin.Browser]()
+        .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(Map(dateMonthAtom -> Set("Enter a date")))
     )
   }
@@ -102,7 +125,9 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+      // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+      new CalendarDateChecker[DataOrigin.Browser]()
+        .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(
         Map(
           dateDayAtom -> Set(
@@ -127,7 +152,9 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+      // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+      new CalendarDateChecker[DataOrigin.Browser]()
+        .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(
         Map(
           dateDayAtom -> Set(
@@ -181,7 +208,9 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
     test(s"$index. $description") {
       val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
       assertEquals(
-        new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+        // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+        new CalendarDateChecker[DataOrigin.Browser]()
+          .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
         Invalid(
           Map(
             atom -> Set(
@@ -213,7 +242,9 @@ class CalendarDateValidationSpec extends FunSuite with FormModelSupport with Var
     test(s"$index. $description") {
       val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
       assertEquals(
-        new CalendarDateValidation(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
+        new CalendarDateChecker[DataOrigin.Browser]()
+          .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
+        // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
         Invalid(
           Map(
             atom1 -> Set(
