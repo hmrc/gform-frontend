@@ -20,7 +20,8 @@ import cats.implicits._
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 case class FieldOk(formComponent: FormComponent, currentValue: String) extends FormFieldValidationResult
 case class FieldGlobalOk(formComponent: FormComponent, currentValue: String) extends FormFieldValidationResult

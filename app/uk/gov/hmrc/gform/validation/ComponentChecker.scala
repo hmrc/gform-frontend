@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.free.Free
 import cats.Monoid
+import cats.free.Free
 import cats.implicits._
 import cats.~>
 import play.api.i18n.Messages

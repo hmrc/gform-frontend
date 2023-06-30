@@ -15,6 +15,7 @@
  */
 
 package uk.gov.hmrc.gform.validation
+
 import cats.Semigroup
 import cats.data.Validated
 import cats.implicits._

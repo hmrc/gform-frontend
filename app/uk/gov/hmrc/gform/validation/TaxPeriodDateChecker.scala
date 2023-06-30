@@ -19,15 +19,18 @@ package uk.gov.hmrc.gform.validation
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, TaxPeriodDate }
-import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
-import uk.gov.hmrc.gform.validation.CheckerServiceHelper._
-import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.TaxPeriodDate
+import uk.gov.hmrc.gform.validation.CheckerServiceHelper._
+import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
+
 import ComponentChecker._
 
 class TaxPeriodDateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {

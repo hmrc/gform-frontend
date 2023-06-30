@@ -17,10 +17,14 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.Monoid
-import uk.gov.hmrc.gform.models.{ DataExpanded, EnteredVariadicFormData, Singleton }
+import uk.gov.hmrc.gform.models.DataExpanded
+import uk.gov.hmrc.gform.models.EnteredVariadicFormData
+import uk.gov.hmrc.gform.models.Singleton
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidatorsResult }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.form.FormData
+import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 import scala.annotation.nowarn
 

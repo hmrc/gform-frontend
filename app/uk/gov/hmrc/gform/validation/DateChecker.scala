@@ -15,6 +15,7 @@
  */
 
 package uk.gov.hmrc.gform.validation
+
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring._

@@ -29,12 +29,11 @@ import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.CheckerServiceHelper.validationFailure
-// import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
 import uk.gov.hmrc.referencechecker.CorporationTaxReferenceChecker
 import uk.gov.hmrc.referencechecker.VatReferenceChecker
-import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
 import scala.util.matching.Regex
 

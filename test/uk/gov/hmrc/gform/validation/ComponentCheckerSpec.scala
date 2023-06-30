@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.LangADT
+
 import ComponentChecker._
 import IndexedComponentId._
 

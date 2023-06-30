@@ -18,23 +18,29 @@ package uk.gov.hmrc.gform.validation
 
 import cats.data.Validated.Invalid
 import munit.FunSuite
-import play.api.i18n._
+import play.api.Configuration
+import play.api.Environment
 import play.api.http.HttpConfiguration
-import play.api.{ Configuration, Environment }
+import play.api.i18n._
+import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate }
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormComponent
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormTemplate
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.FormModelSupport
+import uk.gov.hmrc.gform.models.VariadicFormDataSupport
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.{ FormModelSupport, VariadicFormDataSupport }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CalendarDate, FormComponent, FormComponentId, FormTemplate }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.CalendarDate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
-import uk.gov.hmrc.gform.controllers.CacheData
-import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
-
-import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 
 class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport {
 

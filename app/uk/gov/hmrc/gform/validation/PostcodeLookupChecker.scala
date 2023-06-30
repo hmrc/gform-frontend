@@ -20,10 +20,12 @@ import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, PostcodeLookup }
-import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.PostcodeLookup
+import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 
 import ComponentChecker._
 
