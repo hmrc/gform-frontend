@@ -116,7 +116,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
       )
 
     ifProgram(
-      andCond = addressValueOf(Address.uk) == "true" :: Nil,
+      cond = addressValueOf(Address.uk) == "true" :: Nil,
       thenProgram = List(
         validateRequiredAtom(Address.street1, "generic.error.address.building.street.required"),
         ukStreetValidation(Address.street1),
