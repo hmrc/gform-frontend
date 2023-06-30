@@ -83,6 +83,13 @@ object DateExprEval {
                     _ => fromValue(evaluationContext, formComponentId),
                     localDate => DateResult(localDate)
                   )
+              case (None, Some(VariadicValue.One(m)), Some(VariadicValue.One(d))) =>
+                //Year is empty for calendar date component, so retrieves the current year to create a LocalDate.
+                Try(LocalDate.of(LocalDate.now().getYear, m.toInt, d.toInt))
+                  .fold(
+                    _ => fromValue(evaluationContext, formComponentId),
+                    localDate => DateResult(localDate)
+                  )
               case _ => fromValue(evaluationContext, formComponentId)
             }
           case Some(value) => value
