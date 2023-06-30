@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.testonly
 import play.twirl.api.{ Html, HtmlFormat }
 import play.api.libs.json.{ Json, OFormat }
 
+import uk.gov.hmrc.gform.views.html
 import cats.implicits._
 import play.api.mvc._
 
@@ -91,8 +92,11 @@ class TestOnlyErrorMessageController(
         } yield
           if (jsonReport)
             Ok(Json.toJson(englishReport ++ welshReport)).as("application/json")
-          else
-            Ok(toHtml(FieldErrorAllReport.makeEnCy(englishReport, welshReport), formTemplateId)).as("text/html")
+          else {
+            val table = toHtml(FieldErrorAllReport.makeEnCy(englishReport, welshReport), formTemplateId)
+            val title = if (fullReport) "Full Error Report" else "Error Report"
+            Ok(html.debug.errorReport(title, table)).as("text/html")
+          }
     }
 
   private def reports(
@@ -284,14 +288,13 @@ class TestOnlyErrorMessageController(
     // val tableRows = report.map(r => r).flatMap(reportToRows).mkString("")
 
     val r = s"""
-               |<table class="govuk-table">
-               |<caption class="govuk-table__caption govuk-table__caption--xl">Error messages for ${formTemplateId.value}</caption>
+               |<table class="govuk-table " >
                | <thead class="govuk-table__head">
                |    <tr class="govuk-table__row">
                |      <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header app-custom-class">Property</th>
                |      <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class">Property value</th>
                |      <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class">English error messages</th>
-               |      <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class">Welsh error messages</th>
+               |      <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class ">Welsh error messages</th>
                |    </tr>
                |  </thead>
                |<tbody class="govuk-table__body">
