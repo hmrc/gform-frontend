@@ -107,7 +107,6 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
       new CalendarDateChecker[DataOrigin.Browser]()
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(Map(dateMonthAtom -> Set("Enter a date")))
@@ -125,7 +124,6 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
       new CalendarDateChecker[DataOrigin.Browser]()
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(
@@ -152,7 +150,6 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
       new CalendarDateChecker[DataOrigin.Browser]()
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(
@@ -208,7 +205,6 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     test(s"$index. $description") {
       val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
       assertEquals(
-        // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
         new CalendarDateChecker[DataOrigin.Browser]()
           .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
         Invalid(
@@ -244,7 +240,6 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
       assertEquals(
         new CalendarDateChecker[DataOrigin.Browser]()
           .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
-        // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
         Invalid(
           Map(
             atom1 -> Set(

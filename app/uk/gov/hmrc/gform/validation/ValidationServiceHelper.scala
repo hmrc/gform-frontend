@@ -22,7 +22,6 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-// import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
 
 object ValidationServiceHelper {
 

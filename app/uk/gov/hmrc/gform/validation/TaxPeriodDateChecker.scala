@@ -103,96 +103,6 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
         List(monthProgram, yearProgram).nonShortCircuitProgram
       }
   }
-//   formComponent.multiValueId.atomsModelComponentIds.map(formModelVisibilityOptics.data.one) match {
-//     case Some(month) :: Some(year) :: Nil =>
-//       validationSuccess
-//         .ensure(
-//           Map(
-//             errorGranularity(formComponent)(TaxPeriodDate.month) -> Set(
-//               messages("generic.error.taxPeriodDate.month.real")
-//             )
-//           )
-//         )(_ => month.toIntOption.map(m => m >= 1 && m <= 12).getOrElse(false))
-//         .ensure(
-//           Map(
-//             errorGranularity(formComponent)(TaxPeriodDate.year) -> Set(
-//               messages("generic.error.taxPeriodDate.year.real")
-//             )
-//           )
-//         )(_ => year.toIntOption.map(y => y >= 1900 && y <= 2099).getOrElse(false))
-//     case _ =>
-//       validationFailure(
-//         formComponent.firstAtomModelComponentId,
-//         formComponent,
-//         "generic.error.taxPeriodDate.required",
-//         None,
-//         ""
-//       )
-//   }
-// /
-  //   def validateMonthYear(formComponent: FormComponent): CheckProgram[Unit] = {
-
-//     val (maybeMonth, maybeYear) =
-//       formComponent.multiValueId.atomsModelComponentIds.ma            Map(
-//               errorGranularity(formComponent)(TaxPeriodDate.month) -> Set(
-//                messages("generic.error.taxPeriodDate.month.real")
-//               )
-//             )
-// (formModelVisibilityOptics.data.one) match {
-//         case (Some(month) :: Some(year) :: Nil) => (Some(month), Some(year))
-//         case _                                  => (None, None)
-//       }
-
-//     (maybeMonth, maybeYear)
-//       .mapN((month, year) => (month, year))
-//       .toProgram(errorProgram =
-//         validationFailureTyped[(String, String)](
-//           formComponent.firstAtomModelComponentId,
-//           formComponent,
-//           "generic.error.taxPeriodDate.required",
-//           None,
-//           ""
-//         )
-//       )
-
-//     val monthProgram =
-//       ifProgram(
-//         cond = month.toIntOption.map(m => m >= 1 && m <= 12).getOrElse(false),
-//         thenProgram = successProgram(()),
-//         elseProgram = errorProgram(
-//           Map(
-//             errorGranularity(formComponent)(TaxPeriodDate.month) -> Set(
-//               messages("generic.error.taxPeriodDate.month.real")
-//             )
-//           )
-//         )
-//       )
-//         .andThen { case (month, year) =>
-//           validationSuccess
-//             .ensure(
-//               Map(
-//                 errorGranularity(formComponent)(TaxPeriodDate.month) -> Set(
-//                   messages("generic.error.taxPeriodDate.month.real")
-//                 )
-//               )
-//             )(_ => month.toIntOption.map(m => m >= 1 && m <= 12).getOrElse(false))
-//             .ensure(
-//               Map(
-//                 errorGranularity(formComponent)(TaxPeriodDate.year) -> Set(
-//                   messages("generic.error.taxPeriodDate.year.real")
-//                 )
-//               )
-//             )(_ => year.toIntOption.map(y => y >= 1900 && y <= 2099).getOrElse(false))
-//         }
-//     // case _ =>
-//     //   validationFailure(
-//     //     formComponent.firstAtomModelComponentId,
-//     //     formComponent,
-//     //     "generic.error.taxPeriodDate.required",
-//     //     None,
-//     //     ""
-//     //   )
-//   }
 
   private def validateRequired(
     formComponent: FormComponent
@@ -215,33 +125,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
       elseProgram = successProgram(())
     )
   }
-  // if (formComponent.mandatory) {
-  //   atomsWithValues.foldMap { mcv =>
-  //     mcv.value
-  //       .filter(_.nonEmpty)
-  //       .fold(requiredError(formComponent, mcv.modelComponentId))(_ => validationSuccess)
-  //   }
-  // } else {
-  //   validationSuccess
-  // }
 
-//   private def requiredError(formComponent: FormComponent, modelComponentId: ModelComponentId): CheckProgram[Unit] =
-//     Map[ModelComponentId, Set[String]] {
-//       val placeholder1 = formComponent.errorShortName
-//         .flatMap(_.nonBlankValue())
-//         .getOrElse(SmartString.blank.transform(_ => "a date", _ => "ddyddiad").value())
-//       val placeholder2 = formComponent.errorExample.flatMap(_.nonBlankValue()).map(s => s", $s").getOrElse("")
-//       modelComponentId -> errors(
-//         formComponent,
-//         "generic.error.taxPeriodDate.required",
-//         Some(placeholder1 :: placeholder2 :: Nil)
-//       )
-//     }.invalid
-
-//   def errorGranularity(formComponent: FormComponent)(suffix: Atom): ModelComponentId =
-//     formComponent.atomicFormComponentId(suffix)
-
-// }
   private def requiredError[A](formComponent: FormComponent, modelComponentId: ModelComponentId): CheckProgram[A] =
     errorProgram[A](
       Map[ModelComponentId, Set[String]] {

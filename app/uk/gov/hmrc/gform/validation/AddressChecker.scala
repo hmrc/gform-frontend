@@ -140,36 +140,6 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
       ).nonShortCircuitProgram
     )
   }
-  //     addressValueOf(Address.uk) match {
-  //     case "true" :: Nil =>
-  //       List(
-  //         validateRequiredAtom(Address.street1, "generic.error.address.building.street.required"),
-  //         ukStreetValidation(Address.street1),
-  //         ukStreetValidation(Address.street2),
-  //         ukStreetValidation(Address.street3),
-  //         ukStreetValidation(Address.street4),
-  //         validateCity(configurableMandatoryFields),
-  //         validateRequiredAtom(Address.postcode, "generic.error.address.postcode.required"),
-  //         validateForbiddenField(Address.country, fieldValue)(addressValueOf(Address.country)),
-  //         validatePostcode(Address.postcode, fieldValue)(addressValueOf(Address.postcode))
-  //       )
-  //     case _ =>
-  //       List(
-  //         validateRequiredFieldSub(Address.street1, messages("internationalAddress.line1.label")),
-  //         streetValidation(Address.street1),
-  //         streetValidation(Address.street2),
-  //         streetValidation(Address.street3),
-  //         streetValidation(Address.street4),
-  //         validateForbiddenField(Address.postcode, fieldValue)(addressValueOf(Address.postcode)),
-  //         validateRequiredFieldSub(Address.country, messages("internationalAddress.country.label")),
-  //         countryLengthValidation(Address.country, fieldValue)(addressValueOf(Address.country))
-  //       )
-  //   }
-
-  //   // Monoid[ValidatedType[Unit]].combineAll(validatedResult)
-  //   validatedResult.nonShortCircuitProgram
-  // }
-  //}
 
   private def validateRequiredField(value: Atom, errorPrefix: String, fieldValue: FormComponent) =
     cvh.validateRequired2(fieldValue, fieldValue.atomicFormComponentId(value), Some(errorPrefix)) _
