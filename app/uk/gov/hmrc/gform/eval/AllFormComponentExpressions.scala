@@ -84,12 +84,12 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       case HasExpr(expr) => toPlainExprs(expr :: Nil)
       case IsMiniSummaryList(MiniSummaryList(rows)) =>
         toPlainExprs(
-          (rows.collect { case MiniSummaryRow.ValueRow(Some(key), _, _) => key.interpolations }).flatten,
-          (rows.collect { case MiniSummaryRow.SmartStringRow(Some(key), v, _) =>
+          (rows.collect { case MiniSummaryRow.ValueRow(Some(key), _, _, _) => key.interpolations }).flatten,
+          (rows.collect { case MiniSummaryRow.SmartStringRow(Some(key), v, _, _) =>
             key.interpolations ++ v.interpolations
           }).flatten,
-          rows.collect { case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.AnyExpr(e), _) => e },
-          rows.collect { case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(e), _) => e }
+          rows.collect { case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.AnyExpr(e), _, _) => e },
+          rows.collect { case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(e), _, _) => e }
         )
 
       case IsTableComp(TableComp(header, rows, summaryValue, _, _, _, _)) =>
