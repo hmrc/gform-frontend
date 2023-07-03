@@ -1335,26 +1335,72 @@ class SectionRenderingService(
     fcrd: FormComponentRenderDetails[SummaryRender]
   ): Html = {
     def renderRows(rows: List[MiniSummaryRow]) = {
+
+      def summaryListRowByPageId(key: Option[SmartString], value: String, pageId: PageId) = {
+        val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
+        val sn: SectionNumber = formModel.pageIdSectionNumberMap.toList
+          .sortBy(_._1.maybeIndex)(Ordering[Option[Int]].reverse)
+          .find { case (modelPageId, _) =>
+            modelPageId.baseId == pageId.modelPageId.baseId
+          }
+          .fold(throw new Exception(s"No section number found for pageId ${pageId.id}")) { case (_, sectionNumber) =>
+            sectionNumber
+          }
+
+        val sectionTitle4Ga = sectionTitle4GaFactory(formModel.pageModelLookup(sn), sn)
+        List(
+          SummaryListRowHelper.summaryListRow(
+            key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+            Html(value),
+            Some(""),
+            "",
+            "",
+            "",
+            List(
+              (
+                uk.gov.hmrc.gform.gform.routes.FormController
+                  .form(
+                    formTemplateId,
+                    ei.maybeAccessCode,
+                    sn,
+                    sectionTitle4Ga,
+                    SuppressErrors.Yes,
+                    List(FastForward.CYA(SectionOrSummary.Section(ei.sectionNumber)))
+                  ),
+                messages("summary.view"),
+                ""
+              )
+            ),
+            ""
+          )
+        )
+      }
+
       val slRows = rows.flatMap {
-        case ValueRow(key, MiniSummaryListValue.AnyExpr(e), _) =>
+        case ValueRow(key, MiniSummaryListValue.AnyExpr(e), _, maybePageId) =>
           val exprResult = ei.formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(e)
           val exprStr = exprResult.stringRepresentation
           val formattedExprStr = exprResult.typeInfo.staticTypeData.textConstraint.fold(exprStr) { textConstraint =>
             TextFormatter.componentTextReadonly(exprStr, textConstraint)
           }
-          List(
-            SummaryListRowHelper.summaryListRow(
-              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-              Html(formattedExprStr),
-              Some(""),
-              "",
-              "",
-              "",
-              List(),
-              "govuk-summary-list__row--no-actions"
-            )
-          )
-        case ValueRow(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _) =>
+
+          maybePageId match {
+            case Some(pageId) => summaryListRowByPageId(key, formattedExprStr, pageId)
+            case None =>
+              List(
+                SummaryListRowHelper.summaryListRow(
+                  key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+                  Html(formattedExprStr),
+                  Some(""),
+                  "",
+                  "",
+                  "",
+                  List(),
+                  "govuk-summary-list__row--no-actions"
+                )
+              )
+          }
+        case ValueRow(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _, _) =>
           val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
           formModel.sectionNumberLookup
             .get(formComponentId)
@@ -1381,19 +1427,23 @@ class SectionRenderingService(
             }
             .toList
             .flatten
-        case SmartStringRow(key, ss, _) =>
-          List(
-            SummaryListRowHelper.summaryListRow(
-              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-              Html(ss.value()),
-              Some(""),
-              "",
-              "",
-              "",
-              List(),
-              "govuk-summary-list__row--no-actions"
-            )
-          )
+        case SmartStringRow(key, ss, _, maybePageId) =>
+          maybePageId match {
+            case Some(pageId) => summaryListRowByPageId(key, ss.value(), pageId)
+            case None =>
+              List(
+                SummaryListRowHelper.summaryListRow(
+                  key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+                  Html(ss.value()),
+                  Some(""),
+                  "",
+                  "",
+                  "",
+                  List(),
+                  "govuk-summary-list__row--no-actions"
+                )
+              )
+          }
         case HeaderRow(header)         => throw new Exception("should not have HeaderRow  here")
         case ATLRow(atlId, _, atlRows) => throw new Exception("should not have ATLRow here")
       }
@@ -1414,19 +1464,21 @@ class SectionRenderingService(
           mayBeIncludeIf.map(iIf => IncludeIf(BooleanExprUpdater(iIf.booleanExpr, index, baseIds)))
 
         val updatedATLRows = atlRows.map {
-          case ValueRow(key, MiniSummaryListValue.Reference(fCtx), includeIf) =>
+          case ValueRow(key, MiniSummaryListValue.Reference(fCtx), includeIf, pageId) =>
             ValueRow(
               key.map(_.expand(index, baseIds)),
               MiniSummaryListValue.Reference(ExprUpdater.formCtx(fCtx, index, baseIds)),
-              updatedIncludeIf(includeIf)
+              updatedIncludeIf(includeIf),
+              pageId
             )
 
           case HeaderRow(h) => HeaderRow(h.expand(index, baseIds))
-          case ValueRow(key, MiniSummaryListValue.AnyExpr(expr), includeIf) =>
+          case ValueRow(key, MiniSummaryListValue.AnyExpr(expr), includeIf, pageId) =>
             ValueRow(
               key.map(_.expand(index, baseIds)),
               MiniSummaryListValue.AnyExpr(ExprUpdater(expr, index, baseIds)),
-              updatedIncludeIf(includeIf)
+              updatedIncludeIf(includeIf),
+              pageId
             )
           case e => e
         }
