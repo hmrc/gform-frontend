@@ -126,7 +126,8 @@ class TestOnlyErrorMessageController(
     errorShortNameStart: String,
     errorExample: String,
     errorMessage: String,
-    messages: List[String]
+    messages: List[String],
+    validators: List[(String, String)]
   )
 
   object FieldErrorReport {
@@ -145,7 +146,9 @@ class TestOnlyErrorMessageController(
         errorShortNameStart = formComponent.errorShortNameStart.map(_.rawValue).getOrElse(""),
         errorExample = formComponent.errorExample.map(_.rawValue).getOrElse(""),
         errorMessage = formComponent.errorMessage.map(_.rawValue).getOrElse(""),
-        messages = messages
+        messages = messages,
+        validators =
+          formComponent.validators.map(s => (s.errorMessage.rawValue(LangADT.En), s.errorMessage.rawValue(LangADT.Cy)))
       )
 
     def makeBlank(): FieldErrorReport =
@@ -159,7 +162,8 @@ class TestOnlyErrorMessageController(
         errorShortNameStart = "",
         errorExample = "",
         errorMessage = "",
-        messages = List.empty[String]
+        messages = List.empty[String],
+        validators = List.empty[(String, String)]
       )
   }
 
@@ -180,7 +184,8 @@ class TestOnlyErrorMessageController(
     errorMessage_En: String,
     errorMessage_Cy: String,
     messages_En: List[String],
-    messages_Cy: List[String]
+    messages_Cy: List[String],
+    validators: List[(String, String)]
   )
 
   object FieldErrorAllReport {
@@ -203,8 +208,9 @@ class TestOnlyErrorMessageController(
         errorExample_Cy = reportCy.errorExample,
         errorMessage_En = reportEn.errorMessage,
         errorMessage_Cy = reportCy.errorMessage,
-        messages_En = reportEn.messages,
-        messages_Cy = reportCy.messages
+        messages_En = if (reportEn.validators.isEmpty) reportEn.messages else reportEn.validators.map(_._1),
+        messages_Cy = if (reportCy.validators.isEmpty) reportCy.messages else reportEn.validators.map(_._2),
+        validators = reportEn.validators
       )
     def htmlEscape(report: FieldErrorAllReport): FieldErrorAllReport =
       new FieldErrorAllReport(
@@ -224,7 +230,8 @@ class TestOnlyErrorMessageController(
         errorMessage_En = HtmlFormat.escape(report.errorMessage_En).toString,
         errorMessage_Cy = HtmlFormat.escape(report.errorMessage_Cy).toString,
         messages_En = report.messages_En.map(m => HtmlFormat.escape(m).toString),
-        messages_Cy = report.messages_Cy.map(HtmlFormat.escape(_).toString)
+        messages_Cy = report.messages_Cy.map(HtmlFormat.escape(_).toString),
+        validators = report.validators.map(_.map(HtmlFormat.escape(_).toString))
       )
     def makeEnCy(reportEn: List[FieldErrorReport], reportCy: List[FieldErrorReport]): List[FieldErrorAllReport] = {
       val unionList = (reportEn ++ reportCy).groupBy(_.fieldId).map(_._2.head).toList
@@ -239,9 +246,12 @@ class TestOnlyErrorMessageController(
 
   def toHtml(report: List[FieldErrorAllReport], formTemplateId: FormTemplateId) = {
     def reportToRows(report: FieldErrorAllReport): String = {
+      val validatorsLabelAndValues = report.validators.zipWithIndex.flatMap {
+        case ((enValidator, cyValidator), index) =>
+          List((s"validator $index En", enValidator), (s"validator $index Cy", cyValidator))
+      }
       val labelsAndValues = List(
         ("fieldId", report.fieldId),
-        // ("errorMessageType", report.errorMessageType),
         ("label En", report.label_En),
         ("label Cy", report.label_Cy),
         ("shortName En", report.shortName_En),
@@ -254,7 +264,7 @@ class TestOnlyErrorMessageController(
         ("errorExample Cy", report.errorExample_Cy),
         ("errorMessage En", report.errorMessage_En),
         ("errorMessage Cy", report.errorMessage_Cy)
-      )
+      ) ++ validatorsLabelAndValues
 
       val messagesCombined = report.messages_En.zipAll(report.messages_Cy, "", "")
 
