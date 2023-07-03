@@ -19,15 +19,42 @@
 
 @import play.twirl.api.Html
 
-@(title: String, table: Html)
+@(title: String, report: List[List[(String, String, String, String)]])
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>@{title}</title>
+    <title>Report for @{title}</title>
   </head>
   <body>
-    <h1>@{title}</h1>
-    @table
+    <h1>Report for @{title}</h1>
+    <table class="govuk-table " >
+      <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+          <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header app-custom-class">Property</th>
+          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class">Property value</th>
+          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class">English error messages</th>
+          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class ">Welsh error messages</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        @for(r <- report) {
+          @for((label, value, enMessage, cyMessage) <- r) {
+            <tr class="govuk-table__row">
+              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">@label</th>
+              <td class="govuk-table__cell" >@value</td>
+              <td style="color: #d4351c;" class="govuk-table__cell" >@enMessage</td>
+              <td style="color: #d4351c;" class="govuk-table__cell" >@cyMessage</td>
+            </tr>
+          }
+          <tr class="govuk-table__row">
+            <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header app-custom-class">Property</th>
+            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class">Property value</th>
+            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class">English error messages</th>
+            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class ">Welsh error messages</th>
+          </tr>
+        }
+      </tbody>
+    </table>
   </body>
 </html>
