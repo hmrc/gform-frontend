@@ -25,14 +25,14 @@ import play.api.mvc._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.http.HeaderCarrier
+// import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+// import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.IsText
@@ -40,6 +40,17 @@ import play.api.i18n.I18nSupport
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.eval.BooleanExprEval
+// import uk.gov.hmrc.gform.models.email.VerificationCodeFieldId
+// import uk.gov.hmrc.gform.models.email.EmailFieldId
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+// import cats.kernel.Monoid
+// import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import cats.data.Validated.Valid
+import cats.data.Validated
+
+import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
 
 class TestOnlyErrorMessageController(
   i18nSupport: I18nSupport,
@@ -50,6 +61,7 @@ class TestOnlyErrorMessageController(
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
+  // gformErrors
   def errorMessages(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -57,63 +69,124 @@ class TestOnlyErrorMessageController(
     jsonReport: Boolean
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      _ => implicit l => cache => implicit sse => formModelOptics =>
         import play.api.i18n._
-        val validationService =
-          if (fullReport)
-            validationFullReportService
-          else
-            validationReportService
+        // val validationService =
+        //   if (fullReport)
+        //     validationFullReportService
+        //   else
+        //     validationReportService
 
         val messagesApi: MessagesApi = controllerComponents.messagesApi
-        val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
-        val welshMessages: Messages = messagesApi.preferred(Seq(Lang("cy")))
-        for {
-          envelopeWithMapping <- Future.successful(EnvelopeWithMapping.empty)
-          englishValidationResult <-
-            validationService
-              .validateFormModel(
-                cache.toCacheData,
-                envelopeWithMapping,
-                formModelOptics.formModelVisibilityOptics,
-                None
-              )(implicitly[HeaderCarrier], englishMessages, l, sse)
-          welshValidationResult <-
-            validationService
-              .validateFormModel(
-                cache.toCacheData,
-                envelopeWithMapping,
-                formModelOptics.formModelVisibilityOptics,
-                None
-              )(implicitly[HeaderCarrier], welshMessages, l, sse)
-          englishReport = reports(englishValidationResult.formFieldValidationResults)(LangADT.En)
-          welshReport = reports(welshValidationResult.formFieldValidationResults)(LangADT.Cy)
-        } yield
-          if (jsonReport)
-            Ok(Json.toJson(englishReport ++ welshReport)).as("application/json")
-          else {
-            val table = toTableCells(EnCyReport.makeEnCy(englishReport, welshReport), formTemplateId)
-            val title = if (fullReport) "Full Error Report" else "Error Report"
-            Ok(html.debug.errorReport(title, table)).as("text/html")
+        implicit val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
+        // val welshMessages: Messages = messagesApi.preferred(Seq(Lang("cy")))
+
+        val formComponents = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
+        formComponents
+          .map { formComponent =>
+            val formModel = formModelOptics.formModelVisibilityOptics.formModel
+            new ComponentsValidator[DataOrigin.Mongo, Future](
+              formModelOptics.formModelVisibilityOptics,
+              formComponent,
+              cache.toCacheData,
+              EnvelopeWithMapping.empty,
+              new LookupRegistry(Map()),
+              new BooleanExprEval(),
+              ComponentChecker.ErrorReportInterpreter
+            ).validate(GetEmailCodeFieldMatcher(formModel)).map {
+              case Valid(a)                      => (formComponent, GformError.emptyGformError)
+              case Validated.Invalid(gformError) => (formComponent, gformError)
+            }
           }
+          .sequence
+          .map(_.flatMap { case (formComponent, gfromError) =>
+            FieldErrorReport.make(formComponent, gfromError)
+          })
+          .map { r =>
+            if (jsonReport)
+              Ok(Json.toJson(r ++ r)).as("application/json")
+            else {
+              val table = toTableCells(EnCyReport.makeEnCy(r, r), formTemplateId)
+              val title = if (fullReport) "Full Error Report" else "Error Report"
+              Ok(html.debug.errorReport(title, table)).as("text/html")
+            }
+
+          }
+
+      // errorsInfo.
+      //     errorsInfo.map.map {
+      //     case (formComponent, gfromError) => FieldErrorReport.make(formComponent, gfromError)
+      //   }
+      // val vr = validationResults.sequence
+      //   .map(_.map(_.toEither match {
+      //     case Left(gfromError) => gfromError
+      //     case _                => GformError.emptyGformError
+      //   }))
+      //   .map(gformErrors => Monoid[Map[ModelComponentId, Set[String]]].combineAll(gformErrors))
+      // for {
+      //   envelopeWithMapping <- Future.successful(EnvelopeWithMapping.empty)
+      //   englishValidationResult <-
+      //     validationService
+      //       .validateFormModel(
+      //         cache.toCacheData,
+      //         envelopeWithMapping,
+      //         formModelOptics.formModelVisibilityOptics,
+      //         None
+      //       )(implicitly[HeaderCarrier], englishMessages, l, sse)
+      //   welshValidationResult <-
+      //     validationService
+      //       .validateFormModel(
+      //         cache.toCacheData,
+      //         envelopeWithMapping,
+      //         formModelOptics.formModelVisibilityOptics,
+      //         None
+      //       )(implicitly[HeaderCarrier], welshMessages, l, sse)
+      //   englishReport = reports(englishValidationResult.formFieldValidationResults)(LangADT.En)
+      //   welshReport = reports(welshValidationResult.formFieldValidationResults)(LangADT.Cy)
+      // } yield
+      //   if (jsonReport)
+      //     Ok(Json.toJson(englishReport ++ welshReport)).as("application/json")
+      //   else {
+      //     val table = toTableCells(EnCyReport.makeEnCy(englishReport, welshReport), formTemplateId)
+      //     val title = if (fullReport) "Full Error Report" else "Error Report"
+      //     Ok(html.debug.errorReport(title, table)).as("text/html")
+      //   }
     }
 
-  private def reports(
-    listValidation: List[FormFieldValidationResult]
-  )(implicit l: LangADT): List[FieldErrorReport] =
-    listValidation
-      .filter(_.isNotOk)
-      .flatMap { formFieldValidationResults =>
-        val formComponent = formFieldValidationResults.formComponent
-        formFieldValidationResults match {
-          case ComponentField(_, data) =>
-            data.map { case (key, value) =>
-              FieldErrorReport.make(key.toHtmlId, formComponent, value.fieldErrors.toList)
-            }
-          case otherwise =>
-            List(FieldErrorReport.make(formComponent.id.value, formComponent, otherwise.fieldErrors.toList))
-        }
-      }
+  // private def reports1(
+  //   formComponent: FormComponent,
+  //   gformError: GformError
+  // )(implicit l: LangADT): List[FieldErrorReport] =
+  //   listValidation
+  //     .filter(_.isNotOk)
+  //     .flatMap { formFieldValidationResults =>
+  //       val formComponent = formFieldValidationResults.formComponent
+  //       formFieldValidationResults match {
+  //         case ComponentField(_, data) =>
+  //           data.map { case (key, value) =>
+  //             FieldErrorReport.make(key.toHtmlId, formComponent, value.fieldErrors.toList)
+  //           }
+  //         case otherwise =>
+  //           List(FieldErrorReport.make(formComponent.id.value, formComponent, otherwise.fieldErrors.toList))
+  //       }
+  //     }
+
+  // private def reports(
+  //   listValidation: List[FormFieldValidationResult]
+  // )(implicit l: LangADT): List[FieldErrorReport] =
+  //   listValidation
+  //     .filter(_.isNotOk)
+  //     .flatMap { formFieldValidationResults =>
+  //       val formComponent = formFieldValidationResults.formComponent
+  //       formFieldValidationResults match {
+  //         case ComponentField(_, data) =>
+  //           data.map { case (key, value) =>
+  //             FieldErrorReport.make(key.toHtmlId, formComponent, value.fieldErrors.toList)
+  //           }
+  //         case otherwise =>
+  //           List(FieldErrorReport.make(formComponent.id.value, formComponent, otherwise.fieldErrors.toList))
+  //       }
+  //     }
 
   case class FieldErrorReport(
     fieldId: String,
@@ -149,6 +222,11 @@ class TestOnlyErrorMessageController(
         validators =
           formComponent.validators.map(s => (s.errorMessage.rawValue(LangADT.En), s.errorMessage.rawValue(LangADT.Cy)))
       )
+
+    def make(formComponent: FormComponent, gformError: GformError)(implicit l: LangADT): List[FieldErrorReport] =
+      gformError.map { case (id, errors) =>
+        make(id.show, formComponent, errors.toList)
+      }.toList
 
     def makeBlank(): FieldErrorReport =
       new FieldErrorReport(
