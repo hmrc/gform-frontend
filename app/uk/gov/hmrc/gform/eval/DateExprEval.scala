@@ -84,8 +84,8 @@ object DateExprEval {
                     localDate => DateResult(localDate)
                   )
               case (None, Some(VariadicValue.One(m)), Some(VariadicValue.One(d))) =>
-                //Year is empty for calendar date component, so retrieves the current year to create a LocalDate.
-                Try(LocalDate.of(LocalDate.now().getYear, m.toInt, d.toInt))
+                val leapYear = 2020 //makes 29th of feb valid when we don't know the year. The year 2020 is a leap year
+                Try(LocalDate.of(leapYear, m.toInt, d.toInt))
                   .fold(
                     _ => fromValue(evaluationContext, formComponentId),
                     localDate => DateResult(localDate)
