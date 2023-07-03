@@ -222,7 +222,10 @@ class TestOnlyErrorMessageController(
     }
   }
 
-  def toTableCells(enCyReports: List[EnCyReport], formTemplateId: FormTemplateId): List[List[(String, String, String, String)]] = {
+  def toTableCells(
+    enCyReports: List[EnCyReport],
+    formTemplateId: FormTemplateId
+  ): List[List[(String, String, String, String)]] = {
     def reportToRows(enCyReport: EnCyReport): List[(String, String, String, String)] = {
       val validatorsLabelAndValues = enCyReport.validators.zipWithIndex.flatMap {
         case ((enValidator, cyValidator), index) =>
