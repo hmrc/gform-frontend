@@ -56,7 +56,6 @@ class TestOnlyErrorMessageController(
   def errorMessages(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    fullReport: Boolean,
     jsonReport: Boolean
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
@@ -104,7 +103,7 @@ class TestOnlyErrorMessageController(
             Ok(Json.toJson(EnCyReport.makeEnCy(englishReports, welshReports))).as("application/json")
           else {
             val table = toTableCells(EnCyReport.makeEnCy(englishReports, welshReports), formTemplateId)
-            val title = if (fullReport) "Full Error Report" else "Error Report"
+            val title = "Error Report"
             Ok(html.debug.errorReport(title, table)).as("text/html")
           }
     }
@@ -259,40 +258,23 @@ class TestOnlyErrorMessageController(
     enCyReports.map(reportToRows)
   }
 
-  def errorsJsonFull(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode]
-  ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      _ => _ => _ => _ => _ =>
-        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, true, true))
-          .pure[Future]
-    }
   def errorsJson(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => _ => _ => _ =>
-        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, false, true))
+        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, true))
           .pure[Future]
     }
-  def errorsHtmlFull(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode]
-  ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      _ => _ => _ => _ => _ =>
-        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, true, false))
-          .pure[Future]
-    }
+
   def errorsHtml(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => _ => _ => _ =>
-        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, false, false))
+        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, false))
           .pure[Future]
     }
 }
