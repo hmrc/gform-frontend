@@ -53,10 +53,6 @@ class ComponentCheckerShortCircuitSpec extends AnyFunSpec with Matchers {
       val validationResult = program.foldMap(ErrorReportInterpreter)
       validationResult shouldBe ().asRight.asRight
     }
-    it("the  FulErrorReportInterpreter should return success") {
-      val validationResult = program.foldMap(FullErrorReportInterpreter)
-      validationResult shouldBe ().asRight.asRight
-    }
     it("the  ShortCircuitProgram should return success") {
       val validationResult = program.foldMap(ShortCircuitInterpreter)
       validationResult shouldBe ().asRight.asRight
@@ -70,10 +66,6 @@ class ComponentCheckerShortCircuitSpec extends AnyFunSpec with Matchers {
     val program = List[CheckProgram[Unit]](successProg).nonShortCircuitProgram
     it("the  ErrorReportInterpreter should return success") {
       val validationResult = program.foldMap(ErrorReportInterpreter)
-      validationResult shouldBe ().asRight.asRight
-    }
-    it("the  FulErrorReportInterpreter should return success") {
-      val validationResult = program.foldMap(FullErrorReportInterpreter)
       validationResult shouldBe ().asRight.asRight
     }
     it("the  ShortCircuitProgram should return success") {
@@ -92,10 +84,6 @@ class ComponentCheckerShortCircuitSpec extends AnyFunSpec with Matchers {
       val validationResult = program.foldMap(ErrorReportInterpreter)
       validationResult shouldBe ().asRight.asRight
     }
-    it("the  FulErrorReportInterpreter should return success") {
-      val validationResult = program.foldMap(FullErrorReportInterpreter)
-      validationResult shouldBe ().asRight.asRight
-    }
     it("the  ShortCircuitProgram should return success") {
       val validationResult = program.foldMap(ShortCircuitInterpreter)
       validationResult shouldBe ().asRight.asRight
@@ -110,10 +98,6 @@ class ComponentCheckerShortCircuitSpec extends AnyFunSpec with Matchers {
     val program = List(successProg).nonShortCircuitProgram
     it("the  ErrorReportInterpreter should return success") {
       val validationResult = program.foldMap(ErrorReportInterpreter)
-      validationResult shouldBe ().asRight.asRight
-    }
-    it("the  FulErrorReportInterpreter should return success") {
-      val validationResult = program.foldMap(FullErrorReportInterpreter)
       validationResult shouldBe ().asRight.asRight
     }
     it("the  ShortCircuitProgram should return success") {
@@ -133,10 +117,6 @@ class ComponentCheckerShortCircuitSpec extends AnyFunSpec with Matchers {
       val validationResult = program.foldMap(ErrorReportInterpreter)
       validationResult shouldBe gformError1.asLeft[Unit].asRight[GformError]
     }
-    it("the  FulErrorReportInterpreter should failed error") {
-      val validationResult = program.foldMap(FullErrorReportInterpreter)
-      validationResult shouldBe gformError1.asLeft[Unit].asRight[GformError]
-    }
     it("the  ShortCircuitProgram should return failed error") {
       val validationResult = program.foldMap(ShortCircuitInterpreter)
       validationResult shouldBe gformError1.asLeft[Unit]
@@ -152,10 +132,6 @@ class ComponentCheckerShortCircuitSpec extends AnyFunSpec with Matchers {
     val program = List(successProg, failedProg).nonShortCircuitProgram
     it("the  ErrorReportInterpreter should return failed error") {
       val validationResult = program.foldMap(ErrorReportInterpreter)
-      validationResult shouldBe gformError1.asLeft[Unit].asRight[GformError]
-    }
-    it("the  FulErrorReportInterpreter should failed error") {
-      val validationResult = program.foldMap(FullErrorReportInterpreter)
       validationResult shouldBe gformError1.asLeft[Unit].asRight[GformError]
     }
     it("the  ShortCircuitProgram should return failed error") {
@@ -176,10 +152,6 @@ class ComponentCheckerShortCircuitSpec extends AnyFunSpec with Matchers {
       val validationResult = program.foldMap(ErrorReportInterpreter)
       validationResult shouldBe (gformError1 |+| gformError2).asLeft[Unit].asRight[GformError]
     }
-    it("the  FulErrorReportInterpreter should all failed errors") {
-      val validationResult = program.foldMap(FullErrorReportInterpreter)
-      validationResult shouldBe (gformError1 |+| gformError2).asLeft[Unit].asRight[GformError]
-    }
     it("the  ShortCircuitProgram should return failed error") {
       val validationResult = program.foldMap(ShortCircuitInterpreter)
       validationResult shouldBe gformError1.asLeft[Unit]
@@ -196,10 +168,6 @@ class ComponentCheckerShortCircuitSpec extends AnyFunSpec with Matchers {
     val program = List(successProg, failedProg1, failedProg2).nonShortCircuitProgram
     it("the  ErrorReportInterpreter should return all failed error") {
       val validationResult = program.foldMap(ErrorReportInterpreter)
-      validationResult shouldBe (gformError1 |+| gformError2).asLeft[Unit].asRight[GformError]
-    }
-    it("the  FulErrorReportInterpreter should all failed error") {
-      val validationResult = program.foldMap(FullErrorReportInterpreter)
       validationResult shouldBe (gformError1 |+| gformError2).asLeft[Unit].asRight[GformError]
     }
     it("the  ShortCircuitProgram should return all failed error") {

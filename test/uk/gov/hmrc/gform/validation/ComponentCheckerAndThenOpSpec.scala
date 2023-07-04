@@ -63,11 +63,6 @@ class ComponentCheckerAndThenOpSpec extends AnyFunSpec with Matchers {
       val expectedResult = 2.asRight.asRight
       validationResult shouldBe expectedResult
     }
-    it("the  FulErrorReportInterpreter should return value") {
-      val validationResult = testProgram.foldMap(FullErrorReportInterpreter)
-      val expectedResult = 2.asRight.asRight
-      validationResult shouldBe expectedResult
-    }
     it("the  ShortCircuitProgram should value of the andThen operation") {
       val validationResult = testProgram.foldMap(ShortCircuitInterpreter)
       validationResult shouldBe 2.asRight.asRight
@@ -86,11 +81,6 @@ class ComponentCheckerAndThenOpSpec extends AnyFunSpec with Matchers {
 
     it("the  ErrorReportInterpreter should return failed operation error") {
       val validationResult = testProgram.foldMap(ErrorReportInterpreter)
-      val expectedResult = gformError1.asLeft.asRight
-      validationResult shouldBe expectedResult
-    }
-    it("the  FulErrorReportInterpreter should return failed operation error") {
-      val validationResult = testProgram.foldMap(FullErrorReportInterpreter)
       val expectedResult = gformError1.asLeft.asRight
       validationResult shouldBe expectedResult
     }
@@ -114,11 +104,6 @@ class ComponentCheckerAndThenOpSpec extends AnyFunSpec with Matchers {
 
     it("the  ErrorReportInterpreter should return all failed operations error") {
       val validationResult = testProgram.foldMap(ErrorReportInterpreter)
-      val expectedResult = (gformError1 |+| gformError2).asLeft.asRight
-      validationResult shouldBe expectedResult
-    }
-    it("the  FulErrorReportInterpreter should return all failed operations error") {
-      val validationResult = testProgram.foldMap(FullErrorReportInterpreter)
       val expectedResult = (gformError1 |+| gformError2).asLeft.asRight
       validationResult shouldBe expectedResult
     }

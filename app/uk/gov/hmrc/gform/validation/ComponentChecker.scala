@@ -54,8 +54,8 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
  *                                       short-circuiting or non-short-circuiting logic, respectively.
  *
  * - IfOp: Represents an if-then-else construct in the DSL. It's created using the ifProgram function.
- *         - cond is checked by all interpreters. Should provide a check on user input.
- *         - andCond is ignored by the "full" report. Should provide a condition on something
+ *         - cond is ignored by the  report. Should provide a check on user input.
+ *         - andCond is checked by all interpreters. Should provide a condition on something
  *           that is not related to user input, like form's mandatory property, etc.
  *
  * - AndThenOp, OrElseOp: Combinators allowing the composition of multiple check programs.
@@ -283,37 +283,6 @@ object ComponentChecker {
         ).rightErrors
       case ErrorOp(gformError) => gformError.asLeft.asRight
       case SuccessOp(a)        => a.asRight.asRight
-      case AndThenOp(program, andThenFun, reportA) =>
-        program.foldMap(this) match {
-          case Left(error)        => (error |+| getError(andThenFun(reportA).foldMap(this))).asLeft.asRight
-          case Right(Right(a))    => andThenFun(a).foldMap(this).rightErrors
-          case Right(Left(error)) => (error |+| getError(andThenFun(reportA).foldMap(this))).asLeft.asRight
-        }
-      case OrElseOp(program, orElseProgram) =>
-        program.foldMap(this) match {
-          case Left(_)         => orElseProgram.foldMap(this).rightErrors
-          case Right(Right(a)) => a.asRight.asRight
-          case Right(Left(_))  => orElseProgram.foldMap(this).rightErrors
-        }
-      case LeftMapOp(program, f) =>
-        program
-          .foldMap(this)
-          .fold(
-            error => Left(f(error)),
-            eitherError => Right(eitherError.leftMap(f))
-          )
-          .rightErrors
-    }
-  }
-
-  object FullErrorReportInterpreter extends CheckInterpreter {
-    def apply[A](op: CheckOp[A]) = op match {
-      case ShortCircuitOp(program)    => program.foldMap(this).rightErrors
-      case NonShortCircuitOp(program) => program.foldMap(this).rightErrors
-      case IfOp(_, _, thenProgram, elseProgram) =>
-        (getError(thenProgram.foldMap(this)) |+| getError(elseProgram.foldMap(this))).asLeft.asRight
-      case ErrorOp(gformError) => gformError.asLeft.asRight
-      case SuccessOp(a: Any)   => a.asRight.asRight
       case AndThenOp(program, andThenFun, reportA) =>
         program.foldMap(this) match {
           case Left(error)        => (error |+| getError(andThenFun(reportA).foldMap(this))).asLeft.asRight

@@ -48,8 +48,7 @@ class TestOnlyErrorMessageController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActions,
   controllerComponents: MessagesControllerComponents,
-  validationReportService: ValidationService,
-  validationFullReportService: ValidationService
+  validationReportService: ValidationService
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 

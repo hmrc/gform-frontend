@@ -68,11 +68,6 @@ class ComponentCheckerSwitchOpSpec extends AnyFunSpec with Matchers {
       val expectedResult = (gformError1 |+| gformError2 |+| gformError3).asLeft.asRight
       validationResult shouldBe expectedResult
     }
-    it("the  FulErrorReportInterpreter should return all errors") {
-      val validationResult = result.foldMap(FullErrorReportInterpreter)
-      val expectedResult = (gformError1 |+| gformError2 |+| gformError3).asLeft.asRight
-      validationResult shouldBe expectedResult
-    }
     it("the  ShortCircuitProgram should return first matching error") {
       val validationResult = result.foldMap(ShortCircuitInterpreter)
       validationResult shouldBe gformError2.asLeft
@@ -99,11 +94,6 @@ class ComponentCheckerSwitchOpSpec extends AnyFunSpec with Matchers {
 
     it("the  ErrorReportInterpreter should return all errors") {
       val validationResult = result.foldMap(ErrorReportInterpreter)
-      val expectedResult = (gformError1 |+| gformError2 |+| gformError3).asLeft.asRight
-      validationResult shouldBe expectedResult
-    }
-    it("the  FulErrorReportInterpreter should return all errors") {
-      val validationResult = result.foldMap(FullErrorReportInterpreter)
       val expectedResult = (gformError1 |+| gformError2 |+| gformError3).asLeft.asRight
       validationResult shouldBe expectedResult
     }
@@ -135,11 +125,6 @@ class ComponentCheckerSwitchOpSpec extends AnyFunSpec with Matchers {
     it("the  ErrorReportInterpreter should return all errors without first one that is excluded by andCond") {
       val validationResult = result.foldMap(ErrorReportInterpreter)
       val expectedResult = (gformError2 |+| gformError3).asLeft.asRight
-      validationResult shouldBe expectedResult
-    }
-    it("the  FulErrorReportInterpreter should return all errors") {
-      val validationResult = result.foldMap(FullErrorReportInterpreter)
-      val expectedResult = (gformError1 |+| gformError2 |+| gformError3).asLeft.asRight
       validationResult shouldBe expectedResult
     }
     it("the  ShortCircuitProgram should return elseBlock error") {

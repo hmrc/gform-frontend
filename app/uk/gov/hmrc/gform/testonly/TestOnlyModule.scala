@@ -61,15 +61,6 @@ class TestOnlyModule(
     playBuiltInsModule.i18nSupport,
     ComponentChecker.ErrorReportInterpreter
   )
-  val validationFullReportService = new ValidationService(
-    fileUploadModule.fileUploadService,
-    graphModule.booleanExprEval,
-    gformBackendModule.gformConnector,
-    lookupRegistry,
-    graphModule.recalculation,
-    playBuiltInsModule.i18nSupport,
-    ComponentChecker.FullErrorReportInterpreter
-  )
 
   val testOnlyController = new TestOnlyController(
     playBuiltInsModule.i18nSupport,
@@ -84,8 +75,7 @@ class TestOnlyModule(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     controllersModule.messagesControllerComponents,
-    validationReportService,
-    validationFullReportService
+    validationReportService
   )
 
   val debugController = new DebugController(
