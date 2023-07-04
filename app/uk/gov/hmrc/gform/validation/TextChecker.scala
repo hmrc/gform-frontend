@@ -889,9 +889,9 @@ object TextChecker {
       case _                          => (None, None, None)
     }
 
-    val (signFS, _, _, fractionFS) = filteredValue match {
-      case FractionalShape(sign, _, _, fraction) => (Some(sign), Some(""), Some(""), Some(fraction))
-      case _                                     => (None, None, None, None)
+    val (signFS, wholeFS, _, fractionFS) = filteredValue match {
+      case FractionalShape(sign, whole, _, fraction) => (Some(sign), Some(whole), Some(""), Some(fraction))
+      case _                                         => (None, None, None, None)
     }
 
     val isNegativeWhole = signWS.contains("-")
@@ -899,6 +899,7 @@ object TextChecker {
     val hasFractionMoreThanTwoDigits = fractionFS.exists(_.length > 2)
     val isFractionPresent = fractionFS.isDefined
     val exceedsWholeLimit = wholeWS.exists(whole => surpassMaxLength(whole, maxWhole))
+    val exceedsWholeLimitFS = wholeFS.exists(whole => surpassMaxLength(whole, maxWhole))
 
     switchProgram(
       switchCase(
@@ -913,6 +914,10 @@ object TextChecker {
       ),
       switchCase(
         cond = exceedsWholeLimit,
+        thenProgram = maxDigitSterlingFailure(fieldValue, value, maxWhole)
+      ),
+      switchCase(
+        cond = exceedsWholeLimitFS,
         thenProgram = maxDigitSterlingFailure(fieldValue, value, maxWhole)
       ),
       switchCase(
