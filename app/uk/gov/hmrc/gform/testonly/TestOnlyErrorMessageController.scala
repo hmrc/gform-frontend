@@ -100,7 +100,15 @@ class TestOnlyErrorMessageController(
         val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
         val welshMessages: Messages = messagesApi.preferred(Seq(Lang("cy")))
 
-        val formComponents = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
+        // val formComponents = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
+        val formComponents =
+          formModelOptics.formModelVisibilityOptics.formModel.pages
+            .flatMap(_.allFormComponents)
+            .toList
+            .map(_.copy(includeIf = None))
+        // lxol.pp.log(components, "COMPONENTS")
+        formComponents.foreach(c => lxol.pp.log(c))
+        lxol.pp.log(formComponents.length, "LENGTH")
         for {
           englishReports <- reportsF(formComponents)(englishMessages, LangADT.En)
           welshReports   <- reportsF(formComponents)(welshMessages, LangADT.Cy)
