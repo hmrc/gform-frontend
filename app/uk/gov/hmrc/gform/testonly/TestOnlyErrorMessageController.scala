@@ -16,41 +16,33 @@
 
 package uk.gov.hmrc.gform.testonly
 
-import play.api.libs.json.{ Json, OFormat }
-
-import uk.gov.hmrc.gform.views.html
+import cats.data.Validated
+import cats.data.Validated.Valid
 import cats.implicits._
-import play.api.mvc._
-
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
-import uk.gov.hmrc.gform.models.SectionSelectorType
-// import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-
-import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.gform.validation.ValidationService
-import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
-
-// import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-import uk.gov.hmrc.gform.validation._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.IsText
 import play.api.i18n.I18nSupport
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import play.api.libs.json.Json
+import play.api.libs.json.OFormat
+import play.api.mvc._
+import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
+import uk.gov.hmrc.gform.eval.BooleanExprEval
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.eval.BooleanExprEval
-// import uk.gov.hmrc.gform.models.email.VerificationCodeFieldId
-// import uk.gov.hmrc.gform.models.email.EmailFieldId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-// import cats.kernel.Monoid
-// import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import cats.data.Validated.Valid
-import cats.data.Validated
-
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.IsText
+import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
+import uk.gov.hmrc.gform.validation._
+import uk.gov.hmrc.gform.views.html
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class TestOnlyErrorMessageController(
   i18nSupport: I18nSupport,
@@ -61,7 +53,6 @@ class TestOnlyErrorMessageController(
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
-  // gformErrors
   def errorMessages(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -100,15 +91,11 @@ class TestOnlyErrorMessageController(
         val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
         val welshMessages: Messages = messagesApi.preferred(Seq(Lang("cy")))
 
-        // val formComponents = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
         val formComponents =
           formModelOptics.formModelRenderPageOptics.formModel.pages
             .flatMap(_.allFormComponents)
             .toList
             .map(_.copy(includeIf = None))
-        // lxol.pp.log(components, "COMPONENTS")
-        formComponents.foreach(c => lxol.pp.log(c))
-        lxol.pp.log(formComponents.length, "LENGTH")
         for {
           englishReports <- reportsF(formComponents)(englishMessages, LangADT.En)
           welshReports   <- reportsF(formComponents)(welshMessages, LangADT.Cy)
@@ -120,7 +107,6 @@ class TestOnlyErrorMessageController(
             val title = if (fullReport) "Full Error Report" else "Error Report"
             Ok(html.debug.errorReport(title, table)).as("text/html")
           }
-
     }
 
   case class FieldErrorReport(
