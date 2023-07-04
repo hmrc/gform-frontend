@@ -102,7 +102,7 @@ class TestOnlyErrorMessageController(
 
         // val formComponents = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
         val formComponents =
-          formModelOptics.formModelVisibilityOptics.formModel.pages
+          formModelOptics.formModelRenderPageOptics.formModel.pages
             .flatMap(_.allFormComponents)
             .toList
             .map(_.copy(includeIf = None))
@@ -160,7 +160,7 @@ class TestOnlyErrorMessageController(
 
     def make(formComponent: FormComponent, gformError: GformError)(implicit l: LangADT): List[FieldErrorReport] =
       gformError.map { case (id, errors) =>
-        make(id.show, formComponent, errors.toList)
+        make(id.toMongoIdentifier, formComponent, errors.toList)
       }.toList
 
     def makeBlank(): FieldErrorReport =
@@ -227,11 +227,13 @@ class TestOnlyErrorMessageController(
     def makeEnCy(reportEn: List[FieldErrorReport], reportCy: List[FieldErrorReport]): List[EnCyReport] = {
       val unionList = (reportEn ++ reportCy).groupBy(_.fieldId).map(_._2.head).toList
 
-      unionList.map { element =>
-        val en = reportEn.find(_.fieldId == element.fieldId).getOrElse(FieldErrorReport.makeBlank())
-        val cy = reportCy.find(_.fieldId == element.fieldId).getOrElse(FieldErrorReport.makeBlank())
-        EnCyReport.make(en, cy)
-      }
+      unionList
+        .map { element =>
+          val en = reportEn.find(_.fieldId == element.fieldId).getOrElse(FieldErrorReport.makeBlank())
+          val cy = reportCy.find(_.fieldId == element.fieldId).getOrElse(FieldErrorReport.makeBlank())
+          EnCyReport.make(en, cy)
+        }
+        .sortBy(_.fieldId)
     }
   }
 
