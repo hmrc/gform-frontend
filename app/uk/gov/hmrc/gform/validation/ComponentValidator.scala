@@ -641,6 +641,8 @@ object ComponentValidator {
         nonNumericSterlingFailure(fieldValue, value)
       case FractionalShape(_, _, _, fractional) if isWhole =>
         wholeSterlingFailure(fieldValue, value)
+      case FractionalShape(_, whole, _, fractional) if surpassMaxLength(whole, maxWhole) =>
+        maxDigitSterlingFailure(fieldValue, value, maxWhole)
       case WholeShape(_, whole, _) if surpassMaxLength(whole, maxWhole) =>
         maxDigitSterlingFailure(fieldValue, value, maxWhole)
       case WholeShape("-", _, _) if isPositive         => positiveSterlingFailure(fieldValue, value)
