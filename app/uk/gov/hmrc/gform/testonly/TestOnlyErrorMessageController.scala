@@ -189,8 +189,10 @@ class TestOnlyErrorMessageController(
         errorExample_Cy = reportCy.errorExample,
         errorMessage_En = reportEn.errorMessage,
         errorMessage_Cy = reportCy.errorMessage,
-        messages_En = if (reportEn.validators.isEmpty) reportEn.messages else reportEn.validators.map(_._1),
-        messages_Cy = if (reportCy.validators.isEmpty) reportCy.messages else reportEn.validators.map(_._2),
+        messages_En =
+          if (reportEn.validators.isEmpty) reportEn.messages else reportEn.messages ++ reportEn.validators.map(_._1),
+        messages_Cy =
+          if (reportCy.validators.isEmpty) reportCy.messages else reportCy.messages ++ reportCy.validators.map(_._2),
         validators = reportEn.validators
       )
     def makeEnCy(reportEn: List[FieldErrorReport], reportCy: List[FieldErrorReport]): List[EnCyReport] = {
