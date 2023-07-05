@@ -87,7 +87,7 @@ class TestOnlyErrorMessageController(
             Ok(Json.toJson(EnCyReport.makeEnCy(englishReports, welshReports))).as("application/json")
           else {
             val table = toTableCells(EnCyReport.makeEnCy(englishReports, welshReports), formTemplateId)
-            val title = "Error Report"
+            val title = s"Error Report for ${formTemplateId.value}"
             Ok(html.debug.errorReport(title, table)).as("text/html")
           }
     }

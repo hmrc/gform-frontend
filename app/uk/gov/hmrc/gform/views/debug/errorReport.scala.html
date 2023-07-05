@@ -24,17 +24,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>Report for @{title}</title>
+    <link href="/submissions/assets/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css">
+    <title>@{title}</title>
   </head>
   <body>
-    <h1>Report for @{title}</h1>
+    <h1 class="govuk-heading-m">@{title}</h1>
     <table class="govuk-table " >
       <thead class="govuk-table__head">
-        <tr class="govuk-table__row">
-          <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header app-custom-class">Property</th>
-          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class">Property value</th>
-          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class">English error messages</th>
-          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class ">Welsh error messages</th>
+        <tr class="govuk-table__row" style="background-color: #f3f2f1">
+          <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property</th>
+          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property value</th>
+          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">English error messages</th>
+          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre ">Welsh error messages</th>
         </tr>
       </thead>
       <tbody class="govuk-table__body">
@@ -47,11 +48,11 @@
               <td style="color: #d4351c;" class="govuk-table__cell" >@cyMessage</td>
             </tr>
           }
-          <tr class="govuk-table__row">
-            <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header app-custom-class">Property</th>
-            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class">Property value</th>
-            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class">English error messages</th>
-            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class ">Welsh error messages</th>
+          <tr class="govuk-table__row" style="background-color: #f3f2f1">
+            <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property</th>
+            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property value</th>
+            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">English error messages</th>
+            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Welsh error messages</th>
           </tr>
         }
       </tbody>
