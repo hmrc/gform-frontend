@@ -36,7 +36,6 @@ class PostcodeLookupChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D]
     messages: Messages,
     sse: SmartStringEvaluator
   ): CheckProgram[Unit] = {
-    // val formComponent = context.formComponent
     val checker = new PostcodeLookupCheckerHelper(context.formModelVisibilityOptics)
     checker.validate(context.formComponent)
   }

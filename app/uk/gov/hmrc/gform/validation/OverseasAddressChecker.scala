@@ -75,7 +75,7 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D
     def line2RequiredOp() = {
       val atomicModelComponentId = context.atomicFcId(OverseasAddress.line2)
       ifProgram(
-        cond = context.isAtomicValueBlank(atomicModelComponentId), //&& !mandatoryFields(OverseasAddress.line2),
+        cond = context.isAtomicValueBlank(atomicModelComponentId),
         thenProgram = errorProgram[Unit](
           gformError(
             atomicModelComponentId,

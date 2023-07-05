@@ -99,7 +99,6 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     assertEquals(
       new CalendarDateChecker[DataOrigin.Browser]()
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
-      // new CalendarDateCheck(formModelOptics.formModelVisibilityOptics).validate(dateComponent),
       Invalid(Map(dateMonthAtom -> Set("Enter a date"), dateDayAtom -> Set("Enter a date")))
     )
   }

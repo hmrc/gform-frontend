@@ -94,7 +94,6 @@ class TestOnlyErrorMessageController(
 
   case class FieldErrorReport(
     fieldId: String,
-    errorMessageType: String,
     debugInfo: String,
     label: String,
     shortName: String,
@@ -111,7 +110,6 @@ class TestOnlyErrorMessageController(
     def make(fieldId: String, formComponent: FormComponent, messages: List[String])(implicit l: LangADT) =
       FieldErrorReport(
         fieldId = fieldId,
-        errorMessageType = "Dynamic",
         debugInfo = (formComponent match {
           case IsText(t) => t.constraint.getClass().toString
           case othewise  => othewise.toString
@@ -135,7 +133,6 @@ class TestOnlyErrorMessageController(
     def makeBlank(): FieldErrorReport =
       new FieldErrorReport(
         fieldId = "",
-        errorMessageType = "",
         debugInfo = "",
         label = "",
         shortName = "",
@@ -150,7 +147,6 @@ class TestOnlyErrorMessageController(
 
   case class EnCyReport(
     fieldId: String,
-    errorMessageType: String,
     debugInfo: String,
     label_En: String,
     label_Cy: String,
@@ -175,7 +171,6 @@ class TestOnlyErrorMessageController(
     def make(reportEn: FieldErrorReport, reportCy: FieldErrorReport): EnCyReport =
       new EnCyReport(
         fieldId = reportEn.fieldId,
-        errorMessageType = reportEn.errorMessageType,
         debugInfo = reportEn.debugInfo,
         label_En = reportEn.label,
         label_Cy = reportCy.label,
