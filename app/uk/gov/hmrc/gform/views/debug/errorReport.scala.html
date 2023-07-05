@@ -16,10 +16,19 @@
 
 @import uk.gov.hmrc.gform.views.html.main_template
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content
-
 @import play.twirl.api.Html
 
 @(title: String, report: List[List[(String, String, String, String)]])
+@header = @{
+  Html(
+    """
+    <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property</th>
+    <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property value</th>
+    <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">English error messages</th>
+    <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Welsh error messages</th>
+    """)
+}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -32,10 +41,7 @@
     <table class="govuk-table " >
       <thead class="govuk-table__head">
         <tr class="govuk-table__row" style="background-color: #f3f2f1">
-          <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property</th>
-          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property value</th>
-          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">English error messages</th>
-          <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre ">Welsh error messages</th>
+          @header
         </tr>
       </thead>
       <tbody class="govuk-table__body">
@@ -49,10 +55,7 @@
             </tr>
           }
           <tr class="govuk-table__row" style="background-color: #f3f2f1">
-            <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property</th>
-            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property value</th>
-            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">English error messages</th>
-            <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Welsh error messages</th>
+            @header
           </tr>
         }
       </tbody>
