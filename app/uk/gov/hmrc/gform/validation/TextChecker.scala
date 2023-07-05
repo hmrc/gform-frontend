@@ -58,6 +58,16 @@ class TextChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
           context.formModelVisibilityOptics,
           context.lookupRegistry
         )
+      case IsTextArea(text) =>
+        TextChecker.validateText(
+          context.formComponent,
+          text.constraint,
+          context.cache.formTemplate,
+          context.cache.envelopeId
+        )(
+          context.formModelVisibilityOptics,
+          context.lookupRegistry
+        )
       case _ => throw new IllegalArgumentException("FormComponent is not a Text")
     }
   }
