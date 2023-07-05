@@ -22,20 +22,26 @@ import org.typelevel.ci._
 import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
-import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.email.EmailFieldId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
+import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.LocalisedString
+import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SubmissionRef }
-import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
+import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationFailure
+import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.referencechecker.{ CorporationTaxReferenceChecker, VatReferenceChecker }
+import uk.gov.hmrc.referencechecker.CorporationTaxReferenceChecker
+import uk.gov.hmrc.referencechecker.VatReferenceChecker
 
 import scala.util.matching.Regex
-import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 object ComponentValidator {
   // format: off

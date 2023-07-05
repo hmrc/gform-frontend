@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform.validation
 
 import cats.implicits._
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 object ValidationServiceHelper {
@@ -48,5 +48,57 @@ object ValidationServiceHelper {
     sse: SmartStringEvaluator
   ): ValidatedType[A] =
     Map(modelComponentId -> ComponentsValidatorHelper.errors(fieldValue, messageKey, vars, partLabel)).invalid
+
+}
+
+object CheckerServiceHelper {
+
+  import ComponentChecker._
+  def validationSuccessTyped[A](): CheckProgram[A] = errorProgram[A](GformError.emptyGformError)
+  val validationSuccess: CheckProgram[Unit] = validationSuccessTyped[Unit]()
+
+  def validationFailureTyped[A](
+    fieldValue: FormComponent,
+    messageKey: String,
+    vars: Option[List[String]],
+    partLabel: String = ""
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): CheckProgram[A] = validationFailureTyped[A](fieldValue.modelComponentId, fieldValue, messageKey, vars, partLabel)
+
+  def validationFailure(
+    fieldValue: FormComponent,
+    messageKey: String,
+    vars: Option[List[String]],
+    partLabel: String = ""
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): CheckProgram[Unit] = validationFailureTyped[Unit](fieldValue, messageKey, vars, partLabel)
+
+  def validationFailureTyped[A](
+    modelComponentId: ModelComponentId,
+    fieldValue: FormComponent,
+    messageKey: String,
+    vars: Option[List[String]],
+    partLabel: String
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): CheckProgram[A] =
+    errorProgram[A](
+      Map(modelComponentId -> ComponentsValidatorHelper.errors(fieldValue, messageKey, vars, partLabel))
+    )
+  def validationFailure(
+    modelComponentId: ModelComponentId,
+    fieldValue: FormComponent,
+    messageKey: String,
+    vars: Option[List[String]],
+    partLabel: String
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ) = validationFailureTyped[Unit](modelComponentId, fieldValue, messageKey, vars, partLabel)
 
 }

@@ -15,21 +15,20 @@
  */
 
 package uk.gov.hmrc.gform.validation
+
+import cats.Semigroup
+import cats.data.Validated
+import cats.implicits._
+import play.api.i18n.Messages
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.views.html.localisedDateString
+
 import java.text.DateFormatSymbols
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
-import cats.implicits._
-import cats.Semigroup
-import cats.data.Validated
-import cats.data.Validated.{ Invalid, Valid }
-import play.api.i18n.Messages
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedNumeric
-import uk.gov.hmrc.gform.views.html.localisedDateString
-import uk.gov.hmrc.gform.validation.ComponentValidator._
-
-import scala.util.{ Failure, Success, Try }
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 object DateValidationLogic {
 
@@ -109,35 +108,21 @@ object DateValidationLogic {
     vars: Option[List[String]]
   )
 
-  def hasMaximumLength(str: String, maximumLength: Int, label: String)(implicit
-    messages: Messages
-  ): Validated[String, String] =
-    if (str.length > maximumLength) Invalid(messages(genericErrorMaxLength, label, maximumLength))
-    else Valid(str)
+  def notExceedMaxLength(str: String, maximumLength: Int): Boolean = str.length <= maximumLength
 
-  def isNumeric(str: String, timeUnitLabel: String, label: String)(implicit messages: Messages): ValidatedNumeric =
-    if (str.isEmpty) Invalid(messages("field.error.required", label))
+  def parseToInt(str: String): Option[Int] =
+    if (str.isEmpty) None
     else
       Try(str.toInt) match {
-        case Success(x) => Valid(x)
-        case Failure(_) => Invalid(messages("field.error.number", timeUnitLabel))
+        case Success(x) => Some(x)
+        case Failure(_) => None
       }
 
-  def isWithinBounds(number: Int, dayOrMonth: Int, label: String)(implicit messages: Messages): ValidatedNumeric =
-    number match {
-      case x if number <= dayOrMonth => Valid(number)
-      case y if number > dayOrMonth  => Invalid(messages("field.error.notGreaterThan", label, dayOrMonth))
-    }
+  def isWithinBounds(number: Int, dayOrMonth: Int): Boolean = number <= dayOrMonth
 
-  def hasValidNumberOfDigits(number: Int, digits: Int, label: String)(implicit messages: Messages): ValidatedNumeric =
-    number.toString.length match {
-      case x if x === digits => Valid(number)
-      case y if y =!= digits => Invalid(messages("field.error.exactDigits", label, digits))
-    }
+  def hasNumberOfDigits(number: Int, digits: Int): Boolean = number.toString.length === digits
 
-  def isNotEmpty(str: String, label: String)(implicit messages: Messages): Validated[String, String] =
-    if (str.trim === "") Invalid(messages("field.error.required", label))
-    else Valid(str)
+  def isNotEmpty(str: String) = str.trim =!= ""
 
   def parallelWithApplicative[E: Semigroup, A](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(
     f: (Int, Int, Int) => A

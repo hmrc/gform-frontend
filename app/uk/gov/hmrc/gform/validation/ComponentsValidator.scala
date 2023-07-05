@@ -21,20 +21,19 @@ import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.BooleanExprEval
-import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, Error, File, Infected }
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.Visibility
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.FormModel
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, verificationCodeFieldId }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SubmissionRef }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation.ComponentValidator._
+import ComponentChecker._
 
 class EmailCodeFieldMatcher(
   val fcId: VerificationCodeFieldId,
@@ -67,22 +66,15 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   cache: CacheData,
   envelope: EnvelopeWithMapping,
   lookupRegistry: LookupRegistry,
-  booleanExprEval: BooleanExprEval[F]
+  booleanExprEval: BooleanExprEval[F],
+  interpreter: CheckInterpreter
 )(implicit
   messages: Messages,
   l: LangADT,
   sse: SmartStringEvaluator
-) {
+) { self =>
 
-  private val envelopeId: EnvelopeId = cache.envelopeId
-  private val thirdPartyData: ThirdPartyData = cache.thirdPartyData
-  private val formTemplate: FormTemplate = cache.formTemplate
-
-  private val dateValidation = new DateValidation[D](formModelVisibilityOptics)
-  private val calendarDateValidation = new CalendarDateValidation[D](formModelVisibilityOptics)
-  private val taxPeriodDateValidation = new TaxPeriodDateValidator[D](formModelVisibilityOptics)
-
-  private val postcodeLookupValidation = new PostcodeLookupValidation[D](formModelVisibilityOptics)
+  implicit val checkInterpreter: CheckInterpreter = interpreter
 
   private[validation] def validIf(
     validationResult: ValidatedType[Unit]
@@ -151,104 +143,84 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         if (b)
           validationResult
         else
-          validationFailure(formComponent, genericErrorRequired, None)
+          validationFailure(formComponent, TextChecker.genericErrorRequired, None)
       }
     }
 
   def validate(
-    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+    getEmailCodeFieldMatcherProvided: GetEmailCodeFieldMatcher
   )(implicit
     messages: Messages
   ): F[ValidatedType[Unit]] = {
 
-    val emailCodeFieldMatcher: EmailCodeFieldMatcher = getEmailCodeFieldMatcher(formComponent)
+    val checkerDependency = new CheckerDependency[D] {
+      def formModelVisibilityOptics: FormModelVisibilityOptics[D] = self.formModelVisibilityOptics
+      def formComponent: FormComponent = self.formComponent
+      def cache: CacheData = self.cache
+      def envelope: EnvelopeWithMapping = self.envelope
+      def lookupRegistry: LookupRegistry = self.lookupRegistry
+      def getEmailCodeFieldMatcher = getEmailCodeFieldMatcherProvided
+    }
+
+    val emailCodeFieldMatcher: EmailCodeFieldMatcher = getEmailCodeFieldMatcherProvided(formComponent)
 
     formComponent.`type` match {
       case date @ Date(_, _, _) =>
         validIf(
-          dateValidation.validateDate(
-            formComponent,
-            date
-          )
+          new DateChecker[D]().runCheck(checkerDependency)
         )
       case CalendarDate =>
         validIf(
-          calendarDateValidation.validate(
-            formComponent
-          )
+          new CalendarDateChecker[D]().runCheck(checkerDependency)
         )
       case PostcodeLookup(_, _, _) =>
         validIf(
-          postcodeLookupValidation.validate(
-            formComponent
-          )
+          new PostcodeLookupChecker[D]().runCheck(checkerDependency)
         )
       case TaxPeriodDate =>
         validIf(
-          taxPeriodDateValidation.validate(formComponent)
-        )
-      case Text(SubmissionRefFormat, _, _, _, _, _)
-          if formTemplate.parentFormSubmissionRefs.contains(formComponent.id) =>
-        validIf(
-          ComponentValidator
-            .validateParentSubmissionRef(formComponent, SubmissionRef(envelopeId))(formModelVisibilityOptics)
+          new TaxPeriodDateChecker[D]().runCheck(checkerDependency)
         )
       case emailCodeFieldMatcher.EmailCodeField(emailField) =>
         validIf(
-          ComponentValidator.validateEmailCode(formComponent, emailField, formModelVisibilityOptics, thirdPartyData)
+          new EmailFieldIdChecker[D]().runCheck(checkerDependency)
         )
       case Text(constraint, _, _, _, _, _) =>
-        validIf(ComponentValidator.validateText(formComponent, constraint)(formModelVisibilityOptics, lookupRegistry))
+        validIf(
+          new TextChecker[D]().runCheck(checkerDependency)
+        )
+
       case TextArea(constraint, _, _, _, _, _) =>
         validIf(
-          ComponentValidator
-            .validateText(formComponent, constraint)(formModelVisibilityOptics, lookupRegistry)
+          new TextChecker[D]().runCheck(checkerDependency)
         )
       case address @ Address(_, _, _, _) =>
-        validIf(new AddressValidation[D]().validateAddress(formComponent, address)(formModelVisibilityOptics))
+        validIf(
+          new AddressChecker[D]().runCheck(checkerDependency)
+        )
       case overseasAddress @ OverseasAddress(_, _, _, _, _) =>
         validIf(
-          new OverseasAddressValidation[D](formComponent, formModelVisibilityOptics, lookupRegistry)
-            .validateOverseasAddress(overseasAddress)
-        )
-      case Choice(_, _, _, _, _, _, _, _, Some(noneChoice), Some(error)) =>
-        validIf(
-          ComponentValidator
-            .validateChoiceNoneError(formComponent, noneChoice, error)(formModelVisibilityOptics)
-            .combine(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
+          new OverseasAddressChecker[D]().runCheck(checkerDependency)
         )
       case Choice(_, _, _, _, _, _, _, _, _, _) =>
-        validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
+        validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
       case _: RevealingChoice =>
-        validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
-      case Group(_, _, _, _, _)     => validationSuccess.pure[F]
-      case FileUpload(_, _, _)      => validateFileUpload(envelope).pure[F]
+        validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
+      case Group(_, _, _, _, _) => validationSuccess.pure[F]
+      case FileUpload(_, _, _) =>
+        validIf(
+          new FileUploadChecker[D]().runCheck(checkerDependency)
+        )
       case InformationMessage(_, _) => validationSuccess.pure[F]
       case HmrcTaxPeriod(_, _, _) =>
-        validIf(ComponentValidator.validateChoice(formComponent)(formModelVisibilityOptics))
+        validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
       case t @ Time(_, _) =>
-        validIf(ComponentValidator.validateTime(formComponent, t, formModelVisibilityOptics))
+        validIf(new TimeChecker[D]().runCheck(checkerDependency))
       case MiniSummaryList(_) => validationSuccess.pure[F]
       case _: TableComp       => validationSuccess.pure[F]
     }
   }
 
-  private def validateFileUpload(envelope: EnvelopeWithMapping)(implicit messages: Messages): ValidatedType[Unit] = {
-    val file: Option[File] = envelope.find(formComponent.id.modelComponentId)
-
-    file match {
-      case Some(File(fileId, Error(Some(reason)), _, _, _, _)) =>
-        validationFailure(formComponent, "generic.error.unknownUpload", None)
-      case Some(File(fileId, Error(None), _, _, _, _)) =>
-        validationFailure(formComponent, "generic.error.unknownUpload", None)
-      case Some(File(fileId, Infected, _, _, _, _)) =>
-        validationFailure(formComponent, "generic.error.virus", None)
-      case Some(File(fileId, _, _, _, _, _)) => validationSuccess
-      case None if formComponent.mandatory =>
-        validationFailure(formComponent, "generic.error.upload", None)
-      case None => validationSuccess
-    }
-  }
 }
 
 class ComponentsValidatorHelper(implicit messages: Messages, sse: SmartStringEvaluator) {
@@ -259,32 +231,47 @@ class ComponentsValidatorHelper(implicit messages: Messages, sse: SmartStringEva
     errorPrefix: Option[String] = None
   )(
     xs: Seq[String]
-  ): ValidatedType[Unit] =
-    xs.filterNot(_.isEmpty()) match {
-      case value :: Nil  => validationSuccess
-      case value :: rest => validationSuccess // we don't support multiple values yet
-      case _ =>
+  ): CheckProgram[Unit] = {
+
+    val isEmpty = xs.filterNot(_.isEmpty()) match {
+      case value :: Nil  => false
+      case value :: rest => false // we don't support multiple values yet
+      case _             => true
+    }
+    ifProgram(
+      andCond = isEmpty,
+      thenProgram = errorProgram(
         Map[ModelComponentId, Set[String]](
           atomicFcId -> ComponentsValidatorHelper
             .errors(formComponent, "field.error.required", None, errorPrefix.getOrElse(""))
-        ).invalid
-    }
+        )
+      ),
+      elseProgram = successProgram(())
+    )
+  }
 
   def validateForbidden(
     formComponent: FormComponent,
     atomicFcId: ModelComponentId.Atomic
   )(
     xs: Seq[String]
-  ): ValidatedType[Unit] = {
-    val res = Map[ModelComponentId, Set[String]](
-      atomicFcId -> ComponentsValidatorHelper
-        .errors(formComponent, "generic.error.forbidden", None)
-    ).invalid
-    xs.filterNot(_.isEmpty()) match {
-      case value :: Nil  => res
-      case value :: rest => res // we don't support multiple values yet
-      case _             => validationSuccess
+  ): CheckProgram[Unit] = {
+    val res = errorProgram[Unit](
+      Map[ModelComponentId, Set[String]](
+        atomicFcId -> ComponentsValidatorHelper
+          .errors(formComponent, "generic.error.forbidden", None)
+      )
+    )
+    val isEmpty = xs.filterNot(_.isEmpty()) match {
+      case value :: Nil  => false
+      case value :: rest => false // we don't support multiple values yet
+      case _             => true
     }
+    ifProgram(
+      andCond = isEmpty,
+      thenProgram = successProgram(()),
+      elseProgram = res
+    )
   }
 }
 

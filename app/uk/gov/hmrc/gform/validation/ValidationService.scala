@@ -41,6 +41,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, LangADT, NotFound
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.typeclasses.Rnd
+import ComponentChecker.CheckInterpreter
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -50,7 +51,8 @@ class ValidationService(
   gformConnector: GformConnector,
   lookupRegistry: LookupRegistry,
   recalculation: Recalculation[Future, Throwable],
-  i18nSupport: I18nSupport
+  i18nSupport: I18nSupport,
+  checkInterpreter: CheckInterpreter = ComponentChecker.NonShortCircuitInterpreter
 )(implicit ec: ExecutionContext) {
 
   def validatePageModel[D <: DataOrigin](
@@ -174,7 +176,8 @@ class ValidationService(
       cache,
       envelope,
       lookupRegistry,
-      booleanExprEval
+      booleanExprEval,
+      checkInterpreter
     ).validate(getEmailCodeFieldMatcher)
 
   private def sendVerificationEmails[D <: DataOrigin](

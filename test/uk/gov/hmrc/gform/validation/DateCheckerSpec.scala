@@ -16,35 +16,46 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.data.Validated.{ Invalid, Valid }
+import cats.data.Validated.Invalid
+import cats.data.Validated.Valid
 import cats.implicits._
-import java.time.LocalDate
 import munit.FunSuite
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.Millis
+import org.scalatest.time.Span
+import play.api.Configuration
+import play.api.Environment
 import play.api.http.HttpConfiguration
-import play.api.{ Configuration, Environment }
 import play.api.i18n._
-import scala.concurrent.Future
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.controllers.CacheData
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.Atom
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.FormModelSupport
+import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.VariadicFormDataSupport
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
+import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin }
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.gform.Helpers.toSmartString
+import scala.concurrent.Future
 
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Millis, Span }
-
-class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport with ScalaFutures {
+class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport with ScalaFutures {
 
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(15000, Millis)), interval = scaled(Span(15, Millis)))
@@ -88,7 +99,8 @@ class DateValidationSpec extends FunSuite with FormModelSupport with VariadicFor
       cacheData,
       EnvelopeWithMapping.empty,
       lookupRegistry,
-      booleanExprEval
+      booleanExprEval,
+      ComponentChecker.NonShortCircuitInterpreter
     )
 
   private def componentsValidator(

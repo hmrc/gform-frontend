@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicV
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber }
 import uk.gov.hmrc.gform.ops.FormComponentOps
-import uk.gov.hmrc.gform.validation.{ ComponentValidator, PostcodeLookupValidation }
+import uk.gov.hmrc.gform.validation.{ PostcodeLookupValidation, TextChecker }
 
 import scala.concurrent.Future
 
@@ -227,7 +227,7 @@ object FormDataHelpers {
 
   private def isValidSortCode(value: String): Boolean =
     value match {
-      case ComponentValidator.ukSortCodeFormat() => true
-      case _                                     => false
+      case TextChecker.ukSortCodeFormat() => true
+      case _                              => false
     }
 }

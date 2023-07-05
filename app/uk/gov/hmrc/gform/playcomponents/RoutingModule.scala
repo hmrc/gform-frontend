@@ -121,7 +121,8 @@ class RoutingModule(
       prodRoutes,
       builderRoutes,
       testOnlyModule.testOnlyController,
-      testOnlyModule.debugController
+      testOnlyModule.debugController,
+      testOnlyModule.testOnlyErrorMessageController
     )
 
   val router: Router = {
