@@ -20,18 +20,22 @@ import cats.data.Validated
 import cats.data.Validated.Valid
 import cats.implicits._
 import play.api.i18n.I18nSupport
+import play.api.i18n._
 import play.api.libs.json.Json
 import play.api.libs.json.OFormat
 import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.eval.BooleanExprEval
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.IsText
@@ -58,45 +62,26 @@ class TestOnlyErrorMessageController(
     jsonReport: Boolean
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      _ => _ => cache => implicit sse => formModelOptics =>
-        import play.api.i18n._
-
-        def reportsF(
-          formComponents: List[FormComponent]
-        )(implicit messages: Messages, l: LangADT): Future[List[FieldErrorReport]] =
-          formComponents
-            .map { formComponent =>
-              val formModel = formModelOptics.formModelVisibilityOptics.formModel
-              new ComponentsValidator[DataOrigin.Mongo, Future](
-                formModelOptics.formModelVisibilityOptics,
-                formComponent,
-                cache.toCacheData,
-                EnvelopeWithMapping.empty,
-                new LookupRegistry(Map()),
-                new BooleanExprEval(),
-                ComponentChecker.ErrorReportInterpreter
-              ).validate(GetEmailCodeFieldMatcher(formModel)).map {
-                case Valid(a)                      => (formComponent, GformError.emptyGformError)
-                case Validated.Invalid(gformError) => (formComponent, gformError)
-              }
-            }
-            .sequence
-            .map(_.flatMap { case (formComponent, gfromError) =>
-              FieldErrorReport.make(formComponent, gfromError)
-            })
-
+      _ => _ => cache => _ => formModelOptics =>
         val messagesApi: MessagesApi = controllerComponents.messagesApi
         val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
         val welshMessages: Messages = messagesApi.preferred(Seq(Lang("cy")))
+        val factory = new RealSmartStringEvaluatorFactory()
 
+        val englishSse: SmartStringEvaluator =
+          factory.apply(formModelOptics.formModelVisibilityOptics)(englishMessages, LangADT.En)
+        val welshSse: SmartStringEvaluator =
+          factory.apply(formModelOptics.formModelVisibilityOptics)(welshMessages, LangADT.Cy)
         val formComponents =
           formModelOptics.formModelRenderPageOptics.formModel.pages
             .flatMap(_.allFormComponents)
             .toList
             .map(_.copy(includeIf = None))
         for {
-          englishReports <- reportsF(formComponents)(englishMessages, LangADT.En)
-          welshReports   <- reportsF(formComponents)(welshMessages, LangADT.Cy)
+          englishReports <-
+            fieldErrorReportsF(formComponents, formModelOptics, cache)(englishMessages, LangADT.En, englishSse)
+          welshReports <-
+            fieldErrorReportsF(formComponents, formModelOptics, cache)(welshMessages, LangADT.Cy, welshSse)
         } yield
           if (jsonReport)
             Ok(Json.toJson(EnCyReport.makeEnCy(englishReports, welshReports))).as("application/json")
@@ -276,4 +261,30 @@ class TestOnlyErrorMessageController(
         Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, false))
           .pure[Future]
     }
+
+  private def fieldErrorReportsF(
+    formComponents: List[FormComponent],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    cache: AuthCacheWithForm
+  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator): Future[List[FieldErrorReport]] =
+    formComponents
+      .map { formComponent =>
+        val formModel = formModelOptics.formModelVisibilityOptics.formModel
+        new ComponentsValidator[DataOrigin.Mongo, Future](
+          formModelOptics.formModelVisibilityOptics,
+          formComponent,
+          cache.toCacheData,
+          EnvelopeWithMapping.empty,
+          new LookupRegistry(Map()),
+          new BooleanExprEval(),
+          ComponentChecker.ErrorReportInterpreter
+        ).validate(GetEmailCodeFieldMatcher(formModel)).map {
+          case Valid(a)                      => (formComponent, GformError.emptyGformError)
+          case Validated.Invalid(gformError) => (formComponent, gformError)
+        }
+      }
+      .sequence
+      .map(_.flatMap { case (formComponent, gfromError) =>
+        FieldErrorReport.make(formComponent, gfromError)
+      })
 }
