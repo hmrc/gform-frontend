@@ -26,7 +26,9 @@ import play.api.libs.json.{ Json => PlayJson }
 import play.api.mvc.{ MessagesControllerComponents, Request, Result }
 import play.twirl.api.Html
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.control.NonFatal
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.builder.github.GithubService
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
@@ -50,14 +52,23 @@ class BuilderController(
   renderer: SectionRenderingService,
   i18nSupport: I18nSupport,
   gformConnector: GformConnector,
+  githubService: GithubService,
   messagesControllerComponents: MessagesControllerComponents
 )(implicit
   ex: ExecutionContext
 ) extends FrontendController(messagesControllerComponents) with Circe {
 
-  implicit val htmlEncoder: io.circe.Encoder[Html] = new Encoder[Html] {
-    final def apply(a: Html): Json = Json.fromString(a.toString)
+  implicit val htmlEncoder: Encoder[Html] = new Encoder[Html] {
+    final def apply(html: Html): Json = Json.fromString(html.toString)
   }
+
+  def snapshot(formTemplateId: FormTemplateId) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      implicit request => lang => cache => sse => formModelOptics =>
+        githubService.storeJson(formTemplateId).map(_ => NoContent).recover { case NonFatal(ex) =>
+          BadRequest(ex.getMessage)
+        }
+    }
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
