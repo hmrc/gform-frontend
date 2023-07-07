@@ -218,16 +218,6 @@ class TestOnlyErrorMessageController(
     }
   }
 
-  case class ShortErrorReport(
-    fieldId: String,
-    messages_En: List[String],
-    messages_Cy: List[String]
-  )
-
-  object ShortErrorReport {
-    implicit val format: OFormat[ShortErrorReport] = Json.format[ShortErrorReport]
-  }
-
   def toTableCells(
     enCyReports: List[EnCyReport],
     formTemplateId: FormTemplateId
