@@ -59,7 +59,8 @@ class TestOnlyErrorMessageController(
   def errorMessages(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    jsonReport: Boolean
+    jsonReport: Boolean,
+    inputBaseComponentId: Option[String]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => cache => _ => formModelOptics =>
@@ -79,17 +80,28 @@ class TestOnlyErrorMessageController(
             .map(_.copy(includeIf = None))
         for {
           englishReports <-
-            fieldErrorReportsF(formComponents, formModelOptics, cache)(englishMessages, LangADT.En, englishSse)
+            fieldErrorReportsF(formComponents, formModelOptics, cache, inputBaseComponentId)(
+              englishMessages,
+              LangADT.En,
+              englishSse
+            )
           welshReports <-
-            fieldErrorReportsF(formComponents, formModelOptics, cache)(welshMessages, LangADT.Cy, welshSse)
-        } yield
+            fieldErrorReportsF(formComponents, formModelOptics, cache, inputBaseComponentId)(
+              welshMessages,
+              LangADT.Cy,
+              welshSse
+            )
+        } yield {
+          val report = EnCyReport.makeEnCy(englishReports, welshReports)
           if (jsonReport)
-            Ok(Json.toJson(EnCyReport.makeEnCy(englishReports, welshReports))).as("application/json")
+            Ok(Json.toJson(report)).as("application/json")
           else {
-            val table = toTableCells(EnCyReport.makeEnCy(englishReports, welshReports), formTemplateId)
+            val table = toTableCells(report, formTemplateId)
             val title = s"Error Report for ${formTemplateId.value}"
             Ok(html.debug.errorReport(title, table)).as("text/html")
           }
+
+        }
     }
 
   case class FieldErrorReport(
@@ -125,10 +137,13 @@ class TestOnlyErrorMessageController(
           formComponent.validators.map(s => (s.errorMessage.rawValue(LangADT.En), s.errorMessage.rawValue(LangADT.Cy)))
       )
 
-    def make(formComponent: FormComponent, gformError: GformError)(implicit l: LangADT): List[FieldErrorReport] =
-      gformError.map { case (id, errors) =>
-        make(id.toMongoIdentifier, formComponent, errors.toList)
-      }.toList
+    def make(formComponent: FormComponent, gformError: GformError, inputBaseComponentId: Option[String])(implicit
+      l: LangADT
+    ): List[FieldErrorReport] =
+      gformError
+        .filter { case (id, _) => inputBaseComponentId.map(id.baseComponentId.value == _).getOrElse(true) }
+        .map { case (id, errors) => make(id.toMongoIdentifier, formComponent, errors.toList) }
+        .toList
 
     def makeBlank(): FieldErrorReport =
       new FieldErrorReport(
@@ -245,7 +260,7 @@ class TestOnlyErrorMessageController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => _ => _ => _ =>
-        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, true))
+        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, true, None))
           .pure[Future]
     }
 
@@ -255,14 +270,15 @@ class TestOnlyErrorMessageController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => _ => _ => _ =>
-        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, false))
+        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, false, None))
           .pure[Future]
     }
 
   private def fieldErrorReportsF(
     formComponents: List[FormComponent],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    cache: AuthCacheWithForm
+    cache: AuthCacheWithForm,
+    inputBaseComponentId: Option[String]
   )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator): Future[List[FieldErrorReport]] =
     formComponents
       .map { formComponent =>
@@ -282,6 +298,6 @@ class TestOnlyErrorMessageController(
       }
       .sequence
       .map(_.flatMap { case (formComponent, gfromError) =>
-        FieldErrorReport.make(formComponent, gfromError)
+        FieldErrorReport.make(formComponent, gfromError, inputBaseComponentId)
       })
 }
