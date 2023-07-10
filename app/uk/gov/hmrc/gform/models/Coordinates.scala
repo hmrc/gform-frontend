@@ -51,8 +51,8 @@ sealed trait AllSections extends Product with Serializable {
     }
 
   def mapSection[A <: PageMode](f: Section => Option[BracketPlain[A]]): BracketPlainCoordinated[A] =
-    fold[BracketPlainCoordinated[A]] { classis =>
-      val xs: List[BracketPlain[A]] = classis.sections.map(f).collect { case Some(bracket) =>
+    fold[BracketPlainCoordinated[A]] { classic =>
+      val xs: List[BracketPlain[A]] = classic.sections.map(f).collect { case Some(bracket) =>
         bracket
       }
       NonEmptyList
@@ -61,7 +61,7 @@ sealed trait AllSections extends Product with Serializable {
           BracketPlainCoordinated.Classic(_)
         }
     } { taskList =>
-      val xs: NonEmptyList[(Coordinates, TaskModelCoordinated[A])] = taskList.sections0.map {
+      val xs: NonEmptyList[(Coordinates, TaskModelCoordinated[A])] = taskList.coordSections.map {
         case (coordinates, sections) =>
           val xs: List[BracketPlain[A]] = sections.map(f).collect { case Some(bracket) =>
             bracket
@@ -86,6 +86,12 @@ object AllSections {
   }
   case class TaskList(sections0: NonEmptyList[(Coordinates, List[Section])], others: List[Section] = Nil)
       extends AllSections {
+    val coordSections: NonEmptyList[(Coordinates, List[Section])] = {
+      if (others.isEmpty) {
+        sections0
+      } else
+        sections0.append((Coordinates(TaskSectionNumber(999999), TaskNumber(999999)), others))
+    }
     val sections = sections0.toList.flatMap(_._2) ++ others
   }
 }
