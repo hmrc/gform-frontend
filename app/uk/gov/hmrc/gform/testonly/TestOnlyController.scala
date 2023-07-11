@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.gform.{ CustomerId, DestinationEvaluator, FrontEndSubmi
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.{ SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
@@ -146,7 +146,8 @@ class TestOnlyController(
                          Attachments.empty,
                          l,
                          None,
-                         DestinationEvaluator(formTemplate, formModelVisibilityOptics)
+                         DestinationEvaluator(formTemplate, formModelVisibilityOptics),
+                         UserSession.empty
                        )
 
       httpResponse <- recov(
@@ -239,7 +240,8 @@ class TestOnlyController(
                          Attachments.empty,
                          l,
                          None,
-                         DestinationEvaluator(formTemplate, formModelVisibilityOptics)
+                         DestinationEvaluator(formTemplate, formModelVisibilityOptics),
+                         UserSession.empty
                        )
 
       httpResponse <- recov(

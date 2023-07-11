@@ -68,6 +68,7 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
         case d: Destination.StateTransition        => Nil
         case d: Destination.Log                    => Nil
         case d: Destination.Email                  => Nil
+        case d: Destination.DataStore              => Nil
       }
 
       def fromDestinations(destinations: NonEmptyList[Destination]): List[ExprMetadata] =

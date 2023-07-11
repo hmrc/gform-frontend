@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.Attachments
+import uk.gov.hmrc.gform.models.UserSession
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormComponentId }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 
@@ -41,9 +42,9 @@ class SubmissionDataTest extends Spec {
       Attachments(FormComponentId("proof") :: Nil),
       LangADT.En,
       None,
-      DestinationEvaluation.empty
+      DestinationEvaluation.empty,
+      UserSession.empty
     )
-
     Json.toJson(submissionData) should be(expectedJson)
     expectedJson.as[SubmissionData] should be(submissionData)
   }
@@ -95,7 +96,17 @@ class SubmissionDataTest extends Spec {
           |  },
           |  "destinationEvaluation":{
           |       "evaluation":[]
-          |  }
+          |  },
+          |  "userSession" :{
+          |       "clientIp":"",
+          |       "deviceId":"",
+          |       "userAgent":"",
+          |       "relativePath":"",
+          |       "credentialId":"",
+          |       "authEmail":"",
+          |       "authPhone":"",
+          |       "enrolments":[]
+          |   }
           |}""".stripMargin
     )
 }

@@ -897,11 +897,17 @@ class SectionRenderingService(
       Nil
     )
 
-    val zipUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+    val dmsDownloadUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
       .proxyToGform(s"/gform/test-only/object-store/envelopes/${envelopeId.value}")
       .url
-    val zipUrlOptional =
-      Option(zipUrl).filter(_ => !isProduction).filter(_ => formTemplate.objectStore.getOrElse(false))
+    val maybeDmsDownloadUrl =
+      Option(dmsDownloadUrl).filter(_ => !isProduction).filter(_ => formTemplate.isObjectStore)
+
+    val dataStoreDownloadUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+      .proxyToGform(s"/gform/test-only/object-store/data-store/envelopes/${envelopeId.value}")
+      .url
+    val maybeDataStoreDownloadUrl =
+      Option(dataStoreDownloadUrl).filter(_ => !isProduction).filter(_ => formTemplate.isObjectStore)
 
     uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
       .acknowledgement(
@@ -912,7 +918,8 @@ class SectionRenderingService(
         formTemplate,
         panelTitle,
         frontendAppConfig,
-        zipUrlOptional
+        maybeDmsDownloadUrl,
+        maybeDataStoreDownloadUrl
       )
   }
 

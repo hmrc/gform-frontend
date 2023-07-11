@@ -26,13 +26,17 @@ import UploadableConditioning._
 import cats.data.NonEmptyList
 import JsonUtils.nelFormat
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
-import uk.gov.hmrc.gform.sharedmodel.form.FormStatus
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, FormStatus }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.{ HandlebarValue, IncludeIfValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.SubmissionConsolidator
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierPersonalisationFieldId
 
 sealed trait DestinationWithCustomerId extends Destination {
   def customerId(): Expr
+}
+
+sealed trait DestinationWithTaxpayerId extends Destination {
+  def taxpayerId(): Expr
 }
 
 sealed trait DestinationIncludeIf extends Product with Serializable
@@ -64,6 +68,17 @@ object Destination {
     backscan: Option[Boolean],
     includeInstructionPdf: Boolean
   ) extends Destination with DestinationWithCustomerId
+
+  case class DataStore(
+    id: DestinationId,
+    includeIf: DestinationIncludeIf,
+    failOnError: Boolean,
+    formId: FormId,
+    version: FormTemplateVersion,
+    taxpayerId: Expr,
+    regime: String,
+    includeSessionInfo: Boolean
+  ) extends Destination with DestinationWithTaxpayerId
 
   case class SubmissionConsolidator(
     id: DestinationId,
@@ -113,6 +128,7 @@ object Destination {
 
   val typeDiscriminatorFieldName: String = "type"
   val hmrcDms: String = "hmrcDms"
+  val dataStore: String = "hmrcIlluminate"
   val submissionConsolidator: String = "submissionConsolidator"
   val handlebarsHttpApi: String = "handlebarsHttpApi"
   val composite: String = "composite"
@@ -131,6 +147,7 @@ object Destination {
       ADTFormat.adtRead[Destination](
         typeDiscriminatorFieldName,
         hmrcDms                -> UploadableHmrcDmsDestination.reads,
+        dataStore              -> UploadableDataStoreDestination.reads,
         submissionConsolidator -> UploadableSubmissionConsolidator.reads,
         handlebarsHttpApi      -> UploadableHandlebarsHttpApiDestination.reads,
         composite              -> UploadableCompositeDestination.reads,
@@ -180,6 +197,41 @@ object UploadableHmrcDmsDestination {
     private val d: Reads[UploadableHmrcDmsDestination] = derived.reads[UploadableHmrcDmsDestination]()
     override def reads(json: JsValue): JsResult[Destination.HmrcDms] =
       d.reads(json).flatMap(_.toHmrcDmsDestination.fold(JsError(_), JsSuccess(_)))
+  }
+}
+
+case class UploadableDataStoreDestination(
+  id: DestinationId,
+  includeIf: DestinationIncludeIf,
+  failOnError: Option[Boolean],
+  formId: FormId,
+  version: FormTemplateVersion,
+  taxpayerId: TextExpression,
+  regime: String,
+  includeSessionInfo: Option[Boolean]
+) {
+  def toDataStoreDestination: Either[String, Destination.DataStore] = {
+    val dataStore = Destination.DataStore(
+      id,
+      includeIf,
+      failOnError.getOrElse(false),
+      formId,
+      version,
+      taxpayerId.expr,
+      regime,
+      includeSessionInfo.getOrElse(false)
+    )
+    Right(dataStore)
+  }
+}
+
+object UploadableDataStoreDestination {
+  implicit val reads: Reads[Destination.DataStore] = new Reads[Destination.DataStore] {
+    implicit val formIdFormat: Format[FormId] = FormId.destformat
+    implicit val formTemplateVersionFormat: Format[FormTemplateVersion] = FormTemplateVersion.destformat
+    private val d: Reads[UploadableDataStoreDestination] = derived.reads[UploadableDataStoreDestination]()
+    override def reads(json: JsValue): JsResult[Destination.DataStore] =
+      d.reads(json).flatMap(_.toDataStoreDestination.fold(JsError(_), JsSuccess(_)))
   }
 }
 

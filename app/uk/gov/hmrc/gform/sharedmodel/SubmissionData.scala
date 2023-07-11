@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json._
 import uk.gov.hmrc.gform.fileupload.Attachments
+import uk.gov.hmrc.gform.models.UserSession
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.EmailParametersRecalculated
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 
@@ -30,7 +31,8 @@ case class SubmissionData(
   attachments: Attachments,
   l: LangADT,
   maybeEmailAddress: Option[String],
-  destinationEvaluation: DestinationEvaluation
+  destinationEvaluation: DestinationEvaluation,
+  userSession: UserSession
 )
 
 object SubmissionData {
