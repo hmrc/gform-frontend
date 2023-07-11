@@ -326,6 +326,41 @@ class TextCheckerSpec
     }
   }
 
+  "validateText (3)" should "validate when FormComponent constraint is YearFormat" in {
+    val constraint = YearFormat
+    val fc = textComponent.copy(`type` = Text(constraint, Value))
+    val table = TableDrivenPropertyChecks.Table(
+      ("input", "expected"),
+      ("1900", ().asRight.asRight),
+      ("2099", ().asRight.asRight),
+      ("2020", ().asRight.asRight),
+      (
+        "1899",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter a year in the correct format")))
+      ),
+      (
+        "2101",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter a year in the correct format")))
+      ),
+      (
+        "",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter a year")))
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
+      val formModelOptics = mkFormModelOptics(
+        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
+        mkDataOutOfDate(textComponent.id.value -> inputData)
+      )
+      val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
+        formModelOptics.formModelVisibilityOptics,
+        new LookupRegistry(Map.empty)
+      )
+      result.foldMap(ShortCircuitInterpreter) shouldBe expected
+    }
+  }
+
   private def purePure(fieldId: String) =
     ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId(fieldId)))
 }

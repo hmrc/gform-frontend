@@ -148,6 +148,8 @@ object TextChecker {
   val genericErrorTextExactDigits                            = "generic.error.text.exactDigits"
   val genericErrorTextValidChar                              = "generic.error.text.valid.char"
   val genericErrorShortTextValidChar                         = "generic.error.shortText.valid.char"
+  val genericErrorYearPattern                                = "generic.error.yearformat.real"
+  val genericErrorYearRequired                               = "generic.error.yearformat.required"
   // format: on
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
@@ -442,6 +444,27 @@ object TextChecker {
     )
 
     def radioLookupCheck(): CheckProgram[Unit] = validationFailure(fieldValue, choiceErrorRequired, None)
+
+    def yearFormatCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
+      mandatoryFailure = validationFailure(
+        fieldValue,
+        genericErrorYearRequired,
+        fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
+          SmartString.blank.transform(_ => "a", _ => "flwyddyn").value().pure[List]
+        ))
+      ),
+      nonEmptyCheck = validateYear(fieldValue, inputText)
+    )
+    def validateYear(fieldValue: FormComponent, yearStr: String): CheckProgram[Unit] = ifProgram(
+      cond = yearStr.toIntOption.map(y => y >= 1900 && y <= 2099).getOrElse(false),
+      thenProgram = successProgram(()),
+      elseProgram = {
+        val placeholder = fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
+          SmartString.blank.transform(_ => "a", _ => "flwyddyn yn").value().pure[List]
+        ))
+        validationFailure(fieldValue, genericErrorYearPattern, placeholder)
+      }
+    )
     def catchAllCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(fieldValue, genericErrorRequired, None),
       nonEmptyCheck = successProgram(())
@@ -493,6 +516,7 @@ object TextChecker {
       case ChildBenefitNumber                         => childBenefitNumberCheck()
       case lookupRegistry.extractors.IsRadioLookup(_) => radioLookupCheck()
       case c: Lookup                                  => lookupCheck(c)
+      case YearFormat                                 => yearFormatCheck()
       case _                                          => catchAllCheck()
     }
   }
@@ -588,17 +612,6 @@ object TextChecker {
     )(
       elseProgram = successProgram(())
     )
-    //   (fieldValue.mandatory, textData(formModelVisibilityOptics, fieldValue)) match {
-    //   case (true, None) =>
-    //     validationFailure(fieldValue, genericErrorRequired, None)
-    //   case (_, Some(value)) =>
-    //     validateSubmissionRefFormat(fieldValue, value) andThen { _ =>
-    //       if (value === thisFormSubmissionRef.value)
-    //         validationFailure(fieldValue, genericErrorParentSubmissionRefSameAsFormSubmissionRef, None)
-    //       else successOp(())
-    //     }
-    //   case _ => successOp(())
-    // }
   }
 
   private def validateNumber(

@@ -212,6 +212,7 @@ sealed trait TextConstraint {
     case EORI                         => CssClassSize._20
     case UkEORI                       => CssClassSize._20
     case ChildBenefitNumber           => CssClassSize._10
+    case YearFormat                   => CssClassSize._10
   }
 
   @nowarn
@@ -270,6 +271,7 @@ case class ReferenceNumber(min: Int, max: Int) extends TextConstraint
 case object UkBankAccountNumber extends TextConstraint
 case object UkSortCodeFormat extends TextConstraint
 case object SubmissionRefFormat extends TextConstraint
+case object YearFormat extends TextConstraint
 
 case object TelephoneNumber extends TextConstraint {
   val phoneNumberValidation = """^[\+A-Z0-9 )/(*#-]{7,25}$""".r

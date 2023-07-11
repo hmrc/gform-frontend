@@ -177,6 +177,9 @@ generic.error.date.precisely=Rhaid i {1} fod {2}
 generic.error.date.first=Mae {1} yn gorfod bod ar ddiwrnod cyntaf y mis
 generic.error.date.last=Mae {1} yn gorfod bod ar ddiwrnod olaf y mis
 
+generic.error.year.required=Nodwch {1}
+generic.error.year.real= Nodwch {1} yn y fformat cywir
+
 generic.error.submissionRef=Ni ellir dod o hyd i {0}. Nodwch {0} dilys yn y fformat cywir. Mae’n rhaid i hyn fod yn 14 o gymeriadau a chynnwys rhifau, cysylltnodau a phriflythrennau yn unig, er enghraifft ABCD-1234-1234
 generic.error.parentSubmissionRefSameAsFormSubmissionRef=Mae’n rhaid i {0} fod yn gyfeirnod cyflwyno ffurflen rhiant. Yr hyn a nodwyd yw cyfeirnod cyflwyno’r ffurflen hon.
 
