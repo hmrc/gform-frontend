@@ -29,7 +29,8 @@
   formTemplate: FormTemplate,
   panelTitle: Option[String],
   frontendAppConfig: FrontendAppConfig,
-  zipUrlOptional: Option[String]
+  maybeDmsDownloadUrl: Option[String],
+  maybeDataStoreDownloadUrl: Option[String]
 )(implicit
   request: Request[_],
   messages: Messages,
@@ -52,9 +53,16 @@
     content = htmlContent
   ))
 
-  @if(zipUrlOptional.nonEmpty) {
-   <a href=@zipUrlOptional.getOrElse("")
-	class="govuk-link">Download envelope</a>
+  @maybeDmsDownloadUrl.map { dmsDownloadUrl =>
+    <p class="govuk-body govuk-!-font-size-14">
+        <a href=@dmsDownloadUrl class="govuk-link">Download dms envelope</a>
+    </p>
+  }
+
+  @maybeDataStoreDownloadUrl.map { dataStoreDownloadUrl  =>
+    <p class="govuk-body govuk-!-font-size-14">
+        <a href=@dataStoreDownloadUrl class="govuk-link">Download data-store envelope</a>
+    </p>
   }
 
   @{supportContents.snippets}

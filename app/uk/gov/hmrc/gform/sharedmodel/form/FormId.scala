@@ -53,5 +53,6 @@ object FormId {
     new FormId(s"${userId.value}-${formTemplateId.value}-${accessCode.value}")
 
   implicit val format: OFormat[FormId] = ValueClassFormat.oformat("_id", FormId.apply, _.value)
+  val destformat: Format[FormId] = ValueClassFormat.oformat("formId", FormId.apply, _.value)
 
 }

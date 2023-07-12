@@ -20,7 +20,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.IncludeIfValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerId, DestinationWithTaxpayerId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.{ DestinationEvaluation, DestinationResult }
 
@@ -44,10 +44,16 @@ object DestinationEvaluator {
             val customerId =
               formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.customerId()).stringRepresentation.take(32)
 
-            DestinationResult(d.id, includeIfEval, Some(customerId))
+            DestinationResult(d.id, includeIfEval, Some(customerId), None)
+          case d: DestinationWithTaxpayerId =>
+            val includeIfEval = evalIncludeIf(d.includeIf)
+            val taxpayerId =
+              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.taxpayerId()).stringRepresentation.take(32)
+
+            DestinationResult(d.id, includeIfEval, None, Some(taxpayerId))
           case others =>
             val includeIfEval = evalIncludeIf(others.includeIf)
-            DestinationResult(others.id, includeIfEval, None)
+            DestinationResult(others.id, includeIfEval, None, None)
         }
       case _ => List.empty[DestinationResult]
     }

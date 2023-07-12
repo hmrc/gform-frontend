@@ -20,14 +20,13 @@ import cats.data.NonEmptyList
 import cats.instances.future._
 import play.api.i18n.Messages
 import play.api.mvc.Request
-
 import cats.syntax.all._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Attachments
-import uk.gov.hmrc.gform.gform.{ CustomerId, DestinationEvaluator, FrontEndSubmissionVariablesBuilder, SectionRenderingService, StructuredFormDataBuilder, SummaryPagePurpose }
+import uk.gov.hmrc.gform.gform.{ CustomerId, DestinationEvaluator, FrontEndSubmissionVariablesBuilder, SectionRenderingService, StructuredFormDataBuilder, SummaryPagePurpose, UserSessionBuilder }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfHtml, SourceOrigin, SubmissionData, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, UserData }
@@ -214,6 +213,7 @@ class GformBackEndService(
                                .stringRepresentation
                              Future.successful(email)
                            }
+      userSession <- UserSessionBuilder(cache: AuthCacheWithForm)
       response <- handleSubmission(
                     cache.retrievals,
                     cache.formTemplate,
@@ -225,7 +225,8 @@ class GformBackEndService(
                     structuredFormData,
                     attachments,
                     formModelOptics.formModelVisibilityOptics,
-                    maybeEmailAddress
+                    maybeEmailAddress,
+                    userSession
                   )
     } yield response
   }
@@ -311,7 +312,8 @@ class GformBackEndService(
     structuredFormData: StructuredFormValue.ObjectStructure,
     attachments: Attachments,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    maybeEmailAddress: Option[String]
+    maybeEmailAddress: Option[String],
+    userSession: UserSession
   )(implicit hc: HeaderCarrier, l: LangADT, m: Messages): Future[HttpResponse] =
     gformConnector.submitForm(
       FormIdData(retrievals, formTemplate._id, maybeAccessCode),
@@ -326,7 +328,8 @@ class GformBackEndService(
         structuredFormData,
         attachments,
         formModelVisibilityOptics,
-        maybeEmailAddress
+        maybeEmailAddress,
+        userSession
       ),
       AffinityGroupUtil.fromRetrievals(retrievals)
     )
@@ -341,7 +344,8 @@ class GformBackEndService(
     structuredFormData: StructuredFormValue.ObjectStructure,
     attachments: Attachments,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    maybeEmailAddress: Option[String]
+    maybeEmailAddress: Option[String],
+    userSession: UserSession
   )(implicit l: LangADT, m: Messages): SubmissionData =
     SubmissionData(
       htmlForPDF,
@@ -352,7 +356,8 @@ class GformBackEndService(
       attachments,
       l,
       maybeEmailAddress,
-      DestinationEvaluator(formTemplate, formModelVisibilityOptics)
+      DestinationEvaluator(formTemplate, formModelVisibilityOptics),
+      userSession
     )
 
   private def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Boolean =

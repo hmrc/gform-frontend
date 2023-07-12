@@ -125,6 +125,16 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
         }
     }
 
+  def getEnrolments: List[Enrolment] = this match {
+    case a: AuthenticatedRetrievals => a.enrolments.enrolments.toList
+    case _                          => Nil
+  }
+
+  def getAffinityGroup: Option[AffinityGroup] = this match {
+    case a: AuthenticatedRetrievals => Some(a.affinityGroup)
+    case _                          => None
+  }
+
   def maybeConfidenceLevel: Option[ConfidenceLevel] =
     this match {
       case r: AuthenticatedRetrievals => Some(r.confidenceLevel)
