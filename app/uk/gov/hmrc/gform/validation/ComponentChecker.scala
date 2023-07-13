@@ -123,7 +123,8 @@ object ComponentChecker {
     cond: Boolean,
     andCond: Option[Boolean],
     thenProgram: CheckProgram[A],
-    elseProgram: CheckProgram[A]
+    elseProgram: CheckProgram[A],
+    isSwitch: Boolean = false
   ) extends CheckOp[EitherType[A]]
 
   case class AndThenOp[A, B](
@@ -189,7 +190,8 @@ object ComponentChecker {
           cond = switchCases.head.cond,
           andCond = switchCases.head.andCond,
           thenProgram = switchCases.head.thenProgram(),
-          elseProgram = switchProgram(switchCases.tail: _*)(elseProgram)
+          elseProgram = switchProgram(switchCases.tail: _*)(elseProgram),
+          isSwitch = true
         )
       )
 
@@ -201,7 +203,7 @@ object ComponentChecker {
     def apply[A](op: CheckOp[A]) = op match {
       case ShortCircuitOp(program)    => program.foldMap(this).leftErrors
       case NonShortCircuitOp(program) => program.foldMap(NonShortCircuitInterpreter).leftErrors
-      case IfOp(cond, andCond, thenProgram, elseProgram) =>
+      case IfOp(cond, andCond, thenProgram, elseProgram, _) =>
         if (cond && andCond.getOrElse(true)) thenProgram.foldMap(this).leftErrors
         else elseProgram.foldMap(this).leftErrors
       case ErrorOp(gformError) => gformError.asLeft[A]
@@ -241,7 +243,7 @@ object ComponentChecker {
       case ShortCircuitOp(program) =>
         program.foldMap(ShortCircuitInterpreter).rightErrors
       case NonShortCircuitOp(program) => program.foldMap(this).rightErrors
-      case IfOp(cond, andCond, thenProgram, elseProgram) =>
+      case IfOp(cond, andCond, thenProgram, elseProgram, _) =>
         if (cond && andCond.getOrElse(true)) thenProgram.foldMap(this).rightErrors
         else elseProgram.foldMap(this).rightErrors
       case ErrorOp(gformError) => Right(gformError.asLeft[A])
@@ -273,7 +275,15 @@ object ComponentChecker {
     def apply[A](op: CheckOp[A]) = op match {
       case ShortCircuitOp(program)    => program.foldMap(this).rightErrors
       case NonShortCircuitOp(program) => program.foldMap(this).rightErrors
-      case IfOp(_, andCond, thenProgram, elseProgram) =>
+      case IfOp(_, andCond, thenProgram, elseProgram, true) => // isSwitch
+        (
+          andCond match {
+            case None        => (getError(thenProgram.foldMap(this)) |+| getError(elseProgram.foldMap(this))).asLeft[A]
+            case Some(true)  => (getError(thenProgram.foldMap(this)) |+| getError(elseProgram.foldMap(this))).asLeft[A]
+            case Some(false) => elseProgram.foldMap(this)
+          }
+        ).rightErrors
+      case IfOp(_, andCond, thenProgram, elseProgram, _) =>
         (
           andCond match {
             case None        => (getError(thenProgram.foldMap(this)) |+| getError(elseProgram.foldMap(this))).asLeft[A]
