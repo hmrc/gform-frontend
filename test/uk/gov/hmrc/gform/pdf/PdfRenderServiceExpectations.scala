@@ -30,7 +30,7 @@ trait PdfRenderServiceExpectations {
        |<html>
        |	<head>
        |		<title>PDF Title</title>
-       |		<style>
+       |		<style nonce="a-nonce">
        |        body{font-family:Arial,sans-serif;font-size: 16px; margin:50px;}
        |        dl{border-bottom: 1px solid #bfc1c3;}
        |        dt{font-weight: bold;}
@@ -93,7 +93,7 @@ trait PdfRenderServiceExpectations {
        |<html>
        |	<head>
        |		<title>PDF Title</title>
-       |		<style>
+       |		<style nonce="a-nonce">
        |         body {
        |          font-family:Arial, sans-serif;
        |          font-size: 16px;
