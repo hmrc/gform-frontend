@@ -81,7 +81,7 @@ class DebugController(
 
   def verify(formTemplateId: FormTemplateId) =
     auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, None) {
-      request => lang => cache => sse => formModelOptics =>
+      implicit request => lang => cache => sse => formModelOptics =>
         val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
 
         val inspectedExplicitExprs: List[InspectedExplicitExpr] = formModel.allFormComponents.collect {

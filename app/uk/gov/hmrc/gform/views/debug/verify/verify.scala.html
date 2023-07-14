@@ -16,16 +16,17 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.testonly.{ InspectedExpr, InspectedExplicitExpr, BooleanExprInfo }
+@import views.html.helper.CSPNonce
 
 @(
     inspectedExplicitExprs: List[InspectedExplicitExpr],
     inspectedExprs: List[InspectedExpr],
     inspectedIncludeIfs: List[BooleanExprInfo],
-    inspectedValidIfs: List[BooleanExprInfo])
+    inspectedValidIfs: List[BooleanExprInfo])(implicit request: Request[_])
 
 <html>
     <head>
-        <style>
+        <style @{CSPNonce.attr}>
          body {
              font-family: monospace;
          }
