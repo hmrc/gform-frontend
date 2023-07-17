@@ -33,6 +33,7 @@
 @import uk.gov.hmrc.hmrcfrontend.config.AccessibilityStatementConfig
 @import uk.gov.hmrc.hmrcfrontend.views.Aliases.UserResearchBanner
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.AccessibilityUrl
+@import views.html.helper.CSPNonce
 
 @(appConfig: FrontendAppConfig,
   serviceTitle: String,
@@ -82,23 +83,23 @@
 }
 
 @scripts = {
-    <script src='@routes.Assets.versioned("javascripts/jquery.min.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/utils.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/gformFileUpload.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/gformRepeatingGroups.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/gformToggleAddressDivsAndLabels.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/gformFormActionHandlers.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/gformSummaryLayout.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/accessible-autocomplete.min.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/gformAutoComplete.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/gformSessionTimeout.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/gform.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/bignumber.min.js")'></script>
-    <script src='@controllers.routes.Assets.versioned("lib/govuk-frontend/govuk/all.js")'></script>
-    <script src='@controllers.routes.Assets.versioned("lib/hmrc-frontend/hmrc/all.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/jquery.min.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/utils.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gformFileUpload.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gformRepeatingGroups.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gformToggleAddressDivsAndLabels.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gformFormActionHandlers.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gformSummaryLayout.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/accessible-autocomplete.min.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gformAutoComplete.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gformSessionTimeout.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gform.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/bignumber.min.js")'></script>
+    <script @{CSPNonce.attr} src='@controllers.routes.Assets.versioned("lib/govuk-frontend/govuk/all.js")'></script>
+    <script @{CSPNonce.attr} src='@controllers.routes.Assets.versioned("lib/hmrc-frontend/hmrc/all.js")'></script>
 
-    <script>window.GOVUKFrontend.initAll();</script>
-    <script>window.HMRCFrontend.initAll();</script>
+    <script @{CSPNonce.attr}>window.GOVUKFrontend.initAll();</script>
+    <script @{CSPNonce.attr}>window.HMRCFrontend.initAll();</script>
 }
 
 @linkElement = {
@@ -111,7 +112,7 @@
     @appConfig.trackingConsentSnippet()
     <!--[if lte IE 8]><link href='@controllers.routes.Assets.versioned("stylesheets/application-ie-8.css")' rel="stylesheet" type="text/css" /><![endif]-->
     <!--[if gt IE 8]><!--><link href='@controllers.routes.Assets.versioned("stylesheets/application.css")' media="screen" rel="stylesheet" type="text/css" /><!--<![endif]-->
-    <script>
+    <script @{CSPNonce.attr}>
           window.getCookie = function (name) {
             var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
             if (match) return match[2];

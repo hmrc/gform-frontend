@@ -53,7 +53,7 @@ object HtmlSanitiser {
     doc.getElementsByClass("govuk-footer").remove()
     doc
       .getElementsByTag("head")
-      .append(s"<style>${PdfGeneratorService.css}</style>")
+      .append(s"<style @{CSPNonce.attr}>${PdfGeneratorService.css}</style>")
 
     doc.select(".govuk-width-container").remove()
 

@@ -24,6 +24,7 @@
 @import uk.gov.hmrc.gform.summary.SummaryRenderingService
 @import uk.gov.hmrc.gform.views.html.summary.snippets.ordered_list
 @import uk.gov.hmrc.gform.views.html.summary.snippets.signature_section
+@import views.html.helper.CSPNonce
 @(
     title: String,
     summaryDatas: List[SummaryData],
@@ -43,7 +44,7 @@
 <html>
 <head>
     <title>@{title}</title>
-    <style>
+    <style @{CSPNonce.attr}>
         body {
           font-family:Arial, sans-serif;
           font-size: 16px;

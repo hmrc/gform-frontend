@@ -585,6 +585,7 @@ class SectionRenderingService(
     sectionNumber: SectionNumber,
     formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo]
   )(implicit
+    request: Request[_],
     l: LangADT,
     sse: SmartStringEvaluator
   ): Html =

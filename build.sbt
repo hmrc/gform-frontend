@@ -58,7 +58,8 @@ lazy val microservice = (project in file("."))
       "uk.gov.hmrc.gform.sharedmodel._",
       "uk.gov.hmrc.gform.eval.smartstring._",
       //"uk.gov.hmrc.csp.WebchatClient",
-      "uk.gov.hmrc.govukfrontend.views.html.components._"
+      "uk.gov.hmrc.govukfrontend.views.html.components._",
+      "views.html.helper.CSPNonce"
     ),
     scalacOptions ++= Seq(
       "-Xfatal-warnings",
