@@ -332,7 +332,8 @@ class AddressLookupController(
                 formTemplateId,
                 maybeAccessCode,
                 formComponentId,
-                sectionNumber
+                sectionNumber,
+                fastForward
               )
             val enterAddressHref = routes.AddressLookupController
               .enterAddress(
@@ -457,7 +458,8 @@ class AddressLookupController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
-    sectionNumber: SectionNumber
+    sectionNumber: SectionNumber,
+    fastForward: List[FastForward]
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => l => cache => sse => formModelOptics =>
@@ -466,7 +468,10 @@ class AddressLookupController(
             routes.AddressLookupController.fastForwardAfterConfirmation(
               formTemplateId,
               maybeAccessCode,
-              None // TODO JoVl fastforward in tasklist will start with a first task, which is not what we want
+              Some(
+                sectionNumber
+              ),
+              fastForward
             )
           val bracket: Bracket[Visibility] =
             formModelOptics.formModelVisibilityOptics.formModel.brackets.withSectionNumber(sectionNumber)
@@ -482,7 +487,8 @@ class AddressLookupController(
               maybeAccessCode,
               iteration.checkYourAnswers
                 .map(_.sectionNumber)
-                .orElse(iteration.allSingletonSectionNumbers.find(_ > sectionNumber))
+                .orElse(iteration.allSingletonSectionNumbers.find(_ > sectionNumber)),
+              fastForward
             )
           }
         }
@@ -504,7 +510,8 @@ class AddressLookupController(
   def fastForwardAfterConfirmation(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    maybeSectionNumber: Option[SectionNumber]
+    maybeSectionNumber: Option[SectionNumber],
+    fastForward: List[FastForward]
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => sse => formModelOptics =>
@@ -514,10 +521,18 @@ class AddressLookupController(
               cache,
               maybeAccessCode,
               formModelOptics,
-              None
+              maybeSectionNumber,
+              fastForward
             ) // TODO JoVl Revisit maybeCoordinates param
         ) { sn =>
-          fastForwardService.redirectStopAt[SectionSelectorType.Normal](sn, cache, maybeAccessCode, formModelOptics)
+          fastForwardService
+            .redirectFastForward[SectionSelectorType.Normal](
+              cache,
+              maybeAccessCode,
+              formModelOptics,
+              maybeSectionNumber,
+              fastForward
+            )
         }
 
     }
@@ -645,7 +660,8 @@ class AddressLookupController(
                               formTemplateId,
                               maybeAccessCode,
                               formComponentId,
-                              sectionNumber
+                              sectionNumber,
+                              fastForward
                             )
                           )
                         } else {

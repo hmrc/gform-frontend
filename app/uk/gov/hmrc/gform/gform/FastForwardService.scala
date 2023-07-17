@@ -58,7 +58,8 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    maybeSectionNumber: Option[SectionNumber]
+    maybeSectionNumber: Option[SectionNumber],
+    fastForward: List[FastForward] = Nil
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
@@ -67,7 +68,7 @@ class FastForwardService(
     redirectWithRecalculation(
       cache,
       maybeAccessCode,
-      maybeSectionNumber.map(FastForward.StopAt).toList,
+      if (fastForward.nonEmpty) fastForward else maybeSectionNumber.map(FastForward.StopAt).toList,
       formModelOptics,
       maybeSectionNumber
     )
@@ -121,7 +122,7 @@ class FastForwardService(
               EnvelopeWithMapping(envelope, cache.form),
               maybeSectionNumber
             )(
-              redirectResult(cache, maybeAccessCode, processData, _, fastForward)
+              redirectResult(cache, maybeAccessCode, processData, _, fastForward, _)
             )
         } yield res
 
@@ -132,7 +133,8 @@ class FastForwardService(
     maybeAccessCode: Option[AccessCode],
     processData: ProcessData,
     sectionOrSummary: SectionOrSummary,
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    maybeSectionNumber: Option[SectionNumber]
   ): Result =
     sectionOrSummary match {
       case SectionOrSummary.Section(sn) =>
@@ -151,10 +153,12 @@ class FastForwardService(
             )
         )
       case _ =>
+        val maybeCoordinates = maybeSectionNumber.flatMap(_.toCoordinates)
         Redirect(
           routes.SummaryController
-            .summaryById(cache.formTemplate._id, maybeAccessCode, None, None, ff = fastForward.headOption)
+            .summaryById(cache.formTemplate._id, maybeAccessCode, maybeCoordinates, None, ff = fastForward.headOption)
         )
+
     }
 
   def deleteForm(
@@ -195,7 +199,7 @@ class FastForwardService(
     envelope: EnvelopeWithMapping,
     maybeSectionNumber: Option[SectionNumber]
   )(
-    toResult: SectionOrSummary => Result
+    toResult: (SectionOrSummary, Option[SectionNumber]) => Result
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
@@ -229,7 +233,7 @@ class FastForwardService(
                  )
       res <- gformConnector
                .updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)
-               .map(_ => toResult(maybeSn))
+               .map(_ => toResult(maybeSn, maybeSectionNumber))
     } yield res
 
   def maybeInvalidSectionNumber(
