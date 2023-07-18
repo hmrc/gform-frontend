@@ -144,7 +144,7 @@ generic.governmentId.error.pattern=Rhaid nodi {0} yn y fformat cywir
 generic.governmentId.not.exist=Nid yw’r {0} a nodoch yn bodoli
 generic.error.sortCode=Nodwch god didoli dilys fel 123456
 generic.error.exactNumbers=Rhaid i {0} fod yn rhif {1} digid
-generic.error.lookup=Dim cyfateb i {1}. Dewiswch werth o'r rhestr.
+generic.error.lookup=Dim cyfateb i {1}. Dewiswch werth o’r rhestr.
 generic.error.email=Rhaid i {0} gyd-fynd â’r cod rydych wedi ei gael drwy e-bost
 generic.error.mustBeBetween=mae’n rhaid i {0} bod rhwng {1} a {2}
 generic.error.pageRestricted=Mae’n ddrwg gennym – mae mynediad at y dudalen hon wedi’i gyfyngu.
@@ -589,8 +589,8 @@ summary.pdf.formCategory.return=Copi drafft yw hwn. Bydd angen i chi gyflwyno’
 summary.pdf.formCategory.claim=Copi drafft yw hwn. Bydd angen i chi gyflwyno’ch hawliad i anfon eich atebion.
 summary.pdf.formCategory.form=Copi drafft yw hwn. Bydd angen i chi gyflwyno’ch ffurflen i anfon eich atebion.
 
-browser.forbidden.title=Mae’n ddrwg gennym, ni allwch lenwi’r ffurflen hon gan ddefnyddio'r porwr gwe hwn.
-browser.forbidden.p1=Nid yw'r gwasanaeth hwn yn cynnal Internet Explorer.
+browser.forbidden.title=Mae’n ddrwg gennym, ni allwch lenwi’r ffurflen hon gan ddefnyddio’r porwr gwe hwn.
+browser.forbidden.p1=Nid yw’r gwasanaeth hwn yn cynnal Internet Explorer.
 browser.forbidden.p2=Mae angen i chi ddefnyddio porwr gwe arall, fel Microsoft Edge, Google Chrome neu Mozilla Firefox.
 browser.forbidden.link=Rhagor o wybodaeth am sut i newid porwr (yn agor tab newydd)
 
