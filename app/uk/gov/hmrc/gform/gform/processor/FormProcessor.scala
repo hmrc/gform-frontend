@@ -411,7 +411,7 @@ class FormProcessor(
               fastForward,
               envelopeWithMapping,
               Some(sectionNumber)
-            )(toResult(updatePostcodeLookup)(redirectUrl.map(_.value())))
+            )((a, b) => toResult(updatePostcodeLookup)(redirectUrl.map(_.value()))(a))
         }
       }
     } yield res

@@ -487,16 +487,7 @@ class SectionRenderingService(
 
     val snippetsForFields = renderUnits
       .map(renderUnit =>
-        htmlFor(
-          renderUnit,
-          formTemplate._id,
-          ei,
-          validationResult,
-          obligations,
-          upscanInitiate,
-          upscanData,
-          fastForward
-        )
+        htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, upscanInitiate, upscanData)
       )
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
       _ === Continue
@@ -1023,8 +1014,7 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     obligations: Obligations,
     upscanInitiate: UpscanInitiate,
-    upscanData: Map[FormComponentId, UpscanData] = Map.empty[FormComponentId, UpscanData],
-    fastForward: List[FastForward] = Nil
+    upscanData: Map[FormComponentId, UpscanData] = Map.empty[FormComponentId, UpscanData]
   )(implicit
     request: RequestHeader,
     messages: Messages,
@@ -1044,7 +1034,7 @@ class SectionRenderingService(
           case CalendarDate =>
             htmlForCalendarDate(formComponent, validationResult, ei)
           case p @ PostcodeLookup(_, _, _) =>
-            htmlForPostcodeLookup(formComponent, validationResult, ei, fastForward)
+            htmlForPostcodeLookup(formComponent, validationResult, ei)
           case TaxPeriodDate =>
             htmlForTaxPeriodDate(formComponent, validationResult, ei)
           case t @ Time(_, _) =>
@@ -2464,8 +2454,7 @@ class SectionRenderingService(
   private def htmlForPostcodeLookup(
     formComponent: FormComponent,
     validationResult: ValidationResult,
-    ei: ExtraInfo,
-    fastForward: List[FastForward]
+    ei: ExtraInfo
   )(implicit
     messages: Messages
   ) = {
@@ -2537,7 +2526,7 @@ class SectionRenderingService(
         formComponent.id,
         ei.sectionNumber,
         SuppressErrors.Yes,
-        fastForward
+        List(FastForward.Yes)
       )
 
     (items.map(maker(_)) :+ html.form.snippets.manual_address(enterAddressHref)).combineAll
