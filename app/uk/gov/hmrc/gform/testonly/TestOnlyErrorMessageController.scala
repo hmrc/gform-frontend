@@ -63,7 +63,7 @@ class TestOnlyErrorMessageController(
     inputBaseComponentId: Option[String]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      _ => _ => cache => _ => formModelOptics =>
+      implicit request => _ => cache => _ => formModelOptics =>
         val messagesApi: MessagesApi = controllerComponents.messagesApi
         val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
         val welshMessages: Messages = messagesApi.preferred(Seq(Lang("cy")))

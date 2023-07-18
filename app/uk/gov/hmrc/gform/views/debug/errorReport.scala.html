@@ -18,7 +18,7 @@
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 @import play.twirl.api.Html
 
-@(title: String, report: List[List[(String, String, String, String)]])
+@(title: String, report: List[List[(String, String, String, String)]])(implicit request: Request[_])
 @header = @{
   Html(
     """
@@ -33,7 +33,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <link href="/submissions/assets/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css">
+    <link @{CSPNonce.attr} href="/submissions/assets/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css">
     <title>@{title}</title>
   </head>
   <body>
