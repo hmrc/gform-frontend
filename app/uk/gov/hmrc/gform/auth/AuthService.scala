@@ -330,6 +330,9 @@ class AuthService(
     authResult match {
       case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, maybeNino, _, confidenceLevel), _)
           if maybeNino.isEmpty || confidenceLevel.level < Try(minimumCL.toInt).getOrElse(0) =>
+        logger.info(
+          s"Redirect to IV journey - nino: ${maybeNino.map(_ => "non-empty").getOrElse("empty")}, confidenceLevel: ${confidenceLevel.level}"
+        )
         val completionUrl = URLEncoder.encode(gform.routes.NewFormController.dashboard(formTemplate._id).url, "UTF-8")
         val failureUrl =
           URLEncoder.encode(gform.routes.IdentityVerificationController.failure(formTemplate._id).url, "UTF-8")
