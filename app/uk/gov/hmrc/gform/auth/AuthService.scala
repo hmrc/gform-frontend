@@ -328,7 +328,7 @@ class AuthService(
 
   private def isHmrcVerified(authResult: AuthResult, formTemplate: FormTemplate, minimumCL: String): AuthResult =
     authResult match {
-      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, maybeNino, _, confidenceLevel), _)
+      case AuthSuccessful(AuthenticatedRetrievals(_, _, _, _, maybeNino, _, confidenceLevel), _)
           if maybeNino.isEmpty || confidenceLevel.level < Try(minimumCL.toInt).getOrElse(0) =>
         logger.info(
           s"Redirect to IV journey - nino: ${maybeNino.map(_ => "non-empty").getOrElse("empty")}, confidenceLevel: ${confidenceLevel.level}"
