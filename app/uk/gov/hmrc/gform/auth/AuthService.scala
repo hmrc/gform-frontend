@@ -338,10 +338,10 @@ class AuthService(
           s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=$minimumCL"
         )
       case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Organisation, _, _, _, _), _) =>
-        logger.info(s"Organisations cannot access this form")
+        logger.info("Organisations cannot access this form")
         AuthBlocked("Organisations cannot access this form")
       case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Agent, _, _, _, _), _) =>
-        logger.info(s"Agents cannot access this form")
+        logger.info("Agents cannot access this form")
         AuthBlocked("Agents cannot access this form")
       case _ => authResult
     }

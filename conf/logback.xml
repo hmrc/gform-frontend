@@ -53,7 +53,7 @@
 
     <logger name="play.core.netty.utils.ServerCookieDecoder" level="INFO"/>
 
-    <logger name="uk.gov" level="INFO"/>
+    <logger name="uk.gov" level="DEBUG"/>
 
     <logger name="application" level="DEBUG"/>
 
