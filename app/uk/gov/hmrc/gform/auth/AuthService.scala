@@ -328,6 +328,8 @@ class AuthService(
 
   private def isHmrcVerified(authResult: AuthResult, formTemplate: FormTemplate, minimumCL: String): AuthResult =
     authResult match {
+      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Agent, _, _, _, _), _) =>
+        AuthBlocked("Agents cannot access this form")
       case AuthSuccessful(AuthenticatedRetrievals(_, _, _, _, maybeNino, _, confidenceLevel), _)
           if maybeNino.isEmpty || confidenceLevel.level < Try(minimumCL.toInt).getOrElse(0) =>
         logger.info(
@@ -349,11 +351,7 @@ class AuthService(
             gform.routes.IdentityVerificationController.enrolmentsNeeded(formTemplate._id).url
           )
         )(_ => authResult)
-
-      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Agent, _, _, _, _), _) =>
-        AuthBlocked("Agents cannot access this form")
       case _ => authResult
-
     }
 
   private def ggAgentAuthorise(agentAccess: AgentAccess, formTemplate: FormTemplate, enrolments: Enrolments)(implicit
