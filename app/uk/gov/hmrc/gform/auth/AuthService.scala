@@ -22,7 +22,6 @@ import cats.implicits._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{ JsError, JsSuccess, Json }
 import play.api.mvc.{ AnyContent, Cookie, Request }
-import uk.gov.hmrc.auth.core.EnrolmentIdentifier
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
@@ -34,7 +33,6 @@ import uk.gov.hmrc.gform.gform.EmailAuthUtils.isEmailConfirmed
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gform.URIUtils.addQueryParams
 import uk.gov.hmrc.gform.models.EmailId
-import uk.gov.hmrc.gform.models.mappings.IRSA
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -328,9 +326,7 @@ class AuthService(
 
   private def isHmrcVerified(authResult: AuthResult, formTemplate: FormTemplate, minimumCL: String): AuthResult =
     authResult match {
-      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Agent, _, _, _, _), _) =>
-        AuthBlocked("Agents cannot access this form")
-      case AuthSuccessful(AuthenticatedRetrievals(_, _, _, _, maybeNino, _, confidenceLevel), _)
+      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, maybeNino, _, confidenceLevel), _)
           if maybeNino.isEmpty || confidenceLevel.level < Try(minimumCL.toInt).getOrElse(0) =>
         logger.info(
           s"Redirect to IV journey - nino: ${maybeNino.map(_ => "non-empty").getOrElse("empty")}, confidenceLevel: ${confidenceLevel.level}"
@@ -341,16 +337,12 @@ class AuthService(
         AuthRedirect(
           s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=$minimumCL"
         )
-      case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Organisation, _, None, _, _), _) =>
-        val irsa = IRSA()
-        val maybeEnrolmentId: Option[EnrolmentIdentifier] =
-          enrolments.getEnrolment(irsa.name).flatMap(_.getIdentifier(irsa.id))
-
-        maybeEnrolmentId.fold[AuthResult](
-          AuthRedirect(
-            gform.routes.IdentityVerificationController.enrolmentsNeeded(formTemplate._id).url
-          )
-        )(_ => authResult)
+      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Organisation, _, _, _, _), _) =>
+        logger.info(s"Organisations cannot access this form")
+        AuthBlocked("Organisations cannot access this form")
+      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Agent, _, _, _, _), _) =>
+        logger.info(s"Agents cannot access this form")
+        AuthBlocked("Agents cannot access this form")
       case _ => authResult
     }
 
