@@ -487,7 +487,7 @@ class AddressLookupController(
               maybeAccessCode,
               iteration.checkYourAnswers
                 .map(_.sectionNumber)
-                .orElse(iteration.allSingletonSectionNumbers.find(_ > sectionNumber)),
+                .orElse(Some(sectionNumber)),
               fastForward
             )
           }
