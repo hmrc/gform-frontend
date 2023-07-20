@@ -24,8 +24,9 @@
 @import uk.gov.hmrc.gform.views.html.form.FormWithoutCSRF
 @import uk.gov.hmrc.gform.controllers.{ SaveAndExit, Back }
 @import uk.gov.hmrc.gform.FormTemplateKey
-
 @import uk.gov.hmrc.gform.commons.MarkDownUtil
+@import views.html.helper.CSPNonce
+
 @(
   formTemplate: FormTemplate,
   pageLevelError: HasErrors,
@@ -81,7 +82,7 @@
 
     @specimenNavigation
 
-    <script type="text/javascript">
+    <script @{CSPNonce.attr} type="text/javascript">
       window.gform = window.gform || {};
       window.gform.envelopeId = "@page.envelopeId.value";
       const fileSizePairs = "@page.fileUploadMaxSize".slice(1, -1).split(")(");

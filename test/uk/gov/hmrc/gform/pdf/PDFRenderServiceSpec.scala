@@ -23,6 +23,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{ Millis, Seconds, Span }
 import play.api.i18n.Messages
+import play.api.libs.typedmap.TypedMap
+import play.api.mvc.request.RequestAttrKey
 import play.api.test.{ FakeRequest, Helpers }
 import uk.gov.hmrc.gform.Helpers.{ mkDataOutOfDate, toSmartString }
 import uk.gov.hmrc.gform.auth.models.Role
@@ -56,7 +58,7 @@ class PDFRenderServiceSpec
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(100, Millis)))
 
-  implicit val request = FakeRequest()
+  implicit val request = FakeRequest().withAttrs(TypedMap(RequestAttrKey.CSPNonce -> "a-nonce"))
   implicit val headerCarrier = HeaderCarrier()
   implicit val lang: LangADT = LangADT.En
   implicit val messages: Messages =

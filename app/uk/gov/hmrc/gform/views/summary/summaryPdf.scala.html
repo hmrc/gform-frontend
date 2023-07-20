@@ -24,6 +24,8 @@
 @import uk.gov.hmrc.gform.summary.SubmissionDetails
 @import uk.gov.hmrc.gform.summary.SummaryRenderingService
 @import uk.gov.hmrc.gform.views.html.summary.snippets.signature_section
+@import views.html.helper.CSPNonce
+
 @(
     title: String,
     maybePageTitle: Option[String],
@@ -40,7 +42,7 @@
 <html>
 <head>
     <title>@title</title>
-    <style>
+    <style @{CSPNonce.attr}>
         body{font-family:Arial,sans-serif;font-size: 16px; margin:50px;}
         dl{border-bottom: 1px solid #bfc1c3;}
         dt{font-weight: bold;}
