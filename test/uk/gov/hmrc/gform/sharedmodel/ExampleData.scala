@@ -681,6 +681,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       NonEmptyList.fromListUnsafe(pages),
       None,
       None,
+      None,
       addAnotherQuestion,
       instruction,
       presentationHint,

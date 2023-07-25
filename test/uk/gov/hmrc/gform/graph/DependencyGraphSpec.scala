@@ -69,6 +69,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     NonEmptyList.one(emptyPage),
     None,
     None,
+    None,
     mkFormComponent("choice", Value),
     None,
     None,
