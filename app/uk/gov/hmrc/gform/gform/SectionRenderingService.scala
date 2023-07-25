@@ -387,7 +387,7 @@ class SectionRenderingService(
       determineContinueLabelKey(
         retrievals.continueLabelKey,
         formTemplate.draftRetrievalMethod.isNotPermitted,
-        None,
+        bracket.source.repeaterContinueLabel,
         false
       ),
       shouldDisplayBack,

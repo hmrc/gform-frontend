@@ -71,6 +71,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     NonEmptyList.one(emptyPage),
     None,
     None,
+    None,
     mkFormComponent("choice", Value),
     None,
     None,
