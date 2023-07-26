@@ -423,3 +423,7 @@ div.gform-date-input__item {
 .hmrc-add-to-a-list__identifier p {
     margin: 0px;
 }
+
+.hmrc-header__service-name {
+    margin-right: 5px;
+}
