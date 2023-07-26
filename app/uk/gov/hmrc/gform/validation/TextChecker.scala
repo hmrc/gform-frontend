@@ -371,8 +371,7 @@ object TextChecker {
       textValidationWithConstraints(fieldValue, inputText, 0, ValidationValues.emailLimit)
     ).nonShortCircuitProgram
 
-    def saUTRCheck(): CheckProgram[Unit] = checkUtr(fieldValue, inputText)
-    def ctUTRCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
+    def utrCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(
         fieldValue,
         genericUtrErrorRequired,
@@ -416,7 +415,10 @@ object TextChecker {
       nonEmptyCheck = checkVrn(fieldValue, inputText)
     )
 
-    def countryCodeCheck(): CheckProgram[Unit] = checkCountryCode(fieldValue, inputText)
+    def countryCodeCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
+      mandatoryFailure = checkCountryCode(fieldValue, inputText),
+      nonEmptyCheck = checkCountryCode(fieldValue, inputText)
+    )
     def nonUkCountryCodeCheck(): CheckProgram[Unit] = checkNonUkCountryCode(fieldValue, inputText)
     def companyRegistrationNumberCheck(): CheckProgram[Unit] =
       checkCompanyRegistrationNumber(fieldValue, inputText)
@@ -503,8 +505,7 @@ object TextChecker {
       case TelephoneNumber                            => telephoneNumberCheck()
       case Email                                      => emailCheck()
       case c: EmailVerifiedBy                         => emailVerifiedByCheck(c)
-      case SaUTR                                      => saUTRCheck()
-      case CtUTR                                      => ctUTRCheck()
+      case SaUTR | CtUTR                              => utrCheck()
       case NINO                                       => ninoCheck()
       case PayeReference                              => payeReferenceCheck()
       case UkVrn                                      => ukVrnCheck()
