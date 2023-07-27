@@ -145,7 +145,7 @@ class AcknowledgementController(
 
         _ <- nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
         submission <- gformConnector.submissionDetails(
-                        FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
+                        FormIdData(cache.retrievals, cache.formTemplate._id, maybeAccessCode),
                         cache.form.envelopeId
                       )
 
