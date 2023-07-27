@@ -419,7 +419,10 @@ object TextChecker {
       mandatoryFailure = checkCountryCode(fieldValue, inputText),
       nonEmptyCheck = checkCountryCode(fieldValue, inputText)
     )
-    def nonUkCountryCodeCheck(): CheckProgram[Unit] = checkNonUkCountryCode(fieldValue, inputText)
+    def nonUkCountryCodeCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
+      mandatoryFailure = checkNonUkCountryCode(fieldValue, inputText),
+      nonEmptyCheck = checkNonUkCountryCode(fieldValue, inputText)
+    )
     def companyRegistrationNumberCheck(): CheckProgram[Unit] =
       checkCompanyRegistrationNumber(fieldValue, inputText)
     def eoriCheck(): CheckProgram[Unit] = checkEORI(fieldValue, inputText)
