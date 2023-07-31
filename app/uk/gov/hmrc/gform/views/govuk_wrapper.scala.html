@@ -127,7 +127,7 @@
     @{
       if(displayTimeoutDialog) {
         maybeFormTemplate.map(formTemplate =>
-          <meta name="gform-refresh-session" data-refresh-session-url={appConfig.refreshSession(formTemplate._id.value)} />
+          <meta name="gform-refresh-session" content={appConfig.refreshSession(formTemplate._id.value)} />
         ).getOrElse(HtmlFormat.empty)
       } else {
         HtmlFormat.empty
