@@ -10,7 +10,7 @@
     function init() {
       $("input").keypress(broadcastTimestamp);
       $("textarea").keypress(broadcastTimestamp);
-      refreshSessionUrl = $('meta[name="gform-refresh-session"]').attr('data-refresh-session-url');
+      refreshSessionUrl = $('meta[name="gform-refresh-session"]').attr('content');
       signOutUrl = $('meta[name="hmrc-timeout-dialog"]').attr('data-sign-out-url');
       $.ajax({
         url: refreshSessionUrl,
