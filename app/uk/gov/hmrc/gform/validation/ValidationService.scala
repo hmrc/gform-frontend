@@ -55,6 +55,7 @@ class ValidationService(
   checkInterpreter: CheckInterpreter = ComponentChecker.NonShortCircuitInterpreter
 )(implicit ec: ExecutionContext) {
 
+  private def lift[T](fv: Future[ValidatedType[T]]) = EitherT(fv.map(_.toEither))
   def validatePageModel[D <: DataOrigin](
     pageModel: PageModel[Visibility],
     cache: CacheData,
@@ -67,8 +68,6 @@ class ValidationService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[ValidatedType[ValidatorsResult]] = {
-    def lift[T](fv: Future[ValidatedType[T]]) = EitherT(fv.map(_.toEither))
-
     // format: off
     val eT = for {
       _                     <- lift(validatePageModelComponents(pageModel, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
@@ -81,6 +80,27 @@ class ValidationService(
     // format: on
 
     eT.value.map(Validated.fromEither)
+  }
+
+  def validatePageModelFF[D <: DataOrigin](
+    pageModel: PageModel[Visibility],
+    cache: CacheData,
+    envelope: EnvelopeWithMapping,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+  )(implicit
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Future[ValidatedType[ValidatorsResult]] = {
+    val result = for {
+      _ <-
+        lift(
+          validatePageModelComponents(pageModel, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher)
+        )
+    } yield ValidatorsResult.empty
+
+    result.value.map(Validated.fromEither)
   }
 
   def validateFormModel[D <: DataOrigin](
