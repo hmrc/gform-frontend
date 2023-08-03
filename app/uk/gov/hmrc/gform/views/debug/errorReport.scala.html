@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.views.html.main_template
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 @import play.twirl.api.Html
+@import views.html.helper.CSPNonce
 
 @(title: String, report: List[List[(String, String, String, String)]])(implicit request: Request[_])
 @header = @{

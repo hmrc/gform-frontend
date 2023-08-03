@@ -40,6 +40,7 @@ import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.crypto._
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.play.bootstrap.config.DefaultHttpAuditEvent
+import play.filters.components.CSPComponents
 
 class AnonoymousSessionCookieCryptoFilter(
   sessionCookieCrypto: SessionCookieCrypto,
@@ -112,6 +113,11 @@ class FrontendFiltersModule(
     new AnonoymousSessionCookieCryptoFilter(sessionCookieCrypto, anonoymousSessionCookieBaker)
   }
 
+  private val cspComponents = new CSPComponents {
+    override def config() = configModule.playConfiguration.underlying
+  }
+  private val cspFilter = cspComponents.cspFilter()
+
   private val emailSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
     val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
@@ -178,6 +184,7 @@ class FrontendFiltersModule(
   private val ieBlocker = new InternetExplorerBlockerFilter()
 
   lazy val httpFilters: Seq[EssentialFilter] = Seq(
+    cspFilter,
     corsFilter,
     securityHeadersFilter,
     metricsModule.metricsFilter,
