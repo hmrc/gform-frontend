@@ -411,7 +411,7 @@ class FormController(
                 } { taskList =>
                   fastForward match {
                     case FastForward.CYA(SectionOrSummary.TaskSummary) :: xs =>
-                      callSelector(
+                      Future.successful(
                         routes.SummaryController
                           .summaryById(
                             cache.formTemplateId,
@@ -419,9 +419,7 @@ class FormController(
                             sectionNumber.toCoordinates,
                             None,
                             ff = fastForward.headOption
-                          ),
-                        createBackUrl(toSectionNumber, fastForward),
-                        None
+                          )
                       )
                     case _ =>
                       val maybePreviousPage = navigator.previousSectionNumber
