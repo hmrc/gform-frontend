@@ -411,7 +411,6 @@ class FormController(
                 } { taskList =>
                   fastForward match {
                     case FastForward.CYA(SectionOrSummary.TaskSummary) :: xs =>
-                      lxol.pp.log("task summary")
                       Future.successful(
                         routes.SummaryController
                           .summaryById(
