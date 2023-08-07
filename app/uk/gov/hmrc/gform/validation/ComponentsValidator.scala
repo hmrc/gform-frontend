@@ -198,7 +198,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         validIf(
           new AddressChecker[D]().runCheck(checkerDependency)
         )
-      case overseasAddress @ OverseasAddress(_, _, _, _, _) =>
+      case overseasAddress @ OverseasAddress(_, _, _, _, _, _) =>
         validIf(
           new OverseasAddressChecker[D]().runCheck(checkerDependency)
         )

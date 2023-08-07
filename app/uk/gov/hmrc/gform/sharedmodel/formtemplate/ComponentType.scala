@@ -217,7 +217,8 @@ case class OverseasAddress(
   optionalFields: List[OverseasAddress.Configurable.Optional],
   countryLookup: Boolean,
   value: Option[Expr],
-  countryDisplayed: Boolean
+  countryDisplayed: Boolean,
+  selectionCriteria: Option[List[SelectionCriteria]]
 ) extends ComponentType with MultiField {
   override def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic] =
     if (countryDisplayed)

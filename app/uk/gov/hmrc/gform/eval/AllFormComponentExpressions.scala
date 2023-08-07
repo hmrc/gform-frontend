@@ -102,9 +102,9 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
           header.flatMap(_.interpolations),
           summaryValue.interpolations
         )
-      case IsOverseasAddress(OverseasAddress(_, _, _, Some(e), _)) => toPlainExprs(e :: Nil)
-      case IsAddress(Address(_, _, _, Some(e)))                    => toPlainExprs(e :: Nil)
-      case _                                                       => Nil
+      case IsOverseasAddress(OverseasAddress(_, _, _, Some(e), _, _)) => toPlainExprs(e :: Nil)
+      case IsAddress(Address(_, _, _, Some(e)))                       => toPlainExprs(e :: Nil)
+      case _                                                          => Nil
     }
 
     val allExprs: List[ExprMetadata] =
