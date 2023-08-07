@@ -2348,7 +2348,6 @@ class SectionRenderingService(
     l: LangADT,
     sse: SmartStringEvaluator
   ) = {
-    lxol.pp.log(overseasAddress)
     val formFieldValidationResult = validationResult(formComponent)
     val isPageHeading = ei.formLevelHeading
 
@@ -2951,8 +2950,9 @@ class SectionRenderingService(
     val oFormComponent = aFormComponents.find(_.id.baseComponentId === formComponent.id.baseComponentId)
 
     val selectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
-      case IsText(Text(Lookup(_, sc), _, _, _, _, _)) => sc
-      case _                                          => None
+      case IsText(Text(Lookup(_, sc), _, _, _, _, _))            => sc
+      case IsOverseasAddress(OverseasAddress(_, _, _, _, _, sc)) => sc
+      case _                                                     => None
     } map {
       SimplifiedSelectionCriteria
         .convertToSimplifiedSelectionCriteria(_, lookupRegistry, ei.formModelOptics.formModelVisibilityOptics)
