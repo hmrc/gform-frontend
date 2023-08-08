@@ -94,7 +94,8 @@ class OverseasAddressCheckerSpec
     optionalFields = List(),
     countryLookup = false,
     value = None,
-    countryDisplayed = true
+    countryDisplayed = true,
+    selectionCriteria = None
   )
   val baseFormComponent =
     FormComponent(
