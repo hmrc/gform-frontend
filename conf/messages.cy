@@ -240,13 +240,13 @@ decision.error.required=Dewiswch ‘Iawn’ os ydych am fynd yn eich blaen gyda�
 
 # UK Address
 ukAddress.optional=(dewisol)
-ukAddress.line1=Adeilad a stryd
-ukAddress.line2=Adeilad a stryd – llinell 2 (dewisol)
+ukAddress.line1=Llinell Cyfeiriad 1
+ukAddress.line2=Llinell Cyfeiriad 2 (dewisol)
 ukAddress.line3=Tref neu ddinas {0}
 ukAddress.line4=Sir (dewisol)
 ukAddress.postcode=Cod post
-ukAddress.line1.label=adeilad a stryd
-ukAddress.line2.label=adeilad a stryd – llinell 2
+ukAddress.line1.label=linell 1
+ukAddress.line2.label=linell 2
 ukAddress.line3.label=tref neu ddinas
 ukAddress.line4.label=sir
 ukAddress.postcode.label=cod post
@@ -257,11 +257,11 @@ ukAddress.line3.error.maxLength=Rhaid i faes tref neu ddinas {0} beidio â bod y
 ukAddress.line4.error.maxLength=Rhaid i faes sir {0} beidio â bod yn fwy na {1} o gymeriadau
 ukAddress.postcode.error.maxLength=Rhaid i faes cod post {0} beidio â bod yn fwy na {1} o gymeriadau
 
-generic.error.address.building.street.required=Nodwch adeilad a stryd
+generic.error.address.building.street.required=Nodwch linell 1
 generic.error.address.town.city.required=Nodwch dref neu ddinas
 generic.error.address.postcode.required=Nodwch y cod post
-generic.error.address.building.street.maxLength=Mae’n rhaid i’r adeilad a’r stryd fod yn {2} o gymeriadau neu lai
-generic.error.address.building.street.line2.maxLength=Mae’n rhaid i’r adeilad a’r stryd yn llinell 2 fod yn {2} o gymeriadau neu lai
+generic.error.address.building.street.maxLength=Mae’n rhaid i linell 1 fod yn {2} o gymeriadau neu lai
+generic.error.address.building.street.line2.maxLength=Mae’n rhaid i linell 2 fod yn {2} o gymeriadau neu lai
 generic.error.address.town.city.maxLength=Mae’n rhaid i’r dref neu’r ddinas fod yn {2} o gymeriadau neu lai
 generic.error.address.county.maxLength=Mae’n rhaid i’r sir fod yn {2} o gymeriadau neu lai
 generic.error.address.postcode.real=Nodwch god post go iawn
