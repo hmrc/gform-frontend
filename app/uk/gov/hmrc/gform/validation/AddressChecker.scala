@@ -214,9 +214,9 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
         cond = atom.endsWith("1") && theOnlyValue.map(_.length > ValidationValues.addressLine).getOrElse(false),
         thenProgram = {
           val placeholder = fieldValue.errorShortNameStart
-            .map(_.transform(_ + " building and street", identity))
+            .map(_.transform(_ + " line 1", identity))
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.transform(_ => "Building and street", _ => "").value())
+            .getOrElse(SmartString.blank.transform(_ => "Line 1", _ => "").value())
           val vars: List[String] = placeholder :: ValidationValues.addressLine.toString :: Nil
           combineErrors("generic.error.address.building.street.maxLength", vars)
         }
@@ -225,9 +225,9 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
         cond = atom.endsWith("2") && theOnlyValue.map(_.length > ValidationValues.addressLine).getOrElse(false),
         thenProgram = {
           val placeholder = fieldValue.errorShortNameStart
-            .map(_.transform(_ + " building and street", identity))
+            .map(_.transform(_ + " line 2", identity))
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.transform(_ => "Building and street", _ => "").value())
+            .getOrElse(SmartString.blank.transform(_ => "Line 2", _ => "").value())
           val vars: List[String] = placeholder :: ValidationValues.addressLine.toString :: Nil
           combineErrors("generic.error.address.building.street.line2.maxLength", vars)
         }

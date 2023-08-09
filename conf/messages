@@ -241,13 +241,13 @@ decision.error.required=Select yes if you want to continue your saved version
 
 # UK Address
 ukAddress.optional=(optional)
-ukAddress.line1=Building and street
-ukAddress.line2=Building and street line 2 (optional)
+ukAddress.line1=Address line 1
+ukAddress.line2=Address line 2 (optional)
 ukAddress.line3=Town or city {0}
 ukAddress.line4=County (optional)
 ukAddress.postcode=Postcode
-ukAddress.line1.label=building and street
-ukAddress.line2.label=building and street line 2
+ukAddress.line1.label=line 1
+ukAddress.line2.label=line 2
 ukAddress.line3.label=town or city
 ukAddress.line4.label=county
 ukAddress.postcode.label=postcode
@@ -292,11 +292,11 @@ address.isUK=Is this a UK address?
 address.line4.error.maxLength={0} line 4 must be no more than {1} characters
 address.line.error.maxLength={0} line {1} must be no more than {2} characters
 
-generic.error.address.building.street.required=Enter {1}building and street
+generic.error.address.building.street.required=Enter {1}line 1
 generic.error.address.town.city.required=Enter {1}town or city
 generic.error.address.postcode.required=Enter {1}postcode
 generic.error.address.building.street.maxLength={1} must be {2} characters or less
-generic.error.address.building.street.line2.maxLength={1} line 2 must be {2} characters or less
+generic.error.address.building.street.line2.maxLength={1} must be {2} characters or less
 generic.error.address.town.city.maxLength={1} must be {2} characters or less
 generic.error.address.county.maxLength={1} must be {2} characters or less
 generic.error.address.postcode.real=Enter a real postcode{1}
