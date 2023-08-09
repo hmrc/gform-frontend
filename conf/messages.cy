@@ -399,6 +399,7 @@ file.remove=Tynnu
 file.delete.file=Dileu {0}
 file.error.generic=Nid oedd modd uwchlwytho’r ffeil. Uwchlwythwch ffeil wahanol.
 file.error.empty=Mae’r ffeil hon yn wag
+file.error.filename.too.long=Enw'r ffeil yn rhy hir
 file.error.size=Mae’r ffeil hon yn fwy na maint y ffeil fwyaf a ganiateir sef {0}MB
 file.error.type=Ni chaniateir y math o ffeil {0}. Gallwch ond uwchlwytho {1}
 
