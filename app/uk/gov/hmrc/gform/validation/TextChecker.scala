@@ -162,8 +162,6 @@ object TextChecker {
       .one(fieldValue.modelComponentId)
       .filterNot(_.isEmpty())
 
-  // is used internally and OverseasAddressValidator
-  // TODO: GFORMS-2146: it might be refactored to be in some helper objects
   def lookupValidation[D <: DataOrigin](
     fieldValue: FormComponent,
     lookupRegistry: LookupRegistry,
@@ -218,7 +216,6 @@ object TextChecker {
         elseProgram = lookupError
       )
 
-    // val lookupType = lookupRegistry.get(lookup.register)
     lookupRegistry.get(lookup.register) match {
       case Some(AjaxLookup(options, _, _)) => options.fold(lookupError)(existsLabel)
       case Some(RadioLookup(options))      => options.fold(lookupError)(existsLabel)
@@ -272,7 +269,10 @@ object TextChecker {
         genericErrorTextRequired,
         (Some(errorShortNameWithFallback(fieldValue).pure[List]))
       ),
-      nonEmptyCheck = validateShortTextConstraint(fieldValue, inputText, c.min, c.max)
+      nonEmptyCheck = validateShortTextConstraint(fieldValue, inputText, c.min, c.max),
+      nonEmptyCheckIfMandatory = Some(
+        validateShortTextConstraint(fieldValue, inputText, c.min, c.max, true)
+      )
     )
     def lookupCheck(c: Lookup): CheckProgram[Unit] =
       lookupValidation(fieldValue, lookupRegistry, c, LookupLabel(inputText), formModelVisibilityOptics)
@@ -282,7 +282,10 @@ object TextChecker {
         genericErrorTextRequired,
         (Some(errorShortNameWithFallback(fieldValue).pure[List]))
       ),
-      nonEmptyCheck = validateTextConstraint(fieldValue, inputText, c.min, c.max)
+      nonEmptyCheck = validateTextConstraint(fieldValue, inputText, c.min, c.max),
+      nonEmptyCheckIfMandatory = Some(
+        validateShortTextConstraint(fieldValue, inputText, c.min, c.max, true)
+      )
     )
     def sterlingCheck(c: Sterling): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(
@@ -477,14 +480,15 @@ object TextChecker {
 
     def conditionalMandatoryCheck(
       mandatoryFailure: => CheckProgram[Unit],
-      nonEmptyCheck: => CheckProgram[Unit]
+      nonEmptyCheck: => CheckProgram[Unit],
+      nonEmptyCheckIfMandatory: => Option[CheckProgram[Unit]] = None
     ): CheckProgram[Unit] =
       ifProgram(
         andCond = isMandatory,
         thenProgram = ifProgram(
           cond = isInputTextEmpty,
           thenProgram = mandatoryFailure,
-          elseProgram = nonEmptyCheck
+          elseProgram = nonEmptyCheckIfMandatory.getOrElse(nonEmptyCheck)
         ),
         elseProgram = ifProgram(
           cond = isInputTextEmpty,
@@ -1415,12 +1419,12 @@ object TextChecker {
 
   }
 
-  // private[validation] def textLengthValidation(
   def textLengthValidation(
     fieldValue: FormComponent,
     value: String,
     min: Int,
-    max: Int
+    max: Int,
+    noTooShortValidation: Boolean = false
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
@@ -1448,6 +1452,7 @@ object TextChecker {
       ),
       switchCase(
         cond = isTooShort,
+        andCond = !noTooShortValidation || min >= 2,
         thenProgram = validationFailure(fieldValue, genericErrorTextMinLength, Some(varsTooShort))
       )
     )(
@@ -1455,17 +1460,17 @@ object TextChecker {
     )
   }
 
-  // private[validation] def validateShortTextConstraint(
   def validateShortTextConstraint(
     fieldValue: FormComponent,
     value: String,
     min: Int,
-    max: Int
+    max: Int,
+    noTooShortValidation: Boolean = false
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
-    val lengthValidationResult = textLengthValidation(fieldValue, value, min, max)
+    val lengthValidationResult = textLengthValidation(fieldValue, value, min, max, noTooShortValidation)
     val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
     val isValidShortText = value match {
       case ValidShortText() => true
@@ -1489,12 +1494,13 @@ object TextChecker {
     fieldValue: FormComponent,
     value: String,
     min: Int,
-    max: Int
+    max: Int,
+    noTooShortValidation: Boolean = false
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
-    val lengthValidationResult = textLengthValidation(fieldValue, value, min, max)
+    val lengthValidationResult = textLengthValidation(fieldValue, value, min, max, noTooShortValidation)
     List(
       lengthValidationResult,
       invalidCharactersValidator(
