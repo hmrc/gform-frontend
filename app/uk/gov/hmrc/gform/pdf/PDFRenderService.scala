@@ -74,7 +74,7 @@ class PDFRenderService(
       val pdfModel = PDFPageModelBuilder.makeModel(formModelOptics, cache, envelopeByPurpose, validationResult)
 
       val layout =
-        if (maybePdfOptions.flatMap(_.tabularFormat).getOrElse(false)) PDFLayout.Tabular else pdfFunctions.layout
+        if (maybePdfOptions.flatMap(_.tabularFormat).getOrElse(true)) PDFLayout.Tabular else pdfFunctions.layout
 
       val includeSignatureBox = maybePdfOptions.flatMap(_.includeSignatureBox).getOrElse(false)
 

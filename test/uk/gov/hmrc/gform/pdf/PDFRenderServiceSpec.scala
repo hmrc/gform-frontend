@@ -154,7 +154,7 @@ class PDFRenderServiceSpec
         None
       )
     ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageSummaryPDFHTML()
+      pdfHtml.html.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML()
     }
   }
 
@@ -174,7 +174,7 @@ class PDFRenderServiceSpec
         None
       )
     ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageSummaryPDFHTML()
+      pdfHtml.html.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML()
     }
   }
 
