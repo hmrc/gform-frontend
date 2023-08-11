@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, InternalLink, LinkCtx }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, IfElse, InternalLink, LinkCtx }
 import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -53,9 +53,15 @@ class DownloadController(
     ) { _ => _ => _ => _ => formModelOptics =>
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
       val allExprs = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
+      val existInternalLink = allExprs.exists {
+        case LinkCtx(InternalLink.Download(fileName))               => true
+        case IfElse(_, LinkCtx(InternalLink.Download(fileName)), _) => true
+        case IfElse(_, _, LinkCtx(InternalLink.Download(fileName))) => true
+        case _                                                      => false
+      }
       val extension = fileName.substring(fileName.lastIndexOf('.') + 1)
 
-      if (!allExprs.contains(LinkCtx(InternalLink.Download(fileName)))) {
+      if (!existInternalLink) {
         Future.failed(
           new NotFoundException(
             s"link.download.$fileName expr does not exist in $formTemplateId form"
