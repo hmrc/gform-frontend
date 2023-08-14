@@ -50,9 +50,9 @@
           @for((label, value, enMessage, cyMessage) <- r) {
             <tr class="govuk-table__row">
               <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">@label</th>
-              <td class="govuk-table__cell" >@value</td>
-              <td style="color: #d4351c;" class="govuk-table__cell" >@enMessage</td>
-              <td style="color: #d4351c;" class="govuk-table__cell" >@cyMessage</td>
+              <td class="govuk-table__cell" >@Html(value)</td>
+              <td style="color: #d4351c;" class="govuk-table__cell" >@Html(enMessage)</td>
+              <td style="color: #d4351c;" class="govuk-table__cell" >@Html(cyMessage)</td>
             </tr>
           }
           <tr class="govuk-table__row" style="background-color: #f3f2f1">

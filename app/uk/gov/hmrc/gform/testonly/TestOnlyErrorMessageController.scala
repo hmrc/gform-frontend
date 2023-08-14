@@ -44,6 +44,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -60,7 +61,8 @@ class TestOnlyErrorMessageController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     jsonReport: Boolean,
-    inputBaseComponentId: Option[String]
+    inputBaseComponentId: Option[String],
+    isUsageReport: Boolean = false
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => _ => cache => _ => formModelOptics =>
@@ -78,6 +80,22 @@ class TestOnlyErrorMessageController(
             .flatMap(_.allFormComponents)
             .toList
             .map(_.copy(includeIf = None))
+            .map(fc =>
+              if (!isUsageReport) fc
+              else
+                fc.copy(
+                  errorShortName =
+                    Some(SmartString.blank.transform(_ => "<b>errorShortName</b>", _ => "<b>errorShortName</b>")),
+                  errorShortNameStart = Some(
+                    SmartString.blank.transform(
+                      _ => "<b>errorShortNameStart</b>",
+                      _ => "<b>errorShortNameStart</b>"
+                    )
+                  ),
+                  errorExample =
+                    Some(SmartString.blank.transform(_ => "<b>errorExample</b>", _ => "<b>errorExample</b>"))
+                )
+            )
         for {
           englishReports <-
             fieldErrorReportsF(formComponents, formModelOptics, cache, inputBaseComponentId)(
@@ -260,7 +278,9 @@ class TestOnlyErrorMessageController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => _ => _ => _ =>
-        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, true, None))
+        Redirect(
+          routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, true, None, false)
+        )
           .pure[Future]
     }
 
@@ -270,7 +290,21 @@ class TestOnlyErrorMessageController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => _ => _ => _ =>
-        Redirect(routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, false, None))
+        Redirect(
+          routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, false, None, false)
+        )
+          .pure[Future]
+    }
+
+  def errorsUsageHtml(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
+      _ => _ => _ => _ => _ =>
+        Redirect(
+          routes.TestOnlyErrorMessageController.errorMessages(formTemplateId, maybeAccessCode, false, None, true)
+        )
           .pure[Future]
     }
 
