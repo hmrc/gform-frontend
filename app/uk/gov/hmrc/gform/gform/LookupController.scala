@@ -27,7 +27,6 @@ import uk.gov.hmrc.gform.models.{ LookupQuery, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.lookup.LookupOptions._
-import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -54,7 +53,7 @@ class LookupController(
         import i18nSupport._
         val aFormComponents: Seq[FormComponent] = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
         val withoutCountryAtomFormComponentId = formComponentId.modelComponentId.fold(_.toFormComponentId) {
-          case ModelComponentId.Atomic(i, Atom("country")) => ModelComponentId.pure(i).toFormComponentId
+          case ModelComponentId.Atomic(i, Address.country) => ModelComponentId.pure(i).toFormComponentId
           case otherwise                                   => otherwise.toFormComponentId
         }
         val oFormComponent = aFormComponents.find(_.id.value === withoutCountryAtomFormComponentId.value)
