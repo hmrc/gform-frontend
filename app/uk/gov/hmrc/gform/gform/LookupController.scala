@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.models.{ LookupQuery, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.lookup.LookupOptions._
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.jdk.CollectionConverters._
@@ -51,11 +52,16 @@ class LookupController(
       implicit request => implicit l => cache => sse => formModelOptics =>
         import i18nSupport._
         val aFormComponents: Seq[FormComponent] = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
-        val oFormComponent = aFormComponents.find(_.id.value === formComponentId.value)
+        val withoutCountryAtomFormComponentId = formComponentId.modelComponentId.fold(_.toFormComponentId) {
+          case ModelComponentId.Atomic(i, Address.country) => ModelComponentId.pure(i).toFormComponentId
+          case otherwise                                   => otherwise.toFormComponentId
+        }
+        val oFormComponent = aFormComponents.find(_.id.value === withoutCountryAtomFormComponentId.value)
 
         val sSelectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
-          case IsText(Text(Lookup(_, sc), _, _, _, _, _)) => sc
-          case _                                          => None
+          case IsText(Text(Lookup(_, sc), _, _, _, _, _))            => sc
+          case IsOverseasAddress(OverseasAddress(_, _, _, _, _, sc)) => sc
+          case _                                                     => None
         } map {
           SimplifiedSelectionCriteria
             .convertToSimplifiedSelectionCriteria(_, lookupRegistry, formModelOptics.formModelVisibilityOptics)
