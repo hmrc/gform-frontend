@@ -507,6 +507,8 @@ case class EvaluationResults(
                   fileName
                 )
                 .url
+            case InternalLink.UrlLink(url) =>
+              uk.gov.hmrc.gform.gform.routes.RedirectController.redirect(url).url
           }
         nonEmptyStringResult(StringResult(link))
       case DateCtx(dateExpr)      => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)

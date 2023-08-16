@@ -48,6 +48,7 @@ object MarkDownUtil {
     doc.getElementsByAttributeValueStarting("href", "/submissions/new-form/").removeAttr("target")
     doc.getElementsByAttributeValueStarting("href", "/submissions/form/").removeAttr("target")
     doc.getElementsByAttributeValueStarting("href", "/submissions/acknowledgement/pdf/").addClass("print-link")
+    doc.getElementsByAttributeValueStarting("href", "/submissions/redirect?url=").attr("target", "_self")
     doc.body().html()
   }
 

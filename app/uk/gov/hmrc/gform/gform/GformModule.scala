@@ -432,4 +432,6 @@ class GformModule(
       controllersModule.authenticatedRequestActions,
       configModule.environment
     )
+
+  val redirectController: RedirectController = new RedirectController(controllersModule.messagesControllerComponents)
 }
