@@ -390,6 +390,15 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       desRegistrationRequest
     )
 
+  private val desUrlWithPlaceholders = s"$baseUrl/validate/des/{{utr}}"
+  private val registrationB = new DataRetrieveConnectorBlueprint(ws, desUrlWithPlaceholders, "registration")
+
+  def getDesRegistration(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[ServiceCallResponse[DataRetrieve.Response]] =
+    registrationB.post(dataRetrieve, request)
+
   //TODO other formTemplate endpoints
   //TODO move this file to gform and make it's origin there
 
