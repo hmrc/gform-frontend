@@ -20,7 +20,7 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateIfElse, DateOrElse, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, HmrcTaxPeriodCtx, HmrcTaxPeriodInfo, OffsetUnit, OffsetYMD, TodayDateExprValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExpr, DateExprWithOffset, DateFormCtxVar, DateIfElse, DateOrElse, DateValueExpr, FormComponentId, FormCtx, HmrcTaxPeriodCtx, HmrcTaxPeriodInfo, OffsetUnit, OffsetYMD }
 
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
@@ -39,7 +39,7 @@ object DateExprEval {
     evaluationResults: EvaluationResults
   )(dateExpr: DateExpr): Option[DateResult] =
     dateExpr match {
-      case DateValueExpr(value) => Some(DateResult(fromValue(value)))
+      case DateValueExpr(value) => Some(DateResult(value.toLocalDate))
       case DateFormCtxVar(formCtx) =>
         fromFormCtx(formModel, recData, evaluationResults, booleanExprResolver, evaluationContext, formCtx)
       case DateExprWithOffset(dExpr, offset) =>
@@ -69,7 +69,7 @@ object DateExprEval {
     dateExpr: DateExpr
   ): ExpressionResult =
     dateExpr match {
-      case DateValueExpr(value) => DateResult(fromValue(value))
+      case DateValueExpr(value) => DateResult(value.toLocalDate)
       case DateFormCtxVar(formCtx @ FormCtx(formComponentId)) =>
         evaluationResults.get(formCtx) match {
           case Some(Empty) | None =>
@@ -169,12 +169,6 @@ object DateExprEval {
         case OffsetUnit.Month(n) => acc.plusMonths(n.toLong)
         case OffsetUnit.Day(n)   => acc.plusDays(n.toLong)
       }
-    }
-
-  private def fromValue(value: DateExprValue) =
-    value match {
-      case TodayDateExprValue                   => LocalDate.now()
-      case ExactDateExprValue(year, month, day) => LocalDate.of(year, month, day)
     }
 
   private def get(modelComponentId: ModelComponentId, recData: RecData[SourceOrigin.OutOfDate]): Option[VariadicValue] =

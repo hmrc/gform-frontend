@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import java.time.LocalDate
 import julienrf.json.derived
 import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationContext, EvaluationResults }
@@ -83,7 +84,13 @@ object OffsetYMD {
   implicit val format: OFormat[OffsetYMD] = derived.oformat()
 }
 
-sealed trait DateExprValue
+sealed trait DateExprValue {
+  def toLocalDate =
+    this match {
+      case TodayDateExprValue                   => LocalDate.now()
+      case ExactDateExprValue(year, month, day) => LocalDate.of(year, month, day)
+    }
+}
 case object TodayDateExprValue extends DateExprValue
 case class ExactDateExprValue(year: Int, month: Int, day: Int) extends DateExprValue
 
