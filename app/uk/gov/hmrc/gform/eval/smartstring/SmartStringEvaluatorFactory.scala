@@ -185,4 +185,10 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
       }
     }
 
+  def noForm(implicit l: LangADT): SmartStringEvaluator =
+    new SmartStringEvaluator {
+      override def apply(s: SmartString, markDown: Boolean): String =
+        s.rawValue(l)
+    }
+
 }

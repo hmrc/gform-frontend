@@ -22,12 +22,13 @@ import cats.syntax.applicative._
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
 import play.api.data
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.eval.NoFormEvaluation
+import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.CookieNames._
@@ -89,8 +90,10 @@ class NewFormController(
 
       val result =
         (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
-          case (BySubmissionReference, _)                    => showAccesCodePage(cache, BySubmissionReference)
-          case (drm @ FormAccessCodeForAgents(_), IsAgent()) => showAccesCodePage(cache, drm)
+          case (BySubmissionReference, _) => showAccesCodePage(cache, BySubmissionReference)
+          case (drm @ FormAccessCodeForAgents(_), IsAgent()) =>
+            val continue = showAccesCodePage(cache, drm)
+            exitPageHandler(cache, cache.formTemplate, continue)
           case _ =>
             Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, request.queryString).pure[Future]
         }
@@ -191,7 +194,7 @@ class NewFormController(
 
   def decision(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      implicit request => implicit l => cache => sse => formModelOptics =>
         val queryParams = QueryParams.fromRequest(request)
         choice
           .bindFromRequest()
@@ -204,18 +207,15 @@ class NewFormController(
             },
             {
               case "continue" =>
-                def continue =
-                  cache.formTemplate.formKind.fold(_ =>
-                    fastForwardService
-                      .redirectFastForward[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics, None)
-                  )(_ =>
-                    Redirect(
-                      uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                        .landingPage(cache.formTemplateId, noAccessCode)
-                    ).pure[Future]
-                  )
-
-                exitPageHandler(cache, formModelOptics, continue)
+                cache.formTemplate.formKind.fold(_ =>
+                  fastForwardService
+                    .redirectFastForward[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics, None)
+                )(_ =>
+                  Redirect(
+                    uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                      .landingPage(cache.formTemplateId, noAccessCode)
+                  ).pure[Future]
+                )
               case "delete" => fastForwardService.deleteForm(formTemplateId, cache, queryParams)
               case _        => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
             }
@@ -223,53 +223,64 @@ class NewFormController(
     }
 
   def newSubmissionReference(formTemplateId: FormTemplateId) =
-    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) { implicit request => l => cache =>
-      newForm(formTemplateId, cache, QueryParams.empty)
+    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
+      implicit request => implicit l => cache =>
+        newForm(formTemplateId, cache, QueryParams.empty)
     }
+
+  private def continue(cache: AuthCacheWithoutForm, formTemplate: FormTemplate)(implicit
+    request: Request[AnyContent],
+    lang: LangADT
+  ): Future[Result] = {
+    val queryParams: QueryParams = QueryParams.fromRequest(request)
+    for {
+      formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
+      res <-
+        handleForm(formIdData, formTemplate)(
+          newForm(formTemplate._id, cache.copy(formTemplate = formTemplate), queryParams)
+        ) { form =>
+          for {
+            formTemplate <- if (formTemplate._id === form.formTemplateId || formTemplate.version.isEmpty)
+                              formTemplate.pure[Future]
+                            else gformConnector.getFormTemplate(form.formTemplateId)
+
+            res <-
+              formTemplate.draftRetrievalMethod match {
+                case NotPermitted =>
+                  fastForwardService.deleteForm(
+                    formTemplate._id,
+                    cache.toAuthCacheWithForm(form, noAccessCode),
+                    queryParams
+                  )
+                case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
+                  auditService.sendFormResumeEvent(form, cache.retrievals)
+                  redirectContinue[SectionSelectorType.Normal](
+                    cache.copy(formTemplate = formTemplate),
+                    form,
+                    noAccessCode,
+                    request
+                  )
+                case _ =>
+                  auditService.sendFormResumeEvent(form, cache.retrievals)
+                  val continueFormPage = new ContinueFormPage(formTemplate, choice)
+                  Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
+              }
+          } yield res
+        }
+    } yield res
+  }
 
   def newOrContinue(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>
-        val queryParams: QueryParams = QueryParams.fromRequest(request)
-
-        for {
-          formTemplate <- gformConnector.getFormTemplateContext(formTemplateId).map(_.formTemplate)
-          formIdData   <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
-          res <-
-            handleForm(formIdData, formTemplate)(
-              newForm(formTemplate._id, cache.copy(formTemplate = formTemplate), queryParams)
-            ) { form =>
-              for {
-                formTemplate <- if (formTemplate._id === form.formTemplateId || formTemplate.version.isEmpty)
-                                  formTemplate.pure[Future]
-                                else gformConnector.getFormTemplate(form.formTemplateId)
-
-                res <-
-                  formTemplate.draftRetrievalMethod match {
-                    case NotPermitted =>
-                      fastForwardService.deleteForm(
-                        formTemplate._id,
-                        cache.toAuthCacheWithForm(form, noAccessCode),
-                        queryParams
-                      )
-                    case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
-                      auditService.sendFormResumeEvent(form, cache.retrievals)
-                      redirectContinue[SectionSelectorType.Normal](
-                        cache.copy(formTemplate = formTemplate),
-                        noAccessCode
-                      )
-                    case _ =>
-                      auditService.sendFormResumeEvent(form, cache.retrievals)
-                      val continueFormPage = new ContinueFormPage(formTemplate, choice)
-                      Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
-                  }
-              } yield res
-            }
-        } yield res
+        gformConnector.getFormTemplateContext(formTemplateId).map(_.formTemplate).flatMap { formTemplate =>
+          exitPageHandler(cache, formTemplate, continue(cache, formTemplate))
+        }
     }
 
   private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm, queryParams: QueryParams)(implicit
-    request: Request[AnyContent]
+    request: Request[AnyContent],
+    l: LangADT
   ) = {
 
     def notFound(formIdData: FormIdData) =
@@ -279,7 +290,7 @@ class NewFormController(
       formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
       res <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
                auditService.sendFormCreateEvent(form, cache.retrievals)
-               redirectContinue[SectionSelectorType.Normal](cache, formIdData.maybeAccessCode)
+               redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode, request)
              }
     } yield res
   }
@@ -313,7 +324,7 @@ class NewFormController(
       maybeAccessCode.fold(noAccessCodeProvided) { accessCode =>
         val formIdData = FormIdData.WithAccessCode(UserId(cache.retrievals), formTemplateId, accessCode)
         handleForm(formIdData, cache.formTemplate)(notFound(cache.formTemplate).pure[Future]) { form =>
-          redirectContinue[SectionSelectorType.Normal](cache, maybeAccessCode)
+          redirectContinue[SectionSelectorType.Normal](cache, form, maybeAccessCode, request)
         }
       }
     }
@@ -387,7 +398,7 @@ class NewFormController(
         val accessCode = AccessCode.fromSubmissionRef(submissionRef)
         val formIdData = FormIdData.WithAccessCode(userId, formTemplateId, accessCode)
         handleForm(formIdData, cache.formTemplate)(notFound) { form =>
-          redirectContinue[SectionSelectorType.Normal](cache, Some(accessCode))
+          redirectContinue[SectionSelectorType.Normal](cache, form, Some(accessCode), request)
         }
     }
 
@@ -429,56 +440,57 @@ class NewFormController(
 
   private def redirectContinue[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithoutForm,
-    accessCode: Option[AccessCode]
-  ): Future[Result] =
-    Redirect(routes.NewFormController.exitIfNeeded(cache.formTemplate._id, accessCode)).pure[Future]
+    form: Form,
+    accessCode: Option[AccessCode],
+    request: Request[AnyContent]
+  )(implicit
+    hc: HeaderCarrier,
+    l: LangADT,
+    messages: Messages
+  ): Future[Result] = {
+    val cacheWithForm = cache.toAuthCacheWithForm(form, accessCode)
+
+    for {
+      formModelOptics <- FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Future, U](
+                           cacheWithForm.variadicFormData[SectionSelectorType.Normal],
+                           cacheWithForm,
+                           recalculation
+                         )
+      cacheUpdated <- maybeUpdateItmpCache(request, cacheWithForm, formModelOptics)
+      r <- cache.formTemplate.formKind.fold { classic =>
+             fastForwardService.redirectFastForward(cacheUpdated, accessCode, formModelOptics, None)
+           } { taskList =>
+             val url =
+               uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplate._id, accessCode)
+             for {
+               _      <- gformBackEnd.updateUserData(cacheUpdated.form, accessCode)
+               result <- Redirect(url).pure[Future]
+             } yield result
+           }
+    } yield r
+  }
 
   private def exitPageHandler(
-    cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    cache: AuthCacheWithoutForm,
+    formTemplate: FormTemplate,
     continue: => Future[Result]
   )(implicit
     request: Request[AnyContent],
-    l: LangADT,
-    sse: SmartStringEvaluator
+    l: LangADT
   ): Future[Result] = {
-    val maybeExitPage = cache.formTemplate.exitPages.flatMap { exitPages =>
+    val noFormEvaluation = new NoFormEvaluation(cache.retrievals, formTemplate.authConfig)
+
+    val maybeExitPage = formTemplate.exitPages.flatMap { exitPages =>
       exitPages.toList.find { exitPage =>
-        formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(exitPage.`if`, None)
+        noFormEvaluation.evalIncludeIf(exitPage.`if`)
       }
     }
 
-    maybeExitPage
-      .fold(continue) { exitPage =>
-        Ok(exit_page(cache.formTemplate, exitPage, frontendAppConfig)).pure[Future]
-      }
+    maybeExitPage.fold(continue) { exitPage =>
+      implicit val sse = (new RealSmartStringEvaluatorFactory).noForm
+      Ok(exit_page(cache.formTemplate, exitPage, frontendAppConfig)).pure[Future]
+    }
   }
-
-  def exitIfNeeded(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        def continue = for {
-          cacheUpdated <- maybeUpdateItmpCache(request, cache, formModelOptics)
-          r <- cache.formTemplate.formKind.fold { classic =>
-                 fastForwardService.redirectFastForward[SectionSelectorType.Normal](
-                   cacheUpdated,
-                   maybeAccessCode,
-                   formModelOptics,
-                   None
-                 )
-               } { taskList =>
-                 val url =
-                   uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                     .landingPage(cache.formTemplate._id, maybeAccessCode)
-                 for {
-                   _      <- gformBackEnd.updateUserData(cacheUpdated.form, maybeAccessCode)
-                   result <- Redirect(url).pure[Future]
-                 } yield result
-               }
-        } yield r
-
-        exitPageHandler(cache, formModelOptics, continue)
-    }
 
   private def maybeUpdateItmpCache(
     request: Request[AnyContent],
