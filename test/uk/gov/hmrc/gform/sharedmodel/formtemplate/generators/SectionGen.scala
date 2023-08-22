@@ -102,6 +102,7 @@ trait SectionGen {
       presentationHint <- Gen.option(PresentationHintGen.presentationHintGen)
       confirmation     <- Gen.option(ConfirmationGen.confirmationGen)
       redirects        <- Gen.option(RedirectGen.redirectGen)
+      removeItemIf     <- Gen.option(RemoveItemIfGen.removeItemIfGen)
     } yield Page(
       title,
       id,
@@ -119,7 +120,8 @@ trait SectionGen {
       None,
       confirmation,
       redirects.map(NonEmptyList.one(_)),
-      None
+      None,
+      removeItemIf
     )
 
   def nonRepeatingPageSectionGen: Gen[Section.NonRepeatingPage] = pageGen.map(Section.NonRepeatingPage)

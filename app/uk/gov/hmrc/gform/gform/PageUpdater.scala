@@ -26,6 +26,7 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
   private def expandBooleanExpr(booleanExpr: BooleanExpr): BooleanExpr = BooleanExprUpdater(booleanExpr, index, baseIds)
 
   private def expandIncludeIf(includeIf: IncludeIf) = IncludeIf(expandBooleanExpr(includeIf.booleanExpr))
+  private def expandRemoveItemIf(removeItemIf: RemoveItemIf) = RemoveItemIf(expandBooleanExpr(removeItemIf.booleanExpr))
 
   private def expandValidator(validator: Validator) = ValidatorUpdater(validator, index, baseIds)
 
@@ -54,7 +55,8 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
       continueLabel = page.continueLabel.map(expandSmartString),
       instruction = page.instruction.map(i => i.copy(name = i.name.map(expandSmartString))),
       dataRetrieve = NonEmptyList.fromList(page.dataRetrieves().map(expandDataRetrieve)),
-      confirmation = page.confirmation.map(expandConfirmation)
+      confirmation = page.confirmation.map(expandConfirmation),
+      removeItemIf = page.removeItemIf.map(expandRemoveItemIf)
     )
 }
 

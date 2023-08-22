@@ -16,22 +16,17 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import play.api.libs.json.{ Format, Json }
-import uk.gov.hmrc.gform.sharedmodel.SmartString
+import cats.Eq
+import play.api.libs.json._
 
-case class CheckYourAnswersPage(
-  title: Option[SmartString],
-  caption: Option[SmartString],
-  updateTitle: SmartString,
-  noPIITitle: Option[SmartString],
-  noPIIUpdateTitle: Option[SmartString],
-  header: Option[SmartString],
-  footer: Option[SmartString],
-  continueLabel: Option[SmartString],
-  presentationHint: Option[PresentationHint],
-  removeItemIf: Option[RemoveItemIf]
-)
+case class RemoveItemIf(booleanExpr: BooleanExpr)
 
-object CheckYourAnswersPage {
-  implicit val format: Format[CheckYourAnswersPage] = Json.format[CheckYourAnswersPage]
+object RemoveItemIf {
+
+  implicit val catsEq: Eq[RemoveItemIf] = Eq.fromUniversalEquals
+
+  implicit val writes = Json.writes[RemoveItemIf]
+
+  implicit val reads: Reads[RemoveItemIf] = Json.reads[RemoveItemIf]
+
 }
