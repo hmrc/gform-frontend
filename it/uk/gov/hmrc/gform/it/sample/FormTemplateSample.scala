@@ -80,7 +80,8 @@ trait FormTemplateSample {
               dataRetrieve = None,
               confirmation = None,
               redirects = None,
-              hideSaveAndComeBackButton = None
+              hideSaveAndComeBackButton = None,
+              removeItemIf = None
             )
           )
         )
