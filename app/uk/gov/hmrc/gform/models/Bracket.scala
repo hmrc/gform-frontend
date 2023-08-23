@@ -211,6 +211,7 @@ object Bracket {
     ): Option[Int] = {
       val (iteration, index) = iterationForSectionNumberWithIndex(sectionNumber)
       val pageRemove = iteration.singletons.toList
+        .find(_.sectionNumber === sectionNumber)
         .flatMap(s => s.singleton.page.removeItemIf)
         .exists(
           formModelVisibilityOptics.evalRemoveItemIf
