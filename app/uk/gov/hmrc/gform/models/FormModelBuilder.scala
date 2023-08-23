@@ -64,9 +64,8 @@ object FormModelBuilder {
     removeItemIf: RemoveItemIf,
     recalculationResult: RecalculationResult,
     recData: RecData[SourceOrigin.Current],
-    formModel: FormModel[T],
-    phase: Option[FormPhase]
-  ): Boolean = evalBooleanExpr[T](removeItemIf.booleanExpr, recalculationResult, recData, formModel, phase)
+    formModel: FormModel[T]
+  ): Boolean = evalBooleanExpr[T](removeItemIf.booleanExpr, recalculationResult, recData, formModel, None)
 
   def evalIncludeIf[T <: PageMode](
     includeIf: IncludeIf,

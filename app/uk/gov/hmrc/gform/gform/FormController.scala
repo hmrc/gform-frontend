@@ -17,8 +17,6 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
-import cats.instances.option._
-import cats.syntax.apply._
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import org.slf4j.{ Logger, LoggerFactory }
@@ -661,41 +659,12 @@ class FormController(
                               case _ => false
                             }
 
-                            val maybeAtlId = bracket match {
-                              case bracket @ Bracket.AddToList(_, atl) => Some(atl.id)
-                              case _                                   => None
-                            }
-
-                            val maybeIndexToRemove = bracket match {
-                              case bracket @ Bracket.AddToList(_, atl) =>
-                                val (iteration, index) = bracket.iterationForSectionNumberWithIndex(sectionNumber)
-                                val pageRemove = iteration.singletons
-                                  .map(s => s.singleton.page.removeItemIf)
-                                  .toList
-                                  .flatten
-                                  .map(
-                                    processDataUpd.formModelOptics.formModelVisibilityOptics.evalRemoveItemIf(_, None)
-                                  )
-                                  .exists(identity)
-                                val cyaRemove = iteration.checkYourAnswers match {
-                                  case Some(cya) if cya.sectionNumber == sectionNumber =>
-                                    cya.checkYourAnswers.expandedRemoveItemIf
-                                      .map(
-                                        processDataUpd.formModelOptics.formModelVisibilityOptics
-                                          .evalRemoveItemIf(_, None)
-                                      )
-                                      .exists(identity)
-                                  case _ => false
-                                }
-                                if (pageRemove || cyaRemove) {
-                                  Some(index)
-                                } else {
-                                  None
-                                }
-                              case _ => None
-                            }
-                            (maybeAtlId, maybeIndexToRemove)
-                              .mapN((atlId, index) =>
+                            bracket
+                              .atlIterationToRemove(
+                                sectionNumber,
+                                processDataUpd.formModelOptics.formModelVisibilityOptics
+                              )
+                              .map { case (atlId, index) =>
                                 Redirect(
                                   routes.FormAddToListController
                                     .removeItem(
@@ -706,7 +675,7 @@ class FormController(
                                       atlId
                                     )
                                 )
-                              )
+                              }
                               .getOrElse(
                                 Redirect(
                                   routes.FormController

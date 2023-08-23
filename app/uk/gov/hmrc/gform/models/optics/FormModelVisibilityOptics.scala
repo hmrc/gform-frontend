@@ -75,8 +75,8 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
   def evalIncludeIfExpr(includeIf: IncludeIf, phase: Option[FormPhase]): Boolean =
     FormModelBuilder.evalIncludeIf(includeIf, recalculationResult, recData, formModel, phase)
 
-  def evalRemoveItemIf(removeItemIf: RemoveItemIf, phase: Option[FormPhase]): Boolean =
-    FormModelBuilder.evalRemoveItemIf(removeItemIf, recalculationResult, recData, formModel, phase)
+  def evalRemoveItemIf(removeItemIf: RemoveItemIf): Boolean =
+    FormModelBuilder.evalRemoveItemIf(removeItemIf, recalculationResult, recData, formModel)
 
   object data {
     def all: List[(ModelComponentId, VariadicValue)] =
