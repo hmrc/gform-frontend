@@ -20,7 +20,7 @@ import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationResults, Expressi
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ Coordinates, FormModel, FormModelBuilder, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormPhase, IncludeIf, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormPhase, IncludeIf, RemoveItemIf, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieveResult
@@ -74,6 +74,9 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
 
   def evalIncludeIfExpr(includeIf: IncludeIf, phase: Option[FormPhase]): Boolean =
     FormModelBuilder.evalIncludeIf(includeIf, recalculationResult, recData, formModel, phase)
+
+  def evalRemoveItemIf(removeItemIf: RemoveItemIf): Boolean =
+    FormModelBuilder.evalRemoveItemIf(removeItemIf, recalculationResult, recData, formModel)
 
   object data {
     def all: List[(ModelComponentId, VariadicValue)] =

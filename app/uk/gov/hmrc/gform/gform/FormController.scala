@@ -659,32 +659,51 @@ class FormController(
                               case _ => false
                             }
 
-                            Redirect(
-                              routes.FormController
-                                .form(
-                                  cache.formTemplateId,
-                                  maybeAccessCode,
-                                  sn,
-                                  sectionTitle4Ga,
-                                  SuppressErrors(isFirstLanding),
-                                  if (isLastBracketIteration) fastForward
-                                  else if (isFirstLanding || sectionNumber.isTaskList) {
-                                    fastForward match {
-                                      case Nil => Nil
-                                      case x :: FastForward.StopAt(s) :: xs
-                                          if formModel.availableSectionNumbers.contains(s) =>
-                                        FastForward.StopAt(s) :: xs
-                                      case x :: xs =>
-                                        x
-                                          .next(
-                                            processDataUpd.formModelOptics.formModelVisibilityOptics.formModel,
-                                            sn
-                                          ) :: xs
-                                    }
-                                  } else
-                                    fastForward
+                            bracket
+                              .atlIterationToRemove(
+                                sectionNumber,
+                                processDataUpd.formModelOptics.formModelVisibilityOptics
+                              )
+                              .map { case (atlId, index) =>
+                                Redirect(
+                                  routes.FormAddToListController
+                                    .removeItem(
+                                      formTemplateId,
+                                      maybeAccessCode,
+                                      sectionNumber,
+                                      index,
+                                      atlId
+                                    )
                                 )
-                            )
+                              }
+                              .getOrElse(
+                                Redirect(
+                                  routes.FormController
+                                    .form(
+                                      cache.formTemplateId,
+                                      maybeAccessCode,
+                                      sn,
+                                      sectionTitle4Ga,
+                                      SuppressErrors(isFirstLanding),
+                                      if (isLastBracketIteration) fastForward
+                                      else if (isFirstLanding || sectionNumber.isTaskList) {
+                                        fastForward match {
+                                          case Nil => Nil
+                                          case x :: FastForward.StopAt(s) :: xs
+                                              if formModel.availableSectionNumbers.contains(s) =>
+                                            FastForward.StopAt(s) :: xs
+                                          case x :: xs =>
+                                            x
+                                              .next(
+                                                processDataUpd.formModelOptics.formModelVisibilityOptics.formModel,
+                                                sn
+                                              ) :: xs
+                                        }
+                                      } else
+                                        fastForward
+                                    )
+                                )
+                              )
                           }
                         case SectionOrSummary.FormSummary =>
                           Redirect(

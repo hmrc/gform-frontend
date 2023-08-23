@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import cats.syntax.eq._
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Section, SectionNumber }
 
@@ -78,6 +79,14 @@ sealed trait Bracket[A <: PageMode] extends Product with Serializable {
 
   def whenAddToListBracket(f: Bracket.AddToList[A] => Boolean): Boolean =
     fold(_ => false)(_ => false)(f)
+
+  def atlIterationToRemove(
+    sectionNumber: SectionNumber,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
+  ): Option[(AddToListId, Int)] = fold[Option[(AddToListId, Int)]](nonRepeating => None)(repeating => None) {
+    addToList =>
+      addToList.indexToRemove(sectionNumber, formModelVisibilityOptics).map(addToList.source.id -> _)
+  }
 }
 
 object Bracket {
@@ -196,6 +205,31 @@ object Bracket {
     source: Section.AddToList
   ) extends Bracket[A] {
 
+    def indexToRemove(
+      sectionNumber: SectionNumber,
+      formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
+    ): Option[Int] = {
+      val (iteration, index) = iterationForSectionNumberWithIndex(sectionNumber)
+      val pageRemove = iteration.singletons.toList
+        .flatMap(s => s.singleton.page.removeItemIf)
+        .exists(
+          formModelVisibilityOptics.evalRemoveItemIf
+        )
+      val cyaRemove = iteration.checkYourAnswers match {
+        case Some(cya) if cya.sectionNumber === sectionNumber =>
+          cya.checkYourAnswers.expandedRemoveItemIf
+            .exists(
+              formModelVisibilityOptics.evalRemoveItemIf
+            )
+        case _ => false
+      }
+      if (pageRemove || cyaRemove) {
+        Some(index)
+      } else {
+        None
+      }
+    }
+
     def map[B <: PageMode](
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
@@ -219,6 +253,15 @@ object Bracket {
       iterations.toList
         .collectFirst {
           case iteration if iteration.hasSectionNumber(sectionNumber) => iteration
+        }
+        .getOrElse(
+          throw new IllegalArgumentException(s"Invalid sectionNumber: $sectionNumber for Bracket.AddToListIteration")
+        )
+
+    def iterationForSectionNumberWithIndex(sectionNumber: SectionNumber): (Bracket.AddToListIteration[A], Int) =
+      iterations.zipWithIndex.toList
+        .collectFirst {
+          case (iteration, i) if iteration.hasSectionNumber(sectionNumber) => (iteration, i)
         }
         .getOrElse(
           throw new IllegalArgumentException(s"Invalid sectionNumber: $sectionNumber for Bracket.AddToListIteration")

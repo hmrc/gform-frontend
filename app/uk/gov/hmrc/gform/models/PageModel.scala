@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsPostcodeLookup, IsUpscanInitiateFileUpload, Page, PageId, PresentationHint, RedirectCtx, SummarySectionIncludeIf, ValidIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.RemoveItemIf
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)
@@ -110,7 +111,8 @@ case class CheckYourAnswers[A <: PageMode](
   expandedContinueLabel: Option[SmartString],
   formComponent: FormComponent,
   index: Int,
-  presentationHint: Option[PresentationHint]
+  presentationHint: Option[PresentationHint],
+  expandedRemoveItemIf: Option[RemoveItemIf]
 ) extends PageModel[A]
 case class Repeater[A <: PageMode](
   expandedTitle: SmartString,

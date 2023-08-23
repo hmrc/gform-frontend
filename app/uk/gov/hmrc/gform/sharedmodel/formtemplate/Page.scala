@@ -46,7 +46,8 @@ case class Page[A <: PageMode](
   dataRetrieve: Option[NonEmptyList[DataRetrieve]],
   confirmation: Option[Confirmation],
   redirects: Option[NonEmptyList[RedirectCtx]],
-  hideSaveAndComeBackButton: Option[Boolean]
+  hideSaveAndComeBackButton: Option[Boolean],
+  removeItemIf: Option[RemoveItemIf]
 ) {
 
   def sectionHeader()(implicit sse: SmartStringEvaluator) = SectionHeader(

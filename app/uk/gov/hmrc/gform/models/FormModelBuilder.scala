@@ -24,7 +24,7 @@ import play.api.i18n.Messages
 import scala.util.matching.Regex
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
 import uk.gov.hmrc.gform.eval.{ BooleanExprEval, BooleanExprResolver, DateExprEval, EvaluationContext, ExpressionResult, FileIdsWithMapping, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
-import uk.gov.hmrc.gform.gform.{ FormComponentUpdater, PageUpdater }
+import uk.gov.hmrc.gform.gform.{ BooleanExprUpdater, FormComponentUpdater, PageUpdater }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -60,8 +60,23 @@ object FormModelBuilder {
       lookupOptions
     )
 
+  def evalRemoveItemIf[T <: PageMode](
+    removeItemIf: RemoveItemIf,
+    recalculationResult: RecalculationResult,
+    recData: RecData[SourceOrigin.Current],
+    formModel: FormModel[T]
+  ): Boolean = evalBooleanExpr[T](removeItemIf.booleanExpr, recalculationResult, recData, formModel, None)
+
   def evalIncludeIf[T <: PageMode](
     includeIf: IncludeIf,
+    recalculationResult: RecalculationResult,
+    recData: RecData[SourceOrigin.Current],
+    formModel: FormModel[T],
+    phase: Option[FormPhase]
+  ): Boolean = evalBooleanExpr[T](includeIf.booleanExpr, recalculationResult, recData, formModel, phase)
+
+  private def evalBooleanExpr[T <: PageMode](
+    booleanExpr: BooleanExpr,
     recalculationResult: RecalculationResult,
     recData: RecData[SourceOrigin.Current],
     formModel: FormModel[T],
@@ -134,7 +149,7 @@ object FormModelBuilder {
       case IsLogin(value)                      => BooleanExprEval.evalIsLoginExpr(value, recalculationResult.evaluationContext.retrievals)
     }
 
-    loop(includeIf.booleanExpr)
+    loop(booleanExpr)
 
   }
 
@@ -378,7 +393,8 @@ class FormModelBuilder[E, F[_]: Functor](
       c.continueLabel.map(_.expand(index, s.allIds)),
       fc,
       index,
-      c.presentationHint
+      c.presentationHint,
+      c.removeItemIf.map(c => RemoveItemIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds)))
     )
   }
 

@@ -20,27 +20,41 @@ import cats.instances.future._
 import cats.syntax.applicative._
 import play.api.data
 import play.api.i18n.I18nSupport
+import play.api.mvc.AnyContent
 import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.Request
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FormTemplateId, SectionNumber }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddToListId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.html.components
-import uk.gov.hmrc.govukfrontend.views.html.components.{ ErrorMessage, Text }
+import uk.gov.hmrc.govukfrontend.views.html.components.ErrorMessage
+import uk.gov.hmrc.govukfrontend.views.html.components.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
-import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorSummary
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class FormAddToListController(
   frontendAppConfig: FrontendAppConfig,
@@ -152,30 +166,56 @@ class FormAddToListController(
                 .pure[Future],
             {
               case "Yes" =>
-                for {
-                  processData <- processDataService
-                                   .getProcessData[SectionSelectorType.Normal](
-                                     formModelOptics.formModelRenderPageOptics.recData.variadicFormData
-                                       .asInstanceOf[VariadicFormData[OutOfDate]],
-                                     cache,
-                                     formModelOptics,
-                                     gformConnector.getAllTaxPeriods,
-                                     NoSpecificAction
-                                   )
-                  redirect <- addToListProcessor.processRemoveAddToList(
-                                cache,
-                                maybeAccessCode,
-                                List(FastForward.Yes),
-                                formModelOptics,
-                                processData,
-                                index,
-                                addToListId
-                              )
-                } yield redirect
-                  .flashing("success" -> request.messages.messages("generic.successfullyRemoved"))
+                removeAndRedirect(formModelOptics, cache, maybeAccessCode, index, addToListId)
+                  .map(_.flashing("success" -> request.messages.messages("generic.successfullyRemoved")))
               case "No" =>
                 Redirect(routes.FormController.formSection(formTemplateId, maybeAccessCode, sectionNumber)).pure[Future]
             }
           )
+    }
+
+  private def removeAndRedirect(
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode],
+    index: Int,
+    addToListId: AddToListId
+  )(implicit
+    request: Request[AnyContent],
+    hc: HeaderCarrier,
+    lang: LangADT,
+    sse: SmartStringEvaluator
+  ) =
+    for {
+      processData <- processDataService
+                       .getProcessData[SectionSelectorType.Normal](
+                         formModelOptics.formModelRenderPageOptics.recData.variadicFormData
+                           .asInstanceOf[VariadicFormData[OutOfDate]],
+                         cache,
+                         formModelOptics,
+                         gformConnector.getAllTaxPeriods,
+                         NoSpecificAction
+                       )
+      redirect <- addToListProcessor.processRemoveAddToList(
+                    cache,
+                    maybeAccessCode,
+                    List(FastForward.Yes),
+                    formModelOptics,
+                    processData,
+                    index,
+                    addToListId
+                  )
+    } yield redirect
+
+  def removeItem(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    index: Int,
+    addToListId: AddToListId
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
+      implicit request => implicit lang => cache => implicit sse => formModelOptics =>
+        removeAndRedirect(formModelOptics, cache, maybeAccessCode, index, addToListId)
     }
 }
