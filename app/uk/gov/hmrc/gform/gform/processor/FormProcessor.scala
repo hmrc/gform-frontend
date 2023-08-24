@@ -264,7 +264,7 @@ class FormProcessor(
                                                                       validationSectionNumber,
                                                                       cache.toCacheData,
                                                                       envelopeWithMapping,
-                                                                      validationService.validatePageModel,
+                                                                      validationService.validatePageModelWithoutValidator,
                                                                       enteredVariadicFormData
                                                                     )
       dataRetrieveResult <- {
@@ -312,7 +312,7 @@ class FormProcessor(
                 .foldLeft(Future.successful(List.empty[DataRetrieveResult] -> initialVisibilityOptics)) {
                   case (acc, r) =>
                     acc.flatMap {
-                      case (results, optics) if r.`if`.map(optics.evalIncludeIfExpr(_, None)).getOrElse(true) =>
+                      case (results, optics) if r.`if`.forall(optics.evalIncludeIfExpr(_, None)) =>
                         retrieveWithState(r, optics).map {
                           case (Some(result), updatedOptics) =>
                             (results :+ result) -> updatedOptics
@@ -390,18 +390,24 @@ class FormProcessor(
                                   gformConnector.getAllTaxPeriods,
                                   NoSpecificAction
                                 )
-            result <- validateAndUpdateData(
-                        cacheUpd,
-                        newProcessData,
-                        sectionNumber,
-                        validationSectionNumber,
-                        maybeAccessCode,
-                        fastForward,
-                        formModelOptics,
-                        enteredVariadicFormData,
-                        visitPage
-                      )(toResult) // recursive call
-          } yield result
+            _ <- handler.handleFormValidation(
+                   newProcessData.formModelOptics,
+                   validationSectionNumber,
+                   cacheUpd.toCacheData,
+                   envelopeWithMapping,
+                   validationService.validatePageModel,
+                   enteredVariadicFormData
+                 )
+            res <- fastForwardService
+                     .updateUserData(
+                       cacheUpd,
+                       newProcessData,
+                       maybeAccessCode,
+                       fastForward,
+                       envelopeWithMapping,
+                       Some(sectionNumber)
+                     )((a, b) => toResult(updatePostcodeLookup)(redirectUrl.map(_.value()))(a))
+          } yield res
         } else {
           fastForwardService
             .updateUserData(

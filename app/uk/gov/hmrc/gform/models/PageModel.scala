@@ -19,8 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsPostcodeLookup, IsUpscanInitiateFileUpload, Page, PageId, PresentationHint, RedirectCtx, SummarySectionIncludeIf, ValidIf }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.RemoveItemIf
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsPostcodeLookup, IsUpscanInitiateFileUpload, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, SummarySectionIncludeIf, ValidIf, Validator }
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)
@@ -96,6 +95,7 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def dataRetrieves: List[DataRetrieve] =
     fold(_.page.dataRetrieve.toList.flatMap(_.toList))(_ => List.empty[DataRetrieve])(_ => List.empty[DataRetrieve])
 
+  def validator: Option[Validator] = fold(_.page.validator)(_ => None)(_ => None)
 }
 
 case class Singleton[A <: PageMode](page: Page[A]) extends PageModel[A]

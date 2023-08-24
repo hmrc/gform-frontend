@@ -19,9 +19,25 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import julienrf.json.derived
 import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.sharedmodel.SmartString
+//this will be removed by GFORMS-2279
+sealed trait Validators {
+  def errorMessage: SmartString
+}
 
-case class Validator(validIf: ValidIf, errorMessage: SmartString)
+case object Validators {
+  implicit val format: OFormat[Validators] = derived.oformat()
+}
 
-case object Validator {
-  implicit val format: OFormat[Validator] = derived.oformat()
+case class HmrcRosmRegistrationCheckValidator(
+  errorMessage: SmartString,
+  regime: String,
+  utr: FormCtx,
+  postcode: FormCtx
+) extends Validators {
+  val utrFieldId = utr.formComponentId
+  val postcodeFieldId = postcode.formComponentId
+}
+
+object HmrcRosmRegistrationCheckValidator {
+  implicit val format: OFormat[HmrcRosmRegistrationCheckValidator] = derived.oformat()
 }

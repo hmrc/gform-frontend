@@ -1068,6 +1068,7 @@ class StructuredFormDataBuilderSpec
         None,
         None,
         None,
+        None,
         fields.toList,
         None,
         None,
@@ -1085,6 +1086,7 @@ class StructuredFormDataBuilderSpec
     Section.RepeatingPage(
       Page(
         toSmartString("repeating-page"),
+        None,
         None,
         None,
         None,

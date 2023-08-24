@@ -16,31 +16,24 @@
 
 package uk.gov.hmrc.gform.validation
 
-import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
 import scala.concurrent.ExecutionContext
 
 class ValidationModule(
-  fileUploadModule: FileUploadModule,
   gformBackendModule: GformBackendModule,
   graphModule: GraphModule,
-  lookupRegistry: LookupRegistry,
-  playBuiltInsModule: PlayBuiltInsModule
+  lookupRegistry: LookupRegistry
 )(implicit
   ec: ExecutionContext
 ) {
 
   val validationService = new ValidationService(
-    fileUploadModule.fileUploadService,
     graphModule.booleanExprEval,
     gformBackendModule.gformConnector,
     lookupRegistry,
-    graphModule.recalculation,
-    playBuiltInsModule.i18nSupport,
     ComponentChecker.NonShortCircuitInterpreter
   )
 }
