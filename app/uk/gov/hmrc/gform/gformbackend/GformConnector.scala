@@ -20,7 +20,6 @@ import akka.http.scaladsl.model.StatusCodes
 import cats.data.NonEmptyList
 import cats.implicits.none
 import cats.instances.future._
-import cats.instances.string._
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.functor._

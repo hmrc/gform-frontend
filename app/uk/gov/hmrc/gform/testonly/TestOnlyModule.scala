@@ -54,12 +54,9 @@ class TestOnlyModule(
   private val proxyActions = new ProxyActions(ahcWSComponents.wsClient)(controllersModule.messagesControllerComponents)
 
   val validationReportService = new ValidationService(
-    fileUploadModule.fileUploadService,
     graphModule.booleanExprEval,
     gformBackendModule.gformConnector,
     lookupRegistry,
-    graphModule.recalculation,
-    playBuiltInsModule.i18nSupport,
     ComponentChecker.ErrorReportInterpreter
   )
 

@@ -16,26 +16,18 @@
 
 package uk.gov.hmrc.gform.gform
 
-import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, HmrcRosmRegistrationCheckValidator, Validator }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Validator }
 
 class ValidatorUpdater(validator: Validator, index: Int, baseIds: List[FormComponentId]) {
 
-  private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds)
-
-  private def expandFormCtx(formCtx: FormCtx): FormCtx = ExprUpdater.formCtx(formCtx, index, baseIds)
-
-  def updated: Validator = validator match {
-    case v: HmrcRosmRegistrationCheckValidator =>
-      v.copy(
-        errorMessage = expandSmartString(v.errorMessage),
-        utr = expandFormCtx(v.utr),
-        postcode = expandFormCtx(v.postcode)
-      )
-  }
+  def update: Validator =
+    validator.copy(
+      validIf = validator.validIf.copy(booleanExpr = BooleanExprUpdater(validator.validIf.booleanExpr, index, baseIds)),
+      errorMessage = validator.errorMessage.expand(index, baseIds)
+    )
 }
 
 object ValidatorUpdater {
   def apply(validator: Validator, index: Int, baseIds: List[FormComponentId]): Validator =
-    new ValidatorUpdater(validator, index, baseIds).updated
+    new ValidatorUpdater(validator, index, baseIds).update
 }

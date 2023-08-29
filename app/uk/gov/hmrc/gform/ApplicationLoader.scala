@@ -173,11 +173,9 @@ class ApplicationModule(context: Context)
   )
 
   private val validationModule = new ValidationModule(
-    fileUploadModule,
     gformBackendModule,
     graphModule,
-    lookupRegistry,
-    playBuiltInsModule
+    lookupRegistry
   )
 
   private val taskListModule = new TaskListModule(

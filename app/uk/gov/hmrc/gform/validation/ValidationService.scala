@@ -20,11 +20,10 @@ import cats.data._
 import cats.implicits._
 import cats.Monoid
 import org.typelevel.ci.CIString
-import play.api.i18n.{ I18nSupport, Messages }
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ CheckYourAnswers, Coordinates, PageModel, Repeater, Singleton, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -42,21 +41,45 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.typeclasses.Rnd
 import ComponentChecker.CheckInterpreter
+import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationFailure
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ValidationService(
-  fileUploadService: FileUploadAlgebra[Future],
   booleanExprEval: BooleanExprEval[Future],
   gformConnector: GformConnector,
   lookupRegistry: LookupRegistry,
-  recalculation: Recalculation[Future, Throwable],
-  i18nSupport: I18nSupport,
   checkInterpreter: CheckInterpreter = ComponentChecker.NonShortCircuitInterpreter
 )(implicit ec: ExecutionContext) {
 
   private def lift[T](fv: Future[ValidatedType[T]]) = EitherT(fv.map(_.toEither))
+
   def validatePageModel[D <: DataOrigin](
+    pageModel: PageModel[Visibility],
+    cache: CacheData,
+    envelope: EnvelopeWithMapping,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+  )(implicit
+    hc: HeaderCarrier,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Future[ValidatedType[ValidatorsResult]] = {
+    // format: off
+    val eT = for {
+      _                     <- lift(validatePageModelComponents(pageModel, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
+      _                     <- lift(validatePageValidator(pageModel, formModelVisibilityOptics))
+      valRes                <- lift(validateUsingValidators(pageModel, formModelVisibilityOptics))
+      formTemplateId = cache.formTemplate._id
+      emailsForVerification <- lift(sendVerificationEmails(pageModel, formModelVisibilityOptics, cache.thirdPartyData, formTemplateId))
+    } yield valRes.copy(emailVerification = emailsForVerification)
+    // format: on
+
+    eT.value.map(Validated.fromEither)
+  }
+
+  def validatePageModelWithoutValidator[D <: DataOrigin](
     pageModel: PageModel[Visibility],
     cache: CacheData,
     envelope: EnvelopeWithMapping,
@@ -73,15 +96,14 @@ class ValidationService(
       _                     <- lift(validatePageModelComponents(pageModel, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
       valRes                <- lift(validateUsingValidators(pageModel, formModelVisibilityOptics))
       formTemplateId = cache.formTemplate._id
-      emailsForVerification <- lift(sendVerificationEmails(pageModel, formModelVisibilityOptics, cache.thirdPartyData, formTemplateId))
-    } yield {
-      valRes.copy(emailVerification = emailsForVerification)
-    }
+      emailsForVerification <-lift(sendVerificationEmails(pageModel, formModelVisibilityOptics, cache.thirdPartyData, formTemplateId))
+    } yield valRes.copy(emailVerification = emailsForVerification)
     // format: on
 
     eT.value.map(Validated.fromEither)
   }
 
+  //this will be removed by GFORMS-2279
   def validatePageModelFF[D <: DataOrigin](
     pageModel: PageModel[Visibility],
     cache: CacheData,
@@ -93,15 +115,35 @@ class ValidationService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[ValidatedType[ValidatorsResult]] = {
+    // format: off
     val result = for {
-      _ <-
-        lift(
-          validatePageModelComponents(pageModel, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher)
-        )
+      _ <- lift(validatePageModelComponents(pageModel, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
+      _ <- lift(validatePageValidator(pageModel, formModelVisibilityOptics))
     } yield ValidatorsResult.empty
+    // format: on
 
     result.value.map(Validated.fromEither)
   }
+
+  def validatePageValidator[D <: DataOrigin](
+    pageModel: PageModel[Visibility],
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  )(implicit
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): Future[ValidatedType[Unit]] =
+    pageModel.validator.fold(Monoid[ValidatedType[Unit]].empty.pure[Future]) { v =>
+      val booleanExpression = v.validIf.booleanExpr
+      booleanExprEval.eval(formModelVisibilityOptics)(booleanExpression).map { b =>
+        if (b) Monoid[ValidatedType[Unit]].empty
+        else
+          validationFailure(
+            pageModel.allFormComponents.head,
+            v.errorMessage.value(),
+            None
+          )
+      }
+    }
 
   def validateFormModel[D <: DataOrigin](
     cache: CacheData,
@@ -261,7 +303,7 @@ class ValidationService(
   }
 
   private def validateUsingSectionValidators[D <: DataOrigin](
-    v: Validator,
+    v: Validators,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
     hc: HeaderCarrier,
