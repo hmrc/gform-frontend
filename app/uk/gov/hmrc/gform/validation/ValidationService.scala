@@ -103,28 +103,6 @@ class ValidationService(
     eT.value.map(Validated.fromEither)
   }
 
-  //this will be removed by GFORMS-2279
-  def validatePageModelFF[D <: DataOrigin](
-    pageModel: PageModel[Visibility],
-    cache: CacheData,
-    envelope: EnvelopeWithMapping,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
-  )(implicit
-    messages: Messages,
-    l: LangADT,
-    sse: SmartStringEvaluator
-  ): Future[ValidatedType[ValidatorsResult]] = {
-    // format: off
-    val result = for {
-      _ <- lift(validatePageModelComponents(pageModel, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
-      _ <- lift(validatePageValidator(pageModel, formModelVisibilityOptics))
-    } yield ValidatorsResult.empty
-    // format: on
-
-    result.value.map(Validated.fromEither)
-  }
-
   def validatePageValidator[D <: DataOrigin](
     pageModel: PageModel[Visibility],
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
@@ -136,12 +114,17 @@ class ValidationService(
       val booleanExpression = v.validIf.booleanExpr
       booleanExprEval.eval(formModelVisibilityOptics)(booleanExpression).map { b =>
         if (b) Monoid[ValidatedType[Unit]].empty
-        else
-          validationFailure(
-            pageModel.allFormComponents.head,
-            v.errorMessage.value(),
-            None
+        else {
+          Monoid[ValidatedType[Unit]].combineAll(
+            pageModel.allFormComponents.map(fc =>
+              validationFailure(
+                fc,
+                v.errorMessage.value(),
+                None
+              )
+            )
           )
+        }
       }
     }
 
