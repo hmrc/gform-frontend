@@ -34,8 +34,9 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.{ ExtraInfo, RenderUnit, SectionRenderingService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
+import uk.gov.hmrc.gform.models.{ Bracket, DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
@@ -84,89 +85,61 @@ class BuilderController(
 
             val bracket = formModel.bracket(sectionNumber)
 
-            val rawSectionNumber: Int = formModel.brackets
-              .fold(classic =>
-                classic.brackets.zipWithIndex
-                  .find { case (b, index) => b.hasSectionNumber(sectionNumber) }
-                  .map { case (_, index) =>
-                    index
-                  }
-                  .getOrElse(0)
-              )(taskList => 0)
-
             bracket.fold { nonRepeatingPage =>
               val pageModel = nonRepeatingPage.singleton
 
               pageModel.allFormComponentIds match {
                 case Nil => None
                 case head :: _ =>
-                  val compName = head.baseComponentId.value
-                  val res: Option[(Json, Int)] =
-                    json.hcursor.downField("sections").values.flatMap { sections =>
-                      sections.zipWithIndex
-                        .find { case (section, sectionIndex) =>
-                          section.hcursor.downField("fields").values.exists { fields =>
-                            fields.exists { field =>
-                              field.hcursor.downField("id").focus.contains(Json.fromString(compName))
-                            }
-                          }
-                        }
-                    }
-                  res.map { case (section, sectionIndex) =>
-                    val history: List[CursorOp] =
-                      List
-                        .fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections"))
-                    Json.obj(
-                      "section" := section,
-                      "rawSectionNumber" := rawSectionNumber,
-                      "sectionPath" := CursorOp.opsToPath(history)
-                    )
-                  }
+                  val compName = head.baseComponentId
 
+                  sectionNumber match {
+                    case SectionNumber.Classic(value) =>
+                      originalNonRepeatingPageJson(json.hcursor, compName, Nil)
+                    case SectionNumber.TaskList(coordinates, sn) =>
+                      val acursor: ACursor = json.hcursor
+                        .downField("sections")
+                        .downN(coordinates.taskSectionNumber.value)
+                        .downField("tasks")
+                        .downN(coordinates.taskNumber.value)
+
+                      val historySuffix =
+                        List.fill(coordinates.taskNumber.value)(MoveRight) :::
+                          List(DownArray, DownField("tasks")) :::
+                          List.fill(coordinates.taskSectionNumber.value)(MoveRight) :::
+                          List(DownArray, DownField("sections"))
+
+                      originalNonRepeatingPageJson(acursor, compName, historySuffix)
+                  }
               }
             }(repeatingPage => Option.empty[Json]) { addToList =>
-              val addAnotherQuestionId = addToList.source.addAnotherQuestion.id.value
-
-              json.hcursor.downField("sections").values.flatMap { sections =>
-                sections.zipWithIndex
-                  .find { case (section, sectionIndex) =>
-                    section.hcursor
-                      .downField("addAnotherQuestion")
-                      .downField("id")
-                      .focus
-                      .contains(Json.fromString(addAnotherQuestionId))
-                  }
-                  .flatMap { case (addToListJson, sectionIndex) =>
-                    formModel.pageModelLookup.get(sectionNumber).flatMap { pageModel =>
-                      pageModel.allFormComponentIds match {
-                        case Nil => None
-                        case head :: _ =>
-                          val compName = head.baseComponentId.value
-                          val res: Option[(Json, Int)] =
-                            addToListJson.hcursor.downField("pages").values.flatMap { pages =>
-                              pages.zipWithIndex.find { case (page, pageIdex) =>
-                                page.hcursor.downField("fields").values.exists { fields =>
-                                  fields.exists { field =>
-                                    field.hcursor.downField("id").focus.contains(Json.fromString(compName))
-                                  }
-                                }
-                              }
-                            }
-                          res.map { case (json, pageNumber) =>
-                            val history: List[CursorOp] =
-                              List.fill(pageNumber)(MoveRight) ::: List(DownArray, DownField("pages")) ::: List
-                                .fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections"))
-
-                            Json.obj(
-                              "atlIterationIndex" := head.modelComponentId.maybeIndex.getOrElse(0),
-                              "section" := json,
-                              "rawSectionNumber" := rawSectionNumber,
-                              "sectionPath" := CursorOp.opsToPath(history)
+              sectionNumber match {
+                case SectionNumber.Classic(value) =>
+                  originalSectionInAddToList(json, addToList, formModel, sectionNumber, Nil)
+                case SectionNumber.TaskList(coordinates, sn) =>
+                  json.hcursor
+                    .downField("sections")
+                    .values
+                    .toList
+                    .flatMap { taskSections =>
+                      taskSections.zipWithIndex.flatMap { case (taskSection, taskSectionIndex) =>
+                        taskSection.hcursor.downField("tasks").values.toList.flatMap { tasks =>
+                          tasks.zipWithIndex.map { case (task, taskIndex) =>
+                            val historySuffix =
+                              List.fill(taskIndex)(MoveRight) ::: List(DownArray, DownField("tasks")) :::
+                                List.fill(taskSectionIndex)(MoveRight) ::: List(DownArray, DownField("sections"))
+                            originalSectionInAddToList(
+                              task,
+                              addToList,
+                              formModel,
+                              sectionNumber,
+                              historySuffix
                             )
                           }
+                        }
                       }
                     }
-                  }
+                    .collectFirst { case Some(json) => json }
               }
             }
           }
@@ -176,6 +149,99 @@ class BuilderController(
           )
         }
     }
+
+  private def originalNonRepeatingPageJson(
+    json: ACursor,
+    compName: BaseComponentId,
+    historySuffix: List[CursorOp]
+  ) =
+    json
+      .downField("sections")
+      .values
+      .flatMap { sections =>
+        sections.zipWithIndex
+          .find { case (section, sectionIndex) =>
+            section.hcursor.downField("fields").values.exists { fields =>
+              fields.exists { field =>
+                field.hcursor.downField("id").focus.contains(Json.fromString(compName.value))
+              }
+            }
+          }
+      }
+      .map { case (section, sectionIndex) =>
+        val history: List[CursorOp] =
+          List
+            .fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections")) ::: historySuffix
+        Json.obj(
+          "section" := section,
+          "sectionPath" := CursorOp.opsToPath(history)
+        )
+      }
+
+  private def originalSectionInAddToList(
+    json: Json,
+    addToList: Bracket.AddToList[DataExpanded],
+    formModel: FormModel[DataExpanded],
+    sectionNumber: SectionNumber,
+    historySuffix: List[CursorOp]
+  ): Option[Json] = {
+    val addAnotherQuestionId = Json.fromString(addToList.source.addAnotherQuestion.id.value)
+    json.hcursor.downField("sections").values.flatMap { sections =>
+      sections.zipWithIndex
+        .find { case (section, _) =>
+          section.hcursor
+            .downField("addAnotherQuestion")
+            .downField("id")
+            .focus
+            .contains(addAnotherQuestionId)
+        }
+        .flatMap { case (addToListJson, sectionIndex) =>
+          formModel.pageModelLookup
+            .get(sectionNumber)
+            .flatMap { pageModel =>
+              pageModel.allFormComponentIds match {
+                case Nil => None
+                case head :: _ =>
+                  findFormComponentInAddToList(addToListJson, head.baseComponentId)
+                    .map { case (json, pageNumber) =>
+                      val history: List[CursorOp] =
+                        List.fill(pageNumber)(MoveRight) ::: List(DownArray, DownField("pages")) :::
+                          List.fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections")) :::
+                          historySuffix
+
+                      Json.obj(
+                        "atlIterationIndex" := head.modelComponentId.maybeIndex.getOrElse(0),
+                        "section" := json,
+                        "sectionPath" := CursorOp.opsToPath(history)
+                      )
+                    }
+              }
+            }
+        }
+    }
+  }
+
+  private def findFormComponentInAddToList(addToListJson: Json, compName: BaseComponentId): Option[(Json, Int)] =
+    addToListJson.hcursor
+      .downField("pages")
+      .values
+      .flatMap { pages =>
+        pages.zipWithIndex.find { case (page, _) =>
+          page.hcursor.downField("fields").values.exists { fields =>
+            fields.exists { field =>
+              field.hcursor
+                .downField("id")
+                .focus
+                .contains(Json.fromString(compName.value))
+            }
+          }
+        }
+      }
+
+  private def sanitiseHtml(html: Html): String =
+    html.toString
+      .trim()
+      .replaceAll("\\s+\n", "\n")
 
   def fetchSectionAndFormComponentHtml(
     formTemplateId: FormTemplateId,
@@ -193,8 +259,8 @@ class BuilderController(
           case Right(html) =>
             Ok(
               Json.obj(
-                "sectionHtml" := sectionHtml,
-                "html" := html
+                "sectionHtml" := sanitiseHtml(sectionHtml),
+                "html" := sanitiseHtml(html)
               )
             ).pure[Future]
         }
