@@ -211,7 +211,7 @@ class FastForwardService(
                    processData,
                    cache.toCacheData,
                    envelope,
-                   validationService.validatePageModelFF,
+                   validationService.validatePageModel,
                    fastForward,
                    maybeSectionNumber
                  )
