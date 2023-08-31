@@ -36,9 +36,7 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
         page.instruction.flatMap(_.name)
       )
 
-      val validatorExprs = page.validator.fold(List.empty[Expr])(_.errorMessage.interpolations)
-
-      val validatorsExprs = page.validators.fold(List.empty[Expr]) {
+      val validatorExprs = page.validators.fold(List.empty[Expr]) {
         case HmrcRosmRegistrationCheckValidator(errorMessage, _, utr, postCode) =>
           utr :: postCode :: errorMessage.interpolations
       }
@@ -47,7 +45,7 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
         dataRetrieve.params.map(_.expr) ++ acc
       }
 
-      pageExprs ++ validatorExprs ++ dataRetrieveExpressions ++ validatorsExprs
+      pageExprs ++ validatorExprs ++ dataRetrieveExpressions
     }
 
     def fromRepeater(repeater: Repeater[_]): List[Expr] =

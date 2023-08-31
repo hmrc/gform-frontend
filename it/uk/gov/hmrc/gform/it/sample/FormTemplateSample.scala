@@ -72,7 +72,6 @@ trait FormTemplateSample {
                 )
               ),
               includeIf = None,
-              validator = None,
               validators = None,
               continueLabel = None,
               continueIf = None,

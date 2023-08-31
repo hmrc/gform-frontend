@@ -572,7 +572,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
   def nonRepeatingPageSection(
     title: String = "About you",
     noPIITitle: Option[String] = None,
-    validators: Option[Validators] = None,
+    validators: Option[Validator] = None,
     fields: List[FormComponent] = List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`),
     includeIf: Option[IncludeIf] = None,
     instruction: Option[Instruction] = None,
@@ -587,7 +587,6 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None,
         includeIf,
-        None,
         validators,
         fields,
         None,
@@ -636,7 +635,6 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     Section.RepeatingPage(
       Page(
         toSmartString(title),
-        None,
         None,
         None,
         None,
@@ -710,7 +708,6 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     presentationHint: Option[PresentationHint] = None
   ): Page[T] = Page[T](
     toSmartString(title),
-    None,
     None,
     None,
     None,
