@@ -37,8 +37,7 @@ case class Page[A <: PageMode](
   shortName: Option[SmartString],
   caption: Option[SmartString] = None,
   includeIf: Option[IncludeIf],
-  validator: Option[Validator],
-  validators: Option[Validators], //this will be removed by GFORMS-2279
+  validators: Option[Validator],
   fields: List[FormComponent],
   continueLabel: Option[SmartString],
   continueIf: Option[ContinueIf],

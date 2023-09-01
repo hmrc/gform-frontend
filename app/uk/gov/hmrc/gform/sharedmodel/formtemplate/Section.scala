@@ -34,8 +34,7 @@ sealed trait Section extends Product with Serializable {
     }
 
   def getTitle: SmartString = fold(_.page.title)(_.page.title)(_.title)
-  def validator: Option[Validator] = fold(_.page.validator)(_.page.validator)(_ => None)
-  def validators: Option[Validators] = fold(_.page.validators)(_.page.validators)(_ => None)
+  def validators: Option[Validator] = fold(_.page.validators)(_.page.validators)(_ => None)
   def getCaption: Option[SmartString] = fold(_.page.caption)(_.page.caption)(_ => None)
   def continueLabel: Option[SmartString] = fold(_.page.continueLabel)(_.page.continueLabel)(_ => None)
   def isTerminationPage: Boolean = fold(_.page.continueIf.contains(Stop))(_.page.continueIf.contains(Stop))(_ => false)
@@ -121,7 +120,6 @@ case class DeclarationSection(
       shortName = shortName,
       caption = None,
       includeIf = None,
-      validator = None,
       validators = None,
       fields = fields,
       continueLabel = continueLabel,
@@ -163,7 +161,6 @@ case class AcknowledgementSection(
       shortName = shortName,
       caption = None,
       includeIf = None,
-      validator = None,
       validators = None,
       fields = fields,
       continueLabel = None,
@@ -201,7 +198,6 @@ case class EnrolmentSection(
       shortName = shortName,
       caption = None,
       includeIf = None,
-      validator = None,
       validators = None,
       fields = fields,
       continueLabel = None,

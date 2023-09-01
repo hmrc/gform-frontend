@@ -20,8 +20,24 @@ import julienrf.json.derived
 import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 
-case class Validator(validIf: ValidIf, errorMessage: SmartString)
+sealed trait Validator {
+  def errorMessage: SmartString
+}
 
 case object Validator {
   implicit val format: OFormat[Validator] = derived.oformat()
+}
+
+case class HmrcRosmRegistrationCheckValidator(
+  errorMessage: SmartString,
+  regime: String,
+  utr: FormCtx,
+  postcode: FormCtx
+) extends Validator {
+  val utrFieldId = utr.formComponentId
+  val postcodeFieldId = postcode.formComponentId
+}
+
+object HmrcRosmRegistrationCheckValidator {
+  implicit val format: OFormat[HmrcRosmRegistrationCheckValidator] = derived.oformat()
 }

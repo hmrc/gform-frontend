@@ -264,7 +264,7 @@ class FormProcessor(
                                                                       validationSectionNumber,
                                                                       cache.toCacheData,
                                                                       envelopeWithMapping,
-                                                                      validationService.validatePageModelWithoutValidator,
+                                                                      validationService.validatePageModel,
                                                                       enteredVariadicFormData
                                                                     )
       dataRetrieveResult <- {
@@ -303,31 +303,27 @@ class FormProcessor(
           maybeRetrieveResultF.map(r => r -> visibilityOptics.addDataRetreiveResults(r.toList))
         }
 
-        if (isValid) {
-          val initialVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
-          pageModel
-            .fold { singleton =>
-              singleton.page
-                .dataRetrieves()
-                .foldLeft(Future.successful(List.empty[DataRetrieveResult] -> initialVisibilityOptics)) {
-                  case (acc, r) =>
-                    acc.flatMap {
-                      case (results, optics) if r.`if`.forall(optics.evalIncludeIfExpr(_, None)) =>
-                        retrieveWithState(r, optics).map {
-                          case (Some(result), updatedOptics) =>
-                            (results :+ result) -> updatedOptics
-                          case (None, _) =>
-                            results -> optics
-                        }
-                      case (results, optics) => Future.successful(results -> optics)
+        val initialVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
+        pageModel
+          .fold { singleton =>
+            singleton.page
+              .dataRetrieves()
+              .foldLeft(Future.successful(List.empty[DataRetrieveResult] -> initialVisibilityOptics)) { case (acc, r) =>
+                acc.flatMap {
+                  case (results, optics) if r.`if`.forall(optics.evalIncludeIfExpr(_, None)) =>
+                    retrieveWithState(r, optics).map {
+                      case (Some(result), updatedOptics) =>
+                        (results :+ result) -> updatedOptics
+                      case (None, _) =>
+                        results -> optics
                     }
+                  case (results, optics) => Future.successful(results -> optics)
                 }
-            }(_ => Future.successful(List() -> initialVisibilityOptics))(_ =>
-              Future.successful(List() -> initialVisibilityOptics)
-            )
-            .map(_._1)
-
-        } else List.empty.pure[Future]
+              }
+          }(_ => Future.successful(List() -> initialVisibilityOptics))(_ =>
+            Future.successful(List() -> initialVisibilityOptics)
+          )
+          .map(_._1)
       }
 
       updatePostcodeLookup <-
@@ -343,18 +339,10 @@ class FormProcessor(
         val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
 
         val formDataU = oldData.toFormData ++ formData
-        val before: ThirdPartyData = cache.form.thirdPartyData
-        val after: ThirdPartyData =
-          before
-            .updateFrom(validatorsResult)
-            .updateDataRetrieve(dataRetrieveResult)
-            .updatePostcodeLookup(updatePostcodeLookup)
-
-        val needsSecondPhaseRecalculation =
-          (before.desRegistrationResponse, after.desRegistrationResponse)
-            .mapN(_ =!= _)
-            .getOrElse(false) ||
-            before.dataRetrieve != after.dataRetrieve
+        val updatedThirdPartyData: ThirdPartyData = cache.form.thirdPartyData
+          .updateFrom(validatorsResult)
+          .updateDataRetrieve(dataRetrieveResult)
+          .updatePostcodeLookup(updatePostcodeLookup)
 
         val redirectUrl = if (isValid && pageModel.redirects.nonEmpty) {
           pageModel.redirects.collectFirst {
@@ -373,52 +361,32 @@ class FormProcessor(
           cache.copy(
             form = cache.form
               .copy(
-                thirdPartyData = after.copy(obligations = processData.obligations),
+                thirdPartyData = updatedThirdPartyData.copy(obligations = processData.obligations),
                 formData = formDataU,
                 visitsIndex = visitsIndex
               )
           )
 
-        if (needsSecondPhaseRecalculation && isValid) {
-          val newDataRaw = cacheUpd.variadicFormData[SectionSelectorType.Normal]
-          for {
-            newProcessData <- processDataService
-                                .getProcessData[SectionSelectorType.Normal](
-                                  newDataRaw,
-                                  cacheUpd,
-                                  formModelOptics,
-                                  gformConnector.getAllTaxPeriods,
-                                  NoSpecificAction
-                                )
-            _ <- handler.handleFormValidation(
-                   newProcessData.formModelOptics,
-                   validationSectionNumber,
-                   cacheUpd.toCacheData,
-                   envelopeWithMapping,
-                   validationService.validatePageModel,
-                   enteredVariadicFormData
-                 )
-            res <- fastForwardService
-                     .updateUserData(
-                       cacheUpd,
-                       newProcessData,
-                       maybeAccessCode,
-                       fastForward,
-                       envelopeWithMapping,
-                       Some(sectionNumber)
-                     )((a, b) => toResult(updatePostcodeLookup)(redirectUrl.map(_.value()))(a))
-          } yield res
-        } else {
-          fastForwardService
-            .updateUserData(
-              cacheUpd,
-              processData.copy(visitsIndex = visitsIndex),
-              maybeAccessCode,
-              fastForward,
-              envelopeWithMapping,
-              Some(sectionNumber)
-            )((a, b) => toResult(updatePostcodeLookup)(redirectUrl.map(_.value()))(a))
-        }
+        val newDataRaw = cacheUpd.variadicFormData[SectionSelectorType.Normal]
+        for {
+          newProcessData <- processDataService
+                              .getProcessData[SectionSelectorType.Normal](
+                                newDataRaw,
+                                cacheUpd,
+                                formModelOptics,
+                                gformConnector.getAllTaxPeriods,
+                                NoSpecificAction
+                              )
+          res <- fastForwardService
+                   .updateUserData(
+                     cacheUpd,
+                     newProcessData,
+                     maybeAccessCode,
+                     fastForward,
+                     envelopeWithMapping,
+                     Some(sectionNumber)
+                   )((a, b) => toResult(updatePostcodeLookup)(redirectUrl.map(_.value()))(a))
+        } yield res
       }
     } yield res
   }

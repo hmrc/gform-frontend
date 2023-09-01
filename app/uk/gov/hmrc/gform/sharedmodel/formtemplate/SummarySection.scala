@@ -41,7 +41,6 @@ case class SummarySection(
       shortName = None,
       caption = None,
       includeIf = None,
-      validator = None,
       validators = None,
       fields = fields.fold(List.empty[FormComponent])(_.toList),
       continueLabel = None,
