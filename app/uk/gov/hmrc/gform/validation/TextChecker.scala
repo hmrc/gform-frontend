@@ -275,7 +275,23 @@ object TextChecker {
       )
     )
     def lookupCheck(c: Lookup): CheckProgram[Unit] =
-      lookupValidation(fieldValue, lookupRegistry, c, LookupLabel(inputText), formModelVisibilityOptics)
+      conditionalMandatoryCheck(
+        mandatoryFailure = validationFailure(
+          fieldValue,
+          genericErrorTextRequired,
+          (Some(errorShortNameWithFallback(fieldValue).pure[List]))
+        ),
+        nonEmptyCheck = lookupValidation(
+          fieldValue,
+          lookupRegistry,
+          c,
+          LookupLabel(inputText),
+          formModelVisibilityOptics
+        ),
+        nonEmptyCheckIfMandatory = Some(
+          lookupValidation(fieldValue, lookupRegistry, c, LookupLabel(inputText), formModelVisibilityOptics)
+        )
+      )
     def textWithRestrictionsCheck(c: TextWithRestrictions): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(
         fieldValue,

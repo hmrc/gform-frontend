@@ -41,6 +41,8 @@ import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormatExprGen
+import uk.gov.hmrc.gform.lookup._
+import uk.gov.hmrc.gform.LookupLoader.mkAutocomplete
 
 import ComponentChecker._
 
@@ -261,7 +263,7 @@ class TextCheckerSpec
     }
   }
 
-  "validateText (2)" should "validate when FormComponent constraint is UkVrn" in {
+  it should "validate when FormComponent constraint is UkVrn" in {
     val constraint = UkVrn
     val fc = textComponent.copy(`type` = Text(constraint, Value))
     val table = TableDrivenPropertyChecks.Table(
@@ -326,7 +328,7 @@ class TextCheckerSpec
     }
   }
 
-  "validateText (3)" should "validate when FormComponent constraint is YearFormat" in {
+  it should "validate when FormComponent constraint is YearFormat" in {
     val constraint = YearFormat
     val fc = textComponent.copy(`type` = Text(constraint, Value))
     val table = TableDrivenPropertyChecks.Table(
@@ -361,6 +363,139 @@ class TextCheckerSpec
     }
   }
 
+  it should "validate when FormComponent constraint is lookup(country) and errorShortName" in new WithLookupData {
+    val fc = textComponent
+      .copy(`type` = Text(constraint, Value))
+      .copy(errorShortName = Some(toSmartString("country of residence")))
+      .copy(shortName = None)
+    val table = TableDrivenPropertyChecks.Table(
+      ("input", "expected"),
+      (
+        "",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter country of residence")))
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
+      val formModelOptics = mkFormModelOptics(
+        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
+        mkDataOutOfDate(textComponent.id.value -> inputData)
+      )
+      val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
+        formModelOptics.formModelVisibilityOptics,
+        new LookupRegistry(
+          Map(
+            Register.Country -> AjaxLookup(
+              countryLookupOptions,
+              mkAutocomplete(countryLookupOptions),
+              ShowAll.Enabled
+            )
+          )
+        )
+      )
+      result.foldMap(ShortCircuitInterpreter) shouldBe expected
+    }
+  }
+
+  it should "validate when FormComponent constraint is lookup(country) and ShortName" in new WithLookupData {
+    val fc = textComponent
+      .copy(`type` = Text(constraint, Value))
+      .copy(errorShortName = None)
+      .copy(shortName = Some(toSmartString("Country")))
+    val table = TableDrivenPropertyChecks.Table(
+      ("input", "expected"),
+      (
+        "",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter Country")))
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
+      val formModelOptics = mkFormModelOptics(
+        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
+        mkDataOutOfDate(textComponent.id.value -> inputData)
+      )
+      val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
+        formModelOptics.formModelVisibilityOptics,
+        new LookupRegistry(
+          Map(
+            Register.Country -> AjaxLookup(
+              countryLookupOptions,
+              mkAutocomplete(countryLookupOptions),
+              ShowAll.Enabled
+            )
+          )
+        )
+      )
+      result.foldMap(ShortCircuitInterpreter) shouldBe expected
+    }
+  }
+
+  it should "validate when FormComponent constraint is lookup(country) and label only" in new WithLookupData {
+    val fc = textComponent
+      .copy(`type` = Text(constraint, Value))
+      .copy(errorShortName = None)
+      .copy(shortName = None)
+      .copy(label = toSmartString("Residence Country"))
+    val table = TableDrivenPropertyChecks.Table(
+      ("input", "expected"),
+      (
+        "",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter Residence Country")))
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
+      val formModelOptics = mkFormModelOptics(
+        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
+        mkDataOutOfDate(textComponent.id.value -> inputData)
+      )
+      val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
+        formModelOptics.formModelVisibilityOptics,
+        new LookupRegistry(
+          Map(
+            Register.Country -> AjaxLookup(
+              countryLookupOptions,
+              mkAutocomplete(countryLookupOptions),
+              ShowAll.Enabled
+            )
+          )
+        )
+      )
+      result.foldMap(ShortCircuitInterpreter) shouldBe expected
+    }
+  }
+
   private def purePure(fieldId: String) =
     ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId(fieldId)))
+
+  trait WithLookupData {
+
+    val countryLookupSelectionCriteria: Option[List[SelectionCriteria]] = None
+    val constraint = Lookup(Register.Country, countryLookupSelectionCriteria)
+    lazy val countryLookupOptions: LocalisedLookupOptions = LocalisedLookupOptions(
+      Map(
+        LangADT.En -> LookupOptions(
+          Map(
+            LookupLabel("United Kingdom") -> CountryLookupInfo(
+              LookupId("GB"),
+              0,
+              LookupKeywords(Some("England Great Britain")),
+              LookupPriority(1),
+              LookupRegion("1"),
+              Map()
+            ),
+            LookupLabel("United States") -> CountryLookupInfo(
+              LookupId("US"),
+              1,
+              LookupKeywords(Some("USA")),
+              LookupPriority(1),
+              LookupRegion("2"),
+              Map()
+            )
+          )
+        )
+      )
+    )
+  }
 }
