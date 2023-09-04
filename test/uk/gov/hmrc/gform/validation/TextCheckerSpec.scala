@@ -363,89 +363,38 @@ class TextCheckerSpec
     }
   }
 
-  it should "validate when FormComponent constraint is lookup(country) and errorShortName" in new WithLookupData {
-    val fc = textComponent
-      .copy(`type` = Text(constraint, Value))
-      .copy(errorShortName = Some(toSmartString("country of residence")))
-      .copy(shortName = None)
+  it should "validate when FormComponent constraint is lookup(country)" in new WithLookupData {
     val table = TableDrivenPropertyChecks.Table(
-      ("input", "expected"),
+      ("input", "expected", "label", "shortName", "errorShortName"),
       (
         "",
-        Left(Map(textComponent.id.modelComponentId -> Set("Enter country of residence")))
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter Country"))),
+        toSmartString("Residence Country"),
+        Some(toSmartString("Country")),
+        None
+      ),
+      (
+        "",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter Residence Country"))),
+        toSmartString("Residence Country"),
+        None,
+        None
+      ),
+      (
+        "",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter country of residence"))),
+        toSmartString("Residence Country"),
+        None,
+        Some(toSmartString("country of residence"))
       )
     )
 
-    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
-      val formModelOptics = mkFormModelOptics(
-        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
-        mkDataOutOfDate(textComponent.id.value -> inputData)
-      )
-      val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
-        formModelOptics.formModelVisibilityOptics,
-        new LookupRegistry(
-          Map(
-            Register.Country -> AjaxLookup(
-              countryLookupOptions,
-              mkAutocomplete(countryLookupOptions),
-              ShowAll.Enabled
-            )
-          )
-        )
-      )
-      result.foldMap(ShortCircuitInterpreter) shouldBe expected
-    }
-  }
-
-  it should "validate when FormComponent constraint is lookup(country) and ShortName" in new WithLookupData {
-    val fc = textComponent
-      .copy(`type` = Text(constraint, Value))
-      .copy(errorShortName = None)
-      .copy(shortName = Some(toSmartString("Country")))
-    val table = TableDrivenPropertyChecks.Table(
-      ("input", "expected"),
-      (
-        "",
-        Left(Map(textComponent.id.modelComponentId -> Set("Enter Country")))
-      )
-    )
-
-    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
-      val formModelOptics = mkFormModelOptics(
-        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
-        mkDataOutOfDate(textComponent.id.value -> inputData)
-      )
-      val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
-        formModelOptics.formModelVisibilityOptics,
-        new LookupRegistry(
-          Map(
-            Register.Country -> AjaxLookup(
-              countryLookupOptions,
-              mkAutocomplete(countryLookupOptions),
-              ShowAll.Enabled
-            )
-          )
-        )
-      )
-      result.foldMap(ShortCircuitInterpreter) shouldBe expected
-    }
-  }
-
-  it should "validate when FormComponent constraint is lookup(country) and label only" in new WithLookupData {
-    val fc = textComponent
-      .copy(`type` = Text(constraint, Value))
-      .copy(errorShortName = None)
-      .copy(shortName = None)
-      .copy(label = toSmartString("Residence Country"))
-    val table = TableDrivenPropertyChecks.Table(
-      ("input", "expected"),
-      (
-        "",
-        Left(Map(textComponent.id.modelComponentId -> Set("Enter Residence Country")))
-      )
-    )
-
-    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
+    TableDrivenPropertyChecks.forAll(table) { (inputData, expected, label, shortName, errorShortName) =>
+      val fc = textComponent
+        .copy(`type` = Text(constraint, Value))
+        .copy(errorShortName = errorShortName)
+        .copy(shortName = shortName)
+        .copy(label = label)
       val formModelOptics = mkFormModelOptics(
         mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
         mkDataOutOfDate(textComponent.id.value -> inputData)
