@@ -73,7 +73,8 @@ class TestOnlyModule(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     controllersModule.messagesControllerComponents,
-    validationReportService
+    validationReportService,
+    lookupRegistry
   )
 
   val debugController = new DebugController(
