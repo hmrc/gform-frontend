@@ -53,7 +53,8 @@ class TestOnlyErrorMessageController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActions,
   controllerComponents: MessagesControllerComponents,
-  validationReportService: ValidationService
+  validationReportService: ValidationService,
+  lookupRegistry: LookupRegistry
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
@@ -322,7 +323,7 @@ class TestOnlyErrorMessageController(
           formComponent,
           cache.toCacheData,
           EnvelopeWithMapping.empty,
-          new LookupRegistry(Map()),
+          lookupRegistry,
           new BooleanExprEval(),
           ComponentChecker.ErrorReportInterpreter
         ).validate(GetEmailCodeFieldMatcher(formModel)).map {
