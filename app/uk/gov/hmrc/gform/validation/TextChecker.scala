@@ -298,7 +298,7 @@ object TextChecker {
         genericErrorTextRequired,
         (Some(errorShortNameWithFallback(fieldValue).pure[List]))
       ),
-      nonEmptyCheck = validateTextConstraint(fieldValue, inputText, c.min, c.max),
+      nonEmptyCheck = validateTextConstraint(fieldValue, inputText, c.min, c.max, None),
       nonEmptyCheckIfMandatory = Some(
         validateShortTextConstraint(fieldValue, inputText, c.min, c.max, true)
       )
@@ -381,14 +381,33 @@ object TextChecker {
         ))
       ),
       nonEmptyCheck = List(
-        email(fieldValue, inputText),
-        textValidationWithConstraints(fieldValue, inputText, 0, ValidationValues.emailLimit)
-      ).nonShortCircuitProgram
+        validateTextConstraint(
+          fieldValue,
+          inputText,
+          0,
+          ValidationValues.emailLimit,
+          Some(emailErrorFirstPlaceholder())
+        ),
+        email(fieldValue, inputText)
+      ).shortCircuitProgram
     )
     def emailVerifiedByCheck(c: EmailVerifiedBy): CheckProgram[Unit] = List(
-      email(fieldValue, inputText),
-      textValidationWithConstraints(fieldValue, inputText, 0, ValidationValues.emailLimit)
-    ).nonShortCircuitProgram
+      validateTextConstraint(
+        fieldValue,
+        inputText,
+        0,
+        ValidationValues.emailLimit,
+        Some(emailErrorFirstPlaceholder())
+      ),
+      email(fieldValue, inputText)
+    ).shortCircuitProgram
+
+    def emailErrorFirstPlaceholder(): String = fieldValue.errorShortNameStart
+      .flatMap(_.nonBlankValue())
+      .map(s => SmartString.blank.transform(_ => s + " email", _ => "gyfeiriad e-bost " + s).value())
+      .getOrElse(
+        SmartString.blank.transform(_ => "Email", _ => "gyfeiriad e-bost").value()
+      )
 
     def utrCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(
@@ -1440,6 +1459,7 @@ object TextChecker {
     value: String,
     min: Int,
     max: Int,
+    placeholder: Option[String],
     noTooShortValidation: Boolean = false
   )(implicit
     messages: Messages,
@@ -1452,9 +1472,10 @@ object TextChecker {
     val isTooLong = textLength > max
     val isTooShort = textLength < min
 
-    val varsExact: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
-    val varsTooLong: List[String] = errorShortNameStartWithFallback(fieldValue) :: max.toString :: Nil
-    val varsTooShort: List[String] = errorShortNameStartWithFallback(fieldValue) :: min.toString :: Nil
+    val firstPlaceholder = placeholder.getOrElse(errorShortNameStartWithFallback(fieldValue))
+    val varsExact: List[String] = firstPlaceholder :: max.toString :: Nil
+    val varsTooLong: List[String] = firstPlaceholder :: max.toString :: Nil
+    val varsTooShort: List[String] = firstPlaceholder :: min.toString :: Nil
 
     switchProgram(
       switchCase(
@@ -1486,7 +1507,7 @@ object TextChecker {
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
-    val lengthValidationResult = textLengthValidation(fieldValue, value, min, max, noTooShortValidation)
+    val lengthValidationResult = textLengthValidation(fieldValue, value, min, max, None, noTooShortValidation)
     val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
     val isValidShortText = value match {
       case ValidShortText() => true
@@ -1511,12 +1532,13 @@ object TextChecker {
     value: String,
     min: Int,
     max: Int,
+    placeholder: Option[String],
     noTooShortValidation: Boolean = false
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
-    val lengthValidationResult = textLengthValidation(fieldValue, value, min, max, noTooShortValidation)
+    val lengthValidationResult = textLengthValidation(fieldValue, value, min, max, placeholder, noTooShortValidation)
     List(
       lengthValidationResult,
       invalidCharactersValidator(
@@ -1524,7 +1546,7 @@ object TextChecker {
         value,
         validTextPattern,
         genericErrorTextValidChar,
-        List(errorShortNameStartWithFallback(fieldValue))
+        List(placeholder.getOrElse(errorShortNameStartWithFallback(fieldValue)))
       )
     ).shortCircuitProgram
   }
