@@ -300,7 +300,7 @@ object TextChecker {
       ),
       nonEmptyCheck = validateTextConstraint(fieldValue, inputText, c.min, c.max, None),
       nonEmptyCheckIfMandatory = Some(
-        validateShortTextConstraint(fieldValue, inputText, c.min, c.max, true)
+        validateTextConstraint(fieldValue, inputText, c.min, c.max, None)
       )
     )
     def sterlingCheck(c: Sterling): CheckProgram[Unit] = conditionalMandatoryCheck(
