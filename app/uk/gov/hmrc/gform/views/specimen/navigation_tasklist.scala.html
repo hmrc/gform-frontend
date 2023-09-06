@@ -73,7 +73,7 @@
      </div>
   </div>
 
-  <script @{CSPNonce.attr} type="text/javascript">
+  <script @{CSPNonce.attr}>
     document.getElementById("specimenNavigation").addEventListener("change", function(el) {
      var index = el.target.value;
      var sectionTitle4Ga = el.target.options[index].getAttribute("data-title");

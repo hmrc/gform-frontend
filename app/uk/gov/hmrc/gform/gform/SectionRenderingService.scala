@@ -1140,7 +1140,7 @@ class SectionRenderingService(
           case Some(upscanData) =>
             val fileUploadName = "file"
             val otherAttributes = Map("form" -> upscanData.formMetaData.htmlId)
-            val attributes = Map("upscan" -> "upscan") ++ otherAttributes
+            val attributes = Map("data-upscan" -> "upscan") ++ otherAttributes
 
             htmlForFileUpload(
               formComponent,
