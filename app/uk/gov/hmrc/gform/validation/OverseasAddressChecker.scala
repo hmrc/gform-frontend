@@ -274,7 +274,7 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D
           .lookupValidation(
             context.formComponent,
             context.lookupRegistry,
-            Lookup(Register.Country, None),
+            Lookup(Register.Country, overseasAddress.selectionCriteria),
             LookupLabel(maybeValue.getOrElse("country")),
             context.formModelVisibilityOptics
           )
