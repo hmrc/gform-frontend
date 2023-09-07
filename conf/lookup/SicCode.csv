@@ -1,732 +1,732 @@
-SicCode,Name,Name-cy
-1110,"1110 - Growing of cereals (except rice), leguminous crops and oil seeds","1110 - Tyfu grawn (ac eithrio reis), cnydau o godlysiau ac olew had"
-1120,1120 - Growing of rice,1120 - Tyfu reis
-1130,"1130 - Growing of vegetables and melons, roots and tubers","1130 - Tyfu llysiau a melonau, gwreiddlysiau a chloron"
-1140,1140 - Growing of sugar cane,1140 - Tyfu câns siwgr
-1150,1150 - Growing of tobacco,1150 - Tyfu tybaco
-1160,1160 - Growing of fibre crops,1160 - Tyfu cnydau ffibrog
-1190,1190 - Growing of other non-perennial crops,1190 - Tyfu cnydau eraill nad ydynt yn gnydau lluosflwydd
-1210,1210 - Growing of grapes,1210 - Tyfu grawnwin
-1220,1220 - Growing of tropical and subtropical fruits,1220 - Tyfu ffrwythau trofannol ac isdrofannol
-1230,1230 - Growing of citrus fruits,1230 - Tyfu ffrwythau sitrws
-1240,1240 - Growing of pome fruits and stone fruits,1240 - Tyfu ffrwythau o deulu'r afal a ffrwythau carreg
-1250,1250 - Growing of other tree and bush fruits and nuts,1250 - Tyfu cnau a ffrwythau coed a pherth eraill
-1260,1260 - Growing of oleaginous fruits,1260 - Tyfu ffrwythau olewaidd
-1270,1270 - Growing of beverage crops,1270 - Tyfu cnydau gwneud diodydd
-1280,"1280 - Growing of spices, aromatic, drug and pharmaceutical crops","1280 - Tyfu cnydau sbeis, aromatig, cyffuriau a fferyllol"
-1290,1290 - Growing of other perennial crops,1290 - Tyfu cnydau lluosflwydd eraill
-1300,1300 - Plant propagation,1300 - Epilio planhigion
-1410,1410 - Raising of dairy cattle,1410 - Magu gwartheg godro
-1420,1420 - Raising of other cattle and buffaloes,1420 - Magu gwartheg eraill a byfflos
-1430,1430 - Raising of horses and other equines,1430 - Magu ceffylau ac anifeiliaid eraill o deulu'r ceffyl
-1440,1440 - Raising of camels and camelids,1440 - Magu camelod a chamelidau
-1450,1450 - Raising of sheep and  goats,1450 - Magu defaid a geifr
-1460,1460 - Raising of swine/pigs,1460 - Magu moch/anifeiliaid o deulu'r mochyn
-1470,1470 - Raising of poultry,1470 - Magu dofednod
-1490,1490 - Raising of other animals,1490 - Magu anifeiliaid eraill
-1500,1500 - Mixed farming,1500 - Ffermio cymysg
-1610,1610 - Support activities for crop production,1610 - Gweithgareddau cynorthwyol ym maes cynhyrchu cnydau
-1621,1621 - Farm animal boarding and care,1621 - Lletya a gofalu am anifeiliaid fferm
-1629,1629 - Support activities for animal production (other than farm animal boarding and care) n.e.c.,1629 - Gweithgareddau cynorthwyol ym maes magu anifeiliaid (ac eithrio lletya a gofalu am anifeiliaid fferm) n.dd.b.
-1630,1630 - Post-harvest crop activities,1630 - Gweithgareddau yn sgil cynaeafu cnydau
-1640,1640 - Seed processing for propagation,1640 - Prosesu hadau i'w hepilio
-1700,"1700 - Hunting, trapping and related service activities","1700 - Hela, maglu a gweithgareddau'r gwasanaethau cysylltiedig"
-2100,2100 - Silviculture and other forestry activities,2100 - Tyfu coed a gweithgareddau coedwigaeth eraill
-2200,2200 - Logging,2200 - Torri coed yn foncyffion
-2300,2300 - Gathering of wild growing non-wood products,2300 - Casglu cynnyrch sy'n tyfu'n wyllt heblaw pren
-2400,2400 - Support services to forestry,2400 - Gwasanaethau cynorthwyol ym maes coedwigaeth
-3110,3110 - Marine fishing,3110 - Pysgota morol
-3120,3120 - Freshwater fishing,3120 - Pysgota d?r croyw
-3210,3210 - Marine aquaculture,3210 - Acwafeithrin morol
-3220,3220 - Freshwater aquaculture,3220 - Acwafeithrin mewn d?r croyw
-5101,5101 - Deep coal mines,5101 - Pyllau glo dwfn
-5102,5102 - Open cast coal working,5102 - Cloddfeydd glo brig
-5200,5200 - Mining of lignite,5200 - Mwyngloddio coedlo (lignit)
-6100,6100 - Extraction of crude petroleum,6100 - Echdynnu petrolewm crai
-6200,6200 - Extraction of natural gas,6200 - Echdynnu nwyon naturiol
-7100,7100 - Mining of iron ores,7100 - Mwyngloddio mwynau haearn
-7210,7210 - Mining of uranium and thorium ores,7210 - Mwyngloddio mwynau wraniwm a thoriwm
-7290,7290 - Mining of other non-ferrous metal ores,7290 - Mwyngloddio mwynau metel anfferrus eraill
-8110,"8110 - Quarrying of ornamental and building stone, limestone, gypsum, chalk and slate","8110 - Chwarela cerrig addurnol a cherrig adeiladu, calchfaen, gypswm, sialc a llechi"
-8120,8120 - Operation of gravel and sand pits; mining of clays and kaolin,8120 - Gweithredu pyllau graean a thywod; mwyngloddio clai a chaolin
-8910,8910 - Mining of chemical and fertilizer minerals,8910 - Mwyngloddio mwynau cemegol a gwrteithio
-8920,8920 - Extraction of peat,8920 - Echdynnu mawn
-8930,8930 - Extraction of salt,8930 - Echdynnu halen
-8990,8990 - Other mining and quarrying n.e.c.,8990 - Gweithgareddau mwyngloddio a chwarela eraill n.dd.b.
-9100,9100 - Support activities for petroleum and natural gas extraction,9100 - Gweithgareddau cynorthwyol ym maes echdynnu petrolewm a nwy naturiol
-9900,9900 - Support activities for other mining and quarrying,9900 - Gweithgareddau cynorthwyol mwyngloddio a chwarela arall
-10110,10110 - Processing and preserving of meat,10110 - Prosesu a chyffeithio cig
-10120,10120 - Processing and preserving of poultry meat,10120 - Prosesu a chyffeithio cig dofednod
-10130,10130 - Production of meat and poultry meat products,10130 - Cynhyrchu cynhyrchion cig a dofednod
-10200,"10200 - Processing and preserving of fish, crustaceans and molluscs","10200 - Prosesu a chyffeithio pysgod, cramenogion a molysgiaid"
-10310,10310 - Processing and preserving of potatoes,10310 - Prosesu a chyffeithio tatws
-10320,10320 - Manufacture of fruit and vegetable juice,10320 - Gweithgynhyrchu sudd ffrwythau a llysiau
-10390,10390 - Other processing and preserving of fruit and vegetables,10390 - Prosesu a chyffeithio ffrwythau a llysiau at ddibenion eraill
-10410,10410 - Manufacture of oils and fats,10410 - Gweithgynhyrchu olewon a brasterau
-10420,10420 - Manufacture of margarine and similar edible fats,10420 - Gweithgynhyrchu margarin a brasterau bwytadwy tebyg
-10511,10511 - Liquid milk and cream production,10511 - Cynhyrchu llaeth a hufen hylifol
-10512,10512 - Butter and cheese production,10512 - Cynhyrchu menyn a chaws
-10519,10519 - Manufacture of other milk products,10519 - Gweithgynhyrchu cynnyrch llaeth arall
-10520,10520 - Manufacture of ice cream,10520 - Gweithgynhyrchu hufen iâ
-10611,10611 - Grain milling,10611 - Melino grawn
-10612,10612 - Manufacture of breakfast cereals and cereals-based food,10612 - Gweithgynhyrchu grawnfwydydd brecwast a grawnfwydydd eraill
-10620,10620 - Manufacture of starches and starch products,10620 - Gweithgynhyrchu startsh a chynnyrch startsh
-10710,10710 - Manufacture of bread; manufacture of fresh pastry goods and cakes,10710 - Gweithgynhyrchu bara; gweithgynhyrchu teisennau a chacennau ffres
-10720,10720 - Manufacture of rusks and biscuits; manufacture of preserved pastry goods and cakes,10720 - Gweithgynhyrchu rhysgenni a bisgedi; gweithgynhyrchu teisennau a chacennau cadw
-10730,"10730 - Manufacture of macaroni, noodles, couscous and similar farinaceous products","10730 - Gweithgynhyrchu macaroni, nwdls, couscous a chynnyrch cannog tebyg"
-10810,10810 - Manufacture of sugar,10810 - Gweithgynhyrchu siwgr
-10821,10821 - Manufacture of cocoa and chocolate confectionery,10821 - Gweithgynhyrchu melysion coco a siocled
-10822,10822 - Manufacture of sugar confectionery,10822 - Gweithgynhyrchu melysion siwgr
-10831,10831 - Tea processing,10831 - Prosesu te
-10832,10832 - Production of coffee and coffee substitutes,10832 - Cynhyrchu coffi ac amnewidion coffi
-10840,10840 - Manufacture of condiments and seasonings,10840 - Gweithgynhyrchu confennau a sesnin
-10850,10850 - Manufacture of prepared meals and dishes,10850 - Gweithgynhyrchu prydau a seigiau parod
-10860,10860 - Manufacture of homogenized food preparations and dietetic food,10860 - Gweithgynhyrchu bwydydd homogenaidd a lluniaethol
-10890,10890 - Manufacture of other food products n.e.c.,10890 - Gweithgynhyrchu cynnyrch bwyd arall n.dd.b.
-10910,10910 - Manufacture of prepared feeds for farm animals,10910 - Gweithgynhyrchu bwydydd parod ar gyfer anifeiliaid fferm
-10920,10920 - Manufacture of prepared pet foods,10920 - Gweithgynhyrchu bwydydd parod ar gyfer anifeiliaid anwes
-11010,"11010 - Distilling, rectifying and blending of spirits","11010 - Distyllu, puro a chymysgu gwirodydd"
-11020,11020 - Manufacture of wine from grape,11020 - Gweithgynhyrchu gwin o rawnwin
-11030,11030 - Manufacture of cider and other fruit wines,11030 - Gweithgynhyrchu seidr a mathau eraill o winoedd ffrwyth
-11040,11040 - Manufacture of other non-distilled fermented beverages,11040 - Gweithgynhyrchu diodydd brag eraill heb eu distyllu
-11050,11050 - Manufacture of beer,11050 - Gweithgynhyrchu cwrw
-11060,11060 - Manufacture of malt,11060 - Gweithgynhyrchu brag
-11070,11070 - Manufacture of soft drinks; production of mineral waters and other bottled waters,11070 - Gweithgynhyrchu diodydd ysgafn; cynhyrchu d?r mwynol a d?r potel arall
-12000,12000 - Manufacture of tobacco products,12000 - Gweithgynhyrchu cynnyrch tybaco
-13100,13100 - Preparation and spinning of textile fibres,13100 - Paratoi a nyddu ffibrau gweol
-13200,13200 - Weaving of textiles,13200 - Gwehyddu tecstilau
-13300,13300 - Finishing of textiles,13300 - Gorffennu tecstilau
-13910,13910 - Manufacture of knitted and crocheted fabrics,13910 - Gweithgynhyrchu ffabrig wedi'i wau a'i grosio
-13921,13921 - Manufacture of soft furnishings,13921 - Gweithgynhyrchu dodrefn meddal
-13922,"13922 - manufacture of canvas goods, sacks, etc.","13922 - Gweithgynhyrchu nwyddau cynfas, sachau ac ati"
-13923,13923 - manufacture of household textiles,13923 - Gweithgynhyrchu tecstilau cartref
-13931,13931 - Manufacture of woven or tufted carpets and rugs,13931 - Gweithgynhyrchu carpedi a rygiau codennog neu wedi'u gwehyddu
-13939,13939 - Manufacture of other carpets and rugs,13939 - Gweithgynhyrchu carpedi a rygiau eraill
-13940,"13940 - Manufacture of cordage, rope, twine and netting","13940 - Gweithgynhyrchu deunyddiau rhaffog, rhaffau, cortynnau a rhwydi"
-13950,"13950 - Manufacture of non-wovens and articles made from non-wovens, except apparel","13950 - Gweithgynhyrchu nwyddau heb eu gwehyddu a nwyddau o ddeunyddiau heb eu gwehyddu, ac eithrio dillad"
-13960,13960 - Manufacture of other technical and industrial textiles,13960 - Gweithgynhyrchu tecstilau technegol a diwydiannol eraill
-13990,13990 - Manufacture of other textiles n.e.c.,13990 - Gweithgynhyrchu tecstilau eraill n.dd.b.
-14110,14110 - Manufacture of leather clothes,14110 - Gweithgynhyrchu dillad lledr
-14120,14120 - Manufacture of workwear,14120 - Gweithgynhyrchu dillad gwaith
-14131,14131 - Manufacture of other men's outerwear,14131 - Gweithgynhyrchu dillad uchaf eraill i ddynion
-14132,14132 - Manufacture of other women's outerwear,14132 - Gweithgynhyrchu dillad uchaf eraill i fenywod
-14141,14141 - Manufacture of men's underwear,14141 - Gweithgynhyrchu dillad isaf i ddynion
-14142,14142 - Manufacture of women's underwear,14142 - Gweithgynhyrchu dillad isaf i fenywod
-14190,14190 - Manufacture of other wearing apparel and accessories n.e.c.,14190 - Gweithgynhyrchu dillad ac ategolion eraill n.dd.b.
-14200,14200 - Manufacture of articles of fur,14200 - Gweithgynhyrchu eitemau ffwr
-14310,14310 - Manufacture of knitted and crocheted hosiery,14310 - Gweithgynhyrchu hosanwaith wedi'i wau a'i grosio
-14390,14390 - Manufacture of other knitted and crocheted apparel,14390 - Gweithgynhyrchu dillad eraill wedi'i gwau a’u crosio
-15110,15110 - Tanning and dressing of leather; dressing and dyeing of fur,15110 - Barcio a thrin lledr; trin a lliwio ffwr
-15120,"15120 - Manufacture of luggage, handbags and the like, saddlery and harness","15120 - Gweithgynhyrchu bagiau, bagiau llaw ac ati, cyfrwyon a harneisi"
-15200,15200 - Manufacture of footwear,15200 - Gweithgynhyrchu esgidiau
-16100,16100 - Sawmilling and planing of wood,16100 - Llifio a phlaenio pren
-16210,16210 - Manufacture of veneer sheets and wood-based panels,16210 - Gweithgynhyrchu dalenni argaen a phaneli o bren
-16220,16220 - Manufacture of assembled parquet floors,16220 - Gweithgynhyrchu lloriau parquet parod
-16230,16230 - Manufacture of other builders' carpentry and joinery,16230 - Gweithgynhyrchu gwaith coed a gwaith saer arall ar gyfer adeiladwyr
-16240,16240 - Manufacture of wooden containers,16240 - Gweithgynhyrchu cynwysyddion pren
-16290,"16290 - Manufacture of other products of wood; manufacture of articles of cork, straw and plaiting materials","16290 - Gweithgynhyrchu cynhyrchion pren eraill; gweithgynhyrchu deunyddiau corc, gwellt a phleth"
-17110,17110 - Manufacture of pulp,17110 - Gweithgynhyrchu mwydion pren
-17120,17120 - Manufacture of paper and paperboard,17120 - Gweithgynhyrchu papur a bwrdd papur
-17211,"17211 - Manufacture of corrugated paper and paperboard, sacks and bags","17211 - Gweithgynhyrchu papur rhychiog a bwrdd papur, sachau a bagiau"
-17219,17219 - Manufacture of other paper and paperboard containers,17219 - Gweithgynhyrchu cynwysyddion eraill o bapur a bwrdd papur
-17220,17220 - Manufacture of household and sanitary goods and of toilet requisites,"17220 - Gweithgynhyrchu nwyddau cartref, iechydol a th? bach"
-17230,17230 - Manufacture of paper stationery,17230 - Gweithgynhyrchu deunyddiau ysgrifennu papur
-17240,17240 - Manufacture of wallpaper,17240 - Gweithgynhyrchu papur wal
-17290,17290 - Manufacture of other articles of paper and paperboard n.e.c.,17290 - Gweithgynhyrchu eitemau eraill o bapur a bwrdd papur n.dd.b.
-18110,18110 - Printing of newspapers,18110 - Argraffu papurau newydd
-18121,18121 - Manufacture of printed labels,18121 - Gweithgynhyrchu labeli printiedig
-18129,18129 - Printing n.e.c.,18129 - Argraffu n.dd.b.
-18130,18130 - Pre-press and pre-media services,18130 - Gwasanaethau paratoi ar gyfer y wasg a'r cyfryngau
-18140,18140 - Binding and related services,18140 - Rhwymo a gwasanaethau cysylltiedig
-18201,18201 - Reproduction of sound recording,18201 - Atgynhyrchu recordiadau sain
-18202,18202 - Reproduction of video recording,18202 - Atgynhyrchu recordiadau fideo
-18203,18203 - Reproduction of computer media,18203 - Atgynhyrchu cyfryngau cyfrifiadurol
-19100,19100 - Manufacture of coke oven products,19100 - Gweithgynhyrchu cynhyrchion ffwrn golosg
-19201,19201 - Mineral oil refining,19201 - Puro olewon mwynol
-19209,19209 - Other treatment of petroleum products (excluding petrochemicals manufacture),19209 - Trin cynhyrchion petrolewm eraill (ac eithrio gweithgynhyrchu petrocemegion)
-20110,20110 - Manufacture of industrial gases,20110 - Gweithgynhyrchu nwyon diwydiannol
-20120,20120 - Manufacture of dyes and pigments,20120 - Gweithgynhyrchu lifynnau a phigmentau
-20130,20130 - Manufacture of other inorganic basic chemicals,20130 - Gweithgynhyrchu cemegion sylfaenol anorganig eraill
-20140,20140 - Manufacture of other organic basic chemicals,20140 - Gweithgynhyrchu cemegion sylfaenol organig eraill
-20150,20150 - Manufacture of fertilizers and nitrogen compounds,20150 - Gweithgynhyrchu gwrtaith a chyfansoddion nitrogen
-20160,20160 - Manufacture of plastics in primary forms,20160 - Gweithgynhyrchu plastig ar ei ffurf sylfaenol
-20170,20170 - Manufacture of synthetic rubber in primary forms,20170 - Gweithgynhyrchu rwber synthetig ar ei ffurf sylfaenol
-20200,20200 - Manufacture of pesticides and other agrochemical products,20200 - Gweithgynhyrchu plaladdwyr a chynnyrch agrocemegol
-20301,"20301 - Manufacture of paints, varnishes and similar coatings, mastics and sealants","20301 - Gweithgynhyrchu paent, farnais a chaenau, mastigau a deunyddiau selio tebyg eraill"
-20302,20302 - Manufacture of printing ink,20302 - Gweithgynhyrchu inc argraffu
-20411,20411 - Manufacture of soap and detergents,20411 - Gweithgynhyrchu sebon a glanedyddion
-20412,20412 - Manufacture of cleaning and polishing preparations,20412 - Gweithgynhyrchu cymysgeddau glanhau a chaboli
-20420,20420 - Manufacture of perfumes and toilet preparations,20420 - Gweithgynhyrchu persawrau a chymysgeddau ymolchi
-20510,20510 - Manufacture of explosives,20510 - Gweithgynhyrchu ffrwydron
-20520,20520 - Manufacture of glues,20520 - Gweithgynhyrchu glud
-20530,20530 - Manufacture of essential oils,20530 - Gweithgynhyrchu olewon naws
-20590,20590 - Manufacture of other chemical products n.e.c.,20590 - Gweithgynhyrchu cynhyrchion cemegol eraill n.dd.b.
-20600,20600 - Manufacture of man-made fibres,20600 - Gweithgynhyrchu ffibrau gwneud
-21100,21100 - Manufacture of basic pharmaceutical products,21100 - Gweithgynhyrchu cynhyrchion fferyllol sylfaenol
-21200,21200 - Manufacture of pharmaceutical preparations,21200 - Gweithgynhyrchu cymysgeddau fferyllol
-22110,22110 - Manufacture of rubber tyres and tubes; retreading and rebuilding of rubber tyres,22110 - Gweithgynhyrchu teiars a thiwbiau rwber; adfer ac ailwampio teiars rwber
-22190,22190 - Manufacture of other rubber products,22190 - Gweithgynhyrchu cynhyrchion rwber eraill
-22210,"22210 - Manufacture of plastic plates, sheets, tubes and profiles","22210 - Gweithgynhyrchu platiau, dalenni, tiwbiau a phroffiliau plastig"
-22220,22220 - Manufacture of plastic packing goods,22220 - Gweithgynhyrchu nwyddau pacio plastig
-22230,22230 - Manufacture of builders  ware of plastic,22230 - Gweithgynhyrchu deunydd adeiladu o blastig
-22290,22290 - Manufacture of other plastic products,22290 - Gweithgynhyrchu cynhyrchion plastig eraill
-23110,23110 - Manufacture of flat glass,23110 - Gweithgynhyrchu gwydr gwastad
-23120,23120 - Shaping and processing of flat glass,23120 - Siapio a phrosesu gwydr gwastad
-23130,23130 - Manufacture of hollow glass,23130 - Gweithgynhyrchu gwydr cau
-23140,23140 - Manufacture of glass fibres,23140 - Gweithgynhyrchu ffibrau gwydr
-23190,"23190 - Manufacture and processing of other glass, including technical glassware","23190 - Gweithgynhyrchu a phrosesu gwydrau eraill, gan gynnwys llestri gwydr technegol"
-23200,23200 - Manufacture of refractory products,23200 - Gweithgynhyrchu cynhyrchion gwrthsafol
-23310,23310 - Manufacture of ceramic tiles and flags,23310 - Gweithgynhyrchu teils a cherrig llorio serameg
-23320,"23320 - Manufacture of bricks, tiles and construction products, in baked clay","23320 - Gweithgynhyrchu brics, teils a chynhyrchion adeiladu clai cras"
-23410,23410 - Manufacture of ceramic household and ornamental articles,23410 - Gweithgynhyrchu nwyddau cartref ac addurnol seramig
-23420,23420 - Manufacture of ceramic sanitary fixtures,23420 - Gweithgynhyrchu offer iechydol seramig
-23430,23430 - Manufacture of ceramic insulators and insulating fittings,23430 - Gweithgynhyrchu ynysyddion ac offer ynysu seramig
-23440,23440 - Manufacture of other technical ceramic products,23440 - Gweithgynhyrchu cynhyrchion technegol seramig eraill
-23490,23490 - Manufacture of other ceramic products n.e.c.,23490 - Gweithgynhyrchu cynhyrchion seramig eraill n.dd.b.
-23510,23510 - Manufacture of cement,23510 - Gweithgynhyrchu sment
-23520,23520 - Manufacture of lime and plaster,23520 - Gweithgynhyrchu calch a phlastr
-23610,23610 - Manufacture of concrete products for construction purposes,23610 - Gweithgynhyrchu cynhyrchion concrit at ddibenion adeiladu
-23620,23620 - Manufacture of plaster products for construction purposes,23620 - Gweithgynhyrchu cynhyrchion plastr at ddibenion adeiladu
-23630,23630 - Manufacture of ready-mixed concrete,23630 - Gweithgynhyrchu concrit parod
-23640,23640 - Manufacture of mortars,23640 - Gweithgynhyrchu morter (priddgalch)
-23650,23650 - Manufacture of fibre cement,23650 - Gweithgynhyrchu sment ffibr
-23690,"23690 - Manufacture of other articles of concrete, plaster and cement","23690 - Gweithgynhyrchu nwyddau eraill o goncrit, plastr a sment"
-23700,"23700 - Cutting, shaping and finishing of stone","23700 - Torri, naddu a gorffennu carreg"
-23910,23910 - Production of abrasive products,23910 - Cynhyrchu cynhyrchion ffrithiol
-23990,23990 - Manufacture of other non-metallic mineral products n.e.c.,23990 - Gweithgynhyrchu cynhyrchion mwynau anfetelaidd eraill n.dd.b.
-24100,24100 - Manufacture of basic iron and steel and of ferro-alloys,24100 - Gweithgynhyrchu haearn a dur sylfaenol a ffero-aloeon
-24200,"24200 - Manufacture of tubes, pipes, hollow profiles and related fittings, of steel","24200 - Gweithgynhyrchu tiwbiau, pibellau, proffiliau gwag a gosodiadau cysylltiedig, o ddur"
-24310,24310 - Cold drawing of bars,24310 - Tynnu bariau yn oer
-24320,24320 - Cold rolling of narrow strip,24320 - Rholio stribedi cul yn oer
-24330,24330 - Cold forming or folding,24330 - Ffurfio neu blygu oer
-24340,24340 - Cold drawing of wire,24340 - Tynnu weiar yn oer
-24410,24410 - Precious metals production,24410 - Cynhyrchu metelau gwerthfawr
-24420,24420 - Aluminium production,24420 - Cynhyrchu alwminiwm
-24430,"24430 - Lead, zinc and tin production","24430 - Cynhyrchu plwm, sinc a thun"
-24440,24440 - Copper production,24440 - Cynhyrchu copr
-24450,24450 - Other non-ferrous metal production,24450 - Cynhyrchu metelau anfferrus eraill
-24460,24460 - Processing of nuclear fuel,24460 - Prosesu tanwydd niwclear
-24510,24510 - Casting of iron,24510 - Bwrw haearn
-24520,24520 - Casting of steel,24520 - Bwrw dur
-24530,24530 - Casting of light metals,24530 - Bwrw metelau ysgafn
-24540,24540 - Casting of other non-ferrous metals,24540 - Bwrw metelau anfferrus eraill
-25110,25110 - Manufacture of metal structures and parts of structures,25110 - Gweithgynhyrchu strwythurau metel a rhannau o strwythurau
-25120,25120 - Manufacture of doors and windows of metal,25120 - Gweithgynhyrchu drysau a ffenestri o fetel
-25210,25210 - Manufacture of central heating radiators and boilers,25210 - Gweithgynhyrchu rheiddiaduron a bwyleri gwres canolog
-25290,"25290 - Manufacture of other tanks, reservoirs and containers of metal","25290 - Gweithgynhyrchu tanciau, cronfeydd a chynwysyddion eraill o fetel"
-25300,"25300 - Manufacture of steam generators, except central heating hot water boilers","25300 - Gweithgynhyrchu generaduron stêm, ac eithrio bwyleri d?r poeth gwres canolog"
-25400,25400 - Manufacture of weapons and ammunition,25400 - Gweithgynhyrchu arfau a ffrwydron rhyfel
-25500,"25500 - Forging, pressing, stamping and roll-forming of metal; powder metallurgy","25500 - Gofannu, gwasgu, stampio a rholio metel; meteleg powdr"
-25610,25610 - Treatment and coating of metals,25610 - Trin a chaenu metelau
-25620,25620 - Machining,25620 - Turnio
-25710,25710 - Manufacture of cutlery,25710 - Gweithgynhyrchu cytleri
-25720,25720 - Manufacture of locks and hinges,25720 - Gweithgynhyrchu cloeon a cholfachau
-25730,25730 - Manufacture of tools,25730 - Gweithgynhyrchu t?ls
-25910,25910 - Manufacture of steel drums and similar containers,25910 - Gweithgynhyrchu drymiau dur a chynwysyddion tebyg
-25920,25920 - Manufacture of light metal packaging,25920 - Gweithgynhyrchu deunydd pecynnu metel ysgafn
-25930,"25930 - Manufacture of wire products, chain and springs","25930 - Gweithgynhyrchu cynhyrchion weiar, cadwyni a sbringiau"
-25940,25940 - Manufacture of fasteners and screw machine products,25940 - Gweithgynhyrchu ffasnyddion a sgriwiau peiriannol
-25990,25990 - Manufacture of other fabricated metal products n.e.c.,25990 - Gweithgynhyrchu cynhyrchion metel gwneud eraill n.dd.b.
-26110,26110 - Manufacture of electronic components,26110 - Gweithgynhyrchu cydrannau electronig
-26120,26120 - Manufacture of loaded electronic boards,26120 - Gweithgynhyrchu byrddau electronig parod
-26200,26200 - Manufacture of computers and peripheral equipment,26200 - Gweithgynhyrchu cyfrifiaduron a pherifferolion
-26301,26301 - Manufacture of telegraph and telephone apparatus and equipment,26301 - Gweithgynhyrchu cyfarpar ac offer telegraff a theleffon
-26309,"26309 - Manufacture of communication equipment other than telegraph, and telephone apparatus and equipment",26309 - Gweithgynhyrchu offer a chyfarpar cyfathrebu ac eithrio cyfarpar ac offer telegraff a theleffon
-26400,26400 - Manufacture of consumer electronics,26400 - Gweithgynhyrchu electroneg i ddefnyddwyr
-26511,"26511 - Manufacture of electronic measuring, testing etc. equipment, not for industrial process control","26511 - Gweithgynhyrchu cyfarpar electronig ar gyfer mesur, profi ac ati, ond nid at ddibenion rheoli prosesau diwydiannol"
-26512,26512 - Manufacture of electronic industrial process control equipment,26512 - Gweithgynhyrchu cyfarpar electronig i reoli prosesau diwydiannol
-26513,"26513 - Manufacture of non-electronic measuring, testing etc. equipment, not for industrial process control","26513 - Gweithgynhyrchu cyfarpar nad yw'n electronig ar gyfer mesur, profi ac ati, ond nid at ddibenion rheoli prosesau diwydiannol"
-26514,26514 - Manufacture of non-electronic industrial process control equipment,26514 - Gweithgynhyrchu cyfarpar nad yw'n electronig ar gyfer rheoli prosesau diwydiannol
-26520,26520 - Manufacture of watches and clocks,26520 - Gweithgynhyrchu watsys a chlociau
-26600,"26600 - Manufacture of irradiation, electromedical and electrotherapeutic equipment","26600 - Gweithgynhyrchu cyfarpar arbelydru, electrofeddygol ac electrotherapiwtig"
-26701,26701 - Manufacture of optical precision instruments,26701 - Gweithgynhyrchu cyfarpar manylwaith optig
-26702,26702 - Manufacture of photographic and cinematographic equipment,26702 - Gweithgynhyrchu cyfarpar ffotograffig a sinematograffig
-26800,26800 - Manufacture of magnetic and optical media,26800 - Gweithgynhyrchu cyfryngau magnetig ac optegol
-27110,"27110 - Manufacture of electric motors, generators and transformers","27110 - Gweithgynhyrchu moduron trydan, generaduron a newidyddion"
-27120,27120 - Manufacture of electricity distribution and control apparatus,27120 - Gweithgynhyrchu cyfarpar dosbarthu a rheoli trydan
-27200,27200 - Manufacture of batteries and accumulators,27200 - Gweithgynhyrchu batris a chronaduron
-27310,27310 - Manufacture of fibre optic cables,27310 - Gweithgynhyrchu ceblau ffibr optig
-27320,27320 - Manufacture of other electronic and electric wires and cables,27320 - Gweithgynhyrchu gwifrau a cheblau electronig a thrydan eraill
-27330,27330 - Manufacture of wiring devices,27330 - Gweithgynhyrchu dyfeisiau gwifro
-27400,27400 - Manufacture of electric lighting equipment,27400 - Gweithgynhyrchu offer goleuo trydanol
-27510,27510 - Manufacture of electric domestic appliances,27510 - Gweithgynhyrchu dyfeisiau trydan domestig
-27520,27520 - Manufacture of non-electric domestic appliances,27520 - Gweithgynhyrchu dyfeisiau domestig nad ydynt yn drydanol
-27900,27900 - Manufacture of other electrical equipment,27900 - Gweithgynhyrchu cyfarpar trydanol eraill
-28110,"28110 - Manufacture of engines and turbines, except aircraft, vehicle and cycle engines","28110 - Gweithgynhyrchu injans a thyrbinau, ac eithrio injans awyrennau, cerbydau a beiciau"
-28120,28120 - Manufacture of fluid power equipment,28120 - Gweithgynhyrchu cyfarpar p?er hylifol
-28131,28131 - Manufacture of pumps,28131 - Gweithgynhyrchu pympiau
-28132,28132 - Manufacture of compressors,28132 - Gweithgynhyrchu cywasgyddion
-28140,28140 - Manufacture of taps and valves,28140 - Gweithgynhyrchu tapiau a falfiau
-28150,"28150 - Manufacture of bearings, gears, gearing and driving elements","28150 - Gweithgynhyrchu berynnau, gerau ac elfennau gerio a gyrru"
-28210,"28210 - Manufacture of ovens, furnaces and furnace burners","28210 - Gweithgynhyrchu ffyrnau, ffwrneisi a llosgwyr ffwrnais"
-28220,28220 - Manufacture of lifting and handling equipment,28220 - Gweithgynhyrchu cyfarpar codi a thrin
-28230,28230 - Manufacture of office machinery and equipment (except computers and peripheral equipment),28230 - Gweithgynhyrchu peiriannau a chyfarpar swyddfa (ac eithrio cyfrifiaduron a pherifferolion)
-28240,28240 - Manufacture of power-driven hand tools,28240 - Gweithgynhyrchu t?ls p?er maint llaw
-28250,28250 - Manufacture of non-domestic cooling and ventilation equipment,28250 - Gweithgynhyrchu offer oeri ac awyru annomestig
-28290,28290 - Manufacture of other general-purpose machinery n.e.c.,28290 - Gweithgynhyrchu peiriannau eraill at ddibenion cyffredinol n.dd.b.
-28301,28301 - Manufacture of agricultural tractors,28301 - Gweithgynhyrchu tractorau amaethyddol
-28302,28302 - Manufacture of agricultural and forestry machinery other than tractors,28302 - Gweithgynhyrchu peiriannau amaethyddol a choedwigaeth ac eithrio tractorau
-28410,28410 - Manufacture of metal forming machinery,28410 - Gweithgynhyrchu peiriannau ffurfio metel
-28490,28490 - Manufacture of other machine tools,28490 - Gweithgynhyrchu offer peiriannol eraill
-28910,28910 - Manufacture of machinery for metallurgy,28910 - Gweithgynhyrchu peiriannau meteleg
-28921,28921 - Manufacture of machinery for mining,28921 - Gweithgynhyrchu peiriannau mwyngloddio
-28922,28922 - Manufacture of earthmoving equipment,28922 - Gweithgynhyrchu cyfarpar symud tir
-28923,28923 - Manufacture of equipment for concrete crushing and screening and roadworks,28923 - Gweithgynhyrchu cyfarpar malu concrit a sgrinio a gwaith ffyrdd
-28930,"28930 - Manufacture of machinery for food, beverage and tobacco processing","28930 - Gweithgynhyrchu peiriannau prosesu bwyd, diodydd a thybaco"
-28940,"28940 - Manufacture of machinery for textile, apparel and leather production","28940 - Gweithgynhyrchu peiriannau cynhyrchu tecstilau, dillad a lledr"
-28950,28950 - Manufacture of machinery for paper and paperboard production,28950 - Gweithgynhyrchu peiriannau cynhyrchu papur a bwrdd papur
-28960,28960 - Manufacture of plastics and rubber machinery,28960 - Gweithgynhyrchu peiriannau gwneud plastig a rwber
-28990,28990 - Manufacture of other special-purpose machinery n.e.c.,28990 - Gweithgynhyrchu peiriannau pwrpasol eraill n.dd.b.
-29100,29100 - Manufacture of motor vehicles,29100 - Gweithgynhyrchu cerbydau modur
-29201,29201 - Manufacture of bodies (coachwork) for motor vehicles (except caravans),29201 - Gweithgynhyrchu cyrff (coetswaith) cerbydau modur (ac eithrio carafanau)
-29202,29202 - Manufacture of trailers and semi-trailers,29202 - Gweithgynhyrchu trelars a hanner-trelars
-29203,29203 - Manufacture of caravans,29203 - Gweithgynhyrchu carafanau
-29310,29310 - Manufacture of electrical and electronic equipment for motor vehicles and their engines,29310 - Gweithgynhyrchu cyfarpar trydanol ac electronig ar gyfer cerbydau modur a'u hinjans
-29320,29320 - Manufacture of other parts and accessories for motor vehicles,29320 - Gweithgynhyrchu darnau ac ategolion eraill ar gyfer cerbydau modur
-30110,30110 - Building of ships and floating structures,30110 - Adeiladu llongau a strwythurau sy'n arnofio
-30120,30120 - Building of pleasure and sporting boats,30120 - Adeiladu cychod pleser a chwaraeon
-30200,30200 - Manufacture of railway locomotives and rolling stock,30200 - Gweithgynhyrchu locomotifau a cherbydau rheilffordd
-30300,30300 - Manufacture of air and spacecraft and related machinery,30300 - Gweithgynhyrchu peiriannau awyr a llongau gofod a'r peiriannau cysylltiedig
-30400,30400 - Manufacture of military fighting vehicles,30400 - Gweithgynhyrchu cerbydau ymladd milwrol
-30910,30910 - Manufacture of motorcycles,30910 - Gweithgynhyrchu beiciau modur
-30920,30920 - Manufacture of bicycles and invalid carriages,30920 - Gweithgynhyrchu beiciau a cherbydau i'r methedig
-30990,30990 - Manufacture of other transport equipment n.e.c.,30990 - Gweithgynhyrchu cyfarpar arall ar gyfer trafnidiaeth n.dd.b.
-31010,31010 - Manufacture of office and shop furniture,31010 - Gweithgynhyrchu celfi swyddfa a siop
-31020,31020 - Manufacture of kitchen furniture,31020 - Gweithgynhyrchu celfi'r gegin
-31030,31030 - Manufacture of mattresses,31030 - Gweithgynhyrchu matresi
-31090,31090 - Manufacture of other furniture,31090 - Gweithgynhyrchu celfi eraill
-32110,32110 - Striking of coins,32110 - Bwrw darnau arian
-32120,32120 - Manufacture of jewellery and related articles,32120 - Gweithgynhyrchu gemwaith ac eitemau cysylltiedig
-32130,32130 - Manufacture of imitation jewellery and related articles,32130 - Gweithgynhyrchu gemwaith ffug ac eitemau cysylltiedig
-32200,32200 - Manufacture of musical instruments,32200 - Gweithgynhyrchu offerynnau cerdd
-32300,32300 - Manufacture of sports goods,32300 - Gweithgynhyrchu nwyddau chwaraeon
-32401,32401 - Manufacture of professional and arcade games and toys,32401 - Gweithgynhyrchu gemau a theganau proffesiynol ac arcêd
-32409,"32409 - Manufacture of other games and toys, n.e.c.",32409 - Gweithgynhyrchu gemau a theganau eraill n.dd.b.
-32500,32500 - Manufacture of medical and dental instruments and supplies,32500 - Gweithgynhyrchu offerynnau a nwyddau meddygol a deintyddol
-32910,32910 - Manufacture of brooms and brushes,32910 - Gweithgynhyrchu ysgubellau a brwshys
-32990,32990 - Other manufacturing n.e.c.,32990 - Gweithgynhyrchu arall n.dd.b.
-33110,33110 - Repair of fabricated metal products,33110 - Atgyweirio cynhyrchion metel gwneuthuredig
-33120,33120 - Repair of machinery,33120 - Atgyweirio peiriannau
-33130,33130 - Repair of electronic and optical equipment,33130 - Atgyweirio offer electronig ac optig
-33140,33140 - Repair of electrical equipment,33140 - Atgyweirio offer trydanol
-33150,33150 - Repair and maintenance of ships and boats,33150 - Atgyweirio a chynnal llongau a chychod
-33160,33160 - Repair and maintenance of aircraft and spacecraft,33160 - Atgyweirio a chynnal awyrennau a llongau awyr
-33170,33170 - Repair and maintenance of other transport equipment n.e.c.,33170 - Atgyweirio a chynnal of cyfarpar arall ar gyfer trafnidiaeth n.dd.b.
-33190,33190 - Repair of other equipment,33190 - Atgyweirio mathau eraill o gyfarpar
-33200,33200 - Installation of industrial machinery and equipment,33200 - Gosod peiriannau ac offer diwydiannol
-35110,35110 - Production of electricity,35110 - Cynhyrchu trydan
-35120,35120 - Transmission of electricity,35120 - Trawsyrru trydan
-35130,35130 - Distribution of electricity,35130 - Dosbarthu trydan
-35140,35140 - Trade of electricity,35140 - Masnachu trydan
-35210,35210 - Manufacture of gas,35210 - Gweithgynhyrchu nwy
-35220,35220 - Distribution of gaseous fuels through mains,35220 - Dosbarthu tanwydd nwyol trwy prif bibell
-35230,35230 - Trade of gas through mains,35230 - Masnachu nwy trwy prif bibell
-35300,35300 - Steam and air conditioning supply,35300 - Cyflenwi stêm a thymherwyr awyr
-36000,"36000 - Water collection, treatment and supply","36000 - Casglu, trin a chyflenwi d?r"
-37000,37000 - Sewerage,37000 - Carthffosiaeth
-38110,38110 - Collection of non-hazardous waste,38110 - Casglu gwastraff nad yw'n beryglus
-38120,38120 - Collection of hazardous waste,38120 - Casglu gwastraff peryglus
-38210,38210 - Treatment and disposal of non-hazardous waste,38210 - Trin a gwaredu gwastraff nad yw'n beryglus
-38220,38220 - Treatment and disposal of hazardous waste,38220 - Trin a gwaredu gwastraff peryglus
-38310,38310 - Dismantling of wrecks,38310 - Datgymalu drylliadau
-38320,38320 - Recovery of sorted materials,38320 - Adfer deunyddiau a ddidolwyd
-39000,39000 - Remediation activities and other waste management services,39000 - Gweithgareddau adfer a gwasanaethau rheoli gwastraff eraill
-41100,41100 - Development of building projects,41100 - Datblygu projectau adeiladu
-41201,41201 - Construction of commercial buildings,41201 - Adeiladu adeiladau masnachol
-41202,41202 - Construction of domestic buildings,41202 - Adeiladu adeiladau domestig
-42110,42110 - Construction of roads and motorways,42110 - Adeiladu ffyrdd a phriffyrdd
-42120,42120 - Construction of railways and underground railways,42120 - Adeiladu rheilffyrdd a rheilffyrdd tanddaearol
-42130,42130 - Construction of bridges and tunnels,42130 - Adeiladu pontydd a thwneli
-42210,42210 - Construction of utility projects for fluids,42210 - Adeiladu projectau cyfleustodau hylifau
-42220,42220 - Construction of utility projects for electricity and telecommunications,42220 - Adeiladu projectau cyfleustodau trydan a thelathrebu
-42910,42910 - Construction of water projects,42910 - Adeiladu projectau d?r
-42990,42990 - Construction of other civil engineering projects n.e.c.,42990 - Adeiladu projectau peirianneg sifil eraill n.dd.b.
-43110,43110 - Demolition,43110 - Dymchwel
-43120,43120 - Site preparation,43120 - Paratoi safleoedd
-43130,43130 - Test drilling and boring,43130 - Drilio a thorri tyllau profi
-43210,43210 - Electrical installation,43210 - Gosod offer trydanol
-43220,"43220 - Plumbing, heat and air-conditioning installation","43220 - Gosod systemau plymio, gwres a thymheru'r aer"
-43290,43290 - Other construction installation,43290 - Mathau eraill osod at ddibenion adeiladu
-43310,43310 - Plastering,43310 - Plastro
-43320,43320 - Joinery installation,43320 - Gosod gwaith coed
-43330,43330 - Floor and wall covering,43330 - Gorchuddio lloriau a waliau
-43341,43341 - Painting,43341 - Peintio
-43342,43342 - Glazing,43342 - Gwydro
-43390,43390 - Other building completion and finishing,43390 - Gwaith gorffen a gorffennu adeiladu eraill
-43910,43910 - Roofing activities,43910 - Gweithgareddau gosod to
-43991,43991 - Scaffold erection,43991 - Codi sgaffaldiau
-43999,43999 - Other specialised construction activities n.e.c.,43999 - Gweithgareddau adeiladu arbenigol eraill n.dd.b.
-45111,45111 - Sale of new cars and light motor vehicles,45111 - Gwerthu ceir a cherbydau modur ysgafn newydd
-45112,45112 - Sale of used cars and light motor vehicles,45112 - Gwerthu ceir a cherbydau modur ysgafn ail law
-45190,45190 - Sale of other motor vehicles,45190 - Gwerthu cerbydau modur eraill
-45200,45200 - Maintenance and repair of motor vehicles,45200 - Cynnal ac atgyweirio cerbydau modur
-45310,45310 - Wholesale trade of motor vehicle parts and accessories,45310 - Cyfanwerthu darnau ac ategolion cerbydau modur
-45320,45320 - Retail trade of motor vehicle parts and accessories,45320 - Adwerthu darnau ac ategolion cerbydau modur
-45400,"45400 - Sale, maintenance and repair of motorcycles and related parts and accessories","45400 - Gwerthu, cynnal ac atgyweirio beiciau modur a darnau ac ategolion cysylltiedig"
-46110,"46110 - Agents selling agricultural raw materials, livestock, textile raw materials and semi-finished goods","46110 - Asiantau sy'n gwerthu deunydd crai amaethyddol, da byw, deunyddiau crai tecstilau a nwyddau lled-barod"
-46120,"46120 - Agents involved in the sale of fuels, ores, metals and industrial chemicals","46120 - Asiantau sydd ynghlwm wrth werthu tanwydd, mwynau, metelau a chemegion diwydiannol"
-46130,46130 - Agents involved in the sale of timber and building materials,46130 - Asiantau sydd ynghlwm wrth werthu pren a deunyddiau adeiladu
-46140,"46140 - Agents involved in the sale of machinery, industrial equipment, ships and aircraft","46140 - Asiantau sydd ynghlwm wrth werthu peiriannau, offer diwydiannol, llongau ac awyrennau"
-46150,"46150 - Agents involved in the sale of furniture, household goods, hardware and ironmongery","46150 - Asiantau sydd ynghlwm wrth werthu celfi, nwyddau cartref, caledwedd a nwyddau haearn"
-46160,"46160 - Agents involved in the sale of textiles, clothing, fur, footwear and leather goods","46160 - Asiantau sydd ynghlwm wrth werthu tecstilau, dillad, ffwr, esgidiau a nwyddau lledr"
-46170,"46170 - Agents involved in the sale of food, beverages and tobacco","46170 - Asiantau sydd ynghlwm wrth werthu bwydydd, diodydd a thybaco"
-46180,46180 - Agents specialized in the sale of other particular products,46180 - Asiantau sy'n arbenigo mewn gwerthu cynhyrchion penodol eraill
-46190,46190 - Agents involved in the sale of a variety of goods,46190 - Asiantau sydd ynghlwm wrth werthu amrywiaeth o nwyddau
-46210,"46210 - Wholesale of grain, unmanufactured tobacco, seeds and animal feeds","46210 - Cyfanwerthu grawn, tybaco crai, hadau a bwydydd anifeiliaid"
-46220,46220 - Wholesale of flowers and plants,46220 - Cyfanwerthu blodau a phlanhigion
-46230,46230 - Wholesale of live animals,46230 - Cyfanwerthu anifeiliaid byw
-46240,"46240 - Wholesale of hides, skins and leather",46240 - Cyfanwerthu crwyn a lledr
-46310,46310 - Wholesale of fruit and vegetables,46310 - Cyfanwerthu ffrwythau a llysiau
-46320,46320 - Wholesale of meat and meat products,46320 - Cyfanwerthu cig a chynhyrchion cig
-46330,"46330 - Wholesale of dairy products, eggs and edible oils and fats","46330 - Cyfanwerthu cynhyrchion llaeth, wyau ac olewon a brasterau bwytadwy"
-46341,"46341 - Wholesale of fruit and vegetable juices, mineral water and soft drinks","46341 - Cyfanwerthu sudd ffrwythau a llysiau, d?r mwynol a diodydd ysgafn"
-46342,"46342 - Wholesale of wine, beer, spirits and other alcoholic beverages","46342 - Cyfanwerthu gwin, cwrw, gwirodydd a diodydd meddwol eraill"
-46350,46350 - Wholesale of tobacco products,46350 - Cyfanwerthu cynhyrchion tybaco
-46360,46360 - Wholesale of sugar and chocolate and sugar confectionery,46360 - Cyfanwerthu siwgr a siocled a melysion siwgr
-46370,"46370 - Wholesale of coffee, tea, cocoa and spices","46370 - Cyfanwerthu coffi, te, coco a sbeis"
-46380,"46380 - Wholesale of other food, including fish, crustaceans and molluscs","46380 - Cyfanwerthu bwydydd eraill, gan gynnwys pysgod, cramenogion a molysgiaid"
-46390,"46390 - Non-specialised wholesale of food, beverages and tobacco","46390 - Cyfanwerthu bwydydd, diodydd a thybaco cyffredinol"
-46410,46410 - Wholesale of textiles,46410 - Cyfanwerthu tecstilau
-46420,46420 - Wholesale of clothing and footwear,46420 - Cyfanwerthu dillad ac esgidiau
-46431,"46431 - Wholesale of audio tapes, records, CDs and video tapes and the equipment on which these are played","46431 - Cyfanwerthu tapiau sain, recordiau, CDs a thapiau fideo a'r offer ar gyfer eu chwarae"
-46439,"46439 - Wholesale of radio, television goods & electrical household appliances (other than records, tapes, CD's & video tapes and the equipment used for playing them)","46439 - Cyfanwerthu nwyddau radio a theledu a dyfeisiau trydan i'r cartref (ac eithrio recordiau, tapiau, CDs a thapiau fideo, a'r offer a ddefnyddir i'w chwarae)"
-46440,46440 - Wholesale of china and glassware and cleaning materials,46440 - Cyfanwerthu llestri gwydr a tsieina a deunyddiau glanhau
-46450,46450 - Wholesale of perfume and cosmetics,46450 - Cyfanwerthu persawr a chosmetigau
-46460,46460 - Wholesale of pharmaceutical goods,46460 - Cyfanwerthu nwyddau fferyllol
-46470,"46470 - Wholesale of furniture, carpets and lighting equipment","46470 - Cyfanwerthu celfi, carpedi ac offer goleuo"
-46480,46480 - Wholesale of watches and jewellery,46480 - Cyfanwerthu watsys a gemwaith
-46491,46491 - Wholesale of musical instruments,46491 - Cyfanwerthu offerynnau cerdd
-46499,46499 - Wholesale of household goods (other than musical instruments) n.e.c.,46499 - Cyfanwerthu nwyddau cartref (ac eithrio offerynnau cerdd) n.dd.b.
-46510,"46510 - Wholesale of computers, computer peripheral equipment and software","46510 - Cyfanwerthu cyfrifiaduron, perifferolion cyfrifiadurol a meddalwedd"
-46520,46520 - Wholesale of electronic and telecommunications equipment and parts,46520 - Cyfanwerthu cyfarpar electronig a thelathrebu a'r darnau cysylltiedig
-46610,"46610 - Wholesale of agricultural machinery, equipment and supplies","46610 - Cyfanwerthu peiriannau, cyfarpar a chyflenwadau amaethyddol"
-46620,46620 - Wholesale of machine tools,46620 - Cyfanwerthu offer peiriannol
-46630,"46630 - Wholesale of mining, construction and civil engineering machinery","46630 - Cyfanwerthu peiriannau mwyngloddio, adeiladu a pheirianneg sifil"
-46640,46640 - Wholesale of machinery for the textile industry and of sewing and knitting machines,46640 - Cyfanwerthu peiriannau ar gyfer y diwydiant tecstilau a pheiriannau gwnïo a gwau
-46650,46650 - Wholesale of office furniture,46650 - Cyfanwerthu celfi swyddfa
-46660,46660 - Wholesale of other office machinery and equipment,46660 - Cyfanwerthu peiriannau a chyfarpar swyddfa eraill
-46690,46690 - Wholesale of other machinery and equipment,46690 - Cyfanwerthu peiriannau a chyfarpar eraill
-46711,46711 - Wholesale of petroleum and petroleum products,46711 - Cyfanwerthu petrolewm a chynhyrchion petrolewm
-46719,46719 - Wholesale of other fuels and related products,46719 - Cyfanwerthu mathau eraill o danwydd a chynhyrchion cysylltiedig
-46720,46720 - Wholesale of metals and metal ores,46720 - Cyfanwerthu metelau a mwynau metel
-46730,"46730 - Wholesale of wood, construction materials and sanitary equipment","46730 - Cyfanwerthu pren, deunyddiau adeiladu ac offer iechydol"
-46740,"46740 - Wholesale of hardware, plumbing and heating equipment and supplies","46740 - Cyfanwerthu cyfarpar a nwyddau metel, plymio a gwresogi"
-46750,46750 - Wholesale of chemical products,46750 - Cyfanwerthu cynhyrchion cemegol
-46760,46760 - Wholesale of other intermediate products,46760 - Cyfanwerthu cynhyrchion rhyngol eraill
-46770,46770 - Wholesale of waste and scrap,46770 - Cyfanwerthu gwastraff a sgrap
-46900,46900 - Non-specialised wholesale trade,46900 - Masnach cyfanwerthu cyffredinol
-47110,"47110 - Retail sale in non-specialised stores with food, beverages or tobacco predominating","47110 - Adwerthu mewn siopau cyffredinol sy'n gwerthu bwydydd, diodydd a thybaco yn bennaf"
-47190,47190 - Other retail sale in non-specialised stores,47190 - Adwerthu arall mewn siopau cyffredinol
-47210,47210 - Retail sale of fruit and vegetables in specialised stores,47210 - Adwerthu ffrwythau a llysiau mewn siopau arbenigol
-47220,47220 - Retail sale of meat and meat products in specialised stores,47220 - Adwerthu cig a chynhyrchion cig mewn siopau arbenigol
-47230,"47230 - Retail sale of fish, crustaceans and molluscs in specialised stores","47230 - Adwerthu pysgod, cramenogion a molysgiaid mewn siopau arbenigol"
-47240,"47240 - Retail sale of bread, cakes, flour confectionery and sugar confectionery in specialised stores","47240 - Adwerthu bara, cacennau, melysion cannog a melysion siwgr mewn siopau arbenigol"
-47250,47250 - Retail sale of beverages in specialised stores,47250 - Adwerthu diodydd mewn siopau arbenigol
-47260,47260 - Retail sale of tobacco products in specialised stores,47260 - Adwerthu cynhyrchion tybaco mewn siopau arbenigol
-47290,47290 - Other retail sale of food in specialised stores,47290 - Adwerthu bwydydd eraill mewn siopau arbenigol
-47300,47300 - Retail sale of automotive fuel in specialised stores,47300 - Adwerthu tanwydd cerbydau modur mewn siopau arbenigol
-47410,"47410 - Retail sale of computers, peripheral units and software in specialised stores","47410 - Adwerthu cyfrifiaduron, unedau perifferol a meddalwedd mewn siopau arbenigol"
-47421,47421 - Retail sale of mobile telephones,47421 - Adwerthu teleffonau symudol
-47429,47429 - Retail sale of telecommunications equipment other than mobile telephones,47429 - Adwerthu offer telathrebu ac eithrio teleffonau symudol
-47430,47430 - Retail sale of audio and video equipment in specialised stores,47430 - Adwerthu offer sain a fideo mewn siopau arbenigol
-47510,47510 - Retail sale of textiles in specialised stores,47510 - Adwerthu tecstilau mewn siopau arbenigol
-47520,"47520 - Retail sale of hardware, paints and glass in specialised stores","47520 - Adwerthu nwyddau haearn, paent a gwydr mewn siopau arbenigol"
-47530,"47530 - Retail sale of carpets, rugs, wall and floor coverings in specialised stores","47530 - Adwerthu carpedi, rygiau, a gorchuddion waliau a lloriau mewn siopau arbenigol"
-47540,47540 - Retail sale of electrical household appliances in specialised stores,47540 - Adwerthu dyfeisiau cartref trydanol mewn siopau arbenigol
-47591,47591 - Retail sale of musical instruments and scores,47591 - Adwerthu offerynnau cerdd a sgoriau
-47599,"47599 - Retail of furniture, lighting, and similar (not musical instruments or scores) in specialised store","47599 - Adwerthu celfi, goleuadau a phethau tebyg (nid offerynnau cerdd na sgoriau) mewn siopau arbenigol"
-47610,47610 - Retail sale of books in specialised stores,47610 - Adwerthu llyfrau mewn siopau arbenigol
-47620,47620 - Retail sale of newspapers and stationery in specialised stores,47620 - Adwerthu papurau newydd a deunyddiau ysgrifennu mewn siopau arbenigol
-47630,47630 - Retail sale of music and video recordings in specialised stores,47630 - Adwerthu recordiadau cerddorol a fideo mewn siopau arbenigol
-47640,"47640 - Retail sale of sports goods, fishing gear, camping goods, boats and bicycles","47640 - Adwerthu nwyddau chwaraeon, offer pysgota, offer gwersylla, cychod a beiciau"
-47650,47650 - Retail sale of games and toys in specialised stores,47650 - Adwerthu gemau a theganau mewn siopau arbenigol
-47710,47710 - Retail sale of clothing in specialised stores,47710 - Adwerthu dillad mewn siopau arbenigol
-47721,47721 - Retail sale of footwear in specialised stores,47721 - Adwerthu esgidiau mewn siopau arbenigol
-47722,47722 - Retail sale of leather goods in specialised stores,47722 - Adwerthu nwyddau lledr mewn siopau arbenigol
-47730,47730 - Dispensing chemist in specialised stores,47730 - Fferyllwyr cymwysedig mewn siop arbenigol
-47741,47741 - Retail sale of hearing aids,47741 - Adwerthu cymhorthion clyw
-47749,47749 - Retail sale of medical and orthopaedic goods in specialised stores (not incl. hearing aids) n.e.c.,47749 - Adwerthu nwyddau meddygol ac orthopaedig  mewn siopau arbenigol (ac eithrio cymhorthion clyw) n.dd.b.
-47750,47750 - Retail sale of cosmetic and toilet articles in specialised stores,47750 - Adwerthu nwyddau cosmetig ac ymolchi mewn siopau arbenigol
-47760,"47760 - Retail sale of flowers, plants, seeds, fertilizers, pet animals and pet food in specialised stores","47760 - Adwerthu blodau, planhigion, hadau, gwrtaith, anifeiliaid anwes a bwyd anifeiliaid anwes mewn siopau arbenigol"
-47770,47770 - Retail sale of watches and jewellery in specialised stores,47770 - Adwerthu watsys a gemwaith mewn siopau arbenigol
-47781,47781 - Retail sale in commercial art galleries,47781 - Adwerthu mewn orielau celf masnachol
-47782,47782 - Retail sale by opticians,47782 - Adwerthu gan optegwyr
-47789,47789 - Other retail sale of new goods in specialised stores (not commercial art galleries and opticians),47789 - Adwerthu nwyddau newydd eraill mewn siopau arbenigol (nid orielau celf masnachol nac optegwyr)
-47791,47791 - Retail sale of antiques including antique books in stores,47791 - Adwerthu hen greiriau gan gynnwys hen lyfrau mewn siopau
-47799,47799 - Retail sale of other second-hand goods in stores (not incl. antiques),47799 - Adwerthu nwyddau ail-law eraill mewn siopau (ac eithrio hen greiriau)
-47810,"47810 - Retail sale via stalls and markets of food, beverages and tobacco products","47810 - Adwerthu bwydydd, diodydd a chynhyrchion tybaco o stondinau a thrwy farchnadoedd"
-47820,"47820 - Retail sale via stalls and markets of textiles, clothing and footwear","47820 - Adwerthu tecstilau, dillad ac esgidiau o stondinau a thrwy farchnadoedd"
-47890,47890 - Retail sale via stalls and markets of other goods,47890 - Adwerthu nwyddau eraill o stondinau a thrwy farchnadoedd
-47910,47910 - Retail sale via mail order houses or via Internet,47910 - Adwerthu trwy'r post neu dros y Rhyngrwyd
-47990,"47990 - Other retail sale not in stores, stalls or markets","47990 - Adwerthu arall heb fod mewn siopau, o stondinau neu drwy farchnadoedd"
-49100,"49100 - Passenger rail transport, interurban","49100 - Cludo teithwyr ar y rheilffordd, rhyngdrefol"
-49200,49200 - Freight rail transport,49200 - Cludo nwyddau ar y rheilffordd
-49311,"49311 - Urban and suburban passenger railway transportation by underground, metro and similar systems","49311 - Cludo teithwyr trefol a maestrefol ar systemau rheilffyrdd tanddaearol, metro a systemau tebyg"
-49319,"49319 - Other urban, suburban or metropolitan passenger land transport (not underground, metro or similar)","49319 - Cludo teithwyr trefol, maestrefol neu ddinesig dros y tir (nid systemau tanddaearol, metro na'u tebyg)"
-49320,49320 - Taxi operation,49320 - Busnes tacsi
-49390,49390 - Other passenger land transport,49390 - Dulliau eraill o gludo teithwyr ar y tir
-49410,49410 - Freight transport by road,49410 - Cludo nwyddau ar y ffyrdd
-49420,49420 - Removal services,49420 - Gwasanaethau mudo
-49500,49500 - Transport via pipeline,49500 - Trafnidiaeth trwy lein beipiau
-50100,50100 - Sea and coastal passenger water transport,50100 - Cludo teithwyr ar ddyfroedd morol ac arfordirol
-50200,50200 - Sea and coastal freight water transport,50200 - Cludo nwyddau ar ddyfroedd morol ac arfordirol
-50300,50300 - Inland passenger water transport,50300 - Cludo teithwyr ar ddyfroedd mewndirol
-50400,50400 - Inland freight water transport,50400 - Cludo nwyddau ar ddyfroedd mewndirol
-51101,51101 - Scheduled passenger air transport,51101 - Trafnidiaeth a raglennir ar gyfer teithwyr awyr
-51102,51102 - Non-scheduled passenger air transport,51102 - Trafnidiaeth na raglennir ar gyfer teithwyr awyr
-51210,51210 - Freight air transport,51210 - Trafnidiaeth awyr ar gyfer nwyddau
-51220,51220 - Space transport,51220 - Trafnidiaeth y gofod
-52101,52101 - Operation of warehousing and storage facilities for water transport activities,52101 - Gweithredu stordai a chyfleusterau storio ar gyfer gweithgareddau cludo ar y d?r
-52102,52102 - Operation of warehousing and storage facilities for air transport activities,52102 - Gweithredu stordai a chyfleusterau storio ar gyfer gweithgareddau cludo yn yr awyr
-52103,52103 - Operation of warehousing and storage facilities for land transport activities,52103 - Gweithredu stordai a chyfleusterau storio ar gyfer gweithgareddau cludo ar y tir
-52211,52211 - Operation of rail freight terminals,52211 - Gweithredu terfynellau cludo nwyddau ar y rheilffyrdd
-52212,52212 - Operation of rail passenger facilities at railway stations,52212 - Gweithredu cyfleusterau ar gyfer teithwyr mewn gorsafoedd rheilffordd
-52213,52213 - Operation of bus and coach passenger facilities at bus and coach stations,52213 - Gweithredu cyfleusterau ar gyfer teithwyr mewn gorsafoedd bysiau a choetsys
-52219,"52219 - Other service activities incidental to land transportation, n.e.c.","52219 - Gwasanaethau eraill sydd ynghlwm wrth drafnidiaeth dros y tir, n.dd.b."
-52220,52220 - Service activities incidental to water transportation,52220 - Gwasanaethau sydd ynghlwm wrth drafnidiaeth ar y d?r
-52230,52230 - Service activities incidental to air transportation,52230 - Gwasanaethau sydd ynghlwm wrth drafnidiaeth awyr
-52241,52241 - Cargo handling for water transport activities,52241 - Dosbarthu cargo ar gyfer gweithgareddau trafnidiaeth ar y d?r
-52242,52242 - Cargo handling for air transport activities,52242 - Dosbarthu cargo ar gyfer gweithgareddau trafnidiaeth awyr
-52243,52243 - Cargo handling for land transport activities,52243 - Dosbarthu cargo ar gyfer gweithgareddau trafnidiaeth dros y tir
-52290,52290 - Other transportation support activities,52290 - Gweithgareddau eraill sy'n ategu trafnidiaeth
-53100,53100 - Postal activities under universal service obligation,53100 - Gweithgareddau post o dan rhwymedigaeth gwasanaeth gyffredinol
-53201,53201 - Licensed carriers,53201 - Cludwr trwyddedig
-53202,53202 - Unlicensed carrier,53202 - Cludwr didrwydded
-55100,55100 - Hotels and similar accommodation,55100 - Gwestai a llety tebyg
-55201,55201 - Holiday centres and villages,55201 - Canolfannau a phentrefi gwyliau
-55202,55202 - Youth hostels,55202 - Hostelau ieuenctid
-55209,55209 - Other holiday and other collective accommodation,55209 - Llety gwyliau arall a mathau eraill o lety torfol
-55300,"55300 - Recreational vehicle parks, trailer parks and camping grounds","55300 - Parciau cerbydau hamdden, parciau trelars a meysydd gwersylla"
-55900,55900 - Other accommodation,55900 - Llety arall
-56101,56101 - Licensed restaurants,56101 - Tai bwyta trwyddedig
-56102,56102 - Unlicensed restaurants and cafes,56102 - Tai bwyta a chaffis didrwydded
-56103,56103 - Take-away food shops and mobile food stands,56103 - Siopau prydau parod a stondinau bwyd symudol
-56210,56210 - Event catering activities,56210 - Gweithgareddau arlwyo ar gyfer digwyddiadau
-56290,56290 - Other food services,56290 - Gwasanaethau bwyd eraill
-56301,56301 - Licensed clubs,56301 - Clybiau trwyddedig
-56302,56302 - Public houses and bars,56302 - Tafarndai  a bariau
-58110,58110 - Book publishing,58110 - Cyhoeddi llyfrau
-58120,58120 - Publishing of directories and mailing lists,58120 - Cyhoeddi cyfeirlyfrau a rhestrau postio
-58130,58130 - Publishing of newspapers,58130 - Cyhoeddi papurau newydd
-58141,58141 - Publishing of learned journals,58141 - Cyhoeddi cyfnodolion dysgedig
-58142,58142 - Publishing of  consumer and business journals and periodicals,58142 - Cyhoeddi cyfnodolion a newyddiaduron i ddefnyddwyr a busnesau
-58190,58190 - Other publishing activities,58190 - Gweithgareddau cyhoeddi eraill
-58210,58210 - Publishing of computer games,58210 - Cyhoeddi gemau cyfrifiadur
-58290,58290 - Other software publishing,58290 - Cyhoeddi meddalwedd arall
-59111,59111 - Motion picture production activities,59111 - Gweithgareddau cynhyrchu ffilmiau
-59112,59112 - Video production activities,59112 - Gweithgareddau cynhyrchu fideo
-59113,59113 - Television programme production activities,59113 - Gweithgareddau cynhyrchu rhaglenni teledu
-59120,"59120 - Motion picture, video and television programme post-production activities","59120 - Gweithgareddau ôl-gynhyrchu ar gyfer ffilmiau, fideo a rhaglenni teledu"
-59131,59131 - Motion picture distribution activities,59131 - Gweithgareddau dosbarthu ffilmiau
-59132,59132 - Video distribution activities,59132 - Gweithgareddau dosbarthu fideo
-59133,59133 - Television programme distribution activities,59133 - Gweithgareddau dosbarthu rhaglenni teledu
-59140,59140 - Motion picture projection activities,59140 - Gweithgareddau taflunio ffilmiau
-59200,59200 - Sound recording and music publishing activities,59200 - Gweithgareddau recordio sain a chyhoeddi cerddoriaeth
-60100,60100 - Radio broadcasting,60100 - Darlledu ar y radio
-60200,60200 - Television programming and broadcasting activities,60200 - Gweithgareddau rhaglennu a darlledu ar y teledu
-61100,61100 - Wired telecommunications activities,61100 - Gweithgareddau telathrebu â gwifrau
-61200,61200 - Wireless telecommunications activities,61200 - Gweithgareddau telathrebu diwifr
-61300,61300 - Satellite telecommunications activities,61300 - Gweithgareddau telathrebu drwy loeren
-61900,61900 - Other telecommunications activities,61900 - Gweithgareddau telathrebu eraill
-62011,62011 - Ready-made interactive leisure and entertainment software development,62011 - Datblygu meddalwedd hamdden ac adloniant ryngweithiol barod
-62012,62012 - Business and domestic software development,62012 - Datblygu meddalwedd busnes a domestig
-62020,62020 - Information technology consultancy activities,62020 - Gweithgareddau ymgynghoriaeth ym maes technoleg gwybodaeth
-62030,62030 - Computer facilities management activities,62030 - Gweithgareddau rheoli cyfleusterau cyfrifiadurol
-62090,62090 - Other information technology service activities,62090 - Gweithgareddau eraill ym maes gwasanaethau technoleg gwybodaeth
-63110,"63110 - Data processing, hosting and related activities",63110 - Prosesu a lletya data a gweithgareddau cysylltiedig
-63120,63120 - Web portals,63120 - Pyrth ar y we
-63910,63910 - News agency activities,63910 - Gweithgareddau asiantaethau newyddion
-63990,63990 - Other information service activities n.e.c.,63990 - Gweithgareddau gwasanaethau gwybodaeth eraill n.dd.b.
-64110,64110 - Central banking,64110 - Bancio canolog
-64191,64191 - Banks,64191 - Banciau
-64192,64192 - Building societies,64192 - Cymdeithasau adeiladu
-64201,64201 - Activities of agricultural holding companies,64201 - Gweithgareddau cwmnïau daliannol ym maes amaeth
-64202,64202 - Activities of production holding companies,64202 - Gweithgareddau cwmnïau daliannol ym maes cynhyrchu
-64203,64203 - Activities of construction holding companies,64203 - Gweithgareddau cwmnïau daliannol ym maes adeiladu
-64204,64204 - Activities of distribution holding companies,64204 - Gweithgareddau cwmnïau daliannol ym maes dosbarthu
-64205,64205 - Activities of financial services holding companies,64205 - Gweithgareddau cwmnïau daliannol ym maes gwasanaethau ariannol
-64209,64209 - Activities of other holding companies n.e.c.,64209 - Gweithgareddau cwmnïau daliannol eraill n.dd.b.
-64301,64301 - Activities of investment trusts,64301 - Gweithgareddau ymddiriedolaethau buddsoddi
-64302,64302 - Activities of unit trusts,64302 - Gweithgareddau ymddiriedolaethau unedol
-64303,64303 - Activities of venture and development capital companies,64303 - Gweithgareddau cwmnïau cyfalaf mentro a datblygu
-64304,64304 - Activities of open-ended investment companies,64304 - Gweithgareddau cwmnïau buddsoddi penagored
-64305,64305 - Activities of property unit trusts,64305 - Gweithgareddau ymddiriedolaethau eiddo unedol
-64306,64306 - Activities of real estate investment trusts,64306 - Gweithgareddau ymddiriedolaethau buddsoddi mewn eiddo diriaethol
-64910,64910 - Financial leasing,64910 - Prydlesu ariannol
-64921,64921 - Credit granting by non-deposit taking finance houses and other specialist consumer credit grantors,64921 - Ariandai sy'n rhoi credyd nad ydynt yn cymryd adnau a darparwyr credyd arbenigol eraill i ddefnyddwyr
-64922,64922 - Activities of mortgage finance companies,64922 - Gweithgareddau cwmnïau ariannu morgeisi
-64929,64929 - Other credit granting n.e.c.,64929 - Darparwyr credyd eraill n.dd.b.
-64991,64991 - Security dealing on own account,64991 - Gwerthu gwarannau ar ei gyfrif ei hun
-64992,64992 - Factoring,64992 - Asiantau masnachol
-64999,64999 - Financial intermediation not elsewhere classified,64999 - Mathau eraill o ryngoli ariannol na ddosbarthwyd fel arall
-65110,65110 - Life insurance,65110 - Yswiriant bywyd
-65120,65120 - Non-life insurance,65120 - Yswiriant nad yw'n yswiriant bywyd
-65201,65201 - Life reinsurance,65201 - Ailyswirio bywydau
-65202,65202 - Non-life reinsurance,65202 - Ailyswirio pethau heblaw bywyd
-65300,65300 - Pension funding,65300 - Ariannu pensiynau
-66110,66110 - Administration of financial markets,66110 - Gweinyddu marchnadoedd ariannol
-66120,66120 - Security and commodity contracts dealing activities,66120 - Gweithgareddau masnachu contractau nwyddau a gwarannau
-66190,66190 - Activities auxiliary to financial intermediation n.e.c.,66190 - Gweithgareddau atodol o ran rhyngoli ariannol n.dd.b.
-66210,66210 - Risk and damage evaluation,66210 - Gwerthuso risg a difrod
-66220,66220 - Activities of insurance agents and brokers,66220 - Gweithgareddau asiantau a broceriaid yswiriant
-66290,66290 - Other activities auxiliary to insurance and pension funding,66290 - Gweithgareddau atodol eraill ym maes ariannu yswiriant a phensiynau
-66300,66300 - Fund management activities,66300 - Gweithgareddau rheoli cronfeydd
-68100,68100 - Buying and selling of own real estate,68100 - Prynu a gwerthu eich eiddo diriaethol eich hun
-68201,68201 - Renting and operating of Housing Association real estate,68201 - Rhentu a rheoli eiddo diriaethol Cymdeithas Tai
-68202,68202 - Letting and operating of conference and exhibition centres,68202 - Gosod a rheoli canolfannau cynadledda ac arddangos
-68209,68209 - Other letting and operating of own or leased real estate,68209 - Gosod a rheoli eich eiddo diriaethol arall eich hun neu ar brydles
-68310,68310 - Real estate agencies,68310 - Asiantaethau eiddo diriaethol
-68320,68320 - Management of real estate on a fee or contract basis,68320 - Rheoli eiddo diriaethol am ffi neu ar gontract
-69101,69101 - Barristers at law,69101 - Bargyfreithwyr sy'n ymarfer y gyfraith
-69102,69102 - Solicitors,69102 - Cyfreithwyr
-69109,69109 - Activities of patent and copyright agents; other legal activities n.e.c.,69109 - Gweithgareddau asiantau patent a hawlfraint; gweithgareddau cyfreithiol eraill n.dd.b.
-69201,69201 - Accounting and auditing activities,69201 - Gweithgareddau cyfrifyddu ac archwilio
-69202,69202 - Bookkeeping activities,69202 - Gweithgareddau cadw cyfrifon
-69203,69203 - Tax consultancy,69203 - Ymgynghoriaeth ar drethi
-70100,70100 - Activities of head offices,70100 - Gweithgareddau pencadlysoedd
-70210,70210 - Public relations and communications activities,70210 - Gweithgareddau cysylltiadau cyhoeddus a chyfathrebu
-70221,70221 - Financial management,70221 - Rheolaeth ariannol
-70229,70229 - Management consultancy activities other than financial management,70229 - Gweithgareddau ymgynghoriaeth ar faterion rheoli ac eithrio rheolaeth ariannol
-71111,71111 - Architectural activities,71111 - Gweithgareddau pensaernïol
-71112,71112 - Urban planning and landscape architectural activities,71112 - Gweithgareddau cynllunio trefol a phensaernïaeth y dirwedd
-71121,71121 - Engineering design activities for industrial process and production,71121 - Gweithgareddau dylunio peirianneg ar gyfer prosesau a chynhyrchu diwydiannol
-71122,71122 - Engineering related scientific and technical consulting activities,71122 - Gweithgareddau ymgynghori gwyddonol a thechnegol ym maes peirianneg
-71129,71129 - Other engineering activities,71129 - Gweithgareddau peirianneg eraill
-71200,71200 - Technical testing and analysis,71200 - Profi a dadansoddi technegol
-72110,72110 - Research and experimental development on biotechnology,72110 - Gwaith ymchwil a datblygu arbrofol ym maes biodechnoleg
-72190,72190 - Other research and experimental development on natural sciences and engineering,72190 - Gwaith ymchwil a datblygu arbrofol arall ym maes peirianneg a'r gwyddorau natur
-72200,72200 - Research and experimental development on social sciences and humanities,72200 - Gwaith ymchwil a datblygu arbrofol ym maes y gwyddorau cymdeithasol a'r dyniaethau
-73110,73110 - Advertising agencies,73110 - Asiantaethau hysbysebu
-73120,73120 - Media representation services,73120 - Gwasanaethau cynrychiolaeth ym maes y cyfryngau
-73200,73200 - Market research and public opinion polling,73200 - Ymchwil i'r farchnad ac arolygon barn
-74100,74100 - specialised design activities,74100 - Gweithgareddau dylunio arbenigol
-74201,74201 - Portrait photographic activities,74201 - Gweithgareddau portreadu ffotograffig
-74202,74202 - Other specialist photography,74202 - Mathau eraill o ffotograffiaeth arbenigol
-74203,74203 - Film processing,74203 - Prosesu ffilmiau
-74209,74209 - Photographic activities not elsewhere classified,74209 - Gweithgareddau ffotograffig na ddosbarthwyd yn benodol
-74300,74300 - Translation and interpretation activities,74300 - Gweithgareddau cyfieithu a chyfieithu ar y pryd
-74901,74901 - Environmental consulting activities,74901 - Gweithgareddau ymgynghori amgylcheddol
-74902,74902 - Quantity surveying activities,74902 - Gweithgareddau mesur meintiau
-74909,"74909 - Other professional, scientific and technical activities n.e.c.","74909 - Gweithgareddau proffesiynol, gwyddonol a thechnegol n.dd.b."
-74990,74990 - Non-trading company,74990 - Cwmni anfasnachol
-75000,75000 - Veterinary activities,75000 - Gweithgareddau milfeddygol
-77110,77110 - Renting and leasing of cars and light motor vehicles,77110 - Rhentu a phrydlesu ceir a cherbydau modur ysgafn
-77120,77120 - Renting and leasing of trucks and other heavy vehicles,77120 - Rhentu a phrydlesu tryciau a cherbydau trwm eraill
-77210,77210 - Renting and leasing of recreational and sports goods,77210 - Rhentu a phrydlesu nwyddau hamdden a chwaraeon
-77220,77220 - Renting of video tapes and disks,77220 - Rhentu tapiau a disgiau fideo
-77291,77291 - Renting and leasing of media entertainment equipment,77291 - Rhentu a phrydlesu cyfarpar y cyfryngau adloniant
-77299,77299 - Renting and leasing of other personal and household goods,77299 - Rhentu a phrydlesu nwyddau personol a chartref eraill
-77310,77310 - Renting and leasing of agricultural machinery and equipment,77310 - Rhentu a phrydlesu peiriannau a chyfarpar amaethyddol
-77320,77320 - Renting and leasing of construction and civil engineering machinery and equipment,77320 - Rhentu a phrydlesu peiriannau a chyfarpar adeiladu a pheirianneg sifil
-77330,77330 - Renting and leasing of office machinery and equipment (including computers),77330 - Rhentu a phrydlesu peiriannau a chyfarpar swyddfa (gan gynnwys cyfrifiaduron)
-77341,77341 - Renting and leasing of passenger water transport equipment,77341 - Rhentu a phrydlesu cyfarpar i gludo teithwyr ar y d?r
-77342,77342 - Renting and leasing of freight water transport equipment,77342 - Rhentu a phrydlesu cyfarpar i gludo nwyddau ar y d?r
-77351,77351 - Renting and leasing of air passenger transport equipment,77351 - Rhentu a phrydlesu cyfarpar i gludo teithwyr yn yr awyr
-77352,77352 - Renting and leasing of freight air transport equipment,77352 - Rhentu a phrydlesu cyfarpar i gludo nwyddau yn yr awyr
-77390,"77390 - Renting and leasing of other machinery, equipment and tangible goods n.e.c.","77390 - Rhentu a phrydlesu peiriannau, cyfarpar a nwyddau diriaethol eraill n.dd.b."
-77400,"77400 - Leasing of intellectual property and similar products, except copyright works","77400 - Prydlesu eiddo deallusol a chynnyrch tebyg, ac eithrio gwaith hawlfraint"
-78101,"78101 - Motion picture, television and other theatrical casting activities","78101 - Gweithgareddau castio ar gyfer ffilmiau, y teledu a gweithgareddau theatraidd eraill"
-78109,78109 - Other activities of employment placement agencies,78109 - Gweithgareddau eraill asiantaethau canfod cyflogaeth
-78200,78200 - Temporary employment agency activities,78200 - Gweithgareddau asiantaethau canfod cyflogaeth dros dro
-78300,78300 - Human resources provision and management of human resources functions,78300 - Darparu gwasanaethau adnoddau dynol a rheoli swyddogaethau adnoddau dynol
-79110,79110 - Travel agency activities,79110 - Gweithgareddau asiantaethau teithio
-79120,79120 - Tour operator activities,79120 - Gweithgareddau trefnwyr teithiau
-79901,79901 - Activities of tourist guides,79901 - Gweithgareddau tywyswyr twristiaid
-79909,79909 - Other reservation service activities n.e.c.,79909 - Gweithgareddau gwasanaethau bwcio a chadw eraill n.dd.b.
-80100,80100 - Private security activities,80100 - Gweithgareddau diogelwch preifat
-80200,80200 - Security systems service activities,80200 - Gweithgareddau gwasanaethau systemau diogelwch
-80300,80300 - Investigation activities,80300 - Gwasanaethau ymholi
-81100,81100 - Combined facilities support activities,81100 - Gweithgareddau cynnal cyfleusterau cyfunol
-81210,81210 - General cleaning of buildings,81210 - Glanhau cyffredinol mewn adeiladau
-81221,81221 - Window cleaning services,81221 - Gwasanaethau glanhau ffenestri
-81222,81222 - Specialised cleaning services,81222 - Gwasanaethau glanhau arbenigol
-81223,81223 - Furnace and chimney cleaning services,81223 - Gwasanaethau glanhau ffwrneisi a simneiau
-81229,81229 - Other building and industrial cleaning activities,81229 - Gweithgareddau eraill ym maes glanhau adeiladau a glanhau diwydiannol
-81291,81291 - Disinfecting and exterminating services,81291 - Gweithgareddau diheintio a difodi
-81299,81299 - Other cleaning services,81299 - Gwasanaethau glanhau eraill
-81300,81300 - Landscape service activities,81300 - Gweithgareddau gwasanaethau'r dirwedd
-82110,82110 - Combined office administrative service activities,82110 - Gweithgareddau gwasanaethau gweinyddol cyfunol mewn swyddfeydd
-82190,"82190 - Photocopying, document preparation and other specialised office support activities","82190 - Llungopïo, paratoi dogfennau a gweithgareddau cymorth arbenigol eraill ar gyfer swyddfeydd"
-82200,82200 - Activities of call centres,82200 - Gweithgareddau canolfannau galwadau
-82301,82301 - Activities of exhibition and fair organisers,82301 - Gweithgareddau trefnu arddangosfeydd a ffeiriau
-82302,82302 - Activities of conference organisers,82302 - Gweithgareddau trefnu cynadleddau
-82911,82911 - Activities of collection agencies,82911 - Gweithgareddau asiantaethau casglu
-82912,82912 - Activities of credit bureaus,82912 - Gweithgareddau canolfannau credyd
-82920,82920 - Packaging activities,82920 - Gweithgareddau pecynnu
-82990,82990 - Other business support service activities n.e.c.,82990 - Gweithgareddau gwasanaethau cymorth busnes eraill n.dd.b.
-84110,84110 - General public administration activities,84110 - Gweithgareddau cyffredinol ym maes gweinyddiaeth gyhoeddus
-84120,"84120 - Regulation of health care, education, cultural and other social services, not incl. social security","84120 - Rheoleiddio gofal iechyd, addysg, diwylliant a gwasanaethau cymdeithasol eraill, heblaw nawdd cymdeithasol"
-84130,84130 - Regulation of and contribution to more efficient operation of businesses,84130 - Rheoleiddio busnesau a'u helpu i weithredu'n fwy effeithlon
-84210,84210 - Foreign affairs,84210 - Materion tramor
-84220,84220 - Defence activities,84220 - Gweithgareddau amddiffyn
-84230,84230 - Justice and judicial activities,84230 - Gweithgareddau cyfiawnder a barnwrol
-84240,84240 - Public order and safety activities,84240 - Gweithgareddau'r drefn gyhoeddus a diogelwch
-84250,84250 - Fire service activities,84250 - Gweithgareddau gwasanaethau tân
-84300,84300 - Compulsory social security activities,84300 - Gweithgareddau gorfodol nawdd cymdeithasol
-85100,85100 - Pre-primary education,85100 - Addysg cyn oedran cynradd
-85200,85200 - Primary education,85200 - Addysg gynradd
-85310,85310 - General secondary education,85310 - Addysg uwchradd gyffredinol
-85320,85320 - Technical and vocational secondary education,85320 - Addysg uwchradd dechnegol a galwedigaethol
-85410,85410 - Post-secondary non-tertiary education,85410 - Addysg ôl-uwchradd nad yw'n drydyddol
-85421,85421 - First-degree level higher education,85421 - Addysg uwch lefel gradd gyntaf
-85422,85422 - Post-graduate level higher education,85422 - Addysg uwch lefel olraddedig
-85510,85510 - Sports and recreation education,85510 - Addysg chwaraeon a hamdden
-85520,85520 - Cultural education,85520 - Addysg ddiwylliannol
-85530,85530 - Driving school activities,85530 - Gweithgareddau ysgolion gyrru
-85590,85590 - Other education n.e.c.,85590 - Addysg arall n.dd.b.
-85600,85600 - Educational support services,85600 - Gwasanaethau cymorth addysg
-86101,86101 - Hospital activities,86101 - Gweithgareddau ysbytai
-86102,86102 - Medical nursing home activities,86102 - Gweithgareddau cartrefi nyrsio meddygol
-86210,86210 - General medical practice activities,86210 - Gweithgareddau practisau meddygol cyffredinol
-86220,86220 - Specialists medical practice activities,86220 - Gweithgareddau practisau meddygol arbenigol
-86230,86230 - Dental practice activities,86230 - Gweithgareddau practisau deintyddol
-86900,86900 - Other human health activities,86900 - Gweithgareddau eraill ym maes iechyd y cyhoedd
-87100,87100 - Residential nursing care facilities,87100 - Cyfleusterau gofal nyrsio preswyl
-87200,"87200 - Residential care activities for learning difficulties, mental health and substance abuse","87200 - Gweithgareddau gofal preswyl ar gyfer anawsterau dysgu, iechyd meddwl a cham-drin sylweddau"
-87300,87300 - Residential care activities for the elderly and disabled,87300 - Gweithgareddau gofal preswyl ar gyfer pobl oedrannus ac anabl
-87900,87900 - Other residential care activities n.e.c.,87900 - Gweithgareddau eraill ym maes gofal preswyl n.dd.b.
-88100,88100 - Social work activities without accommodation for the elderly and disabled,88100 - Gweithgareddau gwaith cymdeithasol heb lety ar gyfer pobl oedrannus ac anabl
-88910,88910 - Child day-care activities,88910 - Gweithgareddau gofal dydd i blant
-88990,88990 - Other social work activities without accommodation n.e.c.,88990 - Gweithgareddau gofal cymdeithasol eraill heb lety n.dd.b.
-90010,90010 - Performing arts,90010 - Y celfyddydau perfformio
-90020,90020 - Support activities to performing arts,90020 - Gweithgareddau cymorth ym maes y celfyddydau perfformio
-90030,90030 - Artistic creation,90030 - Creu artistig
-90040,90040 - Operation of arts facilities,90040 - Rheoli cyfleusterau ar gyfer y celfyddydau
-91011,91011 - Library activities,91011 - Gweithgareddau llyfrgelloedd
-91012,91012 - Archives activities,91012 - Gweithgareddau archifau
-91020,91020 - Museums activities,91020 - Gweithgareddau amgueddfeydd
-91030,91030 - Operation of historical sites and buildings and similar visitor attractions,91030 - Gweithredu safleoedd ac adeiladau hanesyddol ac atyniadau tebyg i ymwelwyr
-91040,91040 - Botanical and zoological gardens and nature reserves activities,91040 - Gweithgareddau gerddi botanegol a s?olegol a gwarchodfeydd natur
-92000,92000 - Gambling and betting activities,92000 - Gweithgareddau gamblo a betio
-93110,93110 - Operation of sports facilities,93110 - Gweithredu cyfleusterau chwaraeon
-93120,93120 - Activities of sport clubs,93120 - Gweithgareddau clybiau chwaraeon
-93130,93130 - Fitness facilities,93130 - Cyfleusterau ffitrwydd
-93191,93191 - Activities of racehorse owners,93191 - Gweithgareddau perchnogion ceffylau rasio
-93199,93199 - Other sports activities,93199 - Gweithgareddau chwaraeon eraill
-93210,93210 - Activities of amusement parks and theme parks,93210 - Gweithgareddau parciau diddanu a pharciau thema
-93290,93290 - Other amusement and recreation activities n.e.c.,93290 - Gweithgareddau diddanu a hamdden eraill n.dd.b.
-94110,94110 - Activities of business and employers membership organizations,94110 - Gweithgareddau sefydliadau i aelodau ym myd busnes a chyflogwyr
-94120,94120 - Activities of professional membership organizations,94120 - Gweithgareddau sefydliadau proffesiynol i aelodau
-94200,94200 - Activities of trade unions,94200 - Gweithgareddau undebau llafur
-94910,94910 - Activities of religious organizations,94910 - Gweithgareddau sefydliadau crefyddol
-94920,94920 - Activities of political organizations,94920 - Gweithgareddau sefydliadau gwleidyddol
-94990,94990 - Activities of other membership organizations n.e.c.,94990 - Gweithgareddau sefydliadau aelodaeth eraill n.dd.b.
-95110,95110 - Repair of computers and peripheral equipment,95110 - Atgyweirio cyfrifiaduron a'u perifferolion
-95120,95120 - Repair of communication equipment,95120 - Atgyweirio cyfarpar cyfathrebu
-95210,95210 - Repair of consumer electronics,95210 - Atgyweirio cyfarpar electronig i ddefnyddwyr
-95220,95220 - Repair of household appliances and home and garden equipment,95220 - Atgyweirio dyfeisiau cartref a chyfarpar y cartref a'r ardd
-95230,95230 - Repair of footwear and leather goods,95230 - Atgyweirio esgidiau a nwyddau lledr
-95240,95240 - Repair of furniture and home furnishings,95240 - Atgyweirio celfi ac eitemau dodrefnu'r cartref
-95250,"95250 - Repair of watches, clocks and jewellery","95250 - Atgyweirio watsys, clociau a gemwaith"
-95290,95290 - Repair of personal and household goods n.e.c.,95290 - Atgyweirio nwyddau personol a chartref eraill n.dd.b.
-96010,96010 - Washing and (dry-)cleaning of textile and fur products,96010 - Golchi a glanhau (sychlanhau) cynhyrchion tecstilau a ffwr
-96020,96020 - Hairdressing and other beauty treatment,96020 - Trin gwallt a thriniaethau harddwch eraill
-96030,96030 - Funeral and related activities,96030 - Angladdau a gweithgareddau cysylltiedig
-96040,96040 - Physical well-being activities,96040 - Gweithgareddau lles corfforol
-96090,96090 - Other service activities n.e.c.,96090 - Gweithgareddau gwasanaethau eraill n.dd.b.
-97000,97000 - Activities of households as employers of domestic personnel,97000 - Gweithgareddau aelwydydd fel cyflogwyr gweithwyr domestig
-98000,98000 - Residents property management,98000 - Rheolaeth trigolion dros eiddo
-98100,98100 - Undifferentiated goods-producing activities of private households for own use,98100 - Gweithgareddau diwahaniaeth aelwydydd preifat i gynhyrchu nwyddau at eu defnydd eu hunain
-98200,98200 - Undifferentiated service-producing activities of private households for own use,98200 - Gweithgareddau diwahaniaeth aelwydydd preifat i gynhyrchu gwasanaethau at eu defnydd eu hunain
-99000,99000 - Activities of extraterritorial organizations and bodies,99000 - Gweithgareddau sefydliadau a chyrff alldiriogaethol
-99999,99999 - Dormant Company,99999 - Cwmni Segur
+SicCode,Name,Name-cy,Section
+01110,"01110 - Growing of cereals (except rice), leguminous crops and oil seeds","01110 - Tyfu grawn (ac eithrio reis), cnydau o godlysiau ac olew had",A
+01120,01120 - Growing of rice,01120 - Tyfu reis,A
+01130,"01130 - Growing of vegetables and melons, roots and tubers","01130 - Tyfu llysiau a melonau, gwreiddlysiau a chloron",A
+01140,01140 - Growing of sugar cane,01140 - Tyfu câns siwgr,A
+01150,01150 - Growing of tobacco,01150 - Tyfu tybaco,A
+01160,01160 - Growing of fibre crops,01160 - Tyfu cnydau ffibrog,A
+01190,01190 - Growing of other non-perennial crops,01190 - Tyfu cnydau eraill nad ydynt yn gnydau lluosflwydd,A
+01210,01210 - Growing of grapes,01210 - Tyfu grawnwin,A
+01220,01220 - Growing of tropical and subtropical fruits,01220 - Tyfu ffrwythau trofannol ac isdrofannol,A
+01230,01230 - Growing of citrus fruits,01230 - Tyfu ffrwythau sitrws,A
+01240,01240 - Growing of pome fruits and stone fruits,01240 - Tyfu ffrwythau o deulu'r afal a ffrwythau carreg,A
+01250,01250 - Growing of other tree and bush fruits and nuts,01250 - Tyfu cnau a ffrwythau coed a pherth eraill,A
+01260,01260 - Growing of oleaginous fruits,01260 - Tyfu ffrwythau olewaidd,A
+01270,01270 - Growing of beverage crops,01270 - Tyfu cnydau gwneud diodydd,A
+01280,"01280 - Growing of spices, aromatic, drug and pharmaceutical crops","01280 - Tyfu cnydau sbeis, aromatig, cyffuriau a fferyllol",A
+01290,01290 - Growing of other perennial crops,01290 - Tyfu cnydau lluosflwydd eraill,A
+01300,01300 - Plant propagation,01300 - Epilio planhigion,A
+01410,01410 - Raising of dairy cattle,01410 - Magu gwartheg godro,A
+01420,01420 - Raising of other cattle and buffaloes,01420 - Magu gwartheg eraill a byfflos,A
+01430,01430 - Raising of horses and other equines,01430 - Magu ceffylau ac anifeiliaid eraill o deulu'r ceffyl,A
+01440,01440 - Raising of camels and camelids,01440 - Magu camelod a chamelidau,A
+01450,01450 - Raising of sheep and  goats,01450 - Magu defaid a geifr,A
+01460,01460 - Raising of swine/pigs,01460 - Magu moch/anifeiliaid o deulu'r mochyn,A
+01470,01470 - Raising of poultry,01470 - Magu dofednod,A
+01490,01490 - Raising of other animals,01490 - Magu anifeiliaid eraill,A
+01500,01500 - Mixed farming,01500 - Ffermio cymysg,A
+01610,01610 - Support activities for crop production,01610 - Gweithgareddau cynorthwyol ym maes cynhyrchu cnydau,A
+01621,01621 - Farm animal boarding and care,01621 - Lletya a gofalu am anifeiliaid fferm,A
+01629,01629 - Support activities for animal production (other than farm animal boarding and care) n.e.c.,01629 - Gweithgareddau cynorthwyol ym maes magu anifeiliaid (ac eithrio lletya a gofalu am anifeiliaid fferm) n.dd.b.,A
+01630,01630 - Post-harvest crop activities,01630 - Gweithgareddau yn sgil cynaeafu cnydau,A
+01640,01640 - Seed processing for propagation,01640 - Prosesu hadau i'w hepilio,A
+01700,"01700 - Hunting, trapping and related service activities","01700 - Hela, maglu a gweithgareddau'r gwasanaethau cysylltiedig",A
+02100,02100 - Silviculture and other forestry activities,02100 - Tyfu coed a gweithgareddau coedwigaeth eraill,A
+02200,02200 - Logging,02200 - Torri coed yn foncyffion,A
+02300,02300 - Gathering of wild growing non-wood products,02300 - Casglu cynnyrch sy'n tyfu'n wyllt heblaw pren,A
+02400,02400 - Support services to forestry,02400 - Gwasanaethau cynorthwyol ym maes coedwigaeth,A
+03110,03110 - Marine fishing,03110 - Pysgota morol,A
+03120,03120 - Freshwater fishing,03120 - Pysgota d?r croyw,A
+03210,03210 - Marine aquaculture,03210 - Acwafeithrin morol,A
+03220,03220 - Freshwater aquaculture,03220 - Acwafeithrin mewn d?r croyw,A
+05101,05101 - Deep coal mines,05101 - Pyllau glo dwfn,B
+05102,05102 - Open cast coal working,05102 - Cloddfeydd glo brig,B
+05200,05200 - Mining of lignite,05200 - Mwyngloddio coedlo (lignit),B
+06100,06100 - Extraction of crude petroleum,06100 - Echdynnu petrolewm crai,B
+06200,06200 - Extraction of natural gas,06200 - Echdynnu nwyon naturiol,B
+07100,07100 - Mining of iron ores,07100 - Mwyngloddio mwynau haearn,B
+07210,07210 - Mining of uranium and thorium ores,07210 - Mwyngloddio mwynau wraniwm a thoriwm,B
+07290,07290 - Mining of other non-ferrous metal ores,07290 - Mwyngloddio mwynau metel anfferrus eraill,B
+08110,"08110 - Quarrying of ornamental and building stone, limestone, gypsum, chalk and slate","08110 - Chwarela cerrig addurnol a cherrig adeiladu, calchfaen, gypswm, sialc a llechi",B
+08120,08120 - Operation of gravel and sand pits; mining of clays and kaolin,08120 - Gweithredu pyllau graean a thywod; mwyngloddio clai a chaolin,B
+08910,08910 - Mining of chemical and fertilizer minerals,08910 - Mwyngloddio mwynau cemegol a gwrteithio,B
+08920,08920 - Extraction of peat,08920 - Echdynnu mawn,B
+08930,08930 - Extraction of salt,08930 - Echdynnu halen,B
+08990,08990 - Other mining and quarrying n.e.c.,08990 - Gweithgareddau mwyngloddio a chwarela eraill n.dd.b.,B
+09100,09100 - Support activities for petroleum and natural gas extraction,09100 - Gweithgareddau cynorthwyol ym maes echdynnu petrolewm a nwy naturiol,B
+09900,09900 - Support activities for other mining and quarrying,09900 - Gweithgareddau cynorthwyol mwyngloddio a chwarela arall,B
+10110,10110 - Processing and preserving of meat,10110 - Prosesu a chyffeithio cig,C
+10120,10120 - Processing and preserving of poultry meat,10120 - Prosesu a chyffeithio cig dofednod,C
+10130,10130 - Production of meat and poultry meat products,10130 - Cynhyrchu cynhyrchion cig a dofednod,C
+10200,"10200 - Processing and preserving of fish, crustaceans and molluscs","10200 - Prosesu a chyffeithio pysgod, cramenogion a molysgiaid",C
+10310,10310 - Processing and preserving of potatoes,10310 - Prosesu a chyffeithio tatws,C
+10320,10320 - Manufacture of fruit and vegetable juice,10320 - Gweithgynhyrchu sudd ffrwythau a llysiau,C
+10390,10390 - Other processing and preserving of fruit and vegetables,10390 - Prosesu a chyffeithio ffrwythau a llysiau at ddibenion eraill,C
+10410,10410 - Manufacture of oils and fats,10410 - Gweithgynhyrchu olewon a brasterau,C
+10420,10420 - Manufacture of margarine and similar edible fats,10420 - Gweithgynhyrchu margarin a brasterau bwytadwy tebyg,C
+10511,10511 - Liquid milk and cream production,10511 - Cynhyrchu llaeth a hufen hylifol,C
+10512,10512 - Butter and cheese production,10512 - Cynhyrchu menyn a chaws,C
+10519,10519 - Manufacture of other milk products,10519 - Gweithgynhyrchu cynnyrch llaeth arall,C
+10520,10520 - Manufacture of ice cream,10520 - Gweithgynhyrchu hufen iâ,C
+10611,10611 - Grain milling,10611 - Melino grawn,C
+10612,10612 - Manufacture of breakfast cereals and cereals-based food,10612 - Gweithgynhyrchu grawnfwydydd brecwast a grawnfwydydd eraill,C
+10620,10620 - Manufacture of starches and starch products,10620 - Gweithgynhyrchu startsh a chynnyrch startsh,C
+10710,10710 - Manufacture of bread; manufacture of fresh pastry goods and cakes,10710 - Gweithgynhyrchu bara; gweithgynhyrchu teisennau a chacennau ffres,C
+10720,10720 - Manufacture of rusks and biscuits; manufacture of preserved pastry goods and cakes,10720 - Gweithgynhyrchu rhysgenni a bisgedi; gweithgynhyrchu teisennau a chacennau cadw,C
+10730,"10730 - Manufacture of macaroni, noodles, couscous and similar farinaceous products","10730 - Gweithgynhyrchu macaroni, nwdls, couscous a chynnyrch cannog tebyg",C
+10810,10810 - Manufacture of sugar,10810 - Gweithgynhyrchu siwgr,C
+10821,10821 - Manufacture of cocoa and chocolate confectionery,10821 - Gweithgynhyrchu melysion coco a siocled,C
+10822,10822 - Manufacture of sugar confectionery,10822 - Gweithgynhyrchu melysion siwgr,C
+10831,10831 - Tea processing,10831 - Prosesu te,C
+10832,10832 - Production of coffee and coffee substitutes,10832 - Cynhyrchu coffi ac amnewidion coffi,C
+10840,10840 - Manufacture of condiments and seasonings,10840 - Gweithgynhyrchu confennau a sesnin,C
+10850,10850 - Manufacture of prepared meals and dishes,10850 - Gweithgynhyrchu prydau a seigiau parod,C
+10860,10860 - Manufacture of homogenized food preparations and dietetic food,10860 - Gweithgynhyrchu bwydydd homogenaidd a lluniaethol,C
+10890,10890 - Manufacture of other food products n.e.c.,10890 - Gweithgynhyrchu cynnyrch bwyd arall n.dd.b.,C
+10910,10910 - Manufacture of prepared feeds for farm animals,10910 - Gweithgynhyrchu bwydydd parod ar gyfer anifeiliaid fferm,C
+10920,10920 - Manufacture of prepared pet foods,10920 - Gweithgynhyrchu bwydydd parod ar gyfer anifeiliaid anwes,C
+11010,"11010 - Distilling, rectifying and blending of spirits","11010 - Distyllu, puro a chymysgu gwirodydd",C
+11020,11020 - Manufacture of wine from grape,11020 - Gweithgynhyrchu gwin o rawnwin,C
+11030,11030 - Manufacture of cider and other fruit wines,11030 - Gweithgynhyrchu seidr a mathau eraill o winoedd ffrwyth,C
+11040,11040 - Manufacture of other non-distilled fermented beverages,11040 - Gweithgynhyrchu diodydd brag eraill heb eu distyllu,C
+11050,11050 - Manufacture of beer,11050 - Gweithgynhyrchu cwrw,C
+11060,11060 - Manufacture of malt,11060 - Gweithgynhyrchu brag,C
+11070,11070 - Manufacture of soft drinks; production of mineral waters and other bottled waters,11070 - Gweithgynhyrchu diodydd ysgafn; cynhyrchu d?r mwynol a d?r potel arall,C
+12000,12000 - Manufacture of tobacco products,12000 - Gweithgynhyrchu cynnyrch tybaco,C
+13100,13100 - Preparation and spinning of textile fibres,13100 - Paratoi a nyddu ffibrau gweol,C
+13200,13200 - Weaving of textiles,13200 - Gwehyddu tecstilau,C
+13300,13300 - Finishing of textiles,13300 - Gorffennu tecstilau,C
+13910,13910 - Manufacture of knitted and crocheted fabrics,13910 - Gweithgynhyrchu ffabrig wedi'i wau a'i grosio,C
+13921,13921 - Manufacture of soft furnishings,13921 - Gweithgynhyrchu dodrefn meddal,C
+13922,"13922 - manufacture of canvas goods, sacks, etc.","13922 - Gweithgynhyrchu nwyddau cynfas, sachau ac ati",C
+13923,13923 - manufacture of household textiles,13923 - Gweithgynhyrchu tecstilau cartref,C
+13931,13931 - Manufacture of woven or tufted carpets and rugs,13931 - Gweithgynhyrchu carpedi a rygiau codennog neu wedi'u gwehyddu,C
+13939,13939 - Manufacture of other carpets and rugs,13939 - Gweithgynhyrchu carpedi a rygiau eraill,C
+13940,"13940 - Manufacture of cordage, rope, twine and netting","13940 - Gweithgynhyrchu deunyddiau rhaffog, rhaffau, cortynnau a rhwydi",C
+13950,"13950 - Manufacture of non-wovens and articles made from non-wovens, except apparel","13950 - Gweithgynhyrchu nwyddau heb eu gwehyddu a nwyddau o ddeunyddiau heb eu gwehyddu, ac eithrio dillad",C
+13960,13960 - Manufacture of other technical and industrial textiles,13960 - Gweithgynhyrchu tecstilau technegol a diwydiannol eraill,C
+13990,13990 - Manufacture of other textiles n.e.c.,13990 - Gweithgynhyrchu tecstilau eraill n.dd.b.,C
+14110,14110 - Manufacture of leather clothes,14110 - Gweithgynhyrchu dillad lledr,C
+14120,14120 - Manufacture of workwear,14120 - Gweithgynhyrchu dillad gwaith,C
+14131,14131 - Manufacture of other men's outerwear,14131 - Gweithgynhyrchu dillad uchaf eraill i ddynion,C
+14132,14132 - Manufacture of other women's outerwear,14132 - Gweithgynhyrchu dillad uchaf eraill i fenywod,C
+14141,14141 - Manufacture of men's underwear,14141 - Gweithgynhyrchu dillad isaf i ddynion,C
+14142,14142 - Manufacture of women's underwear,14142 - Gweithgynhyrchu dillad isaf i fenywod,C
+14190,14190 - Manufacture of other wearing apparel and accessories n.e.c.,14190 - Gweithgynhyrchu dillad ac ategolion eraill n.dd.b.,C
+14200,14200 - Manufacture of articles of fur,14200 - Gweithgynhyrchu eitemau ffwr,C
+14310,14310 - Manufacture of knitted and crocheted hosiery,14310 - Gweithgynhyrchu hosanwaith wedi'i wau a'i grosio,C
+14390,14390 - Manufacture of other knitted and crocheted apparel,14390 - Gweithgynhyrchu dillad eraill wedi'i gwau a’u crosio,C
+15110,15110 - Tanning and dressing of leather; dressing and dyeing of fur,15110 - Barcio a thrin lledr; trin a lliwio ffwr,C
+15120,"15120 - Manufacture of luggage, handbags and the like, saddlery and harness","15120 - Gweithgynhyrchu bagiau, bagiau llaw ac ati, cyfrwyon a harneisi",C
+15200,15200 - Manufacture of footwear,15200 - Gweithgynhyrchu esgidiau,C
+16100,16100 - Sawmilling and planing of wood,16100 - Llifio a phlaenio pren,C
+16210,16210 - Manufacture of veneer sheets and wood-based panels,16210 - Gweithgynhyrchu dalenni argaen a phaneli o bren,C
+16220,16220 - Manufacture of assembled parquet floors,16220 - Gweithgynhyrchu lloriau parquet parod,C
+16230,16230 - Manufacture of other builders' carpentry and joinery,16230 - Gweithgynhyrchu gwaith coed a gwaith saer arall ar gyfer adeiladwyr,C
+16240,16240 - Manufacture of wooden containers,16240 - Gweithgynhyrchu cynwysyddion pren,C
+16290,"16290 - Manufacture of other products of wood; manufacture of articles of cork, straw and plaiting materials","16290 - Gweithgynhyrchu cynhyrchion pren eraill; gweithgynhyrchu deunyddiau corc, gwellt a phleth",C
+17110,17110 - Manufacture of pulp,17110 - Gweithgynhyrchu mwydion pren,C
+17120,17120 - Manufacture of paper and paperboard,17120 - Gweithgynhyrchu papur a bwrdd papur,C
+17211,"17211 - Manufacture of corrugated paper and paperboard, sacks and bags","17211 - Gweithgynhyrchu papur rhychiog a bwrdd papur, sachau a bagiau",C
+17219,17219 - Manufacture of other paper and paperboard containers,17219 - Gweithgynhyrchu cynwysyddion eraill o bapur a bwrdd papur,C
+17220,17220 - Manufacture of household and sanitary goods and of toilet requisites,"17220 - Gweithgynhyrchu nwyddau cartref, iechydol a th? bach",C
+17230,17230 - Manufacture of paper stationery,17230 - Gweithgynhyrchu deunyddiau ysgrifennu papur,C
+17240,17240 - Manufacture of wallpaper,17240 - Gweithgynhyrchu papur wal,C
+17290,17290 - Manufacture of other articles of paper and paperboard n.e.c.,17290 - Gweithgynhyrchu eitemau eraill o bapur a bwrdd papur n.dd.b.,C
+18110,18110 - Printing of newspapers,18110 - Argraffu papurau newydd,C
+18121,18121 - Manufacture of printed labels,18121 - Gweithgynhyrchu labeli printiedig,C
+18129,18129 - Printing n.e.c.,18129 - Argraffu n.dd.b.,C
+18130,18130 - Pre-press and pre-media services,18130 - Gwasanaethau paratoi ar gyfer y wasg a'r cyfryngau,C
+18140,18140 - Binding and related services,18140 - Rhwymo a gwasanaethau cysylltiedig,C
+18201,18201 - Reproduction of sound recording,18201 - Atgynhyrchu recordiadau sain,C
+18202,18202 - Reproduction of video recording,18202 - Atgynhyrchu recordiadau fideo,C
+18203,18203 - Reproduction of computer media,18203 - Atgynhyrchu cyfryngau cyfrifiadurol,C
+19100,19100 - Manufacture of coke oven products,19100 - Gweithgynhyrchu cynhyrchion ffwrn golosg,C
+19201,19201 - Mineral oil refining,19201 - Puro olewon mwynol,C
+19209,19209 - Other treatment of petroleum products (excluding petrochemicals manufacture),19209 - Trin cynhyrchion petrolewm eraill (ac eithrio gweithgynhyrchu petrocemegion),C
+20110,20110 - Manufacture of industrial gases,20110 - Gweithgynhyrchu nwyon diwydiannol,C
+20120,20120 - Manufacture of dyes and pigments,20120 - Gweithgynhyrchu lifynnau a phigmentau,C
+20130,20130 - Manufacture of other inorganic basic chemicals,20130 - Gweithgynhyrchu cemegion sylfaenol anorganig eraill,C
+20140,20140 - Manufacture of other organic basic chemicals,20140 - Gweithgynhyrchu cemegion sylfaenol organig eraill,C
+20150,20150 - Manufacture of fertilizers and nitrogen compounds,20150 - Gweithgynhyrchu gwrtaith a chyfansoddion nitrogen,C
+20160,20160 - Manufacture of plastics in primary forms,20160 - Gweithgynhyrchu plastig ar ei ffurf sylfaenol,C
+20170,20170 - Manufacture of synthetic rubber in primary forms,20170 - Gweithgynhyrchu rwber synthetig ar ei ffurf sylfaenol,C
+20200,20200 - Manufacture of pesticides and other agrochemical products,20200 - Gweithgynhyrchu plaladdwyr a chynnyrch agrocemegol,C
+20301,"20301 - Manufacture of paints, varnishes and similar coatings, mastics and sealants","20301 - Gweithgynhyrchu paent, farnais a chaenau, mastigau a deunyddiau selio tebyg eraill",C
+20302,20302 - Manufacture of printing ink,20302 - Gweithgynhyrchu inc argraffu,C
+20411,20411 - Manufacture of soap and detergents,20411 - Gweithgynhyrchu sebon a glanedyddion,C
+20412,20412 - Manufacture of cleaning and polishing preparations,20412 - Gweithgynhyrchu cymysgeddau glanhau a chaboli,C
+20420,20420 - Manufacture of perfumes and toilet preparations,20420 - Gweithgynhyrchu persawrau a chymysgeddau ymolchi,C
+20510,20510 - Manufacture of explosives,20510 - Gweithgynhyrchu ffrwydron,C
+20520,20520 - Manufacture of glues,20520 - Gweithgynhyrchu glud,C
+20530,20530 - Manufacture of essential oils,20530 - Gweithgynhyrchu olewon naws,C
+20590,20590 - Manufacture of other chemical products n.e.c.,20590 - Gweithgynhyrchu cynhyrchion cemegol eraill n.dd.b.,C
+20600,20600 - Manufacture of man-made fibres,20600 - Gweithgynhyrchu ffibrau gwneud,C
+21100,21100 - Manufacture of basic pharmaceutical products,21100 - Gweithgynhyrchu cynhyrchion fferyllol sylfaenol,C
+21200,21200 - Manufacture of pharmaceutical preparations,21200 - Gweithgynhyrchu cymysgeddau fferyllol,C
+22110,22110 - Manufacture of rubber tyres and tubes; retreading and rebuilding of rubber tyres,22110 - Gweithgynhyrchu teiars a thiwbiau rwber; adfer ac ailwampio teiars rwber,C
+22190,22190 - Manufacture of other rubber products,22190 - Gweithgynhyrchu cynhyrchion rwber eraill,C
+22210,"22210 - Manufacture of plastic plates, sheets, tubes and profiles","22210 - Gweithgynhyrchu platiau, dalenni, tiwbiau a phroffiliau plastig",C
+22220,22220 - Manufacture of plastic packing goods,22220 - Gweithgynhyrchu nwyddau pacio plastig,C
+22230,22230 - Manufacture of builders  ware of plastic,22230 - Gweithgynhyrchu deunydd adeiladu o blastig,C
+22290,22290 - Manufacture of other plastic products,22290 - Gweithgynhyrchu cynhyrchion plastig eraill,C
+23110,23110 - Manufacture of flat glass,23110 - Gweithgynhyrchu gwydr gwastad,C
+23120,23120 - Shaping and processing of flat glass,23120 - Siapio a phrosesu gwydr gwastad,C
+23130,23130 - Manufacture of hollow glass,23130 - Gweithgynhyrchu gwydr cau,C
+23140,23140 - Manufacture of glass fibres,23140 - Gweithgynhyrchu ffibrau gwydr,C
+23190,"23190 - Manufacture and processing of other glass, including technical glassware","23190 - Gweithgynhyrchu a phrosesu gwydrau eraill, gan gynnwys llestri gwydr technegol",C
+23200,23200 - Manufacture of refractory products,23200 - Gweithgynhyrchu cynhyrchion gwrthsafol,C
+23310,23310 - Manufacture of ceramic tiles and flags,23310 - Gweithgynhyrchu teils a cherrig llorio serameg,C
+23320,"23320 - Manufacture of bricks, tiles and construction products, in baked clay","23320 - Gweithgynhyrchu brics, teils a chynhyrchion adeiladu clai cras",C
+23410,23410 - Manufacture of ceramic household and ornamental articles,23410 - Gweithgynhyrchu nwyddau cartref ac addurnol seramig,C
+23420,23420 - Manufacture of ceramic sanitary fixtures,23420 - Gweithgynhyrchu offer iechydol seramig,C
+23430,23430 - Manufacture of ceramic insulators and insulating fittings,23430 - Gweithgynhyrchu ynysyddion ac offer ynysu seramig,C
+23440,23440 - Manufacture of other technical ceramic products,23440 - Gweithgynhyrchu cynhyrchion technegol seramig eraill,C
+23490,23490 - Manufacture of other ceramic products n.e.c.,23490 - Gweithgynhyrchu cynhyrchion seramig eraill n.dd.b.,C
+23510,23510 - Manufacture of cement,23510 - Gweithgynhyrchu sment,C
+23520,23520 - Manufacture of lime and plaster,23520 - Gweithgynhyrchu calch a phlastr,C
+23610,23610 - Manufacture of concrete products for construction purposes,23610 - Gweithgynhyrchu cynhyrchion concrit at ddibenion adeiladu,C
+23620,23620 - Manufacture of plaster products for construction purposes,23620 - Gweithgynhyrchu cynhyrchion plastr at ddibenion adeiladu,C
+23630,23630 - Manufacture of ready-mixed concrete,23630 - Gweithgynhyrchu concrit parod,C
+23640,23640 - Manufacture of mortars,23640 - Gweithgynhyrchu morter (priddgalch),C
+23650,23650 - Manufacture of fibre cement,23650 - Gweithgynhyrchu sment ffibr,C
+23690,"23690 - Manufacture of other articles of concrete, plaster and cement","23690 - Gweithgynhyrchu nwyddau eraill o goncrit, plastr a sment",C
+23700,"23700 - Cutting, shaping and finishing of stone","23700 - Torri, naddu a gorffennu carreg",C
+23910,23910 - Production of abrasive products,23910 - Cynhyrchu cynhyrchion ffrithiol,C
+23990,23990 - Manufacture of other non-metallic mineral products n.e.c.,23990 - Gweithgynhyrchu cynhyrchion mwynau anfetelaidd eraill n.dd.b.,C
+24100,24100 - Manufacture of basic iron and steel and of ferro-alloys,24100 - Gweithgynhyrchu haearn a dur sylfaenol a ffero-aloeon,C
+24200,"24200 - Manufacture of tubes, pipes, hollow profiles and related fittings, of steel","24200 - Gweithgynhyrchu tiwbiau, pibellau, proffiliau gwag a gosodiadau cysylltiedig, o ddur",C
+24310,24310 - Cold drawing of bars,24310 - Tynnu bariau yn oer,C
+24320,24320 - Cold rolling of narrow strip,24320 - Rholio stribedi cul yn oer,C
+24330,24330 - Cold forming or folding,24330 - Ffurfio neu blygu oer,C
+24340,24340 - Cold drawing of wire,24340 - Tynnu weiar yn oer,C
+24410,24410 - Precious metals production,24410 - Cynhyrchu metelau gwerthfawr,C
+24420,24420 - Aluminium production,24420 - Cynhyrchu alwminiwm,C
+24430,"24430 - Lead, zinc and tin production","24430 - Cynhyrchu plwm, sinc a thun",C
+24440,24440 - Copper production,24440 - Cynhyrchu copr,C
+24450,24450 - Other non-ferrous metal production,24450 - Cynhyrchu metelau anfferrus eraill,C
+24460,24460 - Processing of nuclear fuel,24460 - Prosesu tanwydd niwclear,C
+24510,24510 - Casting of iron,24510 - Bwrw haearn,C
+24520,24520 - Casting of steel,24520 - Bwrw dur,C
+24530,24530 - Casting of light metals,24530 - Bwrw metelau ysgafn,C
+24540,24540 - Casting of other non-ferrous metals,24540 - Bwrw metelau anfferrus eraill,C
+25110,25110 - Manufacture of metal structures and parts of structures,25110 - Gweithgynhyrchu strwythurau metel a rhannau o strwythurau,C
+25120,25120 - Manufacture of doors and windows of metal,25120 - Gweithgynhyrchu drysau a ffenestri o fetel,C
+25210,25210 - Manufacture of central heating radiators and boilers,25210 - Gweithgynhyrchu rheiddiaduron a bwyleri gwres canolog,C
+25290,"25290 - Manufacture of other tanks, reservoirs and containers of metal","25290 - Gweithgynhyrchu tanciau, cronfeydd a chynwysyddion eraill o fetel",C
+25300,"25300 - Manufacture of steam generators, except central heating hot water boilers","25300 - Gweithgynhyrchu generaduron stêm, ac eithrio bwyleri d?r poeth gwres canolog",C
+25400,25400 - Manufacture of weapons and ammunition,25400 - Gweithgynhyrchu arfau a ffrwydron rhyfel,C
+25500,"25500 - Forging, pressing, stamping and roll-forming of metal; powder metallurgy","25500 - Gofannu, gwasgu, stampio a rholio metel; meteleg powdr",C
+25610,25610 - Treatment and coating of metals,25610 - Trin a chaenu metelau,C
+25620,25620 - Machining,25620 - Turnio,C
+25710,25710 - Manufacture of cutlery,25710 - Gweithgynhyrchu cytleri,C
+25720,25720 - Manufacture of locks and hinges,25720 - Gweithgynhyrchu cloeon a cholfachau,C
+25730,25730 - Manufacture of tools,25730 - Gweithgynhyrchu t?ls,C
+25910,25910 - Manufacture of steel drums and similar containers,25910 - Gweithgynhyrchu drymiau dur a chynwysyddion tebyg,C
+25920,25920 - Manufacture of light metal packaging,25920 - Gweithgynhyrchu deunydd pecynnu metel ysgafn,C
+25930,"25930 - Manufacture of wire products, chain and springs","25930 - Gweithgynhyrchu cynhyrchion weiar, cadwyni a sbringiau",C
+25940,25940 - Manufacture of fasteners and screw machine products,25940 - Gweithgynhyrchu ffasnyddion a sgriwiau peiriannol,C
+25990,25990 - Manufacture of other fabricated metal products n.e.c.,25990 - Gweithgynhyrchu cynhyrchion metel gwneud eraill n.dd.b.,C
+26110,26110 - Manufacture of electronic components,26110 - Gweithgynhyrchu cydrannau electronig,C
+26120,26120 - Manufacture of loaded electronic boards,26120 - Gweithgynhyrchu byrddau electronig parod,C
+26200,26200 - Manufacture of computers and peripheral equipment,26200 - Gweithgynhyrchu cyfrifiaduron a pherifferolion,C
+26301,26301 - Manufacture of telegraph and telephone apparatus and equipment,26301 - Gweithgynhyrchu cyfarpar ac offer telegraff a theleffon,C
+26309,"26309 - Manufacture of communication equipment other than telegraph, and telephone apparatus and equipment",26309 - Gweithgynhyrchu offer a chyfarpar cyfathrebu ac eithrio cyfarpar ac offer telegraff a theleffon,C
+26400,26400 - Manufacture of consumer electronics,26400 - Gweithgynhyrchu electroneg i ddefnyddwyr,C
+26511,"26511 - Manufacture of electronic measuring, testing etc. equipment, not for industrial process control","26511 - Gweithgynhyrchu cyfarpar electronig ar gyfer mesur, profi ac ati, ond nid at ddibenion rheoli prosesau diwydiannol",C
+26512,26512 - Manufacture of electronic industrial process control equipment,26512 - Gweithgynhyrchu cyfarpar electronig i reoli prosesau diwydiannol,C
+26513,"26513 - Manufacture of non-electronic measuring, testing etc. equipment, not for industrial process control","26513 - Gweithgynhyrchu cyfarpar nad yw'n electronig ar gyfer mesur, profi ac ati, ond nid at ddibenion rheoli prosesau diwydiannol",C
+26514,26514 - Manufacture of non-electronic industrial process control equipment,26514 - Gweithgynhyrchu cyfarpar nad yw'n electronig ar gyfer rheoli prosesau diwydiannol,C
+26520,26520 - Manufacture of watches and clocks,26520 - Gweithgynhyrchu watsys a chlociau,C
+26600,"26600 - Manufacture of irradiation, electromedical and electrotherapeutic equipment","26600 - Gweithgynhyrchu cyfarpar arbelydru, electrofeddygol ac electrotherapiwtig",C
+26701,26701 - Manufacture of optical precision instruments,26701 - Gweithgynhyrchu cyfarpar manylwaith optig,C
+26702,26702 - Manufacture of photographic and cinematographic equipment,26702 - Gweithgynhyrchu cyfarpar ffotograffig a sinematograffig,C
+26800,26800 - Manufacture of magnetic and optical media,26800 - Gweithgynhyrchu cyfryngau magnetig ac optegol,C
+27110,"27110 - Manufacture of electric motors, generators and transformers","27110 - Gweithgynhyrchu moduron trydan, generaduron a newidyddion",C
+27120,27120 - Manufacture of electricity distribution and control apparatus,27120 - Gweithgynhyrchu cyfarpar dosbarthu a rheoli trydan,C
+27200,27200 - Manufacture of batteries and accumulators,27200 - Gweithgynhyrchu batris a chronaduron,C
+27310,27310 - Manufacture of fibre optic cables,27310 - Gweithgynhyrchu ceblau ffibr optig,C
+27320,27320 - Manufacture of other electronic and electric wires and cables,27320 - Gweithgynhyrchu gwifrau a cheblau electronig a thrydan eraill,C
+27330,27330 - Manufacture of wiring devices,27330 - Gweithgynhyrchu dyfeisiau gwifro,C
+27400,27400 - Manufacture of electric lighting equipment,27400 - Gweithgynhyrchu offer goleuo trydanol,C
+27510,27510 - Manufacture of electric domestic appliances,27510 - Gweithgynhyrchu dyfeisiau trydan domestig,C
+27520,27520 - Manufacture of non-electric domestic appliances,27520 - Gweithgynhyrchu dyfeisiau domestig nad ydynt yn drydanol,C
+27900,27900 - Manufacture of other electrical equipment,27900 - Gweithgynhyrchu cyfarpar trydanol eraill,C
+28110,"28110 - Manufacture of engines and turbines, except aircraft, vehicle and cycle engines","28110 - Gweithgynhyrchu injans a thyrbinau, ac eithrio injans awyrennau, cerbydau a beiciau",C
+28120,28120 - Manufacture of fluid power equipment,28120 - Gweithgynhyrchu cyfarpar p?er hylifol,C
+28131,28131 - Manufacture of pumps,28131 - Gweithgynhyrchu pympiau,C
+28132,28132 - Manufacture of compressors,28132 - Gweithgynhyrchu cywasgyddion,C
+28140,28140 - Manufacture of taps and valves,28140 - Gweithgynhyrchu tapiau a falfiau,C
+28150,"28150 - Manufacture of bearings, gears, gearing and driving elements","28150 - Gweithgynhyrchu berynnau, gerau ac elfennau gerio a gyrru",C
+28210,"28210 - Manufacture of ovens, furnaces and furnace burners","28210 - Gweithgynhyrchu ffyrnau, ffwrneisi a llosgwyr ffwrnais",C
+28220,28220 - Manufacture of lifting and handling equipment,28220 - Gweithgynhyrchu cyfarpar codi a thrin,C
+28230,28230 - Manufacture of office machinery and equipment (except computers and peripheral equipment),28230 - Gweithgynhyrchu peiriannau a chyfarpar swyddfa (ac eithrio cyfrifiaduron a pherifferolion),C
+28240,28240 - Manufacture of power-driven hand tools,28240 - Gweithgynhyrchu t?ls p?er maint llaw,C
+28250,28250 - Manufacture of non-domestic cooling and ventilation equipment,28250 - Gweithgynhyrchu offer oeri ac awyru annomestig,C
+28290,28290 - Manufacture of other general-purpose machinery n.e.c.,28290 - Gweithgynhyrchu peiriannau eraill at ddibenion cyffredinol n.dd.b.,C
+28301,28301 - Manufacture of agricultural tractors,28301 - Gweithgynhyrchu tractorau amaethyddol,C
+28302,28302 - Manufacture of agricultural and forestry machinery other than tractors,28302 - Gweithgynhyrchu peiriannau amaethyddol a choedwigaeth ac eithrio tractorau,C
+28410,28410 - Manufacture of metal forming machinery,28410 - Gweithgynhyrchu peiriannau ffurfio metel,C
+28490,28490 - Manufacture of other machine tools,28490 - Gweithgynhyrchu offer peiriannol eraill,C
+28910,28910 - Manufacture of machinery for metallurgy,28910 - Gweithgynhyrchu peiriannau meteleg,C
+28921,28921 - Manufacture of machinery for mining,28921 - Gweithgynhyrchu peiriannau mwyngloddio,C
+28922,28922 - Manufacture of earthmoving equipment,28922 - Gweithgynhyrchu cyfarpar symud tir,C
+28923,28923 - Manufacture of equipment for concrete crushing and screening and roadworks,28923 - Gweithgynhyrchu cyfarpar malu concrit a sgrinio a gwaith ffyrdd,C
+28930,"28930 - Manufacture of machinery for food, beverage and tobacco processing","28930 - Gweithgynhyrchu peiriannau prosesu bwyd, diodydd a thybaco",C
+28940,"28940 - Manufacture of machinery for textile, apparel and leather production","28940 - Gweithgynhyrchu peiriannau cynhyrchu tecstilau, dillad a lledr",C
+28950,28950 - Manufacture of machinery for paper and paperboard production,28950 - Gweithgynhyrchu peiriannau cynhyrchu papur a bwrdd papur,C
+28960,28960 - Manufacture of plastics and rubber machinery,28960 - Gweithgynhyrchu peiriannau gwneud plastig a rwber,C
+28990,28990 - Manufacture of other special-purpose machinery n.e.c.,28990 - Gweithgynhyrchu peiriannau pwrpasol eraill n.dd.b.,C
+29100,29100 - Manufacture of motor vehicles,29100 - Gweithgynhyrchu cerbydau modur,C
+29201,29201 - Manufacture of bodies (coachwork) for motor vehicles (except caravans),29201 - Gweithgynhyrchu cyrff (coetswaith) cerbydau modur (ac eithrio carafanau),C
+29202,29202 - Manufacture of trailers and semi-trailers,29202 - Gweithgynhyrchu trelars a hanner-trelars,C
+29203,29203 - Manufacture of caravans,29203 - Gweithgynhyrchu carafanau,C
+29310,29310 - Manufacture of electrical and electronic equipment for motor vehicles and their engines,29310 - Gweithgynhyrchu cyfarpar trydanol ac electronig ar gyfer cerbydau modur a'u hinjans,C
+29320,29320 - Manufacture of other parts and accessories for motor vehicles,29320 - Gweithgynhyrchu darnau ac ategolion eraill ar gyfer cerbydau modur,C
+30110,30110 - Building of ships and floating structures,30110 - Adeiladu llongau a strwythurau sy'n arnofio,C
+30120,30120 - Building of pleasure and sporting boats,30120 - Adeiladu cychod pleser a chwaraeon,C
+30200,30200 - Manufacture of railway locomotives and rolling stock,30200 - Gweithgynhyrchu locomotifau a cherbydau rheilffordd,C
+30300,30300 - Manufacture of air and spacecraft and related machinery,30300 - Gweithgynhyrchu peiriannau awyr a llongau gofod a'r peiriannau cysylltiedig,C
+30400,30400 - Manufacture of military fighting vehicles,30400 - Gweithgynhyrchu cerbydau ymladd milwrol,C
+30910,30910 - Manufacture of motorcycles,30910 - Gweithgynhyrchu beiciau modur,C
+30920,30920 - Manufacture of bicycles and invalid carriages,30920 - Gweithgynhyrchu beiciau a cherbydau i'r methedig,C
+30990,30990 - Manufacture of other transport equipment n.e.c.,30990 - Gweithgynhyrchu cyfarpar arall ar gyfer trafnidiaeth n.dd.b.,C
+31010,31010 - Manufacture of office and shop furniture,31010 - Gweithgynhyrchu celfi swyddfa a siop,C
+31020,31020 - Manufacture of kitchen furniture,31020 - Gweithgynhyrchu celfi'r gegin,C
+31030,31030 - Manufacture of mattresses,31030 - Gweithgynhyrchu matresi,C
+31090,31090 - Manufacture of other furniture,31090 - Gweithgynhyrchu celfi eraill,C
+32110,32110 - Striking of coins,32110 - Bwrw darnau arian,C
+32120,32120 - Manufacture of jewellery and related articles,32120 - Gweithgynhyrchu gemwaith ac eitemau cysylltiedig,C
+32130,32130 - Manufacture of imitation jewellery and related articles,32130 - Gweithgynhyrchu gemwaith ffug ac eitemau cysylltiedig,C
+32200,32200 - Manufacture of musical instruments,32200 - Gweithgynhyrchu offerynnau cerdd,C
+32300,32300 - Manufacture of sports goods,32300 - Gweithgynhyrchu nwyddau chwaraeon,C
+32401,32401 - Manufacture of professional and arcade games and toys,32401 - Gweithgynhyrchu gemau a theganau proffesiynol ac arcêd,C
+32409,"32409 - Manufacture of other games and toys, n.e.c.",32409 - Gweithgynhyrchu gemau a theganau eraill n.dd.b.,C
+32500,32500 - Manufacture of medical and dental instruments and supplies,32500 - Gweithgynhyrchu offerynnau a nwyddau meddygol a deintyddol,C
+32910,32910 - Manufacture of brooms and brushes,32910 - Gweithgynhyrchu ysgubellau a brwshys,C
+32990,32990 - Other manufacturing n.e.c.,32990 - Gweithgynhyrchu arall n.dd.b.,C
+33110,33110 - Repair of fabricated metal products,33110 - Atgyweirio cynhyrchion metel gwneuthuredig,C
+33120,33120 - Repair of machinery,33120 - Atgyweirio peiriannau,C
+33130,33130 - Repair of electronic and optical equipment,33130 - Atgyweirio offer electronig ac optig,C
+33140,33140 - Repair of electrical equipment,33140 - Atgyweirio offer trydanol,C
+33150,33150 - Repair and maintenance of ships and boats,33150 - Atgyweirio a chynnal llongau a chychod,C
+33160,33160 - Repair and maintenance of aircraft and spacecraft,33160 - Atgyweirio a chynnal awyrennau a llongau awyr,C
+33170,33170 - Repair and maintenance of other transport equipment n.e.c.,33170 - Atgyweirio a chynnal of cyfarpar arall ar gyfer trafnidiaeth n.dd.b.,C
+33190,33190 - Repair of other equipment,33190 - Atgyweirio mathau eraill o gyfarpar,C
+33200,33200 - Installation of industrial machinery and equipment,33200 - Gosod peiriannau ac offer diwydiannol,C
+35110,35110 - Production of electricity,35110 - Cynhyrchu trydan,D
+35120,35120 - Transmission of electricity,35120 - Trawsyrru trydan,D
+35130,35130 - Distribution of electricity,35130 - Dosbarthu trydan,D
+35140,35140 - Trade of electricity,35140 - Masnachu trydan,D
+35210,35210 - Manufacture of gas,35210 - Gweithgynhyrchu nwy,D
+35220,35220 - Distribution of gaseous fuels through mains,35220 - Dosbarthu tanwydd nwyol trwy prif bibell,D
+35230,35230 - Trade of gas through mains,35230 - Masnachu nwy trwy prif bibell,D
+35300,35300 - Steam and air conditioning supply,35300 - Cyflenwi stêm a thymherwyr awyr,D
+36000,"36000 - Water collection, treatment and supply","36000 - Casglu, trin a chyflenwi d?r",E
+37000,37000 - Sewerage,37000 - Carthffosiaeth,E
+38110,38110 - Collection of non-hazardous waste,38110 - Casglu gwastraff nad yw'n beryglus,E
+38120,38120 - Collection of hazardous waste,38120 - Casglu gwastraff peryglus,E
+38210,38210 - Treatment and disposal of non-hazardous waste,38210 - Trin a gwaredu gwastraff nad yw'n beryglus,E
+38220,38220 - Treatment and disposal of hazardous waste,38220 - Trin a gwaredu gwastraff peryglus,E
+38310,38310 - Dismantling of wrecks,38310 - Datgymalu drylliadau,E
+38320,38320 - Recovery of sorted materials,38320 - Adfer deunyddiau a ddidolwyd,E
+39000,39000 - Remediation activities and other waste management services,39000 - Gweithgareddau adfer a gwasanaethau rheoli gwastraff eraill,E
+41100,41100 - Development of building projects,41100 - Datblygu projectau adeiladu,F
+41201,41201 - Construction of commercial buildings,41201 - Adeiladu adeiladau masnachol,F
+41202,41202 - Construction of domestic buildings,41202 - Adeiladu adeiladau domestig,F
+42110,42110 - Construction of roads and motorways,42110 - Adeiladu ffyrdd a phriffyrdd,F
+42120,42120 - Construction of railways and underground railways,42120 - Adeiladu rheilffyrdd a rheilffyrdd tanddaearol,F
+42130,42130 - Construction of bridges and tunnels,42130 - Adeiladu pontydd a thwneli,F
+42210,42210 - Construction of utility projects for fluids,42210 - Adeiladu projectau cyfleustodau hylifau,F
+42220,42220 - Construction of utility projects for electricity and telecommunications,42220 - Adeiladu projectau cyfleustodau trydan a thelathrebu,F
+42910,42910 - Construction of water projects,42910 - Adeiladu projectau d?r,F
+42990,42990 - Construction of other civil engineering projects n.e.c.,42990 - Adeiladu projectau peirianneg sifil eraill n.dd.b.,F
+43110,43110 - Demolition,43110 - Dymchwel,F
+43120,43120 - Site preparation,43120 - Paratoi safleoedd,F
+43130,43130 - Test drilling and boring,43130 - Drilio a thorri tyllau profi,F
+43210,43210 - Electrical installation,43210 - Gosod offer trydanol,F
+43220,"43220 - Plumbing, heat and air-conditioning installation","43220 - Gosod systemau plymio, gwres a thymheru'r aer",F
+43290,43290 - Other construction installation,43290 - Mathau eraill osod at ddibenion adeiladu,F
+43310,43310 - Plastering,43310 - Plastro,F
+43320,43320 - Joinery installation,43320 - Gosod gwaith coed,F
+43330,43330 - Floor and wall covering,43330 - Gorchuddio lloriau a waliau,F
+43341,43341 - Painting,43341 - Peintio,F
+43342,43342 - Glazing,43342 - Gwydro,F
+43390,43390 - Other building completion and finishing,43390 - Gwaith gorffen a gorffennu adeiladu eraill,F
+43910,43910 - Roofing activities,43910 - Gweithgareddau gosod to,F
+43991,43991 - Scaffold erection,43991 - Codi sgaffaldiau,F
+43999,43999 - Other specialised construction activities n.e.c.,43999 - Gweithgareddau adeiladu arbenigol eraill n.dd.b.,F
+45111,45111 - Sale of new cars and light motor vehicles,45111 - Gwerthu ceir a cherbydau modur ysgafn newydd,G
+45112,45112 - Sale of used cars and light motor vehicles,45112 - Gwerthu ceir a cherbydau modur ysgafn ail law,G
+45190,45190 - Sale of other motor vehicles,45190 - Gwerthu cerbydau modur eraill,G
+45200,45200 - Maintenance and repair of motor vehicles,45200 - Cynnal ac atgyweirio cerbydau modur,G
+45310,45310 - Wholesale trade of motor vehicle parts and accessories,45310 - Cyfanwerthu darnau ac ategolion cerbydau modur,G
+45320,45320 - Retail trade of motor vehicle parts and accessories,45320 - Adwerthu darnau ac ategolion cerbydau modur,G
+45400,"45400 - Sale, maintenance and repair of motorcycles and related parts and accessories","45400 - Gwerthu, cynnal ac atgyweirio beiciau modur a darnau ac ategolion cysylltiedig",G
+46110,"46110 - Agents selling agricultural raw materials, livestock, textile raw materials and semi-finished goods","46110 - Asiantau sy'n gwerthu deunydd crai amaethyddol, da byw, deunyddiau crai tecstilau a nwyddau lled-barod",G
+46120,"46120 - Agents involved in the sale of fuels, ores, metals and industrial chemicals","46120 - Asiantau sydd ynghlwm wrth werthu tanwydd, mwynau, metelau a chemegion diwydiannol",G
+46130,46130 - Agents involved in the sale of timber and building materials,46130 - Asiantau sydd ynghlwm wrth werthu pren a deunyddiau adeiladu,G
+46140,"46140 - Agents involved in the sale of machinery, industrial equipment, ships and aircraft","46140 - Asiantau sydd ynghlwm wrth werthu peiriannau, offer diwydiannol, llongau ac awyrennau",G
+46150,"46150 - Agents involved in the sale of furniture, household goods, hardware and ironmongery","46150 - Asiantau sydd ynghlwm wrth werthu celfi, nwyddau cartref, caledwedd a nwyddau haearn",G
+46160,"46160 - Agents involved in the sale of textiles, clothing, fur, footwear and leather goods","46160 - Asiantau sydd ynghlwm wrth werthu tecstilau, dillad, ffwr, esgidiau a nwyddau lledr",G
+46170,"46170 - Agents involved in the sale of food, beverages and tobacco","46170 - Asiantau sydd ynghlwm wrth werthu bwydydd, diodydd a thybaco",G
+46180,46180 - Agents specialized in the sale of other particular products,46180 - Asiantau sy'n arbenigo mewn gwerthu cynhyrchion penodol eraill,G
+46190,46190 - Agents involved in the sale of a variety of goods,46190 - Asiantau sydd ynghlwm wrth werthu amrywiaeth o nwyddau,G
+46210,"46210 - Wholesale of grain, unmanufactured tobacco, seeds and animal feeds","46210 - Cyfanwerthu grawn, tybaco crai, hadau a bwydydd anifeiliaid",G
+46220,46220 - Wholesale of flowers and plants,46220 - Cyfanwerthu blodau a phlanhigion,G
+46230,46230 - Wholesale of live animals,46230 - Cyfanwerthu anifeiliaid byw,G
+46240,"46240 - Wholesale of hides, skins and leather",46240 - Cyfanwerthu crwyn a lledr,G
+46310,46310 - Wholesale of fruit and vegetables,46310 - Cyfanwerthu ffrwythau a llysiau,G
+46320,46320 - Wholesale of meat and meat products,46320 - Cyfanwerthu cig a chynhyrchion cig,G
+46330,"46330 - Wholesale of dairy products, eggs and edible oils and fats","46330 - Cyfanwerthu cynhyrchion llaeth, wyau ac olewon a brasterau bwytadwy",G
+46341,"46341 - Wholesale of fruit and vegetable juices, mineral water and soft drinks","46341 - Cyfanwerthu sudd ffrwythau a llysiau, d?r mwynol a diodydd ysgafn",G
+46342,"46342 - Wholesale of wine, beer, spirits and other alcoholic beverages","46342 - Cyfanwerthu gwin, cwrw, gwirodydd a diodydd meddwol eraill",G
+46350,46350 - Wholesale of tobacco products,46350 - Cyfanwerthu cynhyrchion tybaco,G
+46360,46360 - Wholesale of sugar and chocolate and sugar confectionery,46360 - Cyfanwerthu siwgr a siocled a melysion siwgr,G
+46370,"46370 - Wholesale of coffee, tea, cocoa and spices","46370 - Cyfanwerthu coffi, te, coco a sbeis",G
+46380,"46380 - Wholesale of other food, including fish, crustaceans and molluscs","46380 - Cyfanwerthu bwydydd eraill, gan gynnwys pysgod, cramenogion a molysgiaid",G
+46390,"46390 - Non-specialised wholesale of food, beverages and tobacco","46390 - Cyfanwerthu bwydydd, diodydd a thybaco cyffredinol",G
+46410,46410 - Wholesale of textiles,46410 - Cyfanwerthu tecstilau,G
+46420,46420 - Wholesale of clothing and footwear,46420 - Cyfanwerthu dillad ac esgidiau,G
+46431,"46431 - Wholesale of audio tapes, records, CDs and video tapes and the equipment on which these are played","46431 - Cyfanwerthu tapiau sain, recordiau, CDs a thapiau fideo a'r offer ar gyfer eu chwarae",G
+46439,"46439 - Wholesale of radio, television goods & electrical household appliances (other than records, tapes, CD's & video tapes and the equipment used for playing them)","46439 - Cyfanwerthu nwyddau radio a theledu a dyfeisiau trydan i'r cartref (ac eithrio recordiau, tapiau, CDs a thapiau fideo, a'r offer a ddefnyddir i'w chwarae)",G
+46440,46440 - Wholesale of china and glassware and cleaning materials,46440 - Cyfanwerthu llestri gwydr a tsieina a deunyddiau glanhau,G
+46450,46450 - Wholesale of perfume and cosmetics,46450 - Cyfanwerthu persawr a chosmetigau,G
+46460,46460 - Wholesale of pharmaceutical goods,46460 - Cyfanwerthu nwyddau fferyllol,G
+46470,"46470 - Wholesale of furniture, carpets and lighting equipment","46470 - Cyfanwerthu celfi, carpedi ac offer goleuo",G
+46480,46480 - Wholesale of watches and jewellery,46480 - Cyfanwerthu watsys a gemwaith,G
+46491,46491 - Wholesale of musical instruments,46491 - Cyfanwerthu offerynnau cerdd,G
+46499,46499 - Wholesale of household goods (other than musical instruments) n.e.c.,46499 - Cyfanwerthu nwyddau cartref (ac eithrio offerynnau cerdd) n.dd.b.,G
+46510,"46510 - Wholesale of computers, computer peripheral equipment and software","46510 - Cyfanwerthu cyfrifiaduron, perifferolion cyfrifiadurol a meddalwedd",G
+46520,46520 - Wholesale of electronic and telecommunications equipment and parts,46520 - Cyfanwerthu cyfarpar electronig a thelathrebu a'r darnau cysylltiedig,G
+46610,"46610 - Wholesale of agricultural machinery, equipment and supplies","46610 - Cyfanwerthu peiriannau, cyfarpar a chyflenwadau amaethyddol",G
+46620,46620 - Wholesale of machine tools,46620 - Cyfanwerthu offer peiriannol,G
+46630,"46630 - Wholesale of mining, construction and civil engineering machinery","46630 - Cyfanwerthu peiriannau mwyngloddio, adeiladu a pheirianneg sifil",G
+46640,46640 - Wholesale of machinery for the textile industry and of sewing and knitting machines,46640 - Cyfanwerthu peiriannau ar gyfer y diwydiant tecstilau a pheiriannau gwnïo a gwau,G
+46650,46650 - Wholesale of office furniture,46650 - Cyfanwerthu celfi swyddfa,G
+46660,46660 - Wholesale of other office machinery and equipment,46660 - Cyfanwerthu peiriannau a chyfarpar swyddfa eraill,G
+46690,46690 - Wholesale of other machinery and equipment,46690 - Cyfanwerthu peiriannau a chyfarpar eraill,G
+46711,46711 - Wholesale of petroleum and petroleum products,46711 - Cyfanwerthu petrolewm a chynhyrchion petrolewm,G
+46719,46719 - Wholesale of other fuels and related products,46719 - Cyfanwerthu mathau eraill o danwydd a chynhyrchion cysylltiedig,G
+46720,46720 - Wholesale of metals and metal ores,46720 - Cyfanwerthu metelau a mwynau metel,G
+46730,"46730 - Wholesale of wood, construction materials and sanitary equipment","46730 - Cyfanwerthu pren, deunyddiau adeiladu ac offer iechydol",G
+46740,"46740 - Wholesale of hardware, plumbing and heating equipment and supplies","46740 - Cyfanwerthu cyfarpar a nwyddau metel, plymio a gwresogi",G
+46750,46750 - Wholesale of chemical products,46750 - Cyfanwerthu cynhyrchion cemegol,G
+46760,46760 - Wholesale of other intermediate products,46760 - Cyfanwerthu cynhyrchion rhyngol eraill,G
+46770,46770 - Wholesale of waste and scrap,46770 - Cyfanwerthu gwastraff a sgrap,G
+46900,46900 - Non-specialised wholesale trade,46900 - Masnach cyfanwerthu cyffredinol,G
+47110,"47110 - Retail sale in non-specialised stores with food, beverages or tobacco predominating","47110 - Adwerthu mewn siopau cyffredinol sy'n gwerthu bwydydd, diodydd a thybaco yn bennaf",G
+47190,47190 - Other retail sale in non-specialised stores,47190 - Adwerthu arall mewn siopau cyffredinol,G
+47210,47210 - Retail sale of fruit and vegetables in specialised stores,47210 - Adwerthu ffrwythau a llysiau mewn siopau arbenigol,G
+47220,47220 - Retail sale of meat and meat products in specialised stores,47220 - Adwerthu cig a chynhyrchion cig mewn siopau arbenigol,G
+47230,"47230 - Retail sale of fish, crustaceans and molluscs in specialised stores","47230 - Adwerthu pysgod, cramenogion a molysgiaid mewn siopau arbenigol",G
+47240,"47240 - Retail sale of bread, cakes, flour confectionery and sugar confectionery in specialised stores","47240 - Adwerthu bara, cacennau, melysion cannog a melysion siwgr mewn siopau arbenigol",G
+47250,47250 - Retail sale of beverages in specialised stores,47250 - Adwerthu diodydd mewn siopau arbenigol,G
+47260,47260 - Retail sale of tobacco products in specialised stores,47260 - Adwerthu cynhyrchion tybaco mewn siopau arbenigol,G
+47290,47290 - Other retail sale of food in specialised stores,47290 - Adwerthu bwydydd eraill mewn siopau arbenigol,G
+47300,47300 - Retail sale of automotive fuel in specialised stores,47300 - Adwerthu tanwydd cerbydau modur mewn siopau arbenigol,G
+47410,"47410 - Retail sale of computers, peripheral units and software in specialised stores","47410 - Adwerthu cyfrifiaduron, unedau perifferol a meddalwedd mewn siopau arbenigol",G
+47421,47421 - Retail sale of mobile telephones,47421 - Adwerthu teleffonau symudol,G
+47429,47429 - Retail sale of telecommunications equipment other than mobile telephones,47429 - Adwerthu offer telathrebu ac eithrio teleffonau symudol,G
+47430,47430 - Retail sale of audio and video equipment in specialised stores,47430 - Adwerthu offer sain a fideo mewn siopau arbenigol,G
+47510,47510 - Retail sale of textiles in specialised stores,47510 - Adwerthu tecstilau mewn siopau arbenigol,G
+47520,"47520 - Retail sale of hardware, paints and glass in specialised stores","47520 - Adwerthu nwyddau haearn, paent a gwydr mewn siopau arbenigol",G
+47530,"47530 - Retail sale of carpets, rugs, wall and floor coverings in specialised stores","47530 - Adwerthu carpedi, rygiau, a gorchuddion waliau a lloriau mewn siopau arbenigol",G
+47540,47540 - Retail sale of electrical household appliances in specialised stores,47540 - Adwerthu dyfeisiau cartref trydanol mewn siopau arbenigol,G
+47591,47591 - Retail sale of musical instruments and scores,47591 - Adwerthu offerynnau cerdd a sgoriau,G
+47599,"47599 - Retail of furniture, lighting, and similar (not musical instruments or scores) in specialised store","47599 - Adwerthu celfi, goleuadau a phethau tebyg (nid offerynnau cerdd na sgoriau) mewn siopau arbenigol",G
+47610,47610 - Retail sale of books in specialised stores,47610 - Adwerthu llyfrau mewn siopau arbenigol,G
+47620,47620 - Retail sale of newspapers and stationery in specialised stores,47620 - Adwerthu papurau newydd a deunyddiau ysgrifennu mewn siopau arbenigol,G
+47630,47630 - Retail sale of music and video recordings in specialised stores,47630 - Adwerthu recordiadau cerddorol a fideo mewn siopau arbenigol,G
+47640,"47640 - Retail sale of sports goods, fishing gear, camping goods, boats and bicycles","47640 - Adwerthu nwyddau chwaraeon, offer pysgota, offer gwersylla, cychod a beiciau",G
+47650,47650 - Retail sale of games and toys in specialised stores,47650 - Adwerthu gemau a theganau mewn siopau arbenigol,G
+47710,47710 - Retail sale of clothing in specialised stores,47710 - Adwerthu dillad mewn siopau arbenigol,G
+47721,47721 - Retail sale of footwear in specialised stores,47721 - Adwerthu esgidiau mewn siopau arbenigol,G
+47722,47722 - Retail sale of leather goods in specialised stores,47722 - Adwerthu nwyddau lledr mewn siopau arbenigol,G
+47730,47730 - Dispensing chemist in specialised stores,47730 - Fferyllwyr cymwysedig mewn siop arbenigol,G
+47741,47741 - Retail sale of hearing aids,47741 - Adwerthu cymhorthion clyw,G
+47749,47749 - Retail sale of medical and orthopaedic goods in specialised stores (not incl. hearing aids) n.e.c.,47749 - Adwerthu nwyddau meddygol ac orthopaedig  mewn siopau arbenigol (ac eithrio cymhorthion clyw) n.dd.b.,G
+47750,47750 - Retail sale of cosmetic and toilet articles in specialised stores,47750 - Adwerthu nwyddau cosmetig ac ymolchi mewn siopau arbenigol,G
+47760,"47760 - Retail sale of flowers, plants, seeds, fertilizers, pet animals and pet food in specialised stores","47760 - Adwerthu blodau, planhigion, hadau, gwrtaith, anifeiliaid anwes a bwyd anifeiliaid anwes mewn siopau arbenigol",G
+47770,47770 - Retail sale of watches and jewellery in specialised stores,47770 - Adwerthu watsys a gemwaith mewn siopau arbenigol,G
+47781,47781 - Retail sale in commercial art galleries,47781 - Adwerthu mewn orielau celf masnachol,G
+47782,47782 - Retail sale by opticians,47782 - Adwerthu gan optegwyr,G
+47789,47789 - Other retail sale of new goods in specialised stores (not commercial art galleries and opticians),47789 - Adwerthu nwyddau newydd eraill mewn siopau arbenigol (nid orielau celf masnachol nac optegwyr),G
+47791,47791 - Retail sale of antiques including antique books in stores,47791 - Adwerthu hen greiriau gan gynnwys hen lyfrau mewn siopau,G
+47799,47799 - Retail sale of other second-hand goods in stores (not incl. antiques),47799 - Adwerthu nwyddau ail-law eraill mewn siopau (ac eithrio hen greiriau),G
+47810,"47810 - Retail sale via stalls and markets of food, beverages and tobacco products","47810 - Adwerthu bwydydd, diodydd a chynhyrchion tybaco o stondinau a thrwy farchnadoedd",G
+47820,"47820 - Retail sale via stalls and markets of textiles, clothing and footwear","47820 - Adwerthu tecstilau, dillad ac esgidiau o stondinau a thrwy farchnadoedd",G
+47890,47890 - Retail sale via stalls and markets of other goods,47890 - Adwerthu nwyddau eraill o stondinau a thrwy farchnadoedd,G
+47910,47910 - Retail sale via mail order houses or via Internet,47910 - Adwerthu trwy'r post neu dros y Rhyngrwyd,G
+47990,"47990 - Other retail sale not in stores, stalls or markets","47990 - Adwerthu arall heb fod mewn siopau, o stondinau neu drwy farchnadoedd",G
+49100,"49100 - Passenger rail transport, interurban","49100 - Cludo teithwyr ar y rheilffordd, rhyngdrefol",H
+49200,49200 - Freight rail transport,49200 - Cludo nwyddau ar y rheilffordd,H
+49311,"49311 - Urban and suburban passenger railway transportation by underground, metro and similar systems","49311 - Cludo teithwyr trefol a maestrefol ar systemau rheilffyrdd tanddaearol, metro a systemau tebyg",H
+49319,"49319 - Other urban, suburban or metropolitan passenger land transport (not underground, metro or similar)","49319 - Cludo teithwyr trefol, maestrefol neu ddinesig dros y tir (nid systemau tanddaearol, metro na'u tebyg)",H
+49320,49320 - Taxi operation,49320 - Busnes tacsi,H
+49390,49390 - Other passenger land transport,49390 - Dulliau eraill o gludo teithwyr ar y tir,H
+49410,49410 - Freight transport by road,49410 - Cludo nwyddau ar y ffyrdd,H
+49420,49420 - Removal services,49420 - Gwasanaethau mudo,H
+49500,49500 - Transport via pipeline,49500 - Trafnidiaeth trwy lein beipiau,H
+50100,50100 - Sea and coastal passenger water transport,50100 - Cludo teithwyr ar ddyfroedd morol ac arfordirol,H
+50200,50200 - Sea and coastal freight water transport,50200 - Cludo nwyddau ar ddyfroedd morol ac arfordirol,H
+50300,50300 - Inland passenger water transport,50300 - Cludo teithwyr ar ddyfroedd mewndirol,H
+50400,50400 - Inland freight water transport,50400 - Cludo nwyddau ar ddyfroedd mewndirol,H
+51101,51101 - Scheduled passenger air transport,51101 - Trafnidiaeth a raglennir ar gyfer teithwyr awyr,H
+51102,51102 - Non-scheduled passenger air transport,51102 - Trafnidiaeth na raglennir ar gyfer teithwyr awyr,H
+51210,51210 - Freight air transport,51210 - Trafnidiaeth awyr ar gyfer nwyddau,H
+51220,51220 - Space transport,51220 - Trafnidiaeth y gofod,H
+52101,52101 - Operation of warehousing and storage facilities for water transport activities,52101 - Gweithredu stordai a chyfleusterau storio ar gyfer gweithgareddau cludo ar y d?r,H
+52102,52102 - Operation of warehousing and storage facilities for air transport activities,52102 - Gweithredu stordai a chyfleusterau storio ar gyfer gweithgareddau cludo yn yr awyr,H
+52103,52103 - Operation of warehousing and storage facilities for land transport activities,52103 - Gweithredu stordai a chyfleusterau storio ar gyfer gweithgareddau cludo ar y tir,H
+52211,52211 - Operation of rail freight terminals,52211 - Gweithredu terfynellau cludo nwyddau ar y rheilffyrdd,H
+52212,52212 - Operation of rail passenger facilities at railway stations,52212 - Gweithredu cyfleusterau ar gyfer teithwyr mewn gorsafoedd rheilffordd,H
+52213,52213 - Operation of bus and coach passenger facilities at bus and coach stations,52213 - Gweithredu cyfleusterau ar gyfer teithwyr mewn gorsafoedd bysiau a choetsys,H
+52219,"52219 - Other service activities incidental to land transportation, n.e.c.","52219 - Gwasanaethau eraill sydd ynghlwm wrth drafnidiaeth dros y tir, n.dd.b.",H
+52220,52220 - Service activities incidental to water transportation,52220 - Gwasanaethau sydd ynghlwm wrth drafnidiaeth ar y d?r,H
+52230,52230 - Service activities incidental to air transportation,52230 - Gwasanaethau sydd ynghlwm wrth drafnidiaeth awyr,H
+52241,52241 - Cargo handling for water transport activities,52241 - Dosbarthu cargo ar gyfer gweithgareddau trafnidiaeth ar y d?r,H
+52242,52242 - Cargo handling for air transport activities,52242 - Dosbarthu cargo ar gyfer gweithgareddau trafnidiaeth awyr,H
+52243,52243 - Cargo handling for land transport activities,52243 - Dosbarthu cargo ar gyfer gweithgareddau trafnidiaeth dros y tir,H
+52290,52290 - Other transportation support activities,52290 - Gweithgareddau eraill sy'n ategu trafnidiaeth,H
+53100,53100 - Postal activities under universal service obligation,53100 - Gweithgareddau post o dan rhwymedigaeth gwasanaeth gyffredinol,H
+53201,53201 - Licensed carriers,53201 - Cludwr trwyddedig,H
+53202,53202 - Unlicensed carrier,53202 - Cludwr didrwydded,H
+55100,55100 - Hotels and similar accommodation,55100 - Gwestai a llety tebyg,I
+55201,55201 - Holiday centres and villages,55201 - Canolfannau a phentrefi gwyliau,I
+55202,55202 - Youth hostels,55202 - Hostelau ieuenctid,I
+55209,55209 - Other holiday and other collective accommodation,55209 - Llety gwyliau arall a mathau eraill o lety torfol,I
+55300,"55300 - Recreational vehicle parks, trailer parks and camping grounds","55300 - Parciau cerbydau hamdden, parciau trelars a meysydd gwersylla",I
+55900,55900 - Other accommodation,55900 - Llety arall,I
+56101,56101 - Licensed restaurants,56101 - Tai bwyta trwyddedig,I
+56102,56102 - Unlicensed restaurants and cafes,56102 - Tai bwyta a chaffis didrwydded,I
+56103,56103 - Take-away food shops and mobile food stands,56103 - Siopau prydau parod a stondinau bwyd symudol,I
+56210,56210 - Event catering activities,56210 - Gweithgareddau arlwyo ar gyfer digwyddiadau,I
+56290,56290 - Other food services,56290 - Gwasanaethau bwyd eraill,I
+56301,56301 - Licensed clubs,56301 - Clybiau trwyddedig,I
+56302,56302 - Public houses and bars,56302 - Tafarndai  a bariau,I
+58110,58110 - Book publishing,58110 - Cyhoeddi llyfrau,J
+58120,58120 - Publishing of directories and mailing lists,58120 - Cyhoeddi cyfeirlyfrau a rhestrau postio,J
+58130,58130 - Publishing of newspapers,58130 - Cyhoeddi papurau newydd,J
+58141,58141 - Publishing of learned journals,58141 - Cyhoeddi cyfnodolion dysgedig,J
+58142,58142 - Publishing of  consumer and business journals and periodicals,58142 - Cyhoeddi cyfnodolion a newyddiaduron i ddefnyddwyr a busnesau,J
+58190,58190 - Other publishing activities,58190 - Gweithgareddau cyhoeddi eraill,J
+58210,58210 - Publishing of computer games,58210 - Cyhoeddi gemau cyfrifiadur,J
+58290,58290 - Other software publishing,58290 - Cyhoeddi meddalwedd arall,J
+59111,59111 - Motion picture production activities,59111 - Gweithgareddau cynhyrchu ffilmiau,J
+59112,59112 - Video production activities,59112 - Gweithgareddau cynhyrchu fideo,J
+59113,59113 - Television programme production activities,59113 - Gweithgareddau cynhyrchu rhaglenni teledu,J
+59120,"59120 - Motion picture, video and television programme post-production activities","59120 - Gweithgareddau ôl-gynhyrchu ar gyfer ffilmiau, fideo a rhaglenni teledu",J
+59131,59131 - Motion picture distribution activities,59131 - Gweithgareddau dosbarthu ffilmiau,J
+59132,59132 - Video distribution activities,59132 - Gweithgareddau dosbarthu fideo,J
+59133,59133 - Television programme distribution activities,59133 - Gweithgareddau dosbarthu rhaglenni teledu,J
+59140,59140 - Motion picture projection activities,59140 - Gweithgareddau taflunio ffilmiau,J
+59200,59200 - Sound recording and music publishing activities,59200 - Gweithgareddau recordio sain a chyhoeddi cerddoriaeth,J
+60100,60100 - Radio broadcasting,60100 - Darlledu ar y radio,J
+60200,60200 - Television programming and broadcasting activities,60200 - Gweithgareddau rhaglennu a darlledu ar y teledu,J
+61100,61100 - Wired telecommunications activities,61100 - Gweithgareddau telathrebu â gwifrau,J
+61200,61200 - Wireless telecommunications activities,61200 - Gweithgareddau telathrebu diwifr,J
+61300,61300 - Satellite telecommunications activities,61300 - Gweithgareddau telathrebu drwy loeren,J
+61900,61900 - Other telecommunications activities,61900 - Gweithgareddau telathrebu eraill,J
+62011,62011 - Ready-made interactive leisure and entertainment software development,62011 - Datblygu meddalwedd hamdden ac adloniant ryngweithiol barod,J
+62012,62012 - Business and domestic software development,62012 - Datblygu meddalwedd busnes a domestig,J
+62020,62020 - Information technology consultancy activities,62020 - Gweithgareddau ymgynghoriaeth ym maes technoleg gwybodaeth,J
+62030,62030 - Computer facilities management activities,62030 - Gweithgareddau rheoli cyfleusterau cyfrifiadurol,J
+62090,62090 - Other information technology service activities,62090 - Gweithgareddau eraill ym maes gwasanaethau technoleg gwybodaeth,J
+63110,"63110 - Data processing, hosting and related activities",63110 - Prosesu a lletya data a gweithgareddau cysylltiedig,J
+63120,63120 - Web portals,63120 - Pyrth ar y we,J
+63910,63910 - News agency activities,63910 - Gweithgareddau asiantaethau newyddion,J
+63990,63990 - Other information service activities n.e.c.,63990 - Gweithgareddau gwasanaethau gwybodaeth eraill n.dd.b.,J
+64110,64110 - Central banking,64110 - Bancio canolog,K
+64191,64191 - Banks,64191 - Banciau,K
+64192,64192 - Building societies,64192 - Cymdeithasau adeiladu,K
+64201,64201 - Activities of agricultural holding companies,64201 - Gweithgareddau cwmnïau daliannol ym maes amaeth,K
+64202,64202 - Activities of production holding companies,64202 - Gweithgareddau cwmnïau daliannol ym maes cynhyrchu,K
+64203,64203 - Activities of construction holding companies,64203 - Gweithgareddau cwmnïau daliannol ym maes adeiladu,K
+64204,64204 - Activities of distribution holding companies,64204 - Gweithgareddau cwmnïau daliannol ym maes dosbarthu,K
+64205,64205 - Activities of financial services holding companies,64205 - Gweithgareddau cwmnïau daliannol ym maes gwasanaethau ariannol,K
+64209,64209 - Activities of other holding companies n.e.c.,64209 - Gweithgareddau cwmnïau daliannol eraill n.dd.b.,K
+64301,64301 - Activities of investment trusts,64301 - Gweithgareddau ymddiriedolaethau buddsoddi,K
+64302,64302 - Activities of unit trusts,64302 - Gweithgareddau ymddiriedolaethau unedol,K
+64303,64303 - Activities of venture and development capital companies,64303 - Gweithgareddau cwmnïau cyfalaf mentro a datblygu,K
+64304,64304 - Activities of open-ended investment companies,64304 - Gweithgareddau cwmnïau buddsoddi penagored,K
+64305,64305 - Activities of property unit trusts,64305 - Gweithgareddau ymddiriedolaethau eiddo unedol,K
+64306,64306 - Activities of real estate investment trusts,64306 - Gweithgareddau ymddiriedolaethau buddsoddi mewn eiddo diriaethol,K
+64910,64910 - Financial leasing,64910 - Prydlesu ariannol,K
+64921,64921 - Credit granting by non-deposit taking finance houses and other specialist consumer credit grantors,64921 - Ariandai sy'n rhoi credyd nad ydynt yn cymryd adnau a darparwyr credyd arbenigol eraill i ddefnyddwyr,K
+64922,64922 - Activities of mortgage finance companies,64922 - Gweithgareddau cwmnïau ariannu morgeisi,K
+64929,64929 - Other credit granting n.e.c.,64929 - Darparwyr credyd eraill n.dd.b.,K
+64991,64991 - Security dealing on own account,64991 - Gwerthu gwarannau ar ei gyfrif ei hun,K
+64992,64992 - Factoring,64992 - Asiantau masnachol,K
+64999,64999 - Financial intermediation not elsewhere classified,64999 - Mathau eraill o ryngoli ariannol na ddosbarthwyd fel arall,K
+65110,65110 - Life insurance,65110 - Yswiriant bywyd,K
+65120,65120 - Non-life insurance,65120 - Yswiriant nad yw'n yswiriant bywyd,K
+65201,65201 - Life reinsurance,65201 - Ailyswirio bywydau,K
+65202,65202 - Non-life reinsurance,65202 - Ailyswirio pethau heblaw bywyd,K
+65300,65300 - Pension funding,65300 - Ariannu pensiynau,K
+66110,66110 - Administration of financial markets,66110 - Gweinyddu marchnadoedd ariannol,K
+66120,66120 - Security and commodity contracts dealing activities,66120 - Gweithgareddau masnachu contractau nwyddau a gwarannau,K
+66190,66190 - Activities auxiliary to financial intermediation n.e.c.,66190 - Gweithgareddau atodol o ran rhyngoli ariannol n.dd.b.,K
+66210,66210 - Risk and damage evaluation,66210 - Gwerthuso risg a difrod,K
+66220,66220 - Activities of insurance agents and brokers,66220 - Gweithgareddau asiantau a broceriaid yswiriant,K
+66290,66290 - Other activities auxiliary to insurance and pension funding,66290 - Gweithgareddau atodol eraill ym maes ariannu yswiriant a phensiynau,K
+66300,66300 - Fund management activities,66300 - Gweithgareddau rheoli cronfeydd,K
+68100,68100 - Buying and selling of own real estate,68100 - Prynu a gwerthu eich eiddo diriaethol eich hun,L
+68201,68201 - Renting and operating of Housing Association real estate,68201 - Rhentu a rheoli eiddo diriaethol Cymdeithas Tai,L
+68202,68202 - Letting and operating of conference and exhibition centres,68202 - Gosod a rheoli canolfannau cynadledda ac arddangos,L
+68209,68209 - Other letting and operating of own or leased real estate,68209 - Gosod a rheoli eich eiddo diriaethol arall eich hun neu ar brydles,L
+68310,68310 - Real estate agencies,68310 - Asiantaethau eiddo diriaethol,L
+68320,68320 - Management of real estate on a fee or contract basis,68320 - Rheoli eiddo diriaethol am ffi neu ar gontract,L
+69101,69101 - Barristers at law,69101 - Bargyfreithwyr sy'n ymarfer y gyfraith,M
+69102,69102 - Solicitors,69102 - Cyfreithwyr,M
+69109,69109 - Activities of patent and copyright agents; other legal activities n.e.c.,69109 - Gweithgareddau asiantau patent a hawlfraint; gweithgareddau cyfreithiol eraill n.dd.b.,M
+69201,69201 - Accounting and auditing activities,69201 - Gweithgareddau cyfrifyddu ac archwilio,M
+69202,69202 - Bookkeeping activities,69202 - Gweithgareddau cadw cyfrifon,M
+69203,69203 - Tax consultancy,69203 - Ymgynghoriaeth ar drethi,M
+70100,70100 - Activities of head offices,70100 - Gweithgareddau pencadlysoedd,M
+70210,70210 - Public relations and communications activities,70210 - Gweithgareddau cysylltiadau cyhoeddus a chyfathrebu,M
+70221,70221 - Financial management,70221 - Rheolaeth ariannol,M
+70229,70229 - Management consultancy activities other than financial management,70229 - Gweithgareddau ymgynghoriaeth ar faterion rheoli ac eithrio rheolaeth ariannol,M
+71111,71111 - Architectural activities,71111 - Gweithgareddau pensaernïol,M
+71112,71112 - Urban planning and landscape architectural activities,71112 - Gweithgareddau cynllunio trefol a phensaernïaeth y dirwedd,M
+71121,71121 - Engineering design activities for industrial process and production,71121 - Gweithgareddau dylunio peirianneg ar gyfer prosesau a chynhyrchu diwydiannol,M
+71122,71122 - Engineering related scientific and technical consulting activities,71122 - Gweithgareddau ymgynghori gwyddonol a thechnegol ym maes peirianneg,M
+71129,71129 - Other engineering activities,71129 - Gweithgareddau peirianneg eraill,M
+71200,71200 - Technical testing and analysis,71200 - Profi a dadansoddi technegol,M
+72110,72110 - Research and experimental development on biotechnology,72110 - Gwaith ymchwil a datblygu arbrofol ym maes biodechnoleg,M
+72190,72190 - Other research and experimental development on natural sciences and engineering,72190 - Gwaith ymchwil a datblygu arbrofol arall ym maes peirianneg a'r gwyddorau natur,M
+72200,72200 - Research and experimental development on social sciences and humanities,72200 - Gwaith ymchwil a datblygu arbrofol ym maes y gwyddorau cymdeithasol a'r dyniaethau,M
+73110,73110 - Advertising agencies,73110 - Asiantaethau hysbysebu,M
+73120,73120 - Media representation services,73120 - Gwasanaethau cynrychiolaeth ym maes y cyfryngau,M
+73200,73200 - Market research and public opinion polling,73200 - Ymchwil i'r farchnad ac arolygon barn,M
+74100,74100 - specialised design activities,74100 - Gweithgareddau dylunio arbenigol,M
+74201,74201 - Portrait photographic activities,74201 - Gweithgareddau portreadu ffotograffig,M
+74202,74202 - Other specialist photography,74202 - Mathau eraill o ffotograffiaeth arbenigol,M
+74203,74203 - Film processing,74203 - Prosesu ffilmiau,M
+74209,74209 - Photographic activities not elsewhere classified,74209 - Gweithgareddau ffotograffig na ddosbarthwyd yn benodol,M
+74300,74300 - Translation and interpretation activities,74300 - Gweithgareddau cyfieithu a chyfieithu ar y pryd,M
+74901,74901 - Environmental consulting activities,74901 - Gweithgareddau ymgynghori amgylcheddol,M
+74902,74902 - Quantity surveying activities,74902 - Gweithgareddau mesur meintiau,M
+74909,"74909 - Other professional, scientific and technical activities n.e.c.","74909 - Gweithgareddau proffesiynol, gwyddonol a thechnegol n.dd.b.",M
+74990,74990 - Non-trading company,74990 - Cwmni anfasnachol,M
+75000,75000 - Veterinary activities,75000 - Gweithgareddau milfeddygol,M
+77110,77110 - Renting and leasing of cars and light motor vehicles,77110 - Rhentu a phrydlesu ceir a cherbydau modur ysgafn,N
+77120,77120 - Renting and leasing of trucks and other heavy vehicles,77120 - Rhentu a phrydlesu tryciau a cherbydau trwm eraill,N
+77210,77210 - Renting and leasing of recreational and sports goods,77210 - Rhentu a phrydlesu nwyddau hamdden a chwaraeon,N
+77220,77220 - Renting of video tapes and disks,77220 - Rhentu tapiau a disgiau fideo,N
+77291,77291 - Renting and leasing of media entertainment equipment,77291 - Rhentu a phrydlesu cyfarpar y cyfryngau adloniant,N
+77299,77299 - Renting and leasing of other personal and household goods,77299 - Rhentu a phrydlesu nwyddau personol a chartref eraill,N
+77310,77310 - Renting and leasing of agricultural machinery and equipment,77310 - Rhentu a phrydlesu peiriannau a chyfarpar amaethyddol,N
+77320,77320 - Renting and leasing of construction and civil engineering machinery and equipment,77320 - Rhentu a phrydlesu peiriannau a chyfarpar adeiladu a pheirianneg sifil,N
+77330,77330 - Renting and leasing of office machinery and equipment (including computers),77330 - Rhentu a phrydlesu peiriannau a chyfarpar swyddfa (gan gynnwys cyfrifiaduron),N
+77341,77341 - Renting and leasing of passenger water transport equipment,77341 - Rhentu a phrydlesu cyfarpar i gludo teithwyr ar y d?r,N
+77342,77342 - Renting and leasing of freight water transport equipment,77342 - Rhentu a phrydlesu cyfarpar i gludo nwyddau ar y d?r,N
+77351,77351 - Renting and leasing of air passenger transport equipment,77351 - Rhentu a phrydlesu cyfarpar i gludo teithwyr yn yr awyr,N
+77352,77352 - Renting and leasing of freight air transport equipment,77352 - Rhentu a phrydlesu cyfarpar i gludo nwyddau yn yr awyr,N
+77390,"77390 - Renting and leasing of other machinery, equipment and tangible goods n.e.c.","77390 - Rhentu a phrydlesu peiriannau, cyfarpar a nwyddau diriaethol eraill n.dd.b.",N
+77400,"77400 - Leasing of intellectual property and similar products, except copyright works","77400 - Prydlesu eiddo deallusol a chynnyrch tebyg, ac eithrio gwaith hawlfraint",N
+78101,"78101 - Motion picture, television and other theatrical casting activities","78101 - Gweithgareddau castio ar gyfer ffilmiau, y teledu a gweithgareddau theatraidd eraill",N
+78109,78109 - Other activities of employment placement agencies,78109 - Gweithgareddau eraill asiantaethau canfod cyflogaeth,N
+78200,78200 - Temporary employment agency activities,78200 - Gweithgareddau asiantaethau canfod cyflogaeth dros dro,N
+78300,78300 - Human resources provision and management of human resources functions,78300 - Darparu gwasanaethau adnoddau dynol a rheoli swyddogaethau adnoddau dynol,N
+79110,79110 - Travel agency activities,79110 - Gweithgareddau asiantaethau teithio,N
+79120,79120 - Tour operator activities,79120 - Gweithgareddau trefnwyr teithiau,N
+79901,79901 - Activities of tourist guides,79901 - Gweithgareddau tywyswyr twristiaid,N
+79909,79909 - Other reservation service activities n.e.c.,79909 - Gweithgareddau gwasanaethau bwcio a chadw eraill n.dd.b.,N
+80100,80100 - Private security activities,80100 - Gweithgareddau diogelwch preifat,N
+80200,80200 - Security systems service activities,80200 - Gweithgareddau gwasanaethau systemau diogelwch,N
+80300,80300 - Investigation activities,80300 - Gwasanaethau ymholi,N
+81100,81100 - Combined facilities support activities,81100 - Gweithgareddau cynnal cyfleusterau cyfunol,N
+81210,81210 - General cleaning of buildings,81210 - Glanhau cyffredinol mewn adeiladau,N
+81221,81221 - Window cleaning services,81221 - Gwasanaethau glanhau ffenestri,N
+81222,81222 - Specialised cleaning services,81222 - Gwasanaethau glanhau arbenigol,N
+81223,81223 - Furnace and chimney cleaning services,81223 - Gwasanaethau glanhau ffwrneisi a simneiau,N
+81229,81229 - Other building and industrial cleaning activities,81229 - Gweithgareddau eraill ym maes glanhau adeiladau a glanhau diwydiannol,N
+81291,81291 - Disinfecting and exterminating services,81291 - Gweithgareddau diheintio a difodi,N
+81299,81299 - Other cleaning services,81299 - Gwasanaethau glanhau eraill,N
+81300,81300 - Landscape service activities,81300 - Gweithgareddau gwasanaethau'r dirwedd,N
+82110,82110 - Combined office administrative service activities,82110 - Gweithgareddau gwasanaethau gweinyddol cyfunol mewn swyddfeydd,N
+82190,"82190 - Photocopying, document preparation and other specialised office support activities","82190 - Llungopïo, paratoi dogfennau a gweithgareddau cymorth arbenigol eraill ar gyfer swyddfeydd",N
+82200,82200 - Activities of call centres,82200 - Gweithgareddau canolfannau galwadau,N
+82301,82301 - Activities of exhibition and fair organisers,82301 - Gweithgareddau trefnu arddangosfeydd a ffeiriau,N
+82302,82302 - Activities of conference organisers,82302 - Gweithgareddau trefnu cynadleddau,N
+82911,82911 - Activities of collection agencies,82911 - Gweithgareddau asiantaethau casglu,N
+82912,82912 - Activities of credit bureaus,82912 - Gweithgareddau canolfannau credyd,N
+82920,82920 - Packaging activities,82920 - Gweithgareddau pecynnu,N
+82990,82990 - Other business support service activities n.e.c.,82990 - Gweithgareddau gwasanaethau cymorth busnes eraill n.dd.b.,N
+84110,84110 - General public administration activities,84110 - Gweithgareddau cyffredinol ym maes gweinyddiaeth gyhoeddus,O
+84120,"84120 - Regulation of health care, education, cultural and other social services, not incl. social security","84120 - Rheoleiddio gofal iechyd, addysg, diwylliant a gwasanaethau cymdeithasol eraill, heblaw nawdd cymdeithasol",O
+84130,84130 - Regulation of and contribution to more efficient operation of businesses,84130 - Rheoleiddio busnesau a'u helpu i weithredu'n fwy effeithlon,O
+84210,84210 - Foreign affairs,84210 - Materion tramor,O
+84220,84220 - Defence activities,84220 - Gweithgareddau amddiffyn,O
+84230,84230 - Justice and judicial activities,84230 - Gweithgareddau cyfiawnder a barnwrol,O
+84240,84240 - Public order and safety activities,84240 - Gweithgareddau'r drefn gyhoeddus a diogelwch,O
+84250,84250 - Fire service activities,84250 - Gweithgareddau gwasanaethau tân,O
+84300,84300 - Compulsory social security activities,84300 - Gweithgareddau gorfodol nawdd cymdeithasol,O
+85100,85100 - Pre-primary education,85100 - Addysg cyn oedran cynradd,P
+85200,85200 - Primary education,85200 - Addysg gynradd,P
+85310,85310 - General secondary education,85310 - Addysg uwchradd gyffredinol,P
+85320,85320 - Technical and vocational secondary education,85320 - Addysg uwchradd dechnegol a galwedigaethol,P
+85410,85410 - Post-secondary non-tertiary education,85410 - Addysg ôl-uwchradd nad yw'n drydyddol,P
+85421,85421 - First-degree level higher education,85421 - Addysg uwch lefel gradd gyntaf,P
+85422,85422 - Post-graduate level higher education,85422 - Addysg uwch lefel olraddedig,P
+85510,85510 - Sports and recreation education,85510 - Addysg chwaraeon a hamdden,P
+85520,85520 - Cultural education,85520 - Addysg ddiwylliannol,P
+85530,85530 - Driving school activities,85530 - Gweithgareddau ysgolion gyrru,P
+85590,85590 - Other education n.e.c.,85590 - Addysg arall n.dd.b.,P
+85600,85600 - Educational support services,85600 - Gwasanaethau cymorth addysg,P
+86101,86101 - Hospital activities,86101 - Gweithgareddau ysbytai,Q
+86102,86102 - Medical nursing home activities,86102 - Gweithgareddau cartrefi nyrsio meddygol,Q
+86210,86210 - General medical practice activities,86210 - Gweithgareddau practisau meddygol cyffredinol,Q
+86220,86220 - Specialists medical practice activities,86220 - Gweithgareddau practisau meddygol arbenigol,Q
+86230,86230 - Dental practice activities,86230 - Gweithgareddau practisau deintyddol,Q
+86900,86900 - Other human health activities,86900 - Gweithgareddau eraill ym maes iechyd y cyhoedd,Q
+87100,87100 - Residential nursing care facilities,87100 - Cyfleusterau gofal nyrsio preswyl,Q
+87200,"87200 - Residential care activities for learning difficulties, mental health and substance abuse","87200 - Gweithgareddau gofal preswyl ar gyfer anawsterau dysgu, iechyd meddwl a cham-drin sylweddau",Q
+87300,87300 - Residential care activities for the elderly and disabled,87300 - Gweithgareddau gofal preswyl ar gyfer pobl oedrannus ac anabl,Q
+87900,87900 - Other residential care activities n.e.c.,87900 - Gweithgareddau eraill ym maes gofal preswyl n.dd.b.,Q
+88100,88100 - Social work activities without accommodation for the elderly and disabled,88100 - Gweithgareddau gwaith cymdeithasol heb lety ar gyfer pobl oedrannus ac anabl,Q
+88910,88910 - Child day-care activities,88910 - Gweithgareddau gofal dydd i blant,Q
+88990,88990 - Other social work activities without accommodation n.e.c.,88990 - Gweithgareddau gofal cymdeithasol eraill heb lety n.dd.b.,Q
+90010,90010 - Performing arts,90010 - Y celfyddydau perfformio,R
+90020,90020 - Support activities to performing arts,90020 - Gweithgareddau cymorth ym maes y celfyddydau perfformio,R
+90030,90030 - Artistic creation,90030 - Creu artistig,R
+90040,90040 - Operation of arts facilities,90040 - Rheoli cyfleusterau ar gyfer y celfyddydau,R
+91011,91011 - Library activities,91011 - Gweithgareddau llyfrgelloedd,R
+91012,91012 - Archives activities,91012 - Gweithgareddau archifau,R
+91020,91020 - Museums activities,91020 - Gweithgareddau amgueddfeydd,R
+91030,91030 - Operation of historical sites and buildings and similar visitor attractions,91030 - Gweithredu safleoedd ac adeiladau hanesyddol ac atyniadau tebyg i ymwelwyr,R
+91040,91040 - Botanical and zoological gardens and nature reserves activities,91040 - Gweithgareddau gerddi botanegol a s?olegol a gwarchodfeydd natur,R
+92000,92000 - Gambling and betting activities,92000 - Gweithgareddau gamblo a betio,R
+93110,93110 - Operation of sports facilities,93110 - Gweithredu cyfleusterau chwaraeon,R
+93120,93120 - Activities of sport clubs,93120 - Gweithgareddau clybiau chwaraeon,R
+93130,93130 - Fitness facilities,93130 - Cyfleusterau ffitrwydd,R
+93191,93191 - Activities of racehorse owners,93191 - Gweithgareddau perchnogion ceffylau rasio,R
+93199,93199 - Other sports activities,93199 - Gweithgareddau chwaraeon eraill,R
+93210,93210 - Activities of amusement parks and theme parks,93210 - Gweithgareddau parciau diddanu a pharciau thema,R
+93290,93290 - Other amusement and recreation activities n.e.c.,93290 - Gweithgareddau diddanu a hamdden eraill n.dd.b.,R
+94110,94110 - Activities of business and employers membership organizations,94110 - Gweithgareddau sefydliadau i aelodau ym myd busnes a chyflogwyr,S
+94120,94120 - Activities of professional membership organizations,94120 - Gweithgareddau sefydliadau proffesiynol i aelodau,S
+94200,94200 - Activities of trade unions,94200 - Gweithgareddau undebau llafur,S
+94910,94910 - Activities of religious organizations,94910 - Gweithgareddau sefydliadau crefyddol,S
+94920,94920 - Activities of political organizations,94920 - Gweithgareddau sefydliadau gwleidyddol,S
+94990,94990 - Activities of other membership organizations n.e.c.,94990 - Gweithgareddau sefydliadau aelodaeth eraill n.dd.b.,S
+95110,95110 - Repair of computers and peripheral equipment,95110 - Atgyweirio cyfrifiaduron a'u perifferolion,S
+95120,95120 - Repair of communication equipment,95120 - Atgyweirio cyfarpar cyfathrebu,S
+95210,95210 - Repair of consumer electronics,95210 - Atgyweirio cyfarpar electronig i ddefnyddwyr,S
+95220,95220 - Repair of household appliances and home and garden equipment,95220 - Atgyweirio dyfeisiau cartref a chyfarpar y cartref a'r ardd,S
+95230,95230 - Repair of footwear and leather goods,95230 - Atgyweirio esgidiau a nwyddau lledr,S
+95240,95240 - Repair of furniture and home furnishings,95240 - Atgyweirio celfi ac eitemau dodrefnu'r cartref,S
+95250,"95250 - Repair of watches, clocks and jewellery","95250 - Atgyweirio watsys, clociau a gemwaith",S
+95290,95290 - Repair of personal and household goods n.e.c.,95290 - Atgyweirio nwyddau personol a chartref eraill n.dd.b.,S
+96010,96010 - Washing and (dry-)cleaning of textile and fur products,96010 - Golchi a glanhau (sychlanhau) cynhyrchion tecstilau a ffwr,S
+96020,96020 - Hairdressing and other beauty treatment,96020 - Trin gwallt a thriniaethau harddwch eraill,S
+96030,96030 - Funeral and related activities,96030 - Angladdau a gweithgareddau cysylltiedig,S
+96040,96040 - Physical well-being activities,96040 - Gweithgareddau lles corfforol,S
+96090,96090 - Other service activities n.e.c.,96090 - Gweithgareddau gwasanaethau eraill n.dd.b.,S
+97000,97000 - Activities of households as employers of domestic personnel,97000 - Gweithgareddau aelwydydd fel cyflogwyr gweithwyr domestig,T
+98000,98000 - Residents property management,98000 - Rheolaeth trigolion dros eiddo,T
+98100,98100 - Undifferentiated goods-producing activities of private households for own use,98100 - Gweithgareddau diwahaniaeth aelwydydd preifat i gynhyrchu nwyddau at eu defnydd eu hunain,T
+98200,98200 - Undifferentiated service-producing activities of private households for own use,98200 - Gweithgareddau diwahaniaeth aelwydydd preifat i gynhyrchu gwasanaethau at eu defnydd eu hunain,T
+99000,99000 - Activities of extraterritorial organizations and bodies,99000 - Gweithgareddau sefydliadau a chyrff alldiriogaethol,U
+99999,99999 - Dormant Company,99999 - Cwmni Segur,U
