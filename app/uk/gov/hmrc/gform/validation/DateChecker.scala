@@ -441,7 +441,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     val dateProgram = (day, month, year)
       .mapN((d, m, y) => (d, m, y))
       .toProgram(
-        errorProgram = validationFailed[(String, String, String)](formComponent, "date.isMissing", None)
+        errorProgram = successProgram(("", "", ""))
       )
 
     dateProgram
