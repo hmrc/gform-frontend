@@ -1139,8 +1139,7 @@ class SectionRenderingService(
           case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
           case Some(upscanData) =>
             val fileUploadName = "file"
-            val otherAttributes = Map("form" -> upscanData.formMetaData.htmlId)
-            val attributes = Map("data-upscan" -> "upscan") ++ otherAttributes
+            val attributes = Map("form" -> upscanData.formMetaData.htmlId)
 
             htmlForFileUpload(
               formComponent,
@@ -1151,8 +1150,7 @@ class SectionRenderingService(
               fileSize,
               fileUploadName,
               upscanData.url,
-              attributes,
-              otherAttributes
+              attributes
             )
         }
       case FileUploadProvider.FileUploadFrontend =>
@@ -1590,8 +1588,7 @@ class SectionRenderingService(
     fileSize: Long,
     fileUploadName: String,
     formAction: String,
-    fileUploadAttributes: Map[String, String],
-    otherAttributes: Map[String, String] = Map.empty
+    attributes: Map[String, String]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -1626,7 +1623,7 @@ class SectionRenderingService(
       label = label,
       hint = hintText(formComponent),
       errorMessage = errorMessage,
-      attributes = fileUploadAttributes
+      attributes = attributes
     )
 
     val deleteUrl =
@@ -1647,7 +1644,7 @@ class SectionRenderingService(
       attributes = Map(
         "formaction"  -> formAction,
         "formenctype" -> "multipart/form-data"
-      ) ++ otherAttributes,
+      ) ++ attributes,
       preventDoubleClick = Some(true)
     )
 
