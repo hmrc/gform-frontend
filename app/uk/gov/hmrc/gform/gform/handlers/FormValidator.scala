@@ -162,8 +162,7 @@ class FormValidator(implicit ec: ExecutionContext) {
 
     def atlHasSectionNumber(sectionNumber: SectionNumber): Boolean =
       formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
-        .filter(_.hasSectionNumber(sectionNumber))
-        .nonEmpty
+        .exists(_.hasSectionNumber(sectionNumber))
 
     val availableSectionNumbers = getAvailableSectionNumbers(maybeSectionNumber, formModelOptics)
 

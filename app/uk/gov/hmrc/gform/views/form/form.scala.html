@@ -82,7 +82,7 @@
 
     @specimenNavigation
 
-    <script @{CSPNonce.attr} type="text/javascript">
+    <script @{CSPNonce.attr}>
       window.gform = window.gform || {};
       window.gform.envelopeId = "@page.envelopeId.value";
       const fileSizePairs = "@page.fileUploadMaxSize".slice(1, -1).split(")(");
