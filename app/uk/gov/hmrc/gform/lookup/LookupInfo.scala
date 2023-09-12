@@ -53,3 +53,9 @@ final case class PortLookupInfo(
   countryCode: LookupCountryCode,
   portCode: LookupPortCode
 ) extends LookupInfo
+
+final case class SicCodeLookupInfo(
+  id: LookupId,
+  index: Int,
+  section: LookupSicCodeSection
+) extends LookupInfo

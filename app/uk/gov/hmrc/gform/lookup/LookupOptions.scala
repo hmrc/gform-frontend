@@ -40,6 +40,7 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
         case (label, CountryLookupInfo(_, _, _, priority, _, _))    => (priority, label)
         case (label, CurrencyLookupInfo(_, _, _, priority, _))      => (priority, label)
         case (label, PortLookupInfo(_, _, _, priority, _, _, _, _)) => (priority, label)
+        case (label, SicCodeLookupInfo(_, _, _))                    => (LookupPriority(1), label)
       }
       .map(_._1)
 }
@@ -60,6 +61,7 @@ object LookupOptions {
       case (PortLookupInfo(_, _, _, _, _, portType, _, _), CsvColumnName.portType)        => Some(portType.portType)
       case (PortLookupInfo(_, _, _, _, _, _, countryCode, _), CsvColumnName.countryCode)  => Some(countryCode.countryCode)
       case (PortLookupInfo(_, _, _, _, _, _, _, portCode), CsvColumnName.portCode)        => Some(portCode.portCode)
+      case (SicCodeLookupInfo(_, _, section), CsvColumnName.section)                      => Some(section.section)
       case _                                                                              => None
       // format: on
     }
