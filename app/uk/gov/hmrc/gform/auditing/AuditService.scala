@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroupUtil, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
@@ -121,11 +121,12 @@ trait AuditService {
         case mr: AuthenticatedRetrievals =>
           Json.toJson(
             Map(
-              "nino"     -> mr.getTaxIdValue(NINO()),
-              "vrn"      -> mr.getTaxIdValue(VATReg()),
-              "saUtr"    -> mr.getTaxIdValue(IRSA()),
-              "ctUtr"    -> mr.getTaxIdValue(IRCT()),
-              "deviceId" -> hc.deviceID.getOrElse("")
+              "nino"          -> mr.getTaxIdValue(NINO()),
+              "vrn"           -> mr.getTaxIdValue(VATReg()),
+              "saUtr"         -> mr.getTaxIdValue(IRSA()),
+              "ctUtr"         -> mr.getTaxIdValue(IRCT()),
+              "deviceId"      -> hc.deviceID.getOrElse(""),
+              "affinityGroup" -> AffinityGroupUtil.affinityGroupName(mr.affinityGroup)
             ).filter(values => values._2.nonEmpty)
           )
         case r: VerifyRetrievals =>
