@@ -377,7 +377,10 @@ class FormModelBuilder[E, F[_]: Functor](
   ): CheckYourAnswers[T] = {
     // dummy FormComponentId so that CheckYourAnswers page model works as expected when computing visited indexes
     val fc = new FormComponentUpdater(
-      s.addAnotherQuestion.copy(id = s.addAnotherQuestion.id.withSuffix("CYA")),
+      s.addAnotherQuestion.copy(
+        id = s.addAnotherQuestion.id.withSuffix("CYA"),
+        validIf = c.removeItemIf.map(removeItemIf => ValidIf(Not(removeItemIf.booleanExpr)))
+      ),
       index,
       s.allIds
     ).updatedWithId.copy(mandatory = false, derived = true, submissible = false)
