@@ -83,7 +83,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
     def validateRequiredFieldSub(value: Atom, str: String) =
       validateRequiredField(value, str, fieldValue)(addressValueOf(value))
 
-    def validateRequiredAtom(atom: Atom, messageKey: String) = {
+    def validateRequiredAtom(atom: Atom, messageKey: String, defaultPlaceholder: String = SmartString.blank.value()) = {
       val maybeAtom = blankAtomicModelComponentId(atom)
       maybeAtom.foldProgram(
         onNone = successProgram(()),
@@ -91,7 +91,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
           val placeholder = fieldValue.errorShortName
             .map(_.transform(_ + " ", identity))
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.value())
+            .getOrElse(defaultPlaceholder)
           validationFailure(id, fieldValue, messageKey, Some(placeholder :: Nil), "")
         }
       )
@@ -118,7 +118,11 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
     ifProgram(
       cond = addressValueOf(Address.uk) == "true" :: Nil,
       thenProgram = List(
-        validateRequiredAtom(Address.street1, "generic.error.address.building.street.required"),
+        validateRequiredAtom(
+          Address.street1,
+          "generic.error.address.building.street.required",
+          SmartString.blank.transform(_ => "address ", _ => "").value()
+        ),
         ukStreetValidation(Address.street1),
         ukStreetValidation(Address.street2),
         ukStreetValidation(Address.street3),
@@ -216,7 +220,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
           val placeholder = fieldValue.errorShortNameStart
             .map(_.transform(_ + " line 1", identity))
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.transform(_ => "Line 1", _ => "").value())
+            .getOrElse(SmartString.blank.transform(_ => "Address line 1", _ => "").value())
           val vars: List[String] = placeholder :: ValidationValues.addressLine.toString :: Nil
           combineErrors("generic.error.address.building.street.maxLength", vars)
         }
@@ -227,7 +231,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
           val placeholder = fieldValue.errorShortNameStart
             .map(_.transform(_ + " line 2", identity))
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.transform(_ => "Line 2", _ => "").value())
+            .getOrElse(SmartString.blank.transform(_ => "Address line 2", _ => "").value())
           val vars: List[String] = placeholder :: ValidationValues.addressLine.toString :: Nil
           combineErrors("generic.error.address.building.street.line2.maxLength", vars)
         }
