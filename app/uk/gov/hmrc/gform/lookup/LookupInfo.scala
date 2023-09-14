@@ -32,6 +32,7 @@ final case class CountryLookupInfo(
   keywords: LookupKeywords,
   priority: LookupPriority,
   region: LookupRegion,
+  inGibraltarEuEeaEfta: LookupInGibraltarEuEeaEfta,
   columns: Map[String, String]
 ) extends LookupInfo
 

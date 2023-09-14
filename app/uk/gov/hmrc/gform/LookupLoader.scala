@@ -44,6 +44,8 @@ class LookupLoader {
     implicitly[CellDecoder[String]].map(r => LookupPortCode(r))
   implicit private val lookupSicCodeSectionDecoder: CellDecoder[LookupSicCodeSection] =
     implicitly[CellDecoder[String]].map(r => LookupSicCodeSection(r))
+  implicit private val lookupInGibraltarEuEeaEfta: CellDecoder[LookupInGibraltarEuEeaEfta] =
+    implicitly[CellDecoder[String]].map(r => LookupInGibraltarEuEeaEfta(r))
 
   type LookupDetails = (LookupLabel, LookupInfo)
 
@@ -110,22 +112,32 @@ class LookupLoader {
     keywords: String,
     priority: String,
     region: String,
+    inGibraltarEuEeaEfta: String,
     mkLookupType: LocalisedLookupOptions => LookupType
   ): LookupType = {
 
-    type ColumnData = (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority, LookupRegion)
+    type ColumnData =
+      (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority, LookupRegion, LookupInGibraltarEuEeaEfta)
 
     val headerDecoder: HeaderDecoder[ColumnData] =
-      HeaderDecoder.decoder(englishLabel, welshLabel, idColumnName, keywords, priority, region)(
-        (_: LookupLabel, _: LookupLabel, _: LookupId, _: LookupKeywords, _: LookupPriority, _: LookupRegion)
+      HeaderDecoder.decoder(englishLabel, welshLabel, idColumnName, keywords, priority, region, inGibraltarEuEeaEfta)(
+        (
+          _: LookupLabel,
+          _: LookupLabel,
+          _: LookupId,
+          _: LookupKeywords,
+          _: LookupPriority,
+          _: LookupRegion,
+          _: LookupInGibraltarEuEeaEfta
+        )
       )
 
     val csvWithColumns = readCsvWithColumns(filename)
     def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
-      val (enLabel, cyLabel, id, keywords, priority, region) = columnData
+      val (enLabel, cyLabel, id, keywords, priority, region, inGibraltarEuEeaEfta) = columnData
 
       val columns = csvWithColumns.find(_.get(idColumnName).get == id.id).get
-      val li = CountryLookupInfo(id, index, keywords, priority, region, columns)
+      val li = CountryLookupInfo(id, index, keywords, priority, region, inGibraltarEuEeaEfta, columns)
       ((enLabel, li), (cyLabel, li))
     }
 
@@ -253,7 +265,7 @@ class LookupLoader {
   private val originMainPart           = read("BCD-OriginMainPart.csv",           "id",           "en",   "cy",   mkRadioLookup)
   private val originSavingsEarnings    = read("BCD-OriginSavingsEarnings.csv",    "id",           "en",   "cy",   mkRadioLookup)
   private val origin                   = read("BCD-Origin.csv",                   "ID",           "en",   "cy",   mkAjaxLookup(ShowAll.Enabled))
-  private val country                  = readCountries("BCD-Country.csv",         "CountryCode",  "Name", "Name-cy", "KeyWords", "Priority", "Region", mkAjaxLookup(ShowAll.Disabled))
+  private val country                  = readCountries("BCD-Country.csv",         "CountryCode",  "Name", "Name-cy", "KeyWords", "Priority", "Region", "inGibraltarEuEeaEfta", mkAjaxLookup(ShowAll.Disabled))
   private val currency                 = readCurrencies("BCD-Currency.csv",       "CurrencyCode", "Name", "Name-cy", "KeyWords", "Priority", "CountryCode", mkAjaxLookup(ShowAll.Disabled))
   private val port                     = readPorts("BCD-Port.csv",                "PortCode",     "Name", "Name-cy", "KeyWords", "Priority", "Region", "PortType", "CountryCode", "PortCode", mkAjaxLookup(ShowAll.Disabled))
   private val sicCode                  = readSicCode("SicCode.csv",               "SicCode",      "Name", "Name-cy", "Section", mkAjaxLookup(ShowAll.Disabled))
@@ -293,7 +305,7 @@ object LookupLoader {
       m.options map {
         case (ll, DefaultLookupInfo(_, _)) =>
           engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
-        case (ll, CountryLookupInfo(_, _, k, p, _, _))    => engine.add(new LookupRecord(ll.label, p, k))
+        case (ll, CountryLookupInfo(_, _, k, p, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
         case (ll, CurrencyLookupInfo(_, _, k, p, _))      => engine.add(new LookupRecord(ll.label, p, k))
         case (ll, PortLookupInfo(_, _, k, p, _, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
         case (ll, SicCodeLookupInfo(_, _, _)) =>
