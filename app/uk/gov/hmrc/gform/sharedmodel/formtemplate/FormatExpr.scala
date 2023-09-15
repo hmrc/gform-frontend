@@ -446,6 +446,7 @@ object CsvColumnName {
   val region = "region"
   val columns = "columns"
   val section = "section"
+  val inGibraltarEuEeaEfta = "ingibraltareueeaefta"
 }
 
 sealed trait SelectionCriteriaValue

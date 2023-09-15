@@ -37,7 +37,7 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
     options.toList
       .sortBy {
         case (label, DefaultLookupInfo(_, _))                       => (LookupPriority(1), label)
-        case (label, CountryLookupInfo(_, _, _, priority, _, _))    => (priority, label)
+        case (label, CountryLookupInfo(_, _, _, priority, _, _, _)) => (priority, label)
         case (label, CurrencyLookupInfo(_, _, _, priority, _))      => (priority, label)
         case (label, PortLookupInfo(_, _, _, priority, _, _, _, _)) => (priority, label)
         case (label, SicCodeLookupInfo(_, _, _))                    => (LookupPriority(1), label)
@@ -50,9 +50,10 @@ object LookupOptions {
   def getLookupValue(lookupInfo: LookupInfo, columnName: String): Option[String] =
     (lookupInfo, columnName) match {
       // format: off
-      case (CountryLookupInfo(_, _, _, _, region, _), CsvColumnName.region)               => Some(region.region)
-      case (CountryLookupInfo(id, _, _, _, _, _), CsvColumnName.countryCode)              => Some(id.id)
-      case (CountryLookupInfo(_, _, _, _, _, columns), column)                            =>
+      case (CountryLookupInfo(_, _, _, _, region, _, _), CsvColumnName.region)               => Some(region.region)
+      case (CountryLookupInfo(id, _, _, _, _, _, _), CsvColumnName.countryCode)              => Some(id.id)
+      case (CountryLookupInfo(_, _, _, _, _, inGibraltarEuEeaEfta, _), CsvColumnName.inGibraltarEuEeaEfta)               => Some(inGibraltarEuEeaEfta.inGibraltarEuEeaEfta)
+      case (CountryLookupInfo(_, _, _, _, _, _, columns), column)                            =>
         Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
       case (CurrencyLookupInfo(id, _, _, _, _), CsvColumnName.currencyCode)               => Some(id.id)
       case (CurrencyLookupInfo(_, _, _, _, countryCode), CsvColumnName.countryCode)       => Some(countryCode.countryCode)
