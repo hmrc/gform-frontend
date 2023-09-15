@@ -261,6 +261,7 @@ class LookupControllerSpec
               LookupKeywords(Some("England Great Britain")),
               LookupPriority(1),
               LookupRegion("1"),
+              LookupInGibraltarEuEeaEfta("1"),
               Map()
             ),
             LookupLabel("United States") -> CountryLookupInfo(
@@ -269,6 +270,7 @@ class LookupControllerSpec
               LookupKeywords(Some("USA")),
               LookupPriority(1),
               LookupRegion("2"),
+              LookupInGibraltarEuEeaEfta("1"),
               Map()
             )
           )
