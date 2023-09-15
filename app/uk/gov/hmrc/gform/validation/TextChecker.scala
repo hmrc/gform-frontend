@@ -493,7 +493,7 @@ object TextChecker {
         fieldValue,
         genericErrorYearRequired,
         fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a", _ => "flwyddyn").value().pure[List]
+          SmartString.blank.transform(_ => "a", _ => "").value().pure[List]
         ))
       ),
       nonEmptyCheck = validateYear(fieldValue, inputText)
@@ -502,9 +502,10 @@ object TextChecker {
       cond = yearStr.toIntOption.map(y => y >= 1900 && y <= 2099).getOrElse(false),
       thenProgram = successProgram(()),
       elseProgram = {
-        val placeholder = fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a", _ => "flwyddyn yn").value().pure[List]
-        ))
+        val placeholder =
+          fieldValue.errorShortName.map(_.transform(identity, w => s" $w ").value().pure[List]) orElse (Some(
+            SmartString.blank.transform(_ => "a", _ => "").value().pure[List]
+          ))
         validationFailure(fieldValue, genericErrorYearPattern, placeholder)
       }
     )
