@@ -111,7 +111,16 @@ class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
             validateChoiceNoneError(
               context.formComponent,
               c.noneChoice.getOrElse(NoneChoice.ValueBased("")),
-              c.noneChoiceError.getOrElse(LocalisedString.empty)
+              c.noneChoiceError
+                .filter(_.m.values.filterNot(_.trim.isEmpty).nonEmpty)
+                .getOrElse(
+                  LocalisedString(
+                    Map(
+                      LangADT.En -> "To choose the final option, you need to deselect all other options",
+                      LangADT.Cy -> "Er mwyn dewis yr opsiwn olaf, mae angen i chi ddad-ddewis pob opsiwn arall"
+                    )
+                  )
+                )
             )(context.formModelVisibilityOptics),
             validateChoice(context.formComponent)(context.formModelVisibilityOptics)
           ).nonShortCircuitProgram,
