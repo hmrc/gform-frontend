@@ -101,7 +101,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   ): Future[Option[Form]] =
     getForm(formIdData)
       .flatMap { form =>
-        if (formTemplate.version === form.formTemplateVersion) {
+        if (form.formTemplateVersion.contains(formTemplate.version)) {
+          Some(form).pure[Future]
+        } else if (allowNonVersionedFormIfTemplateIsOnFirstVersion(formTemplate, form)) {
           Some(form).pure[Future]
         } else {
           logger.info(
@@ -114,6 +116,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
         case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode === StatusCodes.NotFound.intValue =>
           formTemplate.legacyFormIds.fold(Future.successful(none[Form]))(getFormByLegacyIds(formIdData))
       }
+
+  // Once all "forms" contains version this can be dropped
+  // GFORMS-2314 introduced template version to be mandatory. Ultimately all
+  // user form data will contain version. At that point this check will be no-op
+  private def allowNonVersionedFormIfTemplateIsOnFirstVersion(formTemplate: FormTemplate, form: Form): Boolean =
+    formTemplate.version === FormTemplateVersion("1") && !form.formTemplateVersion.isDefined
 
   private def getFormByLegacyFormTemplate(
     formTemplate: FormTemplate,
@@ -134,7 +142,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
           val legacyFormIdData = formIdData.withTemplateId(legacyFormTemplateId)
           maybeForm(legacyFormIdData).flatMap {
             case None =>
-              if (legacyFormTemplate.version === form.formTemplateVersion) {
+              if (form.formTemplateVersion.contains(legacyFormTemplate.version)) {
                 if (form.status === Submitted) {
                   logger.info(
                     s"Legacy form for FormTemplate ${legacyFormTemplateId.value} not found, but form status is Submitted"
@@ -169,8 +177,8 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
             s"Legacy FormTemplate: ${legacyFormTemplateId.value} do not exists. Trying to resolve legacyFormIds: $legacyFormIds"
           )
           getFormByLegacyIds(formIdData)(legacyFormIds).map {
-            case Some(form) if formTemplate.version === form.formTemplateVersion => Some(form)
-            case _                                                               => None
+            case Some(form) if form.formTemplateVersion.contains(formTemplate.version) => Some(form)
+            case _                                                                     => None
           }
       }
     }
