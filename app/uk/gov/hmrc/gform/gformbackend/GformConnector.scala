@@ -385,18 +385,28 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ec: ExecutionContext
   ): Future[ServiceCallResponse[DesRegistrationResponse]] =
     ws.POST[DesRegistrationRequest, ServiceCallResponse[DesRegistrationResponse]](
-      s"$baseUrl/validate/des/$utr",
+      s"$baseUrl/des/organisation/$utr",
       desRegistrationRequest
     )
 
-  private val desUrlWithPlaceholders = s"$baseUrl/validate/des/{{utr}}"
-  private val registrationB = new DataRetrieveConnectorBlueprint(ws, desUrlWithPlaceholders, "registration")
+  private val desOrganisationWithPlaceholders = s"$baseUrl/des/organisation/{{utr}}"
+  private val organisationB = new DataRetrieveConnectorBlueprint(ws, desOrganisationWithPlaceholders, "organisation")
 
-  def getDesRegistration(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
+  def getDesOrganisation(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    registrationB.post(dataRetrieve, request)
+    organisationB.post(dataRetrieve, request)
+
+  private val desAgentDetailsWithPlaceholders = s"$baseUrl/des/personal-details/arn/{{agentReferenceNumber}}"
+  private val agentDetailsB =
+    new DataRetrieveConnectorBlueprint(ws, desAgentDetailsWithPlaceholders, "personal-details")
+
+  def getDesAgentDetails(
+    dataRetrieve: DataRetrieve,
+    request: DataRetrieve.Request
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
+    agentDetailsB.get(dataRetrieve, request)
 
   //TODO other formTemplate endpoints
   //TODO move this file to gform and make it's origin there
