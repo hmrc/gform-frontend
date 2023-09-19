@@ -24,6 +24,7 @@
 
 @(
   title: String,
+  caption: Option[String],
   formTemplate: FormTemplate,
   frontendAppConfig: FrontendAppConfig,
   enterAddressPage: EnterAddressPage,
@@ -58,6 +59,7 @@
 
   @hmrcPageHeading(PageHeading(
       text = heading,
+      section = caption,
       headingClasses = Some("govuk-heading-l")
   ))
 

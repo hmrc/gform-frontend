@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.RemoveItemIf
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)
+  def caption: Option[SmartString] = fold(_.page.caption)(_.expandedCaption)(_.expandedCaption)
   def noPIITitle: Option[SmartString] = fold(_.page.noPIITitle)(_.expandedNoPIIUpdateTitle)(_.expandedNoPIITitle)
   def id: Option[PageId] = fold(_.page.id)(c => Some(c.expandedId))(r => Some(r.expandedId))
 

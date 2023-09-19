@@ -196,8 +196,12 @@ class AddressLookupController(
 
     val backHref = goToSectionNumberLink(cache, formModelOptics, sectionNumber, maybeAccessCode, fastForward)
 
+    val formModel = formModelOptics.formModelRenderPageOptics.formModel
+    val caption = formModel.pageModelLookup.get(sectionNumber).flatMap(_.caption).map(_.value())
+
     addresslookup.choose_address(
       title,
+      caption,
       cache.formTemplate,
       frontendAppConfig,
       addressSelectionPage,
@@ -346,6 +350,7 @@ class AddressLookupController(
               )
 
             val formModel = formModelOptics.formModelRenderPageOptics.formModel
+            val caption = formModel.pageModelLookup.get(sectionNumber).flatMap(_.caption).map(_.value())
             val maybeConfirmAddressLabel = formModel.allFormComponents.find(_.id === formComponentId).flatMap {
               case IsPostcodeLookup(PostcodeLookup(_, confirmAddressLabel, _)) => confirmAddressLabel.map(_.value())
               case _                                                           => None
@@ -355,6 +360,7 @@ class AddressLookupController(
               addresslookup
                 .review_and_confirm_address(
                   title,
+                  caption,
                   cache.formTemplate,
                   frontendAppConfig,
                   address,
@@ -583,6 +589,7 @@ class AddressLookupController(
                   case _                                                         => None
                 }
                 val title = maybeEnterAddressLabel.getOrElse(Messages("postcodeLookup.enter.address"))
+                val caption = formModel.pageModelLookup.get(sectionNumber).flatMap(_.caption).map(_.value())
 
                 val backHref =
                   if (cache.form.thirdPartyData.addressRecordFor(formComponentId).isDefined) {
@@ -601,6 +608,7 @@ class AddressLookupController(
                   addresslookup
                     .enter_address(
                       title,
+                      caption,
                       cache.formTemplate,
                       frontendAppConfig,
                       enterAddressPage,
