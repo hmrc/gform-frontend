@@ -287,7 +287,8 @@ class FormProcessor(
               case DataRetrieve.Type("ninoInsights")              => Some(ninoInsightsConnector.insights)
               case DataRetrieve.Type("bankAccountInsights")       => Some(bankAccountInsightConnector.insights)
               case DataRetrieve.Type("employments")               => Some(gformConnector.getEmployments)
-              case DataRetrieve.Type("hmrcRosmRegistrationCheck") => Some(gformConnector.getDesRegistration)
+              case DataRetrieve.Type("hmrcRosmRegistrationCheck") => Some(gformConnector.getDesOrganisation)
+              case DataRetrieve.Type("agentDetails")              => Some(gformConnector.getDesAgentDetails)
               case _                                              => Option.empty
             }
           val maybeRetrieveResultF = maybeExecutor.flatTraverse { executor =>
