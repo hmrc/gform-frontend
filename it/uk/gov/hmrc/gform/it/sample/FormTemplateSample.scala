@@ -5,6 +5,7 @@ import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.email.{ EmailTemplateId, LocalisedEmailTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateVersion
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
@@ -18,7 +19,7 @@ trait FormTemplateSample {
   val formTemplateEmailAuth = FormTemplate(
     _id = formTemplateId,
     originalId = formTemplateId,
-    version = None,
+    version = FormTemplateVersion("1"),
     legacyFormIds = None,
     formName = LocalisedString(Map(LangADT.En -> "Form with email auth")),
     developmentPhase = None,
