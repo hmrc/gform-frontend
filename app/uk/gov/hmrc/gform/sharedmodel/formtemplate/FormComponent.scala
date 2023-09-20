@@ -45,7 +45,8 @@ case class FormComponent(
   labelSize: Option[LabelSize] = None,
   errorShortName: Option[SmartString] = None,
   errorShortNameStart: Option[SmartString] = None,
-  errorExample: Option[SmartString] = None
+  errorExample: Option[SmartString] = None,
+  extraLetterSpacing: Boolean = false
 ) {
 
   val modelComponentId: ModelComponentId = id.modelComponentId
@@ -53,8 +54,6 @@ case class FormComponent(
   val baseComponentId: BaseComponentId = id.baseComponentId
 
   def atomicFormComponentId(atom: Atom): ModelComponentId.Atomic = id.toAtomicFormComponentId(atom)
-
-  val errorExampleOrBlank = errorExample.getOrElse(SmartString.blank)
 
   val errorExampleWithCommaOrBlank =
     errorExample.map(_.transform(v => s", $v", v => s", $v")).getOrElse(SmartString.blank)

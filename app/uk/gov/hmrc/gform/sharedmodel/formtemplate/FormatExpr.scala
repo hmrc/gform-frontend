@@ -245,6 +245,13 @@ sealed trait TextConstraint {
       case n if n > 25            => CssClassSize._30
     }
   }
+
+  def extraLetterSpacingClass: String = this match {
+    case SaUTR | CtUTR | NINO | UkVrn | ReferenceNumber(_, _) | ChildBenefitNumber | UkBankAccountNumber |
+        UkSortCodeFormat | PayeReference | TextWithRestrictions(_, _) =>
+      "govuk-input--extra-letter-spacing"
+    case _ => ""
+  }
 }
 
 final case class Number(
