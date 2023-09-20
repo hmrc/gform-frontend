@@ -2243,6 +2243,9 @@ class SectionRenderingService(
       case _ if formComponent.derived => HtmlFormat.empty
       case _ =>
         val sizeClasses = TextConstraint.getSizeClass(text.constraint, text.displayWidth)
+        val inputClasses =
+          if (formComponent.extraLetterSpacing) s"$sizeClasses ${text.constraint.extraLetterSpacingClass}"
+          else sizeClasses
 
         val isPageHeading = ei.formLevelHeading
         val label = Label(
@@ -2298,7 +2301,7 @@ class SectionRenderingService(
             hint = hintText(formComponent),
             value = maybeCurrentValue,
             errorMessage = errorMessage,
-            classes = sizeClasses,
+            classes = inputClasses,
             spellcheck = spellcheck,
             attributes = ei.specialAttributes ++ attributes,
             autocomplete = autocomplete,
