@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.TaskListDisplayWidth.TaskListD
 case class FormTemplate(
   _id: FormTemplateId,
   originalId: FormTemplateId,
-  version: Option[FormTemplateVersion],
+  version: FormTemplateVersion,
   legacyFormIds: Option[NonEmptyList[FormTemplateId]],
   formName: LocalisedString,
   developmentPhase: Option[DevelopmentPhase],

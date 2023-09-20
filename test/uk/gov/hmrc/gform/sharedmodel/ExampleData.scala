@@ -819,7 +819,7 @@ trait ExampleFormTemplate {
     FormTemplate(
       formTemplateId,
       formTemplateOriginalId,
-      None,
+      FormTemplateVersion("1"),
       legacyFormIds,
       formName,
       Some(ResearchBanner),

@@ -240,7 +240,7 @@ class NewFormController(
           newForm(formTemplate._id, cache.copy(formTemplate = formTemplate), queryParams)
         ) { form =>
           for {
-            formTemplate <- if (formTemplate._id === form.formTemplateId || formTemplate.version.isEmpty)
+            formTemplate <- if (formTemplate._id === form.formTemplateId)
                               formTemplate.pure[Future]
                             else gformConnector.getFormTemplate(form.formTemplateId)
 
