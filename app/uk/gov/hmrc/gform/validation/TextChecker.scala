@@ -82,6 +82,8 @@ object TextChecker {
   val genericCrnErrorInvalid                                 = "generic.crn.error.invalid"
   val genericEoriErrorRequired                               = "generic.eori.error.required"
   val genericEoriErrorPattern                                = "generic.eori.error.pattern"
+  val genericCrnErrorRequired                                = "generic.companyRegistrationNumber.error.required"
+  val genericCrnErrorPattern                                 = "generic.companyRegistrationNumber.error.pattern"
   val genericUkEoriErrorRequired                             = "generic.ukEori.error.required"
   val genericUkEoriErrorPattern                              = "generic.ukEori.error.pattern"
   val genericUkBankAccountErrorRequired                      = "generic.ukBankAccount.error.required"
@@ -95,7 +97,7 @@ object TextChecker {
   val genericShortTextErrorPattern                           = "generic.shortText.error.pattern"
   val genericErrorLookup                                     = "generic.error.lookup"
   val genericErrorRegistry                                   = "generic.error.registry"
-  val genericErrorRequired                                  = "generic.error.required"
+  val genericErrorRequired                                   = "generic.error.required"
   val genericErrorParentSubmissionRefSameAsFormSubmissionRef = "generic.error.parentSubmissionRefSameAsFormSubmissionRef"
   val genericErrorExactNumbers                               = "generic.error.exactNumbers"
   val genericErrorSortCode                                   = "generic.error.sortCode"
@@ -462,8 +464,16 @@ object TextChecker {
       mandatoryFailure = checkNonUkCountryCode(fieldValue, inputText),
       nonEmptyCheck = checkNonUkCountryCode(fieldValue, inputText)
     )
-    def companyRegistrationNumberCheck(): CheckProgram[Unit] =
-      checkCompanyRegistrationNumber(fieldValue, inputText)
+    def companyRegistrationNumberCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
+      mandatoryFailure = validationFailure(
+        fieldValue,
+        genericCrnErrorRequired,
+        fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
+          SmartString.blank.transform(_ => "a", identity).value().pure[List]
+        ))
+      ),
+      nonEmptyCheck = checkCompanyRegistrationNumber(fieldValue, inputText)
+    )
 
     def eoriCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(
@@ -1269,9 +1279,25 @@ object TextChecker {
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
-    val ValidCRN = "[A-Z]{2}[0-9]{6}|[0-9]{8}".r
     val str = value.replace(" ", "")
-    sharedTextComponentValidator(fieldValue, str, 8, 8, ValidCRN, genericCrnErrorInvalid)
+    val ValidCRN = "[A-Z]{2}[0-9]{6}|[0-9]{8}".r
+
+    val isCRN = str match {
+      case ValidCRN() => true
+      case _          => false
+    }
+
+    ifProgram(
+      cond = isCRN,
+      thenProgram = successProgram(()),
+      elseProgram = validationFailure(
+        fieldValue,
+        genericCrnErrorPattern,
+        fieldValue.errorShortName
+          .map(_.transform(identity, _ + " ").value().pure[List]) orElse
+          (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
+      )
+    )
   }
 
   private def checkEORI(
