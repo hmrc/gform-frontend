@@ -16,47 +16,57 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.implicits._
 import cats.Monoid
 import cats.data.Validated
+import cats.implicits._
+import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, Error, File, Other, Quarantined }
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.fileupload.Error
+import uk.gov.hmrc.gform.fileupload.File
+import uk.gov.hmrc.gform.fileupload.Other
+import uk.gov.hmrc.gform.fileupload.Quarantined
 import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.models.ids.IndexedComponentId
-import com.softwaremill.quicklens._
+
+import scala.collection.mutable.LinkedHashSet
+
+import GformError.linkedHashSetMonoid
 
 object ValidationUtil {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  type GformError = Map[ModelComponentId, Set[String]]
+  type GformError = Map[ModelComponentId, LinkedHashSet[String]]
   type ValidatedNumeric = Validated[String, Int]
 
   type ValidatedType[A] = Validated[GformError, A]
   type EitherType[A] = Either[GformError, A]
 
-  val printErrors: Set[String] => Set[String] = (map: Set[String]) => {
+  val printErrors: LinkedHashSet[String] => LinkedHashSet[String] = (map: LinkedHashSet[String]) => {
     map
   }
 
-  def renderErrors(validationResult: FormFieldValidationResult): Set[String] =
+  def renderErrors(validationResult: FormFieldValidationResult): LinkedHashSet[String] =
     validationResult match {
       case FieldError(fv, _, errors)      => errors
       case FieldGlobalError(_, _, errors) => errors
       case ComponentField(_, compData) =>
-        compData.flatMap(kv => renderErrors(kv._2)).toSet
-
-      case _ => Set.empty[String]
+        val orderedSet = LinkedHashSet[String]()
+        orderedSet ++= compData.flatMap(kv => renderErrors(kv._2))
+        orderedSet
+      case _ => LinkedHashSet.empty[String]
     }
 
   private def evaluateWithSuffix(
     formComponent: FormComponent,
-    gformErrors: Map[ModelComponentId, Set[String]]
+    gformErrors: Map[ModelComponentId, LinkedHashSet[String]]
   )(
     dGetter: ModelComponentId => Seq[String]
   ): List[(ModelComponentId, FormFieldValidationResult)] =
@@ -72,7 +82,7 @@ object ValidationUtil {
 
   private def evaluateWithoutSuffix(
     formComponent: FormComponent,
-    gformErrors: Map[ModelComponentId, Set[String]]
+    gformErrors: Map[ModelComponentId, LinkedHashSet[String]]
   )(
     dGetter: ModelComponentId => Seq[String]
   ): (ModelComponentId, FormFieldValidationResult) = {
@@ -96,8 +106,8 @@ object ValidationUtil {
     val dataGetter: ModelComponentId => Seq[String] = fId =>
       formModelVisibilityOptics.data.get(fId).toList.flatMap(_.toSeq)
 
-    val gFormErrors: Map[ModelComponentId, Set[String]] =
-      validationResult.swap.getOrElse(Map.empty[ModelComponentId, Set[String]])
+    val gFormErrors: Map[ModelComponentId, LinkedHashSet[String]] =
+      validationResult.swap.getOrElse(Map.empty[ModelComponentId, LinkedHashSet[String]])
 
     def multiFieldValidationResult(
       formComponent: FormComponent,
@@ -299,8 +309,11 @@ object ValidationUtil {
   ): Validated[GformError, ValidatorsResult] = {
 
     //TODO: below code was borrowed from components validator. make it reusable in ValidationUtil
-    def errors(formComponent: FormComponent, defaultErr: String): Set[String] =
-      Set(formComponent.errorMessage.map(localisedString => localisedString.value()).getOrElse(defaultErr))
+    def errors(formComponent: FormComponent, defaultErr: String): LinkedHashSet[String] = {
+      val orderedSet = LinkedHashSet[String]()
+      val errorMsg = formComponent.errorMessage.map(localisedString => localisedString.value()).getOrElse(defaultErr)
+      orderedSet += errorMsg
+    }
 
     def getError(
       formComponent: FormComponent,

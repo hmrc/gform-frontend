@@ -42,6 +42,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
+import scala.collection.mutable.LinkedHashSet
+
 class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport {
 
   implicit val checkInterpreter: ComponentChecker.CheckInterpreter = ComponentChecker.NonShortCircuitInterpreter
@@ -99,7 +101,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     assertEquals(
       new CalendarDateChecker[DataOrigin.Browser]()
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
-      Invalid(Map(dateMonthAtom -> Set("Enter a date"), dateDayAtom -> Set("Enter a date")))
+      Invalid(Map(dateMonthAtom -> LinkedHashSet("Enter a date"), dateDayAtom -> LinkedHashSet("Enter a date")))
     )
   }
 
@@ -114,7 +116,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     assertEquals(
       new CalendarDateChecker[DataOrigin.Browser]()
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
-      Invalid(Map(dateMonthAtom -> Set("Enter a date")))
+      Invalid(Map(dateMonthAtom -> LinkedHashSet("Enter a date")))
     )
   }
 
@@ -133,10 +135,10 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(
         Map(
-          dateDayAtom -> Set(
+          dateDayAtom -> LinkedHashSet(
             "Enter a day in the correct format"
           ),
-          dateMonthAtom -> Set(
+          dateMonthAtom -> LinkedHashSet(
             "Enter a month in the correct format"
           )
         )
@@ -159,10 +161,10 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(
         Map(
-          dateDayAtom -> Set(
+          dateDayAtom -> LinkedHashSet(
             "Enter a day in the correct format"
           ),
-          dateMonthAtom -> Set(
+          dateMonthAtom -> LinkedHashSet(
             "Enter a month in the correct format"
           )
         )
@@ -214,7 +216,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
           .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
         Invalid(
           Map(
-            atom -> Set(
+            atom -> LinkedHashSet(
               message
             )
           )
@@ -247,10 +249,10 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
           .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
         Invalid(
           Map(
-            atom1 -> Set(
+            atom1 -> LinkedHashSet(
               message1
             ),
-            atom2 -> Set(
+            atom2 -> LinkedHashSet(
               message2
             )
           )

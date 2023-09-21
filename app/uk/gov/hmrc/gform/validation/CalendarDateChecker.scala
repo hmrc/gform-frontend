@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.validation.CheckerServiceHelper._
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 
 import java.time.Month
+import scala.collection.mutable.LinkedHashSet
 
 import ComponentChecker._
 
@@ -139,7 +140,7 @@ class CalendarDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Form
 
   private def requiredError[A](formComponent: FormComponent, modelComponentId: ModelComponentId): CheckProgram[A] =
     errorProgram[A](
-      Map[ModelComponentId, Set[String]] {
+      Map[ModelComponentId, LinkedHashSet[String]] {
         val placeholder1 = formComponent.errorShortName
           .flatMap(_.nonBlankValue())
           .getOrElse(SmartString.blank.transform(_ => "a date", _ => "ddyddiad").value())

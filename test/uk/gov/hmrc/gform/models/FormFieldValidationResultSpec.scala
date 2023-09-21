@@ -19,9 +19,13 @@ package uk.gov.hmrc.gform.models
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation._
+
+import scala.collection.mutable.LinkedHashSet
 
 class FormFieldValidationResultSpec extends AnyFlatSpecLike with Matchers {
 
@@ -103,7 +107,7 @@ class FormFieldValidationResultSpec extends AnyFlatSpecLike with Matchers {
             None
           ),
           "NOT_RIGHT",
-          Set("NAN")
+          LinkedHashSet("NAN")
         )
       )
     )

@@ -24,24 +24,28 @@ import uk.gov.hmrc.gform.models.ids._
 import uk.gov.hmrc.gform.validation.ComponentChecker._
 import uk.gov.hmrc.gform.validation.ValidationUtil._
 
+import scala.collection.mutable.LinkedHashSet
+
+import GformError.linkedHashSetMonoid
+
 class ComponentCheckerAndThenOpSpec extends AnyFunSpec with Matchers {
 
   val atom = "atom"
   val gformError1: GformError = Map(
     ModelComponentId
-      .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom(atom)) -> Set(
+      .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom(atom)) -> LinkedHashSet(
       "error"
     )
   )
   val gformError2: GformError = Map(
     ModelComponentId
-      .Atomic(IndexedComponentId.Pure(BaseComponentId("comp2")), Atom(atom)) -> Set(
+      .Atomic(IndexedComponentId.Pure(BaseComponentId("comp2")), Atom(atom)) -> LinkedHashSet(
       "error"
     )
   )
   val gformError3: GformError = Map(
     ModelComponentId
-      .Atomic(IndexedComponentId.Pure(BaseComponentId("comp3")), Atom(atom)) -> Set(
+      .Atomic(IndexedComponentId.Pure(BaseComponentId("comp3")), Atom(atom)) -> LinkedHashSet(
       "error"
     )
   )

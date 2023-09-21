@@ -19,10 +19,15 @@ package uk.gov.hmrc.gform.gform
 import org.scalacheck.Gen
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.models.EnteredVariadicFormData
+import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen
-import uk.gov.hmrc.gform.validation.{ FieldError, FieldOk, FormFieldValidationResult, ValidationResult }
-import uk.gov.hmrc.gform.ops.FormComponentOps
+import uk.gov.hmrc.gform.validation.FieldError
+import uk.gov.hmrc.gform.validation.FieldOk
+import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import uk.gov.hmrc.gform.validation.ValidationResult
+
+import scala.collection.mutable.LinkedHashSet
 
 class FormServiceSpec extends Spec {
 
@@ -40,7 +45,7 @@ class FormServiceSpec extends Spec {
 
   it should "not remove any commas from the FormFieldValidationResult when FormFieldValidationResult is not equal to FieldOk" in {
     forAll(genFormComponentSterlingConstraint) { formComponent =>
-      headValue(formComponent, FieldError(formComponent, "£1,000.25", Set("someErrors"))) shouldBe "£1,000.25"
+      headValue(formComponent, FieldError(formComponent, "£1,000.25", LinkedHashSet("someErrors"))) shouldBe "£1,000.25"
     }
   }
 

@@ -35,6 +35,8 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.EitherType
 import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
+import scala.collection.mutable.LinkedHashSet
+
 /*
  * ComponentChecker Framework
  *
@@ -437,15 +439,26 @@ object GformError {
   ): GformError =
     Map(modelComponentId -> {
       val varsList: List[String] = vars.getOrElse(Nil)
-      Set(
-        fieldValue.errorMessage
-          .map(ls => ls.value())
-          .getOrElse(messages(messageKey, varsList: _*))
-      )
+      val orderedSet = LinkedHashSet[String]()
+      val errorMsg = fieldValue.errorMessage
+        .map(ls => ls.value())
+        .getOrElse(messages(messageKey, varsList: _*))
+
+      orderedSet += errorMsg
     })
 
-  val emptyGformError: GformError = Map.empty[ModelComponentId, Set[String]]
+  val emptyGformError: GformError = Map.empty[ModelComponentId, LinkedHashSet[String]]
 
   def foldEitherType[A](e: EitherType[A]): GformError =
     e.fold(error => error, either => emptyGformError)
+  implicit def linkedHashSetMonoid[A]: Monoid[LinkedHashSet[A]] = new Monoid[LinkedHashSet[A]] {
+    def empty: LinkedHashSet[A] = LinkedHashSet.empty[A]
+
+    def combine(x: LinkedHashSet[A], y: LinkedHashSet[A]): LinkedHashSet[A] = {
+      val newSet = LinkedHashSet.empty[A]
+      newSet ++= x
+      newSet ++= y
+      newSet
+    }
+  }
 }

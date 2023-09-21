@@ -52,6 +52,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import java.time.LocalDate
+import scala.collection.mutable.LinkedHashSet
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -168,7 +169,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date must be after 21 June 2017"
           )
         )
@@ -183,7 +185,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date of birth must be after 21 June 2017"
           )
         )
@@ -198,7 +201,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date must be before 01 January 2020"
           )
         )
@@ -213,7 +217,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date of birth must be before 01 January 2020"
           )
         )
@@ -264,7 +269,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date must be in the past"
           )
         )
@@ -279,7 +285,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date of birth must be in the past"
           )
         )
@@ -294,7 +301,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date must be today or in the past"
           )
         )
@@ -309,7 +317,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date of birth must be today or in the past"
           )
         )
@@ -324,7 +333,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date must be in the future"
           )
         )
@@ -339,7 +349,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Start date must be in the future"
           )
         )
@@ -354,7 +365,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date must be today or in the future"
           )
         )
@@ -369,7 +381,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Start date must be today or in the future"
           )
         )
@@ -429,7 +442,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date must be the last day of the month"
           )
         )
@@ -444,7 +458,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date must be the first day of the month"
           )
         )
@@ -459,7 +474,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Accounting period start date must be the first day of the month"
           )
         )
@@ -474,7 +490,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date must be the last day of the month"
           )
         )
@@ -489,7 +506,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Accounting period end date must be the last day of the month"
           )
         )
@@ -551,7 +569,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Enter a day in the correct format"
           )
         )
@@ -566,7 +585,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Enter a day in the correct format"
           )
         )
@@ -581,7 +601,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
             "Enter a year in the correct format"
           )
         )
@@ -596,7 +617,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
             "Enter a year in the correct format"
           )
         )
@@ -611,10 +633,12 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Enter a day in the correct format"
           ),
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
             "Enter a month in the correct format"
           )
         )
@@ -629,7 +653,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
             "Enter a year in the correct format"
           )
         )
@@ -644,7 +669,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
             "Enter a year in the correct format"
           )
         )
@@ -659,7 +685,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
             "Enter a year in the correct format"
           )
         )
@@ -674,7 +701,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date must be a real date"
           )
         )
@@ -689,7 +717,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       Some(toSmartString("like 01 04 2001")),
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Date of birth must be a real date, like 01 04 2001"
           )
         )
@@ -704,10 +733,12 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Enter a day in the correct format"
           ),
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
             "Enter a month in the correct format"
           )
         )
@@ -722,15 +753,18 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Enter a date",
             "Enter a day in the correct format"
           ),
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
             "Enter a date",
             "Enter a month in the correct format"
           ),
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
             "Enter a date",
             "Enter a year in the correct format"
           )
@@ -746,15 +780,18 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       Some(toSmartString("like 01 04 2023")),
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
             "Enter start date, like 01 04 2023",
             "Enter a day in the correct format"
           ),
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
             "Enter start date, like 01 04 2023",
             "Enter a month in the correct format"
           ),
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
             "Enter start date, like 01 04 2023",
             "Enter a year in the correct format"
           )
@@ -770,11 +807,13 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       None,
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
             "Enter a date",
             "Enter a month in the correct format"
           ),
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
             "Enter a date",
             "Enter a year in the correct format"
           )
@@ -790,11 +829,13 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       Some(toSmartString("like 01 04 2023")),
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
             "Enter start date, like 01 04 2023",
             "Enter a month in the correct format"
           ),
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
             "Enter start date, like 01 04 2023",
             "Enter a year in the correct format"
           )
@@ -856,10 +897,12 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       ("15", "", ""),
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
             "Enter a month in the correct format"
           ),
-          ModelComponentId.Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
             "Enter a year in the correct format"
           )
         )
@@ -915,7 +958,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       mkDateComponentWithConstraint("1_endDate", "startDate"),
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Indexed(BaseComponentId("endDate"), 1), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Indexed(BaseComponentId("endDate"), 1), Atom("day")) -> LinkedHashSet(
             "Date must be after 01 January 2020"
           )
         )
@@ -930,7 +974,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       mkDateComponentWithConstraint("1_endDate", "startDate"),
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Indexed(BaseComponentId("endDate"), 1), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Indexed(BaseComponentId("endDate"), 1), Atom("day")) -> LinkedHashSet(
             "Date must be after 01 January 2020"
           )
         )
@@ -945,7 +990,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       mkDateComponentWithConstraint("1_endDate", "startDate"),
       Invalid(
         Map(
-          ModelComponentId.Atomic(IndexedComponentId.Indexed(BaseComponentId("endDate"), 1), Atom("day")) -> Set(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Indexed(BaseComponentId("endDate"), 1), Atom("day")) -> LinkedHashSet(
             "Date must be after 01 January 2020"
           )
         )

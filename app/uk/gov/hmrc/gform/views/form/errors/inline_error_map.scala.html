@@ -18,12 +18,13 @@
 @import uk.gov.hmrc.gform.validation.ValidationUtil
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.govukfrontend.views.html.components._
+@import scala.collection.mutable.LinkedHashSet
 
 @(fieldValue: FormComponent, validationResult: FormFieldValidationResult)
 
 @{
-val map: Set[String]= ValidationUtil.renderErrors(validationResult)
-  val errors: Set[String] = ValidationUtil.printErrors(map)
+  val map: LinkedHashSet[String]= ValidationUtil.renderErrors(validationResult)
+  val errors: LinkedHashSet[String] = ValidationUtil.printErrors(map)
 
   errors.map{e =>
    new GovukErrorMessage()(

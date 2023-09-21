@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 import scala.annotation.nowarn
+import scala.collection.mutable.LinkedHashSet
 
 case class ValidationResult(
   lookup: Map[FormComponentId, FormFieldValidationResult],
@@ -51,7 +52,7 @@ case class ValidationResult(
     lookup
       .get(formComponentId)
       .fold(this) { case FieldOk(formComponent, currentValue) =>
-        val fieldError = FieldError(formComponent, currentValue, Set(error))
+        val fieldError = FieldError(formComponent, currentValue, LinkedHashSet(error))
         new ValidationResult(lookup + (formComponentId -> fieldError), validatorsResult)
       }
 

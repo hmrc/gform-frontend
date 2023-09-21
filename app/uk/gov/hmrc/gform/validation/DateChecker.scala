@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 
 import java.time.LocalDate
 import scala.annotation.nowarn
+import scala.collection.mutable.LinkedHashSet
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -104,7 +105,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     messages: Messages
   ): CheckProgram[T] =
     errorProgram[T](
-      Map[ModelComponentId, Set[String]](
+      Map[ModelComponentId, LinkedHashSet[String]](
         formComponent.firstAtomModelComponentId -> errors(formComponent, messageKey, vars)
       )
     )
@@ -118,7 +119,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
       .getOrElse(SmartString.blank.transform(_ => "a date", _ => "ddyddiad").value())
     val placeholder2 = formComponent.errorExample.flatMap(_.nonBlankValue()).map(s => s", $s").getOrElse("")
     errorProgram[Unit](
-      Map[ModelComponentId, Set[String]](
+      Map[ModelComponentId, LinkedHashSet[String]](
         modelComponentId -> errors(
           formComponent,
           "generic.error.date.required",
@@ -495,7 +496,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
         elseProgram = errorProgram[Int](
           Map(
             errorGranularity(Date.day) -> errorMessage
-              .map(Set(_))
+              .map(LinkedHashSet(_))
               .getOrElse(errors(formComponent, "generic.error.day.required", None))
           )
         )
@@ -512,7 +513,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
         elseProgram = errorProgram[Int](
           Map(
             errorGranularity(Date.month) -> errorMessage
-              .map(Set(_))
+              .map(LinkedHashSet(_))
               .getOrElse(errors(formComponent, "generic.error.month.required", None))
           )
         )
@@ -530,7 +531,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
         elseProgram = errorProgram[Int](
           Map(
             errorGranularity(Date.year) -> errorMessage
-              .map(Set(_))
+              .map(LinkedHashSet(_))
               .getOrElse(errors(formComponent, "generic.error.year.required", None))
           )
         )
