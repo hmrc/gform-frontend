@@ -80,6 +80,7 @@ object TextChecker {
   val genericReferenceNumberErrorRequired                    = "generic.referenceNumber.error.required"
   val genericReferenceNumberErrorPattern                     = "generic.referenceNumber.error.pattern"
   val genericCrnErrorInvalid                                 = "generic.crn.error.invalid"
+  val genericEoriErrorRequired                               = "generic.eori.error.required"
   val genericEoriErrorPattern                                = "generic.eori.error.pattern"
   val genericUkEoriErrorRequired                             = "generic.ukEori.error.required"
   val genericUkEoriErrorPattern                              = "generic.ukEori.error.pattern"
@@ -463,7 +464,18 @@ object TextChecker {
     )
     def companyRegistrationNumberCheck(): CheckProgram[Unit] =
       checkCompanyRegistrationNumber(fieldValue, inputText)
-    def eoriCheck(): CheckProgram[Unit] = checkEORI(fieldValue, inputText)
+
+    def eoriCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
+      mandatoryFailure = validationFailure(
+        fieldValue,
+        genericEoriErrorRequired,
+        fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
+          SmartString.blank.transform(_ => "an", identity).value().pure[List]
+        ))
+      ),
+      nonEmptyCheck = checkEORI(fieldValue, inputText)
+    )
+
     def ukEoriCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(
         fieldValue,
@@ -1269,9 +1281,25 @@ object TextChecker {
     messages: Messages,
     sse: SmartStringEvaluator
   ) = {
-    val ValidEORI = "^[A-Z]{2}[0-9A-Z]{7,15}$".r
     val str = value.replace(" ", "")
-    sharedTextComponentValidator(fieldValue, str, 9, 17, ValidEORI, genericEoriErrorPattern)
+    val ValidEORI = "^[A-Z]{2}[0-9A-Z]{7,15}$".r
+
+    val isEORI = str match {
+      case ValidEORI() => true
+      case _           => false
+    }
+
+    ifProgram(
+      cond = isEORI,
+      thenProgram = successProgram(()),
+      elseProgram = validationFailure(
+        fieldValue,
+        genericEoriErrorPattern,
+        fieldValue.errorShortName
+          .map(_.transform(identity, _ + " ").value().pure[List]) orElse
+          (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
+      )
+    )
   }
 
   private def checkUkEORI(
