@@ -22,12 +22,13 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import scala.collection.mutable.LinkedHashSet
 
 case class FieldOk(formComponent: FormComponent, currentValue: String) extends FormFieldValidationResult
 case class FieldGlobalOk(formComponent: FormComponent, currentValue: String) extends FormFieldValidationResult
-case class FieldError(formComponent: FormComponent, currentValue: String, errors: Set[String])
+case class FieldError(formComponent: FormComponent, currentValue: String, errors: LinkedHashSet[String])
     extends FormFieldValidationResult
-case class FieldGlobalError(formComponent: FormComponent, currentValue: String, errors: Set[String])
+case class FieldGlobalError(formComponent: FormComponent, currentValue: String, errors: LinkedHashSet[String])
     extends FormFieldValidationResult
 case class ComponentField(
   formComponent: FormComponent,
@@ -46,34 +47,34 @@ trait FormFieldValidationResult {
     case t                   => t
   }
 
-  lazy val fieldErrors: Set[String] = this match {
+  lazy val fieldErrors: LinkedHashSet[String] = this match {
     case e: FieldError                 => e.errors
     case globalError: FieldGlobalError => globalError.errors
-    case cf: ComponentField            => cf.data.values.foldLeft[Set[String]](Set())(_ ++ _.fieldErrors)
-    case _                             => Set()
+    case cf: ComponentField            => cf.data.values.foldLeft[LinkedHashSet[String]](LinkedHashSet())(_ ++ _.fieldErrors)
+    case _                             => LinkedHashSet()
   }
 
-  lazy val fieldErrorsByFieldValue: List[Set[String]] = this match {
+  lazy val fieldErrorsByFieldValue: List[LinkedHashSet[String]] = this match {
     case e: FieldError => List(e.errors)
     case cf: ComponentField =>
       cf.data.values.toList.flatMap(_.fieldErrorsByFieldValue)
     case _ => Nil
   }
 
-  def fieldErrorsWithSuffix(atom: Atom): Set[String] = this match {
+  def fieldErrorsWithSuffix(atom: Atom): LinkedHashSet[String] = this match {
     case ComponentField(formComponent, data) =>
       val modelComponentId: ModelComponentId = formComponent.atomicFormComponentId(atom)
       data
         .get(HtmlFieldId.Pure(modelComponentId))
         .map(_.fieldErrors)
-        .getOrElse(Set())
-    case _ => Set()
+        .getOrElse(LinkedHashSet())
+    case _ => LinkedHashSet()
   }
 
-  lazy val globalErrors: Set[String] = this match {
+  lazy val globalErrors: LinkedHashSet[String] = this match {
     case e: FieldGlobalError => e.errors
-    case cf: ComponentField  => cf.data.values.foldLeft[Set[String]](Set())(_ ++ _.globalErrors)
-    case _                   => Set()
+    case cf: ComponentField  => cf.data.values.foldLeft[LinkedHashSet[String]](LinkedHashSet())(_ ++ _.globalErrors)
+    case _                   => LinkedHashSet()
   }
 
   def formComponent: FormComponent

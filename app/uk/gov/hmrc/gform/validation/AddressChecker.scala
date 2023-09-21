@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.CheckerServiceHelper._
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
+import scala.collection.mutable.LinkedHashSet
 
 import ComponentChecker._
 
@@ -268,7 +269,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
     str: String,
     vars: List[String]
   ): GformError =
-    Map[ModelComponentId, Set[String]](atomicFcId -> errors(fieldValue, str, Some(vars)))
+    Map[ModelComponentId, LinkedHashSet[String]](atomicFcId -> errors(fieldValue, str, Some(vars)))
 
   private def postcodeValidation(
     fieldValue: FormComponent,

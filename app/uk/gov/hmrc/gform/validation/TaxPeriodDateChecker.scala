@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.TaxPeriodDate
 import uk.gov.hmrc.gform.validation.CheckerServiceHelper._
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
+import scala.collection.mutable.LinkedHashSet
 
 import ComponentChecker._
 
@@ -86,7 +87,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
           thenProgram = successProgram(()),
           elseProgram = errorProgram(
             Map(
-              errorGranularity(formComponent)(TaxPeriodDate.month) -> Set(
+              errorGranularity(formComponent)(TaxPeriodDate.month) -> LinkedHashSet(
                 messages("generic.error.taxPeriodDate.month.real")
               )
             )
@@ -97,7 +98,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
           thenProgram = successProgram(()),
           elseProgram = errorProgram(
             Map(
-              errorGranularity(formComponent)(TaxPeriodDate.year) -> Set(
+              errorGranularity(formComponent)(TaxPeriodDate.year) -> LinkedHashSet(
                 messages("generic.error.taxPeriodDate.year.real")
               )
             )
@@ -131,7 +132,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
 
   private def requiredError[A](formComponent: FormComponent, modelComponentId: ModelComponentId): CheckProgram[A] =
     errorProgram[A](
-      Map[ModelComponentId, Set[String]] {
+      Map[ModelComponentId, LinkedHashSet[String]] {
         val placeholder1 = formComponent.errorShortName
           .flatMap(_.nonBlankValue())
           .getOrElse(SmartString.blank.transform(_ => "a date", _ => "ddyddiad").value())

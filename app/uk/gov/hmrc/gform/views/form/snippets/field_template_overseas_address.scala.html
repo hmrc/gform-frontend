@@ -21,6 +21,7 @@
 @import uk.gov.hmrc.gform.views.html.errorInline
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+@import scala.collection.mutable.LinkedHashSet
 
 @(
     formTemplateId: FormTemplateId,
@@ -53,7 +54,7 @@
 }
 
 @safeErrorMessage(atom: Atom) = @{
-    val errors: Set[String] = validationResult.fieldErrorsWithSuffix(atom)
+    val errors: LinkedHashSet[String] = validationResult.fieldErrorsWithSuffix(atom)
     errors.map(e => ErrorMessage(
         id = Some(atom.value),
         classes = "error-message",

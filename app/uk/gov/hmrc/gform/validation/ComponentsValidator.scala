@@ -34,6 +34,8 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import ComponentChecker._
+import scala.collection.mutable.LinkedHashSet
+import GformError.linkedHashSetMonoid
 
 class EmailCodeFieldMatcher(
   val fcId: VerificationCodeFieldId,
@@ -128,11 +130,16 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
               case other => throw new Exception(s"Invalid formComponent - $other for addressDetail")
             }
         }
+
         Monoid[ValidatedType[Unit]].combineAll(
-          modelComponentIds.map(mcId => Map[ModelComponentId, Set[String]](mcId -> Set(message.value())).invalid)
+          modelComponentIds.map(mcId =>
+            Map[ModelComponentId, LinkedHashSet[String]](mcId -> LinkedHashSet(message.value())).invalid
+          )
         )
       case _ =>
-        Map[ModelComponentId, Set[String]](formComponent.modelComponentId -> Set(message.value())).invalid
+        Map[ModelComponentId, LinkedHashSet[String]](
+          formComponent.modelComponentId -> LinkedHashSet(message.value())
+        ).invalid
     }
 
   private def defaultFormComponentValidIf(
@@ -241,7 +248,7 @@ class ComponentsValidatorHelper(implicit messages: Messages, sse: SmartStringEva
     ifProgram(
       andCond = isEmpty,
       thenProgram = errorProgram(
-        Map[ModelComponentId, Set[String]](
+        Map[ModelComponentId, LinkedHashSet[String]](
           atomicFcId -> ComponentsValidatorHelper
             .errors(formComponent, "field.error.required", None, errorPrefix.getOrElse(""))
         )
@@ -257,7 +264,7 @@ class ComponentsValidatorHelper(implicit messages: Messages, sse: SmartStringEva
     xs: Seq[String]
   ): CheckProgram[Unit] = {
     val res = errorProgram[Unit](
-      Map[ModelComponentId, Set[String]](
+      Map[ModelComponentId, LinkedHashSet[String]](
         atomicFcId -> ComponentsValidatorHelper
           .errors(formComponent, "generic.error.forbidden", None)
       )
@@ -296,13 +303,14 @@ object ComponentsValidatorHelper {
   )(implicit
     sse: SmartStringEvaluator,
     messages: Messages
-  ): Set[String] = {
+  ): LinkedHashSet[String] = {
     val varsList: List[String] = vars.getOrElse(Nil)
     val withDescriptor: List[String] = fieldDescriptor(formComponent, partLabel).trim :: varsList
-    Set(
-      formComponent.errorMessage
-        .map(ls => ls.value())
-        .getOrElse(messages(messageKey, withDescriptor: _*))
-    )
+    val orderedSet = LinkedHashSet[String]()
+    val errorMsg = formComponent.errorMessage
+      .map(ls => ls.value())
+      .getOrElse(messages(messageKey, withDescriptor: _*))
+
+    orderedSet += errorMsg
   }
 }

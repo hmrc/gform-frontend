@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.LocalisedString
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.CheckerServiceHelper.validationFailure
+import scala.collection.mutable.LinkedHashSet
 
 import ComponentChecker._
 
@@ -183,7 +184,7 @@ class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
     ifProgram(
       cond = choiceValue.contains(noneChoice.selection) && choiceValue.length > 1,
-      thenProgram = errorProgram[Unit](Map(fieldValue.modelComponentId -> Set(error.value))),
+      thenProgram = errorProgram[Unit](Map(fieldValue.modelComponentId -> LinkedHashSet(error.value))),
       elseProgram = successProgram(())
     )
   }

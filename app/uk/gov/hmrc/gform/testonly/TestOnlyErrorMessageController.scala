@@ -327,8 +327,10 @@ class TestOnlyErrorMessageController(
           new BooleanExprEval(),
           ComponentChecker.ErrorReportInterpreter
         ).validate(GetEmailCodeFieldMatcher(formModel)).map {
-          case Valid(a)                      => (formComponent, GformError.emptyGformError)
-          case Validated.Invalid(gformError) => (formComponent, gformError)
+          case Valid(a) => (formComponent, GformError.emptyGformError)
+          case Validated.Invalid(gformError) =>
+            lxol.pp.log(gformError)
+            (formComponent, gformError)
         }
       }
       .sequence

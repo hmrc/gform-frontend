@@ -41,6 +41,8 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.typeclasses.Rnd
 import ComponentChecker.CheckInterpreter
+import GformError.linkedHashSetMonoid
+import scala.collection.mutable.LinkedHashSet
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -259,8 +261,8 @@ class ValidationService(
 
         val errors =
           Map(
-            utr.formComponentId.modelComponentId      -> Set(errorMessage.value()),
-            postcode.formComponentId.modelComponentId -> Set(errorMessage.value())
+            utr.formComponentId.modelComponentId      -> LinkedHashSet(errorMessage.value()),
+            postcode.formComponentId.modelComponentId -> LinkedHashSet(errorMessage.value())
           )
 
         val desRegistrationRequest = DesRegistrationRequest(regime, false, false)

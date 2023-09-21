@@ -18,6 +18,7 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil, HtmlFieldId}
 @import uk.gov.hmrc.gform.views.html.errorInline
 @import uk.gov.hmrc.gform.models.Atom
+@import scala.collection.mutable.LinkedHashSet
 
 @(address: Address,
   fieldValue: FormComponent,
@@ -128,7 +129,7 @@
       }
 
       @safeError(atom: Atom) = @{
-        val errors: Set[String] = validationResult.fieldErrorsWithSuffix(atom)
+        val errors: LinkedHashSet[String] = validationResult.fieldErrorsWithSuffix(atom)
 
         errors.map(e => errorInline(atom.value, e, Seq("error-message")))
       }

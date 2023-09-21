@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 import ComponentChecker._
 import IndexedComponentId._
+import scala.collection.mutable.LinkedHashSet
 
 class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticMockito {
 
@@ -45,7 +46,7 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
     thenProgram = errorProgram[Unit](
       Map(
         ModelComponentId
-          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom(atom)) -> Set(
+          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom(atom)) -> LinkedHashSet(
           error
         )
       )
@@ -57,7 +58,7 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
     thenProgram = errorProgram[Unit](
       Map(
         ModelComponentId
-          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom(atom)) -> Set(
+          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom(atom)) -> LinkedHashSet(
           error
         )
       )
@@ -107,7 +108,7 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
     val expected = Invalid(
       Map(
         ModelComponentId
-          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom1")) -> Set(
+          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom1")) -> LinkedHashSet(
           "Error for atom1"
         )
       )
@@ -138,11 +139,11 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
     val expected = Invalid(
       Map(
         ModelComponentId
-          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom1")) -> Set(
+          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom1")) -> LinkedHashSet(
           "Error for atom1"
         ),
         ModelComponentId
-          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom2")) -> Set(
+          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom2")) -> LinkedHashSet(
           "Error for atom2"
         )
       )
@@ -172,11 +173,11 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
     val expectedRunCheck = Invalid(
       Map(
         ModelComponentId
-          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom11")) -> Set(
+          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom11")) -> LinkedHashSet(
           "Error for atom11"
         ),
         ModelComponentId
-          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom2")) -> Set(
+          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom2")) -> LinkedHashSet(
           "Error for atom2"
         )
       )
@@ -192,9 +193,9 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
     val expected = Invalid(
       Map(
         ModelComponentId
-          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom1")) -> Set("Error for atom1"),
+          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom1")) -> LinkedHashSet("Error for atom1"),
         ModelComponentId
-          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom2")) -> Set("Error for atom2")
+          .Atomic(IndexedComponentId.Pure(BaseComponentId("comp1")), Atom("atom2")) -> LinkedHashSet("Error for atom2")
       )
     )
 
@@ -224,9 +225,9 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
 
     val expectedRunCheckReport = Invalid(
       Map(
-        ModelComponentId.Atomic(Pure(BaseComponentId("comp1")), Atom("atom11")) -> Set("Error for atom11"),
-        ModelComponentId.Atomic(Pure(BaseComponentId("comp1")), Atom("atom12")) -> Set("Error for atom12"),
-        ModelComponentId.Atomic(Pure(BaseComponentId("comp1")), Atom("atom2"))  -> Set("Error for atom2")
+        ModelComponentId.Atomic(Pure(BaseComponentId("comp1")), Atom("atom11")) -> LinkedHashSet("Error for atom11"),
+        ModelComponentId.Atomic(Pure(BaseComponentId("comp1")), Atom("atom12")) -> LinkedHashSet("Error for atom12"),
+        ModelComponentId.Atomic(Pure(BaseComponentId("comp1")), Atom("atom2"))  -> LinkedHashSet("Error for atom2")
       )
     )
     val resultReport = checkerWithMultipleFailures.runCheck(checkerDependencyMock)
@@ -250,7 +251,7 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
 
     val expectedRunCheckReport = Invalid(
       Map(
-        ModelComponentId.Atomic(Pure(BaseComponentId("comp1")), Atom("atom2")) -> Set("Error for atom2")
+        ModelComponentId.Atomic(Pure(BaseComponentId("comp1")), Atom("atom2")) -> LinkedHashSet("Error for atom2")
       )
     )
     val resultReport = checkerWithMultipleFailures.runCheck(checkerDependencyMock)
