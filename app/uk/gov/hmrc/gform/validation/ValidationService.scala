@@ -16,35 +16,49 @@
 
 package uk.gov.hmrc.gform.validation
 
+import cats.Monoid
 import cats.data._
 import cats.implicits._
-import cats.Monoid
 import org.typelevel.ci.CIString
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.CacheData
+import uk.gov.hmrc.gform.eval.BooleanExprEval
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ CheckYourAnswers, Coordinates, PageModel, Repeater, Singleton, Visibility }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.CheckYourAnswers
+import uk.gov.hmrc.gform.models.Coordinates
+import uk.gov.hmrc.gform.models.PageModel
+import uk.gov.hmrc.gform.models.Repeater
+import uk.gov.hmrc.gform.models.Singleton
+import uk.gov.hmrc.gform.models.Visibility
 import uk.gov.hmrc.gform.models.email.EmailFieldId
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
+import uk.gov.hmrc.gform.sharedmodel.CannotRetrieveResponse
 import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
-import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.NotFound
+import uk.gov.hmrc.gform.sharedmodel.ServiceResponse
+import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationRequest
+import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
+import uk.gov.hmrc.gform.sharedmodel.des.InternationalAddress
+import uk.gov.hmrc.gform.sharedmodel.des.UkAddress
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
-import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.eval.BooleanExprEval
-import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, LangADT, NotFound, ServiceResponse }
+import uk.gov.hmrc.gform.typeclasses.Rnd
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.typeclasses.Rnd
+
+import scala.collection.mutable.LinkedHashSet
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import ComponentChecker.CheckInterpreter
 import GformError.linkedHashSetMonoid
-import scala.collection.mutable.LinkedHashSet
-
-import scala.concurrent.{ ExecutionContext, Future }
 
 class ValidationService(
   booleanExprEval: BooleanExprEval[Future],

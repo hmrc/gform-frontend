@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids._
 import uk.gov.hmrc.gform.validation.ComponentChecker._
 import uk.gov.hmrc.gform.validation.ValidationUtil._
+
 import scala.collection.mutable.LinkedHashSet
 
 import GformError.linkedHashSetMonoid

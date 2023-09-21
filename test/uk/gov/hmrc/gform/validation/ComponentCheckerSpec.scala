@@ -30,9 +30,10 @@ import uk.gov.hmrc.gform.models.ids._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 
+import scala.collection.mutable.LinkedHashSet
+
 import ComponentChecker._
 import IndexedComponentId._
-import scala.collection.mutable.LinkedHashSet
 
 class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticMockito {
 

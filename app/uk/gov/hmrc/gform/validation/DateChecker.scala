@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 
 import java.time.LocalDate
 import scala.annotation.nowarn
+import scala.collection.mutable.LinkedHashSet
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -38,7 +39,6 @@ import scala.util.Try
 import GformError._
 import ComponentChecker._
 import DateValidationLogic._
-import scala.collection.mutable.LinkedHashSet
 
 case class SomeDate(year: Int, month: Int, day: Int)
 

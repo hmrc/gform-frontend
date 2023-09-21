@@ -16,25 +16,32 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.{ Monad, Monoid }
+import cats.Monad
+import cats.Monoid
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.BooleanExprEval
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.Visibility
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.FormModel
-import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, verificationCodeFieldId }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
+import uk.gov.hmrc.gform.models.Visibility
+import uk.gov.hmrc.gform.models.email.EmailFieldId
+import uk.gov.hmrc.gform.models.email.VerificationCodeFieldId
+import uk.gov.hmrc.gform.models.email.verificationCodeFieldId
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
+import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import ComponentChecker._
+
 import scala.collection.mutable.LinkedHashSet
+
+import ComponentChecker._
 import GformError.linkedHashSetMonoid
 
 class EmailCodeFieldMatcher(

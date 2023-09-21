@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.LocalisedString
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.CheckerServiceHelper.validationFailure
+
 import scala.collection.mutable.LinkedHashSet
 
 import ComponentChecker._

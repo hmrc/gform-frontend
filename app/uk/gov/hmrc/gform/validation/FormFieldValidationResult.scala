@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+
 import scala.collection.mutable.LinkedHashSet
 
 case class FieldOk(formComponent: FormComponent, currentValue: String) extends FormFieldValidationResult

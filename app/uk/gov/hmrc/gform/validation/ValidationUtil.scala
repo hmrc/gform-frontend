@@ -16,20 +16,27 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.implicits._
 import cats.Monoid
 import cats.data.Validated
+import cats.implicits._
+import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, Error, File, Other, Quarantined }
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.fileupload.Error
+import uk.gov.hmrc.gform.fileupload.File
+import uk.gov.hmrc.gform.fileupload.Other
+import uk.gov.hmrc.gform.fileupload.Quarantined
 import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.models.ids.IndexedComponentId
-import com.softwaremill.quicklens._
+
 import scala.collection.mutable.LinkedHashSet
+
 import GformError.linkedHashSetMonoid
 
 object ValidationUtil {

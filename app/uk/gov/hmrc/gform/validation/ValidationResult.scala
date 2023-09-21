@@ -25,9 +25,9 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormData
 import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
-import scala.collection.mutable.LinkedHashSet
 
 import scala.annotation.nowarn
+import scala.collection.mutable.LinkedHashSet
 
 case class ValidationResult(
   lookup: Map[FormComponentId, FormFieldValidationResult],

@@ -50,9 +50,9 @@ import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import scala.collection.mutable.LinkedHashSet
 
 import java.time.LocalDate
+import scala.collection.mutable.LinkedHashSet
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

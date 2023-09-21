@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.CheckerServiceHelper._
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
+
 import scala.collection.mutable.LinkedHashSet
 
 import ComponentChecker._

@@ -30,9 +30,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.CalendarDate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.validation.CheckerServiceHelper._
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
-import scala.collection.mutable.LinkedHashSet
 
 import java.time.Month
+import scala.collection.mutable.LinkedHashSet
 
 import ComponentChecker._
 
