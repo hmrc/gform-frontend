@@ -17,14 +17,18 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
+import uk.gov.hmrc.play.bootstrap.binders.{ RedirectUrl, RedirectUrlPolicy }
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrlPolicy.Id
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
 class RedirectController(
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  redirectUrlPolicy: RedirectUrlPolicy[Id]
 ) extends FrontendController(messagesControllerComponents) {
-  def redirect(url: String): Action[AnyContent] = Action.async { _ =>
-    Future.successful(Redirect(url))
+  def redirect(redirectUrl: RedirectUrl): Action[AnyContent] = Action.async { _ =>
+    Future.successful(Redirect(redirectUrl.get(redirectUrlPolicy).url))
   }
 }

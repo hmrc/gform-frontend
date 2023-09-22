@@ -43,8 +43,10 @@ import uk.gov.hmrc.gform.tasklist.{ TaskListController, TaskListModule }
 import uk.gov.hmrc.gform.upscan.{ UpscanController, UpscanModule }
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
+import uk.gov.hmrc.play.bootstrap.binders.AbsoluteWithHostnameFromAllowlist
 import uk.gov.hmrc.play.language.LanguageUtils
 
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GformModule(
@@ -433,5 +435,8 @@ class GformModule(
       configModule.environment
     )
 
-  val redirectController: RedirectController = new RedirectController(controllersModule.messagesControllerComponents)
+  private val allowedHosts = configModule.typesafeConfig.getStringList("redirectAllowedHosts").asScala.toSet
+  private val redirectUrlPolicy = AbsoluteWithHostnameFromAllowlist(allowedHosts)
+  val redirectController: RedirectController =
+    new RedirectController(controllersModule.messagesControllerComponents, redirectUrlPolicy)
 }
