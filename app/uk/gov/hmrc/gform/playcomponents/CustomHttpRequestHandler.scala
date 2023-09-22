@@ -21,6 +21,8 @@ import play.api.mvc.{ EssentialFilter, Handler, RequestHeader }
 import play.api.routing.Router
 import play.core.DefaultWebCommands
 
+import org.slf4j.{ Logger, LoggerFactory }
+
 class CustomHttpRequestHandler(
   router: Router,
   httpErrorHandler: HttpErrorHandler,
@@ -35,7 +37,12 @@ class CustomHttpRequestHandler(
       httpFilters
     ) {
 
-  override def routeRequest(request: RequestHeader): Option[Handler] =
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  override def routeRequest(request: RequestHeader): Option[Handler] = {
+    if (request.queryString.get("action").exists(_.contains("saveandcontinue"))) {
+      logger.info(s"URL: ${request.uri}, Query Params: ${request.queryString}")
+    }
     router
       .handlerFor(request)
       .orElse {
@@ -43,6 +50,7 @@ class CustomHttpRequestHandler(
           .dropTrailingSlash(request)
           .flatMap(router.handlerFor)
       }
+  }
 }
 
 object CustomHttpRequestHandler {
