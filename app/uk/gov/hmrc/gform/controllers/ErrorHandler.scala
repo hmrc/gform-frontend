@@ -25,7 +25,6 @@ import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.http.{ BadRequestException, ForbiddenException, NotFoundException, UpstreamErrorResponse }
 import uk.gov.hmrc.gform.playcomponents.RequestHeaderService
-import org.slf4j.{ Logger, LoggerFactory }
 import uk.gov.hmrc.gform.binders.IllegalBindException
 
 class ErrorHandler(
@@ -37,7 +36,6 @@ class ErrorHandler(
 )(implicit ec: ExecutionContext)
     extends DefaultHttpErrorHandler(environment, configuration, sourceMapper, None) {
 
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
   private val smartUpstreamLogger = SmartLogger.upstreamLogger
   private val smartLocalLogger = SmartLogger.localLogger
 
@@ -87,7 +85,7 @@ class ErrorHandler(
           errResponder.notFound(requestHeader, e.message, maybeFormTemplate, smartUpstreamLogger)
         case e: NotFoundException => errResponder.notFound(requestHeader, e.message, maybeFormTemplate)
         case e: IllegalBindException =>
-          logger.info(s"URL: ${requestHeader.uri}, Query Params: ${requestHeader.queryString}")
+          smartUpstreamLogger.log(s"URL: ${requestHeader.uri}, Query Params: ${requestHeader.queryString}")
           errResponder.internalServerError(requestHeader, maybeFormTemplate, e)
         case e => errResponder.internalServerError(requestHeader, maybeFormTemplate, e)
       }
