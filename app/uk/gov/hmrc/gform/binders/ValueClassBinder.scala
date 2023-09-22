@@ -110,7 +110,7 @@ object ValueClassBinder {
           case RemoveGroupR(x)   => Right(RemoveGroup(ExpandUtils.toModelComponentId(x)))
           case EditAddToListR(idx, fcId) =>
             Right(EditAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
-          case unknown => throw new IllegalArgumentException(s"Query param $key has invalid value $unknown")
+          case unknown => throw new IllegalBindException(s"Query param $key has invalid value $unknown")
         }
 
       override def unbind(key: String, direction: Direction): String = {
@@ -303,3 +303,5 @@ object ValueClassBinder {
   private def caseInsensitive[A: Reads](f: String => A, g: A => String) =
     implicitly[PathBindable[String]].transform[A](s => f(s.toLowerCase), a => g(a).toLowerCase)
 }
+
+class IllegalBindException(message: String) extends RuntimeException(message)
