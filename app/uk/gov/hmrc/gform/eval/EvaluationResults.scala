@@ -42,6 +42,7 @@ import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupOptions }
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.views.summary.TextFormatter
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
@@ -508,7 +509,7 @@ case class EvaluationResults(
                 )
                 .url
             case InternalLink.UrlLink(url) =>
-              uk.gov.hmrc.gform.gform.routes.RedirectController.redirect(url).url
+              uk.gov.hmrc.gform.gform.routes.RedirectController.redirect(RedirectUrl(url)).url
           }
         nonEmptyStringResult(StringResult(link))
       case DateCtx(dateExpr)      => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)

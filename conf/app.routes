@@ -106,4 +106,4 @@ GET           /tasklist/summary-page/:formTemplateId/:maybeAccessCode           
 GET           /capture/sectionNumbers/:formTemplateId/:maybeAccessCode                                           uk.gov.hmrc.gform.capture.CaptureController.sectionNumbers(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 
 GET           /download-file/:formTemplateId/:maybeAccessCode                                                    uk.gov.hmrc.gform.gform.DownloadController.downloadFile(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], fileName: String)
-GET           /redirect                                                                                          uk.gov.hmrc.gform.gform.RedirectController.redirect(url: String)
+GET           /redirect                                                                                          uk.gov.hmrc.gform.gform.RedirectController.redirect(redirectUrl: RedirectUrl)
