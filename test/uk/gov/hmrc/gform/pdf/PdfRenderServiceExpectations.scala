@@ -167,7 +167,7 @@ trait PdfRenderServiceExpectations {
        |			</div>
        |      $summaryRows
        |			<div class="row">
-       |				<div class="col-lg-12">
+       |				<div class="col-lg-12 heading-1">
        |					<p>Some PDF footer</p>
        |				</div>
        |			</div>
