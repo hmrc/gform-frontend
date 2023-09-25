@@ -246,11 +246,11 @@ sealed trait TextConstraint {
     }
   }
 
-  def extraLetterSpacingClass: String = this match {
+  def defaultExtraLetterSpacing: Boolean = this match {
     case SaUTR | CtUTR | NINO | UkVrn | ReferenceNumber(_, _) | ChildBenefitNumber | UkBankAccountNumber |
-        UkSortCodeFormat | PayeReference | TextWithRestrictions(_, _) =>
-      "govuk-input--extra-letter-spacing"
-    case _ => ""
+        UkSortCodeFormat | PayeReference =>
+      true
+    case _ => false
   }
 }
 
