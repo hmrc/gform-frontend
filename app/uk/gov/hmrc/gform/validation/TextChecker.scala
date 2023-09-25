@@ -389,7 +389,8 @@ object TextChecker {
           inputText,
           0,
           ValidationValues.emailLimit,
-          Some(emailErrorFirstPlaceholder())
+          Some(emailErrorFirstPlaceholder()),
+          true
         ),
         email(fieldValue, inputText)
       ).shortCircuitProgram
