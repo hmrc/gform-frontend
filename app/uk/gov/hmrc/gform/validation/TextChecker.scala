@@ -272,9 +272,9 @@ object TextChecker {
         genericErrorTextRequired,
         (Some(errorShortNameWithFallback(fieldValue).pure[List]))
       ),
-      nonEmptyCheck = validateShortTextConstraint(fieldValue, inputText, c.min, c.max),
+      nonEmptyCheck = validateShortTextConstraint(fieldValue, inputText, c.min, c.max, c.min <= 1),
       nonEmptyCheckIfMandatory = Some(
-        validateShortTextConstraint(fieldValue, inputText, c.min, c.max, true)
+        validateShortTextConstraint(fieldValue, inputText, c.min, c.max, c.min <= 1)
       )
     )
     def lookupCheck(c: Lookup): CheckProgram[Unit] =
@@ -301,9 +301,9 @@ object TextChecker {
         genericErrorTextRequired,
         (Some(errorShortNameWithFallback(fieldValue).pure[List]))
       ),
-      nonEmptyCheck = validateTextConstraint(fieldValue, inputText, c.min, c.max, None),
+      nonEmptyCheck = validateTextConstraint(fieldValue, inputText, c.min, c.max, None, c.min <= 1),
       nonEmptyCheckIfMandatory = Some(
-        validateTextConstraint(fieldValue, inputText, c.min, c.max, None)
+        validateTextConstraint(fieldValue, inputText, c.min, c.max, None, c.min <= 1)
       )
     )
     def sterlingCheck(c: Sterling): CheckProgram[Unit] = conditionalMandatoryCheck(
