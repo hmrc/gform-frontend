@@ -85,7 +85,10 @@ class ErrorHandler(
           errResponder.notFound(requestHeader, e.message, maybeFormTemplate, smartUpstreamLogger)
         case e: NotFoundException => errResponder.notFound(requestHeader, e.message, maybeFormTemplate)
         case e: IllegalBindException =>
-          smartUpstreamLogger.log(s"URL: ${requestHeader.uri}, Query Params: ${requestHeader.queryString}")
+          val allHeaders: Map[String, Seq[String]] = requestHeader.headers.toMap
+          allHeaders.foreach { case (key, values) =>
+            smartUpstreamLogger.log(s"Header: $key = ${values.mkString(", ")}")
+          }
           errResponder.internalServerError(requestHeader, maybeFormTemplate, e)
         case e => errResponder.internalServerError(requestHeader, maybeFormTemplate, e)
       }
