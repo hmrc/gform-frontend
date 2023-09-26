@@ -46,7 +46,7 @@ case class FormComponent(
   errorShortName: Option[SmartString] = None,
   errorShortNameStart: Option[SmartString] = None,
   errorExample: Option[SmartString] = None,
-  extraLetterSpacing: Boolean = false
+  extraLetterSpacing: Option[Boolean] = None
 ) {
 
   val modelComponentId: ModelComponentId = id.modelComponentId

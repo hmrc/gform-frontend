@@ -2243,9 +2243,11 @@ class SectionRenderingService(
       case _ if formComponent.derived => HtmlFormat.empty
       case _ =>
         val sizeClasses = TextConstraint.getSizeClass(text.constraint, text.displayWidth)
-        val inputClasses =
-          if (formComponent.extraLetterSpacing) s"$sizeClasses ${text.constraint.extraLetterSpacingClass}"
-          else sizeClasses
+        val inputClasses = formComponent.extraLetterSpacing match {
+          case Some(true)                                        => s"$sizeClasses govuk-input--extra-letter-spacing"
+          case None if text.constraint.defaultExtraLetterSpacing => s"$sizeClasses govuk-input--extra-letter-spacing"
+          case _                                                 => sizeClasses
+        }
 
         val isPageHeading = ei.formLevelHeading
         val label = Label(
