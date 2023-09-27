@@ -493,6 +493,10 @@ class SectionRenderingService(
       _ === Continue
     ) && !formTemplate.draftRetrievalMethod.isNotPermitted && !singleton.page.isHideSaveAndComeBackButton
 
+    val tableComps = formComponents.collect { case IsTableComp(tc) => tc }
+
+    val maybeDisplayWidth = if (tableComps.nonEmpty) Some(page.displayWidth.getOrElse(LayoutDisplayWidth.M)) else None
+
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -525,7 +529,8 @@ class SectionRenderingService(
       allowedFileTypes,
       restrictedFileExtensions,
       ei.isFileUploadOnlyPage(validationResult).fold(upscanData)(_ => Map.empty[FormComponentId, UpscanData]),
-      fileUploadMaxSize
+      fileUploadMaxSize,
+      maybeDisplayWidth
     )
 
     val mainForm: Html = html.form.form_standard(
@@ -546,15 +551,15 @@ class SectionRenderingService(
         sectionNumber,
         originSection,
         fastForward,
-        listResult.exists(_.fieldErrors.size > 0)
+        listResult.exists(_.fieldErrors.nonEmpty)
       ),
       shouldDisplayHeading = !formLevelHeading,
       frontendAppConfig,
       specimenNavigation =
         specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
-      fastForward
+      fastForward,
+      isMainContentFullWidth = maybeDisplayWidth.nonEmpty
     )
-
   }
 
   private def pageIncludeIf(page: Page[Basic], formComponentId: FormComponentId): Option[IncludeIf] = {

@@ -597,6 +597,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None,
         None,
+        None,
         None
       )
     )
@@ -647,6 +648,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         instruction,
         presentationHint,
+        None,
         None,
         None,
         None,
@@ -720,6 +722,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     None,
     instruction,
     presentationHint,
+    None,
     None,
     None,
     None,
@@ -804,7 +807,7 @@ trait ExampleFormTemplate {
       toSmartString("Summary Footer"),
       Some(toSmartString("Summary ContinueLabel")),
       None,
-      SummaryDisplayWidth.M,
+      LayoutDisplayWidth.M,
       None,
       None
     )

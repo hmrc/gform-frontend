@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.gform.RenderUnit
 import uk.gov.hmrc.gform.models.{ Basic, PageMode, SectionHeader }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
 case class Page[A <: PageMode](
   title: SmartString,
@@ -47,7 +48,8 @@ case class Page[A <: PageMode](
   confirmation: Option[Confirmation],
   redirects: Option[NonEmptyList[RedirectCtx]],
   hideSaveAndComeBackButton: Option[Boolean],
-  removeItemIf: Option[RemoveItemIf]
+  removeItemIf: Option[RemoveItemIf],
+  displayWidth: Option[LayoutDisplayWidth]
 ) {
 
   def sectionHeader()(implicit sse: SmartStringEvaluator) = SectionHeader(

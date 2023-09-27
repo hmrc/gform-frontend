@@ -305,20 +305,12 @@ object DisplayWidth extends Enumeration {
   implicit val displayWidthWrites: Writes[DisplayWidth] = Writes.enumNameWrites
 }
 
-object SummaryDisplayWidth extends Enumeration {
-  type SummaryDisplayWidth = Value
+object LayoutDisplayWidth extends Enumeration {
+  type LayoutDisplayWidth = Value
   val M, L, XL = Value
 
-  implicit val displayWidthReads: Reads[SummaryDisplayWidth] = Reads.enumNameReads(SummaryDisplayWidth)
-  implicit val displayWidthWrites: Writes[SummaryDisplayWidth] = Writes.enumNameWrites
-}
-
-object TaskListDisplayWidth extends Enumeration {
-  type TaskListDisplayWidth = Value
-  val M, L, XL = Value
-
-  implicit val displayWidthReads: Reads[TaskListDisplayWidth] = Reads.enumNameReads(TaskListDisplayWidth)
-  implicit val displayWidthWrites: Writes[TaskListDisplayWidth] = Writes.enumNameWrites
+  implicit val displayWidthReads: Reads[LayoutDisplayWidth] = Reads.enumNameReads(LayoutDisplayWidth)
+  implicit val displayWidthWrites: Writes[LayoutDisplayWidth] = Writes.enumNameWrites
 }
 
 sealed trait Dynamic extends Product with Serializable

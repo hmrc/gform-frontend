@@ -66,6 +66,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     None
   )
 
@@ -141,6 +142,7 @@ object FormTemplateBuilder {
         Some(includeIf),
         None,
         formComponents,
+        None,
         None,
         None,
         None,
@@ -292,7 +294,7 @@ object FormTemplateBuilder {
       toSmartString("Footer"),
       Some(toSmartString("ContinueLabel")),
       None,
-      SummaryDisplayWidth.M,
+      LayoutDisplayWidth.M,
       None,
       None
     ),
@@ -346,6 +348,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     None
   )
 
@@ -360,6 +363,7 @@ object FormTemplateBuilder {
       Some(includeIf),
       None,
       formComponents,
+      None,
       None,
       None,
       None,

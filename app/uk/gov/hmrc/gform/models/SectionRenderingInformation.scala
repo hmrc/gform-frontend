@@ -21,6 +21,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.config.FileExtension
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.upscan.UpscanData
 
@@ -40,7 +41,8 @@ final case class SectionRenderingInformation(
   allowedFileTypes: AllowedFileTypes,
   restrictedFileExtensions: List[FileExtension],
   upscanData: Map[FormComponentId, UpscanData] = Map.empty,
-  fileUploadMaxSize: Map[FormComponentId, Int] = Map.empty
+  fileUploadMaxSize: Map[FormComponentId, Int] = Map.empty,
+  displayWidth: Option[LayoutDisplayWidth] = None
 )
 
 final case class SectionHeader(

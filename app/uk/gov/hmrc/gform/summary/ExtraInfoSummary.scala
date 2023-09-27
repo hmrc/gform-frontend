@@ -21,7 +21,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.models.Coordinates
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SectionNumber, SummaryDisplayWidth }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, LayoutDisplayWidth, SectionNumber }
 
 final case class ExtraInfoSummary(
   formTemplate: FormTemplate,
@@ -39,7 +39,7 @@ final case class ExtraInfoSummary(
   summaryDeclaration: Html,
   footer: Html,
   formDataFingerprint: String,
-  displayWidth: SummaryDisplayWidth.SummaryDisplayWidth,
+  displayWidth: LayoutDisplayWidth.LayoutDisplayWidth,
   maybeCoordinates: Option[Coordinates],
   taskComplete: Boolean
 )

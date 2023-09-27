@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LocalisedString, formtemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
 import ai.x.play.json.Encoders.encoder
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.TaskListDisplayWidth.TaskListDisplayWidth
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
 case class FormTemplate(
   _id: FormTemplateId,
@@ -56,7 +56,7 @@ case class FormTemplate(
   expressionsOutput: Option[ExpressionOutput],
   exitPages: Option[NonEmptyList[ExitPage]],
   objectStore: Option[Boolean],
-  displayWidth: Option[TaskListDisplayWidth],
+  displayWidth: Option[LayoutDisplayWidth],
   emailCodeParameters: Option[NonEmptyList[EmailCodeParameter]]
 ) {
 

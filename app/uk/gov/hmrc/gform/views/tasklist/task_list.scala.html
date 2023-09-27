@@ -27,7 +27,7 @@
 @import uk.gov.hmrc.gform.views.html.{main_template, specimen}
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.TaskListDisplayWidth
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth
 @import uk.gov.hmrc.gform.FormTemplateKey
 
 
@@ -58,9 +58,9 @@
 
 @mainContent = @{
     contentBlock: Html => formTemplate.displayWidth match {
-        case Some(TaskListDisplayWidth.L)  => threeQuartersMainContent(contentBlock)
-        case Some(TaskListDisplayWidth.XL) => fullMainContent(contentBlock)
-        case Some(TaskListDisplayWidth.M)  => twoThirdsMainContent(contentBlock)
+        case Some(LayoutDisplayWidth.L)  => threeQuartersMainContent(contentBlock)
+        case Some(LayoutDisplayWidth.XL) => fullMainContent(contentBlock)
+        case Some(LayoutDisplayWidth.M)  => twoThirdsMainContent(contentBlock)
         case _                             => twoThirdsMainContent(contentBlock)
     }
 }
