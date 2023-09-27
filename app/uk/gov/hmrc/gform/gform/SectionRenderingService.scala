@@ -2952,7 +2952,7 @@ class SectionRenderingService(
     messages: Messages,
     l: LangADT
   ): Option[List[SelectItem]] = {
-    val aFormComponents = ei.formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
+    val aFormComponents = ei.formModelOptics.formModelRenderPageOptics.formModel.allFormComponents
 
     val oFormComponent = aFormComponents.find(_.id.baseComponentId === formComponent.id.baseComponentId)
 

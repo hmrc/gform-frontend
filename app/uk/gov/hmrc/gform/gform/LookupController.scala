@@ -51,7 +51,7 @@ class LookupController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => sse => formModelOptics =>
         import i18nSupport._
-        val aFormComponents: Seq[FormComponent] = formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
+        val aFormComponents: Seq[FormComponent] = formModelOptics.formModelRenderPageOptics.formModel.allFormComponents
         val withoutCountryAtomFormComponentId = formComponentId.modelComponentId.fold(_.toFormComponentId) {
           case ModelComponentId.Atomic(i, Address.country) => ModelComponentId.pure(i).toFormComponentId
           case otherwise                                   => otherwise.toFormComponentId
