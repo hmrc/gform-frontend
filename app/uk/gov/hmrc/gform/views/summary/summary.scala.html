@@ -64,9 +64,9 @@
 
 @mainContent = @{
   contentBlock: Html => displayWidth match {
-    case SummaryDisplayWidth.L  => threeQuartersMainContent(contentBlock)
-    case SummaryDisplayWidth.XL => fullMainContent(contentBlock)
-    case SummaryDisplayWidth.M  => twoThirdsMainContent(contentBlock)
+    case LayoutDisplayWidth.L  => threeQuartersMainContent(contentBlock)
+    case LayoutDisplayWidth.XL => fullMainContent(contentBlock)
+    case LayoutDisplayWidth.M  => twoThirdsMainContent(contentBlock)
     case _                      => twoThirdsMainContent(contentBlock)
   }
 }

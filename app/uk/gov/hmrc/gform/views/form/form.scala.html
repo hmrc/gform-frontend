@@ -15,7 +15,7 @@
  *@
 
 @import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate,SuppressErrors,SectionTitle4Ga}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, SuppressErrors, SectionTitle4Ga, LayoutDisplayWidth}
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -25,8 +25,9 @@
 @import uk.gov.hmrc.gform.controllers.{ SaveAndExit, Back }
 @import uk.gov.hmrc.gform.FormTemplateKey
 @import views.html.helper.CSPNonce
-
+@import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.gform.commons.MarkDownUtil
+
 @(
   formTemplate: FormTemplate,
   pageLevelError: HasErrors,
@@ -36,7 +37,8 @@
   shouldDisplayHeading: Boolean,
   frontendAppConfig: FrontendAppConfig,
   specimenNavigation: Html = HtmlFormat.empty,
-  fastForward: List[FastForward]
+  fastForward: List[FastForward],
+  isMainContentFullWidth: Boolean = false
 )(
   implicit
   request: Request[_],
@@ -49,12 +51,28 @@
 @govukNotificationBanner = @{new GovukNotificationBanner()}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
+@twoThirdsMainContent = @{new TwoThirdsMainContent}
+@fullMainContent = @{new FullMainContent}
+@threeQuartersMainContent = @{new ThreeQuartersMainContent}
+
+@fieldsContent = @{
+    contentBlock: Html => page.displayWidth match {
+        case Some(LayoutDisplayWidth.M)  => twoThirdsMainContent(contentBlock)
+        case Some(LayoutDisplayWidth.L)  => threeQuartersMainContent(contentBlock)
+        case Some(LayoutDisplayWidth.XL) => fullMainContent(contentBlock)
+        case _                           => contentBlock
+    }
+}
+
+@titleContent =  @{contentBlock: Html => if (isMainContentFullWidth) twoThirdsMainContent(contentBlock) else contentBlock}
+
 @main_template(
   title = page.noPIITitle,
   formTemplate = formTemplate,
   containsErrors = pageLevelError.hasErrors,
   frontendAppConfig = frontendAppConfig,
-  backLink = backLink
+  backLink = backLink,
+  isMainContentFullWidth = isMainContentFullWidth
 ) {
 
     @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
@@ -70,7 +88,9 @@
         )
     }
 
-    @section_header(page.sectionHeader, shouldDisplayHeading)
+    @titleContent {
+        @section_header(page.sectionHeader, shouldDisplayHeading)
+    }
 
     @page.upscanData.map { case (_, upscanData) =>
         @formWithoutCSRF(action = Call("POST", upscanData.url), args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> upscanData.formMetaData.htmlId){
@@ -78,9 +98,10 @@
         }
     }
 
-    @mainForm
-
-    @specimenNavigation
+    @fieldsContent {
+         @mainForm
+         @specimenNavigation
+    }
 
     <script @{CSPNonce.attr}>
       window.gform = window.gform || {};

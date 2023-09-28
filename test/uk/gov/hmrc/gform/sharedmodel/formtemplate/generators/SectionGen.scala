@@ -121,7 +121,8 @@ trait SectionGen {
       confirmation,
       redirects.map(NonEmptyList.one),
       None,
-      removeItemIf
+      removeItemIf,
+      None
     )
 
   def nonRepeatingPageSectionGen: Gen[Section.NonRepeatingPage] = pageGen.map(Section.NonRepeatingPage)

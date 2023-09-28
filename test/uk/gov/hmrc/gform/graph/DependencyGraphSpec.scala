@@ -56,6 +56,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     None,
     None,
     None,
+    None,
     None
   )
   private val emptyAddToList: Section.AddToList = Section.AddToList(
@@ -724,7 +725,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val ctx = FormCtx("a")
     val stringExpr = toSmartStringExpression("", ctx)
     val emptySummarySection =
-      SummarySection(emptySS, None, emptySS, emptySS, None, None, SummaryDisplayWidth.M, None, None)
+      SummarySection(emptySS, None, emptySS, emptySS, None, None, LayoutDisplayWidth.M, None, None)
     val emptyPrintSectionPage = PrintSection.Page(emptySS, emptySS)
     val emptyPrintSectionPdf = PrintSection.Pdf(emptySS, emptySS)
     val emptyPrintSectionPdfNotification = PrintSection.PdfNotification(emptySS, emptySS, List.empty[FormComponentId])

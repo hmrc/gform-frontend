@@ -130,7 +130,8 @@ case class DeclarationSection(
       confirmation = None,
       redirects = None,
       hideSaveAndComeBackButton = None,
-      removeItemIf = None
+      removeItemIf = None,
+      displayWidth = None
     )
 }
 
@@ -171,7 +172,8 @@ case class AcknowledgementSection(
       confirmation = None,
       redirects = None,
       hideSaveAndComeBackButton = None,
-      removeItemIf = None
+      removeItemIf = None,
+      displayWidth = None
     )
 }
 
@@ -208,7 +210,8 @@ case class EnrolmentSection(
       confirmation = None,
       redirects = None,
       hideSaveAndComeBackButton = None,
-      removeItemIf = None
+      removeItemIf = None,
+      displayWidth = None
     )
 }
 
