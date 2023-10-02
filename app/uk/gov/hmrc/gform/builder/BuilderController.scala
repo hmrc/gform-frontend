@@ -78,7 +78,7 @@ class BuilderController(
         gformConnector.getFormTemplateRaw(formTemplateId).map { formTemplateRaw =>
           val jsonString: String = PlayJson.stringify(formTemplateRaw)
           val maybeCirceJson: Either[ParsingFailure, Json] =
-            io.circe.parser.parse(jsonString).map(j => removeObjectsByIds(j, hiddenFormComponentIds(formModelOptics)))
+            io.circe.parser.parse(jsonString)
 
           val json: Option[Json] = maybeCirceJson.toOption.flatMap { json =>
             val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
@@ -144,9 +144,10 @@ class BuilderController(
             }
           }
 
-          json.fold(BadRequest(s"No section for $sectionNumber found in form template $formTemplateId"))(json =>
-            Ok(json)
-          )
+          val hiddenComponentIds = hiddenFormComponentIds(formModelOptics, sectionNumber);
+          json
+            .map(_.deepMerge(Json.obj("hiddenComponentIds" := hiddenComponentIds)))
+            .fold(BadRequest(s"No section for $sectionNumber found in form template $formTemplateId"))(json => Ok(json))
         }
     }
 
@@ -390,38 +391,15 @@ class BuilderController(
     }
   }
 
-  private def hiddenFormComponentIds(formModelOptics: FormModelOptics[DataOrigin.Mongo]): List[String] = {
+  private def hiddenFormComponentIds(
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    sectionNumber: SectionNumber
+  ): List[String] = {
     val visibilityOptics = formModelOptics.formModelVisibilityOptics
     val renderOptics = formModelOptics.formModelRenderPageOptics
-    val visibleFormComponentIds = visibilityOptics.formModel.allFormComponentIds.map(_.value)
-    val allFormComponentIds = renderOptics.formModel.allFormComponentIds.map(_.value)
+    val visibleFormComponentIds = visibilityOptics.formModel(sectionNumber).allFormComponentIds.map(_.value)
+    val allFormComponentIds = renderOptics.formModel(sectionNumber).allFormComponentIds.map(_.value)
     allFormComponentIds diff visibleFormComponentIds
   }
-
-  private def removeObjectsByIds(json: Json, targetIds: List[String]): Json =
-    json.fold(
-      jsonNull = Json.Null,
-      jsonBoolean = b => Json.fromBoolean(b),
-      jsonNumber = n => Json.fromJsonNumber(n),
-      jsonString = s => Json.fromString(s),
-      jsonArray = array => {
-        val newArray = array.flatMap { elem =>
-          val shouldKeep = elem.hcursor.downField("id").as[String] match {
-            case Right(id) =>
-              !targetIds
-                .contains(id) || !elem.hcursor.downField("type").succeeded || !elem.hcursor.downField("label").succeeded
-            case _ => true
-          }
-          if (shouldKeep) Some(removeObjectsByIds(elem, targetIds)) else None
-        }
-        Json.arr(newArray: _*)
-      },
-      jsonObject = obj => {
-        val newFields = obj.toList.map { case (key, value) =>
-          (key, removeObjectsByIds(value, targetIds))
-        }
-        Json.fromFields(newFields)
-      }
-    )
 
 }
