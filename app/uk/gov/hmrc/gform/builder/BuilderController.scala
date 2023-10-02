@@ -144,7 +144,7 @@ class BuilderController(
             }
           }
 
-          val hiddenComponentIds = hiddenFormComponentIds(formModelOptics, sectionNumber);
+          val hiddenComponentIds = hiddenComponentIdsBySection(formModelOptics, sectionNumber);
           json
             .map(_.deepMerge(Json.obj("hiddenComponentIds" := hiddenComponentIds)))
             .fold(BadRequest(s"No section for $sectionNumber found in form template $formTemplateId"))(json => Ok(json))
@@ -391,7 +391,7 @@ class BuilderController(
     }
   }
 
-  private def hiddenFormComponentIds(
+  private def hiddenComponentIdsBySection(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     sectionNumber: SectionNumber
   ): List[String] = {
