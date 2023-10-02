@@ -2952,15 +2952,12 @@ class SectionRenderingService(
     messages: Messages,
     l: LangADT
   ): Option[List[SelectItem]] = {
-    val aFormComponents = ei.formModelOptics.formModelVisibilityOptics.formModel.allFormComponents
 
-    val oFormComponent = aFormComponents.find(_.id.baseComponentId === formComponent.id.baseComponentId)
-
-    val selectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
+    val selectionCriteria: Option[List[SimplifiedSelectionCriteria]] = (formComponent match {
       case IsText(Text(Lookup(_, sc), _, _, _, _, _))            => sc
       case IsOverseasAddress(OverseasAddress(_, _, _, _, _, sc)) => sc
       case _                                                     => None
-    } map {
+    }).map {
       SimplifiedSelectionCriteria
         .convertToSimplifiedSelectionCriteria(_, lookupRegistry, ei.formModelOptics.formModelVisibilityOptics)
     }
