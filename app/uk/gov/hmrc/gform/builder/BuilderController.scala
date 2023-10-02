@@ -398,7 +398,7 @@ class BuilderController(
     allFormComponentIds diff visibleFormComponentIds
   }
 
-  def removeObjectsByIds(json: Json, targetIds: List[String]): Json =
+  private def removeObjectsByIds(json: Json, targetIds: List[String]): Json =
     json.fold(
       jsonNull = Json.Null,
       jsonBoolean = b => Json.fromBoolean(b),
