@@ -74,7 +74,7 @@ object Destination {
     includeIf: DestinationIncludeIf,
     failOnError: Boolean,
     formId: FormId,
-    version: FormTemplateVersion,
+    version: String,
     taxpayerId: Expr,
     regime: String,
     includeSessionInfo: Boolean
@@ -205,7 +205,7 @@ case class UploadableDataStoreDestination(
   includeIf: DestinationIncludeIf,
   failOnError: Option[Boolean],
   formId: FormId,
-  version: FormTemplateVersion,
+  version: String,
   taxpayerId: TextExpression,
   regime: String,
   includeSessionInfo: Option[Boolean]
@@ -228,7 +228,6 @@ case class UploadableDataStoreDestination(
 object UploadableDataStoreDestination {
   implicit val reads: Reads[Destination.DataStore] = new Reads[Destination.DataStore] {
     implicit val formIdFormat: Format[FormId] = FormId.destformat
-    implicit val formTemplateVersionFormat: Format[FormTemplateVersion] = FormTemplateVersion.destformat
     private val d: Reads[UploadableDataStoreDestination] = derived.reads[UploadableDataStoreDestination]()
     override def reads(json: JsValue): JsResult[Destination.DataStore] =
       d.reads(json).flatMap(_.toDataStoreDestination.fold(JsError(_), JsSuccess(_)))
