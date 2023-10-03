@@ -54,9 +54,14 @@ object Form {
 
   private val formTemplateVersionWithFallback: Reads[Option[FormTemplateVersion]] =
     (__ \ formTemplateVersion)
-      .readNullable[String]
-      .map(_.map(FormTemplateVersion.apply))
-      .orElse(JsonUtils.constReads(Option.empty[FormTemplateVersion]))
+      .read[Int]
+      .map(v => Option(FormTemplateVersion(v)))
+      .orElse(
+        (__ \ formTemplateVersion)
+          .readNullable[String]
+          .map(_.map(v => FormTemplateVersion(v.toInt)))
+          .orElse(JsonUtils.constReads(Option.empty[FormTemplateVersion]))
+      )
 
   private val reads: Reads[Form] = (
     (FormId.format: Reads[FormId]) and

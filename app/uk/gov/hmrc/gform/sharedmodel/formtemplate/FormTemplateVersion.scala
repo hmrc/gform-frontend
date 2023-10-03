@@ -18,22 +18,13 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.Eq
 import julienrf.json.derived
-import play.api.libs.json.{ Format, JsString, OFormat }
-import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
+import play.api.libs.json.OFormat
 
-final case class FormTemplateVersion(version: String) extends AnyVal
+final case class FormTemplateVersion(version: Int) extends AnyVal
 
 object FormTemplateVersion {
 
   implicit val equal: Eq[FormTemplateVersion] = Eq.fromUniversalEquals
 
   implicit val oformat: OFormat[FormTemplateVersion] = derived.oformat()
-
-  val vformat: Format[FormTemplateVersion] =
-    ValueClassFormat
-      .vformat[FormTemplateVersion]("formTemplateVersion", FormTemplateVersion.apply, x => JsString(x.version))
-
-  val destformat: OFormat[FormTemplateVersion] =
-    ValueClassFormat.oformat[FormTemplateVersion]("version", FormTemplateVersion.apply, _.version)
-
 }
