@@ -45,7 +45,7 @@ object InvisibleCharsHelper {
     UnicodeDescMapping('\u202C', "Pop Directional Formatting (PDF)", ""),
     UnicodeDescMapping('\u202D', "Left-to-Right Override (LRO)", ""),
     UnicodeDescMapping('\u202E', "Right-to-Left Override (RLO)", ""),
-    UnicodeDescMapping('\u202F', "Narrow No-Break Space", " "),
+    UnicodeDescMapping('\u202F', "Narrow No-Break Space (NNBSP)", " "),
     UnicodeDescMapping('\u2061', "Function Application", ""),
     UnicodeDescMapping('\u2062', "Invisible Times", ""),
     UnicodeDescMapping('\u2063', "Invisible Separator", ""),
@@ -89,7 +89,8 @@ object InvisibleCharsHelper {
     UnicodeDescMapping('\u001C', "Information Separator Four", ""),
     UnicodeDescMapping('\u001D', "Information Separator Three", ""),
     UnicodeDescMapping('\u001E', "Information Separator Two", ""),
-    UnicodeDescMapping('\u001F', "Information Separator One", "")
+    UnicodeDescMapping('\u001F', "Information Separator One", ""),
+    UnicodeDescMapping('\u00A0', "No-Break Space (NBSP)", " ")
   )
 
   private val INVISIBLE_CHAR_MAP: Map[Char, UnicodeDescMapping] =
