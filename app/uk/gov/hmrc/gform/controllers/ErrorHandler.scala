@@ -81,9 +81,12 @@ class ErrorHandler(
         case e: ForbiddenException =>
           errResponder.forbidden(e.message, maybeFormTemplate)(requestHeader)
         case e @ UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode == NotFound.intValue =>
-          errResponder.notFound(requestHeader, e.message, maybeFormTemplate, smartUpstreamLogger)
-        case e: NotFoundException => errResponder.notFound(requestHeader, e.message, maybeFormTemplate)
-        case e                    => errResponder.internalServerError(requestHeader, maybeFormTemplate, e)
+          val logger =
+            if (e.message.contains("Latest form template of")) smartLocalLogger else smartUpstreamLogger
+          errResponder.notFound(requestHeader, e.message, maybeFormTemplate, logger)
+        case e: NotFoundException =>
+          errResponder.notFound(requestHeader, e.message, maybeFormTemplate)
+        case e => errResponder.internalServerError(requestHeader, maybeFormTemplate, e)
       }
     }
   }
