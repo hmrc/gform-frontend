@@ -16,16 +16,17 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import akka.http.scaladsl.model.StatusCodes.{ BadRequest, Forbidden, NotFound }
+import akka.http.scaladsl.model.StatusCodes.{ BadRequest, Forbidden, NotFound, PreconditionFailed }
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.mvc.{ RequestHeader, Result }
 import play.core.SourceMapper
+import uk.gov.hmrc.gform.binders.IllegalBindException
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.http.{ BadRequestException, ForbiddenException, NotFoundException, UpstreamErrorResponse }
 import uk.gov.hmrc.gform.playcomponents.RequestHeaderService
-import uk.gov.hmrc.gform.binders.IllegalBindException
 
 class ErrorHandler(
   environment: Environment,
@@ -81,6 +82,8 @@ class ErrorHandler(
           errResponder.forbidden(e.message, maybeFormTemplate, None, smartUpstreamLogger)(requestHeader)
         case e: ForbiddenException =>
           errResponder.forbidden(e.message, maybeFormTemplate)(requestHeader)
+        case e @ UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode == PreconditionFailed.intValue =>
+          errResponder.notFound(requestHeader, e.message, maybeFormTemplate, smartLocalLogger)
         case e @ UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode == NotFound.intValue =>
           errResponder.notFound(requestHeader, e.message, maybeFormTemplate, smartUpstreamLogger)
         case e: NotFoundException => errResponder.notFound(requestHeader, e.message, maybeFormTemplate)
