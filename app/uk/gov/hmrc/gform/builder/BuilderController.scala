@@ -135,7 +135,14 @@ class BuilderController(
 
           val hiddenComponentIds = hiddenComponentIdsBySection(formModelOptics, sectionNumber);
           json
-            .map(_.deepMerge(Json.obj("hiddenComponentIds" := hiddenComponentIds)))
+            .map(
+              _.deepMerge(
+                Json.obj(
+                  "hiddenComponentIds" := hiddenComponentIds,
+                  "version" := 1 // This is managed manually. Increase it any time API used by builder extension is changed.
+                )
+              )
+            )
             .fold(BadRequest(s"No section for $sectionNumber found in form template $formTemplateId"))(json => Ok(json))
         }
     }
