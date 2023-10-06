@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.testonly
 
 import play.api.libs.ws.ahc.AhcWSComponents
-import uk.gov.hmrc.gform.builder.github.{ GithubConfig, GithubService }
 import uk.gov.hmrc.gform.config.ConfigModule
 
 import scala.concurrent.ExecutionContext
@@ -83,16 +82,12 @@ class TestOnlyModule(
     controllersModule.messagesControllerComponents
   )
 
-  val githubConfig = GithubConfig.fromConfig(configModule.playConfiguration)
-  val githubService = new GithubService(gformBackendModule.gformConnector, githubConfig)
-
   val builderController: BuilderController =
     new BuilderController(
       controllersModule.authenticatedRequestActions,
       sectionRenderingService,
       playBuiltInsModule.i18nSupport,
       gformBackendModule.gformConnector,
-      githubService,
       controllersModule.messagesControllerComponents
     )
 }
