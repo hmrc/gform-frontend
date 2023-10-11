@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
-import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LocalisedString, formtemplate }
+import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, DataRetrieve, LocalisedString, formtemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
 import ai.x.play.json.Encoders.encoder
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
@@ -57,7 +57,8 @@ case class FormTemplate(
   exitPages: Option[NonEmptyList[ExitPage]],
   objectStore: Option[Boolean],
   displayWidth: Option[LayoutDisplayWidth],
-  emailCodeParameters: Option[NonEmptyList[EmailCodeParameter]]
+  emailCodeParameters: Option[NonEmptyList[EmailCodeParameter]],
+  dataRetrieve: Option[NonEmptyList[DataRetrieve]]
 ) {
 
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")
