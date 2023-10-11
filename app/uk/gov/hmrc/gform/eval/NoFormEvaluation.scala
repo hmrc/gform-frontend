@@ -40,7 +40,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 class NoFormEvaluation(
   cache: AuthCacheWithoutForm,
   authConfig: AuthConfig,
-  itmpRetrievals: ItmpRetrievals,
+  itmpRetrievals: Option[ItmpRetrievals],
   gformConnector: GformConnector,
   ninoInsightsConnector: NinoInsightsConnector[Future]
 ) {
@@ -78,7 +78,7 @@ class NoFormEvaluation(
       )
     case AuthCtx(value: AuthInfo) =>
       AuthContextPrepop
-        .values(value, cache.retrievals, Some(itmpRetrievals))
+        .values(value, cache.retrievals, itmpRetrievals)
         .stringRepresentation(TypeInfo(e, StaticTypeData(ExprType.string, None)), messages)
     case d @ DataRetrieveCtx(_, _) =>
       cache.dataRetrieve.fold("") { dr =>

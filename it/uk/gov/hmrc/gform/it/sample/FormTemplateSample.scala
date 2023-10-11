@@ -139,7 +139,8 @@ trait FormTemplateSample {
     expressionsOutput = None,
     objectStore = None,
     displayWidth = None,
-    emailCodeParameters = None
+    emailCodeParameters = None,
+    dataRetrieve = None
   )
 
   val formTemplateEmailAuthWithOptionalDetails = formTemplateEmailAuth.copy(authConfig =

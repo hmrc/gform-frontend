@@ -479,7 +479,9 @@ class NewFormController(
     l: LangADT
   ): Future[Result] =
     for {
-      itmpRetrievals <- auth.getItmpRetrievals(request)
+      itmpRetrievals <- formTemplate.dataRetrieve.fold(Future.successful(Option.empty[ItmpRetrievals]))(_ =>
+                          auth.getItmpRetrievals(request).map(Some(_))
+                        )
       noFormEvaluation <-
         new NoFormEvaluation(
           cache,
