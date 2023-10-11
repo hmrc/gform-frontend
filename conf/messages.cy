@@ -25,6 +25,7 @@ emailAuth.startAgain=ddechrau eto
 emailAuth.error.invalidCodeLength=Nodwch y cod y gwnaethom ei anfon atoch drwy e-bost. Mae hwn yn 4 llythyren megis DNLC.
 emailAuth.error.invalidCode=Nodwch y cod o’r e-bost diweddaraf y gwnaethom ei anfon atoch
 emailAuth.emailConfirmation=Cyfeiriad e-bost wedi’i gadarnhau
+emailAuth.email=gyfeiriad e-bost
 
 compositeAuth.title=Sut rydych am fewngofnodi?
 compositeAuth.ggContent=Mewngofnodi gyda’ch Dynodydd Defnyddiwr (ID) Porth y Llywodraeth

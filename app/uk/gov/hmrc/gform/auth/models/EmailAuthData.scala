@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 
 sealed trait EmailAuthData {
   def email: CIString = this match {
-    case InvalidEmail(EmailId(email), _)       => email
+    case InvalidEmail(EmailId(email), _, _)    => email
     case ValidEmail(EmailAndCode(email, _), _) => email
   }
 
@@ -37,12 +37,12 @@ sealed trait EmailAuthData {
 
   def fold[B](f: InvalidEmail => B)(g: ValidEmail => B) =
     this match {
-      case x @ InvalidEmail(_, _) => f(x)
-      case x @ ValidEmail(_, _)   => g(x)
+      case x @ InvalidEmail(_, _, _) => f(x)
+      case x @ ValidEmail(_, _)      => g(x)
     }
 }
 
-case class InvalidEmail(emailId: EmailId, message: String) extends EmailAuthData
+case class InvalidEmail(emailId: EmailId, message: String, params: List[String]) extends EmailAuthData
 case class ValidEmail(emailAndCode: EmailAndCode, confirmed: Boolean = false) extends EmailAuthData
 
 object EmailAuthData {

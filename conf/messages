@@ -26,6 +26,7 @@ emailAuth.startAgain=start again
 emailAuth.error.invalidCodeLength=Enter the code we emailed you. This is 4 letters, like DNLC.
 emailAuth.error.invalidCode=Enter the code from the latest email we sent you
 emailAuth.emailConfirmation=Email address confirmed
+emailAuth.email=Email
 
 compositeAuth.title=How do you want to sign in?
 compositeAuth.ggContent=Sign in with your Government Gateway user ID
