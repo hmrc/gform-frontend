@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, E
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
+import uk.gov.hmrc.gform.validation.ValidationValues
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
@@ -86,7 +87,8 @@ class EmailAuthController(
         jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
       val (pageErrors, maybeEmailFieldError, maybeEmailFieldValue) =
         emailAuthDetails.get(formTemplateContext) match {
-          case Some(InvalidEmail(EmailId(value), message)) =>
+          case Some(InvalidEmail(EmailId(value), message, unprocessedParams)) =>
+            val params = unprocessedParams.map(param => request.messages.messages(param))
             (
               Errors(
                 new components.GovukErrorSummary()(
@@ -96,7 +98,7 @@ class EmailAuthController(
                         href = Some("#email"),
                         content = content.Text(
                           request.messages
-                            .messages(message)
+                            .messages(message, params: _*)
                         )
                       )
                     ),
@@ -108,7 +110,7 @@ class EmailAuthController(
                 ErrorMessage(
                   content = content.Text(
                     request.messages
-                      .messages(message)
+                      .messages(message, params: _*)
                   )
                 )
               ),
@@ -159,15 +161,27 @@ class EmailAuthController(
               EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
                 emailAuthDetails + (formTemplateId -> InvalidEmail(
                   EmailId(CIString.empty),
-                  "generic.auth.email.error.required"
+                  "generic.auth.email.error.required",
+                  Nil
                 ))
               )
             ).pure[Future],
           { email =>
             val emailId = EmailId(CIString(email))
             val formTemplateContext = request.attrs(FormTemplateKey)
-
-            EmailAddress.isValid(emailId.value.toString) match {
+            EmailAddress.isValid(emailId.value.toString.trim) match {
+              case true if emailId.value.toString.trim.size > ValidationValues.emailLimit =>
+                Redirect(
+                  uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailIdForm(formTemplateId, continue)
+                ).addingToSession(
+                  EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
+                    emailAuthDetails + (formTemplateId -> InvalidEmail(
+                      emailId,
+                      "generic.error.text.maxLength",
+                      List("", "emailAuth.email", ValidationValues.emailLimit.toString)
+                    ))
+                  )
+                ).pure[Future]
               case true =>
                 sendEmailWithConfirmationCode(formTemplateContext, emailId).map {
                   case None => // User has lost his session, so we start from the beginning
@@ -187,7 +201,11 @@ class EmailAuthController(
                   uk.gov.hmrc.gform.gform.routes.EmailAuthController.emailIdForm(formTemplateId, continue)
                 ).addingToSession(
                   EMAIL_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
-                    emailAuthDetails + (formTemplateId -> InvalidEmail(emailId, "generic.auth.email.error.pattern"))
+                    emailAuthDetails + (formTemplateId -> InvalidEmail(
+                      emailId,
+                      "generic.auth.email.error.pattern",
+                      Nil
+                    ))
                   )
                 ).pure[Future]
             }
