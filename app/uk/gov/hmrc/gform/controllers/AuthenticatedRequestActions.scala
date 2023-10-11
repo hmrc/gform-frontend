@@ -628,7 +628,8 @@ case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
   formTemplate: FormTemplate,
   role: Role,
-  countryLookupOptions: LocalisedLookupOptions
+  countryLookupOptions: LocalisedLookupOptions,
+  dataRetrieve: Option[Map[DataRetrieveId, DataRetrieveResult]] = None
 ) extends AuthCache {
   override val accessCode: Option[AccessCode] = None
   def toCacheData: CacheData = new CacheData(
@@ -639,7 +640,7 @@ case class AuthCacheWithoutForm(
   def toAuthCacheWithForm(form: Form, accessCode: Option[AccessCode]) =
     AuthCacheWithForm(
       retrievals,
-      form,
+      dataRetrieve.fold(form)(_ => form.copy(thirdPartyData = form.thirdPartyData.copy(dataRetrieve = dataRetrieve))),
       FormTemplateContext.basicContext(formTemplate, None),
       role,
       accessCode,

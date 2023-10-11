@@ -44,7 +44,6 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, QueryParams, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.tasklist.TaskListController
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode }
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
@@ -53,6 +52,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, ItmpRetrievals }
 import uk.gov.hmrc.auth.core.ConfidenceLevel
+import uk.gov.hmrc.gform.api.NinoInsightsConnector
 
 case class AccessCodeForm(accessCode: Option[String], accessOption: String)
 
@@ -62,12 +62,12 @@ class NewFormController(
   auth: AuthenticatedRequestActions,
   fileUploadService: FileUploadService,
   gformConnector: GformConnector,
-  taskListController: TaskListController,
   fastForwardService: FastForwardService,
   auditService: AuditService,
   recalculation: Recalculation[Future, Throwable],
   messagesControllerComponents: MessagesControllerComponents,
-  gformBackEnd: GformBackEndAlgebra[Future]
+  gformBackEnd: GformBackEndAlgebra[Future],
+  ninoInsightsConnector: NinoInsightsConnector[Future]
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
@@ -90,10 +90,9 @@ class NewFormController(
 
       val result =
         (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
-          case (BySubmissionReference, _) => showAccesCodePage(cache, BySubmissionReference)
+          case (BySubmissionReference, _) => showAccesCodePage(cache, cache.formTemplate)
           case (drm @ FormAccessCodeForAgents(_), IsAgent()) =>
-            val continue = showAccesCodePage(cache, drm)
-            exitPageHandler(cache, cache.formTemplate, continue)
+            exitPageHandler(cache, cache.formTemplate, showAccesCodePage)
           case _ =>
             Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, request.queryString).pure[Future]
         }
@@ -133,13 +132,14 @@ class NewFormController(
     *
     * It will try to load form without accessCode and only if such a form doesn't exists present user with Access Code page
     */
-  private def showAccesCodePage(cache: AuthCacheWithoutForm, draftRetrievalMethod: DraftRetrievalMethod)(implicit
+  private def showAccesCodePage(cache: AuthCacheWithoutForm, formTemplate: FormTemplate)(implicit
     request: Request[AnyContent],
     l: LangADT
   ) = {
     val userId = UserId(cache.retrievals)
     val formTemplateId = cache.formTemplate._id
     val formIdData = FormIdData.Plain(userId, formTemplateId)
+    val draftRetrievalMethod = formTemplate.draftRetrievalMethod
 
     def showAccessCodePage =
       draftRetrievalMethod match {
@@ -274,7 +274,7 @@ class NewFormController(
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>
         gformConnector.getFormTemplateContext(formTemplateId).map(_.formTemplate).flatMap { formTemplate =>
-          exitPageHandler(cache, formTemplate, continue(cache, formTemplate))
+          exitPageHandler(cache, formTemplate, continue)
         }
     }
 
@@ -473,24 +473,37 @@ class NewFormController(
   private def exitPageHandler(
     cache: AuthCacheWithoutForm,
     formTemplate: FormTemplate,
-    continue: => Future[Result]
+    continue: (AuthCacheWithoutForm, FormTemplate) => Future[Result]
   )(implicit
     request: Request[AnyContent],
     l: LangADT
-  ): Future[Result] = {
-    val noFormEvaluation = new NoFormEvaluation(cache.retrievals, formTemplate.authConfig)
+  ): Future[Result] =
+    for {
+      itmpRetrievals <- formTemplate.dataRetrieve.fold(Future.successful(Option.empty[ItmpRetrievals]))(_ =>
+                          auth.getItmpRetrievals(request).map(Some(_))
+                        )
+      noFormEvaluation <-
+        new NoFormEvaluation(
+          cache,
+          formTemplate.authConfig,
+          itmpRetrievals,
+          gformConnector,
+          ninoInsightsConnector
+        )
+          .withDataRetrieve(formTemplate.dataRetrieve)
+      res <- {
+        val maybeExitPage = formTemplate.exitPages.flatMap { exitPages =>
+          exitPages.toList.find { exitPage =>
+            noFormEvaluation.evalIncludeIf(exitPage.`if`)
+          }
+        }
 
-    val maybeExitPage = formTemplate.exitPages.flatMap { exitPages =>
-      exitPages.toList.find { exitPage =>
-        noFormEvaluation.evalIncludeIf(exitPage.`if`)
+        maybeExitPage.fold(continue(noFormEvaluation.toCache, formTemplate)) { exitPage =>
+          implicit val sse = (new RealSmartStringEvaluatorFactory).noForm
+          Ok(exit_page(cache.formTemplate, exitPage, frontendAppConfig)).pure[Future]
+        }
       }
-    }
-
-    maybeExitPage.fold(continue) { exitPage =>
-      implicit val sse = (new RealSmartStringEvaluatorFactory).noForm
-      Ok(exit_page(cache.formTemplate, exitPage, frontendAppConfig)).pure[Future]
-    }
-  }
+    } yield res
 
   private def maybeUpdateItmpCache(
     request: Request[AnyContent],

@@ -32,11 +32,10 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
-import uk.gov.hmrc.gform.sharedmodel.RetrieveDataType
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveResult, LangADT, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupOptions }
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
@@ -200,22 +199,6 @@ case class EvaluationResults(
     NumberResult(size)
   }
 
-  private def getDataRetrieveAttribute(
-    evaluationContext: EvaluationContext,
-    dataRetrieveCtx: DataRetrieveCtx
-  ): Option[List[String]] =
-    for {
-      dataRetrieve <- evaluationContext.thirdPartyData.dataRetrieve
-      result <- dataRetrieve
-                  .get(dataRetrieveCtx.id)
-                  .flatMap { case DataRetrieveResult(_, data, _) =>
-                    data match {
-                      case RetrieveDataType.ObjectType(map) => map.get(dataRetrieveCtx.attribute).map(List(_))
-                      case RetrieveDataType.ListType(xs)    => xs.traverse(_.get(dataRetrieveCtx.attribute))
-                    }
-                  }
-    } yield result
-
   private def getDataRetrieveCount(
     evaluationContext: EvaluationContext,
     dataRetrieveCount: DataRetrieveCount
@@ -285,10 +268,14 @@ case class EvaluationResults(
       case PeriodValue(_)    => unsupportedOperation("Number")(expr)
       case AddressLens(_, _) => unsupportedOperation("Number")(expr)
       case d @ DataRetrieveCtx(_, _) =>
-        getDataRetrieveAttribute(evaluationContext, d)
-          .map {
-            case s :: Nil => toNumberResult(s)
-            case xs       => ListResult(xs.map(toNumberResult))
+        evaluationContext.thirdPartyData.dataRetrieve
+          .fold(Option.empty[ExpressionResult]) { dataRetrieve =>
+            DataRetrieveEval
+              .getDataRetrieveAttribute(dataRetrieve, d)
+              .map {
+                case s :: Nil => toNumberResult(s)
+                case xs       => ListResult(xs.map(toNumberResult))
+              }
           }
           .getOrElse(unsupportedOperation("Number")(expr))
       case d @ DataRetrieveCount(_) =>
@@ -538,10 +525,12 @@ case class EvaluationResults(
       case LangCtx => StringResult(evaluationContext.lang.langADTToString)
       case d @ DataRetrieveCtx(_, _) =>
         val exprResult =
-          getDataRetrieveAttribute(evaluationContext, d) match {
-            case Some(h :: Nil) => StringResult(h)
-            case Some(xs)       => ListResult(xs.map(StringResult))
-            case None           => Empty
+          evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
+            DataRetrieveEval.getDataRetrieveAttribute(dr, d) match {
+              case Some(h :: Nil) => StringResult(h)
+              case Some(xs)       => ListResult(xs.map(StringResult))
+              case None           => Empty
+            }
           }
         nonEmptyExpressionResult(exprResult)
 

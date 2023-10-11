@@ -331,12 +331,12 @@ class GformModule(
     controllersModule.authenticatedRequestActions,
     fileUploadModule.fileUploadService,
     gformBackendModule.gformConnector,
-    taskListController,
     fastForwardService,
     auditingModule.auditService,
     graphModule.recalculation,
     controllersModule.messagesControllerComponents,
-    gformBackEndService
+    gformBackEndService,
+    ninoInsightsConnector
   )
 
   val reviewService = new ReviewService(gformBackEndService, lookupRegistry, graphModule.recalculation)
