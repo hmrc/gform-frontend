@@ -76,7 +76,8 @@
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
   backLink = Some(backLink),
-  isMainContentFullWidth = true
+  isMainContentFullWidth = true,
+  serviceTitle = Some(extraInfoSummary.title)
 ) {
 
     @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))

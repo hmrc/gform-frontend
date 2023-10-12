@@ -49,7 +49,6 @@
 
 @formWithCSRF = @{new FormWithCSRF()}
 @govukButton = @{new GovukButton()}
-@heading = @{messages("taskList.title")}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
 @twoThirdsMainContent = @{new TwoThirdsMainContent}
@@ -67,7 +66,7 @@
 
 
 @main_template(
-  title = heading,
+  title = "",
   formTemplate = formTemplate,
   containsErrors = false,
   frontendAppConfig = frontendAppConfig,

@@ -26,15 +26,14 @@
   backLink: Option[BackLink] = None,
   displayTimeoutDialog: Boolean = true,
   displaySignOut: Boolean = true,
-  isMainContentFullWidth: Boolean = false
+  isMainContentFullWidth: Boolean = false,
+  serviceTitle: Option[String] = None
 )(content: Html)(implicit request: Request[_], messages: Messages, l: LangADT)
 
-@serviceName = @{
-  formTemplate.formName.value
-}
+@serviceName = @{serviceTitle.getOrElse(formTemplate.formName.value)}
 
 @webChat = @{
-  formTemplate.webChat
+   formTemplate.webChat
 }
 
 @webChatRoomId = @{
