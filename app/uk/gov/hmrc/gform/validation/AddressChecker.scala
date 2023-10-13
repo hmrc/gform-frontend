@@ -123,7 +123,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
         validateRequiredAtom(
           Address.street1,
           "generic.error.address.building.street.required",
-          SmartString.blank.transform(_ => "address ", _ => "").value()
+          SmartString.blank.value()
         ),
         ukStreetValidation(Address.street1),
         ukStreetValidation(Address.street2),
@@ -222,7 +222,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
           val placeholder = fieldValue.errorShortNameStart
             .map(_.transform(_ + " line 1", identity))
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.transform(_ => "Address line 1", _ => "").value())
+            .getOrElse(SmartString.blank.transform(_ => "Line 1", _ => "").value())
           val vars: List[String] = placeholder :: ValidationValues.addressLine.toString :: Nil
           combineErrors("generic.error.address.building.street.maxLength", vars)
         }
@@ -233,7 +233,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
           val placeholder = fieldValue.errorShortNameStart
             .map(_.transform(_ + " line 2", identity))
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.transform(_ => "Address line 2", _ => "").value())
+            .getOrElse(SmartString.blank.transform(_ => "Line 2", _ => "").value())
           val vars: List[String] = placeholder :: ValidationValues.addressLine.toString :: Nil
           combineErrors("generic.error.address.building.street.line2.maxLength", vars)
         }
