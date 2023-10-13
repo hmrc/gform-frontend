@@ -254,10 +254,16 @@ class BuilderController(
         componentHtml match {
           case Left(error) => badRequest(error).pure[Future]
           case Right(html) =>
+            val validationResult = ValidationResult.empty
+            val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
+            val singleton = formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
+            val formLevelHeading = renderer.shouldDisplayHeading(singleton, formModelOptics, validationResult)
+
             Ok(
               Json.obj(
                 "sectionHtml" := sanitiseHtml(sectionHtml),
-                "html" := sanitiseHtml(html)
+                "html" := sanitiseHtml(html),
+                "formLevelHeading" := formLevelHeading
               )
             ).pure[Future]
         }
