@@ -88,6 +88,7 @@ object TextChecker {
   val genericUkEoriErrorPattern                              = "generic.ukEori.error.pattern"
   val genericUkBankAccountErrorRequired                      = "generic.ukBankAccount.error.required"
   val genericUkBankAccountErrorPattern                       = "generic.ukBankAccount.error.pattern"
+  val genericUkBankAccountErrorPattern1                      = "generic.ukBankAccount.error.pattern1"
   val genericChildBenefitNumberErrorRequired                 = "generic.childBenefitNumber.error.required"
   val genericChildBenefitNumberErrorPattern                  = "generic.childBenefitNumber.error.pattern"
   val genericNonUKCountryCodeErrorPattern                    = "generic.nonUKCountryCode.error.pattern"
@@ -345,9 +346,7 @@ object TextChecker {
       mandatoryFailure = validationFailure(
         fieldValue,
         genericUkBankAccountErrorRequired,
-        fieldValue.errorShortName.map(_.transform(" " + _, " " + _).value().pure[List]) orElse (Some(
-          SmartString.blank.value().pure[List]
-        ))
+        Some(SmartString.blank.value().pure[List])
       ),
       nonEmptyCheck = validateBankAccountFormat(fieldValue, inputText)
     )
@@ -595,23 +594,15 @@ object TextChecker {
     messages: Messages,
     sse: SmartStringEvaluator
   ): CheckProgram[Unit] = {
-    val UkBankAccountFormat = s"[0-9]{${ValidationValues.bankAccountLength}}".r
     val transformedValue = value.replace(" ", "")
-    val isUKBankAccount = transformedValue match {
-      case UkBankAccountFormat() => true
-      case _                     => false
-    }
-
     ifProgram(
-      cond = isUKBankAccount,
-      thenProgram = successProgram(()),
-      elseProgram = validationFailure(
-        fieldValue,
-        genericUkBankAccountErrorPattern,
-        fieldValue.errorShortName
-          .map(_.transform(" " + _, " " + _).value().pure[List]) orElse
-          (Some(SmartString.blank.value().pure[List]))
-      )
+      cond = transformedValue.forall(_.isDigit),
+      thenProgram = ifProgram(
+        cond = transformedValue.length != 8,
+        thenProgram = validationFailure(fieldValue, genericUkBankAccountErrorPattern, None),
+        elseProgram = successProgram(())
+      ),
+      elseProgram = validationFailure(fieldValue, genericUkBankAccountErrorPattern1, None)
     )
   }
 
