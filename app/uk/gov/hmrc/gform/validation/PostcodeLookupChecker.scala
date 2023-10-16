@@ -119,13 +119,9 @@ object PostcodeLookupValidation {
   private def normalisePostcode0(postcode: String): String =
     postcode.trim.replaceAll("[ \\t]+", "").toUpperCase
 
-  def normalisePostcode(postcode: String): String = {
-    val containsNoWhiteSpace = normalisePostcode0(postcode).length === postcode.length
-
+  def normalisePostcode(postcode: String): String =
     checkPostcode0(postcode) match {
-      case Some((out, in)) => if (containsNoWhiteSpace) out + in else out + " " + in
+      case Some((out, in)) => out + " " + in
       case None            => postcode
-
     }
-  }
 }
