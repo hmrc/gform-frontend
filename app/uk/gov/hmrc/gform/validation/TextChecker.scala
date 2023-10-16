@@ -87,8 +87,8 @@ object TextChecker {
   val genericUkEoriErrorRequired                             = "generic.ukEori.error.required"
   val genericUkEoriErrorPattern                              = "generic.ukEori.error.pattern"
   val genericUkBankAccountErrorRequired                      = "generic.ukBankAccount.error.required"
+  val genericUkBankAccountErrorLength                        = "generic.ukBankAccount.error.length"
   val genericUkBankAccountErrorPattern                       = "generic.ukBankAccount.error.pattern"
-  val genericUkBankAccountErrorPattern1                      = "generic.ukBankAccount.error.pattern1"
   val genericChildBenefitNumberErrorRequired                 = "generic.childBenefitNumber.error.required"
   val genericChildBenefitNumberErrorPattern                  = "generic.childBenefitNumber.error.pattern"
   val genericNonUKCountryCodeErrorPattern                    = "generic.nonUKCountryCode.error.pattern"
@@ -599,10 +599,10 @@ object TextChecker {
       cond = transformedValue.forall(_.isDigit),
       thenProgram = ifProgram(
         cond = transformedValue.length != 8,
-        thenProgram = validationFailure(fieldValue, genericUkBankAccountErrorPattern, None),
+        thenProgram = validationFailure(fieldValue, genericUkBankAccountErrorLength, None),
         elseProgram = successProgram(())
       ),
-      elseProgram = validationFailure(fieldValue, genericUkBankAccountErrorPattern1, None)
+      elseProgram = validationFailure(fieldValue, genericUkBankAccountErrorPattern, None)
     )
   }
 
