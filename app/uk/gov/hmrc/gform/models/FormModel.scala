@@ -152,7 +152,7 @@ case class FormModel[A <: PageMode](
     case _                                      => Nil
   }
 
-  val dataRetrieveAll: DataRetrieveAll = DataRetrieveAll.from(this, dataRetrieve)
+  val dataRetrieveAll: DataRetrieveAll = DataRetrieveAll.from(this)
 
   val pageModelLookup: Map[SectionNumber, PageModel[A]] = pagesWithIndex.toList.map(_.swap).toMap
 
