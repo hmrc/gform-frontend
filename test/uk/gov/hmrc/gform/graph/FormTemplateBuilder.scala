@@ -385,7 +385,8 @@ object FormTemplateBuilder {
       staticTypeInfo,
       RevealingChoiceInfo.empty,
       SumInfo.empty,
-      StandaloneSumInfo.empty
+      StandaloneSumInfo.empty,
+      None
     )
 
 }

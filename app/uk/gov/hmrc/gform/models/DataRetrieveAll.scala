@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.data.NonEmptyList
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
 
@@ -30,9 +31,10 @@ final case class DataRetrieveAll(lookup: Map[DataRetrieveId, DataRetrieve]) exte
 object DataRetrieveAll {
   val empty: DataRetrieveAll = DataRetrieveAll(Map.empty)
 
-  def from[A <: PageMode](formModel: FormModel[A]): DataRetrieveAll =
+  def from[A <: PageMode](formModel: FormModel[A], dataRetrieve: Option[NonEmptyList[DataRetrieve]]): DataRetrieveAll =
     DataRetrieveAll(
-      formModel.pages.map(_.dataRetrieves).toList.flatMap(drs => drs.map(dr => dr.id -> dr)).toMap
+      formModel.pages.map(_.dataRetrieves).flatMap(drs => drs.map(dr => dr.id -> dr)).toMap ++
+        dataRetrieve.fold(Map.empty[DataRetrieveId, DataRetrieve])(drs => drs.toList.map(dr => dr.id -> dr).toMap)
     )
 
 }

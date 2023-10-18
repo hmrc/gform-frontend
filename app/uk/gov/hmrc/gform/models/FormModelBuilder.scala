@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString, SourceOrigin, SubmissionRef, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, DataRetrieve, DataRetrieveId, LangADT, SmartString, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -225,7 +225,11 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.taxPeriodDate,
         FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
         lookupOptions,
-        formModel.dataRetrieveAll
+        DataRetrieveAll(
+          formModel.dataRetrieveAll.lookup ++ formTemplate.dataRetrieve.fold(Map.empty[DataRetrieveId, DataRetrieve])(
+            dr => dr.toList.map(d => d.id -> d).toMap
+          )
+        )
       )
 
     recalculation
@@ -488,7 +492,7 @@ class FormModelBuilder[E, F[_]: Functor](
 
     val sumInfo: SumInfo = allSections.sections.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
 
-    FormModel.fromPages(brackets, staticTypeInfo, revealingChoiceInfo, sumInfo)
+    FormModel.fromPages(brackets, staticTypeInfo, revealingChoiceInfo, sumInfo, formTemplate.dataRetrieve)
   }
 
   private def repeaterIsYes(

@@ -109,7 +109,8 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
         ),
         expectedStaticTypeInfo,
         expectedRevealinChoiceInfo,
-        SumInfo.empty
+        SumInfo.empty,
+        None
       )
 
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
