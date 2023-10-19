@@ -32,7 +32,10 @@ object DataRetrieveAll {
 
   def from[A <: PageMode](formModel: FormModel[A]): DataRetrieveAll =
     DataRetrieveAll(
-      formModel.pages.map(_.dataRetrieves).toList.flatMap(drs => drs.map(dr => dr.id -> dr)).toMap
+      formModel.pages.map(_.dataRetrieves).flatMap(drs => drs.map(dr => dr.id -> dr)).toMap ++
+        formModel.dataRetrieve.fold(Map.empty[DataRetrieveId, DataRetrieve])(drs =>
+          drs.toList.map(dr => dr.id -> dr).toMap
+        )
     )
 
 }

@@ -386,7 +386,8 @@ class FormDataHelpersSpec extends Spec {
       StaticTypeInfo.empty,
       RevealingChoiceInfo.empty,
       SumInfo.empty,
-      StandaloneSumInfo.empty
+      StandaloneSumInfo.empty,
+      None
     )
     lazy val requestBodyParams = Map("formField1" -> Seq("value1"), "actionField" -> Seq("save"))
     lazy val request = FakeRequest().withBody(AnyContentAsFormUrlEncoded(requestBodyParams))

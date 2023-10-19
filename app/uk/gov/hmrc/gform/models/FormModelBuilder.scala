@@ -488,7 +488,7 @@ class FormModelBuilder[E, F[_]: Functor](
 
     val sumInfo: SumInfo = allSections.sections.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
 
-    FormModel.fromPages(brackets, staticTypeInfo, revealingChoiceInfo, sumInfo)
+    FormModel.fromPages(brackets, staticTypeInfo, revealingChoiceInfo, sumInfo, formTemplate.dataRetrieve)
   }
 
   private def repeaterIsYes(
