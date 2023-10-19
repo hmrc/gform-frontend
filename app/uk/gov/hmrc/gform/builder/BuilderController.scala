@@ -139,7 +139,7 @@ class BuilderController(
               _.deepMerge(
                 Json.obj(
                   "hiddenComponentIds" := hiddenComponentIds,
-                  "version" := 1 // This is managed manually. Increase it any time API used by builder extension is changed.
+                  "version" := 2 // This is managed manually. Increase it any time API used by builder extension is changed.
                 )
               )
             )
