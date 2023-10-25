@@ -146,6 +146,8 @@ object FormDataHelpers {
               val firstUpdated =
                 if (upperCaseIds(modelComponentId)) {
                   first.toUpperCase()
+                } else if (modelComponentId.isAtomic("month")) {
+                  normalizeMonth(first)
                 } else first
               (
                 Some(
@@ -229,6 +231,24 @@ object FormDataHelpers {
         PostcodeLookupValidation.normalisePostcode(value)
       case _ => value
     }
+
+  private def normalizeMonth(
+    value: String
+  ): String = value.toLowerCase() match {
+    case "jan" | "january"   => "1"
+    case "feb" | "february"  => "2"
+    case "mar" | "march"     => "3"
+    case "apr" | "april"     => "4"
+    case "may"               => "5"
+    case "jun" | "june"      => "6"
+    case "jul" | "july"      => "7"
+    case "aug" | "august"    => "8"
+    case "sep" | "september" => "9"
+    case "oct" | "october"   => "10"
+    case "nov" | "november"  => "11"
+    case "dec" | "december"  => "12"
+    case otherwise           => otherwise
+  }
 
   private def isValidSortCode(value: String): Boolean =
     value match {

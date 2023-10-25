@@ -63,6 +63,11 @@ sealed trait ModelComponentId extends Product with Serializable {
     case t: ModelComponentId.Pure   => f(t)
     case t: ModelComponentId.Atomic => g(t)
   }
+
+  def isAtomic(atomValue: String): Boolean = this match {
+    case ModelComponentId.Atomic(_, Atom(v)) if v == atomValue => true
+    case _                                                     => false
+  }
 }
 
 object ModelComponentId {
