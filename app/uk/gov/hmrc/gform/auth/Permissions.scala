@@ -79,6 +79,7 @@ object Permissions {
       case (DownloadPrintSectionPdf, _, Validated)                         => valid(operation, role, status)
       case (AuditSessionEnd, _, _)                                         => valid(operation, role, status)
       case (DownloadFileByInternalLink, _, _)                              => valid(operation, role, status)
+      case (ViewImageByInternalLink, _, _)                                 => valid(operation, role, status)
       case _                                                               => mostLikelyInvalid(operation, role, status)
     }
 
