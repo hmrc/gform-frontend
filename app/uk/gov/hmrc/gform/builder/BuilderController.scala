@@ -23,23 +23,24 @@ import io.circe.syntax._
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.libs.circe.Circe
 import play.api.libs.json.{ Json => PlayJson }
-import play.api.mvc.{ MessagesControllerComponents, Request, Result }
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
 import play.twirl.api.Html
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.{ ExtraInfo, RenderUnit, SectionRenderingService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.{ Bracket, DataExpanded, FormModel, SectionSelectorType, Singleton }
+import uk.gov.hmrc.gform.models.{ Bracket, Coordinates, DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
+import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.gform.upscan.UpscanInitiate
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.views.html
@@ -59,6 +60,9 @@ class BuilderController(
   implicit val htmlEncoder: Encoder[Html] = new Encoder[Html] {
     final def apply(html: Html): Json = Json.fromString(html.toString)
   }
+
+  private val compatibilityVersion =
+    3; // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
@@ -139,11 +143,32 @@ class BuilderController(
               _.deepMerge(
                 Json.obj(
                   "hiddenComponentIds" := hiddenComponentIds,
-                  "version" := 2 // This is managed manually. Increase it any time API used by builder extension is changed.
+                  "version" := compatibilityVersion
                 )
               )
             )
             .fold(BadRequest(s"No section for $sectionNumber found in form template $formTemplateId"))(json => Ok(json))
+        }
+    }
+
+  def originalFormTemplate(formTemplateId: FormTemplateId) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      implicit request => _ => _ => _ => _ =>
+        gformConnector.getFormTemplateRaw(formTemplateId).map { formTemplateRaw =>
+          val jsonString: String = PlayJson.stringify(formTemplateRaw)
+          val maybeCirceJson: Either[ParsingFailure, Json] =
+            io.circe.parser.parse(jsonString)
+
+          val json: Option[Json] = maybeCirceJson.toOption
+
+          json
+            .map(json =>
+              Json.obj(
+                "formTemplate" := json,
+                "version" := compatibilityVersion
+              )
+            )
+            .fold(BadRequest(s"Form template not found for $formTemplateId"))(json => Ok(json))
         }
     }
 
@@ -267,6 +292,52 @@ class BuilderController(
               )
             ).pure[Future]
         }
+    }
+
+  def fetchTaskListSectionTitle(formTemplateId: FormTemplateId, sectionNumber: SectionNumber): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      _ => _ => cache => implicit sse => _ =>
+        sectionNumber match {
+          case SectionNumber.TaskList(Coordinates(taskSectionNumber, _), _) =>
+            TaskListUtils.withTaskSection(cache.formTemplate, taskSectionNumber) { taskListSection =>
+              Ok(
+                Json.obj(
+                  "html" := taskListSection.title.value()
+                )
+              ).pure[Future]
+            }
+          case _ => badRequest("Task section number not found").pure[Future]
+        }
+    }
+
+  def fetchTaskTitle(formTemplateId: FormTemplateId, sectionNumber: SectionNumber): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      _ => _ => cache => implicit sse => _ =>
+        sectionNumber match {
+          case SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), _) =>
+            TaskListUtils.withTask(cache.formTemplate, taskSectionNumber, taskNumber) { task =>
+              Ok(
+                Json.obj(
+                  "html" := task.title.value()
+                )
+              ).pure[Future]
+            }
+          case _ => badRequest(s"Task section number $sectionNumber not found").pure[Future]
+        }
+    }
+
+  def fetchSubmitSectionLabel(formTemplateId: FormTemplateId): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      _ => _ => cache => implicit sse => _ =>
+        val label = cache.formTemplate.submitSection.map(_.label.value()).getOrElse("")
+        Ok(Json.obj("html" := label)).pure[Future]
+    }
+
+  def fetchSubmitSectionTaskLabel(formTemplateId: FormTemplateId): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      _ => _ => cache => implicit sse => _ =>
+        val taskLabel = cache.formTemplate.submitSection.map(_.taskLabel.value()).getOrElse("")
+        Ok(Json.obj("html" := taskLabel)).pure[Future]
     }
 
   def fetchSectionHeaderHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
