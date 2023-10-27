@@ -478,7 +478,7 @@ object FormComponentSummaryRenderer {
         errors.head
       else {
         val day = renderMonth(formFieldValidationResult.getCurrentValue(safeId(Date.day)))
-        val month = messages(s"date.$monthKey")
+        val month = if (monthKey.trim.nonEmpty) messages(s"date.$monthKey") else ""
         val year = formFieldValidationResult.getCurrentValue(safeId(Date.year))
 
         HtmlFormat.escape(s"$day $month $year")
@@ -554,7 +554,7 @@ object FormComponentSummaryRenderer {
         errors.head
       else {
         val day = renderMonth(formFieldValidationResult.getCurrentValue(safeId(CalendarDate.day)))
-        val month = messages(s"date.$monthKey")
+        val month = if (monthKey.trim.nonEmpty) messages(s"date.$monthKey") else ""
 
         HtmlFormat.escape(s"$day $month")
       }
@@ -628,7 +628,7 @@ object FormComponentSummaryRenderer {
         errors.head
       else {
         val year = renderMonth(formFieldValidationResult.getCurrentValue(safeId(TaxPeriodDate.year)))
-        val month = messages(s"date.$monthKey")
+        val month = if (monthKey.trim.nonEmpty) messages(s"date.$monthKey") else ""
 
         HtmlFormat.escape(s"$month $year")
       }
