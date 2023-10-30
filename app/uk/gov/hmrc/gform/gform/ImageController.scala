@@ -17,31 +17,27 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.Environment
-import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, InternalLink, LinkCtx }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.LinkCtx
 import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import java.nio.file.Paths
 
-// import scala.concurrent.{ ExecutionContext, Future }
+import java.nio.file.Paths
 import scala.concurrent.{ Future }
 
 class ImageController(
   messagesControllerComponents: MessagesControllerComponents,
   auth: AuthenticatedRequestActions,
   environment: Environment
-)
-// (implicit ec: ExecutionContext)
-    extends FrontendController(messagesControllerComponents) {
-
-  // private val allowedFileInfo: Map[String, String] = Map(
-  //   ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
-  //   ("ods", "application/vnd.oasis.opendocument.spreadsheet")
-  // )
+) extends FrontendController(messagesControllerComponents) {
 
   def image(
     formTemplateId: FormTemplateId,
@@ -59,7 +55,7 @@ class ImageController(
       if (!allExprs.contains(LinkCtx(InternalLink.Image(fileName)))) {
         Future.failed(
           new NotFoundException(
-            s"link.download.$fileName expr does not exist in $formTemplateId form"
+            s"link.image.$fileName expr does not exist in $formTemplateId form"
           )
         )
       } else {
@@ -68,7 +64,7 @@ class ImageController(
           val path = Paths.get(file.getAbsolutePath)
           val image = java.nio.file.Files.readAllBytes(path)
           Future.successful(
-            Ok(image).as("image/png") // Assuming the image is a PNG
+            Ok(image).as("image/png")
           )
         } else {
           Future.failed(new NotFoundException(s"File $fileName does not exist"))
