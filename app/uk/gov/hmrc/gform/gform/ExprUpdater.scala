@@ -69,6 +69,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case Concat(exprs)                         => Concat(exprs.map(expandExpr))
     case CountryOfItmpAddress                  => expr
     case ChoicesRevealedField(formComponentId) => ChoicesRevealedField(expandFcId(formComponentId))
+    case ChoiceLabel(formComponentId)          => ChoiceLabel(expandFcId(formComponentId))
   }
 
   private def expandDateFunc(dateFunc: DateProjection): DateProjection = dateFunc match {

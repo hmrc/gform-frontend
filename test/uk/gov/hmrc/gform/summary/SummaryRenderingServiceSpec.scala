@@ -148,7 +148,8 @@ class SummaryRenderingServiceSpec
           Set.empty,
           FileSizeLimit(1),
           LocalisedLookupOptions(Map()),
-          DataRetrieveAll.empty
+          DataRetrieveAll.empty,
+          Map.empty
         )
       )
     )
