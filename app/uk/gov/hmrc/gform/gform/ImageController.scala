@@ -52,22 +52,16 @@ class ImageController(
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
       val allExprs = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
 
-      if (!allExprs.contains(LinkCtx(InternalLink.Image(fileName)))) {
-        Future.failed(
-          new NotFoundException(
+     Future.successful {
+        if (!allExprs.contains(LinkCtx(InternalLink.Image(fileName)))) {
+          NotFound(
             s"link.image.$fileName expr does not exist in $formTemplateId form"
           )
-        )
-      } else {
-        val file = environment.getFile(s"conf/resources/$fileName")
-        if (file.exists()) {
-          val path = Paths.get(file.getAbsolutePath)
-          val image = java.nio.file.Files.readAllBytes(path)
-          Future.successful(
-            Ok(image).as("image/png")
-          )
         } else {
-          Future.failed(new NotFoundException(s"File $fileName does not exist"))
+          environment.getExistingFile(s"conf/resources/$fileName") match {
+            case Some(file) => Ok.sendFile(file)
+            case None       => NotFound(s"File $fileName does not exist")
+          }
         }
       }
     }
