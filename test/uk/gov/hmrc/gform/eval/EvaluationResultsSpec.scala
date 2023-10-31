@@ -88,7 +88,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       Set.empty,
       FileSizeLimit(1),
       LocalisedLookupOptions(Map()),
-      DataRetrieveAll.empty
+      DataRetrieveAll.empty,
+      Map.empty
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()

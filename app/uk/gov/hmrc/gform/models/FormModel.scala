@@ -147,6 +147,11 @@ case class FormModel[A <: PageMode](
     fc.modelComponentId.toAtomicFormComponentId(PostcodeLookup.postcode).baseComponentId
   }.toSet
 
+  val choiceLookup: Map[BaseComponentId, NonEmptyList[OptionData]] = allFormComponents.collect {
+    case fc @ IsChoice(choice) =>
+      fc.baseComponentId -> choice.options
+  }.toMap
+
   val exprsMetadata: List[ExprMetadata] = brackets.toBracketsPlains.toList.flatMap {
     case AllPageModelExpressions(exprMetadatas) => exprMetadatas
     case _                                      => Nil

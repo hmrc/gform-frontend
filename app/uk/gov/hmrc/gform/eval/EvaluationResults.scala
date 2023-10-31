@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -311,6 +311,7 @@ case class EvaluationResults(
       case Concat(_)               => unsupportedOperation("Number")(expr)
       case CountryOfItmpAddress    => unsupportedOperation("Number")(expr)
       case ChoicesRevealedField(_) => unsupportedOperation("Number")(expr)
+      case ChoiceLabel(_)          => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -611,6 +612,7 @@ case class EvaluationResults(
           StringResult(itmpRetrievals.flatMap(_.itmpAddress).flatMap(_.countryName).getOrElse(""))
         )
       case ChoicesRevealedField(fcId) => loop(FormCtx(fcId))
+      case ChoiceLabel(fcId)          => evalChoiceLabel(evaluationContext, fcId, booleanExprResolver, recData)
       case _                          => unsupportedOperation("String")(expr)
     }
 
@@ -786,48 +788,82 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext
   ) = {
     val concatValue = exprs
-      .map { expr =>
-        expr match {
-          case Constant(value) => value
-          case _ =>
-            val evalTypeInfo: TypeInfo = expr match {
-              case Add(_, _) | Multiply(_, _) | Subtraction(_, _) | Divide(_, _) =>
-                TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-              case DateCtx(_) => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))
-              case IsNumberConstant(_) | PeriodExt(_, _) |
-                  UserCtx(UserField.Enrolment(_, _, Some(UserFieldFunc.Count))) | Size(_, _) |
-                  CsvCountryCountCheck(_, _, _) =>
-                TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-              case DataRetrieveCtx(id, attribute) if evaluationContext.dataRetrieveAll.isInteger(id, attribute) =>
-                TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-              case DataRetrieveCount(_) =>
-                TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-              case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
-              case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
-              case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
-              case AuthCtx(AuthInfo.ItmpAddress) => TypeInfo(expr, StaticTypeData(ExprType.address, None))
-              case _                             => TypeInfo(expr, StaticTypeData(ExprType.string, None))
-            }
+      .map {
+        case Constant(value) => value
+        case expr =>
+          val stringResult = evalExprAsString(expr, evaluationContext, booleanExprResolver, recData)
 
-            val stringResult = evalExpr(
-              evalTypeInfo,
-              recData,
-              booleanExprResolver,
-              evaluationContext
-            ).stringRepresentation(evalTypeInfo, evaluationContext.messages)
-
-            expr match {
-              case Typed(_, ExplicitExprType.Sterling(_)) =>
-                TextFormatter.formatSterling(stringResult)
-              case Typed(_, ExplicitExprType.Number(fractionalDigits, roundingMode)) =>
-                TextFormatter.formatNumberWithPrecise(stringResult, fractionalDigits, roundingMode)
-              case _ => stringResult
-            }
-        }
+          expr match {
+            case Typed(_, ExplicitExprType.Sterling(_)) =>
+              TextFormatter.formatSterling(stringResult)
+            case Typed(_, ExplicitExprType.Number(fractionalDigits, roundingMode)) =>
+              TextFormatter.formatNumberWithPrecise(stringResult, fractionalDigits, roundingMode)
+            case _ => stringResult
+          }
       }
       .mkString("")
 
     StringResult(concatValue)
+  }
+
+  private def evalExprAsString(
+    expr: Expr,
+    evaluationContext: EvaluationContext,
+    booleanExprResolver: BooleanExprResolver,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ): String = {
+    val typeInfo: TypeInfo = expr match {
+      case Add(_, _) | Multiply(_, _) | Subtraction(_, _) | Divide(_, _) =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case DateCtx(_) => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))
+      case IsNumberConstant(_) | PeriodExt(_, _) | UserCtx(UserField.Enrolment(_, _, Some(UserFieldFunc.Count))) |
+          Size(_, _) | CsvCountryCountCheck(_, _, _) =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case DataRetrieveCtx(id, attribute) if evaluationContext.dataRetrieveAll.isInteger(id, attribute) =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case DataRetrieveCount(_) =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
+      case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
+      case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
+      case AuthCtx(AuthInfo.ItmpAddress) => TypeInfo(expr, StaticTypeData(ExprType.address, None))
+      case _                             => TypeInfo(expr, StaticTypeData(ExprType.string, None))
+    }
+    evalExpr(
+      typeInfo,
+      recData,
+      booleanExprResolver,
+      evaluationContext
+    ).stringRepresentation(typeInfo, evaluationContext.messages)
+  }
+
+  private def evalChoiceLabel(
+    evaluationContext: EvaluationContext,
+    fcId: FormComponentId,
+    booleanExprResolver: BooleanExprResolver,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ) = {
+    val maybeChoiceM: Option[Map[String, SmartString]] = evaluationContext.choiceLookup
+      .get(fcId.baseComponentId)
+      .map(_.toList.zipWithIndex.collect {
+        case (OptionData.IndexBased(label, _, _, _), i) => i.toString -> label
+        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value)), _) =>
+          value -> label
+        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(prefix, expr)), _) =>
+          prefix + evalExprAsString(expr, evaluationContext, booleanExprResolver, recData) -> label
+        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.FormCtxBased(formCtx)), _) =>
+          evalExprAsString(formCtx, evaluationContext, booleanExprResolver, recData) -> label
+      }.toMap)
+
+    val result = recData.variadicFormData
+      .many(fcId.modelComponentId)
+      .map(
+        _.map(value => maybeChoiceM.fold("")(choiceM => choiceM(value).rawValue(evaluationContext.lang)))
+          .mkString("")
+      )
+      .getOrElse("")
+
+    StringResult(result)
   }
 
   def evalExpr(

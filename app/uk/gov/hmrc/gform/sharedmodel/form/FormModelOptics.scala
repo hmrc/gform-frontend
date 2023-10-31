@@ -20,7 +20,6 @@ import cats.{ Functor, MonadError }
 import cats.syntax.functor._
 import com.softwaremill.quicklens._
 import play.api.i18n.Messages
-
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
@@ -78,7 +77,8 @@ object FormModelOptics {
         Set.empty[BaseComponentId],
         FileSizeLimit(cache.formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
         cache.countryLookupOptions,
-        DataRetrieveAll.empty
+        DataRetrieveAll.empty,
+        Map.empty
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),

@@ -65,36 +65,7 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
           case ExprType.ChoiceSelection =>
             typeInfo.expr match {
               case FormCtx(formComponentId) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
-                formModelVisibilityOptics.formModel.fcLookup
-                  .get(formComponentId)
-                  .map {
-                    case IsChoice(choice) =>
-                      val optionsList = choice.options.zipWithIndex
-                        .map {
-                          case (OptionData.IndexBased(label, _, _, _), i) => i.toString -> label
-                          case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value)), _) =>
-                            value -> label
-                          case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(prefix, expr)), _) =>
-                            prefix + formModelVisibilityOptics
-                              .evalAndApplyTypeInfoFirst(expr)
-                              .stringRepresentation -> label
-                          case (OptionData.ValueBased(label, _, _, _, OptionDataValue.FormCtxBased(formCtx)), _) =>
-                            formModelVisibilityOptics
-                              .evalAndApplyTypeInfoFirst(formCtx)
-                              .stringRepresentation -> label
-                        }
-                        .toList
-                        .toMap
-                      mapChoiceSelectedIndexes(
-                        typeInfo,
-                        _.map(i => apply(optionsList(i), markDown)).mkString(", ")
-                      )
-                    case IsRevealingChoice(revealingChoice) =>
-                      revealingChoice.options.map(c => apply(c.choice.label, markDown)).mkString(", ")
-                    case _ =>
-                      stringRepresentation(typeInfo)
-                  }
-                  .getOrElse("")
+                evalChoice(formComponentId, typeInfo, markDown)
               case _ => stringRepresentation(typeInfo)
             }
           case _ =>
@@ -124,7 +95,8 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
                       .mkString(", ")
                   }
                   .getOrElse("")
-              case _ => stringRepresentation(typeInfo)
+              case ChoiceLabel(fcId) => evalChoice(fcId, typeInfo, markDown)
+              case _                 => stringRepresentation(typeInfo)
             }
         }
 
@@ -146,6 +118,38 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
             }
         }
       }
+
+      private def evalChoice(fcId: FormComponentId, typeInfo: TypeInfo, markDown: Boolean) =
+        formModelVisibilityOptics.formModel.fcLookup
+          .get(fcId)
+          .collect {
+            case IsChoice(choice) =>
+              val optionsList = choice.options.zipWithIndex
+                .map {
+                  case (OptionData.IndexBased(label, _, _, _), i) => i.toString -> label
+                  case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value)), _) =>
+                    value -> label
+                  case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(prefix, expr)), _) =>
+                    prefix + formModelVisibilityOptics
+                      .evalAndApplyTypeInfoFirst(expr)
+                      .stringRepresentation(messages) -> label
+                  case (OptionData.ValueBased(label, _, _, _, OptionDataValue.FormCtxBased(formCtx)), _) =>
+                    formModelVisibilityOptics
+                      .evalAndApplyTypeInfoFirst(formCtx)
+                      .stringRepresentation(messages) -> label
+                }
+                .toList
+                .toMap
+              mapChoiceSelectedIndexes(
+                typeInfo,
+                _.map(i => apply(optionsList(i), markDown)).mkString(", ")
+              )
+            case IsRevealingChoice(revealingChoice) =>
+              revealingChoice.options.map(c => apply(c.choice.label, markDown)).mkString(", ")
+            case _ =>
+              stringRepresentation(typeInfo)
+          }
+          .getOrElse("")
 
       private def stringRepresentation(typeInfo: TypeInfo): String =
         formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation(messages)

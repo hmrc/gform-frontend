@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
+import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
@@ -48,5 +49,6 @@ final case class EvaluationContext(
   taxPeriodYear: Set[BaseComponentId],
   fileSizeLimit: FileSizeLimit,
   lookupOptions: LocalisedLookupOptions,
-  dataRetrieveAll: DataRetrieveAll
+  dataRetrieveAll: DataRetrieveAll,
+  choiceLookup: Map[BaseComponentId, NonEmptyList[OptionData]]
 )
