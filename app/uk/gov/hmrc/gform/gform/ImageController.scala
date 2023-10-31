@@ -27,17 +27,16 @@ import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LinkCtx
-import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import java.nio.file.Paths
-import scala.concurrent.{ Future }
+import scala.concurrent.{ ExecutionContext, Future }
 
 class ImageController(
   messagesControllerComponents: MessagesControllerComponents,
   auth: AuthenticatedRequestActions,
   environment: Environment
-) extends FrontendController(messagesControllerComponents) {
+)(implicit ec: ExecutionContext)
+    extends FrontendController(messagesControllerComponents) {
 
   def image(
     formTemplateId: FormTemplateId,
@@ -52,7 +51,7 @@ class ImageController(
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
       val allExprs = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
 
-     Future.successful {
+      Future.successful {
         if (!allExprs.contains(LinkCtx(InternalLink.Image(fileName)))) {
           NotFound(
             s"link.image.$fileName expr does not exist in $formTemplateId form"
