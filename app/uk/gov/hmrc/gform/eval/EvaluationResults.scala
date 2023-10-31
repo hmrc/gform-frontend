@@ -495,6 +495,14 @@ case class EvaluationResults(
                   fileName
                 )
                 .url
+            case InternalLink.Image(fileName) =>
+              uk.gov.hmrc.gform.gform.routes.ImageController
+                .image(
+                  evaluationContext.formTemplateId,
+                  evaluationContext.maybeAccessCode,
+                  fileName
+                )
+                .url
             case InternalLink.UrlLink(url) =>
               uk.gov.hmrc.gform.gform.routes.RedirectController.redirect(RedirectUrl(url)).url
           }

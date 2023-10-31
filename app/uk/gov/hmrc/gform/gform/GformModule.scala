@@ -435,6 +435,13 @@ class GformModule(
       configModule.environment
     )
 
+  val imageController: ImageController =
+    new ImageController(
+      controllersModule.messagesControllerComponents,
+      controllersModule.authenticatedRequestActions,
+      configModule.environment
+    )
+
   private val allowedHosts = configModule.typesafeConfig.getStringList("redirectAllowedHosts").asScala.toSet
   private val redirectUrlPolicy = AbsoluteWithHostnameFromAllowlist(allowedHosts)
   val redirectController: RedirectController =

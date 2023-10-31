@@ -96,6 +96,7 @@ class RoutingModule(
     gformModule.taskListController,
     gformModule.captureController,
     gformModule.downloadController,
+    gformModule.imageController,
     gformModule.redirectController
   )
 
