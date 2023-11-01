@@ -26,7 +26,7 @@ import cats.syntax.functor._
 import cats.syntax.show._
 import org.apache.commons.text.StringEscapeUtils
 import org.slf4j.LoggerFactory
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ JsString, JsValue, Json }
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
@@ -534,10 +534,14 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       .map(_ => ())
   }
 
-  // def notificationBanner(id: FormTemplateId)(implicit ec: ExecutionContext): Future[Option[NotificationBanner]] =
-  //   ws.doGet(show"$baseUrl/notification-banner/$id").map { response =>
-  //     if (response.status == 200) Some(response.json.as[NotificationBanner])
-  //     else Option.empty[NotificationBanner]
-  //   }
-
+  def getDefaultSummarySection(formCategory: FormCategory)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[JsValue] =
+    Json.toJson(formCategory) match {
+      case JsString(category) =>
+        val url = s"$baseUrl/builder/default-summary-section/$category"
+        ws.GET[JsValue](url)
+      case unknown => Future.failed(new Exception("Invalid form category, expected JsString got " + unknown))
+    }
 }
