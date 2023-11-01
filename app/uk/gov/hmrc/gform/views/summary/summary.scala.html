@@ -94,10 +94,6 @@
         }
     }
 
-    @mainContent {
-        @reviewerComments.map(c => alert(messages("summary.alert.title"), c))
-    }
-
     @formWithCSRF(action = SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint, maybeCoordinates), args =  'method -> "POST", 'class -> "js-form govuk-!-margin-bottom-9", 'autocomplete -> "off", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
         @mainContent {

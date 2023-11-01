@@ -32,7 +32,6 @@ final case class ExtraInfoSummary(
   continueLabelKey: String,
   frontendAppConfig: FrontendAppConfig,
   summaryPagePurpose: SummaryPagePurpose,
-  reviewerComments: Option[String],
   title: String,
   caption: Option[String],
   header: Html,

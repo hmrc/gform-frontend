@@ -28,6 +28,7 @@ import play.twirl.api.Html
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
@@ -62,7 +63,7 @@ class BuilderController(
   }
 
   private val compatibilityVersion =
-    3; // This is managed manually. Increase it any time API used by builder extension is changed.
+    4; // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
@@ -169,6 +170,25 @@ class BuilderController(
               )
             )
             .fold(BadRequest(s"Form template not found for $formTemplateId"))(json => Ok(json))
+        }
+    }
+
+  def originalSummarySection(formTemplateId: FormTemplateId) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      implicit request => lang => cache => sse => formModelOptics =>
+        gformConnector.getFormTemplateRaw(formTemplateId).flatMap { formTemplateRaw =>
+          val jsonString: String = PlayJson.stringify(formTemplateRaw)
+          val maybeCirceJson: Either[ParsingFailure, Json] =
+            io.circe.parser.parse(jsonString)
+
+          val json: Option[Json] = maybeCirceJson.toOption.flatMap { json =>
+            json.hcursor.downField("summarySection").focus
+          }
+
+          json match {
+            case None                 => gformConnector.getDefaultSummarySection(cache.formTemplate.formCategory).map(Ok(_))
+            case Some(summarySection) => Ok(summarySection).pure[Future]
+          }
         }
     }
 
@@ -349,6 +369,18 @@ class BuilderController(
         Ok(sectionHtml).pure[Future]
     }
 
+  def fetchSummarySectionTitleHtml(formTemplateId: FormTemplateId) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      request => lang => cache => implicit sse => formModelOptics =>
+        Ok(
+          Json.obj(
+            "title" := cache.formTemplate.summarySection.title.value(),
+            "header" := markDownParser(cache.formTemplate.summarySection.header.value()),
+            "footer" := markDownParser(cache.formTemplate.summarySection.footer.value())
+          )
+        ).pure[Future]
+    }
+
   private def badRequest(error: String): Result = BadRequest(PlayJson.obj("error" -> error))
 
   def fetchFormComponentHtml(
@@ -386,6 +418,64 @@ class BuilderController(
     sectionHtml
 
   }
+
+  def htmlForSumarySectionFormComponent(
+    formTemplateId: FormTemplateId,
+    formComponentId: FormComponentId
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      implicit request => implicit lang => cache => implicit sse => formModelOptics =>
+        import i18nSupport._
+
+        val formComponents = cache.formTemplate.summarySection.fields
+        formComponents match {
+          case None =>
+            badRequest(s"Summary section doesn't coontain any fields. Trying to find: ${formComponentId.value}")
+              .pure[Future]
+          case Some(nel) =>
+            nel.toList.find(_.id === formComponentId) match {
+              case None =>
+                badRequest(s"Failed to find formComponentId: ${formComponentId.value} in summary section fields")
+                  .pure[Future]
+              case Some(formComponent) =>
+                val renderUnit = RenderUnit.Pure(formComponent)
+
+                val validationResult = ValidationResult.empty
+
+                val obligations = NotChecked
+                val upscanInitiate = UpscanInitiate.empty
+
+                val formTemplate = cache.formTemplate
+                val page = formTemplate.summarySection.toPage
+                val singleton = Singleton(page.asInstanceOf[Page[DataExpanded]])
+
+                val ei: ExtraInfo = ExtraInfo(
+                  singleton = singleton,
+                  maybeAccessCode = None,
+                  sectionNumber = formTemplate.sectionNumberZero,
+                  formModelOptics = formModelOptics,
+                  formTemplate = formTemplate,
+                  envelopeId = cache.form.envelopeId,
+                  envelope = EnvelopeWithMapping.empty,
+                  formMaxAttachmentSizeMB = 0,
+                  retrievals = cache.retrievals,
+                  formLevelHeading = false,
+                  specialAttributes = Map.empty[String, String],
+                  addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
+                )
+
+                val formComponentHtml = renderer.htmlFor(
+                  renderUnit,
+                  formTemplateId,
+                  ei,
+                  validationResult,
+                  obligations,
+                  upscanInitiate
+                )
+                Ok(Json.obj("html" := sanitiseHtml(formComponentHtml))).pure[Future]
+            }
+        }
+    }
 
   private def toComponentHtml(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
