@@ -196,3 +196,17 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
     }
 
 }
+
+class EnglishSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartStringEvaluatorFactory {
+
+  private val realFactory = new RealSmartStringEvaluatorFactory()
+
+  override def apply(
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
+  )(implicit messages: Messages, l: LangADT): SmartStringEvaluator = {
+    val englishImplicitMessages: Messages = englishMessages
+    val englishImplicitLangADT: LangADT = LangADT.En
+
+    realFactory(formModelVisibilityOptics)(englishImplicitMessages, englishImplicitLangADT)
+  }
+}
