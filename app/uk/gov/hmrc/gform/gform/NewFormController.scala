@@ -372,16 +372,20 @@ class NewFormController(
 
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit lang => cache =>
-        (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
-          case (BySubmissionReference, _)                    => processSubmittedData(cache, BySubmissionReference)
-          case (drm @ FormAccessCodeForAgents(_), IsAgent()) => processSubmittedData(cache, drm)
-          case otherwise =>
-            Future.failed(
-              new Exception(
-                s"newFormPost endpoind called, but draftRetrievalMethod is not allowed for a user or formTemplate: $otherwise"
-              )
-            )
-        }
+        for {
+          noFormEvaluation <- noFormEval(cache)
+          newCache = noFormEvaluation.toCache
+          res <- (newCache.formTemplate.draftRetrievalMethod, newCache.retrievals) match {
+                   case (BySubmissionReference, _)                    => processSubmittedData(newCache, BySubmissionReference)
+                   case (drm @ FormAccessCodeForAgents(_), IsAgent()) => processSubmittedData(newCache, drm)
+                   case otherwise =>
+                     Future.failed(
+                       new Exception(
+                         s"newFormPost endpoind called, but draftRetrievalMethod is not allowed for a user or formTemplate: $otherwise"
+                       )
+                     )
+                 }
+        } yield res
     }
   }
 
@@ -470,14 +474,13 @@ class NewFormController(
     } yield r
   }
 
-  private def exitPageHandler(
-    cache: AuthCacheWithoutForm,
-    formTemplate: FormTemplate,
-    continue: (AuthCacheWithoutForm, FormTemplate) => Future[Result]
+  private def noFormEval(
+    cache: AuthCacheWithoutForm
   )(implicit
-    request: Request[AnyContent],
-    l: LangADT
-  ): Future[Result] =
+    request: Request[AnyContent]
+  ): Future[NoFormEvaluation] = {
+    val formTemplate = cache.formTemplate
+
     for {
       itmpRetrievals <- formTemplate.dataRetrieve.fold(Future.successful(Option.empty[ItmpRetrievals]))(_ =>
                           auth.getItmpRetrievals(request).map(Some(_))
@@ -491,6 +494,19 @@ class NewFormController(
           ninoInsightsConnector
         )
           .withDataRetrieve(formTemplate.dataRetrieve)
+    } yield noFormEvaluation
+  }
+
+  private def exitPageHandler(
+    cache: AuthCacheWithoutForm,
+    formTemplate: FormTemplate,
+    continue: (AuthCacheWithoutForm, FormTemplate) => Future[Result]
+  )(implicit
+    request: Request[AnyContent],
+    l: LangADT
+  ): Future[Result] =
+    for {
+      noFormEvaluation <- noFormEval(cache)
       res <- {
         val maybeExitPage = formTemplate.exitPages.flatMap { exitPages =>
           exitPages.toList.find { exitPage =>
