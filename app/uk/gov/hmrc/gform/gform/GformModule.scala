@@ -46,6 +46,8 @@ import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.bootstrap.binders.AbsoluteWithHostnameFromAllowlist
 import uk.gov.hmrc.play.language.LanguageUtils
 
+import play.api.i18n.Messages
+
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -66,7 +68,8 @@ class GformModule(
   graphModule: GraphModule,
   lookupRegistry: LookupRegistry,
   errorResponder: ErrResponder,
-  countryLookupOptions: LocalisedLookupOptions
+  countryLookupOptions: LocalisedLookupOptions,
+  englishMessages: Messages
 )(implicit
   ec: ExecutionContext
 ) {
@@ -182,7 +185,8 @@ class GformModule(
     companyInformationConnector,
     ninoInsightsConnector,
     addressLookupModule.addressLookupService,
-    bankAccountInsightsConnector
+    bankAccountInsightsConnector,
+    englishMessages
   )
 
   val confirmationService = new ConfirmationService(

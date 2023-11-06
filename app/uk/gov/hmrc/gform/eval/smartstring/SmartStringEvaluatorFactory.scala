@@ -33,7 +33,8 @@ trait SmartStringEvaluatorFactory {
   )(implicit messages: Messages, l: LangADT): SmartStringEvaluator
 }
 
-class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
+class RealSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartStringEvaluatorFactory { self =>
+
 
   def apply(
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
@@ -55,6 +56,13 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
               .toArray
           )
 
+      }
+
+      override def withEnglish(): SmartStringEvaluator = {
+        val englishImplicitMessages: Messages = englishMessages
+        val englishImplicitLangADT: LangADT = LangADT.En
+
+        self(formModelVisibilityOptics)(englishImplicitMessages, englishImplicitLangADT)
       }
 
       private def formatExpr(expr: Expr, markDown: Boolean): String = {
@@ -193,20 +201,25 @@ class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
     new SmartStringEvaluator {
       override def apply(s: SmartString, markDown: Boolean): String =
         s.rawValue(l)
+
+      override def withEnglish(): SmartStringEvaluator = {
+        val englishImplicitLangADT: LangADT = LangADT.En
+        self.noForm(englishImplicitLangADT)
+      }
     }
 
 }
 
-class EnglishSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartStringEvaluatorFactory {
+// class EnglishSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartStringEvaluatorFactory {
 
-  private val realFactory = new RealSmartStringEvaluatorFactory()
+//   private val realFactory = new RealSmartStringEvaluatorFactory()
 
-  override def apply(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
-  )(implicit messages: Messages, l: LangADT): SmartStringEvaluator = {
-    val englishImplicitMessages: Messages = englishMessages
-    val englishImplicitLangADT: LangADT = LangADT.En
+//   override def apply(
+//     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
+//   )(implicit messages: Messages, l: LangADT): SmartStringEvaluator = {
+//     val englishImplicitMessages: Messages = englishMessages
+//     val englishImplicitLangADT: LangADT = LangADT.En
 
-    realFactory(formModelVisibilityOptics)(englishImplicitMessages, englishImplicitLangADT)
-  }
-}
+//     realFactory(formModelVisibilityOptics)(englishImplicitMessages, englishImplicitLangADT)
+//   }
+// }

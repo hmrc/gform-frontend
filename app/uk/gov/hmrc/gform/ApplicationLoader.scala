@@ -49,6 +49,7 @@ import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
+import play.api.i18n.{ Lang, Messages }
 
 class ApplicationLoader extends play.api.ApplicationLoader with Base64ConfigDecoder {
 
@@ -90,6 +91,9 @@ class ApplicationModule(context: Context)
     playBuiltInsModule.i18nSupport,
     playBuiltInsModule.langs
   )(messagesApi)
+// import uk.gov.hmrc.gform.sharedmodel.LangADT
+
+  val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
 
   protected lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule, akkaModule, this)
 
@@ -130,7 +134,8 @@ class ApplicationModule(context: Context)
 
   private val graphModule = new GraphModule(
     authModule,
-    gformBackendModule
+    gformBackendModule,
+    englishMessages
   )
 
   private val fileUploadModule = new FileUploadModule(
@@ -200,7 +205,8 @@ class ApplicationModule(context: Context)
     graphModule,
     lookupRegistry,
     errResponder,
-    countryLookupOptions
+    countryLookupOptions,
+    englishMessages
   )
 
   private val testOnlyModule = new TestOnlyModule(

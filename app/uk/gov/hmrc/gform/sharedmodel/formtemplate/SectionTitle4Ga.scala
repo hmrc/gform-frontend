@@ -28,7 +28,7 @@ object SectionTitle4Ga {
   def sectionTitle4GaFactory[D <: PageMode](pageModel: PageModel[D], sectionNumber: SectionNumber)(implicit
     sse: SmartStringEvaluator
   ) = {
-    val sectionTitle: String = sse(pageModel.noPIITitle.getOrElse(pageModel.title), false)
+    val sectionTitle: String = sse.withEnglish()(pageModel.noPIITitle.getOrElse(pageModel.title), false)
     val finalSectionTitle =
       if (sectionTitle.isEmpty) {
         "section" + sectionNumber.value

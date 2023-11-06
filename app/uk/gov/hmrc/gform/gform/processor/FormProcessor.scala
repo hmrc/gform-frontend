@@ -64,7 +64,8 @@ class FormProcessor(
   companyInformationConnector: CompanyInformationConnector[Future],
   ninoInsightsConnector: NinoInsightsConnector[Future],
   addressLookupService: AddressLookupService[Future],
-  bankAccountInsightConnector: BankAccountInsightsConnector[Future]
+  bankAccountInsightConnector: BankAccountInsightsConnector[Future],
+  englishMessages: Messages
 )(implicit ec: ExecutionContext) {
 
   import i18nSupport._
@@ -399,7 +400,7 @@ class FormProcessor(
     messages: Messages
   ): SectionTitle4Ga = {
 
-    val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory()
+    val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(englishMessages)
     val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
 
     val sse: SmartStringEvaluator =
