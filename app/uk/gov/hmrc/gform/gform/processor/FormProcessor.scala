@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform.processor
 
+import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluatorFactory }
 import cats.instances.future._
 import cats.instances.option._
 import cats.syntax.all._
@@ -47,6 +48,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.concurrent.{ ExecutionContext, Future }
+
+import play.api.i18n.Messages
 
 class FormProcessor(
   i18nSupport: I18nSupport,
@@ -392,6 +395,15 @@ class FormProcessor(
     } yield res
   }
 
-  def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber): SectionTitle4Ga =
-    sectionTitle4GaFactory(processData.formModel(sectionNumber), sectionNumber)
+  def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber)(implicit
+    messages: Messages
+  ): SectionTitle4Ga = {
+
+    val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory()
+    val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
+
+    val sse: SmartStringEvaluator =
+      smartStringEvaluatorFactory(DataOrigin.swapDataOrigin(formModelVisibilityOptics))(messages, LangADT.En)
+    sectionTitle4GaFactory(processData.formModel(sectionNumber), sectionNumber)(sse)
+  }
 }

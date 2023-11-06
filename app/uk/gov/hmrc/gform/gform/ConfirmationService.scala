@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SuppressErrors }
+import play.api.i18n.Messages
 
 class ConfirmationService(
   formProcessor: FormProcessor
@@ -36,7 +37,7 @@ class ConfirmationService(
     maybeAccessCode: Option[AccessCode],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     fastForward: List[FastForward]
-  ): ConfirmationAction = {
+  )(implicit messages: Messages): ConfirmationAction = {
 
     val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
     val pageModel: PageModel[Visibility] = formModel(sectionNumber)

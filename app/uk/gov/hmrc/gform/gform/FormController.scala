@@ -319,7 +319,7 @@ class FormController(
     sectionNumber: SectionNumber
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      _ => _ => cache => _ => formModelOptics =>
+      _ => _ => cache => implicit sse => formModelOptics =>
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val sectionTitle4Ga = sectionTitle4GaFactory(formModel(sectionNumber), sectionNumber)
         Redirect(
@@ -529,8 +529,7 @@ class FormController(
             (cya.sectionNumber, FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward)
           val (gotoSectionNumber, ff) =
             addToListIteration.checkYourAnswers.fold(defaultNavigation())(checkYourAnswersNavigation)
-          val sectionTitle4Ga =
-            sectionTitle4GaFactory(processData.formModel(gotoSectionNumber), gotoSectionNumber)
+          val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
           Redirect(
             routes.FormController
               .form(
