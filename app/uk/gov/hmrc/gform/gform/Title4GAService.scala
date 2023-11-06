@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import uk.gov.hmrc.gform.models.PageMode
+import uk.gov.hmrc.gform.models.{ PageMode, PageModel }
 import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import play.api.i18n.Messages
@@ -25,15 +25,16 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 // For Google Analytics only. Sole purpose of this value is to be present in URLs.
 // case class SectionTitle4Ga(value: String) extends AnyVal
 
-class Title4GAService(implicit messages: Messages) {
+class Title4GAService(implicit englishMessages: Messages) {
 
   implicit val langADT: LangADT = LangADT.En
   def sectionTitle4GaFactory[D <: PageMode](
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
-    sectionNumber: SectionNumber
+    pageModel: PageModel[D],
+    sectionNumber: SectionNumber,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
   ) = {
     val sse = new RealSmartStringEvaluatorFactory().apply(formModelVisibilityOptics)
-    val pageModel = formModelVisibilityOptics.formModel(sectionNumber)
+    // val pageModel = formModelVisibilityOptics.formModel(sectionNumber)
     val sectionTitle: String = sse(pageModel.noPIITitle.getOrElse(pageModel.title), false)
     val finalSectionTitle =
       if (sectionTitle.isEmpty) {
