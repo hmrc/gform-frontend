@@ -22,7 +22,7 @@ import cats.syntax.applicative._
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
 import play.api.data
-import play.api.i18n.{Lang, I18nSupport, Messages }
+import play.api.i18n.{ I18nSupport, Lang, Messages }
 import play.api.mvc._
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auditing.AuditService
@@ -499,8 +499,7 @@ class NewFormController(
         }
 
         maybeExitPage.fold(continue(noFormEvaluation.toCache, formTemplate)) { exitPage =>
-
-           val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
+          val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
           implicit val sse = (new RealSmartStringEvaluatorFactory(englishMessages)).noForm
           Ok(exit_page(cache.formTemplate, exitPage, frontendAppConfig)).pure[Future]
         }

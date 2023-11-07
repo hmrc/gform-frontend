@@ -35,7 +35,6 @@ trait SmartStringEvaluatorFactory {
 
 class RealSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartStringEvaluatorFactory { self =>
 
-
   def apply(
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
   )(implicit
@@ -58,11 +57,11 @@ class RealSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartSt
 
       }
 
-      override def withEnglish(): SmartStringEvaluator = {
+      override def evalEnglish(s: SmartString, markDown: Boolean): String = {
         val englishImplicitMessages: Messages = englishMessages
         val englishImplicitLangADT: LangADT = LangADT.En
 
-        self(formModelVisibilityOptics)(englishImplicitMessages, englishImplicitLangADT)
+        self(formModelVisibilityOptics)(englishImplicitMessages, englishImplicitLangADT)(s, markDown)
       }
 
       private def formatExpr(expr: Expr, markDown: Boolean): String = {
@@ -202,9 +201,9 @@ class RealSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartSt
       override def apply(s: SmartString, markDown: Boolean): String =
         s.rawValue(l)
 
-      override def withEnglish(): SmartStringEvaluator = {
+      override def evalEnglish(s: SmartString, markDown: Boolean): String = {
         val englishImplicitLangADT: LangADT = LangADT.En
-        self.noForm(englishImplicitLangADT)
+        self.noForm(englishImplicitLangADT)(s, markDown)
       }
     }
 
