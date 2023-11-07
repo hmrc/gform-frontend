@@ -123,7 +123,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
         validateRequiredAtom(
           Address.street1,
           "generic.error.address.building.street.required",
-          SmartString.blank.value()
+          s"${messages("generic.error.overseas.validation.default")} "
         ),
         ukStreetValidation(Address.street1),
         ukStreetValidation(Address.street2),
@@ -184,14 +184,14 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
         thenProgram = successProgram(())
       ),
       switchCase(
-        cond = atom.endsWith("4") && theOnlyValue.map(_.length > ValidationValues.addressLine4).getOrElse(false),
+        cond = atom.endsWith("4") && theOnlyValue.exists(_.length > ValidationValues.addressLine4),
         thenProgram = {
           val vars: List[String] = ValidationValues.addressLine4.toString :: Nil
           combineErrors("address.line4.error.maxLength", vars)
         }
       ),
       switchCase(
-        cond = theOnlyValue.map(_.length > ValidationValues.addressLine).getOrElse(false),
+        cond = theOnlyValue.exists(_.length > ValidationValues.addressLine),
         thenProgram = {
           val vars: List[String] = atomicFcId.atom.value.takeRight(1) :: ValidationValues.addressLine.toString :: Nil
           combineErrors("address.line.error.maxLength", vars)
@@ -217,29 +217,29 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
         thenProgram = successProgram(())
       ),
       switchCase(
-        cond = atom.endsWith("1") && theOnlyValue.map(_.length > ValidationValues.addressLine).getOrElse(false),
+        cond = atom.endsWith("1") && theOnlyValue.exists(_.length > ValidationValues.addressLine),
         thenProgram = {
           val placeholder = fieldValue.errorShortNameStart
             .map(_.transform(_ + " line 1", identity))
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.transform(_ => "Line 1", _ => "").value())
+            .getOrElse(SmartString.blank.transform(_ => "Address line 1", _ => "").value())
           val vars: List[String] = placeholder :: ValidationValues.addressLine.toString :: Nil
           combineErrors("generic.error.address.building.street.maxLength", vars)
         }
       ),
       switchCase(
-        cond = atom.endsWith("2") && theOnlyValue.map(_.length > ValidationValues.addressLine).getOrElse(false),
+        cond = atom.endsWith("2") && theOnlyValue.exists(_.length > ValidationValues.addressLine),
         thenProgram = {
           val placeholder = fieldValue.errorShortNameStart
             .map(_.transform(_ + " line 2", identity))
             .flatMap(_.nonBlankValue())
-            .getOrElse(SmartString.blank.transform(_ => "Line 2", _ => "").value())
+            .getOrElse(SmartString.blank.transform(_ => "Address line 2", _ => "").value())
           val vars: List[String] = placeholder :: ValidationValues.addressLine.toString :: Nil
           combineErrors("generic.error.address.building.street.line2.maxLength", vars)
         }
       ),
       switchCase(
-        cond = atom.endsWith("3") && theOnlyValue.map(_.length > ValidationValues.addressLine).getOrElse(false),
+        cond = atom.endsWith("3") && theOnlyValue.exists(_.length > ValidationValues.addressLine),
         thenProgram = {
           val placeholder = fieldValue.errorShortNameStart
             .map(_.transform(_ + " town or city", identity))
@@ -250,7 +250,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
         }
       ),
       switchCase(
-        cond = atom.endsWith("4") && theOnlyValue.map(_.length > ValidationValues.addressLine4).getOrElse(false),
+        cond = atom.endsWith("4") && theOnlyValue.exists(_.length > ValidationValues.addressLine4),
         thenProgram = {
           val placeholder = fieldValue.errorShortNameStart
             .map(_.transform(_ + " county", identity))

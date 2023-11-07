@@ -553,7 +553,7 @@ class AddressLookupController(
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => realFormModelOptics =>
-        mkSyntheticFormModelOptics(formComponentId, cache, maybeAccessCode) {
+        mkSyntheticFormModelOptics(formComponentId, cache, maybeAccessCode, realFormModelOptics) {
           syntheticFormComponent => syntheticCache => formModelOptics =>
             val cacheData = syntheticCache.toCacheData
 
@@ -629,8 +629,8 @@ class AddressLookupController(
     fastForward: List[FastForward]
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => implicit sse => _ =>
-        mkSyntheticFormModelOptics(formComponentId, cache, maybeAccessCode) {
+      implicit request => implicit l => cache => implicit sse => realFormModelOptics =>
+        mkSyntheticFormModelOptics(formComponentId, cache, maybeAccessCode, realFormModelOptics) {
           syntheticFormComponent => syntheticCache => formModelOptics =>
             processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics, None) {
               requestRelatedData => variadicFormData => enteredVariadicFormData =>
@@ -691,7 +691,10 @@ class AddressLookupController(
         }
     }
 
-  private def mkSyntheticFormComponent(formComponentId: FormComponentId): FormComponent =
+  private def mkSyntheticFormComponent(
+    formComponentId: FormComponentId,
+    formComponent: Option[FormComponent]
+  ): FormComponent =
     FormComponent(
       id = formComponentId,
       `type` = Address(false, List.empty[Address.Configurable.Mandatory], false, None),
@@ -704,7 +707,9 @@ class AddressLookupController(
       editable = true,
       submissible = true,
       derived = false,
-      errorMessage = None
+      errorMessage = None,
+      errorShortName = formComponent.flatMap(_.errorShortName),
+      errorShortNameStart = formComponent.flatMap(_.errorShortNameStart)
     )
 
   private def mkSyntheticCache(
@@ -759,14 +764,17 @@ class AddressLookupController(
   private def mkSyntheticFormModelOptics(
     formComponentId: FormComponentId,
     cache: AuthCacheWithForm,
-    maybeAccessCode: Option[AccessCode]
+    maybeAccessCode: Option[AccessCode],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(f: FormComponent => AuthCacheWithForm => FormModelOptics[DataOrigin.Mongo] => Future[Result])(implicit
     messages: Messages,
     l: LangADT,
     hc: HeaderCarrier
   ): Future[Result] = {
+    val maybeFormComponent = formModelOptics.formModelVisibilityOptics.formModel.fcLookup
+      .get(formComponentId)
+    val syntheticFormComponent = mkSyntheticFormComponent(formComponentId, maybeFormComponent)
 
-    val syntheticFormComponent = mkSyntheticFormComponent(formComponentId)
     val syntheticCache = mkSyntheticCache(cache, syntheticFormComponent)
 
     val formModelBuilder = new FormModelBuilder[Throwable, Future](

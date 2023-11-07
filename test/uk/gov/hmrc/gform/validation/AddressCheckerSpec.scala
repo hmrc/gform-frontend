@@ -267,7 +267,7 @@ class AddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street1")) -> Set(
-            "Enter line 1"
+            "Enter address line 1"
           )
         )
       )
@@ -433,7 +433,7 @@ class AddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street1")) -> Set(
-            "Line 1 must be 35 characters or less"
+            "Address line 1 must be 35 characters or less"
           )
         )
       )
@@ -492,7 +492,7 @@ class AddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street2")) -> Set(
-            "Line 2 must be 35 characters or less"
+            "Address line 2 must be 35 characters or less"
           )
         )
       )
@@ -844,11 +844,11 @@ class AddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street1")) -> Set(
-            "Line 1 must be 35 characters or less"
+            "Address line 1 must be 35 characters or less"
           ),
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street2")) -> Set(
-            "Line 2 must be 35 characters or less"
+            "Address line 2 must be 35 characters or less"
           ),
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street3")) -> Set(

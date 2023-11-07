@@ -314,13 +314,13 @@ generic.error.overseas.postcode.required=Enter {0}postcode
 generic.error.overseas.country.required=Enter {0}country
 generic.error.overseas.line1.maxLength={0} must be {1} characters or less
 generic.error.overseas.line1={0} line 1
-generic.error.overseas.Line1=Line 1
+generic.error.overseas.Line1=Address line 1
 generic.error.overseas.line2.maxLength={0} must be {1} characters or less
 generic.error.overseas.line2={0} line 2
-generic.error.overseas.Line2=Line 2
+generic.error.overseas.Line2=Address line 2
 generic.error.overseas.line3.maxLength={0} must be {1} characters or less
 generic.error.overseas.line3={0} line 3
-generic.error.overseas.Line3=Line 3
+generic.error.overseas.Line3=Address line 3
 generic.error.overseas.town.city.maxLength={0} must be {1} characters or less
 generic.error.overseas.town.city={0} town or city
 generic.error.overseas.Town.City=Town or city
@@ -331,6 +331,7 @@ generic.error.overseas.country.maxLength={0} must be {1} characters or less
 generic.error.overseas.country={0} country
 generic.error.overseas.Country=Country
 generic.error.overseas.nomatch=No match for "{0}". Select a value from the list.
+generic.error.overseas.validation.default=address
 
 # Date
 date.day=day
