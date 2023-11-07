@@ -54,6 +54,7 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
   private val langADTForCy: LangADT = LangADT.Cy
   private val smartStringEvaluatorForCy: SmartStringEvaluator = new SmartStringEvaluator {
     override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.Cy)
+    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
   }
 
   def getComponent(constraint: TextConstraint) = FormComponent(

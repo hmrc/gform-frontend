@@ -121,7 +121,7 @@ class PDFRenderServiceSpec
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
       mkFormModelOptics(formTemplate, variadicFormData).asInstanceOf[FormModelOptics[DataOrigin.Mongo]]
 
-    implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
+    implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
 
     fileUploadAlgebra.getEnvelope(*[EnvelopeId])(*[Boolean])(*[HeaderCarrier]) shouldReturn Future.successful(

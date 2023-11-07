@@ -108,14 +108,12 @@ class AddressCheckerSpec
       None,
       None
     )
-  // val tempList: List[FormComponent] = List(baseListItem, baseListItem)
 
   private val lookupRegistry = new LookupRegistry(Map.empty)
 
-  // implicit lazy val hc = HeaderCarrier()
-
   implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
     override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
+    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
   }
 
   private def componentsValidator(

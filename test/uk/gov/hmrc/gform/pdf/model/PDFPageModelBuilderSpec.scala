@@ -103,7 +103,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       mkFormModelOptics(formTemplate, cache.variadicFormData[SectionSelectorType.WithDeclaration])
         .asInstanceOf[FormModelOptics[DataOrigin.Mongo]]
 
-    implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
+    implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
   }
 

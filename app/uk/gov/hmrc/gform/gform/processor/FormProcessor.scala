@@ -20,7 +20,7 @@ import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, Sma
 import cats.instances.future._
 import cats.instances.option._
 import cats.syntax.all._
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, AddressLookupService }
@@ -48,8 +48,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.concurrent.{ ExecutionContext, Future }
-
-import play.api.i18n.Messages
 
 class FormProcessor(
   i18nSupport: I18nSupport,

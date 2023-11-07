@@ -41,5 +41,6 @@ trait Spec
 
   implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
     override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
+    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
   }
 }

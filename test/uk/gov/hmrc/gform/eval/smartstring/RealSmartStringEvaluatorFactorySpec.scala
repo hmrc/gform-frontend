@@ -459,7 +459,7 @@ class RealSmartStringEvaluatorFactorySpec
       )
       .futureValue
 
-    lazy val factory = new RealSmartStringEvaluatorFactory()
+    lazy val factory = new RealSmartStringEvaluatorFactory(messages)
 
     lazy val smartStringEvaluator: SmartStringEvaluator =
       factory.apply(formModelOptics.formModelVisibilityOptics)
