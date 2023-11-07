@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform.processor
 
-import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluatorFactory }
 import cats.instances.future._
 import cats.instances.option._
 import cats.syntax.all._
@@ -28,6 +27,7 @@ import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationC
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
+import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
@@ -45,7 +45,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4G
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.concurrent.{ ExecutionContext, Future }
 

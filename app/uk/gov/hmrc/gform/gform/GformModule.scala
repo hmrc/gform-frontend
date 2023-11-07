@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import akka.actor.Scheduler
 import cats.instances.future._
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupController, AddressLookupModule }
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.api.{ BankAccountInsightsAsyncConnector, CompanyInformationAsyncConnector, NinoInsightsAsyncConnector }
@@ -45,8 +46,6 @@ import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.bootstrap.binders.AbsoluteWithHostnameFromAllowlist
 import uk.gov.hmrc.play.language.LanguageUtils
-
-import play.api.i18n.Messages
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ ExecutionContext, Future }

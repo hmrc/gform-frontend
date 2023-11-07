@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import play.api.i18n.Messages
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.models.{ ConfirmationAction, ConfirmationPage, EnteredVariadicFormData, FastForward, FormModel, PageModel, ProcessData, Visibility }
@@ -24,7 +25,6 @@ import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SuppressErrors }
-import play.api.i18n.Messages
 
 class ConfirmationService(
   formProcessor: FormProcessor
