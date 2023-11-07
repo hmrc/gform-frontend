@@ -25,6 +25,7 @@ import play.api.libs.circe.Circe
 import play.api.libs.json.{ Json => PlayJson }
 import play.api.mvc.{ MessagesControllerComponents, Request, Result }
 import play.twirl.api.Html
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
@@ -40,7 +41,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
-import uk.gov.hmrc.gform.upscan.UpscanInitiate
+import uk.gov.hmrc.gform.upscan.{ UpscanData, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -372,7 +373,6 @@ class BuilderController(
           addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
         )
         val obligations: Obligations = NotChecked
-        val upscanInitiate: UpscanInitiate = UpscanInitiate.empty
 
         val formComponentHtml = renderer.htmlFor(
           renderUnit,
@@ -380,7 +380,8 @@ class BuilderController(
           ei,
           validationResult,
           obligations,
-          upscanInitiate
+          UpscanInitiate.empty,
+          Map.empty[FormComponentId, UpscanData]
         )
 
         Right(formComponentHtml)

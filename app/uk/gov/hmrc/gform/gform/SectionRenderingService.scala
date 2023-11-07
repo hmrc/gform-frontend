@@ -510,7 +510,7 @@ class SectionRenderingService(
         fileUpload.fileUploadProvider match {
           case FileUploadProvider.Upscan(_) =>
             upscanData.get(formComponent.id) match {
-              case None             => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
+              case None             => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id}")
               case Some(upscanData) => Call("POST", upscanData.url)
             }
 
@@ -680,7 +680,15 @@ class SectionRenderingService(
     )
 
     val snippets = page.renderUnits.map(renderUnit =>
-      htmlFor(renderUnit, formTemplateId, ei, ValidationResult.empty, obligations = NotChecked, UpscanInitiate.empty)
+      htmlFor(
+        renderUnit,
+        formTemplateId,
+        ei,
+        ValidationResult.empty,
+        obligations = NotChecked,
+        UpscanInitiate.empty,
+        Map.empty[FormComponentId, UpscanData]
+      )
     )
     HtmlFormat.fill(snippets)
   }
@@ -727,7 +735,15 @@ class SectionRenderingService(
 
     val listResult = validationResult.formFieldValidationResults(singleton)
     val snippets = declarationPage.renderUnits.map(renderUnit =>
-      htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked, UpscanInitiate.empty)
+      htmlFor(
+        renderUnit,
+        formTemplate._id,
+        ei,
+        validationResult,
+        obligations = NotChecked,
+        UpscanInitiate.empty,
+        Map.empty[FormComponentId, UpscanData]
+      )
     )
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val renderingInfo = SectionRenderingInformation(
@@ -873,7 +889,15 @@ class SectionRenderingService(
     val formCategory = formTemplate.formCategory
     val panelTitle = destinationList.acknowledgementSection.panelTitle.map(_.value())
     val snippets = destinationList.acknowledgementSection.toPage.renderUnits.map(renderUnit =>
-      htmlFor(renderUnit, formTemplateId, ei, ValidationResult.empty, obligations = NotChecked, UpscanInitiate.empty)
+      htmlFor(
+        renderUnit,
+        formTemplateId,
+        ei,
+        ValidationResult.empty,
+        obligations = NotChecked,
+        UpscanInitiate.empty,
+        Map.empty[FormComponentId, UpscanData]
+      )
     )
 
     val renderingInfo = SectionRenderingInformation(
@@ -953,7 +977,15 @@ class SectionRenderingService(
     val listResult = validationResult.formFieldValidationResults(singleton)
     val snippets =
       page.renderUnits.map { renderUnit =>
-        htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations = NotChecked, UpscanInitiate.empty)
+        htmlFor(
+          renderUnit,
+          formTemplate._id,
+          ei,
+          validationResult,
+          obligations = NotChecked,
+          UpscanInitiate.empty,
+          Map.empty[FormComponentId, UpscanData]
+        )
       }
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, globalErrors)
     val renderingInfo = SectionRenderingInformation(
@@ -1019,7 +1051,7 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     obligations: Obligations,
     upscanInitiate: UpscanInitiate,
-    upscanData: Map[FormComponentId, UpscanData] = Map.empty[FormComponentId, UpscanData]
+    upscanData: Map[FormComponentId, UpscanData]
   )(implicit
     request: RequestHeader,
     messages: Messages,
@@ -1089,7 +1121,8 @@ class SectionRenderingService(
               validationResult,
               ei,
               obligations,
-              upscanInitiate
+              upscanInitiate,
+              upscanData
             )
           case FileUpload(fileUploadProvider, _, _) =>
             ei.isFileUploadOnlyPage(validationResult) match {
@@ -1116,7 +1149,7 @@ class SectionRenderingService(
         }
       }
     } { case r @ RenderUnit.Group(_, _) =>
-      htmlForGroup(r, formTemplateId, ei, validationResult, obligations, upscanInitiate)
+      htmlForGroup(r, formTemplateId, ei, validationResult, obligations, upscanInitiate, upscanData)
     }
 
   private def htmlForFileUploadStandard(
@@ -1141,7 +1174,7 @@ class SectionRenderingService(
     fileUploadProvider match {
       case FileUploadProvider.Upscan(_) =>
         upscanData.get(formComponent.id) match {
-          case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
+          case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id}")
           case Some(upscanData) =>
             val fileUploadName = "file"
             val attributes = Map("form" -> upscanData.formMetaData.htmlId)
@@ -1189,7 +1222,7 @@ class SectionRenderingService(
     fileUploadProvider match {
       case FileUploadProvider.Upscan(_) =>
         upscanData.get(formComponent.id) match {
-          case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id} ")
+          case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id}")
           case Some(upscanData) =>
             val fileUploadName = "file"
             htmlForFileUploadOnly(
@@ -1878,7 +1911,8 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     extraInfo: ExtraInfo,
     obligations: Obligations,
-    upscanInitiate: UpscanInitiate
+    upscanInitiate: UpscanInitiate,
+    upscanData: Map[FormComponentId, UpscanData]
   )(implicit request: RequestHeader, message: Messages, l: LangADT, sse: SmartStringEvaluator) = {
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
     val nestedEi: FormComponentId => Int => ExtraInfo = formComponentId =>
@@ -1916,7 +1950,8 @@ class SectionRenderingService(
                   nestedEi(controlledBy)(index),
                   validationResult,
                   obligations = obligations,
-                  upscanInitiate
+                  upscanInitiate,
+                  upscanData
                 )
               )
 
@@ -2800,7 +2835,8 @@ class SectionRenderingService(
     ei: ExtraInfo,
     validationResult: ValidationResult,
     obligations: Obligations,
-    upscanInitiate: UpscanInitiate
+    upscanInitiate: UpscanInitiate,
+    upscanData: Map[FormComponentId, UpscanData]
   )(implicit
     request: RequestHeader,
     messages: Messages,
@@ -2819,7 +2855,16 @@ class SectionRenderingService(
 
     val lhtml =
       renderUnitGroup.formComponents.toList.flatMap { case (group, formComponent) =>
-        getGroupForRendering(formComponent, formTemplateId, group, validationResult, ei, obligations, upscanInitiate)
+        getGroupForRendering(
+          formComponent,
+          formTemplateId,
+          group,
+          validationResult,
+          ei,
+          obligations,
+          upscanInitiate,
+          upscanData
+        )
       }
 
     html.form.snippets.group(
@@ -2842,7 +2887,8 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     ei: ExtraInfo,
     obligations: Obligations,
-    upscanInitiate: UpscanInitiate
+    upscanInitiate: UpscanInitiate,
+    upscanData: Map[FormComponentId, UpscanData]
   )(implicit
     request: RequestHeader,
     messages: Messages,
@@ -2863,7 +2909,8 @@ class SectionRenderingService(
           ei,
           validationResult,
           obligations = obligations,
-          upscanInitiate
+          upscanInitiate,
+          upscanData
         )
       )
 
@@ -2902,7 +2949,8 @@ class SectionRenderingService(
             ei,
             validationResult,
             obligations = obligations,
-            upscanInitiate
+            upscanInitiate,
+            upscanData
           )
         )
       htmls
