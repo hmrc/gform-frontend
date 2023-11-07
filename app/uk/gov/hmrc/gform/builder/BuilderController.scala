@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
-import uk.gov.hmrc.gform.upscan.UpscanInitiate
+import uk.gov.hmrc.gform.upscan.{ UpscanData, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -443,7 +443,6 @@ class BuilderController(
                 val validationResult = ValidationResult.empty
 
                 val obligations = NotChecked
-                val upscanInitiate = UpscanInitiate.empty
 
                 val formTemplate = cache.formTemplate
                 val page = formTemplate.summarySection.toPage
@@ -470,7 +469,8 @@ class BuilderController(
                   ei,
                   validationResult,
                   obligations,
-                  upscanInitiate
+                  UpscanInitiate.empty,
+                  Map.empty[FormComponentId, UpscanData]
                 )
                 Ok(Json.obj("html" := sanitiseHtml(formComponentHtml))).pure[Future]
             }
@@ -539,7 +539,6 @@ class BuilderController(
           addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
         )
         val obligations: Obligations = NotChecked
-        val upscanInitiate: UpscanInitiate = UpscanInitiate.empty
 
         val formComponentHtml = renderer.htmlFor(
           renderUnit,
@@ -547,7 +546,8 @@ class BuilderController(
           ei,
           validationResult,
           obligations,
-          upscanInitiate
+          UpscanInitiate.empty,
+          Map.empty[FormComponentId, UpscanData]
         )
 
         Right(formComponentHtml)

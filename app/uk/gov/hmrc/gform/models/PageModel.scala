@@ -84,9 +84,10 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
       case Some(confirmation) => ConfirmationPage.fromConfirmation(confirmation)
     }
 
-  def upscanInitiateRequests: List[FormComponentId] = fold(_.page.allFields.collect {
-    case IsUpscanInitiateFileUpload(formComponent) => formComponent.id
-  })(_ => Nil)(_ => Nil)
+  def upscanInitiateRequests: List[FormComponentId] =
+    fold(_.page.allFieldsNested.collect { case IsUpscanInitiateFileUpload(formComponent) =>
+      formComponent.id
+    })(_ => Nil)(_ => Nil)
 
   def postcodeLookup: Option[FormComponent] = fold(_.page.allFields.collectFirst { case fc @ IsPostcodeLookup(_) =>
     fc
