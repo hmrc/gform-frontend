@@ -56,7 +56,10 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     ExampleData.nonRepeatingPageSection(fields = List(dateComponent))
   )
 
-  implicit val smartStringEvaluator: SmartStringEvaluator = (s: SmartString, _: Boolean) => s.rawValue(LangADT.En)
+  implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
+    override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
+    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
+  }
 
   val environment = Environment.simple()
   val configuration = Configuration.load(environment)

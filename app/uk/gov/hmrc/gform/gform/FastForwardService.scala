@@ -25,6 +25,7 @@ import play.api.i18n.Messages
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -135,7 +136,7 @@ class FastForwardService(
     sectionOrSummary: SectionOrSummary,
     fastForward: List[FastForward],
     maybeSectionNumber: Option[SectionNumber]
-  ): Result =
+  )(implicit sse: SmartStringEvaluator): Result =
     sectionOrSummary match {
       case SectionOrSummary.Section(sn) =>
         val pageModel = processData.formModel(sn)

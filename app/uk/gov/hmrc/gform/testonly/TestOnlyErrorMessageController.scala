@@ -70,7 +70,7 @@ class TestOnlyErrorMessageController(
         val messagesApi: MessagesApi = controllerComponents.messagesApi
         val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
         val welshMessages: Messages = messagesApi.preferred(Seq(Lang("cy")))
-        val factory = new RealSmartStringEvaluatorFactory()
+        val factory = new RealSmartStringEvaluatorFactory(englishMessages)
 
         val englishSse: SmartStringEvaluator =
           factory.apply(formModelOptics.formModelVisibilityOptics)(englishMessages, LangADT.En)

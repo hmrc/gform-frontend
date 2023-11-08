@@ -67,7 +67,8 @@ class NewFormController(
   recalculation: Recalculation[Future, Throwable],
   messagesControllerComponents: MessagesControllerComponents,
   gformBackEnd: GformBackEndAlgebra[Future],
-  ninoInsightsConnector: NinoInsightsConnector[Future]
+  ninoInsightsConnector: NinoInsightsConnector[Future],
+  englishMessages: Messages
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
@@ -515,7 +516,7 @@ class NewFormController(
         }
 
         maybeExitPage.fold(continue(noFormEvaluation.toCache, formTemplate)) { exitPage =>
-          implicit val sse = (new RealSmartStringEvaluatorFactory).noForm
+          implicit val sse = (new RealSmartStringEvaluatorFactory(englishMessages)).noForm
           Ok(exit_page(cache.formTemplate, exitPage, frontendAppConfig)).pure[Future]
         }
       }

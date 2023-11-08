@@ -135,7 +135,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       )
     )
 
-    implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
+    implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
   }
 

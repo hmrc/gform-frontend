@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import play.api.i18n.Messages
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.models.{ ConfirmationAction, ConfirmationPage, EnteredVariadicFormData, FastForward, FormModel, PageModel, ProcessData, Visibility }
@@ -36,7 +37,7 @@ class ConfirmationService(
     maybeAccessCode: Option[AccessCode],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     fastForward: List[FastForward]
-  ): ConfirmationAction = {
+  )(implicit messages: Messages): ConfirmationAction = {
 
     val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
     val pageModel: PageModel[Visibility] = formModel(sectionNumber)

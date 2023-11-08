@@ -23,10 +23,12 @@ import uk.gov.hmrc.gform.eval.{ BooleanExprEval, DbLookupChecker, DelegatedEnrol
 import uk.gov.hmrc.gform.eval.SeissEligibilityChecker
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import play.api.i18n.Messages
 
 class GraphModule(
   authModule: AuthModule,
-  gformBackendModule: GformBackendModule
+  gformBackendModule: GformBackendModule,
+  englishMessages: Messages
 )(implicit
   ec: ExecutionContext
 ) {
@@ -46,7 +48,7 @@ class GraphModule(
     new Recalculation(seissEligibilityChecker, delegatedEnrolmentCheckStatus, dbLookupCheckStatus, graphErrorHandler)
 
   val smartStringEvaluatorFactory: SmartStringEvaluatorFactory =
-    new RealSmartStringEvaluatorFactory()
+    new RealSmartStringEvaluatorFactory(englishMessages)
 
   val booleanExprEval: BooleanExprEval[Future] = new BooleanExprEval()
 

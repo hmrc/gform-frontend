@@ -161,7 +161,7 @@ class SummaryRenderingServiceSpec
         mockRecalculation
       )
       .futureValue
-    implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory()
+    implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
 
     val summaryRenderingService =

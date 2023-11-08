@@ -20,7 +20,7 @@ import org.slf4j.{ LoggerFactory, MDC }
 import play.api.ApplicationLoader.Context
 import play.api._
 import play.api.http._
-import play.api.i18n.I18nComponents
+import play.api.i18n.{ I18nComponents, Lang, Messages }
 import play.api.inject.{ Injector, SimpleInjector }
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{ EssentialFilter, LegacySessionCookieBaker, SessionCookieBaker }
@@ -91,6 +91,8 @@ class ApplicationModule(context: Context)
     playBuiltInsModule.langs
   )(messagesApi)
 
+  val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
+
   protected lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule, akkaModule, this)
 
   private val gformBackendModule = new GformBackendModule(wSHttpModule, configModule)
@@ -130,7 +132,8 @@ class ApplicationModule(context: Context)
 
   private val graphModule = new GraphModule(
     authModule,
-    gformBackendModule
+    gformBackendModule,
+    englishMessages
   )
 
   private val fileUploadModule = new FileUploadModule(
@@ -200,7 +203,8 @@ class ApplicationModule(context: Context)
     graphModule,
     lookupRegistry,
     errResponder,
-    countryLookupOptions
+    countryLookupOptions,
+    englishMessages
   )
 
   private val testOnlyModule = new TestOnlyModule(

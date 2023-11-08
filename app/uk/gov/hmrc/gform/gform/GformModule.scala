@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import akka.actor.Scheduler
 import cats.instances.future._
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupController, AddressLookupModule }
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.api.{ BankAccountInsightsAsyncConnector, CompanyInformationAsyncConnector, NinoInsightsAsyncConnector }
@@ -66,7 +67,8 @@ class GformModule(
   graphModule: GraphModule,
   lookupRegistry: LookupRegistry,
   errorResponder: ErrResponder,
-  countryLookupOptions: LocalisedLookupOptions
+  countryLookupOptions: LocalisedLookupOptions,
+  englishMessages: Messages
 )(implicit
   ec: ExecutionContext
 ) {
@@ -182,7 +184,8 @@ class GformModule(
     companyInformationConnector,
     ninoInsightsConnector,
     addressLookupModule.addressLookupService,
-    bankAccountInsightsConnector
+    bankAccountInsightsConnector,
+    englishMessages
   )
 
   val confirmationService = new ConfirmationService(
@@ -336,7 +339,8 @@ class GformModule(
     graphModule.recalculation,
     controllersModule.messagesControllerComponents,
     gformBackEndService,
-    ninoInsightsConnector
+    ninoInsightsConnector,
+    englishMessages
   )
 
   val reviewService = new ReviewService(gformBackEndService, lookupRegistry, graphModule.recalculation)

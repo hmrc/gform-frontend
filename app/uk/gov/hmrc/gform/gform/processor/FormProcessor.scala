@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.gform.processor
 import cats.instances.future._
 import cats.instances.option._
 import cats.syntax.all._
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, AddressLookupService }
@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationC
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
+import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
@@ -44,7 +45,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4G
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -61,7 +61,8 @@ class FormProcessor(
   companyInformationConnector: CompanyInformationConnector[Future],
   ninoInsightsConnector: NinoInsightsConnector[Future],
   addressLookupService: AddressLookupService[Future],
-  bankAccountInsightConnector: BankAccountInsightsConnector[Future]
+  bankAccountInsightConnector: BankAccountInsightsConnector[Future],
+  englishMessages: Messages
 )(implicit ec: ExecutionContext) {
 
   import i18nSupport._
@@ -392,6 +393,15 @@ class FormProcessor(
     } yield res
   }
 
-  def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber): SectionTitle4Ga =
-    sectionTitle4GaFactory(processData.formModel(sectionNumber), sectionNumber)
+  def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber)(implicit
+    messages: Messages
+  ): SectionTitle4Ga = {
+
+    val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(englishMessages)
+    val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
+
+    val sse: SmartStringEvaluator =
+      smartStringEvaluatorFactory(DataOrigin.swapDataOrigin(formModelVisibilityOptics))(messages, LangADT.En)
+    sectionTitle4GaFactory(processData.formModel(sectionNumber), sectionNumber)(sse)
+  }
 }

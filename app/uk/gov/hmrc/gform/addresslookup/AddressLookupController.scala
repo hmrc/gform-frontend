@@ -159,7 +159,7 @@ class AddressLookupController(
     sectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode],
     fastForward: List[FastForward]
-  ): Call = {
+  )(implicit sse: SmartStringEvaluator): Call = {
 
     val sectionTitle4Ga = SectionTitle4Ga.sectionTitle4GaFactory(
       formModelOptics.formModelVisibilityOptics.formModel(sectionNumber),

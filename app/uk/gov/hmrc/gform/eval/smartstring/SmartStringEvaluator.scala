@@ -20,4 +20,5 @@ import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 trait SmartStringEvaluator {
   def apply(s: SmartString, markDown: Boolean): String
+  def evalEnglish(s: SmartString, markDown: Boolean): String
 }

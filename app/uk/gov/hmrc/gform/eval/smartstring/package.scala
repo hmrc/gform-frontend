@@ -33,5 +33,7 @@ package object smartstring {
     }
 
     def valueForMarkdown(): String = evaluator(s, true)
+
+    def englishValue(): String = evaluator.evalEnglish(s, false)
   }
 }

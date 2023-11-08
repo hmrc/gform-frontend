@@ -18,15 +18,18 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json.Format
 import uk.gov.hmrc.gform.models.{ PageMode, PageModel }
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
 
 // For Google Analytics only. Sole purpose of this value is to be present in URLs.
 case class SectionTitle4Ga(value: String) extends AnyVal
 
 object SectionTitle4Ga {
 
-  def sectionTitle4GaFactory[D <: PageMode](pageModel: PageModel[D], sectionNumber: SectionNumber) = {
-    val sectionTitle = pageModel.noPIITitle.getOrElse(pageModel.title).localised.value(LangADT.En)
+  def sectionTitle4GaFactory[D <: PageMode](pageModel: PageModel[D], sectionNumber: SectionNumber)(implicit
+    sse: SmartStringEvaluator
+  ) = {
+    val sectionTitle = pageModel.noPIITitle.getOrElse(pageModel.title).englishValue()
+
     val finalSectionTitle =
       if (sectionTitle.isEmpty) {
         "section" + sectionNumber.value
