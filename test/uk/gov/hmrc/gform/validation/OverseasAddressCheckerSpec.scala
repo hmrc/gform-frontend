@@ -54,7 +54,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OverseasAddress
-import uk.gov.hmrc.gform.validation.ComponentsValidator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -195,7 +194,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("line1")) -> Set(
-            "Enter line 1"
+            "Enter address line 1"
           )
         )
       )
@@ -251,7 +250,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("line2")) -> Set(
-            "Enter line 2"
+            "Enter address line 2"
           )
         )
       )
@@ -278,7 +277,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("line2")) -> Set(
-            "Enter line 2"
+            "Enter address line 2"
           )
         )
       )
@@ -509,7 +508,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("line1")) -> Set(
-            "Line 1 must be 35 characters or less"
+            "Address line 1 must be 35 characters or less"
           )
         )
       )
@@ -567,7 +566,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("line2")) -> Set(
-            "Line 2 must be 35 characters or less"
+            "Address line 2 must be 35 characters or less"
           )
         )
       )
@@ -625,7 +624,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("line3")) -> Set(
-            "Line 3 must be 35 characters or less"
+            "Address line 3 must be 35 characters or less"
           )
         )
       )

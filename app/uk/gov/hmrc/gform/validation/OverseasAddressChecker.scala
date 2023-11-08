@@ -51,10 +51,13 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D
     val mandatoryFields: Set[Atom] = overseasAddress.configurableMandatoryAtoms
     val optionalFields: Set[Atom] = overseasAddress.configurableOptionalAtoms
 
-    val errorShortNamePlaceholder = context.formComponent.errorShortName
+    val maybeErrorShortName = context.formComponent.errorShortName
       .map(_.transform(_ + " ", identity))
       .flatMap(_.nonBlankValue())
-      .getOrElse(SmartString.blank.value())
+
+    val errorShortNamePlaceholder = maybeErrorShortName.getOrElse(SmartString.blank.value())
+    val errorShortNamePlaceholderLineReq = maybeErrorShortName
+      .getOrElse(s"${messages("generic.error.overseas.validation.default")} ")
 
     def line1RequiredOp() = {
       val atomicModelComponentId = context.atomicFcId(OverseasAddress.line1)
@@ -65,7 +68,7 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D
             atomicModelComponentId,
             context.formComponent,
             "generic.error.overseas.line1.required",
-            Some(errorShortNamePlaceholder :: Nil)
+            Some(errorShortNamePlaceholderLineReq :: Nil)
           )
         ),
         elseProgram = successProgram(())
@@ -81,7 +84,7 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D
             atomicModelComponentId,
             context.formComponent,
             "generic.error.overseas.line2.required",
-            Some(errorShortNamePlaceholder :: Nil)
+            Some(errorShortNamePlaceholderLineReq :: Nil)
           )
         ),
         elseProgram = successProgram(())
