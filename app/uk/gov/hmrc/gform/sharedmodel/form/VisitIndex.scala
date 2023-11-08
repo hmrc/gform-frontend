@@ -19,8 +19,8 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import cats.implicits._
 import play.api.libs.json.{ JsArray, JsError, JsObject, JsSuccess, JsValue, Json, OFormat }
 import scala.util.Try
-import uk.gov.hmrc.gform.models.{ Coordinates, DataExpanded, FormModel, PageModel }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SectionNumber, TaskNumber, TaskSectionNumber }
+import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, PageModel }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, SectionNumber, TaskNumber, TaskSectionNumber }
 
 sealed trait VisitIndex extends Product with Serializable {
 

@@ -16,29 +16,8 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.Eq
-import cats.implicits._
 import cats.data.NonEmptyList
-import scala.util.Try
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Section, TaskNumber, TaskSectionNumber }
-
-final case class Coordinates(
-  taskSectionNumber: TaskSectionNumber,
-  taskNumber: TaskNumber
-) {
-  val value: String = List(taskSectionNumber.value, taskNumber.value).mkString(",")
-  val numberValue: Int = taskSectionNumber.value * 10000000 + taskNumber.value * 10000
-}
-
-object Coordinates {
-  implicit val equal: Eq[Coordinates] = Eq.fromUniversalEquals
-
-  def parse(value: String): Try[Coordinates] =
-    value.split(",").toList.traverse(n => Try(n.toInt)).collect { case taskSectionNumber :: taskNumber :: Nil =>
-      Coordinates(TaskSectionNumber(taskSectionNumber), TaskNumber(taskNumber))
-    }
-
-}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Section, TaskNumber, TaskSectionNumber }
 
 sealed trait AllSections extends Product with Serializable {
 
@@ -94,18 +73,4 @@ object AllSections {
     }
     val sections = sections0.toList.flatMap(_._2) ++ others
   }
-}
-
-sealed trait BracketPlainCoordinated[A <: PageMode] extends Product with Serializable {
-  def fold[B](f: BracketPlainCoordinated.Classic[A] => B)(g: BracketPlainCoordinated.TaskList[A] => B): B =
-    this match {
-      case n: BracketPlainCoordinated.Classic[_]  => f(n)
-      case r: BracketPlainCoordinated.TaskList[_] => g(r)
-    }
-}
-
-object BracketPlainCoordinated {
-  case class Classic[A <: PageMode](bracketPlains: NonEmptyList[BracketPlain[A]]) extends BracketPlainCoordinated[A]
-  case class TaskList[A <: PageMode](bracketPlains: NonEmptyList[(Coordinates, TaskModelCoordinated[A])])
-      extends BracketPlainCoordinated[A]
 }

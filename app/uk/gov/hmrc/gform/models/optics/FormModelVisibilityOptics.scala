@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform.models.optics
 
 import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationResults, ExpressionResultWithTypeInfo, TypeInfo }
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
-import uk.gov.hmrc.gform.models.{ Coordinates, FormModel, FormModelBuilder, Visibility }
+import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormPhase, IncludeIf, RemoveItemIf, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormPhase, IncludeIf, RemoveItemIf, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieveResult

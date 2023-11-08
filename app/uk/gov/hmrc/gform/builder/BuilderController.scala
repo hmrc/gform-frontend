@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.{ ExtraInfo, RenderUnit, SectionRenderingService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.{ Bracket, Coordinates, DataExpanded, FormModel, SectionSelectorType, Singleton }
+import uk.gov.hmrc.gform.models.{ Bracket, DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -63,7 +63,7 @@ class BuilderController(
   }
 
   private val compatibilityVersion =
-    4; // This is managed manually. Increase it any time API used by builder extension is changed.
+    5; // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
@@ -173,7 +173,7 @@ class BuilderController(
         }
     }
 
-  def originalSummarySection(formTemplateId: FormTemplateId) =
+  def originalSummarySection(formTemplateId: FormTemplateId, maybeCoordinates: Option[Coordinates]) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
       implicit request => lang => cache => sse => formModelOptics =>
         gformConnector.getFormTemplateRaw(formTemplateId).flatMap { formTemplateRaw =>
@@ -182,7 +182,17 @@ class BuilderController(
             io.circe.parser.parse(jsonString)
 
           val json: Option[Json] = maybeCirceJson.toOption.flatMap { json =>
-            json.hcursor.downField("summarySection").focus
+            maybeCoordinates match {
+              case Some(coordinates) =>
+                json.hcursor
+                  .downField("sections")
+                  .downN(coordinates.taskSectionNumber.value)
+                  .downField("tasks")
+                  .downN(coordinates.taskNumber.value)
+                  .downField("summarySection")
+                  .focus
+              case None => json.hcursor.downField("summarySection").focus
+            }
           }
 
           json match {
@@ -369,17 +379,37 @@ class BuilderController(
         Ok(sectionHtml).pure[Future]
     }
 
-  def fetchSummarySectionTitleHtml(formTemplateId: FormTemplateId) =
+  def fetchSummarySectionHtml(formTemplateId: FormTemplateId, maybeCoordinates: Option[Coordinates]) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
       request => lang => cache => implicit sse => formModelOptics =>
-        Ok(
-          Json.obj(
-            "title" := cache.formTemplate.summarySection.title.value(),
-            "header" := markDownParser(cache.formTemplate.summarySection.header.value()),
-            "footer" := markDownParser(cache.formTemplate.summarySection.footer.value())
-          )
-        ).pure[Future]
+        maybeCoordinates match {
+          case Some(coordinates) =>
+            TaskListUtils.withTask(
+              cache.formTemplate,
+              coordinates.taskSectionNumber,
+              coordinates.taskNumber
+            )(task =>
+              task.summarySection.fold(
+                badRequest(
+                  s"Task of these coordinates: $coordinates doesn't have a summary section. Failed to fetch its json."
+                )
+                  .pure[Future]
+              )(renderSummarySection)
+            )
+          case None =>
+            renderSummarySection(cache.formTemplate.summarySection)
+        }
+
     }
+
+  private def renderSummarySection(summarySection: SummarySection)(implicit sse: SmartStringEvaluator) = {
+    val response = Json.obj(
+      "title" := summarySection.title.value(),
+      "header" := markDownParser(summarySection.header.value()),
+      "footer" := markDownParser(summarySection.footer.value())
+    )
+    Ok(response).pure[Future]
+  }
 
   private def badRequest(error: String): Result = BadRequest(PlayJson.obj("error" -> error))
 
@@ -421,61 +451,98 @@ class BuilderController(
 
   def htmlForSumarySectionFormComponent(
     formTemplateId: FormTemplateId,
-    formComponentId: FormComponentId
+    formComponentId: FormComponentId,
+    maybeCoordinates: Option[Coordinates]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         import i18nSupport._
 
-        val formComponents = cache.formTemplate.summarySection.fields
-        formComponents match {
-          case None =>
-            badRequest(s"Summary section doesn't coontain any fields. Trying to find: ${formComponentId.value}")
-              .pure[Future]
-          case Some(nel) =>
-            nel.toList.find(_.id === formComponentId) match {
-              case None =>
-                badRequest(s"Failed to find formComponentId: ${formComponentId.value} in summary section fields")
+        maybeCoordinates match {
+          case Some(coordinates) =>
+            TaskListUtils.withTask(
+              cache.formTemplate,
+              coordinates.taskSectionNumber,
+              coordinates.taskNumber
+            )(task =>
+              task.summarySection.fold(
+                badRequest(
+                  s"Task of these coordinates: $coordinates doesn't have a summary section. Cannot render html for $formComponentId"
+                )
                   .pure[Future]
-              case Some(formComponent) =>
-                val renderUnit = RenderUnit.Pure(formComponent)
-
-                val validationResult = ValidationResult.empty
-
-                val obligations = NotChecked
-
-                val formTemplate = cache.formTemplate
-                val page = formTemplate.summarySection.toPage
-                val singleton = Singleton(page.asInstanceOf[Page[DataExpanded]])
-
-                val ei: ExtraInfo = ExtraInfo(
-                  singleton = singleton,
-                  maybeAccessCode = None,
-                  sectionNumber = formTemplate.sectionNumberZero,
-                  formModelOptics = formModelOptics,
-                  formTemplate = formTemplate,
-                  envelopeId = cache.form.envelopeId,
-                  envelope = EnvelopeWithMapping.empty,
-                  formMaxAttachmentSizeMB = 0,
-                  retrievals = cache.retrievals,
-                  formLevelHeading = false,
-                  specialAttributes = Map.empty[String, String],
-                  addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
-                )
-
-                val formComponentHtml = renderer.htmlFor(
-                  renderUnit,
-                  formTemplateId,
-                  ei,
-                  validationResult,
-                  obligations,
-                  UpscanInitiate.empty,
-                  Map.empty[FormComponentId, UpscanData]
-                )
-                Ok(Json.obj("html" := sanitiseHtml(formComponentHtml))).pure[Future]
-            }
+              )(summarySection =>
+                renderHtmlForSumarySectionFormComponent(summarySection, formComponentId, formModelOptics, cache)
+              )
+            )
+          case None =>
+            renderHtmlForSumarySectionFormComponent(
+              cache.formTemplate.summarySection,
+              formComponentId,
+              formModelOptics,
+              cache
+            )
         }
     }
+
+  private def renderHtmlForSumarySectionFormComponent(
+    summarySection: SummarySection,
+    formComponentId: FormComponentId,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    cache: AuthCacheWithForm
+  )(implicit
+    sse: SmartStringEvaluator,
+    request: Request[_],
+    messages: Messages,
+    l: LangADT
+  ) = {
+    val formComponents = summarySection.fields
+    formComponents match {
+      case None =>
+        badRequest(s"Summary section doesn't contain any fields. Trying to find: ${formComponentId.value}")
+          .pure[Future]
+      case Some(nel) =>
+        nel.toList.find(_.id === formComponentId) match {
+          case None =>
+            badRequest(s"Failed to find formComponentId: ${formComponentId.value} in summary section fields")
+              .pure[Future]
+          case Some(formComponent) =>
+            val renderUnit = RenderUnit.Pure(formComponent)
+
+            val validationResult = ValidationResult.empty
+
+            val obligations = NotChecked
+
+            val page = summarySection.toPage
+            val singleton = Singleton(page.asInstanceOf[Page[DataExpanded]])
+
+            val ei: ExtraInfo = ExtraInfo(
+              singleton = singleton,
+              maybeAccessCode = None,
+              sectionNumber = cache.formTemplate.sectionNumberZero,
+              formModelOptics = formModelOptics,
+              formTemplate = cache.formTemplate,
+              envelopeId = cache.form.envelopeId,
+              envelope = EnvelopeWithMapping.empty,
+              formMaxAttachmentSizeMB = 0,
+              retrievals = cache.retrievals,
+              formLevelHeading = false,
+              specialAttributes = Map.empty[String, String],
+              addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
+            )
+
+            val formComponentHtml = renderer.htmlFor(
+              renderUnit,
+              cache.formTemplate._id,
+              ei,
+              validationResult,
+              obligations,
+              UpscanInitiate.empty,
+              Map.empty[FormComponentId, UpscanData]
+            )
+            Ok(Json.obj("html" := sanitiseHtml(formComponentHtml))).pure[Future]
+        }
+    }
+  }
 
   private def toComponentHtml(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],

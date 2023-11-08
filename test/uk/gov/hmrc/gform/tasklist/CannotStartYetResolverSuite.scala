@@ -18,9 +18,8 @@ package uk.gov.hmrc.gform.tasklist
 
 import cats.data.NonEmptyList
 import munit.FunSuite
-import uk.gov.hmrc.gform.models.Coordinates
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ TaskNumber, TaskSectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, TaskNumber, TaskSectionNumber }
 
 class CannotStartYetResolverSuite extends FunSuite {
 

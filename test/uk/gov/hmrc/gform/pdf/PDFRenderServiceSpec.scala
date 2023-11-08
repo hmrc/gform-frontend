@@ -33,13 +33,13 @@ import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, Sma
 import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormTemplate, mkSection }
-import uk.gov.hmrc.gform.models.{ Coordinates, FormModelSupport, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, Instruction, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplateContext, Instruction, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult, ValidationService }

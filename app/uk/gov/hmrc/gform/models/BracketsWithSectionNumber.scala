@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Coordinates, SectionNumber }
 
 sealed trait BracketsWithSectionNumber[A <: PageMode] extends Product with Serializable {
 

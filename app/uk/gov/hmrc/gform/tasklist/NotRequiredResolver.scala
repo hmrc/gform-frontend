@@ -17,8 +17,8 @@
 package uk.gov.hmrc.gform.tasklist
 
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.models.Coordinates
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Coordinates
 
 final class NotRequiredResolver[D <: DataOrigin](
   formModelVisibilityOptics: FormModelVisibilityOptics[D]
