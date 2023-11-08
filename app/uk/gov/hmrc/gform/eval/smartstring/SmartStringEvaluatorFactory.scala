@@ -33,7 +33,7 @@ trait SmartStringEvaluatorFactory {
   )(implicit messages: Messages, l: LangADT): SmartStringEvaluator
 }
 
-class RealSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartStringEvaluatorFactory { self =>
+class RealSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartStringEvaluatorFactory {
 
   def apply(
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
