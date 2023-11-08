@@ -339,7 +339,8 @@ class GformModule(
     graphModule.recalculation,
     controllersModule.messagesControllerComponents,
     gformBackEndService,
-    ninoInsightsConnector
+    ninoInsightsConnector,
+    englishMessages
   )
 
   val reviewService = new ReviewService(gformBackEndService, lookupRegistry, graphModule.recalculation)
