@@ -28,7 +28,6 @@ import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.CheckYourAnswers
-import uk.gov.hmrc.gform.models.Coordinates
 import uk.gov.hmrc.gform.models.PageModel
 import uk.gov.hmrc.gform.models.Repeater
 import uk.gov.hmrc.gform.models.Singleton

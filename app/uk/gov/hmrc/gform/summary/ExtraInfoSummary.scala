@@ -19,9 +19,8 @@ package uk.gov.hmrc.gform.summary
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
-import uk.gov.hmrc.gform.models.Coordinates
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, LayoutDisplayWidth, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, LayoutDisplayWidth, SectionNumber }
 
 final case class ExtraInfoSummary(
   formTemplate: FormTemplate,

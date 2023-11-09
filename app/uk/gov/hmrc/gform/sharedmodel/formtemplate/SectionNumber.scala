@@ -20,7 +20,6 @@ import cats.Eq
 import cats.implicits._
 import play.api.libs.json._
 import scala.util.{ Failure, Success, Try }
-import uk.gov.hmrc.gform.models.Coordinates
 
 sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Serializable {
 

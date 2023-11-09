@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform.tasklist
 
 import cats.implicits._
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Coordinates, DataExpanded, FormModel }
+import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded, FormModel }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormCtx }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddressLens
 
 final class CannotStartYetResolver(

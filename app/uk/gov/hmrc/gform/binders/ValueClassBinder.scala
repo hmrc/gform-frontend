@@ -21,7 +21,6 @@ import play.api.libs.json._
 import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
 import scala.util.{ Failure, Success }
 import uk.gov.hmrc.gform.controllers.{ AddGroup, Back, Direction, EditAddToList, Exit, RemoveGroup, SaveAndContinue, SaveAndExit, SummaryContinue }
-import uk.gov.hmrc.gform.models.Coordinates
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ ExpandUtils, FastForward, LookupQuery }
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
