@@ -261,7 +261,7 @@ class FastForwardService(
                                    cache.toCacheData,
                                    EnvelopeWithMapping(envelope, cache.form),
                                    validationService.validatePageModel,
-                                   None
+                                   lastSectionNumber
                                  )
   } yield maybeInvalidSectionNumber.filter(sn => lastSectionNumber.map(sn < _).getOrElse(true))
 }
