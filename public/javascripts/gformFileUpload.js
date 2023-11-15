@@ -34,8 +34,26 @@
   function init() {
     $('button[name$="-uploadButton"]').css("display", "none")
     $(".govuk-file-upload").on("change", handleFileUpload);
-    $('button[name$="singleFile"]').on("click", singleFileUploadProgress);
+    $('button[name$="singleFile"]').on("click", handleEmptyFileUpload);
   }
+
+   function handleEmptyFileUpload(e) {
+     var inputFile = $('.govuk-file-upload')[0];
+     if (inputFile.files.length === 0) {
+       const form = $(e.target).closest("form");
+       const errorRedirect = form.find('input[name="error_action_redirect"]').val();
+       const params = {
+           errorMessage: "Missing file",
+           errorCode: "MissingFile",
+       };
+       const queryString = $.param(params);
+       const errorUrl = errorRedirect + "?" + queryString;
+       window.location.href = errorUrl;
+       e.preventDefault();
+     } else {
+       singleFileUploadProgress(e);
+     }
+   }
 
   // Error handling
   function handleError($input, msg, submitButton) {

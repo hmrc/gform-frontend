@@ -25,12 +25,13 @@ import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.{ AppConfig, FileInfoConfig }
-import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, GformFlashKeys }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, GformFlashKeys }
 import uk.gov.hmrc.gform.gform.FastForwardService
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.core.Retrying
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FormComponentId, FormTemplateId, IsFileUpload, SectionNumber }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -67,14 +68,6 @@ class UpscanController(
             val reference = UpscanReference(key)
 
             val formIdData: FormIdData = FormIdData(cache, maybeAccessCode)
-
-            def allowedFileExtensions(maybeFileUpload: Option[FileUpload]): String = maybeFileUpload
-              .flatMap(_.allowedFileTypes)
-              .getOrElse(cache.formTemplate.allowedFileTypes)
-              .fileExtensions
-              .toList
-              .map(_.toUpperCase)
-              .mkString(", ")
 
             retry(upscanService.retrieveConfirmationOrFail(reference), 2.seconds, 30).flatMap { confirmation =>
               confirmation.status match {
@@ -117,13 +110,13 @@ class UpscanController(
                       mkFlash(
                         "file.error.type",
                         FileInfoConfig.reverseLookup.getOrElse(fileMimeType, "").toUpperCase,
-                        allowedFileExtensions(maybeFileUpload)
+                        allowedFileExtensions(maybeFileUpload, cache)
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("REJECTED", _)) =>
                       mkFlash(
                         "file.error.type",
                         "",
-                        allowedFileExtensions(maybeFileUpload)
+                        allowedFileExtensions(maybeFileUpload, cache)
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("QUARANTINE", _)) =>
                       mkFlash(
@@ -196,11 +189,19 @@ class UpscanController(
 
         val flash = errorCode match {
           case Some("InvalidArgument") =>
+            val formModel = formModelOptics.formModelVisibilityOptics.formModel
+            val formComponent = formModel.fcLookup.get(formComponentId)
+            val maybeFileUpload: Option[FileUpload] = formComponent.collect { case IsFileUpload(f) =>
+              f
+            }
             mkFlash(
-              "generic.error.upload",
+              "file.error.invalid.argument",
+              allowedFileExtensions(maybeFileUpload, cache),
               formModelOptics.formModelVisibilityOptics.fcLookup
                 .get(formComponentId)
-                .map(fc => fc.errorPlaceholder.map(_.value()).getOrElse(fc.label.value()))
+                .map(fc =>
+                  fc.errorShortName.getOrElse(SmartString.blank.transform(_ => "a file", _ => "ffeil")).value()
+                )
                 .getOrElse("")
             )
           case Some("EntityTooLarge") =>
@@ -209,7 +210,17 @@ class UpscanController(
               cache.formTemplate.fileSizeLimit.getOrElse(appConfig.formMaxAttachmentSizeMB).toString
             )
           case Some("EntityTooSmall") => mkFlash("file.error.empty")
-          case _                      => mkFlash("file.error.generic")
+          case Some("MissingFile") =>
+            mkFlash(
+              "file.error.missing",
+              formModelOptics.formModelVisibilityOptics.fcLookup
+                .get(formComponentId)
+                .map(fc =>
+                  fc.errorShortName.getOrElse(SmartString.blank.transform(_ => "a file", _ => "ffeil")).value()
+                )
+                .getOrElse("")
+            )
+          case _ => mkFlash("file.error.generic")
         }
 
         fastForwardService
@@ -223,4 +234,12 @@ class UpscanController(
   private def mkFlash(s: String, params: String*)(implicit messages: Messages): Flash = Flash(
     Map(GformFlashKeys.FileUploadError -> messages(s, params: _*))
   )
+  private def allowedFileExtensions(maybeFileUpload: Option[FileUpload], cache: AuthCacheWithForm): String =
+    maybeFileUpload
+      .flatMap(_.allowedFileTypes)
+      .getOrElse(cache.formTemplate.allowedFileTypes)
+      .fileExtensions
+      .toList
+      .map(_.toUpperCase)
+      .mkString(", ")
 }
