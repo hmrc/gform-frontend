@@ -121,8 +121,7 @@ class UpscanController(
                     case ConfirmationFailure.UpscanFailure(FailureDetails("QUARANTINE", _)) =>
                       mkFlash(
                         "generic.error.virus",
-                        formModelOptics.formModelVisibilityOptics.fcLookup
-                          .get(formComponentId)
+                        formComponent
                           .map(fc => fc.errorPlaceholder.map(_.value()).getOrElse(fc.label.value()))
                           .getOrElse("")
                       )
@@ -197,8 +196,7 @@ class UpscanController(
             mkFlash(
               "file.error.invalid.argument",
               allowedFileExtensions(maybeFileUpload, cache),
-              formModelOptics.formModelVisibilityOptics.fcLookup
-                .get(formComponentId)
+              formComponent
                 .map(fc =>
                   fc.errorShortName.getOrElse(SmartString.blank.transform(_ => "a file", _ => "ffeil")).value()
                 )
