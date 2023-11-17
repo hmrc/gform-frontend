@@ -86,10 +86,9 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, Table
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.Aliases.CharacterCount
-import uk.gov.hmrc.hmrcfrontend.views.html.components.{ HmrcCharacterCount, HmrcCurrencyInput }
-import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
+import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcCharacterCount
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
-import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukCharacterCount, GovukSummaryList, GovukTable }
+import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukCharacterCount, GovukInput, GovukSummaryList, GovukTable }
 import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
@@ -2306,7 +2305,7 @@ class SectionRenderingService(
           text.suffix.orElse(maybeUnit.map(u => SmartString(u, Nil)))
 
         if (formComponent.isSterling) {
-          val currencyInput = CurrencyInput(
+          val currencyInput = Input(
             id = formComponent.id.value,
             name = formComponent.id.value,
             label = label,
@@ -2314,10 +2313,15 @@ class SectionRenderingService(
             value = maybeCurrentValue,
             errorMessage = errorMessage,
             classes = sizeClasses,
+            prefix = Some(
+              PrefixOrSuffix(
+                content = content.Text("£")
+              )
+            ),
             attributes = ei.specialAttributes ++ attributes
           )
 
-          new HmrcCurrencyInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
+          new GovukInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
 
         } else {
           val inputType = formComponent match {
