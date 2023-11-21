@@ -114,9 +114,15 @@ class UpscanController(
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("REJECTED", _)) =>
                       mkFlash(
-                        "file.error.type",
-                        "",
-                        allowedFileExtensions(maybeFileUpload, cache)
+                        "file.error.rejected",
+                        allowedFileExtensions(maybeFileUpload, cache),
+                        formComponent
+                          .map(fc =>
+                            fc.errorShortName
+                              .getOrElse(SmartString.blank.transform(_ => "a file", _ => "ffeil"))
+                              .value()
+                          )
+                          .getOrElse("")
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("QUARANTINE", _)) =>
                       mkFlash(
@@ -194,7 +200,7 @@ class UpscanController(
               f
             }
             mkFlash(
-              "file.error.invalid.argument",
+              "file.error.rejected",
               allowedFileExtensions(maybeFileUpload, cache),
               formComponent
                 .map(fc =>
