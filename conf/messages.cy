@@ -7,6 +7,7 @@ global.error.InternalServerError500.message.a=Rhowch gynnig arall arni yn nes ym
 global.error.InternalServerError500.message.b=Gwnaethom gadw’ch atebion. Byddant ar gael am 28 diwrnod.
 
 global.lang=cy
+global.or=neu
 
 branding.hmrc=Cyllid a Thollau EM
 

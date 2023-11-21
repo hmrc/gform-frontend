@@ -114,15 +114,9 @@ class UpscanController(
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("REJECTED", _)) =>
                       mkFlash(
-                        "file.error.rejected",
-                        allowedFileExtensions(maybeFileUpload, cache),
-                        formComponent
-                          .map(fc =>
-                            fc.errorShortName
-                              .getOrElse(SmartString.blank.transform(_ => "a file", _ => "ffeil"))
-                              .value()
-                          )
-                          .getOrElse("")
+                        "file.error.type",
+                        "",
+                        allowedFileExtensions(maybeFileUpload, cache)
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("QUARANTINE", _)) =>
                       mkFlash(
@@ -235,15 +229,29 @@ class UpscanController(
   private def flashWithFileId(flash: Flash, fileId: FileId): Flash =
     flash + (GformFlashKeys.FileUploadFileId -> fileId.value)
 
-  private def mkFlash(s: String, params: String*)(implicit messages: Messages): Flash = Flash(
-    Map(GformFlashKeys.FileUploadError -> messages(s, params: _*))
-  )
-  private def allowedFileExtensions(maybeFileUpload: Option[FileUpload], cache: AuthCacheWithForm): String =
-    maybeFileUpload
+  private def mkFlash(s: String, params: String*)(implicit messages: Messages): Flash =
+    Flash(
+      Map(GformFlashKeys.FileUploadError -> messages(s, params: _*))
+    )
+  private def allowedFileExtensions(maybeFileUpload: Option[FileUpload], cache: AuthCacheWithForm)(implicit
+    messages: Messages
+  ): String = {
+    val orSeparator = messages("global.or")
+    val fileExtensions = maybeFileUpload
       .flatMap(_.allowedFileTypes)
       .getOrElse(cache.formTemplate.allowedFileTypes)
       .fileExtensions
       .toList
       .map(_.toUpperCase)
-      .mkString(", ")
+
+    orMkString(fileExtensions, orSeparator)
+  }
+
+  private def orMkString(list: List[String], lastSeparator: String): String =
+    list match {
+      case Nil         => ""
+      case head :: Nil => head
+      case _           => list.init.mkString(", ") + s" $lastSeparator " + list.last
+    }
+
 }
