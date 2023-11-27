@@ -26,7 +26,7 @@ import org.typelevel.ci.CIString
 import play.api.data
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Flash, MessagesControllerComponents }
-import uk.gov.hmrc.gform.config.{ AppConfig, FileInfoConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.{ FormTemplateKey, gform }
 
 import scala.concurrent.Future
@@ -160,7 +160,6 @@ class FileUploadController(
         .ensure(
           mkFlash(
             "file.error.type",
-            FileInfoConfig.reverseLookup.getOrElse(file.contentType, "").toUpperCase,
             allowedFileTypes.fileExtensions.toList.map(_.toUpperCase).mkString(", ")
           )
         )(_ => validateFileExtension(file) && validateFileType(file, allowedFileTypes))

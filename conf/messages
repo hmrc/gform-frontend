@@ -421,10 +421,10 @@ file.error.generic=File could not be uploaded. Upload a different file.
 file.error.empty=This file is empty
 file.error.filename.too.long=File name is too long
 file.error.size=This file is larger than the maximum file size of {0}MB
-file.error.type=The file type {0} is not permitted. You can only upload {1}
+file.error.type=The selected file must be a {0}
 file.error.missing=Select {0}
-file.error.rejected=Select {1}. It must be a {0}.
-file.error.rejected.js=The selected file must be a {0}
+file.error.invalid.argument=Select {1}. It must be a {0}.
+file.error.rejected=The selected file must be a {0}
 
 # Assistive text
 assistive.text.sterling=in pounds sterling, do not enter the pound sign
