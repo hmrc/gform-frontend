@@ -316,6 +316,14 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       s"$baseUrl/test-only/handlebars-model/${formTemplateId.value}/${formId.value}"
     )
 
+  def handlebarPayloadSource(
+    formTemplateId: FormTemplateId,
+    destinationId: DestinationId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
+    val url = s"$baseUrl/handlebarstemplates/${formTemplateId.value}-${destinationId.id}/raw"
+    ws.GET[HttpResponse](url)(HttpReads.Implicits.readRaw, hc, ec).map(_.body)
+  }
+
   private def mkPost(customerId: CustomerId, submissionData: SubmissionData, affinityGroup: Option[AffinityGroup])(
     url: String
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
