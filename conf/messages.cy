@@ -410,6 +410,7 @@ file.error.size=Mae’r ffeil hon yn fwy na maint y ffeil fwyaf a ganiateir sef 
 file.error.type=Ni chaniateir y math o ffeil {0}. Gallwch ond uwchlwytho {1}
 file.error.missing=Dewiswch {0}
 file.error.rejected=Dewiswch {1}. Mae'n rhaid i'r ffeil fod ar ffurf {0}.
+file.error.rejected.js=Mae’n rhaid i’r ffeil dan sylw fod ar ffurf ${0}
 
 # Assistive text
 assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt

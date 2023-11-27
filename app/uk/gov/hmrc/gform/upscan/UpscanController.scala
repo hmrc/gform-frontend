@@ -114,8 +114,7 @@ class UpscanController(
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("REJECTED", _)) =>
                       mkFlash(
-                        "file.error.type",
-                        "",
+                        "file.error.rejected.js",
                         allowedFileExtensions(maybeFileUpload, cache)
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("QUARANTINE", _)) =>
