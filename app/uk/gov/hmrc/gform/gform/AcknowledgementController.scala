@@ -27,7 +27,6 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
@@ -39,7 +38,7 @@ import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
-import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
+import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -51,11 +50,9 @@ class AcknowledgementController(
   pdfService: PdfGeneratorService,
   pdfRenderService: PDFRenderService,
   renderer: SectionRenderingService,
-  summaryRenderingService: SummaryRenderingService,
   gformConnector: GformConnector,
   nonRepudiationHelpers: NonRepudiationHelpers,
   messagesControllerComponents: MessagesControllerComponents,
-  recalculation: Recalculation[Future, Throwable],
   auditService: AuditService,
   isProduction: Boolean
 )(implicit ec: ExecutionContext)
@@ -189,6 +186,33 @@ class AcknowledgementController(
   def exitSurvey(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     Action.async { request =>
       Future.successful(Redirect(s"/feedback/${formTemplateId.value}").withNewSession)
+    }
+
+  def changeStateAndRedirectToCYA(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.ForceUpdateFormStatus
+    ) { implicit request => _ => cache => _ => _ =>
+      gformConnector
+        .updateUserData(
+          FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
+          UserData(
+            cache.form.formData,
+            InProgress,
+            cache.form.visitsIndex,
+            cache.form.thirdPartyData,
+            cache.form.componentIdToFileId
+          )
+        )
+        .flatMap { _ =>
+          Future.successful(
+            Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, None, true, None))
+          )
+        }
     }
 
 }

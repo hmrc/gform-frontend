@@ -93,6 +93,7 @@ import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.auth.core.ConfidenceLevel
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
@@ -918,16 +919,32 @@ class SectionRenderingService(
     )
 
     val dmsDownloadUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-      .proxyToGform(s"/gform/test-only/object-store/envelopes/${envelopeId.value}")
+      .proxyToGform(s"gform/test-only/object-store/envelopes/${envelopeId.value}")
       .url
     val maybeDmsDownloadUrl =
       Option(dmsDownloadUrl).filter(_ => !isProduction).filter(_ => formTemplate.isObjectStore)
 
     val dataStoreDownloadUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-      .proxyToGform(s"/gform/test-only/object-store/data-store/envelopes/${envelopeId.value}")
+      .proxyToGform(s"gform/test-only/object-store/data-store/envelopes/${envelopeId.value}")
       .url
     val maybeDataStoreDownloadUrl =
       Option(dataStoreDownloadUrl).filter(_ => !isProduction).filter(_ => formTemplate.isObjectStore)
+
+    val maybeReturnToSummaryUrl =
+      if (
+        !isProduction && destinationList.destinations.size === 1 && destinationList.destinations.exists {
+          case Destination.StateTransition(_, _, _, _) => true
+          case _                                       => false
+        }
+      ) {
+        Some(
+          routes.AcknowledgementController
+            .changeStateAndRedirectToCYA(formTemplateId, maybeAccessCode)
+            .url
+        )
+      } else {
+        None
+      }
 
     uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
       .acknowledgement(
@@ -939,7 +956,8 @@ class SectionRenderingService(
         panelTitle,
         frontendAppConfig,
         maybeDmsDownloadUrl,
-        maybeDataStoreDownloadUrl
+        maybeDataStoreDownloadUrl,
+        maybeReturnToSummaryUrl
       )
   }
 
