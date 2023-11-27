@@ -17,27 +17,31 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
 
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.TextExpression
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.DestinationGen
 
 class UploadableDestinationSpec extends Spec {
   "UploadableHandlebarsHttpApiDestination.toHandlebarsHttpApiDestination" should "not condition the uri, payload and includeIf if convertSingleQuotes is None" in {
     forAll(DestinationGen.handlebarsHttpApiGen) { destination =>
-      val withQuotes = addQuotes(destination, """"'abc'"""")
-      createUploadable(withQuotes, None).toHandlebarsHttpApiDestination shouldBe Right(withQuotes)
+      val convertSingleQuotes: Option[Boolean] = None
+      val withQuotes = addQuotes(destination, """"'abc'"""", convertSingleQuotes)
+      createUploadable(withQuotes, convertSingleQuotes).toHandlebarsHttpApiDestination shouldBe Right(withQuotes)
     }
   }
 
   it should "not condition the uri, payload and includeIf if convertSingleQuotes is Some(false)" in {
     forAll(DestinationGen.handlebarsHttpApiGen) { destination =>
-      val withQuotes = addQuotes(destination, """"'abc'"""")
-      createUploadable(withQuotes, Some(false)).toHandlebarsHttpApiDestination shouldBe Right(withQuotes)
+      val convertSingleQuotes: Option[Boolean] = Some(false)
+      val withQuotes = addQuotes(destination, """"'abc'"""", convertSingleQuotes)
+      createUploadable(withQuotes, convertSingleQuotes).toHandlebarsHttpApiDestination shouldBe Right(withQuotes)
     }
   }
 
   it should "condition the uri, payload and includeIf if convertSingleQuotes is Some(true)" in {
     forAll(DestinationGen.handlebarsHttpApiGen) { destination =>
-      val withQuotes = addQuotes(destination, """'abc'""")
+      val convertSingleQuotes: Option[Boolean] = Some(true)
+      val withQuotes = addQuotes(destination, """'abc'""", convertSingleQuotes)
       val expected = withQuotes.copy(
         uri = replaceQuotes(withQuotes.uri),
         payload = withQuotes.payload.map(v => replaceQuotes(v)),
@@ -76,21 +80,19 @@ class UploadableDestinationSpec extends Spec {
   private def createUploadable(
     destination: Destination.HandlebarsHttpApi,
     convertSingleQuotes: Option[Boolean]
-  ): UploadableHandlebarsHttpApiDestination = {
-    import destination._
+  ): UploadableHandlebarsHttpApiDestination =
     UploadableHandlebarsHttpApiDestination(
-      id,
-      profile,
-      uri,
-      method,
-      payload,
-      Some(payloadType),
+      destination.id,
+      destination.profile,
+      destination.uri,
+      destination.method,
+      destination.payload,
+      Some(destination.payloadType),
       convertSingleQuotes,
-      Some(includeIf),
-      Some(failOnError),
+      destination.includeIf,
+      Some(destination.failOnError),
       Some(false)
     )
-  }
 
   private def replaceHandlebarValue(includeIf: DestinationIncludeIf) =
     includeIf match {
@@ -106,11 +108,11 @@ class UploadableDestinationSpec extends Spec {
     UploadableHmrcDmsDestination(
       id,
       dmsFormId,
-      customerId,
+      TextExpression(customerId),
       classificationType,
       businessArea,
       convertSingleQuotes,
-      Some(includeIf),
+      includeIf,
       Some(failOnError),
       dataOutputFormat,
       Some(formdataXml),
@@ -121,11 +123,12 @@ class UploadableDestinationSpec extends Spec {
 
   private def replaceQuotes(s: String): String = SingleQuoteReplacementLexer(s).merge
 
-  private def addQuotes(destination: Destination.HandlebarsHttpApi, q: String) =
+  private def addQuotes(destination: Destination.HandlebarsHttpApi, q: String, convertSingleQuotes: Option[Boolean]) =
     destination.copy(
       uri = q,
       payload = Some(q),
-      includeIf = HandlebarValue(q)
+      includeIf = HandlebarValue(q),
+      convertSingleQuotes = convertSingleQuotes
     )
 
   private def addQuotes(destination: Destination.HmrcDms, q: String) =

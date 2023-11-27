@@ -35,9 +35,17 @@ GET           /submissions/test-only/whats-in-session                  uk.gov.hm
 GET           /submissions/test-only/clear-session                     uk.gov.hmrc.gform.testonly.TestOnlyController.clearSession()
 GET           /submissions/test-only/config                            uk.gov.hmrc.gform.testonly.TestOnlyController.config()
 
-GET           /submissions/test-only/handlebars-model/:formTemplateId           uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarModel(formTemplateId: FormTemplateId, accessCode: Option[AccessCode] = None)
-GET           /submissions/test-only/:formTemplateId/:destinationId             uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayload(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode] = None)
-GET           /submissions/test-only/:formTemplateId/:destinationId/:accessCode uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayload(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode])
+GET           /submissions/test-only/payloads/:formTemplateId                                    uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloads(formTemplateId: FormTemplateId, accessCode: Option[AccessCode] = None)
+GET           /submissions/test-only/payloads/:formTemplateId/:accessCode                        uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloads(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
+GET           /submissions/test-only/handlebars-model/:formTemplateId                            uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarModel(formTemplateId: FormTemplateId, accessCode: Option[AccessCode] = None)
+GET           /submissions/test-only/handlebars-model/:formTemplateId/:accessCode                uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarModel(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
+GET           /submissions/test-only/:formTemplateId/:destinationId                              uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayload(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode] = None)
+GET           /submissions/test-only/:formTemplateId/:destinationId/:accessCode                  uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayload(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode])
+GET           /submissions/test-only/payload-embedded/:formTemplateId/:destinationId/            uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloadEmbedded(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode] = None)
+GET           /submissions/test-only/payload-embedded/:formTemplateId/:destinationId/:accessCode uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloadEmbedded(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode])
+GET           /submissions/test-only/payload-source/:formTemplateId/:destinationId/              uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloadSource(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode] = None)
+GET           /submissions/test-only/payload-source/:formTemplateId/:destinationId/:accessCode   uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloadSource(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode])
+
 
 GET           /submissions/gform-plugin/exprs/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.exprs(formTemplateId: FormTemplateId)
 GET           /submissions/gform-plugin/model/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)

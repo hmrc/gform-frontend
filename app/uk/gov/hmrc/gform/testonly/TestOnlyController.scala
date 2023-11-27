@@ -19,21 +19,24 @@ package uk.gov.hmrc.gform.testonly
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import cats.data.EitherT
+import cats.implicits._
 import cats.instances.future._
 import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
 import play.api.mvc._
+import play.twirl.api.HtmlFormat
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.gform.fileupload.Attachments
-import uk.gov.hmrc.gform.gform.{ CustomerId, DestinationEvaluator, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder }
+import uk.gov.hmrc.gform.gform.{ CustomerId, DestinationEvaluator, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder, UserSessionBuilder }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -42,10 +45,14 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId }
+import uk.gov.hmrc.govukfrontend.views.html.components.GovukTable
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ HtmlContent, Text }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, TableRow }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.destinations
 
 class TestOnlyController(
   i18nSupport: I18nSupport,
@@ -54,6 +61,7 @@ class TestOnlyController(
   lookupRegistry: LookupRegistry,
   auth: AuthenticatedRequestActions,
   servicesConfig: ServicesConfig,
+  frontendAppConfig: FrontendAppConfig,
   controllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
@@ -165,6 +173,97 @@ class TestOnlyController(
 
   }
 
+  def handlebarPayloads(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    implicit request => implicit lang => cache => _ => formModelOptics =>
+      import i18nSupport._
+      val res: Result = cache.formTemplate.destinations.fold { destinationList =>
+        val ids: List[(DestinationId, String, Boolean)] = destinationList.destinations.collect {
+          case d: Destination.DataStore         => (d.id, "hmrcIlluminate", d.convertSingleQuotes.getOrElse(false))
+          case d: Destination.HandlebarsHttpApi => (d.id, "handlebarsHttpApi", d.convertSingleQuotes.getOrElse(false))
+        }
+
+        val rows: List[List[TableRow]] = ids.map { case (destinationId, destinationType, convertSingleQuotes) =>
+          val processPayloadLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+            destinationId.id,
+            uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+              .handlebarPayload(formTemplateId, destinationId, maybeAccessCode)
+          )
+          val embeddedLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+            "Embedded",
+            uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+              .handlebarPayloadEmbedded(formTemplateId, destinationId, maybeAccessCode)
+          )
+          val sourceLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+            "Source",
+            uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+              .handlebarPayloadSource(formTemplateId, destinationId, maybeAccessCode)
+          )
+          List(
+            TableRow(
+              content = HtmlContent(processPayloadLink)
+            ),
+            TableRow(
+              content = Text(destinationType)
+            ),
+            TableRow(
+              content = HtmlContent(embeddedLink)
+            ),
+            TableRow(
+              content = HtmlContent(sourceLink)
+            ),
+            TableRow(
+              content = Text(convertSingleQuotes.toString)
+            )
+          )
+        }
+
+        val head =
+          Seq(
+            HeadCell(
+              content = Text("Output json")
+            ),
+            HeadCell(
+              content = Text("Destination type")
+            ),
+            HeadCell(
+              content = Text("Embedded")
+            ),
+            HeadCell(
+              content = Text("Source")
+            ),
+            HeadCell(
+              content = Text("convertSingleQuotes")
+            )
+          )
+
+        val govukTable = new GovukTable()(
+          Table(
+            rows = rows,
+            head = Some(head)
+          )
+        )
+
+        Ok(destinations(cache.formTemplate, maybeAccessCode, true, Option.empty[String], frontendAppConfig, govukTable))
+      }(_ =>
+        Ok(
+          destinations(
+            cache.formTemplate,
+            maybeAccessCode,
+            false,
+            Some("Print destination has no payload"),
+            frontendAppConfig,
+            HtmlFormat.empty
+          )
+        )
+      )
+
+      res.pure[Future]
+
+  }
+
   def handlebarPayload(
     formTemplateId: FormTemplateId,
     destinationId: DestinationId,
@@ -183,16 +282,49 @@ class TestOnlyController(
 
         withHandlebarPayload {
           for {
+            userSession <- fromFutureA(UserSessionBuilder[Future](cache))
             res <- fetchHandlebarPayload(
                      form,
                      formTemplate,
                      formModelOptics.formModelVisibilityOptics,
                      customerId,
                      destinationId,
-                     retrievals
+                     retrievals,
+                     userSession
                    )
           } yield res
         }
+    }
+
+  def handlebarPayloadEmbedded(
+    formTemplateId: FormTemplateId,
+    destinationId: DestinationId,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+      request => lang => cache => _ => formModelOptics =>
+        val res: Result = cache.formTemplate.destinations.fold { destinationList =>
+          val ids: Option[Option[String]] = destinationList.destinations.collectFirst {
+            case d: Destination.DataStore if d.id === destinationId         => d.payload
+            case d: Destination.HandlebarsHttpApi if d.id === destinationId => d.payload
+          }
+          ids.flatten match {
+            case None          => BadRequest(s"No payload found on destination $destinationId")
+            case Some(payload) => Ok(payload)
+          }
+        }(_ => BadRequest("No destination with payload found"))
+
+        res.pure[Future]
+    }
+
+  def handlebarPayloadSource(
+    formTemplateId: FormTemplateId,
+    destinationId: DestinationId,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+      implicit request => lang => cache => _ => formModelOptics =>
+        gformConnector.handlebarPayloadSource(formTemplateId, destinationId).map(Ok(_))
     }
 
   private def withHandlebarPayload(
@@ -206,7 +338,8 @@ class TestOnlyController(
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     customerId: CustomerId,
     destinationId: DestinationId,
-    retrievals: MaterialisedRetrievals
+    retrievals: MaterialisedRetrievals,
+    userSession: UserSession
   )(implicit
     l: LangADT,
     m: Messages,
@@ -241,7 +374,7 @@ class TestOnlyController(
                          l,
                          None,
                          DestinationEvaluator(formTemplate, formModelVisibilityOptics),
-                         UserSession.empty
+                         userSession
                        )
 
       httpResponse <- recov(

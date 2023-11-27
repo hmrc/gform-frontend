@@ -66,6 +66,7 @@ class TestOnlyModule(
     lookupRegistry,
     controllersModule.authenticatedRequestActions,
     configModule.serviceConfig,
+    configModule.frontendAppConfig,
     controllersModule.messagesControllerComponents
   )
   val testOnlyErrorMessageController = new TestOnlyErrorMessageController(
