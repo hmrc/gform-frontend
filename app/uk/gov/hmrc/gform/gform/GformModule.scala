@@ -291,11 +291,9 @@ class GformModule(
     pdfGeneratorService,
     pdfRenderService,
     sectionRenderingService,
-    summaryRenderingService,
     gformBackendModule.gformConnector,
     nonRepudiationHelpers,
     controllersModule.messagesControllerComponents,
-    graphModule.recalculation,
     auditingModule.auditService,
     configModule.isProd
   )
