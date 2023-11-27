@@ -85,15 +85,27 @@ trait DestinationGen {
 
   def handlebarsHttpApiGen: Gen[Destination.HandlebarsHttpApi] =
     for {
-      id          <- destinationIdGen
-      profile     <- ProfileNameGen.profileGen
-      uri         <- PrimitiveGen.urlContextPathGen
-      method      <- HttpMethodGen.httpMethodGen
-      payload     <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen).map(_.map(s => s""""$s""""))
-      payloadType <- TemplateTypeGen.templateTypeGen
-      includeIf   <- includeIfGen()
-      failOnError <- PrimitiveGen.booleanGen
-    } yield Destination.HandlebarsHttpApi(id, profile, uri, method, payload, payloadType, includeIf, failOnError, false)
+      id                  <- destinationIdGen
+      profile             <- ProfileNameGen.profileGen
+      uri                 <- PrimitiveGen.urlContextPathGen
+      method              <- HttpMethodGen.httpMethodGen
+      payload             <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen).map(_.map(s => s""""$s""""))
+      payloadType         <- TemplateTypeGen.templateTypeGen
+      includeIf           <- includeIfGen()
+      failOnError         <- PrimitiveGen.booleanGen
+      convertSingleQuotes <- Gen.option(PrimitiveGen.booleanGen)
+    } yield Destination.HandlebarsHttpApi(
+      id,
+      profile,
+      uri,
+      method,
+      payload,
+      payloadType,
+      includeIf,
+      failOnError,
+      false,
+      convertSingleQuotes
+    )
 
   def handlebarsHttpApiGen(
     includeIf: Option[DestinationIncludeIf] = None,
