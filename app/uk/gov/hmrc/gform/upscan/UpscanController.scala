@@ -24,7 +24,7 @@ import play.api.mvc.{ Action, AnyContent, Flash, MessagesControllerComponents }
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
-import uk.gov.hmrc.gform.config.{ AppConfig, FileInfoConfig }
+import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, GformFlashKeys }
 import uk.gov.hmrc.gform.gform.FastForwardService
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
@@ -109,13 +109,11 @@ class UpscanController(
                         ) =>
                       mkFlash(
                         "file.error.type",
-                        FileInfoConfig.reverseLookup.getOrElse(fileMimeType, "").toUpperCase,
                         allowedFileExtensions(maybeFileUpload, cache)
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("REJECTED", _)) =>
                       mkFlash(
-                        "file.error.type",
-                        "",
+                        "file.error.rejected",
                         allowedFileExtensions(maybeFileUpload, cache)
                       )
                     case ConfirmationFailure.UpscanFailure(FailureDetails("QUARANTINE", _)) =>
@@ -194,7 +192,7 @@ class UpscanController(
               f
             }
             mkFlash(
-              "file.error.rejected",
+              "file.error.invalid.argument",
               allowedFileExtensions(maybeFileUpload, cache),
               formComponent
                 .map(fc =>
