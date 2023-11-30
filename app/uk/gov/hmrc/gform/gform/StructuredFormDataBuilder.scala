@@ -208,6 +208,8 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     .collect {
       case fc @ IsGroup(_)              => fc.id
       case fc @ IsInformationMessage(_) => fc.id
+      case fc @ IsMiniSummaryList(_)    => fc.id
+      case fc @ IsTableComp(_)          => fc.id
     }
     .map(_.modelComponentId)
     .toSet
