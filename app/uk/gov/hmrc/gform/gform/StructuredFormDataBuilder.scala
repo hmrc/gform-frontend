@@ -204,10 +204,12 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
         fc.id.modelComponentId -> res
     }
 
-  private val isGroupOrInfoIds: Set[ModelComponentId] = formModelVisibilityOptics.formModel.allFormComponents
+  private val ignoredComponentIds: Set[ModelComponentId] = formModelVisibilityOptics.formModel.allFormComponents
     .collect {
       case fc @ IsGroup(_)              => fc.id
       case fc @ IsInformationMessage(_) => fc.id
+      case fc @ IsMiniSummaryList(_)    => fc.id
+      case fc @ IsTableComp(_)          => fc.id
     }
     .map(_.modelComponentId)
     .toSet
@@ -246,7 +248,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     val multiValuesNotProcessedYet: List[MultiValueId] =
       allMultiValueIds
         .filterNot(addToListAndRcMultivalues.contains)
-        .filterNot(multiValueId => isGroupOrInfoIds(multiValueId.modelComponentId))
+        .filterNot(multiValueId => ignoredComponentIds(multiValueId.modelComponentId))
 
     val restOfTheFields: F[List[Field]] = buildMultiField(multiValuesNotProcessedYet, false)
 
