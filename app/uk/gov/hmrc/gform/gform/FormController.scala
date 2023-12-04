@@ -730,17 +730,19 @@ class FormController(
                     maybeRedirectUrl match {
                       case Some(r) => Redirect(r)
                       case None =>
-                        updatePostcodeLookup.fold(continueJourney) { case (formComponentId, _) =>
-                          Redirect(
-                            uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
-                              .chooseAddress(
-                                cache.formTemplate._id,
-                                maybeAccessCode,
-                                formComponentId,
-                                sectionNumber,
-                                fastForward
-                              )
-                          )
+                        updatePostcodeLookup.fold(continueJourney) { case (formComponentId, addressLookupResult) =>
+                          addressLookupResult.response.addresses.fold(
+                            Redirect(
+                              uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
+                                .chooseAddress(
+                                  cache.formTemplate._id,
+                                  maybeAccessCode,
+                                  formComponentId,
+                                  sectionNumber,
+                                  fastForward
+                                )
+                            )
+                          )(_ => continueJourney)
                         }
                     }
                   }
