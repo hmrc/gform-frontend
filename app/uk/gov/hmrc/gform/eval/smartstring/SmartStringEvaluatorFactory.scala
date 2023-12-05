@@ -70,8 +70,9 @@ private class Executor(
     new MessageFormat(s.rawValue(l))
       .format(
         s.interpolations
-          .map { interpolation =>
-            formatExpr(interpolation, markDown)
+          .map {
+            case concatExpr: Concat => formatConcatExpr(concatExpr, markDown)
+            case interpolation      => formatExpr(interpolation, markDown)
           }
           .asJava
           .toArray
@@ -139,6 +140,12 @@ private class Executor(
           formatted
         }
     }
+  }
+
+  private def formatConcatExpr(concatExpr: Concat, markDown: Boolean): String = {
+    val exprsFormatted = concatExpr.exprs.map(expr => Constant(formatExpr(expr, markDown)))
+    val concatUpdated = Concat(exprsFormatted)
+    formatExpr(concatUpdated, markDown)
   }
 
   private def evalChoice(fcId: FormComponentId, typeInfo: TypeInfo, markDown: Boolean) =
