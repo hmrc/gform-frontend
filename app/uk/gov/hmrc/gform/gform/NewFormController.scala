@@ -27,7 +27,7 @@ import play.api.mvc._
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
-import uk.gov.hmrc.gform.eval.NoFormEvaluation
+import uk.gov.hmrc.gform.eval.InitFormEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -374,8 +374,16 @@ class NewFormController(
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit lang => cache =>
         for {
-          noFormEvaluation <- noFormEval(cache)
-          newCache = noFormEvaluation.toCache
+          newCache <-
+            InitFormEvaluator
+              .makeCacheWithDataRetrieve(
+                cache,
+                cache.formTemplate.authConfig,
+                None,
+                cache.formTemplate.dataRetrieve,
+                gformConnector,
+                ninoInsightsConnector
+              )
           res <- (newCache.formTemplate.draftRetrievalMethod, newCache.retrievals) match {
                    case (BySubmissionReference, _)                    => processSubmittedData(newCache, BySubmissionReference)
                    case (drm @ FormAccessCodeForAgents(_), IsAgent()) => processSubmittedData(newCache, drm)
@@ -475,29 +483,6 @@ class NewFormController(
     } yield r
   }
 
-  private def noFormEval(
-    cache: AuthCacheWithoutForm
-  )(implicit
-    request: Request[AnyContent]
-  ): Future[NoFormEvaluation] = {
-    val formTemplate = cache.formTemplate
-
-    for {
-      itmpRetrievals <- formTemplate.dataRetrieve.fold(Future.successful(Option.empty[ItmpRetrievals]))(_ =>
-                          auth.getItmpRetrievals(request).map(Some(_))
-                        )
-      noFormEvaluation <-
-        new NoFormEvaluation(
-          cache,
-          formTemplate.authConfig,
-          itmpRetrievals,
-          gformConnector,
-          ninoInsightsConnector
-        )
-          .withDataRetrieve(formTemplate.dataRetrieve)
-    } yield noFormEvaluation
-  }
-
   private def exitPageHandler(
     cache: AuthCacheWithoutForm,
     formTemplate: FormTemplate,
@@ -507,15 +492,28 @@ class NewFormController(
     l: LangADT
   ): Future[Result] =
     for {
-      noFormEvaluation <- noFormEval(cache)
+      itmpRetrievals <- formTemplate.dataRetrieve.fold(Future.successful(Option.empty[ItmpRetrievals]))(_ =>
+                          auth.getItmpRetrievals(request).map(Some(_))
+                        )
+      newCache <-
+        InitFormEvaluator
+          .makeCacheWithDataRetrieve(
+            cache,
+            formTemplate.authConfig,
+            itmpRetrievals,
+            formTemplate.dataRetrieve,
+            gformConnector,
+            ninoInsightsConnector
+          )
+      initFormEvaluator = InitFormEvaluator(newCache, formTemplate.authConfig, itmpRetrievals)
       res <- {
         val maybeExitPage = formTemplate.exitPages.flatMap { exitPages =>
           exitPages.toList.find { exitPage =>
-            noFormEvaluation.evalIncludeIf(exitPage.`if`)
+            initFormEvaluator.evalIncludeIf(exitPage.`if`)
           }
         }
 
-        maybeExitPage.fold(continue(noFormEvaluation.toCache, formTemplate)) { exitPage =>
+        maybeExitPage.fold(continue(newCache, formTemplate)) { exitPage =>
           implicit val sse = (new RealSmartStringEvaluatorFactory(englishMessages)).noForm
           Ok(exit_page(cache.formTemplate, exitPage, frontendAppConfig)).pure[Future]
         }

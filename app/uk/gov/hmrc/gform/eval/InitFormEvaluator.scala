@@ -18,35 +18,27 @@ package uk.gov.hmrc.gform.eval
 
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import cats.instances.option._
-import cats.instances.future._
 import play.api.i18n.Messages
 import play.api.libs.json._
 import uk.gov.hmrc.gform.api.NinoInsightsConnector
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithoutForm
-import uk.gov.hmrc.gform.gform.AuthContextPrepop
+import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, DataRetrieveService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveResult, ServiceCallResponse }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 // This is used to evaluate if expressions from exitPages before user's form data are retrieved,
-// mainly to exit form for agents before they are asked for access code
-class NoFormEvaluation(
+// mainly to exit form for agents before they are asked for access code  find a class name for this
+case class InitFormEvaluator(
   cache: AuthCacheWithoutForm,
   authConfig: AuthConfig,
-  itmpRetrievals: Option[ItmpRetrievals],
-  gformConnector: GformConnector,
-  ninoInsightsConnector: NinoInsightsConnector[Future]
+  itmpRetrievals: Option[ItmpRetrievals]
 ) {
-
-  def toCache: AuthCacheWithoutForm = cache
-
   def evalIncludeIf(includeIf: IncludeIf)(implicit
     messages: Messages
   ): Boolean =
@@ -92,22 +84,6 @@ class NoFormEvaluation(
     case _           => ""
   }
 
-  private def retrieveWithState(
-    dataRetrieve: DataRetrieve
-  )(implicit hc: HeaderCarrier, ex: ExecutionContext, messages: Messages): Future[Option[DataRetrieveResult]] = {
-    val maybeExecutor
-      : Option[(DataRetrieve, DataRetrieve.Request) => Future[ServiceCallResponse[DataRetrieve.Response]]] =
-      dataRetrieve.tpe match {
-        case DataRetrieve.Type("ninoInsights") => Some(ninoInsightsConnector.insights)
-        case DataRetrieve.Type("employments")  => Some(gformConnector.getEmployments)
-        case DataRetrieve.Type("agentDetails") => Some(gformConnector.getDesAgentDetails)
-        case _                                 => Option.empty
-      }
-    maybeExecutor.flatTraverse { executor =>
-      retrieveData(dataRetrieve, executor)
-    }
-  }
-
   private def prepareRequest(dataRetrieve: DataRetrieve)(implicit
     messages: Messages
   ): DataRetrieve.Request = {
@@ -134,54 +110,43 @@ class NoFormEvaluation(
       evaluatedParams
     )
   }
+}
 
-  private def retrieveData(
-    dataRetrieve: DataRetrieve,
-    executor: (DataRetrieve, DataRetrieve.Request) => Future[ServiceCallResponse[DataRetrieve.Response]]
-  )(implicit ex: ExecutionContext, messages: Messages): Future[Option[DataRetrieveResult]] = {
-    val request: DataRetrieve.Request = prepareRequest(dataRetrieve)
-    val requestParams = request.paramsAsJson()
-
-    if (request.notReady()) {
-      Future.successful(None)
-    } else {
-      executor(dataRetrieve, request).map {
-        case ServiceResponse(result) =>
-          Some(
-            DataRetrieveResult(
-              dataRetrieve.id,
-              result.toRetrieveDataType(),
-              requestParams
-            )
-          )
-        case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve data")
-      }
-    }
-  }
-
-  def withDataRetrieve(
-    dataRetrieve: Option[NonEmptyList[DataRetrieve]]
-  )(implicit hc: HeaderCarrier, ex: ExecutionContext, messages: Messages): Future[NoFormEvaluation] =
+object InitFormEvaluator {
+  def makeCacheWithDataRetrieve(
+    cache: AuthCacheWithoutForm,
+    authConfig: AuthConfig,
+    itmpRetrievals: Option[ItmpRetrievals],
+    dataRetrieve: Option[NonEmptyList[DataRetrieve]],
+    gformConnector: GformConnector,
+    ninoInsightsConnector: NinoInsightsConnector[Future]
+  )(implicit hc: HeaderCarrier, ex: ExecutionContext, messages: Messages): Future[AuthCacheWithoutForm] =
     for {
       results <- dataRetrieve.fold(Future.successful(List.empty[DataRetrieveResult])) { r =>
                    r.toList.foldLeft(Future.successful(List.empty[DataRetrieveResult])) { case (acc, r) =>
+                     val initFormEvaluator = InitFormEvaluator(cache, authConfig, itmpRetrievals)
                      acc.flatMap {
-                       case results if r.`if`.forall(evalIncludeIf) =>
-                         retrieveWithState(r).map {
-                           case Some(result) => results :+ result
-                           case None         => results
-                         }
+                       case results if r.`if`.forall(initFormEvaluator.evalIncludeIf) =>
+                         val request = initFormEvaluator.prepareRequest(r)
+                         DataRetrieveService
+                           .retrieveDataResult(
+                             r,
+                             None,
+                             request,
+                             None,
+                             None,
+                             Some(ninoInsightsConnector),
+                             None,
+                             Some(gformConnector)
+                           )
+                           .map {
+                             case Some(result) => results :+ result
+                             case None         => results
+                           }
                        case results =>
                          Future.successful(results)
                      }
                    }
                  }
-    } yield new NoFormEvaluation(
-      cache.copy(dataRetrieve = Some(results.map(r => r.id -> r).toMap)),
-      authConfig,
-      itmpRetrievals,
-      gformConnector,
-      ninoInsightsConnector
-    )
-
+    } yield cache.copy(dataRetrieve = Some(results.map(r => r.id -> r).toMap))
 }
