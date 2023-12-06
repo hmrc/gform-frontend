@@ -231,19 +231,14 @@ object AddressLookupService {
       val postcodeComponentId: ModelComponentId.Atomic =
         formComponentId.toAtomicFormComponentId(formtemplate.PostcodeLookup.postcode)
 
-      val maybePostcode: Option[String] =
-        formModelVisibilityOptics.data.one(postcodeComponentId).filterNot(_.trim.isEmpty)
-
-      if (maybePostcode.isEmpty) {
+      enteredAddressPostcode.fold(form) { postcode =>
         val formDataUpdated =
-          form.formData ++ FormData(List(FormField(postcodeComponentId, enteredAddressPostcode.getOrElse(""))))
+          form.formData ++ FormData(List(FormField(postcodeComponentId, postcode)))
 
         form.copy(
           formData = formDataUpdated,
           visitsIndex = form.visitsIndex.visit(sectionNumber)
         )
-      } else {
-        form
       }
     }
 
