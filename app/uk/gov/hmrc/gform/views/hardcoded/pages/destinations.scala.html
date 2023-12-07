@@ -14,12 +14,14 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 
 @(
   formTemplate: FormTemplate,
+  envelopeId: EnvelopeId,
   accessCode: Option[AccessCode],
   hasDestinations: Boolean,
   otherContent: Option[String],
@@ -45,6 +47,21 @@
 
     @if(hasDestinations) {
       @table
+      <div class="govuk-body">
+        <div class="govuk-input__wrapper">
+          <div class="govuk-input__prefix">EnvelopeId</div>
+          <input class="govuk-input govuk-input--width-20" id="envelopeId" type="text" value="@{envelopeId.value}" readonly="">
+        </div>
+      </div>
+      <div class="govuk-body">
+        View <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/sdes/envelopeId/" + envelopeId.value).path" class="govuk-link">sdes</a> submission
+      </div>
+      <div class="govuk-body">
+        View <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/data-store-work-item/envelopeId/" + envelopeId.value).path" class="govuk-link">data-store-work-item</a> entry
+      </div>
+      <div class="govuk-body">
+        View <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/dms-work-item/envelopeId/" + envelopeId.value).path" class="govuk-link">dms-work-item</a> entry
+      </div>
       <div class="govuk-body">
         View handlebar <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.handlebarModel(formTemplate._id, accessCode).path" class="govuk-link">json model</a>
       </div>

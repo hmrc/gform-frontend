@@ -246,11 +246,22 @@ class TestOnlyController(
           )
         )
 
-        Ok(destinations(cache.formTemplate, maybeAccessCode, true, Option.empty[String], frontendAppConfig, govukTable))
+        Ok(
+          destinations(
+            cache.formTemplate,
+            cache.form.envelopeId,
+            maybeAccessCode,
+            true,
+            Option.empty[String],
+            frontendAppConfig,
+            govukTable
+          )
+        )
       }(_ =>
         Ok(
           destinations(
             cache.formTemplate,
+            cache.form.envelopeId,
             maybeAccessCode,
             false,
             Some("Print destination has no payload"),
