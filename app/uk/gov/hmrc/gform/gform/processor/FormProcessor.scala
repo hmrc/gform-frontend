@@ -272,36 +272,20 @@ class FormProcessor(
         def retrieveWithState(
           dataRetrieve: DataRetrieve,
           visibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
+        )(implicit
+          message: Messages
         ): Future[(Option[DataRetrieveResult], FormModelVisibilityOptics[DataOrigin.Browser])] = {
-          val maybeRequestParams = DataRetrieve.requestParamsFromCache(cache.form, dataRetrieve.id)
-          val maybeExecutor
-            : Option[(DataRetrieve, DataRetrieve.Request) => Future[ServiceCallResponse[DataRetrieve.Response]]] =
-            dataRetrieve.tpe match {
-              case DataRetrieve.Type("validateBankDetails") => Some(bankAccountReputationConnector.validateBankDetails)
-              case DataRetrieve.Type("businessBankAccountExistence") =>
-                Some(bankAccountReputationConnector.businessBankAccountExistence)
-              case DataRetrieve.Type("personalBankAccountExistence") =>
-                Some(bankAccountReputationConnector.personalBankAccountExistence)
-              case DataRetrieve.Type("personalBankAccountExistenceWithName") =>
-                Some(bankAccountReputationConnector.personalBankAccountExistence)
-              case DataRetrieve.Type("companyRegistrationNumber") => Some(companyInformationConnector.companyProfile)
-              case DataRetrieve.Type("ninoInsights")              => Some(ninoInsightsConnector.insights)
-              case DataRetrieve.Type("bankAccountInsights")       => Some(bankAccountInsightConnector.insights)
-              case DataRetrieve.Type("employments")               => Some(gformConnector.getEmployments)
-              case DataRetrieve.Type("hmrcRosmRegistrationCheck") => Some(gformConnector.getDesOrganisation)
-              case DataRetrieve.Type("agentDetails")              => Some(gformConnector.getDesAgentDetails)
-              case _                                              => Option.empty
-            }
-          val maybeRetrieveResultF = maybeExecutor.flatTraverse { executor =>
-            DataRetrieveService
-              .retrieveData(
-                dataRetrieve,
-                visibilityOptics,
-                maybeRequestParams,
-                executor
-              )
-
-          }
+          val request: DataRetrieve.Request = dataRetrieve.prepareRequest(formModelVisibilityOptics)
+          val maybeRetrieveResultF = DataRetrieveService.retrieveDataResult(
+            dataRetrieve,
+            Some(cache.form),
+            request,
+            Some(bankAccountReputationConnector),
+            Some(companyInformationConnector),
+            Some(ninoInsightsConnector),
+            Some(bankAccountInsightConnector),
+            Some(gformConnector)
+          )
           maybeRetrieveResultF.map(r => r -> visibilityOptics.addDataRetreiveResults(r.toList))
         }
 

@@ -16,23 +16,65 @@
 
 package uk.gov.hmrc.gform.gform
 
-import play.api.i18n.Messages
+import cats.syntax.all._
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationConnector, NinoInsightsConnector }
+import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.form.Form
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object DataRetrieveService {
 
-  def retrieveData(
+  def retrieveDataResult(
     dataRetrieve: DataRetrieve,
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+    form: Option[Form],
+    request: DataRetrieve.Request,
+    bankAccountReputationConnector: Option[BankAccountReputationConnector[Future]],
+    companyInformationConnector: Option[CompanyInformationConnector[Future]],
+    ninoInsightsConnector: Option[NinoInsightsConnector[Future]],
+    bankAccountInsightConnector: Option[BankAccountInsightsConnector[Future]],
+    gformConnector: Option[GformConnector]
+  )(implicit ex: ExecutionContext, hc: HeaderCarrier): Future[Option[DataRetrieveResult]] = {
+    val maybeRequestParams = form.flatMap(f => DataRetrieve.requestParamsFromCache(f, dataRetrieve.id))
+    val maybeExecutor
+      : Option[(DataRetrieve, DataRetrieve.Request) => Future[ServiceCallResponse[DataRetrieve.Response]]] =
+      dataRetrieve.tpe match {
+        case DataRetrieve.Type("validateBankDetails") => bankAccountReputationConnector.map(_.validateBankDetails)
+        case DataRetrieve.Type("businessBankAccountExistence") =>
+          bankAccountReputationConnector.map(_.businessBankAccountExistence)
+        case DataRetrieve.Type("personalBankAccountExistence") =>
+          bankAccountReputationConnector.map(_.personalBankAccountExistence)
+        case DataRetrieve.Type("personalBankAccountExistenceWithName") =>
+          bankAccountReputationConnector.map(_.personalBankAccountExistence)
+        case DataRetrieve.Type("companyRegistrationNumber") => companyInformationConnector.map(_.companyProfile)
+        case DataRetrieve.Type("ninoInsights")              => ninoInsightsConnector.map(_.insights)
+        case DataRetrieve.Type("bankAccountInsights")       => bankAccountInsightConnector.map(_.insights)
+        case DataRetrieve.Type("employments")               => gformConnector.map(_.getEmployments)
+        case DataRetrieve.Type("hmrcRosmRegistrationCheck") => gformConnector.map(_.getDesOrganisation)
+        case DataRetrieve.Type("agentDetails")              => gformConnector.map(_.getDesAgentDetails)
+        case _                                              => Option.empty
+      }
+    maybeExecutor.flatTraverse { executor =>
+      DataRetrieveService
+        .retrieveData(
+          dataRetrieve,
+          request,
+          maybeRequestParams,
+          executor
+        )
+    }
+  }
+
+  private def retrieveData(
+    dataRetrieve: DataRetrieve,
+    request: DataRetrieve.Request,
     maybeRequestParams: Option[JsValue],
     executor: (DataRetrieve, DataRetrieve.Request) => Future[ServiceCallResponse[DataRetrieve.Response]]
-  )(implicit messages: Messages, ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
-
-    val request: DataRetrieve.Request = dataRetrieve.prepareRequest(formModelVisibilityOptics)
+  )(implicit ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
 
     val requestParams = request.paramsAsJson()
 
