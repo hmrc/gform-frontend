@@ -76,7 +76,7 @@ class SummaryRenderingService(
   ): Future[PdfHtml] =
     for {
       summaryHtml <-
-        getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics, maybeCoordinates, None, false)
+        getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics, maybeCoordinates, None, None)
     } yield {
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdf.header, pdf.footer)
       PdfHtml(
@@ -154,7 +154,7 @@ class SummaryRenderingService(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     maybeCoordinates: Option[Coordinates],
     maybeSummarySection: Option[SummarySection],
-    taskComplete: Boolean
+    taskCompleted: Option[Boolean]
   )(implicit
     request: Request[_],
     l: LangADT,
@@ -193,7 +193,7 @@ class SummaryRenderingService(
         AddressRecordLookup.from(cache.form.thirdPartyData),
         maybeCoordinates,
         summarySection,
-        taskComplete
+        taskCompleted
       )
     }
 
@@ -262,7 +262,7 @@ object SummaryRenderingService {
     addressRecordLookup: AddressRecordLookup,
     maybeCoordinates: Option[Coordinates],
     summarySection: SummarySection,
-    taskComplete: Boolean
+    taskCompleted: Option[Boolean]
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(summarySection.header)
     val footerHtml = markDownParser(summarySection.footer)
@@ -315,7 +315,7 @@ object SummaryRenderingService {
         formDataFingerprint,
         summarySection.displayWidth,
         maybeCoordinates,
-        taskComplete
+        taskCompleted
       )
     )
   }
@@ -374,7 +374,7 @@ object SummaryRenderingService {
         formDataFingerprint,
         formTemplate.summarySection.displayWidth,
         None,
-        false
+        None
       )
     )
   }

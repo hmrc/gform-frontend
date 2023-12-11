@@ -322,7 +322,9 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton[DataExpanded]],
         authContext,
         ValidationResult.empty,
-        formModelOptics
+        formModelOptics,
+        None,
+        None
       )
 
     val declarationPageButton = Jsoup.parse(generatedHtml.body).select("button[type=submit][class=govuk-button]").first
@@ -358,7 +360,9 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton[DataExpanded]],
         authContext,
         ValidationResult.empty,
-        formModelOptics
+        formModelOptics,
+        None,
+        None
       )
 
     Jsoup.parse(generatedHtml.body).title() shouldBe "Some noPII dec section title - AAA999 dev test template - GOV.UK"

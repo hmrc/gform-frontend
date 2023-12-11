@@ -80,7 +80,7 @@ class SummaryController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     maybeCoordinates: Option[Coordinates],
-    taskComplete: Option[
+    taskCompleted: Option[
       Boolean
     ], // to check summary page is redirected from the task list page and all tasks are completed
     reachedFormSummary: Boolean = false,
@@ -112,7 +112,7 @@ class SummaryController(
               formModelOptics,
               None,
               None,
-              true
+              taskCompleted
             )
             .map(Ok(_))
 
@@ -124,7 +124,7 @@ class SummaryController(
               formModelOptics,
               maybeCoordinates,
               maybeTaskSummarySection,
-              taskComplete.getOrElse(false)
+              taskCompleted
             )
             .map(Ok(_))
 
@@ -152,7 +152,8 @@ class SummaryController(
     maybeAccessCode: Option[AccessCode],
     save: Direction,
     formDataFingerprint: String,
-    maybeCoordinates: Option[Coordinates]
+    maybeCoordinates: Option[Coordinates],
+    taskCompleted: Option[Boolean]
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
@@ -171,7 +172,8 @@ class SummaryController(
                 cache,
                 formModelOptics,
                 formDataFingerprint,
-                maybeCoordinates
+                maybeCoordinates,
+                taskCompleted
               )
             case _ => BadRequest("Cannot determine action").pure[Future]
           }
@@ -231,7 +233,8 @@ class SummaryController(
     cache: AuthCacheWithForm,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     formDataFingerprint: String,
-    maybeCoordinates: Option[Coordinates]
+    maybeCoordinates: Option[Coordinates],
+    taskCompleted: Option[Boolean]
   )(implicit
     request: Request[AnyContent],
     hc: HeaderCarrier,
@@ -266,17 +269,34 @@ class SummaryController(
       .flatMap { _ =>
         maybeCoordinates match {
           case Some(coordinates) =>
-            Redirect(
-              uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                .landingPage(formTemplateId, maybeAccessCode)
-            )
-              .pure[Future]
+            TaskListUtils.withTask(
+              cache.formTemplate,
+              coordinates.taskSectionNumber,
+              coordinates.taskNumber
+            ) { task =>
+              Redirect(
+                task.declarationSection.fold(
+                  uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                    .landingPage(formTemplateId, maybeAccessCode)
+                ) { _ =>
+                  routes.DeclarationController
+                    .showDeclaration(
+                      maybeAccessCode,
+                      cache.formTemplate._id,
+                      SuppressErrors.No,
+                      Some(coordinates),
+                      taskCompleted
+                    )
+                }
+              ).pure[Future]
+            }
+
           case None =>
             cache.formTemplate.destinations match {
               case DestinationList(_, _, Some(declarationSection)) =>
                 Redirect(
                   routes.DeclarationController
-                    .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes)
+                    .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes, None, taskCompleted)
                 ).pure[Future]
               case DestinationList(_, _, None) =>
                 processSubmission(maybeAccessCode, cache, formModelOptics)

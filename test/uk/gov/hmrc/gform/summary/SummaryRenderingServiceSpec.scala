@@ -250,7 +250,7 @@ class SummaryRenderingServiceSpec
               formModelOptics,
               Option.empty[Coordinates],
               Option.empty[SummarySection],
-              false
+              None
             )
             .futureValue
 
@@ -323,7 +323,7 @@ class SummaryRenderingServiceSpec
                 formModelOptics,
                 Option.empty[Coordinates],
                 Option.empty[SummarySection],
-                false
+                None
               )
               .futureValue
               .summaryElements shouldBe expectedSummaryElements
@@ -396,7 +396,7 @@ class SummaryRenderingServiceSpec
                 formModelOptics,
                 Option.empty[Coordinates],
                 Option.empty[SummarySection],
-                false
+                None
               )
               .futureValue
               .summaryElements shouldBe expectedSummaryElements
@@ -478,7 +478,7 @@ class SummaryRenderingServiceSpec
                 formModelOptics,
                 Option.empty[Coordinates],
                 Option.empty[SummarySection],
-                false
+                None
               )
               .futureValue
 
@@ -571,7 +571,7 @@ class SummaryRenderingServiceSpec
                 formModelOptics,
                 Option.empty[Coordinates],
                 Option.empty[SummarySection],
-                false
+                None
               )
               .futureValue
 

@@ -700,7 +700,9 @@ class SectionRenderingService(
     singleton: Singleton[DataExpanded],
     retrievals: MaterialisedRetrievals,
     validationResult: ValidationResult,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    maybeCoordinates: Option[Coordinates],
+    taskCompleted: Option[Boolean]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -726,11 +728,14 @@ class SectionRenderingService(
     val declarationPage = singleton.page
 
     val continueLabel = declarationPage.continueLabel.map(_.value()).getOrElse {
-      formTemplate.formCategory match {
-        case HMRCReturnForm => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
-        case HMRCClaimForm  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
-        case _              => messages("button.acceptAndSubmit")
-      }
+      if (maybeCoordinates.isDefined)
+        messages("button.continue")
+      else
+        formTemplate.formCategory match {
+          case HMRCReturnForm => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
+          case HMRCClaimForm  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
+          case _              => messages("button.acceptAndSubmit")
+        }
     }
 
     val listResult = validationResult.formFieldValidationResults(singleton)
@@ -755,8 +760,13 @@ class SectionRenderingService(
       snippets,
       "",
       EnvelopeId(""),
-      uk.gov.hmrc.gform.gform.routes.DeclarationController
-        .submitDeclaration(formTemplate._id, maybeAccessCode, uk.gov.hmrc.gform.controllers.Continue),
+      maybeCoordinates.fold(
+        uk.gov.hmrc.gform.gform.routes.DeclarationController
+          .submitDeclaration(formTemplate._id, maybeAccessCode, uk.gov.hmrc.gform.controllers.Continue)
+      )(_ =>
+        uk.gov.hmrc.gform.gform.routes.DeclarationController
+          .submitDeclaration(formTemplate._id, maybeAccessCode, uk.gov.hmrc.gform.controllers.DeclarationContinue)
+      ),
       false,
       continueLabel,
       0,
@@ -774,7 +784,14 @@ class SectionRenderingService(
       pageLevelErrorHtml,
       renderingInfo,
       mainForm,
-      backLink = Some(mkBackLinkDeclaration(formTemplate, maybeAccessCode, formTemplate.sectionNumberZero)),
+      backLink = Some(
+        mkBackLinkDeclaration(
+          formTemplate,
+          maybeAccessCode,
+          maybeCoordinates,
+          taskCompleted
+        )
+      ),
       shouldDisplayHeading = true,
       frontendAppConfig,
       fastForward = List(FastForward.Yes)
@@ -784,10 +801,13 @@ class SectionRenderingService(
   def mkBackLinkDeclaration(
     formTemplate: FormTemplate,
     maybeAccessCode: Option[AccessCode],
-    sectionNumber: SectionNumber
+    coordinates: Option[Coordinates],
+    taskCompleted: Option[Boolean]
   )(implicit messages: Messages): BackLink = {
     val href =
-      uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id, maybeAccessCode, None, None).url
+      uk.gov.hmrc.gform.gform.routes.SummaryController
+        .summaryById(formTemplate._id, maybeAccessCode, coordinates, taskCompleted)
+        .url
     new BackLink(href = href, content = new content.Text(messages("linkText.back")))
   }
 
