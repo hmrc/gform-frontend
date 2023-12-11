@@ -324,10 +324,12 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                   revealedChoice.options.flatMap(_.revealingFields).map(_.multiValueId)
                 }
 
-            val multiValuesNoRc: List[MultiValueId] = multiValues.filterNot { multiValue =>
-              rcIndexedComponents.contains(multiValue.modelComponentId.indexedComponentId) ||
-              rcComponentsMultiValues.contains(multiValue)
-            }
+            val multiValuesNoRc: List[MultiValueId] = multiValues
+              .filterNot { multiValue =>
+                rcIndexedComponents.contains(multiValue.modelComponentId.indexedComponentId) ||
+                rcComponentsMultiValues.contains(multiValue)
+              }
+              .filterNot(multiValue => ignoredComponentIds(multiValue.modelComponentId))
 
             val restOfTheFields: F[List[Field]] = buildMultiField(multiValuesNoRc, true)
 
