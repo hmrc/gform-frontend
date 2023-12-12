@@ -65,8 +65,7 @@ class DeclarationController(
   def showDeclaration(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId,
-    suppressErrors: SuppressErrors,
-    taskCompleted: Option[Boolean]
+    suppressErrors: SuppressErrors
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.WithDeclaration](
       formTemplateId,
@@ -94,9 +93,7 @@ class DeclarationController(
                   declarationPage,
                   cache.retrievals,
                   validationResultUpd,
-                  formModelOptics,
-                  None,
-                  taskCompleted
+                  formModelOptics
                 )
             )
           }
@@ -246,8 +243,7 @@ class DeclarationController(
     } yield {
       val call: Call =
         if (validationResult.errorsFieldIds.exists(declarationSectionFieldIds.contains))
-          routes.DeclarationController
-            .showDeclaration(maybeAccessCode, cache.formTemplate._id, SuppressErrors.No, None)
+          routes.DeclarationController.showDeclaration(maybeAccessCode, cache.formTemplate._id, SuppressErrors.No)
         else
           routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, None)
 

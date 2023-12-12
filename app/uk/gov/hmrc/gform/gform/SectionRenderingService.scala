@@ -699,9 +699,7 @@ class SectionRenderingService(
     singleton: Singleton[DataExpanded],
     retrievals: MaterialisedRetrievals,
     validationResult: ValidationResult,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    maybeCoordinates: Option[Coordinates],
-    taskCompleted: Option[Boolean]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -727,14 +725,11 @@ class SectionRenderingService(
     val declarationPage = singleton.page
 
     val continueLabel = declarationPage.continueLabel.map(_.value()).getOrElse {
-      if (maybeCoordinates.isDefined)
-        messages("button.continue")
-      else
-        formTemplate.formCategory match {
-          case HMRCReturnForm => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
-          case HMRCClaimForm  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
-          case _              => messages("button.acceptAndSubmit")
-        }
+      formTemplate.formCategory match {
+        case HMRCReturnForm => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
+        case HMRCClaimForm  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
+        case _              => messages("button.acceptAndSubmit")
+      }
     }
 
     val listResult = validationResult.formFieldValidationResults(singleton)
@@ -759,10 +754,8 @@ class SectionRenderingService(
       snippets,
       "",
       EnvelopeId(""),
-      maybeCoordinates.fold(
-        uk.gov.hmrc.gform.gform.routes.DeclarationController
-          .submitDeclaration(formTemplate._id, maybeAccessCode, uk.gov.hmrc.gform.controllers.Continue)
-      )(_ => uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplate._id, maybeAccessCode)),
+      uk.gov.hmrc.gform.gform.routes.DeclarationController
+        .submitDeclaration(formTemplate._id, maybeAccessCode, uk.gov.hmrc.gform.controllers.Continue),
       false,
       continueLabel,
       0,
@@ -780,14 +773,7 @@ class SectionRenderingService(
       pageLevelErrorHtml,
       renderingInfo,
       mainForm,
-      backLink = Some(
-        mkBackLinkDeclaration(
-          formTemplate,
-          maybeAccessCode,
-          maybeCoordinates,
-          taskCompleted
-        )
-      ),
+      backLink = Some(mkBackLinkDeclaration(formTemplate, maybeAccessCode, None, None)),
       shouldDisplayHeading = true,
       frontendAppConfig,
       fastForward = List(FastForward.Yes)
@@ -805,6 +791,92 @@ class SectionRenderingService(
         .summaryById(formTemplate._id, maybeAccessCode, coordinates, taskCompleted)
         .url
     new BackLink(href = href, content = new content.Text(messages("linkText.back")))
+  }
+
+  def renderTaskDeclarationSection(
+    maybeAccessCode: Option[AccessCode],
+    formTemplate: FormTemplate,
+    singleton: Singleton[DataExpanded],
+    retrievals: MaterialisedRetrievals,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    coordinates: Option[Coordinates],
+    taskCompleted: Option[Boolean]
+  )(implicit
+    request: Request[_],
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Html = {
+
+    val ei = ExtraInfo(
+      singleton,
+      maybeAccessCode,
+      formTemplate.sectionNumberZero,
+      formModelOptics,
+      formTemplate,
+      EnvelopeId(""),
+      EnvelopeWithMapping.empty,
+      0,
+      retrievals,
+      formLevelHeading = false,
+      specialAttributes = Map.empty,
+      AddressRecordLookup.from(ThirdPartyData.empty)
+    )
+
+    val declarationPage = singleton.page
+
+    val continueLabel = declarationPage.continueLabel.fold(messages("button.continue"))(_.value())
+
+    val snippets = declarationPage.renderUnits.map(renderUnit =>
+      htmlFor(
+        renderUnit,
+        formTemplate._id,
+        ei,
+        ValidationResult.empty,
+        obligations = NotChecked,
+        UpscanInitiate.empty,
+        Map.empty[FormComponentId, UpscanData]
+      )
+    )
+    val renderingInfo = SectionRenderingInformation(
+      formTemplate._id,
+      maybeAccessCode,
+      formTemplate.sectionNumberZero,
+      declarationPage.sectionHeader(),
+      declarationPage.noPIITitle.fold(declarationPage.title.valueWithoutInterpolations)(_.value()),
+      snippets,
+      "",
+      EnvelopeId(""),
+      uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplate._id, maybeAccessCode),
+      false,
+      continueLabel,
+      0,
+      FileInfoConfig.allAllowedFileTypes,
+      Nil
+    )
+    val mainForm = html.form.form_standard(
+      renderingInfo,
+      shouldDisplayContinue = true,
+      ei.saveAndComeBackLaterButton,
+      isFileUploadOnlyPage = false
+    )
+    html.form.form(
+      formTemplate,
+      NoErrors,
+      renderingInfo,
+      mainForm,
+      backLink = Some(
+        mkBackLinkDeclaration(
+          formTemplate,
+          maybeAccessCode,
+          coordinates,
+          taskCompleted
+        )
+      ),
+      shouldDisplayHeading = true,
+      frontendAppConfig,
+      fastForward = List(FastForward.Yes)
+    )
   }
 
   def mkBackLink(

@@ -133,14 +133,12 @@ class GformModule(
 
   val taskListController: TaskListController =
     new TaskListController(
-      configModule.frontendAppConfig,
       playBuiltInsModule.i18nSupport,
       controllersModule.authenticatedRequestActions,
       taskListModule.taskListRenderingService,
       fileUploadModule.fileUploadService,
       controllersModule.messagesControllerComponents,
       fastForwardService,
-      validationModule.validationService,
       sectionRenderingService
     )
 

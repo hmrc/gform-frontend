@@ -295,7 +295,7 @@ class SummaryController(
               case DestinationList(_, _, Some(declarationSection)) =>
                 Redirect(
                   routes.DeclarationController
-                    .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes, taskCompleted)
+                    .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes)
                 ).pure[Future]
               case DestinationList(_, _, None) =>
                 processSubmission(maybeAccessCode, cache, formModelOptics)

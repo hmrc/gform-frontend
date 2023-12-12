@@ -21,7 +21,6 @@ import cats.syntax.applicative._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
@@ -30,21 +29,18 @@ import uk.gov.hmrc.gform.gform.routes.SummaryController
 import uk.gov.hmrc.gform.models.{ DataExpanded, FastForward, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class TaskListController(
-  frontendAppConfig: FrontendAppConfig,
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActions,
   taskListRenderingService: TaskListRenderingService,
   fileUploadService: FileUploadService,
   messagesControllerComponents: MessagesControllerComponents,
   fastForwardService: FastForwardService,
-  validationService: ValidationService,
   sectionRendererService: SectionRenderingService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
@@ -181,30 +177,18 @@ class TaskListController(
           )
         )
       ) { declarationPage =>
-        import i18nSupport._
-        for {
-          validationResult <- validationService
-                                .validateAllSections(
-                                  cache.toCacheData,
-                                  formModelOptics.formModelVisibilityOptics,
-                                  EnvelopeWithMapping.empty
-                                )
-        } yield {
-          val validationResultUpd = SuppressErrors.No(validationResult)
-          Ok(
-            sectionRendererService
-              .renderDeclarationSection(
-                maybeAccessCode,
-                cache.formTemplate,
-                declarationPage,
-                cache.retrievals,
-                validationResultUpd,
-                formModelOptics,
-                Some(coordinates),
-                taskCompleted
-              )
-          )
-        }
+        Ok(
+          sectionRendererService
+            .renderTaskDeclarationSection(
+              maybeAccessCode,
+              cache.formTemplate,
+              declarationPage,
+              cache.retrievals,
+              formModelOptics,
+              Some(coordinates),
+              taskCompleted
+            )
+        ).pure[Future]
       }
     }
 }
