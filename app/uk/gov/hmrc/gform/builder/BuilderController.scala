@@ -49,7 +49,6 @@ import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-
 class BuilderController(
   auth: AuthenticatedRequestActions,
   renderer: SectionRenderingService,
@@ -634,8 +633,7 @@ class BuilderController(
     allFormComponentIds diff visibleFormComponentIds
   }
 
-  def originalAcknowledgement(formTemplateId: FormTemplateId) = {
-
+  def originalAcknowledgement(formTemplateId: FormTemplateId) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       None,
@@ -656,8 +654,6 @@ class BuilderController(
       }
 
     }
-
-  }
 
   def generateAcknowledgementPanelHtml(formTemplateId: FormTemplateId) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
