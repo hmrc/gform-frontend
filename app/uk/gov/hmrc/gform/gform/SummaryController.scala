@@ -279,12 +279,11 @@ class SummaryController(
                   uk.gov.hmrc.gform.tasklist.routes.TaskListController
                     .landingPage(formTemplateId, maybeAccessCode)
                 ) { _ =>
-                  routes.DeclarationController
+                  uk.gov.hmrc.gform.tasklist.routes.TaskListController
                     .showDeclaration(
                       maybeAccessCode,
                       cache.formTemplate._id,
-                      SuppressErrors.No,
-                      Some(coordinates),
+                      coordinates,
                       taskCompleted
                     )
                 }
@@ -296,7 +295,7 @@ class SummaryController(
               case DestinationList(_, _, Some(declarationSection)) =>
                 Redirect(
                   routes.DeclarationController
-                    .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes, None, taskCompleted)
+                    .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes, taskCompleted)
                 ).pure[Future]
               case DestinationList(_, _, None) =>
                 processSubmission(maybeAccessCode, cache, formModelOptics)

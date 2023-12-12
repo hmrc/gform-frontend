@@ -140,7 +140,8 @@ class GformModule(
       fileUploadModule.fileUploadService,
       controllersModule.messagesControllerComponents,
       fastForwardService,
-      gformBackendModule.gformConnector
+      validationModule.validationService,
+      sectionRenderingService
     )
 
   private val barsBasePath =

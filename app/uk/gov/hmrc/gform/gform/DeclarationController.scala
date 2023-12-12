@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.implicits._
+import cats.instances.future._
 import org.slf4j.LoggerFactory
 import play.api.i18n.I18nSupport
 import play.api.mvc._
@@ -34,7 +34,6 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
-import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.http.{ BadRequestException, HeaderCarrier }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -67,7 +66,6 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId,
     suppressErrors: SuppressErrors,
-    maybeCoordinates: Option[Coordinates],
     taskCompleted: Option[Boolean]
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.WithDeclaration](
@@ -75,37 +73,34 @@ class DeclarationController(
       maybeAccessCode,
       OperationWithForm.ViewDeclaration
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
-      def validateAndRenderDeclarationSection(declarationPage: Singleton[DataExpanded]): Future[Result] = {
-        import i18nSupport._
-        for {
-          validationResult <- validationService
-                                .validateAllSections(
-                                  cache.toCacheData,
-                                  formModelOptics.formModelVisibilityOptics,
-                                  EnvelopeWithMapping.empty
-                                )
-        } yield {
-          val validationResultUpd = suppressErrors(validationResult)
-          Ok(
-            renderer
-              .renderDeclarationSection(
-                maybeAccessCode,
-                cache.form,
-                cache.formTemplate,
-                declarationPage,
-                cache.retrievals,
-                validationResultUpd,
-                formModelOptics,
-                maybeCoordinates,
-                taskCompleted
-              )
-          )
-        }
-      }
-
-      val withDestination = (cache.formTemplate.destinations, getDeclarationPage(formModelOptics)) match {
+      (cache.formTemplate.destinations, getDeclarationPage(formModelOptics)) match {
         case (DestinationList(_, _, _), Some(declarationPage)) =>
-          validateAndRenderDeclarationSection(declarationPage)
+          getDeclarationPage(formModelOptics)
+          import i18nSupport._
+          for {
+            validationResult <- validationService
+                                  .validateAllSections(
+                                    cache.toCacheData,
+                                    formModelOptics.formModelVisibilityOptics,
+                                    EnvelopeWithMapping.empty
+                                  )
+          } yield {
+            val validationResultUpd = suppressErrors(validationResult)
+            Ok(
+              renderer
+                .renderDeclarationSection(
+                  maybeAccessCode,
+                  cache.formTemplate,
+                  declarationPage,
+                  cache.retrievals,
+                  validationResultUpd,
+                  formModelOptics,
+                  None,
+                  taskCompleted
+                )
+            )
+          }
+
         case (_, Some(_)) =>
           Future.failed(new BadRequestException(s"Declaration Section is not defined for ${cache.formTemplateId}"))
         case (_, None) =>
@@ -114,22 +109,6 @@ class DeclarationController(
               s"Declaration section doesn't exist: Found empty page model for ${cache.formTemplateId}"
             )
           )
-      }
-
-      maybeCoordinates.fold(withDestination) { coordinates =>
-        val declarationPage: Option[Singleton[DataExpanded]] =
-          TaskListUtils.withTask(cache.formTemplate, coordinates.taskSectionNumber, coordinates.taskNumber) { task =>
-            for {
-              declarationPage <- task.declarationSection.map(_.toPage)
-            } yield Singleton(declarationPage).asInstanceOf[Singleton[DataExpanded]]
-          }
-        declarationPage.fold[Future[Result]](
-          Future.failed(
-            new BadRequestException(
-              s"Declaration Section is not defined for ${cache.formTemplateId}"
-            )
-          )
-        )(validateAndRenderDeclarationSection)
       }
     }
 
@@ -166,11 +145,6 @@ class DeclarationController(
                 Future.failed(
                   new BadRequestException(s"Declaration Section is not defined for ${cache.formTemplateId}")
                 )
-
-              case (uk.gov.hmrc.gform.controllers.DeclarationContinue, _) =>
-                Redirect(
-                  uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, maybeAccessCode)
-                ).pure[Future]
 
               case _ =>
                 Future.successful(BadRequest("Cannot determine action"))
@@ -273,7 +247,7 @@ class DeclarationController(
       val call: Call =
         if (validationResult.errorsFieldIds.exists(declarationSectionFieldIds.contains))
           routes.DeclarationController
-            .showDeclaration(maybeAccessCode, cache.formTemplate._id, SuppressErrors.No, None, None)
+            .showDeclaration(maybeAccessCode, cache.formTemplate._id, SuppressErrors.No, None)
         else
           routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, None, None)
 

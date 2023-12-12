@@ -695,7 +695,6 @@ class SectionRenderingService(
 
   def renderDeclarationSection(
     maybeAccessCode: Option[AccessCode],
-    form: Form,
     formTemplate: FormTemplate,
     singleton: Singleton[DataExpanded],
     retrievals: MaterialisedRetrievals,
@@ -763,10 +762,7 @@ class SectionRenderingService(
       maybeCoordinates.fold(
         uk.gov.hmrc.gform.gform.routes.DeclarationController
           .submitDeclaration(formTemplate._id, maybeAccessCode, uk.gov.hmrc.gform.controllers.Continue)
-      )(_ =>
-        uk.gov.hmrc.gform.gform.routes.DeclarationController
-          .submitDeclaration(formTemplate._id, maybeAccessCode, uk.gov.hmrc.gform.controllers.DeclarationContinue)
-      ),
+      )(_ => uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplate._id, maybeAccessCode)),
       false,
       continueLabel,
       0,

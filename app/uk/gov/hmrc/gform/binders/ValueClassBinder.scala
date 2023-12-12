@@ -20,7 +20,7 @@ import cats.implicits._
 import play.api.libs.json._
 import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
 import scala.util.{ Failure, Success }
-import uk.gov.hmrc.gform.controllers.{ AddGroup, Back, DeclarationContinue, Direction, EditAddToList, Exit, RemoveGroup, SaveAndContinue, SaveAndExit, SummaryContinue }
+import uk.gov.hmrc.gform.controllers.{ AddGroup, Back, Direction, EditAddToList, Exit, RemoveGroup, SaveAndContinue, SaveAndExit, SummaryContinue }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ ExpandUtils, FastForward, LookupQuery }
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
@@ -99,15 +99,14 @@ object ValueClassBinder {
 
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Direction]] =
         params.get(key).flatMap(_.headOption).map {
-          case "Save"                => Right(SaveAndExit)
-          case "Back"                => Right(Back)
-          case "SaveAndContinue"     => Right(SaveAndContinue)
-          case "Exit"                => Right(Exit)
-          case "Continue"            => Right(uk.gov.hmrc.gform.controllers.Continue)
-          case "SummaryContinue"     => Right(SummaryContinue)
-          case "DeclarationContinue" => Right(DeclarationContinue)
-          case AddGroupR(x)          => Right(AddGroup(ExpandUtils.toModelComponentId(x)))
-          case RemoveGroupR(x)       => Right(RemoveGroup(ExpandUtils.toModelComponentId(x)))
+          case "Save"            => Right(SaveAndExit)
+          case "Back"            => Right(Back)
+          case "SaveAndContinue" => Right(SaveAndContinue)
+          case "Exit"            => Right(Exit)
+          case "Continue"        => Right(uk.gov.hmrc.gform.controllers.Continue)
+          case "SummaryContinue" => Right(SummaryContinue)
+          case AddGroupR(x)      => Right(AddGroup(ExpandUtils.toModelComponentId(x)))
+          case RemoveGroupR(x)   => Right(RemoveGroup(ExpandUtils.toModelComponentId(x)))
           case EditAddToListR(idx, fcId) =>
             Right(EditAddToList(idx.toInt, AddToListId(FormComponentId(fcId))): Direction)
           case unknown => throw new IllegalArgumentException(s"Query param $key has invalid value $unknown")
@@ -121,7 +120,6 @@ object ValueClassBinder {
           case Exit                                   => "Exit"
           case uk.gov.hmrc.gform.controllers.Continue => "Continue"
           case SummaryContinue                        => "SummaryContinue"
-          case DeclarationContinue                    => "DeclarationContinue"
           case AddGroup(modelComponentId)             => s"AddGroup-${modelComponentId.toMongoIdentifier}"
           case RemoveGroup(modelComponentId)          => s"RemoveGroup-${modelComponentId.toMongoIdentifier}"
           case EditAddToList(idx: Int, addToListId: AddToListId) =>
