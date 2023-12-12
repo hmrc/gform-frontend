@@ -66,6 +66,7 @@ import uk.gov.hmrc.gform.views.html.specimen
 import uk.gov.hmrc.gform.views.html.summary.header
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
+import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukPanel, Panel }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes, ExclusiveCheckbox }
@@ -965,17 +966,17 @@ class SectionRenderingService(
       AddressRecordLookup.from(cache.form.thirdPartyData)
     )
 
-    val htmlContent: Content =
-      if (destinationList.acknowledgementSection.showReference) {
-        HtmlContent(
-          uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.submission_reference(SubmissionRef(envelopeId))
-        )
-      } else {
-        Empty
-      }
-
     val formCategory = formTemplate.formCategory
     val panelTitle = destinationList.acknowledgementSection.panelTitle.map(_.value())
+    val showReference = destinationList.acknowledgementSection.showReference
+    val heading = acknowledgementHeading(formCategory)
+    val acknowledgementPanel = renderAcknowledgementPanel(
+      panelTitle,
+      showReference,
+      formCategory,
+      envelopeId,
+      heading
+    )
     val snippets = destinationList.acknowledgementSection.toPage.renderUnits.map(renderUnit =>
       htmlFor(
         renderUnit,
@@ -1038,8 +1039,8 @@ class SectionRenderingService(
       .acknowledgement(
         formTemplateId,
         renderingInfo,
-        htmlContent,
-        formCategory,
+        acknowledgementPanel,
+        heading,
         formTemplate,
         panelTitle,
         frontendAppConfig,
@@ -1047,6 +1048,37 @@ class SectionRenderingService(
         maybeDataStoreDownloadUrl,
         maybeReturnToSummaryUrl
       )
+  }
+
+  def renderAcknowledgementPanel(
+    panelTitle: Option[String],
+    showReference: Boolean,
+    formCategory: FormCategory,
+    envelopeId: EnvelopeId,
+    heading: String
+  )(implicit
+    messages: Messages
+  ): Html = {
+    val govukPanel = new GovukPanel()
+    val htmlContent: Content =
+      if (showReference) {
+        HtmlContent(
+          uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.submission_reference(SubmissionRef(envelopeId))
+        )
+      } else {
+        Empty
+      }
+    govukPanel(
+      Panel(
+        title = content.Text(panelTitle.getOrElse(heading)),
+        content = htmlContent
+      )
+    )
+  }
+
+  def acknowledgementHeading(formCategory: FormCategory)(implicit messages: Messages): String = {
+    val formCat = messages(s"formCategory.${formCategory.getString}")
+    messages("ack.title", formCat.capitalize)
   }
 
   def renderEnrolmentSection(

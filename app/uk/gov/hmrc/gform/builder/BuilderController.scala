@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.gform.upscan.{ UpscanData, UpscanInitiate }
@@ -47,6 +48,7 @@ import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, FormFieldValidati
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+
 
 class BuilderController(
   auth: AuthenticatedRequestActions,
@@ -632,4 +634,150 @@ class BuilderController(
     allFormComponentIds diff visibleFormComponentIds
   }
 
+  def originalAcknowledgement(formTemplateId: FormTemplateId) = {
+
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      None,
+      OperationWithForm.EditFormAcknowledgement
+    ) { implicit request => lang => cache => sse => formModelOptics =>
+      gformConnector.getFormTemplateRaw(formTemplateId).flatMap { formTemplateRaw =>
+        val jsonString: String = PlayJson.stringify(formTemplateRaw)
+        val maybeCirceJson: Either[ParsingFailure, Json] =
+          io.circe.parser.parse(jsonString)
+
+        val json: Option[Json] = maybeCirceJson.toOption.flatMap { json =>
+          json.hcursor.downField("acknowledgementSection").focus
+        }
+        json match {
+          case None                         => InternalServerError("Unable to retrieve acknowledgement section").pure[Future]
+          case Some(acknowledgementSection) => Ok(acknowledgementSection).pure[Future]
+        }
+      }
+
+    }
+
+  }
+
+  def generateAcknowledgementPanelHtml(formTemplateId: FormTemplateId) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      None,
+      OperationWithForm.EditFormAcknowledgement
+    ) { implicit request => _ => cache => implicit sse => formModelOptics =>
+      import i18nSupport._
+      val formTemplate = cache.formTemplate
+      val envelopeId = cache.form.envelopeId
+
+      val destinationList = formTemplate.destinations match {
+        case destinationList: DestinationList => destinationList
+        case _                                => throw new Exception("")
+      }
+
+      val formCategory = formTemplate.formCategory
+      val panelTitle = destinationList.acknowledgementSection.panelTitle.map(_.value())
+      val showReference = destinationList.acknowledgementSection.showReference
+      val heading = renderer.acknowledgementHeading(formCategory)
+
+      val html = renderer.renderAcknowledgementPanel(
+        panelTitle,
+        showReference,
+        formCategory,
+        envelopeId,
+        heading
+      )
+      Ok(
+        Json.obj(
+          "panelHtml" := sanitiseHtml(html)
+        )
+      ).pure[Future]
+    }
+
+  def htmlForAcknowledgementFormComponent(
+    formTemplateId: FormTemplateId,
+    formComponentId: FormComponentId
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      None,
+      OperationWithForm.EditFormAcknowledgement
+    ) { implicit request => implicit lang => cache => implicit sse => formModelOptics =>
+      import i18nSupport._
+
+      val maybeAcknowledgementSection = cache.formTemplate.destinations.fold[Option[AcknowledgementSection]](ds =>
+        Option[AcknowledgementSection](ds.acknowledgementSection)
+      )(_ => Option.empty[AcknowledgementSection])
+      maybeAcknowledgementSection match {
+        case Some(acknowledgementSection) =>
+          renderHtmlForAcknowledgementFormComponent(
+            acknowledgementSection,
+            formComponentId,
+            formModelOptics,
+            cache
+          )
+        case _ =>
+          BadRequest("Can not find acknowledgement section in the form").pure[Future]
+      }
+
+    }
+
+  private def renderHtmlForAcknowledgementFormComponent(
+    acknowledgementSection: AcknowledgementSection,
+    formComponentId: FormComponentId,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    cache: AuthCacheWithForm
+  )(implicit
+    sse: SmartStringEvaluator,
+    request: Request[_],
+    messages: Messages,
+    l: LangADT
+  ) = {
+    val formComponents = acknowledgementSection.fields
+    formComponents match {
+      case Nil =>
+        badRequest(s"Acknowledgement section doesn't contain any fields. Trying to find: ${formComponentId.value}")
+          .pure[Future]
+      case nel =>
+        nel.find(_.id === formComponentId) match {
+          case None =>
+            badRequest(s"Failed to find formComponentId: ${formComponentId.value} in acknowledgment section fields")
+              .pure[Future]
+          case Some(formComponent) =>
+            val renderUnit = RenderUnit.Pure(formComponent)
+
+            val validationResult = ValidationResult.empty
+
+            val obligations = NotChecked
+
+            val page = acknowledgementSection.toPage
+            val singleton = Singleton(page.asInstanceOf[Page[DataExpanded]])
+
+            val ei: ExtraInfo = ExtraInfo(
+              singleton = singleton,
+              maybeAccessCode = None,
+              sectionNumber = cache.formTemplate.sectionNumberZero,
+              formModelOptics = formModelOptics,
+              formTemplate = cache.formTemplate,
+              envelopeId = cache.form.envelopeId,
+              envelope = EnvelopeWithMapping.empty,
+              formMaxAttachmentSizeMB = 0,
+              retrievals = cache.retrievals,
+              formLevelHeading = false,
+              specialAttributes = Map.empty[String, String],
+              addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
+            )
+
+            val formComponentHtml = renderer.htmlFor(
+              renderUnit,
+              cache.formTemplate._id,
+              ei,
+              validationResult,
+              obligations,
+              UpscanInitiate.empty,
+              Map.empty[FormComponentId, UpscanData]
+            )
+            Ok(Json.obj("html" := sanitiseHtml(formComponentHtml))).pure[Future]
+        }
+    }
+  }
 }

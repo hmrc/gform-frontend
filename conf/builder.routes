@@ -10,3 +10,6 @@ GET  /generate-submit-section-label/:formTemplateId                            u
 GET  /generate-submit-section-task-label/:formTemplateId                       uk.gov.hmrc.gform.builder.BuilderController.fetchSubmitSectionTaskLabel(formTemplateId: FormTemplateId)
 GET  /generate-summary-section/:formTemplateId                                 uk.gov.hmrc.gform.builder.BuilderController.fetchSummarySectionHtml(formTemplateId: FormTemplateId, c: Option[Coordinates])
 GET  /generate-component-html-summary-section/:formTemplateId/:formComponentId uk.gov.hmrc.gform.builder.BuilderController.htmlForSumarySectionFormComponent(formTemplateId: FormTemplateId, formComponentId: FormComponentId, c: Option[Coordinates])
+GET  /original-acknowledgement/:formTemplateId                                 uk.gov.hmrc.gform.builder.BuilderController.originalAcknowledgement(formTemplateId: FormTemplateId)
+GET  /generate-acknowledgement-panel-html/:formTemplateId                      uk.gov.hmrc.gform.builder.BuilderController.generateAcknowledgementPanelHtml(formTemplateId: FormTemplateId)
+GET  /generate-component-html-acknowledgement-section/:formTemplateId/:formComponentId uk.gov.hmrc.gform.builder.BuilderController.htmlForAcknowledgementFormComponent(formTemplateId: FormTemplateId, formComponentId: FormComponentId)
