@@ -11,7 +11,7 @@
 
 # Add all the application routes to the prod.routes file
 ->            /                                                        prod.Routes
-->            /submissions/builder/                                    builder.Routes
+->            /submissions/test-only/builder/                          builder.Routes
 
 GET           /submissions/test-only/proxy-to-gform/*path              uk.gov.hmrc.gform.testonly.TestOnlyController.proxyToGform(path: String)
 POST          /submissions/test-only/proxy-to-gform/*path              uk.gov.hmrc.gform.testonly.TestOnlyController.proxyToGform(path: String)
@@ -35,6 +35,15 @@ GET           /submissions/test-only/whats-in-session                  uk.gov.hm
 GET           /submissions/test-only/clear-session                     uk.gov.hmrc.gform.testonly.TestOnlyController.clearSession()
 GET           /submissions/test-only/config                            uk.gov.hmrc.gform.testonly.TestOnlyController.config()
 
+GET           /submissions/test-only/gform-plugin/exprs/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.exprs(formTemplateId: FormTemplateId)
+GET           /submissions/test-only/gform-plugin/model/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)
+GET           /submissions/test-only/gform-plugin/verify/:formTemplateId            uk.gov.hmrc.gform.testonly.DebugController.verify(formTemplateId: FormTemplateId)
+
+GET           /submissions/test-only/errors/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorMessages(formTemplateId: FormTemplateId, a: Option[AccessCode], jsonReport: Boolean, baseComponentId: Option[String], isUsageReport: Boolean )
+GET           /submissions/test-only/errors-json/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsJson(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /submissions/test-only/errors-html/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /submissions/test-only/errors-html-usage/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsUsageHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
+
 GET           /submissions/test-only/payloads/:formTemplateId                                    uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloads(formTemplateId: FormTemplateId, accessCode: Option[AccessCode] = None)
 GET           /submissions/test-only/payloads/:formTemplateId/:accessCode                        uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloads(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 GET           /submissions/test-only/handlebars-model/:formTemplateId                            uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarModel(formTemplateId: FormTemplateId, accessCode: Option[AccessCode] = None)
@@ -47,11 +56,3 @@ GET           /submissions/test-only/payload-source/:formTemplateId/:destination
 GET           /submissions/test-only/payload-source/:formTemplateId/:destinationId/:accessCode   uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloadSource(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode])
 
 
-GET           /submissions/gform-plugin/exprs/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.exprs(formTemplateId: FormTemplateId)
-GET           /submissions/gform-plugin/model/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)
-GET           /submissions/gform-plugin/verify/:formTemplateId            uk.gov.hmrc.gform.testonly.DebugController.verify(formTemplateId: FormTemplateId)
-
-GET           /submissions/errors/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorMessages(formTemplateId: FormTemplateId, a: Option[AccessCode], jsonReport: Boolean, baseComponentId: Option[String], isUsageReport: Boolean )
-GET           /submissions/errors-json/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsJson(formTemplateId: FormTemplateId, a: Option[AccessCode])
-GET           /submissions/errors-html/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
-GET           /submissions/errors-html-usage/:formTemplateId  uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsUsageHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
