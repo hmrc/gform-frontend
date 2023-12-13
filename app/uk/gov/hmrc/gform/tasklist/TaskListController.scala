@@ -185,7 +185,7 @@ class TaskListController(
               declarationPage,
               cache.retrievals,
               formModelOptics,
-              Some(coordinates),
+              coordinates,
               taskCompleted
             )
         ).pure[Future]

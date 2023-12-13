@@ -799,7 +799,7 @@ class SectionRenderingService(
     singleton: Singleton[DataExpanded],
     retrievals: MaterialisedRetrievals,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    coordinates: Option[Coordinates],
+    coordinates: Coordinates,
     taskCompleted: Option[Boolean]
   )(implicit
     request: Request[_],
@@ -869,7 +869,7 @@ class SectionRenderingService(
         mkBackLinkDeclaration(
           formTemplate,
           maybeAccessCode,
-          coordinates,
+          Some(coordinates),
           taskCompleted
         )
       ),
