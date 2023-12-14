@@ -666,27 +666,29 @@ class BuilderController(
       val envelopeId = cache.form.envelopeId
 
       val destinationList = formTemplate.destinations match {
-        case destinationList: DestinationList => destinationList
-        case _                                => throw new Exception("")
+        case destinationList: DestinationList => Some(destinationList)
+        case _                                => None
       }
 
       val formCategory = formTemplate.formCategory
-      val panelTitle = destinationList.acknowledgementSection.panelTitle.map(_.value())
-      val showReference = destinationList.acknowledgementSection.showReference
       val heading = renderer.acknowledgementHeading(formCategory)
 
-      val html = renderer.renderAcknowledgementPanel(
-        panelTitle,
-        showReference,
-        formCategory,
-        envelopeId,
-        heading
-      )
-      Ok(
-        Json.obj(
-          "panelHtml" := sanitiseHtml(html)
-        )
-      ).pure[Future]
+      destinationList.map { l =>
+        val panelTitle = l.acknowledgementSection.panelTitle.map(_.value())
+        val showReference = l.acknowledgementSection.showReference
+        (panelTitle, showReference)
+      } match {
+        case Some((panelTitle, showReference)) =>
+          val html = renderer.renderAcknowledgementPanel(
+            panelTitle,
+            showReference,
+            formCategory,
+            envelopeId,
+            heading
+          )
+          Ok(Json.obj("panelHtml" := sanitiseHtml(html))).pure[Future]
+        case _ => badRequest(s"Destination list is not defined").pure[Future]
+      }
     }
 
   def htmlForAcknowledgementFormComponent(
@@ -711,8 +713,7 @@ class BuilderController(
             formModelOptics,
             cache
           )
-        case _ =>
-          BadRequest("Can not find acknowledgement section in the form").pure[Future]
+        case _ => badRequest("Can not find acknowledgement section in the form").pure[Future]
       }
 
     }
