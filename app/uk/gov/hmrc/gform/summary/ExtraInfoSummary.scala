@@ -39,5 +39,5 @@ final case class ExtraInfoSummary(
   formDataFingerprint: String,
   displayWidth: LayoutDisplayWidth.LayoutDisplayWidth,
   maybeCoordinates: Option[Coordinates],
-  taskComplete: Boolean
+  taskCompleted: Option[Boolean]
 )

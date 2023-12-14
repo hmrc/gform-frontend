@@ -317,7 +317,6 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     val generatedHtml = testService
       .renderDeclarationSection(
         Some(accessCode),
-        form,
         formTemplate,
         formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton[DataExpanded]],
         authContext,
@@ -353,7 +352,6 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     val generatedHtml = testService
       .renderDeclarationSection(
         Some(accessCode),
-        form,
         formTemplate,
         formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton[DataExpanded]],
         authContext,

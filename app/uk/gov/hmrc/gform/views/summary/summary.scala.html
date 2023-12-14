@@ -46,7 +46,7 @@
     val href = formTemplate.formKind.fold{ _ =>
         uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, lastSectionNumber).path
     } { _ =>
-        if(taskComplete) {
+        if(taskCompleted.getOrElse(false)) {
             uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplate._id, maybeAccessCode).path
          } else {
             uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, lastSectionNumber).path
@@ -93,7 +93,7 @@
         }
     }
 
-    @formWithCSRF(action = SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint, maybeCoordinates), args =  'method -> "POST", 'class -> "js-form govuk-!-margin-bottom-9", 'autocomplete -> "off", 'novalidate -> "novalidate", 'id -> "gf-form") {
+    @formWithCSRF(action = SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint, maybeCoordinates, taskCompleted), args =  'method -> "POST", 'class -> "js-form govuk-!-margin-bottom-9", 'autocomplete -> "off", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
         @mainContent {
             @if(summaryPagePurpose.forUser) {
@@ -115,13 +115,13 @@
                 @govukButton(Button(content = Text(messages(continueLabelKey)),
                     inputType=Some("submit"),
                     value=Some("SummaryContinue"),
-                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint, maybeCoordinates).path)
+                    attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, SummaryContinue, formDataFingerprint, maybeCoordinates, taskCompleted).path)
                     )
                 )
                 @if(renderComeBackLater) {
                     @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
                         inputType=Some("submit"),
-                        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, Exit, formDataFingerprint, maybeCoordinates).path),
+                        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, Exit, formDataFingerprint, maybeCoordinates, taskCompleted).path),
                         classes="govuk-button--secondary"
                         )
                     )

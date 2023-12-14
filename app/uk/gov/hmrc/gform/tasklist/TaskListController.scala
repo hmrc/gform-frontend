@@ -21,29 +21,27 @@ import cats.syntax.applicative._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
-import uk.gov.hmrc.gform.gform.FastForwardService
+import uk.gov.hmrc.gform.gform.{ FastForwardService, SectionRenderingService }
 import uk.gov.hmrc.gform.gform.routes.SummaryController
-import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ FastForward, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ DataExpanded, FastForward, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class TaskListController(
-  frontendAppConfig: FrontendAppConfig,
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActions,
   taskListRenderingService: TaskListRenderingService,
   fileUploadService: FileUploadService,
   messagesControllerComponents: MessagesControllerComponents,
   fastForwardService: FastForwardService,
-  gformConnector: GformConnector
+  sectionRendererService: SectionRenderingService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
@@ -153,5 +151,44 @@ class TaskListController(
             Some(true)
           )
         ).pure[Future]
+    }
+
+  def showDeclaration(
+    maybeAccessCode: Option[AccessCode],
+    formTemplateId: FormTemplateId,
+    coordinates: Coordinates,
+    taskCompleted: Option[Boolean]
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.WithDeclaration](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.ViewDeclaration
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      val maybeDeclarationPage: Option[Singleton[DataExpanded]] =
+        TaskListUtils.withTask(cache.formTemplate, coordinates.taskSectionNumber, coordinates.taskNumber) { task =>
+          for {
+            declarationPage <- task.declarationSection.map(_.toPage)
+          } yield Singleton(declarationPage).asInstanceOf[Singleton[DataExpanded]]
+        }
+      maybeDeclarationPage.fold[Future[Result]](
+        Future.failed(
+          new BadRequestException(
+            s"Declaration Section is not defined in task ${coordinates.taskSectionNumber.value}-${coordinates.taskNumber.value} for ${cache.formTemplateId}"
+          )
+        )
+      ) { declarationPage =>
+        Ok(
+          sectionRendererService
+            .renderTaskDeclarationSection(
+              maybeAccessCode,
+              cache.formTemplate,
+              declarationPage,
+              cache.retrievals,
+              formModelOptics,
+              coordinates,
+              taskCompleted
+            )
+        ).pure[Future]
+      }
     }
 }

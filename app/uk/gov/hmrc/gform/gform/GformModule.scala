@@ -133,14 +133,13 @@ class GformModule(
 
   val taskListController: TaskListController =
     new TaskListController(
-      configModule.frontendAppConfig,
       playBuiltInsModule.i18nSupport,
       controllersModule.authenticatedRequestActions,
       taskListModule.taskListRenderingService,
       fileUploadModule.fileUploadService,
       controllersModule.messagesControllerComponents,
       fastForwardService,
-      gformBackendModule.gformConnector
+      sectionRenderingService
     )
 
   private val barsBasePath =

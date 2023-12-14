@@ -89,7 +89,6 @@ class DeclarationController(
               renderer
                 .renderDeclarationSection(
                   maybeAccessCode,
-                  cache.form,
                   cache.formTemplate,
                   declarationPage,
                   cache.retrievals,

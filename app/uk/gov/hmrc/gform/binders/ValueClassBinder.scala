@@ -169,7 +169,7 @@ object ValueClassBinder {
       }
 
     override def unbind(key: String, maybeAccessCode: Option[SectionNumber]): String =
-      maybeAccessCode.fold("-")(a => a.value.toString)
+      maybeAccessCode.fold("-")(a => a.value)
   }
 
   implicit val formIdQueryBinder: QueryStringBindable[FormId] = valueClassQueryBinder(_.value)
@@ -185,7 +185,7 @@ object ValueClassBinder {
       }
 
     override def unbind(key: String, sectionNumber: SectionNumber): String =
-      s"""$key=${sectionNumber.value.toString}"""
+      s"""$key=${sectionNumber.value}"""
   }
 
   implicit val coordinatesQueryBinder: QueryStringBindable[Coordinates] = new QueryStringBindable[Coordinates] {
@@ -199,7 +199,7 @@ object ValueClassBinder {
       }
 
     override def unbind(key: String, coordinates: Coordinates): String =
-      s"""$key=${coordinates.value.toString}"""
+      s"""$key=${coordinates.value}"""
   }
 
   implicit val suppressErrorsQueryBinder: QueryStringBindable[SuppressErrors] =
