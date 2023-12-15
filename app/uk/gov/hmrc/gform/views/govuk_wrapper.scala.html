@@ -53,10 +53,6 @@
   maybeFormTemplate.flatMap(_.userResearchUrl.map(_.value))
 }
 
-@accessibilityUrl = @{
-  maybeFormTemplate.flatMap(_.accessibilityUrl)
-}
-
 @formLanguages = @{
   if (displayLanguageSwitcher) maybeFormTemplate.map(_.languages).getOrElse(AvailableLanguages.default) else AvailableLanguages.default
 }
@@ -212,13 +208,20 @@
 
 @hmrcFooterItems = @{new HmrcFooterItems(appConfig.accessibilityStatementConfig)}
 @hmrcStandardFooter = @{new helpers.HmrcStandardFooter(hmrcFooter, hmrcFooterItems)}
+@accessibilityUrl = @{
+    maybeFormTemplate
+    .flatMap(_.accessibilityUrl)
+    .map(_.value)
+    .orElse(maybeFormTemplate.map(_._id.value))
+    .map(path => s"${appConfig.footerAccessibilityStatementUrl}/$path")
+}
 
 @footerBlock = {
     @if(appConfig.isProd){
-        @Some(hmrcStandardFooter(accessibilityStatementUrl = accessibilityUrl.map(_.value).orElse(maybeFormTemplate.map(_._id.value)).map(path => s"${appConfig.footerAccessibilityStatementUrl}/$path")))
+        @Some(hmrcStandardFooter(accessibilityStatementUrl = accessibilityUrl))
     } else {
-        @Some(hmrcStandardFooter(accessibilityStatementUrl = accessibilityUrl.map(_.value).orElse(maybeFormTemplate.map(_._id.value)).map(path => s"${appConfig.footerAccessibilityStatementUrl}/$path"),
-                                 additionalFooterItems = testOnlyAdditionalFooterItems(maybeFormTemplate, accessCode) ))
+        @Some(hmrcStandardFooter(accessibilityStatementUrl = accessibilityUrl,
+                                 additionalFooterItems = testOnlyAdditionalFooterItems(maybeFormTemplate, accessCode)))
     }
 }
 
