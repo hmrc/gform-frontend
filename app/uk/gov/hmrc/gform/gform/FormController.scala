@@ -947,7 +947,7 @@ class FormController(
         }
     }
     val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)
-    Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
+    Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, maybeAccessCode))
   }
 
   private val formMaxAttachmentSizeMB = appConfig.formMaxAttachmentSizeMB

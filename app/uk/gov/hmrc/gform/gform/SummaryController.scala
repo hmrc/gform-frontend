@@ -222,7 +222,7 @@ class SummaryController(
                 ) // TODO JoVl why are Coordinates needed here?
             }
             val saveAcknowledgement = new SaveAcknowledgement(formTemplate, cache.form.envelopeExpiryDate)
-            Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
+            Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, maybeAccessCode))
         }
     }
   }

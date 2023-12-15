@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.gform.testonly
 
+import cats.implicits.catsSyntaxEq
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import cats.data.EitherT
 import cats.implicits._
-import cats.instances.future._
 import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.libs.json.JsValue
@@ -43,9 +43,10 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
-import uk.gov.hmrc.gform.sharedmodel.form.Form
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataStore, DataStoreLegacy, Dms, HmrcIlluminate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, SdesDestination }
 import uk.gov.hmrc.govukfrontend.views.html.components.GovukTable
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ HtmlContent, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, TableRow }
@@ -246,6 +247,44 @@ class TestOnlyController(
           )
         )
 
+        val maybeReturnToSummaryContent = Option(
+          uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+            "Return to summary page",
+            uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+              .changeStateAndRedirectToCYA(formTemplateId, maybeAccessCode)
+          )
+        )
+          .filter(_ =>
+            destinationList.destinations.size === 1 && destinationList.destinations.exists {
+              case Destination.StateTransition(_, _, _, _) => true
+              case _                                       => false
+            } && cache.form.status === Submitted
+          )
+
+        val envelopeId = cache.form.envelopeId
+        val isObjectStore = cache.formTemplate.isObjectStore
+
+        def createDownloadContent(destination: SdesDestination): Option[HtmlFormat.Appendable] =
+          Option(
+            uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+              destination.description,
+              uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+                .proxyToGform(s"gform/test-only/object-store/${destination.downloadPath}/envelopes/${envelopeId.value}")
+            )
+          ).filter(_ =>
+            isObjectStore && destinationList.destinations.exists {
+              case Destination.HmrcDms(_, _, _, _, _, _, _, _, _, _, _)              => destination === Dms
+              case Destination.DataStore(_, dsType, _, _, _, _, _, _, _, _, _, _, _) => destination === dsType
+              case _                                                                 => false
+            } && cache.form.status === Submitted
+          )
+
+        val maybeDownloadContents =
+          Seq(Dms, DataStore, DataStoreLegacy, HmrcIlluminate).flatMap(createDownloadContent) match {
+            case nonEmptyContents if nonEmptyContents.nonEmpty => Some(nonEmptyContents)
+            case _                                             => None
+          }
+
         Ok(
           destinations(
             cache.formTemplate,
@@ -254,7 +293,9 @@ class TestOnlyController(
             true,
             Option.empty[String],
             frontendAppConfig,
-            govukTable
+            govukTable,
+            maybeReturnToSummaryContent,
+            maybeDownloadContents
           )
         )
       }(_ =>
@@ -266,7 +307,9 @@ class TestOnlyController(
             false,
             Some("Print destination has no payload"),
             frontendAppConfig,
-            HtmlFormat.empty
+            HtmlFormat.empty,
+            None,
+            None
           )
         )
       )

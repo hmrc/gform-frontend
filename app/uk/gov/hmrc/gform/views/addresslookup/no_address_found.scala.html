@@ -50,7 +50,8 @@
   title = messages("postcodeLookup.cannot.find.address.title"),
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
-  backLink = Some(backLink)
+  backLink = Some(backLink),
+  accessCode= maybeAccessCode
 ) {
   @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 

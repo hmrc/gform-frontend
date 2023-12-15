@@ -26,7 +26,9 @@
   hasDestinations: Boolean,
   otherContent: Option[String],
   frontendAppConfig: FrontendAppConfig,
-  table: Html
+  table: Html,
+  returnToSummaryContent: Option[Html],
+  downloadFileContents: Option[Seq[Html]]
 )(implicit
   request: Request[_],
   messages: Messages,
@@ -39,8 +41,29 @@
   title = heading,
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
-  isMainContentFullWidth = true
+  isMainContentFullWidth = true,
+  accessCode = None
 ) {
+    @returnToSummaryContent.map{ content =>
+        <div class="govuk-body">
+            <h1 class="govuk-heading-l">Change status</h1>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>@content</li>
+            </ul>
+        </div>
+        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+    }
+
+    @downloadFileContents.map{ contents =>
+        <div class="govuk-body">
+            <h1 class="govuk-heading-l">Download files</h1>
+            <ul class="govuk-list govuk-list--bullet">
+                @contents.map{ content => <li>@content</li> }
+            </ul>
+        </div>
+        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+    }
+
     <h1 class="govuk-heading-l">
         @heading
     </h1>

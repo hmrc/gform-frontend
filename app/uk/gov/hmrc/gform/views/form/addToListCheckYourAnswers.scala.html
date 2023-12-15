@@ -62,7 +62,8 @@
     formTemplate = formTemplate,
     containsErrors = pageLevelError.hasErrors,
     frontendAppConfig = frontendAppConfig,
-    backLink = Some(backLink)
+    backLink = Some(backLink),
+    accessCode = maybeAccessCode
 ) {
     @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 

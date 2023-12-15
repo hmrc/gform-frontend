@@ -1008,6 +1008,7 @@ trait ExampleFrontendAppConfig {
     trackingConsentSnippet = new HmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration)),
     emailAuthStaticCodeEmails = Some(NonEmptyList.of(ci"test1@test.com", ci"test2@test.com")),
     accessibilityStatementConfig = new AccessibilityStatementConfig(context.initialConfiguration),
-    refreshSessionUrl = "refreshSessionUrl"
+    refreshSessionUrl = "refreshSessionUrl",
+    isProd = true
   )
 }

@@ -39,7 +39,8 @@ case class FrontendAppConfig(
   trackingConsentSnippet: HmrcTrackingConsentSnippet,
   emailAuthStaticCodeEmails: Option[NonEmptyList[CIString]],
   accessibilityStatementConfig: AccessibilityStatementConfig,
-  refreshSessionUrl: String
+  refreshSessionUrl: String,
+  isProd: Boolean
 ) {
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {

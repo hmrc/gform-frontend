@@ -217,7 +217,8 @@ class AddressLookupController(
           fastForward
         ),
       backHref,
-      addressLookupResult
+      addressLookupResult,
+      maybeAccessCode
     )
   }
 
@@ -366,7 +367,8 @@ class AddressLookupController(
                   address,
                   confirmAddressAndContinue,
                   enterAddressHref,
-                  backHref
+                  backHref,
+                  maybeAccessCode
                 )
             )
               .pure[Future]
@@ -614,7 +616,8 @@ class AddressLookupController(
                       enterAddressPage,
                       formAction,
                       backHref,
-                      fastForward
+                      fastForward,
+                      maybeAccessCode
                     )
                 )
               }
