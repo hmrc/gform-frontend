@@ -27,7 +27,8 @@
   displayTimeoutDialog: Boolean = true,
   displaySignOut: Boolean = true,
   isMainContentFullWidth: Boolean = false,
-  serviceTitle: Option[String] = None
+  serviceTitle: Option[String] = None,
+  accessCode: Option[AccessCode]
 )(content: Html)(implicit request: Request[_], messages: Messages, l: LangADT)
 
 @serviceName = @{serviceTitle.getOrElse(formTemplate.formName.value)}
@@ -85,5 +86,6 @@
   displayTimeoutDialog = displayTimeoutDialog,
   displaySignOut = displaySignOut,
   displayLanguageSwitcher = true,
-  isMainContentFullWidth = isMainContentFullWidth
+  isMainContentFullWidth = isMainContentFullWidth,
+  accessCode = accessCode
 )

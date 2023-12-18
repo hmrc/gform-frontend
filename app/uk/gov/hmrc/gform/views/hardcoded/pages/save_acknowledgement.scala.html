@@ -22,13 +22,15 @@
 @(
     saveAcknowledgement: SaveAcknowledgement,
     call: Call,
-    frontendAppConfig: FrontendAppConfig
+    frontendAppConfig: FrontendAppConfig,
+    maybeAccessCode: Option[AccessCode]
 )(implicit request: Request[_], messages: Messages, l: LangADT)
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = saveAcknowledgement.heading,
   formTemplate = saveAcknowledgement.formTemplate,
-  frontendAppConfig = frontendAppConfig
+  frontendAppConfig = frontendAppConfig,
+  accessCode = maybeAccessCode
 ) {
 
 @saveAcknowledgement.panelHtml

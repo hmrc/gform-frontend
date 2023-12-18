@@ -31,6 +31,7 @@
   formAction: Call,
   backHref: Call,
   fastForward: List[FastForward],
+  accessCode: Option[AccessCode]
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
@@ -48,7 +49,8 @@
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
   backLink = Some(backLink),
-  containsErrors = enterAddressPage.hasErrors
+  containsErrors = enterAddressPage.hasErrors,
+  accessCode = accessCode
 ) {
 
   @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))

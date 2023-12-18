@@ -21,6 +21,9 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.hmrcfrontend.views.viewmodels.footer.FooterItem
 
 package object html {
 
@@ -48,4 +51,28 @@ package object html {
     .withZone(ZoneId.of("Europe/London"))
 
   def formatInstant(instant: Instant): String = dtf.format(instant)
+
+  def testOnlyAdditionalFooterItems(
+    maybeFormTemplate: Option[FormTemplate],
+    accessCode: Option[AccessCode]
+  ): Seq[FooterItem] =
+    maybeFormTemplate.fold(Seq.empty[FooterItem]) { formTemplate =>
+      accessCode.fold(Seq(toolboxFooterItem(formTemplate))) { accessCode =>
+        Seq(toolboxFooterItemWithAccessCode(formTemplate, accessCode))
+      }
+    }
+
+  private def toolboxFooterItem(formTemplate: FormTemplate) =
+    new FooterItem(
+      text = Some("Toolbox"),
+      href = Some(s"/submissions/test-only/payloads/${formTemplate._id.value}"),
+      attributes = Map.empty
+    )
+
+  private def toolboxFooterItemWithAccessCode(formTemplate: FormTemplate, accessCode: AccessCode) =
+    new FooterItem(
+      text = Some("Toolbox"),
+      href = Some(s"/submissions/test-only/payloads/${formTemplate._id.value}/${accessCode.value}"),
+      attributes = Map.empty
+    )
 }

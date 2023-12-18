@@ -71,7 +71,8 @@
   containsErrors = false,
   frontendAppConfig = frontendAppConfig,
   backLink = None,
-  isMainContentFullWidth = true
+  isMainContentFullWidth = true,
+  accessCode = maybeAccessCode
 ) {
     @mainContent {
     @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))

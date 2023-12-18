@@ -71,6 +71,7 @@ object Destination {
 
   case class DataStore(
     id: DestinationId,
+    routing: SdesDestination,
     includeIf: DestinationIncludeIf,
     failOnError: Boolean,
     formId: FormId,
@@ -216,13 +217,15 @@ case class UploadableDataStoreDestination(
   includeSessionInfo: Option[Boolean],
   convertSingleQuotes: Option[Boolean],
   handlebarPayload: Boolean,
-  formDataPayload: Boolean
+  formDataPayload: Boolean,
+  routing: SdesDestination
 ) {
   def toDataStoreDestination: Either[String, Destination.DataStore] =
     for {
       cvii <- addErrorInfo(id, convertSingleQuotes, includeIf)
     } yield Destination.DataStore(
       id,
+      routing,
       cvii,
       failOnError.getOrElse(false),
       formId,

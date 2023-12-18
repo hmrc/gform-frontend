@@ -29,9 +29,7 @@
   formTemplate: FormTemplate,
   panelTitle: Option[String],
   frontendAppConfig: FrontendAppConfig,
-  maybeDmsDownloadUrl: Option[String],
-  maybeDataStoreDownloadUrl: Option[String],
-  maybeReturnToSummaryUrl: Option[String]
+  accessCode: Option[AccessCode]
 )(implicit
   request: Request[_],
   messages: Messages,
@@ -45,7 +43,8 @@
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   formTemplate = formTemplate,
-  frontendAppConfig = frontendAppConfig
+  frontendAppConfig = frontendAppConfig,
+  accessCode = accessCode
 ) {
 
 
@@ -53,24 +52,6 @@
     title = Text(panelTitle.getOrElse(heading)),
     content = htmlContent
   ))
-
-  @maybeDmsDownloadUrl.map { dmsDownloadUrl =>
-    <p class="govuk-body govuk-!-font-size-14">
-        <a href=@dmsDownloadUrl class="govuk-link">Download dms envelope</a>
-    </p>
-  }
-
-  @maybeDataStoreDownloadUrl.map { dataStoreDownloadUrl  =>
-    <p class="govuk-body govuk-!-font-size-14">
-        <a href=@dataStoreDownloadUrl class="govuk-link">Download data-store envelope</a>
-    </p>
-  }
-
-  @maybeReturnToSummaryUrl.map { returnToSummaryUrl  =>
-    <p class="govuk-body">
-        <a href=@returnToSummaryUrl class="govuk-link">Return to summary page</a>
-    </p>
-  }
 
   @{supportContents.snippets}
 

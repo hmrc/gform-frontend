@@ -28,7 +28,8 @@
   address: Html,
   confirmAddressAndContinue: Call,
   enterAddressHref: Call,
-  backHref: Call
+  backHref: Call,
+  accessCode: Option[AccessCode]
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
@@ -44,7 +45,8 @@
   title = title,
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
-  backLink = Some(backLink)
+  backLink = Some(backLink),
+  accessCode = accessCode
 ) {
 
   @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))

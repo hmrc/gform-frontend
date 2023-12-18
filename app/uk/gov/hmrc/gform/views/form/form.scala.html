@@ -38,7 +38,8 @@
   frontendAppConfig: FrontendAppConfig,
   specimenNavigation: Html = HtmlFormat.empty,
   fastForward: List[FastForward],
-  isMainContentFullWidth: Boolean = false
+  isMainContentFullWidth: Boolean = false,
+  accessCode: Option[AccessCode]
 )(
   implicit
   request: Request[_],
@@ -72,7 +73,8 @@
   containsErrors = pageLevelError.hasErrors,
   frontendAppConfig = frontendAppConfig,
   backLink = backLink,
-  isMainContentFullWidth = isMainContentFullWidth
+  isMainContentFullWidth = isMainContentFullWidth,
+  accessCode = accessCode
 ) {
 
     @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))

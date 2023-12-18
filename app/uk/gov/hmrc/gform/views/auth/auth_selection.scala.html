@@ -45,7 +45,8 @@
   formTemplate = compositeAuthFormPage.formTemplate,
   frontendAppConfig = frontendAppConfig,
   containsErrors = compositeAuthFormPage.hasErrors,
-  displayTimeoutDialog = maybeGGId.isDefined
+  displayTimeoutDialog = maybeGGId.isDefined,
+  accessCode = None
 ) {
 
   @if(compositeAuthFormPage.hasErrors) {
