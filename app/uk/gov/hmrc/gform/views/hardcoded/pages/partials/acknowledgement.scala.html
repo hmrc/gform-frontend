@@ -24,8 +24,8 @@
 @(
   formTemplateId: FormTemplateId,
   supportContents: SectionRenderingInformation,
-  htmlContent: Content,
-  formCategory: FormCategory,
+  acknowledgementPanel: Html,
+  heading: String,
   formTemplate: FormTemplate,
   panelTitle: Option[String],
   frontendAppConfig: FrontendAppConfig,
@@ -34,9 +34,6 @@
   request: Request[_],
   messages: Messages,
   l: LangADT)
-
-@formCat = @{messages(s"formCategory.${formCategory.getString}")}
-@heading = @{messages("ack.title", formCat.capitalize)}
 
 @govukPanel = @{new GovukPanel()}
 
@@ -47,11 +44,7 @@
   accessCode = accessCode
 ) {
 
-
-  @govukPanel(Panel(
-    title = Text(panelTitle.getOrElse(heading)),
-    content = htmlContent
-  ))
+  @{acknowledgementPanel}
 
   @{supportContents.snippets}
 

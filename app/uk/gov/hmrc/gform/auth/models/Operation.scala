@@ -46,4 +46,5 @@ object OperationWithForm {
   final case object AuditSessionEnd extends OperationWithForm
   final case object DownloadFileByInternalLink extends OperationWithForm
   final case object ViewImageByInternalLink extends OperationWithForm
+  final case object EditFormAcknowledgement extends OperationWithForm
 }
