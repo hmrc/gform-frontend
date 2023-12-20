@@ -272,6 +272,8 @@ class ApplicationModule(context: Context)
   )
 
   override lazy val csrfErrorHandler: CSRF.ErrorHandler = new CSRF.CSRFHttpErrorHandler(csrfHttpErrorHandler)
+  override lazy val httpRequestHandler: HttpRequestHandler = routingModule.httpRequestHandler
+
   override def router: Router = routingModule.router
 
   val customInjector: Injector =
