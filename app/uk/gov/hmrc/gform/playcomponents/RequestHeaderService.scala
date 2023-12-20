@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.playcomponents
 import cats.syntax.eq._
 import play.api.mvc.RequestHeader
 import play.api.routing.Router.RequestImplicits._
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, FormTemplateId }
@@ -39,7 +40,7 @@ final class RequestHeaderService(
     formTemplateIdParamIndex match {
       case Some(i) if i =!= -1 =>
         val templateId = rh.uri.split("\\?")(0).split("/")(i)
-        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(rh, rh.session)
+        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(rh)
         gformConnector.getFormTemplateContext(FormTemplateId(templateId.toLowerCase)).map(Some(_))
       case _ =>
         Future.successful(None)

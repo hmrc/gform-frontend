@@ -110,7 +110,7 @@ class ApplicationModule(context: Context)
     val httpConfiguration: HttpConfiguration =
       new HttpConfiguration.HttpConfigurationProvider(configModule.playConfiguration, configModule.environment).get
 
-    val config: SessionConfiguration = httpConfiguration.session
+    val config: SessionConfiguration = httpConfiguration.session.copy(secure = true)
     new LegacySessionCookieBaker(config, cookieSigner)
   }
 
@@ -272,8 +272,6 @@ class ApplicationModule(context: Context)
   )
 
   override lazy val csrfErrorHandler: CSRF.ErrorHandler = new CSRF.CSRFHttpErrorHandler(csrfHttpErrorHandler)
-  override lazy val httpRequestHandler: HttpRequestHandler = routingModule.httpRequestHandler
-  override val httpFilters: Seq[EssentialFilter] = frontendFiltersModule.httpFilters
   override def router: Router = routingModule.router
 
   val customInjector: Injector =
@@ -304,4 +302,6 @@ class ApplicationModule(context: Context)
       s"Started Frontend $appName in mode ${environment.mode} at port ${application.configuration.getOptional[String]("http.port")}"
     )
   }
+
+  override def httpFilters: Seq[EssentialFilter] = frontendFiltersModule.httpFilters
 }
