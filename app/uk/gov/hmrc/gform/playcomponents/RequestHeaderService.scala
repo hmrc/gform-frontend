@@ -39,7 +39,7 @@ final class RequestHeaderService(
     formTemplateIdParamIndex match {
       case Some(i) if i =!= -1 =>
         val templateId = rh.uri.split("\\?")(0).split("/")(i)
-        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(rh, rh.session)
+        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(rh)
         gformConnector.getFormTemplateContext(FormTemplateId(templateId.toLowerCase)).map(Some(_))
       case _ =>
         Future.successful(None)
