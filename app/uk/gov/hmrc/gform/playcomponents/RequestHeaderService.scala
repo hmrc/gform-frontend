@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.playcomponents
 import cats.syntax.eq._
 import play.api.mvc.RequestHeader
 import play.api.routing.Router.RequestImplicits._
-
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, FormTemplateId }
