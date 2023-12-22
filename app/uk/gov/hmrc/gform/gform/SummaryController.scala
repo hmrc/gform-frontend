@@ -112,7 +112,7 @@ class SummaryController(
               formModelOptics,
               None,
               None,
-              taskCompleted
+              Some(true)
             )
             .map(Ok(_))
 
