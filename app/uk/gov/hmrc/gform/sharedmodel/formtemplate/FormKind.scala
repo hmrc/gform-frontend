@@ -86,16 +86,6 @@ object FormKind {
   final case class TaskList(sections: NonEmptyList[TaskSection]) extends FormKind
 
   object TaskList {
-
-    def modifyTaskList(taskList: FormKind.TaskList)(f: IncludeIf => Boolean): FormKind.TaskList =
-      modify(taskList)(_.sections).using { sections =>
-        sections.map { section =>
-          modify(section)(_.tasks).using { tasks =>
-            val modifiedTasks = tasks.filter(task => task.includeIf.map(f).getOrElse(true))
-            NonEmptyList.fromListUnsafe(modifiedTasks)
-          }
-        }
-      }
     implicit val format: OFormat[TaskList] = derived.oformat()
   }
 
