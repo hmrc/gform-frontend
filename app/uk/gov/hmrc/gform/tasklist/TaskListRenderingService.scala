@@ -71,7 +71,8 @@ class TaskListRenderingService(
           statusesLookup.toList.toMap,
           completedSection,
           frontendAppConfig,
-          taskListH2key
+          taskListH2key,
+          formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(_, None)
         )
     }
 

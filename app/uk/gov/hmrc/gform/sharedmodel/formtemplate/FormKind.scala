@@ -22,6 +22,7 @@ import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.models.AllSections
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils._
 import uk.gov.hmrc.gform.sharedmodel.SmartString
+import com.softwaremill.quicklens._
 
 sealed trait FormKind extends Product with Serializable {
   def fold[B](f: FormKind.Classic => B)(g: FormKind.TaskList => B): B =
@@ -37,7 +38,7 @@ sealed trait FormKind extends Product with Serializable {
     fold(_ => List.empty[Expr]) { taskList =>
       taskList.sections.toList.flatMap { taskSection =>
         taskSection.title.interpolations ++ taskSection.tasks.toList.flatMap { task =>
-          task.title.interpolations
+          task.title.interpolations ++ task.includeIf.toList.flatMap(_.booleanExpr.allExpressions)
         }
       }
     }
@@ -48,11 +49,29 @@ sealed trait FormKind extends Product with Serializable {
     AllSections.TaskList {
       taskList.sections.zipWithIndex.flatMap { case (taskSection, taskSectionIndex) =>
         taskSection.tasks.zipWithIndex.map { case (task, taskIndex) =>
-          Coordinates(TaskSectionNumber(taskSectionIndex), TaskNumber(taskIndex)) -> task.sections.toList
+          Coordinates(TaskSectionNumber(taskSectionIndex), TaskNumber(taskIndex)) -> updateIncludeIf(
+            task.sections.toList,
+            task.includeIf
+          )
         }
       }
     }
   }
+
+  private def updateIncludeIf(sections: List[Section], includeIf: Option[IncludeIf]): List[Section] =
+    sections.map {
+      case s: Section.NonRepeatingPage => s.modify(_.page.includeIf).using(andIncludeIfs(_, includeIf))
+      case s: Section.RepeatingPage    => s.modify(_.page.includeIf).using(andIncludeIfs(_, includeIf))
+      case s: Section.AddToList        => s.modify(_.includeIf).using(andIncludeIfs(_, includeIf))
+    }
+
+  private def andIncludeIfs(includeIf1: Option[IncludeIf], includeIf2: Option[IncludeIf]): Option[IncludeIf] =
+    (includeIf1, includeIf2) match {
+      case (Some(IncludeIf(expr1)), Some(IncludeIf(expr2))) => Some(IncludeIf(And(expr1, expr2)))
+      case (Some(IncludeIf(expr1)), None)                   => Some(IncludeIf(expr1))
+      case (None, Some(IncludeIf(expr2)))                   => Some(IncludeIf(expr2))
+      case (None, None)                                     => None
+    }
 
 }
 
@@ -67,6 +86,16 @@ object FormKind {
   final case class TaskList(sections: NonEmptyList[TaskSection]) extends FormKind
 
   object TaskList {
+
+    def modifyTaskList(taskList: FormKind.TaskList)(f: IncludeIf => Boolean): FormKind.TaskList =
+      modify(taskList)(_.sections).using { sections =>
+        sections.map { section =>
+          modify(section)(_.tasks).using { tasks =>
+            val modifiedTasks = tasks.filter(task => task.includeIf.map(f).getOrElse(true))
+            NonEmptyList.fromListUnsafe(modifiedTasks)
+          }
+        }
+      }
     implicit val format: OFormat[TaskList] = derived.oformat()
   }
 
@@ -88,7 +117,8 @@ final case class Task(
   title: SmartString,
   sections: NonEmptyList[Section],
   summarySection: Option[SummarySection],
-  declarationSection: Option[DeclarationSection]
+  declarationSection: Option[DeclarationSection],
+  includeIf: Option[IncludeIf]
 )
 
 object Task {

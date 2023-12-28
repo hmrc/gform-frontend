@@ -16,13 +16,15 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Coordinates, FormTemplateId, TaskSection, TaskSectionNumber, TaskNumber}
 @import uk.gov.hmrc.gform.tasklist.TaskStatus
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.IncludeIf
 
 @(
   formTemplateId: FormTemplateId,
   maybeAccessCode: Option[AccessCode],
   taskSectionNumber: TaskSectionNumber,
   taskSection: TaskSection,
-  statusesLookup: Map[Coordinates, TaskStatus]
+  statusesLookup: Map[Coordinates, TaskStatus],
+  evalIncludeIf: IncludeIf => Boolean
 )(
   implicit
   request: Request[_],
@@ -37,7 +39,9 @@
   </h2>
   <ul class="app-task-list__items">
     @taskSection.tasks.toList.zipWithIndex.map { case (t, index) =>
-      @{task(formTemplateId, maybeAccessCode, taskSectionNumber, TaskNumber(index), t, statusesLookup)}
+      @if(t.includeIf.map(evalIncludeIf).getOrElse(true)){
+        @{task(formTemplateId, maybeAccessCode, taskSectionNumber, TaskNumber(index), t, statusesLookup)}
+      }
     }
   </ul>
 </li>

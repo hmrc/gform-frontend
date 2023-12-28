@@ -29,6 +29,7 @@
 @import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth
 @import uk.gov.hmrc.gform.FormTemplateKey
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.IncludeIf
 
 
 @(
@@ -38,7 +39,8 @@
   statusesLookup: Map[Coordinates, TaskStatus],
   completedSection: Int,
   frontendAppConfig: FrontendAppConfig,
-  taskListH2key: String
+  taskListH2key: String,
+  evalIncludeIf: IncludeIf => Boolean
 )(
   implicit
   request: Request[_],
@@ -86,7 +88,7 @@
 
         <ol class="app-task-list">
             @{taskList.sections.toList.zipWithIndex.map { case (taskSection, index) =>
-                task_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(index), taskSection, statusesLookup)
+                task_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(index), taskSection, statusesLookup, evalIncludeIf)
             }
             }
             @formTemplate.submitSection.map{ submitSection =>
