@@ -298,7 +298,11 @@ class FormController(
                       }
                     } else {
                       // display current singleton
-                      validateSections(suppressErrors, sectionNumber)(
+                      val visibleIteration: Bracket.AddToListIteration[Visibility] =
+                        formModelOptics.formModelVisibilityOptics.formModel
+                          .bracket(sectionNumber)
+                          .withAddToListBracket(a => a.iterationForSectionNumber(sectionNumber))
+                      validateSections(suppressErrors, visibleIteration.allSingletonSectionNumbers: _*)(
                         renderSingleton(iteration.singleton(sectionNumber), sectionNumber, _)
                       )
                     }
