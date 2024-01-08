@@ -48,4 +48,11 @@ class ErrorController(
     val pageTitle = request.flash.get("formTitle").getOrElse("")
     Ok(views.html.hardcoded.pages.browser_forbidden(formTemplate, pageTitle, frontendAppConfig))
   }
+
+  def botForbidden(formTemplateId: FormTemplateId) = nonAuth { implicit request => implicit l =>
+    val formTemplateContext = request.attrs(FormTemplateKey)
+    val formTemplate = formTemplateContext.formTemplate
+    val pageTitle = request.flash.get("formTitle").getOrElse("")
+    Ok(views.html.hardcoded.pages.bot_forbidden(formTemplate, pageTitle, frontendAppConfig))
+  }
 }

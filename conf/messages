@@ -628,6 +628,9 @@ browser.forbidden.p1=This service does not support Internet Explorer.
 browser.forbidden.p2=You need to use another web browser, such as Microsoft Edge, Google Chrome or Mozilla Firefox.
 browser.forbidden.link=Find out how to switch to a new browser (opens in new tab)
 
+bot.forbidden.title=Sorry, you are not allowed to utilize any robotic applications
+bot.forbidden.p=This service does not support the use of any robotic applications.
+
 #Task List
 taskList.h2=Application incomplete
 taskList.h2.formCategory.return=Return incomplete

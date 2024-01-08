@@ -47,6 +47,7 @@ GET           /acknowledgement/pdf/:formTemplateId                              
 GET           /acknowledgement/return-to-cya/:formTemplateId                                                     uk.gov.hmrc.gform.gform.AcknowledgementController.changeStateAndRedirectToCYA(formTemplateId: FormTemplateId, a: Option[AccessCode])
 GET           /error/insufficient-enrolments/:formTemplateId                                                     uk.gov.hmrc.gform.auth.ErrorController.insufficientEnrolments(formTemplateId: FormTemplateId)
 GET           /error/browser-fordidden/:formTemplateId                                                           uk.gov.hmrc.gform.auth.ErrorController.browserForbidden(formTemplateId: FormTemplateId)
+GET           /error/bot-fordidden/:formTemplateId                                                               uk.gov.hmrc.gform.auth.ErrorController.botForbidden(formTemplateId: FormTemplateId)
 GET           /enrolment/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.EnrolmentController.showEnrolment(formTemplateId: FormTemplateId)
 POST          /enrolment/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.EnrolmentController.submitEnrolment(formTemplateId: FormTemplateId, action: Direction)
 GET           /agent-enrolment/prologue/:formTemplateId                                                          uk.gov.hmrc.gform.auth.AgentEnrolmentController.prologue(formTemplateId: FormTemplateId, f: String)

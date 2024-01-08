@@ -182,6 +182,7 @@ class FrontendFiltersModule(
   private val corsFilter = new CORSFilter(corsConfig, errorHandler)
 
   private val ieBlocker = new InternetExplorerBlockerFilter()
+  private val botBlocker = new BotBlockerFilter()
 
   lazy val httpFilters: Seq[EssentialFilter] = Seq(
     cspFilter,
@@ -198,6 +199,7 @@ class FrontendFiltersModule(
     csrfComponents.csrfFilter,
     cacheControlFilter,
     mdcFilter,
-    ieBlocker
+    ieBlocker,
+    botBlocker
   )
 }

@@ -604,6 +604,9 @@ browser.forbidden.p1=Nid yw’r gwasanaeth hwn yn cynnal Internet Explorer.
 browser.forbidden.p2=Mae angen i chi ddefnyddio porwr gwe arall, fel Microsoft Edge, Google Chrome neu Mozilla Firefox.
 browser.forbidden.link=Rhagor o wybodaeth am sut i newid porwr (yn agor tab newydd)
 
+bot.forbidden.title=Mae'n ddrwg gennym, ni chaniateir i chi ddefnyddio unrhyw gymwysiadau robotig
+bot.forbidden.p=Nid yw'r gwasanaeth hwn yn cefnogi'r defnydd o unrhyw gymwysiadau robotig.
+
 #Task List
 taskList.h2=Cais yn anghyflawn
 taskList.h2.formCategory.return=Datganiad yn anghyflawn
