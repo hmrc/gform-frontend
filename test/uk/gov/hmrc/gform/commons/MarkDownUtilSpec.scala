@@ -62,7 +62,7 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
       ("""## \#Heading (h2) #""", """<h2>#Heading (h2)</h2>"""),
       (
         """1. Total is 1\.00 and 2\.00""",
-        """<ol>
+        """<ol class="govuk-list govuk-list--number">
           | <li>Total is 1.00 and 2.00</li>
           |</ol>""".stripMargin
       )
