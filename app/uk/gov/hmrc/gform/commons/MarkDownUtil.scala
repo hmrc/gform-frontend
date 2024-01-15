@@ -34,8 +34,7 @@ object MarkDownUtil {
   private val markdownControlCharacters =
     List("\\", "/", "`", "*", "_", "{", "}", "[", "]", "(", ")", "#", "+", "-", ".", "!")
 
-  private def addTargetToLinks(html: String): String = {
-    val doc: Document = Jsoup.parse(html)
+  private def addTargetToLinks(doc: Document) = {
     val links = doc.getElementsByAttribute("href")
     links.asScala.foreach { element =>
       if (!element.hasAttr("target")) {
@@ -49,6 +48,29 @@ object MarkDownUtil {
     doc.getElementsByAttributeValueStarting("href", "/submissions/form/").removeAttr("target")
     doc.getElementsByAttributeValueStarting("href", "/submissions/acknowledgement/pdf/").addClass("print-link")
     doc.getElementsByAttributeValueStarting("href", "/submissions/redirect?url=").attr("target", "_self")
+    doc
+  }
+
+  private def addDefaultClassesToLists(doc: Document) = {
+    val listTypes = Seq("ul", "ol")
+
+    listTypes.foreach { elementType =>
+      val elements = doc.select(elementType)
+      val defaultClass = s"govuk-list govuk-list--${if (elementType == "ul") "bullet" else "number"}"
+      elements.asScala.foreach { element =>
+        val existingClass = element.attr("class")
+        val updatedClass =
+          if (existingClass.isEmpty) defaultClass else existingClass
+        element.attr("class", updatedClass)
+      }
+    }
+    doc
+  }
+
+  private def enhanceHtml(html: String): String = {
+    val doc: Document = Jsoup.parse(html)
+    addTargetToLinks(doc)
+    addDefaultClassesToLists(doc)
     doc.body().html()
   }
 
@@ -64,7 +86,7 @@ object MarkDownUtil {
     val flavour = new GFMFlavourDescriptor
     val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
     val html = new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
-    Html(unescapeMarkdownHtml(addTargetToLinks(html)))
+    Html(unescapeMarkdownHtml(enhanceHtml(html)))
   }
 
   def escapeMarkdown(s: String): String = {
