@@ -39,9 +39,12 @@ POST          /submissions/test-only/restore-current-form/:formId               
 GET           /submissions/test-only/restore-current/:snapshotId/:formId          uk.gov.hmrc.gform.testonly.TestOnlyController.restoreCurrent(snapshotId: String, formId: String)
 POST          /submissions/test-only/save-form/:formTemplateId/:accessCode        uk.gov.hmrc.gform.testonly.TestOnlyController.saveForm(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 POST          /submissions/test-only/update-snapshot/:formTemplateId/:accessCode  uk.gov.hmrc.gform.testonly.TestOnlyController.updateSnapshot(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
+POST          /submissions/test-only/update-form-data/:formTemplateId/:accessCode  uk.gov.hmrc.gform.testonly.TestOnlyController.updateFormData(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 GET           /submissions/test-only/save-form-page/:formTemplateId/:accessCode   uk.gov.hmrc.gform.testonly.TestOnlyController.saveFormPage(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 GET           /submissions/test-only/snapshots/:formTemplateId/:accessCode        uk.gov.hmrc.gform.testonly.TestOnlyController.getSnapshots(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 GET           /submissions/test-only/update-snapshot-page/:formTemplateId/:accessCode/:snapshotId        uk.gov.hmrc.gform.testonly.TestOnlyController.updateSnapshotPage(formTemplateId: FormTemplateId, snapshotId: String, accessCode: Option[AccessCode])
+
+GET           /submissions/test-only/snapshot-page/:formTemplateId/:accessCode/:snapshotId        uk.gov.hmrc.gform.testonly.TestOnlyController.snapshotPage(formTemplateId: FormTemplateId, snapshotId: String, accessCode: Option[AccessCode])
 
 GET           /submissions/test-only/gform-plugin/exprs/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.exprs(formTemplateId: FormTemplateId)
 GET           /submissions/test-only/gform-plugin/model/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)

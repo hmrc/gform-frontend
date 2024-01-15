@@ -45,7 +45,7 @@ import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
-import uk.gov.hmrc.gform.testonly.{ SaveReply, SaveRequest, Snapshot, SnapshotWithData, UpdateSnapshotRequest }
+import uk.gov.hmrc.gform.testonly.{ SaveReply, SaveRequest, Snapshot, SnapshotWithData, UpdateFormDataRequest, UpdateSnapshotRequest }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -576,9 +576,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def saveForm(
     payload: SaveRequest
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveReply] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotWithData] = {
     val url = s"$baseUrl/test-only/save-form"
-    ws.POST[SaveRequest, SaveReply](
+    ws.POST[SaveRequest, SnapshotWithData](
       url,
       payload,
       Seq("Content-Type" -> ContentType.`application/json`.value)
@@ -586,9 +586,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   }
   def updateSnapshot(
     payload: UpdateSnapshotRequest
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveReply] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotWithData] = {
     val url = s"$baseUrl/test-only/update-snapshot"
-    ws.POST[UpdateSnapshotRequest, SaveReply](
+    ws.POST[UpdateSnapshotRequest, SnapshotWithData](
       url,
       payload,
       Seq("Content-Type" -> ContentType.`application/json`.value)
@@ -598,5 +598,16 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def snapshotData(snapshotId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotWithData] = {
     val url = s"$baseUrl/test-only/snapshot-data/$snapshotId"
     ws.GET[SnapshotWithData](url)
+  }
+
+  def updateFormData(
+    payload: UpdateFormDataRequest
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveReply] = {
+    val url = s"$baseUrl/test-only/update-form-data"
+    ws.POST[UpdateFormDataRequest, SaveReply](
+      url,
+      payload,
+      Seq("Content-Type" -> ContentType.`application/json`.value)
+    )
   }
 }

@@ -41,15 +41,5 @@
   accessCode = None
 ) {
 
-    <form action="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreCurrentForm(formId).path" method="post">
-
-        <label class="govuk-label govuk-label--m" for="snapshotId">Enter the saved form id</label>
-
-        <input type="text" class="govuk-input" id="snapshotId" name="snapshotId" placeholder="Enter ID">
-        <p class="govuk-body govuk-!-margin-bottom-2"></p>
-        <button type="submit" class="govuk-button">Restore form</button>
-    </form>
-
-        <h1 class="govuk-heading-m">Or choose from the list</h1>
    @snapshotTable
 }
