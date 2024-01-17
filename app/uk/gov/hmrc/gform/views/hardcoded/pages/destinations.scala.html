@@ -28,7 +28,8 @@
   frontendAppConfig: FrontendAppConfig,
   table: Html,
   returnToSummaryContent: Option[Html],
-  downloadFileContents: Option[Seq[Html]]
+  downloadFileContents: Option[Seq[Html]],
+  formId: String
 )(implicit
   request: Request[_],
   messages: Messages,
@@ -101,6 +102,15 @@
         Source - original payload from *.hbs file
       </div>
     }
+
+      <h1 class="govuk-heading-l">Save or restore the form.</h1>
+      <div class="govuk-body">
+        <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.saveFormPage(formTemplate._id, accessCode).path" class="govuk-link">Save the current form</a>
+      </div>
+
+      <div class="govuk-body">
+        <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.getSnapshots(formTemplate._id, accessCode).path" class="govuk-link">Restore a form</a>
+      </div>
 
     @otherContent.map { content =>
       <div class="govuk-body">

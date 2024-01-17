@@ -1,0 +1,89 @@
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+
+@(
+  formTemplate: FormTemplate,
+  accessCode: Option[AccessCode],
+  frontendAppConfig: FrontendAppConfig,
+  snapshotId: String,
+  description: String,
+  formData: String,
+  formId: String,
+  isFullRestore: Boolean = false
+)(implicit
+  request: Request[_],
+  messages: Messages,
+  l:LangADT,
+)
+
+@heading = @{"Forms snapshots"}
+
+@uk.gov.hmrc.gform.views.html.main_template(
+  title = heading,
+  formTemplate = formTemplate,
+  frontendAppConfig = frontendAppConfig,
+  isMainContentFullWidth = true,
+  accessCode = None
+) {
+
+    <style>
+    .button-container {
+        display: inline-block;
+    }
+    .button-container form {
+        display: inline;
+        margin-right: 10px;
+    }
+    </style>
+
+    <div class="button-container">
+    <form action="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreCurrentForm(formId).path" method="post">
+
+        <p class="govuk-body">Snapshot description:</p>
+        <div id="description-hint" class="govuk-hint">
+          <pre>
+@description
+          </pre>
+        </div>
+
+        <p class="govuk-body govuk-!-margin-bottom-2"></p>
+        <p class="govuk-body">Form data:</p>
+
+        <div id="description-hint" class="govuk-hint">
+          <pre>
+@formData
+          </pre>
+        </div>
+        <p class="govuk-body govuk-!-margin-bottom-2"></p>
+
+        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@snapshotId">
+        <button type="submit" class="govuk-button" @if(!isFullRestore) {disabled}>Restore all</button>
+    </form>
+
+    <form action="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.updateFormData(formTemplate._id, accessCode).path" method="post">
+        <input type="hidden" class="govuk-input" id="formData" name="formData" value="@formData">
+        <button type="submit" class="govuk-button">Restore only data</button>
+    </form>
+
+    </div>
+    <p class="govuk-body govuk-!-margin-bottom-2" display="block"></p>
+
+}

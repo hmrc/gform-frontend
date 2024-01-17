@@ -23,10 +23,10 @@ import cats.data.EitherT
 import cats.implicits._
 import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
 import play.api.i18n.{ I18nSupport, Messages }
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ JsObject, JsValue }
 import play.api.libs.json.Json
 import play.api.mvc._
-import play.twirl.api.HtmlFormat
+import play.twirl.api.{ Html, HtmlFormat }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -53,7 +53,11 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, Table
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.destinations
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_page, snapshot_page, snapshots_page, update_snapshot }
+
+import java.time.format.DateTimeFormatter
+import java.time.{ Instant, ZoneId }
+import java.util.Locale
 
 class TestOnlyController(
   i18nSupport: I18nSupport,
@@ -295,7 +299,8 @@ class TestOnlyController(
             frontendAppConfig,
             govukTable,
             maybeReturnToSummaryContent,
-            maybeDownloadContents
+            maybeDownloadContents,
+            cache.form._id.value
           )
         )
       }(_ =>
@@ -309,7 +314,8 @@ class TestOnlyController(
             frontendAppConfig,
             HtmlFormat.empty,
             None,
-            None
+            None,
+            cache.form._id.value
           )
         )
       )
@@ -446,4 +452,235 @@ class TestOnlyController(
     } yield Ok(httpResponse.body)
 
   }
+
+  def saveForm(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    implicit request => _ => cache => _ => formModelOptics =>
+      // import i18nSupport._
+      val currentFormId = cache.form._id.value
+      val description = request.body.asFormUrlEncoded.get("description").head
+      val saveRequest = SaveRequest(currentFormId, description)
+      for {
+        snapshotWithData <- gformConnector.saveForm(saveRequest)
+      } yield Redirect(
+        uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
+          FormTemplateId(snapshotWithData.snapshot.templateId),
+          snapshotWithData.snapshot.snapshotId,
+          maybeAccessCode
+        )
+      )
+  }
+
+  def updateSnapshot(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    implicit request => _ => cache => _ => formModelOptics =>
+      val snapshotId = request.body.asFormUrlEncoded.get("snapshotId").head
+      val formData = request.body.asFormUrlEncoded.get("formData").head
+      val description = request.body.asFormUrlEncoded.get("description").head
+      val updateRequest = UpdateSnapshotRequest(snapshotId, Json.parse(formData).as[JsObject], description)
+      for {
+        snapshotWithData <- gformConnector.updateSnapshot(updateRequest)
+
+      } yield Redirect(
+        uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
+          FormTemplateId(snapshotWithData.snapshot.templateId),
+          snapshotWithData.snapshot.snapshotId,
+          maybeAccessCode
+        )
+      )
+  }
+
+  def updateFormData(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    implicit request => _ => cache => _ => formModelOptics =>
+      val formData = request.body.asFormUrlEncoded.get("formData").head
+      val currentFormId = cache.form._id.value
+      val updateRequest = UpdateFormDataRequest(currentFormId, Json.parse(formData).as[JsObject])
+      for {
+        saveReply <- gformConnector.updateFormData(updateRequest)
+      } yield Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplateId))
+
+  }
+
+  def saveFormPage(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    implicit request => implicit lang => cache => _ => formModelOptics =>
+      import i18nSupport._
+      Future.successful(
+        Ok(save_form_page(cache.formTemplate, maybeAccessCode, frontendAppConfig, cache.form._id.value))
+      )
+  }
+
+  def restoreCurrentForm(formId: String) =
+    Action.async { implicit request =>
+      val savedId = request.body.asFormUrlEncoded.get("snapshotId").head
+      restore(savedId, formId)
+    }
+
+  def restoreCurrent(snapshotId: String, formId: String) =
+    Action.async { implicit request =>
+      restore(snapshotId, formId)
+    }
+  private def restore(snapshotId: String, formId: String)(implicit hc: HeaderCarrier) =
+    for {
+      snapshot <- gformConnector.restoreForm(snapshotId, formId)
+    } yield Redirect(
+      uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(FormTemplateId(snapshot.templateId))
+    )
+
+  def updateSnapshotPage(
+    formTemplateId: FormTemplateId,
+    snapshotId: String,
+    maybeAccessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    implicit request => implicit lang => cache => _ => formModelOptics =>
+      import i18nSupport._
+      for {
+        snapshotFormData <- gformConnector.snapshotData(snapshotId)
+      } yield Ok(
+        update_snapshot(
+          cache.formTemplate,
+          maybeAccessCode,
+          frontendAppConfig,
+          snapshotId,
+          snapshotFormData.snapshot.description,
+          snapshotFormData.formData.toString()
+        )
+      )
+  }
+
+  def snapshotPage(
+    formTemplateId: FormTemplateId,
+    snapshotId: String,
+    maybeAccessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    implicit request => implicit lang => cache => _ => formModelOptics =>
+      import i18nSupport._
+      val currentFormId = cache.form._id.value
+      for {
+        snapshotFormData <- gformConnector.snapshotData(snapshotId)
+      } yield {
+        val isFullRestore = snapshotFormData.snapshot.templateId === formTemplateId.value
+        Ok(
+          snapshot_page(
+            cache.formTemplate,
+            maybeAccessCode,
+            frontendAppConfig,
+            snapshotId,
+            snapshotFormData.snapshot.description,
+            Json.prettyPrint(snapshotFormData.formData),
+            currentFormId,
+            isFullRestore
+          )
+        )
+      }
+  }
+
+  def getSnapshots(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+      implicit request => implicit lang => cache => _ => formModelOptics =>
+        import i18nSupport._
+        val currentFormId = cache.form._id.value
+        for {
+          snapshots <- gformConnector.getSnapshots().map(_.sortBy(_.savedAt)(Ordering[Instant].reverse))
+        } yield {
+          val html = renderSnapshots(snapshots, currentFormId, formTemplateId.value, maybeAccessCode)
+          Ok(
+            snapshots_page(
+              cache.formTemplate,
+              maybeAccessCode,
+              frontendAppConfig,
+              html,
+              cache.form._id.value
+            )
+          )
+        }
+    }
+
+  def renderSnapshots(
+    snapshots: List[Snapshot],
+    currenntFormId: String,
+    currentTemplateId: String,
+    accessCode: Option[AccessCode]
+  ): Html = {
+
+    val dtf = DateTimeFormatter
+      .ofPattern("dd MMM yyyy HH:mm:ss")
+      .withLocale(Locale.UK)
+      .withZone(ZoneId.of("Europe/London"))
+
+    def formatInstant(instant: Instant): String = dtf.format(instant)
+
+    val tableRows: List[List[TableRow]] = snapshots.map { snapshot =>
+      List(
+        TableRow(
+          content = HtmlContent(Html(snapshot.templateId))
+        ),
+        TableRow(
+          content = HtmlContent(Html(snapshot.description))
+        ),
+        TableRow(
+          content = Text(formatInstant(snapshot.savedAt))
+        ),
+        TableRow(
+          content = HtmlContent {
+            val url = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+              .snapshotPage(
+                FormTemplateId(currentTemplateId),
+                snapshot.snapshotId,
+                accessCode
+              )
+              .url
+            s"""<a class=govuk-link href='$url'>${snapshot.snapshotId}</a>"""
+          }
+        ),
+        TableRow(
+          content = HtmlContent {
+            val url = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+              .updateSnapshotPage(FormTemplateId(currentTemplateId), snapshot.snapshotId, accessCode)
+              .url
+            s"""<a class=govuk-link href='$url'>edit</a>"""
+          }
+        )
+      )
+    }
+
+    val header: List[HeadCell] = List(
+      HeadCell(
+        content = Text("Template id")
+      ),
+      HeadCell(
+        content = Text("Description")
+      ),
+      HeadCell(
+        content = Text("Saved at")
+      ),
+      HeadCell(
+        content = Text("Snapshot id (click to restore)")
+      ),
+      HeadCell(
+        content = Text("")
+      )
+    )
+
+    val table = Table(
+      head = Some(header),
+      rows = tableRows,
+      firstCellIsHeader = true
+    )
+
+    new GovukTable()(table)
+  }
+
 }
