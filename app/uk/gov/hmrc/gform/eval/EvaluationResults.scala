@@ -43,6 +43,8 @@ import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
+import uk.gov.hmrc.gform.gform.ExprUpdater
+
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
   recData: RecData[SourceOrigin.Current]
@@ -167,6 +169,20 @@ case class EvaluationResults(
     }
   }
 
+  private def addToListComponents(
+    formComponentId: FormComponentId,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ): List[Int] = {
+    val firstQuestionFcId = formComponentId.withFirstIndex
+    val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
+    val allValues = recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
+    if (isHidden.contains(Hidden)) {
+      List.empty[Int]
+    } else {
+      allValues.map(_._1).map(_.toFormComponentId).map(_.modelComponentId.maybeIndex).flatMap(_.toList).toList
+    }
+  }
+
   private def addToListValues(
     formComponentId: FormComponentId,
     recData: RecData[SourceOrigin.OutOfDate]
@@ -236,11 +252,20 @@ case class EvaluationResults(
       case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
       case Sum(FormCtx(formComponentId))    => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
       case Sum(field1) =>
-        loop(field1) match {
-          case lrs: ListResult =>
-            lrs.list.fold(NumberResult(0)) { case (a, b) => a + b }
-          case _ => unsupportedOperation("Number")(expr)
+        val indexes = field1
+          .leafs()
+          .flatMap {
+            case FormCtx(fcId) => addToListComponents(fcId, recData)
+            case _             => Nil
+          }
+          .distinct
+          .sorted
+        val fcs: List[FormComponentId] = field1.leafs().flatMap {
+          case FormCtx(fcId) if addToListComponents(fcId, recData).size > 0 =>
+            Some(fcId)
+          case _ => Nil
         }
+        indexes.map(i => loop(ExprUpdater(field1, i, fcs))).fold(NumberResult(0)) { case (a, b) => a + b }
       case Count(formComponentId)   => addToListCount(formComponentId, recData)
       case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField) =>
