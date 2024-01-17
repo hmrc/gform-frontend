@@ -547,7 +547,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         recDataEmpty,
         evaluationContext,
-        StringResult("Business owes £200.00 at rate of £100 in tax year 2024"),
+        StringResult("Business owes £200.00 at rate of £100 in tax year 2025"),
         "Eval Concat(List(Exprs)) as string (concat the values)"
       )
     )
