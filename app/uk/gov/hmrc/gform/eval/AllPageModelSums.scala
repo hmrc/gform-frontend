@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Sum
+// import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode }
+// import uk.gov.hmrc.gform.sharedmodel.formtemplate.Sum
 
-object AllPageModelSums {
-  def unapply[A <: PageMode](bracket: BracketPlain[A]): Option[Set[Sum]] = bracket match {
-    case AllPageModelExpressions(exprMetadatas) => Some(exprMetadatas.flatMap(_.expr.sums).toSet).filter(_.nonEmpty)
-    case _                                      => None
-  }
-}
+// object AllPageModelSums {
+//   def unapply[A <: PageMode](bracket: BracketPlain[A]): Option[Set[Sum]] = bracket match {
+//     case AllPageModelExpressions(exprMetadatas) => Some(exprMetadatas.flatMap(_.expr.sums).toSet).filter(_.nonEmpty)
+//     case _                                      => None
+//   }
+// }

@@ -16,45 +16,45 @@
 
 package uk.gov.hmrc.gform.eval
 
-import cats.syntax.eq._
-import uk.gov.hmrc.gform.models.{ BracketPlainCoordinated, PageMode, TaskModelCoordinated }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, Sum }
+// import cats.syntax.eq._
+// import uk.gov.hmrc.gform.models.{ BracketPlainCoordinated, PageMode, TaskModelCoordinated }
+// import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, Sum }
 
 /** This represents \${abc.sum} expression, where this expression
   * is used only in SmartText.
   */
-case class StandaloneSumInfo(sums: Set[Sum]) extends AnyVal {
-  def dependees(formComponentId: FormComponentId): Option[FormComponentId] =
-    sums.collectFirst {
-      case Sum(FormCtx(fcId)) if fcId.baseComponentId === formComponentId.baseComponentId => formComponentId
-    }
-}
+// case class StandaloneSumInfo(sums: Set[Sum]) extends AnyVal {
+//   def dependees(formComponentId: FormComponentId): Option[FormComponentId] =
+//     sums.collectFirst {
+//       case Sum(FormCtx(fcId)) if fcId.baseComponentId === formComponentId.baseComponentId => formComponentId
+//     }
+// }
 
-object StandaloneSumInfo {
+// object StandaloneSumInfo {
 
-  val empty: StandaloneSumInfo = StandaloneSumInfo(Set.empty[Sum])
+//   val empty: StandaloneSumInfo = StandaloneSumInfo(Set.empty[Sum])
 
-  def from[A <: PageMode](
-    brackets: BracketPlainCoordinated[A],
-    sumInfo: SumInfo
-  ): StandaloneSumInfo = {
+//   def from[A <: PageMode](
+//     brackets: BracketPlainCoordinated[A],
+//     sumInfo: SumInfo
+//   ): StandaloneSumInfo = {
 
-    val allSums: List[Set[Sum]] =
-      brackets.fold { classic =>
-        classic.bracketPlains.collect { case AllPageModelSums(sums) =>
-          sums
-        }
-      } { taskList =>
-        taskList.bracketPlains
-          .map(_._2)
-          .collect { case TaskModelCoordinated.Editable(brackets) => brackets.toList }
-          .flatten
-          .collect { case AllPageModelSums(sums) => sums }
-      }
+//     val allSums: List[Set[Sum]] =
+//       brackets.fold { classic =>
+//         classic.bracketPlains.collect { case AllPageModelSums(sums) =>
+//           sums
+//         }
+//       } { taskList =>
+//         taskList.bracketPlains
+//           .map(_._2)
+//           .collect { case TaskModelCoordinated.Editable(brackets) => brackets.toList }
+//           .flatten
+//           .collect { case AllPageModelSums(sums) => sums }
+//       }
 
-    val sums = sumInfo.keys
-    val standaloneSums: Set[Sum] = allSums.toSet.flatten.filterNot(sums)
-    StandaloneSumInfo(standaloneSums)
-  }
+//     val sums = sumInfo.keys
+//     val standaloneSums: Set[Sum] = allSums.toSet.flatten.filterNot(sums)
+//     StandaloneSumInfo(standaloneSums)
+//   }
 
-}
+// }

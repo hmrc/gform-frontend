@@ -21,7 +21,7 @@ import scalax.collection.Graph
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
 import shapeless.syntax.typeable._
-import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, IsSelfReferring, SelfReferenceProjection, StandaloneSumInfo, SumInfo }
+import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, IsSelfReferring, SelfReferenceProjection }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -35,9 +35,6 @@ object DependencyGraph {
     formModel: FormModel[T],
     formTemplateExprs: Set[ExprMetadata]
   ): Graph[GraphNode, DiEdge] = {
-
-    val isSum = new IsOneOfSum(formModel.sumInfo)
-    val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
 
     def edges(fc: FormComponent): Set[DiEdge[GraphNode]] = {
       def fcIds(fc: FormComponent): Set[DiEdge[GraphNode]] = fc match {
@@ -53,13 +50,6 @@ object DependencyGraph {
               toDiEdge(fc, expr, _ === selfReference)
             case _ => Set.empty
           }
-        case isSum.IsSum(values) =>
-          values.flatMap { value =>
-            GraphNode.Expr(FormCtx(fc.id)) ~> GraphNode.Simple(fc.id) ::
-              GraphNode.Simple(value) ~> GraphNode.Expr(FormCtx(fc.id)) :: Nil
-          }
-        case isStandaloneSum.IsSum(fcId) =>
-          Set(GraphNode.Expr(FormCtx(fcId)) ~> GraphNode.Simple(fcId))
         case _ => Set.empty
       }
       fcIds(fc)
@@ -202,16 +192,3 @@ object DependencyGraph {
   }
 }
 
-class IsOneOfSum(sumInfo: SumInfo) {
-  object IsSum {
-    def unapply(formComponent: FormComponent): Option[Set[FormComponentId]] =
-      sumInfo.dependees(formComponent.id)
-  }
-}
-
-class IsOneOfStandaloneSum(standaloneSumInfo: StandaloneSumInfo) {
-  object IsSum {
-    def unapply(formComponent: FormComponent): Option[FormComponentId] =
-      standaloneSumInfo.dependees(formComponent.id)
-  }
-}
